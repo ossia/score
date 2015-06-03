@@ -46,21 +46,6 @@ void CurveSegmentView::setSelected(bool selected)
     update();
 }
 
-#include <QGraphicsSceneMouseEvent>
-void CurveSegmentView::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit pressed(event->scenePos());
-}
-
-void CurveSegmentView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit moved(event->scenePos());
-}
-
-void CurveSegmentView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit released(event->scenePos());
-}
 
 void CurveSegmentView::updatePoints()
 {

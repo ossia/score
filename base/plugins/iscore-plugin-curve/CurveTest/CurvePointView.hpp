@@ -17,16 +17,6 @@ class CurvePointView : public QGraphicsObject
 
         void setSelected(bool selected);
 
-    signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
-
-    protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-
     private:
         CurvePointModel* m_model;
         bool m_selected{};

@@ -56,11 +56,15 @@ void MovePointCommandObject::move()
         auto prev = *std::find(segments.begin(), segments.end(), pt.previous());
         prev->setEnd(m_state->currentPoint);
     }
+
+    qDebug() << "ya" << 1;
     if(pt.following())
     {
         auto foll = *std::find(segments.begin(), segments.end(), pt.following());
         foll->setStart(m_state->currentPoint);
     }
+
+    qDebug() << "ya" << 2;
 
 
     QVector<QByteArray> newSegments;
@@ -72,8 +76,12 @@ void MovePointCommandObject::move()
         s.readFrom(*segment);
         return arr;
     });
+
+    qDebug() << "ya" << 3;
     m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
                                             std::move(newSegments));
+
+    qDebug() << "ya" << 4;
 }
 
 void MovePointCommandObject::release()

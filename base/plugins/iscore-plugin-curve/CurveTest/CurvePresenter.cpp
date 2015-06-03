@@ -163,39 +163,6 @@ void CurvePresenter::setupView()
         auto pt_view = new CurvePointView{pt, m_view};
         m_points.push_back(pt_view);
     }
-
-    // Connections
-    for(CurvePointView* curve_pt : m_points)
-    {
-        connect(curve_pt, &CurvePointView::pressed,
-                this, [&] (const QPointF& pt) {
-            m_view->pressed(pt);
-        });
-        connect(curve_pt, &CurvePointView::moved,
-                this, [&] (const QPointF& pt) {
-            m_view->moved(pt);
-        });
-        connect(curve_pt, &CurvePointView::released,
-                this, [&] (const QPointF& pt) {
-            m_view->released(pt);
-        });
-    }
-
-    for(CurveSegmentView* curve_segt : m_segments)
-    {
-        connect(curve_segt, &CurveSegmentView::pressed,
-                this, [&] (const QPointF& pt) {
-            m_view->pressed(pt);
-        });
-        connect(curve_segt, &CurveSegmentView::moved,
-                this, [&] (const QPointF& pt) {
-            m_view->moved(pt);
-        });
-        connect(curve_segt, &CurveSegmentView::released,
-                this, [&] (const QPointF& pt) {
-            m_view->released(pt);
-        });
-    }
 }
 
 void CurvePresenter::setupStateMachine()

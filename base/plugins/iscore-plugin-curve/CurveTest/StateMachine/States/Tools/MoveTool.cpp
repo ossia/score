@@ -86,6 +86,7 @@ void MoveTool::on_moved()
 
 void MoveTool::on_released()
 {
+    qDebug() << Q_FUNC_INFO;
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
     {
@@ -100,6 +101,6 @@ void MoveTool::on_released()
     [&] ()
     {
         qDebug() << Q_FUNC_INFO << 3;
-        //localSM().postEvent(new Move_Event(m_parentSM.scenePoint));
+        localSM().postEvent(new ReleaseOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }

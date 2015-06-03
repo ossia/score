@@ -64,6 +64,8 @@ using ReleaseOnSegment_Transition = PositionedCurveTransition<Element::Segment_t
 
 class MoveOnAnything_Transition : public GenericCurveTransition<QAbstractTransition>
 {
+    public:
+        using GenericCurveTransition<QAbstractTransition>::GenericCurveTransition;
     protected:
         bool eventTest(QEvent* e) override
         {

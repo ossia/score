@@ -49,19 +49,3 @@ void CurvePointView::setSelected(bool selected)
     m_selected = selected;
     update();
 }
-
-#include <QGraphicsSceneMouseEvent>
-void CurvePointView::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit pressed(event->scenePos());
-}
-
-void CurvePointView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit moved(event->scenePos());
-}
-
-void CurvePointView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-    emit released(event->scenePos());
-}

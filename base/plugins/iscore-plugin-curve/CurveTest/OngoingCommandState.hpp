@@ -34,11 +34,11 @@ class OngoingState : public Curve::StateBase
                 mainState->setInitialState(pressed);
 
                 // Also try with pressed, released
-                make_transition<PositionedCurveTransition<Element, Modifier::Move_tag>>(pressed, moving, *this);
-                make_transition<PositionedCurveTransition<Element, Modifier::Release_tag>>(pressed, released, *this);
+                make_transition<MoveOnAnything_Transition>(pressed, moving, *this);
+                make_transition<ReleaseOnAnything_Transition>(pressed, released);
 
-                make_transition<PositionedCurveTransition<Element, Modifier::Move_tag>>(moving, moving, *this);
-                make_transition<PositionedCurveTransition<Element, Modifier::Release_tag>>(moving, released, *this);
+                make_transition<MoveOnAnything_Transition>(moving, moving, *this);
+                make_transition<ReleaseOnAnything_Transition>(moving, released);
 
                 connect(pressed, &QAbstractState::entered,
                         this, [&] () {

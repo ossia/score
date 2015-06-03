@@ -84,6 +84,7 @@ void CurveStateMachine::setupPostEvents()
     connect(&m_presenter.view(), &CurveView::released,
             this, [=] (const QPointF& point)
     {
+        qDebug("releasin");
         updateData(point);
         postEvent(new Release_Event);
     });
