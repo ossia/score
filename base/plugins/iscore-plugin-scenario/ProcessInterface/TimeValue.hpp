@@ -202,8 +202,6 @@ class TimeValue_T
             return res;
         }
 
-
-
     private:
         boost::optional<T> m_impl {0};
 };

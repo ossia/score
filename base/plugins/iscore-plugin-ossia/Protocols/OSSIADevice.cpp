@@ -113,7 +113,7 @@ void OSSIADevice::removeAddress(const QString &address)
     path.removeFirst();
 
     OSSIA::Node* node = nodeFromPath(path, m_dev.get());
-    auto& children = node->getParent().children();
+    auto& children = node->getParent()->children();
     auto it = std::find_if(children.begin(), children.end(), [&] (auto&& elt) { return elt.get() == node; });
     if(it != children.end())
         children.erase(it);
