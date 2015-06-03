@@ -62,9 +62,6 @@ class TemporalScenarioView : public ProcessView
     private:
         QRectF m_selectArea;
 
-        QAction* m_clearAction {};
-
-
         bool m_lock {};
         TemporalScenarioPresenter* m_pres{};
 };
