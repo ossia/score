@@ -5,7 +5,7 @@
 // - A global pane (system-wide)
 // - A local pane (document-wide, saved in the panel)
 
-static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 0, QObject::tr("Library")};
+static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 0, QObject::tr("Library")};
 
 const iscore::DefaultPanelStatus &LibraryPanelView::defaultPanelStatus() const
 { return status; }

@@ -3,7 +3,7 @@
 #include <QVBoxLayout>
 #include "Widgets/UndoListWidget.hpp"
 
-static const iscore::DefaultPanelStatus status{true, Qt::LeftDockWidgetArea, 0, QObject::tr("History")};
+static const iscore::DefaultPanelStatus status{true, Qt::LeftDockWidgetArea, 1, QObject::tr("History")};
 
 const iscore::DefaultPanelStatus &UndoView::defaultPanelStatus() const
 { return status; }

@@ -13,6 +13,7 @@
 #include "Control/OldFormatConversion.hpp"
 
 #include "Menus/ObjectMenuActions.hpp"
+#include "Menus/ToolMenuActions.hpp"
 
 #include <core/document/DocumentModel.hpp>
 
@@ -30,7 +31,8 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
 {
-    m_objectAction = new ObjectMenuActions{this};
+    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
+    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
 }
 
 template<typename Selected_T>
@@ -143,10 +145,9 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 
     m_objectAction->fillMenuBar(menu);
 
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ToolMenu,
-                                       m_selecttool);
-
     ///// View /////
+
+    // TODO create ViewMenuActions
     m_selectAll = new QAction{tr("Select all"), this};
     m_selectAll->setShortcut(QKeySequence::SelectAll);
     m_selectAll->setToolTip("Ctrl+a");
@@ -175,6 +176,10 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ViewMenu,
                                        ViewMenuElement::Windows,
                                        m_deselectAll);
+
+    ///// Tool /////
+
+    m_toolActions->fillMenuBar(menu);
 }
 
 template<typename Data>
@@ -200,75 +205,9 @@ ScenarioStateMachine& ScenarioControl::stateMachine() const
 
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
-    // TODO why not in Menu too ?
     QToolBar *bar = new QToolBar;
-    // The tools
-    m_scenarioToolActionGroup = new QActionGroup{bar};
-    m_scenarioToolActionGroup->setDisabled(true);
 
-    // NOTE : if a scenario isn't focused, they shouldn't event be clickable.
-    m_selecttool = makeToolbarAction(
-                     tr("Select"),
-                     m_scenarioToolActionGroup,
-                     Tool::Select,
-                     tr("Alt+x"));
-    m_selecttool->setChecked(true);
-    connect(m_selecttool, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Select)); });
-
-    auto createtool = makeToolbarAction(
-                          tr("Create"),
-                          m_scenarioToolActionGroup,
-                          Tool::Create,
-                          tr("Alt+c"));
-    connect(createtool, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Create)); });
-
-    auto movetool = makeToolbarAction(
-                        tr("Move"),
-                        m_scenarioToolActionGroup,
-                        Tool::Move,
-                        tr("Alt+v"));
-    connect(movetool, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Move)); } );
-
-    auto deckmovetool = makeToolbarAction(
-                            tr("Move Deck"),
-                            m_scenarioToolActionGroup,
-                            Tool::MoveDeck,
-                            tr("Alt+b"));
-    connect(deckmovetool, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::MoveDeck)); });
-
-    // The action modes
-    m_scenarioScaleModeActionGroup = new QActionGroup{bar};
-    m_scenarioScaleModeActionGroup->setDisabled(true);
-
-    auto scale = makeToolbarAction(
-                     tr("Scale"),
-                     m_scenarioScaleModeActionGroup,
-                     ExpandMode::Scale,
-                     tr("Alt+S"));
-    scale->setChecked(true);
-    connect(scale, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().setScaleState(); });
-
-    auto grow = makeToolbarAction(
-                    tr("Grow/Shrink"),
-                    m_scenarioScaleModeActionGroup,
-                    ExpandMode::Grow,
-                    tr("Alt+D"));
-    connect(grow, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().setGrowState(); });
-
-    auto fixed = makeToolbarAction(
-                    tr("Keep Duration"),
-                    m_scenarioScaleModeActionGroup,
-                    ExpandMode::Fixed,
-                    tr("Alt+F"));
-    connect(fixed, &QAction::triggered, [=]()
-    { focusedPresenter()->stateMachine().setFixedState(); });
-
+    // TODO : put it in ToolMenuActions
     m_shiftActionGroup = new QActionGroup{bar};
     m_shiftActionGroup->setDisabled(true);
 
@@ -288,13 +227,9 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
         }
     });
 
-    m_scenarioToolActionGroup->setDisabled(true);
-    m_scenarioScaleModeActionGroup->setDisabled(true);
     m_shiftActionGroup->setDisabled(true);
 
-    bar->addActions(m_scenarioToolActionGroup->actions());
-    bar->addSeparator();
-    bar->addActions(m_scenarioScaleModeActionGroup->actions());
+    m_toolActions->makeToolBar(bar);
     bar->addSeparator();
     bar->addActions(m_shiftActionGroup->actions());
 
@@ -339,8 +274,7 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
             contextMenu.addSeparator();
         }
     }
-    auto tool = contextMenu.addMenu(tr("Tool"));
-    tool->addActions(m_scenarioToolActionGroup->actions());
+    m_toolActions->fillContextMenu(&contextMenu);
 
     contextMenu.exec(pos);
 
@@ -351,8 +285,7 @@ void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-    m_scenarioToolActionGroup->setEnabled(false);
-    m_scenarioScaleModeActionGroup->setEnabled(false);
+    m_toolActions->setEnabled(false);
     m_shiftActionGroup->setEnabled(false);
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
@@ -365,9 +298,8 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
 {
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
-    m_selecttool->setChecked(true);
-    m_scenarioToolActionGroup->setEnabled(s_pres);
-    m_scenarioScaleModeActionGroup->setEnabled(s_pres);
+    m_toolActions->setEnabled(s_pres);
+
     m_shiftActionGroup->setEnabled(s_pres);
 
     disconnect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
@@ -404,7 +336,7 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
 
         // Set the current state on the statemachine.
         // TODO put this in a pattern (MappedActionGroup?)
-        for (QAction *action : m_scenarioToolActionGroup->actions())
+        for (QAction *action : m_toolActions->toolActions())
         {
             if (action->isChecked())
             {
@@ -412,7 +344,7 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
             }
         }
 
-        for(QAction* action : m_scenarioScaleModeActionGroup->actions())
+        for(QAction* action : m_toolActions->modeActions())
         {
             if (action->isChecked())
             {
@@ -446,8 +378,7 @@ void ScenarioControl::on_documentChanged()
 
     if(!currentDocument())
     {
-        m_scenarioScaleModeActionGroup->setDisabled(true);
-        m_scenarioToolActionGroup->setDisabled(true);
+        m_toolActions->setEnabled(false);
         return;
     }
     else

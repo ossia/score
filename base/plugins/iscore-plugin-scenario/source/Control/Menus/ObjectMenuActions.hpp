@@ -1,21 +1,17 @@
 #pragma once
 
-#include "Control/ScenarioControl.hpp"
-#include <QObject>
+#include "AbstractMenuActions.hpp"
 
-class ObjectMenuActions : public QObject
+class ObjectMenuActions : public AbstractMenuActions
 {
-    Q_OBJECT
     public:
-        ObjectMenuActions(ScenarioControl* parent);
+        ObjectMenuActions(iscore::ToplevelMenuElement,ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu);
         void fillContextMenu(QMenu* menu);
 
         QList<QAction*> actions();
 
     private:
-        ScenarioControl* m_parent;
-
         QAction* m_removeElements;
         QAction *m_clearElements;
         QAction *m_copyContent;

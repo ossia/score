@@ -26,14 +26,13 @@ class TextDialog : public QDialog
             layout()->addWidget(buttonBox);
 
             connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-
         }
 };
 
-ObjectMenuActions::ObjectMenuActions(ScenarioControl* parent) :
-        m_parent{parent}
+ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent) :
+    AbstractMenuActions(menuElt, parent)
 {
-    // remove
+    // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
     m_removeElements->setShortcut(QKeySequence::Delete);
     connect(m_removeElements, &QAction::triggered,
@@ -58,7 +57,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioControl* parent) :
         }
     });
 
-    // copy/cut
+    // COPY/CUT
     m_copyContent = new QAction{tr("Copy"), this};
     m_copyContent->setShortcut(QKeySequence::Copy);
     connect(m_copyContent, &QAction::triggered,
@@ -104,19 +103,13 @@ ObjectMenuActions::ObjectMenuActions(ScenarioControl* parent) :
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 {
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_elementsToJson);
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_removeElements);
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_clearElements);
-    menu->addSeparatorIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu, iscore::EditMenuElement::Separator_Copy);
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_copyContent);
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_cutContent);
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_pasteContent);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_removeElements);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_clearElements);
+    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::EditMenuElement::Separator_Copy);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_copyContent);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_cutContent);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 
 }
 
