@@ -19,7 +19,7 @@ MoveTool::MoveTool(CurveStateMachine& sm):
     /// Point
     {
         auto mpco = new MovePointCommandObject(&sm.presenter(), sm.commandStack());
-        auto movePoint = new OngoingState<Curve::Element::Point_tag>(*mpco, &localSM());
+        auto movePoint = new OngoingState(*mpco, &localSM());
         movePoint->setObjectName("MovePointState");
         make_transition<ClickOnPoint_Transition>(m_waitState, movePoint, *movePoint);
         movePoint->addTransition(movePoint, SIGNAL(finished()), m_waitState);
@@ -28,18 +28,6 @@ MoveTool::MoveTool(CurveStateMachine& sm):
         localSM().addState(m_movePoint);
     }
 
-    /*
-    /// Segment
-    {
-        auto msco = new MoveSegmentCommandObject(sm);
-        auto moveSegment = new OngoingState<Curve::Element::Segment_tag>(*msco, &localSM());
-        make_transition<ClickOnSegment_Transition>(m_waitState, moveSegment, *moveSegment);
-        moveSegment->addTransition(moveSegment, SIGNAL(finished()), m_waitState);
-
-        m_moveSegment = moveSegment;
-        localSM().addState(m_moveSegment);
-    }
-    */
     localSM().start();
 }
 
@@ -53,11 +41,11 @@ void MoveTool::on_pressed()
     },
     [&] (const QGraphicsItem* segment)
     {
-        localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
+        //localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
     },
     [&] ()
     {
-        localSM().postEvent(new ClickOnNothing_Event(m_parentSM.curvePoint, nullptr));
+        //localSM().postEvent(new ClickOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }
 

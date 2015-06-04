@@ -5,7 +5,6 @@
 #include <iscore/selection/Selectable.hpp>
 #include "StateMachine/CurvePoint.hpp"
 
-
 // Gives the data.
 class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 {
@@ -33,20 +32,35 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
         virtual QString name() const = 0;
         virtual void serialize(const VisitorVariant&) const = 0;
-        virtual QVector<QPointF> data(int numInterp) const = 0; // Will interpolate
+        virtual void updateData(int numInterp) = 0; // Will interpolate
+
+        const QVector<QPointF>& data() const
+        { return m_data; }
 
 
-        CurvePoint start() const;
         void setStart(const CurvePoint& pt);
+        CurvePoint start() const
+        {
+            return m_start;
+        }
 
-        CurvePoint end() const;
         void setEnd(const CurvePoint& pt);
+        CurvePoint end() const
+        {
+            return m_end;
+        }
 
-        const id_type<CurveSegmentModel>& previous() const;
         void setPrevious(const id_type<CurveSegmentModel>& previous);
+        const id_type<CurveSegmentModel>& previous() const
+        {
+            return m_previous;
+        }
 
-        const id_type<CurveSegmentModel>& following() const;
         void setFollowing(const id_type<CurveSegmentModel>& following);
+        const id_type<CurveSegmentModel>& following() const
+        {
+            return m_following;
+        }
 
 
     signals:
@@ -57,6 +71,9 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
     protected:
         virtual void on_startChanged() = 0;
         virtual void on_endChanged() = 0;
+
+        QVector<QPointF> m_data;
+        bool m_valid{}; // Used to perform caching.
 
     private:
         CurvePoint m_start, m_end;

@@ -21,11 +21,11 @@ class CurveSegmentView : public QGraphicsObject
         void updatePoints();
         // Takes a table of points and draws them in a square given by the boundingRect
         // QGraphicsItem interface
-        QVector<QPointF> m_points; // each between rect.topLeft() :: rect.bottomRight()
         QRectF m_rect;
 
         CurveSegmentModel* m_model{};
         bool m_selected{};
 
         QPainterPath m_shape;
+        QVector<QLineF> m_lines;
 };

@@ -7,7 +7,6 @@
 
 
 // TODO rename file
-template<typename Element>
 class OngoingState : public Curve::StateBase
 {
     public:

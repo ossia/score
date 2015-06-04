@@ -33,17 +33,14 @@ void LinearCurveSegmentModel::on_endChanged()
     emit dataChanged();
 }
 
-QVector<QPointF> LinearCurveSegmentModel::data(int numInterp) const
+void LinearCurveSegmentModel::updateData(int numInterp)
 {
-    QVector<QPointF> interppts;
-    interppts.resize(numInterp + 1);
-
-    for(int j = 0; j <= numInterp; j++)
+    if(!m_valid)
     {
-        interppts[j] = start() + double(j) / numInterp * (end() - start());
+        m_data.resize(2);
+        m_data[0] = start();
+        m_data[1] = end();
     }
-
-    return interppts;
 }
 
 
@@ -82,19 +79,24 @@ void GammaCurveSegmentModel::on_endChanged()
     emit dataChanged();
 }
 
-QVector<QPointF> GammaCurveSegmentModel::data(int numInterp) const
+void GammaCurveSegmentModel::updateData(int numInterp)
 {
-    QVector<QPointF> interppts;
-    interppts.resize(numInterp + 1);
-
-    for(int j = 0; j <= numInterp; j++)
+    if(numInterp + 1 != m_data.size())
+        m_valid = false;
+    if(!m_valid)
     {
-        QPointF& pt = interppts[j];
-        pt.setX(start().x() + (double(j) / numInterp) * (end().x() - start().x()));
-        pt.setY(start().y() + std::pow(double(j) / numInterp, gamma) * (end().y() - start().y()));
+        m_data.resize(numInterp + 1);
+        double start_x = start().x();
+        double start_y = start().y();
+        double end_x = end().x();
+        double end_y = end().y();
+        for(int j = 0; j <= numInterp; j++)
+        {
+            QPointF& pt = m_data[j];
+            pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
+            pt.setY(start_y + std::pow(double(j) / numInterp, gamma) * (end_y - start_y));
+        }
     }
-
-    return interppts;
 }
 
 
@@ -131,18 +133,22 @@ void SinCurveSegmentModel::on_endChanged()
     emit dataChanged();
 }
 
-QVector<QPointF> SinCurveSegmentModel::data(int numInterp) const
+void SinCurveSegmentModel::updateData(int numInterp)
 {
-    QVector<QPointF> interppts;
-    numInterp *= 2;
-    interppts.resize(numInterp + 1);
-
-    for(int j = 0; j <= numInterp; j++)
+    if(2*numInterp+1 != m_data.size())
+        m_valid = false;
+    if(!m_valid)
     {
-        QPointF& pt = interppts[j];
-        pt.setX(start().x() + (double(j) / numInterp) * (end().x() - start().x()));
-        pt.setY(0.5 + 0.5 * ampl * sin(6.28 * freq * double(j) / numInterp));
-    }
+        numInterp *= 2;
+        m_data.resize(numInterp + 1);
 
-    return interppts;
+        double start_x = start().x();
+        double end_x = end().x();
+        for(int j = 0; j <= numInterp; j++)
+        {
+            QPointF& pt = m_data[j];
+            pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
+            pt.setY(0.5 + 0.5 * ampl * sin(6.28 * freq * double(j) / numInterp));
+        }
+    }
 }

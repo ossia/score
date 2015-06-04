@@ -8,10 +8,7 @@ CurveSegmentModel::CurveSegmentModel(const id_type<CurveSegmentModel>& id, QObje
 
 }
 
-const id_type<CurveSegmentModel>& CurveSegmentModel::previous() const
-{
-    return m_previous;
-}
+
 
 void CurveSegmentModel::setPrevious(const id_type<CurveSegmentModel>& previous)
 {
@@ -21,10 +18,7 @@ void CurveSegmentModel::setPrevious(const id_type<CurveSegmentModel>& previous)
         emit previousChanged();
     }
 }
-const id_type<CurveSegmentModel>& CurveSegmentModel::following() const
-{
-    return m_following;
-}
+
 
 void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following)
 {
@@ -35,24 +29,26 @@ void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following
     }
 }
 
-CurvePoint CurveSegmentModel::end() const
-{
-    return m_end;
-}
+
 
 void CurveSegmentModel::setEnd(const CurvePoint& pt)
 {
-    m_end = pt;
-    on_endChanged();
+    if(pt != m_end)
+    {
+        m_end = pt;
+        m_valid = false;
+        on_endChanged();
+    }
 }
 
-CurvePoint CurveSegmentModel::start() const
-{
-    return m_start;
-}
+
 
 void CurveSegmentModel::setStart(const CurvePoint& pt)
 {
-    m_start = pt;
-    on_startChanged();
+    if(pt != m_start)
+    {
+        m_start = pt;
+        m_valid = false;
+        on_startChanged();
+    }
 }

@@ -35,9 +35,11 @@ void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 {
     QColor c = m_selected ? Qt::yellow : Qt::red;
     QPen pen;
+    pen.setWidth(2);
     pen.setColor(c);
     painter->setPen(pen);
-    painter->fillPath(m_shape, c);
+    painter->drawPath(m_shape);
+    //painter->drawLines(m_lines);
 }
 
 void CurveSegmentView::setSelected(bool selected)
@@ -54,27 +56,33 @@ void CurveSegmentView::updatePoints()
     double startx = m_model->start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
-    auto pts = m_model->data(25); // Set the number of required points here.
+    m_model->updateData(25); // Set the number of required points here.
+    auto pts = m_model->data();
 
+    //m_lines.clear();
     // Map to the scene coordinates
-    std::transform(pts.begin(), pts.end(), pts.begin(),
-                   [&] (const QPointF& pt) {
-        return QPointF{
-            pt.x() * scalex - startx,
-            (1. - pt.y()) * m_rect.height()};
-    });
-
-    m_points = std::move(pts);
-
-    if(!m_points.empty())
+    if(!m_model->data().empty())
     {
-        QPainterPath p(m_points.first());
+        //m_lines.resize(m_model->data().size());
+        auto first = m_model->data().first();
+        auto first_scaled = QPointF{
+                first.x() * scalex - startx,
+                (1. - first.y()) * m_rect.height()};
+        QPainterPath p{first_scaled};
+        for(int i = 1; i < m_model->data().size(); i++)
+        {
+            const auto& next = m_model->data().at(i);
+            auto next_scaled = QPointF{
+                    next.x() * scalex - startx,
+                    (1. - next.y()) * m_rect.height()};
+            p.lineTo(next_scaled);
 
-        for(int i = 0; i < m_points.size(); i++)
-            p.lineTo(m_points[i]);
+            //m_lines[i] = QLineF(first_scaled, next_scaled);
+            //first_scaled = next_scaled;
+        }
 
         QPainterPathStroker stroker;
-        stroker.setWidth(3);
+        stroker.setWidth(2);
         m_shape = stroker.createStroke(p);
     }
 

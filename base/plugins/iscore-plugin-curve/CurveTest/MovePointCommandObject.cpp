@@ -1,12 +1,13 @@
 #include "MovePointCommandObject.hpp"
-#include "UpdateCurve.hpp"
-#include "CurvePresenter.hpp"
-#include "CurveModel.hpp"
-#include "CurveSegmentModel.hpp"
-#include "CurvePointModel.hpp"
-#include "CurvePointView.hpp"
+#include "CurveTest/UpdateCurve.hpp"
+#include "CurveTest/CurvePresenter.hpp"
+#include "CurveTest/CurveModel.hpp"
+#include "CurveTest/CurveSegmentModel.hpp"
+#include "CurveTest/CurvePointModel.hpp"
+#include "CurveTest/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-#include "LinearCurveSegmentModel.hpp"
+#include "CurveTest/LinearCurveSegmentModel.hpp"
+#include "CurveSegmentModelSerialization.hpp"
 MovePointCommandObject::MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack):
     CurveCommandObjectBase{presenter},
     m_dispatcher{stack}
@@ -17,12 +18,13 @@ MovePointCommandObject::MovePointCommandObject(CurvePresenter* presenter, iscore
 void MovePointCommandObject::on_press()
 {
     // Save the start data.
-    auto currentPoint = *std::find_if(m_presenter->model()->points().begin(),
+    // Firts we take the exact position of the point we clicked.
+    auto clickedCurvePoint = *std::find_if(m_presenter->model()->points().begin(),
                                      m_presenter->model()->points().end(),
                                      [&] (CurvePointModel* pt)
     { return pt->previous()  == m_state->clickedPointId.previous
           && pt->following() == m_state->clickedPointId.following; });
-    m_originalPress = currentPoint->pos();
+    m_originalPress = clickedCurvePoint->pos();
 
     m_startSegments.clear();
     auto current = m_presenter->model()->segments();
@@ -46,7 +48,7 @@ void MovePointCommandObject::on_press()
         for(CurvePointModel* pt : m_presenter->model()->points())
         {
             auto pt_x = pt->pos().x();
-            if(pt == currentPoint)
+            if(pt == clickedCurvePoint)
                 continue;
 
             if(pt_x >= xmin && pt_x < m_originalPress.x())
@@ -61,7 +63,6 @@ void MovePointCommandObject::on_press()
     }
 }
 
-#include "CurveSegmentModelSerialization.hpp"
 void MovePointCommandObject::move()
 {
     // First we deserialize the base segments. This way we can start from a clean state at each time.

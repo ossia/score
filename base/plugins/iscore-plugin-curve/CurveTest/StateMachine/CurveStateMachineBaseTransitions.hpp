@@ -90,6 +90,31 @@ using ReleaseOnNothing_Transition = PositionedCurveTransition<Element::Nothing_t
 using ReleaseOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, Modifier::Release_tag>;
 using ReleaseOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, Modifier::Release_tag>;
 
+
+class ClickOnAnything_Transition : public GenericCurveTransition<QAbstractTransition>
+{
+    public:
+        using GenericCurveTransition<QAbstractTransition>::GenericCurveTransition;
+    protected:
+        bool eventTest(QEvent* e) override
+        {
+            using namespace std;
+            static const constexpr QEvent::Type types[] = {
+                QEvent::Type(QEvent::User + ClickOnNothing_Event::user_type),
+                QEvent::Type(QEvent::User + ClickOnPoint_Event::user_type),
+                QEvent::Type(QEvent::User + ClickOnSegment_Event::user_type)};
+
+            return find(begin(types), end(types), e->type()) != end(types);
+        }
+
+        void onTransition(QEvent* e) override
+        {
+            auto qev = static_cast<PositionedEvent<CurvePoint>*>(e);
+
+            this->state().currentPoint = qev->point;
+        }
+};
+
 class MoveOnAnything_Transition : public GenericCurveTransition<QAbstractTransition>
 {
     public:

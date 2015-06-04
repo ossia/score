@@ -4,6 +4,7 @@
 #include "CurveTest/CurveView.hpp"
 #include "CurveTest/StateMachine/States/Tools/MoveTool.hpp"
 #include "CurveTest/StateMachine/States/Tools/SelectionTool.hpp"
+#include "CurveTest/StateMachine/States/Tools/CreationTool.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <core/document/Document.hpp>
 CurveStateMachine::CurveStateMachine(
@@ -50,7 +51,8 @@ void CurveStateMachine::setupStates()
 {
     m_selectTool = new Curve::SelectionTool(*this);
     m_moveTool = new Curve::MoveTool(*this);
-    this->setInitialState(m_moveTool);
+    m_createTool = new Curve::CreationTool(*this);
+    this->setInitialState(m_createTool);
 }
 
 void CurveStateMachine::setupPostEvents()

@@ -23,7 +23,7 @@ class LinearCurveSegmentModel : public CurveSegmentModel
         void on_startChanged() override;
         void on_endChanged() override;
 
-        virtual QVector<QPointF> data(int numInterp) const override;
+        void updateData(int numInterp) override;
 };
 
 
@@ -49,7 +49,7 @@ class GammaCurveSegmentModel : public CurveSegmentModel
         void on_startChanged() override;
         void on_endChanged() override;
 
-        virtual QVector<QPointF> data(int numInterp) const override;
+        void updateData(int numInterp) override;
 
         double gamma = 0.5;
 };
@@ -76,7 +76,7 @@ class SinCurveSegmentModel : public CurveSegmentModel
         void on_startChanged() override;
         void on_endChanged() override;
 
-        virtual QVector<QPointF> data(int numInterp) const override;
+        void updateData(int numInterp) override;
 
         double freq = 5;
         double ampl = 0.6;
