@@ -19,18 +19,27 @@ AutomationModel::AutomationModel(
     s1->setEnd({0.2, 1.});
 
     auto s2 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(2), m_curve);
-    s2->setStart({0.2, 1.});
-    s2->setEnd({0.6, 0.0});
+    s2->setStart({0.2, 0.9});
+    s2->setEnd({0.4, 0.5});
     s2->setPrevious(s1->id());
     s1->setFollowing(s2->id());
 
-    auto s3 = new SinCurveSegmentModel(id_type<CurveSegmentModel>(3), m_curve);
-    s3->setStart({0.7, 0.0});
-    s3->setEnd({1.0, 1.});
+    auto s3 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(3), m_curve);
+    s3->setStart({0.4, 0.5});
+    s3->setEnd({0.6, 1.0});
+    s3->setPrevious(s2->id());
+    s2->setFollowing(s3->id());
+    s3->gamma = 10;
+
+
+    auto s4 = new SinCurveSegmentModel(id_type<CurveSegmentModel>(4), m_curve);
+    s4->setStart({0.7, 0.0});
+    s4->setEnd({1.0, 1.});
 
     m_curve->addSegment(s1);
     m_curve->addSegment(s2);
     m_curve->addSegment(s3);
+    m_curve->addSegment(s4);
 }
 
 ProcessModel* AutomationModel::clone(

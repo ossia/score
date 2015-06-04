@@ -6,7 +6,7 @@
 #include "CurvePointModel.hpp"
 #include "CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-
+#include "LinearCurveSegmentModel.hpp"
 MovePointCommandObject::MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack):
     CurveCommandObjectBase{presenter},
     m_dispatcher{stack}
@@ -84,87 +84,15 @@ void MovePointCommandObject::move()
     handlePointOverlap(segments, current_x);
 
     // This handles what happens when we cross another point.
-    if(false && m_presenter->suppressOnOverlap())
+    if(false &&m_presenter->suppressOnOverlap())
     {
         handleSuppressOnOverlap(segments, current_x);
     }
     else
     {
-        // In this case we merge at the origins of the point and we create if it is in a new place.
-        // First we fetch the points around our point when clicked
-
-        // First, if we go to the right.
-        if(current_x > m_originalPress.x())
-        {
-            // If we have a following segment and the current position > end of the following segment
-            if(m_state->clickedPointId.following)
-            {
-                CurveSegmentModel* foll_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.following);
-                if(current_x > foll_seg->end().x())
-                {
-                    // If there was also a previous segment, it now goes to the end of the
-                    // presently removed segment.
-                    if(m_state->clickedPointId.previous)
-                    {
-                        CurveSegmentModel* prev_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
-                        prev_seg->setEnd(foll_seg->end());
-                        prev_seg->setFollowing(foll_seg->following());
-                    }
-
-                    // If the one about to be deleted also had a following
-                    if(foll_seg->following())
-                    {
-                        CurveSegmentModel* foll_foll_seg = *std::find(segments.begin(), segments.end(), foll_seg);
-                        foll_foll_seg->setStart(foll_seg->end());
-                        foll_foll_seg->setPrevious(foll_seg->previous());
-                    }
-
-                    segments.removeOne(foll_seg);
-                    delete foll_seg;
-                }
-            }
-
-            // then we handle the reaction current position of the cursor
-            auto middleSegment = std::find_if(segments.begin(), segments.end(),
-                                                [&] (CurveSegmentModel* segment)
-            {       // Going to the right
-                    return segment->start().x() >= m_originalPress.x()
-                    && segment->start().x() < current_x
-                    && segment->end().x() > current_x;
-        });
-
-            if(middleSegment != segments.end())
-            {
-                // We're on the middle of a segment
-                // First we remove the segment (if any) that was after our clicked point
-
-                // Then we insert a new element after the leftmost point from the current point.
-                // Since we are in a segment we split it and create another with a new id.
-                CurveSegmentModel* middle = *middleSegment;
-                auto newSegment = middle->clone(getStrongId(segments), nullptr);
-                newSegment->setStart(middle->start());
-                newSegment->setEnd(m_state->currentPoint);
-                newSegment->setPrevious(middle->previous());
-                newSegment->setFollowing(middle->id());
-
-                middle->setStart(m_state->currentPoint);
-                middle->setPrevious(newSegment->id());
-                segments.append(newSegment);
-            }
-            else
-            {
-                // We're on the empty; we make a new linear segment from the end of the last point
-                // or zero if there is none ?
-            }
-
-
-            // Then if we are beyond one of these points, we replace by the value at the left/right
-        }
-        //if(current_x < )
+        handleCrossOnOverlap(segments, current_x);
     }
 
-    // Then we change the start/end of the correct segments
-    fixBounds(segments);
 
     QVector<QByteArray> newSegments;
     std::transform(segments.begin(), segments.end(), std::back_inserter(newSegments),
@@ -329,9 +257,251 @@ void MovePointCommandObject::handleSuppressOnOverlap(QVector<CurveSegmentModel *
     }
 
     // TODO check for reversion of start/end
+
+    // Then we change the start/end of the correct segments
+    setCurrentPoint(segments);
 }
 
-void MovePointCommandObject::fixBounds(QVector<CurveSegmentModel *> &segments)
+
+void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& segments, double current_x)
+{
+    // In this case we merge at the origins of the point and we create if it is in a new place.
+
+    // First, if we go to the right.
+    if(current_x > m_originalPress.x())
+    {
+        // Get the segment we're in, if there's any
+        auto middleSegmentIt = std::find_if(segments.begin(), segments.end(),
+                                            [&] (CurveSegmentModel* segment)
+        {       // Going to the right
+                return
+                   segment->start().x() > m_originalPress.x()
+                && segment->start().x() < current_x
+                && segment->end().x() > current_x;
+        });
+        CurveSegmentModel* middle = middleSegmentIt != segments.end() ? *middleSegmentIt : nullptr;
+
+        // First part : removal of the segments around the initial click
+        // If we have a following segment and the current position > end of the following segment
+        if(m_state->clickedPointId.following)
+        {
+            CurveSegmentModel* foll_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.following);
+            if(current_x > foll_seg->end().x())
+            {
+                // If there was also a previous segment, it now goes to the end of the
+                // presently removed segment.
+                if(m_state->clickedPointId.previous)
+                {
+                    CurveSegmentModel* prev_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
+                    prev_seg->setEnd(foll_seg->end());
+                    prev_seg->setFollowing(foll_seg->following());
+                }
+                else
+                {
+                    // Link to the previous segment, or to the zero, maybe ?
+                }
+
+                // If the one about to be deleted also had a following, we set its previous
+                // to the previous of the clicked point
+                if(foll_seg->following())
+                {
+                    CurveSegmentModel* foll_foll_seg = *std::find(segments.begin(), segments.end(), foll_seg->following());
+                    foll_foll_seg->setPrevious(m_state->clickedPointId.previous);
+                }
+
+                segments.removeOne(foll_seg);
+                delete foll_seg;
+            }
+            else
+            {
+                // We have not crossed a point
+                setCurrentPoint(segments);
+            }
+        }
+        else
+        {
+            // If we have crossed a point (after some "emptiness")
+            if(middle)
+            {
+                // We remove the previous of the clicked point
+                CurveSegmentModel* prev_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
+
+                if(prev_seg->previous())
+                {
+                    // We set its following to null.
+                    CurveSegmentModel* prev_prev_seg = *std::find(segments.begin(), segments.end(), prev_seg->previous());
+                    prev_prev_seg->setFollowing(id_type<CurveSegmentModel>{});
+                }
+
+                segments.removeOne(prev_seg);
+                delete prev_seg;
+
+            }
+            else
+            {
+                // We have not crossed a point
+                setCurrentPoint(segments);
+            }
+        }
+
+        // Second part : creation of a new segment where the cursor actually is
+        if(middle)
+        {
+            // We insert a new element after the leftmost point from the current point.
+            // Since we are in a segment we split it and create another with a new id.
+            auto newSegment = middle->clone(getStrongId(segments), nullptr);
+            newSegment->setStart(middle->start());
+            newSegment->setEnd(m_state->currentPoint);
+            newSegment->setPrevious(middle->previous());
+            newSegment->setFollowing(middle->id());
+
+            auto prev_it = std::find(segments.begin(), segments.end(), middle->previous());
+            if(prev_it != segments.end())
+            {
+                (*prev_it)->setFollowing(newSegment->id());
+            }
+
+
+            middle->setStart(m_state->currentPoint);
+            middle->setPrevious(newSegment->id());
+            segments.append(newSegment);
+        }
+        else
+        {
+            /*
+            // We're on the empty; we make a new linear segment from the end of the last point
+            // or zero if there is none ? this can't happen unless we select a point on zero.
+
+            double seg_closest_from_left_x = 0;
+            CurveSegmentModel* seg_closest_from_left{};
+            for(CurveSegmentModel* segment : segments)
+            {
+                auto seg_end_x = segment->end().x();
+                if(seg_end_x < current_x && seg_end_x > seg_closest_from_left_x)
+                {
+                    seg_closest_from_left_x = seg_end_x;
+                    seg_closest_from_left = segment;
+                }
+            }
+            auto newSegment = new LinearCurveSegmentModel{getStrongId(segments), nullptr};
+            newSegment->setEnd(m_state->currentPoint);
+
+            if(seg_closest_from_left)
+            {
+                newSegment->setStart(seg_closest_from_left->end());
+                newSegment->setPrevious(seg_closest_from_left->id());
+            }
+
+            segments.append(newSegment);
+            */
+        }
+    }
+    else if(current_x < m_originalPress.x())
+    {
+        // Get the segment we're in, if there's any
+        auto middleSegmentIt = std::find_if(segments.begin(), segments.end(),
+                                            [&] (CurveSegmentModel* segment)
+        {       // Going to the left
+                return
+                   segment->end().x() < m_originalPress.x()
+                && segment->start().x() < current_x
+                && segment->end().x() > current_x;
+        });
+        CurveSegmentModel* middle = middleSegmentIt != segments.end() ? *middleSegmentIt : nullptr;
+
+        // First part : removal of the segments around the initial click
+        // If we have a following segment and the current position > end of the following segment
+        if(m_state->clickedPointId.previous)
+        {
+            CurveSegmentModel* prev_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
+            if(current_x < prev_seg->start().x())
+            {
+                // If there was also a following segment to the click, it now goes to the start of the
+                // presently removed segment.
+                if(m_state->clickedPointId.following)
+                {
+                    CurveSegmentModel* foll_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.following);
+                    foll_seg->setStart(prev_seg->start());
+                    foll_seg->setPrevious(prev_seg->previous());
+                }
+                else
+                {
+                    // Link to the following segment, or to the zero, maybe ?
+                }
+
+                // If the one about to be deleted also had a previous, we set its following
+                // to the following of the clicked point
+                if(prev_seg->previous())
+                {
+                    CurveSegmentModel* prev_prev_seg = *std::find(segments.begin(), segments.end(), prev_seg->previous());
+                    prev_prev_seg->setFollowing(m_state->clickedPointId.following);
+                }
+
+                segments.removeOne(prev_seg);
+                delete prev_seg;
+            }
+            else
+            {
+                // We have not crossed a point
+                setCurrentPoint(segments);
+            }
+        }
+        else
+        {
+            // If we have crossed a point (after some "emptiness")
+            if(middle)
+            {
+                // We remove the following of the clicked point
+                CurveSegmentModel* foll_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.following);
+
+                if(foll_seg->following())
+                {
+                    // We set its following to null.
+                    CurveSegmentModel* foll_foll_seg = *std::find(segments.begin(), segments.end(), foll_seg->following());
+                    foll_foll_seg->setPrevious(id_type<CurveSegmentModel>{});
+                }
+
+                segments.removeOne(foll_seg);
+                delete foll_seg;
+
+            }
+            else
+            {
+                // We have not crossed a point
+                setCurrentPoint(segments);
+            }
+
+        }
+
+        // Second part : creation of a new segment where the cursor actually is
+        if(middle)
+        {
+            // We insert a new element after the leftmost point from the current point.
+            // Since we are in a segment we split it and create another with a new id.
+            auto newSegment = middle->clone(getStrongId(segments), nullptr);
+            newSegment->setStart(m_state->currentPoint);
+            newSegment->setEnd(middle->end());
+            newSegment->setPrevious(middle->id());
+            newSegment->setFollowing(middle->following());
+
+            auto foll_it = std::find(segments.begin(), segments.end(), middle->following());
+            if(foll_it != segments.end())
+            {
+                (*foll_it)->setPrevious(newSegment->id());
+            }
+
+            middle->setEnd(m_state->currentPoint);
+            middle->setFollowing(newSegment->id());
+            segments.append(newSegment);
+        }
+        else
+        {
+            // TODO
+        }
+    }
+}
+
+void MovePointCommandObject::setCurrentPoint(QVector<CurveSegmentModel *> &segments)
 {
     auto previousSegment = std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
     auto followingSegment = std::find(segments.begin(), segments.end(), m_state->clickedPointId.following);
