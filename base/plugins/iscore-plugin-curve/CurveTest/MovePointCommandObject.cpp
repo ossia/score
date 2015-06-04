@@ -321,7 +321,18 @@ void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& 
         else
         {
             // If we have crossed a point (after some "emptiness")
-            if(middle)
+            bool crossed = false;
+            for(CurveSegmentModel* segment : segments)
+            {
+                auto seg_start_x = segment->start().x();
+                if(seg_start_x < current_x && seg_start_x > m_originalPress.x())
+                {
+                    crossed = true;
+                    break;
+                }
+            }
+
+            if(crossed)
             {
                 // We remove the previous of the clicked point
                 CurveSegmentModel* prev_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
@@ -449,7 +460,18 @@ void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& 
         else
         {
             // If we have crossed a point (after some "emptiness")
-            if(middle)
+            bool crossed = false;
+            for(CurveSegmentModel* segment : segments)
+            {
+                auto seg_end_x = segment->end().x();
+                if(seg_end_x > current_x && seg_end_x < m_originalPress.x())
+                {
+                    crossed = true;
+                    break;
+                }
+            }
+
+            if(crossed)
             {
                 // We remove the following of the clicked point
                 CurveSegmentModel* foll_seg = *std::find(segments.begin(), segments.end(), m_state->clickedPointId.following);
@@ -463,7 +485,6 @@ void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& 
 
                 segments.removeOne(foll_seg);
                 delete foll_seg;
-
             }
             else
             {
