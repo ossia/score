@@ -27,6 +27,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
     m_timeRulersView->setSceneRect(0, -70, 800, 35);
     m_timeRulersView->setFixedHeight(40);
+    m_timeRulersView->setBackgroundBrush(QBrush(qApp->palette("ScenarioPalette").background()));
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
