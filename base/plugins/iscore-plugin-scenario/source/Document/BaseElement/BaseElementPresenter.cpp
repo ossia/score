@@ -281,7 +281,6 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
 
     setMillisPerPixel(mapZoom(1.0 - newzoom, 2., std::max(4., computedMax())));
 
-    qDebug() << m_displayedConstraint->defaultDuration().msec() << rightT;
     qreal x;
     if(leftT < 10)
         x = 0;

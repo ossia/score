@@ -1,7 +1,20 @@
 #include "ObjectMenuActions.hpp"
 
-#include "Process/ScenarioGlobalCommandManager.hpp"
+#include <core/document/DocumentModel.hpp>
+#include <iscore/command/OngoingCommandManager.hpp>
 #include "iscore/menu/MenuInterface.hpp"
+
+#include "Process/ScenarioGlobalCommandManager.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+
+#include "Document/BaseElement/BaseElementModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+
+#include <Commands/Constraint/CopyConstraintContent.hpp>
 
 #include <QJsonDocument>
 #include <QApplication>
@@ -63,7 +76,7 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
-        QJsonDocument doc{m_parent->copySelectedElementsToJson()};
+        QJsonDocument doc{copySelectedElementsToJson()};
         auto clippy = QApplication::clipboard();
         clippy->setText(doc.toJson(QJsonDocument::Indented));
     });
@@ -73,7 +86,7 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
     connect(m_cutContent, &QAction::triggered,
             [this]()
     {
-        QJsonDocument doc{m_parent->cutSelectedElementsToJson()};
+        QJsonDocument doc{cutSelectedElementsToJson()};
         auto clippy = QApplication::clipboard();
         clippy->setText(doc.toJson(QJsonDocument::Indented));
     });
@@ -83,17 +96,17 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
     connect(m_pasteContent, &QAction::triggered,
             [this]()
     {
-        m_parent->writeJsonToSelectedElements(
+        writeJsonToSelectedElements(
                     QJsonDocument::fromJson(
                         QApplication::clipboard()->text().toLatin1()).object());
     });
 
-    // JSON
+    // DISPLAY JSON
     m_elementsToJson = new QAction{tr("Convert selection to JSON"), this};
     connect(m_elementsToJson, &QAction::triggered,
             [this]()
     {
-        QJsonDocument doc{m_parent->copySelectedElementsToJson()};
+        QJsonDocument doc{copySelectedElementsToJson()};
         auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
 
         s->show();
@@ -128,5 +141,85 @@ QList<QAction *> ObjectMenuActions::actions()
 {
     QList<QAction*> list{m_elementsToJson, m_removeElements, m_clearElements, m_copyContent, m_cutContent, m_pasteContent};
     return list;
+}
+
+template<typename Selected_T>
+auto arrayToJson(Selected_T &&selected)
+{
+    QJsonArray array;
+    if (!selected.empty())
+    {
+        for (const auto &element : selected)
+        {
+            Visitor<Reader<JSONObject>> jr;
+            jr.readFrom(*element);
+            array.push_back(jr.m_obj);
+        }
+    }
+
+    return array;
+}
+
+QJsonObject ObjectMenuActions::copySelectedElementsToJson()
+{
+    QJsonObject base;
+
+    if (auto sm = m_parent->focusedScenarioModel())
+    {
+        base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
+        base["Events"] = arrayToJson(selectedElements(sm->events()));
+        base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
+    }
+    else
+    {
+        // Full-view copy
+        auto& bem = iscore::IDocument::modelDelegate<BaseElementModel>(*m_parent->currentDocument());
+        if(bem.baseConstraint()->selection.get())
+        {
+            QJsonArray arr;
+            Visitor<Reader<JSONObject>> jr;
+            jr.readFrom(*bem.baseConstraint());
+            arr.push_back(jr.m_obj);
+            base["Constraints"] = arr;
+        }
+    }
+    return base;
+}
+
+QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
+{
+    auto obj = copySelectedElementsToJson();
+
+    if (auto sm = m_parent->focusedScenarioModel())
+    {
+        ScenarioGlobalCommandManager mgr{m_parent->currentDocument()->commandStack()};
+        mgr.clearContentFromSelection(*sm);
+    }
+
+    return obj;
+}
+
+void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
+{
+    auto pres = m_parent->focusedPresenter();
+    if(!pres)
+        return;
+
+    auto sm = m_parent->focusedScenarioModel();
+
+    auto selectedConstraints = selectedElements(sm->constraints());
+    for(const auto& json_vref : obj["Constraints"].toArray())
+    {
+        for(const auto& constraint : selectedConstraints)
+        {
+            auto cmd = new Scenario::Command::CopyConstraintContent{
+                       json_vref.toObject(),
+                       iscore::IDocument::path(constraint),
+                       pres->stateMachine().expandMode()};
+
+            CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+            dispatcher.submitCommand(cmd);
+        }
+    }
 }
 

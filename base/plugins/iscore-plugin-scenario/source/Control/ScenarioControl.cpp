@@ -5,10 +5,10 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "Process/ScenarioGlobalCommandManager.hpp"
+//#include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "Process/Temporal/TemporalScenarioView.hpp"
-#include "Process/Temporal/StateMachines/Tool.hpp"
+//#include "Process/Temporal/TemporalScenarioView.hpp"
+//#include "Process/Temporal/StateMachines/Tool.hpp"
 
 #include "Control/OldFormatConversion.hpp"
 
@@ -20,9 +20,8 @@
 #include <QToolBar>
 #include <QFile>
 #include <QFileDialog>
-#include <QJsonDocument>
 #include <QApplication>
-#include <QClipboard>
+//#include <QClipboard>
 
 
 using namespace iscore;
@@ -35,88 +34,6 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
 }
 
-template<typename Selected_T>
-auto arrayToJson(Selected_T &&selected)
-{
-    QJsonArray array;
-    if (!selected.empty())
-    {
-        for (const auto &element : selected)
-        {
-            Visitor<Reader<JSONObject>> jr;
-            jr.readFrom(*element);
-            array.push_back(jr.m_obj);
-        }
-    }
-
-    return array;
-}
-
-QJsonObject ScenarioControl::copySelectedElementsToJson()
-{
-    QJsonObject base;
-
-    if (auto sm = focusedScenarioModel())
-    {
-        base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
-        base["Events"] = arrayToJson(selectedElements(sm->events()));
-        base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
-    }
-    else
-    {
-        // Full-view copy
-        auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        if(bem.baseConstraint()->selection.get())
-        {
-            QJsonArray arr;
-            Visitor<Reader<JSONObject>> jr;
-            jr.readFrom(*bem.baseConstraint());
-            arr.push_back(jr.m_obj);
-            base["Constraints"] = arr;
-        }
-    }
-    return base;
-}
-
-QJsonObject ScenarioControl::cutSelectedElementsToJson()
-{
-    auto obj = copySelectedElementsToJson();
-
-    if (auto sm = focusedScenarioModel())
-    {
-        ScenarioGlobalCommandManager mgr{currentDocument()->commandStack()};
-        mgr.clearContentFromSelection(*sm);
-    }
-
-    return obj;
-}
-
-#include <Commands/Constraint/CopyConstraintContent.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
-void ScenarioControl::writeJsonToSelectedElements(const QJsonObject& obj)
-{
-    auto pres = focusedPresenter();
-    if(!pres)
-        return;
-
-    auto sm = focusedScenarioModel();
-
-    auto selectedConstraints = selectedElements(sm->constraints());
-    for(const auto& json_vref : obj["Constraints"].toArray())
-    {
-        for(const auto& constraint : selectedConstraints)
-        {
-            auto cmd = new Scenario::Command::CopyConstraintContent{
-                       json_vref.toObject(),
-                       iscore::IDocument::path(constraint),
-                       pres->stateMachine().expandMode()};
-
-            CommandDispatcher<> dispatcher{this->currentDocument()->commandStack()};
-            dispatcher.submitCommand(cmd);
-        }
-    }
-
-}
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
@@ -182,56 +99,12 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     m_toolActions->fillMenuBar(menu);
 }
 
-template<typename Data>
-QAction* makeToolbarAction(const QString& name,
-                           QObject* parent,
-                           const Data& data,
-                           const QString& shortcut)
-{
-    auto act = new QAction{name, parent};
-    act->setCheckable(true);
-    act->setData(QVariant::fromValue((int) data));
-    act->setShortcutContext(Qt::ApplicationShortcut);
-    act->setShortcut(shortcut);
-    act->setToolTip(name+ " (" + shortcut + ")");
-
-    return act;
-}
-
-ScenarioStateMachine& ScenarioControl::stateMachine() const
-{
-    return focusedPresenter()->stateMachine();
-}
-
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
-    // TODO : put it in ToolMenuActions
-    m_shiftActionGroup = new QActionGroup{bar};
-    m_shiftActionGroup->setDisabled(true);
-
-    auto verticalmove = makeToolbarAction(
-                            tr("Vertical Move"),
-                            m_shiftActionGroup,
-                            ExpandMode::Fixed,
-                            tr("Shift"));
-    connect(verticalmove, &QAction::toggled, [=] ()
-    {
-        if(focusedPresenter())
-        {
-            if (verticalmove->isChecked())
-                focusedPresenter()->stateMachine().shiftPressed();
-            else
-                focusedPresenter()->stateMachine().shiftReleased();
-        }
-    });
-
-    m_shiftActionGroup->setDisabled(true);
-
     m_toolActions->makeToolBar(bar);
     bar->addSeparator();
-    bar->addActions(m_shiftActionGroup->actions());
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
@@ -286,7 +159,6 @@ void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
     // We set the currently focused view model to a "select" state
     // to prevent problems.
     m_toolActions->setEnabled(false);
-    m_shiftActionGroup->setEnabled(false);
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
         s_pres->stateMachine().changeTool((int)Tool::Select);
@@ -300,8 +172,6 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
     m_toolActions->setEnabled(s_pres);
 
-    m_shiftActionGroup->setEnabled(s_pres);
-
     disconnect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
                this, &ScenarioControl::createContextMenu);
 
@@ -310,26 +180,14 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
         connect(s_pres, &TemporalScenarioPresenter::shiftPressed,
                 this, [&]()
         {
-            for(QAction* action : m_shiftActionGroup->actions())
-            {
-                if(action->data().toInt() == ExpandMode::Fixed)
-                {
-                    action->setChecked(true);
-                }
-            }
-        });
+            m_toolActions->shiftAction()->setChecked(true);
+        } );
 
         connect(s_pres, &TemporalScenarioPresenter::shiftReleased,
                 this, [&]()
         {
-            for(QAction* action : m_shiftActionGroup->actions())
-            {
-                if(action->data().toInt() == ExpandMode::Fixed)
-                {
-                    action->setChecked(false);
-                }
-            }
-        });
+            m_toolActions->shiftAction()->setChecked(false);
+        } );
 
         connect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
                 this, &ScenarioControl::createContextMenu);

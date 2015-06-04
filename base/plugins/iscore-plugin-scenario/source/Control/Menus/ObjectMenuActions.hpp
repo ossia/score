@@ -12,6 +12,10 @@ class ObjectMenuActions : public AbstractMenuActions
         QList<QAction*> actions();
 
     private:
+        QJsonObject copySelectedElementsToJson();
+        QJsonObject cutSelectedElementsToJson();
+        void writeJsonToSelectedElements(const QJsonObject &obj);
+
         QAction* m_removeElements;
         QAction *m_clearElements;
         QAction *m_copyContent;
