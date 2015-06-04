@@ -17,6 +17,9 @@ class CurveSegmentView : public QGraphicsObject
 
         void setSelected(bool selected);
 
+    protected:
+        void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+
     private:
         void updatePoints();
         // Takes a table of points and draws them in a square given by the boundingRect
@@ -28,4 +31,6 @@ class CurveSegmentView : public QGraphicsObject
 
         QPainterPath m_shape;
         QVector<QLineF> m_lines;
+
+        // QGraphicsItem interface
 };

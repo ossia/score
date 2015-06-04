@@ -74,6 +74,8 @@ void CreatePointFromNothingCommandObject::move()
 
     m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
                                             std::move(newSegments));
+
+    qDeleteAll(segments);
 }
 
 void CreatePointFromNothingCommandObject::release()

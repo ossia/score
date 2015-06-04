@@ -1,5 +1,6 @@
 #include "CurveSegmentView.hpp"
 #include "CurveSegmentModel.hpp"
+#include <QGraphicsSceneContextMenuEvent>
 #include <QPainter>
 
 CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *parent):
@@ -93,4 +94,11 @@ void CurveSegmentView::updatePoints()
 QPainterPath CurveSegmentView::shape() const
 {
     return m_shape;
+}
+
+void CurveSegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{
+    // TODO make a menu where one can :
+    // - remove a segment
+    // - change the type of the segment
 }
