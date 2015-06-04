@@ -15,7 +15,8 @@ Application::Application(int& argc, char** argv) :
 {
     // Application
     // Crashes if put in member initialization list... :(
-    m_app = new QApplication(argc, argv);
+    m_app = new QApplication{argc, argv};
+    m_app->setFont(QFont{":/images/Ubuntu-R.ttf", 10, QFont::Normal});
     this->setParent(m_app);
     this->setObjectName("Application");
 
