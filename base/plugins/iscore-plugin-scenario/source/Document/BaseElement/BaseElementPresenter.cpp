@@ -166,6 +166,8 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 {
     const auto& constraintViewModel = *m_displayedConstraint->fullView();
 
+    model()->focusManager().focusNothing();
+
     delete m_displayedConstraintPresenter;
     m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
             this->view()->baseItem(),
