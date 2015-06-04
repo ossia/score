@@ -1,6 +1,6 @@
 #include "ConstraintInspectorWidget.hpp"
 
-#include "Widgets/AddSharedProcessWidget.hpp"
+#include "DialogWidget/AddProcessDialog.hpp"
 #include "Widgets/BoxWidget.hpp"
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Box/BoxInspectorSection.hpp"
@@ -91,7 +91,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_processSection->setObjectName("Processes");
 
     m_properties.push_back(m_processSection);
-    m_properties.push_back(new AddSharedProcessWidget {this});
+    auto addProcess = new AddProcessDialog {this};
+    m_properties.push_back(addProcess);
+
+    connect(addProcess, &AddProcessDialog::okPressed,
+            this, &ConstraintInspectorWidget::createProcess);
 
     // Separator
     m_properties.push_back(new Separator {this});

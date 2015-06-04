@@ -112,10 +112,22 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
         s->show();
     });
 
+    // ADD PROCESS
+    connect(&m_addProcessDialog, &AddProcessDialog::okPressed,
+            this, &ObjectMenuActions::addProcessInConstraint);
+
+    m_addProcess = new QAction{tr("Add Process in constraint"), this};
+    connect(m_addProcess, &QAction::triggered,
+            [this]()
+    {
+//        m_addProcessDialog.show();
+    });
+
 }
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 {
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeElements);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_clearElements);
@@ -128,6 +140,12 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 
 void ObjectMenuActions::fillContextMenu(QMenu *menu)
 {
+    //TODO UGLY. Selection should enable/disable actions
+    if(m_constraintAction)
+    {
+        menu->addAction(m_addProcess);
+        menu->addSeparator();
+    }
     menu->addAction(m_elementsToJson);
     menu->addAction(m_removeElements);
     menu->addAction(m_clearElements);
@@ -139,7 +157,9 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu)
 
 QList<QAction *> ObjectMenuActions::actions()
 {
-    QList<QAction*> list{m_elementsToJson, m_removeElements, m_clearElements, m_copyContent, m_cutContent, m_pasteContent};
+    QList<QAction*> list{m_elementsToJson, m_removeElements, m_clearElements,
+                        m_copyContent, m_cutContent, m_pasteContent,
+                        m_addProcess};
     return list;
 }
 
@@ -222,4 +242,17 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
         }
     }
 }
+
+void ObjectMenuActions::addProcessInConstraint(QString)
+{
+    qDebug() << "Create addprocess Command";
+}
+
+void ObjectMenuActions::setConstraintAction(bool constraintAction)
+{
+    if(constraintAction == m_constraintAction)
+        return;
+    m_constraintAction = constraintAction;
+}
+
 

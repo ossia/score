@@ -141,6 +141,7 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
         auto selectedEvt = selectedElements(focusedScenarioModel()->events());
         auto selectedTn = selectedElements(focusedScenarioModel()->timeNodes());
 
+        m_objectAction->setConstraintAction(! selectedCstr.empty());
         if(!selectedCstr.empty() || !selectedEvt.empty() || !selectedTn.empty() )
         {
             m_objectAction->fillContextMenu(&contextMenu);
