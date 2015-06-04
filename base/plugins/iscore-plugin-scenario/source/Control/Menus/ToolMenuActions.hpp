@@ -14,11 +14,13 @@ class ToolMenuActions : public AbstractMenuActions
         QList<QAction*> actions();
         QList<QAction*> modeActions();
         QList<QAction*> toolActions();
+        QAction* shiftAction();
 
 
     private:
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QActionGroup* m_scenarioToolActionGroup{};
+        QAction* m_shiftAction{};
 
         QAction* m_selecttool{};
 };

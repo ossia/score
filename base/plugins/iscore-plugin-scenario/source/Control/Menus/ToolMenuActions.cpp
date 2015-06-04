@@ -62,6 +62,22 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
     { m_parent->focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::MoveDeck)); });
 
 
+    m_shiftAction = makeToolbarAction(
+                            tr("Vertical Move"),
+                            this,
+                            ExpandMode::Fixed,
+                            tr("Shift"));
+    connect(m_shiftAction, &QAction::toggled, [=] ()
+    {
+        if(m_parent->focusedPresenter())
+        {
+            if (m_shiftAction->isChecked())
+                m_parent->focusedPresenter()->stateMachine().shiftPressed();
+            else
+                m_parent->focusedPresenter()->stateMachine().shiftReleased();
+        }
+    });
+
     m_scenarioScaleModeActionGroup = new QActionGroup{this};
     m_scenarioScaleModeActionGroup->setDisabled(true);
 
@@ -103,6 +119,8 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     {
         menu->insertActionIntoToplevelMenu(m_menuElt, act);
     }
+    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_shiftAction);
 }
 
 void ToolMenuActions::fillContextMenu(QMenu *menu)
@@ -111,21 +129,27 @@ void ToolMenuActions::fillContextMenu(QMenu *menu)
     tool->addActions(m_scenarioToolActionGroup->actions());
     auto resize_mode = menu->addMenu("Resize mode");
     resize_mode->addActions(m_scenarioScaleModeActionGroup->actions());
+    menu->addAction(m_shiftAction);
 }
 
 void ToolMenuActions::makeToolBar(QToolBar *bar)
 {
     m_scenarioScaleModeActionGroup->setDisabled(true);
     m_scenarioToolActionGroup->setDisabled(true);
+    m_shiftAction->setDisabled(true);
+
     bar->addActions(toolActions());
     bar->addSeparator();
     bar->addActions(modeActions());
+    bar->addSeparator();
+    bar->addAction(m_shiftAction);
 }
 
 void ToolMenuActions::setEnabled(bool arg)
 {
     m_scenarioScaleModeActionGroup->setEnabled(arg);
     m_scenarioToolActionGroup->setEnabled(arg);
+    m_shiftAction->setEnabled(arg);
     if(arg)
     {
         m_selecttool->setChecked(true);
@@ -134,7 +158,10 @@ void ToolMenuActions::setEnabled(bool arg)
 
 QList<QAction *> ToolMenuActions::actions()
 {
-    QList<QAction*> list{};
+    QList<QAction*> list{m_shiftAction};
+    list += m_scenarioScaleModeActionGroup->actions();
+    list += m_scenarioToolActionGroup->actions();
+
     return list;
 }
 
@@ -146,5 +173,10 @@ QList<QAction *> ToolMenuActions::modeActions()
 QList<QAction *> ToolMenuActions::toolActions()
 {
     return m_scenarioToolActionGroup->actions();
+}
+
+QAction *ToolMenuActions::shiftAction()
+{
+    return m_shiftAction;
 }
 

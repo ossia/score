@@ -38,14 +38,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         const ScenarioModel* focusedScenarioModel() const;
 
     private:
-        ScenarioStateMachine& stateMachine() const;
-        QJsonObject copySelectedElementsToJson();
-        QJsonObject cutSelectedElementsToJson();
-        void writeJsonToSelectedElements(const QJsonObject &obj);
-
         ProcessList m_processList;
-
-        QActionGroup* m_shiftActionGroup{};
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 

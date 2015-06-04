@@ -1,16 +1,13 @@
-#include "AddSharedProcessWidget.hpp"
-
-#include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
+#include "AddProcessDialog.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
 
-AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent) :
+AddProcessDialog::AddProcessDialog(QWidget *parent) :
     QWidget {parent}
 {
     QHBoxLayout* addAutomLayout = new QHBoxLayout;
@@ -44,7 +41,7 @@ AddSharedProcessWidget::AddSharedProcessWidget(ConstraintInspectorWidget* parent
 
         if(ok)
         {
-            parent->createProcess(process_name);
+            emit okPressed(process_name);
         }
         addAutomButton->setDown(false);
     });

@@ -43,6 +43,8 @@ const EventPresenter& EventView::presenter() const
 
 void EventView::setCondition(const QString &cond)
 {
+    if(m_condition == cond)
+        return;
     m_condition = cond;
     m_conditionItem->setVisible(!cond.isEmpty());
     m_conditionItem->setToolTip(m_condition);
@@ -55,6 +57,8 @@ bool EventView::hasCondition() const
 
 void EventView::setTrigger(const QString &trig)
 {
+    if(m_trigger == trig)
+        return;
     m_trigger = trig;
     m_triggerItem->setVisible(!trig.isEmpty());
     m_triggerItem->setToolTip(m_condition);
