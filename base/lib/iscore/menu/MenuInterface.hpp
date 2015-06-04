@@ -10,6 +10,9 @@ namespace iscore
     {
         FileMenu,
         EditMenu,
+        ObjectMenu,
+        PlayMenu,
+        ToolMenu,
         ViewMenu,
         SettingsMenu,
         AboutMenu
@@ -37,6 +40,11 @@ namespace iscore
         Separator_Undo,
         Undo,
         Redo
+    };
+
+    enum class ToolMenuElement
+    {
+        Separator_Tool
     };
 
     enum class ViewMenuElement
@@ -77,6 +85,7 @@ namespace iscore
             static const std::map<ToplevelMenuElement, QString> m_map;
             static const std::map<FileMenuElement, QString> m_fileMap;
             static const std::map<EditMenuElement, QString> m_editMap;
+            static const std::map<ToolMenuElement, QString> m_toolMap;
             static const std::map<ViewMenuElement, QString> m_viewMap;
             static const std::map<SettingsMenuElement, QString> m_settingsMap;
             static const std::map<AboutMenuElement, QString> m_aboutMap;

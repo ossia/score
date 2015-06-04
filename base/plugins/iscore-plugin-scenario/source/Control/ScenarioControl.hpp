@@ -8,11 +8,13 @@ class ScenarioModel;
 class ScenarioStateMachine;
 class TemporalScenarioPresenter;
 
-class EditMenuActions;
+class ObjectMenuActions;
+class ToolMenuActions;
 
 class ScenarioControl : public iscore::PluginControlInterface
 {
-    friend class EditMenuActions;
+    friend class ObjectMenuActions;
+    friend class ToolMenuActions;
 
     public:
         ScenarioControl(iscore::Presenter* pres);
@@ -42,14 +44,16 @@ class ScenarioControl : public iscore::PluginControlInterface
         void writeJsonToSelectedElements(const QJsonObject &obj);
 
         ProcessList m_processList;
-        QActionGroup* m_scenarioToolActionGroup{};
-        QActionGroup* m_scenarioScaleModeActionGroup{};
+
         QActionGroup* m_shiftActionGroup{};
+
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 
-        EditMenuActions* m_edit;
+        ObjectMenuActions* m_objectAction;
+        ToolMenuActions* m_toolActions;
 
-        QAction* m_selecttool{};
+        QAction *m_selectAll{};
+        QAction *m_deselectAll{};
 
         TemporalScenarioPresenter* focusedPresenter() const;
 

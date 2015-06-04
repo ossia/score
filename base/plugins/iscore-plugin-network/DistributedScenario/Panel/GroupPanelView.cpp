@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QInputDialog>
 
-static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
+static const iscore::DefaultPanelStatus status{false, Qt::RightDockWidgetArea, 1, QObject::tr("Groups")};
 const iscore::DefaultPanelStatus &GroupPanelView::defaultPanelStatus() const
 {
     return status;

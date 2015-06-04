@@ -21,11 +21,13 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->setPen(QPen(QBrush(m_color), 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
-    for (const auto& mark : m_marks)
+    if (m_width > 0)
     {
-        painter->drawText(m_marks.key(mark) + 2 , m_textPosition, mark.toString(m_timeFormat) );
+        for (const auto& mark : m_marks)
+        {
+            painter->drawText(m_marks.key(mark) + 2 , m_textPosition, mark.toString(m_timeFormat) );
+        }
     }
-
 }
 
 void AbstractTimeRulerView::setHeight(qreal newHeight)
@@ -59,8 +61,16 @@ void AbstractTimeRulerView::setFormat(QString format)
 void AbstractTimeRulerView::createRulerPath()
 {
     m_marks.clear();
+
     QPainterPath path;
     QTime time{0,0,0,0};
+
+    if(m_width == 0)
+    {
+        m_path = path;
+        return;
+    }
+
 
     double t = 0;
     int i = 0;
