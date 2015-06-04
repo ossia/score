@@ -43,6 +43,10 @@ EventPresenter::EventPresenter(const EventModel& model,
 
     connect(m_view, &EventView::dropReceived,
             this, &EventPresenter::handleDrop);
+
+    m_view->setCondition(m_model.condition());
+    m_view->setTrigger(m_model.trigger());
+    updateViewHalves();
 }
 
 EventPresenter::~EventPresenter()
