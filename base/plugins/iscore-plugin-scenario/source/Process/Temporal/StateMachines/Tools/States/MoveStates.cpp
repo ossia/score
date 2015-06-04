@@ -12,6 +12,7 @@
 #include <QFinalState>
 #include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
 
+// TODO a nice refactor is doable here.
 MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
                                          ObjectPath&& scenarioPath,
                                          iscore::CommandStack& stack,

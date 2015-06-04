@@ -7,6 +7,9 @@
 #include "CurveTest/StateMachine/States/Tools/CreationTool.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <core/document/Document.hpp>
+#include <QSignalTransition>
+#include <QActionGroup>
+
 CurveStateMachine::CurveStateMachine(
         CurvePresenter& pres,
         QObject* parent):
@@ -23,6 +26,41 @@ CurveStateMachine::CurveStateMachine(
 {
     setupPostEvents();
     setupStates();
+
+    QActionGroup* g = new QActionGroup(this);
+    auto sel_act = new QAction(this);
+    sel_act->setShortcut(QKeySequence("Alt+f"));
+    sel_act->setEnabled(true);
+    sel_act->setCheckable(true);
+    sel_act->setChecked(true);
+    sel_act->setShortcutContext(Qt::ApplicationShortcut);
+    connect(sel_act, &QAction::triggered, this, [&] (bool b)
+    {
+        changeTool(0);
+    });
+
+    auto mov_act = new QAction(this);
+    mov_act->setShortcut(QKeySequence("Alt+g"));
+    mov_act->setEnabled(true);
+    mov_act->setCheckable(true);
+    mov_act->setShortcutContext(Qt::ApplicationShortcut);
+    connect(mov_act, &QAction::triggered, this, [&] (bool b)
+    {
+        changeTool(1);
+    });
+
+    auto cre_act = new QAction(this);
+    cre_act->setShortcut(QKeySequence("Alt+h"));
+    cre_act->setEnabled(true);
+    cre_act->setCheckable(true);
+    cre_act->setShortcutContext(Qt::ApplicationShortcut);
+    connect(cre_act, &QAction::triggered, this, [&] (bool b)
+    {
+        changeTool(2);
+    });
+    g->addAction(mov_act);
+    g->addAction(sel_act);
+    g->addAction(cre_act);
 
     start();
 }
@@ -49,10 +87,32 @@ iscore::ObjectLocker& CurveStateMachine::locker() const
 
 void CurveStateMachine::setupStates()
 {
+    m_transitionState = new QState{this};
+    m_transitionState->setParent(this);
+
     m_selectTool = new Curve::SelectionTool(*this);
     m_moveTool = new Curve::MoveTool(*this);
     m_createTool = new Curve::CreationTool(*this);
+
+    this->addState(m_transitionState);
+    this->addState(m_selectTool);
+    this->addState(m_moveTool);
+    this->addState(m_createTool);
     this->setInitialState(m_createTool);
+
+    auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), m_selectTool);
+    t_exit_select->setTargetState(m_transitionState);
+    auto t_exit_move = new QSignalTransition(this, SIGNAL(exitState()), m_moveTool);
+    t_exit_move->setTargetState(m_transitionState);
+    auto t_exit_create = new QSignalTransition(this, SIGNAL(exitState()), m_createTool);
+    t_exit_create->setTargetState(m_transitionState);
+
+    auto t_enter_select = new QSignalTransition(this, SIGNAL(setSelectState()), m_transitionState);
+    t_enter_select->setTargetState(m_selectTool);
+    auto t_enter_move = new QSignalTransition(this, SIGNAL(setMoveState()), m_transitionState);
+    t_enter_move->setTargetState(m_moveTool);
+    auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), m_transitionState);
+    t_enter_create->setTargetState(m_createTool);
 }
 
 void CurveStateMachine::setupPostEvents()
@@ -96,5 +156,26 @@ void CurveStateMachine::setupPostEvents()
     {
         this->postEvent(new Cancel_Event);
     });
+}
+
+void CurveStateMachine::changeTool(int state)
+{
+    emit exitState();
+    switch(state)
+    {
+    case static_cast<int>(Curve::Tool::Create):
+        emit setCreateState();
+        break;
+    case static_cast<int>(Curve::Tool::Move):
+        emit setMoveState();
+        break;
+    case static_cast<int>(Curve::Tool::Select):
+        emit setSelectState();
+        break;
+
+    default:
+        Q_ASSERT(false);
+        break;
+    }
 }
 
