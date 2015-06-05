@@ -3,7 +3,7 @@
 
 CurveSegmentModel*LinearCurveSegmentModel::clone(
         const id_type<CurveSegmentModel>& id,
-        QObject* parent) const
+        QObject *parent) const
 {
     auto cs = new LinearCurveSegmentModel{id, parent};
     cs->setStart(this->start());

@@ -38,7 +38,7 @@ class AutomationPresenter : public ProcessPresenter
         const AutomationViewModel& m_viewModel;
         AutomationView* m_view {};
 
-        CurvePresenter* m_cp{};
+        CurvePresenter* m_curvepresenter{};
         //Curve* m_curve;
 
 //        QCustomPlotCurve* m_curve{};

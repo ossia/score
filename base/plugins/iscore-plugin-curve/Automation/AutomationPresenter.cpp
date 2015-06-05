@@ -31,7 +31,7 @@ AutomationPresenter::AutomationPresenter(
             this, &AutomationPresenter::on_modelPointsChanged);
 
     auto cv = new CurveView(m_view);
-    m_cp = new CurvePresenter(&m_viewModel.model().curve(), cv);
+    m_curvepresenter = new CurvePresenter(&m_viewModel.model().curve(), cv);
 
     parentGeometryChanged();
     on_modelPointsChanged();
@@ -95,19 +95,9 @@ const id_type<ProcessModel>& AutomationPresenter::modelId() const
     return m_viewModel.model().id();
 }
 
-QVector<QPointF> mapToVector(QMap<double, double> map)
-{
-    QVector<QPointF> list;
-    for(auto key : map.keys())
-    {
-        list.push_back({key, 1.0 - map[key]});
-    }
-
-    return list;
-}
-
 void AutomationPresenter::on_modelPointsChanged()
 {
-    m_cp->setRect(m_view->boundingRect());
+    // Compute the rect with the duration of the process.
+    m_curvepresenter->setRect(m_view->boundingRect());
 }
 

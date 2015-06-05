@@ -4,6 +4,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include "StateMachine/CurvePoint.hpp"
+class CurveModel;
 
 // Gives the data.
 class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>

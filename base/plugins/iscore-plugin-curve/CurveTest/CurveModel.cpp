@@ -1,16 +1,18 @@
 #include "CurveModel.hpp"
 #include "CurveSegmentModel.hpp"
 #include "CurvePointModel.hpp"
+
+
+
 CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
     IdentifiedObject<CurveModel>(id, "CurveModel", parent)
 {
-
 }
 
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
     m->setParent(this);
-    m_segments.append(m);
+    m_segments.insert(m);
 
     emit segmentAdded(m);
 
@@ -19,8 +21,8 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     if(m->previous())
     {
         auto previousSegment = std::find_if(
-                    m_segments.begin(),
-                    m_segments.end(),
+                    m_segments.get<0>().begin(),
+                    m_segments.get<0>().end(),
                     [&] (CurveSegmentModel* seg) { return seg->following() == m->id(); });
         if(previousSegment != m_segments.end())
         {
@@ -106,11 +108,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 
 void CurveModel::removeSegment(CurveSegmentModel* m)
 {
-    auto index = m_segments.indexOf(m);
-    if(index >= 0)
-    {
-        m_segments.remove(index);
-    }
+    m_segments.erase(m->id());
 
     emit segmentRemoved(m);
 
@@ -172,10 +170,7 @@ void CurveModel::clear()
 }
 
 
-const QVector<CurveSegmentModel*>& CurveModel::segments() const
-{
-    return m_segments;
-}
+
 
 const QVector<CurvePointModel *> &CurveModel::points() const
 {

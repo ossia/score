@@ -49,3 +49,29 @@ void CurvePointView::setSelected(bool selected)
     m_selected = selected;
     update();
 }
+
+
+#include "CurveTest/UpdateCurve.hpp"
+#include "CurveTest/CurvePresenter.hpp"
+#include "CurveTest/CurveModel.hpp"
+#include "CurveTest/CurveSegmentModel.hpp"
+#include "CurveTest/CurvePointModel.hpp"
+#include "CurveTest/CurvePointView.hpp"
+#include "CurveTest/LinearCurveSegmentModel.hpp"
+#include "CurveTest/CurveSegmentModelSerialization.hpp"
+
+#include <iscore/document/DocumentInterface.hpp>
+void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{
+    // Both segments to the side are removed.
+    // If there is both a previous previous segment and a following following segment, they are linked afterwards?
+
+    CurveSegmentModel* prev_prev{};
+    CurveSegmentModel* foll_foll{};
+
+    if(m_model->previous())
+    {
+
+    }
+
+}

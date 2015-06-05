@@ -22,21 +22,24 @@ void CreatePointFromNothingCommandObject::on_press()
 
     m_startSegments.clear();
     auto segments = m_presenter->model()->segments();
+    QVector<CurveSegmentModel *> segmentsCopy;
     std::transform(segments.begin(), segments.end(), std::back_inserter(m_startSegments),
-                   [] (CurveSegmentModel* segment)
+                   [&] (CurveSegmentModel* segment)
     {
         QByteArray arr;
         Serializer<DataStream> s(&arr);
         s.readFrom(*segment);
+        segmentsCopy.append(segment);
         return arr;
     });
 
-    createPoint(segments);
+    // TODO use boost here too
+    createPoint(segmentsCopy);
 
 
     // Submit
     QVector<QByteArray> newSegments;
-    std::transform(segments.begin(), segments.end(), std::back_inserter(newSegments),
+    std::transform(segmentsCopy.begin(), segmentsCopy.end(), std::back_inserter(newSegments),
                    [] (CurveSegmentModel* segment)
     {
         QByteArray arr;

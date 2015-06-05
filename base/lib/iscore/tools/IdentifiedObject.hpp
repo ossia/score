@@ -5,6 +5,12 @@
 #include <typeinfo>
 #include <random>
 
+
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+
+
 // TODO ModelObject with path()
 template<typename tag>
 class IdentifiedObject : public IdentifiedObjectAbstract
@@ -45,6 +51,31 @@ class IdentifiedObject : public IdentifiedObjectAbstract
     private:
         id_type<tag> m_id {};
 };
+
+namespace bmi = boost::multi_index;
+template<typename tag>
+using ModelMap =
+bmi::multi_index_container<
+    tag*,
+    bmi::indexed_by<
+        bmi::hashed_unique<
+            bmi::const_mem_fun<
+                IdentifiedObject<tag>,
+                const id_type<tag>&,
+                &IdentifiedObject<tag>::id
+            >
+        >
+    >
+>;
+
+template<typename tag>
+std::size_t hash_value(const id_type<tag>& id)
+{
+    Q_ASSERT(bool(id));
+
+    return *id.val();
+}
+
 ////////////////////////////////////////////////
 ///
 ///Functions that operate on collections of identified objects.
