@@ -16,8 +16,6 @@ class MoveTool : public CurveTool
         void on_released();
 
     private:
-        QState* m_movePoint{};
-        QState* m_moveSegment{};
         QState* m_waitState{};
 
 };

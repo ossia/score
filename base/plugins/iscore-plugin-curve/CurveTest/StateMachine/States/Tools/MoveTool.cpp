@@ -7,6 +7,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 
 #include "CurveTest/MovePointCommandObject.hpp"
+#include "CurveTest/StateMachine/States/Create/CreatePointFromNothingCommandObject.hpp"
 using namespace Curve;
 MoveTool::MoveTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
@@ -16,7 +17,7 @@ MoveTool::MoveTool(CurveStateMachine& sm):
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
 
-    /// Point
+    /// Move
     {
         auto mpco = new MovePointCommandObject(&sm.presenter(), sm.commandStack());
         auto movePoint = new OngoingState(*mpco, &localSM());
@@ -24,9 +25,21 @@ MoveTool::MoveTool(CurveStateMachine& sm):
         make_transition<ClickOnPoint_Transition>(m_waitState, movePoint, *movePoint);
         movePoint->addTransition(movePoint, SIGNAL(finished()), m_waitState);
 
-        m_movePoint = movePoint;
-        localSM().addState(m_movePoint);
+        localSM().addState(movePoint);
     }
+
+    /// Create
+    {
+        auto cpfnco = new CreatePointFromNothingCommandObject(&sm.presenter(), sm.commandStack());
+        auto createPointFromNothingState = new OngoingState(*cpfnco, &localSM());
+        createPointFromNothingState->setObjectName("CreatePointFromNothingState");
+        make_transition<ClickOnSegment_Transition>(m_waitState, createPointFromNothingState, *createPointFromNothingState);
+        make_transition<ClickOnNothing_Transition>(m_waitState, createPointFromNothingState, *createPointFromNothingState);
+        createPointFromNothingState->addTransition(createPointFromNothingState, SIGNAL(finished()), m_waitState);
+
+        localSM().addState(createPointFromNothingState);
+    }
+
 
     localSM().start();
 }
@@ -41,11 +54,11 @@ void MoveTool::on_pressed()
     },
     [&] (const QGraphicsItem* segment)
     {
-        //localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
+        localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
     },
     [&] ()
     {
-        //localSM().postEvent(new ClickOnNothing_Event(m_parentSM.curvePoint, nullptr));
+       localSM().postEvent(new ClickOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
 }
 
