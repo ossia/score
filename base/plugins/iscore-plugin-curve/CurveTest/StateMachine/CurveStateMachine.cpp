@@ -92,12 +92,8 @@ void CurveStateMachine::setupStates()
 
     //m_selectTool = new Curve::SelectionTool(*this);
     m_moveTool = new Curve::MoveTool(*this);
-    //m_createTool = new Curve::CreationTool(*this);
+    m_createTool = new Curve::CreationTool(*this);
 
-    //this->addState(m_transitionState);
-    //this->addState(m_selectTool);
-    this->addState(m_moveTool);
-    //this->addState(m_createTool);
     this->setInitialState(m_moveTool);
 
     auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), m_selectTool);

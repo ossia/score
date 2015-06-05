@@ -98,6 +98,9 @@ const id_type<ProcessModel>& AutomationPresenter::modelId() const
 void AutomationPresenter::on_modelPointsChanged()
 {
     // Compute the rect with the duration of the process.
-    m_curvepresenter->setRect(m_view->boundingRect());
+    QRectF rect = m_view->boundingRect(); // for the height
+    rect.setWidth(m_viewModel.model().duration().toPixels(m_zoomRatio));
+
+    m_curvepresenter->setRect(rect);
 }
 

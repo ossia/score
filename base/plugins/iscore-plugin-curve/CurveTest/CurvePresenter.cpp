@@ -62,21 +62,13 @@ void CurvePresenter::setPos(CurvePointView * point)
     // Get the previous or next segment. There has to be at least one.
     if(point->model().previous())
     {
-        auto it = std::find(m_model->segments().begin(),
-                            m_model->segments().end(),
-                            point->model().previous());
-        Q_ASSERT(it != m_model->segments().end());
-
-        point->setPos(myscale((*it)->end(), size));
+        auto& curvemodel = *m_model->segments().get<0>().find(point->model().previous());
+        point->setPos(myscale(curvemodel->end(), size));
     }
     else if(point->model().following())
     {
-        auto it = std::find(m_model->segments().begin(),
-                            m_model->segments().end(),
-                            point->model().following());
-        Q_ASSERT(it != m_model->segments().end());
-
-        point->setPos(myscale((*it)->start(), size));
+        auto& curvemodel = *m_model->segments().get<0>().find(point->model().following());
+        point->setPos(myscale(curvemodel->start(), size));
     }
 }
 
@@ -91,7 +83,6 @@ void CurvePresenter::setPos(CurveSegmentView * segment)
     endx = segment->model().end().x() * rect.width();
     segment->setPos({startx, 0});
     segment->setRect({0., 0., endx - startx, rect.height()});
-
 }
 
 void CurvePresenter::setupSignals()
