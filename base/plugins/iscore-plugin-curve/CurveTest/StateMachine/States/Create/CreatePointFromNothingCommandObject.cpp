@@ -29,7 +29,10 @@ void CreatePointFromNothingCommandObject::on_press()
         QByteArray arr;
         Serializer<DataStream> s(&arr);
         s.readFrom(*segment);
-        segmentsCopy.append(segment);
+        auto cloned = segment->clone(segment->id(), nullptr);
+        cloned->setPrevious(segment->previous());
+        cloned->setFollowing(segment->following());
+        segmentsCopy.append(cloned);
         return arr;
     });
 

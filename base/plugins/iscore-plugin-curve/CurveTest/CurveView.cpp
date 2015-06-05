@@ -16,12 +16,7 @@ QRectF CurveView::boundingRect() const
 }
 
 void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{/*
-    painter->setPen(Qt::magenta);
-    painter->setBrush(Qt::black);
-    painter->drawRect(boundingRect());
-    */
-
+{
     if(m_selectArea != QRectF{})
     {
         painter->setPen(Qt::white);
@@ -42,16 +37,19 @@ void CurveView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton)
         emit pressed(event->scenePos());
+    event->accept();
 }
 
 void CurveView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     emit moved(event->scenePos());
+    event->accept();
 }
 
 void CurveView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     emit released(event->scenePos());
+    event->accept();
 }
 
 void CurveView::setRect(const QRectF& theRect)

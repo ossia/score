@@ -3,6 +3,7 @@
 #include <iscore/selection/Selection.hpp>
 class CurveSegmentModel;
 class CurvePointModel;
+
 class CurveModel : public IdentifiedObject<CurveModel>
 {
 
@@ -17,7 +18,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
 
         void clear();
 
-        const ModelMap<CurveSegmentModel>& segments() const
+        const auto& segments() const
         {
             return m_segments;
         }
@@ -33,7 +34,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void addPoint(CurvePointModel* pt);
         void removePoint(CurvePointModel* pt);
 
-        ModelMap<CurveSegmentModel> m_segments;
+        IdContainer<ModelMap, CurveSegmentModel> m_segments;
         //QVector<CurveSegmentModel*> m_segments; // Each between 0, 1
         QVector<CurvePointModel*> m_points; // Each between 0, 1
 };

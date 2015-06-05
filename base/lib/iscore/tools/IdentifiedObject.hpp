@@ -12,13 +12,13 @@
 
 
 // TODO ModelObject with path()
-template<typename tag>
+template<typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
 
     public:
         template<typename... Args>
-        IdentifiedObject(const id_type<tag>& id,
+        IdentifiedObject(const id_type<model>& id,
                          Args&& ... args) :
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
             m_id {id}
@@ -33,7 +33,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             v.writeTo(*this);
         }
 
-        const id_type<tag>& id() const
+        const id_type<model>& id() const
         {
             return m_id;
         }
@@ -43,33 +43,70 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             return *m_id.val();
         }
 
-        void setId(id_type<tag>&& id)
+        void setId(id_type<model>&& id)
         {
             m_id = id;
         }
 
     private:
-        id_type<tag> m_id {};
+        id_type<model> m_id {};
 };
 
 namespace bmi = boost::multi_index;
-template<typename tag>
+template<typename model>
 using ModelMap =
 bmi::multi_index_container<
-    tag*,
+    model*,
     bmi::indexed_by<
         bmi::hashed_unique<
             bmi::const_mem_fun<
-                IdentifiedObject<tag>,
-                const id_type<tag>&,
-                &IdentifiedObject<tag>::id
+                IdentifiedObject<model>,
+                const id_type<model>&,
+                &IdentifiedObject<model>::id
             >
         >
     >
 >;
 
-template<typename tag>
-std::size_t hash_value(const id_type<tag>& id)
+
+template<template<class> class Map, class model>
+class IdContainer
+{
+        Map<model> map;
+    public:
+        auto begin() const { return map.begin(); }
+        auto cbegin() const { return map.cbegin(); }
+        auto end() const { return map.end(); }
+        auto cend() const { return map.cend(); }
+
+        void insert(model* t)
+        { map.insert(t); }
+
+        void remove(model* t)
+        { map.erase(t); }
+        void remove(const id_type<model>& id)
+        { map.erase(id); }
+
+        void clear()
+        { map.clear(); }
+
+        auto find(const id_type<model>& id) const
+        { return map.find(id); }
+
+        auto& get() { return map.template get<0>(); }
+        const auto& get() const { return map.template get<0>(); }
+
+        const auto& at(const id_type<model>& id) const
+        {
+            return map.template get<0>()[id];
+        }
+};
+
+template<typename model>
+using Map = IdContainer<ModelMap, model>;
+
+template<typename model>
+std::size_t hash_value(const id_type<model>& id)
 {
     Q_ASSERT(bool(id));
 

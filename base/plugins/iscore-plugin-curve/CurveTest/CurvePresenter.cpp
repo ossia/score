@@ -62,12 +62,12 @@ void CurvePresenter::setPos(CurvePointView * point)
     // Get the previous or next segment. There has to be at least one.
     if(point->model().previous())
     {
-        auto& curvemodel = *m_model->segments().get<0>().find(point->model().previous());
+        auto& curvemodel = *m_model->segments().find(point->model().previous());
         point->setPos(myscale(curvemodel->end(), size));
     }
     else if(point->model().following())
     {
-        auto& curvemodel = *m_model->segments().get<0>().find(point->model().following());
+        auto& curvemodel = *m_model->segments().find(point->model().following());
         point->setPos(myscale(curvemodel->start(), size));
     }
 }

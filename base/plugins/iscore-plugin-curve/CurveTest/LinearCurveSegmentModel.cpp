@@ -55,6 +55,7 @@ CurveSegmentModel*GammaCurveSegmentModel::clone(
     cs->setStart(this->start());
     cs->setEnd(this->end());
 
+    cs->gamma = gamma;
     // Previous and following shall be set afterwards by the cloner.
     return cs;
 }
@@ -108,6 +109,9 @@ CurveSegmentModel*SinCurveSegmentModel::clone(
     auto cs = new SinCurveSegmentModel{id, parent};
     cs->setStart(this->start());
     cs->setEnd(this->end());
+
+    cs->freq = freq;
+    cs->ampl = ampl;
 
     // Previous and following shall be set afterwards by the cloner.
     return cs;

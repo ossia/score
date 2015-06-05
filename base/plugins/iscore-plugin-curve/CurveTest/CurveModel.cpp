@@ -21,8 +21,8 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     if(m->previous())
     {
         auto previousSegment = std::find_if(
-                    m_segments.get<0>().begin(),
-                    m_segments.get<0>().end(),
+                    m_segments.begin(),
+                    m_segments.end(),
                     [&] (CurveSegmentModel* seg) { return seg->following() == m->id(); });
         if(previousSegment != m_segments.end())
         {
@@ -108,7 +108,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 
 void CurveModel::removeSegment(CurveSegmentModel* m)
 {
-    m_segments.erase(m->id());
+    m_segments.remove(m->id());
 
     emit segmentRemoved(m);
 
