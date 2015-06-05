@@ -5,7 +5,7 @@
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-    this->setFlags(ItemClipsChildrenToShape);
+    this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
     this->setZValue(parent->zValue() + 1);
 }
 
@@ -50,6 +50,18 @@ void CurveView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     emit released(event->scenePos());
     event->accept();
+}
+#include <QKeyEvent>
+void CurveView::keyPressEvent(QKeyEvent* ev)
+{
+    emit keyPressed(ev->key());
+    ev->accept();
+}
+
+void CurveView::keyReleaseEvent(QKeyEvent* ev)
+{
+    emit keyReleased(ev->key());
+    ev->accept();
 }
 
 void CurveView::setRect(const QRectF& theRect)

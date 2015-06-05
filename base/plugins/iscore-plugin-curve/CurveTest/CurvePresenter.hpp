@@ -7,6 +7,7 @@ class CurveModel;
 class CurveView;
 class CurvePointView;
 class CurveSegmentView;
+class CurveStateMachine;
 class CurvePresenter : public QObject
 {
         Q_OBJECT
@@ -48,7 +49,7 @@ class CurvePresenter : public QObject
         void setupSignals();
         void setupView();
         void setupStateMachine();
-        QStateMachine* m_sm{};
+        CurveStateMachine* m_sm{};
 
         // Data relative to the current state of the view
         CurveSegmentView* m_currentSegmentView{};

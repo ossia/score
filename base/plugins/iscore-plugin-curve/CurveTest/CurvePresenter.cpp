@@ -7,6 +7,7 @@
 #include "CurveSegmentView.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "OngoingCommandState.hpp"
+#include <QKeyEvent>
 
 
 #include "MovePointCommandObject.hpp"
@@ -149,6 +150,17 @@ void CurvePresenter::setupView()
         auto pt_view = new CurvePointView{pt, m_view};
         m_points.push_back(pt_view);
     }
+
+    connect(m_view, &CurveView::keyPressed, this, [&] (int key)
+    {
+        if(key == Qt::Key_L)
+            m_sm->changeTool(!m_sm->tool());
+    });
+    connect(m_view, &CurveView::keyReleased, this, [&] (int key)
+    {
+        //if(key == Qt::Key_L)
+        //    m_sm->changeTool(1);
+    });
 }
 
 void CurvePresenter::setupStateMachine()

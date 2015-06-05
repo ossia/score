@@ -9,7 +9,7 @@
 #include "CurveTest/MovePointCommandObject.hpp"
 #include "CurveTest/StateMachine/States/Create/CreatePointFromNothingCommandObject.hpp"
 using namespace Curve;
-MoveTool::MoveTool(CurveStateMachine& sm):
+EditionTool::EditionTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
 {
     localSM().setObjectName("MoveToolStateMachine");
@@ -45,7 +45,7 @@ MoveTool::MoveTool(CurveStateMachine& sm):
 }
 
 
-void MoveTool::on_pressed()
+void EditionTool::on_pressed()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
@@ -62,7 +62,7 @@ void MoveTool::on_pressed()
     });
 }
 
-void MoveTool::on_moved()
+void EditionTool::on_moved()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
@@ -79,7 +79,7 @@ void MoveTool::on_moved()
     });
 }
 
-void MoveTool::on_released()
+void EditionTool::on_released()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)

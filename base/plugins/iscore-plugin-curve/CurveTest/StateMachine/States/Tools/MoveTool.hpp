@@ -5,10 +5,10 @@ namespace Curve
 {
 class MovePointState;
 class MoveSegmentState;
-class MoveTool : public CurveTool
+class EditionTool : public CurveTool
 {
     public:
-        MoveTool(CurveStateMachine& sm);
+        EditionTool(CurveStateMachine& sm);
 
     protected:
         void on_pressed();

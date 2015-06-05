@@ -2,6 +2,26 @@
 #include <QPainter>
 #include <iscore/selection/Selectable.hpp>
 #include "CurvePointModel.hpp"
+
+
+// From here we play the role of a presenter...
+// TODO see if there would be a better place
+
+#include "CurveTest/UpdateCurve.hpp"
+#include "CurveTest/CurvePresenter.hpp"
+#include "CurveTest/CurveModel.hpp"
+#include "CurveTest/CurveSegmentModel.hpp"
+#include "CurveTest/CurvePointModel.hpp"
+#include "CurveTest/CurvePointView.hpp"
+#include "CurveTest/LinearCurveSegmentModel.hpp"
+#include "CurveTest/CurveSegmentModelSerialization.hpp"
+
+#include <iscore/document/DocumentInterface.hpp>
+#include <QMenu>
+#include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+
 CurvePointView::CurvePointView(
         CurvePointModel* model,
         QGraphicsItem* parent):
@@ -11,6 +31,8 @@ CurvePointView::CurvePointView(
     this->setZValue(2);
     connect(&m_model->selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
+
+    m_contextMenu = new QMenu;
 
 }
 
@@ -50,19 +72,13 @@ void CurvePointView::setSelected(bool selected)
     update();
 }
 
-
-#include "CurveTest/UpdateCurve.hpp"
-#include "CurveTest/CurvePresenter.hpp"
-#include "CurveTest/CurveModel.hpp"
-#include "CurveTest/CurveSegmentModel.hpp"
-#include "CurveTest/CurvePointModel.hpp"
-#include "CurveTest/CurvePointView.hpp"
-#include "CurveTest/LinearCurveSegmentModel.hpp"
-#include "CurveTest/CurveSegmentModelSerialization.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
+/*
 void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
+    emit contextMenuRequested(event->screenPos());
+
+    QAction *removeAction = menu.addAction("Remove");
+    menu.exec(pos, (QAction*)nullptr);
     // Both segments to the side are removed.
     // If there is both a previous previous segment
     // and a following following segment, they are linked afterwards?
@@ -74,4 +90,7 @@ void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     {
     }
 
+    menu.close();
+    event->accept();
 }
+*/

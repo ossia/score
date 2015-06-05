@@ -10,7 +10,7 @@ class CurveModel;
 
 namespace Curve {
 enum class Tool {
-    Create, Move, Select
+    Selection, Edition, CreatePen, RemovePen
 };
 }
 
@@ -28,11 +28,11 @@ class CurveStateMachine : public BaseStateMachine
         CurvePoint curvePoint;
 
         void changeTool(int state);
+        int tool() const;
 
     signals:
-        void setCreateState();
-        void setSelectState();
-        void setMoveState();
+        void setEditionState();
+        void setSelectionState();
 
         void exitState();
 
@@ -46,7 +46,7 @@ class CurveStateMachine : public BaseStateMachine
 
         QState* m_selectTool{};
         QState* m_createTool{};
-        QState* m_moveTool{};
+        QState* m_editTool{};
 
         QState* m_createPenTool{};
         QState* m_removePenTool{};

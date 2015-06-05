@@ -20,12 +20,18 @@ class CurveView : public QGraphicsObject
 
         void escPressed();
 
+        void keyPressed(int);
+        void keyReleased(int);
+
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
         void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
 
         void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+        void keyPressEvent(QKeyEvent* ev) override;
+        void keyReleaseEvent(QKeyEvent* ev) override;
 
 
     private:
