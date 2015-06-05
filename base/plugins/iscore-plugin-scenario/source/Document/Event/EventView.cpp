@@ -69,7 +69,7 @@ bool EventView::hasTrigger() const
     return !m_trigger.isEmpty();
 }
 
-void EventView::setHalves(EventView::Halves h)
+void EventView::setHalves(Scenario::EventHalves h)
 {
     m_halves = h;
     update();
@@ -108,12 +108,12 @@ void EventView::paint(QPainter* painter,
     painter->setBrush(Qt::white);
     eventPen.setWidth(1);
     painter->setPen(eventPen);
-    if((int)m_halves & (int)Halves::Before)
+    if((int)m_halves & (int)Scenario::EventHalves::Before)
     {
         painter->drawChord(this->boundingRect(), 90 * 16, 180 * 16);
     }
 
-    if((int)m_halves & (int)Halves::After)
+    if((int)m_halves & (int)Scenario::EventHalves::After)
     {
         painter->drawChord(this->boundingRect(), 270 * 16, 180 * 16);
     }

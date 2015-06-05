@@ -64,8 +64,7 @@ void RemoveConstraint::serializeImpl(QDataStream& s) const
     s << m_path
       << m_cstrId
       << m_serializedConstraint
-      << m_serializedConstraintViewModels
-      << m_constraintFullViewId;
+      << m_serializedConstraintViewModels;
 }
 
 void RemoveConstraint::deserializeImpl(QDataStream& s)
@@ -73,6 +72,5 @@ void RemoveConstraint::deserializeImpl(QDataStream& s)
     s >> m_path
             >> m_cstrId
             >> m_serializedConstraint
-            >> m_serializedConstraintViewModels
-            >> m_constraintFullViewId;
+            >> m_serializedConstraintViewModels;
 }

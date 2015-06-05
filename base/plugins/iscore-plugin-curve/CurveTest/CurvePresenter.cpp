@@ -8,16 +8,20 @@
 #include <iscore/command/OngoingCommandManager.hpp>
 #include "OngoingCommandState.hpp"
 #include <QKeyEvent>
-
+#include <QMenu>
+#include <QAction>
 
 #include "MovePointCommandObject.hpp"
 #include "MoveSegmentCommandObject.hpp"
 
+#include "UpdateCurve.hpp"
 #include "StateMachine/CurveStateMachine.hpp"
 
 CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
     m_model{model},
-    m_view{view}
+    m_view{view},
+    m_commandDispatcher{iscore::IDocument::documentFromObject(*model)->commandStack()},
+    m_selectionDispatcher{iscore::IDocument::documentFromObject(*model)->selectionStack()}
 {
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
@@ -93,6 +97,8 @@ void CurvePresenter::setupSignals()
     {
         // Create a segment
         auto seg_view = new CurveSegmentView{segment, m_view};
+        connect(seg_view, &CurveSegmentView::contextMenuRequested,
+                m_view, &CurveView::contextMenuRequested);
         m_segments.push_back(seg_view);
 
         setPos(seg_view);
@@ -103,6 +109,8 @@ void CurvePresenter::setupSignals()
     {
         // Create a segment
         auto pt_view = new CurvePointView{point, m_view};
+        connect(pt_view, &CurvePointView::contextMenuRequested,
+                m_view, &CurveView::contextMenuRequested);
         m_points.push_back(pt_view);
 
         setPos(pt_view);
@@ -112,9 +120,9 @@ void CurvePresenter::setupSignals()
             [&] (CurvePointModel* m)
     {
         auto it = std::find_if(
-                    m_points.begin(),
-                    m_points.end(),
-                    [&] (CurvePointView* pt) { return &pt->model() == m; });
+                      m_points.begin(),
+                      m_points.end(),
+                      [&] (CurvePointView* pt) { return &pt->model() == m; });
         auto val = *it;
 
         m_points.removeOne(val);
@@ -125,9 +133,9 @@ void CurvePresenter::setupSignals()
 
     {
         auto it = std::find_if(
-                    m_segments.begin(),
-                    m_segments.end(),
-                    [&] (CurveSegmentView* segment) { return &segment->model() == m; });
+                      m_segments.begin(),
+                      m_segments.end(),
+                      [&] (CurveSegmentView* segment) { return &segment->model() == m; });
         auto val = *it;
 
         m_segments.removeOne(val);
@@ -158,14 +166,26 @@ void CurvePresenter::setupView()
     });
     connect(m_view, &CurveView::keyReleased, this, [&] (int key)
     {
-        //if(key == Qt::Key_L)
-        //    m_sm->changeTool(1);
+    });
+
+    connect(m_view, &CurveView::contextMenuRequested,
+            this, [&] (const QPoint& pt)
+    {
+        QMenu m;
+        auto removeAct = new QAction(tr("Remove"), this);
+        m.addAction(removeAct);
+
+        auto act = m.exec(pt, nullptr);
+        if(act == removeAct)
+        {
+            removeSelection();
+        }
     });
 }
 
 void CurvePresenter::setupStateMachine()
 {
-
+    m_sm->changeTool(0);
 }
 
 CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
@@ -176,6 +196,56 @@ CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
 void CurvePresenter::setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour)
 {
     m_addPointBehaviour = addPointBehaviour;
+}
+
+void CurvePresenter::removeSelection()
+{
+    // First we deselect
+    m_selectionDispatcher.setAndCommit({});
+
+    // We remove all that is selected,
+    // And set the bounds correctly
+    QSet<id_type<CurveSegmentModel>> segmentsToDelete;
+
+    for(const auto& elt : m_model->selectedChildren())
+    {
+        if(auto point = dynamic_cast<const CurvePointModel*>(elt))
+        {
+            if(point->previous())
+                segmentsToDelete.insert(point->previous());
+            if(point->following())
+                segmentsToDelete.insert(point->following());
+        }
+
+        if(auto segmt = dynamic_cast<const CurveSegmentModel*>(elt))
+        {
+            segmentsToDelete.insert(segmt->id());
+        }
+    }
+
+    QVector<QByteArray> newSegments;
+    newSegments.resize(m_model->segments().size() - segmentsToDelete.size());
+    int i = 0;
+    for(const CurveSegmentModel* segment : m_model->segments())
+    {
+        if(!segmentsToDelete.contains(segment->id()))
+        {
+            auto cp = segment->clone(segment->id(), nullptr);
+            if(segment->previous() && !segmentsToDelete.contains(segment->previous()))
+                cp->setPrevious(segment->previous());
+            if(segment->following() && !segmentsToDelete.contains(segment->following()))
+                cp->setFollowing(segment->following());
+
+            Serializer<DataStream> s(&newSegments[i++]);
+            s.readFrom(*cp);
+        }
+    }
+
+    m_commandDispatcher.submitCommand(
+                new UpdateCurve{
+                    iscore::IDocument::path(m_model),
+                    std::move(newSegments)
+                });
 }
 
 bool CurvePresenter::stretchBothBounds() const

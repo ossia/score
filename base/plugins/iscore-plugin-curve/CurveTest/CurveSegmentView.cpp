@@ -96,9 +96,7 @@ QPainterPath CurveSegmentView::shape() const
     return m_shape;
 }
 
-void CurveSegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+void CurveSegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-    // TODO make a menu where one can :
-    // - remove a segment
-    // - change the type of the segment
+    emit contextMenuRequested(ev->screenPos());
 }

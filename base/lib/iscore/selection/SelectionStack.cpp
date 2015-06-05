@@ -74,5 +74,20 @@ void SelectionStack::prune(QObject* p)
         sel.removeAll(p);
     }
 
+    std::remove_if(
+                m_unselectable.begin(),
+                m_unselectable.end(),
+                [] (const Selection& s )
+    { return s.empty(); });
+
+    std::remove_if(
+                m_reselectable.begin(),
+                m_reselectable.end(),
+                [] (const Selection& s )
+    { return s.empty(); });
+
+    if(m_unselectable.size() == 0)
+        m_unselectable.push({});
+
     emit currentSelectionChanged(m_unselectable.top());
 }

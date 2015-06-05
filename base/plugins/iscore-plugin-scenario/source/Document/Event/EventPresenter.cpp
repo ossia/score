@@ -46,7 +46,7 @@ EventPresenter::EventPresenter(const EventModel& model,
 
     m_view->setCondition(m_model.condition());
     m_view->setTrigger(m_model.trigger());
-    updateViewHalves();
+    m_view->setHalves(m_halves);
 }
 
 EventPresenter::~EventPresenter()
@@ -87,40 +87,55 @@ bool EventPresenter::isSelected() const
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
+// TODO EventHalvesSetter starts to make sense
 void EventPresenter::updateViewHalves() const
 {
     // First check if the event has states.
     int halves = 0;
     if(!m_model.states().empty())
-        halves |= EventView::Halves::After;
+        halves |= Scenario::EventHalves::After;
 
     auto scenar = m_model.parentScenario();
+    auto constraints = scenar->constraints();
     // Then check the constraints.
     for(const auto& constraint : m_model.previousConstraints())
     {
-        const auto& procs = scenar->constraint(constraint).processes();
+        auto constraint_it = std::find(constraints.begin(), constraints.end(), constraint);
+        if(constraint_it == constraints.end())
+        {
+            // We're still constructing and all the "required" constraints are
+            // not here; we have to stop.
+            // This will be called anyway when the last constraint is added.
+            return;
+        }
+        const auto& procs = (*constraint_it)->processes();
         if(std::any_of(
                     procs.begin(),
                     procs.end(),
                     [] (ProcessModel* proc) { return proc->endState() != nullptr; }))
         {
-            halves |= EventView::Halves::Before;
+            halves |= Scenario::EventHalves::Before;
         }
     }
 
     for(const auto& constraint : m_model.nextConstraints())
     {
-        const auto& procs = scenar->constraint(constraint).processes();
+        auto constraint_it = std::find(constraints.begin(), constraints.end(), constraint);
+        if(constraint_it == constraints.end())
+        {
+            return;
+        }
+        const auto& procs = (*constraint_it)->processes();
         if(std::any_of(
                     procs.begin(),
                     procs.end(),
                     [] (ProcessModel* proc) { return proc->startState() != nullptr; }))
         {
-            halves |= EventView::Halves::After;
+            halves |= Scenario::EventHalves::After;
         }
     }
 
-    m_view->setHalves((EventView::Halves) halves);
+    m_view->setHalves((Scenario::EventHalves) halves);
 }
 
 void EventPresenter::constraintsChangedHelper(
@@ -134,8 +149,14 @@ void EventPresenter::constraintsChangedHelper(
     connections.clear();
 
     auto scenar = m_model.parentScenario();
+    auto constraints = scenar->constraints();
     for(const auto& constraint : ids)
     {
+        auto constraint_it = std::find(constraints.begin(), constraints.end(), constraint);
+        if(constraint_it == constraints.end())
+        {
+            return;
+        }
         const auto& cstr = scenar->constraint(constraint);
         connections.append(
                     connect(&cstr, &ConstraintModel::processesChanged,

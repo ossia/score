@@ -2,6 +2,8 @@
 #include <QStateMachine>
 #include <QPointF>
 #include <QVector>
+#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 
 class CurveModel;
 class CurveView;
@@ -43,7 +45,7 @@ class CurvePresenter : public QObject
         void setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour);
 
     private:
-
+        void removeSelection();
         void setPos(CurvePointView*);
         void setPos(CurveSegmentView*);
         void setupSignals();
@@ -67,4 +69,7 @@ class CurvePresenter : public QObject
         bool m_suppressOnOverlap{true};
         bool m_stretchBothBounds{};
         AddPointBehaviour m_addPointBehaviour{};
+
+        CommandDispatcher<> m_commandDispatcher;
+        iscore::SelectionDispatcher m_selectionDispatcher;
 };

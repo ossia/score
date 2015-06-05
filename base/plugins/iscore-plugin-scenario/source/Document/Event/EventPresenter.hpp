@@ -2,6 +2,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
+#include "EventHalves.hpp"
 class QGraphicsObject;
 class EventModel;
 class EventView;
@@ -46,6 +47,8 @@ class EventPresenter : public NamedObject
         void constraintsChangedHelper(
                 const QVector<id_type<ConstraintModel>>& ids,
                 QVector<QMetaObject::Connection>& connections);
+
+        Scenario::EventHalves m_halves{Scenario::EventHalves::None};
 
         const EventModel& m_model;
         EventView* m_view {};

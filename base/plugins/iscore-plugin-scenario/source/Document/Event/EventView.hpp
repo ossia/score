@@ -2,6 +2,7 @@
 #include <QGraphicsObject>
 #include <QMouseEvent>
 #include <QKeyEvent>
+#include "EventHalves.hpp"
 class EventPresenter;
 class ConditionView;
 class TriggerView;
@@ -10,7 +11,6 @@ class EventView : public QGraphicsObject
         Q_OBJECT
 
     public:
-        enum Halves { None = 0, Before = 2, After = 4};
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
@@ -35,7 +35,7 @@ class EventView : public QGraphicsObject
         void setTrigger(const QString& trig);
         bool hasTrigger() const;
 
-        void setHalves(Halves h);
+        void setHalves(Scenario::EventHalves h);
 
     signals:
         void eventHoverEnter();
@@ -64,7 +64,7 @@ class EventView : public QGraphicsObject
         QPointF m_clickedPoint;
         QColor m_color;
 
-        Halves m_halves{Halves::None};
+        Scenario::EventHalves m_halves{Scenario::EventHalves::None};
 
         bool m_shadow {false};
         bool m_selected{};

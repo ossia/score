@@ -40,7 +40,6 @@ namespace Scenario
                 QByteArray m_serializedConstraint;
 
                 SerializedConstraintViewModels m_serializedConstraintViewModels;
-                id_type<AbstractConstraintViewModel> m_constraintFullViewId;
         };
     }
 }

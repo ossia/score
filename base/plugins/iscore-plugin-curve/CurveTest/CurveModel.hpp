@@ -34,7 +34,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void addPoint(CurvePointModel* pt);
         void removePoint(CurvePointModel* pt);
 
-        IdContainer<ModelMap, CurveSegmentModel> m_segments;
+        Map<CurveSegmentModel> m_segments;
         //QVector<CurveSegmentModel*> m_segments; // Each between 0, 1
         QVector<CurvePointModel*> m_points; // Each between 0, 1
 };

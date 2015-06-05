@@ -64,6 +64,11 @@ void CurveView::keyReleaseEvent(QKeyEvent* ev)
     ev->accept();
 }
 
+void CurveView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+{
+    emit contextMenuRequested(ev->screenPos());
+}
+
 void CurveView::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();

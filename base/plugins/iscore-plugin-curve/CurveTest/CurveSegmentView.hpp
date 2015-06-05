@@ -17,6 +17,9 @@ class CurveSegmentView : public QGraphicsObject
 
         void setSelected(bool selected);
 
+    signals:
+        void contextMenuRequested(const QPoint&);
+
     protected:
         void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
 

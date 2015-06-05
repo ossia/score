@@ -72,25 +72,7 @@ void CurvePointView::setSelected(bool selected)
     update();
 }
 
-/*
-void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-    emit contextMenuRequested(event->screenPos());
-
-    QAction *removeAction = menu.addAction("Remove");
-    menu.exec(pos, (QAction*)nullptr);
-    // Both segments to the side are removed.
-    // If there is both a previous previous segment
-    // and a following following segment, they are linked afterwards?
-
-    CurveSegmentModel* prev_prev{};
-    CurveSegmentModel* foll_foll{};
-
-    if(m_model->previous())
-    {
-    }
-
-    menu.close();
-    event->accept();
+    emit contextMenuRequested(ev->screenPos());
 }
-*/

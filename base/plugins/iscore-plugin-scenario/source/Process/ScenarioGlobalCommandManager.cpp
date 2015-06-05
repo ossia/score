@@ -35,11 +35,15 @@ void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel
 
     cleaner.commit();
 }
-
+#include "Commands/Scenario/Deletions/RemoveSelection.hpp"
 void ScenarioGlobalCommandManager::deleteSelection(const ScenarioModel &scenario)
 {
+    CommandDispatcher<> dispatcher(m_commandStack);
+    dispatcher.submitCommand(new RemoveSelection(path(scenario), scenario.selectedChildren()));
+
     // TODO quelques comportements bizarres à régler ...
     // 1. Select items
+    /*
     auto constraintsToRemove = selectedElements(scenario.constraints());
     auto eventsToRemove = selectedElements(scenario.events());
 
@@ -65,4 +69,5 @@ void ScenarioGlobalCommandManager::deleteSelection(const ScenarioModel &scenario
         // 3. Make a meta-command that binds them all and calls undo & redo on the queue.
         cleaner.commit();
     }
+    */
 }

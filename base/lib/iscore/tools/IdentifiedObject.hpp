@@ -82,6 +82,9 @@ class IdContainer
         void insert(model* t)
         { map.insert(t); }
 
+        std::size_t size() const
+        { return map.size(); }
+
         void remove(model* t)
         { map.erase(t); }
         void remove(const id_type<model>& id)

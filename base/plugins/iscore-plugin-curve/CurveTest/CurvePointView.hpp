@@ -18,10 +18,11 @@ class CurvePointView : public QGraphicsObject
         void setSelected(bool selected);
 
     signals:
-        //void contextMenuRequested(const QPoint& pos);
+        void contextMenuRequested(const QPoint&);
 
     protected:
-        //void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+        void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
+
 
     private:
         CurvePointModel* m_model;
