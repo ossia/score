@@ -7,7 +7,7 @@ AutomationState::AutomationState(const AutomationModel* model, double watchedPoi
 {
     Q_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-    connect(model, &AutomationModel::pointsChanged,
+    connect(model, &AutomationModel::curveChanged,
             this, &ProcessStateDataInterface::stateChanged);
 
     connect(model, &AutomationModel::addressChanged,
@@ -16,9 +16,10 @@ AutomationState::AutomationState(const AutomationModel* model, double watchedPoi
 
 Message AutomationState::message() const
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
     Message m;
-    m.address = model()->address();
-    m.value = model()->points().value(m_point);
+    //m.address = model()->address();
+    //m.value = model()->points().value(m_point);
 
     return m;
 }

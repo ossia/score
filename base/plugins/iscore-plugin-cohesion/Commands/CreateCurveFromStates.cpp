@@ -48,8 +48,11 @@ void CreateCurveFromStates::redo()
     auto& cstr = m_cmd->constraintPath().find<ConstraintModel>();
     auto autom = static_cast<AutomationModel*>(cstr.process(m_cmd->processId()));
     autom->setAddress(m_address);
-    autom->movePoint(0, 0, m_start);
-    autom->movePoint(1, 1, m_end);
+
+    // TODO create linear interpolation
+    qDebug() << Q_FUNC_INFO << "TODO";
+    //autom->movePoint(0, 0, m_start);
+    //autom->movePoint(1, 1, m_end);
 }
 
 void CreateCurveFromStates::serializeImpl(QDataStream& s) const

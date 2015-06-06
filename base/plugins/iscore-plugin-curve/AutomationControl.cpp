@@ -1,8 +1,6 @@
 #include "AutomationControl.hpp"
 
-#include "Commands/AddPoint.hpp"
-#include "Commands/RemovePoint.hpp"
-#include "Commands/MovePoint.hpp"
+#include "CurveTest/UpdateCurve.hpp"
 #include "Commands/ChangeAddress.hpp"
 #include "Commands/SetCurveMin.hpp"
 #include "Commands/SetCurveMax.hpp"
@@ -20,17 +18,10 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
     iscore::SerializableCommand* cmd {};
 
     // TODO harmonize this
-    if(name == "AddPoint")
+    // TODO className -> commandName
+    if(name == UpdateCurve::className())
     {
-        cmd = new AddPoint;
-    }
-    else if(name == "RemovePoint")
-    {
-        cmd = new RemovePoint;
-    }
-    else if(name == "MovePoint")
-    {
-        cmd = new MovePoint;
+        cmd = new UpdateCurve;
     }
     else if(name == "ChangeAddress")
     {

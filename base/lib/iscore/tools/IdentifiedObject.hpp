@@ -74,6 +74,7 @@ class IdContainer
 {
         Map<model> map;
     public:
+        using value_type = model*;
         auto begin() const { return map.begin(); }
         auto cbegin() const { return map.cbegin(); }
         auto end() const { return map.end(); }

@@ -7,6 +7,7 @@ class UpdateCurve : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("UpdateCurve", "UpdateCurve")
     public:
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateCurve, "AutomationControl")
         UpdateCurve(ObjectPath&& model, QVector<QByteArray>&& segments);
 
         void undo() override;

@@ -9,6 +9,12 @@ CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
 {
 }
 
+CurveModel*CurveModel::clone(const id_type<CurveModel>&, QObject* parent)
+{
+    qDebug() << Q_FUNC_INFO << "todo";
+    return nullptr;
+}
+
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
     m->setParent(this);

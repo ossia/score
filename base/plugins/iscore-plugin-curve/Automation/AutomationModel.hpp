@@ -1,6 +1,8 @@
 #pragma once
 
 #include <ProcessInterface/ProcessModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
 /**
  * @brief The AutomationModel class
@@ -15,6 +17,10 @@
 class CurveModel;
 class AutomationModel : public ProcessModel
 {
+
+        friend void Visitor<Writer<DataStream>>::writeTo<AutomationModel>(AutomationModel& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<AutomationModel>(AutomationModel& ev);
+
         Q_OBJECT
         Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
         // Min and max to scale the curve with at execution
@@ -63,16 +69,8 @@ class AutomationModel : public ProcessModel
         //// AutomationModel specifics ////
         QString address() const;
 
-        const QMap<double, double>& points() const;
-
         CurveModel& curve() const
         { return *m_curve; }
-
-        void setPoints(QMap<double, double>&& points);
-
-        void addPoint(double x, double y);
-        void removePoint(double x);
-        void movePoint(double oldx, double newx, double newy);
 
         double value(const TimeValue& time);
 
@@ -81,7 +79,7 @@ class AutomationModel : public ProcessModel
 
     signals:
         void addressChanged(QString arg);
-        void pointsChanged();
+        void curveChanged();
 
         void minChanged(double arg);
 
@@ -100,10 +98,10 @@ class AutomationModel : public ProcessModel
                 QObject* parent) override;
 
     private:
+        void setCurve(CurveModel* newCurve);
         QString m_address;
         CurveModel* m_curve{};
 
-        QMap<double, double> m_points;
-        double m_min{};
-        double m_max{1.};
+        double m_min;
+        double m_max;
 };

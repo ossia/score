@@ -4,7 +4,7 @@
 
 #include "CurveTest/CurveModel.hpp"
 #include "CurveTest/LinearCurveSegmentModel.hpp"
-
+#include "CurveTest/CurvePointModel.hpp"
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const id_type<ProcessModel>& id,
@@ -48,7 +48,9 @@ ProcessModel* AutomationModel::clone(
 {
     auto autom = new AutomationModel {this->duration(), newId, newParent};
     autom->setAddress(address());
-    autom->setPoints(QMap<double, double> {points() });
+    autom->setMin(min());
+    autom->setMax(max());
+    autom->setCurve(m_curve->clone(m_curve->id(), autom));
 
     return autom;
 }
@@ -60,19 +62,86 @@ QString AutomationModel::processName() const
 
 void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
 {
+    // We only need to change the duration.
+    setDuration(newDuration);
 }
 
 void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
 {
+    // If there are no segments, nothing changes
+    if(m_curve->segments().size() == 0)
+    {
+        setDuration(newDuration);
+        return;
+    }
+
+    // Else, scale all the segments by the increase.
+    double scale = duration() / newDuration;
+    for(auto& segment : m_curve->segments())
+    {
+        CurvePoint pt = segment->start();
+        pt.setX(pt.x() * scale);
+        segment->setStart(pt);
+
+        pt = segment->end();
+        pt.setX(pt.x() * scale);
+        segment->setEnd(pt);
+    }
+
+    setDuration(newDuration);
 }
 
 void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
 {
+    // If there are no segments, nothing changes
+    if(m_curve->segments().size() == 0)
+    {
+        setDuration(newDuration);
+        return;
+    }
+
+    // Else, scale all the segments by the increase.
+    double scale = duration() / newDuration;
+    for(auto& segment : m_curve->segments())
+    {
+        CurvePoint pt = segment->start();
+        pt.setX(pt.x() * scale);
+        segment->setStart(pt);
+
+        pt = segment->end();
+        pt.setX(pt.x() * scale);
+        segment->setEnd(pt);
+    }
+
+    // Since we shrink, scale > 1. so we have to cut.
+    // Note:  this will certainly change how some functions do look.
+    auto segments = m_curve->segments(); // Make a copy since we will change the map.
+    for(auto& segment : segments)
+    {
+        if(segment->start().x() >= 1.)
+        {
+            // bye
+            m_curve->removeSegment(segment);
+        }
+        else if(segment->end().x() >= 1.)
+        {
+            auto end = segment->end();
+            end.setX(1.);
+            segment->setEnd(end);
+        }
+    }
+
+    setDuration(newDuration);
 }
 
 Selection AutomationModel::selectableChildren() const
 {
-    return {};
+    Selection s;
+    for(auto& segment : m_curve->segments())
+        s.append(segment);
+    for(auto& point : m_curve->points())
+        s.append(point);
+    return s;
 }
 
 Selection AutomationModel::selectedChildren() const
@@ -104,6 +173,14 @@ ProcessViewModel* AutomationModel::cloneViewModel_impl(
     return vm;
 }
 
+void AutomationModel::setCurve(CurveModel* newCurve)
+{
+    delete m_curve;
+    m_curve = newCurve;
+
+    emit curveChanged();
+}
+
 
 // TODO fix memory leak
 ProcessStateDataInterface* AutomationModel::startState() const
@@ -119,38 +196,6 @@ ProcessStateDataInterface* AutomationModel::endState() const
 QString AutomationModel::address() const
 {
     return m_address;
-}
-
-const QMap<double, double> &AutomationModel::points() const
-{
-    return m_points;
-}
-
-void AutomationModel::setPoints(QMap<double, double> &&points)
-{
-    m_points = std::move(points);
-}
-
-// Note : the presenter should see the modifications happening,
-// and prevent accidental point removal.
-void AutomationModel::addPoint(double x, double y)
-{
-    m_points[x] = y;
-    emit pointsChanged();
-}
-
-void AutomationModel::removePoint(double x)
-{
-    m_points.remove(x);
-    emit pointsChanged();
-}
-
-void AutomationModel::movePoint(double oldx, double newx, double newy)
-{
-    m_points.remove(oldx);
-
-    m_points[newx] = newy;
-    emit pointsChanged();
 }
 
 double AutomationModel::value(const TimeValue& time)

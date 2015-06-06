@@ -1,17 +1,29 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 class CurveSegmentModel;
 class CurvePointModel;
 
 class CurveModel : public IdentifiedObject<CurveModel>
 {
-
+        friend void Visitor<Writer<DataStream>>::writeTo<CurveModel>(CurveModel& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<CurveModel>(CurveModel& ev);
         Q_OBJECT
     public:
         CurveModel(const id_type<CurveModel>&, QObject* parent);
+
+        template<typename Impl>
+        CurveModel(Deserializer<Impl>& vis, QObject* parent) :
+            IdentifiedObject<CurveModel>{vis, parent}
+        {
+            vis.writeTo(*this);
+        }
+
+        CurveModel* clone(const id_type<CurveModel>&, QObject* parent);
         void addSegment(CurveSegmentModel* m);
-        void removeSegment(CurveSegmentModel* m);
+        void removeSegment(CurveSegmentModel* m); // TODO why not id?
 
         Selection selectedChildren() const;
         void setSelection(const Selection& s);

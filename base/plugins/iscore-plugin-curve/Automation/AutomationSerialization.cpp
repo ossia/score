@@ -1,6 +1,7 @@
 #include "AutomationModel.hpp"
 #include "AutomationViewModel.hpp"
 #include "AutomationFactory.hpp"
+#include "CurveTest/CurveModel.hpp"
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -8,7 +9,10 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 {
-    m_stream << autom.address() << autom.points();
+    m_stream << autom.address()
+             << autom.min()
+             << autom.max()
+             << autom.curve();
 
     insertDelimiter();
 }
@@ -17,11 +21,13 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 {
     QString address;
-    QMap<double, double> points;
-    m_stream >> address >> points;
+    double min, max;
+
+    m_stream >> address >> min >> max;
 
     autom.setAddress(address);
-    autom.setPoints(std::move(points));
+    autom.setMin(min);
+    autom.setMax(max);
 
     checkDelimiter();
 }
@@ -33,28 +39,21 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 {
     m_obj["Address"] = autom.address();
-    QJsonArray vals;
-    QMap<double, double>::const_iterator pt = autom.points().constBegin();
-    while (pt != autom.points().constEnd())
-    {
-        vals.push_back(QJsonArray{pt.key(), pt.value()});
-        ++pt;
-    }
-
-    m_obj["Points"] = vals;
-
+    m_obj["Min"] = autom.min();
+    m_obj["Max"] = autom.max();
+    m_obj["Curve"] = toJsonObject(autom.curve());
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
 {
     autom.setAddress(m_obj["Address"].toString());
-    QJsonArray vals = m_obj["Points"].toArray();
-    for(int i = 0; i < vals.size(); i++)
-    {
-        auto pt = vals[i].toArray();
-        autom.addPoint(pt[0].toDouble(), pt[1].toDouble());
-    }
+    autom.setMin(m_obj["Min"].toDouble());
+    autom.setMax(m_obj["Max"].toDouble());
+
+    Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
+    autom.setCurve(new CurveModel{curve_deser, &autom});
+
 }
 
 
