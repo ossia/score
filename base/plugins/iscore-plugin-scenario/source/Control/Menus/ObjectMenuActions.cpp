@@ -54,7 +54,7 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
         if (auto sm = m_parent->focusedScenarioModel())
         {
             ScenarioGlobalCommandManager mgr{m_parent->currentDocument()->commandStack()};
-            mgr.deleteSelection(*sm);
+            mgr.removeSelection(*sm);
         }
     });
 

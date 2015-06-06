@@ -53,6 +53,7 @@ QVector<id_type<ConstraintModel> > EventModel::constraints() const
 
 void EventModel::addNextConstraint(const id_type<ConstraintModel>& constraint)
 {
+    // TODO use a map here.
     m_nextConstraints.push_back(constraint);
     emit nextConstraintsChanged();
 }

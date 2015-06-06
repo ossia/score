@@ -102,53 +102,121 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
 
 void RemoveSelection::undo()
 {
-    /*
     auto& scenar = m_path.find<ScenarioModel>();
-
-    Deserializer<DataStream> s{m_serializedEvent};
-    auto event = new EventModel{s, &scenar};
-
-    Deserializer<DataStream> s2 {m_serializedTimeNode};
-    auto timeNode = new TimeNodeModel{s2, &scenar};
-    bool tnFound = false;
-
-    for (auto tn : scenar.timeNodes())
+    // First instantiate everything
+    QList<EventModel*> events;
+    std::transform(m_removedEvents.begin(),
+                   m_removedEvents.end(),
+                   std::back_inserter(events),
+                   [&] (const auto& eventdata)
     {
-        if (tn->id() == event->timeNode())
+        Deserializer<DataStream> s{eventdata.second};
+        return new EventModel{s, &scenar};
+    });
+
+    QList<TimeNodeModel*> timenodes;
+    std::transform(m_removedTimeNodes.begin(),
+                   m_removedTimeNodes.end(),
+                   std::back_inserter(timenodes),
+                   [&] (const auto& tndata)
+    {
+        Deserializer<DataStream> s{tndata.second};
+        return new TimeNodeModel{s, &scenar};
+    });
+
+
+    QList<TimeNodeModel*> maybeTimenodes;
+    std::transform(m_maybeRemovedTimeNodes.begin(),
+                   m_maybeRemovedTimeNodes.end(),
+                   std::back_inserter(maybeTimenodes),
+                   [&] (const auto& tndata)
+    {
+        Deserializer<DataStream> s{tndata.second};
+        return new TimeNodeModel{s, &scenar};
+    });
+
+    // Recreate all the removed timenodes
+    for(auto& tn : timenodes)
+    {
+        // The events should be removed first because else
+        // signals may sent and the event may not be found...
+        // They will be re-added anyway.
+        auto events_in_timenode = tn->events();
+        for(auto& event : events_in_timenode)
         {
-            delete timeNode;
+            tn->removeEvent(event);
+        }
+        scenar.addTimeNode(tn);
+    }
+
+    // Recreate first all the events / maybe removed timenodes
+    for(auto& event : events)
+    {
+        // We have to make a copy at each iteration since each iteration
+        // might add a timenode.
+        auto timenodes_in_scenar = scenar.timeNodes();
+        auto scenar_timenode_it = std::find(timenodes_in_scenar.begin(),
+                                     timenodes_in_scenar.end(),
+                                     event->timeNode());
+        if(scenar_timenode_it != timenodes_in_scenar.end())
+        {
+            // The timenode already exists
+            // Hence we don't need the one we serialized.
+            auto to_delete = std::find(maybeTimenodes.begin(),
+                                       maybeTimenodes.end(),
+                                       event->timeNode());
+            Q_ASSERT(to_delete != maybeTimenodes.end());
+            delete *to_delete;
+            maybeTimenodes.erase(to_delete);
+
+            // We can add our event to the scenario.
             scenar.addEvent(event);
-            tn->addEvent(event->id());
-            tnFound = true;
-            break;
+
+            // Maybe this shall be done after everything has been added to prevent problems ?
+            (*scenar_timenode_it)->addEvent(event->id());
+        }
+        else
+        {
+            // We have to insert the timenode that was removed.
+            auto removed_timenode_it = std::find(maybeTimenodes.begin(),
+                                                 maybeTimenodes.end(),
+                                                 event->timeNode());
+            Q_ASSERT(removed_timenode_it != maybeTimenodes.end());
+            TimeNodeModel* timeNode = *removed_timenode_it;
+
+            maybeTimenodes.erase(removed_timenode_it);
+
+            // TODO Why is it necessary to remove / readd?
+            // Maybe we should do a first pass where we only add the
+            // timenodes, and then all the events in bulk ?
+            timeNode->removeEvent(event->id());
+            scenar.addTimeNode(timeNode);
+
+            scenar.addEvent(event);
+            timeNode->addEvent(event->id());
         }
     }
-    if (! tnFound)
-    {
-        timeNode->removeEvent(event->id());
-        scenar.addTimeNode(timeNode);
-        scenar.addEvent(event);
-        timeNode->addEvent(event->id());
-    }
 
-    // re-create constraints
-    for (auto scstr : m_removedConstraints)
+    // And then all the constraints.
+    for (const auto& constraintdata : m_removedConstraints)
     {
-        Deserializer<DataStream> s{scstr.first};
+        Deserializer<DataStream> s{constraintdata.first.second};
         auto cstr = new ConstraintModel{s, &scenar};
 
         scenar.addConstraint(cstr);
 
-        // adding constraint to second extremity event
-        if (m_evId == cstr->endEvent())
-            scenar.event(cstr->startEvent()).addNextConstraint(cstr->id());
-        else
-            scenar.event(cstr->endEvent()).addPreviousConstraint(cstr->id());
+        // Set-up the start / end events correctly.
+        auto& sev = scenar.event(cstr->startEvent());
+        if (!sev.nextConstraints().contains(cstr->id()))
+            sev.addNextConstraint(cstr->id());
+
+        auto& eev = scenar.event(cstr->endEvent());
+        if (!eev.previousConstraints().contains(cstr->id()))
+            eev.addPreviousConstraint(cstr->id());
 
         // view model creation
-        deserializeConstraintViewModels(scstr.second, scenar);
+        deserializeConstraintViewModels(constraintdata.second, scenar);
     }
-    */
 }
 
 void RemoveSelection::redo()

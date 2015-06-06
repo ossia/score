@@ -36,6 +36,7 @@
 #include "Scenario/Deletions/ClearConstraint.hpp"
 #include "Scenario/Deletions/ClearEvent.hpp"
 #include "Scenario/Deletions/RemoveConstraint.hpp"
+#include "Scenario/Deletions/RemoveSelection.hpp"
 #include "Scenario/Deletions/RemoveEvent.hpp"
 #include "Scenario/Displacement/MoveConstraint.hpp"
 #include "Scenario/Displacement/MoveEvent.hpp"
@@ -270,6 +271,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == RemoveDeckFromBox::className()) return new RemoveDeckFromBox;
     else if(name == RemoveEvent::className()) return new RemoveEvent;
     else if(name == RemoveMultipleElements::className()) return new RemoveMultipleElements;
+    else if(name == RemoveSelection::className()) return new RemoveSelection;
     else if(name == RemoveProcessFromConstraint::className()) return new RemoveProcessFromConstraint;
     else if(name == RemoveProcessViewModelFromDeck::className()) return new RemoveProcessViewModelFromDeck;
     else if(name == RemoveStateFromEvent::className()) return new RemoveStateFromEvent;

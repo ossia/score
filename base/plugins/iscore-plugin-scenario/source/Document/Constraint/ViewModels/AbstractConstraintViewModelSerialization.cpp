@@ -93,7 +93,9 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 }
 
 
-void deserializeConstraintViewModels(SerializedConstraintViewModels& vms, const ScenarioModel& scenar)
+void deserializeConstraintViewModels(
+        const SerializedConstraintViewModels& vms,
+        const ScenarioModel& scenar)
 {
     using namespace std;
     for(auto& viewModel : viewModels(scenar))

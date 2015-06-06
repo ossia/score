@@ -64,5 +64,6 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 // Save all the constraint view models
 // Load a group of constraint view models
 
-void deserializeConstraintViewModels(SerializedConstraintViewModels& vms,
-                                     const ScenarioModel& scenar);
+void deserializeConstraintViewModels(
+        const SerializedConstraintViewModels& vms,
+        const ScenarioModel& scenar);

@@ -10,7 +10,7 @@ class ScenarioGlobalCommandManager
 
         }
 
-        void deleteSelection(const ScenarioModel &scenario);
+        void removeSelection(const ScenarioModel &scenario);
         void clearContentFromSelection(const ScenarioModel &scenario);
 
     private:
