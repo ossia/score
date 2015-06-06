@@ -6,9 +6,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <QGraphicsSceneMouseEvent>
-
-#include "QCustomPlotProcess/QCustomPlotCurve.hpp"
-
+#include <QGraphicsScene>
 #include "Curve/CurveModel.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveView.hpp"
