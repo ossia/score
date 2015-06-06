@@ -227,9 +227,6 @@ void IScoreCohesionControl::interpolateStates()
             ? nullptr
             : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
 
-    // Needed to get the min / max of the addresses
-    auto device_explorer = currentDocument()
-                           ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     for(auto& constraint : selected_constraints)
     {
         // TODO state collapsing if twice the same message ?
@@ -274,17 +271,13 @@ void IScoreCohesionControl::interpolateStates()
 
                 auto splt = message.address.split("/");
                 splt.removeFirst();
-                Node* n = getNodeFromString(device_explorer->rootNode(),
-                           std::move(splt));
-                // We scale between 0 (min) and 1 (max)
-                auto amplitude = n->maxValue() - n->minValue();
+
                 auto cmd = new CreateCurveFromStates{
                            iscore::IDocument::path(constraint),
                            message.address,
-                           message.value.toDouble() / amplitude,
-                           (*it).value.toDouble() / amplitude};
+                           message.value.toDouble(),
+                           (*it).value.toDouble()};
                 macro.submitCommand(cmd);
-
             }
         }
 
