@@ -3,11 +3,6 @@
 #include "AutomationViewModel.hpp"
 #include "AutomationView.hpp"
 
-
-#include "../Commands/AddPoint.hpp"
-#include "../Commands/MovePoint.hpp"
-
-
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/command/OngoingCommandManager.hpp>
 #include <QGraphicsSceneMouseEvent>

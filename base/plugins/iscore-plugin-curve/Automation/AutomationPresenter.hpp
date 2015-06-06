@@ -8,7 +8,6 @@ class QCPGraph;
 class ProcessView;
 class AutomationViewModel;
 class AutomationView;
-#include "CurveTest/CurveTest.hpp"
 
 class AutomationPresenter : public ProcessPresenter
 {

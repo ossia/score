@@ -1,6 +1,4 @@
 #include "MoveTool.hpp"
-#include "CurveTest/StateMachine/States/Move/MovePointState.hpp"
-#include "CurveTest/StateMachine/States/Move/MoveSegmentState.hpp"
 #include "CurveTest/CurveModel.hpp"
 #include "CurveTest/OngoingCommandState.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>

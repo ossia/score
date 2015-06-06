@@ -6,7 +6,6 @@
 #include <iscore/document/DocumentInterface.hpp>
 
 #include "CurveTest/StateMachine/States/Create/CreatePointFromNothingCommandObject.hpp"
-#include "CurveTest/StateMachine/States/Create/CreatePointFromPointCommandObject.hpp"
 
 using namespace Curve;
 CreationTool::CreationTool(CurveStateMachine& sm):
