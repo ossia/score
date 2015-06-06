@@ -2,9 +2,12 @@
 #include "AutomationViewModel.hpp"
 #include "State/AutomationState.hpp"
 
-#include "CurveTest/CurveModel.hpp"
-#include "CurveTest/LinearCurveSegmentModel.hpp"
-#include "CurveTest/CurvePointModel.hpp"
+#include "Curve/CurveModel.hpp"
+#include "Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/GammaCurveSegmentModel.hpp"
+#include "Curve/Segment/SinCurveSegmentModel.hpp"
+#include "Curve/Point/CurvePointModel.hpp"
+
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const id_type<ProcessModel>& id,

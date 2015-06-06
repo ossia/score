@@ -1,6 +1,6 @@
 #include "AutomationControl.hpp"
 
-#include "CurveTest/UpdateCurve.hpp"
+#include "Curve/Commands/UpdateCurve.hpp"
 #include "Commands/ChangeAddress.hpp"
 #include "Commands/SetCurveMin.hpp"
 #include "Commands/SetCurveMax.hpp"

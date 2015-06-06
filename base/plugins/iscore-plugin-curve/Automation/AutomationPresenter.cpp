@@ -9,9 +9,9 @@
 
 #include "QCustomPlotProcess/QCustomPlotCurve.hpp"
 
-#include "CurveTest/CurveModel.hpp"
-#include "CurveTest/CurvePresenter.hpp"
-#include "CurveTest/CurveView.hpp"
+#include "Curve/CurveModel.hpp"
+#include "Curve/CurvePresenter.hpp"
+#include "Curve/CurveView.hpp"
 AutomationPresenter::AutomationPresenter(
         const ProcessViewModel& model,
         ProcessView* view,

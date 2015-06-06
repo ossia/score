@@ -4,9 +4,11 @@
 #include "Inspector/AutomationStateInspectorFactory.hpp"
 #include "Automation/AutomationFactory.hpp"
 #include "AutomationControl.hpp"
-#include "CurveTest/CurveSegmentList.hpp"
+#include "Curve/Segment/CurveSegmentList.hpp"
 
-#include "CurveTest/LinearCurveSegmentFactory.hpp"
+#include "Curve/Segment/LinearCurveSegmentFactory.hpp"
+#include "Curve/Segment/GammaCurveSegmentFactory.hpp"
+#include "Curve/Segment/SinCurveSegmentFactory.hpp"
 
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}

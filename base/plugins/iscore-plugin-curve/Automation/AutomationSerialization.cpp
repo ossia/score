@@ -1,7 +1,7 @@
 #include "AutomationModel.hpp"
 #include "AutomationViewModel.hpp"
 #include "AutomationFactory.hpp"
-#include "CurveTest/CurveModel.hpp"
+#include "Curve/CurveModel.hpp"
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
