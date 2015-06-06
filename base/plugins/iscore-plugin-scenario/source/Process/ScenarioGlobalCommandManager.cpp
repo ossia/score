@@ -1,14 +1,13 @@
 #include "ScenarioGlobalCommandManager.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
 
-#include "Commands/Scenario/Deletions/RemoveConstraint.hpp"
-#include "Commands/Scenario/Deletions/RemoveEvent.hpp"
 #include "Commands/Scenario/Deletions/ClearConstraint.hpp"
 #include "Commands/Scenario/Deletions/ClearEvent.hpp"
 
 #include "Commands/RemoveMultipleElements.hpp"
 #include "Document/Event/EventModel.hpp"
 
+#include "Commands/Scenario/Deletions/RemoveSelection.hpp"
 
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
@@ -36,7 +35,6 @@ void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel
     cleaner.commit();
 }
 
-#include "Commands/Scenario/Deletions/RemoveSelection.hpp"
 void ScenarioGlobalCommandManager::removeSelection(const ScenarioModel &scenario)
 {
     auto sel = scenario.selectedChildren();

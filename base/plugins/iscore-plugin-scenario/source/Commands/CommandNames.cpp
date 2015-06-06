@@ -35,9 +35,7 @@
 #include "Scenario/Creations/CreationMetaCommand.hpp"
 #include "Scenario/Deletions/ClearConstraint.hpp"
 #include "Scenario/Deletions/ClearEvent.hpp"
-#include "Scenario/Deletions/RemoveConstraint.hpp"
 #include "Scenario/Deletions/RemoveSelection.hpp"
-#include "Scenario/Deletions/RemoveEvent.hpp"
 #include "Scenario/Displacement/MoveConstraint.hpp"
 #include "Scenario/Displacement/MoveEvent.hpp"
 #include "Scenario/Displacement/MoveTimeNode.hpp"
@@ -95,9 +93,7 @@ const char* Scenario::Command::MoveTimeNode::className() { return "MoveTimeNode"
 
 // REMOVE
 const char* Scenario::Command::RemoveBoxFromConstraint::className() { return "RemoveBoxFromConstraint"; }
-const char* Scenario::Command::RemoveConstraint::className() { return "RemoveConstraint"; }
 const char* Scenario::Command::RemoveDeckFromBox::className() { return "RemoveDeckFromBox"; }
-const char* Scenario::Command::RemoveEvent::className() { return "RemoveEvent"; }
 const char* Scenario::Command::RemoveMultipleElements::className() { return "RemoveMultipleElements"; }
 const char* Scenario::Command::RemoveProcessFromConstraint::className() { return "RemoveProcessFromConstraint"; }
 const char* Scenario::Command::RemoveProcessViewModelFromDeck::className() { return "RemoveProcessViewModelFromDeck"; }
@@ -167,9 +163,7 @@ QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("Mov
 
 // REMOVE
 QString Scenario::Command::RemoveBoxFromConstraint::description() { return QObject::tr("RemoveBoxFromConstraint"); }
-QString Scenario::Command::RemoveConstraint::description() { return QObject::tr("RemoveConstraint"); }
 QString Scenario::Command::RemoveDeckFromBox::description() { return QObject::tr("RemoveDeckFromBox"); }
-QString Scenario::Command::RemoveEvent::description() { return QObject::tr("RemoveEvent"); }
 QString Scenario::Command::RemoveMultipleElements::description() { return QObject::tr("RemoveMultipleElements"); }
 QString Scenario::Command::RemoveProcessFromConstraint::description() { return QObject::tr("RemoveProcessFromConstraint"); }
 QString Scenario::Command::RemoveProcessViewModelFromDeck::description() { return QObject::tr("RemoveProcessViewModelFromDeck"); }
@@ -267,9 +261,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
 
     // REMOVE ELEMENT
     else if(name == RemoveBoxFromConstraint::className()) return new RemoveBoxFromConstraint;
-    else if(name == RemoveConstraint::className()) return new RemoveConstraint;
     else if(name == RemoveDeckFromBox::className()) return new RemoveDeckFromBox;
-    else if(name == RemoveEvent::className()) return new RemoveEvent;
     else if(name == RemoveMultipleElements::className()) return new RemoveMultipleElements;
     else if(name == RemoveSelection::className()) return new RemoveSelection;
     else if(name == RemoveProcessFromConstraint::className()) return new RemoveProcessFromConstraint;
