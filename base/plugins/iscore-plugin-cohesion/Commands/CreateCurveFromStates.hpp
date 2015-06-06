@@ -10,6 +10,8 @@ class AddProcessToConstraint;
 }
 }
 
+class UpdateCurve;
+
 class CreateCurveFromStates : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("CreateCurveFromStates", "CreateCurveFromStates")
@@ -29,7 +31,8 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        Scenario::Command::AddProcessToConstraint* m_cmd{};
+        Scenario::Command::AddProcessToConstraint* m_addProcessCmd{};
+
         QString m_address;
 
         double m_start{}, m_end{};

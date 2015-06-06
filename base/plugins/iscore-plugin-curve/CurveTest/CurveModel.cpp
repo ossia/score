@@ -9,10 +9,16 @@ CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
 {
 }
 
-CurveModel*CurveModel::clone(const id_type<CurveModel>&, QObject* parent)
+CurveModel* CurveModel::clone(
+        const id_type<CurveModel>& id,
+        QObject* parent)
 {
-    qDebug() << Q_FUNC_INFO << "todo";
-    return nullptr;
+    auto cm = new CurveModel{id, parent};
+    for(const auto& segment : m_segments)
+    {
+        cm->addSegment(segment->clone(segment->id(), cm));
+    }
+    return cm;
 }
 
 void CurveModel::addSegment(CurveSegmentModel* m)
