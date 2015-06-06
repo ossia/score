@@ -27,6 +27,8 @@ void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
     {
         curve.addSegment(createCurveSegment(*this, &curve));
     }
+
+    checkDelimiter();
 }
 
 template<>

@@ -1,5 +1,6 @@
 #pragma once
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QVector>

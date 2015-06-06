@@ -129,7 +129,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
         void checkDelimiter()
         {
-            int val {};
+            int val{};
             m_stream >> val;
 
             if(val != int32_t (0xDEADBEEF))

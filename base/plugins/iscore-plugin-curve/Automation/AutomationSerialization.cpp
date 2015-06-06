@@ -9,10 +9,10 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 {
-    m_stream << autom.address()
-             << autom.min()
-             << autom.max()
-             << autom.curve();
+    m_stream << autom.address();
+    m_stream << autom.min();
+    m_stream << autom.max();
+    readFrom(autom.curve());
 
     insertDelimiter();
 }
@@ -28,6 +28,8 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
     autom.setAddress(address);
     autom.setMin(min);
     autom.setMax(max);
+
+    autom.setCurve(new CurveModel{*this, &autom});
 
     checkDelimiter();
 }

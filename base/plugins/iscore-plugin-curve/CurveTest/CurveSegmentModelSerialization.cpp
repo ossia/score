@@ -46,21 +46,22 @@ void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentModel& segmt)
     readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
 
     // Save this class (this will be loaded by writeTo(*this) in CurveSegmentModel ctor
-    m_obj["Previous"] = segmt.previous();
-    m_obj["Following"] = segmt.following();
-    m_obj["Start"] = segmt.start();
-    m_obj["End"] = segmt.end();
+    m_obj["Previous"] = toJsonValue(segmt.previous());
+    m_obj["Following"] = toJsonValue(segmt.following());
+    m_obj["Start"] = toJsonValue(segmt.start());
+    m_obj["End"] = toJsonValue(segmt.end());
 
     // Save the subclass
     segmt.serialize(toVariant());
-
-    insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(CurveSegmentModel& segmt)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    segmt.m_previous = fromJsonValue<id_type<CurveSegmentModel>>(m_obj["Previous"]);
+    segmt.m_following = fromJsonValue<id_type<CurveSegmentModel>>(m_obj["Following"]);
+    segmt.m_start = fromJsonValue<CurvePoint>(m_obj["Start"]);
+    segmt.m_end = fromJsonValue<CurvePoint>(m_obj["End"]);
 }
 
 

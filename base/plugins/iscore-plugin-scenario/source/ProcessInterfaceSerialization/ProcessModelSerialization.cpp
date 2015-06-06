@@ -48,7 +48,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessModel& process)
 {
     // To allow recration using createProcess
     m_obj["ProcessName"] = process.processName();
-    m_obj["Duration"] = toJsonObject(process.duration());
+    m_obj["Duration"] = toJsonValue(process.duration());
 
     readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
 
@@ -68,7 +68,7 @@ ProcessModel* createProcess(Deserializer<JSONObject>& deserializer,
                             deserializer.toVariant(),
                             parent);
 
-    model->setDuration(fromJsonObject<TimeValue> (deserializer.m_obj["Duration"].toObject()));
+    model->setDuration(fromJsonValue<TimeValue> (deserializer.m_obj["Duration"]));
 
     return model;
 }

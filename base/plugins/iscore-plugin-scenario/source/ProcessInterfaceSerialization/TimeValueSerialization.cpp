@@ -38,6 +38,7 @@ void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
     checkDelimiter();
 }
 
+/*
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const TimeValue& tv)
 {
@@ -63,7 +64,7 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeValue& tv)
         tv.setMSecs(m_obj["Time"].toDouble());
     }
 }
-
+*/
 
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const TimeValue& tv)

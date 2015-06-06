@@ -17,23 +17,24 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     m_stream << constraint.heightPercentage();
 
     // Processes
-    auto processes = constraint.processes();
-    m_stream	<< (int) processes.size();
+    const auto& processes = constraint.processes();
+    m_stream << (int) processes.size();
 
-    for(auto process : processes)
+    for(const auto& process : processes)
     {
         readFrom(*process);
     }
 
     // Boxes
-    auto boxes = constraint.boxes();
-    m_stream	<< (int) boxes.size();
+    const auto& boxes = constraint.boxes();
+    m_stream << (int) boxes.size();
 
-    for(auto box : boxes)
+    for(const auto& box : boxes)
     {
         readFrom(*box);
     }
 
+    // Full view
     readFrom(*constraint.fullView());
 
     // Events
@@ -78,8 +79,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
         constraint.addBox(new BoxModel(*this, &constraint));
     }
 
+    // Full view
     id_type<ConstraintModel> savedConstraintId;
-    m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here. (todo how to fix this ?)
+    m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here.
+    //(todo how to fix this ?)
     constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
 
     // Events
