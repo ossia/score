@@ -107,8 +107,6 @@ const char* Scenario::Command::ResizeDeckVertically::className() { return "Resiz
 // SET VALUE
 const char* Scenario::Command::SetCondition::className() { return "SetCondition"; }
 const char* Scenario::Command::SetTrigger::className() { return "SetTrigger"; }
-const char* Scenario::Command::SetMaxDuration::className() { return "SetMaxDuration"; }
-const char* Scenario::Command::SetMinDuration::className() { return "SetMinDuration"; }
 const char* Scenario::Command::SetRigidity::className() { return "SetRigidity"; }
 
 // OTHER
@@ -177,8 +175,6 @@ QString Scenario::Command::ResizeDeckVertically::description() { return QObject:
 // SET VALUE
 QString Scenario::Command::SetCondition::description() { return QObject::tr("SetCondition"); }
 QString Scenario::Command::SetTrigger::description() { return QObject::tr("SetTrigger"); }
-QString Scenario::Command::SetMaxDuration::description() { return QObject::tr("SetMaxDuration"); }
-QString Scenario::Command::SetMinDuration::description() { return QObject::tr("SetMinDuration"); }
 QString Scenario::Command::SetRigidity::description() { return QObject::tr("SetRigidity"); }
 
 // OTHER

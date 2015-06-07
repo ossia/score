@@ -1,4 +1,5 @@
-#include "SetMaxDuration.hpp"
+/*
+ #include "SetMaxDuration.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 
@@ -38,3 +39,4 @@ void SetMaxDuration::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_oldDuration >> m_newDuration;
 }
+*/

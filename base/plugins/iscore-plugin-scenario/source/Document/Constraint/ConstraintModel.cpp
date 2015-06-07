@@ -279,7 +279,7 @@ void ConstraintModel::setMaxDuration(const TimeValue& arg)
     {
         m_maxDuration = arg;
         emit maxDurationChanged(arg);
-        consistency.setWarning(m_defaultDuration > m_maxDuration);
+        consistency.setWarning(m_defaultDuration > m_maxDuration && !m_maxDuration.isInfinite());
     }
 }
 

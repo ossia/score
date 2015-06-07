@@ -29,6 +29,11 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
+                void update(const ObjectPath&, const TimeValue& duration)
+                {
+                    m_newDuration = duration;
+                }
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;

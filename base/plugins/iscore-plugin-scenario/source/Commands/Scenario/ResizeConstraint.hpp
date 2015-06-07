@@ -31,13 +31,20 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
+                void update(const ObjectPath& constraintPath,
+                            const TimeValue& duration,
+                            ExpandMode mode);
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
                 MoveEvent* m_cmd {};
-                TimeValue m_oldEndDate {};
+
+                id_type<EventModel> m_endEvent;
+                TimeValue m_constraintStartDate;
+                double m_endEventHeightPercentage{};
         };
     }
 }

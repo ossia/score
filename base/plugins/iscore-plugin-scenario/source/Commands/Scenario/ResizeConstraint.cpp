@@ -30,8 +30,11 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
                          description()}
 {
     auto& constraint = constraintPath.find<ConstraintModel>();
-    m_oldEndDate = constraint.startDate() + constraint.defaultDuration();
     auto& endEvent = static_cast<ScenarioModel*>(constraint.parent())->event(constraint.endEvent());
+
+    m_endEvent = constraint.endEvent();
+    m_constraintStartDate = constraint.startDate();
+    m_endEventHeightPercentage = endEvent.heightPercentage();
 
     m_cmd = new MoveEvent(iscore::IDocument::path(constraint.parent()),
                           constraint.endEvent(),
@@ -50,15 +53,24 @@ void ResizeConstraint::redo()
     m_cmd->redo();
 }
 
+void ResizeConstraint::update(const ObjectPath& constraintPath, const TimeValue& duration, ExpandMode mode)
+{
+    m_cmd->update(constraintPath,
+                  m_endEvent,
+                  m_constraintStartDate + duration,
+                  m_endEventHeightPercentage,
+                  mode);
+}
+
 
 void ResizeConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_cmd->serialize() << m_oldEndDate;
+    s << m_cmd->serialize() << m_endEvent << m_constraintStartDate << m_endEventHeightPercentage;
 }
 
 void ResizeConstraint::deserializeImpl(QDataStream& s)
 {
     QByteArray b;
-    s >> b >> m_oldEndDate;
+    s >> b >> m_endEvent >> m_constraintStartDate >> m_endEventHeightPercentage;
     m_cmd->deserialize(b);
 }

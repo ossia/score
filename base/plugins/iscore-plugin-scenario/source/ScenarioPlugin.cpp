@@ -11,6 +11,7 @@
 #include <State/State.hpp>
 #include <State/Message.hpp>
 
+#include <ProcessInterface/TimeValue.hpp>
 iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {},
@@ -24,6 +25,8 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     qRegisterMetaTypeStreamOperators<StateList>();
     qRegisterMetaTypeStreamOperators<Message>();
     qRegisterMetaTypeStreamOperators<MessageList>();
+
+    qRegisterMetaTypeStreamOperators<TimeValue>();
 }
 
 // Interfaces implementations :

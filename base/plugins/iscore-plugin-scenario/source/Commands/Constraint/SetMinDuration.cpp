@@ -1,3 +1,4 @@
+/*
 #include "SetMinDuration.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -38,3 +39,4 @@ void SetMinDuration::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_oldDuration >> m_newDuration;
 }
+*/

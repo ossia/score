@@ -25,6 +25,11 @@ namespace iscore
             void undo() override;
             void redo() override;
 
+            void update(const ObjectPath&, const QVariant& newval)
+            {
+                m_new = newval;
+            }
+
         protected:
             void serializeImpl(QDataStream &) const override;
             void deserializeImpl(QDataStream &) override;

@@ -311,7 +311,7 @@ class SingleOngoingCommandDispatcher
         iscore::CommandStack& stack() const
         { return m_stack; }
 
-        template<typename TheCommand, typename... Args>
+        template<typename TheCommand, typename... Args> // TODO split in two ?
         void submitCommand(Args&&... args)
         {
             if(!m_cmd)

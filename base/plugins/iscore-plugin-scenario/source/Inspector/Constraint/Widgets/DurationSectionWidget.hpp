@@ -23,9 +23,9 @@ class DurationSectionWidget : public InspectorSectionWidget
         void defaultDurationSpinboxChanged(int val);
         void rigidCheckboxToggled(bool b);
 
-        void on_modelDefaultDurationChanged(TimeValue dur);
-        void on_modelMinDurationChanged(TimeValue dur);
-        void on_modelMaxDurationChanged(TimeValue dur);
+        void on_modelDefaultDurationChanged(const TimeValue& dur);
+        void on_modelMinDurationChanged(const TimeValue& dur);
+        void on_modelMaxDurationChanged(const TimeValue& dur);
         void on_durationsChanged();
 
 
@@ -44,5 +44,5 @@ class DurationSectionWidget : public InspectorSectionWidget
         TimeValue m_max;
         TimeValue m_default;
 
-        OngoingCommandDispatcher<MergeStrategy::Simple>*m_cmdDispatcher{};
+        SingleOngoingCommandDispatcher m_cmdDispatcher;
 };

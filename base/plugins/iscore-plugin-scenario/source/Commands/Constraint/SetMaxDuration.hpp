@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
+#include <iscore/command/PropertyCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -8,12 +8,34 @@ namespace Scenario
 {
     namespace Command
     {
-        /**
-         * @brief The SetMaxDuration class
-         *
-         * Sets the Max duration of a Constraint
-         */
-        class SetMaxDuration : public iscore::SerializableCommand
+
+    /**
+     * @brief The SetMaxDuration class
+     *
+     * Sets the Max duration of a Constraint
+     */
+    class SetMaxDuration : public iscore::PropertyCommand
+    {
+            ISCORE_COMMAND_DECL("SetMaxDuration", "Set constraint maximum")
+        public:
+            ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetMaxDuration, "ScenarioControl")
+
+            SetMaxDuration(ObjectPath&& path, const TimeValue& newval):
+                iscore::PropertyCommand{
+                std::move(path), "maxDuration", QVariant::fromValue(newval), "ScenarioControl", className(), description()}
+            {
+
+            }
+
+            void update(const ObjectPath & p, const TimeValue &newval)
+            {
+                iscore::PropertyCommand::update(p, QVariant::fromValue(newval));
+            }
+    };
+
+
+    /*
+    class SetMaxDuration : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
@@ -35,5 +57,7 @@ namespace Scenario
                 TimeValue m_oldDuration {};
                 TimeValue m_newDuration {};
         };
+    */
     }
+
 }

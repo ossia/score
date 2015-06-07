@@ -49,17 +49,22 @@ void TemporalConstraintView::paint(
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
     // Paths
-    if(minWidth() == maxWidth())
-    {
-        solidPath.lineTo(defaultWidth(), 0);
-    }
-    else if(infinite())
+    if(infinite())
     {
         if(minWidth() != 0)
+        {
             solidPath.lineTo(minWidth(), 0);
+
+            leftBrace.moveTo(minWidth(), -10);
+            leftBrace.arcTo(minWidth() - 10, -10, 20, 20, 90, 180);
+        }
 
         dashedPath.moveTo(minWidth(), 0);
         dashedPath.lineTo(defaultWidth(), 0);
+    }
+    else if(minWidth() == maxWidth()) // TODO rigid()
+    {
+        solidPath.lineTo(defaultWidth(), 0);
     }
     else
     {

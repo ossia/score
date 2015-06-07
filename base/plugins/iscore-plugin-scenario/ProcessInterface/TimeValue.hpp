@@ -70,7 +70,7 @@ class TimeValue_T
             return *m_impl / millisecondsPerPixel;
         }
 
-        QTime toQTime()
+        QTime toQTime() const
         {
             return QTime(0,0,0,0).addMSecs(static_cast<int>(*m_impl));
         }
@@ -248,3 +248,5 @@ inline QDebug operator<< (QDebug d, const TimeValue& tv)
 
     return d;
 }
+
+Q_DECLARE_METATYPE(TimeValue)
