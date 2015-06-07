@@ -16,6 +16,20 @@ void CreatePointFromNothingCommandObject::on_press()
     // Save the start data.
     m_originalPress = m_state->currentPoint;
 
+    for(CurvePointModel* pt : m_presenter->model()->points())
+    {
+        auto pt_x = pt->pos().x();
+
+        if(pt_x >= m_xmin && pt_x < m_originalPress.x())
+        {
+            m_xmin = pt_x;
+        }
+        if(pt_x <= m_xmax && pt_x > m_originalPress.x())
+        {
+            m_xmax = pt_x;
+        }
+    }
+
     move();
 }
 
@@ -23,6 +37,10 @@ void CreatePointFromNothingCommandObject::move()
 {
     auto segments = deserializeSegments();
 
+    // Locking between bounds
+    handleLocking();
+
+    // Creation
     createPoint(segments);
 
     // Submit

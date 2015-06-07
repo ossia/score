@@ -32,6 +32,9 @@ class CurveCommandObjectBase
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
         void press();
 
+
+        void handleLocking();
+
         // Get the current saved segments
         QVector<CurveSegmentModel*> deserializeSegments() const;
 
