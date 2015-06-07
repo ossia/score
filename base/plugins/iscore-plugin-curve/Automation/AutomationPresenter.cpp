@@ -21,13 +21,28 @@ AutomationPresenter::AutomationPresenter(
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())}
 {
     connect(&m_viewModel.model(), &AutomationModel::curveChanged,
-            this, &AutomationPresenter::on_modelPointsChanged);
+            this, &AutomationPresenter::updateCurve);
 
-    auto cv = new CurveView(m_view);
-    m_curvepresenter = new CurvePresenter(&m_viewModel.model().curve(), cv, this);
+    auto cv = new CurveView{m_view};
+    m_curvepresenter = new CurvePresenter{&m_viewModel.model().curve(), cv, this};
+
+
+    connect(cv, &CurveView::pressed,
+            this, [&] (const QPointF&)
+    {
+        qDebug() << "focusme";
+        m_focusDispatcher.focus(this);
+    });
+    connect(m_view, &AutomationView::pressed,
+            this, [&] ()
+    {
+        qDebug() << "focusme";
+        m_focusDispatcher.focus(this);
+    });
+
 
     parentGeometryChanged();
-    on_modelPointsChanged();
+    updateCurve();
 }
 
 AutomationPresenter::~AutomationPresenter()
@@ -48,13 +63,13 @@ AutomationPresenter::~AutomationPresenter()
 void AutomationPresenter::setWidth(int width)
 {
     m_view->setWidth(width);
-    on_modelPointsChanged();
+    updateCurve();
 }
 
 void AutomationPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
-    on_modelPointsChanged();
+    updateCurve();
 }
 
 void AutomationPresenter::putToFront()
@@ -70,12 +85,12 @@ void AutomationPresenter::putBehind()
 void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
-    on_modelPointsChanged();
+    updateCurve();
 }
 
 void AutomationPresenter::parentGeometryChanged()
 {
-    on_modelPointsChanged();
+    updateCurve();
 }
 
 const ProcessViewModel& AutomationPresenter::viewModel() const
@@ -88,7 +103,7 @@ const id_type<ProcessModel>& AutomationPresenter::modelId() const
     return m_viewModel.model().id();
 }
 
-void AutomationPresenter::on_modelPointsChanged()
+void AutomationPresenter::updateCurve()
 {
     // Compute the rect with the duration of the process.
     QRectF rect = m_view->boundingRect(); // for the height

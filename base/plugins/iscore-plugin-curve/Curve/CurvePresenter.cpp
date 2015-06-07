@@ -181,10 +181,15 @@ void CurvePresenter::setupSignals()
 
 void CurvePresenter::setupView()
 {
+    // TODO make addSegment / addPoint method that generalize signals
     for(CurveSegmentModel* segment : m_model->segments())
     {
         // Create a segment
         auto seg_view = new CurveSegmentView{segment, m_view};
+
+        connect(seg_view, &CurveSegmentView::contextMenuRequested,
+                m_view, &CurveView::contextMenuRequested);
+
         m_segments.push_back(seg_view);
     }
 
@@ -192,6 +197,9 @@ void CurvePresenter::setupView()
     {
         // Create a point
         auto pt_view = new CurvePointView{pt, m_view};
+
+        connect(pt_view, &CurvePointView::contextMenuRequested,
+                m_view, &CurveView::contextMenuRequested);
         m_points.push_back(pt_view);
     }
 
@@ -202,26 +210,6 @@ void CurvePresenter::setupView()
     });
     connect(m_view, &CurveView::keyReleased, this, [&] (int)
     {
-    });
-
-    connect(m_view, &CurveView::contextMenuRequested,
-            this, [&] (const QPoint& pt)
-    {
-        auto act = m_contextMenu->exec(pt, nullptr);
-        m_contextMenu->close();
-
-        if(!act)
-        {
-            return;
-        }
-        else if(act->data().value<int>() == 1)
-        {
-            updateSegmentsType(act->text());
-        }
-        else if(act->data().value<int>() == 2)
-        {
-            removeSelection();
-        }
     });
 }
 
@@ -259,6 +247,26 @@ void CurvePresenter::setupContextMenu()
     m_contextMenu->addAction(removeAct);
     m_contextMenu->addAction(lockAction);
     m_contextMenu->addAction(suppressAction);
+
+    connect(m_view, &CurveView::contextMenuRequested,
+            this, [&] (const QPoint& pt)
+    {
+        auto act = m_contextMenu->exec(pt, nullptr);
+        m_contextMenu->close();
+
+        if(!act)
+        {
+            return;
+        }
+        else if(act->data().value<int>() == 1)
+        {
+            updateSegmentsType(act->text());
+        }
+        else if(act->data().value<int>() == 2)
+        {
+            removeSelection();
+        }
+    });
 }
 
 CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const

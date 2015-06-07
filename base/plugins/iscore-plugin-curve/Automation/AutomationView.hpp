@@ -12,11 +12,8 @@ class AutomationView : public ProcessView
                            QWidget* widget);
 
     signals:
-        void mousePressed();
+        void pressed();
 
     protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent* ev)
-        {
-            emit mousePressed();
-        }
+        void mousePressEvent(QGraphicsSceneMouseEvent* ev);
 };

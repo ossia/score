@@ -31,7 +31,7 @@ class AutomationPresenter : public ProcessPresenter
 
     public slots:
         // From model
-        void on_modelPointsChanged();
+        void updateCurve();
 
     private:
         const AutomationViewModel& m_viewModel;

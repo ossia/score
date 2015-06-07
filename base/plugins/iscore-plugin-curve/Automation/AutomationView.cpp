@@ -15,3 +15,8 @@ void AutomationView::paint(QPainter* painter,
 {
 
 }
+
+void AutomationView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+{
+    emit pressed();
+}

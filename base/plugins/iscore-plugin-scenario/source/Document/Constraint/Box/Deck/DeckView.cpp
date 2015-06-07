@@ -97,7 +97,3 @@ void DeckView::setFocus(bool b)
     m_focus = b;
     update();
 }
-
-
-
-

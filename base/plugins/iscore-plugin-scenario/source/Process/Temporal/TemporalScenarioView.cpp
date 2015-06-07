@@ -11,7 +11,7 @@
 TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
     ProcessView {parent}
 {
-    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
+    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
     this->setCursor(Qt::ArrowCursor);
 
     this->setZValue(parent->zValue() + 1);

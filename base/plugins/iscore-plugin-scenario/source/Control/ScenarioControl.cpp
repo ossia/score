@@ -173,9 +173,11 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
     m_toolActions->setEnabled(s_pres);
 
-    disconnect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
-               this, &ScenarioControl::createContextMenu);
-
+    if(auto currentlyFocused = focusedPresenter())
+    {
+        disconnect(currentlyFocused, &TemporalScenarioPresenter::contextMenuAsked,
+                   this, &ScenarioControl::createContextMenu);
+    }
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::shiftPressed,

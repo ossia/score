@@ -5,7 +5,7 @@
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-    this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
+    this->setFlags(ItemClipsChildrenToShape);
     this->setZValue(parent->zValue() + 1);
 }
 
@@ -21,6 +21,9 @@ QRectF CurveView::boundingRect() const
 
 void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    painter->setPen(Qt::transparent);
+    painter->setBrush(Qt::transparent);
+    painter->drawRect(boundingRect());
     if(m_selectArea != QRectF{})
     {
         painter->setPen(Qt::white);
