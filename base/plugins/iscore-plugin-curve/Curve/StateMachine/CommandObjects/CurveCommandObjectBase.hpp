@@ -2,6 +2,7 @@
 #include <QVector>
 #include <QPointF>
 #include "Curve/StateMachine/CurveStateMachineBaseStates.hpp"
+#include <iscore/command/OngoingCommandManager.hpp>
 class CurvePresenter;
 
 
@@ -26,10 +27,18 @@ class CurveSegmentModel;
 class CurveCommandObjectBase
 {
     public:
-        CurveCommandObjectBase(CurvePresenter* pres);
+        CurveCommandObjectBase(CurvePresenter* pres, iscore::CommandStack&);
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
         void press();
+
+        // Get the current saved segments
+        QVector<CurveSegmentModel*> deserializeSegments() const;
+
+        // Creates and pushes an UpdateCurve command
+        // from a vector of segments.
+        // They are removed afterwards
+        void submit(const QVector<CurveSegmentModel*>);
 
     protected:
         virtual void on_press() = 0;
@@ -40,4 +49,10 @@ class CurveCommandObjectBase
         CurvePresenter* m_presenter{};
 
         Curve::StateBase* m_state{};
+
+
+        SingleOngoingCommandDispatcher m_dispatcher;
+        QVector<QByteArray> m_startSegments;
+
+        double m_xmin, m_xmax;
 };

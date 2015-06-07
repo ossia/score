@@ -54,7 +54,7 @@ class CurvePresenter : public QObject
     private:
         // Context menu actions
         void removeSelection();
-        void updateSegments(const QString& segment);
+        void updateSegmentsType(const QString& segment);
 
         // Setup utilities
         void setPos(CurvePointView*);

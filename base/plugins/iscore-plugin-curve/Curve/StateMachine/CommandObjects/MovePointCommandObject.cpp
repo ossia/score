@@ -1,5 +1,4 @@
 #include "MovePointCommandObject.hpp"
-#include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
@@ -7,10 +6,11 @@
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Curve/Segment/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
-MovePointCommandObject::MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack):
-    CurveCommandObjectBase{presenter},
-    m_dispatcher{stack}
+
+MovePointCommandObject::MovePointCommandObject(
+        CurvePresenter* presenter,
+        iscore::CommandStack& stack):
+    CurveCommandObjectBase{presenter, stack}
 {
 
 }
@@ -19,46 +19,30 @@ void MovePointCommandObject::on_press()
 {
     // Save the start data.
     // Firts we take the exact position of the point we clicked.
-    auto clickedCurvePoint = *std::find_if(m_presenter->model()->points().begin(),
-                                     m_presenter->model()->points().end(),
-                                     [&] (CurvePointModel* pt)
+    auto clickedCurvePoint = *std::find_if(
+                                 m_presenter->model()->points().begin(),
+                                 m_presenter->model()->points().end(),
+                                 [&] (CurvePointModel* pt)
     { return pt->previous()  == m_state->clickedPointId.previous
           && pt->following() == m_state->clickedPointId.following; });
+
     m_originalPress = clickedCurvePoint->pos();
 
-    m_startSegments.clear();
-    auto current = m_presenter->model()->segments();
-
-    std::transform(current.begin(), current.end(), std::back_inserter(m_startSegments),
-                   [] (CurveSegmentModel* segment)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s(&arr);
-        s.readFrom(*segment);
-        return arr;
-    });
-
-
     // Compute xmin, xmax
+    // Look for the next and previous points
+    for(CurvePointModel* pt : m_presenter->model()->points())
     {
-        m_xmin = 0;
-        m_xmax = 1;
-        // Look for the next and previous points
+        auto pt_x = pt->pos().x();
+        if(pt == clickedCurvePoint)
+            continue;
 
-        for(CurvePointModel* pt : m_presenter->model()->points())
+        if(pt_x >= m_xmin && pt_x < m_originalPress.x())
         {
-            auto pt_x = pt->pos().x();
-            if(pt == clickedCurvePoint)
-                continue;
-
-            if(pt_x >= m_xmin && pt_x < m_originalPress.x())
-            {
-                m_xmin = pt_x;
-            }
-            if(pt_x <= m_xmax && pt_x > m_originalPress.x())
-            {
-                m_xmax = pt_x;
-            }
+            m_xmin = pt_x;
+        }
+        if(pt_x <= m_xmax && pt_x > m_originalPress.x())
+        {
+            m_xmax = pt_x;
         }
     }
 }
@@ -67,13 +51,7 @@ void MovePointCommandObject::move()
 {
     // First we deserialize the base segments. This way we can start from a clean state at each time.
     // TODO it would be less costly to have a specific "data" structure for this (no need for vcalls then).
-    QVector<CurveSegmentModel*> segments;
-    std::transform(m_startSegments.begin(), m_startSegments.end(), std::back_inserter(segments),
-                   [] (QByteArray arr)
-    {
-        Deserializer<DataStream> des(arr);
-        return createCurveSegment(des, nullptr);
-    });
+    auto segments = deserializeSegments();
 
     // Locking between bounds
     handleLocking();
@@ -93,20 +71,7 @@ void MovePointCommandObject::move()
 
 
     // Rewirte and make a command
-    QVector<QByteArray> newSegments;
-    std::transform(segments.begin(), segments.end(), std::back_inserter(newSegments),
-                   [] (CurveSegmentModel* segment)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s(&arr);
-        s.readFrom(*segment);
-        return arr;
-    });
-
-    qDeleteAll(segments);
-
-    m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
-                                            std::move(newSegments));
+    submit(segments);
 }
 
 void MovePointCommandObject::release()
@@ -521,7 +486,7 @@ void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& 
         }
         else
         {
-            // TODO
+            // TODO (see the commented block on the symmetric part)
         }
     }
 }

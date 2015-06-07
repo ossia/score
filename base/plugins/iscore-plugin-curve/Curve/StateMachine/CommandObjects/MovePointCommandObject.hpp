@@ -1,6 +1,5 @@
 #pragma once
 #include "CurveCommandObjectBase.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
 
 class MovePointCommandObject : public CurveCommandObjectBase
 {
@@ -22,8 +21,4 @@ class MovePointCommandObject : public CurveCommandObjectBase
         void handleCrossOnOverlap(QVector<CurveSegmentModel *> &segments);
         void setCurrentPoint(QVector<CurveSegmentModel *> &segments);
 
-        SingleOngoingCommandDispatcher m_dispatcher;
-        QVector<QByteArray> m_startSegments;
-
-        double m_xmin, m_xmax;
 };

@@ -1,6 +1,5 @@
 #pragma once
 #include "Curve/StateMachine/CommandObjects/CurveCommandObjectBase.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
 
 class CreatePointFromNothingCommandObject : public CurveCommandObjectBase
 {
@@ -16,7 +15,5 @@ class CreatePointFromNothingCommandObject : public CurveCommandObjectBase
         void cancel();
 
     private:
-        SingleOngoingCommandDispatcher m_dispatcher;
-        QVector<QByteArray> m_startSegments;
         void createPoint(QVector<CurveSegmentModel *>& segments);
 };

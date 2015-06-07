@@ -216,7 +216,7 @@ void CurvePresenter::setupView()
         }
         else if(act->data().value<int>() == 1)
         {
-            updateSegments(act->text());
+            updateSegmentsType(act->text());
         }
         else if(act->data().value<int>() == 2)
         {
@@ -227,24 +227,23 @@ void CurvePresenter::setupView()
 
 void CurvePresenter::setupStateMachine()
 {
-    m_sm->changeTool(0);
 }
 
 void CurvePresenter::setupContextMenu()
 {
     m_contextMenu = new QMenu;
 
-    auto removeAct = new QAction(tr("Remove"), this);
-    removeAct->setData(2);
+    auto removeAct = new QAction{tr("Remove"), this};
+    removeAct->setData(2); // Small identifier for segments actions...
 
     auto typeMenu = m_contextMenu->addMenu(tr("Type"));
     for(const auto& seg : SingletonCurveSegmentList::instance().nameList())
     {
         auto act = typeMenu->addAction(seg);
-        act->setData(1); // Small identifier for segments actions...
+        act->setData(1);
     }
 
-    auto lockAction = new QAction{tr("Lock"), this};
+    auto lockAction = new QAction{tr("Lock between points"), this};
     connect(lockAction, &QAction::toggled,
             this, [&] (bool b) { setLockBetweenPoints(b); });
     lockAction->setCheckable(true);
@@ -274,9 +273,6 @@ void CurvePresenter::setAddPointBehaviour(const AddPointBehaviour &addPointBehav
 
 void CurvePresenter::removeSelection()
 {
-    // First we deselect
-    //m_selectionDispatcher.setAndCommit({}); // TODO May not be necessary ?
-
     // We remove all that is selected,
     // And set the bounds correctly
     QSet<id_type<CurveSegmentModel>> segmentsToDelete;
@@ -322,7 +318,7 @@ void CurvePresenter::removeSelection()
                 });
 }
 
-void CurvePresenter::updateSegments(const QString& segmentName)
+void CurvePresenter::updateSegmentsType(const QString& segmentName)
 {
     // They keep their start / end and previous / following but change type.
     // TODO maybe it would be better to encapsulate this ?
@@ -389,5 +385,3 @@ bool CurvePresenter::lockBetweenPoints() const
 {
     return m_lockBetweenPoints;
 }
-
-

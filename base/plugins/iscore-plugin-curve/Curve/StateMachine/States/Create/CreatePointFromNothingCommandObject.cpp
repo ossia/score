@@ -1,5 +1,4 @@
 #include "CreatePointFromNothingCommandObject.hpp"
-#include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
@@ -7,11 +6,8 @@
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Curve/Segment/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
-
 CreatePointFromNothingCommandObject::CreatePointFromNothingCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
-    CurveCommandObjectBase{presenter},
-    m_dispatcher{stack}
+    CurveCommandObjectBase{presenter, stack}
 {
 }
 
@@ -20,76 +16,17 @@ void CreatePointFromNothingCommandObject::on_press()
     // Save the start data.
     m_originalPress = m_state->currentPoint;
 
-    m_startSegments.clear();
-    // TODO : put this in press();
-    const auto& segments = m_presenter->model()->segments();
-    std::transform(segments.begin(), segments.end(),
-                   std::back_inserter(m_startSegments),
-                   [&] (CurveSegmentModel* segment)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s(&arr);
-        s.readFrom(*segment);
-        return arr;
-    });
-
-
-    QVector<CurveSegmentModel*> segmentsCopy;
-    std::transform(m_startSegments.begin(), m_startSegments.end(),
-                   std::back_inserter(segmentsCopy),
-                   [] (QByteArray arr)
-    {
-        Deserializer<DataStream> des(arr);
-        return createCurveSegment(des, nullptr);
-    });
-
-    // TODO use boost here too
-    createPoint(segmentsCopy);
-
-    // Submit
-    QVector<QByteArray> newSegments;
-    std::transform(segmentsCopy.begin(), segmentsCopy.end(), std::back_inserter(newSegments),
-                   [] (CurveSegmentModel* segment)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s(&arr);
-        s.readFrom(*segment);
-        return arr;
-    });
-
-    qDeleteAll(segmentsCopy);
-
-    m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
-                                            std::move(newSegments));
+    move();
 }
 
 void CreatePointFromNothingCommandObject::move()
 {
-    QVector<CurveSegmentModel*> segments;
-    std::transform(m_startSegments.begin(), m_startSegments.end(), std::back_inserter(segments),
-                   [] (QByteArray arr)
-    {
-        Deserializer<DataStream> des(arr);
-        return createCurveSegment(des, nullptr);
-    });
+    auto segments = deserializeSegments();
 
     createPoint(segments);
 
     // Submit
-    QVector<QByteArray> newSegments;
-    std::transform(segments.begin(), segments.end(), std::back_inserter(newSegments),
-                   [] (CurveSegmentModel* segment)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s(&arr);
-        s.readFrom(*segment);
-        return arr;
-    });
-
-    m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
-                                            std::move(newSegments));
-
-    qDeleteAll(segments);
+    submit(segments);
 }
 
 void CreatePointFromNothingCommandObject::release()
