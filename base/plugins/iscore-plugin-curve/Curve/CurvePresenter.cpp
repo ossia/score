@@ -3,6 +3,7 @@
 #include "CurveView.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include "Curve/Segment/CurveSegmentView.hpp"
+#include "Curve/Segment/CurveSegmentList.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/command/OngoingCommandManager.hpp>
@@ -27,8 +28,10 @@ CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view, QObject* pare
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
     setupView();
+    setupContextMenu();
     setupSignals();
-    m_sm = new CurveStateMachine(*this, this);
+
+    m_sm = new CurveStateMachine{*this, this};
 }
 
 CurvePresenter::~CurvePresenter()
@@ -197,19 +200,25 @@ void CurvePresenter::setupView()
         if(key == Qt::Key_L)
             m_sm->changeTool(!m_sm->tool());
     });
-    connect(m_view, &CurveView::keyReleased, this, [&] (int key)
+    connect(m_view, &CurveView::keyReleased, this, [&] (int)
     {
     });
 
     connect(m_view, &CurveView::contextMenuRequested,
             this, [&] (const QPoint& pt)
     {
-        QMenu m;
-        auto removeAct = new QAction(tr("Remove"), this);
-        m.addAction(removeAct);
+        auto act = m_contextMenu->exec(pt, nullptr);
+        m_contextMenu->close();
 
-        auto act = m.exec(pt, nullptr);
-        if(act == removeAct)
+        if(!act)
+        {
+            return;
+        }
+        else if(act->data().value<int>() == 1)
+        {
+            updateSegments(act->text());
+        }
+        else if(act->data().value<int>() == 2)
         {
             removeSelection();
         }
@@ -219,6 +228,38 @@ void CurvePresenter::setupView()
 void CurvePresenter::setupStateMachine()
 {
     m_sm->changeTool(0);
+}
+
+void CurvePresenter::setupContextMenu()
+{
+    m_contextMenu = new QMenu;
+
+    auto removeAct = new QAction(tr("Remove"), this);
+    removeAct->setData(2);
+
+    auto typeMenu = m_contextMenu->addMenu(tr("Type"));
+    for(const auto& seg : SingletonCurveSegmentList::instance().nameList())
+    {
+        auto act = typeMenu->addAction(seg);
+        act->setData(1); // Small identifier for segments actions...
+    }
+
+    auto lockAction = new QAction{tr("Lock"), this};
+    connect(lockAction, &QAction::toggled,
+            this, [&] (bool b) { setLockBetweenPoints(b); });
+    lockAction->setCheckable(true);
+    lockAction->setChecked(true);
+
+    auto suppressAction = new QAction{tr("Suppress on overlap"), this};
+    connect(suppressAction, &QAction::toggled,
+            this, [&] (bool b) { setSuppressOnOverlap(b); });
+
+    suppressAction->setCheckable(true);
+    suppressAction->setChecked(false);
+
+    m_contextMenu->addAction(removeAct);
+    m_contextMenu->addAction(lockAction);
+    m_contextMenu->addAction(suppressAction);
 }
 
 CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
@@ -234,7 +275,7 @@ void CurvePresenter::setAddPointBehaviour(const AddPointBehaviour &addPointBehav
 void CurvePresenter::removeSelection()
 {
     // First we deselect
-    m_selectionDispatcher.setAndCommit({});
+    //m_selectionDispatcher.setAndCommit({}); // TODO May not be necessary ?
 
     // We remove all that is selected,
     // And set the bounds correctly
@@ -269,9 +310,47 @@ void CurvePresenter::removeSelection()
             if(segment->following() && !segmentsToDelete.contains(segment->following()))
                 cp->setFollowing(segment->following());
 
-            Serializer<DataStream> s(&newSegments[i++]);
+            Serializer<DataStream> s{&newSegments[i++]};
             s.readFrom(*cp);
         }
+    }
+
+    m_commandDispatcher.submitCommand(
+                new UpdateCurve{
+                    iscore::IDocument::path(m_model),
+                    std::move(newSegments)
+                });
+}
+
+void CurvePresenter::updateSegments(const QString& segmentName)
+{
+    // They keep their start / end and previous / following but change type.
+    // TODO maybe it would be better to encapsulate this ?
+    auto factory = SingletonCurveSegmentList::instance().get(segmentName);
+
+    QVector<QByteArray> newSegments;
+    newSegments.resize(m_model->segments().size());
+    int i = 0;
+    for(CurveSegmentModel* segment : m_model->segments())
+    {
+        CurveSegmentModel* current;
+        if(segment->selection.get())
+        {
+            auto ns = factory->make(segment->id(), nullptr);
+            ns->setStart(segment->start());
+            ns->setEnd(segment->end());
+            ns->setPrevious(segment->previous());
+            ns->setFollowing(segment->following());
+
+            current = ns;
+        }
+        else
+        {
+            current = segment;
+        }
+
+        Serializer<DataStream> s{&newSegments[i++]};
+        s.readFrom(*current);
     }
 
     m_commandDispatcher.submitCommand(

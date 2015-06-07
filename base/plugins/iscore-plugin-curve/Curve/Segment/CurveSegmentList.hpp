@@ -8,8 +8,10 @@ class CurveSegmentList
     public:
         CurveSegmentList() = default;
         CurveSegmentList(const CurveSegmentList&) = delete;
-        CurveSegmentFactory* get(const QString& name);
+        CurveSegmentFactory* get(const QString& name) const;
         void registerFactory(CurveSegmentFactory* fact);
+
+        QStringList nameList() const;
 
     private:
         QVector<CurveSegmentFactory*> factories;

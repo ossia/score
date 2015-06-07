@@ -10,6 +10,8 @@ class CurveView;
 class CurvePointView;
 class CurveSegmentView;
 class CurveStateMachine;
+class QAction;
+class QMenu;
 class CurvePresenter : public QObject
 {
         Q_OBJECT
@@ -50,12 +52,18 @@ class CurvePresenter : public QObject
 
 
     private:
+        // Context menu actions
         void removeSelection();
+        void updateSegments(const QString& segment);
+
+        // Setup utilities
         void setPos(CurvePointView*);
         void setPos(CurveSegmentView*);
         void setupSignals();
         void setupView();
         void setupStateMachine();
+        void setupContextMenu();
+
         CurveStateMachine* m_sm{};
 
         CurveModel* m_model{};
@@ -67,10 +75,13 @@ class CurvePresenter : public QObject
         // Boolean values that keep the editing state. Should they go here ?
         // Maybe in the settings, instead ?
         bool m_lockBetweenPoints{};
-        bool m_suppressOnOverlap{true};
+        bool m_suppressOnOverlap{};
         bool m_stretchBothBounds{};
         AddPointBehaviour m_addPointBehaviour{};
 
+        // Required dispatchers
         CommandDispatcher<> m_commandDispatcher;
         iscore::SelectionDispatcher m_selectionDispatcher;
+
+        QMenu* m_contextMenu{};
 };

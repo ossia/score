@@ -41,8 +41,8 @@ void MovePointCommandObject::on_press()
 
     // Compute xmin, xmax
     {
-        xmin = 0;
-        xmax = 1;
+        m_xmin = 0;
+        m_xmax = 1;
         // Look for the next and previous points
 
         for(CurvePointModel* pt : m_presenter->model()->points())
@@ -51,13 +51,13 @@ void MovePointCommandObject::on_press()
             if(pt == clickedCurvePoint)
                 continue;
 
-            if(pt_x >= xmin && pt_x < m_originalPress.x())
+            if(pt_x >= m_xmin && pt_x < m_originalPress.x())
             {
-                xmin = pt_x;
+                m_xmin = pt_x;
             }
-            if(pt_x <= xmax && pt_x > m_originalPress.x())
+            if(pt_x <= m_xmax && pt_x > m_originalPress.x())
             {
-                xmax = pt_x;
+                m_xmax = pt_x;
             }
         }
     }
@@ -75,26 +75,24 @@ void MovePointCommandObject::move()
         return createCurveSegment(des, nullptr);
     });
 
-    double current_x = m_state->currentPoint.x();
-    double current_y = m_state->currentPoint.y();
-
     // Locking between bounds
-    handleLocking(segments, current_x, current_y);
+    handleLocking();
 
     // Manage point - segment replacement
-    handlePointOverlap(segments, current_x);
+    handlePointOverlap(segments);
 
     // This handles what happens when we cross another point.
-    if(false &&m_presenter->suppressOnOverlap())
+    if(m_presenter->suppressOnOverlap())
     {
-        handleSuppressOnOverlap(segments, current_x);
+        handleSuppressOnOverlap(segments);
     }
     else
     {
-        handleCrossOnOverlap(segments, current_x);
+        handleCrossOnOverlap(segments);
     }
 
 
+    // Rewirte and make a command
     QVector<QByteArray> newSegments;
     std::transform(segments.begin(), segments.end(), std::back_inserter(newSegments),
                    [] (CurveSegmentModel* segment)
@@ -121,16 +119,18 @@ void MovePointCommandObject::cancel()
     m_dispatcher.rollback();
 }
 
-void MovePointCommandObject::handleLocking(QVector<CurveSegmentModel *> &segments, double current_x, double current_y)
+void MovePointCommandObject::handleLocking()
 {
+    double current_x = m_state->currentPoint.x();
+    double current_y = m_state->currentPoint.y();
     // Manage locking
     if(m_presenter->lockBetweenPoints())
     {
-        if(current_x < xmin)
-            m_state->currentPoint.setX(xmin + 0.001);
+        if(current_x <= m_xmin)
+            m_state->currentPoint.setX(m_xmin + 0.001);
 
-        if(current_x > xmax)
-            m_state->currentPoint.setX(xmax - 0.001);
+        if(current_x >= m_xmax)
+            m_state->currentPoint.setX(m_xmax - 0.001);
     }
 
     // In any case we lock between O - 1 in both axes.
@@ -144,8 +144,9 @@ void MovePointCommandObject::handleLocking(QVector<CurveSegmentModel *> &segment
         m_state->currentPoint.setY(1.);
 }
 
-void MovePointCommandObject::handlePointOverlap(QVector<CurveSegmentModel *> &segments, double current_x)
+void MovePointCommandObject::handlePointOverlap(QVector<CurveSegmentModel *> &segments)
 {
+    double current_x = m_state->currentPoint.x();
     // In all cases, if we're going on the same position that any other point,
     // this other point is removed and we replace it.
     for(CurveSegmentModel* segment : segments)
@@ -162,8 +163,9 @@ void MovePointCommandObject::handlePointOverlap(QVector<CurveSegmentModel *> &se
     }
 }
 
-void MovePointCommandObject::handleSuppressOnOverlap(QVector<CurveSegmentModel *>& segments, double current_x)
+void MovePointCommandObject::handleSuppressOnOverlap(QVector<CurveSegmentModel *>& segments)
 {
+    double current_x = m_state->currentPoint.x();
     // All segments contained between the starting position and current position are removed.
     // Only the starting segment perdures (or no segment if there was none.).
 
@@ -264,8 +266,9 @@ void MovePointCommandObject::handleSuppressOnOverlap(QVector<CurveSegmentModel *
 }
 
 
-void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& segments, double current_x)
+void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& segments)
 {
+    double current_x = m_state->currentPoint.x();
     // In this case we merge at the origins of the point and we create if it is in a new place.
 
     // First, if we go to the right.

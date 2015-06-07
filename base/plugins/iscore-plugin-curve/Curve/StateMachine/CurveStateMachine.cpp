@@ -81,7 +81,7 @@ void CurveStateMachine::setupStates()
     m_selectTool = new Curve::SelectionTool(*this);
     m_editTool = new Curve::EditionTool(*this);
 
-    this->setInitialState(m_editTool);
+    this->setInitialState(m_selectTool);
 
     auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), m_selectTool);
     t_exit_select->setTargetState(m_transitionState);
@@ -150,10 +150,10 @@ void CurveStateMachine::changeTool(int state)
             break;
             /*
         case static_cast<int>(Curve::Tool::CreatePen):
-            emit setSelectState();
+            emit ();
             break;
         case static_cast<int>(Curve::Tool::RemovePen):
-            emit setSelectState();
+            emit ();
             break;
             */
         default:
@@ -164,7 +164,6 @@ void CurveStateMachine::changeTool(int state)
 
 int CurveStateMachine::tool() const
 {
-
     if(m_editTool->active())
         return (int)Curve::Tool::Edition;
     if(m_selectTool->active())

@@ -1,6 +1,6 @@
 #include "CurveSegmentList.hpp"
 
-CurveSegmentFactory*CurveSegmentList::get(const QString& name)
+CurveSegmentFactory*CurveSegmentList::get(const QString& name) const
 {
     return *std::find_if(factories.begin(), factories.end(),
                          [&] (auto&& p) { return p->name() == name; });
@@ -9,6 +9,17 @@ CurveSegmentFactory*CurveSegmentList::get(const QString& name)
 void CurveSegmentList::registerFactory(CurveSegmentFactory* fact)
 {
     factories.push_back(fact);
+}
+
+QStringList CurveSegmentList::nameList() const
+{
+    QStringList l;
+    for(auto& element : factories)
+    {
+        l.append(element->name());
+    }
+
+    return l;
 }
 
 
