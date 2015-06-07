@@ -30,6 +30,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
                 const id_type<CurveSegmentModel>& id,
                 QObject* parent) const = 0;
 
+        virtual ~CurveSegmentModel();
+
 
         virtual QString name() const = 0;
         virtual void serialize(const VisitorVariant&) const = 0;

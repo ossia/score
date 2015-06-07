@@ -170,10 +170,7 @@ void CurveModel::setSelection(const Selection &s)
 
 void CurveModel::clear()
 {
-    for(auto& segment : m_segments)
-        emit segmentRemoved(segment);
-    for(auto& point : m_points)
-        emit pointRemoved(point);
+    emit cleared();
 
     qDeleteAll(m_segments);
     m_segments.clear();

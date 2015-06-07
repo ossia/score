@@ -24,7 +24,7 @@ AutomationPresenter::AutomationPresenter(
             this, &AutomationPresenter::on_modelPointsChanged);
 
     auto cv = new CurveView(m_view);
-    m_curvepresenter = new CurvePresenter(&m_viewModel.model().curve(), cv);
+    m_curvepresenter = new CurvePresenter(&m_viewModel.model().curve(), cv, this);
 
     parentGeometryChanged();
     on_modelPointsChanged();

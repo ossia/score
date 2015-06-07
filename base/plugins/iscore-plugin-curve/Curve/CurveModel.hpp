@@ -42,6 +42,8 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void pointAdded(CurvePointModel*);
         void pointRemoved(CurvePointModel*); // dangerous if async
 
+        void cleared();
+
     private:
         void addPoint(CurvePointModel* pt);
         void removePoint(CurvePointModel* pt);

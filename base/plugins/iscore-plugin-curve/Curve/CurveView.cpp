@@ -9,6 +9,10 @@ CurveView::CurveView(QGraphicsItem *parent):
     this->setZValue(parent->zValue() + 1);
 }
 
+CurveView::~CurveView()
+{
+}
+
 
 QRectF CurveView::boundingRect() const
 {

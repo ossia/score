@@ -16,12 +16,16 @@ class CurvePresenter : public QObject
     public:
         enum class AddPointBehaviour
         { LinearBefore, LinearAfter, DuplicateSegment };
-        CurvePresenter(CurveModel*, CurveView*);
+        CurvePresenter(CurveModel*, CurveView*, QObject* parent);
+        virtual ~CurvePresenter();
 
-        const QVector<CurvePointView*>& points() const
+        const QList<CurvePointView*>& points() const
         { return m_points; }
-        const QVector<CurveSegmentView*>& segments() const
+        const QList<CurveSegmentView*>& segments() const
         { return m_segments; }
+
+        // Removes all the points & segments
+        void clear();
 
         CurveModel* model() const;
         CurveView& view() const;
@@ -44,6 +48,7 @@ class CurvePresenter : public QObject
         AddPointBehaviour addPointBehaviour() const;
         void setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour);
 
+
     private:
         void removeSelection();
         void setPos(CurvePointView*);
@@ -53,15 +58,11 @@ class CurvePresenter : public QObject
         void setupStateMachine();
         CurveStateMachine* m_sm{};
 
-        // Data relative to the current state of the view
-        CurveSegmentView* m_currentSegmentView{};
-        CurvePointView* m_currentPointView{};
-
         CurveModel* m_model{};
         CurveView* m_view{};
 
-        QVector<CurvePointView*> m_points;
-        QVector<CurveSegmentView*> m_segments;
+        QList<CurvePointView*> m_points;
+        QList<CurveSegmentView*> m_segments;
 
         // Boolean values that keep the editing state. Should they go here ?
         // Maybe in the settings, instead ?

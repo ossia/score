@@ -21,24 +21,30 @@ void CreatePointFromNothingCommandObject::on_press()
     m_originalPress = m_state->currentPoint;
 
     m_startSegments.clear();
-    auto segments = m_presenter->model()->segments();
-    QVector<CurveSegmentModel *> segmentsCopy;
-    std::transform(segments.begin(), segments.end(), std::back_inserter(m_startSegments),
+    // TODO : put this in press();
+    const auto& segments = m_presenter->model()->segments();
+    std::transform(segments.begin(), segments.end(),
+                   std::back_inserter(m_startSegments),
                    [&] (CurveSegmentModel* segment)
     {
         QByteArray arr;
         Serializer<DataStream> s(&arr);
         s.readFrom(*segment);
-        auto cloned = segment->clone(segment->id(), nullptr);
-        cloned->setPrevious(segment->previous());
-        cloned->setFollowing(segment->following());
-        segmentsCopy.append(cloned);
         return arr;
+    });
+
+
+    QVector<CurveSegmentModel*> segmentsCopy;
+    std::transform(m_startSegments.begin(), m_startSegments.end(),
+                   std::back_inserter(segmentsCopy),
+                   [] (QByteArray arr)
+    {
+        Deserializer<DataStream> des(arr);
+        return createCurveSegment(des, nullptr);
     });
 
     // TODO use boost here too
     createPoint(segmentsCopy);
-
 
     // Submit
     QVector<QByteArray> newSegments;
@@ -50,6 +56,8 @@ void CreatePointFromNothingCommandObject::on_press()
         s.readFrom(*segment);
         return arr;
     });
+
+    qDeleteAll(segmentsCopy);
 
     m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
                                             std::move(newSegments));

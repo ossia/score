@@ -8,6 +8,11 @@ CurveSegmentModel::CurveSegmentModel(const id_type<CurveSegmentModel>& id, QObje
 
 }
 
+CurveSegmentModel::~CurveSegmentModel()
+{
+
+}
+
 
 
 void CurveSegmentModel::setPrevious(const id_type<CurveSegmentModel>& previous)

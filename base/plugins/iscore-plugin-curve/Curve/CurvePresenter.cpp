@@ -10,13 +10,15 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QAction>
-
+#include <QDebug>
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
 
 #include "Curve/Commands/UpdateCurve.hpp"
 #include "StateMachine/CurveStateMachine.hpp"
+#include <QGraphicsScene>
 
-CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
+CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view, QObject* parent):
+    QObject{parent},
     m_model{model},
     m_view{view},
     m_commandDispatcher{iscore::IDocument::documentFromObject(*model)->commandStack()},
@@ -27,6 +29,21 @@ CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view):
     setupView();
     setupSignals();
     m_sm = new CurveStateMachine(*this, this);
+}
+
+CurvePresenter::~CurvePresenter()
+{
+    if(m_view)
+    {
+        auto sc = m_view->scene();
+
+        if(sc)
+        {
+            sc->removeItem(m_view);
+        }
+
+        m_view->deleteLater();
+    }
 }
 
 CurveModel* CurvePresenter::model() const
@@ -122,10 +139,14 @@ void CurvePresenter::setupSignals()
                       m_points.begin(),
                       m_points.end(),
                       [&] (CurvePointView* pt) { return &pt->model() == m; });
-        auto val = *it;
 
-        m_points.removeOne(val);
-        delete val;
+        if(it != m_points.end()) // TODO should never happen ?
+        {
+            auto val = *it;
+            m_points.removeOne(val);
+
+            delete val;
+        }
     });
     connect(m_model, &CurveModel::segmentRemoved, this,
             [&] (CurveSegmentModel* m)
@@ -135,10 +156,23 @@ void CurvePresenter::setupSignals()
                       m_segments.begin(),
                       m_segments.end(),
                       [&] (CurveSegmentView* segment) { return &segment->model() == m; });
-        auto val = *it;
 
-        m_segments.removeOne(val);
-        delete val;
+        if(it != m_segments.end())
+        {
+            auto val = *it;
+            m_segments.removeOne(val);
+
+            delete val;
+        }
+    });
+
+    connect(m_model, &CurveModel::cleared, this,
+            [&] ()
+    {
+        qDeleteAll(m_points);
+        qDeleteAll(m_segments);
+        m_points.clear();
+        m_segments.clear();
     });
 }
 
