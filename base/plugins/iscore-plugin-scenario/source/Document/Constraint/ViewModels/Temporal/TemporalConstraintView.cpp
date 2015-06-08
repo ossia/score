@@ -154,7 +154,7 @@ void TemporalConstraintView::paint(
 
 
     int fontSize = 12;
-    QRectF labelRect{0,0, minWidth(), -fontSize - 2};
+    QRectF labelRect{0,0, minWidth(), (-fontSize - 2.)};
     QFont f("Ubuntu");
     f.setPixelSize(fontSize);
     painter->setFont(f);
