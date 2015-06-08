@@ -15,6 +15,7 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
 #include <Commands/Constraint/CopyConstraintContent.hpp>
+#include "Commands/Constraint/AddProcessToConstraint.hpp"
 
 #include <QJsonDocument>
 #include <QApplication>
@@ -113,6 +114,7 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
     });
 
     // ADD PROCESS
+    m_addProcessDialog.setParent(qApp->activeWindow());
     connect(&m_addProcessDialog, &AddProcessDialog::okPressed,
             this, &ObjectMenuActions::addProcessInConstraint);
 
@@ -120,7 +122,7 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
     connect(m_addProcess, &QAction::triggered,
             [this]()
     {
-//        m_addProcessDialog.show();
+        m_addProcessDialog.launchWindow();
     });
 
 }
@@ -243,9 +245,16 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
     }
 }
 
-void ObjectMenuActions::addProcessInConstraint(QString)
+void ObjectMenuActions::addProcessInConstraint(QString processName)
 {
-    qDebug() << "Create addprocess Command";
+    auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints());
+    auto cmd = new Scenario::Command::AddProcessToConstraint
+    {
+        iscore::IDocument::path(selectedConstraints.at(0)),
+        processName
+    };
+    CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+    emit dispatcher.submitCommand(cmd);
 }
 
 void ObjectMenuActions::setConstraintAction(bool constraintAction)

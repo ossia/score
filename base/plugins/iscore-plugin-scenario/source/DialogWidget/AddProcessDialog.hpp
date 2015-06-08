@@ -7,6 +7,9 @@ class AddProcessDialog : public QWidget
 
     public:
         AddProcessDialog(QWidget* parent = 0);
+    public slots:
+        void launchWindow();
+
     signals:
         void okPressed(QString);
 };
