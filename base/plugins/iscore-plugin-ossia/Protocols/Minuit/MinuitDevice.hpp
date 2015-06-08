@@ -2,6 +2,7 @@
 #include "Protocols/OSSIADevice.hpp"
 #include "MinuitSpecificSettings.hpp"
 #include <API/Headers/Network/Protocol.h>
+#include <QThread>
 namespace OSSIA
 {
 class Device;
@@ -15,4 +16,5 @@ class MinuitDevice : public OSSIADevice
 
     private:
         OSSIA::Minuit m_minuitSettings;
+        QThread m_updateThread;
 };

@@ -131,6 +131,7 @@ namespace
 
 Node MinuitDevice::refresh()
 {
+
     Node device;
 
     if(m_dev->updateNamespace())

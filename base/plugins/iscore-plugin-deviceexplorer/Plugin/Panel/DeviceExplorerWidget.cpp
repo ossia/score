@@ -417,6 +417,7 @@ void DeviceExplorerWidget::edit()
     }
 }
 
+#include "ExplorationWorker.hpp"
 #include "Commands/UpdateNamespace.hpp"
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 void DeviceExplorerWidget::refresh()
@@ -429,12 +430,26 @@ void DeviceExplorerWidget::refresh()
         if(!dev.canRefresh())
             return;
 
-        auto cmd = new DeviceExplorer::Command::ReplaceDevice{
-                iscore::IDocument::path(model()),
-                m_ntView->selectedIndex().row(),
-                dev.refresh()};
+        auto thread = new QThread;
+        auto worker = new ExplorationWorker{dev};
 
-        m_cmdDispatcher->submitCommand(cmd);
+        connect(thread, &QThread::started, worker, &ExplorationWorker::process, Qt::QueuedConnection);
+        connect(worker, &ExplorationWorker::finished, this,
+                [=] () {
+            auto cmd = new DeviceExplorer::Command::ReplaceDevice{
+                    iscore::IDocument::path(model()),
+                    m_ntView->selectedIndex().row(),
+                    std::move(worker->node)};
+
+            m_cmdDispatcher->submitCommand(cmd);
+
+            thread->quit();
+            worker->deleteLater();
+            thread->deleteLater();
+        }, Qt::QueuedConnection);
+
+        worker->moveToThread(thread);
+        thread->start();
     }
 }
 

@@ -2,7 +2,7 @@
 
 #include <QWidget>
 #include <iscore/command/OngoingCommandManager.hpp>
-
+#include <QThread>
 #include "DeviceExplorerModel.hpp"
 class DeviceExplorerView;
 class DeviceExplorerModel;
@@ -95,6 +95,8 @@ class DeviceExplorerWidget : public QWidget
         QLineEdit* m_nameLEdit;
 
         CommandDispatcher<SendStrategy::Simple>* m_cmdDispatcher{};
+
+        QThread m_explorationThread;
 
 };
 
