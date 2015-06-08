@@ -28,6 +28,7 @@
 #include <QFrame>
 #include <QLineEdit>
 #include <QLayout>
+#include <QLabel>
 #include <QFormLayout>
 #include <QToolButton>
 #include <QPushButton>
@@ -91,8 +92,28 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_processSection->setObjectName("Processes");
 
     m_properties.push_back(m_processSection);
-    auto addProcess = new AddProcessDialog {this};
-    m_properties.push_back(addProcess);
+
+        QWidget* addProc = new QWidget(this);
+        QHBoxLayout* addProcLayout = new QHBoxLayout;
+        addProcLayout->setContentsMargins(0, 0, 0 , 0);
+        addProc->setLayout(addProcLayout);
+        // Button
+        QToolButton* addProcButton = new QToolButton;
+        addProcButton->setText("+");
+        addProcButton->setObjectName("addAProcess");
+
+        // Text
+        auto addProcText = new QLabel("Add Process");
+        addProcText->setStyleSheet(QString("text-align : left;"));
+
+        addProcLayout->addWidget(addProcButton);
+        addProcLayout->addWidget(addProcText);
+        auto addProcess = new AddProcessDialog {this};
+
+        connect(addProcButton,  &QToolButton::pressed,
+                addProcess, &AddProcessDialog::launchWindow);
+
+    m_properties.push_back(addProc);
 
     connect(addProcess, &AddProcessDialog::okPressed,
             this, &ConstraintInspectorWidget::createProcess);
