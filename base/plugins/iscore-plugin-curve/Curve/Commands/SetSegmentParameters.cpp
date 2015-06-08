@@ -20,40 +20,40 @@ SetSegmentParameters::SetSegmentParameters(
 void SetSegmentParameters::undo()
 {
     auto& curve = m_model.find<CurveModel>();
-    /*
-    curve.clear();
-
-    for(const auto& elt : m_oldCurveData)
+    for(const auto& elt : m_old.keys())
     {
-        Deserializer<DataStream> des(elt);
-        curve.addSegment(createCurveSegment(des, &curve));
-    }*/
+        CurveSegmentModel* seg = curve.segments().at(elt);
+
+        if(m_old.value(elt).first)
+            seg->setVerticalParameter(*m_old.value(elt).first);
+        if(m_old.value(elt).second)
+            seg->setHorizontalParameter(*m_old.value(elt).second);
+    }
 }
 
 void SetSegmentParameters::redo()
 {
     auto& curve = m_model.find<CurveModel>();
-    /*
-    curve.clear();
-
-    for(const auto& elt : m_newCurveData)
+    for(const auto& elt : m_new.keys())
     {
-        Deserializer<DataStream> des(elt);
-        curve.addSegment(createCurveSegment(des, &curve));
-    }*/
+        CurveSegmentModel* seg = curve.segments().at(elt);
+
+        seg->setVerticalParameter(m_new.value(elt).first);
+        seg->setHorizontalParameter(m_new.value(elt).second);
+    }
 }
 
 void SetSegmentParameters::update(ObjectPath&& model, SegmentParameterMap &&segments)
 {
-   // m_newCurveData = std::move(segments);
+    m_new = std::move(segments);
 }
 
 void SetSegmentParameters::serializeImpl(QDataStream& s) const
 {
-   // s << m_model << m_oldCurveData << m_newCurveData;
+   s << m_model << m_old << m_new;
 }
 
 void SetSegmentParameters::deserializeImpl(QDataStream& s)
 {
-   // s >> m_model >> m_oldCurveData >> m_newCurveData;
+    s >> m_model >> m_old >> m_new;
 }
