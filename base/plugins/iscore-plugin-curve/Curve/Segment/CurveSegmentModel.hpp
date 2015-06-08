@@ -65,6 +65,10 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
             return m_following;
         }
 
+        virtual void setVerticalParameter(double p);
+        virtual void setHorizontalParameter(double p);
+        virtual boost::optional<double> verticalParameter();
+        virtual boost::optional<double> horizontalParameter();
 
     signals:
         void dataChanged();

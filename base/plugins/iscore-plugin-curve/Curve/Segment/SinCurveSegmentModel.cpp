@@ -56,3 +56,15 @@ void SinCurveSegmentModel::updateData(int numInterp)
         }
     }
 }
+
+void SinCurveSegmentModel::setVerticalParameter(double p)
+{
+    freq = p;
+    emit dataChanged();
+}
+
+void SinCurveSegmentModel::setHorizontalParameter(double p)
+{
+    ampl = p;
+    emit dataChanged();
+}

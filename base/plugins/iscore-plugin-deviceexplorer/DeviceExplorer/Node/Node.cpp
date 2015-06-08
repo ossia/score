@@ -227,14 +227,8 @@ QString Node::tags() const
 
 void Node::setName(const QString& name)
 {
-    if (isDevice())
-    {
-        m_deviceSettings.name = name;
-    }
-    else
-    {
-        m_addressSettings.name = name;
-    }
+    m_deviceSettings.name = name;
+    m_addressSettings.name = name;
 }
 
 void Node::setValue(const QString& value)

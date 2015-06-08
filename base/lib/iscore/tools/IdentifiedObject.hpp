@@ -102,7 +102,7 @@ class IdContainer
 
         const auto& at(const id_type<model>& id) const
         {
-            return map.template get<0>()[id];
+            return *find(id);
         }
 };
 

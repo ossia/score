@@ -25,5 +25,7 @@ class GammaCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) override;
 
+        void setVerticalParameter(double p);
+
         double gamma = 0.5;
 };

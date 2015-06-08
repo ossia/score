@@ -14,7 +14,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 {
     using namespace OSSIA;
     Local localDevice;
-    m_localDevice = Device::create(localDevice, "ALocalDevice");
+    m_localDevice = Device::create(localDevice, "i-score");
     // Two parts :
     // One that maintains the devices for each document
     // (and disconnects / reconnects them when the current document changes)

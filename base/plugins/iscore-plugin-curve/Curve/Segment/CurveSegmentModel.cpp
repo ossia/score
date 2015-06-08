@@ -24,6 +24,10 @@ void CurveSegmentModel::setPrevious(const id_type<CurveSegmentModel>& previous)
     }
 }
 
+void CurveSegmentModel::setVerticalParameter(double p)
+{
+
+}
 
 void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following)
 {
@@ -32,6 +36,21 @@ void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following
         m_following = following;
         emit followingChanged();
     }
+}
+
+void CurveSegmentModel::setHorizontalParameter(double p)
+{
+
+}
+
+boost::optional<double> CurveSegmentModel::verticalParameter()
+{
+    return {};
+}
+
+boost::optional<double> CurveSegmentModel::horizontalParameter()
+{
+    return {};
 }
 
 

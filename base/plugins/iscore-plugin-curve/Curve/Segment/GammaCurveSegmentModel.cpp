@@ -53,3 +53,9 @@ void GammaCurveSegmentModel::updateData(int numInterp)
         }
     }
 }
+
+void GammaCurveSegmentModel::setVerticalParameter(double p)
+{
+    gamma = p;
+    emit dataChanged();
+}

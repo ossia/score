@@ -1,17 +1,21 @@
 #include "MinuitDevice.hpp"
 #include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/AddressValue.h>
+#include <Plugin/Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp>
+#include <Plugin/Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp>
 MinuitDevice::MinuitDevice(const DeviceSettings &settings):
-    OSSIADevice{settings}
+    OSSIADevice{settings},
+    m_minuitSettings{[&] () {
+    auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
+    return OSSIA::Minuit{stgs.host.toStdString(),
+        stgs.inPort,
+        stgs.outPort};
+}()}
+
 {
     using namespace OSSIA;
 
-    auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-    Minuit minuitDeviceParameters{stgs.host.toStdString(),
-                stgs.inPort,
-                stgs.outPort};
-
-    m_dev = Device::create(minuitDeviceParameters, settings.name.toStdString());
+    m_dev = Device::create(m_minuitSettings, settings.name.toStdString());
 }
 
 bool MinuitDevice::canRefresh() const
@@ -64,39 +68,46 @@ namespace
         }
     }
 
-
-    void nodeFullName_rec(const OSSIA::Node& node, QStringList& names)
-    {
-        names.push_back(QString::fromStdString(node.getName()));
-
-        auto n = node.getParent();
-        if(n)
-            nodeFullName_rec(*n, names);
-    }
-
-    QString nodeFullName(const OSSIA::Node& node)
-    {
-        QStringList names;
-        nodeFullName_rec(node, names);
-
-        std::reverse(names.begin(), names.end());
-
-        auto name = names.join("/");
-        name.prepend("/");
-
-        return name;
-    }
-
     AddressSettings extractAddressSettings(const OSSIA::Node& node)
     {
         AddressSettings s;
         const auto& addr = node.getAddress();
+        s.name = QString::fromStdString(node.getName());
 
-        s.name = nodeFullName(node);
         if(addr)
         {
             s.valueType = valueTypeToString(addr->getValueType());
             s.ioType = accessModeToIOType(addr->getAccessMode());
+            // TODO priority
+
+            switch(addr->getValueType())
+            {
+                case OSSIA::AddressValue::Type::NONE:
+                    break;
+                case OSSIA::AddressValue::Type::BOOL:
+                    s.value = dynamic_cast<OSSIA::Bool*>(addr->getValue())->value;
+                    break;
+                case OSSIA::AddressValue::Type::INT:
+                    s.value = dynamic_cast<OSSIA::Int*>(addr->getValue())->value;
+                    break;
+                case OSSIA::AddressValue::Type::FLOAT:
+                    s.value = dynamic_cast<OSSIA::Float*>(addr->getValue())->value;
+                    break;
+                case OSSIA::AddressValue::Type::CHAR:
+                    qDebug() << Q_FUNC_INFO << "todo";
+                    break;
+                case OSSIA::AddressValue::Type::STRING:
+                    s.value = QString::fromStdString(dynamic_cast<OSSIA::String*>(addr->getValue())->value);
+                    break;
+                case OSSIA::AddressValue::Type::TUPLE:
+                    qDebug() << Q_FUNC_INFO << "todo";
+                    break;
+                case OSSIA::AddressValue::Type::GENERIC:
+                    qDebug() << Q_FUNC_INFO << "todo";
+                    break;
+                default:
+                    break;
+            }
         }
         return s;
     }
@@ -137,7 +148,14 @@ Node MinuitDevice::refresh()
         }
     }
 
-    device.setName(QString::fromStdString(m_dev->getName()));
+    device.setName(settings().name);
+    auto addr = device.addressSettings();
+    addr.name = settings().name;
+    device.setAddressSettings(addr);
+
+    auto dev = device.deviceSettings();
+    dev.name = settings().name;
+    device.setDeviceSettings(dev);
 
     return device;
 }
