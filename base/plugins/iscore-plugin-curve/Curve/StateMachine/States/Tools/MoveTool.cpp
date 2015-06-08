@@ -5,7 +5,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
-#include "Curve/StateMachine/States/Create/CreatePointFromNothingCommandObject.hpp"
+#include "Curve/StateMachine/CommandObjects/CreatePointCommandObject.hpp"
+#include "Curve/StateMachine/CommandObjects/SetSegmentParametersCommandObject.hpp"
 using namespace Curve;
 EditionTool::EditionTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
@@ -27,8 +28,9 @@ EditionTool::EditionTool(CurveStateMachine& sm):
     }
 
     /// Create
+    /*
     {
-        auto cpfnco = new CreatePointFromNothingCommandObject(&sm.presenter(), sm.commandStack());
+        auto cpfnco = new CreatePointCommandObject(&sm.presenter(), sm.commandStack());
         auto createPointFromNothingState = new OngoingState(*cpfnco, &localSM());
         createPointFromNothingState->setObjectName("CreatePointFromNothingState");
         make_transition<ClickOnSegment_Transition>(m_waitState, createPointFromNothingState, *createPointFromNothingState);
@@ -36,6 +38,19 @@ EditionTool::EditionTool(CurveStateMachine& sm):
         createPointFromNothingState->addTransition(createPointFromNothingState, SIGNAL(finished()), m_waitState);
 
         localSM().addState(createPointFromNothingState);
+    }
+    */
+
+    /// Update
+    {
+        auto co = new SetSegmentParametersCommandObject(&sm.presenter(), sm.commandStack());
+        auto state = new OngoingState(*co, &localSM());
+        state->setObjectName("SetSegmentParametersState");
+        make_transition<ClickOnSegment_Transition>(m_waitState, state, *state);
+        //make_transition<ClickOnNothing_Transition>(m_waitState, createPointFromNothingState, *createPointFromNothingState);
+        state->addTransition(state, SIGNAL(finished()), m_waitState);
+
+        localSM().addState(state);
     }
 
 

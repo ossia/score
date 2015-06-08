@@ -1,10 +1,10 @@
 #pragma once
 #include "Curve/StateMachine/CommandObjects/CurveCommandObjectBase.hpp"
 
-class CreatePointFromNothingCommandObject : public CurveCommandObjectBase
+class CreatePointCommandObject : public CurveCommandObjectBase
 {
     public:
-        CreatePointFromNothingCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);
+        CreatePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);
 
         void on_press() override;
 

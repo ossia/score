@@ -65,6 +65,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
             return m_following;
         }
 
+        // Between -1 and 1, to map to the real parameter.
         virtual void setVerticalParameter(double p);
         virtual void setHorizontalParameter(double p);
         virtual boost::optional<double> verticalParameter();

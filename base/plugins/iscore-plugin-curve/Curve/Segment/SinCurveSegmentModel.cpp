@@ -59,12 +59,24 @@ void SinCurveSegmentModel::updateData(int numInterp)
 
 void SinCurveSegmentModel::setVerticalParameter(double p)
 {
-    freq = p;
+    // From -1; 1 to 0;1
+    ampl = (p + 1) / 2.;
     emit dataChanged();
 }
 
 void SinCurveSegmentModel::setHorizontalParameter(double p)
 {
-    ampl = p;
+    // From -1; 1 to 1; 15
+    freq = (p + 1) * 7 + 1;
     emit dataChanged();
+}
+
+boost::optional<double> SinCurveSegmentModel::verticalParameter()
+{
+    return 2. * ampl - 1.;
+}
+
+boost::optional<double> SinCurveSegmentModel::horizontalParameter()
+{
+    return (freq - 1.) / 7. - 1.;
 }

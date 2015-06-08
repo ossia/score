@@ -5,7 +5,7 @@
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include "Curve/StateMachine/States/Create/CreatePointFromNothingCommandObject.hpp"
+#include "Curve/StateMachine/CommandObjects/CreatePointCommandObject.hpp"
 
 using namespace Curve;
 CreationTool::CreationTool(CurveStateMachine& sm):
@@ -18,7 +18,7 @@ CreationTool::CreationTool(CurveStateMachine& sm):
 
     /// Point
     {
-        auto cpfnco = new CreatePointFromNothingCommandObject(&sm.presenter(), sm.commandStack());
+        auto cpfnco = new CreatePointCommandObject(&sm.presenter(), sm.commandStack());
         auto createPointFromNothingState = new OngoingState(*cpfnco, &localSM());
         createPointFromNothingState->setObjectName("CreatePointFromNothingState");
         make_transition<ClickOnAnything_Transition>(m_waitState, createPointFromNothingState, *createPointFromNothingState);

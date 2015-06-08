@@ -1,4 +1,4 @@
-#include "CreatePointFromNothingCommandObject.hpp"
+#include "CreatePointCommandObject.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
@@ -6,12 +6,12 @@
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Curve/Segment/LinearCurveSegmentModel.hpp"
-CreatePointFromNothingCommandObject::CreatePointFromNothingCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
+CreatePointCommandObject::CreatePointCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
     CurveCommandObjectBase{presenter, stack}
 {
 }
 
-void CreatePointFromNothingCommandObject::on_press()
+void CreatePointCommandObject::on_press()
 {
     // Save the start data.
     m_originalPress = m_state->currentPoint;
@@ -33,7 +33,7 @@ void CreatePointFromNothingCommandObject::on_press()
     move();
 }
 
-void CreatePointFromNothingCommandObject::move()
+void CreatePointCommandObject::move()
 {
     auto segments = deserializeSegments();
 
@@ -47,17 +47,17 @@ void CreatePointFromNothingCommandObject::move()
     submit(segments);
 }
 
-void CreatePointFromNothingCommandObject::release()
+void CreatePointCommandObject::release()
 {
     m_dispatcher.commit();
 }
 
-void CreatePointFromNothingCommandObject::cancel()
+void CreatePointCommandObject::cancel()
 {
     m_dispatcher.rollback();
 }
 
-void CreatePointFromNothingCommandObject::createPoint(QVector<CurveSegmentModel *> &segments)
+void CreatePointCommandObject::createPoint(QVector<CurveSegmentModel *> &segments)
 {
     // Create a point where we clicked
     // By creating segments that goes to the closest points if we're in the empty,

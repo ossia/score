@@ -25,9 +25,12 @@ class SinCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) override;
 
+        boost::optional<double> verticalParameter();
+        boost::optional<double> horizontalParameter();
         void setVerticalParameter(double p);
         void setHorizontalParameter(double p);
 
         double freq = 5;
         double ampl = 0.6;
+
 };

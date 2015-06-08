@@ -59,3 +59,9 @@ void GammaCurveSegmentModel::setVerticalParameter(double p)
     gamma = p;
     emit dataChanged();
 }
+
+
+boost::optional<double> GammaCurveSegmentModel::verticalParameter()
+{
+    return gamma;
+}
