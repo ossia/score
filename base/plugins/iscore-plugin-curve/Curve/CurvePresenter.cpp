@@ -221,6 +221,13 @@ void CurvePresenter::setupContextMenu()
 {
     m_contextMenu = new QMenu;
 
+    auto selectAct = new QAction{tr("Select"), this};
+
+    selectAct->setCheckable(true);
+    selectAct->setChecked(true);
+    connect(selectAct, &QAction::toggled, this,
+            [&] (bool b) { m_sm->changeTool(int(!b)); });
+
     auto removeAct = new QAction{tr("Remove"), this};
     removeAct->setData(2); // Small identifier for segments actions...
 
@@ -244,6 +251,7 @@ void CurvePresenter::setupContextMenu()
     suppressAction->setCheckable(true);
     suppressAction->setChecked(false);
 
+    m_contextMenu->addAction(selectAct);
     m_contextMenu->addAction(removeAct);
     m_contextMenu->addAction(lockAction);
     m_contextMenu->addAction(suppressAction);
