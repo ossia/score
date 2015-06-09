@@ -6,12 +6,15 @@
 #include "Curve/StateMachine/CurvePoint.hpp"
 
 
+namespace Curve
+{
 // TODO rename file
 class OngoingState : public Curve::StateBase
 {
     public:
         template<typename CommandObject>
-        OngoingState(CommandObject& obj, QState* parent)
+        OngoingState(CommandObject& obj, QState* parent):
+            Curve::StateBase{parent}
         {
             using namespace Curve;
 
@@ -66,3 +69,4 @@ class OngoingState : public Curve::StateBase
 
         }
 };
+}

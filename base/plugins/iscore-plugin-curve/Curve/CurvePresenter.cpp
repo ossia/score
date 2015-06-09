@@ -13,11 +13,12 @@
 #include <QAction>
 #include <QDebug>
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
+#include "Curve/StateMachine/States/Tools/MoveTool.hpp"
 
 #include "Curve/Commands/UpdateCurve.hpp"
 #include "StateMachine/CurveStateMachine.hpp"
 #include <QGraphicsScene>
-
+#include <QActionGroup>
 CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view, QObject* parent):
     QObject{parent},
     m_model{model},
@@ -203,14 +204,69 @@ void CurvePresenter::setupView()
         m_points.push_back(pt_view);
     }
 
-    connect(m_view, &CurveView::keyPressed, this, [&] (int key)
+    QActionGroup* actions = new QActionGroup{this};
+    actions->setExclusive(true);
+    auto moveact = new QAction{actions};
+    moveact->setCheckable(true);
+    moveact->setChecked(true);
+    actions->addAction(moveact);
+
+    auto shiftact = new QAction{actions};
+    shiftact->setCheckable(true);
+    actions->addAction(shiftact);
+
+    auto ctrlact = new QAction{actions};
+    ctrlact->setCheckable(true);
+    actions->addAction(ctrlact);
+
+    actions->setEnabled(true);
+
+    connect(moveact, &QAction::toggled, this, [&] (bool b) {
+        if(b)
+        {
+            m_sm->changeTool((int)Curve::Tool::Move);
+        }
+    });
+    connect(shiftact, &QAction::toggled, this, [&] (bool b) {
+        if(b)
+        {
+            m_sm->changeTool((int)Curve::Tool::SetSegment);
+        }
+    });
+    connect(ctrlact, &QAction::toggled, this, [&] (bool b) {
+        if(b)
+        {
+            m_sm->changeTool((int)Curve::Tool::Create);
+        }
+    });
+
+    connect(m_view, &CurveView::keyPressed, this, [=] (int key)
     {
         if(key == Qt::Key_L)
             m_sm->changeTool(!m_sm->tool());
+
+        if(key == Qt::Key_Shift)
+        {
+            shiftact->toggle();
+        }
+        if(key == Qt::Key_Control)
+        {
+            ctrlact->toggle();
+        }
     });
-    connect(m_view, &CurveView::keyReleased, this, [&] (int)
+
+    connect(m_view, &CurveView::keyReleased, this, [=] (int key)
     {
+        if(key == Qt::Key_Shift)
+        {
+            moveact->toggle();
+        }
+        if(key == Qt::Key_Control)
+        {
+            moveact->toggle();
+        }
     });
+
 }
 
 void CurvePresenter::setupStateMachine()

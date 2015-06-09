@@ -79,19 +79,30 @@ void CurveStateMachine::setupStates()
 {
     m_transitionState = new QState{this};
     m_selectTool = new Curve::SelectionTool(*this);
-    m_editTool = new Curve::EditionTool(*this);
 
-    this->setInitialState(m_selectTool);
+    m_createTool = new Curve::CreateTool(*this);
+    m_moveTool = new Curve::MoveTool(*this);
+    m_setSegmentTool = new Curve::SetSegmentTool(*this);
+
+    this->setInitialState(m_moveTool);
 
     auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), m_selectTool);
     t_exit_select->setTargetState(m_transitionState);
-    auto t_exit_edit = new QSignalTransition(this, SIGNAL(exitState()), m_editTool);
-    t_exit_edit->setTargetState(m_transitionState);
+    auto t_exit_create = new QSignalTransition(this, SIGNAL(exitState()), m_createTool);
+    t_exit_create->setTargetState(m_transitionState);
+    auto t_exit_move = new QSignalTransition(this, SIGNAL(exitState()), m_moveTool);
+    t_exit_move->setTargetState(m_transitionState);
+    auto t_exit_setsegment = new QSignalTransition(this, SIGNAL(exitState()), m_setSegmentTool);
+    t_exit_setsegment->setTargetState(m_transitionState);
 
     auto t_enter_select = new QSignalTransition(this, SIGNAL(setSelectionState()), m_transitionState);
     t_enter_select->setTargetState(m_selectTool);
-    auto t_enter_edit= new QSignalTransition(this, SIGNAL(setEditionState()), m_transitionState);
-    t_enter_edit->setTargetState(m_editTool);
+    auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), m_transitionState);
+    t_enter_create->setTargetState(m_createTool);
+    auto t_enter_move= new QSignalTransition(this, SIGNAL(setMoveState()), m_transitionState);
+    t_enter_move->setTargetState(m_moveTool);
+    auto t_enter_setSegment = new QSignalTransition(this, SIGNAL(setSetSegmentState()), m_transitionState);
+    t_enter_setSegment->setTargetState(m_setSegmentTool);
 }
 
 void CurveStateMachine::setupPostEvents()
@@ -145,8 +156,14 @@ void CurveStateMachine::changeTool(int state)
         case static_cast<int>(Curve::Tool::Selection):
             emit setSelectionState();
             break;
-        case static_cast<int>(Curve::Tool::Edition):
-            emit setEditionState();
+        case static_cast<int>(Curve::Tool::Create):
+            emit setCreateState();
+            break;
+        case static_cast<int>(Curve::Tool::Move):
+            emit setMoveState();
+            break;
+        case static_cast<int>(Curve::Tool::SetSegment):
+            emit setSetSegmentState();
             break;
             /*
         case static_cast<int>(Curve::Tool::CreatePen):
@@ -164,8 +181,12 @@ void CurveStateMachine::changeTool(int state)
 
 int CurveStateMachine::tool() const
 {
-    if(m_editTool->active())
-        return (int)Curve::Tool::Edition;
+    if(m_createTool->active())
+        return (int)Curve::Tool::Create;
+    if(m_moveTool->active())
+        return (int)Curve::Tool::Create;
+    if(m_setSegmentTool->active())
+        return (int)Curve::Tool::Create;
     if(m_selectTool->active())
         return (int)Curve::Tool::Selection;
 

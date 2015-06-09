@@ -9,8 +9,9 @@ class QGraphicsScene;
 class CurveModel;
 
 namespace Curve {
+    class EditionTool;
 enum class Tool {
-    Selection, Edition, CreatePen, RemovePen
+    Selection, Create, Move, SetSegment, CreatePen, RemovePen
 };
 }
 
@@ -31,7 +32,9 @@ class CurveStateMachine : public BaseStateMachine
         int tool() const;
 
     signals:
-        void setEditionState();
+        void setCreateState();
+        void setMoveState();
+        void setSetSegmentState();
         void setSelectionState();
 
         void exitState();
@@ -45,8 +48,11 @@ class CurveStateMachine : public BaseStateMachine
         QState* m_transitionState{};
 
         QState* m_selectTool{};
+
         QState* m_createTool{};
-        QState* m_editTool{};
+        QState* m_moveTool{};
+        QState* m_setSegmentTool{};
+        //Curve::EditionTool* m_editTool{};
 
         QState* m_createPenTool{};
         QState* m_removePenTool{};

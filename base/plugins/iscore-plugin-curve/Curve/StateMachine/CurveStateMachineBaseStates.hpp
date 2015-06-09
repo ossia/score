@@ -16,6 +16,7 @@ namespace Curve
 class StateBase : public QState
 {
     public:
+        using QState::QState;
         id_type<CurveSegmentModel> clickedSegmentId;
         CurvePointId clickedPointId;
 

@@ -5,7 +5,7 @@
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-    this->setFlags(ItemClipsChildrenToShape);
+    this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
     this->setZValue(parent->zValue() + 1);
 }
 

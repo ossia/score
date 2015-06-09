@@ -149,6 +149,7 @@ void BaseElementModel::on_viewModelDefocused(const ProcessViewModel* vm)
 
 void BaseElementModel::on_viewModelFocused(const ProcessViewModel* process)
 {
+    // TODO why not presenter ?
     // Enable focus on the new viewmodel
     updateDeckFocus(process, true);
 }
