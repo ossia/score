@@ -35,6 +35,6 @@ void SizeNotifyingGraphicsView::scrollContentsBy(int dx, int dy)
 
 void SizeNotifyingGraphicsView::wheelEvent(QWheelEvent *event)
 {
-    QGraphicsView::wheelEvent(event);
-    emit zoom(event->pos());
+//    QGraphicsView::wheelEvent(event);
+    emit zoom(mapToScene(event->pos()), event->pixelDelta());
 }

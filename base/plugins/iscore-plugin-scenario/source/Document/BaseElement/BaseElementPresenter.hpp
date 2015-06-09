@@ -67,6 +67,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
     private slots:
         void on_zoomSliderChanged(double);
+        void on_zoomOnWheelEvent(QPointF, QPoint);
         void on_viewSizeChanged(const QSize& s);
         void on_horizontalPositionChanged(int dx);
 
@@ -75,6 +76,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void updateRect(const QRectF& rect);
 
     private:
+        void updateZoom(ZoomRatio newZoom, QPointF focus);
         FullViewConstraintPresenter* m_displayedConstraintPresenter{};
         const ConstraintModel* m_displayedConstraint{};
 
