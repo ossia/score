@@ -52,11 +52,9 @@ namespace iscore
             bool closeDocument(Document*);
 
             // Methods to save and load
-            void saveBinary(Document*);
-            bool saveJson(Document*);
+            bool saveDocument(Document*);
 
-            void loadBinary();
-            void loadJson();
+            void loadDocument();
 
             // Toolbars
             QList<OrderedToolbar>& toolbars()
