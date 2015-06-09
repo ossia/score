@@ -9,7 +9,7 @@
 #include <QApplication>
 #include <QPalette>
 
-static const qreal radius = 6.;
+static const qreal radius = 10.;
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
