@@ -71,7 +71,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
     m_minSpin->setMaximumTime(m_min.toQTime());
     m_minSpin->setTime(m_min.toQTime());
-    m_maxSpin->setMinimumTime(m_max.toQTime());
+    if(!m_infinite)
+        m_maxSpin->setMinimumTime(m_max.toQTime());
     m_valueSpin->setTime(m_default.toQTime());
 
     lay->addRow(rigid_checkbox, m_infinite);
