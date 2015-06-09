@@ -176,11 +176,13 @@ void TemporalConstraintView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 void TemporalConstraintView::setLabel(const QString &label)
 {
     m_label = label;
+    update();
 }
 
 void TemporalConstraintView::setLabelColor(const QColor &labelColor)
 {
     m_labelColor = labelColor;
+    update();
 }
 
 bool TemporalConstraintView::shadow() const
