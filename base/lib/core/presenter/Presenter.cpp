@@ -120,7 +120,7 @@ bool Presenter::closeDocument(Document* doc)
         switch (ret)
         {
         case QMessageBox::Save:
-            if(saveJson(doc))
+            if(saveDocument(doc))
                 break;
             else
                 return false;
@@ -145,11 +145,10 @@ bool Presenter::closeDocument(Document* doc)
     return true;
 }
 
-void Presenter::saveBinary(Document * doc)
+bool Presenter::saveDocument(Document * doc)
 {
-    QFileDialog d{nullptr, tr("Save (Binary)")};
-    d.setNameFilter("*.scorebin");
-    d.setDefaultSuffix("scorebin");
+    QFileDialog d{nullptr, tr("Save")};
+    d.setNameFilter(tr("Binary (*.scorebin) ;; JSON (*.scorejson)"));
     d.setConfirmOverwrite(true);
     d.setFileMode(QFileDialog::AnyFile);
     d.setAcceptMode(QFileDialog::AcceptSave);
@@ -157,68 +156,42 @@ void Presenter::saveBinary(Document * doc)
     if(d.exec())
     {
         auto savename = d.selectedFiles().first();
+        auto suf = d.nameFilters();
         if(!savename.isEmpty())
         {
             QFile f{savename};
             f.open(QIODevice::WriteOnly);
-            f.write(doc->saveAsByteArray());
+            if(savename.indexOf(".scorebin") != -1)
+                f.write(doc->saveAsByteArray());
+            else
+            {
+                QJsonDocument json_doc;
+                json_doc.setObject(doc->saveAsJson());
+
+                f.write(json_doc.toJson());
+            }
         }
-    }
-}
-
-bool Presenter::saveJson(Document * doc)
-{
-    QFileDialog d{nullptr, tr("Save (JSON)")};
-    d.setDefaultSuffix("scorejson");
-    d.setNameFilter("*.scorejson");
-    d.setConfirmOverwrite(true);
-    d.setFileMode(QFileDialog::AnyFile);
-    d.setAcceptMode(QFileDialog::AcceptSave);
-
-    if(d.exec())
-    {
-        auto savename = d.selectedFiles().first();
-        if(!savename.isEmpty())
-        {
-            QFile f(savename);
-            f.open(QIODevice::WriteOnly);
-
-            QJsonDocument json_doc;
-            json_doc.setObject(doc->saveAsJson());
-
-            f.write(json_doc.toJson());
-        }
-
         return true;
     }
     return false;
 }
 
-void Presenter::loadBinary()
+void Presenter::loadDocument()
 {
-    auto loadname = QFileDialog::getOpenFileName(nullptr, tr("Load (Binary)"), QString(), "*.scorebin");
+    QString loadname = QFileDialog::getOpenFileName(nullptr, tr("Open"), QString(), "*.scorebin *.scorejson");
 
     if(!loadname.isEmpty())
     {
         QFile f {loadname};
         if(f.open(QIODevice::ReadOnly))
         {
-            loadDocument(f.readAll(), m_availableDocuments.front());
-        }
-    }
-}
-
-void Presenter::loadJson()
-{
-    auto loadname = QFileDialog::getOpenFileName(nullptr, tr("Load (JSON)"), QString(), "*.scorejson");
-
-    if(!loadname.isEmpty())
-    {
-        QFile f(loadname);
-        if(f.open(QIODevice::ReadOnly))
-        {
-            auto doc = QJsonDocument::fromJson(f.readAll());
-            loadDocument(doc.object(), m_availableDocuments.front());
+            if (loadname.indexOf(".scorebin") != -1)
+                loadDocument(f.readAll(), m_availableDocuments.front());
+            else
+            {
+                auto doc = QJsonDocument::fromJson(f.readAll());
+                loadDocument(doc.object(), m_availableDocuments.front());
+            }
         }
     }
 }
@@ -298,30 +271,16 @@ void Presenter::setupMenus()
 
     //// Save and load
     // Binary
-    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+    auto openAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Load,
-                                        [this]() { loadBinary(); });
+                                        [this]() { loadDocument(); });
+    openAct->setShortcut(QKeySequence::Open);
 
-    m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+    auto saveAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Save,
-                                        [this]() { saveBinary(currentDocument()); });
+                                        [this]() { saveDocument(currentDocument()); });
+    saveAct->setShortcut(QKeySequence::Save);
 
-    // Json
-    auto fromJson = new QAction(tr("Load (JSON)"), this);
-    connect(fromJson, &QAction::triggered, this, &Presenter::loadJson);
-    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                       FileMenuElement::Separator_Quit,
-                                       fromJson);
-
-
-    auto toJson = new QAction(tr("Save (JSON)"), this);
-    connect(toJson, &QAction::triggered,
-            [this]() { saveJson(currentDocument()); });
-
-
-    m_menubar.insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                       FileMenuElement::Separator_Quit,
-                                       toJson);
 
     //	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
     //										FileMenuElement::SaveAs,

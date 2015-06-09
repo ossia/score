@@ -89,6 +89,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
             this,   &BaseElementPresenter::on_zoomSliderChanged);
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
             this,           &BaseElementPresenter::on_viewSizeChanged);
+    connect(view()->view(), &SizeNotifyingGraphicsView::zoom,
+            this,  &BaseElementPresenter::on_zoomOnWheelEvent);
     connect(view(), &BaseElementView::horizontalPositionChanged,
             this,   &BaseElementPresenter::on_horizontalPositionChanged);
     connect(model(), &BaseElementModel::focusMe,
@@ -271,32 +273,39 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         return 5 + duration / viewWidth;
     };
 
-    auto w = view()->view()->viewport()->width();
-    auto h = view()->view()->viewport()->height();
+    auto newMillisPerPix = mapZoom(1.0 - newzoom, 2., std::max(4., computedMax()));
+    updateZoom(newMillisPerPix, QPointF(0,0));
+}
 
-    QRect viewport_rect = view()->view()->viewport()->rect() ;
-    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
+{
+    auto mapZoom = [] (double val, double min, double max)
+    { return (max - min) * val + min; };
 
-    auto leftT = visible_scene_rect.left() * m_millisecondsPerPixel;
-    auto rightT = visible_scene_rect.right() * m_millisecondsPerPixel;
-    auto center = visible_scene_rect.center().x() * m_millisecondsPerPixel;
+    // computedMax : the number of pixels in a millisecond when the whole constraint
+    // is displayed on screen;
+    auto computedMax = [&] ()
+    {
+        // On veut que cette fonction retourne le facteur de
+        // m_millisecondsPerPixel nécessaire pour que la contrainte affichée tienne à l'écran.
+        double viewWidth = view()->view()->width();
+        double duration =  m_displayedConstraint->defaultDuration().msec();
 
-    auto y = visible_scene_rect.top();
+        return 5 + duration / viewWidth;
+    };
 
-    setMillisPerPixel(mapZoom(1.0 - newzoom, 2., std::max(4., computedMax())));
+//    auto newzoom = (10*zoom.y()/view()->view()->height() + m_millisecondsPerPixel/computedMax());
 
-    qreal x;
-    if(leftT < 10)
-        x = 0;
-    else if((m_displayedConstraint->defaultDuration().msec() - rightT) < 500)
-        x = m_displayedConstraint->defaultDuration().msec()/m_millisecondsPerPixel - w;
-    else
-        x = center/m_millisecondsPerPixel - w/2;
+//    auto newMillisPerPix = mapZoom(newzoom, 2., std::max(4., computedMax()));
+    view()->zoomSlider()->setValue((view()->zoomSlider()->value() + 0.2*float(zoom.y())/float(view()->zoomSlider()->width())));
+    auto newzoom = view()->zoomSlider()->value();
+//    auto newCenter = center.x() * m_millisecondsPerPixel;
 
-    auto newView = QRectF{x, y,(qreal)w, (qreal)h};
+    auto newMillisPerPix = mapZoom(1.0 - newzoom, 2., std::max(4., computedMax()));
 
-    view()->view()->ensureVisible(newView,0,0);
-    updateGrid();
+//    center.setX(newCenter / newMillisPerPix);
+    updateZoom(newMillisPerPix, center);
+
 }
 
 void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
@@ -335,6 +344,36 @@ void BaseElementPresenter::updateRect(const QRectF& rect)
     other.setWidth(rect.width());
     other.setX(rect.x());
     view()->rulerView()->setSceneRect(other);
+}
+
+void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
+{
+    auto w = view()->view()->viewport()->width();
+    auto h = view()->view()->viewport()->height();
+
+    QRect viewport_rect = view()->view()->viewport()->rect() ;
+    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+
+
+    qreal center = (focus.isNull() ?
+                  visible_scene_rect.center().x() * m_millisecondsPerPixel :
+                  focus.x() * m_millisecondsPerPixel);
+
+    auto leftT = visible_scene_rect.left() * m_millisecondsPerPixel;
+    auto deltaX = (center - leftT) / m_millisecondsPerPixel;
+
+    auto y = visible_scene_rect.top();
+
+    if(newZoom != m_millisecondsPerPixel)
+        setMillisPerPixel(newZoom);
+
+    qreal x;
+        x = center/m_millisecondsPerPixel - deltaX;
+
+    auto newView = QRectF{x, y,(qreal)w, (qreal)h};
+
+    view()->view()->ensureVisible(newView,0,0);
+    updateGrid();
 }
 
 BaseElementModel* BaseElementPresenter::model() const
