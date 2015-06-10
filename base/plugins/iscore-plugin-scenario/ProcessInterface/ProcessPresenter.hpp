@@ -12,8 +12,15 @@ namespace iscore
 class ProcessPresenter : public NamedObject
 {
         Q_OBJECT
+        bool m_focus{false};
+
     public:
         using NamedObject::NamedObject;
+
+        bool focused() const;
+        void setFocus(bool focus);
+        virtual void on_focusChanged();
+
         virtual ~ProcessPresenter() = default;
 
         virtual void setWidth(int width) = 0;
@@ -27,4 +34,5 @@ class ProcessPresenter : public NamedObject
 
         virtual const ProcessViewModel& viewModel() const = 0;
         virtual const id_type<ProcessModel>& modelId() const = 0;
+
 };
