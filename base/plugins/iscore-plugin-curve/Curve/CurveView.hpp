@@ -38,7 +38,6 @@ class CurveView : public QGraphicsObject
 
         void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 
-
     private:
         QRectF m_rect; // The rect in which the whole curve must fit.
         QRectF m_selectArea;

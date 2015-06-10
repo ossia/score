@@ -1,6 +1,8 @@
 #include "CurveView.hpp"
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QKeyEvent>
+#include <QDebug>
 
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}
@@ -58,7 +60,7 @@ void CurveView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     emit released(event->scenePos());
     event->accept();
 }
-#include <QKeyEvent>
+
 void CurveView::keyPressEvent(QKeyEvent* ev)
 {
     emit keyPressed(ev->key());

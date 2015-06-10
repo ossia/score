@@ -44,14 +44,22 @@ void SizeNotifyingGraphicsView::wheelEvent(QWheelEvent *event)
     QGraphicsView::wheelEvent(event);
 }
 
+
 void SizeNotifyingGraphicsView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control)
         m_zoomModifier = true;
+    event->ignore();
+
+    QGraphicsView::keyPressEvent(event);
 }
 
 void SizeNotifyingGraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control)
         m_zoomModifier = false;
+    event->ignore();
+
+    QGraphicsView::keyReleaseEvent(event);
 }
+

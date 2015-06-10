@@ -34,6 +34,7 @@ int ProcessPanelPresenter::panelId() const
 
 void ProcessPanelPresenter::on_modelChanged()
 {
+    return;
     if(!model())
     {
         cleanup();

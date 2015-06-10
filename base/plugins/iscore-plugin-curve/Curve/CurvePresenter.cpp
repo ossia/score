@@ -115,25 +115,13 @@ void CurvePresenter::setupSignals()
     connect(m_model, &CurveModel::segmentAdded, this,
             [&] (CurveSegmentModel* segment)
     {
-        // Create a segment
-        auto seg_view = new CurveSegmentView{segment, m_view};
-        connect(seg_view, &CurveSegmentView::contextMenuRequested,
-                m_view, &CurveView::contextMenuRequested);
-        m_segments.push_back(seg_view);
-
-        setPos(seg_view);
+        addSegment(new CurveSegmentView{segment, m_view});
     });
 
     connect(m_model, &CurveModel::pointAdded, this,
             [&] (CurvePointModel* point)
     {
-        // Create a segment
-        auto pt_view = new CurvePointView{point, m_view};
-        connect(pt_view, &CurvePointView::contextMenuRequested,
-                m_view, &CurveView::contextMenuRequested);
-        m_points.push_back(pt_view);
-
-        setPos(pt_view);
+        addPoint(new CurvePointView{point, m_view});
     });
 
     connect(m_model, &CurveModel::pointRemoved, this,
@@ -182,28 +170,18 @@ void CurvePresenter::setupSignals()
 
 void CurvePresenter::setupView()
 {
-    // TODO make addSegment / addPoint method that generalize signals
+    // Initialize the elements
     for(CurveSegmentModel* segment : m_model->segments())
     {
-        // Create a segment
-        auto seg_view = new CurveSegmentView{segment, m_view};
-
-        connect(seg_view, &CurveSegmentView::contextMenuRequested,
-                m_view, &CurveView::contextMenuRequested);
-
-        m_segments.push_back(seg_view);
+        addSegment(new CurveSegmentView{segment, m_view});
     }
 
     for(CurvePointModel* pt : m_model->points())
     {
-        // Create a point
-        auto pt_view = new CurvePointView{pt, m_view};
-
-        connect(pt_view, &CurvePointView::contextMenuRequested,
-                m_view, &CurveView::contextMenuRequested);
-        m_points.push_back(pt_view);
+        addPoint(new CurvePointView{pt, m_view});
     }
 
+    // Setup the actions
     m_actions = new QActionGroup{this};
     m_actions->setExclusive(true);
     auto moveact = new QAction{m_actions};
@@ -232,11 +210,19 @@ void CurvePresenter::setupView()
         {
             m_sm->changeTool((int)Curve::Tool::SetSegment);
         }
+        else
+        {
+            m_sm->changeTool((int)Curve::Tool::Move);
+        }
     });
     connect(ctrlact, &QAction::toggled, this, [&] (bool b) {
         if(b)
         {
             m_sm->changeTool((int)Curve::Tool::Create);
+        }
+        else
+        {
+            m_sm->changeTool((int)Curve::Tool::Move);
         }
     });
 
@@ -247,11 +233,11 @@ void CurvePresenter::setupView()
 
         if(key == Qt::Key_Shift)
         {
-            shiftact->toggle();
+            shiftact->setChecked(true);
         }
         if(key == Qt::Key_Control)
         {
-            ctrlact->toggle();
+            ctrlact->setChecked(true);
         }
     });
 
@@ -259,11 +245,11 @@ void CurvePresenter::setupView()
     {
         if(key == Qt::Key_Shift)
         {
-            moveact->toggle();
+            moveact->setChecked(true);
         }
         if(key == Qt::Key_Control)
         {
-            moveact->toggle();
+            moveact->setChecked(true);
         }
     });
 
@@ -280,9 +266,14 @@ void CurvePresenter::setupContextMenu()
     auto selectAct = new QAction{tr("Select"), this};
 
     selectAct->setCheckable(true);
-    selectAct->setChecked(true);
+    selectAct->setChecked(false);
     connect(selectAct, &QAction::toggled, this,
-            [&] (bool b) { m_sm->changeTool(int(!b)); });
+            [&] (bool b) {
+        if(b)
+            m_sm->changeTool(int(Curve::Tool::Selection));
+        else
+            m_sm->changeTool(int(Curve::Tool::Move));
+    });
 
     auto removeAct = new QAction{tr("Remove"), this};
     removeAct->setData(2); // Small identifier for segments actions...
@@ -331,6 +322,24 @@ void CurvePresenter::setupContextMenu()
             removeSelection();
         }
     });
+}
+
+void CurvePresenter::addPoint(CurvePointView * pt_view)
+{
+    connect(pt_view, &CurvePointView::contextMenuRequested,
+            m_view, &CurveView::contextMenuRequested);
+    m_points.push_back(pt_view);
+
+    setPos(pt_view);
+}
+
+void CurvePresenter::addSegment(CurveSegmentView * seg_view)
+{
+    connect(seg_view, &CurveSegmentView::contextMenuRequested,
+            m_view, &CurveView::contextMenuRequested);
+    m_segments.push_back(seg_view);
+
+    setPos(seg_view);
 }
 
 CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const

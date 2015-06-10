@@ -47,8 +47,8 @@ QRectF TimeNodeView::boundingRect() const
 
 void TimeNodeView::setExtremities(int top, int bottom)
 {
-    m_top = top - 10;
-    m_bottom = bottom + 10;
+    m_top = top;
+    m_bottom = bottom;
     this->update();
 }
 

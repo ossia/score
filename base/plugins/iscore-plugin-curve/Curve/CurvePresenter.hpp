@@ -67,6 +67,10 @@ class CurvePresenter : public QObject
         void setupStateMachine();
         void setupContextMenu();
 
+        // Adding
+        void addPoint(CurvePointView*);
+        void addSegment(CurveSegmentView*);
+
         CurveStateMachine* m_sm{};
 
         CurveModel* m_model{};

@@ -134,6 +134,8 @@ Node MinuitDevice::refresh()
 
     Node device;
 
+
+    try {
     if(m_dev->updateNamespace())
     {
         // Make a device explorer node from the current state of the device.
@@ -147,6 +149,11 @@ Node MinuitDevice::refresh()
         {
             device.addChild(OssiaToDeviceExplorer(*node.get()));
         }
+    }
+    }
+    catch(std::runtime_error& e)
+    {
+        qDebug() << "Couldn't load the device";
     }
 
     device.setName(settings().name);

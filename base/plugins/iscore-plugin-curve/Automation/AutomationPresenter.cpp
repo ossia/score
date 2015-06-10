@@ -30,7 +30,6 @@ AutomationPresenter::AutomationPresenter(
     connect(cv, &CurveView::pressed,
             this, [&] (const QPointF&)
     {
-        qDebug() << "CurveView::pressed";
         m_focusDispatcher.focus(this);
     });
 
