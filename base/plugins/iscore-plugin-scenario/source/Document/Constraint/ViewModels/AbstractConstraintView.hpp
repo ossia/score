@@ -101,7 +101,7 @@ protected:
         {
             QBrush{Qt::black},
             3,
-            Qt::DashLine,
+            Qt::CustomDashLine,
             Qt::SquareCap,
             Qt::RoundJoin
         };
