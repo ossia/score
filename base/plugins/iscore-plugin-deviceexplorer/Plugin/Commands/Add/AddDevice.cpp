@@ -194,6 +194,7 @@ void AddDevice::redo()
 
     // Instantiate a real device.
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
+    Q_ASSERT(explorer.deviceModel());
     explorer.deviceModel()->list().addDevice(proto->makeDevice(m_parameters));
 
     // Put it in the tree.
