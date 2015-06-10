@@ -165,9 +165,12 @@ void RemoveSelection::undo()
             auto to_delete = std::find(maybeTimenodes.begin(),
                                        maybeTimenodes.end(),
                                        event->timeNode());
-            Q_ASSERT(to_delete != maybeTimenodes.end());
-            delete *to_delete;
-            maybeTimenodes.erase(to_delete);
+            // TODO why do we need to check for this ? Q_ASSERT sometime fails...
+            if(to_delete != maybeTimenodes.end())
+            {
+                delete *to_delete;
+                maybeTimenodes.erase(to_delete);
+            }
 
             // We can add our event to the scenario.
             scenar.addEvent(event);

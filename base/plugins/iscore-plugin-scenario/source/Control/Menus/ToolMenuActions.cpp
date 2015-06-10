@@ -34,32 +34,41 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                      Tool::Select,
                      tr("Alt+x"));
     m_selecttool->setChecked(true);
-    connect(m_selecttool, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Select)); });
+    auto set_tool = [&] (Tool t) {
+        if(auto&& pres = m_parent->focusedPresenter())
+            pres->stateMachine().changeTool(static_cast<int>(t));
+    };
+
+    connect(m_selecttool, &QAction::triggered, this, [=]() {
+        set_tool(Tool::Select);
+    });
 
     auto createtool = makeToolbarAction(
                           tr("Create"),
                           m_scenarioToolActionGroup,
                           Tool::Create,
                           tr("Alt+c"));
-    connect(createtool, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Create)); });
+    connect(createtool, &QAction::triggered, this, [=]() {
+        set_tool(Tool::Create);
+    });
 
     auto movetool = makeToolbarAction(
                         tr("Move"),
                         m_scenarioToolActionGroup,
                         Tool::Move,
                         tr("Alt+v"));
-    connect(movetool, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::Move)); } );
+    connect(movetool, &QAction::triggered, this, [=]() {
+        set_tool(Tool::Move);
+    });
 
     auto deckmovetool = makeToolbarAction(
                             tr("Move Deck"),
                             m_scenarioToolActionGroup,
                             Tool::MoveDeck,
                             tr("Alt+b"));
-    connect(deckmovetool, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().changeTool(static_cast<int>(Tool::MoveDeck)); });
+    connect(deckmovetool, &QAction::triggered, this, [=]() {
+        set_tool(Tool::MoveDeck);
+    });
 
 
     m_shiftAction = makeToolbarAction(
@@ -67,14 +76,16 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                             this,
                             ExpandMode::Fixed,
                             tr("Shift"));
-    connect(m_shiftAction, &QAction::toggled, [=] ()
+    connect(m_shiftAction, &QAction::toggled, this, [=] ()
     {
         if(m_parent->focusedPresenter())
         {
+            auto& sm = m_parent->focusedPresenter()->stateMachine();
+
             if (m_shiftAction->isChecked())
-                m_parent->focusedPresenter()->stateMachine().shiftPressed();
+                sm.shiftPressed();
             else
-                m_parent->focusedPresenter()->stateMachine().shiftReleased();
+                sm.shiftReleased();
         }
     });
 
@@ -87,24 +98,33 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                      ExpandMode::Scale,
                      tr("Alt+S"));
     scale->setChecked(true);
-    connect(scale, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().setScaleState(); });
+    connect(scale, &QAction::triggered, this, [=]()
+    {
+        if(auto&& pres = m_parent->focusedPresenter())
+            pres->stateMachine().setScaleState();
+    });
 
     auto grow = makeToolbarAction(
                     tr("Grow/Shrink"),
                     m_scenarioScaleModeActionGroup,
                     ExpandMode::Grow,
                     tr("Alt+D"));
-    connect(grow, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().setGrowState(); });
+    connect(grow, &QAction::triggered, this, [=]()
+    {
+        if(auto&& pres = m_parent->focusedPresenter())
+            pres->stateMachine().setGrowState();
+    });
 
     auto fixed = makeToolbarAction(
                     tr("Keep Duration"),
                     m_scenarioScaleModeActionGroup,
                     ExpandMode::Fixed,
                     tr("Alt+F"));
-    connect(fixed, &QAction::triggered, [=]()
-    { m_parent->focusedPresenter()->stateMachine().setFixedState(); });
+    connect(fixed, &QAction::triggered, this, [=]()
+    {
+        if(auto&& pres = m_parent->focusedPresenter())
+            pres->stateMachine().setFixedState();
+    });
 
 }
 

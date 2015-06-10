@@ -30,16 +30,9 @@ AutomationPresenter::AutomationPresenter(
     connect(cv, &CurveView::pressed,
             this, [&] (const QPointF&)
     {
-        qDebug() << "focusme";
+        qDebug() << "CurveView::pressed";
         m_focusDispatcher.focus(this);
     });
-    connect(m_view, &AutomationView::pressed,
-            this, [&] ()
-    {
-        qDebug() << "focusme";
-        m_focusDispatcher.focus(this);
-    });
-
 
     parentGeometryChanged();
     updateCurve();
