@@ -10,6 +10,8 @@
 #include <QPalette>
 
 static const qreal radius = 10.;
+static const qreal radiusIn = 3.;
+
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -101,9 +103,9 @@ void EventView::paint(QPainter* painter,
     // Ball
 
     painter->setPen(eventPen);
-    painter->setBrush(qApp->palette("ScenarioPalette").background());
+    painter->setBrush(Qt::white);
 
-    painter->drawEllipse({0., 0.}, radius, radius);
+    painter->drawEllipse({0., 0.}, radiusIn, radiusIn);
 
     painter->setBrush(Qt::white);
     eventPen.setWidth(1);
@@ -111,10 +113,12 @@ void EventView::paint(QPainter* painter,
     if((int)m_halves & (int)Scenario::EventHalves::Before)
     {
         painter->drawChord(this->boundingRect(), 90 * 16, 180 * 16);
+		painter->drawChord(this->boundingRect(), 270 * 16, 180 * 16);
     }
 
     if((int)m_halves & (int)Scenario::EventHalves::After)
     {
+		painter->drawChord(this->boundingRect(), 90 * 16, 180 * 16);
         painter->drawChord(this->boundingRect(), 270 * 16, 180 * 16);
     }
 }
