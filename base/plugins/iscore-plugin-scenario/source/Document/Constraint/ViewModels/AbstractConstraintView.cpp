@@ -7,6 +7,7 @@ AbstractConstraintView::AbstractConstraintView(
     m_presenter{presenter}
 {
     setAcceptHoverEvents(true);
+    m_dashPen.setDashPattern({2., 4.});
 }
 
 void AbstractConstraintView::setInfinite(bool infinite)
