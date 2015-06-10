@@ -12,6 +12,7 @@ class CurveSegmentView;
 class CurveStateMachine;
 class QAction;
 class QMenu;
+class QActionGroup;
 class CurvePresenter : public QObject
 {
         Q_OBJECT
@@ -50,6 +51,8 @@ class CurvePresenter : public QObject
         AddPointBehaviour addPointBehaviour() const;
         void setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour);
 
+        void enableActions(bool);
+
 
     private:
         // Context menu actions
@@ -84,4 +87,5 @@ class CurvePresenter : public QObject
         iscore::SelectionDispatcher m_selectionDispatcher;
 
         QMenu* m_contextMenu{};
+        QActionGroup* m_actions{};
 };

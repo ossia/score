@@ -105,3 +105,7 @@ void AutomationPresenter::updateCurve()
     m_curvepresenter->setRect(rect);
 }
 
+void AutomationPresenter::on_focusChanged()
+{
+    m_curvepresenter->enableActions(focused());
+}

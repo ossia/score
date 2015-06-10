@@ -25,9 +25,13 @@ void ProcessFocusManager::setFocusedPresenter(ProcessPresenter* p)
         return;
 
     if(m_currentPresenter)
-        emit sig_defocusedPresenter(m_currentPresenter);
+    {
+        defocusPresenter(m_currentPresenter);
+    }
     if(m_currentViewModel)
+    {
         emit sig_defocusedViewModel(m_currentViewModel);
+    }
 
     m_currentPresenter = p;
 
@@ -37,7 +41,8 @@ void ProcessFocusManager::setFocusedPresenter(ProcessPresenter* p)
         m_currentModel = &m_currentViewModel->sharedProcessModel();
 
         emit sig_focusedViewModel(m_currentViewModel);
-        emit sig_focusedPresenter(m_currentPresenter);
+
+        focusPresenter(m_currentPresenter);
     }
     else
     {
@@ -52,9 +57,21 @@ void ProcessFocusManager::focusNothing()
     if(m_currentViewModel)
         emit sig_defocusedViewModel(m_currentViewModel);
     if(m_currentPresenter)
-        emit sig_defocusedPresenter(m_currentPresenter);
+        defocusPresenter(m_currentPresenter);
 
     m_currentModel = nullptr;
     m_currentViewModel = nullptr;
     m_currentPresenter = nullptr;
+}
+
+void ProcessFocusManager::focusPresenter(ProcessPresenter* p)
+{
+    p->setFocus(true);
+    emit sig_focusedPresenter(p);
+}
+
+void ProcessFocusManager::defocusPresenter(ProcessPresenter* p)
+{
+    p->setFocus(false);
+    emit sig_defocusedPresenter(p);
 }

@@ -204,22 +204,22 @@ void CurvePresenter::setupView()
         m_points.push_back(pt_view);
     }
 
-    QActionGroup* actions = new QActionGroup{this};
-    actions->setExclusive(true);
-    auto moveact = new QAction{actions};
+    m_actions = new QActionGroup{this};
+    m_actions->setExclusive(true);
+    auto moveact = new QAction{m_actions};
     moveact->setCheckable(true);
     moveact->setChecked(true);
-    actions->addAction(moveact);
+    m_actions->addAction(moveact);
 
-    auto shiftact = new QAction{actions};
+    auto shiftact = new QAction{m_actions};
     shiftact->setCheckable(true);
-    actions->addAction(shiftact);
+    m_actions->addAction(shiftact);
 
-    auto ctrlact = new QAction{actions};
+    auto ctrlact = new QAction{m_actions};
     ctrlact->setCheckable(true);
-    actions->addAction(ctrlact);
+    m_actions->addAction(ctrlact);
 
-    actions->setEnabled(true);
+    m_actions->setEnabled(true);
 
     connect(moveact, &QAction::toggled, this, [&] (bool b) {
         if(b)
@@ -341,6 +341,11 @@ CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
 void CurvePresenter::setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour)
 {
     m_addPointBehaviour = addPointBehaviour;
+}
+
+void CurvePresenter::enableActions(bool b)
+{
+    m_actions->setEnabled(b);
 }
 
 void CurvePresenter::removeSelection()
