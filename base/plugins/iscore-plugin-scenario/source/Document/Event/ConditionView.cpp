@@ -15,15 +15,15 @@ ConditionView::ConditionView(QGraphicsItem *parent):
     m_Cpath.arcTo(square, 60, 230);
 
     m_trianglePath.addPolygon(QVector<QPointF>{
-                                  QPointF(15, 3),
-                                  QPointF(15, 13),
-                                  QPointF(20, 8)
+                                  QPointF(25, 5),
+                                  QPointF(25, 21),
+                                  QPointF(32, 14)
                               });
 }
 
 QRectF ConditionView::boundingRect() const
 {
-    return  QRectF{0, 0, 25, 17};
+    return  QRectF{0, 0, 40, 27};
 }
 
 void ConditionView::paint(

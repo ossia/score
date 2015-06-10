@@ -19,7 +19,7 @@ EventView::EventView(EventPresenter& presenter,
 
     m_conditionItem = new ConditionView(this);
     m_conditionItem->setVisible(false);
-    m_conditionItem->setPos(-8.5, -8.5);
+    m_conditionItem->setPos(-13.5, -13.5);
 
     m_triggerItem = new TriggerView(this);
     m_triggerItem->setVisible(false);
