@@ -280,6 +280,7 @@ ProcessFocusManager* ScenarioControl::processFocusManager() const
             return &bem->focusManager();
         }
     }
+
     return nullptr;
 }
 

@@ -2,6 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
+// TODO put to the new command format
 class ChangeAddress : public iscore::SerializableCommand
 {
     public:

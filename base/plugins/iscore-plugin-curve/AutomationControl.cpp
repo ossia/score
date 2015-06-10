@@ -35,7 +35,6 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
     {
         cmd = new SetCurveMax;
     }
-
     else
     {
         qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
