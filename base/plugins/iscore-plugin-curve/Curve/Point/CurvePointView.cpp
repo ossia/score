@@ -28,7 +28,7 @@ CurvePointView::CurvePointView(
     QGraphicsObject{parent},
     m_model{model}
 {
-    this->setZValue(2);
+    this->setZValue(parent->zValue() + 2);
     connect(&m_model->selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
 

@@ -27,31 +27,6 @@ CurveStateMachine::CurveStateMachine(
     setupPostEvents();
     setupStates();
 
-    QActionGroup* g = new QActionGroup(this);
-    auto sel_act = new QAction(this);
-    sel_act->setShortcut(QKeySequence("Alt+f"));
-    sel_act->setEnabled(true);
-    sel_act->setCheckable(true);
-    sel_act->setChecked(true);
-    sel_act->setShortcutContext(Qt::ApplicationShortcut);
-    connect(sel_act, &QAction::triggered, this, [&] (bool b)
-    {
-        changeTool(0);
-    });
-
-    auto edit_act = new QAction(this);
-    edit_act->setShortcut(QKeySequence("Alt+g"));
-    edit_act->setEnabled(true);
-    edit_act->setCheckable(true);
-    edit_act->setShortcutContext(Qt::ApplicationShortcut);
-    connect(edit_act, &QAction::triggered, this, [&] (bool b)
-    {
-        changeTool(1);
-    });
-
-    g->addAction(sel_act);
-    g->addAction(edit_act);
-
     start();
 }
 

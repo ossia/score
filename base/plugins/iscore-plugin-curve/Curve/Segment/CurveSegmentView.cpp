@@ -7,7 +7,8 @@ CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *pare
     QGraphicsObject{parent},
     m_model{model}
 {
-    this->setZValue(1);
+    this->setZValue(parent->zValue() + 1);
+    this->setFlag(ItemIsFocusable, false);
 
     connect(&m_model->selection, &Selectable::changed,
             this, &CurveSegmentView::setSelected);

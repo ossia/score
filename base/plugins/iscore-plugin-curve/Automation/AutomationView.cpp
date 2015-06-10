@@ -1,7 +1,8 @@
 #include "AutomationView.hpp"
 
 #include <QPainter>
-
+#include <QKeyEvent>
+#include <QDebug>
 AutomationView::AutomationView(QGraphicsObject* parent) :
     ProcessView {parent}
 {
@@ -14,9 +15,4 @@ void AutomationView::paint(QPainter* painter,
                            QWidget* widget)
 {
 
-}
-
-void AutomationView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
-{
-    emit pressed();
 }
