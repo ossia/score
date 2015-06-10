@@ -26,8 +26,11 @@ class SizeNotifyingGraphicsView : public QGraphicsView
         virtual void resizeEvent(QResizeEvent* ev) override;
         virtual void scrollContentsBy(int dx, int dy) override;
         virtual void wheelEvent(QWheelEvent* event) override;
+        virtual void keyPressEvent(QKeyEvent* event) override;
+        virtual void keyReleaseEvent(QKeyEvent* event) override;
 
     private:
         QBrush m_bg;
+        bool m_zoomModifier{false};
         SceneGraduations* m_graduations{};
 };

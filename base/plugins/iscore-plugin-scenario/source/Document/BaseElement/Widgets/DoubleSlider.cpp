@@ -27,6 +27,8 @@ DoubleSlider::DoubleSlider(QWidget* parent):
 
 void DoubleSlider::setValue(double val)
 {
+    if(val>1)
+        val = 1;
     m_slider->blockSignals(true);
     m_slider->setValue(val * max);
     m_slider->blockSignals(false);

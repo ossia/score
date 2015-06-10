@@ -294,16 +294,18 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
         return 5 + duration / viewWidth;
     };
 
-//    auto newzoom = (10*zoom.y()/view()->view()->height() + m_millisecondsPerPixel/computedMax());
+    float zoomSpeed = 0.3;
+    float zoomratio = (view()->zoomSlider()->value() + zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
 
-//    auto newMillisPerPix = mapZoom(newzoom, 2., std::max(4., computedMax()));
-    view()->zoomSlider()->setValue((view()->zoomSlider()->value() + 0.2*float(zoom.y())/float(view()->zoomSlider()->width())));
-    auto newzoom = view()->zoomSlider()->value();
-//    auto newCenter = center.x() * m_millisecondsPerPixel;
+    if (zoomratio > 1.)
+        zoomratio = 0.99;
+    else if(zoomratio < 0.)
+        zoomratio = 0.01;
 
-    auto newMillisPerPix = mapZoom(1.0 - newzoom, 2., std::max(4., computedMax()));
+    view()->zoomSlider()->setValue(zoomratio);
 
-//    center.setX(newCenter / newMillisPerPix);
+    auto newMillisPerPix = mapZoom(1.0 - zoomratio, 2., std::max(4., computedMax()));
+
     updateZoom(newMillisPerPix, center);
 
 }
