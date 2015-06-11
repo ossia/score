@@ -61,7 +61,6 @@ AddressEditDialog::buildGUI()
     }
 
     m_nameEdit->setText("addr");
-    m_defaultSettings = getSettings();
 }
 
 void
@@ -125,6 +124,11 @@ AddressSettings AddressEditDialog::getSettings() const
     {
         settings = m_addressWidget->getSettings();
     }
+    else
+    {
+        // Int by default
+        settings.value = 0;
+    }
 
     settings.name = m_nameEdit->text();
 
@@ -133,7 +137,11 @@ AddressSettings AddressEditDialog::getSettings() const
 
 AddressSettings AddressEditDialog::getDefaultSettings() const
 {
-    return m_defaultSettings;
+    static AddressSettings defaultSettings
+    {
+        {}, 0, {0, 100, {}}, {}, {}, {}, false, 0, 0, {}
+    };
+    return defaultSettings;
 }
 
 void
@@ -153,6 +161,15 @@ AddressEditDialog::setSettings(AddressSettings& settings)
             break;
         case QMetaType::QString:
             type = "String";
+            break;
+        case QMetaType::Bool:
+            type = "Bool";
+            break;
+        case QMetaType::Char:
+            type = "Char";
+            break;
+        case QMetaType::QVariantList:
+            type = "Tuple";
             break;
         default:
             break;

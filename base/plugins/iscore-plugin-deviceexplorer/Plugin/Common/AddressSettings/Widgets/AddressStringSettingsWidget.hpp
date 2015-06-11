@@ -13,21 +13,10 @@ class AddressStringSettingsWidget : public AddressSettingsWidget
         AddressStringSettingsWidget(QWidget* parent = nullptr);
 
         virtual AddressSettings getSettings() const override;
-
         virtual void setSettings(const AddressSettings& settings) override;
 
     protected:
-
-        void buildGUI();
-
-        void setDefaults();
-
-    protected:
-
-        QComboBox* m_ioTypeCBox;
         QLineEdit* m_valueEdit;
-        QSpinBox* m_prioritySBox;
-        QLineEdit* m_tagsEdit;
 
 };
 

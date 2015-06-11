@@ -40,7 +40,6 @@ class AddressEditDialog : public QDialog
         QLineEdit* m_nameEdit;
         QComboBox* m_valueTypeCBox;
         AddressSettingsWidget* m_addressWidget;
-        AddressSettings m_defaultSettings;
         QGridLayout* m_gLayout;
         QList<AddressSettings> m_previousSettings;
         int m_index;

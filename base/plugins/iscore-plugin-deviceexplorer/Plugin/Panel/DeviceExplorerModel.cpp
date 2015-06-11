@@ -167,7 +167,7 @@ Node* DeviceExplorerModel::addAddress(Node* parentNode, const AddressSettings &a
 
     beginInsertRows(parentIndex, row, row);
 
-    auto node = makeNode(addressSettings);
+    auto node = new Node{addressSettings};
     parentNode->insertChild(row, node);
 
     endInsertRows();

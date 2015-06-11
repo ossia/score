@@ -72,8 +72,8 @@ class Node
         bool isSelectable() const; //TODO: or has a child of ioType != Node::In !!!
 
         bool isEditable() const;
-        bool isDevice() const;
 
+        bool isDevice() const;
         void setDeviceSettings(const DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
         DeviceSettings& deviceSettings();
@@ -91,7 +91,5 @@ class Node
         DeviceSettings m_deviceSettings;
         AddressSettings m_addressSettings;
 };
-
-Node* makeNode(const AddressSettings& addressSettings);
 
 Node* getNodeFromString(Node* n, QStringList&& str);

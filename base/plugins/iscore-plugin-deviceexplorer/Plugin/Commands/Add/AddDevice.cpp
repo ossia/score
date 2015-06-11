@@ -45,24 +45,19 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
     AddressSettings addr;
 
     bool ok = false;
-    addr.value = value.toFloat(&ok);
+    addr.value = value.toUInt(&ok);
     if(!ok)
     {
-        addr.value = value.toInt(&ok);
+        addr.value = value.toFloat(&ok);
         if(!ok)
         {
-            addr.value = value;
-        }
-        else
-        {
-            addr.addressSpecificSettings = QVariant::fromValue(AddressIntSettings{});
+            addr.value = value.toInt(&ok);
+            if(!ok)
+            {
+                addr.value = value;
+            }
         }
     }
-    else
-    {
-        addr.addressSpecificSettings = QVariant::fromValue(AddressFloatSettings{});
-    }
-
     addr.ioType = IOType::InOut;
 
     //treeNode->setPriority(priority);
@@ -220,7 +215,9 @@ void AddDevice::redo()
     // Instantiate a real device.
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
     Q_ASSERT(explorer.deviceModel());
-    explorer.deviceModel()->list().addDevice(proto->makeDevice(m_parameters));
+    auto newdev = proto->makeDevice(m_parameters);
+    Q_ASSERT(newdev);
+    explorer.deviceModel()->list().addDevice(newdev);
 
     // Put it in the tree.
     auto node = makeDeviceNode(m_parameters, m_filePath);

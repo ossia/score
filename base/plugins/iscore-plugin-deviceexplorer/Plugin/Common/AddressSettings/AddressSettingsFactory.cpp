@@ -29,6 +29,12 @@ AddressSettingsFactory::AddressSettingsFactory()
                                           new AddressSettingsWidgetFactoryMethodT<AddressFloatSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("String"),
                                           new AddressSettingsWidgetFactoryMethodT<AddressStringSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Bool"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressBoolSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Tuple"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("Char"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget>);
 }
 
 

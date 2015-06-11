@@ -8,4 +8,5 @@ MIDIDevice::MIDIDevice(const DeviceSettings &settings):
     Midi parameters;
 
     m_dev = Device::create(parameters, settings.name.toStdString());
+    Q_ASSERT(m_dev);
 }

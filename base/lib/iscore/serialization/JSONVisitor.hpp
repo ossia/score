@@ -107,14 +107,47 @@ T fromJsonObject(QJsonObject&& json)
 
     return obj;
 }
+
 template<template<typename U> class Container>
-inline QJsonArray toJsonArray(const Container<int>& array)
+QJsonArray toJsonArray(const Container<int>& array)
 {
     QJsonArray arr;
 
     for(const auto& elt : array)
     {
         arr.append(elt);
+    }
+
+    return arr;
+}
+
+template<class Container,
+         typename std::enable_if<
+             not std::is_pointer<typename Container::value_type>::value
+         >::type* = nullptr>
+QJsonArray toJsonArray(const Container& array)
+{
+    QJsonArray arr;
+
+    for(const auto& elt : array)
+    {
+        arr.append(toJsonObject(elt));
+    }
+
+    return arr;
+}
+
+template<class Container,
+         typename std::enable_if<
+             std::is_pointer<typename Container::value_type>::value
+         >::type* = nullptr>
+QJsonArray toJsonArray(const Container& array)
+{
+    QJsonArray arr;
+
+    for(const auto& elt : array)
+    {
+        arr.append(toJsonObject(*elt));
     }
 
     return arr;
@@ -132,45 +165,6 @@ QJsonArray toJsonArray(const T<id_type<V>>& array)
 
     return arr;
 }
-
-
-template<typename T,
-         typename std::enable_if<
-                    not std::is_pointer<
-                      typename T::value_type
-                    >::value
-                  >::type* = nullptr>
-QJsonArray toJsonArray(const T& array)
-{
-    QJsonArray arr;
-
-    for(const auto& elt : array)
-    {
-        arr.append(toJsonObject(elt));
-    }
-
-    return arr;
-}
-
-template<typename T,
-         typename std::enable_if<
-                    std::is_pointer<
-                      typename T::value_type
-                    >::value
-                  >::type* = nullptr>
-QJsonArray toJsonArray(const T& array)
-{
-    QJsonArray arr;
-
-    for(const auto& elt : array)
-    {
-        arr.append(toJsonObject(*elt));
-    }
-
-    return arr;
-}
-
-
 
 template<typename Value>
 QJsonArray toJsonMap(const QMap<double, Value>& map)
@@ -264,14 +258,23 @@ void fromJsonArray(QJsonArray&& json_arr, Container<int>& arr)
     }
 }
 
-
-
-template<typename T>
-void fromJsonArray(QJsonArray&& json_arr, T& arr)
+template<template<typename U> class Container>
+void fromJsonArray(QJsonArray&& json_arr, Container<QString>& arr)
 {
     for(const auto& elt : json_arr)
     {
-        typename T::value_type obj;
+        arr.push_back(elt.toString());
+    }
+}
+
+
+
+template<template<typename U> class Container, typename T>
+void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
+{
+    for(const auto& elt : json_arr)
+    {
+        T obj;
         fromJsonObject(elt.toObject(), obj);
         arr.push_back(obj);
     }

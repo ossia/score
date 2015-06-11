@@ -314,14 +314,6 @@ Node* Node::clone() const
     return n;
 }
 
-Node* makeNode(const AddressSettings &addressSettings)
-{
-    Node* node = new Node(addressSettings, nullptr);  //build without parent otherwise appended at the end
-
-    return node;
-}
-
-
 Node* getNodeFromString(Node* n, QStringList&& parts)
 {
     if(parts.size() == 0)

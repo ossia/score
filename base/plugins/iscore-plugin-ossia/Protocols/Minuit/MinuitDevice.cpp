@@ -16,6 +16,8 @@ MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     using namespace OSSIA;
 
     m_dev = Device::create(m_minuitSettings, settings.name.toStdString());
+
+    Q_ASSERT(m_dev);
 }
 
 bool MinuitDevice::canRefresh() const
@@ -39,6 +41,28 @@ namespace
             default:
                 Q_ASSERT(false);
                 return IOType::Invalid;
+        }
+    }
+
+    ClipMode OSSIABoudingModeToClipMode(OSSIA::Address::BoundingMode b)
+    {
+        switch(b)
+        {
+            case OSSIA::Address::BoundingMode::CLIP:
+                return ClipMode::Clip;
+                break;
+            case OSSIA::Address::BoundingMode::FOLD:
+                return ClipMode::Fold;
+                break;
+            case OSSIA::Address::BoundingMode::FREE:
+                return ClipMode::Free;
+                break;
+            case OSSIA::Address::BoundingMode::WRAP:
+                return ClipMode::Wrap;
+                break;
+            default:
+                Q_ASSERT(false);
+                return static_cast<ClipMode>(-1);
         }
     }
 
@@ -94,16 +118,10 @@ namespace
         if(addr)
         {
             s.value = OSSIAValueToVariant(addr->getValue());
-            if(s.value.type() == QMetaType::Float)
-            {
-                s.addressSpecificSettings = QVariant::fromValue(AddressFloatSettings{});
-            }
-            else if (s.value.type() == QMetaType::Int)
-            {
-                s.addressSpecificSettings = QVariant::fromValue(AddressIntSettings{});
-            }
-
             s.ioType = accessModeToIOType(addr->getAccessMode());
+            s.clipMode = OSSIABoudingModeToClipMode(addr->getBoundingMode());
+            s.repetitionFilter = addr->getRepetitionFilter();
+
             // TODO priority
 
         }

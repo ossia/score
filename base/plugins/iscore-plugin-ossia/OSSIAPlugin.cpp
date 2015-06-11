@@ -22,7 +22,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString&
 {
     if(factoryName == "Protocol")
     {
-        return {new MIDIProtocolFactory,
+        return {//new MIDIProtocolFactory,
                 new MinuitProtocolFactory,
                 new OSCProtocolFactory};
     }
