@@ -26,7 +26,7 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
 void SetRigidity::undo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
-    constraint.setRigid(m_rigidity);
+    constraint.setRigid(!m_rigidity);
 
     if(m_rigidity)
     {

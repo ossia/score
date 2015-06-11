@@ -71,7 +71,7 @@ namespace
         QVariant v;
         switch(val->getType())
         {
-            case OSSIA::AddressValue::Type::NONE:
+            case OSSIA::AddressValue::Type::IMPULSE:
                 break;
             case OSSIA::AddressValue::Type::BOOL:
                 v = dynamic_cast<const OSSIA::Bool*>(val)->value;
