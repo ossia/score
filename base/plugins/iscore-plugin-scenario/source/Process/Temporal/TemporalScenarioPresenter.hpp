@@ -105,6 +105,8 @@ class TemporalScenarioPresenter : public ProcessPresenter
         void on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model);
         void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);
 
+        void eventHasTrigger(const EventPresenter&, bool);
+
         ScenarioViewInterface* m_viewInterface{};
         ScenarioStateMachine m_sm;
 

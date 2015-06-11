@@ -30,7 +30,7 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(&m_model, &EventModel::conditionChanged,
             m_view,  &EventView::setCondition);
     connect(&m_model, &EventModel::triggerChanged,
-            m_view,  &EventView::setTrigger);
+            this,   &EventPresenter::triggerSetted) ;
 
     connect(&m_model, &EventModel::localStatesChanged,
             this,    &EventPresenter::updateViewHalves);
@@ -177,6 +177,11 @@ void EventPresenter::on_nextConstraintsChanged()
 {
     constraintsChangedHelper(m_model.nextConstraints(),
                              m_nextConstraintsConnections);
+}
+
+void EventPresenter::triggerSetted(QString trig)
+{
+    m_view->setTrigger(trig);
 }
 
 #include "Commands/Event/AddStateToEvent.hpp"

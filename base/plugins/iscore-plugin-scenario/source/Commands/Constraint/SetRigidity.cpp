@@ -13,7 +13,7 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     m_rigidity {rigid}
 {
     // We suppose that this command is never called with rigid == current state of the constraint.
-    if(rigid)  // it is currently not rigid so min & max are set
+//    if(rigid)  // it is currently not rigid so min & max are set -> TODO : WHY ??
     {
         auto& constraint = m_path.find<ConstraintModel>();
         Q_ASSERT(constraint.isRigid() != rigid);
@@ -45,8 +45,16 @@ void SetRigidity::redo()
     auto& constraint = m_path.find<ConstraintModel>();
     constraint.setRigid(m_rigidity);
 
-    constraint.setMinDuration(constraint.defaultDuration());
-    constraint.setMaxDuration(constraint.defaultDuration());
+    if(m_rigidity)
+    {
+        constraint.setMinDuration(constraint.defaultDuration());
+        constraint.setMaxDuration(constraint.defaultDuration());
+    }
+    else
+    {
+        constraint.setMinDuration(TimeValue(std::chrono::milliseconds(0)));
+        constraint.setMaxDuration(TimeValue(PositiveInfinity{}));
+    }
 
 }
 

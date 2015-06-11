@@ -72,7 +72,10 @@ class TimeValue_T
 
         QTime toQTime() const
         {
-            return QTime(0,0,0,0).addMSecs(static_cast<int>(*m_impl));
+            if (isInfinite())
+                return QTime(23,59,59,999);
+            else
+                return QTime(0,0,0,0).addMSecs(static_cast<int>(*m_impl));
         }
 
         void addMSecs(T msecs)
