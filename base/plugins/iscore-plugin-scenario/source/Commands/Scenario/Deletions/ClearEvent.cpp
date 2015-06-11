@@ -14,7 +14,7 @@ ClearEvent::ClearEvent(ObjectPath&& eventPath) :
                          description()},
 m_path {std::move(eventPath) }
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << Q_FUNC_INFO << "TODO (clearEvent does nothing)";
     /*
     auto event = m_path.find<EventModel>();
     QDataStream s(&m_serializedStates, QIODevice::WriteOnly);
@@ -24,7 +24,7 @@ m_path {std::move(eventPath) }
 
 void ClearEvent::undo()
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << Q_FUNC_INFO << "TODO (clearEvent does nothing)";
     /*
     auto event = m_path.find<EventModel>();
     QList<State> states;
@@ -40,7 +40,7 @@ void ClearEvent::undo()
 
 void ClearEvent::redo()
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << Q_FUNC_INFO << "TODO (clearEvent does nothing)";
     /*
     auto event = m_path.find<EventModel>();
     event->replaceStates({});

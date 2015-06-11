@@ -42,11 +42,13 @@ class EventPresenter : public NamedObject
 
         void heightPercentageChanged();
 
+    private slots:
+        void triggerSetted(QString);
 
     private:
         void constraintsChangedHelper(
                 const QVector<id_type<ConstraintModel>>& ids,
-                QVector<QMetaObject::Connection>& connections);
+                QVector<QMetaObject::Connection>& connections);        
 
         Scenario::EventHalves m_halves{Scenario::EventHalves::None};
 

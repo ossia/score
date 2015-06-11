@@ -2,6 +2,8 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
+#include "Commands/Constraint/SetRigidity.hpp"
+
 namespace Scenario
 {
     namespace Command
@@ -24,6 +26,8 @@ namespace Scenario
                 ObjectPath m_path;
                 QString m_trigger;
                 QString m_previousTrigger;
+
+                QVector<SetRigidity*> m_cmd; //TODO serialization and destructor
         };
     }
 }
