@@ -100,8 +100,42 @@ namespace
                     s.value = QString::fromStdString(dynamic_cast<OSSIA::String*>(addr->getValue())->value);
                     break;
                 case OSSIA::AddressValue::Type::TUPLE:
-                    qDebug() << Q_FUNC_INFO << "todo";
+                {
+                    QList<QVariant> tuple;
+                    for (const auto & e : dynamic_cast<OSSIA::Tuple*>(addr->getValue())->value)
+                    {
+                        QVariant v;
+                        switch(e->getType())
+                        {
+                        case OSSIA::AddressValue::Type::BOOL:
+                            v = dynamic_cast<OSSIA::Bool*>(e)->value;
+                            break;
+                        case OSSIA::AddressValue::Type::INT:
+                            v = dynamic_cast<OSSIA::Int*>(e)->value;
+                            break;
+                        case OSSIA::AddressValue::Type::FLOAT:
+                            v = dynamic_cast<OSSIA::Float*>(e)->value;
+                            break;
+                        case OSSIA::AddressValue::Type::CHAR:
+                            qDebug() << Q_FUNC_INFO << "todo";
+                            break;
+                        case OSSIA::AddressValue::Type::TUPLE:
+                            qDebug() << Q_FUNC_INFO << "todo: make a recursive function to handle tuple correctly";
+                            break;
+                        case OSSIA::AddressValue::Type::STRING:
+                            v = QString::fromStdString(dynamic_cast<OSSIA::String*>(e)->value);
+                            break;
+                        case OSSIA::AddressValue::Type::GENERIC:
+                            qDebug() << Q_FUNC_INFO << "todo";
+                            break;
+                        default:
+                            break;
+                        }
+                        tuple.append(v);
+                    }
+                    s.value = tuple;
                     break;
+                }
                 case OSSIA::AddressValue::Type::GENERIC:
                     qDebug() << Q_FUNC_INFO << "todo";
                     break;
