@@ -8,6 +8,8 @@ class ConstraintInspectorWidget;
 class QTimeEdit;
 class QCheckBox;
 class QGridLayout;
+class QHBoxLayout;
+
 class DurationSectionWidget : public InspectorSectionWidget
 {
         Q_OBJECT

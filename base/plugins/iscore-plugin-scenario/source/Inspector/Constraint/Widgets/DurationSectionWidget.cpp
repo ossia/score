@@ -50,8 +50,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     // CHECKBOXES
     m_minNonNullBox = new QCheckBox{};
     m_maxFiniteBox = new QCheckBox{};
-    m_minNonNullBox->setChecked(false);
-    m_maxFiniteBox->setChecked(false);
+    m_minNonNullBox->setChecked(!m_model->minDuration().isZero());
+    m_maxFiniteBox->setChecked(!m_model->maxDuration().isInfinite());
 
     connect(m_minNonNullBox, &QCheckBox::toggled,
             [=](bool val)
@@ -114,6 +114,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_grid->addWidget(m_maxLab, 2, 1, 1,1);
     m_grid->addWidget(m_maxSpin, 2, 2, 1, 1);
 
+    on_modelRigidityChanged(m_model->isRigid());
 
     connect(m_valueSpin,    &QTimeEdit::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
@@ -164,9 +165,11 @@ void DurationSectionWidget::on_modelRigidityChanged(bool b)
 {
     m_minNonNullBox->setHidden(b);
     m_minSpin->setHidden(b);
+    m_minLab->setHidden(b);
 
     m_maxSpin->setHidden(b);
     m_maxFiniteBox->setHidden(b);
+    m_maxLab->setHidden(b);
 }
 
 void DurationSectionWidget::on_modelDefaultDurationChanged(const TimeValue& dur)
