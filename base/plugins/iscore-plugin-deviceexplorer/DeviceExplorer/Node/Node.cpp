@@ -22,7 +22,7 @@ bool Node::isInvisibleRoot() const
 
 Node::Node(const AddressSettings& settings, Node* parent):
     m_parent{parent},
-    m_addressSettings{settings}
+    m_addressSettings(settings)
 {
     if(m_parent)
     {
@@ -60,7 +60,7 @@ Node& Node::operator=(const Node &source)
 Node::Node(const DeviceSettings& settings,
            Node* parent) :
     m_parent{parent},
-    m_deviceSettings{settings}
+    m_deviceSettings(settings)
 {
 }
 
