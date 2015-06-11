@@ -142,8 +142,23 @@ AddressEditDialog::setSettings(AddressSettings& settings)
     const QString name = settings.name;
     m_nameEdit->setText(name);
 
-    const QString valueType = settings.valueType;
-    const int index = m_valueTypeCBox->findText(valueType);
+    QString type;
+    switch(settings.value.type())
+    {
+        case QMetaType::Int:
+            type = "Int";
+            break;
+        case QMetaType::Float:
+            type = "Float";
+            break;
+        case QMetaType::QString:
+            type = "String";
+            break;
+        default:
+            break;
+    }
+
+    const int index = m_valueTypeCBox->findText(type);
     Q_ASSERT(index != -1);
     Q_ASSERT(index < m_valueTypeCBox->count());
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot

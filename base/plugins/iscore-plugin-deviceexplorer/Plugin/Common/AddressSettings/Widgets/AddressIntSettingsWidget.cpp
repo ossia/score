@@ -120,7 +120,6 @@ AddressSettings AddressIntSettingsWidget::getSettings() const
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
     settings.value = m_valueSBox->value();
-    settings.valueType = QString("Int");
 
     AddressIntSettings is;
     is.clipMode = m_clipModeCBox->currentText();

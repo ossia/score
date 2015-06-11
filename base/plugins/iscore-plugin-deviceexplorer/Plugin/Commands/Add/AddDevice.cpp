@@ -7,6 +7,9 @@
 #include <Plugin/DeviceExplorerPlugin.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
+#include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
+#include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
+
 #include <QFile>
 #include <QtXml/QtXml>
 
@@ -14,7 +17,6 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 {
     QDomElement dom_child = dom_element.firstChildElement("");
     QString name;
-    QString valueType{"Float"};
     QString value{"0"};
     int priority;
     float min{0};
@@ -40,17 +42,36 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 
     value = dom_element.attribute("valueDefault");
 
-    Node* treeNode = new Node{name, parentNode};
-    treeNode->setValueType(valueType);
-    treeNode->setIOType(IOType::InOut);
-    treeNode->setPriority(priority);
-    treeNode->setValue(value);
-    treeNode->setMaxValue(max);
-    treeNode->setMinValue(min);
+    AddressSettings addr;
+
+    bool ok = false;
+    addr.value = value.toFloat(&ok);
+    if(!ok)
+    {
+        addr.value = value.toInt(&ok);
+        if(!ok)
+        {
+            addr.value = value;
+        }
+        else
+        {
+            addr.addressSpecificSettings = QVariant::fromValue(AddressIntSettings{});
+        }
+    }
+    else
+    {
+        addr.addressSpecificSettings = QVariant::fromValue(AddressFloatSettings{});
+    }
+
+    addr.ioType = IOType::InOut;
+
+    //treeNode->setPriority(priority);
+    //treeNode->setMaxValue(max);
+    //treeNode->setMinValue(min);
 
     while(!dom_child.isNull() && dom_element.hasChildNodes())
     {
-        convertFromDomElement(dom_child, treeNode);
+        convertFromDomElement(dom_child, new Node{addr, parentNode});
 
         dom_child = dom_child.nextSibling().toElement();
     }
@@ -59,9 +80,12 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 
 Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
 {
-    Node* node = new Node(device, device.name, nullptr);
+    Node* node = new Node(device, nullptr);
+    return node;
+
     if (filePath.isEmpty())
     {
+        /*
         //DEBUG: arbitrary population of the tree
 
 
@@ -129,6 +153,7 @@ Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
                 node7->setPriority(33);
             }
         }
+        */
     }
     else
     {

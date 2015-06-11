@@ -81,7 +81,7 @@ AddressSettings AddressStringSettingsWidget::getSettings() const
     settings.ioType = IOTypeStringMap().key(m_ioTypeCBox->currentText());
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
-    settings.valueType = QString("String");
+    settings.value = m_valueEdit->text();
     //TODO: TagListWidget
 
     return settings;

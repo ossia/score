@@ -10,10 +10,20 @@ QString Node::INVALID_STR = "-_-";
 float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
 
 
-Node::Node(const QString& name, Node* parent):
-    m_parent{parent}
+Node::Node(InvisibleRootNodeTag)
 {
-    m_addressSettings.name = name;
+    deviceSettings().name = "___InvisibleRootNodeTag___";
+}
+
+bool Node::isInvisibleRoot() const
+{
+    return  "___InvisibleRootNodeTag___" == deviceSettings().name;
+}
+
+Node::Node(const AddressSettings& settings, Node* parent):
+    m_parent{parent},
+    m_addressSettings{settings}
+{
     if(m_parent)
     {
         m_parent->addChild(this);
@@ -47,13 +57,11 @@ Node& Node::operator=(const Node &source)
     return *this;
 }
 
-Node::Node(const DeviceSettings& devices,
-           const QString& name,
+Node::Node(const DeviceSettings& settings,
            Node* parent) :
-    Node {name, parent}
+    m_parent{parent},
+    m_deviceSettings{settings}
 {
-    m_addressSettings.name = name;
-    m_deviceSettings = devices;
 }
 
 
@@ -63,19 +71,42 @@ Node::~Node()
 }
 
 #include <QDebug>
-QStringList Node::fullPath() const
+QStringList Node::fullPathWithDevice() const
 {
     QStringList l;
     const Node* n = this;
-    while(n->parent())
+    while(n->parent() && !n->isDevice())
     {
-        l.append(n->name());
+        l.append(n->addressSettings().name);
+        n = n->parent();
+    }
+
+    Q_ASSERT(n->isDevice());
+    l.append(n->deviceSettings().name);
+
+    std::reverse(l.begin(), l.end());
+    return l;
+}
+
+QStringList Node::fullPathWithoutDevice() const
+{
+    if(isDevice())
+    {
+        return {};
+    }
+
+    QStringList l;
+    const Node* n = this;
+    while(n->parent() && !n->isDevice())
+    {
+        l.append(n->addressSettings().name);
         n = n->parent();
     }
 
     std::reverse(l.begin(), l.end());
     return l;
 }
+
 
 void Node::setParent(Node* parent)
 {
@@ -162,150 +193,21 @@ void Node::removeChild(Node* child)
 /* *************************************************************
  * COLUMNS ACCESSORS
  * ************************************************************/
-QString Node::name() const
+QString Node::displayName() const
 {
-    return m_addressSettings.name;
-}
-
-QString Node::value() const
-{
-    return  m_addressSettings.value.toString();
-}
-
-IOType Node::ioType() const
-{
-    return m_addressSettings.ioType;
-}
-
-float Node::minValue() const
-{
-    if(m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-    {
-        return m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>().min;
-    }
-    else if(m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
-    {
-        return m_addressSettings.addressSpecificSettings.value<AddressIntSettings>().min;
-    }
-    else
-    {
-        // String
-        return 0;
-    }
-}
-
-float Node::maxValue() const
-{
-    if(m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-    {
-        return m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>().max;
-    }
-    else if(m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
-    {
-        return m_addressSettings.addressSpecificSettings.value<AddressIntSettings>().max;
-    }
-    else
-    {
-        // String
-        return 0;
-    }
-}
-
-unsigned int Node::priority() const
-{
-    return m_addressSettings.priority;
-}
-
-QString Node::tags() const
-{
-    return m_addressSettings.tags;
+    return isDevice()? m_deviceSettings.name : m_addressSettings.name;
 }
 
 /* *************************************************************
  * COLUMNS MODIFIERS
  * ************************************************************/
 
-void Node::setName(const QString& name)
-{
-    m_deviceSettings.name = name;
-    m_addressSettings.name = name;
-}
-
-void Node::setValue(const QString& value)
-{
-    m_addressSettings.value = QVariant::fromValue(value);
-}
-
-void Node::setValueType(const QString &value)
-{
-    m_addressSettings.valueType = value;
-    if(value == QString("Float"))
-    {
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(AddressFloatSettings{});
-    }
-    if(value == QString("Int"))
-    {
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(AddressIntSettings{});
-    }
-    if(value == QString("String"))
-    {
-        // Nothing to do
-    }
-}
-
-void Node::setIOType(const IOType& ioType)
-{
-    m_addressSettings.ioType = ioType;
-}
-
-void Node::setMinValue(float minV)
-{
-    if (m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-    {
-        AddressFloatSettings fs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
-        fs.min = minV;
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(fs);
-    }
-    if (m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
-    {
-        AddressIntSettings is = m_addressSettings.addressSpecificSettings.value<AddressIntSettings>();
-        is.min = minV;
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(is);
-    }
-}
-
-void Node::setMaxValue(float maxV)
-{
-    if (m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-    {
-        AddressFloatSettings fs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
-        fs.max = maxV;
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(fs);
-    }
-    if (m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
-    {
-        AddressIntSettings is = m_addressSettings.addressSpecificSettings.value<AddressIntSettings>();
-        is.max = maxV;
-        m_addressSettings.addressSpecificSettings = QVariant::fromValue(is);
-    }
-}
-
-void Node::setPriority(unsigned int priority)
-{
-    m_addressSettings.priority = priority;
-}
-
-void Node::setTags(const QString &tags)
-{
-    m_addressSettings.tags = tags;
-}
 
 // ******************************************************************
 
 bool Node::isSelectable() const
 {
     return true;
-    //return m_ioType != Node::In;
 }
 
 bool Node::isEditable() const
@@ -321,18 +223,26 @@ bool Node::isDevice() const
 void Node::setDeviceSettings(const DeviceSettings &settings)
 {
     m_deviceSettings = settings;
-    setName(settings.name);
 }
 
 const DeviceSettings& Node::deviceSettings() const
 {
     return m_deviceSettings;
 }
+DeviceSettings& Node::deviceSettings()
+{
+    return m_deviceSettings;
+}
+
 
 void Node::setAddressSettings(const AddressSettings &settings)
 {
+    m_addressSettings = settings;
+
+    return;
+    /*
     setName(settings.name);
-    setValueType(settings.valueType);
+    //setValueType(settings.valueType);
     setIOType(settings.ioType);
     setPriority(settings.priority);
     setTags(settings.tags);
@@ -375,9 +285,15 @@ void Node::setAddressSettings(const AddressSettings &settings)
         int i = settings.value.value<int>();
         setValue(QString::number(i));
     }
+    */
 }
 
 const AddressSettings &Node::addressSettings() const
+{
+    return m_addressSettings;
+}
+
+AddressSettings&Node::addressSettings()
 {
     return m_addressSettings;
 }
@@ -400,9 +316,7 @@ Node* Node::clone() const
 
 Node* makeNode(const AddressSettings &addressSettings)
 {
-    Node* node = new Node(addressSettings.name, nullptr);  //build without parent otherwise appended at the end
-
-    node->setAddressSettings(addressSettings);
+    Node* node = new Node(addressSettings, nullptr);  //build without parent otherwise appended at the end
 
     return node;
 }
@@ -415,7 +329,7 @@ Node* getNodeFromString(Node* n, QStringList&& parts)
 
     for(auto child : n->children())
     {
-        if(child->name() == parts[0])
+        if(child->displayName() == parts[0])
         {
             parts.removeFirst();
             return getNodeFromString(child, std::move(parts));

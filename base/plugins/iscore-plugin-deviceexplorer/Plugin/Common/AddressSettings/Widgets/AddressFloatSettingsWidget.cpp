@@ -119,8 +119,7 @@ AddressSettings AddressFloatSettingsWidget::getSettings() const
     settings.ioType = IOTypeStringMap().key(m_ioTypeCBox->currentText());
     settings.priority = m_prioritySBox->value();
     settings.tags = m_tagsEdit->text();
-    settings.valueType = QString("Float");
-    settings.value = m_valueSBox->value();
+    settings.value = float(m_valueSBox->value());
 
     AddressFloatSettings fs;
     fs.clipMode = m_clipModeCBox->currentText();

@@ -25,6 +25,7 @@ Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     {
         m_parentPath.clear();
     }
+
     m_addressSettings = node->addressSettings();
 }
 

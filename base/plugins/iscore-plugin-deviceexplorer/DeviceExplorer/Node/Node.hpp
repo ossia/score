@@ -16,6 +16,7 @@
  *
  * The sub-jacent device should also update the Node.
  */
+struct InvisibleRootNodeTag{};
 class Node
 {
         friend void Visitor<Reader<DataStream>>::readFrom<Node>(const Node& ev);
@@ -27,15 +28,17 @@ class Node
         static QString INVALID_STR;
         static float INVALID_FLOAT;
 
+        Node() = default;
 
+        Node(InvisibleRootNodeTag);
+        bool isInvisibleRoot() const;
 
         // Address
-        Node(const QString& name = QString(),
+        Node(const AddressSettings& settings,
              Node* parent = nullptr);
 
         // Device
-        Node(const DeviceSettings& devices,
-             const QString& name = QString(),
+        Node(const DeviceSettings& settings,
              Node* parent = nullptr);
 
         // Clone
@@ -45,7 +48,8 @@ class Node
 
         ~Node();
 
-        QStringList fullPath() const;
+        QStringList fullPathWithDevice() const;
+        QStringList fullPathWithoutDevice() const;
 
         void setParent(Node* parent);
         Node* parent() const;
@@ -63,34 +67,24 @@ class Node
 
         //- accessors
 
-        QString name() const;
-        QString value() const;
-        IOType ioType() const;
-        float minValue() const;
-        float maxValue() const;
-        unsigned int priority() const;
-        QString tags() const;
-
-        void setName(const QString& name);
-        void setValue(const QString& value);
-        void setValueType(const QString& value);
-        void setIOType(const IOType& ioType);
-        void setMinValue(float minV);
-        void setMaxValue(float maxV);
-        void setPriority(unsigned int priority);
-        void setTags(const QString &tags);
+        QString displayName() const;
 
         bool isSelectable() const; //TODO: or has a child of ioType != Node::In !!!
 
         bool isEditable() const;
         bool isDevice() const;
+
         void setDeviceSettings(const DeviceSettings& settings);
         const DeviceSettings& deviceSettings() const;
+        DeviceSettings& deviceSettings();
+
         void setAddressSettings(const AddressSettings& settings);
         const AddressSettings& addressSettings() const;
+        AddressSettings& addressSettings();
+
         Node* clone() const;
 
-protected:
+    protected:
         Node* m_parent {};
         QList<Node*> m_children;
 

@@ -26,32 +26,6 @@ bool MinuitDevice::canRefresh() const
 // Utility functions to convert from one node to another.
 namespace
 {
-    QString valueTypeToString(OSSIA::AddressValue::Type t)
-    {
-        switch(t)
-        {
-            case OSSIA::AddressValue::Type::NONE:
-                return "None";
-            case OSSIA::AddressValue::Type::BOOL:
-                return "Bool";
-            case OSSIA::AddressValue::Type::INT:
-                return "Int";
-            case OSSIA::AddressValue::Type::FLOAT:
-                return "Float";
-            case OSSIA::AddressValue::Type::CHAR:
-                return "Char";
-            case OSSIA::AddressValue::Type::STRING:
-                return "String";
-            case OSSIA::AddressValue::Type::TUPLE:
-                return "Tuple";
-            case OSSIA::AddressValue::Type::GENERIC:
-                return "Generic";
-            default:
-                Q_ASSERT(false);
-                return "";
-        }
-    }
-
     IOType accessModeToIOType(OSSIA::Address::AccessMode t)
     {
         switch(t)
@@ -68,6 +42,49 @@ namespace
         }
     }
 
+    QVariant OSSIAValueToVariant(const OSSIA::AddressValue* val)
+    {
+        QVariant v;
+        switch(val->getType())
+        {
+            case OSSIA::AddressValue::Type::NONE:
+                break;
+            case OSSIA::AddressValue::Type::BOOL:
+                v = dynamic_cast<const OSSIA::Bool*>(val)->value;
+                break;
+            case OSSIA::AddressValue::Type::INT:
+                v = dynamic_cast<const OSSIA::Int*>(val)->value;
+                break;
+            case OSSIA::AddressValue::Type::FLOAT:
+                v= dynamic_cast<const OSSIA::Float*>(val)->value;
+                break;
+            case OSSIA::AddressValue::Type::CHAR:
+                v = dynamic_cast<const OSSIA::Char*>(val)->value;
+                break;
+            case OSSIA::AddressValue::Type::STRING:
+                v = QString::fromStdString(dynamic_cast<const OSSIA::String*>(val)->value);
+                break;
+            case OSSIA::AddressValue::Type::TUPLE:
+            {
+                QVariantList tuple;
+                for (const auto & e : dynamic_cast<const OSSIA::Tuple*>(val)->value)
+                {
+                    tuple.append(OSSIAValueToVariant(e));
+                }
+
+                v = tuple;
+                break;
+            }
+            case OSSIA::AddressValue::Type::GENERIC:
+                qDebug() << Q_FUNC_INFO << "todo";
+                break;
+            default:
+                break;
+        }
+
+        return v;
+    }
+
     AddressSettings extractAddressSettings(const OSSIA::Node& node)
     {
         AddressSettings s;
@@ -76,82 +93,26 @@ namespace
 
         if(addr)
         {
-            s.valueType = valueTypeToString(addr->getValueType());
+            s.value = OSSIAValueToVariant(addr->getValue());
+            if(s.value.type() == QMetaType::Float)
+            {
+                s.addressSpecificSettings = QVariant::fromValue(AddressFloatSettings{});
+            }
+            else if (s.value.type() == QMetaType::Int)
+            {
+                s.addressSpecificSettings = QVariant::fromValue(AddressIntSettings{});
+            }
+
             s.ioType = accessModeToIOType(addr->getAccessMode());
             // TODO priority
 
-            switch(addr->getValueType())
-            {
-                case OSSIA::AddressValue::Type::NONE:
-                    break;
-                case OSSIA::AddressValue::Type::BOOL:
-                    s.value = dynamic_cast<OSSIA::Bool*>(addr->getValue())->value;
-                    break;
-                case OSSIA::AddressValue::Type::INT:
-                    s.value = dynamic_cast<OSSIA::Int*>(addr->getValue())->value;
-                    break;
-                case OSSIA::AddressValue::Type::FLOAT:
-                    s.value = dynamic_cast<OSSIA::Float*>(addr->getValue())->value;
-                    break;
-                case OSSIA::AddressValue::Type::CHAR:
-                    qDebug() << Q_FUNC_INFO << "todo";
-                    break;
-                case OSSIA::AddressValue::Type::STRING:
-                    s.value = QString::fromStdString(dynamic_cast<OSSIA::String*>(addr->getValue())->value);
-                    break;
-                case OSSIA::AddressValue::Type::TUPLE:
-                {
-                    QList<QVariant> tuple;
-                    for (const auto & e : dynamic_cast<OSSIA::Tuple*>(addr->getValue())->value)
-                    {
-                        QVariant v;
-                        switch(e->getType())
-                        {
-                        case OSSIA::AddressValue::Type::BOOL:
-                            v = dynamic_cast<OSSIA::Bool*>(e)->value;
-                            break;
-                        case OSSIA::AddressValue::Type::INT:
-                            v = dynamic_cast<OSSIA::Int*>(e)->value;
-                            break;
-                        case OSSIA::AddressValue::Type::FLOAT:
-                            v = dynamic_cast<OSSIA::Float*>(e)->value;
-                            break;
-                        case OSSIA::AddressValue::Type::CHAR:
-                            qDebug() << Q_FUNC_INFO << "todo";
-                            break;
-                        case OSSIA::AddressValue::Type::TUPLE:
-                            qDebug() << Q_FUNC_INFO << "todo: make a recursive function to handle tuple correctly";
-                            break;
-                        case OSSIA::AddressValue::Type::STRING:
-                            v = QString::fromStdString(dynamic_cast<OSSIA::String*>(e)->value);
-                            break;
-                        case OSSIA::AddressValue::Type::GENERIC:
-                            qDebug() << Q_FUNC_INFO << "todo";
-                            break;
-                        default:
-                            break;
-                        }
-                        tuple.append(v);
-                    }
-                    s.value = tuple;
-                    break;
-                }
-                case OSSIA::AddressValue::Type::GENERIC:
-                    qDebug() << Q_FUNC_INFO << "todo";
-                    break;
-                default:
-                    break;
-            }
         }
         return s;
     }
 
     Node* OssiaToDeviceExplorer(const OSSIA::Node& node)
     {
-        Node* n = new Node;
-
-        // 1. Set the parameters
-        n->setAddressSettings(extractAddressSettings(node));
+        Node* n = new Node{extractAddressSettings(node)};
 
         // 2. Recurse on the children
         for(const auto& ossia_child : node.children())
@@ -165,9 +126,7 @@ namespace
 
 Node MinuitDevice::refresh()
 {
-
-    Node device;
-
+    Node device_node;
 
     try {
     if(m_dev->updateNamespace())
@@ -175,29 +134,22 @@ Node MinuitDevice::refresh()
         // Make a device explorer node from the current state of the device.
         // First make the node corresponding to the root node.
 
-        device.setDeviceSettings(settings());
-        device.setAddressSettings(extractAddressSettings(*m_dev.get()));
+        device_node.setDeviceSettings(settings());
+        device_node.setAddressSettings(extractAddressSettings(*m_dev.get()));
 
         // Recurse on the children
         for(const auto& node : m_dev->children())
         {
-            device.addChild(OssiaToDeviceExplorer(*node.get()));
+            device_node.addChild(OssiaToDeviceExplorer(*node.get()));
         }
     }
     }
     catch(std::runtime_error& e)
     {
-        qDebug() << "Couldn't load the device";
+        qDebug() << "Couldn't load the device:" << e.what();
     }
 
-    device.setName(settings().name);
-    auto addr = device.addressSettings();
-    addr.name = settings().name;
-    device.setAddressSettings(addr);
+    device_node.deviceSettings().name = settings().name;
 
-    auto dev = device.deviceSettings();
-    dev.name = settings().name;
-    device.setDeviceSettings(dev);
-
-    return device;
+    return device_node;
 }

@@ -426,7 +426,7 @@ void DeviceExplorerWidget::refresh()
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
-        auto& dev = model()->deviceModel()->list().device(select->name());
+        auto& dev = model()->deviceModel()->list().device(select->deviceSettings().name);
         if(!dev.canRefresh())
             return;
 
@@ -445,7 +445,6 @@ void DeviceExplorerWidget::refresh()
 
             thread->quit();
             worker->deleteLater();
-            thread->deleteLater();
         }, Qt::QueuedConnection);
 
         worker->moveToThread(thread);

@@ -344,11 +344,11 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->name();
+                return node->displayName();
             }
             else if(role == Qt::FontRole)
             {
-                const IOType ioType = node->ioType();
+                const IOType ioType = node->addressSettings().ioType;
 
                 if(ioType == IOType::In || ioType == IOType::Out)
                 {
@@ -359,7 +359,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             }
             else if(role == Qt::ForegroundRole)
             {
-                const IOType ioType = node->ioType();
+                const IOType ioType = node->addressSettings().ioType;
 
                 if(ioType == IOType::In || ioType == IOType::Out)
                 {
@@ -374,11 +374,17 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->value();
+                const auto& val = node->addressSettings().value;
+                if(val.canConvert<QVariantList>())
+                {
+                    return val.toStringList().join(", ");
+                }
+
+                return val.toString();
             }
             else if(role == Qt::ForegroundRole)
             {
-                const IOType ioType = node->ioType();
+                const IOType ioType = node->addressSettings().ioType;
 
                 if(ioType == IOType::In || ioType == IOType::Out)
                 {
@@ -392,8 +398,8 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                switch(node->ioType())
-                {// TODO use this enum in AddressSettings!
+                switch(node->addressSettings().ioType)
+                {
                     case IOType::In:
                         return QString("<-");
 
@@ -412,6 +418,8 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case MIN_COLUMN:
         {
+            return QString{};
+            /*
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 const float minV = node->minValue();
@@ -423,11 +431,14 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
                 return QString();
             }
+            */
         }
             break;
 
         case MAX_COLUMN:
         {
+            return QString{};
+            /*
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 const float maxV = node->maxValue();
@@ -438,7 +449,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 }
 
                 return QString();
-            }
+            }*/
         }
             break;
 
@@ -446,7 +457,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->priority();
+                return node->addressSettings().priority;
             }
         }
             break;
@@ -464,6 +475,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 void
 DeviceExplorerModel::setColumnValue(Node* node, const QVariant& v, int col)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    return;
+    /*
     if(col < 0 || col >= COLUMN_COUNT)
     {
         return;
@@ -512,6 +526,7 @@ DeviceExplorerModel::setColumnValue(Node* node, const QVariant& v, int col)
         default :
             assert(false);
     }
+    */
 
 }
 
@@ -623,6 +638,9 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 
 void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
+    qDebug() << Q_FUNC_INFO << "TODO";
+    // The command should modify the Node
+    /*
     //TODO: check what's editable or not !!!
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
@@ -672,6 +690,7 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
     }
 
     emit dataChanged(changedTopLeft, changedBottomRight);
+    */
 }
 
 
@@ -696,7 +715,7 @@ DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
 Node*
 DeviceExplorerModel::createRootNode() const
 {
-    return new Node("Invisible root", nullptr);
+    return new Node{InvisibleRootNodeTag{}};
 }
 
 
@@ -741,16 +760,12 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
 {
     if(!index.isValid())
     {
-        return true;
+        return true; // TODO why ?
     }
 
     Node* n = nodeFromModelIndex(index);
     Q_ASSERT(n);
-
-    Node* parent = n->parent();
-    Q_ASSERT(parent);
-
-    return parent == m_rootNode;
+    return n->isDevice();
 }
 
 bool
@@ -1291,9 +1306,9 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
                 }
                 else
                 {
-                    std::cerr << " n->name=" << n->name().toStdString();
+                    std::cerr << " n->name=" << n->addressSettings().name.toStdString();
                     std::cerr << " parent=" << parent;
-                    std::cerr << " parent->name=" << parent->name().toStdString() << "\n";
+                    std::cerr << " parent->name=" << parent->addressSettings().name.toStdString() << "\n";
                 }
             }
             else

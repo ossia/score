@@ -67,11 +67,11 @@ void createAddressSettings(const FullAddressSettings& settings, OSSIA::Node* nod
 {
     using namespace OSSIA;
     std::shared_ptr<Address> addr;
-    if(settings.valueType == "Float")
+    if(settings.value.type() == QMetaType::Float)
     { addr = node->createAddress(AddressValue::Type::FLOAT); }
-    else if(settings.valueType == "Int")
+    else if(settings.value.type() == QMetaType::Int)
     { addr = node->createAddress(AddressValue::Type::INT); }
-    else if(settings.valueType == "String")
+    else if(settings.value.type() == QMetaType::QString)
     { addr = node->createAddress(AddressValue::Type::STRING); }
 
     updateAddressSettings(settings, addr);

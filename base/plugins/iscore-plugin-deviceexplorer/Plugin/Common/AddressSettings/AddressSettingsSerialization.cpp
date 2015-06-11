@@ -73,7 +73,6 @@ void Visitor<Reader<DataStream>>::readFrom(const AddressSettings& n)
              << (int)n.ioType
              << n.priority
              << n.tags
-             << n.valueType
              << n.value;
     if(n.addressSpecificSettings.canConvert<AddressFloatSettings>())
     {
@@ -94,18 +93,17 @@ void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
             >> ioType
             >> n.priority
             >> n.tags
-            >> n.valueType
             >> n.value;
 
     n.ioType = static_cast<IOType>(ioType);
 
-    if(n.valueType == "Float")
+    if(n.value.type() == QMetaType::Float)
     {
         AddressFloatSettings s;
         writeTo(s);
         n.addressSpecificSettings = QVariant::fromValue(s);
     }
-    else if(n.valueType == "Int")
+    else if(n.value.type() == QMetaType::Int)
     {
         AddressIntSettings s;
         writeTo(s);
@@ -121,18 +119,18 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
     m_obj["ioType"] = IOTypeStringMap()[n.ioType];
     m_obj["Priority"] = n.priority;
     m_obj["Tags"] = n.tags;
-    m_obj["ValueType"] = n.valueType;
-    if(n.valueType == "Float")
+    m_obj["Type"] = QString::fromStdString(n.value.typeName());
+    if(n.value.type() == QMetaType::Float)
     {
         m_obj["Value"] = n.value.toFloat();
         m_obj["AddressSpecificSettings"] = toJsonObject(n.addressSpecificSettings.value<AddressFloatSettings>());
     }
-    else if(n.valueType == "Int")
+    else if(n.value.type() == QMetaType::Int)
     {
         m_obj["Value"] = n.value.toInt();
         m_obj["AddressSpecificSettings"] = toJsonObject(n.addressSpecificSettings.value<AddressIntSettings>());
     }
-    else if(n.valueType == "String")
+    else if(n.value.type() == QMetaType::QString)
     {
         m_obj["Value"] = n.value.toString();
     }
@@ -145,19 +143,19 @@ void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
     n.ioType = IOTypeStringMap().key(m_obj["ioType"].toString());
     n.priority = m_obj["Priority"].toInt();
     n.tags = m_obj["Tags"].toString();
-    n.valueType =m_obj["ValueType"].toString();
+    auto valueType = m_obj["Type"].toString();
 
-    if(n.valueType == "Float")
+    if(valueType == QString(QVariant::typeToName(QMetaType::Float)))
     {
         n.value = QVariant::fromValue(m_obj["Value"].toDouble());
         n.addressSpecificSettings = QVariant::fromValue(fromJsonObject<AddressFloatSettings>(m_obj["AddressSpecificSettings"].toObject()));
     }
-    else if(n.valueType == "Int")
+    else if(valueType == QString(QVariant::typeToName(QMetaType::Int)))
     {
         n.value = QVariant::fromValue(m_obj["Value"].toInt());
         n.addressSpecificSettings = QVariant::fromValue(fromJsonObject<AddressIntSettings>(m_obj["AddressSpecificSettings"].toObject()));
     }
-    else if(n.valueType == "String")
+    else if(valueType == QString(QVariant::typeToName(QMetaType::QString)))
     {
         n.value = m_obj["Value"].toString();
     }

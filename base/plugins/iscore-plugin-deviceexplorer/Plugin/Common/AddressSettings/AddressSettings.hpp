@@ -3,16 +3,16 @@
 #include <QString>
 #include <QVariant>
 
+// TODO there are two string maps, one with <-> and one with In/Out... collapse them ?
 enum class IOType {Invalid, In, Out, InOut};
 const QMap<IOType, QString>& IOTypeStringMap();
 
 struct AddressSettings
 {
     QString name;
-    QString valueType; // TODO why not an enum?
     int priority{};
-    QString tags;
-    IOType ioType{}; // TODO why not an enum?
+    QString tags; // TODO QStringList ?
+    IOType ioType{};
     QVariant addressSpecificSettings;
     QVariant value;
 };
