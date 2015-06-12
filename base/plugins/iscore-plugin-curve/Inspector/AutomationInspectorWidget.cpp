@@ -42,8 +42,10 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     // LineEdit
     m_lineEdit = new QLineEdit;
     m_lineEdit->setText(m_model->address().toString());
-    connect(m_model, SIGNAL(addressChanged(QString)),
-            m_lineEdit,	SLOT(setText(QString)));
+    connect(m_model, &AutomationModel::addressChanged,
+            this, [&] (const Address& addr) {
+       m_lineEdit->setText(addr.toString());
+    });
 
     connect(m_lineEdit, &QLineEdit::editingFinished,
             [=]() {

@@ -47,6 +47,12 @@ void OSSIADevice::removeAddress(const QString &address)
 void OSSIADevice::sendMessage(Message &mess)
 {
     qDebug() << "Message address:" << mess.address.device << mess.address.path;
+    auto node = getNodeFromPath(mess.address.path, m_dev.get());
+
+    auto val = node->getAddress()->getValue();
+    updateOSSIAValue(mess.value, *val);
+    node->getAddress()->sendValue(val);
+
 
 /*
    auto node = getNodeFromPath(mess.address.path, m_dev);
@@ -120,6 +126,7 @@ OSSIA::Node *getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
         node = it->get();
     }
 
+    Q_ASSERT(node);
     return node;
 }
 
@@ -259,6 +266,59 @@ QVariant OSSIAValueToVariant(const OSSIA::AddressValue *val)
 
     return v;
 }
+void updateOSSIAValue(const QVariant& data, OSSIA::AddressValue& val)
+{
+    QVariant v;
+    switch(val.getType())
+    {
+        case OSSIA::AddressValue::Type::IMPULSE:
+            break;
+        case OSSIA::AddressValue::Type::BOOL:
+            dynamic_cast<OSSIA::Bool&>(val).value = data.value<bool>();
+            break;
+        case OSSIA::AddressValue::Type::INT:
+            dynamic_cast<OSSIA::Int&>(val).value = data.value<int>();
+            break;
+        case OSSIA::AddressValue::Type::FLOAT:
+            dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
+            break;
+        case OSSIA::AddressValue::Type::CHAR:
+            dynamic_cast<OSSIA::Char&>(val).value = data.value<char>();
+            break;
+        case OSSIA::AddressValue::Type::STRING:
+            dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
+            break;
+        case OSSIA::AddressValue::Type::TUPLE:
+        {
+            QVariantList tuple = data.value<QVariantList>();
+            const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
+            Q_ASSERT(tuple.size() == (int)vec.size());
+            for(int i = 0; i < (int)vec.size(); i++)
+            {
+                updateOSSIAValue(tuple[i], *vec[i]);
+            }
+
+            break;
+        }
+        case OSSIA::AddressValue::Type::GENERIC:
+        {
+            const auto& array = data.value<QByteArray>();
+            auto& generic = dynamic_cast<OSSIA::Generic&>(val);
+
+            generic.size = array.size();
+
+            delete generic.start;
+            generic.start = new char[generic.size];
+
+            boost::range::copy(array, generic.start);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+
 
 
 AddressSettings extractAddressSettings(const OSSIA::Node &node)

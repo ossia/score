@@ -3,6 +3,7 @@
 #include <API/Headers/Network/Protocol.h>
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Address.h>
+#include <API/Headers/Network/AddressValue.h>
 namespace OSSIA
 {
     class Device;
@@ -34,12 +35,15 @@ OSSIA::Node* getNodeFromPath(
 OSSIA::Node* createNodeFromPath(
         const QStringList& path,
         OSSIA::Device* dev);
-void updateOSSIAAddress(
-        const FullAddressSettings& settings,
-        const std::shared_ptr<OSSIA::Address>& addr);
 void createOSSIAAddress(
         const FullAddressSettings& settings,
         OSSIA::Node* node);
+void updateOSSIAAddress(
+        const FullAddressSettings& settings,
+        const std::shared_ptr<OSSIA::Address>& addr);
+void updateOSSIAValue(
+        const QVariant& data,
+        OSSIA::AddressValue& val);
 
 // Utility functions to convert from one node to another.
 IOType accessModeToIOType(OSSIA::Address::AccessMode t);
@@ -47,3 +51,4 @@ ClipMode OSSIABoudingModeToClipMode(OSSIA::Address::BoundingMode b);
 QVariant OSSIAValueToVariant(const OSSIA::AddressValue* val);
 AddressSettings extractAddressSettings(const OSSIA::Node& node);
 Node* OssiaToDeviceExplorer(const OSSIA::Node& node);
+
