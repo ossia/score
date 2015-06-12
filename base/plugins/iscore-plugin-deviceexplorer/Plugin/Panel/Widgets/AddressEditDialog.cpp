@@ -138,9 +138,14 @@ AddressSettings AddressEditDialog::getSettings() const
 AddressSettings AddressEditDialog::getDefaultSettings() const
 {
     static AddressSettings defaultSettings
-    {
-        {}, 0, {0, 100, {}}, {}, {}, {}, false, 0, 0, {}
-    };
+            = [] () {
+        AddressSettings s;
+        s.value = 0;
+        s.domain.min = 0;
+        s.domain.max = 0;
+        return s;
+    }();
+
     return defaultSettings;
 }
 
