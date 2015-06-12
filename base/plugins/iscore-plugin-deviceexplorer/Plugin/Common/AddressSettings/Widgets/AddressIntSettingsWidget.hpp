@@ -33,14 +33,14 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
             m_layout->insertRow(2, tr("Max"), m_maxSBox);
 
             m_valueSBox->setValue(0);
-            m_valueSBox->setMinimum(-std::numeric_limits<T>::max());
+            m_valueSBox->setMinimum(std::numeric_limits<T>::min());
             m_valueSBox->setMaximum(std::numeric_limits<T>::max());
 
-            m_minSBox->setMinimum(-std::numeric_limits<T>::max());
+            m_minSBox->setMinimum(std::numeric_limits<T>::min());
             m_minSBox->setMaximum(std::numeric_limits<T>::max());
             m_minSBox->setValue(0);
 
-            m_maxSBox->setMinimum(-std::numeric_limits<T>::max());
+            m_maxSBox->setMinimum(std::numeric_limits<T>::min());
             m_maxSBox->setMaximum(std::numeric_limits<T>::max());
             m_maxSBox->setValue(100);
         }
@@ -63,6 +63,9 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
 
             m_minSBox->setValue(settings.domain.min.toDouble());
             m_maxSBox->setValue(settings.domain.max.toDouble());
+
+            // TODO if the "values" part of the domain is set, we
+            // have to display a combobox instead.
         }
 
     private:
@@ -84,6 +87,7 @@ class AddressBoolSettingsWidget : public AddressSettingsWidget
         AddressBoolSettingsWidget(QWidget* parent = nullptr)
             : AddressSettingsWidget(parent)
         {
+            // TODO only value (true / false)
 
         }
 

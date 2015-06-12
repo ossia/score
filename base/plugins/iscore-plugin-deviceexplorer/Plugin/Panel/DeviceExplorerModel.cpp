@@ -418,38 +418,19 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case MIN_COLUMN:
         {
-            return QString{};
-            /*
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                const float minV = node->minValue();
-
-                if(minV != Node::INVALID_FLOAT)
-                {
-                    return minV;
-                }
-
-                return QString();
+                return node->addressSettings().domain.min;
             }
-            */
         }
             break;
 
         case MAX_COLUMN:
         {
-            return QString{};
-            /*
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                const float maxV = node->maxValue();
-
-                if(maxV != Node::INVALID_FLOAT)
-                {
-                    return maxV;
-                }
-
-                return QString();
-            }*/
+                return node->addressSettings().domain.max;
+            }
         }
             break;
 
@@ -1020,8 +1001,8 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
 
 namespace
 {
-const QString MimeTypeDevice = "application/x-iscore-deviceexplorer-device";
-const QString MimeTypeAddress = "application/x-iscore-deviceexplorer-address";
+    const QString MimeTypeDevice = "application/x-iscore-deviceexplorer-device";
+    const QString MimeTypeAddress = "application/x-iscore-deviceexplorer-address";
 
     const int compressionLevel = 6; //[0:no comrpession/fast ; 9:high compression/slow], -1: default zlib compression
 }

@@ -174,23 +174,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
 {
     m_obj["Name"] = n.name;
 
-    m_obj["Type"] = QString::fromStdString(n.value.typeName());
-    if(n.value.type() == QMetaType::Float)
-    {
-        m_obj["Value"] = n.value.toFloat();
-        m_obj["Domain"] = domainToJSON<float>(n.domain);
-    }
-    else if(n.value.type() == QMetaType::Int)
-    {
-        m_obj["Value"] = n.value.toInt();
-        m_obj["Domain"] = domainToJSON<int>(n.domain);
-    }
-    else if(n.value.type() == QMetaType::QString)
-    {
-        m_obj["Value"] = n.value.toString();
-        m_obj["Domain"] = domainToJSON<QString>(n.domain);
-    }
-
+    // Metadata
     m_obj["ioType"] = IOTypeStringMap()[n.ioType];
     m_obj["ClipMode"] = ClipModeStringMap()[n.clipMode];
     m_obj["Unit"] = n.unit;
@@ -204,31 +188,34 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
     for(auto& str : n.tags)
         arr.append(str);
     m_obj["Tags"] = arr;
+
+    // Value, domain and type
+    auto type = n.value.typeName();
+    if(type)
+    {
+        m_obj["Type"] = QString::fromStdString(type);
+        if(n.value.type() == QMetaType::Float)
+        {
+            m_obj["Value"] = n.value.toFloat();
+            m_obj["Domain"] = domainToJSON<float>(n.domain);
+        }
+        else if(n.value.type() == QMetaType::Int)
+        {
+            m_obj["Value"] = n.value.toInt();
+            m_obj["Domain"] = domainToJSON<int>(n.domain);
+        }
+        else if(n.value.type() == QMetaType::QString)
+        {
+            m_obj["Value"] = n.value.toString();
+            m_obj["Domain"] = domainToJSON<QString>(n.domain);
+        }
+    }
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
 {
     n.name = m_obj["Name"].toString();
-
-    auto valueType = m_obj["Type"].toString();
-
-    if(valueType == QString(QVariant::typeToName(QMetaType::Float)))
-    {
-        n.value = QVariant::fromValue(m_obj["Value"].toDouble());
-        n.domain = JSONToDomain<float>(m_obj["Domain"].toObject());
-    }
-    else if(valueType == QString(QVariant::typeToName(QMetaType::Int)))
-    {
-        n.value = QVariant::fromValue(m_obj["Value"].toInt());
-        n.domain = JSONToDomain<int>(m_obj["Domain"].toObject());
-    }
-    else if(valueType == QString(QVariant::typeToName(QMetaType::QString)))
-    {
-        n.value = m_obj["Value"].toString();
-        n.domain = JSONToDomain<QString>(m_obj["Domain"].toObject());
-    }
-
 
     n.ioType = IOTypeStringMap().key(m_obj["ioType"].toString());
     n.clipMode = ClipModeStringMap().key(m_obj["ClipMode"].toString());
@@ -240,4 +227,27 @@ void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
     n.priority = m_obj["Priority"].toInt();
 
     fromJsonArray(m_obj["Tags"].toArray(), n.tags);
+
+
+    if(m_obj.contains("Type"))
+    {
+        auto valueType = m_obj["Type"].toString();
+
+        if(valueType == QString(QVariant::typeToName(QMetaType::Float)))
+        {
+            n.value = QVariant::fromValue(m_obj["Value"].toDouble());
+            n.domain = JSONToDomain<float>(m_obj["Domain"].toObject());
+        }
+        else if(valueType == QString(QVariant::typeToName(QMetaType::Int)))
+        {
+            n.value = QVariant::fromValue(m_obj["Value"].toInt());
+            n.domain = JSONToDomain<int>(m_obj["Domain"].toObject());
+        }
+        else if(valueType == QString(QVariant::typeToName(QMetaType::QString)))
+        {
+            n.value = m_obj["Value"].toString();
+            n.domain = JSONToDomain<QString>(m_obj["Domain"].toObject());
+        }
+    }
+
 }
