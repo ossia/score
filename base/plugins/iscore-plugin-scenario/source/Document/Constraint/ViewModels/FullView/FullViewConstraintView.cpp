@@ -18,7 +18,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
     this->setCursor(Qt::CrossCursor);
 
     this->setZValue(parent->zValue() + 1);
-    this->setY(5);
+    this->setY(2*constraintHeight());
 }
 
 QRectF FullViewConstraintView::boundingRect() const

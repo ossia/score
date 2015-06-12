@@ -41,7 +41,7 @@ BaseElementView::BaseElementView(QObject* parent) :
             this,         &BaseElementView::horizontalZoomChanged);
 
     transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 0);
-    transportLayout->addWidget(m_zoomSlider, 1, 0);
+    transportLayout->addWidget(m_zoomSlider, 0, 1);
     transportLayout->setMargin(0);
 
     transportWidget->setLayout(transportLayout);

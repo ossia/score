@@ -270,7 +270,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         double viewWidth = view()->view()->width();
         double duration =  m_displayedConstraint->defaultDuration().msec();
 
-        return 5 + duration / viewWidth;
+        return 20 + duration / viewWidth;
     };
 
     auto newMillisPerPix = mapZoom(1.0 - newzoom, 2., std::max(4., computedMax()));
