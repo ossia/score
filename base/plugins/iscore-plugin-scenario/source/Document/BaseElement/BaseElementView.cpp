@@ -40,8 +40,10 @@ BaseElementView::BaseElementView(QObject* parent) :
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
             this,         &BaseElementView::horizontalZoomChanged);
 
-    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
-    transportLayout->addWidget(m_zoomSlider, 1, 1);
+    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 0);
+    transportLayout->addWidget(m_zoomSlider, 0, 1);
+    transportLayout->setMargin(0);
+
     transportWidget->setLayout(transportLayout);
 
     // view layout
@@ -55,6 +57,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     lay->addWidget(m_timeRulersView);
     lay->addWidget(m_view);
     lay->addWidget(transportWidget);
+
+    lay->setSpacing(1);
 
     m_timeRulersView->setAutoFillBackground(true);
     connect(m_view, &SizeNotifyingGraphicsView::scrolled,

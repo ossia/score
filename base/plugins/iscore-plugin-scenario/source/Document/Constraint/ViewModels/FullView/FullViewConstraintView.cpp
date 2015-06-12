@@ -7,6 +7,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QCursor>
 
+#include <QApplication>
+
 FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
                                                QGraphicsItem *parent) :
     AbstractConstraintView {presenter, parent}
@@ -16,6 +18,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
     this->setCursor(Qt::CrossCursor);
 
     this->setZValue(parent->zValue() + 1);
+    this->setY(2*constraintHeight());
 }
 
 QRectF FullViewConstraintView::boundingRect() const
@@ -27,11 +30,11 @@ void FullViewConstraintView::paint(QPainter* painter,
                                    const QStyleOptionGraphicsItem* option,
                                    QWidget* widget)
 {
-    QColor c = Qt::black;
+    QColor c = qApp->palette("ScenarioPalette").base().color();
 
     if(isSelected())
     {
-        c = Qt::blue;
+        c = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
     }
     else if(parentItem()->isSelected())
     {
