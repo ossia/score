@@ -38,7 +38,7 @@ void OSSIADevice::removeAddress(const QString &address)
 
     OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
     auto& children = node->getParent()->children();
-    auto it = std::find_if(children.begin(), children.end(), [&] (auto&& elt) { return elt.get() == node; });
+    auto it = boost::range::find_if(children, [&] (auto&& elt) { return elt.get() == node; });
     if(it != children.end())
         children.erase(it);
 }
@@ -46,20 +46,11 @@ void OSSIADevice::removeAddress(const QString &address)
 
 void OSSIADevice::sendMessage(Message &mess)
 {
-    qDebug() << "Message address:" << mess.address.device << mess.address.path;
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 
     auto val = node->getAddress()->getValue();
     updateOSSIAValue(mess.value, *val);
     node->getAddress()->sendValue(val);
-
-
-/*
-   auto node = getNodeFromPath(mess.address.path, m_dev);
-   node->getAddress()->
-   // m_dev->getAddress()->sendValue()
-   */
-    qDebug() << Q_FUNC_INFO << "TODO";
 }
 
 
@@ -181,7 +172,7 @@ void createOSSIAAddress(const FullAddressSettings &settings, OSSIA::Node *node)
 }
 
 
-IOType accessModeToIOType(OSSIA::Address::AccessMode t)
+IOType OSSIAAccessModeToIOType(OSSIA::Address::AccessMode t)
 {
     switch(t)
     {
@@ -330,12 +321,10 @@ AddressSettings extractAddressSettings(const OSSIA::Node &node)
     if(addr)
     {
         s.value = OSSIAValueToVariant(addr->getValue());
-        s.ioType = accessModeToIOType(addr->getAccessMode());
+        s.ioType = OSSIAAccessModeToIOType(addr->getAccessMode());
         s.clipMode = OSSIABoudingModeToClipMode(addr->getBoundingMode());
         s.repetitionFilter = addr->getRepetitionFilter();
-
-        // TODO priority
-
+        s.domain = OSSIADomainToDomain(*addr->getDomain());
     }
     return s;
 }
@@ -352,4 +341,19 @@ Node *OssiaToDeviceExplorer(const OSSIA::Node &node)
     }
 
     return n;
+}
+
+
+Domain OSSIADomainToDomain(OSSIA::AddressDomain &domain)
+{
+    Domain d;
+    d.min = OSSIAValueToVariant(domain.getMin());
+    d.max = OSSIAValueToVariant(domain.getMax());
+
+    for(const auto& val : domain.getValues())
+    {
+        d.values.append(OSSIAValueToVariant(val));
+    }
+
+    return d;
 }
