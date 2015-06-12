@@ -51,8 +51,9 @@ void RemoveProcessFromConstraint::undo()
     for(const auto& it : m_serializedViewModels)
     {
         const auto& path = it.first.vec();
+        qDebug() << it.first.toString();
         auto deck = constraint
-                .box(id_type<BoxModel>(path.at(path.size() - 2).id()))
+                .box(id_type<BoxModel>(path.at(path.size() - 3).id()))
                 ->deck(id_type<DeckModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};

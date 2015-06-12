@@ -13,6 +13,7 @@ namespace Scenario
     namespace Command
     {
         class AddProcessViewInNewDeck;
+        class AddProcessViewModelToDeck;
         /**
         * @brief The AddProcessToConstraint class
         */
@@ -44,7 +45,8 @@ namespace Scenario
 
                 id_type<ProcessModel> m_createdProcessId {};
                 bool m_noBoxes;
-                AddProcessViewInNewDeck* m_cmd;
+                AddProcessViewInNewDeck* m_cmdNewDeck;
+                AddProcessViewModelToDeck* m_cmdFirstDeck;
         };
     }
 }

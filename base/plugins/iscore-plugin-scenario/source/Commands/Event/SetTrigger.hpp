@@ -27,7 +27,7 @@ namespace Scenario
                 QString m_trigger;
                 QString m_previousTrigger;
 
-                QVector<SetRigidity*> m_cmd; //TODO serialization and destructor
+                QVector<SetRigidity*> m_cmd; //TODO serialization
         };
     }
 }

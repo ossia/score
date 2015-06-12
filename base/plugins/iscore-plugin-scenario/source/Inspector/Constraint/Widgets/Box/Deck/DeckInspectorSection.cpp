@@ -151,6 +151,15 @@ void DeckInspectorSection::on_processViewModelRemoved(
         const id_type<ProcessViewModel>& pvmId)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
+
+    m_pvmSection->removeAll();
+    for (auto& pvm : m_model.processViewModels())
+    {
+        if (pvm->id() != pvmId)
+        {
+            displayProcessViewModel(*pvm);
+        }
+    }
 }
 
 

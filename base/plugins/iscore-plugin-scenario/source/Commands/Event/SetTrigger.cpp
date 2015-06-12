@@ -19,14 +19,7 @@ m_trigger(message)
     auto& event = m_path.find<EventModel>();
     m_previousTrigger = event.trigger();
 
-    if(m_previousTrigger.isEmpty() != m_trigger.isEmpty())
-    {
-        ScenarioModel* scenar = event.parentScenario();
-        for (auto cstr : event.previousConstraints())
-        {
-            m_cmd.push_back( new SetRigidity(iscore::IDocument::path(scenar->constraint(cstr)), m_trigger.isEmpty()));
-        }
-    }
+
 }
 
 void SetTrigger::undo()
@@ -37,6 +30,7 @@ void SetTrigger::undo()
     for (auto cmd : m_cmd)
     {
         cmd->undo();
+        delete cmd;
     }
 }
 
@@ -45,9 +39,15 @@ void SetTrigger::redo()
     auto& event = m_path.find<EventModel>();
     event.setTrigger(m_trigger);
 
-    for (auto cmd : m_cmd)
+    if(m_previousTrigger.isEmpty() != m_trigger.isEmpty())
     {
-        cmd->redo();
+        ScenarioModel* scenar = event.parentScenario();
+        for (auto cstr : event.previousConstraints())
+        {
+            auto cmd = new SetRigidity(iscore::IDocument::path(scenar->constraint(cstr)), m_trigger.isEmpty());
+            cmd->redo();
+            m_cmd.push_back(cmd);
+        }
     }
 }
 
