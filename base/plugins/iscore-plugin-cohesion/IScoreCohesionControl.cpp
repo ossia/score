@@ -181,7 +181,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
                                  currentDocument()->commandStack()};
     for(auto& constraint : selected_constraints)
     {
-        QStringList l;
+        QList<Address> l;
         for(auto& index : addresses)
         {
             l.push_back(DeviceExplorer::addressFromModelIndex(index));
@@ -268,10 +268,6 @@ void IScoreCohesionControl::interpolateStates()
 
             if(it != end(endMessages))
             {
-
-                auto splt = message.address.split("/");
-                splt.removeFirst();
-
                 auto cmd = new CreateCurveFromStates{
                            iscore::IDocument::path(constraint),
                            message.address,

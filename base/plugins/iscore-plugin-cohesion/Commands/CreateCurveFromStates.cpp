@@ -21,7 +21,7 @@ CreateCurveFromStates::~CreateCurveFromStates()
 
 CreateCurveFromStates::CreateCurveFromStates(
         ObjectPath&& constraint,
-        QString address,
+        const Address& address,
         double start,
         double end):
     // TODO to prevent needless recopying, why not templating the ctor
@@ -30,7 +30,7 @@ CreateCurveFromStates::CreateCurveFromStates(
         "IScoreCohesionControl",
         className(),
         description()},
-    m_address{address},
+    m_address(address),
     m_start{start},
     m_end{end}
 {

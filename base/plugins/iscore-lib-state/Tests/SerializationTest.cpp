@@ -18,7 +18,7 @@ class SerializationTest: public QObject
             qRegisterMetaTypeStreamOperators<Message>();
             qRegisterMetaTypeStreamOperators<MessageList>();
             Message m;
-            m.address = "dada";
+            m.address = {"dada", {"bilou", "yadaa", "zoo"}};
             m.value = 5.5;
 
             State s(m);

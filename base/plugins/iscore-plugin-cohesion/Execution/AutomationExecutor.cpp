@@ -18,17 +18,17 @@ AutomationExecutor::AutomationExecutor(AutomationModel& model):
     auto doc = iscore::IDocument::documentFromObject(model);
     auto plug = static_cast<DeviceDocumentPlugin*>(doc->model()->pluginModel("DeviceDocumentPlugin"));
 
-    auto addr_split = model.address().split("/");
-    m_dev = &plug->list().device(addr_split[1]);
+//    auto addr_split = model.address().split("/");
+//    m_dev = &plug->list().device(addr_split[1]);
 
     // Remove the device name
-    addr_split.removeFirst();
+//    addr_split.removeFirst();
 /*
     m_demodel = getNodeFromString(static_cast<DeviceExplorerPanelModel*>(doc->model()->panel("DeviceExplorerPanelModel"))->deviceExplorer()->rootNode(),
                                   QStringList(msg));
 */
-    addr_split.removeFirst();
-    m.address = addr_split.join("/").prepend("/");
+//    addr_split.removeFirst();
+//    m.address = addr_split.join("/").prepend("/");
 }
 
 void AutomationExecutor::start()

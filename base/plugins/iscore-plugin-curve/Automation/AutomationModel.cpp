@@ -196,7 +196,7 @@ ProcessStateDataInterface* AutomationModel::endState() const
     return new AutomationState{this, 1.};
 }
 
-QString AutomationModel::address() const
+Address AutomationModel::address() const
 {
     return m_address;
 }
@@ -216,7 +216,7 @@ double AutomationModel::max() const
     return m_max;
 }
 
-void AutomationModel::setAddress(const QString &arg)
+void AutomationModel::setAddress(const Address &arg)
 {
     if(m_address == arg)
     {

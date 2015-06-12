@@ -1,13 +1,14 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <State/Message.hpp>
 
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
     public:
         CreateCurvesFromAddresses();
         CreateCurvesFromAddresses(ObjectPath&& constraint,
-                                  QStringList addresses);
+                                  const QList<Address> &addresses);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -18,7 +19,7 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
 
     private:
         ObjectPath m_path;
-        QStringList m_addresses;
+        QList<Address> m_addresses;
 
         QVector<QByteArray> m_serializedCommands;
 };

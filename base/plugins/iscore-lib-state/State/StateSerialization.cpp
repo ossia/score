@@ -78,6 +78,38 @@ void Visitor<Writer<JSONObject>>::writeTo(State& state)
 #include "Message.hpp"
 
 template<>
+void Visitor<Reader<DataStream>>::readFrom(const Address& a)
+{
+    m_stream << a.device << a.path;
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const Address& a)
+{
+    m_obj["Device"] = a.device;
+    m_obj["Path"] = a.path.join("/");
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(Address& a)
+{
+    m_stream >> a.device >> a.path;
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(Address& a)
+{
+    a.device = m_obj["Device"].toString();
+
+    a.path = m_obj["Path"].toString().split("/");
+}
+
+
+
+
+template<>
 void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 {
     m_stream << mess.address << mess.value;
@@ -87,7 +119,7 @@ void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 {
-    m_obj["Address"] = mess.address;
+    m_obj["Address"] = toJsonObject(mess.address);
     m_obj["Value"] = mess.value.toString();
 }
 
@@ -102,7 +134,10 @@ void Visitor<Writer<DataStream>>::writeTo(Message& mess)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
 {
-    mess.address = m_obj["Address"].toString();
+    mess.address = fromJsonObject<Address>(m_obj["Address"].toObject());
     mess.value = QJsonValue(m_obj["Value"]).toVariant();
 }
+
+
+
 

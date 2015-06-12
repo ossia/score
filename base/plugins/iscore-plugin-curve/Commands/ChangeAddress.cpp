@@ -14,13 +14,13 @@ ChangeAddress::ChangeAddress() :
 }
 
 ChangeAddress::ChangeAddress(ObjectPath&& path,
-                             QString addr) :
+                             const Address& addr) :
     SerializableCommand {"AutomationControl",
     CMD_NAME,
     CMD_DESC
 },
 m_path {path},
-m_newAddr {addr}
+m_newAddr (addr)
 {
     auto& autom = m_path.find<AutomationModel>();
     m_oldAddr = autom.address();

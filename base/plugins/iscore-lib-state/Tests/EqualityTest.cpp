@@ -17,7 +17,7 @@ class EqualityTest: public QObject
             qRegisterMetaTypeStreamOperators<Message>();
             qRegisterMetaTypeStreamOperators<MessageList>();
             Message m;
-            m.address = "dada";
+            m.address = {"dada", {"bilou", "yadaa", "zoo"}};
             Q_ASSERT(m == m);
 
             m.value = 5.5;
@@ -38,7 +38,7 @@ class EqualityTest: public QObject
             Q_ASSERT (!(s1 != s2));
 
             Message m2;
-            m.address = "dodo";
+            m.address = {"dodo", {"a", "baba"}};
             m.value = 3;
             Q_ASSERT(m != m2);
             MessageList l3;

@@ -234,58 +234,10 @@ DeviceSettings& Node::deviceSettings()
     return m_deviceSettings;
 }
 
-
 void Node::setAddressSettings(const AddressSettings &settings)
 {
     m_addressSettings = settings;
-
     return;
-    /*
-    setName(settings.name);
-    //setValueType(settings.valueType);
-    setIOType(settings.ioType);
-    setPriority(settings.priority);
-    setTags(settings.tags);
-
-    if(settings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-    {
-        AddressFloatSettings fs = settings.addressSpecificSettings.value<AddressFloatSettings>();
-        setMaxValue(fs.max);
-        setMinValue(fs.min);
-
-        if(m_addressSettings.addressSpecificSettings.canConvert<AddressFloatSettings>())
-        {
-            AddressFloatSettings mfs = m_addressSettings.addressSpecificSettings.value<AddressFloatSettings>();
-            mfs.clipMode = fs.clipMode;
-            mfs.unit = fs.unit;
-            m_addressSettings.addressSpecificSettings = QVariant::fromValue(mfs);
-        }
-    }
-    else if(settings.addressSpecificSettings.canConvert<AddressIntSettings>())
-    {
-        AddressIntSettings is = settings.addressSpecificSettings.value<AddressIntSettings>();
-        setMaxValue(is.max);
-        setMinValue(is.min);
-        if(m_addressSettings.addressSpecificSettings.canConvert<AddressIntSettings>())
-        {
-            AddressIntSettings mis = m_addressSettings.addressSpecificSettings.value<AddressIntSettings>();
-            mis.clipMode = is.clipMode;
-            mis.unit = is.unit;
-            m_addressSettings.addressSpecificSettings = QVariant::fromValue(mis);
-        }
-    }
-
-    if(settings.value.canConvert<float>())
-    {
-        float f = settings.value.value<float>();
-        setValue(QString::number(f));
-    }
-    else if(settings.value.canConvert<int>())
-    {
-        int i = settings.value.value<int>();
-        setValue(QString::number(i));
-    }
-    */
 }
 
 const AddressSettings &Node::addressSettings() const

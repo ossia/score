@@ -3,7 +3,9 @@
 #include "../Plugin/DeviceExplorerPanelFactory.hpp"
 #include "../Plugin/Panel/DeviceExplorerModel.hpp"
 
+#include <DeviceExplorer/Node/Node.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <boost/range/algorithm.hpp>
 
 QString DeviceExplorer::panelName()
 {
@@ -15,19 +17,27 @@ QString DeviceExplorer::explorerName()
     return "DeviceExplorerModel";
 }
 
-QString DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
+Address DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 {
-    QModelIndex index = m;
-    QString txt;
+    if(!m.isValid())
+        return {};
 
-    while(index.isValid())
+    QModelIndex index = m;
+    Address a;
+
+    auto node = static_cast<Node*>(index.internalPointer());
+    while(node && !node->isDevice())
     {
-        txt.prepend(QString("/%1")
-                    .arg(index.data(0).toString()));
-        index = index.parent();
+        a.path.append(node->addressSettings().name);
+        node = node->parent();
     }
 
-    return txt;
+    boost::range::reverse(a.path);
+    Q_ASSERT(node);
+    Q_ASSERT(node->isDevice());
+    a.device = node->deviceSettings().name;
+
+    return a;
 }
 
 

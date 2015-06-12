@@ -18,7 +18,7 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses() :
 }
 
 CreateCurvesFromAddresses::CreateCurvesFromAddresses(ObjectPath&& constraint,
-        QStringList addresses) :
+        const QList<Address>& addresses) :
     SerializableCommand {"IScoreCohesionControl",
     CMD_NAME,
     CMD_DESC

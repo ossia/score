@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-
+struct Address;
 class AutomationModel;
 class QDoubleSpinBox;
 class AutomationInspectorWidget : public InspectorWidgetBase
@@ -16,7 +16,7 @@ class AutomationInspectorWidget : public InspectorWidgetBase
         void createViewInNewDeck(QString);
 
     public slots:
-        void on_addressChange(const QString& newText);
+        void on_addressChange(const Address &newText);
         void on_minValueChanged();
         void on_maxValueChanged();
 

@@ -110,9 +110,9 @@ EventInspectorWidget::EventInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const QString& addr)
+                this, [&] (const Address& addr)
         {
-            m_conditionLineEdit->setText(addr);
+            m_conditionLineEdit->setText(addr.toString());
         });
         m_properties.push_back(pb);
     }
@@ -132,9 +132,9 @@ EventInspectorWidget::EventInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const QString& addr)
+                this, [&] (const Address& addr)
         {
-            m_triggerLineEdit->setText(addr);
+            m_triggerLineEdit->setText(addr.toString());
         });
         m_properties.push_back(pb);
     }
@@ -171,9 +171,9 @@ EventInspectorWidget::EventInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const QString& addr)
+                this, [&] (const Address& addr)
         {
-            m_stateLineEdit->setText(addr);
+            m_stateLineEdit->setText(addr.toString());
         });
         addLayout->addWidget(pb, 1, 0, 1, 2);
     }
@@ -252,7 +252,7 @@ void EventInspectorWidget::updateDisplayedValues(
             addState(state);
         }
 
-        for(auto cstr : event->previousConstraints())
+        for(const auto& cstr : event->previousConstraints())
         {
             auto cstrBtn = new QPushButton {};
             // TODO constraint.metadata. ...
@@ -269,9 +269,9 @@ void EventInspectorWidget::updateDisplayedValues(
 
             // End state of previous
             const auto& constraint = event->parentScenario()->constraint(cstr);
-            for(auto& proc : constraint.processes())
+            for(const auto& proc : constraint.processes())
             {
-                if(auto end = proc->endState())
+                if(const auto& end = proc->endState())
                 {
                     auto endWidg = InspectorWidgetList::makeInspectorWidget(end->stateName(), end, m_prevConstraints);
                     m_prevConstraints->addContent(endWidg);
@@ -279,7 +279,7 @@ void EventInspectorWidget::updateDisplayedValues(
             }
         }
 
-        for(auto cstr : event->nextConstraints())
+        for(const auto& cstr : event->nextConstraints())
         {
             auto cstrBtn = new QPushButton {};
             cstrBtn->setText(QString::number(*cstr.val()));
@@ -294,7 +294,7 @@ void EventInspectorWidget::updateDisplayedValues(
 
             // Start state of next
             const auto& constraint = event->parentScenario()->constraint(cstr);
-            for(auto& proc : constraint.processes())
+            for(const auto& proc : constraint.processes())
             {
                 if(auto start = proc->startState())
                 {
@@ -311,17 +311,61 @@ void EventInspectorWidget::updateDisplayedValues(
 }
 
 
+QVariant textToVariant(const QString& txt)
+{
+    bool ok = false;
+    if(float val = txt.toFloat(&ok))
+    {
+        return val;
+    }
+    if(int val = txt.toInt(&ok))
+    {
+        return val;
+    }
+
+    return txt;
+}
+
+QVariant textToMessageValue(const QStringList& txt)
+{
+    if(txt.empty())
+    {
+        return {};
+    }
+    else if(txt.size() == 1)
+    {
+        return textToVariant(txt.first());
+    }
+    else
+    {
+        QVariantList vl;
+        for(auto& elt : txt)
+        {
+            vl.append(textToVariant(elt));
+        }
+        return vl;
+    }
+}
+
 using namespace iscore::IDocument;
 using namespace Scenario;
 void EventInspectorWidget::on_addAddressClicked()
 {
     auto txt = m_stateLineEdit->text();
-    // TODO Faire fonction pour parser texte en message.
-    Message m; m.address = txt;
-    auto cmd = new Command::AddStateToEvent{path(m_model), m};
+    auto split = txt.split(" ");
 
-    emit commandDispatcher()->submitCommand(cmd);
-    m_stateLineEdit->clear();
+    if(Address::validateString(split.first()))
+    {
+        Message m;
+        m.address = Address::fromString(split.first());
+        split.removeFirst();
+        m.value = textToMessageValue(split);
+
+        auto cmd = new Command::AddStateToEvent{path(m_model), m};
+
+        emit commandDispatcher()->submitCommand(cmd);
+        m_stateLineEdit->clear();
+    }
 }
 
 void EventInspectorWidget::on_conditionChanged()

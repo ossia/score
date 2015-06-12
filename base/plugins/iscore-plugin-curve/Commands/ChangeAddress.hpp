@@ -1,13 +1,14 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <State/Message.hpp>
 
 // TODO put to the new command format
 class ChangeAddress : public iscore::SerializableCommand
 {
     public:
         ChangeAddress();
-        ChangeAddress(ObjectPath&& pointPath, QString addr);
+        ChangeAddress(ObjectPath&& pointPath, const Address &addr);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -19,6 +20,6 @@ class ChangeAddress : public iscore::SerializableCommand
     private:
         ObjectPath m_path;
 
-        QString m_newAddr;
-        QString m_oldAddr;
+        Address m_newAddr;
+        Address m_oldAddr;
 };

@@ -41,12 +41,26 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 
     // LineEdit
     m_lineEdit = new QLineEdit;
-    m_lineEdit->setText(m_model->address());
+    m_lineEdit->setText(m_model->address().toString());
     connect(m_model, SIGNAL(addressChanged(QString)),
             m_lineEdit,	SLOT(setText(QString)));
 
     connect(m_lineEdit, &QLineEdit::editingFinished,
-            [=]() { on_addressChange(m_lineEdit->text()); });
+            [=]() {
+        // Validate the address
+        const auto& str = m_lineEdit->text();
+
+        // TODO DeviceCompleter should be updated.
+        if(Address::validateString(str))
+        {
+            on_addressChange(Address::fromString(str));
+        }
+        else
+        {
+            // TODO warn the user and clear.
+            m_lineEdit->clear();
+        }
+    });
 
     vlay->addWidget(m_lineEdit);
 
@@ -81,9 +95,9 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const QString& addr)
+                this, [&] (const Address& addr)
         {
-            m_lineEdit->setText(addr);
+            m_lineEdit->setText(addr.toString());
             on_addressChange(addr);
         });
 
@@ -106,7 +120,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 }
 
 // TODO validation (voir dans capacités de QLineEdit)
-void AutomationInspectorWidget::on_addressChange(const QString& newText)
+void AutomationInspectorWidget::on_addressChange(const Address& newText)
 {
     if(newText != m_model->address())
     {

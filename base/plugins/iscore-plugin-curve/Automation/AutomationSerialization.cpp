@@ -20,7 +20,7 @@ void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 {
-    QString address;
+    Address address;
     double min, max;
 
     m_stream >> address >> min >> max;
@@ -40,7 +40,7 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 {
-    m_obj["Address"] = autom.address();
+    m_obj["Address"] = toJsonObject(autom.address());
     m_obj["Min"] = autom.min();
     m_obj["Max"] = autom.max();
     m_obj["Curve"] = toJsonObject(autom.curve());
@@ -49,7 +49,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
 {
-    autom.setAddress(m_obj["Address"].toString());
+    autom.setAddress(fromJsonObject<Address>(m_obj["Address"].toObject()));
     autom.setMin(m_obj["Min"].toDouble());
     autom.setMax(m_obj["Max"].toDouble());
 

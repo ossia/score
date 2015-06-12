@@ -1,9 +1,70 @@
 #include "OSSIADevice.hpp"
 #include <QDebug>
+#include <boost/range/algorithm.hpp>
+void OSSIADevice::addAddress(const FullAddressSettings &settings)
+{
+    using namespace OSSIA;
+    // Get the node
+    QStringList path = settings.name.split("/");
+    path.removeFirst();
+    path.removeFirst();
 
-// Gets a node from an address in a device.
-// Creates it if necessary.
-OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
+    // Create it
+    OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
+
+    // Populate the node with an address
+    createOSSIAAddress(settings, node);
+}
+
+
+void OSSIADevice::updateAddress(const FullAddressSettings &settings)
+{
+    using namespace OSSIA;
+    QStringList path = settings.name.split("/");
+    path.removeFirst();
+    path.removeFirst();
+
+    OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
+    updateOSSIAAddress(settings, node->getAddress());
+}
+
+
+void OSSIADevice::removeAddress(const QString &address)
+{
+    using namespace OSSIA;
+    QStringList path = address.split("/");
+    path.removeFirst();
+    path.removeFirst();
+
+    OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
+    auto& children = node->getParent()->children();
+    auto it = std::find_if(children.begin(), children.end(), [&] (auto&& elt) { return elt.get() == node; });
+    if(it != children.end())
+        children.erase(it);
+}
+
+
+void OSSIADevice::sendMessage(Message &mess)
+{
+    qDebug() << "Message address:" << mess.address.device << mess.address.path;
+
+/*
+   auto node = getNodeFromPath(mess.address.path, m_dev);
+   node->getAddress()->
+   // m_dev->getAddress()->sendValue()
+   */
+    qDebug() << Q_FUNC_INFO << "TODO";
+}
+
+
+bool OSSIADevice::check(const QString &str)
+{
+    qDebug() << Q_FUNC_INFO << "TODO";
+    return false;
+}
+
+
+OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
@@ -11,10 +72,9 @@ OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = std::find_if(
-                    children.begin(),
-                    children.end(),
-                    [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
+        auto it = boost::range::find_if(
+                      children,
+                      [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
         if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
@@ -43,19 +103,40 @@ OSSIA::Node* nodeFromPath(QStringList path, OSSIA::Device* dev)
     return node;
 }
 
-void updateAddressSettings(const FullAddressSettings& settings, const std::shared_ptr<OSSIA::Address>& addr)
+
+OSSIA::Node *getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
+{
+    using namespace OSSIA;
+    // Find the relevant node to add in the device
+    OSSIA::Node* node = dev;
+    for(int i = 0; i < path.size(); i++)
+    {
+        const auto& children = node->children();
+        auto it = boost::range::find_if(children,
+                      [&] (const auto& ossia_node)
+                    { return ossia_node->getName() == path[i].toStdString(); });
+        Q_ASSERT(it != children.end());
+
+        node = it->get();
+    }
+
+    return node;
+}
+
+
+void updateOSSIAAddress(const FullAddressSettings &settings, const std::shared_ptr<OSSIA::Address> &addr)
 {
     using namespace OSSIA;
     switch(settings.ioType)
     {
         case IOType::In:
-            addr->setAccessMode(Address::AccessMode::GET);
+            addr->setAccessMode(OSSIA::Address::AccessMode::GET);
             break;
         case IOType::Out:
-            addr->setAccessMode(Address::AccessMode::SET);
+            addr->setAccessMode(OSSIA::Address::AccessMode::SET);
             break;
         case IOType::InOut:
-            addr->setAccessMode(Address::AccessMode::BI);
+            addr->setAccessMode(OSSIA::Address::AccessMode::BI);
             break;
         case IOType::Invalid:
             // TODO There shouldn't be an address!!
@@ -63,71 +144,152 @@ void updateAddressSettings(const FullAddressSettings& settings, const std::share
     }
 }
 
-void createAddressSettings(const FullAddressSettings& settings, OSSIA::Node* node)
+
+void createOSSIAAddress(const FullAddressSettings &settings, OSSIA::Node *node)
 {
     using namespace OSSIA;
-    std::shared_ptr<Address> addr;
+    std::shared_ptr<OSSIA::Address> addr;
     if(settings.value.type() == QMetaType::Float)
     { addr = node->createAddress(AddressValue::Type::FLOAT); }
+
     else if(settings.value.type() == QMetaType::Int)
     { addr = node->createAddress(AddressValue::Type::INT); }
+
     else if(settings.value.type() == QMetaType::QString)
     { addr = node->createAddress(AddressValue::Type::STRING); }
 
-    updateAddressSettings(settings, addr);
-}
+    else if(settings.value.type() == QMetaType::Bool)
+    { addr = node->createAddress(AddressValue::Type::BOOL); }
 
-void OSSIADevice::addAddress(const FullAddressSettings &settings)
-{
-    using namespace OSSIA;
-    // Get the node
-    QStringList path = settings.name.split("/");
-    path.removeFirst();
-    path.removeFirst();
+    else if(settings.value.type() == QMetaType::Char)
+    { addr = node->createAddress(AddressValue::Type::CHAR); }
 
-    // Create it
-    OSSIA::Node* node = nodeFromPath(path, m_dev.get());
+    else if(settings.value.type() == QMetaType::QVariantList)
+    { addr = node->createAddress(AddressValue::Type::TUPLE); }
 
-    // Populate the node with an address
-    createAddressSettings(settings, node);
+    else if(settings.value.type() == QMetaType::QByteArray)
+    { addr = node->createAddress(AddressValue::Type::GENERIC); }
+
+    updateOSSIAAddress(settings, addr);
 }
 
 
-void OSSIADevice::updateAddress(const FullAddressSettings &settings)
+IOType accessModeToIOType(OSSIA::Address::AccessMode t)
 {
-    using namespace OSSIA;
-    QStringList path = settings.name.split("/");
-    path.removeFirst();
-    path.removeFirst();
-
-    OSSIA::Node* node = nodeFromPath(path, m_dev.get());
-    updateAddressSettings(settings, node->getAddress());
+    switch(t)
+    {
+        case OSSIA::Address::AccessMode::GET:
+            return IOType::In;
+        case OSSIA::Address::AccessMode::SET:
+            return IOType::Out;
+        case OSSIA::Address::AccessMode::BI:
+            return IOType::InOut;
+        default:
+            Q_ASSERT(false);
+            return IOType::Invalid;
+    }
 }
 
 
-void OSSIADevice::removeAddress(const QString &address)
+ClipMode OSSIABoudingModeToClipMode(OSSIA::Address::BoundingMode b)
 {
-    using namespace OSSIA;
-    QStringList path = address.split("/");
-    path.removeFirst();
-    path.removeFirst();
-
-    OSSIA::Node* node = nodeFromPath(path, m_dev.get());
-    auto& children = node->getParent()->children();
-    auto it = std::find_if(children.begin(), children.end(), [&] (auto&& elt) { return elt.get() == node; });
-    if(it != children.end())
-        children.erase(it);
+    switch(b)
+    {
+        case OSSIA::Address::BoundingMode::CLIP:
+            return ClipMode::Clip;
+            break;
+        case OSSIA::Address::BoundingMode::FOLD:
+            return ClipMode::Fold;
+            break;
+        case OSSIA::Address::BoundingMode::FREE:
+            return ClipMode::Free;
+            break;
+        case OSSIA::Address::BoundingMode::WRAP:
+            return ClipMode::Wrap;
+            break;
+        default:
+            Q_ASSERT(false);
+            return static_cast<ClipMode>(-1);
+    }
 }
 
 
-void OSSIADevice::sendMessage(Message &mess)
+QVariant OSSIAValueToVariant(const OSSIA::AddressValue *val)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    QVariant v;
+    switch(val->getType())
+    {
+        case OSSIA::AddressValue::Type::IMPULSE:
+            break;
+        case OSSIA::AddressValue::Type::BOOL:
+            v = dynamic_cast<const OSSIA::Bool*>(val)->value;
+            break;
+        case OSSIA::AddressValue::Type::INT:
+            v = dynamic_cast<const OSSIA::Int*>(val)->value;
+            break;
+        case OSSIA::AddressValue::Type::FLOAT:
+            v= dynamic_cast<const OSSIA::Float*>(val)->value;
+            break;
+        case OSSIA::AddressValue::Type::CHAR:
+            v = dynamic_cast<const OSSIA::Char*>(val)->value;
+            break;
+        case OSSIA::AddressValue::Type::STRING:
+            v = QString::fromStdString(dynamic_cast<const OSSIA::String*>(val)->value);
+            break;
+        case OSSIA::AddressValue::Type::TUPLE:
+        {
+            QVariantList tuple;
+            for (const auto & e : dynamic_cast<const OSSIA::Tuple*>(val)->value)
+            {
+                tuple.append(OSSIAValueToVariant(e));
+            }
+
+            v = tuple;
+            break;
+        }
+        case OSSIA::AddressValue::Type::GENERIC:
+        {
+            auto generic = dynamic_cast<const OSSIA::Generic*>(val);
+            v = QByteArray{generic->start, generic->size};
+            break;
+        }
+        default:
+            break;
+    }
+
+    return v;
 }
 
 
-bool OSSIADevice::check(const QString &str)
+AddressSettings extractAddressSettings(const OSSIA::Node &node)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
-    return false;
+    AddressSettings s;
+    const auto& addr = node.getAddress();
+    s.name = QString::fromStdString(node.getName());
+
+    if(addr)
+    {
+        s.value = OSSIAValueToVariant(addr->getValue());
+        s.ioType = accessModeToIOType(addr->getAccessMode());
+        s.clipMode = OSSIABoudingModeToClipMode(addr->getBoundingMode());
+        s.repetitionFilter = addr->getRepetitionFilter();
+
+        // TODO priority
+
+    }
+    return s;
+}
+
+
+Node *OssiaToDeviceExplorer(const OSSIA::Node &node)
+{
+    Node* n = new Node{extractAddressSettings(node)};
+
+    // 2. Recurse on the children
+    for(const auto& ossia_child : node.children())
+    {
+        n->addChild(OssiaToDeviceExplorer(*ossia_child.get()));
+    }
+
+    return n;
 }

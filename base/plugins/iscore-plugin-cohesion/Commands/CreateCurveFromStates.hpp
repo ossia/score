@@ -2,6 +2,7 @@
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <State/Message.hpp>
 namespace Scenario
 {
 namespace Command
@@ -19,7 +20,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         CreateCurveFromStates();
         ~CreateCurveFromStates();
         CreateCurveFromStates(ObjectPath&& constraint,
-                    QString address,
+                    const Address &address,
                     double start,
                     double end);
 
@@ -33,7 +34,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
     private:
         Scenario::Command::AddProcessToConstraint* m_addProcessCmd{};
 
-        QString m_address;
+        Address m_address;
 
         double m_start{}, m_end{};
 

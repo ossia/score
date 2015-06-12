@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <State/Message.hpp>
 class DeviceExplorerModel;
 class DeviceExplorerMenuButton : public QWidget
 {
@@ -8,5 +9,5 @@ class DeviceExplorerMenuButton : public QWidget
         DeviceExplorerMenuButton(DeviceExplorerModel* model);
 
     signals:
-        void addressChosen(QString);
+        void addressChosen(const Address&);
 };
