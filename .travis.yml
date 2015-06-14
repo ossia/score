@@ -9,7 +9,7 @@ before_install:
     - tar zxf cmake-3.0.2-Linux-x86_64.tar.gz
 
     - wget https://www.dropbox.com/s/hy7zf5iv2cohq2d/gcc_5.1.0-1_amd64.deb?dl=1 -O gcc_5.1.0-1_amd64.deb
-    - sudo dpkg -i gcc_5.1.0-1_amd64.deb
+    - sudo dpkg --force-overwrite -i  gcc_5.1.0-1_amd64.deb
 
 script:
     - source /opt/qt54/bin/qt54-env.sh
