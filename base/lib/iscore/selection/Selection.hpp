@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
-#include <QSet>
-using Selection = QList<const QObject*>;
+#include <unordered_set>
+using Selection = std::unordered_set<const QObject*>;
 
 template<typename T>
 Selection filterSelections(
@@ -19,25 +19,31 @@ Selection filterSelections(
     {
         if(cumulation)
         {
-            sel.removeAll(pressedModel);
+            sel.erase(pressedModel);
         }
         else
         {
-            sel.push_back(pressedModel);
+            sel.insert(pressedModel);
         }
     }
     else
     {
-        sel.push_back(pressedModel);
+        sel.insert(pressedModel);
     }
 
     return sel;
 }
 
 inline Selection filterSelections(
-        const Selection& newSelection,
+        Selection& newSelection,
         const Selection& currentSelection,
         bool cumulation)
 {
-    return cumulation ? (newSelection + currentSelection).toSet().toList() : newSelection;
+    if(cumulation)
+    {
+        for(auto& elt : currentSelection)
+            newSelection.insert(elt);
+    }
+
+    return newSelection;
 }

@@ -18,7 +18,7 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
 
     // Serialize all the events and constraints and timenodes.
     // For each removed event, we also add its constraints to the selection.
-    Selection other;
+
     // First we have to make a first round to remove all the events
     // of the selected time nodes.
 
@@ -28,13 +28,11 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
         {
             for (const auto& ev : tn->events())
             {
-                other.append(&scenar.event(ev));
+                sel.insert(&scenar.event(ev));
             }
         }
     }
 
-    // Remove duplicates
-    sel = (sel + other).toSet().toList();
 
     QList<TimeNodeModel*> maybeRemovedTimenodes;
     for(const auto& obj : sel)
@@ -45,18 +43,16 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
             // and return the corresponding elements.
             for (const auto& cstr : event->constraints())
             {
-                other.append(&scenar.constraint(cstr));
+                sel.insert(&scenar.constraint(cstr));
             }
 
             // This timenode may be removed if the event is alone.
             auto tn = &scenar.timeNode(event->timeNode());
-            if(!sel.contains(tn))
+            if(sel.find(tn) == sel.end())
                 maybeRemovedTimenodes.append(tn);
         }
     }
 
-    // Remove duplicates
-    sel = (sel + other).toSet().toList();
 
     // Serialize ALL the things
     for(auto& obj : sel)

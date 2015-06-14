@@ -19,7 +19,7 @@ bool SelectionStack::canReselect() const
 
 void SelectionStack::push(const Selection& s)
 {
-    if(s.toSet() != m_unselectable.top().toSet())
+    if(s != m_unselectable.top())
     {
         for(const QObject* obj : s)
         {
@@ -66,12 +66,12 @@ void SelectionStack::prune(QObject* p)
 {
     for(auto& sel : m_unselectable)
     {
-        sel.removeAll(p);
+        sel.erase(p);
     }
 
     for(auto& sel : m_reselectable)
     {
-        sel.removeAll(p);
+        sel.erase(p);
     }
 
     std::remove_if(

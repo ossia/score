@@ -14,13 +14,13 @@ class ScenarioViewInterface : public QObject
     public:
         ScenarioViewInterface(TemporalScenarioPresenter* presenter);
 
-        void on_eventMoved(id_type<EventModel> eventId);
-        void on_constraintMoved(id_type<ConstraintModel> constraintId);
-        void updateTimeNode(id_type<TimeNodeModel> timeNodeId);
+        void on_eventMoved(const id_type<EventModel>& eventId);
+        void on_constraintMoved(const id_type<ConstraintModel>& constraintId);
+        void updateTimeNode(const id_type<TimeNodeModel> &timeNodeId);
 
     public slots:
-        void on_hoverOnConstraint(id_type<ConstraintModel> constraintId, bool enter);
-        void on_hoverOnEvent(id_type<EventModel> eventId, bool enter);
+        void on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter);
+        void on_hoverOnEvent(const id_type<EventModel>& eventId, bool enter);
 
     private:
         TemporalScenarioPresenter* m_presenter;

@@ -1,7 +1,7 @@
 #include "CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
-
+#include <boost/range/algorithm.hpp>
 
 
 CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
@@ -32,15 +32,11 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     // If there is an existing previous segment, its end point also exists
     if(m->previous())
     {
-        auto previousSegment = std::find_if(
-                    m_segments.begin(),
-                    m_segments.end(),
+        auto previousSegment = std::find_if(m_segments.begin(), m_segments.end(),
                     [&] (CurveSegmentModel* seg) { return seg->following() == m->id(); });
         if(previousSegment != m_segments.end())
         {
-            auto thePt = std::find_if(
-                        m_points.begin(),
-                        m_points.end(),
+            auto thePt = std::find_if(m_points.begin(), m_points.end(),
                         [&] (CurvePointModel* pt) { return pt->previous() == (*previousSegment)->id(); });
 
             if(thePt != m_points.end())
@@ -75,15 +71,11 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 
     if(m->following())
     {
-        auto followingSegment = std::find_if(
-                    m_segments.begin(),
-                    m_segments.end(),
+        auto followingSegment = std::find_if(m_segments.begin(), m_segments.end(),
                     [&] (CurveSegmentModel* seg) { return seg->previous() == m->id(); });
         if(followingSegment != m_segments.end())
         {
-            auto thePt = std::find_if(
-                        m_points.begin(),
-                        m_points.end(),
+            auto thePt = std::find_if(m_points.begin(), m_points.end(),
                         [&] (CurvePointModel* pt) { return pt->following() == (*followingSegment)->id(); });
 
             if(thePt != m_points.end())
@@ -148,23 +140,26 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
 Selection CurveModel::selectedChildren() const
 {
     Selection s;
-    std::copy_if(m_segments.begin(),
-                 m_segments.end(),
-                 std::back_inserter(s),
-                 [] (CurveSegmentModel* obj) { return obj->selection.get(); });
-    std::copy_if(m_points.begin(),
-                 m_points.end(),
-                 std::back_inserter(s),
-                 [] (CurvePointModel* obj) { return obj->selection.get(); });
+    for(const auto& elt : m_segments)
+    {
+        if(elt->selection.get())
+            s.insert(elt);
+    }
+    for(const auto& elt : m_points)
+    {
+        if(elt->selection.get())
+            s.insert(elt);
+    }
+
     return s;
 }
 
 void CurveModel::setSelection(const Selection &s)
 {
     for(auto& elt : m_segments)
-        elt->selection.set(s.contains(elt));
+        elt->selection.set(s.find(elt) != s.end());
     for(auto& elt : m_points)
-        elt->selection.set(s.contains(elt));
+        elt->selection.set(s.find(elt) != s.end());
 }
 
 

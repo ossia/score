@@ -4,7 +4,6 @@
 #include "Curve/CurveView.hpp"
 #include "Curve/StateMachine/States/Tools/MoveTool.hpp"
 #include "Curve/StateMachine/States/Tools/SelectionTool.hpp"
-#include "Curve/StateMachine/States/Tools/CreationTool.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <core/document/Document.hpp>
 #include <QSignalTransition>

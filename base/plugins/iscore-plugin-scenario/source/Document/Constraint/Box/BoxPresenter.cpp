@@ -151,6 +151,7 @@ void BoxPresenter::on_deckCreated_impl(const DeckModel& deckModel)
 
 void BoxPresenter::on_deckRemoved(const id_type<DeckModel>& deckId)
 {
+    // TODO remove this ugly function
     removeFromVectorWithId(m_decks, deckId);
     on_askUpdate();
 }

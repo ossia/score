@@ -228,16 +228,16 @@ void BaseElementPresenter::on_newSelection(Selection sel)
     view()->newLocalTimeRuler();
     m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
     m_localTimeRuler->scroll(scroll);
-    m_localTimeRuler->setPixelPerMillis(1/m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1./m_millisecondsPerPixel);
 
-    if (sel.isEmpty())
+    if (sel.empty())
     {
         m_localTimeRuler->setDuration(TimeValue::zero());
         m_localTimeRuler->setStartPoint(TimeValue::zero());
     }
     else
     {
-        if(auto cstr = dynamic_cast<const ConstraintModel*>(sel.at(0)) )
+        if(auto cstr = dynamic_cast<const ConstraintModel*>(*sel.begin()) )
         {
             m_localTimeRuler->setDuration(cstr->defaultDuration());
             m_localTimeRuler->setStartPoint(cstr->startDate());

@@ -5,9 +5,9 @@
 
 #ifdef ISCORE_DEBUG
 template<typename T, typename U>
-constexpr auto checked_cast(T&& other)
+constexpr auto checked_cast(U&& other)
 {
-    auto e = dynamic_cast<U>(other);
+    auto e = dynamic_cast<T>(other);
     Q_ASSERT(e);
 
     return e;

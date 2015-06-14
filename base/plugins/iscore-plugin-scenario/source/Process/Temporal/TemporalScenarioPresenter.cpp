@@ -203,7 +203,8 @@ void TemporalScenarioPresenter::on_constraintCreated(
 void TemporalScenarioPresenter::on_eventDeleted(
         const id_type<EventModel>& eventId)
 {
-    removeFromVectorWithId(m_events, eventId);
+    delete m_events.at(eventId);
+    m_events.remove(eventId);
 
     // TODO optimizeme
     for(const auto& tn : m_timeNodes)
@@ -216,25 +217,27 @@ void TemporalScenarioPresenter::on_eventDeleted(
 void TemporalScenarioPresenter::on_timeNodeDeleted(
         const id_type<TimeNodeModel>& timeNodeId)
 {
-    removeFromVectorWithId(m_timeNodes, timeNodeId);
+    delete m_timeNodes.at(timeNodeId);
+    m_timeNodes.remove(timeNodeId);
+
     m_view->update();
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
         const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
-    vec_erase_remove_if(m_constraints,
-                        [&constraintViewModelId](TemporalConstraintPresenter * pres)
+    for(const auto& pres : m_constraints)
     {
-        bool to_delete = ::viewModel(pres)->id() == constraintViewModelId;
-
-        if(to_delete)
+        // TODO add an index on viewmodel id ?
+        if(::viewModel(pres)->id() == constraintViewModelId)
         {
+            auto cid = pres->id();
             delete pres;
+            m_constraints.remove(cid);
+            break;
         }
+    }
 
-        return to_delete;
-    });
     // TODO optimizeme
     for(auto& tn : m_timeNodes)
     {
@@ -260,7 +263,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     auto ev_pres = new EventPresenter {event_model,
                            m_view,
                            this};
-    m_events.push_back(ev_pres);
+    m_events.insert(ev_pres);
 
     ev_pres->view()
            ->setPos({rect.x() + event_model.date().toPixels(m_zoomRatio),
@@ -309,7 +312,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
             timeNode_model,
             m_view,
             this};
-    m_timeNodes.push_back(tn_pres);
+    m_timeNodes.insert(tn_pres);
 
     tn_pres->view()
            ->setPos({timeNode_model.date().toPixels(m_zoomRatio),
@@ -330,7 +333,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
                                 constraint_view_model,
                                 m_view,
                                 this};
-    m_constraints.push_back(cst_pres);
+    m_constraints.insert(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
     cst_pres->view()->setPos({rect.x() + constraint_view_model.model().startDate().toPixels(m_zoomRatio),
@@ -338,11 +341,9 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
 
 
 
-    m_viewInterface->updateTimeNode(findById(m_events,
-                                             constraint_view_model.model().endEvent())
+    m_viewInterface->updateTimeNode(m_events.at(constraint_view_model.model().endEvent())
                                         ->model().timeNode());
-    m_viewInterface->updateTimeNode(findById(m_events,
-                                             constraint_view_model.model().startEvent())
+    m_viewInterface->updateTimeNode(m_events.at(constraint_view_model.model().startEvent())
                                         ->model().timeNode());
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
@@ -352,11 +353,9 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
         const auto& cst = cst_pres->abstractConstraintViewModel().model();
         cst_pres->view()->setPos({rect.x() + cst.startDate().toPixels(m_zoomRatio),
                                   rect.y() + rect.height() * cst.heightPercentage() });
-        m_viewInterface->updateTimeNode(findById(m_events,
-                                                 cst.endEvent())
+        m_viewInterface->updateTimeNode(m_events.at(cst.endEvent())
                                         ->model().timeNode());
-        m_viewInterface->updateTimeNode(findById(m_events,
-                                                 cst.startEvent())
+        m_viewInterface->updateTimeNode(m_events.at(cst.startEvent())
                                         ->model().timeNode());
     });
 

@@ -6,17 +6,12 @@
 #include <random>
 
 
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-
-
 // TODO ModelObject with path()
 template<typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
-
     public:
+        using model_type = model;
         template<typename... Args>
         IdentifiedObject(const id_type<model>& id,
                          Args&& ... args) :
@@ -52,62 +47,6 @@ class IdentifiedObject : public IdentifiedObjectAbstract
         id_type<model> m_id {};
 };
 
-namespace bmi = boost::multi_index;
-template<typename model>
-using ModelMap =
-bmi::multi_index_container<
-    model*,
-    bmi::indexed_by<
-        bmi::hashed_unique<
-            bmi::const_mem_fun<
-                IdentifiedObject<model>,
-                const id_type<model>&,
-                &IdentifiedObject<model>::id
-            >
-        >
-    >
->;
-
-
-template<template<class> class Map, class model>
-class IdContainer
-{
-        Map<model> map;
-    public:
-        using value_type = model*;
-        auto begin() const { return map.begin(); }
-        auto cbegin() const { return map.cbegin(); }
-        auto end() const { return map.end(); }
-        auto cend() const { return map.cend(); }
-
-        void insert(model* t)
-        { map.insert(t); }
-
-        std::size_t size() const
-        { return map.size(); }
-
-        void remove(model* t)
-        { map.erase(t); }
-        void remove(const id_type<model>& id)
-        { map.erase(id); }
-
-        void clear()
-        { map.clear(); }
-
-        auto find(const id_type<model>& id) const
-        { return map.find(id); }
-
-        auto& get() { return map.template get<0>(); }
-        const auto& get() const { return map.template get<0>(); }
-
-        const auto& at(const id_type<model>& id) const
-        {
-            return *find(id);
-        }
-};
-
-template<typename model>
-using Map = IdContainer<ModelMap, model>;
 
 template<typename model>
 std::size_t hash_value(const id_type<model>& id)

@@ -1,9 +1,20 @@
 #pragma once
-#include "ProcessInterface/ProcessPresenter.hpp"
-#include <iscore/tools/SettableIdentifier.hpp>
-#include <ProcessInterface/Focus/FocusDispatcher.hpp>
+#include "Document/Event/EventModel.hpp"
+#include "Document/Event/EventPresenter.hpp"
+
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/TimeNodePresenter.hpp"
+
+
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 
 #include "StateMachines/ScenarioStateMachine.hpp"
+
+#include <ProcessInterface/ProcessPresenter.hpp>
+#include <ProcessInterface/Focus/FocusDispatcher.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+
 
 namespace iscore
 {
@@ -15,10 +26,9 @@ class ProcessView;
 class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
-class EventPresenter;
+
 class TemporalScenarioViewModel;
 class TemporalScenarioView;
-class EventModel;
 class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
@@ -54,11 +64,11 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
         void on_zoomRatioChanged(ZoomRatio val) override;
 
-        const std::vector<EventPresenter*>& events() const
+        const auto& events() const
         { return m_events; }
-        const std::vector<TimeNodePresenter*>& timeNodes() const
+        const auto& timeNodes() const
         { return m_timeNodes; }
-        const std::vector<TemporalConstraintPresenter*>& constraints() const
+        const auto& constraints() const
         { return m_constraints; }
 
         TemporalScenarioView& view() const
@@ -89,11 +99,10 @@ class TemporalScenarioPresenter : public ProcessPresenter
         void on_askUpdate();
 
     protected:
-        // TODO faire passer l'abstract et utiliser des free functions de cast
-        // TODO boost::multi_index_container
-        std::vector<TemporalConstraintPresenter*> m_constraints;
-        std::vector<EventPresenter*> m_events;
-        std::vector<TimeNodePresenter*> m_timeNodes;
+        // TODO faire passer l'abstract et utiliser des free functions de cast?
+        IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
+        IdContainer<EventPresenter, EventModel> m_events;
+        IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
 
         ZoomRatio m_zoomRatio {1};
 

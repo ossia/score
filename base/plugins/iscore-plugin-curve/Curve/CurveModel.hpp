@@ -1,9 +1,11 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-class CurveSegmentModel;
+
+#include "Segment/CurveSegmentModel.hpp"
 class CurvePointModel;
 
 class CurveModel : public IdentifiedObject<CurveModel>
@@ -48,7 +50,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void addPoint(CurvePointModel* pt);
         void removePoint(CurvePointModel* pt);
 
-        Map<CurveSegmentModel> m_segments;
+        IdContainer<CurveSegmentModel> m_segments;
         //QVector<CurveSegmentModel*> m_segments; // Each between 0, 1
         QVector<CurvePointModel*> m_points; // Each between 0, 1
 };

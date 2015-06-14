@@ -18,11 +18,11 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
     return ev->mapRectToScene(ev->boundingRect()).contains(scenePos);
 }
 
-template<typename PresenterArray, typename IdToIgnore>
-auto getCollidingModels(const PresenterArray& array, const IdToIgnore& id, const QPointF& scenePoint)
+template<typename PresenterContainer, typename IdToIgnore>
+auto getCollidingModels(const PresenterContainer& array, const IdToIgnore& id, const QPointF& scenePoint)
 {
     using namespace std;
-    QList<id_type<typename std::decay<decltype(array[0]->model())>::type>> colliding;
+    QList<id_type<typename PresenterContainer::model_type>> colliding;
 
     for(const auto& elt : array)
     {

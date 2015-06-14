@@ -6,7 +6,6 @@ cmake_minimum_required(VERSION 3.0)
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
 
 # Settings
-# TODO Check Cmake options syntax
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0042 NEW)
 
@@ -45,6 +44,11 @@ else()
   if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
   endif()
+endif()
+
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions(-DISCORE_DEBUG)
 endif()
 
 #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

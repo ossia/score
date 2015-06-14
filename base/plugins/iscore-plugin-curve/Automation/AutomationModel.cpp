@@ -141,9 +141,9 @@ Selection AutomationModel::selectableChildren() const
 {
     Selection s;
     for(auto& segment : m_curve->segments())
-        s.append(segment);
+        s.insert(segment);
     for(auto& point : m_curve->points())
-        s.append(point);
+        s.insert(point);
     return s;
 }
 

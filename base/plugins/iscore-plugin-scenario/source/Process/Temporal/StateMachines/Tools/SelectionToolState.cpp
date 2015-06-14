@@ -107,7 +107,7 @@ class ScenarioSelectionState : public CommonSelectionState
                                      [&] (EventPresenter* p) { return p->view() == item; });
                 if(ev_it != events.cend())
                 {
-                    sel.push_back(&(*ev_it)->model());
+                    sel.insert(&(*ev_it)->model());
                 }
             }
 
@@ -118,7 +118,7 @@ class ScenarioSelectionState : public CommonSelectionState
                                      [&] (TimeNodePresenter* p) { return p->view() == item; });
                 if(tn_it != timenodes.cend())
                 {
-                    sel.push_back(&(*tn_it)->model());
+                    sel.insert(&(*tn_it)->model());
                 }
             }
 
@@ -129,7 +129,7 @@ class ScenarioSelectionState : public CommonSelectionState
                                       [&] (AbstractConstraintPresenter* p) { return p->view() == item; });
                 if(cst_it != cstrs.end())
                 {
-                    sel.push_back(&(*cst_it)->model());
+                    sel.insert(&(*cst_it)->model());
                 }
             }
 

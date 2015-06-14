@@ -7,6 +7,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
+#include <boost/range/algorithm.hpp>
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const id_type<ProcessModel>& id,
                              QObject* parent) :
@@ -181,11 +182,13 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 
 Selection ScenarioModel::selectableChildren() const
 {
-    using namespace std;
     Selection objects;
-    copy(begin(m_constraints), end(m_constraints), back_inserter(objects));
-    copy(begin(m_events), end(m_events), back_inserter(objects));
-    copy(begin(m_timeNodes), end(m_timeNodes), back_inserter(objects));
+    for(const auto& elt : m_constraints)
+        objects.insert(elt);
+    for(const auto& elt : m_events)
+        objects.insert(elt);
+    for(const auto& elt : m_timeNodes)
+        objects.insert(elt);
 
     return objects;
 }
@@ -195,12 +198,11 @@ Selection ScenarioModel::selectableChildren() const
 template<typename InputVec, typename OutputVec>
 void copySelected(const InputVec& in, OutputVec& out)
 {
-    using namespace std;
-    copy_if(begin(in), end(in), back_inserter(out),
-            [](typename InputVec::value_type m)
+    for(const auto& elt : in)
     {
-        return m->selection.get();
-    });
+        if(elt->selection.get())
+            out.insert(elt);
+    }
 }
 
 Selection ScenarioModel::selectedChildren() const
@@ -215,12 +217,13 @@ Selection ScenarioModel::selectedChildren() const
 
 void ScenarioModel::setSelection(const Selection& s) const
 {
+    // TODO if selection != actual
     for(auto& elt : m_constraints)
-        elt->selection.set(s.contains(elt));
+        elt->selection.set(s.find(elt) != s.end());
     for(auto& elt : m_events)
-        elt->selection.set(s.contains(elt));
+        elt->selection.set(s.find(elt) != s.end());
     for(auto& elt : m_timeNodes)
-      elt->selection.set(s.contains(elt));
+      elt->selection.set(s.find(elt) != s.end());
 }
 
 ProcessStateDataInterface* ScenarioModel::startState() const

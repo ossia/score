@@ -125,10 +125,10 @@ class SelectionState : public CommonSelectionState
                 switch(item->type())
                 {
                     case QGraphicsItem::UserType + 10:
-                        sel.push_back(&static_cast<CurvePointView*>(item)->model());
+                        sel.insert(&static_cast<CurvePointView*>(item)->model());
                         break;
                     case QGraphicsItem::UserType + 11:
-                        sel.push_back(&static_cast<CurveSegmentView*>(item)->model());
+                        sel.insert(&static_cast<CurveSegmentView*>(item)->model());
                         break;
                     default:
                         break;

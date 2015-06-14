@@ -25,6 +25,7 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
     public:
         using view_model_type = TemporalConstraintViewModel;
         using view_type = TemporalConstraintView;
+        const auto& id() const { return AbstractConstraintPresenter::id(); } // To please boost::const_mem_fun
 
         TemporalConstraintPresenter(const TemporalConstraintViewModel& viewModel,
                                     QGraphicsObject* parentobject,
