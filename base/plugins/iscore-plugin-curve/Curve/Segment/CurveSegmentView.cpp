@@ -3,6 +3,7 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QPainter>
 
+static QColor baseColor{QColor::fromRgb(3, 195, 221)};
 CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *parent):
     QGraphicsObject{parent},
     m_model{model}
@@ -35,10 +36,9 @@ QRectF CurveSegmentView::boundingRect() const
 
 void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QColor c = m_selected ? Qt::yellow : Qt::red;
     QPen pen;
     pen.setWidth(2);
-    pen.setColor(c);
+    pen.setColor(m_selected ? Qt::yellow : baseColor);
     painter->setPen(pen);
     painter->drawPath(m_shape);
     //painter->drawLines(m_lines);

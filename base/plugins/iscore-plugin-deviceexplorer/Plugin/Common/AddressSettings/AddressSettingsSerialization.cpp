@@ -226,8 +226,9 @@ void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
 
     n.priority = m_obj["Priority"].toInt();
 
-    fromJsonArray(m_obj["Tags"].toArray(), n.tags);
-
+    auto arr = m_obj["Tags"].toArray();
+    for(auto&& elt : arr)
+        n.tags.append(elt.toString());
 
     if(m_obj.contains("Type"))
     {
@@ -249,5 +250,4 @@ void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
             n.domain = JSONToDomain<QString>(m_obj["Domain"].toObject());
         }
     }
-
 }
