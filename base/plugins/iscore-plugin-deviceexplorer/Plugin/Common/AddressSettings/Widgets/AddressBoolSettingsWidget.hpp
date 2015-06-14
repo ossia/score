@@ -10,4 +10,7 @@ class AddressBoolSettingsWidget : public AddressSettingsWidget
         virtual AddressSettings getSettings() const override;
 
         virtual void setSettings(const AddressSettings& settings) override;
+
+    private:
+        QComboBox* m_cb{};
 };
