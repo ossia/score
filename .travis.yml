@@ -8,13 +8,13 @@ before_install:
     - wget https://www.dropbox.com/s/e0o670ve6gv1dgt/cmake-3.0.2-Linux-x86_64.tar.gz?dl=1 -O cmake-3.0.2-Linux-x86_64.tar.gz
     - tar zxf cmake-3.0.2-Linux-x86_64.tar.gz
 
-    - wget https://www.dropbox.com/s/exjazsh5epqet2g/gcc_4.9.1-1_amd64.deb?dl=1 -O gcc_4.9.1-1_amd64.deb
-    - sudo dpkg -i gcc_4.9.1-1_amd64.deb
+    - wget https://www.dropbox.com/s/hy7zf5iv2cohq2d/gcc_5.1.0-1_amd64.deb?dl=1 -O gcc_5.1.0-1_amd64.deb
+    - sudo dpkg -i gcc_5.1.0-1_amd64.deb
 
 script:
     - source /opt/qt54/bin/qt54-env.sh
     - cmake-3.0.2-Linux-x86_64/bin/cmake .
     - make
 # Note : to make the tests work under travis, they have to be changed in order not to require QApplication but only QCoreApplication
-#    - LD_LIBRARY_PATH=/usr/local/lib64 make ExperimentalTest
+#    - LD_LIBRARY_PATH=/usr/lib64 make ExperimentalTest
 
