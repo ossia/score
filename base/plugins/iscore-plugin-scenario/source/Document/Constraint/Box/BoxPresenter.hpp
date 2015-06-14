@@ -1,6 +1,9 @@
 #pragma once
+#include "Deck/DeckPresenter.hpp"
+#include "Deck/DeckModel.hpp"
+
 #include <iscore/tools/NamedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
@@ -32,7 +35,7 @@ class BoxPresenter : public NamedObject
         void setWidth(int);
 
         const id_type<BoxModel>& id() const;
-        std::vector<DeckPresenter*> decks() const
+        auto decks() const
         { return m_decks; }
 
         void setDisabledDeckState();
@@ -65,7 +68,7 @@ class BoxPresenter : public NamedObject
 
         const BoxModel& m_model;
         BoxView* m_view;
-        std::vector<DeckPresenter*> m_decks;
+        IdContainer<DeckPresenter,DeckModel> m_decks;
 
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};

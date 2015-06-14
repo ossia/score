@@ -1,6 +1,10 @@
 #pragma once
-#include "ProcessInterface/ProcessModel.hpp"
-#include <iscore/tools/SettableIdentifier.hpp>
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+
+#include <ProcessInterface/ProcessModel.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -94,17 +98,17 @@ class ScenarioModel : public ProcessModel
         // to call a method on the scenario (e.g. removeConstraint) that changes the vector
         // while iterating, which would invalidate the iterators
         // and lead to undefined behaviour
-        std::vector<ConstraintModel*> constraints() const
+        auto constraints() const
         {
             return m_constraints;
         }
 
-        std::vector<EventModel*> events() const
+        auto events() const
         {
             return m_events;
         }
 
-        std::vector<TimeNodeModel*> timeNodes() const
+        auto timeNodes() const
         {
             return m_timeNodes;
         }
@@ -160,26 +164,24 @@ class ScenarioModel : public ProcessModel
                       QObject* parent);
         void makeViewModel_impl(view_model_type*);
 
-        std::vector<ConstraintModel*> m_constraints;
-        std::vector<EventModel*> m_events;
-        std::vector<TimeNodeModel*> m_timeNodes;
+        IdContainer<ConstraintModel> m_constraints;
+        IdContainer<EventModel> m_events;
+        IdContainer<TimeNodeModel> m_timeNodes;
 
         id_type<EventModel> m_startEventId {};
         id_type<EventModel> m_endEventId {};
 };
 
-
+#include <iterator>
 template<typename Vector>
 Vector selectedElements(const Vector& in)
 {
     Vector out;
-    std::copy_if(std::begin(in),
-                 std::end(in),
-                 back_inserter(out),
-                 [](const typename Vector::value_type& c)
+    for(const auto& elt : in)
     {
-        return c->selection.get();
-    });
+        if(elt->selection.get())
+            out.insert(elt);
+    }
 
     return out;
 }

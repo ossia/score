@@ -11,6 +11,7 @@
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 

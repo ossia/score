@@ -72,6 +72,25 @@ QString ObjectPath::toString() const
 }
 
 
+template<typename Container>
+typename Container::value_type findById_weak(const Container& c, int32_t id)
+{
+    auto it = std::find_if(std::begin(c),
+                           std::end(c),
+                           [&id](typename Container::value_type model)
+    {
+        return model->id_val() == id;
+    });
+
+    if(it != std::end(c))
+    {
+        return *it;
+    }
+
+    throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toLatin1().constData());
+}
+
+
 QObject* ObjectPath::find_impl() const
 {
     auto parent_name = m_objectIdentifiers.at(0).objectName();
@@ -81,7 +100,7 @@ QObject* ObjectPath::find_impl() const
               std::begin(children));
 
     auto objs = qApp->findChildren<IdentifiedObjectAbstract*> (parent_name);
-    NamedObject* obj = findById(objs, *m_objectIdentifiers.at(0).id());
+    NamedObject* obj = findById_weak(objs, *m_objectIdentifiers.at(0).id());
 
     for(const auto& currentObjIdentifier : children)
     {
@@ -90,7 +109,7 @@ QObject* ObjectPath::find_impl() const
             auto children = obj->findChildren<IdentifiedObjectAbstract*> (currentObjIdentifier.objectName(),
                             Qt::FindDirectChildrenOnly);
 
-            obj = findById(children,
+            obj = findById_weak(children,
                            *currentObjIdentifier.id());
         }
         else

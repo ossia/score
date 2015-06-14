@@ -5,6 +5,7 @@
 #include "source/Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

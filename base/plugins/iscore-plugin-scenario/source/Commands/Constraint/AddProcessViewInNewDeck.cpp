@@ -7,6 +7,7 @@
 
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
 using namespace iscore;
@@ -29,7 +30,7 @@ AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath,
     }
     else
     {
-        m_createdBoxId = constraint.boxes().back()->id();
+        m_createdBoxId = (*constraint.boxes().begin())->id();
         m_existingBox = true;
     }
 

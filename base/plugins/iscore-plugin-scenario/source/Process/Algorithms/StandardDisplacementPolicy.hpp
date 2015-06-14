@@ -44,8 +44,8 @@ namespace StandardDisplacementPolicy
 
         for(const auto& constraint : scenario.constraints())
         {
-            auto startEventDate = scenario.event(constraint->startEvent()).date();
-            auto endEventDate = scenario.event(constraint->endEvent()).date();
+            const auto& startEventDate = scenario.event(constraint->startEvent()).date();
+            const auto& endEventDate = scenario.event(constraint->endEvent()).date();
 
             TimeValue newDuration = endEventDate - startEventDate;
 
@@ -97,8 +97,8 @@ namespace StandardDisplacementPolicy
             // update constraints size
             for(const auto& constraint : scenario.constraints())
             {
-                auto startEventDate = scenario.event(constraint->startEvent()).date();
-                auto endEventDate = scenario.event(constraint->endEvent()).date();
+                const auto& startEventDate = scenario.event(constraint->startEvent()).date();
+                const auto& endEventDate = scenario.event(constraint->endEvent()).date();
 
                 TimeValue newDuration = endEventDate - startEventDate;
 

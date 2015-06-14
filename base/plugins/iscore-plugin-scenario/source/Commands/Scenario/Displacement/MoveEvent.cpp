@@ -103,7 +103,8 @@ void MoveEvent::undo()
 
             auto& constraint = obj.first.first.find<ConstraintModel>();
             // 2. Restore the boxes & processes.
-            // TODO if possible refactor this with CopyConstraintContent
+
+            // TODO if possible refactor this with CopyConstraintContent and ConstraintModel::clone
             // Be careful however, the code differs in subtle ways
             {
                 ConstraintModel src_constraint{
@@ -113,10 +114,8 @@ void MoveEvent::undo()
                 std::map<const ProcessModel*, ProcessModel*> processPairs;
 
                 // Clone the processes
-                auto src_procs = src_constraint.processes();
-                for(auto i = src_procs.size(); i --> 0; )
+                for(const auto& sourceproc : src_constraint.processes())
                 {
-                    auto sourceproc = src_procs[i];
                     auto newproc = sourceproc->clone(sourceproc->id(), &constraint);
 
                     processPairs.insert(std::make_pair(sourceproc, newproc));
@@ -124,8 +123,7 @@ void MoveEvent::undo()
                 }
 
                 // Clone the boxes
-                auto src_boxes = src_constraint.boxes();
-                for(auto i = src_boxes.size(); i --> 0; )
+                for(const auto& sourcebox : src_constraint.boxes())
                 {
                     // A note about what happens here :
                     // Since we want to duplicate our process view models using
@@ -133,8 +131,8 @@ void MoveEvent::undo()
                     // we maintain a pair mapping each original process to their cloned counterpart.
                     // We can then use the correct cloned process to clone the process view model.
                     auto newbox = new BoxModel{
-                            *src_boxes[i],
-                            src_boxes[i]->id(),
+                            *sourcebox,
+                            sourcebox->id(),
                             [&] (const DeckModel& source, DeckModel& target)
                             {
                                 for(const auto& pvm : source.processViewModels())

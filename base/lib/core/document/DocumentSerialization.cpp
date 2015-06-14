@@ -14,6 +14,7 @@
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QCryptographicHash>
 using namespace iscore;
 // Document stuff

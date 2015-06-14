@@ -2,6 +2,7 @@
 #include <Serialization/NetworkSocket.hpp>
 #include "MasterSession.hpp"
 #include <core/document/Document.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 RemoteClientBuilder::RemoteClientBuilder(MasterSession& session, QTcpSocket* sock):
     m_session{session}
 {

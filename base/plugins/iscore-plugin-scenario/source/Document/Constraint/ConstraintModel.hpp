@@ -1,9 +1,11 @@
 #pragma once
+#include "Box/BoxModel.hpp"
+#include <ProcessInterface/ProcessModel.hpp>
+
 #include <source/Document/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>
 
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
@@ -25,6 +27,7 @@ class FullViewConstraintViewModel;
 class BoxModel;
 class EventModel;
 class TimeBox;
+class ScenarioModel;
 
 /**
  * @brief The ConstraintModel class
@@ -141,6 +144,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return viewmodel;
         }
 
+        // If the constraint is in a scenario, then returns the scenario
+        ScenarioModel* parentScenario() const;
+
         // Note : the Constraint does not have ownership (it's generally the Deck)
         void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
@@ -157,6 +163,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setEndEvent(const id_type<EventModel>& eventId);
 
 
+        // TODO reference
         BoxModel* box(const id_type<BoxModel>& id) const;
         ProcessModel* process(
                 const id_type<ProcessModel>& processId) const;
@@ -164,10 +171,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Copies are done because there might be a loop
         // that might change the vector, and invalidate the
         // iterators, leading to a crash quite difficult to debug.
-        std::vector<BoxModel*> boxes() const
+        // TODO this is stupid, people should take care to not change the iterator instead.
+        auto boxes() const
         { return m_boxes; }
 
-        std::vector<ProcessModel*> processes() const
+        auto processes() const
         { return m_processes; }
 
         // Here we won't remove / add things from the outside so it is safe to
@@ -247,15 +255,15 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
     private:
         iscore::ElementPluginModelList* m_pluginModelList{};
 
-        std::vector<BoxModel*> m_boxes; // No content -> Phantom ?
-        std::vector<ProcessModel*> m_processes;
+        IdContainer<BoxModel> m_boxes; // No content -> Phantom ?
+        IdContainer<ProcessModel> m_processes;
 
         // The small view constraint view models that show this constraint
         // The constraint does not have ownership of these: their parent (in the Qt sense) are
         // the scenario view models
         QVector<AbstractConstraintViewModel*> m_constraintViewModels;
 
-        // Model for the full view. It's always a Temporal one (but it could be specialized, in order to provide the extensibility, maybe ?)
+        // Model for the full view.
         // Note : it is also present in m_constraintViewModels.
         FullViewConstraintViewModel* m_fullViewModel {};
 

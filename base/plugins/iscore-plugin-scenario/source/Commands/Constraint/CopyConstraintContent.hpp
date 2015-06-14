@@ -33,8 +33,8 @@ namespace Scenario
                 ObjectPath m_target;
                 ExpandMode m_mode{ExpandMode::Grow};
 
-                QVector<id_type<BoxModel>> m_boxIds;
-                QVector<id_type<ProcessModel>> m_processIds;
+                QMap<id_type<BoxModel>, id_type<BoxModel>> m_boxIds;
+                QMap<id_type<ProcessModel>, id_type<ProcessModel>> m_processIds;
         };
     }
 }

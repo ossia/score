@@ -12,6 +12,7 @@
 #include "ProcessInterface/ProcessFactory.hpp"
 
 #include "iscore/document/DocumentInterface.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -62,7 +63,7 @@ void AddProcessToConstraint::redo()
     }
     else if (constraint.objectName() != "BaseConstraintModel")
     {
-        auto firstDeckModel = constraint.boxes().front()->decks().front();
+        auto firstDeckModel = *(*constraint.boxes().begin())->decks().begin();
         m_cmdFirstDeck = new AddProcessViewModelToDeck(iscore::IDocument::path(*firstDeckModel),
                                                        iscore::IDocument::path(*proc) );
 

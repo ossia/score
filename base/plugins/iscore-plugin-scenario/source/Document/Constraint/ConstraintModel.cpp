@@ -45,10 +45,8 @@ ConstraintModel::ConstraintModel(
     std::map<const ProcessModel*, ProcessModel*> processPairs;
 
     // Clone the processes
-    auto src_procs = source->processes();
-    for(auto i = src_procs.size(); i --> 0; )
+    for(const auto& process : source->processes())
     {
-        auto process = src_procs[i];
         auto newproc = process->clone(process->id(), this);
 
         processPairs.insert(std::make_pair(process, newproc));
@@ -82,6 +80,11 @@ ConstraintModel::ConstraintModel(
     m_fullViewModel = source->fullView()->clone(source->fullView()->id(), *this, this);
 }
 
+ScenarioModel *ConstraintModel::parentScenario() const
+{
+    return dynamic_cast<ScenarioModel*>(parent());
+}
+
 
 
 
@@ -112,7 +115,7 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
 //// Complex commands
 void ConstraintModel::addProcess(ProcessModel* model)
 {
-    m_processes.push_back(model);
+    m_processes.insert(model);
     emit processCreated(model->processName(), model->id());
     emit processesChanged();
 }
@@ -120,11 +123,7 @@ void ConstraintModel::addProcess(ProcessModel* model)
 void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
 {
     auto proc = process(processId);
-    vec_erase_remove_if(m_processes,
-                        [&processId](ProcessModel * model)
-    {
-        return model->id() == processId;
-    });
+    m_processes.remove(processId);
 
     emit processRemoved(processId);
     emit processesChanged();
@@ -138,7 +137,7 @@ void ConstraintModel::addBox(BoxModel* box)
     connect(this,	&ConstraintModel::defaultDurationChanged,
             box,	&BoxModel::on_durationChanged);
 
-    m_boxes.push_back(box);
+    m_boxes.insert(box);
     emit boxCreated(box->id());
 }
 
@@ -146,11 +145,7 @@ void ConstraintModel::addBox(BoxModel* box)
 void ConstraintModel::removeBox(const id_type<BoxModel>& boxId)
 {
     auto b = box(boxId);
-    vec_erase_remove_if(m_boxes,
-                        [&boxId](BoxModel * model)
-    {
-        return model->id() == boxId;
-    });
+    m_boxes.remove(boxId);
 
     emit boxRemoved(boxId);
     delete b;
@@ -180,13 +175,13 @@ void ConstraintModel::setEndEvent(const id_type<EventModel>& e)
 // TODO BoxModel&
 BoxModel* ConstraintModel::box(const id_type<BoxModel>& id) const
 {
-    return findById(m_boxes, id);
+    return m_boxes.at(id);
 }
 
 ProcessModel* ConstraintModel::process(
-        const id_type<ProcessModel>& processId) const
+        const id_type<ProcessModel>& id) const
 {
-    return findById(m_processes, processId);
+    return m_processes.at(id);
 }
 
 

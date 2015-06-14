@@ -3,6 +3,19 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 
+// TODO removeme
+template<typename Container, typename id_T>
+typename Container::value_type findById(const Container& c, const id_T& id)
+{
+    auto it = std::find(std::begin(c), std::end(c), id);
+    if(it != std::end(c))
+    {
+        return *it;
+    }
+
+    throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(*id.val()).arg(typeid(c).name()).toLatin1().constData());
+}
+
 AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
         const id_type<AbstractConstraintViewModel>& constraintViewModelid) const
 {
@@ -14,6 +27,23 @@ QVector<AbstractConstraintViewModel*> AbstractScenarioViewModel::constraints() c
     return m_constraints;
 }
 
+
+template <typename Vector, typename id_T>
+void removeById(Vector& c, const id_T& id)
+{
+    vec_erase_remove_if(c,
+                        [&id](typename Vector::value_type model)
+    {
+        bool to_delete = model->id() == id;
+
+        if(to_delete)
+        {
+            delete model;
+        }
+
+        return to_delete;
+    });
+}
 
 void AbstractScenarioViewModel::removeConstraintViewModel(
         const id_type<AbstractConstraintViewModel>& constraintViewModelId)

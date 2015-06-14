@@ -74,7 +74,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     for(; timenode_count -- > 0;)
     {
         auto tnmodel = new TimeNodeModel {*this, &scenario};
-        scenario.m_timeNodes.push_back(tnmodel);
+        scenario.addTimeNode(tnmodel);
     }
 
     checkDelimiter();
@@ -123,7 +123,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
                        Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
-        scenario.m_timeNodes.push_back(tnmodel);
+        scenario.addTimeNode(tnmodel);
     }
 }
 

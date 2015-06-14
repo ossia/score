@@ -14,7 +14,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-#include <Commands/Constraint/CopyConstraintContent.hpp>
+#include "Commands/Constraint/CopyConstraintContent.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
 #include <QJsonDocument>
@@ -250,7 +250,7 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints());
     auto cmd = new Scenario::Command::AddProcessToConstraint
     {
-        iscore::IDocument::path(selectedConstraints.at(0)),
+        iscore::IDocument::path(*selectedConstraints.begin()),
         processName
     };
     CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};

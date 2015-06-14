@@ -24,6 +24,7 @@ using namespace Scenario;
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include "Control/ScenarioControl.hpp"
 #include <iscore/presenter/PresenterInterface.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
@@ -62,7 +63,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         "Scenario"
     };
     cmd1.redo();
-    auto scenarioId = constraint_model.processes().front()->id();
+    auto scenarioId = (*constraint_model.processes().begin())->id();
 
     AddBoxToConstraint cmd2
     {
@@ -72,7 +73,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd2.redo();
-    auto box = constraint_model.boxes().front();
+    auto box = *constraint_model.boxes().begin();
 
     ShowBoxInViewModel cmd3 {
         ObjectPath{
@@ -92,7 +93,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd4.redo();
-    auto deckId = box->decks().front()->id();
+    auto deckId = (*box->decks().begin())->id();
 
     ResizeDeckVertically cmd5
     {

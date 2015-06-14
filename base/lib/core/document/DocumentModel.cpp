@@ -3,6 +3,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace iscore;
 

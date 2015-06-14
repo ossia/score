@@ -1,13 +1,12 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
-#include <ProcessInterface/TimeValue.hpp>
-#include "Document/ModelMetadata.hpp"
+#include "Deck/DeckModel.hpp"
+#include "source/Document/ModelMetadata.hpp"
 
-#include <vector>
+#include <ProcessInterface/TimeValue.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
-class DeckModel;
 class ProcessModel;
 
 /**
@@ -21,7 +20,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
         Q_OBJECT
 
     public:
-        ModelMetadata metadata;
+        ModelMetadata metadata; // TODO REMOVEME
 
         BoxModel(const id_type<BoxModel>& id, QObject* parent);
 
@@ -54,14 +53,11 @@ class BoxModel : public IdentifiedObject<BoxModel>
             return m_positions.indexOf(deckId);
         }
 
-        const std::vector<DeckModel*>& decks() const
-        {
-            return m_decks;
-        }
+        const auto& decks() const
+        { return m_decks; }
+
         const QList<id_type<DeckModel>>& decksPositions() const
-        {
-            return m_positions;
-        }
+        { return m_positions; }
 
     signals:
         void deckCreated(const id_type<DeckModel>& id);
@@ -72,7 +68,7 @@ class BoxModel : public IdentifiedObject<BoxModel>
         void on_durationChanged(const TimeValue& dur);
 
     private:
-        std::vector<DeckModel*> m_decks;
+        IdContainer<DeckModel> m_decks;
 
         // Positions of the decks. First is topmost.
         QList<id_type<DeckModel>> m_positions;

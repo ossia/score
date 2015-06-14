@@ -36,7 +36,7 @@ void BoxModel::addDeck(DeckModel* deck, int position)
     // Connection
     connect(this, &BoxModel::on_deleteSharedProcessModel,
             deck, &DeckModel::on_deleteSharedProcessModel);
-    m_decks.push_back(deck);
+    m_decks.insert(deck);
     m_positions.insert(position, deck->id());
 
     emit deckCreated(deck->id());
@@ -55,13 +55,7 @@ void BoxModel::removeDeck(const id_type<DeckModel>& deckId)
 
     // Make the remaining decks decrease their position.
     m_positions.removeAll(deckId);
-
-    // Delete
-    vec_erase_remove_if(m_decks,
-                        [&deckId](DeckModel * model)
-    {
-        return model->id() == deckId;
-    });
+    m_decks.remove(deckId);
 
     emit deckRemoved(deckId);
     emit deckPositionsChanged();
@@ -77,5 +71,5 @@ void BoxModel::swapDecks(const id_type<DeckModel>& firstdeck,
 
 DeckModel* BoxModel::deck(const id_type<DeckModel>& deckId) const
 {
-    return findById(m_decks, deckId);
+    return m_decks.at(deckId);
 }

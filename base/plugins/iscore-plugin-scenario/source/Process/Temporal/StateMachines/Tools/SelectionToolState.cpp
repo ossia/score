@@ -19,6 +19,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
+#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 
 #include <QGraphicsScene>
@@ -93,43 +94,33 @@ class ScenarioSelectionState : public CommonSelectionState
             QPainterPath path;
             path.addRect(area);
             Selection sel;
-            const auto& events = m_parentSM.presenter().events();
-            const auto& timenodes = m_parentSM.presenter().timeNodes();
-            const auto& cstrs = m_parentSM.presenter().constraints();
 
-            const auto items = m_parentSM.scene().items(path);
-
-            // TODO we can optimize this A LOT with type() and the pointer to the presenter.
-            for (const auto& item : items)
+            auto scenario = &m_parentSM.presenter().viewModel().sharedProcessModel();
+            for(const auto& item : m_parentSM.scene().items(path))
             {
-                auto ev_it = find_if(events.cbegin(),
-                                     events.cend(),
-                                     [&] (EventPresenter* p) { return p->view() == item; });
-                if(ev_it != events.cend())
+                switch(item->type())
                 {
-                    sel.insert(&(*ev_it)->model());
-                }
-            }
-
-            for (const auto& item : items)
-            {
-                auto tn_it = find_if(timenodes.cbegin(),
-                                     timenodes.cend(),
-                                     [&] (TimeNodePresenter* p) { return p->view() == item; });
-                if(tn_it != timenodes.cend())
-                {
-                    sel.insert(&(*tn_it)->model());
-                }
-            }
-
-            for (const auto& item : items)
-            {
-                auto cst_it = find_if(cstrs.begin(),
-                                      cstrs.end(),
-                                      [&] (AbstractConstraintPresenter* p) { return p->view() == item; });
-                if(cst_it != cstrs.end())
-                {
-                    sel.insert(&(*cst_it)->model());
+                    case QGraphicsItem::UserType + 1: // event
+                    {
+                        const auto& ev_model = static_cast<const EventView*>(item)->presenter().model();
+                        if(ev_model.parentScenario() == scenario)
+                            sel.insert(&ev_model);
+                        break;
+                    }
+                    case QGraphicsItem::UserType + 2: // constraint
+                    {
+                        const auto& cst_model = static_cast<const AbstractConstraintView*>(item)->presenter().abstractConstraintViewModel().model();
+                        if(cst_model.parentScenario() == scenario)
+                            sel.insert(&cst_model);
+                        break;
+                    }
+                    case QGraphicsItem::UserType + 3: // timenode
+                    {
+                        const auto& tn_model = static_cast<const TimeNodeView*>(item)->presenter().model();
+                        if(tn_model.parentScenario() == scenario)
+                            sel.insert(&tn_model);
+                        break;
+                    }
                 }
             }
 
@@ -160,34 +151,25 @@ void SelectionTool::on_pressed()
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const id_type<EventModel>& id) // Event
     {
-        const auto& elts = m_parentSM.presenter().events();
-        auto elt = find_if(begin(elts), end(elts),
-                           [&] (EventPresenter* e) { return e->id() == id;});
-        Q_ASSERT(elt != end(elts));
+        const auto& elt = m_parentSM.presenter().events().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
-        const auto& elts = m_parentSM.presenter().timeNodes();
-        auto elt = find_if(begin(elts), end(elts),
-                           [&] (TimeNodePresenter* e) { return e->id() == id;});
-        Q_ASSERT(elt != end(elts));
+        const auto& elt = m_parentSM.presenter().timeNodes().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
-        const auto& elts = m_parentSM.presenter().constraints();
-        auto elt = find_if(begin(elts), end(elts),
-                           [&] (AbstractConstraintPresenter* e) { return e->id() == id;});
-        Q_ASSERT(elt != end(elts));
+        const auto& elt = m_parentSM.presenter().constraints().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&(*elt)->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
     },

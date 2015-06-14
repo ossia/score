@@ -3,6 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

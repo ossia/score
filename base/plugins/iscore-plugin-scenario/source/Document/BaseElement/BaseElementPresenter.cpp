@@ -107,8 +107,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     setDisplayedConstraint(model()->baseConstraint());
 
     // We set the focus on the main scenario.
-    // TODO what happens when we load an empty score
-    DeckPresenter* deck = m_displayedConstraintPresenter->box()->decks().front();
+    // TODO crash happens when we load an empty score
+    DeckPresenter* deck = *m_displayedConstraintPresenter->box()->decks().begin();
     model()->focusManager().setFocusedPresenter(
                 deck->processes().front().first);
 

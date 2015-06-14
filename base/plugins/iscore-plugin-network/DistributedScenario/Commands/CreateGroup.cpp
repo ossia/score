@@ -2,6 +2,7 @@
 
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/GroupManager.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
 CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):

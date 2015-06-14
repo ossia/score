@@ -37,6 +37,9 @@ class IdContainer<Element, Model,
         std::size_t size() const
         { return map.size(); }
 
+        bool empty() const
+        { return map.empty(); }
+
         void remove(value_type t)
         { map.erase(t); }
         void remove(const id_type<model_type>& id)
@@ -93,6 +96,9 @@ class IdContainer<Element, Model,
 
         std::size_t size() const
         { return map.size(); }
+
+        bool empty() const
+        { return map.empty(); }
 
         void remove(value_type t)
         { map.erase(t); }

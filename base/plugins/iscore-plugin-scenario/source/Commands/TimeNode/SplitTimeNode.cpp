@@ -7,6 +7,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 

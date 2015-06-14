@@ -8,6 +8,7 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
 #include <boost/range/algorithm.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const id_type<ProcessModel>& id,
                              QObject* parent) :
@@ -262,21 +263,21 @@ void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
 ///////// ADDITION //////////
 void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
-    m_constraints.push_back(constraint);
+    m_constraints.insert(constraint);
 
     emit constraintCreated(constraint->id());
 }
 
 void ScenarioModel::addEvent(EventModel* event)
 {
-    m_events.push_back(event);
+    m_events.insert(event);
 
     emit eventCreated(event->id());
 }
 
 void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 {
-    m_timeNodes.push_back(timeNode);
+    m_timeNodes.insert(timeNode);
 
     emit timeNodeCreated(timeNode->id());
 }
@@ -285,11 +286,7 @@ void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 {;
     auto constraintId = cstr->id();
-    vec_erase_remove_if(m_constraints,
-                        [&constraintId](ConstraintModel * model)
-    {
-        return model->id() == constraintId;
-    });
+    m_constraints.remove(cstr->id());
 
     emit constraintRemoved(constraintId);
     delete cstr;
@@ -298,12 +295,7 @@ void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 void ScenarioModel::removeEvent(EventModel* ev)
 {
     auto eventId = ev->id();
-
-    vec_erase_remove_if(m_events,
-                        [&eventId](EventModel * model)
-    {
-        return model->id() == eventId;
-    });
+    m_events.remove(ev->id());
 
     emit eventRemoved(eventId);
     delete ev;
@@ -312,11 +304,7 @@ void ScenarioModel::removeEvent(EventModel* ev)
 void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 {
     auto timeNodeId = tn->id();
-    vec_erase_remove_if(m_timeNodes,
-                        [&timeNodeId](TimeNodeModel * model)
-    {
-        return model->id() == timeNodeId;
-    });
+    m_timeNodes.remove(tn->id());
 
     emit timeNodeRemoved(timeNodeId);
     delete tn;
@@ -325,17 +313,17 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 /////////////////////////////
 ConstraintModel& ScenarioModel::constraint(const id_type<ConstraintModel>& constraintId) const
 {
-    return *findById(m_constraints, constraintId);
+    return *m_constraints.at(constraintId);
 }
 
 EventModel& ScenarioModel::event(const id_type<EventModel>& eventId) const
 {
-    return *findById(m_events, eventId);
+    return *m_events.at(eventId);
 }
 
 TimeNodeModel& ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId) const
 {
-    return *findById(m_timeNodes, timeNodeId);
+    return *m_timeNodes.at(timeNodeId);
 }
 
 

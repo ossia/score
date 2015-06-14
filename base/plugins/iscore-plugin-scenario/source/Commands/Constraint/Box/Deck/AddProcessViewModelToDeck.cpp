@@ -4,6 +4,7 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 #include "ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

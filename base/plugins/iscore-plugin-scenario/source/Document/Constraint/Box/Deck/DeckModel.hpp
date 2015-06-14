@@ -1,5 +1,6 @@
 #pragma once
-#include <iscore/tools/IdentifiedObject.hpp>
+#include <ProcessInterface/ProcessViewModel.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include <vector>
 
@@ -57,7 +58,9 @@ class DeckModel : public IdentifiedObject<DeckModel>
                 const id_type<ProcessViewModel>& processViewId);
         const id_type<ProcessViewModel>& frontProcessViewModel() const;
 
-        const std::vector<ProcessViewModel*>& processViewModels() const;
+        const auto& processViewModels() const
+        { return m_processViewModels; }
+
         ProcessViewModel& processViewModel(
                 const id_type<ProcessViewModel>& processViewModelId) const;
 
@@ -83,7 +86,7 @@ class DeckModel : public IdentifiedObject<DeckModel>
 
     private:
         id_type<ProcessViewModel> m_frontProcessViewModelId;
-        std::vector<ProcessViewModel*> m_processViewModels;
+        IdContainer<ProcessViewModel> m_processViewModels;
 
         int m_height {200};
         bool m_focus{false};

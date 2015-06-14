@@ -42,7 +42,7 @@ void DeckModel::copyViewModelsInSameConstraint(
 
 void DeckModel::addProcessViewModel(ProcessViewModel* viewmodel)
 {
-    m_processViewModels.push_back(viewmodel);
+    m_processViewModels.insert(viewmodel);
 
     emit processViewModelCreated(viewmodel->id());
 
@@ -53,12 +53,7 @@ void DeckModel::deleteProcessViewModel(
         const id_type<ProcessViewModel>& processViewId)
 {
     auto& pvm = processViewModel(processViewId);
-
-    vec_erase_remove_if(m_processViewModels,
-                        [&processViewId](ProcessViewModel * model)
-    {
-        return model->id() == processViewId;
-    });
+    m_processViewModels.remove(processViewId);
 
     emit processViewModelRemoved(processViewId);
 
@@ -93,15 +88,10 @@ const id_type<ProcessViewModel>& DeckModel::frontProcessViewModel() const
     return m_frontProcessViewModelId;
 }
 
-const std::vector<ProcessViewModel*>& DeckModel::processViewModels() const
-{
-    return m_processViewModels;
-}
-
 ProcessViewModel& DeckModel::processViewModel(
         const id_type<ProcessViewModel>& processViewModelId) const
 {
-    return *findById(m_processViewModels, processViewModelId);
+    return *m_processViewModels.at(processViewModelId);
 }
 
 void DeckModel::on_deleteSharedProcessModel(

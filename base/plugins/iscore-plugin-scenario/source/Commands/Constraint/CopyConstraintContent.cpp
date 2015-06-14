@@ -5,6 +5,7 @@
 #include "Document/Constraint/Box/Deck/DeckModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QJsonDocument>
 
 using namespace iscore;
@@ -28,16 +29,30 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
 
     // For all boxes in source, generate new id's
     auto target_boxes = trg_constraint.boxes();
-    for(auto i = src_constraint.boxes().size(); i --> 0; )
+    QVector<id_type<BoxModel>> target_boxes_ids;
+    std::transform(target_boxes.begin(), target_boxes.end(),
+                   std::back_inserter(target_boxes_ids),
+                   [] (BoxModel* box) { return box->id(); });
+
+    for(const auto& box : src_constraint.boxes())
     {
-        m_boxIds.push_back(getStrongId(target_boxes));
+        auto newId = getStrongId(target_boxes_ids);
+        m_boxIds.insert(box->id(), newId);
+        target_boxes_ids.append(newId);
     }
 
     // Same for processes
     auto target_processes = trg_constraint.processes();
-    for(auto i = src_constraint.processes().size(); i --> 0; )
+    QVector<id_type<ProcessModel>> target_processes_ids;
+    std::transform(target_processes.begin(), target_processes.end(),
+                   std::back_inserter(target_processes_ids),
+                   [] (ProcessModel* proc) { return proc->id(); });
+
+    for(const auto& proc : src_constraint.processes())
     {
-        m_processIds.push_back(getStrongId(target_processes));
+        auto newId = getStrongId(target_processes_ids);
+        m_processIds.insert(proc->id(), newId);
+        target_processes_ids.append(newId);
     }
 }
 
@@ -69,10 +84,9 @@ void CopyConstraintContent::redo()
 
     // Clone the processes
     auto src_procs = src_constraint.processes();
-    for(auto i = src_procs.size(); i --> 0; )
+    for(const auto& sourceproc : src_procs)
     {
-        auto sourceproc = src_procs[i];
-        auto newproc = sourceproc->clone(m_processIds[i], &trg_constraint);
+        auto newproc = sourceproc->clone(m_processIds[sourceproc->id()], &trg_constraint);
 
         processPairs.insert(std::make_pair(sourceproc, newproc));
         trg_constraint.addProcess(newproc);
@@ -90,7 +104,7 @@ void CopyConstraintContent::redo()
 
     // Clone the boxes
     auto src_boxes = src_constraint.boxes();
-    for(auto i = src_boxes.size(); i --> 0; )
+    for(const auto& sourcebox: src_boxes)
     {
         // A note about what happens here :
         // Since we want to duplicate our process view models using
@@ -98,8 +112,8 @@ void CopyConstraintContent::redo()
         // we maintain a pair mapping each original process to their cloned counterpart.
         // We can then use the correct cloned process to clone the process view model.
         auto newbox = new BoxModel{
-                *src_boxes[i],
-                m_boxIds[i],
+                *sourcebox,
+                m_boxIds[sourcebox->id()],
                 [&] (const DeckModel& source, DeckModel& target)
                 {
                     for(const auto& pvm : source.processViewModels())

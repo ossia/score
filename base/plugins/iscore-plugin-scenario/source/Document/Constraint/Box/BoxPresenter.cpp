@@ -82,7 +82,7 @@ void BoxPresenter::setWidth(int w)
 {
     m_view->setWidth(w);
 
-    for(auto deck : m_decks)
+    for(const auto& deck : m_decks)
     {
         deck->setWidth(m_view->boundingRect().width());
     }
@@ -95,7 +95,7 @@ const id_type<BoxModel>& BoxPresenter::id() const
 
 void BoxPresenter::setDisabledDeckState()
 {
-    for(auto& deck : decks())
+    for(const auto& deck : m_decks)
     {
         deck->disable();
     }
@@ -103,7 +103,7 @@ void BoxPresenter::setDisabledDeckState()
 
 void BoxPresenter::setEnabledDeckState()
 {
-    for(auto& deck : decks())
+    for(const auto& deck : m_decks)
     {
         deck->enable();
     }
@@ -127,7 +127,7 @@ void BoxPresenter::on_deckCreated_impl(const DeckModel& deckModel)
     auto deckPres = new DeckPresenter {deckModel,
                                        m_view,
                                        this};
-    m_decks.push_back(deckPres);
+    m_decks.insert(deckPres);
     deckPres->on_zoomRatioChanged(m_zoomRatio);
 
     connect(deckPres, &DeckPresenter::askUpdate,
@@ -151,8 +151,11 @@ void BoxPresenter::on_deckCreated_impl(const DeckModel& deckModel)
 
 void BoxPresenter::on_deckRemoved(const id_type<DeckModel>& deckId)
 {
-    // TODO remove this ugly function
-    removeFromVectorWithId(m_decks, deckId);
+    auto deck = m_decks.at(deckId);
+
+    delete deck;
+    m_decks.remove(deckId);
+
     on_askUpdate();
 }
 
@@ -167,7 +170,7 @@ void BoxPresenter::updateShape()
 
     for(auto& deckId : m_model.decksPositions())
     {
-        auto deckPres = findById(m_decks, deckId);
+        auto deckPres = m_decks.at(deckId);
         deckPres->setWidth(width());
         deckPres->setVerticalPosition(currentDeckY);
         currentDeckY += deckPres->height() + 5; // Separation between decks
