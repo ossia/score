@@ -200,6 +200,7 @@ void TemporalScenarioPresenter::on_constraintCreated(
     on_constraintCreated_impl(constraintViewModel(m_viewModel, constraintViewModelId));
 }
 
+// TODO harmonize function names (removed > deleted)
 void TemporalScenarioPresenter::on_eventDeleted(
         const id_type<EventModel>& eventId)
 {

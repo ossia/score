@@ -54,6 +54,7 @@ class IdContainer<Element, Model,
         auto& get() { return map.template get<0>(); }
         const auto& get() const { return map.template get<0>(); }
 
+        // TODO put some Q_ASSERT in debug mode
         const auto& at(const id_type<model_type>& id) const
         { return *find(id); }
 

@@ -104,15 +104,18 @@ void ScenarioViewInterface::updateTimeNode(const id_type<TimeNodeModel>& timeNod
     {
         EventPresenter* event = m_presenter->m_events.at(eventId);
 
-        double y = event->model().heightPercentage();
+        update_min_max(event->model().heightPercentage(), min, max);
 
-        update_min_max(y, min, max);
-
-        for(const auto& constraint_id : event->model().constraints())
+        for(const auto& constraint_id : event->model().previousConstraints())
         {
             auto cstr_pres = m_presenter->m_constraints.at(constraint_id);
-            y = cstr_pres->model().heightPercentage(); // TODO here we have to find the length of the current box.
-            update_min_max(y, min, max);
+            update_min_max(cstr_pres->model().heightPercentage(), min, max);
+        }
+
+        for(const auto& constraint_id : event->model().nextConstraints())
+        {
+            auto cstr_pres = m_presenter->m_constraints.at(constraint_id);
+            update_min_max(cstr_pres->model().heightPercentage(), min, max);
         }
     }
 
