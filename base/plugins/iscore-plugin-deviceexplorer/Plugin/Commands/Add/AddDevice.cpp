@@ -7,9 +7,6 @@
 #include <Plugin/DeviceExplorerPlugin.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
-#include "Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp"
-#include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
-
 #include <QFile>
 #include <QtXml/QtXml>
 

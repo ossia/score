@@ -1,10 +1,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "AddressSettings.hpp"
-#include "AddressSpecificSettings/AddressFloatSettings.hpp"
-#include "AddressSpecificSettings/AddressIntSettings.hpp"
-#include "AddressSpecificSettings/AddressStringSettings.hpp"
-
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Domain& n)

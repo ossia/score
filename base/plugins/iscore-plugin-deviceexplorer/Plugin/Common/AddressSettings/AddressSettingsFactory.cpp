@@ -1,10 +1,15 @@
 #include "AddressSettingsFactory.hpp"
 
 //value types
-#include "Widgets/AddressIntSettingsWidget.hpp"
-#include "Widgets/AddressFloatSettingsWidget.hpp"
+#include "Widgets/AddressNumericSettingsWidget.hpp"
 #include "Widgets/AddressStringSettingsWidget.hpp"
+#include "Widgets/AddressBoolSettingsWidget.hpp"
+#include "Widgets/AddressTupleSettingsWidget.hpp"
 
+
+using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
+using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
+using AddressCharSettingsWidget = AddressNumericSettingsWidget<char>;
 
 
 template <typename T>

@@ -10,7 +10,6 @@
 #include <QFormLayout>
 
 #include <Common/CommonTypes.hpp>
-#include "Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp"
 
 template<typename T> struct TemplatedSpinBox;
 template<> struct TemplatedSpinBox<int> { using type = QSpinBox; };
@@ -76,50 +75,3 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         QComboBox* m_unitCBox;
 };
 
-using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
-using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
-using AddressCharSettingsWidget = AddressNumericSettingsWidget<char>;
-
-
-class AddressBoolSettingsWidget : public AddressSettingsWidget
-{
-    public:
-        AddressBoolSettingsWidget(QWidget* parent = nullptr)
-            : AddressSettingsWidget(parent)
-        {
-            // TODO only value (true / false)
-
-        }
-
-        virtual AddressSettings getSettings() const override
-        {
-            auto settings = getCommonSettings();
-            return settings;
-        }
-
-        virtual void setSettings(const AddressSettings& settings) override
-        {
-
-        }
-};
-
-class AddressTupleSettingsWidget : public AddressSettingsWidget
-{
-    public:
-        AddressTupleSettingsWidget(QWidget* parent = nullptr)
-            : AddressSettingsWidget(parent)
-        {
-
-        }
-
-        virtual AddressSettings getSettings() const override
-        {
-            auto settings = getCommonSettings();
-            return settings;
-        }
-
-        virtual void setSettings(const AddressSettings& settings) override
-        {
-
-        }
-};

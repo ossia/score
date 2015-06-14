@@ -1,8 +1,7 @@
 #include "MinuitDevice.hpp"
 #include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/AddressValue.h>
-#include <Plugin/Common/AddressSettings/AddressSpecificSettings/AddressIntSettings.hpp>
-#include <Plugin/Common/AddressSettings/AddressSpecificSettings/AddressFloatSettings.hpp>
+
 MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     OSSIADevice{settings},
     m_minuitSettings{[&] () {
