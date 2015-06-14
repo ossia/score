@@ -3,8 +3,6 @@
 #include "ProcessInterface/ProcessList.hpp"
 
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QToolButton>
-#include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
 
 AddProcessDialog::AddProcessDialog(QWidget *parent) :

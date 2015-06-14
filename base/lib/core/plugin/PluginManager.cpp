@@ -9,11 +9,8 @@
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
-#include <QCoreApplication>
 #include <QDir>
 #include <QSettings>
 
@@ -73,7 +70,7 @@ void PluginManager::reloadPlugins()
             else
             {
                 QString s = loader.errorString();
-                //if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
+                if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
                     qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
             }
         }

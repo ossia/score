@@ -1,8 +1,6 @@
 #include "InspectorSectionWidget.hpp"
 #include "InspectorWidgetBase.hpp"
 
-
-#include <QLayout>
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QScrollArea>

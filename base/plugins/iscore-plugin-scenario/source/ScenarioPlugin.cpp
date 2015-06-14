@@ -11,7 +11,6 @@
 #include <State/State.hpp>
 #include <State/Message.hpp>
 
-#include <ProcessInterface/TimeValue.hpp>
 iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {},

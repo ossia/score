@@ -3,7 +3,6 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 
-#include <QVBoxLayout>
 #include <QTabWidget>
 
 InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :

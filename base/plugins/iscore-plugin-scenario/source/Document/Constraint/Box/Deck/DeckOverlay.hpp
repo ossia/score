@@ -5,8 +5,10 @@ class DeckHandle;
 class DeckOverlay : public QGraphicsItem
 {
     public:
-        const DeckView& deckView;
         DeckOverlay(DeckView* parent);
+
+        const DeckView& deckView() const
+        { return m_deckView; }
 
         virtual QRectF boundingRect() const override;
 
@@ -20,4 +22,7 @@ class DeckOverlay : public QGraphicsItem
         virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
+    private:
+        const DeckView&m_deckView;
 };

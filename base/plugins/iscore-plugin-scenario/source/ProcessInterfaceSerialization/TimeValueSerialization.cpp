@@ -2,7 +2,6 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/JSONValueVisitor.hpp>
 
 
 template<>

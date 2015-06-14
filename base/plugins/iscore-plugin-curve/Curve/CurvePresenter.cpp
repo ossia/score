@@ -6,19 +6,18 @@
 #include "Curve/Segment/CurveSegmentList.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
 #include "Curve/Point/CurvePointView.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
 #include "Curve/StateMachine/OngoingCommandState.hpp"
-#include <QKeyEvent>
-#include <QMenu>
-#include <QAction>
-#include <QDebug>
+
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
 #include "Curve/StateMachine/States/Tools/MoveTool.hpp"
 
 #include "Curve/Commands/UpdateCurve.hpp"
-#include "StateMachine/CurveStateMachine.hpp"
+
 #include <QGraphicsScene>
 #include <QActionGroup>
+#include <QKeyEvent>
+#include <QMenu>
+
 CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view, QObject* parent):
     QObject{parent},
     m_model{model},

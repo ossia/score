@@ -75,12 +75,12 @@ MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):
         if(auto overlay = dynamic_cast<DeckOverlay*>(item))
         {
             m_localSM.postEvent(new ClickOnDeckOverlay_Event{
-                                    iscore::IDocument::path(overlay->deckView.presenter.model())});
+                                    iscore::IDocument::path(overlay->deckView().presenter.model())});
         }
         else if(auto handle = dynamic_cast<DeckHandle*>(item))
         {
             m_localSM.postEvent(new ClickOnDeckHandle_Event{
-                                    iscore::IDocument::path(handle->deckView.presenter.model())});
+                                    iscore::IDocument::path(handle->deckView().presenter.model())});
         }
     });
 

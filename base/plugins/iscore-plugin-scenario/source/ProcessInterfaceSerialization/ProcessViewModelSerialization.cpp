@@ -2,7 +2,6 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModel& processViewModel)

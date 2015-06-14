@@ -10,7 +10,6 @@
 #include "Commands/Insert.hpp"
 #include "Commands/EditData.hpp"
 
-#include <iscore/serialization/JSONVisitor.hpp>
 #include <QJsonDocument>
 
 using namespace DeviceExplorer::Command;
@@ -1067,8 +1066,8 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
                     QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
         MessageList messages;
-        for(auto& index : indexes)
-            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+        for(auto& model_index : indexes)
+            messages.push_back(DeviceExplorer::messageFromModelIndex(model_index));
 
         State s{messages};
         ser.m_obj = {};

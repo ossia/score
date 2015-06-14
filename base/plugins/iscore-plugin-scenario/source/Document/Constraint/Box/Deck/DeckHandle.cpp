@@ -7,7 +7,7 @@
 
 DeckHandle::DeckHandle(const DeckView &deckView, QGraphicsItem *parent):
     QGraphicsItem{parent},
-    deckView{deckView},
+    m_deckView{deckView},
     m_width{deckView.boundingRect().width()}
 {
     this->setCursor(Qt::SizeVerCursor);

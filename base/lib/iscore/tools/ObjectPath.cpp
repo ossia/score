@@ -71,19 +71,6 @@ QString ObjectPath::toString() const
     return s;
 }
 
-// TODO dangerous removeme
-ObjectPath ObjectPath::pathFromObject(QString parent_name, QObject* target_object)
-{
-    QObject* parent_obj = qApp->findChild<QObject*> (parent_name);
-    return ObjectPath::pathBetweenObjects(parent_obj, target_object);
-}
-
-ObjectPath ObjectPath::pathFromObject(QObject* origin_object)
-{
-    auto path = ObjectPath::pathBetweenObjects(qApp, origin_object);
-    path.m_objectIdentifiers.removeFirst();
-    return path;
-}
 
 QObject* ObjectPath::find_impl() const
 {

@@ -67,7 +67,7 @@ class DeckPresenter : public NamedObject
         QVector<ProcessPair> m_processes;
 
         // Maybe move this out of the state of the presenter ?
-        int m_currentResizingValue {}; // Used when the deckView is being resized.
+        int m_currentResizingValue {}; // Used when the m_deckView is being resized.
 
         ZoomRatio m_zoomRatio {};
 

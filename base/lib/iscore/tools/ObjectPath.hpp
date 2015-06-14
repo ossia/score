@@ -3,6 +3,19 @@
 #include <QVector>
 #include <QPointer>
 
+#ifdef ISCORE_DEBUG
+template<typename T, typename U>
+constexpr auto checked_cast(T&& other)
+{
+    auto e = dynamic_cast<U>(other);
+    Q_ASSERT(e);
+
+    return e;
+}
+#else
+#define checked_cast static_cast
+#endif
+
 /**
  * @brief The ObjectPath class
  *
@@ -48,7 +61,7 @@ class ObjectPath
         }
 
         ObjectPath(std::initializer_list<ObjectIdentifier> lst) :
-            m_objectIdentifiers {lst}
+            m_objectIdentifiers(lst)
         {
         }
 
@@ -57,19 +70,8 @@ class ObjectPath
         ObjectPath& operator= (ObjectPath &&) = default;
         ObjectPath& operator= (const ObjectPath&) = default;
 
-        /**
-         * @brief pathFromObject Factory method for ObjectPath
-         * @param origin Name of the object from which the search is to be started.
-         * @param obj Pointer of the object to find.
-         *
-         * @return An object path allowing to find again "obj" in the software object hierarchy
-         * (that can be serialized to text, and does not use pointers).
-         */
-        static ObjectPath pathFromObject(QString origin, QObject* obj);
-
         static ObjectPath pathBetweenObjects(const QObject* const parent_obj,
                                              const QObject* target_object);
-        static ObjectPath pathFromObject(QObject* origin_object);
 
         /**
          * @brief find the object described by the ObjectPath
@@ -80,22 +82,18 @@ class ObjectPath
          * (for instance if obj->blurb() == Ding::someDing)
          * @todo search starting from another object, for more performance.
          */
-        template<typename T>
+        template<class T>
         T& find() const
         {
-            // TODO static_cast on release.
             // First see if the pointer is still loaded in the cache.
             if(!m_cache.isNull())
             {
-                auto ptr = dynamic_cast<T*>(m_cache.data());
-                Q_ASSERT(ptr);
-                return *ptr;
+                return *checked_cast<T*>(m_cache.data());
             }
             else // Load it by hand
             {
-                auto ptr = dynamic_cast<T*>(find_impl());
-                Q_ASSERT(ptr);
-                m_cache = const_cast<typename std::remove_const<T>::type*>(ptr);
+                auto ptr = checked_cast<typename std::remove_const<T>::type*>(find_impl());
+                m_cache = ptr;
                 return *ptr;
             }
         }

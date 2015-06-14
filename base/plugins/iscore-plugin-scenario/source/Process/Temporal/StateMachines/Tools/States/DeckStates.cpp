@@ -81,7 +81,7 @@ DragDeckState::DragDeckState(CommandDispatcher<> &dispatcher,
         if(overlay)
         {
             auto& baseDeck = this->currentDeck.find<DeckModel>();
-            auto& releasedDeck = overlay->deckView.presenter.model();
+            auto& releasedDeck = overlay->deckView().presenter.model();
             // If it is the same, we do nothing.
             // If it is another (in the same box), we swap them
             if(releasedDeck.id() != baseDeck.id()

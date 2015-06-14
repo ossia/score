@@ -11,7 +11,7 @@
 
 DeckOverlay::DeckOverlay(DeckView *parent):
     QGraphicsItem{parent},
-    deckView{*parent}
+    m_deckView{*parent}
 {
     this->setZValue(1500);
     this->setPos(0, 0);
@@ -19,7 +19,7 @@ DeckOverlay::DeckOverlay(DeckView *parent):
 
 QRectF DeckOverlay::boundingRect() const
 {
-    const auto& rect = deckView.boundingRect();
+    const auto& rect = m_deckView.boundingRect();
     return {0, 0, rect.width(), rect.height() - 5};
 }
 
@@ -44,15 +44,15 @@ void DeckOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
 void DeckOverlay::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit deckView.presenter.pressed(event->scenePos());
+    emit m_deckView.presenter.pressed(event->scenePos());
 }
 
 void DeckOverlay::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit deckView.presenter.moved(event->scenePos());
+    emit m_deckView.presenter.moved(event->scenePos());
 }
 
 void DeckOverlay::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit deckView.presenter.released(event->scenePos());
+    emit m_deckView.presenter.released(event->scenePos());
 }
