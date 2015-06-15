@@ -1,5 +1,6 @@
 #include "GammaCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <cmath>
 
 CurveSegmentModel*GammaCurveSegmentModel::clone(
         const id_type<CurveSegmentModel>& id,
