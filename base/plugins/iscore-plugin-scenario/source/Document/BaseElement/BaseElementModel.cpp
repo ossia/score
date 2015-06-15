@@ -145,7 +145,7 @@ void BaseElementModel::on_viewModelDefocused(const ProcessViewModel* vm)
     // Deselect
     iscore::SelectionDispatcher selectionDispatcher(
                 iscore::IDocument::documentFromObject(*this)->selectionStack());
-    selectionDispatcher.setAndCommit({});
+    selectionDispatcher.setAndCommit(Selection{});
 }
 
 void BaseElementModel::on_viewModelFocused(const ProcessViewModel* process)
@@ -164,7 +164,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
     {
         if(process)
         {
-            process->setSelection({});
+            process->setSelection(Selection{});
             m_displayedConstraint->selection.set(false);
             m_focusManager.focusNothing();
         }
@@ -173,7 +173,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
     {
         if(process)
         {
-            process->setSelection({});
+            process->setSelection(Selection{});
             m_focusManager.focusNothing();
         }
 
@@ -187,7 +187,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
         auto newProc = parentProcess(*s.begin());
         if(process && newProc != process)
         {
-            process->setSelection({});
+            process->setSelection(Selection{});
         }
 
         if(newProc)

@@ -4,7 +4,7 @@ using namespace iscore;
 SelectionStack::SelectionStack()
 {
     connect(this, &SelectionStack::pushNewSelection, this, &SelectionStack::push, Qt::QueuedConnection);
-    m_unselectable.push({});
+    m_unselectable.push(Selection{});
 }
 
 bool SelectionStack::canUnselect() const
@@ -54,7 +54,7 @@ void SelectionStack::reselect()
 
 void SelectionStack::deselect()
 {
-    push({});
+    push(Selection{});
 }
 
 Selection SelectionStack::currentSelection() const
@@ -87,7 +87,7 @@ void SelectionStack::prune(QObject* p)
     { return s.empty(); });
 
     if(m_unselectable.size() == 0)
-        m_unselectable.push({});
+        m_unselectable.push(Selection{});
 
     emit currentSelectionChanged(m_unselectable.top());
 }

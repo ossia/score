@@ -137,7 +137,7 @@ void BaseElementPresenter::selectAll()
 
 void BaseElementPresenter::deselectAll()
 {
-    m_selectionDispatcher.setAndCommit({});
+    m_selectionDispatcher.setAndCommit(Selection{});
 }
 
 void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
