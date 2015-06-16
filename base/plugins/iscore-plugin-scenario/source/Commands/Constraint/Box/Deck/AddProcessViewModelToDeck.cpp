@@ -13,7 +13,7 @@ AddProcessViewModelToDeck::AddProcessViewModelToDeck(
         ObjectPath&& deckPath,
         ObjectPath&& processPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_deckPath {deckPath},
     m_processPath {processPath}

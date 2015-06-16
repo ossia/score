@@ -16,7 +16,7 @@ using namespace Scenario::Command;
 AddProcessViewInNewDeck::AddProcessViewInNewDeck(ObjectPath&& constraintPath,
                                                  id_type<ProcessModel> process) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(constraintPath) },
     m_sharedProcessModelId{process}

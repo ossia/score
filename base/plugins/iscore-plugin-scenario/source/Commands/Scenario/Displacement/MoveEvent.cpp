@@ -21,7 +21,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
                      double height,
                      ExpandMode mode, bool changeDate) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(scenarioPath)},
     m_eventId {eventId},

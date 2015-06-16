@@ -23,13 +23,13 @@ namespace Scenario
             public:
                 MergeDecks():
                   AggregateCommand{"ScenarioControl",
-                                   className(),
+                                   commandName(),
                                    description()} { }
 
                 MergeDecks(const ObjectPath& mergeSource,
                            const ObjectPath& mergeTarget) :
                     AggregateCommand{"ScenarioControl",
-                                     className(),
+                                     commandName(),
                                      description()}
                 {
                     auto sourcedeck = mergeSource.find<DeckModel>();

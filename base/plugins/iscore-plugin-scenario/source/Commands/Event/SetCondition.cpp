@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 
 SetCondition::SetCondition(ObjectPath&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_path {std::move(eventPath) },
 m_condition(message)

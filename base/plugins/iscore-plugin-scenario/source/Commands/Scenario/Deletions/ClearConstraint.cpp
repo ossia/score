@@ -13,7 +13,7 @@ using namespace Scenario::Command;
 
 ClearConstraint::ClearConstraint(ObjectPath&& constraintPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_path {std::move(constraintPath) }
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#define ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::PropertyCommand{ ParentName , className(), description()} { }
+#define ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::PropertyCommand{ ParentName , commandName(), description()} { }
 namespace iscore
 {
     class PropertyCommand : public SerializableCommand

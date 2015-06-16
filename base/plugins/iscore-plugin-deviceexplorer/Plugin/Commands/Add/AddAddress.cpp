@@ -3,7 +3,7 @@
 
 using namespace DeviceExplorer::Command;
 
-const char* AddAddress::className() { return "AddAddress"; }
+const char* AddAddress::commandName() { return "AddAddress"; }
 QString AddAddress::description() { return QObject::tr("Add an address"); }
 
 AddAddress::AddAddress(ObjectPath &&device_tree,
@@ -11,7 +11,7 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
                        DeviceExplorerModel::Insert insert,
                        const AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
-                                className(),
+                                commandName(),
                                 description()},
     m_deviceTree{device_tree}
 {

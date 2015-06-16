@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 DuplicateBox::DuplicateBox(ObjectPath&& boxToCopy) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_boxPath {boxToCopy}
 {

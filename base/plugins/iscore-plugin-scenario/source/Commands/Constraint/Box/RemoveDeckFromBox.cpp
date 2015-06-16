@@ -7,7 +7,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& deckPath) :
-    SerializableCommand {"ScenarioControl", className(), description()}
+    SerializableCommand {"ScenarioControl", commandName(), description()}
 {
     auto boxPath = deckPath.vec();
     auto lastId = boxPath.takeLast();
@@ -22,7 +22,7 @@ RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& deckPath) :
 }
 
 RemoveDeckFromBox::RemoveDeckFromBox(ObjectPath&& boxPath, id_type<DeckModel> deckId) :
-    SerializableCommand {"ScenarioControl", className(), description()},
+    SerializableCommand {"ScenarioControl", commandName(), description()},
     m_path {boxPath},
     m_deckId {deckId}
 {

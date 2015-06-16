@@ -3,9 +3,7 @@
 #include <QJsonObject>
 #include <QModelIndex>
 
-
 #include <State/Message.hpp>
-
 
 class QObject;
 class DeviceExplorerModel;

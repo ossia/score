@@ -7,7 +7,7 @@ using namespace Scenario::Command;
 
 SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {constraintPath},
     m_rigidity {rigid}

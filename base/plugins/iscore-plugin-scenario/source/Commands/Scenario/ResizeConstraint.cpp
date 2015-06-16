@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 ResizeConstraint::ResizeConstraint() :
     SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
     m_cmd {new MoveEvent}
 {
@@ -26,7 +26,7 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
                                    TimeValue duration,
                                    ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()}
 {
     auto& constraint = constraintPath.find<ConstraintModel>();

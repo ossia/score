@@ -22,7 +22,6 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
             }
          }
 
-        // TODO is this used?
         void submitCommand(iscore::SerializableCommand* cmd)
         {
             cmd->redo();

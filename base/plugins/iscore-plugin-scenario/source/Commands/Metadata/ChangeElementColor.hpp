@@ -7,12 +7,13 @@ namespace Scenario
 {
     namespace Command
     {
+        // TODO property command?
         template<class T>
         class ChangeElementColor : public iscore::SerializableCommand
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
-                static const char * className()
+                static const char * commandName()
                 {
                     static QByteArray name = QString{"ChangeElementColor_%1"}.arg(T::staticMetaObject.className()).toLatin1();
                     return name.constData();
@@ -25,7 +26,7 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementColor, "ScenarioControl")
                 ChangeElementColor(ObjectPath&& path, QColor newLabel) :
                     SerializableCommand {"ScenarioControl",
-                                         className(),
+                                         commandName(),
                                          description()},
                     m_path {std::move(path) },
                     m_newColor {newLabel}

@@ -184,11 +184,11 @@ Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
 }
 
 
-const char* AddDevice::className() { return "AddDevice"; }
+const char* AddDevice::commandName() { return "AddDevice"; }
 QString AddDevice::description() { return QObject::tr("Add a device"); }
 AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters, const QString &filePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
-                                className(),
+                                commandName(),
                                 description()},
     m_deviceTree{device_tree},
     m_parameters(parameters),

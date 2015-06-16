@@ -16,7 +16,7 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
                                              ObjectPath&& targetConstraint,
                                              ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_source{sourceConstraint},
     m_target{targetConstraint},

@@ -13,7 +13,7 @@ namespace Scenario
             public:
                 RemoveMultipleElements():
                       AggregateCommand{"ScenarioControl",
-                                       className(),
+                                       commandName(),
                                        description()} { }
 
         };

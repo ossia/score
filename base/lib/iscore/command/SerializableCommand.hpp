@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/Command.hpp>
-#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::SerializableCommand{ ParentName , className(), description()} { }
+#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::SerializableCommand{ ParentName , commandName(), description()} { }
 
 namespace iscore
 {

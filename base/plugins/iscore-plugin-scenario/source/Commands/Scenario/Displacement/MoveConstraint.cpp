@@ -11,7 +11,7 @@ using namespace Scenario::Command;
 
 MoveConstraint::MoveConstraint():
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_cmd{new MoveEvent}
 {
@@ -30,7 +30,7 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
                                ExpandMode mode,
                                bool changeDate) :
     SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
     m_path{std::move(scenarioPath)},
     m_constraint{id},

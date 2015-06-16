@@ -9,7 +9,7 @@ Insert::Insert(const Path &parentPath,
                Node &&data,
                ObjectPath&& modelPath):
     iscore::SerializableCommand{"DeviceExplorerControl",
-                                this->className(),
+                                this->commandName(),
                                 this->description()},
     m_model{std::move(modelPath)},
     m_node{std::move(data)},

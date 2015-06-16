@@ -2,7 +2,7 @@
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <State/Message.hpp>
+#include <State/Address.hpp>
 namespace Scenario
 {
 namespace Command

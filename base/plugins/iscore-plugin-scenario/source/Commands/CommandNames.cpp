@@ -52,68 +52,68 @@
 ///////////////////////////////////////////////////
 
 // ADD CONTENT
-const char* Scenario::Command::AddBoxToConstraint::className() { return "AddBoxToConstraint"; }
-const char* Scenario::Command::AddDeckToBox::className() { return "AddDeckToBox"; }
-const char* Scenario::Command::AddProcessToConstraint::className() { return "AddProcessToConstraint"; }
-const char* Scenario::Command::AddProcessViewInNewDeck::className() { return "AddProcessViewInNewDeck"; }
-const char* Scenario::Command::AddProcessViewModelToDeck::className() { return "AddProcessViewModelToDeck"; }
-const char* Scenario::Command::AddStateToEvent::className() { return "AddStateToEvent"; }
-const char* Scenario::Command::AssignMessagesToState::className() { return "AssignMessagesToState"; }
+const char* Scenario::Command::AddBoxToConstraint::commandName() { return "AddBoxToConstraint"; }
+const char* Scenario::Command::AddDeckToBox::commandName() { return "AddDeckToBox"; }
+const char* Scenario::Command::AddProcessToConstraint::commandName() { return "AddProcessToConstraint"; }
+const char* Scenario::Command::AddProcessViewInNewDeck::commandName() { return "AddProcessViewInNewDeck"; }
+const char* Scenario::Command::AddProcessViewModelToDeck::commandName() { return "AddProcessViewModelToDeck"; }
+const char* Scenario::Command::AddStateToEvent::commandName() { return "AddStateToEvent"; }
+const char* Scenario::Command::AssignMessagesToState::commandName() { return "AssignMessagesToState"; }
 
 // CLEAR CONTENT
-const char* Scenario::Command::ClearConstraint::className() { return "ClearConstraint"; }
-const char* Scenario::Command::ClearEvent::className() { return "ClearEvent"; }
+const char* Scenario::Command::ClearConstraint::commandName() { return "ClearConstraint"; }
+const char* Scenario::Command::ClearEvent::commandName() { return "ClearEvent"; }
 
 // COPY
-const char* Scenario::Command::DuplicateBox::className() { return "DuplicateBox"; }
-const char* Scenario::Command::CopyConstraintContent::className() { return "CopyConstraintContent"; }
-const char* Scenario::Command::CopyDeck::className() { return "CopyDeck"; }
-//const char* Scenario::Command::CopyProcessViewModel::className() { return "CopyProcessViewModel"; }
+const char* Scenario::Command::DuplicateBox::commandName() { return "DuplicateBox"; }
+const char* Scenario::Command::CopyConstraintContent::commandName() { return "CopyConstraintContent"; }
+const char* Scenario::Command::CopyDeck::commandName() { return "CopyDeck"; }
+//const char* Scenario::Command::CopyProcessViewModel::commandName() { return "CopyProcessViewModel"; }
 
 // CREATE
-const char* Scenario::Command::CreateConstraint::className() { return "CreateConstraint"; }
-const char* Scenario::Command::CreateEventAfterEvent::className() { return "CreateEventAfterEvent"; }
-const char* Scenario::Command::CreateEventAfterEventOnTimeNode::className() { return "CreateEventAfterEventOnTimeNode"; }
-const char* Scenario::Command::CreateEventOnTimeNode::className() { return "CreateEventOnTimeNode"; }
-const char* Scenario::Command::CreationMetaCommand::className() { return "CreationMetaCommand"; }
+const char* Scenario::Command::CreateConstraint::commandName() { return "CreateConstraint"; }
+const char* Scenario::Command::CreateEventAfterEvent::commandName() { return "CreateEventAfterEvent"; }
+const char* Scenario::Command::CreateEventAfterEventOnTimeNode::commandName() { return "CreateEventAfterEventOnTimeNode"; }
+const char* Scenario::Command::CreateEventOnTimeNode::commandName() { return "CreateEventOnTimeNode"; }
+const char* Scenario::Command::CreationMetaCommand::commandName() { return "CreationMetaCommand"; }
 
-const char* Scenario::Command::HideBoxInViewModel::className() { return "HideBoxInViewModel"; }
+const char* Scenario::Command::HideBoxInViewModel::commandName() { return "HideBoxInViewModel"; }
 
 // MERGE
-const char* Scenario::Command::MergeBoxes::className() { return "MergeBoxes"; }
-//const char* Scenario::Command::MergeDecks::className() { return "MergeDecks"; }
-const char* Scenario::Command::MergeTimeNodes::className() { return "MergeTimeNodes"; }
+const char* Scenario::Command::MergeBoxes::commandName() { return "MergeBoxes"; }
+//const char* Scenario::Command::MergeDecks::commandName() { return "MergeDecks"; }
+const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTimeNodes"; }
 
 // MOVE
-const char* Scenario::Command::MoveConstraint::className() { return "MoveConstraint"; }
-const char* Scenario::Command::MoveDeck::className() { return "MoveDeck"; }
-const char* Scenario::Command::MoveEvent::className() { return "MoveEvent"; }
-//const char* Scenario::Command::MoveProcessViewModel::className() { return "MoveProcessViewModel"; }
-const char* Scenario::Command::MoveTimeNode::className() { return "MoveTimeNode"; }
+const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConstraint"; }
+const char* Scenario::Command::MoveDeck::commandName() { return "MoveDeck"; }
+const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
+//const char* Scenario::Command::MoveProcessViewModel::commandName() { return "MoveProcessViewModel"; }
+const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
 
 // REMOVE
-const char* Scenario::Command::RemoveBoxFromConstraint::className() { return "RemoveBoxFromConstraint"; }
-const char* Scenario::Command::RemoveDeckFromBox::className() { return "RemoveDeckFromBox"; }
-const char* Scenario::Command::RemoveMultipleElements::className() { return "RemoveMultipleElements"; }
-const char* Scenario::Command::RemoveProcessFromConstraint::className() { return "RemoveProcessFromConstraint"; }
-const char* Scenario::Command::RemoveProcessViewModelFromDeck::className() { return "RemoveProcessViewModelFromDeck"; }
-const char* Scenario::Command::RemoveStateFromEvent::className() { return "RemoveStateFromEvent"; }
+const char* Scenario::Command::RemoveBoxFromConstraint::commandName() { return "RemoveBoxFromConstraint"; }
+const char* Scenario::Command::RemoveDeckFromBox::commandName() { return "RemoveDeckFromBox"; }
+const char* Scenario::Command::RemoveMultipleElements::commandName() { return "RemoveMultipleElements"; }
+const char* Scenario::Command::RemoveProcessFromConstraint::commandName() { return "RemoveProcessFromConstraint"; }
+const char* Scenario::Command::RemoveProcessViewModelFromDeck::commandName() { return "RemoveProcessViewModelFromDeck"; }
+const char* Scenario::Command::RemoveStateFromEvent::commandName() { return "RemoveStateFromEvent"; }
 
 // RESIZE
-const char* Scenario::Command::ResizeBaseConstraint::className() { return "ResizeBaseConstraint"; }
-const char* Scenario::Command::ResizeConstraint::className() { return "ResizeConstraint"; }
-const char* Scenario::Command::ResizeDeckVertically::className() { return "ResizeDeckVertically"; }
+const char* Scenario::Command::ResizeBaseConstraint::commandName() { return "ResizeBaseConstraint"; }
+const char* Scenario::Command::ResizeConstraint::commandName() { return "ResizeConstraint"; }
+const char* Scenario::Command::ResizeDeckVertically::commandName() { return "ResizeDeckVertically"; }
 
 // SET VALUE
-const char* Scenario::Command::SetCondition::className() { return "SetCondition"; }
-const char* Scenario::Command::SetTrigger::className() { return "SetTrigger"; }
-const char* Scenario::Command::SetRigidity::className() { return "SetRigidity"; }
+const char* Scenario::Command::SetCondition::commandName() { return "SetCondition"; }
+const char* Scenario::Command::SetTrigger::commandName() { return "SetTrigger"; }
+const char* Scenario::Command::SetRigidity::commandName() { return "SetRigidity"; }
 
 // OTHER
-const char* Scenario::Command::ShowBoxInViewModel::className() { return "ShowBoxInViewModel"; }
-const char* Scenario::Command::SplitTimeNode::className() { return "SplitTimeNode"; }
-const char* Scenario::Command::SwitchStatePosition::className() { return "SwitchStatePosition"; }
-const char* Scenario::Command::UnassignMessagesFromState::className() { return "UnassignMessagesFromState"; }
+const char* Scenario::Command::ShowBoxInViewModel::commandName() { return "ShowBoxInViewModel"; }
+const char* Scenario::Command::SplitTimeNode::commandName() { return "SplitTimeNode"; }
+const char* Scenario::Command::SwitchStatePosition::commandName() { return "SwitchStatePosition"; }
+const char* Scenario::Command::UnassignMessagesFromState::commandName() { return "UnassignMessagesFromState"; }
 
 ///////////////////////////////////////////////////
 //              DESCRIPTION
@@ -196,92 +196,92 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     using namespace Scenario::Command;
     if(false);
 
-    //else if(name == Paste::className()) return new Paste;
-    //else if(name == Cut::className()) return new Cut;
+    //else if(name == Paste::commandName()) return new Paste;
+    //else if(name == Cut::commandName()) return new Cut;
 
     // ADD CONTENTS
-    else if(name == AddBoxToConstraint::className()) return new AddBoxToConstraint;
-    else if(name == AddDeckToBox::className()) return new AddDeckToBox;
-    else if(name == AddProcessToConstraint::className()) return new AddProcessToConstraint;
-    else if(name == AddProcessViewInNewDeck::className()) return new AddProcessViewInNewDeck;
-    else if(name == AddProcessViewModelToDeck::className()) return new AddProcessViewModelToDeck;
-    else if(name == AddStateToEvent::className()) return new AddStateToEvent;
-    else if(name == AssignMessagesToState::className()) return new AssignMessagesToState;
+    else if(name == AddBoxToConstraint::commandName()) return new AddBoxToConstraint;
+    else if(name == AddDeckToBox::commandName()) return new AddDeckToBox;
+    else if(name == AddProcessToConstraint::commandName()) return new AddProcessToConstraint;
+    else if(name == AddProcessViewInNewDeck::commandName()) return new AddProcessViewInNewDeck;
+    else if(name == AddProcessViewModelToDeck::commandName()) return new AddProcessViewModelToDeck;
+    else if(name == AddStateToEvent::commandName()) return new AddStateToEvent;
+    else if(name == AssignMessagesToState::commandName()) return new AssignMessagesToState;
 
     // METADATA
-    else if(name == ChangeElementColor<ConstraintModel>::className()) return new ChangeElementColor<ConstraintModel>;
-    else if(name == ChangeElementColor<EventModel>::className()) return new ChangeElementColor<EventModel>;
-    else if(name == ChangeElementColor<TimeNodeModel>::className()) return new ChangeElementColor<TimeNodeModel>;
-    else if(name == ChangeElementComments<ConstraintModel>::className()) return new ChangeElementComments<ConstraintModel>;
-    else if(name == ChangeElementComments<EventModel>::className()) return new ChangeElementComments<EventModel>;
-    else if(name == ChangeElementComments<TimeNodeModel>::className()) return new ChangeElementComments<TimeNodeModel>;
-    else if(name == ChangeElementLabel<ConstraintModel>::className()) return new ChangeElementLabel<ConstraintModel>;
-    else if(name == ChangeElementLabel<EventModel>::className()) return new ChangeElementLabel<EventModel>;
-    else if(name == ChangeElementLabel<TimeNodeModel>::className()) return new ChangeElementLabel<TimeNodeModel>;
-    else if(name == ChangeElementName<ConstraintModel>::className()) return new ChangeElementName<ConstraintModel>;
-    else if(name == ChangeElementName<EventModel>::className()) return new ChangeElementName<EventModel>;
-    else if(name == ChangeElementName<TimeNodeModel>::className()) return new ChangeElementName<TimeNodeModel>;
+    else if(name == ChangeElementColor<ConstraintModel>::commandName()) return new ChangeElementColor<ConstraintModel>;
+    else if(name == ChangeElementColor<EventModel>::commandName()) return new ChangeElementColor<EventModel>;
+    else if(name == ChangeElementColor<TimeNodeModel>::commandName()) return new ChangeElementColor<TimeNodeModel>;
+    else if(name == ChangeElementComments<ConstraintModel>::commandName()) return new ChangeElementComments<ConstraintModel>;
+    else if(name == ChangeElementComments<EventModel>::commandName()) return new ChangeElementComments<EventModel>;
+    else if(name == ChangeElementComments<TimeNodeModel>::commandName()) return new ChangeElementComments<TimeNodeModel>;
+    else if(name == ChangeElementLabel<ConstraintModel>::commandName()) return new ChangeElementLabel<ConstraintModel>;
+    else if(name == ChangeElementLabel<EventModel>::commandName()) return new ChangeElementLabel<EventModel>;
+    else if(name == ChangeElementLabel<TimeNodeModel>::commandName()) return new ChangeElementLabel<TimeNodeModel>;
+    else if(name == ChangeElementName<ConstraintModel>::commandName()) return new ChangeElementName<ConstraintModel>;
+    else if(name == ChangeElementName<EventModel>::commandName()) return new ChangeElementName<EventModel>;
+    else if(name == ChangeElementName<TimeNodeModel>::commandName()) return new ChangeElementName<TimeNodeModel>;
 
     // CLEAR CONTENTS
-    else if(name == ClearConstraint::className()) return new ClearConstraint;
-    else if(name == ClearEvent::className()) return new ClearEvent;
+    else if(name == ClearConstraint::commandName()) return new ClearConstraint;
+    else if(name == ClearEvent::commandName()) return new ClearEvent;
 
     // COPY
-    else if(name == DuplicateBox::className()) return new DuplicateBox;
-    else if(name == CopyConstraintContent::className()) return new CopyConstraintContent;
-    else if(name == CopyDeck::className()) return new CopyDeck;
- //   else if(name == CopyProcessViewModel::className()) return new CopyProcessViewModel;
+    else if(name == DuplicateBox::commandName()) return new DuplicateBox;
+    else if(name == CopyConstraintContent::commandName()) return new CopyConstraintContent;
+    else if(name == CopyDeck::commandName()) return new CopyDeck;
+ //   else if(name == CopyProcessViewModel::commandName()) return new CopyProcessViewModel;
 
     // CREATE ELEMENT
-    else if(name == CreateConstraint::className()) return new CreateConstraint;
-    else if(name == CreateEventAfterEvent::className()) return new CreateEventAfterEvent;
-    else if(name == CreateEventAfterEventOnTimeNode::className()) return new CreateEventAfterEventOnTimeNode;
-    else if(name == CreateEventOnTimeNode::className()) return new CreateEventOnTimeNode;
-    else if(name == CreationMetaCommand::className()) return new CreationMetaCommand;
+    else if(name == CreateConstraint::commandName()) return new CreateConstraint;
+    else if(name == CreateEventAfterEvent::commandName()) return new CreateEventAfterEvent;
+    else if(name == CreateEventAfterEventOnTimeNode::commandName()) return new CreateEventAfterEventOnTimeNode;
+    else if(name == CreateEventOnTimeNode::commandName()) return new CreateEventOnTimeNode;
+    else if(name == CreationMetaCommand::commandName()) return new CreationMetaCommand;
 
-    else if(name == HideBoxInViewModel::className()) return new HideBoxInViewModel;
+    else if(name == HideBoxInViewModel::commandName()) return new HideBoxInViewModel;
 
     // MERGE
-    else if(name == MergeBoxes::className()) return new MergeBoxes;
-//    else if(name == MergeDecks::className()) return new MergeDecks;
-    else if(name == MergeTimeNodes::className()) return new MergeTimeNodes;
+    else if(name == MergeBoxes::commandName()) return new MergeBoxes;
+//    else if(name == MergeDecks::commandName()) return new MergeDecks;
+    else if(name == MergeTimeNodes::commandName()) return new MergeTimeNodes;
 
     // MOVE
-    else if(name == MoveConstraint::className()) return new MoveConstraint;
-    else if(name == MoveDeck::className()) return new MoveDeck;
-    else if(name == SwapDecks::className()) return new SwapDecks;
-    else if(name == MoveEvent::className()) return new MoveEvent;
-    else if(name == MoveEventAndConstraint::className()) return new MoveEventAndConstraint;
-//    else if(name == MoveProcessViewModel::className()) return new MoveProcessViewModel;
-    else if(name == MoveTimeNode::className()) return new MoveTimeNode;
+    else if(name == MoveConstraint::commandName()) return new MoveConstraint;
+    else if(name == MoveDeck::commandName()) return new MoveDeck;
+    else if(name == SwapDecks::commandName()) return new SwapDecks;
+    else if(name == MoveEvent::commandName()) return new MoveEvent;
+    else if(name == MoveEventAndConstraint::commandName()) return new MoveEventAndConstraint;
+//    else if(name == MoveProcessViewModel::commandName()) return new MoveProcessViewModel;
+    else if(name == MoveTimeNode::commandName()) return new MoveTimeNode;
 
     // REMOVE ELEMENT
-    else if(name == RemoveBoxFromConstraint::className()) return new RemoveBoxFromConstraint;
-    else if(name == RemoveDeckFromBox::className()) return new RemoveDeckFromBox;
-    else if(name == RemoveMultipleElements::className()) return new RemoveMultipleElements;
-    else if(name == RemoveSelection::className()) return new RemoveSelection;
-    else if(name == RemoveProcessFromConstraint::className()) return new RemoveProcessFromConstraint;
-    else if(name == RemoveProcessViewModelFromDeck::className()) return new RemoveProcessViewModelFromDeck;
-    else if(name == RemoveStateFromEvent::className()) return new RemoveStateFromEvent;
+    else if(name == RemoveBoxFromConstraint::commandName()) return new RemoveBoxFromConstraint;
+    else if(name == RemoveDeckFromBox::commandName()) return new RemoveDeckFromBox;
+    else if(name == RemoveMultipleElements::commandName()) return new RemoveMultipleElements;
+    else if(name == RemoveSelection::commandName()) return new RemoveSelection;
+    else if(name == RemoveProcessFromConstraint::commandName()) return new RemoveProcessFromConstraint;
+    else if(name == RemoveProcessViewModelFromDeck::commandName()) return new RemoveProcessViewModelFromDeck;
+    else if(name == RemoveStateFromEvent::commandName()) return new RemoveStateFromEvent;
 
     // RESIZE
-    else if(name == ResizeBaseConstraint::className()) return new ResizeBaseConstraint;
-    else if(name == ResizeConstraint::className()) return new ResizeConstraint;
-    else if(name == ResizeDeckVertically::className()) return new ResizeDeckVertically;
+    else if(name == ResizeBaseConstraint::commandName()) return new ResizeBaseConstraint;
+    else if(name == ResizeConstraint::commandName()) return new ResizeConstraint;
+    else if(name == ResizeDeckVertically::commandName()) return new ResizeDeckVertically;
 
     // SET VALUE
-    else if(name == SetCondition::className()) return new SetCondition;
-    else if(name == SetTrigger::className()) return new SetTrigger;
+    else if(name == SetCondition::commandName()) return new SetCondition;
+    else if(name == SetTrigger::commandName()) return new SetTrigger;
 
-    else if(name == SetMaxDuration::className()) return new SetMaxDuration;
-    else if(name == SetMinDuration::className()) return new SetMinDuration;
-    else if(name == SetRigidity::className()) return new SetRigidity;
+    else if(name == SetMaxDuration::commandName()) return new SetMaxDuration;
+    else if(name == SetMinDuration::commandName()) return new SetMinDuration;
+    else if(name == SetRigidity::commandName()) return new SetRigidity;
 
     // OTHER
-    else if(name == ShowBoxInViewModel::className()) return new ShowBoxInViewModel;
-    else if(name == SplitTimeNode::className()) return new SplitTimeNode;
-    else if(name == SwitchStatePosition::className()) return new SwitchStatePosition;
-    else if(name == UnassignMessagesFromState::className()) return new UnassignMessagesFromState;
+    else if(name == ShowBoxInViewModel::commandName()) return new ShowBoxInViewModel;
+    else if(name == SplitTimeNode::commandName()) return new SplitTimeNode;
+    else if(name == SwitchStatePosition::commandName()) return new SwitchStatePosition;
+    else if(name == UnassignMessagesFromState::commandName()) return new UnassignMessagesFromState;
 
     else return nullptr;
 }

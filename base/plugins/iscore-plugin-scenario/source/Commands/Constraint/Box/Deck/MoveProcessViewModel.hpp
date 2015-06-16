@@ -20,7 +20,7 @@ namespace Scenario
             public:
                 MoveProcessViewModel():
                     AggregateCommand{"ScenarioControl",
-                                     className(),
+                                     commandName(),
                                      description()} { }
 
                 MoveProcessViewModel(const ObjectPath& pvmToMove,

@@ -1,7 +1,7 @@
 #pragma once
 #include <QWidget>
-#include <State/Message.hpp>
 class DeviceExplorerModel;
+class Address;
 class DeviceExplorerMenuButton : public QWidget
 {
         Q_OBJECT

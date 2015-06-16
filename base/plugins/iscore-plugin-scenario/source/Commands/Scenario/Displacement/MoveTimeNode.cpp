@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 MoveTimeNode::MoveTimeNode():
     iscore::SerializableCommand{
         "ScenarioControl",
-        className(),
+        commandName(),
         description()} ,
     m_cmd{new MoveEvent}
 {
@@ -22,7 +22,7 @@ MoveTimeNode::MoveTimeNode(ObjectPath&& scenarioPath,
                            double height,
                            ExpandMode mode):
     SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
    m_cmd{new MoveEvent{std::move(scenarioPath), eventId, date, height, mode}}
 {

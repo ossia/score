@@ -21,7 +21,7 @@ namespace Scenario
 
             SetMinDuration(ObjectPath&& path, const TimeValue& newval):
                 iscore::PropertyCommand{
-                std::move(path), "minDuration", QVariant::fromValue(newval), "ScenarioControl", className(), description()}
+                std::move(path), "minDuration", QVariant::fromValue(newval), "ScenarioControl", commandName(), description()}
             {
 
             }

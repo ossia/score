@@ -1,6 +1,6 @@
 #include "AutomationViewModel.hpp"
 #include "AutomationModel.hpp"
-#include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
+#include "AutomationPanelProxy.hpp"
 
 AutomationViewModel::AutomationViewModel(AutomationModel& model,
                                          const id_type<ProcessViewModel>& id,
@@ -18,27 +18,6 @@ AutomationViewModel::AutomationViewModel(const AutomationViewModel& source,
 {
     // Nothing to copy
 }
-
-// TODO Move somewhere else.
-class AutomationPanelProxy : public ProcessViewModelPanelProxy
-{
-    public:
-        AutomationPanelProxy(const AutomationViewModel& vm,
-                             QObject* parent):
-            ProcessViewModelPanelProxy{parent},
-            m_viewModel{vm}
-        {
-
-        }
-
-        const AutomationViewModel& viewModel() override
-        {
-            return m_viewModel;
-        }
-
-    private:
-        const AutomationViewModel& m_viewModel;
-};
 
 ProcessViewModelPanelProxy* AutomationViewModel::make_panelProxy(QObject* parent) const
 {

@@ -20,13 +20,13 @@ namespace Scenario
             public:
                 MergeBoxes():
                       AggregateCommand{"ScenarioControl",
-                                       className(),
+                                       commandName(),
                                        description()} { }
 
                 MergeBoxes(const ObjectPath& mergeSource,
                            const ObjectPath& mergeTarget) :
                     AggregateCommand{"ScenarioControl",
-                                     className(),
+                                     commandName(),
                                      description()}
                 {
                     auto& sourcebox = mergeSource.find<BoxModel>();

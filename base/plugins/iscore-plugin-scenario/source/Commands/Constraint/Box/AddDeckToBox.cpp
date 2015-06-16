@@ -9,7 +9,7 @@ using namespace Scenario::Command;
 
 AddDeckToBox::AddDeckToBox(ObjectPath&& boxPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {boxPath}
 {

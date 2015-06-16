@@ -7,7 +7,7 @@ SwapDecks::SwapDecks(ObjectPath&& box,
                      id_type<DeckModel> first,
                      id_type<DeckModel> second):
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_boxPath{std::move(box)},
     m_first{first},

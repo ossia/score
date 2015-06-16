@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 CopyDeck::CopyDeck(ObjectPath&& deckToCopy,
                    ObjectPath&& targetBoxPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_deckPath {deckToCopy},
     m_targetBoxPath {targetBoxPath}

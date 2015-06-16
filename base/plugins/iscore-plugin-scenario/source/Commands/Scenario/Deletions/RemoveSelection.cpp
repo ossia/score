@@ -11,7 +11,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
-    SerializableCommand{"ScenarioControl", className(), description()},
+    SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
     auto& scenar = m_path.find<ScenarioModel>();

@@ -7,7 +7,7 @@ using namespace Scenario::Command;
 
 HideBoxInViewModel::HideBoxInViewModel(ObjectPath&& path) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_constraintViewModelPath {std::move(path) }
 {
@@ -17,7 +17,7 @@ m_constraintViewModelPath {std::move(path) }
 
 HideBoxInViewModel::HideBoxInViewModel(AbstractConstraintViewModel* constraint_vm) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_constraintViewModelPath {iscore::IDocument::path(constraint_vm) }
 {

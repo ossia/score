@@ -3,12 +3,12 @@
 
 using namespace DeviceExplorer::Command;
 
-const char* Remove::className() { return "Remove"; }
+const char* Remove::commandName() { return "Remove"; }
 QString Remove::description() { return "Remove Node"; }
 
 Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
-                            className(),
+                            commandName(),
                             description()},
     m_deviceTree{device_tree},
     m_nodePath{nodePath},
