@@ -56,12 +56,12 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(&m_viewModel, &TemporalScenarioViewModel::eventCreated,
             this,		 &TemporalScenarioPresenter::on_eventCreated);
     connect(&m_viewModel, &TemporalScenarioViewModel::eventDeleted,
-            this,		 &TemporalScenarioPresenter::on_eventDeleted);
+            this,		 &TemporalScenarioPresenter::on_eventRemoved);
 
     connect(&m_viewModel, &TemporalScenarioViewModel::timeNodeCreated,
             this,        &TemporalScenarioPresenter::on_timeNodeCreated);
     connect(&m_viewModel, &TemporalScenarioViewModel::timeNodeDeleted,
-            this,        &TemporalScenarioPresenter::on_timeNodeDeleted);
+            this,        &TemporalScenarioPresenter::on_timeNodeRemoved);
 
     connect(&m_viewModel, &TemporalScenarioViewModel::constraintViewModelCreated,
             this,		 &TemporalScenarioPresenter::on_constraintCreated);
@@ -200,22 +200,23 @@ void TemporalScenarioPresenter::on_constraintCreated(
     on_constraintCreated_impl(constraintViewModel(m_viewModel, constraintViewModelId));
 }
 
-// TODO harmonize function names (removed > deleted)
-void TemporalScenarioPresenter::on_eventDeleted(
+void TemporalScenarioPresenter::on_eventRemoved(
         const id_type<EventModel>& eventId)
 {
-    delete m_events.at(eventId);
+    auto ev = m_events.at(eventId);
+
+    // Get the timenode to update
+    auto tn_id = ev->model().timeNode();
+
+    // Remove the event
+    delete ev;
     m_events.remove(eventId);
 
-    // TODO optimizeme
-    for(const auto& tn : m_timeNodes)
-    {
-        m_viewInterface->updateTimeNode(tn->id());
-    }
+    m_viewInterface->updateTimeNode(tn_id);
     m_view->update();
 }
 
-void TemporalScenarioPresenter::on_timeNodeDeleted(
+void TemporalScenarioPresenter::on_timeNodeRemoved(
         const id_type<TimeNodeModel>& timeNodeId)
 {
     delete m_timeNodes.at(timeNodeId);
@@ -229,20 +230,21 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
 {
     for(const auto& pres : m_constraints)
     {
-        // TODO add an index on viewmodel id ?
+        // TODO add an index in the map on viewmodel id ?
         if(::viewModel(pres)->id() == constraintViewModelId)
         {
             auto cid = pres->id();
+            auto& cm = pres->model();
+            auto& stn = m_events.at(cm.startEvent())->model().timeNode();
+            auto& etn = m_events.at(cm.endEvent())->model().timeNode();
+
             delete pres;
             m_constraints.remove(cid);
+
+            m_viewInterface->updateTimeNode(stn);
+            m_viewInterface->updateTimeNode(etn);
             break;
         }
-    }
-
-    // TODO optimizeme
-    for(auto& tn : m_timeNodes)
-    {
-        m_viewInterface->updateTimeNode(tn->id());
     }
 
     m_view->update();

@@ -94,7 +94,12 @@ void update_min_max(const T& val, T& min, T& max)
 
 void ScenarioViewInterface::updateTimeNode(const id_type<TimeNodeModel>& timeNodeId)
 {
-    auto timeNode = m_presenter->m_timeNodes.at(timeNodeId);
+    auto timeNode_it = m_presenter->m_timeNodes.find(timeNodeId);
+    if(timeNode_it == m_presenter->m_timeNodes.end())
+        return;
+
+    auto timeNode = *timeNode_it;
+
     auto rect = m_presenter->m_view->boundingRect();
 
     double min = 1.0;

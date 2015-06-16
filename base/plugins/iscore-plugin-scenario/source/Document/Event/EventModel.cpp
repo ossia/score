@@ -53,7 +53,6 @@ QVector<id_type<ConstraintModel> > EventModel::constraints() const
 
 void EventModel::addNextConstraint(const id_type<ConstraintModel>& constraint)
 {
-    // TODO use a map here.
     m_nextConstraints.push_back(constraint);
     emit nextConstraintsChanged();
 }
@@ -77,19 +76,16 @@ bool removeConstraint(Vec& constraints, const id_type<ConstraintModel>& constrai
     return false;
 }
 
-// TODO document why a bool return is necessary
-bool EventModel::removeNextConstraint(const id_type<ConstraintModel>& constraintToDelete)
+void EventModel::removeNextConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
-    auto ok = removeConstraint(m_nextConstraints, constraintToDelete);
+    removeConstraint(m_nextConstraints, constraintToDelete);
     emit nextConstraintsChanged();
-    return ok;
 }
 
-bool EventModel::removePreviousConstraint(const id_type<ConstraintModel>& constraintToDelete)
+void EventModel::removePreviousConstraint(const id_type<ConstraintModel>& constraintToDelete)
 {
-    auto ok = removeConstraint(m_previousConstraints, constraintToDelete);
+    removeConstraint(m_previousConstraints, constraintToDelete);
     emit previousConstraintsChanged();
-    return ok;
 }
 
 void EventModel::changeTimeNode(const id_type<TimeNodeModel>& newTimeNodeId)

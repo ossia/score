@@ -79,8 +79,8 @@ class EventModel : public IdentifiedObject<EventModel>
 
         void addNextConstraint(const id_type<ConstraintModel>&);
         void addPreviousConstraint(const id_type<ConstraintModel>&);
-        bool removeNextConstraint(const id_type<ConstraintModel>&);
-        bool removePreviousConstraint(const id_type<ConstraintModel>&);
+        void removeNextConstraint(const id_type<ConstraintModel>&);
+        void removePreviousConstraint(const id_type<ConstraintModel>&);
 
         // Timenode
         void changeTimeNode(const id_type<TimeNodeModel>&);
