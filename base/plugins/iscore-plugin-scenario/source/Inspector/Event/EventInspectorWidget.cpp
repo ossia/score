@@ -102,6 +102,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_properties.push_back(new QLabel{tr("Condition (unavailable)")});
  //   m_properties.push_back(m_conditionLineEdit); TODO uncomment when API
+    m_conditionLineEdit->hide();
 
     if(deviceexplorer)
     {
@@ -124,6 +125,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_properties.push_back(new QLabel{tr("Trigger (unavailable)")});
 //    m_properties.push_back(m_triggerLineEdit); TODO uncomment when API
+    m_triggerLineEdit->hide();
 
     if(deviceexplorer)
     {

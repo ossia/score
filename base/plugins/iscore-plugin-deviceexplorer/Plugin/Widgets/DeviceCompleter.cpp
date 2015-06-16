@@ -1,6 +1,7 @@
 #include "DeviceCompleter.hpp"
 #include "../Plugin/Panel/DeviceExplorerModel.hpp"
-
+#include <DeviceExplorer/Node/Node.hpp>
+#include <QStringList>
 #include <QApplication>
 
 DeviceCompleter::DeviceCompleter(DeviceExplorerModel* treemodel,
@@ -22,11 +23,19 @@ QString DeviceCompleter::pathFromIndex(const QModelIndex& index) const
 
     while(iter.isValid())
     {
-        path = QString {"%1/"} .arg(iter.data(0).toString()) + path;
+        if(static_cast<Node*>(iter.internalPointer())->isDevice())
+        {
+            path = QString {"%1:/"} .arg(iter.data(0).toString()) + path;
+        }
+        else
+        {
+            path = QString {"%1/"} .arg(iter.data(0).toString()) + path;
+        }
+
         iter = iter.parent();
     }
 
-    return "/" + path.remove(path.length() - 1, 1);
+    return path.remove(path.length() - 1, 1);
 }
 
 QStringList DeviceCompleter::splitPath(const QString& path) const
@@ -38,5 +47,7 @@ QStringList DeviceCompleter::splitPath(const QString& path) const
         p2.remove(0, 1);
     }
 
-    return p2.split("/");
+    QStringList split = p2.split("/");
+    split.first().remove(":");
+    return split;
 }
