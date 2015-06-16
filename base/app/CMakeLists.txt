@@ -84,6 +84,7 @@ else()
     endif()
 endif()
 
+cotire(${APPNAME})
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION .

@@ -50,9 +50,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DocumentPlugin/DeviceDocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/dynamictreemodel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/modeltest.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/tst_modeltest.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/DeviceExplorerFilterProxyModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/DeviceExplorerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/ExplorationWorker.cpp"
@@ -67,6 +64,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/PanelBase/DeviceExplorerPanelView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/DeviceExplorerMenuButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/DeviceCompleter.cpp"
+
+#"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/dynamictreemodel.cpp"
+#"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/modeltest.cpp"
+#"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/tst_modeltest.cpp"
 
 )
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorer.qrc")
