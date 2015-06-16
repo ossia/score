@@ -26,6 +26,7 @@ class TimeNodeView : public QGraphicsObject
         QRectF boundingRect() const override;
 
         void setExtremities(int top, int bottom);
+        void addPoint(int newY);
 
         void setMoving(bool);
         void setSelected(bool selected);

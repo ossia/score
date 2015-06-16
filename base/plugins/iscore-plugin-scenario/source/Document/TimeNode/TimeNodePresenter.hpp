@@ -1,8 +1,10 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include "Document/Constraint/ConstraintModel.hpp"
 
 #include <QObject>
+#include <QMap>
 
 class TimeNodeView;
 class TimeNodeModel;
@@ -29,6 +31,11 @@ class TimeNodePresenter :  public NamedObject
 
         void on_eventAdded(const id_type<EventModel>& eventId);
 
+        void updateMinExtremities(const id_type<ConstraintModel>&, const double);
+        void updateMaxExtremities(const id_type<ConstraintModel> &, const double);
+        const QPair<id_type<ConstraintModel>, double> extremityMin() const;
+        const QPair<id_type<ConstraintModel>, double> extremityMax() const;
+
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);
@@ -40,4 +47,7 @@ class TimeNodePresenter :  public NamedObject
     private:
         const TimeNodeModel& m_model;
         TimeNodeView* m_view {};
+
+       QPair<id_type<ConstraintModel>, double> m_extremityMin;
+       QPair<id_type<ConstraintModel>, double> m_extremityMax;
 };

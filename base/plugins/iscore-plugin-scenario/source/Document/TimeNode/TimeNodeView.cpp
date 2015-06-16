@@ -52,6 +52,12 @@ void TimeNodeView::setExtremities(int top, int bottom)
     this->update();
 }
 
+void TimeNodeView::addPoint(int newY)
+{
+    m_top = newY < m_top ? newY : m_top;
+    m_bottom = newY > m_bottom ? newY : m_bottom;
+}
+
 void TimeNodeView::setMoving(bool arg)
 {
     m_moving = arg;
