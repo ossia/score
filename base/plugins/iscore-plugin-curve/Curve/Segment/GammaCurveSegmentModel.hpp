@@ -6,7 +6,6 @@ class GammaCurveSegmentModel : public CurveSegmentModel
     public:
         using CurveSegmentModel::CurveSegmentModel;
 
-        // TODO Factor this in a macro.
         template<typename Impl>
         GammaCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveSegmentModel {vis, parent}

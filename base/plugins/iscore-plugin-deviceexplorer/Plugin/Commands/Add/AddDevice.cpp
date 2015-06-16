@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QtXml/QtXml>
 
+// TODO check xml loading.
 void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 {
     QDomElement dom_child = dom_element.firstChildElement("");
@@ -201,8 +202,8 @@ void AddDevice::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
 
-    explorer.removeRow(m_row);
     explorer.deviceModel()->list().removeDevice(explorer.index(m_row, 0, QModelIndex()).data().toString());
+    explorer.removeRow(m_row);
 }
 
 void AddDevice::redo()

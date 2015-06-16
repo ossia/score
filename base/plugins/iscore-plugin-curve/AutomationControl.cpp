@@ -17,8 +17,6 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
 {
     iscore::SerializableCommand* cmd {};
 
-    // TODO harmonize this
-    // TODO commandName -> commandName
     if(name == UpdateCurve::commandName())
     {
         cmd = new UpdateCurve;

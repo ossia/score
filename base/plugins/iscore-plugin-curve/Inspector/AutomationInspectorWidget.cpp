@@ -124,7 +124,6 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
 
-// TODO validation (voir dans capacités de QLineEdit)
 void AutomationInspectorWidget::on_addressChange(const Address& newText)
 {
     if(newText != m_model->address())

@@ -3,7 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <State/Address.hpp>
 
-// TODO put to the new command format
+// TODO maybe use property command.
 class ChangeAddress : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("ChangeAddress", "ChangeAddress")

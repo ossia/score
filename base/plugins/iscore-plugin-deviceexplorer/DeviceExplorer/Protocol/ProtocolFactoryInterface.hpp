@@ -19,7 +19,6 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
         // Save
         virtual void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const = 0;
 
-        // TODO these are not necessary anymore
         template<typename T>
         void serializeProtocolSpecificSettings_T(const QVariant& data, const VisitorVariant& visitor) const
         {

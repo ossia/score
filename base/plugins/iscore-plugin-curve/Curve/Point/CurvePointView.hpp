@@ -27,5 +27,4 @@ class CurvePointView : public QGraphicsObject
     private:
         CurvePointModel* m_model;
         bool m_selected{};
-        QMenu* m_contextMenu{};
 };
