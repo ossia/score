@@ -38,9 +38,14 @@ class AbstractConstraintView : public QGraphicsObject
         void setPlayWidth(double width);
         void setValid(bool val);
 
+        StateView* startState() const
+        { return m_startState; }
+
+        StateView* endState() const
+        { return m_endState; }
+
         double height() const
         { return m_height; }
-
 
         void setSelected(bool selected)
         {

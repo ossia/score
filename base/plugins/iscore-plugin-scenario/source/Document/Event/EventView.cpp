@@ -107,6 +107,8 @@ void EventView::paint(QPainter* painter,
 
     painter->drawEllipse({0., 0.}, radiusIn, radiusIn);
 */
+    painter->setPen(Qt::darkCyan);
+//    painter->drawRect(boundingRect());
     painter->setBrush(Qt::white);
     eventPen.setWidth(1);
     painter->setPen(eventPen);

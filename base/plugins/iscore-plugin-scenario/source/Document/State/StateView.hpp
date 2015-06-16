@@ -5,7 +5,9 @@ class StateView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        explicit StateView(QGraphicsObject *parent = 0);
+        StateView(QGraphicsObject *parent = 0);
+        virtual ~StateView() = default;
+        int type() const override;
 
         QRectF boundingRect() const override;
         void paint(QPainter* painter,
@@ -24,5 +26,7 @@ class StateView : public QGraphicsObject
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
+        bool m_containtMessage{false};
 
 };

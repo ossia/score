@@ -11,7 +11,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     m_presenter{presenter}
 {
     this->setParentItem(parent);
-    this->setZValue(parent->zValue() + 1.5);
+    this->setZValue(parent->zValue() + 1);
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 

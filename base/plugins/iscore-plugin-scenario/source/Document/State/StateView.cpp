@@ -3,7 +3,7 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <QCursor>
-
+#include <QDebug>
 static const qreal radiusFull = 10.;
 static const qreal radiusVoid = 3.;
 
@@ -11,10 +11,14 @@ StateView::StateView(QGraphicsObject *parent) : QGraphicsObject(parent)
 {
     this->setParentItem(parent);
 
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(parent->zValue() + 10);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
-//    this->setCursor(Qt::CrossCursor);
+}
+
+int StateView::type() const
+{
+    return QGraphicsItem::UserType + 4;
 }
 
 QRectF StateView::boundingRect() const
@@ -29,7 +33,12 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
     painter->setPen(statePen);
     painter->setBrush(Qt::white);
-    painter->drawEllipse({0., 0.}, radiusVoid, radiusVoid);
+    qreal radius = m_containtMessage ? radiusFull : radiusVoid;
+    painter->drawEllipse({0., 0.}, radius, radius);
+
+    painter->setBrush(Qt::NoBrush);
+    painter->setPen(Qt::darkYellow);
+//    painter->drawRect(boundingRect());
 }
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)

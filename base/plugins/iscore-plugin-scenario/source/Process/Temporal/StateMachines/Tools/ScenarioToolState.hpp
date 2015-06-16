@@ -46,6 +46,7 @@ class ScenarioTool : public ToolState
         const id_type<EventModel>& itemToEventId(const QGraphicsItem*) const;
         const id_type<TimeNodeModel>& itemToTimeNodeId(const QGraphicsItem*) const;
         const id_type<ConstraintModel>& itemToConstraintId(const QGraphicsItem*) const;
+        const id_type<EventModel>& itemStateToEventId(const QGraphicsItem*) const;
 
         template<typename EventFun,
                  typename TimeNodeFun,
@@ -79,6 +80,10 @@ class ScenarioTool : public ToolState
 
                 case QGraphicsItem::UserType + 3:
                     tn_fun(itemToTimeNodeId(pressedItem));
+                    break;
+
+                case QGraphicsItem::UserType + 4:
+                    ev_fun(itemStateToEventId(pressedItem));
                     break;
 
                 default:

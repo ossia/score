@@ -27,7 +27,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 
 QRectF TemporalConstraintView::boundingRect() const
 {
-    return {0, -18, qreal(maxWidth()), qreal(constraintHeight()) };
+    return {0, -constraintHeight()/2, qreal(maxWidth()), qreal(constraintHeight()) };
 }
 
 void TemporalConstraintView::paint(
@@ -169,6 +169,10 @@ void TemporalConstraintView::paint(
     painter->setFont(f);
     painter->setPen(m_labelColor);
     painter->drawText(labelRect, Qt::AlignCenter, m_label);
+
+    painter->setPen(Qt::darkRed);
+    painter->setBrush(Qt::NoBrush);
+//    painter->drawRect(boundingRect());
 }
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)

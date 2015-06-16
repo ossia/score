@@ -6,6 +6,8 @@
 #include "Document/Event/EventView.hpp"
 #include "Document/Event/EventPresenter.hpp"
 
+#include "Document/State/StateView.hpp"
+
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
@@ -34,4 +36,14 @@ const id_type<TimeNodeModel> &ScenarioTool::itemToTimeNodeId(const QGraphicsItem
 const id_type<ConstraintModel> &ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
 {
     return static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model().id();
+}
+
+const id_type<EventModel> &ScenarioTool::itemStateToEventId(const QGraphicsItem *pressedItem) const
+{
+    auto state = static_cast<const StateView*>(pressedItem);
+    auto cstr = static_cast<const AbstractConstraintView*>( pressedItem->parentObject());
+    if (cstr->startState() == state )
+        return cstr->presenter().model().startEvent();
+
+    return cstr->presenter().model().endEvent();
 }
