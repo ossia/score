@@ -25,7 +25,7 @@ class EventPresenter : public NamedObject
         const EventModel& model() const;
 
         bool isSelected() const;
-        void updateViewHalves() const;
+        void updateStateView() const;
 
         void handleDrop(const QMimeData* mime);
 

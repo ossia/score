@@ -13,7 +13,7 @@ class StateView : public QGraphicsObject
         void paint(QPainter* painter,
                const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
-
+        void setContainMessage(bool);
 
     signals:
         void pressed(const QPointF&);
@@ -27,6 +27,6 @@ class StateView : public QGraphicsObject
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
-        bool m_containtMessage{false};
+        bool m_containMessage{false};
 
 };

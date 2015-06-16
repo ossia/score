@@ -108,21 +108,10 @@ void EventView::paint(QPainter* painter,
     painter->drawEllipse({0., 0.}, radiusIn, radiusIn);
 */
     painter->setPen(Qt::darkCyan);
-//    painter->drawRect(boundingRect());
+    painter->drawRect(boundingRect());
     painter->setBrush(Qt::white);
     eventPen.setWidth(1);
     painter->setPen(eventPen);
-    if((int)m_halves & (int)Scenario::EventHalves::Before)
-    {
-        painter->drawChord(this->boundingRect(), 90 * 16, 180 * 16);
-		painter->drawChord(this->boundingRect(), 270 * 16, 180 * 16);
-    }
-
-    if((int)m_halves & (int)Scenario::EventHalves::After)
-    {
-		painter->drawChord(this->boundingRect(), 90 * 16, 180 * 16);
-        painter->drawChord(this->boundingRect(), 270 * 16, 180 * 16);
-    }
 }
 
 void EventView::setSelected(bool selected)

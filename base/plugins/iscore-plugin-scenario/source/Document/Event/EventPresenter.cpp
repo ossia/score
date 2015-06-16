@@ -33,7 +33,7 @@ EventPresenter::EventPresenter(const EventModel& model,
             this,   &EventPresenter::triggerSetted) ;
 
     connect(&m_model, &EventModel::localStatesChanged,
-            this,    &EventPresenter::updateViewHalves);
+            this,    &EventPresenter::updateStateView);
 
     connect(m_view, &EventView::eventHoverEnter,
             this,   &EventPresenter::eventHoverEnter);
@@ -46,7 +46,6 @@ EventPresenter::EventPresenter(const EventModel& model,
 
     m_view->setCondition(m_model.condition());
     m_view->setTrigger(m_model.trigger());
-    m_view->setHalves(m_halves);
 }
 
 EventPresenter::~EventPresenter()
@@ -86,17 +85,20 @@ bool EventPresenter::isSelected() const
 
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
+#include "Document/State/StateView.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-// TODO EventHalvesSetter starts to make sense
-void EventPresenter::updateViewHalves() const
+
+// TODO Is it the good place to do that ?
+
+void EventPresenter::updateStateView() const
 {
-    // First check if the event has states.
-    int halves = 0;
-    if(!m_model.states().empty())
-        halves |= Scenario::EventHalves::After;
+    // TODO First check if the event has states.
 
     auto scenar = m_model.parentScenario();
     auto constraints = scenar->constraints();
+
     // Then check the constraints.
     for(const auto& constraint : m_model.previousConstraints())
     {
@@ -108,13 +110,20 @@ void EventPresenter::updateViewHalves() const
             // This will be called anyway when the last constraint is added.
             return;
         }
+        auto scenar_pres = static_cast<TemporalScenarioPresenter*>(this->parent());
+        auto cstr_pres = scenar_pres->constraints().at((*constraint_it)->id());
+
         const auto& procs = (*constraint_it)->processes();
         if(std::any_of(
                     procs.begin(),
                     procs.end(),
                     [] (ProcessModel* proc) { return proc->endState() != nullptr; }))
         {
-            halves |= Scenario::EventHalves::Before;
+            ::view(cstr_pres)->startState()->setContainMessage(true);
+        }
+        else if (cstr_pres)
+        {
+            ::view(cstr_pres)->startState()->setContainMessage(false);
         }
     }
 
@@ -125,17 +134,23 @@ void EventPresenter::updateViewHalves() const
         {
             return;
         }
+        auto scenar_pres = static_cast<TemporalScenarioPresenter*>(this->parent());
+        auto cstr_pres = scenar_pres->constraints().at((*constraint_it)->id());
+
         const auto& procs = (*constraint_it)->processes();
         if(std::any_of(
                     procs.begin(),
                     procs.end(),
                     [] (ProcessModel* proc) { return proc->startState() != nullptr; }))
         {
-            halves |= Scenario::EventHalves::After;
+            ::view(cstr_pres)->startState()->setContainMessage(true);
+        }
+        else
+        {
+            if (cstr_pres)
+                ::view(cstr_pres)->startState()->setContainMessage(false);
         }
     }
-
-    m_view->setHalves((Scenario::EventHalves) halves);
 }
 
 void EventPresenter::constraintsChangedHelper(
@@ -160,11 +175,11 @@ void EventPresenter::constraintsChangedHelper(
         const auto& cstr = scenar->constraint(constraint);
         connections.append(
                     connect(&cstr, &ConstraintModel::processesChanged,
-                            this,  &EventPresenter::updateViewHalves));
+                            this,  &EventPresenter::updateStateView));
 
     }
 
-    updateViewHalves();
+    updateStateView();
 }
 
 void EventPresenter::on_previousConstraintsChanged()

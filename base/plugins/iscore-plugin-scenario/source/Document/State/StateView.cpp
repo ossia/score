@@ -33,12 +33,17 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
     painter->setPen(statePen);
     painter->setBrush(Qt::white);
-    qreal radius = m_containtMessage ? radiusFull : radiusVoid;
+    qreal radius = m_containMessage ? radiusFull : radiusVoid;
     painter->drawEllipse({0., 0.}, radius, radius);
 
     painter->setBrush(Qt::NoBrush);
     painter->setPen(Qt::darkYellow);
-//    painter->drawRect(boundingRect());
+    painter->drawRect(boundingRect());
+}
+
+void StateView::setContainMessage(bool arg)
+{
+    m_containMessage = arg;
 }
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
