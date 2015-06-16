@@ -19,6 +19,7 @@ include_directories(${ISCORE_ROOT_SOURCE_DIR})
 include_directories(${ISCORE_ROOT_SOURCE_DIR}/API)
 include_directories(${ISCORE_ROOT_SOURCE_DIR}/API/Headers)
 # Files & main target
+include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 # TODO put this in CMake interface of iscore_lib
 
@@ -30,9 +31,9 @@ target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
                         iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer APIJamoma)
 
-if(USE_COTIRE)
-    cotire(${PROJECT_NAME})
-endif()
+
+cotire(${PROJECT_NAME})
+
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

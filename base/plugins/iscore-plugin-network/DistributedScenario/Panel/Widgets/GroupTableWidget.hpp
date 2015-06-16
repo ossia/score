@@ -1,3 +1,4 @@
+#pragma once
 #include <QWidget>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/tools/ObjectPath.hpp>

@@ -1,6 +1,6 @@
 #include "DeckInspectorSection.hpp"
 
-#include "AddProcessViewModelWidget.hpp"
+#include "Inspector/Constraint/Widgets/Box/Deck/AddProcessViewModelWidget.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 #include "Inspector/Constraint/Widgets/Box/BoxInspectorSection.hpp"

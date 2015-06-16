@@ -56,6 +56,8 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 
 // These functions are utilities to save / load
 // constraint view models in commands
+// NOTE : the implementation for now is in TemporalConstraintViewModelSerialization but
+// should be in its own file.
 
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,

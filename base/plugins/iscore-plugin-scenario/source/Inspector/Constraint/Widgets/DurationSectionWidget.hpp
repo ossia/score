@@ -1,3 +1,4 @@
+#pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
