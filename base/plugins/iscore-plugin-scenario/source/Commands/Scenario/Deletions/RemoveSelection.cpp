@@ -212,7 +212,11 @@ void RemoveSelection::undo()
         auto& eev = scenar.event(cstr->endEvent());
         if (!eev.previousConstraints().contains(cstr->id()))
             eev.addPreviousConstraint(cstr->id());
+    }
 
+    // And finally the constraint's view models
+    for(const auto& constraintdata : m_removedConstraints)
+    {
         // view model creation
         deserializeConstraintViewModels(constraintdata.second, scenar);
     }

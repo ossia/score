@@ -168,14 +168,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ProcessModel* process(
                 const id_type<ProcessModel>& processId) const;
 
-        // Copies are done because there might be a loop
-        // that might change the vector, and invalidate the
-        // iterators, leading to a crash quite difficult to debug.
-        // TODO this is stupid, people should take care to not change the iterator instead.
-        auto boxes() const
+
+        const auto& boxes() const
         { return m_boxes; }
 
-        auto processes() const
+        const auto& processes() const
         { return m_processes; }
 
         // Here we won't remove / add things from the outside so it is safe to

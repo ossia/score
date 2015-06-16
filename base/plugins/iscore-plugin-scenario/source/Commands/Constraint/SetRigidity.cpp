@@ -14,6 +14,8 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
 {
     // We suppose that this command is never called with rigid == current state of the constraint.
 //    if(rigid)  // it is currently not rigid so min & max are set -> TODO : WHY ??
+    // TODO make a class that embodies the logic for the relationship between rigidity and min/max.
+    // Also, min/max are indicative if rigid, they can still be set but won't be used.
     {
         auto& constraint = m_path.find<ConstraintModel>();
         Q_ASSERT(constraint.isRigid() != rigid);

@@ -108,14 +108,26 @@ void ScenarioViewInterface::updateTimeNode(const id_type<TimeNodeModel>& timeNod
 
         for(const auto& constraint_id : event->model().previousConstraints())
         {
-            auto cstr_pres = m_presenter->m_constraints.at(constraint_id);
-            update_min_max(cstr_pres->model().heightPercentage(), min, max);
+            auto it = m_presenter->m_constraints.find(constraint_id);
+            // Note : here we do this test, because
+            // when removing / adding constraints,
+            // this may be called while the presenter doesn't have all the constraints.
+            // To fix this it would maybe be better to update the min / max height
+            // directly when something changes
+            // instead of recomputing everything every time (it would be faster, too).
+            if(it != m_presenter->m_constraints.end())
+            {
+                update_min_max((*it)->model().heightPercentage(), min, max);
+            }
         }
 
         for(const auto& constraint_id : event->model().nextConstraints())
         {
-            auto cstr_pres = m_presenter->m_constraints.at(constraint_id);
-            update_min_max(cstr_pres->model().heightPercentage(), min, max);
+            auto it = m_presenter->m_constraints.find(constraint_id);
+            if(it != m_presenter->m_constraints.end())
+            {
+                update_min_max((*it)->model().heightPercentage(), min, max);
+            }
         }
     }
 

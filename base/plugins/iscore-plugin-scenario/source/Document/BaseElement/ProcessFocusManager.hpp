@@ -5,8 +5,6 @@
 #include <QPointer>
 
 // Keeps the focused elements in memory for use by the scenario control.
-// TODO rename file
-
 // Note : focus should not be lost when switching documents. Hence, this
 // should more be part of the per-document part.
 class ProcessFocusManager : public QObject
@@ -37,16 +35,3 @@ class ProcessFocusManager : public QObject
         QPointer<const ProcessViewModel> m_currentViewModel{};
         QPointer<ProcessPresenter> m_currentPresenter{};
 };
-
-
-template<typename T, typename Container, typename Property, typename Value>
-T get(const Container& c, Property&& prop, Value&& val)
-{
-    return static_cast<T>(
-                *std::find_if(
-                    c.begin(),
-                    c.end(),
-                    [&] (const auto& ctrl){ return (ctrl->*prop)() == val; }));
-}
-
-//ProcessFocusManager& getFocusManager();

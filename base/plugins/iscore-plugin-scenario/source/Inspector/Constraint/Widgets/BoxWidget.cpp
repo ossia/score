@@ -83,7 +83,7 @@ void BoxWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConstr
     combobox->clear();
     combobox->addItem(hiddenText);
 
-    for(auto box : m_model->boxes())
+    for(const auto& box : m_model->boxes())
     {
         auto id = *box->id().val();
         combobox->addItem(QString::number(id));
