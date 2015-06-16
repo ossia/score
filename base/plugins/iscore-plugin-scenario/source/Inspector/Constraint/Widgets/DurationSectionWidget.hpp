@@ -1,6 +1,6 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 class QLabel;
 class ConstraintModel;

@@ -12,6 +12,8 @@
 #include "Commands/Constraint/Box/MoveDeck.hpp"
 #include "Commands/Constraint/Box/SwapDecks.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 #include <QFinalState>
 #include <QGraphicsScene>
 ResizeDeckState::ResizeDeckState(

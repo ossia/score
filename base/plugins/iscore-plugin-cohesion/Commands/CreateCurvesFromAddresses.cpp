@@ -63,6 +63,7 @@ void CreateCurvesFromAddresses::redo()
 
         // Change the address
         // TODO maybe pass parameters to AddProcessToConstraint?
+        // Or do an overloaded command ?
         auto id = cmd->processId();
 
         auto curve = static_cast<AutomationModel*>(constraint.process(id));

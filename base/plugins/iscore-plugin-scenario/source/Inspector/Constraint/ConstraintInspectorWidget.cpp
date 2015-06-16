@@ -22,7 +22,9 @@
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Process/ScenarioModel.hpp"
 
-#include "core/document/DocumentModel.hpp"
+#include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
 #include <Inspector/Separator.hpp>
 #include <QFrame>

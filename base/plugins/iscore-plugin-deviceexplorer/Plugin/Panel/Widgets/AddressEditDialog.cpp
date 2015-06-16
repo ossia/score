@@ -135,7 +135,7 @@ AddressSettings AddressEditDialog::getSettings() const
     return settings;
 }
 
-AddressSettings AddressEditDialog::getDefaultSettings() const
+AddressSettings AddressEditDialog::makeDefaultSettings()
 {
     static AddressSettings defaultSettings
             = [] () {
@@ -150,7 +150,7 @@ AddressSettings AddressEditDialog::getDefaultSettings() const
 }
 
 void
-AddressEditDialog::setSettings(AddressSettings& settings)
+AddressEditDialog::setSettings(const AddressSettings& settings)
 {
     const QString name = settings.name;
     m_nameEdit->setText(name);

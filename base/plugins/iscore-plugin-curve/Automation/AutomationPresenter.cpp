@@ -4,7 +4,8 @@
 #include "AutomationView.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <core/document/Document.hpp>
+
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
 #include "Curve/CurveModel.hpp"

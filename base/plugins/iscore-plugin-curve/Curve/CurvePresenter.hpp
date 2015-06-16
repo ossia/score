@@ -2,7 +2,7 @@
 #include <QStateMachine>
 #include <QPointF>
 #include <QVector>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 
 class CurveModel;

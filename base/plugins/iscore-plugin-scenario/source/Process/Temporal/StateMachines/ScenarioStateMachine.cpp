@@ -9,6 +9,9 @@
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 
+#include <core/document/Document.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+
 #include <QSignalTransition>
 
 ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):

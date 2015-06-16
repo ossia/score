@@ -1,7 +1,7 @@
 #pragma once
 #include <ProcessInterface/ProcessPresenter.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 class CurvePresenter;
 class QCPGraph;

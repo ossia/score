@@ -1,5 +1,6 @@
 #pragma once
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <QState>
 #include <QStateMachine>

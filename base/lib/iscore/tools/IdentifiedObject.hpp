@@ -3,7 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/utilsCPP11.hpp>
 
-// TODO ModelObject with path()
+// TODO ModelObject with path() and a pointer cache.
 template<typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {

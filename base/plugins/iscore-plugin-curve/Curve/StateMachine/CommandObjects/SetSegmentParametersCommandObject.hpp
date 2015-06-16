@@ -2,7 +2,7 @@
 #include <QVector>
 #include <QPointF>
 #include "Curve/StateMachine/CurveStateMachineBaseStates.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 class CurvePresenter;
 
 class SetSegmentParametersCommandObject

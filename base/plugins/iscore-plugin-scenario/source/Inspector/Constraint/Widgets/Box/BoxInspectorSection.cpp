@@ -11,6 +11,9 @@
 
 #include "Commands/Constraint/Box/AddDeckToBox.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <QtWidgets/QVBoxLayout>
 #include <QFrame>
 #include <QPushButton>

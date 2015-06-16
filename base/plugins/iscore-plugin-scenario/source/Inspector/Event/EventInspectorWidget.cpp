@@ -27,6 +27,9 @@
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <Inspector/Separator.hpp>
 
 #include "core/document/DocumentModel.hpp"

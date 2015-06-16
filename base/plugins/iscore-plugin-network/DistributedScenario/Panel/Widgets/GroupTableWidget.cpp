@@ -10,6 +10,8 @@
 #include "DistributedScenario/Commands/AddClientToGroup.hpp"
 #include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
 #include <QLabel>
 #include <QGridLayout>

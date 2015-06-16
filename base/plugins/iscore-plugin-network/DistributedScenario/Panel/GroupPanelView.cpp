@@ -5,6 +5,9 @@
 #include "DistributedScenario/Group.hpp"
 #include "DistributedScenario/Commands/CreateGroup.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QInputDialog>

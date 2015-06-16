@@ -6,7 +6,10 @@
 #include <QLabel>
 #include "GroupMetadata.hpp"
 #include "Group.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include "Commands/ChangeGroup.hpp"
 
 

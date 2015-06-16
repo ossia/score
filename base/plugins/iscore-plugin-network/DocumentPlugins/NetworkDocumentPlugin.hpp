@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+
 
 #include "DistributedScenario/Group.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
@@ -14,6 +14,7 @@ class GroupManager;
 namespace iscore
 {
     class Document;
+    class DocumentModel;
 }
 
 class NetworkPluginPolicy : public QObject

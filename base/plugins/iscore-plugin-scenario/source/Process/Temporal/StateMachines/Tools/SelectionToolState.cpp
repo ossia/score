@@ -22,9 +22,13 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 
+#include <core/document/Document.hpp>
+
 #include <QGraphicsScene>
 
 #include <iscore/statemachine/CommonSelectionState.hpp>
+
+// TODO put in its own file
 class ScenarioSelectionState : public CommonSelectionState
 {
     private:

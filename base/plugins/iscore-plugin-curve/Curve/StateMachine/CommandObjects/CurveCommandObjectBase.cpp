@@ -7,6 +7,7 @@
 #include "Curve/Segment/CurveSegmentModelSerialization.hpp"
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 CurveCommandObjectBase::CurveCommandObjectBase(
         CurvePresenter* pres,

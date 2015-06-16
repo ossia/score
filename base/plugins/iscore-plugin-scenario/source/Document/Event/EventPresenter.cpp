@@ -3,6 +3,9 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventView.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <QGraphicsScene>
 
 EventPresenter::EventPresenter(const EventModel& model,

@@ -1,7 +1,7 @@
 #include "ObjectMenuActions.hpp"
 
 #include <core/document/DocumentModel.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+
 #include "iscore/menu/MenuInterface.hpp"
 
 #include "Process/ScenarioGlobalCommandManager.hpp"

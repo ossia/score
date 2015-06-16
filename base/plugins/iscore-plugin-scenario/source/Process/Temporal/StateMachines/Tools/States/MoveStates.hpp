@@ -1,5 +1,6 @@
 #pragma once
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/locking/ObjectLocker.hpp>
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 class ScenarioStateMachine;
 

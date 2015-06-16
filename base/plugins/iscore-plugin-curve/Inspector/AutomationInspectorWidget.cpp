@@ -10,6 +10,9 @@
 #include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
