@@ -1,5 +1,7 @@
 #include "AbstractConstraintView.hpp"
 #include "AbstractConstraintPresenter.hpp"
+#include "Document/State/StateView.hpp"
+
 AbstractConstraintView::AbstractConstraintView(
         AbstractConstraintPresenter& presenter,
         QGraphicsItem *parent) :
@@ -8,6 +10,27 @@ AbstractConstraintView::AbstractConstraintView(
 {
     setAcceptHoverEvents(true);
     m_dashPen.setDashPattern({2., 4.});
+
+    m_startState = new StateView(this);
+    m_endState = new StateView{this};
+}
+
+void AbstractConstraintView::setConnections()
+{
+    // NOTE : crash if in ctr ...
+        connect(m_startState, &StateView::pressed,
+                &m_presenter, &AbstractConstraintPresenter::pressed);
+        connect(m_startState, &StateView::moved,
+                &m_presenter,    &AbstractConstraintPresenter::moved);
+        connect(m_startState,   &StateView::released,
+                &m_presenter,    &AbstractConstraintPresenter::released);
+
+        connect(m_endState, &StateView::pressed,
+                &m_presenter, &AbstractConstraintPresenter::pressed);
+        connect(m_endState, &StateView::moved,
+                &m_presenter,    &AbstractConstraintPresenter::moved);
+        connect(m_endState,   &StateView::released,
+                &m_presenter,    &AbstractConstraintPresenter::released);
 }
 
 void AbstractConstraintView::setInfinite(bool infinite)

@@ -2,6 +2,7 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 #include <QPainter>
 class TemporalConstraintPresenter;
+
 class TemporalConstraintView : public AbstractConstraintView
 {
         Q_OBJECT
@@ -21,7 +22,7 @@ class TemporalConstraintView : public AbstractConstraintView
         void setLabelColor(const QColor &labelColor);
         void setLabel(const QString &label);
 
-signals:
+    signals:
         void constraintHoverEnter();
         void constraintHoverLeave();
 
@@ -35,4 +36,5 @@ signals:
         bool m_shadow {false};
         QString m_label{};
         QColor m_labelColor{Qt::gray};
+
 };

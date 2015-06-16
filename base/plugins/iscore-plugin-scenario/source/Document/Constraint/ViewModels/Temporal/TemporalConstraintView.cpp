@@ -4,6 +4,7 @@
 #include "TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
+#include "Document/State/StateView.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
@@ -20,7 +21,9 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 
     this->setZValue(parent->zValue() + 1);
     this->setCursor(Qt::CrossCursor);
+
 }
+
 
 QRectF TemporalConstraintView::boundingRect() const
 {
@@ -48,6 +51,10 @@ void TemporalConstraintView::paint(
 
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
+    m_startState->setPos(0, 0);
+    m_endState->setPos(defaultWidth(), 0);
+    m_endState->show();
+
     // Paths
     if(infinite())
     {
@@ -58,6 +65,8 @@ void TemporalConstraintView::paint(
             leftBrace.moveTo(minWidth(), -10);
             leftBrace.arcTo(minWidth() - 10, -10, 20, 20, 90, 180);
         }
+
+        m_endState->hide();
 
         dashedPath.moveTo(minWidth(), 0);
         dashedPath.lineTo(defaultWidth(), 0);
