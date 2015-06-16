@@ -14,7 +14,7 @@ StateView::StateView(QGraphicsObject *parent) : QGraphicsObject(parent)
     this->setZValue(parent->zValue() + 1);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
-    this->setCursor(Qt::CrossCursor);
+//    this->setCursor(Qt::CrossCursor);
 }
 
 QRectF StateView::boundingRect() const
