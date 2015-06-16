@@ -7,6 +7,7 @@
 
 class AbstractConstraintViewModel;
 class AbstractConstraintPresenter;
+class StateView;
 class AbstractConstraintView : public QGraphicsObject
 {
         Q_OBJECT
@@ -14,6 +15,8 @@ class AbstractConstraintView : public QGraphicsObject
     public:
         AbstractConstraintView(AbstractConstraintPresenter& presenter,
                                QGraphicsItem* parent);
+
+        void setConnections();
 
         int type() const override
         { return QGraphicsItem::UserType + 2; }
@@ -105,6 +108,8 @@ protected:
             Qt::SquareCap,
             Qt::RoundJoin
         };
+        StateView* m_startState{};
+        StateView* m_endState{};
 
     private:
         AbstractConstraintPresenter& m_presenter;

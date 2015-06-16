@@ -334,6 +334,7 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
                                 constraint_view_model,
                                 m_view,
                                 this};
+    cst_pres->view()->setConnections();
     m_constraints.insert(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
