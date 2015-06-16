@@ -1,5 +1,6 @@
 #include "AddressBoolSettingsWidget.hpp"
 #include <QFormLayout>
+#include <QComboBox>
 AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
