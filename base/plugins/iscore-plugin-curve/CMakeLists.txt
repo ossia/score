@@ -71,6 +71,9 @@ target_link_libraries(${PROJECT_NAME}
                      iscore_lib_base iscore_lib_inspector iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
 
 cotire(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

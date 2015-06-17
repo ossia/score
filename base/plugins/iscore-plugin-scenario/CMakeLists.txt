@@ -36,6 +36,9 @@ install(TARGETS iscore_lib_process
     ARCHIVE DESTINATION static_lib/)
 
 cotire(iscore_lib_process)
+set_target_properties(iscore_lib_process
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 ### Plugin ###
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
@@ -217,6 +220,9 @@ target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5
                      iscore_lib_inspector iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
 
 cotire(iscore_plugin_scenario)
+set_target_properties(iscore_plugin_scenario
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS iscore_plugin_scenario
     LIBRARY DESTINATION plugins/

@@ -81,6 +81,9 @@ target_link_libraries(iscore_plugin_deviceexplorer
                       iscore_lib_base iscore_lib_state)
 
 cotire(iscore_plugin_deviceexplorer)
+set_target_properties(iscore_plugin_deviceexplorer
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 set_property(TARGET iscore_plugin_deviceexplorer APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")

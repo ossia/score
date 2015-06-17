@@ -42,6 +42,9 @@ target_link_libraries(${PROJECT_NAME}
                         Jamoma::Foundation Jamoma::Modular Jamoma::Score)
 
 cotire(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

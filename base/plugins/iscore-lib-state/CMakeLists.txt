@@ -24,6 +24,9 @@ set_property(TARGET ${PROJECT_NAME} APPEND
              PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
 cotire(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION .

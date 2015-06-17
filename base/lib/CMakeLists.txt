@@ -73,6 +73,9 @@ add_library(iscore_lib_base ${SRCS} ${HEADERS})
 target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets)
 
 cotire(iscore_lib_base)
+set_target_properties(iscore_lib_base
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS iscore_lib_base
         LIBRARY DESTINATION .

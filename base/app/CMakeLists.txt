@@ -85,6 +85,9 @@ else()
 endif()
 
 cotire(${APPNAME})
+set_target_properties(${APPNAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION .
