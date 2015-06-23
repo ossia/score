@@ -15,7 +15,8 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 
-    m_color = qApp->palette("ScenarioPalette").base().color();
+    // TODO in palette ?
+    m_color = Qt::darkGray; // qApp->palette("ScenarioPalette").alternateBase().color();
 }
 
 void TimeNodeView::paint(QPainter* painter,
@@ -38,11 +39,14 @@ void TimeNodeView::paint(QPainter* painter,
     painter->setPen(pen);
 
     painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));
+
+    painter->setPen(Qt::darkMagenta);
+    painter->drawRect(boundingRect());
 }
 
 QRectF TimeNodeView::boundingRect() const
 {
-    return { -3., (qreal) m_top, 6., (qreal)(m_bottom - m_top) };
+    return { -3., (qreal) (m_top - 10), 6., (qreal)(m_bottom - m_top + 20) };
 }
 
 void TimeNodeView::setExtremities(int top, int bottom)
@@ -56,6 +60,7 @@ void TimeNodeView::addPoint(int newY)
 {
     m_top = newY < m_top ? newY : m_top;
     m_bottom = newY > m_bottom ? newY : m_bottom;
+    update();
 }
 
 void TimeNodeView::setMoving(bool arg)

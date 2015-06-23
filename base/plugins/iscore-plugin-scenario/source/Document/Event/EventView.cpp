@@ -77,9 +77,23 @@ void EventView::setHalves(Scenario::EventHalves h)
     update();
 }
 
+void EventView::setExtremities(int top, int bottom)
+{
+    m_top = top;
+    m_bottom = bottom;
+    this->update();
+}
+
+void EventView::addPoint(int newY)
+{
+    m_top = newY < m_top ? newY : m_top;
+    m_bottom = newY > m_bottom ? newY : m_bottom;
+    update();
+}
+
 QRectF EventView::boundingRect() const
 {
-    return {- radius, -radius, 2 * radius, 2 * radius};
+    return {- radius, qreal(m_top), 2 * radius, qreal(m_bottom - m_top)};
 }
 
 void EventView::paint(QPainter* painter,
@@ -94,11 +108,11 @@ void EventView::paint(QPainter* painter,
     {
         eventPen = QPen(highlight);
     }
-    else if (isShadow())
+ /*   else if (isShadow())
     {
         eventPen = QPen(highlight.lighter());
     }
-
+*/
     eventPen.setWidth(2);
     // Ball
 /*
@@ -109,10 +123,11 @@ void EventView::paint(QPainter* painter,
 */
     painter->setPen(Qt::darkCyan);
     painter->drawRect(boundingRect());
-    painter->setBrush(Qt::white);
-    eventPen.setWidth(1);
-    painter->setPen(eventPen);
-}
+
+    QPen pen{QBrush(eventPen.color()), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    painter->setPen(pen);
+
+    painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));}
 
 void EventView::setSelected(bool selected)
 {

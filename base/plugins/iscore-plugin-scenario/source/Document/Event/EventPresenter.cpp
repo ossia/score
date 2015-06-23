@@ -194,6 +194,26 @@ void EventPresenter::on_nextConstraintsChanged()
                              m_nextConstraintsConnections);
 }
 
+void EventPresenter::updateMinExtremities(const id_type<ConstraintModel> &cstr, const double y)
+{
+    m_extremityMin = {cstr, y};
+}
+
+void EventPresenter::updateMaxExtremities(const id_type<ConstraintModel> &cstr, const double y)
+{
+    m_extremityMax = {cstr, y};
+}
+
+const QPair<id_type<ConstraintModel>, double> EventPresenter::extremityMin() const
+{
+    return m_extremityMin;
+}
+
+const QPair<id_type<ConstraintModel>, double> EventPresenter::extremityMax() const
+{
+    return m_extremityMax;
+}
+
 void EventPresenter::triggerSetted(QString trig)
 {
     m_view->setTrigger(trig);

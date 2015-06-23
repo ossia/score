@@ -35,7 +35,12 @@ class EventView : public QGraphicsObject
         void setTrigger(const QString& trig);
         bool hasTrigger() const;
 
+        // TODO :remove
         void setHalves(Scenario::EventHalves h);
+
+        void setExtremities(int top, int bottom);
+        void addPoint(int newY);
+
 
     signals:
         void eventHoverEnter();
@@ -68,6 +73,9 @@ class EventView : public QGraphicsObject
 
         bool m_shadow {false};
         bool m_selected{};
+
+        int m_top {0};
+        int m_bottom {0};
 
         ConditionView* m_conditionItem{};
         TriggerView* m_triggerItem{};

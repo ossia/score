@@ -344,11 +344,9 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
 
 
 
-    m_viewInterface->addPointInTimeNode(m_events.at(constraint_view_model.model().endEvent())
-                                        ->model().timeNode(),
+    m_viewInterface->addPointInEvent(constraint_view_model.model().endEvent(),
                                         constraint_view_model.model().heightPercentage());
-    m_viewInterface->addPointInTimeNode(m_events.at(constraint_view_model.model().startEvent())
-                                        ->model().timeNode(),
+    m_viewInterface->addPointInEvent(constraint_view_model.model().startEvent(),
                                         constraint_view_model.model().heightPercentage());
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
@@ -358,10 +356,10 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
         const auto& cst = cst_pres->abstractConstraintViewModel().model();
         cst_pres->view()->setPos({rect.x() + cst.startDate().toPixels(m_zoomRatio),
                                   rect.y() + rect.height() * cst.heightPercentage() });
-        m_viewInterface->updatePointInTimeNode(m_events.at(cst.endEvent())->model().timeNode(),
+        m_viewInterface->updatePointInEvent(cst.endEvent(),
                                                cst_pres->id(),
                                                cst.heightPercentage());
-        m_viewInterface->updatePointInTimeNode(m_events.at(cst.startEvent())->model().timeNode(),
+        m_viewInterface->updatePointInEvent(cst.startEvent(),
                                         cst.id(),
                                         cst.heightPercentage());
     });

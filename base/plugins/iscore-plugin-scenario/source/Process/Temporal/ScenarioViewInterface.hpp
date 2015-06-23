@@ -17,8 +17,8 @@ class ScenarioViewInterface : public QObject
         void on_eventMoved(const id_type<EventModel>& eventId);
         void on_constraintMoved(const id_type<ConstraintModel>& constraintId);
         void updateTimeNode(const id_type<TimeNodeModel> &timeNodeId);
-        void addPointInTimeNode(const id_type<TimeNodeModel> &timeNodeId, double y);
-        void updatePointInTimeNode(const id_type<TimeNodeModel> &timeNodeId, const id_type<ConstraintModel>& cstrId, double newValue);
+        void addPointInEvent(const id_type<EventModel> &eventId, double y);
+        void updatePointInEvent(const id_type<EventModel> &eventId, const id_type<ConstraintModel>& cstrId, double newValue);
 
     public slots:
         void on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter);

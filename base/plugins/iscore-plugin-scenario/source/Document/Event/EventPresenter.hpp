@@ -32,6 +32,11 @@ class EventPresenter : public NamedObject
         void on_previousConstraintsChanged();
         void on_nextConstraintsChanged();
 
+        void updateMinExtremities(const id_type<ConstraintModel>&, const double);
+        void updateMaxExtremities(const id_type<ConstraintModel> &, const double);
+        const QPair<id_type<ConstraintModel>, double> extremityMin() const;
+        const QPair<id_type<ConstraintModel>, double> extremityMax() const;
+
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);
@@ -50,7 +55,11 @@ class EventPresenter : public NamedObject
                 const QVector<id_type<ConstraintModel>>& ids,
                 QVector<QMetaObject::Connection>& connections);        
 
+        // TODO : remove ?
         Scenario::EventHalves m_halves{Scenario::EventHalves::None};
+
+        QPair<id_type<ConstraintModel>, double> m_extremityMin;
+        QPair<id_type<ConstraintModel>, double> m_extremityMax;
 
         const EventModel& m_model;
         EventView* m_view {};
