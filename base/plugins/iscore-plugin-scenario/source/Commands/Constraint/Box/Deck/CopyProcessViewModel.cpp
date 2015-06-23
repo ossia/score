@@ -11,7 +11,7 @@ using namespace Scenario::Command;
 CopyProcessViewModel::CopyProcessViewModel(ObjectPath&& pvmPath,
         ObjectPath&& targetDeckPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_pvmPath {pvmPath},
     m_targetDeckPath {targetDeckPath}

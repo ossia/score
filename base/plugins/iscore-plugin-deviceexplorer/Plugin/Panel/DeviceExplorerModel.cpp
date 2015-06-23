@@ -10,6 +10,9 @@
 #include "Commands/Insert.hpp"
 #include "Commands/EditData.hpp"
 
+#include <core/command/CommandStack.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 #include <QJsonDocument>
 
 using namespace DeviceExplorer::Command;

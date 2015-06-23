@@ -11,7 +11,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
-    SerializableCommand{"ScenarioControl", className(), description()},
+    SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
     auto& scenar = m_path.find<ScenarioModel>();
@@ -212,7 +212,11 @@ void RemoveSelection::undo()
         auto& eev = scenar.event(cstr->endEvent());
         if (!eev.previousConstraints().contains(cstr->id()))
             eev.addPreviousConstraint(cstr->id());
+    }
 
+    // And finally the constraint's view models
+    for(const auto& constraintdata : m_removedConstraints)
+    {
         // view model creation
         deserializeConstraintViewModels(constraintdata.second, scenar);
     }

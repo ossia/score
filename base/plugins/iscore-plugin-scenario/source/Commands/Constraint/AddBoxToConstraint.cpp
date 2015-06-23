@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 AddBoxToConstraint::AddBoxToConstraint(ObjectPath&& constraintPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {constraintPath}
 {

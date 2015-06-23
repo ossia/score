@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QAbstractItemModel>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <DeviceExplorer/NodePath.hpp>
 
 #include "Result.hpp"

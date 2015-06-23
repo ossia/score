@@ -2,6 +2,11 @@
 #include "NetworkDocumentPlugin.hpp"
 
 #include <Repartition/session/MasterSession.hpp>
+namespace iscore
+{
+    class CommandStack;
+    class ObjectLocker;
+}
 class MasterNetworkPolicy : public NetworkPluginPolicy
 {
     public:

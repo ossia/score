@@ -3,7 +3,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-
+// TODO put in own file
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Client& elt)
 {

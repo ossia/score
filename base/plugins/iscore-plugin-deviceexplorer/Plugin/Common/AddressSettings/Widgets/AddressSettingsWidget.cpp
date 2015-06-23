@@ -2,27 +2,50 @@
 #include <QFormLayout>
 #include <QSpinBox>
 #include <QLineEdit>
-#include <Common/CommonTypes.hpp>
+#include <QComboBox>
+#include <QPushButton>
+#include <QInputDialog>
+#include "../AddressSettings.hpp"
 
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),
     m_layout{new QFormLayout}
 {
-    m_ioTypeCBox = new QComboBox(this);
-    m_clipModeCBox = new QComboBox(this);
-    m_tagsEdit = new QLineEdit(this);
+    m_ioTypeCBox = new QComboBox{this};
+    m_clipModeCBox = new QComboBox{this};
+    m_tagsEdit = new QComboBox{this};
+    m_tagsEdit->setEditable(true);
+    m_tagsEdit->setInsertPolicy(QComboBox::InsertAtCurrent);
+    auto addTagButton = new QPushButton;
+    addTagButton->setText("+");
+    connect(addTagButton, &QPushButton::clicked,
+            this, [&] () {
+        bool ok = false;
+        auto res = QInputDialog::getText(this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{}, &ok);
+        if(ok)
+        {
+            m_tagsEdit->addItem(res);
+        }
+    });
+
+    QHBoxLayout* tagLayout = new QHBoxLayout;
+    tagLayout->addWidget(m_tagsEdit);
+    tagLayout->addWidget(addTagButton);
 
     m_layout->addRow(tr("I/O type"), m_ioTypeCBox);
     m_layout->addRow(tr("Clip mode"), m_clipModeCBox);
-    m_layout->addRow(tr("Tags"), m_tagsEdit);
+    m_layout->addRow(tr("Tags"), tagLayout);
 
-    populateIOTypes(m_ioTypeCBox);
-    populateClipMode(m_clipModeCBox);
+    // Populate the combo boxes
+    for(const auto& key : IOTypeStringMap().keys())
+    {
+        m_ioTypeCBox->addItem(IOTypeStringMap()[key], (int)key);
+    }
 
-    m_ioTypeCBox->setCurrentIndex(0);
-    m_clipModeCBox->setCurrentIndex(0);
-
-    m_tagsEdit->setText("");
+    for(const auto& key : ClipModeStringMap().keys())
+    {
+        m_clipModeCBox->addItem(ClipModeStringMap()[key], (int)key);
+    }
 
     setLayout(m_layout);
 }
@@ -30,23 +53,24 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
 AddressSettings AddressSettingsWidget::getCommonSettings() const
 {
     AddressSettings settings;
-    settings.ioType = IOTypeStringMap().key(m_ioTypeCBox->currentText());
-    settings.tags = QStringList{m_tagsEdit->text()}; // TODO
-    settings.clipMode = ClipModeStringMap().key(m_clipModeCBox->currentText()); // TODO use data()
+    settings.ioType = static_cast<IOType>(m_ioTypeCBox->currentData().value<int>());
+    settings.clipMode = static_cast<ClipMode>(m_clipModeCBox->currentData().value<int>());
+
+    for(int i = 0; i < m_tagsEdit->count(); i++)
+        settings.tags.append(m_tagsEdit->itemText(i));
 
     return settings;
-
 }
 
 void AddressSettingsWidget::setCommonSettings(const AddressSettings & settings)
 {
-    const int ioTypeIndex = m_ioTypeCBox->findText(IOTypeStringMap()[settings.ioType]);
+    const int ioTypeIndex = m_ioTypeCBox->findData((int)settings.ioType);
     Q_ASSERT(ioTypeIndex != -1);
     m_ioTypeCBox->setCurrentIndex(ioTypeIndex);
 
-    int clipModeIndex = m_clipModeCBox->findText(ClipModeStringMap()[settings.clipMode]);
+    const int clipModeIndex = m_clipModeCBox->findData((int)settings.clipMode);
     Q_ASSERT(clipModeIndex != -1);
     m_clipModeCBox->setCurrentIndex(clipModeIndex);
 
-    m_tagsEdit->setText(settings.tags.join(", "));
+    m_tagsEdit->addItems(settings.tags);
 }

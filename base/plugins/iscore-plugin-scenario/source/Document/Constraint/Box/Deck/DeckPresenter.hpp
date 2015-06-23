@@ -5,7 +5,6 @@
 
 class DeckModel;
 class DeckView;
-class ICommandDispatcher;
 namespace iscore
 {
     class SerializableCommand;

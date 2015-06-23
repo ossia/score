@@ -6,7 +6,6 @@ class SinCurveSegmentModel : public CurveSegmentModel
     public:
         using CurveSegmentModel::CurveSegmentModel;
 
-        // TODO Factor this in a macro.
         template<typename Impl>
         SinCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveSegmentModel {vis, parent}

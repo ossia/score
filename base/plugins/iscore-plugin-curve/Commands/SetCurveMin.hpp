@@ -8,7 +8,7 @@ class SetCurveMin : public iscore::PropertyCommand
         ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetCurveMin, "AutomationControl")
 
         SetCurveMin(ObjectPath&& path, double newval):
-            iscore::PropertyCommand{std::move(path), "min", newval,  "AutomationControl", className(), description()}
+            iscore::PropertyCommand{std::move(path), "min", newval,  "AutomationControl", commandName(), description()}
         {
 
         }

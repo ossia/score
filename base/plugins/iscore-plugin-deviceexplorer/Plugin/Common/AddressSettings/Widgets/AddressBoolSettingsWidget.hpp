@@ -1,6 +1,5 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
-#include <Common/CommonTypes.hpp>
 
 class AddressBoolSettingsWidget : public AddressSettingsWidget
 {

@@ -11,7 +11,7 @@ using namespace Scenario::Command;
 
 SetTrigger::SetTrigger(ObjectPath&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_path {std::move(eventPath) },
 m_trigger(message)

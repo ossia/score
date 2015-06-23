@@ -1,6 +1,6 @@
 #include "DeckInspectorSection.hpp"
 
-#include "AddProcessViewModelWidget.hpp"
+#include "Inspector/Constraint/Widgets/Box/Deck/AddProcessViewModelWidget.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 #include "Inspector/Constraint/Widgets/Box/BoxInspectorSection.hpp"
@@ -18,8 +18,10 @@
 #include "Commands/Constraint/Box/Deck/RemoveProcessViewModelFromDeck.hpp"
 #include <QtWidgets>
 
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
+// TODO put in its own file. But it isn't a real command, only a presentation one.
 class PutProcessViewModelToFront
 {
     public:
@@ -39,7 +41,6 @@ class PutProcessViewModelToFront
     private:
         ObjectPath m_deckPath;
         const id_type<ProcessViewModel>& m_pid;
-
 };
 
 using namespace Scenario::Command;

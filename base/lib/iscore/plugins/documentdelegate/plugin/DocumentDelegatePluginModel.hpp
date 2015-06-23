@@ -5,7 +5,6 @@
 
 namespace iscore
 {
-// TODO : make it take a DocumentModel necessarily as parent.
 class DocumentDelegatePluginModel : public NamedObject
 {
         Q_OBJECT

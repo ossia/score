@@ -17,21 +17,19 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
 {
     iscore::SerializableCommand* cmd {};
 
-    // TODO harmonize this
-    // TODO className -> commandName
-    if(name == UpdateCurve::className())
+    if(name == UpdateCurve::commandName())
     {
         cmd = new UpdateCurve;
     }
-    else if(name == "ChangeAddress")
+    else if(name == ChangeAddress::commandName())
     {
         cmd = new ChangeAddress;
     }
-    else if(name == SetCurveMin::className())
+    else if(name == SetCurveMin::commandName())
     {
         cmd = new SetCurveMin;
     }
-    else if(name == SetCurveMax::className())
+    else if(name == SetCurveMax::commandName())
     {
         cmd = new SetCurveMax;
     }

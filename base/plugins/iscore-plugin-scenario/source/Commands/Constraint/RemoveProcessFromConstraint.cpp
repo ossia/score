@@ -18,7 +18,7 @@ using namespace Scenario::Command;
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath,
         id_type<ProcessModel> processId) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(constraintPath) },
     m_processId {processId}

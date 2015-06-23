@@ -34,9 +34,9 @@ add_definitions(-DQT_STATICPLUGINS)
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
-if(USE_COTIRE)
-        cotire(${PROJECT_NAME})
-endif()
+
+cotire(${PROJECT_NAME})
+
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

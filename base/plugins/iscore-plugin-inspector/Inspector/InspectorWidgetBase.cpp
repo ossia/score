@@ -1,10 +1,14 @@
 #include "InspectorSectionWidget.hpp"
 #include "InspectorWidgetBase.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QScrollArea>
 
+// TODO pass the commandStack & selectionStack in the ctor instead.
+// via the inspector control's currentDocument ?
 InspectorWidgetBase::InspectorWidgetBase(
         const QObject* inspectedObj,
         QWidget* parent) :

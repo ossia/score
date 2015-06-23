@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 ClearEvent::ClearEvent(ObjectPath&& eventPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_path {std::move(eventPath) }
 {

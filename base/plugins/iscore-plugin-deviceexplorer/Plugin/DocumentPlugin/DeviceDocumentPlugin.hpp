@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
 namespace iscore

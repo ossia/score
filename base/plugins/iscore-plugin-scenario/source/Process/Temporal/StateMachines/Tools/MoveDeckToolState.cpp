@@ -14,6 +14,8 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 #include <QFinalState>
 #include <QGraphicsScene>
 MoveDeckToolState::MoveDeckToolState(const ScenarioStateMachine& sm):

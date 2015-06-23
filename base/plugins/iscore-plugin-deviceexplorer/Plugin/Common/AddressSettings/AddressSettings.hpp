@@ -4,7 +4,6 @@
 #include <QVariant>
 #include <QVariantList>
 
-// TODO there are two string maps, one with <-> and one with In/Out... collapse them ?
 enum class IOType { Invalid, In, Out, InOut };
 const QMap<IOType, QString>& IOTypeStringMap();
 

@@ -13,7 +13,7 @@ using namespace Scenario::Command;
 
 ClearConstraint::ClearConstraint(ObjectPath&& constraintPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
 m_path {std::move(constraintPath) }
 {
@@ -71,12 +71,15 @@ void ClearConstraint::redo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
-    for(auto& process : constraint.processes())
+    // We make copies since the iterators might change.
+    auto processes = constraint.processes();
+    for(const auto& process : processes)
     {
         constraint.removeProcess(process->id());
     }
 
-    for(auto& box : constraint.boxes())
+    auto boxes = constraint.boxes();
+    for(const auto& box : boxes)
     {
         constraint.removeBox(box->id());
     }

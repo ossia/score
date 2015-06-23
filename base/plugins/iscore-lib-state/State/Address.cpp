@@ -1,0 +1,35 @@
+#include "Address.hpp"
+bool Address::validateString(const QString &str)
+{
+    auto firstcolon = str.indexOf(":");
+    auto firstslash = str.indexOf("/");
+    return firstcolon > 0 && firstslash > firstcolon;
+}
+
+
+Address Address::fromString(const QString &str)
+{
+    QStringList path = str.split("/");
+    Q_ASSERT(path.size() > 0);
+
+    auto device = path.first().remove(":");
+    path.removeFirst(); // Remove the device.
+    if(path.first().isEmpty()) // case "device:/"
+    {
+        return {device, {}};
+    }
+
+    return {device, path};
+}
+
+QDataStream& operator<<(QDataStream &s, const Address &a)
+{
+    s << a.device << a.path;
+    return s;
+}
+
+QDataStream& operator>>(QDataStream &s, Address &a)
+{
+    s >> a.device >> a.path;
+    return s;
+}

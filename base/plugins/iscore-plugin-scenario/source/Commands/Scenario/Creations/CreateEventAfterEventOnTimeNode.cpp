@@ -21,7 +21,7 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
                                                                  const TimeValue& date,
                                                                  double height):
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(scenarioPath) },
     m_timeNodeId {timenode},

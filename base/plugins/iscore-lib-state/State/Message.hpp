@@ -2,58 +2,8 @@
 #include <QVariant>
 #include <QObject>
 #include <QStringList>
-struct Address
-{
-        static bool validateString(const QString& str)
-        {
-            auto firstcolon = str.indexOf(":");
-            auto firstslash = str.indexOf("/");
-            return firstcolon > 0 && firstslash > firstcolon;
-        }
-
-        static Address fromString(const QString& str)
-        {
-            QStringList path = str.split("/");
-            Q_ASSERT(path.size() > 0);
-
-            auto device = path.first().remove(":");
-            path.removeFirst(); // Remove the device.
-            if(path.first().isEmpty()) // case "device:/"
-            {
-                return {device, {}};
-            }
-
-            return {device, path};
-        }
-
-        QString device;
-        // Note : path is empty if address is root: "device:/"
-        QStringList path;
-
-        QString toString() const
-        { return device + ":/" + path.join("/"); }
-
-        bool operator==(const Address& a) const
-        {
-            return device == a.device && path == a.path;
-        }
-        bool operator!=(const Address& a) const
-        {
-            return !(*this == a);
-        }
-
-        friend QDataStream& operator<<(QDataStream& s, const Address& a)
-        {
-            s << a.device << a.path;
-            return s;
-        }
-
-        friend QDataStream& operator>>(QDataStream& s, Address& a)
-        {
-            s >> a.device >> a.path;
-            return s;
-        }
-};
+#include <State/Address.hpp>
+// TODO put in namespace
 
 struct Message
 {

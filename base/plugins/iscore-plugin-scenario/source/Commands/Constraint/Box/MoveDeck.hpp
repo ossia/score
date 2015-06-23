@@ -20,13 +20,13 @@ namespace Scenario
             public:
                 MoveDeck():
                       AggregateCommand{"ScenarioControl",
-                                       className(),
+                                       commandName(),
                                        description()} { }
 
                 MoveDeck(const ObjectPath& deckToMove,
                          ObjectPath&& targetBox) :
                     AggregateCommand {"ScenarioControl",
-                                      className(),
+                                      commandName(),
                                       description(),
                                       new CopyDeck{ObjectPath{deckToMove}, std::move(targetBox) },
                                       new RemoveDeckFromBox{ObjectPath{deckToMove}}}

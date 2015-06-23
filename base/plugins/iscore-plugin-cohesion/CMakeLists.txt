@@ -17,18 +17,34 @@ endif()
 include_directories(${ISCORE_ROOT_SOURCE_DIR})
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
+include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-scenario/source")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-curve")
 # TODO put this in CMake interface of iscore_lib
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
-file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurveFromStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurvesFromAddresses.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ConstraintExecutor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Execution.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ScenarioExecutor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Execution/AutomationExecutor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/FakeEngine.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesion.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionControl.cpp"
+)
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
                         iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer
                         Jamoma::Foundation Jamoma::Modular Jamoma::Score)
+
+cotire(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

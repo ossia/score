@@ -12,7 +12,7 @@ RemoveProcessViewModelFromDeck::RemoveProcessViewModelFromDeck(
         ObjectPath&& boxPath,
         id_type<ProcessViewModel> processViewId) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {boxPath},
     m_processViewId {processViewId}

@@ -12,6 +12,8 @@
 #include "Curve/StateMachine/States/Tools/MoveTool.hpp"
 
 #include "Curve/Commands/UpdateCurve.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
 #include <QGraphicsScene>
 #include <QActionGroup>

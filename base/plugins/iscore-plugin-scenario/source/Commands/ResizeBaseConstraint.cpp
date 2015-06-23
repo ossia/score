@@ -11,7 +11,7 @@ using namespace iscore::IDocument;
 ResizeBaseConstraint::ResizeBaseConstraint(ObjectPath&& constraintPath,
         TimeValue duration) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {constraintPath},
     m_newDuration {duration}

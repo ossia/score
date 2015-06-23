@@ -27,6 +27,9 @@
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <Inspector/Separator.hpp>
 
 #include "core/document/DocumentModel.hpp"
@@ -363,7 +366,7 @@ void EventInspectorWidget::on_addAddressClicked()
         split.removeFirst();
         m.value = textToMessageValue(split);
 
-        auto cmd = new Command::AddStateToEvent{path(m_model), m};
+        auto cmd = new Scenario::Command::AddStateToEvent{path(m_model), m};
 
         emit commandDispatcher()->submitCommand(cmd);
         m_stateLineEdit->clear();
@@ -379,7 +382,7 @@ void EventInspectorWidget::on_conditionChanged()
         return;
     }
 
-    auto cmd = new Command::SetCondition{path(m_model), txt};
+    auto cmd = new Scenario::Command::SetCondition{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -392,13 +395,13 @@ void EventInspectorWidget::on_triggerChanged()
         return;
     }
 
-    auto cmd = new Command::SetTrigger{path(m_model), txt};
+    auto cmd = new Scenario::Command::SetTrigger{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 
 void EventInspectorWidget::removeState(const State& state)
 {
-    auto cmd = new Command::RemoveStateFromEvent{path(m_model), state};
+    auto cmd = new Scenario::Command::RemoveStateFromEvent{path(m_model), state};
     emit commandDispatcher()->submitCommand(cmd);
 }
 

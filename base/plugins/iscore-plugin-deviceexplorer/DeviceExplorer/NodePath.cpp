@@ -24,7 +24,7 @@ Path::Path(Node *node)
     Node* iter = node;
 
     // We have to take care of the root node.
-    if(node->isInvisibleRoot()) // TODO do this in another way pls.
+    if(node->isInvisibleRoot())
         return;
 
     while(! iter->isDevice())

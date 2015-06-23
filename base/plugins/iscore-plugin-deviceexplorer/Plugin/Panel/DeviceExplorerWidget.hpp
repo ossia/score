@@ -1,7 +1,8 @@
 #pragma once
 
 #include <QWidget>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <QThread>
 #include "DeviceExplorerModel.hpp"
 class DeviceExplorerView;

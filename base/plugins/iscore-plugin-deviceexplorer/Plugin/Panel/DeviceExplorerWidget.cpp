@@ -15,6 +15,9 @@
 #include "DeviceExplorerView.hpp"
 #include "IOTypeDelegate.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 
 #include <Commands/Add/AddDevice.hpp>
 #include "Commands/Add/AddAddress.hpp"
@@ -507,8 +510,7 @@ DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
     {
         m_addressDialog = new AddressEditDialog(this);
     }
-    AddressSettings defSettings = m_addressDialog->getDefaultSettings();
-    m_addressDialog->setSettings(defSettings);
+    m_addressDialog->setSettings(AddressEditDialog::makeDefaultSettings());
 
     QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_addressDialog->exec());
 

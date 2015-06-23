@@ -194,10 +194,8 @@ Selection ScenarioModel::selectableChildren() const
     return objects;
 }
 
-// Since we don't have c++14 & auto in lambdas..
-// TODO do it.
 template<typename InputVec, typename OutputVec>
-void copySelected(const InputVec& in, OutputVec& out)
+static void copySelected(const InputVec& in, OutputVec& out)
 {
     for(const auto& elt : in)
     {

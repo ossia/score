@@ -9,8 +9,6 @@
 #include <QSpinBox>
 #include <QFormLayout>
 
-#include <Common/CommonTypes.hpp>
-
 template<typename T> struct TemplatedSpinBox;
 template<> struct TemplatedSpinBox<int> { using type = QSpinBox; };
 template<> struct TemplatedSpinBox<char> { using type = QSpinBox; };

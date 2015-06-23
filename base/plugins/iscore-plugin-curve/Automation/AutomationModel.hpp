@@ -3,7 +3,7 @@
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <State/Message.hpp>
+#include <State/Address.hpp>
 
 /**
  * @brief The AutomationModel class

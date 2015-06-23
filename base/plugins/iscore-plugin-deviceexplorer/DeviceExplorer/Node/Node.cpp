@@ -1,10 +1,6 @@
 #include "Node.hpp"
 #include <QJsonArray>
 
-// TODO replace INVALID_stuff with boost::optional values.
-QString Node::INVALID_STR = "-_-";
-float Node::INVALID_FLOAT = std::numeric_limits<float>::max();
-
 
 Node::Node(InvisibleRootNodeTag)
 {

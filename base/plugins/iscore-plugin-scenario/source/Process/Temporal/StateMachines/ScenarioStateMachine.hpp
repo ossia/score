@@ -3,7 +3,7 @@
 #include <ProcessInterface/ExpandMode.hpp>
 #include "ScenarioStateMachineBaseEvents.hpp"
 
-#include <iscore/command/OngoingCommandManager.hpp>
+
 #include <iscore/statemachine/BaseStateMachine.hpp>
 
 #include <QStateMachine>
@@ -17,6 +17,11 @@ class SelectionTool;
 class MoveDeckToolState;
 class QGraphicsScene;
 
+namespace iscore
+{
+    class CommandStack;
+    class ObjectLocker;
+}
 
 class ScenarioStateMachine : public BaseStateMachine
 {

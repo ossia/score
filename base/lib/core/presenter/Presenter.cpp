@@ -236,7 +236,6 @@ catch(std::runtime_error& e)
     return nullptr;
 }
 
-// TODO make a class whose purpose is to instantiate commands.
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(
         const QString& parent_name,
         const QString& name,

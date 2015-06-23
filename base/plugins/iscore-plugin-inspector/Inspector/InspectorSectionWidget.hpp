@@ -32,9 +32,6 @@ class InspectorSectionWidget : public QWidget
 
         // Manage section
 
-        // Removes all the content.
-        void clear();
-
         //! change the name in the header
         void renameSection(QString newName);
 

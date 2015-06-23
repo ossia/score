@@ -18,14 +18,62 @@ include_directories(.)
 include_directories("${ISCORE_ROOT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 
-file(GLOB_RECURSE SRCS
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupManagerSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupMetadataSerialization.cpp"
 
-foreach(item ${SRCS})
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/PlaceholderNetworkPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkDocumentPluginSerialization.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/AddClientToGroup.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/RemoveClientFromGroup.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/CreateGroup.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/ChangeGroup.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Group.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupMetadata.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/GroupPanelFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/GroupPanelModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/GroupPanelPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/Widgets/GroupHeaderItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/Widgets/GroupListWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/Widgets/GroupTableCheckbox.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/Widgets/GroupWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/Widgets/SessionHeaderItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/Widgets/GroupTableWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Panel/GroupPanelView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupMetadataWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkClientDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkMasterDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/NetworkControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/NetworkPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ClientSession.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ClientSessionBuilder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/MasterSession.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/Session.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/RemoteClientBuilder.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/MessageMapper.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/MessageValidator.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkMessage.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkServer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkSocket.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/client/main.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/server/main.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsView.cpp"
+)
+
+file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+
+#Remove zeroconf header from the glob
+foreach(item ${HDRS})
   if(${item} MATCHES "Zeroconf")
-    list(REMOVE_ITEM SRCS ${item})
+    list(REMOVE_ITEM HDRS ${item})
   endif()
 endforeach()
 
@@ -41,7 +89,7 @@ if(${KF5DNSSD_FOUND})
     endif()
 endif()
 
-add_library(${PROJECT_NAME} ${SRCS} ${ZEROCONF_SRCS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${ZEROCONF_SRCS})
 
 target_link_libraries(${PROJECT_NAME}
                                     iscore_lib_base
@@ -58,9 +106,12 @@ endif()
 if(NOT APPLE AND NOT WIN32)
     target_link_libraries(${PROJECT_NAME} dns_sd)
 endif()
-if(USE_COTIRE)
-        cotire(${PROJECT_NAME})
-endif()
+
+cotire(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/)

@@ -8,7 +8,7 @@
 CreateCurveFromStates::CreateCurveFromStates():
     iscore::SerializableCommand{
         "IScoreCohesionControl",
-        className(),
+        commandName(),
         description()}
 {
 
@@ -25,10 +25,10 @@ CreateCurveFromStates::CreateCurveFromStates(
         double start,
         double end):
     // TODO to prevent needless recopying, why not templating the ctor
-    // of SerializableCommand so that it takes T::className() and T::description() ?
+    // of SerializableCommand so that it takes T::commandName() and T::description() ?
     iscore::SerializableCommand{
         "IScoreCohesionControl",
-        className(),
+        commandName(),
         description()},
     m_address(address),
     m_start{start},

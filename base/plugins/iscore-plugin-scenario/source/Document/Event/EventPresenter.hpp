@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include "EventHalves.hpp"
 class QGraphicsObject;
 class EventModel;

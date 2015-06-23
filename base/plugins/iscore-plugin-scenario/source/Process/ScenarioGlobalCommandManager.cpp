@@ -1,5 +1,6 @@
 #include "ScenarioGlobalCommandManager.hpp"
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include "Commands/Scenario/Deletions/ClearConstraint.hpp"
 #include "Commands/Scenario/Deletions/ClearEvent.hpp"

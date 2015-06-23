@@ -10,6 +10,7 @@
 #include <DeviceExplorer/Node/Node.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
 AutomationExecutor::AutomationExecutor(AutomationModel& model):

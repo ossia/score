@@ -1,13 +1,15 @@
 #pragma once
-#include <QStack>
 #include <iscore/command/SerializableCommand.hpp>
+
+#include <QObject>
+#include <QStack>
 #include <memory>
 
 
 namespace iscore
 {
     /**
-     * @brief The CommandQueue class
+     * @brief The CommandStack class
      *
      * Mostly equivalent to QUndoStack, but has added signals / slots.
      * They are used to send & receive the commands to the network, for instance.
@@ -163,8 +165,8 @@ namespace iscore
                 emit stackChanged();
             }
 
-            QStack<SerializableCommand*> m_undoable;
-            QStack<SerializableCommand*> m_redoable;
+            QStack<iscore::SerializableCommand*> m_undoable;
+            QStack<iscore::SerializableCommand*> m_redoable;
 
             int m_savedIndex{};
     };

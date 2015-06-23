@@ -16,7 +16,7 @@ CreateEventOnTimeNode::CreateEventOnTimeNode(
         id_type<TimeNodeModel> timeNodeId,
         double heightPosition):
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(scenarioPath) },
     m_timeNodeId {timeNodeId},

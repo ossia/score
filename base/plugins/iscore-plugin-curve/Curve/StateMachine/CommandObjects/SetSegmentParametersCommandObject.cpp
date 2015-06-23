@@ -4,6 +4,7 @@
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include <iscore/tools/Clamp.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 SetSegmentParametersCommandObject::SetSegmentParametersCommandObject(
         CurvePresenter *pres,

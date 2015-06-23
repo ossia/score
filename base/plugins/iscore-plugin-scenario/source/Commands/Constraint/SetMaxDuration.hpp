@@ -22,7 +22,7 @@ namespace Scenario
 
             SetMaxDuration(ObjectPath&& path, const TimeValue& newval):
                 iscore::PropertyCommand{
-                std::move(path), "maxDuration", QVariant::fromValue(newval), "ScenarioControl", className(), description()}
+                std::move(path), "maxDuration", QVariant::fromValue(newval), "ScenarioControl", commandName(), description()}
             {
 
             }

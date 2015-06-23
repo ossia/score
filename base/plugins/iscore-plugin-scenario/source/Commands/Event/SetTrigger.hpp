@@ -8,7 +8,6 @@ namespace Scenario
 {
     namespace Command
     {
-        // TODO Do a Command that can simply change a Q_PROPERTY in a generic way.
         class SetTrigger : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND

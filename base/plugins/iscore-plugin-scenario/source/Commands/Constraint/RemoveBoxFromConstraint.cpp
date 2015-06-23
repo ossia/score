@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 RemoveBoxFromConstraint::RemoveBoxFromConstraint(ObjectPath&& boxPath) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()}
 {
     auto constraintPath = boxPath.vec();
@@ -36,7 +36,7 @@ RemoveBoxFromConstraint::RemoveBoxFromConstraint(
         ObjectPath&& constraintPath,
         id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {constraintPath},
     m_boxId {boxId}

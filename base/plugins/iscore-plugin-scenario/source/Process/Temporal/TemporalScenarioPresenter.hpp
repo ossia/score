@@ -88,10 +88,10 @@ class TemporalScenarioPresenter : public ProcessPresenter
     public slots:
         // Model -> view
         void on_eventCreated(const id_type<EventModel>& eventId);
-        void on_eventDeleted(const id_type<EventModel>& eventId);
+        void on_eventRemoved(const id_type<EventModel>& eventId);
 
         void on_timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
-        void on_timeNodeDeleted(const id_type<TimeNodeModel>& timeNodeId);
+        void on_timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
         void on_constraintCreated(const id_type<AbstractConstraintViewModel>& constraintId);
         void on_constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintId);

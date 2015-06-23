@@ -2,20 +2,12 @@
 #include <QString>
 #include <QList>
 #include <QJsonObject>
-//#include <QStringList>
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <Plugin/Common/AddressSettings/AddressSettings.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-/**
- * Note: JM : the Commands should operate on the Node hierarchy.
- * When updated, a Node should update both :
- *  - The DeviceExplorerModel (via signals / slots)
- *  - The sub-jacent Device.
- *
- * The sub-jacent device should also update the Node.
- */
+
 struct InvisibleRootNodeTag{};
 class Node
 {
@@ -25,9 +17,6 @@ class Node
         friend void Visitor<Writer<JSONObject>>::writeTo<Node>(Node& ev);
 
     public:
-        static QString INVALID_STR;
-        static float INVALID_FLOAT;
-
         Node() = default;
 
         Node(InvisibleRootNodeTag);
@@ -66,11 +55,9 @@ class Node
         void removeChild(Node* child);
 
         //- accessors
-
         QString displayName() const;
 
-        bool isSelectable() const; //TODO: or has a child of ioType != Node::In !!!
-
+        bool isSelectable() const;
         bool isEditable() const;
 
         bool isDevice() const;
@@ -88,6 +75,7 @@ class Node
         Node* m_parent {};
         QList<Node*> m_children;
 
+        // TODO make an union here maybe ?
         DeviceSettings m_deviceSettings;
         AddressSettings m_addressSettings;
 };

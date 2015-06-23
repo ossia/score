@@ -1,13 +1,14 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <State/Message.hpp>
+#include <State/Address.hpp>
 
-// TODO put to the new command format
+// TODO maybe use property command.
 class ChangeAddress : public iscore::SerializableCommand
 {
+        ISCORE_COMMAND_DECL("ChangeAddress", "ChangeAddress")
     public:
-        ChangeAddress();
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeAddress, "AutomationControl")
         ChangeAddress(ObjectPath&& pointPath, const Address &addr);
 
         virtual void undo() override;

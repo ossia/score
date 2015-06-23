@@ -1,7 +1,5 @@
 #pragma once
-#include <iscore/command/OngoingCommandManager.hpp>
-
-
+#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 // To simplify :
 // Take the current state of the curve
 // Compute the state we have to be in

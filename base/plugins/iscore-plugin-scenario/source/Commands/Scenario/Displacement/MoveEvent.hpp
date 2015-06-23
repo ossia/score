@@ -44,9 +44,6 @@ namespace Scenario
                     m_changeDate = changeDate;
                 }
 
-                TimeValue m_oldDate {}; // TODO : bof bof !
-
-
                 const ObjectPath& path() const
                 { return m_path; }
                 double heightPosition() const
@@ -62,6 +59,7 @@ namespace Scenario
 
                 double m_oldHeightPosition {};
                 double m_newHeightPosition {};
+                TimeValue m_oldDate {};
                 TimeValue m_newDate {};
 
                 ExpandMode m_mode{ExpandMode::Scale};

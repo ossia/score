@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 
 MoveEventAndConstraint::MoveEventAndConstraint():
     iscore::SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
     m_cmd{new MoveEvent}
 {
@@ -23,7 +23,7 @@ MoveEventAndConstraint::MoveEventAndConstraint(
         double height,
         ExpandMode mode):
     iscore::SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
     m_cmd{new MoveEvent{std::move(scenarioPath), eventId, date, height, mode}},
     m_constraintId{constraintId},

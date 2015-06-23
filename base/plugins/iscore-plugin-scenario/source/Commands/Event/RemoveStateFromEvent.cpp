@@ -7,7 +7,7 @@ using namespace Scenario::Command;
 
 RemoveStateFromEvent::RemoveStateFromEvent(ObjectPath &&eventPath, const State& state):
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(eventPath) },
     m_state{state}

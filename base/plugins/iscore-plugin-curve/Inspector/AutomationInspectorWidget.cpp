@@ -10,6 +10,9 @@
 #include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
@@ -121,7 +124,6 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
 
-// TODO validation (voir dans capacités de QLineEdit)
 void AutomationInspectorWidget::on_addressChange(const Address& newText)
 {
     if(newText != m_model->address())

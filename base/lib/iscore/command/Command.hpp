@@ -9,25 +9,25 @@
 
 #define ISCORE_COMMAND \
     public: \
-    static const char* className(); \
+    static const char* commandName(); \
     static QString description(); \
     static auto static_uid() \
     { \
     using namespace std; \
     hash<string> fn; \
-    return fn(std::string(className())); \
+    return fn(std::string(commandName())); \
     } \
     private:
 
 #define ISCORE_COMMAND_DECL(name, desc) \
     public: \
-        static const char* className() { return name; } \
+        static const char* commandName() { return name; } \
         static QString description() { return desc; }  \
     static auto static_uid() \
     { \
     using namespace std; \
     hash<string> fn; \
-    return fn(std::string(className())); \
+    return fn(std::string(commandName())); \
     } \
     private:
 

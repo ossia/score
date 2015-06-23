@@ -55,9 +55,9 @@ ConstraintModel::ConstraintModel(
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
-    for(auto& box : source->boxes())
+    for(const auto& box : source->boxes())
     {
-        addBox(new BoxModel (
+        addBox(new BoxModel {
                    *box,
                    box->id(),
         [&] (const DeckModel& source, DeckModel& target)
@@ -69,7 +69,7 @@ ConstraintModel::ConstraintModel(
                        // TODO harmonize the order of parameters (source first, then new id)
                        target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                    }
-        }, this));
+        }, this});
     }
 
 

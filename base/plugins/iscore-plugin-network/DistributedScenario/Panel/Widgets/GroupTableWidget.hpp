@@ -1,5 +1,7 @@
+#pragma once
 #include <QWidget>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <iscore/tools/ObjectPath.hpp>
 
 class QTableWidget;
 class GroupManager;

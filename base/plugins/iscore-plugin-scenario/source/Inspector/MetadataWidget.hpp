@@ -3,9 +3,8 @@
 #include <QWidget>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/command/SerializableCommand.hpp>
 
-#include "iscore/command/OngoingCommandManager.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include "Commands/Metadata/ChangeElementLabel.hpp"
 #include "Commands/Metadata/ChangeElementName.hpp"

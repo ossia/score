@@ -10,7 +10,7 @@ namespace Scenario
             public:
                 CreationMetaCommand():
                   AggregateCommand{"ScenarioControl",
-                                   className(),
+                                   commandName(),
                                    description()} { }
         };
     }

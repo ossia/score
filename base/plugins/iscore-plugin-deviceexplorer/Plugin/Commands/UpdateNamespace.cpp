@@ -6,7 +6,7 @@ ReplaceDevice::ReplaceDevice(ObjectPath&& device_tree,
                              int deviceIndex,
                              Node&& rootNode):
     iscore::SerializableCommand{"DeviceExplorerControl",
-                                className(),
+                                commandName(),
                                 description()},
     m_deviceTree{device_tree},
     m_deviceIndex(deviceIndex),

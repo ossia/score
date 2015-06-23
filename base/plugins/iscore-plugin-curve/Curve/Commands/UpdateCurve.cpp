@@ -3,7 +3,7 @@
 #include "Curve/Segment/CurveSegmentModelSerialization.hpp"
 
 UpdateCurve::UpdateCurve(ObjectPath&& model, QVector<QByteArray> &&segments):
-    iscore::SerializableCommand("CurveControl", className(), description()),
+    iscore::SerializableCommand("CurveControl", commandName(), description()),
     m_model{std::move(model)},
     m_newCurveData{std::move(segments)}
 {

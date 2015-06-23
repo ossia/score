@@ -15,7 +15,7 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
                                 id_type<TimeNodeModel> aimedTimeNode,
                                 id_type<TimeNodeModel> movingTimeNode):
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(path) },
     m_aimedTimeNodeId{aimedTimeNode},

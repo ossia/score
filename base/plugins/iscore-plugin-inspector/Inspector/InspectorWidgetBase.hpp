@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/command/OngoingCommandManager.hpp>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QVBoxLayout>
 class QLineEdit;
 class QLabel;

@@ -22,7 +22,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
                                              const TimeValue& date,
                                              double y) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {std::move(scenarioPath) },
     m_firstEventId {firstEvent},

@@ -16,15 +16,13 @@ class AddressEditDialog : public QDialog
         Q_OBJECT
 
     public:
-
         AddressEditDialog(QWidget* parent);
         ~AddressEditDialog();
 
-        // TODO
         AddressSettings getSettings() const;
-        AddressSettings getDefaultSettings() const;
+        static AddressSettings makeDefaultSettings();
 
-        void setSettings(AddressSettings &settings);
+        void setSettings(const AddressSettings& settings);
 
     protected slots:
 

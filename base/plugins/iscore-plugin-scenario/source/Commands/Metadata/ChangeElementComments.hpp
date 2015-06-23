@@ -12,7 +12,7 @@ namespace Scenario
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
-                static const char * className()
+                static const char * commandName()
                 {
                     static QByteArray name = QString{"ChangeElementComments_%1"}.arg(T::staticMetaObject.className()).toLatin1();
                     return name.constData();
@@ -25,7 +25,7 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementComments, "ScenarioControl")
                 ChangeElementComments(ObjectPath&& path, QString newComments) :
                     SerializableCommand {"ScenarioControl",
-                                         className(),
+                                         commandName(),
                                          description()},
                     m_path{std::move(path)},
                     m_newComments {newComments}

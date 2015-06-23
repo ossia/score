@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 
 SetMaxDuration::SetMaxDuration(ObjectPath&& constraintPath, TimeValue newDuration) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {constraintPath},
     m_oldDuration {m_path.find<ConstraintModel>().maxDuration() },

@@ -13,6 +13,9 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 
 #include "Process/ScenarioModel.hpp"
+
+#include <iscore/document/DocumentInterface.hpp>
+
 CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     ScenarioTool{sm, &sm}
 {

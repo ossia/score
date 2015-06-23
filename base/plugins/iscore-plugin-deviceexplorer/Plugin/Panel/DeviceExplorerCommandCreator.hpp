@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iscore/command/OngoingCommandManager.hpp>
+
 #include <DeviceExplorer/NodePath.hpp>
 #include "DeviceExplorerModel.hpp"
 

@@ -1,26 +1,14 @@
 #include "ChangeAddress.hpp"
 #include <Automation/AutomationModel.hpp>
 using namespace iscore;
-#define CMD_UID 2001
-#define CMD_NAME "ChangeAddress"
-#define CMD_DESC QObject::tr("Change Curve address")
-
-ChangeAddress::ChangeAddress() :
-    SerializableCommand {"AutomationControl",
-    CMD_NAME,
-    CMD_DESC
-}
-{
-}
 
 ChangeAddress::ChangeAddress(ObjectPath&& path,
                              const Address& addr) :
     SerializableCommand {"AutomationControl",
-    CMD_NAME,
-    CMD_DESC
-},
-m_path {path},
-m_newAddr (addr)
+                         commandName(),
+                         description()},
+    m_path {path},
+    m_newAddr (addr)
 {
     auto& autom = m_path.find<AutomationModel>();
     m_oldAddr = autom.address();

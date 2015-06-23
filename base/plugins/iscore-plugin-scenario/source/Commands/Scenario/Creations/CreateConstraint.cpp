@@ -17,7 +17,7 @@ CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
                                    id_type<EventModel> startEvent,
                                    id_type<EventModel> endEvent) :
     SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
     m_path {std::move(scenarioPath) },
     m_startEventId {startEvent},

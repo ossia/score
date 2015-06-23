@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(iscore_app)
 set(APPNAME "i-score")
 
-
+# TODO strip symbols after deployment build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
 set(CMAKE_AUTORCC ON)
 
@@ -84,6 +84,10 @@ else()
     endif()
 endif()
 
+cotire(${APPNAME})
+set_target_properties(${APPNAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION .

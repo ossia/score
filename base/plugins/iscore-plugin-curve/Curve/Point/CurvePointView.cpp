@@ -3,24 +3,7 @@
 #include <iscore/selection/Selectable.hpp>
 #include "CurvePointModel.hpp"
 
-
-// From here we play the role of a presenter...
-// TODO see if there would be a better place
-
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Point/CurvePointView.hpp"
-#include "Curve/Segment/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <QMenu>
 #include <QGraphicsSceneContextMenuEvent>
-#include <QGraphicsScene>
-#include <QGraphicsView>
 
 CurvePointView::CurvePointView(
         CurvePointModel* model,
@@ -31,9 +14,6 @@ CurvePointView::CurvePointView(
     this->setZValue(parent->zValue() + 2);
     connect(&m_model->selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
-
-    m_contextMenu = new QMenu;
-
 }
 
 CurvePointModel &CurvePointView::model() const

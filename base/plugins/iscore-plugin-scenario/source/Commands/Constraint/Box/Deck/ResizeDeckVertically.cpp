@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 ResizeDeckVertically::ResizeDeckVertically(ObjectPath&& deckPath,
                                            double newSize) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_path {deckPath},
     m_newSize {newSize}

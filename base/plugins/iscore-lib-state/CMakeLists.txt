@@ -23,9 +23,11 @@ target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)
 set_property(TARGET ${PROJECT_NAME} APPEND
              PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
-if(USE_COTIRE)
-        cotire(${PROJECT_NAME})
-endif()
+cotire(${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION .
         ARCHIVE DESTINATION static_lib/)

@@ -12,6 +12,9 @@
 #include "Commands/Constraint/Box/SwapDecks.hpp"
 #include "Process/Temporal/StateMachines/Transitions/DeckTransitions.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+
 #include <QFinalState>
 #include <QGraphicsScene>
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"

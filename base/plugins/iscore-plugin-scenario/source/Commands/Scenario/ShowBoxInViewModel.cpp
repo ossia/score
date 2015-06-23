@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
                                        id_type<BoxModel> boxId) :
     SerializableCommand{"ScenarioControl",
-                        className(),
+                        commandName(),
                         description()},
     m_constraintViewModelPath {std::move(constraint_path) },
     m_boxId {boxId}
@@ -20,7 +20,7 @@ ShowBoxInViewModel::ShowBoxInViewModel(ObjectPath&& constraint_path,
 ShowBoxInViewModel::ShowBoxInViewModel(const AbstractConstraintViewModel *vm,
                                        id_type<BoxModel> boxId) :
     SerializableCommand {"ScenarioControl",
-                         className(),
+                         commandName(),
                          description()},
     m_constraintViewModelPath {iscore::IDocument::path(vm) },
     m_boxId {boxId}
