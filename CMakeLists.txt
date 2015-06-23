@@ -1,5 +1,5 @@
 project(iscore)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
@@ -91,4 +91,15 @@ else()
 endif()
 
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test)
+
+include(WriteCompilerDetectionHeader)
+write_compiler_detection_header(
+  FILE iscore_compiler_detection.hpp
+  PREFIX ISCORE
+  COMPILERS GNU Clang MSVC
+  FEATURES cxx_relaxed_constexpr
+  VERSION 3.1
+)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(base)
