@@ -27,7 +27,7 @@ EventView::EventView(EventPresenter& presenter,
     m_triggerItem->setVisible(false);
 
     this->setParentItem(parent);
-    this->setCursor(Qt::CrossCursor);
+    this->setCursor(Qt::SizeHorCursor);
 
     this->setZValue(parent->zValue() + 2);
     this->setAcceptHoverEvents(true);

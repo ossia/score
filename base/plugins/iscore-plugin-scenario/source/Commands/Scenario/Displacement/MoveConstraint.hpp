@@ -19,20 +19,15 @@ namespace Scenario
             public:
                 MoveConstraint();
                 ~MoveConstraint();
-                MoveConstraint(
-                    ObjectPath&& scenarioPath,
+                MoveConstraint(ObjectPath&& scenarioPath,
                     const id_type<ConstraintModel>& id,
                     const TimeValue& date,
-                    double y,
-                    ExpandMode mode,
-                    bool changeDate = true);
+                    double y);
 
                 void update(const ObjectPath&,
                             const id_type<ConstraintModel>& ,
                             const TimeValue& date,
-                            double height,
-                            ExpandMode,
-                            bool changeDate = true);
+                            double height);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -42,7 +37,6 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                MoveEvent* m_cmd{};
                 ObjectPath m_path;
                 id_type<ConstraintModel> m_constraint;
                 double m_oldHeightPosition{},

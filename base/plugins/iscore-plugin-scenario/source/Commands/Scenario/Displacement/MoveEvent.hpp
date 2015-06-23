@@ -26,8 +26,7 @@ namespace Scenario
                   id_type<EventModel> eventId,
                   const TimeValue& date,
                   double height,
-                  ExpandMode mode,
-                  bool changeDate = true);
+                  ExpandMode mode);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -36,12 +35,10 @@ namespace Scenario
                             const id_type<EventModel>& ,
                             const TimeValue& date,
                             double height,
-                            ExpandMode,
-                            bool changeDate = true)
+                            ExpandMode)
                 {
                     m_newDate = date;
                     m_newHeightPosition = height;
-                    m_changeDate = changeDate;
                 }
 
                 const ObjectPath& path() const

@@ -31,6 +31,8 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
 {
     auto& scenar = m_path.find<ScenarioModel>();
 
+    m_heightPosition = scenar.event(m_firstEventId).heightPercentage();
+
     m_createdEventId = getStrongId(scenar.events());
     m_createdConstraintId = getStrongId(scenar.constraints());
     m_createdTimeNodeId = getStrongId(scenar.timeNodes());

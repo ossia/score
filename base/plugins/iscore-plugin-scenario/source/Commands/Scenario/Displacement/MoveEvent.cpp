@@ -19,7 +19,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
                      id_type<EventModel> eventId,
                      const TimeValue& date,
                      double height,
-                     ExpandMode mode, bool changeDate) :
+                     ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -27,8 +27,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_eventId {eventId},
     m_newHeightPosition {height},
     m_newDate {date},
-    m_mode{mode},
-    m_changeDate{changeDate}
+    m_mode{mode}
 {
     auto& scenar = m_path.find<ScenarioModel>();
     const auto& movedEvent = scenar.event(m_eventId);
@@ -78,10 +77,7 @@ void MoveEvent::undo()
     auto& event = scenar.event(m_eventId);
 
     TimeValue deltaDate{};
-    if(m_changeDate)
-    {
-        deltaDate = m_oldDate - event.date();
-    }
+    deltaDate = m_oldDate - event.date();
 
     event.setHeightPercentage(m_oldHeightPosition);
     StandardDisplacementPolicy::updatePositions(
@@ -90,69 +86,66 @@ void MoveEvent::undo()
                 m_oldDate - event.date(),
                 [&] (ProcessModel* , const TimeValue& ) { });
 
-    if(m_changeDate)
+    // Now we have to restore the state of each constraint that might have been modified
+    // during this command.
+    for(auto& obj : m_savedConstraints)
     {
-        // Now we have to restore the state of each constraint that might have been modified
-        // during this command.
-        for(auto& obj : m_savedConstraints)
+        // 1. Clear the constraint
+        auto cmd1 = new ClearConstraint{
+                    ObjectPath{obj.first.first}};
+        cmd1->redo();
+
+        auto& constraint = obj.first.first.find<ConstraintModel>();
+        // 2. Restore the boxes & processes.
+
+        // TODO if possible refactor this with CopyConstraintContent and ConstraintModel::clone
+        // Be careful however, the code differs in subtle ways
         {
-            // 1. Clear the constraint
-            auto cmd1 = new ClearConstraint{
-                        ObjectPath{obj.first.first}};
-            cmd1->redo();
+            ConstraintModel src_constraint{
+                    Deserializer<DataStream>{obj.first.second},
+                    &constraint}; // Temporary parent
 
-            auto& constraint = obj.first.first.find<ConstraintModel>();
-            // 2. Restore the boxes & processes.
+            std::map<const ProcessModel*, ProcessModel*> processPairs;
 
-            // TODO if possible refactor this with CopyConstraintContent and ConstraintModel::clone
-            // Be careful however, the code differs in subtle ways
+            // Clone the processes
+            for(const auto& sourceproc : src_constraint.processes())
             {
-                ConstraintModel src_constraint{
-                        Deserializer<DataStream>{obj.first.second},
-                        &constraint}; // Temporary parent
+                auto newproc = sourceproc->clone(sourceproc->id(), &constraint);
 
-                std::map<const ProcessModel*, ProcessModel*> processPairs;
+                processPairs.insert(std::make_pair(sourceproc, newproc));
+                constraint.addProcess(newproc);
+            }
 
-                // Clone the processes
-                for(const auto& sourceproc : src_constraint.processes())
-                {
-                    auto newproc = sourceproc->clone(sourceproc->id(), &constraint);
-
-                    processPairs.insert(std::make_pair(sourceproc, newproc));
-                    constraint.addProcess(newproc);
-                }
-
-                // Clone the boxes
-                for(const auto& sourcebox : src_constraint.boxes())
-                {
-                    // A note about what happens here :
-                    // Since we want to duplicate our process view models using
-                    // the target constraint's cloned shared processes (they might setup some specific data),
-                    // we maintain a pair mapping each original process to their cloned counterpart.
-                    // We can then use the correct cloned process to clone the process view model.
-                    auto newbox = new BoxModel{
-                            *sourcebox,
-                            sourcebox->id(),
-                            [&] (const DeckModel& source, DeckModel& target)
+            // Clone the boxes
+            for(const auto& sourcebox : src_constraint.boxes())
+            {
+                // A note about what happens here :
+                // Since we want to duplicate our process view models using
+                // the target constraint's cloned shared processes (they might setup some specific data),
+                // we maintain a pair mapping each original process to their cloned counterpart.
+                // We can then use the correct cloned process to clone the process view model.
+                auto newbox = new BoxModel{
+                        *sourcebox,
+                        sourcebox->id(),
+                        [&] (const DeckModel& source, DeckModel& target)
+                        {
+                            for(const auto& pvm : source.processViewModels())
                             {
-                                for(const auto& pvm : source.processViewModels())
-                                {
-                                    // We can safely reuse the same id since it's in a different deck.
-                                    ProcessModel* proc = processPairs[&pvm->sharedProcessModel()];
-                                    // TODO harmonize the order of parameters (source first, then new id)
-                                    target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
-                                }
-                            },
-                            &constraint};
-                    constraint.addBox(newbox);
-                }
+                                // We can safely reuse the same id since it's in a different deck.
+                                ProcessModel* proc = processPairs[&pvm->sharedProcessModel()];
+                                // TODO harmonize the order of parameters (source first, then new id)
+                                target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
+                            }
+                        },
+                        &constraint};
+                constraint.addBox(newbox);
             }
+        }
 
-            // 3. Restore the correct boxes in the constraint view models
-            for(auto& viewmodel : constraint.viewModels())
-            {
-                viewmodel->showBox(obj.second[viewmodel->id()]);
-            }
+        // 3. Restore the correct boxes in the constraint view models
+        for(auto& viewmodel : constraint.viewModels())
+        {
+            viewmodel->showBox(obj.second[viewmodel->id()]);
         }
     }
 }
@@ -163,10 +156,7 @@ void MoveEvent::redo()
     auto& event = scenar.event(m_eventId);
 
     TimeValue deltaDate{};
-    if(m_changeDate)
-    {
-        deltaDate = m_newDate - event.date();
-    }
+    deltaDate = m_newDate - event.date();
 
     event.setHeightPercentage(m_newHeightPosition);
     StandardDisplacementPolicy::updatePositions(
@@ -187,8 +177,7 @@ void MoveEvent::serializeImpl(QDataStream& s) const
       << m_newDate
       << m_movableTimenodes
       << (int)m_mode
-      << m_savedConstraints
-      << m_changeDate;
+      << m_savedConstraints;
 }
 
 void MoveEvent::deserializeImpl(QDataStream& s)
@@ -202,8 +191,7 @@ void MoveEvent::deserializeImpl(QDataStream& s)
       >> m_newDate
       >> m_movableTimenodes
       >> mode
-      >> m_savedConstraints
-      >> m_changeDate;
+      >> m_savedConstraints;
 
     m_mode = static_cast<ExpandMode>(mode);
 }
