@@ -93,7 +93,7 @@ void EventView::addPoint(int newY)
 
 QRectF EventView::boundingRect() const
 {
-    return {- radius, qreal(m_top), 2 * radius, qreal(m_bottom - m_top)};
+    return {- radius, qreal(m_top - 5), 2 * radius, qreal(m_bottom - m_top + 10)};
 }
 
 void EventView::paint(QPainter* painter,
@@ -121,9 +121,10 @@ void EventView::paint(QPainter* painter,
 
     painter->drawEllipse({0., 0.}, radiusIn, radiusIn);
 */
+/*
     painter->setPen(Qt::darkCyan);
     painter->drawRect(boundingRect());
-
+*/
     QPen pen{QBrush(eventPen.color()), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 

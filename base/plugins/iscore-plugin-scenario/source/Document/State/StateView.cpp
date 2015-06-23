@@ -35,10 +35,11 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->setBrush(Qt::white);
     qreal radius = m_containMessage ? radiusFull : radiusVoid;
     painter->drawEllipse({0., 0.}, radius, radius);
-
+/*
     painter->setBrush(Qt::NoBrush);
     painter->setPen(Qt::darkYellow);
     painter->drawRect(boundingRect());
+*/
 }
 
 void StateView::setContainMessage(bool arg)

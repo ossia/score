@@ -169,10 +169,11 @@ void TemporalConstraintView::paint(
     painter->setFont(f);
     painter->setPen(m_labelColor);
     painter->drawText(labelRect, Qt::AlignCenter, m_label);
-
+/*
     painter->setPen(Qt::darkRed);
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(boundingRect());
+*/
 }
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)

@@ -40,13 +40,13 @@ void TimeNodeView::paint(QPainter* painter,
 
     painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));
 
-    painter->setPen(Qt::darkMagenta);
-    painter->drawRect(boundingRect());
+//    painter->setPen(Qt::darkMagenta);
+//    painter->drawRect(boundingRect());
 }
 
 QRectF TimeNodeView::boundingRect() const
 {
-    return { -3., (qreal) (m_top - 10), 6., (qreal)(m_bottom - m_top + 20) };
+    return { -3., (qreal) (m_top - 20), 6., (qreal)(m_bottom - m_top + 40) };
 }
 
 void TimeNodeView::setExtremities(int top, int bottom)
