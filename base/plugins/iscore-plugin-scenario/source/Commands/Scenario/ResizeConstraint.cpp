@@ -39,7 +39,6 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
     m_cmd = new MoveEvent(iscore::IDocument::path(constraint.parent()),
                           constraint.endEvent(),
                           constraint.startDate() + duration,
-                          endEvent.heightPercentage(),
                           mode);
 }
 
@@ -58,7 +57,6 @@ void ResizeConstraint::update(const ObjectPath& constraintPath, const TimeValue&
     m_cmd->update(constraintPath,
                   m_endEvent,
                   m_constraintStartDate + duration,
-                  m_endEventHeightPercentage,
                   mode);
 }
 

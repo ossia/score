@@ -38,6 +38,7 @@
 #include "Scenario/Deletions/RemoveSelection.hpp"
 #include "Scenario/Displacement/MoveConstraint.hpp"
 #include "Scenario/Displacement/MoveEvent.hpp"
+#include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveTimeNode.hpp"
 #include "Scenario/HideBoxInViewModel.hpp"
 #include "Scenario/ResizeConstraint.hpp"
@@ -45,7 +46,6 @@
 #include "SwitchStatePosition.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
-#include "Scenario/Displacement/MoveEventAndConstraint.hpp"
 
 ///////////////////////////////////////////////////
 //              CLASS NAME
@@ -88,6 +88,7 @@ const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTime
 const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConstraint"; }
 const char* Scenario::Command::MoveDeck::commandName() { return "MoveDeck"; }
 const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
+//const char* Scenario::Command::MoveNewEvent::commandName() { return "MoveNewEvent"; }
 //const char* Scenario::Command::MoveProcessViewModel::commandName() { return "MoveProcessViewModel"; }
 const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
 
@@ -251,7 +252,6 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == MoveDeck::commandName()) return new MoveDeck;
     else if(name == SwapDecks::commandName()) return new SwapDecks;
     else if(name == MoveEvent::commandName()) return new MoveEvent;
-    else if(name == MoveEventAndConstraint::commandName()) return new MoveEventAndConstraint;
 //    else if(name == MoveProcessViewModel::commandName()) return new MoveProcessViewModel;
     else if(name == MoveTimeNode::commandName()) return new MoveTimeNode;
 

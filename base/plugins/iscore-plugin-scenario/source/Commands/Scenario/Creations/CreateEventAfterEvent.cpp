@@ -20,18 +20,20 @@ using namespace Scenario::Command;
 CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
                                              id_type<EventModel> firstEvent,
                                              const TimeValue& date,
-                                             double y) :
+                                             double y, bool unlock) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {std::move(scenarioPath) },
     m_firstEventId {firstEvent},
-    m_time {date},
-    m_heightPosition {y}
+    m_time {date}
 {
     auto& scenar = m_path.find<ScenarioModel>();
 
-    m_heightPosition = scenar.event(m_firstEventId).heightPercentage();
+    if(m_firstEventId != scenar.startEvent().id() && !unlock)
+        m_heightPosition = scenar.event(m_firstEventId).heightPercentage();
+    else
+        m_heightPosition = y;
 
     m_createdEventId = getStrongId(scenar.events());
     m_createdConstraintId = getStrongId(scenar.constraints());

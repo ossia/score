@@ -21,7 +21,6 @@ namespace Scenario
                 MoveTimeNode(ObjectPath&& scenarioPath,
                              id_type<EventModel> eventId,
                              const TimeValue& date,
-                             double height,
                              ExpandMode mode);
 
                 ~MoveTimeNode();

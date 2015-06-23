@@ -4,7 +4,7 @@
 #include <Process/ScenarioModel.hpp>
 
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
-#include "Commands/Scenario/Displacement/MoveEventAndConstraint.hpp"
+#include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
@@ -82,7 +82,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnEventState, movingOnNothingState, *this);
 
         connect(t_move_event_nothing, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback();  createEventFromEventOnNothing(); });
+                [&] () {  m_dispatcher.rollback();  createEventFromEventOnNothing(stateMachine); });
 
         // MoveOnEvent -> MoveOnEvent : nothing to do.
 
@@ -102,7 +102,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnTimeNodeState, movingOnNothingState, *this);
 
         connect(t_move_timenode_nothing, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventFromEventOnNothing(); });
+                [&] () {  m_dispatcher.rollback(); createEventFromEventOnNothing(stateMachine); });
 
 
         // MoveOnTimeNode -> MoveOnEvent
@@ -120,27 +120,25 @@ CreateFromEventState::CreateFromEventState(
 
         // What happens in each state.
         QObject::connect(pressedState, &QState::entered,
-                         this, &CreateFromEventState::createEventFromEventOnNothing);
+                         [&] () { createEventFromEventOnNothing(stateMachine); });
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand<MoveEventAndConstraint>(
+            m_dispatcher.submitCommand<MoveNewEvent>(
                             ObjectPath{m_scenarioPath},
                             createdConstraint(),
                             createdEvent(),
                             currentPoint.date,
                             currentPoint.y,
-                            stateMachine.expandMode());
+                            !stateMachine.isShiftPressed());
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand<MoveEventAndConstraint>(
+            m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
-                            createdConstraint(),
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>().timeNode(hoveredTimeNode).date(),
-                            currentPoint.y,
                             stateMachine.expandMode());
         });
 
@@ -163,13 +161,14 @@ CreateFromEventState::CreateFromEventState(
 
 
 // Note : clickedEvent is set at startEvent if clicking in the background.
-void CreateFromEventState::createEventFromEventOnNothing()
+void CreateFromEventState::createEventFromEventOnNothing(const ScenarioStateMachine &stateMachine)
 {
     auto cmd = new CreateEventAfterEvent{
                 ObjectPath{m_scenarioPath},
                 clickedEvent,
                 currentPoint.date,
-                currentPoint.y};
+                currentPoint.y,
+                stateMachine.isShiftPressed()};
     setCreatedEvent(cmd->createdEvent());
     setCreatedTimeNode(cmd->createdTimeNode());
     setCreatedConstraint(cmd->createdConstraint());
@@ -246,7 +245,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         connect(t_pressed_moving_nothing, &QAbstractTransition::triggered,
                 [&] ()
         {
-            createEventFromEventOnNothing();
+            createEventFromEventOnNothing(stateMachine);
         });
 
         /// MoveOnNothing -> ...
@@ -301,7 +300,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         {
             m_dispatcher.rollback();
             createSingleEventOnTimeNode();
-            createEventFromEventOnNothing();
+            createEventFromEventOnNothing(stateMachine);
          });
 
         // MoveOnEvent -> MoveOnEvent : nothing to do.
@@ -335,7 +334,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         {
             m_dispatcher.rollback();
             createSingleEventOnTimeNode();
-            createEventFromEventOnNothing();
+            createEventFromEventOnNothing(stateMachine);
          });
 
 
@@ -371,12 +370,13 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
 
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveNewEvent>(
                             ObjectPath{m_scenarioPath},
+                            createdConstraint(),
                             createdEvent(),
                             currentPoint.date,
                             currentPoint.y,
-                            stateMachine.expandMode());
+                            !stateMachine.isShiftPressed());
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
@@ -385,7 +385,6 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
                             ObjectPath{m_scenarioPath},
                             createdEvent(),
                             m_scenarioPath.find<ScenarioModel>().timeNode(hoveredTimeNode).date(),
-                            currentPoint.y,
                             stateMachine.expandMode());
         });
 
@@ -418,7 +417,7 @@ void CreateFromTimeNodeState::createSingleEventOnTimeNode()
     m_createdFirstEvent = cmd->createdEventId();
 }
 
-void CreateFromTimeNodeState::createEventFromEventOnNothing()
+void CreateFromTimeNodeState::createEventFromEventOnNothing(const ScenarioStateMachine &stateMachine)
 {
     // If we start moving, we have to put a createEventAfterEvent.
     // Note : there will be two created events; how to prevent a mess in collision management ?
@@ -426,7 +425,8 @@ void CreateFromTimeNodeState::createEventFromEventOnNothing()
                ObjectPath{m_scenarioPath},
                m_createdFirstEvent,
                currentPoint.date,
-               currentPoint.y};
+               currentPoint.y,
+               stateMachine.isShiftPressed()};
 
     setCreatedEvent(cmd->createdEvent());
     setCreatedTimeNode(cmd->createdTimeNode());

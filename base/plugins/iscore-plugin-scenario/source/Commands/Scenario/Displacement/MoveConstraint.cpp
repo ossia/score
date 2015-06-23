@@ -4,7 +4,6 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
-#include "MoveEvent.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

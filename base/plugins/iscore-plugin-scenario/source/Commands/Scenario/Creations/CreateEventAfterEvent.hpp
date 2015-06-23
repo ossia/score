@@ -35,7 +35,8 @@ namespace Scenario
                     ObjectPath&& scenarioPath,
                     id_type<EventModel> firstEvent,
                     const TimeValue& date,
-                    double y);
+                    double y,
+                    bool unlock);
                 CreateEventAfterEvent& operator= (CreateEventAfterEvent &&) = default;
 
                 id_type<TimeNodeModel> createdTimeNode() const

@@ -11,7 +11,6 @@ namespace Scenario
 {
     namespace Command
     {
-        class MoveEvent;
         class MoveConstraint : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND

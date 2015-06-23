@@ -15,7 +15,7 @@ class CreateFromEventState : public CreationState
                 QState* parent);
 
     private:
-        void createEventFromEventOnNothing();
+        void createEventFromEventOnNothing(const ScenarioStateMachine& stateMachine);
         void createEventFromEventOnTimeNode();
 
         void createConstraintBetweenEvents();
@@ -35,7 +35,7 @@ class CreateFromTimeNodeState : public CreationState
     private:
         void createSingleEventOnTimeNode();
 
-        void createEventFromEventOnNothing();
+        void createEventFromEventOnNothing(const ScenarioStateMachine& stateMachine);
         void createEventFromEventOnTimenode();
 
         void createConstraintBetweenEvents();

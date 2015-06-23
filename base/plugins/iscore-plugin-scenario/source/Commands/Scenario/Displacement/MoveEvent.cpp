@@ -18,20 +18,17 @@ using namespace Scenario::Command;
 MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
                      id_type<EventModel> eventId,
                      const TimeValue& date,
-                     double height,
                      ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {std::move(scenarioPath)},
     m_eventId {eventId},
-    m_newHeightPosition {height},
     m_newDate {date},
     m_mode{mode}
 {
     auto& scenar = m_path.find<ScenarioModel>();
     const auto& movedEvent = scenar.event(m_eventId);
-    m_oldHeightPosition = movedEvent.heightPercentage();
     m_oldDate = movedEvent.date();
 
     StandardDisplacementPolicy::getRelatedElements(scenar,
@@ -79,7 +76,6 @@ void MoveEvent::undo()
     TimeValue deltaDate{};
     deltaDate = m_oldDate - event.date();
 
-    event.setHeightPercentage(m_oldHeightPosition);
     StandardDisplacementPolicy::updatePositions(
                 scenar,
                 m_movableTimenodes,
@@ -158,7 +154,6 @@ void MoveEvent::redo()
     TimeValue deltaDate{};
     deltaDate = m_newDate - event.date();
 
-    event.setHeightPercentage(m_newHeightPosition);
     StandardDisplacementPolicy::updatePositions(
                 scenar,
                 m_movableTimenodes,
@@ -171,8 +166,6 @@ void MoveEvent::serializeImpl(QDataStream& s) const
 {
     s << m_path
       << m_eventId
-      << m_oldHeightPosition
-      << m_newHeightPosition
       << m_oldDate
       << m_newDate
       << m_movableTimenodes
@@ -185,8 +178,6 @@ void MoveEvent::deserializeImpl(QDataStream& s)
     int mode;
     s >> m_path
       >> m_eventId
-      >> m_oldHeightPosition
-      >> m_newHeightPosition
       >> m_oldDate
       >> m_newDate
       >> m_movableTimenodes

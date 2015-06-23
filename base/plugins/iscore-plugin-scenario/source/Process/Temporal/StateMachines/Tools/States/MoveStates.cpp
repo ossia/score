@@ -115,7 +115,6 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                             ObjectPath{m_scenarioPath},
                             clickedEvent,
                             currentPoint.date,
-                            currentPoint.y,
                             stateMachine.expandMode());
         });
 
@@ -183,7 +182,6 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
                             ObjectPath{m_scenarioPath},
                             ev_id,
                             date,
-                            scenar.event(ev_id).heightPercentage(),
                             stateMachine.expandMode());
         });
 

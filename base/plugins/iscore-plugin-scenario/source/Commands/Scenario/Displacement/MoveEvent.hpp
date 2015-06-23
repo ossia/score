@@ -25,7 +25,6 @@ namespace Scenario
                 MoveEvent(ObjectPath&& scenarioPath,
                   id_type<EventModel> eventId,
                   const TimeValue& date,
-                  double height,
                   ExpandMode mode);
 
                 virtual void undo() override;
@@ -34,17 +33,13 @@ namespace Scenario
                 void update(const ObjectPath&,
                             const id_type<EventModel>& ,
                             const TimeValue& date,
-                            double height,
                             ExpandMode)
                 {
                     m_newDate = date;
-                    m_newHeightPosition = height;
                 }
 
                 const ObjectPath& path() const
                 { return m_path; }
-                double heightPosition() const
-                { return m_newHeightPosition; }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
@@ -54,8 +49,6 @@ namespace Scenario
                 ObjectPath m_path;
                 id_type<EventModel> m_eventId {};
 
-                double m_oldHeightPosition {};
-                double m_newHeightPosition {};
                 TimeValue m_oldDate {};
                 TimeValue m_newDate {};
 
