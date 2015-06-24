@@ -39,17 +39,19 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
             pres->stateMachine().changeTool(static_cast<int>(t));
     };
 
-    connect(m_selecttool, &QAction::triggered, this, [=]() {
-        set_tool(Tool::Select);
+    connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
+        if (b)
+            set_tool(Tool::Select);
     });
 
-    auto createtool = makeToolbarAction(
+    m_createtool = makeToolbarAction(
                           tr("Create"),
                           m_scenarioToolActionGroup,
                           Tool::Create,
                           tr("Alt+c"));
-    connect(createtool, &QAction::triggered, this, [=]() {
-        set_tool(Tool::Create);
+    connect(m_createtool, &QAction::toggled, this, [=](bool b) {
+        if(b)
+            set_tool(Tool::Create);
     });
 
     auto movetool = makeToolbarAction(
@@ -149,7 +151,6 @@ void ToolMenuActions::fillContextMenu(QMenu *menu)
     tool->addActions(m_scenarioToolActionGroup->actions());
     auto resize_mode = menu->addMenu("Resize mode");
     resize_mode->addActions(m_scenarioScaleModeActionGroup->actions());
-    menu->addAction(m_shiftAction);
 }
 
 void ToolMenuActions::makeToolBar(QToolBar *bar)
@@ -161,8 +162,6 @@ void ToolMenuActions::makeToolBar(QToolBar *bar)
     bar->addActions(toolActions());
     bar->addSeparator();
     bar->addActions(modeActions());
-    bar->addSeparator();
-    bar->addAction(m_shiftAction);
 }
 
 void ToolMenuActions::setEnabled(bool arg)
@@ -173,6 +172,30 @@ void ToolMenuActions::setEnabled(bool arg)
     if(arg)
     {
         m_selecttool->setChecked(true);
+    }
+}
+
+void ToolMenuActions::keyPressed(int key)
+{
+    if (key == Qt::Key_Control)
+    {
+        m_createtool->setChecked(true);
+    }
+    if(key == Qt::Key_Shift)
+    {
+        m_shiftAction->setChecked(true);
+    }
+}
+
+void ToolMenuActions::keyReleased(int key)
+{
+    if (key == Qt::Key_Control)
+    {
+        m_selecttool->setChecked(true);
+    }
+    if(key == Qt::Key_Shift)
+    {
+        m_shiftAction->setChecked(false);
     }
 }
 

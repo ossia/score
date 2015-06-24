@@ -81,8 +81,10 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
     signals:
         void linesExtremityScaled(int, int);
-        void shiftPressed();
-        void shiftReleased();
+
+        void keyPressed(int);
+        void keyReleased(int);
+
         void contextMenuAsked(const QPoint&);
 
     public slots:

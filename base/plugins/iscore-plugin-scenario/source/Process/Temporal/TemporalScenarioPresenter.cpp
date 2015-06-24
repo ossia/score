@@ -74,10 +74,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         m_focusDispatcher.focus(this);
     });
 
-    connect(m_view, &TemporalScenarioView::shiftPressed,
-            this,   &TemporalScenarioPresenter::shiftPressed);
-    connect(m_view, &TemporalScenarioView::shiftReleased,
-            this,   &TemporalScenarioPresenter::shiftReleased);
+    connect(m_view, &TemporalScenarioView::keyPressed,
+            this,   &TemporalScenarioPresenter::keyPressed);
+    connect(m_view, &TemporalScenarioView::keyReleased,
+            this,   &TemporalScenarioPresenter::keyReleased);
+
     connect(m_view, &TemporalScenarioView::askContextMenu,
             this,   &TemporalScenarioPresenter::contextMenuAsked);
 

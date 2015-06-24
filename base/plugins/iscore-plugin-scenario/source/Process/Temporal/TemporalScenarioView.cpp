@@ -69,17 +69,20 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
     {
         emit escPressed();
     }
-    if(event->key() == Qt::Key_Shift)
+
+    emit keyPressed(event->key());
+
+    if(event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
     {
-        emit shiftPressed();
+        emit keyPressed(event->key());
     }
 }
 
 void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
 {
     QGraphicsObject::keyReleaseEvent(event);
-    if(event->key() == Qt::Key_Shift)
+    if(event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control)
     {
-        emit shiftReleased();
+        emit keyReleased(event->key());
     }
 }

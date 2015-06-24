@@ -180,17 +180,11 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
     }
     if (s_pres)
     {
-        connect(s_pres, &TemporalScenarioPresenter::shiftPressed,
-                this, [&]()
-        {
-            m_toolActions->shiftAction()->setChecked(true);
-        } );
+        connect(s_pres, &TemporalScenarioPresenter::keyPressed,
+                m_toolActions,  &ToolMenuActions::keyPressed);
 
-        connect(s_pres, &TemporalScenarioPresenter::shiftReleased,
-                this, [&]()
-        {
-            m_toolActions->shiftAction()->setChecked(false);
-        } );
+        connect(s_pres, &TemporalScenarioPresenter::keyReleased,
+                m_toolActions,  &ToolMenuActions::keyReleased);
 
         connect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
                 this, &ScenarioControl::createContextMenu);

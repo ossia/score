@@ -33,8 +33,9 @@ class TemporalScenarioView : public ProcessView
 
         void clearPressed();
         void escPressed();
-        void shiftPressed();
-        void shiftReleased();
+
+        void keyPressed(int);
+        void keyReleased(int);
 
         void askContextMenu(const QPoint&);
 

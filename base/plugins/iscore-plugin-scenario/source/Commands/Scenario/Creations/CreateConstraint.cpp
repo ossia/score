@@ -53,7 +53,7 @@ void CreateConstraint::redo()
     CreateConstraintMin::redo(m_createdConstraintId,
                               m_createdConstraintFullViewId,
                               sev, eev,
-                              sev.heightPercentage(),
+                              sev.heightPercentage(), //TODO : it has to be "stateHeightPercentage"
                               scenar);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
