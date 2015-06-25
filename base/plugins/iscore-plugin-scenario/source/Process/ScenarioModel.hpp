@@ -98,17 +98,17 @@ class ScenarioModel : public ProcessModel
         // to call a method on the scenario (e.g. removeConstraint) that changes the vector
         // while iterating, which would invalidate the iterators
         // and lead to undefined behaviour
-        auto constraints() const
+        const auto& constraints() const
         {
             return m_constraints;
         }
 
-        auto events() const
+        const auto& events() const
         {
             return m_events;
         }
 
-        auto timeNodes() const
+        const auto& timeNodes() const
         {
             return m_timeNodes;
         }

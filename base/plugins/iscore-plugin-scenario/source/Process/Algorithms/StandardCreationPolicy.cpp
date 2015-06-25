@@ -59,7 +59,6 @@ void CreateConstraintMin::undo(
     eev.removePreviousConstraint(id);
 
     s.removeConstraint(&cst);
-
 }
 
 ConstraintModel&CreateConstraintMin::redo(

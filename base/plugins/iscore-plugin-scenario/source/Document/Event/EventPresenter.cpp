@@ -7,7 +7,6 @@
 #include <core/document/Document.hpp>
 
 #include <QGraphicsScene>
-
 EventPresenter::EventPresenter(const EventModel& model,
                                QGraphicsObject* parentview,
                                QObject* parent) :
@@ -100,23 +99,34 @@ void EventPresenter::updateStateView() const
     // TODO First check if the event has states.
 
     auto scenar = m_model.parentScenario();
-    auto constraints = scenar->constraints();
+    const auto& constraints_models = scenar->constraints();
+
+    auto scenar_pres = static_cast<TemporalScenarioPresenter*>(this->parent());
+    const auto& constraints_presenters = scenar_pres->constraints();
 
     // Then check the constraints.
     for(const auto& constraint : m_model.previousConstraints())
     {
-        auto constraint_it = std::find(constraints.begin(), constraints.end(), constraint);
-        if(constraint_it == constraints.end())
+        /// Checking
+        auto constraint_it = constraints_models.find(constraint);
+        if(constraint_it == constraints_models.end())
         {
             // We're still constructing and all the "required" constraints are
             // not here; we have to stop.
             // This will be called anyway when the last constraint is added.
             return;
         }
-        auto scenar_pres = static_cast<TemporalScenarioPresenter*>(this->parent());
-        auto cstr_pres = scenar_pres->constraints().at((*constraint_it)->id());
 
+        auto constraint_pres_it = constraints_presenters.find(constraint);
+        if(constraint_pres_it == constraints_presenters.end())
+        {
+            return;
+        }
+
+        auto cstr_pres = *constraint_pres_it;
         const auto& procs = (*constraint_it)->processes();
+
+        /// Applying
         if(std::any_of(
                     procs.begin(),
                     procs.end(),
@@ -124,7 +134,7 @@ void EventPresenter::updateStateView() const
         {
             ::view(cstr_pres)->startState()->setContainMessage(true);
         }
-        else if (cstr_pres)
+        else
         {
             ::view(cstr_pres)->startState()->setContainMessage(false);
         }
@@ -132,15 +142,26 @@ void EventPresenter::updateStateView() const
 
     for(const auto& constraint : m_model.nextConstraints())
     {
-        auto constraint_it = std::find(constraints.begin(), constraints.end(), constraint);
-        if(constraint_it == constraints.end())
+        /// Checking
+        auto constraint_it = constraints_models.find(constraint);
+        if(constraint_it == constraints_models.end())
+        {
+            // We're still constructing and all the "required" constraints are
+            // not here; we have to stop.
+            // This will be called anyway when the last constraint is added.
+            return;
+        }
+
+        auto constraint_pres_it = constraints_presenters.find(constraint);
+        if(constraint_pres_it == constraints_presenters.end())
         {
             return;
         }
-        auto scenar_pres = static_cast<TemporalScenarioPresenter*>(this->parent());
-        auto cstr_pres = scenar_pres->constraints().at((*constraint_it)->id());
 
+        auto cstr_pres = *constraint_pres_it;
         const auto& procs = (*constraint_it)->processes();
+
+        /// Applying
         if(std::any_of(
                     procs.begin(),
                     procs.end(),
@@ -150,8 +171,7 @@ void EventPresenter::updateStateView() const
         }
         else
         {
-            if (cstr_pres)
-                ::view(cstr_pres)->startState()->setContainMessage(false);
+            ::view(cstr_pres)->startState()->setContainMessage(false);
         }
     }
 }
@@ -170,11 +190,16 @@ void EventPresenter::constraintsChangedHelper(
     auto constraints = scenar->constraints();
     for(const auto& constraint : ids)
     {
-        auto constraint_it = std::find(constraints.begin(), constraints.end(), constraint);
+        auto constraint_it = std::find(constraints.begin(),
+                                       constraints.end(),
+                                       constraint);
         if(constraint_it == constraints.end())
         {
+            // We're constructing something
+            // so this function will get called again in few milliseconds
             return;
         }
+
         const auto& cstr = scenar->constraint(constraint);
         connections.append(
                     connect(&cstr, &ConstraintModel::processesChanged,

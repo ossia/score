@@ -56,6 +56,10 @@ class MapBase
         const auto& at(const id_type<model_type>& id) const
         {
             auto item = find(id);
+            if(item == map.end())
+            {
+                qDebug("FAIL");
+            }
             Q_ASSERT(item != map.end());
             return *item;
         }

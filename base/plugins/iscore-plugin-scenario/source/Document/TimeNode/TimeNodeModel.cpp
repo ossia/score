@@ -37,8 +37,9 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    parentScenario()->event(eventId).changeTimeNode(this->id());
-    m_eventHasPreviousConstraint[eventId] = parentScenario()->event(eventId).hasPreviousConstraint();
+    auto& theEvent = parentScenario()->event(eventId);
+    theEvent.changeTimeNode(this->id());
+    m_eventHasPreviousConstraint[eventId] = theEvent.hasPreviousConstraint();
     checkIfPreviousConstraint();
 }
 
