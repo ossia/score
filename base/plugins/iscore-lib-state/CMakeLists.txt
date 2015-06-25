@@ -13,11 +13,20 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
-file(GLOB_RECURSE LIBRARY_SRCS
-     "${CMAKE_CURRENT_SOURCE_DIR}/State/*.cpp"
+set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/State/AddressSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/MessageSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/StateSerialization.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/MessageWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/StateWidget.cpp"
+)
+
+file(GLOB_RECURSE HDRS
      "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
 
-add_library(${PROJECT_NAME} ${LIBRARY_SRCS})
+add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)
 
 set_property(TARGET ${PROJECT_NAME} APPEND
