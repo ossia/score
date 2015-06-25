@@ -143,7 +143,10 @@ void MovePointCommandObject::handleSuppressOnOverlap(QVector<CurveSegmentModel *
                 else if(m_state->clickedPointId.previous)
                 {
                     // We also set the following to the current segment if available.
-                    auto it = std::find(segments.begin(), segments.end(), m_state->clickedPointId.previous);
+                    auto it = std::find(
+                                  segments.begin(),
+                                  segments.end(),
+                                  m_state->clickedPointId.previous);
                     (*it)->setFollowing(segment->id());
                 }
             }

@@ -42,15 +42,6 @@ void CurveCommandObjectBase::handleLocking()
 {
     double current_x = m_state->currentPoint.x();
     double current_y = m_state->currentPoint.y();
-    // Manage locking
-    if(m_presenter->lockBetweenPoints())
-    {
-        if(current_x <= m_xmin)
-            m_state->currentPoint.setX(m_xmin + 0.001);
-
-        if(current_x >= m_xmax)
-            m_state->currentPoint.setX(m_xmax - 0.001);
-    }
 
     // In any case we lock between O - 1 in both axes.
     if(current_x < 0.)
@@ -61,6 +52,16 @@ void CurveCommandObjectBase::handleLocking()
         m_state->currentPoint.setY(0.);
     if(current_y > 1.)
         m_state->currentPoint.setY(1.);
+
+    // And more specifically...
+    if(m_presenter->lockBetweenPoints())
+    {
+        if(current_x <= m_xmin)
+            m_state->currentPoint.setX(m_xmin + 0.001);
+
+        if(current_x >= m_xmax)
+            m_state->currentPoint.setX(m_xmax - 0.001);
+    }
 }
 
 QVector<CurveSegmentModel*> CurveCommandObjectBase::deserializeSegments() const
