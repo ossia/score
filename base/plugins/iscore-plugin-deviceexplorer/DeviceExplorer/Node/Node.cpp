@@ -1,6 +1,6 @@
 #include "Node.hpp"
 #include <QJsonArray>
-
+using namespace iscore;
 
 Node::Node(InvisibleRootNodeTag)
 {
@@ -258,6 +258,8 @@ Node* Node::clone() const
     return n;
 }
 
+namespace iscore
+{
 Node* getNodeFromString(Node* n, QStringList&& parts)
 {
     if(parts.size() == 0)
@@ -274,5 +276,6 @@ Node* getNodeFromString(Node* n, QStringList&& parts)
 
     Q_ASSERT(false);
     return nullptr;
+}
 }
 

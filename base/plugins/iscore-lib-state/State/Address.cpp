@@ -1,4 +1,7 @@
 #include "Address.hpp"
+
+namespace iscore
+{
 bool Address::validateString(const QString &str)
 {
     auto firstcolon = str.indexOf(":");
@@ -22,14 +25,15 @@ Address Address::fromString(const QString &str)
     return {device, path};
 }
 
-QDataStream& operator<<(QDataStream &s, const Address &a)
+QDataStream& operator<<(QDataStream &s, const iscore::Address &a)
 {
     s << a.device << a.path;
     return s;
 }
 
-QDataStream& operator>>(QDataStream &s, Address &a)
+QDataStream& operator>>(QDataStream &s, iscore::Address &a)
 {
     s >> a.device >> a.path;
     return s;
+}
 }

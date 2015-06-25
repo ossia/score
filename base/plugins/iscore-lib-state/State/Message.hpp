@@ -3,8 +3,9 @@
 #include <QObject>
 #include <QStringList>
 #include <State/Address.hpp>
-// TODO put in namespace
 
+namespace iscore
+{
 struct Message
 {
     friend QDataStream& operator<<(QDataStream& s, const Message& m)
@@ -47,10 +48,11 @@ struct Message
 };
 
 using MessageList = QList<Message>;
-inline bool operator<(const MessageList&, const MessageList&)
+}
+inline bool operator<(const iscore::MessageList&, const iscore::MessageList&)
 {
     return false;
 }
 
-Q_DECLARE_METATYPE(Message)
-Q_DECLARE_METATYPE(MessageList)
+Q_DECLARE_METATYPE(iscore::Message)
+Q_DECLARE_METATYPE(iscore::MessageList)

@@ -19,7 +19,7 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
 
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
 
-    Node* parentNode{};
+    iscore::Node* parentNode{};
     if (insert == DeviceExplorerModel::Insert::AsChild)
     {
         parentNode =  nodePath.toNode(explorer.rootNode());
@@ -35,7 +35,7 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
 void AddAddress::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    Node* parent = m_parentNodePath.toNode(explorer.rootNode());
+    iscore::Node* parent = m_parentNodePath.toNode(explorer.rootNode());
     explorer.removeNode(parent->childAt(m_createdNodeIndex));
 }
 
@@ -57,7 +57,7 @@ void AddAddress::redo()
     explorer.deviceModel()->list().device(dev_node->deviceSettings().name).addAddress(full);
 
     // Add in the device explorer
-    Node* newNode = explorer.addAddress( m_parentNodePath.toNode(explorer.rootNode()), m_addressSettings);
+    iscore::Node* newNode = explorer.addAddress( m_parentNodePath.toNode(explorer.rootNode()), m_addressSettings);
 
     m_createdNodeIndex = m_parentNodePath.toNode(explorer.rootNode())->indexOfChild(newNode);
 }

@@ -7,7 +7,7 @@
 #include <Plugin/DeviceExplorerPlugin.hpp>
 
 #include <set>
-
+using namespace iscore;
 
 void executeState(const State& state)
 {

@@ -9,6 +9,8 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 struct InvisibleRootNodeTag{};
+namespace iscore
+{
 class Node
 {
         friend void Visitor<Reader<DataStream>>::readFrom<Node>(const Node& ev);
@@ -81,3 +83,4 @@ class Node
 };
 
 Node* getNodeFromString(Node* n, QStringList&& str);
+}

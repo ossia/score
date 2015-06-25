@@ -2,10 +2,12 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "Message.hpp"
 
+using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 {
-    m_stream << mess.address << mess.value;
+    readFrom(mess.address);
+    m_stream << mess.value;
     insertDelimiter();
 }
 
@@ -19,7 +21,8 @@ void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Message& mess)
 {
-    m_stream >> mess.address >> mess.value;
+    writeTo(mess.address);
+    m_stream >> mess.value;
 
     checkDelimiter();
 }

@@ -8,7 +8,7 @@ class ExplorationWorker : public QObject
         Q_OBJECT
         DeviceInterface& m_dev;
     public:
-        Node node;
+        iscore::Node node;
         ExplorationWorker(DeviceInterface& dev);
 
         void process();

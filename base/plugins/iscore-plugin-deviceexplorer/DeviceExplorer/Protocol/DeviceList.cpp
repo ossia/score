@@ -1,41 +1,43 @@
 #include "DeviceList.hpp"
 #include <boost/range/algorithm.hpp>
 
+template<typename TheList>
 static auto get_device_iterator_by_name(
-		const QString& name,
-        QList<DeviceInterface*>& devlist)
+        const QString& name,
+        TheList&& devlist)
 {
-	return boost::range::find_if(devlist, [&] (DeviceInterface* d) { return d->settings().name == name; });
+    return boost::range::find_if(devlist, [&] (DeviceInterface* d) { return d->settings().name == name; });
 }
 
-bool DeviceList::hasDevice(const QString &name)
+
+bool DeviceList::hasDevice(const QString &name) const
 {
     return get_device_iterator_by_name(name, m_devices) != std::end(m_devices);
 }
 
-DeviceInterface &DeviceList::device(const QString &name)
+DeviceInterface &DeviceList::device(const QString &name) const
 {
-	auto it = get_device_iterator_by_name(name, m_devices);
-	Q_ASSERT(it != m_devices.end());
+    auto it = get_device_iterator_by_name(name, m_devices);
+    Q_ASSERT(it != m_devices.end());
 
-	return **it;
+    return **it;
 }
 
 void DeviceList::addDevice(DeviceInterface *dev)
 {
-	m_devices.append(dev);
+    m_devices.append(dev);
 }
 
 void DeviceList::removeDevice(const QString &name)
 {
-	auto it = get_device_iterator_by_name(name, m_devices);
-	Q_ASSERT(it != m_devices.end());
+    auto it = get_device_iterator_by_name(name, m_devices);
+    Q_ASSERT(it != m_devices.end());
 
-	delete *it;
-	m_devices.erase(it);
+    delete *it;
+    m_devices.erase(it);
 }
 
 QList<DeviceInterface *> DeviceList::devices() const
 {
-	return m_devices;
+    return m_devices;
 }

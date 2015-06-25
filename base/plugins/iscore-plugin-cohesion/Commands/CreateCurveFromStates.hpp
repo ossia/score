@@ -20,7 +20,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         CreateCurveFromStates();
         ~CreateCurveFromStates();
         CreateCurveFromStates(ObjectPath&& constraint,
-                    const Address &address,
+                    const iscore::Address &address,
                     double start,
                     double end);
 
@@ -34,7 +34,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
     private:
         Scenario::Command::AddProcessToConstraint* m_addProcessCmd{};
 
-        Address m_address;
+        iscore::Address m_address;
 
         double m_start{}, m_end{};
 

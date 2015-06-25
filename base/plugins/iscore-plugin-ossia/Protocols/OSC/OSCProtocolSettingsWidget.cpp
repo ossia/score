@@ -63,8 +63,6 @@ OSCProtocolSettingsWidget::buildGUI()
 void
 OSCProtocolSettingsWidget::setDefaults()
 {
-    //TODO: we should use QSettings ?
-
     m_deviceNameEdit->setText("OSCdevice");
     m_portOutputSBox->setValue(9997);
     m_portInputSBox->setValue(9996);

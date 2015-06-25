@@ -3,7 +3,7 @@
 #include "State.hpp"
 #include "Message.hpp"
 
-
+using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const State& state)
 {

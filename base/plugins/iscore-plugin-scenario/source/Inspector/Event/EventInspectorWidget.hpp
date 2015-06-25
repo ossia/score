@@ -6,7 +6,10 @@ class EventModel;
 class QFormLayout;
 class MetadataWidget;
 struct Message;
+namespace iscore
+{
 class State;
+}
 
 /*!
  * \brief The EventInspectorWidget class
@@ -23,7 +26,7 @@ class EventInspectorWidget : public InspectorWidgetBase
     signals:
 
     public slots:
-        void addState(const State& state);
+        void addState(const iscore::State& state);
 
         void updateDisplayedValues(const EventModel* obj);
 
@@ -31,7 +34,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         void on_conditionChanged();
         void on_triggerChanged();
 
-        void removeState(const State&);
+        void removeState(const iscore::State&);
 
         void updateInspector();
         void modelDateChanged();

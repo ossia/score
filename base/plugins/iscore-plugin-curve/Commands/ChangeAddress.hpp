@@ -9,7 +9,7 @@ class ChangeAddress : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL("ChangeAddress", "ChangeAddress")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeAddress, "AutomationControl")
-        ChangeAddress(ObjectPath&& pointPath, const Address &addr);
+        ChangeAddress(ObjectPath&& pointPath, const iscore::Address &addr);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -21,6 +21,6 @@ class ChangeAddress : public iscore::SerializableCommand
     private:
         ObjectPath m_path;
 
-        Address m_newAddr;
-        Address m_oldAddr;
+        iscore::Address m_newAddr;
+        iscore::Address m_oldAddr;
 };

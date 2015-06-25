@@ -11,7 +11,7 @@ class AutomationState : public ProcessStateDataInterface
         QString stateName() const override
         { return "AutomationState"; }
 
-        Message message() const;
+        iscore::Message message() const;
         double point() const
         { return m_point; }
 

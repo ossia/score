@@ -23,7 +23,7 @@ class AutomationModel : public ProcessModel
         friend void Visitor<Writer<JSONObject>>::writeTo<AutomationModel>(AutomationModel& ev);
 
         Q_OBJECT
-        Q_PROPERTY(Address address READ address WRITE setAddress NOTIFY addressChanged)
+        Q_PROPERTY(iscore::Address address READ address WRITE setAddress NOTIFY addressChanged)
         // Min and max to scale the curve with at execution
         Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
         Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
@@ -68,7 +68,7 @@ class AutomationModel : public ProcessModel
         ProcessStateDataInterface* endState() const override;
 
         //// AutomationModel specifics ////
-        Address address() const;
+        iscore::Address address() const;
 
         CurveModel& curve() const
         { return *m_curve; }
@@ -79,7 +79,7 @@ class AutomationModel : public ProcessModel
         double max() const;
 
     signals:
-        void addressChanged(const Address& arg);
+        void addressChanged(const iscore::Address& arg);
         void curveChanged();
 
         void minChanged(double arg);
@@ -87,7 +87,7 @@ class AutomationModel : public ProcessModel
         void maxChanged(double arg);
 
     public slots:
-        void setAddress(const Address& arg);
+        void setAddress(const iscore::Address& arg);
 
         void setMin(double arg);
         void setMax(double arg);
@@ -100,7 +100,7 @@ class AutomationModel : public ProcessModel
 
     private:
         void setCurve(CurveModel* newCurve);
-        Address m_address;
+        iscore::Address m_address;
         CurveModel* m_curve{};
 
         double m_min;

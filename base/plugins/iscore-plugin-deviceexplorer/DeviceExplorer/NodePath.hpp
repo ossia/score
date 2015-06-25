@@ -2,8 +2,10 @@
 
 #include <QList>
 
+namespace iscore
+{
 class Node;
-
+}
 class QModelIndex;
 template<typename T>
 using ref = T&;
@@ -22,9 +24,9 @@ class Path
         }
 
         Path(QModelIndex index);
-        Path(Node* node);
+        Path(iscore::Node* node);
 
-        Node* toNode(Node* iter);
+        iscore::Node* toNode(iscore::Node* iter);
 
         void append(int i);
         void prepend(int i);

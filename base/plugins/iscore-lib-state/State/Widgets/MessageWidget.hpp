@@ -1,9 +1,12 @@
 #pragma once
 #include <QLabel>
 
+namespace iscore
+{
 struct Message;
+}
 class MessageWidget : public QLabel
 {
     public:
-        MessageWidget(const Message& m, QWidget* parent);
+        MessageWidget(const iscore::Message& m, QWidget* parent);
 };

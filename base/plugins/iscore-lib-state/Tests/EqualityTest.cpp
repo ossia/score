@@ -2,7 +2,7 @@
 #include <State/State.hpp>
 #include <State/Message.hpp>
 
-
+using namespace iscore;
 class EqualityTest: public QObject
 {
         Q_OBJECT

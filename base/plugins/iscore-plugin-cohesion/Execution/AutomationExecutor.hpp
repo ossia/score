@@ -9,7 +9,7 @@ class AutomationExecutor : public ProcessExecutor
     AutomationModel& m_model;
     DeviceInterface* m_dev{};
     Node* m_demodel{};
-    Message m;
+    iscore::Message m;
 
   public:
     AutomationExecutor(AutomationModel& model);

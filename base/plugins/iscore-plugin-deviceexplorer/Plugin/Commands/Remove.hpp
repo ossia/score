@@ -35,7 +35,7 @@ namespace DeviceExplorer
                 int m_nodeIndex{};
 
                 //TODO : save the node by value pls!
-                Node* m_node{};
+                iscore::Node* m_node{};
         };
     }
 }

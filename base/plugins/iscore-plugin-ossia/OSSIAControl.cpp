@@ -7,7 +7,7 @@
 #include <API/Headers/Editor/ExpressionNot.h>
 #include <API/Headers/Editor/ExpressionAtom.h>
 #include <API/Headers/Editor/ExpressionComposition.h>
-#include <API/Headers/Editor/ExpressionValue.h>
+#include <API/Headers/Editor/Value.h>
 
 OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}

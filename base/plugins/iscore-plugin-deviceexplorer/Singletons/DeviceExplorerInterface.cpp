@@ -7,6 +7,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <boost/range/algorithm.hpp>
 
+using namespace iscore;
 QString DeviceExplorer::panelName()
 {
     return "DeviceExplorerPanelModel";

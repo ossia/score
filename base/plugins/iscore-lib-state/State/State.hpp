@@ -3,6 +3,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+namespace iscore {
 class State
 {       friend
         void Visitor<Reader<DataStream>>::readFrom<State>(const State& mess);
@@ -22,13 +23,13 @@ class State
         State& operator=(State&&) = default;
 
         template<typename T>
-        State(T&& t):
+        State(const T& t):
             m_data{QVariant::fromValue(t)}
         {
 
         }
 
-        State(QVariant variant):
+        State(const QVariant& variant):
             m_data{variant}
         {
         }
@@ -53,6 +54,7 @@ class State
 };
 
 using StateList = QList<State>;
-Q_DECLARE_METATYPE(State)
-Q_DECLARE_METATYPE(StateList)
+}
+Q_DECLARE_METATYPE(iscore::State)
+Q_DECLARE_METATYPE(iscore::StateList)
 

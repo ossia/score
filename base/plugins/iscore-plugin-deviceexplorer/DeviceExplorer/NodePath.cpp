@@ -2,7 +2,7 @@
 
 #include <QModelIndex>
 #include "DeviceExplorer/Node/Node.hpp"
-
+using namespace iscore;
 Path::Path()
 {
 

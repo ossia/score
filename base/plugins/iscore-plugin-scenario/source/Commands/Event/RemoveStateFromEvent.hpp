@@ -3,7 +3,6 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <State/State.hpp>
 
-class State;
 namespace Scenario
 {
     namespace Command
@@ -13,7 +12,7 @@ namespace Scenario
                 ISCORE_COMMAND
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveStateFromEvent, "ScenarioControl")
-                RemoveStateFromEvent(ObjectPath&& eventPath, const State& state);
+                RemoveStateFromEvent(ObjectPath&& eventPath, const iscore::State& state);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -23,7 +22,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                State m_state;
+                iscore::State m_state;
         };
 
     }

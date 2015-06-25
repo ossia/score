@@ -21,7 +21,7 @@ CreateCurveFromStates::~CreateCurveFromStates()
 
 CreateCurveFromStates::CreateCurveFromStates(
         ObjectPath&& constraint,
-        const Address& address,
+        const iscore::Address& address,
         double start,
         double end):
     // TODO to prevent needless recopying, why not templating the ctor

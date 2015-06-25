@@ -1,7 +1,9 @@
 #pragma once
 #include <QWidget>
 class DeviceExplorerModel;
+namespace iscore{
 struct Address;
+}
 class DeviceExplorerMenuButton : public QWidget
 {
         Q_OBJECT
@@ -9,5 +11,5 @@ class DeviceExplorerMenuButton : public QWidget
         DeviceExplorerMenuButton(DeviceExplorerModel* model);
 
     signals:
-        void addressChosen(const Address&);
+        void addressChosen(const iscore::Address&);
 };

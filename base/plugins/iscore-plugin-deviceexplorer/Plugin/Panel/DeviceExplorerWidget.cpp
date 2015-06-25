@@ -380,7 +380,7 @@ DeviceExplorerWidget::proxyModel()
 void DeviceExplorerWidget::edit()
 {
     // TODO there should be a command here
-    Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         if(! m_deviceDialog)
@@ -425,7 +425,7 @@ void DeviceExplorerWidget::edit()
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 void DeviceExplorerWidget::refresh()
 {
-    Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
@@ -498,7 +498,7 @@ DeviceExplorerWidget::addSibling()
 
 void DeviceExplorerWidget::removeNode()
 {
-    Node* n = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    iscore::Node* n = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if(! n->isDevice())
         m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), Path(n)});
 }

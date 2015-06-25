@@ -7,6 +7,7 @@
 #include <QToolButton>
 #include "MessageWidget.hpp"
 
+using namespace iscore;
 StateWidget::StateWidget(const State& state, QWidget* parent):
     QFrame{parent}
 {
