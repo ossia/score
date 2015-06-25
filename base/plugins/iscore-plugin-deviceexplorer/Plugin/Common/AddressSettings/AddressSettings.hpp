@@ -4,17 +4,22 @@
 #include <QVariant>
 #include <QVariantList>
 
+// TODO namespace
 enum class IOType { Invalid, In, Out, InOut };
 const QMap<IOType, QString>& IOTypeStringMap();
 
 enum class ClipMode { Clip, Fold, Free, Wrap };
 const QMap<ClipMode, QString> &ClipModeStringMap();
+
+namespace iscore
+{
 struct Domain
 {
         QVariant min;
         QVariant max;
         QVariantList values;
 };
+}
 
 using RefreshRate = int;
 using RepetitionFilter = bool;
@@ -24,7 +29,7 @@ struct AddressSettings
     QString name;
 
     QVariant value;
-    Domain domain;
+    iscore::Domain domain;
 
     IOType ioType{};
     ClipMode clipMode{};

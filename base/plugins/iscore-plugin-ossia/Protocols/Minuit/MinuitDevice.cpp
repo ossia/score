@@ -1,6 +1,12 @@
 #include "MinuitDevice.hpp"
 #include <API/Headers/Network/Node.h>
+#include <API/Headers/Network/Device.h>
 #include <API/Headers/Editor/Value.h>
+
+#include "iscore2OSSIA.hpp"
+#include "OSSIA2iscore.hpp"
+using namespace iscore::convert;
+using namespace OSSIA::convert;
 
 MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     OSSIADevice{settings},
@@ -24,9 +30,9 @@ bool MinuitDevice::canRefresh() const
     return true;
 }
 
-Node MinuitDevice::refresh()
+iscore::Node MinuitDevice::refresh()
 {
-    Node device_node;
+    iscore::Node device_node;
 
     try {
     if(m_dev->updateNamespace())
@@ -35,12 +41,12 @@ Node MinuitDevice::refresh()
         // First make the node corresponding to the root node.
 
         device_node.setDeviceSettings(settings());
-        device_node.setAddressSettings(extractAddressSettings(*m_dev.get()));
+        device_node.setAddressSettings(ToAddressSettings(*m_dev.get()));
 
         // Recurse on the children
         for(const auto& node : m_dev->children())
         {
-            device_node.addChild(OssiaToDeviceExplorer(*node.get()));
+            device_node.addChild(ToDeviceExplorer(*node.get()));
         }
     }
     }

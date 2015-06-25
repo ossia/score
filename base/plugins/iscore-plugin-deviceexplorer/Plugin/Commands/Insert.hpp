@@ -22,7 +22,7 @@ namespace DeviceExplorer
 
                 Insert(const Path& parentPath,
                        int row,
-                       Node&& node,
+                       iscore::Node&& node,
                        ObjectPath&& modelPath);
 
                 virtual void undo() override;
@@ -34,7 +34,7 @@ namespace DeviceExplorer
 
             protected:
                 ObjectPath m_model;
-                Node m_node;
+                iscore::Node m_node;
                 Path m_parentPath;
                 int m_row{};
         };

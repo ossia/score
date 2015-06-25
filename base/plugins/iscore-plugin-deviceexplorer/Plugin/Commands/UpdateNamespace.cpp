@@ -1,6 +1,7 @@
 #include "UpdateNamespace.hpp"
 
 using namespace DeviceExplorer::Command;
+using namespace iscore;
 
 ReplaceDevice::ReplaceDevice(ObjectPath&& device_tree,
                              int deviceIndex,

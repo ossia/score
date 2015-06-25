@@ -54,16 +54,16 @@ QModelIndex DeviceExplorerCommandCreator::copy(const QModelIndex &index)
         return index;
     }
 
-    Node* n = m_model->nodeFromModelIndex(index);
+    iscore::Node* n = m_model->nodeFromModelIndex(index);
     Q_ASSERT(n);
 
-    Node* copiedNode = n->clone();
+    iscore::Node* copiedNode = n->clone();
     const bool isDevice = n->isDevice();
 
     if(! m_model->m_cutNodes.isEmpty() && m_model->m_lastCutNodeIsCopied)
     {
         //necessary to avoid that several successive copies fill m_cutNodes (copy is not a command)
-        Node* prevCopiedNode = m_model->m_cutNodes.pop().first;
+        iscore::Node* prevCopiedNode = m_model->m_cutNodes.pop().first;
         delete prevCopiedNode;
     }
 
@@ -137,15 +137,15 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
         return index;
     }
 
-    Node* n = m_model->nodeFromModelIndex(index);
+    iscore::Node* n = m_model->nodeFromModelIndex(index);
     Q_ASSERT(n);
-    Node* parent = n->parent();
+    iscore::Node* parent = n->parent();
     Q_ASSERT(parent);
 
     const int oldRow = index.row();
     const int newRow = oldRow - 1;
 
-    Node* grandparent = parent->parent();
+    iscore::Node* grandparent = parent->parent();
     Q_ASSERT(grandparent);
 
     Move* cmd = new Move;
@@ -174,9 +174,9 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
         return index;
     }
 
-    Node* n = m_model->nodeFromModelIndex(index);
+    iscore::Node* n = m_model->nodeFromModelIndex(index);
     Q_ASSERT(n);
-    Node* parent = n->parent();
+    iscore::Node* parent = n->parent();
     Q_ASSERT(parent);
 
     int oldRow = index.row();
@@ -188,7 +188,7 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
         return index;
     }
 
-    Node* grandparent = parent->parent();
+    iscore::Node* grandparent = parent->parent();
     Q_ASSERT(grandparent);
 
     Move* cmd = new Move;
@@ -218,9 +218,9 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
         return index;
     }
 
-    Node* n = m_model->nodeFromModelIndex(index);
+    iscore::Node* n = m_model->nodeFromModelIndex(index);
     Q_ASSERT(n);
-    Node* parent = n->parent();
+    iscore::Node* parent = n->parent();
     Q_ASSERT(parent);
 
     if(parent == m_model->rootNode())
@@ -228,7 +228,7 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
         return index;    // Already a top-level item
     }
 
-    Node* grandParent = parent->parent();
+    iscore::Node* grandParent = parent->parent();
     Q_ASSERT(grandParent);
 
     if(grandParent == m_model->rootNode())
@@ -265,9 +265,9 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
         return index;
     }
 
-    Node* n = m_model->nodeFromModelIndex(index);
+    iscore::Node* n = m_model->nodeFromModelIndex(index);
     Q_ASSERT(n);
-    Node* parent = n->parent();
+    iscore::Node* parent = n->parent();
     Q_ASSERT(parent);
 
     if(parent == m_model->rootNode())
@@ -282,7 +282,7 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
         return index;    // No preceding sibling to move this under
     }
 
-    Node* sibling = parent->childAt(row - 1);
+    iscore::Node* sibling = parent->childAt(row - 1);
     Q_ASSERT(sibling);
 
     Move* cmd = new Move;

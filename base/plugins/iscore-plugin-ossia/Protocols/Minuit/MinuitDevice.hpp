@@ -12,7 +12,7 @@ class MinuitDevice : public OSSIADevice
     public:
         MinuitDevice(const DeviceSettings& settings);
         bool canRefresh() const override;
-        Node refresh() override;
+        iscore::Node refresh() override;
 
     private:
         OSSIA::Minuit m_minuitSettings;

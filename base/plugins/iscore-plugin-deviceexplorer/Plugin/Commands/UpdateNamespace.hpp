@@ -19,7 +19,7 @@ namespace DeviceExplorer
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceDevice, "DeviceExplorerControl")
                 ReplaceDevice(ObjectPath&& device_tree,
                               int deviceIndex,
-                              Node&& rootNode);
+                              iscore::Node&& rootNode);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,8 +31,8 @@ namespace DeviceExplorer
             private:
                 ObjectPath m_deviceTree;
                 int m_deviceIndex{};
-                Node m_deviceNode;
-                Node m_savedNode;
+                iscore::Node m_deviceNode;
+                iscore::Node m_savedNode;
 
         };
     }

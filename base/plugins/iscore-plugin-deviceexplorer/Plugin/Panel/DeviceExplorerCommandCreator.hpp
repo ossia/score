@@ -58,7 +58,7 @@ class DeviceExplorerCommandCreator : public QObject
 
         void setCachedResult(DeviceExplorer::Result r);
 
-        typedef QPair<Node*, bool> CutElt;
+        typedef QPair<iscore::Node*, bool> CutElt;
 
     protected:
         DeviceExplorer::Result m_cachedResult;

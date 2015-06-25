@@ -3,13 +3,13 @@
 #include "AddressSettings.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const Domain& n)
+void Visitor<Reader<DataStream>>::readFrom(const iscore::Domain& n)
 {
     m_stream << n.min << n.max << n.values;
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(Domain& n)
+void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
 {
     m_stream >> n.min >> n.max >> n.values;
 }
@@ -48,10 +48,10 @@ void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
 }
 
 template<typename T>
-QJsonObject domainToJSON(const Domain& d);
+QJsonObject domainToJSON(const iscore::Domain& d);
 
 template<>
-QJsonObject domainToJSON<int>(const Domain& d)
+QJsonObject domainToJSON<int>(const iscore::Domain& d)
 {
     QJsonObject obj;
     if(d.min.isValid())
@@ -68,7 +68,7 @@ QJsonObject domainToJSON<int>(const Domain& d)
 }
 
 template<>
-QJsonObject domainToJSON<float>(const Domain& d)
+QJsonObject domainToJSON<float>(const iscore::Domain& d)
 {
     QJsonObject obj;
     if(d.min.isValid())
@@ -85,7 +85,7 @@ QJsonObject domainToJSON<float>(const Domain& d)
 }
 
 template<>
-QJsonObject domainToJSON<QString>(const Domain& d)
+QJsonObject domainToJSON<QString>(const iscore::Domain& d)
 {
     QJsonObject obj;
     if(d.min.isValid())
@@ -103,11 +103,11 @@ QJsonObject domainToJSON<QString>(const Domain& d)
 
 
 template<typename T>
-Domain JSONToDomain(const QJsonObject& d);
+iscore::Domain JSONToDomain(const QJsonObject& d);
 template<>
-Domain JSONToDomain<int>(const QJsonObject& obj)
+iscore::Domain JSONToDomain<int>(const QJsonObject& obj)
 {
-    Domain d;
+    iscore::Domain d;
     if(obj.contains("Min"))
     {
         d.min = obj["Min"].toInt();
@@ -125,9 +125,9 @@ Domain JSONToDomain<int>(const QJsonObject& obj)
 }
 
 template<>
-Domain JSONToDomain<float>(const QJsonObject& obj)
+iscore::Domain JSONToDomain<float>(const QJsonObject& obj)
 {
-    Domain d;
+    iscore::Domain d;
     if(obj.contains("Min"))
     {
         d.min = (float)obj["Min"].toDouble();
@@ -145,9 +145,9 @@ Domain JSONToDomain<float>(const QJsonObject& obj)
 }
 
 template<>
-Domain JSONToDomain<QString>(const QJsonObject& obj)
+iscore::Domain JSONToDomain<QString>(const QJsonObject& obj)
 {
-    Domain d;
+    iscore::Domain d;
     if(obj.contains("Min"))
     {
         d.min = obj["Min"].toString();

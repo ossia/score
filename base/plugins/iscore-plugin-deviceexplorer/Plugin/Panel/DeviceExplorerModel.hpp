@@ -11,6 +11,7 @@
 namespace iscore
 {
     class CommandStack;
+    class Node;
 }
 namespace DeviceExplorer {
     namespace Command {
@@ -20,7 +21,6 @@ namespace DeviceExplorer {
     }
 }
 
-class Node;
 class DeviceExplorerView;
 class DeviceExplorerCommandCreator;
 class DeviceDocumentPlugin;
@@ -44,7 +44,7 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         ~DeviceExplorerModel();
 
-        Node* rootNode() const
+        iscore::Node* rootNode() const
         {
             return m_rootNode;
         }
@@ -65,12 +65,12 @@ class DeviceExplorerModel : public QAbstractItemModel
         void setCommandQueue(iscore::CommandStack* q);
 
         // Returns the row (useful for undo)
-        int addDevice(Node* deviceNode);
-        Node *addAddress(Node * parentNode,
+        int addDevice(iscore::Node* deviceNode);
+        iscore::Node* addAddress(iscore::Node * parentNode,
                         const AddressSettings& addressSettings);
-        void addAddress(Node* parentNode, Node* node, int row = -1);
+        void addAddress(iscore::Node* parentNode, iscore::Node* node, int row = -1);
 
-        void removeNode(Node *node);
+        void removeNode(iscore::Node* node);
 
 
         int columnCount() const;
@@ -81,7 +81,7 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void debug_printIndexes(const QModelIndexList& indexes);
 
-        bool insertNode(const QModelIndex& parent, int row, const Node& node);
+        bool insertNode(const QModelIndex& parent, int row, const iscore::Node& node);
 
 
         QModelIndex index(int row, int column, const QModelIndex& parent) const override;
@@ -115,7 +115,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         int getIOTypeColumn() const;
         int getNameColumn() const;
 
-        Node* nodeFromModelIndex(const QModelIndex& index) const;
+        iscore::Node* nodeFromModelIndex(const QModelIndex& index) const;
         QModelIndex convertPathToIndex(const Path& path);
 
         DeviceExplorerCommandCreator* cmdCreator();
@@ -130,18 +130,18 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void debug_printPath(const Path& path);
 
-        typedef QPair<Node*, bool> CutElt;
+        typedef QPair<iscore::Node*, bool> CutElt;
         QStack<CutElt> m_cutNodes;
         bool m_lastCutNodeIsCopied;
 
     private:
         DeviceDocumentPlugin* m_devicePlugin{};
-        Node* createRootNode() const;
+        iscore::Node* createRootNode() const;
 
-        void setColumnValue(Node* node, const QVariant& v, int col);
+        void setColumnValue(iscore::Node* node, const QVariant& v, int col);
         QModelIndex bottomIndex(const QModelIndex& index) const;
 
-        Node* m_rootNode;
+        iscore::Node* m_rootNode;
 
         iscore::CommandStack* m_cmdQ;
 

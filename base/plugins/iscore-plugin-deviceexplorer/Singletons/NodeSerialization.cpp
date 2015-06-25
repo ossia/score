@@ -5,6 +5,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Node& n)
 {

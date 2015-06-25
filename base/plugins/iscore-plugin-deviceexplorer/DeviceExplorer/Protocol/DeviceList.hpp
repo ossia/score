@@ -14,8 +14,8 @@ class DeviceList
         DeviceList& operator=(const DeviceList&) = delete;
         DeviceList& operator=(DeviceList&&) = delete;
 
-        bool hasDevice(const QString& name);
-        DeviceInterface& device(const QString& name);
+        bool hasDevice(const QString& name) const;
+        DeviceInterface& device(const QString& name) const;
 
         void addDevice(DeviceInterface* dev);
         void removeDevice(const QString& name);

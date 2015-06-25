@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QtXml/QtXml>
 
+using namespace iscore;
 // TODO check xml loading.
 void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 {

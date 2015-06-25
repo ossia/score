@@ -3,7 +3,7 @@
 #include "Add/AddDevice.hpp"
 #include "Add/AddAddress.hpp"
 using namespace DeviceExplorer::Command;
-
+using namespace iscore;
 Insert::Insert(const Path &parentPath,
                int row,
                Node &&data,

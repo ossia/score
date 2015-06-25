@@ -23,7 +23,7 @@ class State
         State& operator=(State&&) = default;
 
         template<typename T>
-        State(T&& t):
+        State(const T& t):
             m_data{QVariant::fromValue(t)}
         {
 

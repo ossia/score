@@ -1,5 +1,6 @@
 #include "MIDIDevice.hpp"
-
+#include <API/Headers/Network/Protocol.h>
+#include <API/Headers/Network/Device.h>
 MIDIDevice::MIDIDevice(const DeviceSettings &settings):
     OSSIADevice{settings}
 {
