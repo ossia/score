@@ -20,6 +20,8 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/MessageWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressValidator.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/StateWidget.cpp"
 )
 

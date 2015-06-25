@@ -45,6 +45,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/BaseStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/ToolState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ValidatedLineEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStack.cpp"

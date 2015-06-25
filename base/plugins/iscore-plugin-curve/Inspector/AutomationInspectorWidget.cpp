@@ -10,6 +10,8 @@
 #include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 
+#include <State/Widgets/AddressLineEdit.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
@@ -18,7 +20,7 @@
 #include <QPushButton>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
-
+#include <QMessageBox>
 #include <QApplication>
 
 AutomationInspectorWidget::AutomationInspectorWidget(
@@ -43,7 +45,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     vec.push_back(widg);
 
     // LineEdit
-    m_lineEdit = new QLineEdit;
+    m_lineEdit = new AddressLineEdit{this};
     m_lineEdit->setText(m_model->address().toString());
     connect(m_model, &AutomationModel::addressChanged,
             this, [&] (const iscore::Address& addr) {
@@ -51,20 +53,9 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     });
 
     connect(m_lineEdit, &QLineEdit::editingFinished,
-            [=]() {
-        // Validate the address
-        const auto& str = m_lineEdit->text();
-
-        // TODO DeviceCompleter should be updated.
-        if(iscore::Address::validateString(str))
-        {
-            on_addressChange(iscore::Address::fromString(str));
-        }
-        else
-        {
-            // TODO warn the user and clear.
-            m_lineEdit->clear();
-        }
+            [=]()
+    {
+        on_addressChange(iscore::Address::fromString(m_lineEdit->text()));
     });
 
     vlay->addWidget(m_lineEdit);

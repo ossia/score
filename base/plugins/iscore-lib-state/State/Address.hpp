@@ -1,7 +1,6 @@
 #pragma once
 #include <QStringList>
 #include <QMetaType>
-
 namespace iscore
 {
 struct Address

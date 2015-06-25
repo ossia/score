@@ -359,6 +359,7 @@ void EventInspectorWidget::on_addAddressClicked()
     auto txt = m_stateLineEdit->text();
     auto split = txt.split(" ");
 
+    // TODO Wrong : we should have a Message validator instead.
     if(iscore::Address::validateString(split.first()))
     {
         iscore::Message m;
