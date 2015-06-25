@@ -53,10 +53,7 @@ class EventPresenter : public NamedObject
     private:
         void constraintsChangedHelper(
                 const QVector<id_type<ConstraintModel>>& ids,
-                QVector<QMetaObject::Connection>& connections);        
-
-        // TODO : remove ?
-        Scenario::EventHalves m_halves{Scenario::EventHalves::None};
+                QVector<QMetaObject::Connection>& connections);
 
         QPair<id_type<ConstraintModel>, double> m_extremityMin;
         QPair<id_type<ConstraintModel>, double> m_extremityMax;

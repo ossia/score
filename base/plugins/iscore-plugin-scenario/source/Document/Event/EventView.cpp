@@ -71,12 +71,6 @@ bool EventView::hasTrigger() const
     return !m_trigger.isEmpty();
 }
 
-void EventView::setHalves(Scenario::EventHalves h)
-{
-    m_halves = h;
-    update();
-}
-
 void EventView::setExtremities(int top, int bottom)
 {
     m_top = top;

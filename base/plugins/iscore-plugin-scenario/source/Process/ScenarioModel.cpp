@@ -21,10 +21,6 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
     CreateEventMin::redo(m_startEventId, start_tn, 0., *this);
     CreateEventMin::redo(m_endEventId, end_tn, 0., *this);
-
-    // TODO event should not need a date; it shall be set by the timenode.
-    // Everything should then depend on the "indicative" date of the time node.
-
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,

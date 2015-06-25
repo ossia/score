@@ -272,18 +272,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     ev_pres->view()
            ->setPos({rect.x() + event_model.date().toPixels(m_zoomRatio),
                      rect.y() + rect.height() * event_model.heightPercentage() });
-// TODO AA useless now
-/*    connect(ev_pres, &EventPresenter::heightPercentageChanged,
-            this, [=] ()
-    {
-        auto rect = m_view->boundingRect();
-        ev_pres->view()
-               ->setPos({rect.x() + ev_pres->model().date().toPixels(m_zoomRatio),
-                         rect.y() + rect.height() * ev_pres->model().heightPercentage() });
 
-        m_viewInterface->updateTimeNode(ev_pres->model().timeNode());
-    });
-*/
     connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);

@@ -35,9 +35,6 @@ class EventView : public QGraphicsObject
         void setTrigger(const QString& trig);
         bool hasTrigger() const;
 
-        // TODO :remove
-        void setHalves(Scenario::EventHalves h);
-
         void setExtremities(int top, int bottom);
         void addPoint(int newY);
 
@@ -68,8 +65,6 @@ class EventView : public QGraphicsObject
         QString m_trigger;
         QPointF m_clickedPoint;
         QColor m_color;
-
-        Scenario::EventHalves m_halves{Scenario::EventHalves::None};
 
         bool m_shadow {false};
         bool m_selected{};
