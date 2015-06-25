@@ -127,7 +127,6 @@ void SelectionTool::on_pressed()
         localSM().postEvent(new Press_Event);
         m_nothingPressed = true;
     });
-
 }
 
 void SelectionTool::on_moved()
@@ -135,7 +134,6 @@ void SelectionTool::on_moved()
     if (m_nothingPressed)
     {
         localSM().postEvent(new Move_Event);
-        qDebug() << "here" ;
     }
     else
     {
@@ -149,14 +147,6 @@ void SelectionTool::on_moved()
         [&] ()
         { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint});});
     }
-
-    /*
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-    [&] (const id_type<EventModel>&) {  },
-    [&] (const id_type<TimeNodeModel>&) { localSM().postEvent(new Move_Event); },
-    [&] (const id_type<ConstraintModel>&) { localSM().postEvent(new Move_Event); },
-    [&] () { localSM().postEvent(new Move_Event); });
-    */
 }
 
 void SelectionTool::on_released()
@@ -193,18 +183,11 @@ void SelectionTool::on_released()
     [&] ()
     {
         if(m_nothingPressed)
-            localSM().postEvent(new Release_Event);
+            localSM().postEvent(new Release_Event); // select
         else
-            localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint});
+            localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); // end of move
     } );
 
-    /*
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-    [&] (const id_type<EventModel>&) {  },
-    [&] (const id_type<TimeNodeModel>&) { localSM().postEvent(new Release_Event); },
-    [&] (const id_type<ConstraintModel>&) { localSM().postEvent(new Release_Event); },
-    [&] () { localSM().postEvent(new Release_Event); });
-    */
 }
 
 

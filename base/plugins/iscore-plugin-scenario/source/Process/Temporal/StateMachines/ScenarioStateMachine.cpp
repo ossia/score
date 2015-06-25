@@ -1,6 +1,5 @@
 #include "ScenarioStateMachine.hpp"
 #include "Tools/CreationToolState.hpp"
-#include "Tools/MoveToolState.hpp"
 #include "Tools/SelectionToolState.hpp"
 #include "Tools/MoveDeckToolState.hpp"
 

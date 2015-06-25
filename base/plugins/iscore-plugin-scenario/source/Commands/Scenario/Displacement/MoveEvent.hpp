@@ -12,6 +12,11 @@ class AbstractConstraintViewModel;
 class BoxModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
+
+/*
+ * Command to change a constraint duration by moving event. Vertical move is not allowed.
+ */
+
 namespace Scenario
 {
     namespace Command

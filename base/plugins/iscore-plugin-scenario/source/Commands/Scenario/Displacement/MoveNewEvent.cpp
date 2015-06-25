@@ -14,7 +14,7 @@ MoveNewEvent::MoveNewEvent(ObjectPath&& scenarioPath,
     SerializableCommand {"ScenarioControl",
              commandName(),
              description()},
-    m_path {std::move(scenarioPath)},
+    m_path {scenarioPath},
     m_constraintId {constraintId},
     m_cmd{new MoveEvent(std::move(scenarioPath), eventId, date, ExpandMode::Fixed)},
     m_y{y},
@@ -40,13 +40,13 @@ void MoveNewEvent::redo()
 
 void MoveNewEvent::serializeImpl(QDataStream & s) const
 {
-     s << m_cmd->serialize() << m_constraintId << m_y;
+     s << m_path << m_cmd->serialize() << m_constraintId << m_y << m_yLocked;
 }
 
 void MoveNewEvent::deserializeImpl(QDataStream & s)
 {
     QByteArray a;
-    s >> a >> m_constraintId >> m_y;
+    s >> m_path >> a >> m_constraintId >> m_y >> m_yLocked;
 
     m_cmd->deserialize(a);
 }

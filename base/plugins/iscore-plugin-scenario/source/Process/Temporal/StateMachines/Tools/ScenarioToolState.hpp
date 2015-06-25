@@ -66,7 +66,8 @@ class ScenarioTool : public ToolState
             }
 
             // Each time :
-            // Check if it is an event / timenode / constraint
+            // Check if it is an event / timenode / constraint.
+            // If state, do the same like for event.
             // TODO Possible crash : Check if it is in our scenario.
             switch(pressedItem->type())
             {

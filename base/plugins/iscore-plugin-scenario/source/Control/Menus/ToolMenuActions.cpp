@@ -67,7 +67,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
         set_tool(Tool::MoveDeck);
     });
 
-    // SHIFT (unused)
+    // SHIFT (unused) TODO : should be used for creation mode !!
     m_shiftAction = makeToolbarAction(
                             tr("Vertical Move"),
                             this,
@@ -137,8 +137,6 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     {
         menu->insertActionIntoToplevelMenu(m_menuElt, act);
     }
-    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_shiftAction);
 }
 
 void ToolMenuActions::fillContextMenu(QMenu *menu)

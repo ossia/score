@@ -114,13 +114,7 @@ void EventView::paint(QPainter* painter,
     }
 */
     eventPen.setWidth(2);
-    // Ball
-/*
-    painter->setPen(eventPen);
-    painter->setBrush(Qt::white);
 
-    painter->drawEllipse({0., 0.}, radiusIn, radiusIn);
-*/
 /*
     painter->setPen(Qt::darkCyan);
     painter->drawRect(boundingRect());

@@ -7,6 +7,12 @@ class ConstraintModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+
+
+/*
+ * Command for vertical move so it does'nt have to resize anything on time axis
+ * */
+
 namespace Scenario
 {
     namespace Command
@@ -41,7 +47,6 @@ namespace Scenario
                 double m_oldHeightPosition{},
                        m_newHeightPosition{},
                        m_eventHeight{};
-                bool m_changeDate{};
         };
     }
 }

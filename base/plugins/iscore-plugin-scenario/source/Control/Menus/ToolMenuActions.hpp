@@ -23,7 +23,7 @@ class ToolMenuActions : public AbstractMenuActions
     private:
         QActionGroup* m_scenarioScaleModeActionGroup{};
         QActionGroup* m_scenarioToolActionGroup{};
-        QAction* m_shiftAction{};   // TODO : useless ? Unused anyway
+        QAction* m_shiftAction{};
 
         QAction* m_selecttool{};
         QAction* m_createtool{};

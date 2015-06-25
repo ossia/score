@@ -6,6 +6,11 @@
 class EventModel;
 class ConstraintModel;
 
+/*
+ * Used on creation mode, when mouse is pressed and is moving.
+ * In this case, both vertical and horizontal move are allowed
+ */
+
 namespace Scenario
 {
     namespace Command
@@ -51,7 +56,7 @@ namespace Scenario
 
               MoveEvent* m_cmd;
               double m_y;
-              bool m_yLocked;
+              bool m_yLocked; // default is true and constraints are on the same y.
         };
     }
 }
