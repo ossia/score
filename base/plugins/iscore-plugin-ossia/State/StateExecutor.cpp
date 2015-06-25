@@ -21,7 +21,9 @@ std::shared_ptr<OSSIA::Message> StateExecutor::messageFromIscore(
 
     if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&dev))
     {
-        auto ossia_node = iscore::convert::getNodeFromPath(mess.address.path, &casted_dev->impl());
+        auto ossia_node = iscore::convert::getNodeFromPath(
+                              mess.address.path,
+                              &casted_dev->impl());
 
         return OSSIA::Message::create(
                               ossia_node->getAddress(),

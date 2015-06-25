@@ -14,6 +14,8 @@
 #include <QDir>
 #include <QSettings>
 
+#include <boost/range/algorithm.hpp>
+
 using namespace iscore;
 
 QStringList pluginsDir()
@@ -45,6 +47,13 @@ void PluginManager::reloadPlugins()
     auto folders = pluginsDir();
     auto blacklist = pluginsBlacklist();
 
+    // Load static plug-ins
+    for(QObject* plugin : QPluginLoader::staticInstances())
+    {
+        m_availablePlugins += plugin;
+    }
+
+    // Load dynamic plug-ins
     for(const QString& pluginsFolder : folders)
     {
         QDir pluginsDir(pluginsFolder);
@@ -54,7 +63,20 @@ void PluginManager::reloadPlugins()
 
             if(QObject* plugin = loader.instance())
             {
-                // TODO check if the plug-in isn't already loaded.
+                // Check if the plugin is not already loaded
+                if(boost::range::find_if(m_availablePlugins,
+                   [&] (QObject* obj)
+                   { return obj->metaObject()->className() == plugin->metaObject()->className(); })
+                        != m_availablePlugins.end())
+                {
+                    qDebug() << "Warning: plugin"
+                             << plugin->metaObject()->className()
+                             << "was already loaded. Not reloading.";
+
+                    continue;
+                }
+
+                // Check if it is blacklisted
                 if(!blacklist.contains(fileName))
                 {
                     m_availablePlugins += plugin;
@@ -74,11 +96,6 @@ void PluginManager::reloadPlugins()
                     qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
             }
         }
-    }
-    // Load static plug-ins
-    for(QObject* plugin : QPluginLoader::staticInstances())
-    {
-        m_availablePlugins += plugin;
     }
 
     // Load all the factories.
