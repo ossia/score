@@ -8,9 +8,10 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 class DeviceInterface;
-class ProtocolFactoryInterface : public iscore::FactoryInterface
+class ProtocolFactory : public iscore::FactoryInterface
 {
     public:
+        static QString factoryName();
         virtual QString name() const = 0;
 
         virtual DeviceInterface* makeDevice(const DeviceSettings& settings) = 0;
@@ -36,3 +37,6 @@ class ProtocolFactoryInterface : public iscore::FactoryInterface
         }
 
 };
+
+
+

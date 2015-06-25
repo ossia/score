@@ -26,6 +26,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/ProtocolList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/ProtocolFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/NodePath.cpp"

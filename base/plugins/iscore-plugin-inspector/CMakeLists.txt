@@ -14,6 +14,7 @@ file(GLOB_RECURSE INTERFACE_HDRS
 
 set(INTERFACE_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/Separator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetBase.cpp"

@@ -14,7 +14,7 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(const QString& nam
 {
     auto iwl = qApp->findChild<InspectorWidgetList*>("InspectorWidgetList");
 
-    for(InspectorWidgetFactoryInterface* factory : iwl->m_factories)
+    for(InspectorWidgetFactory* factory : iwl->m_factories)
     {
         if(factory->correspondingObjectsNames().contains(name))
         {
@@ -29,5 +29,5 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(const QString& nam
 void InspectorWidgetList::registerFactory(iscore::FactoryInterface* e)
 {
     m_factories.push_back(
-                static_cast<InspectorWidgetFactoryInterface*>(e));
+                static_cast<InspectorWidgetFactory*>(e));
 }

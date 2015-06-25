@@ -23,6 +23,7 @@ file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.h
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/Focus/FocusDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessView.cpp"

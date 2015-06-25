@@ -3,11 +3,11 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class TimeNodeInspectorFactory : public InspectorWidgetFactoryInterface
+class TimeNodeInspectorFactory : public InspectorWidgetFactory
 {
     public:
         TimeNodeInspectorFactory() :
-            InspectorWidgetFactoryInterface {}
+            InspectorWidgetFactory {}
         {
 
         }

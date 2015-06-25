@@ -20,7 +20,7 @@ iscore::PluginControlInterface* iscore_plugin_ossia::make_control(iscore::Presen
 
 QVector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString& factoryName)
 {
-    if(factoryName == "Protocol")
+    if(factoryName == ProtocolFactory::factoryName())
     {
         return {//new MIDIProtocolFactory,
                 new MinuitProtocolFactory,

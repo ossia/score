@@ -8,7 +8,7 @@ namespace iscore
 }
 
 class InspectorWidgetBase;
-class InspectorWidgetFactoryInterface;
+class InspectorWidgetFactory;
 class InspectorWidgetList : public NamedObject
 {
     public:
@@ -20,5 +20,5 @@ class InspectorWidgetList : public NamedObject
         void registerFactory(iscore::FactoryInterface* e);
 
     private:
-        QVector<InspectorWidgetFactoryInterface*> m_factories;
+        QVector<InspectorWidgetFactory*> m_factories;
 };

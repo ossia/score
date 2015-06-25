@@ -21,6 +21,7 @@ class ProcessFactory : public iscore::FactoryInterface
 {
     public:
         virtual ~ProcessFactory() = default;
+        static QString factoryName();
 
         // The process name
         virtual QString name() const = 0;

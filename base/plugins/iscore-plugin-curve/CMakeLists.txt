@@ -38,6 +38,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/GammaCurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/LinearCurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/LinearCurveSegmentModel.cpp"

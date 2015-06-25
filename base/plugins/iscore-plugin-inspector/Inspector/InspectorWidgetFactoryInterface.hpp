@@ -19,9 +19,10 @@ class InspectorWidgetBase;
      * in the inspector.
      *
      */
-class InspectorWidgetFactoryInterface : public iscore::FactoryInterface
+class InspectorWidgetFactory : public iscore::FactoryInterface
 {
     public:
+        static QString factoryName();
         /**
         * @brief correspondingObjectName
         * @return the name of the object for which this inspector is meant to generate a widget.
