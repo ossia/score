@@ -46,7 +46,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     m_lineEdit = new QLineEdit;
     m_lineEdit->setText(m_model->address().toString());
     connect(m_model, &AutomationModel::addressChanged,
-            this, [&] (const Address& addr) {
+            this, [&] (const iscore::Address& addr) {
        m_lineEdit->setText(addr.toString());
     });
 
@@ -56,9 +56,9 @@ AutomationInspectorWidget::AutomationInspectorWidget(
         const auto& str = m_lineEdit->text();
 
         // TODO DeviceCompleter should be updated.
-        if(Address::validateString(str))
+        if(iscore::Address::validateString(str))
         {
-            on_addressChange(Address::fromString(str));
+            on_addressChange(iscore::Address::fromString(str));
         }
         else
         {
@@ -100,7 +100,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const Address& addr)
+                this, [&] (const iscore::Address& addr)
         {
             m_lineEdit->setText(addr.toString());
             on_addressChange(addr);
@@ -124,7 +124,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
 
-void AutomationInspectorWidget::on_addressChange(const Address& newText)
+void AutomationInspectorWidget::on_addressChange(const iscore::Address& newText)
 {
     if(newText != m_model->address())
     {

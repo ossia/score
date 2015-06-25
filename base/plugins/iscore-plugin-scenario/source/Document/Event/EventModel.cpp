@@ -136,23 +136,23 @@ const QString& EventModel::condition() const
     return m_condition;
 }
 
-const StateList& EventModel::states() const
+const iscore::StateList& EventModel::states() const
 {
     return m_states;
 }
 
-void EventModel::replaceStates(const StateList& newStates)
+void EventModel::replaceStates(const iscore::StateList& newStates)
 {
     m_states = newStates;
 }
 
-void EventModel::addState(const State& state)
+void EventModel::addState(const iscore::State& state)
 {
     m_states.append(state);
     emit localStatesChanged();
 }
 
-void EventModel::removeState(const State& s)
+void EventModel::removeState(const iscore::State& s)
 {
     m_states.removeOne(s);
     emit localStatesChanged();

@@ -17,6 +17,6 @@ namespace DeviceExplorer
     QString panelName();
     QString explorerName();
 
-    Address addressFromModelIndex(const QModelIndex& index);
-    Message messageFromModelIndex(const QModelIndex& index);
+    iscore::Address addressFromModelIndex(const QModelIndex& index);
+    iscore::Message messageFromModelIndex(const QModelIndex& index);
 }

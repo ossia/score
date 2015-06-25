@@ -2,6 +2,8 @@
 #include <QStringList>
 #include <QMetaType>
 
+namespace iscore
+{
 struct Address
 {
         // Data
@@ -30,8 +32,8 @@ struct Address
         }
 
         // For qDeclareMetaTypeStreamOperators...
-        friend QDataStream& operator<<(QDataStream& s, const Address& a);
-        friend QDataStream& operator>>(QDataStream& s, Address& a);
+        friend QDataStream& operator<<(QDataStream& s, const iscore::Address& a);
+        friend QDataStream& operator>>(QDataStream& s, iscore::Address& a);
 };
-
-Q_DECLARE_METATYPE(Address)
+}
+Q_DECLARE_METATYPE(iscore::Address)

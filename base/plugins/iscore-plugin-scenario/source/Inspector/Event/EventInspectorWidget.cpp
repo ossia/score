@@ -114,7 +114,7 @@ EventInspectorWidget::EventInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const Address& addr)
+                this, [&] (const iscore::Address& addr)
         {
             m_conditionLineEdit->setText(addr.toString());
         });
@@ -137,7 +137,7 @@ EventInspectorWidget::EventInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const Address& addr)
+                this, [&] (const iscore::Address& addr)
         {
             m_triggerLineEdit->setText(addr.toString());
         });
@@ -176,7 +176,7 @@ EventInspectorWidget::EventInspectorWidget(
 
         auto pb = new DeviceExplorerMenuButton{deviceexplorer};
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const Address& addr)
+                this, [&] (const iscore::Address& addr)
         {
             m_stateLineEdit->setText(addr.toString());
         });
@@ -219,7 +219,7 @@ EventInspectorWidget::EventInspectorWidget(
 }
 
 #include <State/Widgets/StateWidget.hpp>
-void EventInspectorWidget::addState(const State& state)
+void EventInspectorWidget::addState(const iscore::State& state)
 {
     auto sw = new StateWidget{state, this};
     connect(sw, &StateWidget::removeMe,
@@ -252,7 +252,7 @@ void EventInspectorWidget::updateDisplayedValues(
 
         auto scenar = event->parentScenario();
 
-        for(const State& state : event->states())
+        for(const auto& state : event->states())
         {
             addState(state);
         }
@@ -359,10 +359,10 @@ void EventInspectorWidget::on_addAddressClicked()
     auto txt = m_stateLineEdit->text();
     auto split = txt.split(" ");
 
-    if(Address::validateString(split.first()))
+    if(iscore::Address::validateString(split.first()))
     {
-        Message m;
-        m.address = Address::fromString(split.first());
+        iscore::Message m;
+        m.address = iscore::Address::fromString(split.first());
         split.removeFirst();
         m.value = textToMessageValue(split);
 
@@ -399,7 +399,7 @@ void EventInspectorWidget::on_triggerChanged()
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void EventInspectorWidget::removeState(const State& state)
+void EventInspectorWidget::removeState(const iscore::State& state)
 {
     auto cmd = new Scenario::Command::RemoveStateFromEvent{path(m_model), state};
     emit commandDispatcher()->submitCommand(cmd);

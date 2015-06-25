@@ -16,6 +16,7 @@
 #include <QJsonDocument>
 
 using namespace DeviceExplorer::Command;
+using namespace iscore;
 
 enum
 {

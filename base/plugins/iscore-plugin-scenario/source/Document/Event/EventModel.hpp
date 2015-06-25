@@ -87,10 +87,10 @@ class EventModel : public IdentifiedObject<EventModel>
         const id_type<TimeNodeModel>& timeNode() const;
 
         // States
-        const StateList& states() const;
-        void replaceStates(const StateList& newStates);
-        void addState(const State& s);
-        void removeState(const State& s);
+        const iscore::StateList& states() const;
+        void replaceStates(const iscore::StateList& newStates);
+        void addState(const iscore::State& s);
+        void removeState(const iscore::State& s);
 
         // Other properties
         double heightPercentage() const;
@@ -140,7 +140,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
         double m_heightPercentage {0.5};
 
-        StateList m_states;
+        iscore::StateList m_states;
         QString m_condition {};
 
         TimeValue m_date {std::chrono::seconds{0}};

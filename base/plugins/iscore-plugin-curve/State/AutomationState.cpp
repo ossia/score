@@ -14,10 +14,10 @@ AutomationState::AutomationState(const AutomationModel* model, double watchedPoi
             this, &ProcessStateDataInterface::stateChanged);
 }
 
-Message AutomationState::message() const
+iscore::Message AutomationState::message() const
 {
     qDebug() << Q_FUNC_INFO << "TODO";
-    Message m;
+    iscore::Message m;
     //m.address = model()->address();
     //m.value = model()->points().value(m_point);
 

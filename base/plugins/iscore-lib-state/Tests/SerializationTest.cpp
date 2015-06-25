@@ -4,7 +4,10 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-
+namespace iscore {
+    class State;
+}
+using namespace iscore;
 class SerializationTest: public QObject
 {
         Q_OBJECT

@@ -21,7 +21,7 @@ class OSSIADevice : public DeviceInterface
         void updateAddress(const FullAddressSettings& address) override;
         void removeAddress(const QString& path) override;
 
-        void sendMessage(Message& mess) override;
+        void sendMessage(iscore::Message& mess) override;
         bool check(const QString& str) override;
 
     protected:

@@ -8,7 +8,7 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
     public:
         CreateCurvesFromAddresses();
         CreateCurvesFromAddresses(ObjectPath&& constraint,
-                                  const QList<Address> &addresses);
+                                  const QList<iscore::Address> &addresses);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -19,7 +19,7 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
 
     private:
         ObjectPath m_path;
-        QList<Address> m_addresses;
+        QList<iscore::Address> m_addresses;
 
         QVector<QByteArray> m_serializedCommands;
 };

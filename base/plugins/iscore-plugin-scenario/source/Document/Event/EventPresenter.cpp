@@ -198,7 +198,7 @@ void EventPresenter::handleDrop(const QMimeData *mime)
     {
         Deserializer<JSONObject> deser{
             QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
-        State s;
+        iscore::State s;
         deser.writeTo(s);
 
         auto cmd = new Scenario::Command::AddStateToEvent{

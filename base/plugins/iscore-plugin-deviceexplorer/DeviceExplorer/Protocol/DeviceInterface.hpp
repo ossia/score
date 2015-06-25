@@ -24,7 +24,7 @@ class DeviceInterface : public QObject
         virtual void removeAddress(const QString& path) = 0;
 
         // Execution API... Maybe we don't need it here.
-        virtual void sendMessage(Message& mess) = 0;
+        virtual void sendMessage(iscore::Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 
     signals:

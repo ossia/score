@@ -44,7 +44,7 @@ void OSSIADevice::removeAddress(const QString &address)
 }
 
 
-void OSSIADevice::sendMessage(Message &mess)
+void OSSIADevice::sendMessage(iscore::Message &mess)
 {
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 

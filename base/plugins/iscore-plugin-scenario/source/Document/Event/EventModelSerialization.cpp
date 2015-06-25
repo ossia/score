@@ -51,7 +51,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     ev.setTrigger(trigger);
     ev.changeTimeNode(timenode);
 
-    QList<State> states;
+    QList<iscore::State> states;
     m_stream >> states;
     ev.replaceStates(states);
 
@@ -94,10 +94,10 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
     ev.setTrigger(m_obj["Trigger"].toString());
     ev.changeTimeNode(fromJsonValue<id_type<TimeNodeModel>> (m_obj["TimeNode"]));
 
-    QList<State> states;
+    QList<iscore::State> states;
     for(QJsonValue json_val : m_obj["States"].toArray())
     {
-        states.push_back(fromJsonObject<State>(json_val.toObject()));
+        states.push_back(fromJsonObject<iscore::State>(json_val.toObject()));
     }
 
     ev.replaceStates(states);

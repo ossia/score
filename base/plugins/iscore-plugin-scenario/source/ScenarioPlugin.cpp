@@ -18,12 +18,12 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
         iscore::FactoryFamily_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
 {
-    QMetaType::registerComparators<Message>();
-    QMetaType::registerComparators<MessageList>();
-    qRegisterMetaTypeStreamOperators<State>();
-    qRegisterMetaTypeStreamOperators<StateList>();
-    qRegisterMetaTypeStreamOperators<Message>();
-    qRegisterMetaTypeStreamOperators<MessageList>();
+    QMetaType::registerComparators<iscore::Message>();
+    QMetaType::registerComparators<iscore::MessageList>();
+    qRegisterMetaTypeStreamOperators<iscore::State>();
+    qRegisterMetaTypeStreamOperators<iscore::StateList>();
+    qRegisterMetaTypeStreamOperators<iscore::Message>();
+    qRegisterMetaTypeStreamOperators<iscore::MessageList>();
 
     qRegisterMetaTypeStreamOperators<TimeValue>();
 }

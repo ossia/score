@@ -1,12 +1,14 @@
 #pragma once
 #include <QFrame>
 
+namespace iscore{
 class State;
+}
 class StateWidget : public QFrame
 {
         Q_OBJECT
     public:
-        StateWidget(const State& s,
+        StateWidget(const iscore::State& s,
                     QWidget* parent);
 
     signals:
