@@ -3,11 +3,13 @@
 #include <API/Headers/Network/Protocol.h>
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Address.h>
-#include <API/Headers/Network/AddressValue.h>
-#include <API/Headers/Network/AddressDomain.h>
+#include <API/Headers/Editor/Value.h>
+#include <API/Headers/Editor/Domain.h>
+
 namespace OSSIA
 {
     class Device;
+    class Domain;
 }
 
 class OSSIADevice : public DeviceInterface
@@ -44,13 +46,13 @@ void updateOSSIAAddress(
         const std::shared_ptr<OSSIA::Address>& addr);
 void updateOSSIAValue(
         const QVariant& data,
-        OSSIA::AddressValue& val);
+        OSSIA::Value& val);
 
 // Utility functions to convert from one node to another.
 IOType OSSIAAccessModeToIOType(OSSIA::Address::AccessMode t);
 ClipMode OSSIABoudingModeToClipMode(OSSIA::Address::BoundingMode b);
-Domain OSSIADomainToDomain(OSSIA::AddressDomain& domain);
-QVariant OSSIAValueToVariant(const OSSIA::AddressValue* val);
+Domain OSSIADomainToDomain(OSSIA::Domain& domain);
+QVariant OSSIAValueToVariant(const OSSIA::Value* val);
 AddressSettings extractAddressSettings(const OSSIA::Node& node);
 Node* OssiaToDeviceExplorer(const OSSIA::Node& node);
 

@@ -49,7 +49,7 @@ void OSSIADevice::sendMessage(Message &mess)
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 
     auto val = node->getAddress()->getValue();
-    updateOSSIAValue(mess.value, *val);
+    updateOSSIAValue(mess.value, const_cast<OSSIA::Value&>(*val)); // TODO naye
     node->getAddress()->sendValue(val);
 }
 
@@ -148,25 +148,25 @@ void createOSSIAAddress(const FullAddressSettings &settings, OSSIA::Node *node)
     using namespace OSSIA;
     std::shared_ptr<OSSIA::Address> addr;
     if(settings.value.type() == QMetaType::Float)
-    { addr = node->createAddress(AddressValue::Type::FLOAT); }
+    { addr = node->createAddress(Value::Type::FLOAT); }
 
     else if(settings.value.type() == QMetaType::Int)
-    { addr = node->createAddress(AddressValue::Type::INT); }
+    { addr = node->createAddress(Value::Type::INT); }
 
     else if(settings.value.type() == QMetaType::QString)
-    { addr = node->createAddress(AddressValue::Type::STRING); }
+    { addr = node->createAddress(Value::Type::STRING); }
 
     else if(settings.value.type() == QMetaType::Bool)
-    { addr = node->createAddress(AddressValue::Type::BOOL); }
+    { addr = node->createAddress(Value::Type::BOOL); }
 
     else if(settings.value.type() == QMetaType::Char)
-    { addr = node->createAddress(AddressValue::Type::CHAR); }
+    { addr = node->createAddress(Value::Type::CHAR); }
 
     else if(settings.value.type() == QMetaType::QVariantList)
-    { addr = node->createAddress(AddressValue::Type::TUPLE); }
+    { addr = node->createAddress(Value::Type::TUPLE); }
 
     else if(settings.value.type() == QMetaType::QByteArray)
-    { addr = node->createAddress(AddressValue::Type::GENERIC); }
+    { addr = node->createAddress(Value::Type::GENERIC); }
 
     updateOSSIAAddress(settings, addr);
 }
@@ -212,29 +212,29 @@ ClipMode OSSIABoudingModeToClipMode(OSSIA::Address::BoundingMode b)
 }
 
 
-QVariant OSSIAValueToVariant(const OSSIA::AddressValue *val)
+QVariant OSSIAValueToVariant(const OSSIA::Value *val)
 {
     QVariant v;
     switch(val->getType())
     {
-        case OSSIA::AddressValue::Type::IMPULSE:
+        case OSSIA::Value::Type::IMPULSE:
             break;
-        case OSSIA::AddressValue::Type::BOOL:
+        case OSSIA::Value::Type::BOOL:
             v = dynamic_cast<const OSSIA::Bool*>(val)->value;
             break;
-        case OSSIA::AddressValue::Type::INT:
+        case OSSIA::Value::Type::INT:
             v = dynamic_cast<const OSSIA::Int*>(val)->value;
             break;
-        case OSSIA::AddressValue::Type::FLOAT:
+        case OSSIA::Value::Type::FLOAT:
             v= dynamic_cast<const OSSIA::Float*>(val)->value;
             break;
-        case OSSIA::AddressValue::Type::CHAR:
+        case OSSIA::Value::Type::CHAR:
             v = dynamic_cast<const OSSIA::Char*>(val)->value;
             break;
-        case OSSIA::AddressValue::Type::STRING:
+        case OSSIA::Value::Type::STRING:
             v = QString::fromStdString(dynamic_cast<const OSSIA::String*>(val)->value);
             break;
-        case OSSIA::AddressValue::Type::TUPLE:
+        case OSSIA::Value::Type::TUPLE:
         {
             QVariantList tuple;
             for (const auto & e : dynamic_cast<const OSSIA::Tuple*>(val)->value)
@@ -245,7 +245,7 @@ QVariant OSSIAValueToVariant(const OSSIA::AddressValue *val)
             v = tuple;
             break;
         }
-        case OSSIA::AddressValue::Type::GENERIC:
+        case OSSIA::Value::Type::GENERIC:
         {
             auto generic = dynamic_cast<const OSSIA::Generic*>(val);
             v = QByteArray{generic->start, generic->size};
@@ -257,29 +257,29 @@ QVariant OSSIAValueToVariant(const OSSIA::AddressValue *val)
 
     return v;
 }
-void updateOSSIAValue(const QVariant& data, OSSIA::AddressValue& val)
+void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
 {
     QVariant v;
     switch(val.getType())
     {
-        case OSSIA::AddressValue::Type::IMPULSE:
+        case OSSIA::Value::Type::IMPULSE:
             break;
-        case OSSIA::AddressValue::Type::BOOL:
+        case OSSIA::Value::Type::BOOL:
             dynamic_cast<OSSIA::Bool&>(val).value = data.value<bool>();
             break;
-        case OSSIA::AddressValue::Type::INT:
+        case OSSIA::Value::Type::INT:
             dynamic_cast<OSSIA::Int&>(val).value = data.value<int>();
             break;
-        case OSSIA::AddressValue::Type::FLOAT:
+        case OSSIA::Value::Type::FLOAT:
             dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
             break;
-        case OSSIA::AddressValue::Type::CHAR:
+        case OSSIA::Value::Type::CHAR:
             dynamic_cast<OSSIA::Char&>(val).value = data.value<char>();
             break;
-        case OSSIA::AddressValue::Type::STRING:
+        case OSSIA::Value::Type::STRING:
             dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
             break;
-        case OSSIA::AddressValue::Type::TUPLE:
+        case OSSIA::Value::Type::TUPLE:
         {
             QVariantList tuple = data.value<QVariantList>();
             const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
@@ -291,7 +291,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::AddressValue& val)
 
             break;
         }
-        case OSSIA::AddressValue::Type::GENERIC:
+        case OSSIA::Value::Type::GENERIC:
         {
             const auto& array = data.value<QByteArray>();
             auto& generic = dynamic_cast<OSSIA::Generic&>(val);
@@ -344,7 +344,7 @@ Node *OssiaToDeviceExplorer(const OSSIA::Node &node)
 }
 
 
-Domain OSSIADomainToDomain(OSSIA::AddressDomain &domain)
+Domain OSSIADomainToDomain(OSSIA::Domain &domain)
 {
     Domain d;
     d.min = OSSIAValueToVariant(domain.getMin());

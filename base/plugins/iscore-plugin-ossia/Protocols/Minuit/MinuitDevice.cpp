@@ -1,6 +1,6 @@
 #include "MinuitDevice.hpp"
 #include <API/Headers/Network/Node.h>
-#include <API/Headers/Network/AddressValue.h>
+#include <API/Headers/Editor/Value.h>
 
 MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     OSSIADevice{settings},
