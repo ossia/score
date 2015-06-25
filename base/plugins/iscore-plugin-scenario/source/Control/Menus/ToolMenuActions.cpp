@@ -28,8 +28,10 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
     m_scenarioToolActionGroup->setDisabled(true);
 
     // NOTE : if a scenario isn't focused, they shouldn't event be clickable.
+
+    // SELECT AND MOVE
     m_selecttool = makeToolbarAction(
-                     tr("Select"),
+                     tr("Select and Move"),
                      m_scenarioToolActionGroup,
                      Tool::Select,
                      tr("Alt+x"));
@@ -44,25 +46,18 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
             set_tool(Tool::Select);
     });
 
+    // CREATE
     m_createtool = makeToolbarAction(
                           tr("Create"),
                           m_scenarioToolActionGroup,
                           Tool::Create,
-                          tr("Alt+c"));
+                          tr("Ctrl"));
     connect(m_createtool, &QAction::toggled, this, [=](bool b) {
         if(b)
             set_tool(Tool::Create);
     });
 
-    auto movetool = makeToolbarAction(
-                        tr("Move"),
-                        m_scenarioToolActionGroup,
-                        Tool::Move,
-                        tr("Alt+v"));
-    connect(movetool, &QAction::triggered, this, [=]() {
-        set_tool(Tool::Move);
-    });
-
+    // MOVEDECK
     auto deckmovetool = makeToolbarAction(
                             tr("Move Deck"),
                             m_scenarioToolActionGroup,
@@ -72,7 +67,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
         set_tool(Tool::MoveDeck);
     });
 
-
+    // SHIFT (unused)
     m_shiftAction = makeToolbarAction(
                             tr("Vertical Move"),
                             this,
@@ -91,6 +86,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
         }
     });
 
+    // SCALEMODE
     m_scenarioScaleModeActionGroup = new QActionGroup{this};
     m_scenarioScaleModeActionGroup->setDisabled(true);
 

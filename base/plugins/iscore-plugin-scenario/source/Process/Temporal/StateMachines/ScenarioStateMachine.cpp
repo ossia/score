@@ -28,9 +28,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         createState = new CreationToolState{*this};
         createState->setParent(toolState);
 
-        moveState = new MoveToolState{*this};
-        moveState->setParent(toolState);
-
         selectState = new SelectionTool{*this};
         selectState->setParent(toolState);
         toolState->setInitialState(selectState);
@@ -75,8 +72,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
         auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), selectState);
         t_exit_select->setTargetState(transitionState);
-        auto t_exit_move = new QSignalTransition(this, SIGNAL(exitState()), moveState);
-        t_exit_move->setTargetState(transitionState);
         auto t_exit_moveDeck = new QSignalTransition(this, SIGNAL(exitState()), moveDeckState);
         t_exit_moveDeck->setTargetState(transitionState);
         auto t_exit_create = new QSignalTransition(this, SIGNAL(exitState()), createState);
@@ -84,15 +79,12 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
         auto t_enter_select = new QSignalTransition(this, SIGNAL(setSelectState()), transitionState);
         t_enter_select->setTargetState(selectState);
-        auto t_enter_move = new QSignalTransition(this, SIGNAL(setMoveState()), transitionState);
-        t_enter_move->setTargetState(moveState);
         auto t_enter_moveDeck = new QSignalTransition(this, SIGNAL(setDeckMoveState()), transitionState);
         t_enter_moveDeck->setTargetState(moveDeckState);
         auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
         t_enter_create->setTargetState(createState);
 
         createState->start();
-        moveState->start();
         selectState->start();
         moveDeckState->start();
     }
@@ -148,8 +140,6 @@ Tool ScenarioStateMachine::tool() const
         return Tool::Create;
     if(selectState->active())
         return Tool::Select;
-    if(moveState->active())
-        return Tool::Move;
     if(moveDeckState->active())
         return Tool::MoveDeck;
 
@@ -184,9 +174,6 @@ void ScenarioStateMachine::changeTool(int state)
         break;
     case static_cast<int>(Tool::MoveDeck):
         emit setDeckMoveState();
-        break;
-    case static_cast<int>(Tool::Move):
-        emit setMoveState();
         break;
     case static_cast<int>(Tool::Select):
         emit setSelectState();

@@ -3,6 +3,12 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
+#include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
+
+#include "States/MoveStates.hpp"
+
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
@@ -40,6 +46,60 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
             &localSM()};
 
     localSM().setInitialState(m_state);
+
+    /// Constraint
+    /// //TODO remove useless arguments to ctor
+    m_moveConstraint =
+            new MoveConstraintState{
+                  m_parentSM,
+                  iscore::IDocument::path(m_parentSM.model()),
+                  m_parentSM.commandStack(),
+                  m_parentSM.locker(),
+                  nullptr};
+
+    make_transition<ClickOnConstraint_Transition>(m_state,
+                                                  m_moveConstraint,
+                                                  *m_moveConstraint);
+    m_moveConstraint->addTransition(m_moveConstraint,
+                                    SIGNAL(finished()),
+                                    m_state);
+    localSM().addState(m_moveConstraint);
+
+
+    /// Event
+    m_moveEvent =
+            new MoveEventState{
+                  m_parentSM,
+                  iscore::IDocument::path(m_parentSM.model()),
+                  m_parentSM.commandStack(),
+                  m_parentSM.locker(),
+                  nullptr};
+
+    make_transition<ClickOnEvent_Transition>(m_state,
+                                             m_moveEvent,
+                                             *m_moveEvent);
+    m_moveEvent->addTransition(m_moveEvent,
+                               SIGNAL(finished()),
+                               m_state);
+    localSM().addState(m_moveEvent);
+
+
+    /// TimeNode
+    m_moveTimeNode =
+            new MoveTimeNodeState{
+                  m_parentSM,
+                  iscore::IDocument::path(m_parentSM.model()),
+                  m_parentSM.commandStack(),
+                  m_parentSM.locker(),
+                  nullptr};
+
+    make_transition<ClickOnTimeNode_Transition>(m_state,
+                                             m_moveTimeNode,
+                                             *m_moveTimeNode);
+    m_moveTimeNode->addTransition(m_moveTimeNode,
+                                  SIGNAL(finished()),
+                                  m_state);
+    localSM().addState(m_moveTimeNode);
 }
 
 
@@ -49,23 +109,47 @@ void SelectionTool::on_pressed()
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const id_type<EventModel>& id) // Event
     {
-
+        localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
+        m_nothingPressed = false;
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
-
+        localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint});
+        m_nothingPressed = false;
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
-
+        localSM().postEvent(new ClickOnConstraint_Event{id, m_parentSM.scenarioPoint});
+        m_nothingPressed = false;
     },
-    [&] () { localSM().postEvent(new Press_Event); });
+    [&] ()
+    {
+        localSM().postEvent(new Press_Event);
+        m_nothingPressed = true;
+    });
 
 }
 
 void SelectionTool::on_moved()
 {
-    localSM().postEvent(new Move_Event);
+    if (m_nothingPressed)
+    {
+        localSM().postEvent(new Move_Event);
+        qDebug() << "here" ;
+    }
+    else
+    {
+        mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+        [&] (const id_type<EventModel>& id)
+        { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<TimeNodeModel>& id)
+        { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<ConstraintModel>& id)
+        { localSM().postEvent(new MoveOnConstraint_Event{id, m_parentSM.scenarioPoint}); },
+        [&] ()
+        { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint});});
+    }
+
     /*
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const id_type<EventModel>&) {  },
@@ -85,6 +169,8 @@ void SelectionTool::on_released()
         m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
+
+        localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint});
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
@@ -93,6 +179,7 @@ void SelectionTool::on_released()
         m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
+        localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint});
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
@@ -101,8 +188,15 @@ void SelectionTool::on_released()
         m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
+        localSM().postEvent(new ReleaseOnConstraint_Event{id, m_parentSM.scenarioPoint});
     },
-    [&] () { localSM().postEvent(new Release_Event); });
+    [&] ()
+    {
+        if(m_nothingPressed)
+            localSM().postEvent(new Release_Event);
+        else
+            localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint});
+    } );
 
     /*
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),

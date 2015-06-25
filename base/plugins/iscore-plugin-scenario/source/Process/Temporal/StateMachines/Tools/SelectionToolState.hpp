@@ -3,6 +3,11 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 
 class ScenarioSelectionState;
+
+class MoveConstraintState;
+class MoveEventState;
+class MoveTimeNodeState;
+
 class SelectionTool : public ScenarioTool
 {
     public:
@@ -14,4 +19,9 @@ class SelectionTool : public ScenarioTool
 
     private:
         ScenarioSelectionState* m_state{};
+        MoveConstraintState* m_moveConstraint{};
+        MoveEventState* m_moveEvent{};
+        MoveTimeNodeState* m_moveTimeNode{};
+
+        bool m_nothingPressed{true};
 };
