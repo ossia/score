@@ -67,9 +67,9 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
         set_tool(Tool::MoveDeck);
     });
 
-    // SHIFT (unused) TODO : should be used for creation mode !!
+    // SHIFT
     m_shiftAction = makeToolbarAction(
-                            tr("Vertical Move"),
+                            tr("Fork Creation"),
                             this,
                             ExpandMode::Fixed,
                             tr("Shift"));
@@ -133,6 +133,8 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
         menu->insertActionIntoToplevelMenu(m_menuElt, act);
     }
     menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_shiftAction);
+    menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
     for(auto act : modeActions())
     {
         menu->insertActionIntoToplevelMenu(m_menuElt, act);
@@ -143,6 +145,7 @@ void ToolMenuActions::fillContextMenu(QMenu *menu)
 {
     auto tool = menu->addMenu("Tool");
     tool->addActions(m_scenarioToolActionGroup->actions());
+    tool->addAction(m_shiftAction);
     auto resize_mode = menu->addMenu("Resize mode");
     resize_mode->addActions(m_scenarioScaleModeActionGroup->actions());
 }
@@ -154,6 +157,7 @@ void ToolMenuActions::makeToolBar(QToolBar *bar)
     m_shiftAction->setDisabled(true);
 
     bar->addActions(toolActions());
+    bar->addAction(m_shiftAction);
     bar->addSeparator();
     bar->addActions(modeActions());
 }
