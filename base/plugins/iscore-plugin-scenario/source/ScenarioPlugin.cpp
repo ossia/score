@@ -58,13 +58,12 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 
 QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
 {
-    // TODO use macros for these names
-    if(factoryName == "Process")
+    if(factoryName == ProcessFactory::factoryName())
     {
         return {new ScenarioFactory};
     }
 
-    if(factoryName == "Inspector")
+    if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new ConstraintInspectorFactory,
                 new EventInspectorFactory,

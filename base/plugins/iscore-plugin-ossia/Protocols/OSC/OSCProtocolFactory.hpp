@@ -3,7 +3,7 @@
 #include "OSCDevice.hpp"
 #include "OSCProtocolSettingsWidget.hpp"
 
-class OSCProtocolFactory : public ProtocolFactoryInterface
+class OSCProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString name() const override

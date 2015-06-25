@@ -216,7 +216,7 @@ Selection ScenarioModel::selectedChildren() const
 
 void ScenarioModel::setSelection(const Selection& s) const
 {
-    // TODO if selection != actual
+    // TODO optimize if possible?
     for(auto& elt : m_constraints)
         elt->selection.set(s.find(elt) != s.end());
     for(auto& elt : m_events)

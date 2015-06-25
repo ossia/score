@@ -3,7 +3,7 @@
 #include "MIDIDevice.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"
 
-class MIDIProtocolFactory : public ProtocolFactoryInterface
+class MIDIProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString name() const override

@@ -1,19 +1,21 @@
 #include "ScenarioSelectionState.hpp"
 
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
+#include "Process/ScenarioGlobalCommandManager.hpp"
 #include "Process/ScenarioModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 #include "Document/Event/EventView.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
-
 ScenarioSelectionState::ScenarioSelectionState(
-        iscore::SelectionStack &stack,
-        const ScenarioStateMachine &parentSM,
-        TemporalScenarioView &scenarioview,
-        QState *parent):
+        iscore::SelectionStack& stack,
+        const ScenarioStateMachine& parentSM,
+        TemporalScenarioView& scenarioview,
+        QState* parent):
     CommonSelectionState{stack, &scenarioview, parent},
     m_parentSM{parentSM},
     m_scenarioView{scenarioview}
@@ -21,10 +23,20 @@ ScenarioSelectionState::ScenarioSelectionState(
 
 }
 
+
+const QPointF& ScenarioSelectionState::initialPoint() const
+{ return m_initialPoint; }
+
+
+const QPointF& ScenarioSelectionState::movePoint() const
+{ return m_movePoint; }
+
+
 void ScenarioSelectionState::on_pressAreaSelection()
 {
     m_initialPoint = m_parentSM.scenePoint;
 }
+
 
 void ScenarioSelectionState::on_moveAreaSelection()
 {
@@ -35,10 +47,12 @@ void ScenarioSelectionState::on_moveAreaSelection()
     setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
 }
 
+
 void ScenarioSelectionState::on_releaseAreaSelection()
 {
     m_scenarioView.setSelectionArea(QRectF{});
 }
+
 
 void ScenarioSelectionState::on_deselect()
 {
@@ -46,11 +60,13 @@ void ScenarioSelectionState::on_deselect()
     m_scenarioView.setSelectionArea(QRectF{});
 }
 
+
 void ScenarioSelectionState::on_delete()
 {
     ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
     mgr.removeSelection(m_parentSM.model());
 }
+
 
 void ScenarioSelectionState::on_deleteContent()
 {
@@ -58,7 +74,8 @@ void ScenarioSelectionState::on_deleteContent()
     mgr.clearContentFromSelection(m_parentSM.model());
 }
 
-void ScenarioSelectionState::setSelectionArea(const QRectF &area)
+
+void ScenarioSelectionState::setSelectionArea(const QRectF& area)
 {
     using namespace std;
     QPainterPath path;
@@ -95,7 +112,6 @@ void ScenarioSelectionState::setSelectionArea(const QRectF &area)
     }
 
     dispatcher.setAndCommit(filterSelections(sel,
-                                               m_parentSM.model().selectedChildren(),
-                                               multiSelection()));
+                                             m_parentSM.model().selectedChildren(),
+                                             multiSelection()));
 }
-

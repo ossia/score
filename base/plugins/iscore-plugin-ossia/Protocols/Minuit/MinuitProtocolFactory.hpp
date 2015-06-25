@@ -3,7 +3,7 @@
 #include "MinuitDevice.hpp"
 #include "MinuitProtocolSettingsWidget.hpp"
 
-class MinuitProtocolFactory : public ProtocolFactoryInterface
+class MinuitProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
         QString name() const override

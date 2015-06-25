@@ -1,7 +1,6 @@
 #pragma once
 #include "CurveSegmentFactory.hpp"
 
-// TODO candidate to template
 class LinearCurveSegmentFactory : public CurveSegmentFactory
 {
     public:
@@ -15,5 +14,3 @@ class LinearCurveSegmentFactory : public CurveSegmentFactory
                 const VisitorVariant& vis,
                 QObject* parent) override;
 };
-
-

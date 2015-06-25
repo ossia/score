@@ -1,4 +1,5 @@
 #pragma once
+#include <QString>
 namespace iscore
 {
     // Base class for factories of elements whose type is not part of the base application.

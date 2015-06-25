@@ -24,18 +24,18 @@ iscore::PluginControlInterface* iscore_plugin_curve::make_control(iscore::Presen
 
 QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)
 {
-    if(factoryName == "Process")
+    if(factoryName == ProcessFactory::factoryName())
     {
         return {new AutomationFactory};
     }
 
-    if(factoryName == "Inspector")
+    if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new AutomationInspectorFactory,
                 new AutomationStateInspectorFactory};
     }
 
-    if(factoryName == "CurveSegment")
+    if(factoryName == CurveSegmentFactory::factoryName())
     {
         return {new LinearCurveSegmentFactory,
                 new GammaCurveSegmentFactory,

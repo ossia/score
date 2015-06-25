@@ -23,22 +23,31 @@ ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm, QState* parent) :
     m_parentSM{sm}
 {
 }
-const id_type<EventModel> &ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) const
+id_type<EventModel> ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) const
 {
-    return static_cast<const EventView*>(pressedItem)->presenter().model().id();
+    const auto& event = static_cast<const EventView*>(pressedItem)->presenter().model();
+    return event.parentScenario() == &m_parentSM.model()
+            ? event.id()
+            : id_type<EventModel>{};
 }
 
-const id_type<TimeNodeModel> &ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
+id_type<TimeNodeModel> ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
 {
-    return static_cast<const TimeNodeView*>(pressedItem)->presenter().model().id();
+    const auto& timenode = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
+    return timenode.parentScenario() == &m_parentSM.model()
+            ? timenode.id()
+            : id_type<TimeNodeModel>{};
 }
 
-const id_type<ConstraintModel> &ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
+id_type<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
 {
-    return static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model().id();
+    const auto& constraint = static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
+    return constraint.parentScenario() == &m_parentSM.model()
+            ? constraint.id()
+            : id_type<ConstraintModel>{};
 }
 
-const id_type<EventModel> &ScenarioTool::itemStateToEventId(const QGraphicsItem *pressedItem) const
+id_type<EventModel> ScenarioTool::itemStateToEventId(const QGraphicsItem *pressedItem) const
 {
     auto state = static_cast<const StateView*>(pressedItem);
     auto cstr = static_cast<const AbstractConstraintView*>( pressedItem->parentObject());

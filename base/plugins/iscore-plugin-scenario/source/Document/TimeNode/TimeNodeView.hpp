@@ -15,7 +15,7 @@ class TimeNodeView : public QGraphicsObject
         int type() const override
         { return QGraphicsItem::UserType + 3; }
 
-        const auto& presenter() const
+        const TimeNodePresenter& presenter() const
         { return m_presenter;}
 
         void paint(QPainter* painter,

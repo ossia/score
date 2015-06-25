@@ -3,11 +3,11 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class ConstraintInspectorFactory : public InspectorWidgetFactoryInterface
+class ConstraintInspectorFactory : public InspectorWidgetFactory
 {
     public:
         ConstraintInspectorFactory() :
-            InspectorWidgetFactoryInterface {}
+            InspectorWidgetFactory {}
         {
 
         }

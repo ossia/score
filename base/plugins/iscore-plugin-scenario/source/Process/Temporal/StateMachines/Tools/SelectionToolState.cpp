@@ -32,9 +32,7 @@
 
 #include <QGraphicsScene>
 
-#include <iscore/statemachine/CommonSelectionState.hpp>
-
-#include "ScenarioSelectionState.hpp"
+#include "States/ScenarioSelectionState.hpp"
 
 SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     ScenarioTool{sm, &sm}

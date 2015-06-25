@@ -43,48 +43,54 @@ class ScenarioTool : public ToolState
         ScenarioTool(const ScenarioStateMachine& sm, QState* parent);
 
     protected:
-        const id_type<EventModel>& itemToEventId(const QGraphicsItem*) const;
-        const id_type<TimeNodeModel>& itemToTimeNodeId(const QGraphicsItem*) const;
-        const id_type<ConstraintModel>& itemToConstraintId(const QGraphicsItem*) const;
-        const id_type<EventModel>& itemStateToEventId(const QGraphicsItem*) const;
+        id_type<EventModel> itemToEventId(const QGraphicsItem*) const;
+        id_type<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem*) const;
+        id_type<ConstraintModel> itemToConstraintId(const QGraphicsItem*) const;
+        id_type<EventModel> itemStateToEventId(const QGraphicsItem*) const;
 
         template<typename EventFun,
                  typename TimeNodeFun,
                  typename ConstraintFun,
                  typename NothingFun>
         void mapTopItem(
-                const QGraphicsItem* pressedItem,
+                const QGraphicsItem* item,
                 EventFun&& ev_fun,
                 TimeNodeFun&& tn_fun,
                 ConstraintFun&& cst_fun,
                 NothingFun&& nothing_fun) const
         {
-            if(!pressedItem)
+            if(!item)
             {
                 nothing_fun();
                 return;
             }
+            auto&& tryFun = [&] (auto&& fun, auto&& id)
+            { if(id)
+                fun(id);
+              else
+                nothing_fun();
+            };
 
             // Each time :
             // Check if it is an event / timenode / constraint.
             // If state, do the same like for event.
             // TODO Possible crash : Check if it is in our scenario.
-            switch(pressedItem->type())
+            switch(item->type())
             {
                 case QGraphicsItem::UserType + 1:
-                    ev_fun(itemToEventId(pressedItem));
+                    tryFun(ev_fun, itemToEventId(item));
                     break;
 
                 case QGraphicsItem::UserType + 2:
-                    cst_fun(itemToConstraintId(pressedItem));
+                    tryFun(cst_fun, itemToConstraintId(item));
                     break;
 
                 case QGraphicsItem::UserType + 3:
-                    tn_fun(itemToTimeNodeId(pressedItem));
+                    tryFun(tn_fun, itemToTimeNodeId(item));
                     break;
 
                 case QGraphicsItem::UserType + 4:
-                    ev_fun(itemStateToEventId(pressedItem));
+                    tryFun (ev_fun, itemStateToEventId(item));
                     break;
 
                 default:

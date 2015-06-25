@@ -13,11 +13,11 @@ QStringList ProtocolList::protocols() const
     return lst;
 }
 
-ProtocolFactoryInterface* ProtocolList::protocol(const QString& name) const
+ProtocolFactory* ProtocolList::protocol(const QString& name) const
 {
     auto it = std::find_if(m_protocols.begin(),
                            m_protocols.end(),
-                           [&name](ProtocolFactoryInterface * p)
+                           [&name](ProtocolFactory * p)
     {
         return p->name() == name;
     });
@@ -27,10 +27,10 @@ ProtocolFactoryInterface* ProtocolList::protocol(const QString& name) const
 
 void ProtocolList::registerFactory(iscore::FactoryInterface* arg)
 {
-    auto p = static_cast<ProtocolFactoryInterface*>(arg);
+    auto p = static_cast<ProtocolFactory*>(arg);
     auto it = std::find_if(m_protocols.begin(),
                            m_protocols.end(),
-                           [&p](ProtocolFactoryInterface * inner_p)
+                           [&p](ProtocolFactory * inner_p)
     {
         return inner_p->name() == p->name();
     });
