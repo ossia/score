@@ -27,5 +27,7 @@ namespace iscore
             virtual QWidget* getWidget() = 0;
 
             virtual const DefaultPanelStatus& defaultPanelStatus() const = 0;
+
+            virtual const QString shortcut() const = 0; // { return tr(""); }
     };
 }

@@ -14,6 +14,8 @@ class UndoView : public iscore::PanelView
         UndoView(QObject *v);
 
         QWidget *getWidget() override;
+        const QString shortcut() const override
+        { return tr("Ctrl+H"); }
         void setStack(iscore::CommandStack *s);
 
     private:

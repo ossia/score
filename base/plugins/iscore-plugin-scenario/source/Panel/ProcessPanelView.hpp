@@ -15,6 +15,8 @@ class ProcessPanelView : public iscore::PanelView
         ProcessPanelView(QObject* parent);
 
         QWidget* getWidget() override;
+        const QString shortcut() const override
+        { return tr("Ctrl+P"); }
 
         QGraphicsScene* scene() const;
         SizeNotifyingGraphicsView* view() const;

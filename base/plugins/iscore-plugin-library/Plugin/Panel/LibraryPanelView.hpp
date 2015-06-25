@@ -14,6 +14,8 @@ class LibraryPanelView : public iscore::PanelView
         LibraryPanelView(iscore::View* parent);
 
         QWidget* getWidget();
+	const QString shortcut() const override
+	{ return tr("Ctrl+L"); }
 
     private:
         QTabWidget* m_widget{};

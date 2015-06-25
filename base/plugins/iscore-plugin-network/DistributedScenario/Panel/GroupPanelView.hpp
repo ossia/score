@@ -15,6 +15,8 @@ class GroupPanelView : public iscore::PanelView
         GroupPanelView(QObject* v);
 
         QWidget* getWidget() override;
+        const QString shortcut() const override
+        { return tr("Ctrl+G"); }
 
         void setView(const GroupManager* mgr,
                      const Session* session);

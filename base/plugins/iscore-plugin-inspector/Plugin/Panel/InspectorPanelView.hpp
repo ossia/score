@@ -17,6 +17,9 @@ class InspectorPanelView : public iscore::PanelView
 
         QWidget* getWidget() override;
 
+        const QString shortcut() const override
+        { return tr("Ctrl+I"); }
+
     public slots:
         void setCurrentDocument(iscore::Document*);
         void setNewSelection(const Selection& s);

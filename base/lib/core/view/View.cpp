@@ -56,7 +56,7 @@ void View::setupPanelView(PanelView* v)
     using namespace std;
     QDockWidget* dial = new QDockWidget {v->defaultPanelStatus().prettyName, this};
     dial->setWidget(v->getWidget());
-
+    dial->toggleViewAction()->setShortcut(v->shortcut());
     emit insertActionIntoMenubar({MenuInterface::name(ToplevelMenuElement::ViewMenu) + "/" +
                                   MenuInterface::name(ViewMenuElement::Windows),
                                   dial->toggleViewAction()});
