@@ -1045,38 +1045,56 @@ DeviceExplorerModel::mimeTypes() const
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
-    Q_ASSERT(indexes.count());
+    // Algorithm :
+    // If there is a single node, we drag it and its children with the full node data
+    // If there are multiple nodes, we only drag the messages (not recursively)
 
     //we drag only one node (and its children recursively).
-    if(indexes.count() != 1)
+    if(indexes.count() == 1)
     {
-        return nullptr;
+        const QModelIndex index = indexes.at(0);
+
+        Node* n = nodeFromModelIndex(index);
+
+        if(n)
+        {
+            Q_ASSERT(n != m_rootNode);  //m_rootNode not displayed thus should not be draggable
+
+            Serializer<JSONObject> ser;
+            ser.readFrom(*n);
+            QMimeData* mimeData = new QMimeData;
+            mimeData->setData(
+                        n->isDevice() ? MimeTypeDevice : MimeTypeAddress,
+                        QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+
+            MessageList messages;
+            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+
+            State s{messages};
+            ser.m_obj = {};
+            ser.readFrom(s);
+            mimeData->setData("application/x-iscore-state",
+                              QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+            return mimeData;
+        }
     }
-
-    const QModelIndex index = indexes.at(0);
-
-    Node* n = nodeFromModelIndex(index);
-
-    if(n)
+    else if(indexes.count() > 1)
     {
-        Q_ASSERT(n != m_rootNode);  //m_rootNode not displayed thus should not be draggable
+        MessageList messages;
+        for(const auto& index : indexes)
+        {
+            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+        }
+
+        QMimeData* mimeData = new QMimeData;
+        State s{messages};
 
         Serializer<JSONObject> ser;
-        ser.readFrom(*n);
-        QMimeData* mimeData = new QMimeData;
-        mimeData->setData(
-                    n->isDevice() ? MimeTypeDevice : MimeTypeAddress,
-                    QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
-        MessageList messages;
-        for(auto& model_index : indexes)
-            messages.push_back(DeviceExplorer::messageFromModelIndex(model_index));
-
-        State s{messages};
-        ser.m_obj = {};
         ser.readFrom(s);
+
         mimeData->setData("application/x-iscore-state",
                           QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+
         return mimeData;
     }
 

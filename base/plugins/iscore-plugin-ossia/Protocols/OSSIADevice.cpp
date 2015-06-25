@@ -324,7 +324,9 @@ AddressSettings extractAddressSettings(const OSSIA::Node &node)
         s.ioType = OSSIAAccessModeToIOType(addr->getAccessMode());
         s.clipMode = OSSIABoudingModeToClipMode(addr->getBoundingMode());
         s.repetitionFilter = addr->getRepetitionFilter();
-        s.domain = OSSIADomainToDomain(*addr->getDomain());
+
+        if(auto& domain = addr->getDomain())
+            s.domain = OSSIADomainToDomain(*domain);
     }
     return s;
 }
