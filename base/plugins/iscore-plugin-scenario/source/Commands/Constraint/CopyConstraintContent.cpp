@@ -28,13 +28,13 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
             &trg_constraint}; // Temporary parent
 
     // For all rackes in source, generate new id's
-    auto target_rackes = trg_constraint.rackes();
+    auto target_rackes = trg_constraint.racks();
     QVector<id_type<RackModel>> target_rackes_ids;
     std::transform(target_rackes.begin(), target_rackes.end(),
                    std::back_inserter(target_rackes_ids),
                    [] (RackModel* rack) { return rack->id(); });
 
-    for(const auto& rack : src_constraint.rackes())
+    for(const auto& rack : src_constraint.racks())
     {
         auto newId = getStrongId(target_rackes_ids);
         m_rackIds.insert(rack->id(), newId);
@@ -103,7 +103,7 @@ void CopyConstraintContent::redo()
     }
 
     // Clone the rackes
-    auto src_rackes = src_constraint.rackes();
+    auto src_rackes = src_constraint.racks();
     for(const auto& sourcerack: src_rackes)
     {
         // A note about what happens here :

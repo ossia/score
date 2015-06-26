@@ -17,23 +17,23 @@ EventModel::EventModel(
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
-EventModel::EventModel(const EventModel* source,
+EventModel::EventModel(const EventModel& source,
                        const id_type<EventModel>& id,
                        QObject* parent) :
     EventModel {id,
-                source->timeNode(),
-                source->heightPercentage(),
+                source.timeNode(),
+                source.heightPercentage(),
                 parent}
 {
-    m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
-    m_previousConstraints = source->previousConstraints();
-    m_nextConstraints = source->nextConstraints();
+    m_pluginModelList = new iscore::ElementPluginModelList{source.m_pluginModelList, this};
+    m_previousConstraints = source.previousConstraints();
+    m_nextConstraints = source.nextConstraints();
 
-    m_states = source->m_states;
+    m_states = source.m_states;
 
-    m_condition = source->condition();
-    m_trigger = source->trigger();
-    m_date = source->date();
+    m_condition = source.condition();
+    m_trigger = source.trigger();
+    m_date = source.date();
 }
 
 const QVector<id_type<ConstraintModel>>& EventModel::previousConstraints() const

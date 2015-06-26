@@ -121,7 +121,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
 
         // Copy
-        ConstraintModel(const ConstraintModel* source,
+        ConstraintModel(const ConstraintModel &source,
                         const id_type<ConstraintModel>& id,
                         QObject* parent);
 
@@ -169,8 +169,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                 const id_type<ProcessModel>& processId) const;
 
 
-        const auto& rackes() const
-        { return m_rackes; }
+        const auto& racks() const
+        { return m_racks; }
 
         const auto& processes() const
         { return m_processes; }
@@ -252,7 +252,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
     private:
         iscore::ElementPluginModelList* m_pluginModelList{};
 
-        IdContainer<RackModel> m_rackes; // No content -> Phantom ?
+        IdContainer<RackModel> m_racks; // No content -> Phantom ?
         IdContainer<ProcessModel> m_processes;
 
         // The small view constraint view models that show this constraint

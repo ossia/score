@@ -23,14 +23,14 @@ AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
-    if(constraint.rackes().empty())
+    if(constraint.racks().empty())
     {
-        m_createdRackId = getStrongId(constraint.rackes());
+        m_createdRackId = getStrongId(constraint.racks());
         m_existingRack = false;
     }
     else
     {
-        m_createdRackId = (*constraint.rackes().begin())->id();
+        m_createdRackId = (*constraint.racks().begin())->id();
         m_existingRack = true;
     }
 
@@ -64,11 +64,11 @@ void AddLayerInNewSlot::redo()
         // TODO refactor with AddRackToConstraint
         auto rack = new RackModel{m_createdRackId, &constraint};
         constraint.addRack(rack);
-        rack->metadata.setName(QString{"Rack.%1"}.arg(constraint.rackes().size()));
+        rack->metadata.setName(QString{"Rack.%1"}.arg(constraint.racks().size()));
 
         // If it is the first rack created,
         // it is also assigned to all the views of the constraint.
-        if(constraint.rackes().size() == 1)
+        if(constraint.racks().size() == 1)
         {
             for(const auto& vm : constraint.viewModels())
             {

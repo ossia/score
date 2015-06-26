@@ -73,7 +73,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd2.redo();
-    auto rack = *constraint_model.rackes().begin();
+    auto rack = *constraint_model.racks().begin();
 
     ShowRackInViewModel cmd3 {
         ObjectPath{

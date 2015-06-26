@@ -220,7 +220,7 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
         // Rack
         m_rackWidget->setModel(model());
 
-        for(RackModel* rack : model()->rackes())
+        for(RackModel* rack : model()->racks())
         {
             setupRack(rack);
         }

@@ -15,7 +15,7 @@ AddRackToConstraint::AddRackToConstraint(ObjectPath&& constraintPath) :
     m_path {constraintPath}
 {
     auto& constraint = m_path.find<ConstraintModel>();
-    m_createdRackId = getStrongId(constraint.rackes());
+    m_createdRackId = getStrongId(constraint.racks());
 }
 
 void AddRackToConstraint::undo()
@@ -30,11 +30,11 @@ void AddRackToConstraint::redo()
     auto rack = new RackModel{m_createdRackId, &constraint};
 
     constraint.addRack(rack);
-    rack->metadata.setName(QString{"Rack.%1"}.arg(constraint.rackes().size()));
+    rack->metadata.setName(QString{"Rack.%1"}.arg(constraint.racks().size()));
 
     // If it is the first rack created,
     // it is also assigned to the full view of the constraint.
-    if(constraint.rackes().size() == 1)
+    if(constraint.racks().size() == 1)
     {
         constraint.fullView()->showRack(m_createdRackId);
     }

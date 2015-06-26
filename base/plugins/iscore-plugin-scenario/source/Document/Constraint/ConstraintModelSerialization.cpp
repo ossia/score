@@ -26,7 +26,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     }
 
     // Rackes
-    const auto& rackes = constraint.rackes();
+    const auto& rackes = constraint.racks();
     m_stream << (int) rackes.size();
 
     for(const auto& rack : rackes)
@@ -129,7 +129,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
     m_obj["Processes"] = toJsonArray(constraint.processes());
 
     // Rackes
-    m_obj["Rackes"] = toJsonArray(constraint.rackes());
+    m_obj["Rackes"] = toJsonArray(constraint.racks());
 
 
     m_obj["FullView"] = toJsonObject(*constraint.fullView());

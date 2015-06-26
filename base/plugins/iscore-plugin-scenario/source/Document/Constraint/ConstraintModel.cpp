@@ -23,29 +23,29 @@ ConstraintModel::ConstraintModel(
 }
 
 ConstraintModel::ConstraintModel(
-        const ConstraintModel* source,
+        const ConstraintModel& source,
         const id_type<ConstraintModel>& id,
-        QObject* parent) :
+        QObject* parent):
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
 {
-    m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
-    metadata = source->metadata;
-//    consistency = source->consistency; // TODO : no necessary because it should be compute
+    m_pluginModelList = new iscore::ElementPluginModelList{source.m_pluginModelList, this};
+    metadata = source.metadata;
+//    consistency = source.consistency; // TODO : no necessary because it should be compute
 
-    m_startEvent = source->startEvent();
-    m_endEvent = source->endEvent();
+    m_startEvent = source.startEvent();
+    m_endEvent = source.endEvent();
 
-    m_defaultDuration = source->defaultDuration();
-    m_minDuration = source->minDuration();
-    m_maxDuration = source->maxDuration();
-    m_x = source->m_x;
-    m_heightPercentage = source->heightPercentage();
+    m_defaultDuration = source.defaultDuration();
+    m_minDuration = source.minDuration();
+    m_maxDuration = source.maxDuration();
+    m_x = source.m_x;
+    m_heightPercentage = source.heightPercentage();
 
     // For an explanation of this, see CopyConstraintContent command
     std::map<const ProcessModel*, ProcessModel*> processPairs;
 
     // Clone the processes
-    for(const auto& process : source->processes())
+    for(const auto& process : source.processes())
     {
         auto newproc = process->clone(process->id(), this);
 
@@ -55,7 +55,7 @@ ConstraintModel::ConstraintModel(
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
-    for(const auto& rack : source->rackes())
+    for(const auto& rack : source.racks())
     {
         addRack(new RackModel {
                    *rack,
@@ -77,7 +77,7 @@ ConstraintModel::ConstraintModel(
     // this is the job of a command.
     // However, the full view constraint must be copied since we have ownership of it.
 
-    m_fullViewModel = source->fullView()->clone(source->fullView()->id(), *this, this);
+    m_fullViewModel = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
 ScenarioModel *ConstraintModel::parentScenario() const
@@ -137,7 +137,7 @@ void ConstraintModel::addRack(RackModel* rack)
     connect(this,	&ConstraintModel::defaultDurationChanged,
             rack,	&RackModel::on_durationChanged);
 
-    m_rackes.insert(rack);
+    m_racks.insert(rack);
     emit rackCreated(rack->id());
 }
 
@@ -145,7 +145,7 @@ void ConstraintModel::addRack(RackModel* rack)
 void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
 {
     auto b = rack(rackId);
-    m_rackes.remove(rackId);
+    m_racks.remove(rackId);
 
     emit rackRemoved(rackId);
     delete b;
@@ -175,7 +175,7 @@ void ConstraintModel::setEndEvent(const id_type<EventModel>& e)
 // TODO RackModel&
 RackModel* ConstraintModel::rack(const id_type<RackModel>& id) const
 {
-    return m_rackes.at(id);
+    return m_racks.at(id);
 }
 
 ProcessModel* ConstraintModel::process(

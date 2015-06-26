@@ -61,7 +61,7 @@ class EventModel : public IdentifiedObject<EventModel>
                    QObject* parent);
 
         // Copy
-        EventModel(const EventModel* source,
+        EventModel(const EventModel& source,
                    const id_type<EventModel>&,
                    QObject* parent);
 

@@ -25,7 +25,7 @@ m_processName {process}
 {
     auto& constraint = m_path.find<ConstraintModel>();
     m_createdProcessId = getStrongId(constraint.processes());
-    m_noRackes = (constraint.rackes().empty() && constraint.objectName() != "BaseConstraintModel" );
+    m_noRackes = (constraint.racks().empty() && constraint.objectName() != "BaseConstraintModel" );
 }
 
 void AddProcessToConstraint::undo()
@@ -63,7 +63,7 @@ void AddProcessToConstraint::redo()
     }
     else if (constraint.objectName() != "BaseConstraintModel")
     {
-        auto firstSlotModel = *(*constraint.rackes().begin())->getSlots().begin();
+        auto firstSlotModel = *(*constraint.racks().begin())->getSlots().begin();
         m_cmdFirstSlot = new AddLayerModelToSlot(iscore::IDocument::path(*firstSlotModel),
                                                        iscore::IDocument::path(*proc) );
 

@@ -19,7 +19,7 @@ m_path {std::move(constraintPath) }
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
-    for(const RackModel* rack : constraint.rackes())
+    for(const RackModel* rack : constraint.racks())
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};
@@ -78,7 +78,7 @@ void ClearConstraint::redo()
         constraint.removeProcess(process->id());
     }
 
-    auto rackes = constraint.rackes();
+    auto rackes = constraint.racks();
     for(const auto& rack : rackes)
     {
         constraint.removeRack(rack->id());

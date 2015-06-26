@@ -113,7 +113,7 @@ void MoveEvent::undo()
             }
 
             // Clone the rackes
-            for(const auto& sourcerack : src_constraint.rackes())
+            for(const auto& sourcerack : src_constraint.racks())
             {
                 // A note about what happens here :
                 // Since we want to duplicate our process view models using

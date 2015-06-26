@@ -30,17 +30,17 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 {
     for(ConstraintModel* constraint : source.m_constraints)
     {
-        addConstraint(new ConstraintModel {constraint, constraint->id(), this});
+        addConstraint(new ConstraintModel {*constraint, constraint->id(), this});
     }
 
     for(EventModel* event : source.m_events)
     {
-        addEvent(new EventModel {event, event->id(), this});
+        addEvent(new EventModel {*event, event->id(), this});
     }
 
     for(TimeNodeModel* timenode : source.m_timeNodes)
     {
-        addTimeNode(new TimeNodeModel {timenode, timenode->id(), this});
+        addTimeNode(new TimeNodeModel {*timenode, timenode->id(), this});
     }
 
     m_startEventId = source.m_startEventId;

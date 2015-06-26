@@ -16,14 +16,13 @@ TimeNodeModel::TimeNodeModel(
     metadata.setLabel("TimeNode");
 }
 
-TimeNodeModel::TimeNodeModel(
-        const TimeNodeModel* source,
+TimeNodeModel::TimeNodeModel(const TimeNodeModel &source,
         const id_type<TimeNodeModel>& id,
         QObject* parent):
-    TimeNodeModel{id, source->date(), source->y(), parent}
+    TimeNodeModel{id, source.date(), source.y(), parent}
 {
-    m_pluginModelList = new iscore::ElementPluginModelList{source->m_pluginModelList, this};
-    m_events = source->m_events;
+    m_pluginModelList = new iscore::ElementPluginModelList{source.m_pluginModelList, this};
+    m_events = source.m_events;
 }
 
 #include "Process/ScenarioModel.hpp"
