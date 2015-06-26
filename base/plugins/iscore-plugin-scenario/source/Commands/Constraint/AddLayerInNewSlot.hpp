@@ -8,22 +8,22 @@
 class ProcessModel;
 class BoxModel;
 class SlotModel;
-class ProcessViewModel;
+class LayerModel;
 
 namespace Scenario
 {
     namespace Command
     {
         /**
-        * @brief The AddProcessViewInNewSlot class
+        * @brief The AddLayerInNewSlot class
         */
-        class AddProcessViewInNewSlot : public iscore::SerializableCommand
+        class AddLayerInNewSlot : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessViewInNewSlot, "ScenarioControl")
-                AddProcessViewInNewSlot(ObjectPath&& constraintPath,
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerInNewSlot, "ScenarioControl")
+                AddLayerInNewSlot(ObjectPath&& constraintPath,
                                         id_type<ProcessModel> process);
 
                 virtual void undo() override;
@@ -46,7 +46,7 @@ namespace Scenario
                 id_type<ProcessModel> m_processId {};
                 id_type<BoxModel> m_createdBoxId {};
                 id_type<SlotModel> m_createdSlotId {};
-                id_type<ProcessViewModel> m_createdProcessViewId {};
+                id_type<LayerModel> m_createdLayerId {};
                 id_type<ProcessModel> m_sharedProcessModelId {};
 
                 QByteArray m_processData;

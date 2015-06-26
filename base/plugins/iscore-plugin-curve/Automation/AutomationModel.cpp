@@ -157,8 +157,8 @@ void AutomationModel::setSelection(const Selection & s) const
     m_curve->setSelection(s);
 }
 
-ProcessViewModel* AutomationModel::makeViewModel_impl(
-        const id_type<ProcessViewModel>& viewModelId,
+LayerModel* AutomationModel::makeViewModel_impl(
+        const id_type<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -166,9 +166,9 @@ ProcessViewModel* AutomationModel::makeViewModel_impl(
     return vm;
 }
 
-ProcessViewModel* AutomationModel::cloneViewModel_impl(
-        const id_type<ProcessViewModel>& newId,
-        const ProcessViewModel& source,
+LayerModel* AutomationModel::cloneViewModel_impl(
+        const id_type<LayerModel>& newId,
+        const LayerModel& source,
         QObject* parent)
 {
     auto vm = new AutomationViewModel {

@@ -3,10 +3,10 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Constraint/Box/BoxModel.hpp>
 #include <Document/Constraint/Box/Slot/SlotModel.hpp>
-#include <ProcessInterface/ProcessViewModel.hpp>
+#include <ProcessInterface/LayerModel.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
 
-#include "Commands/Constraint/Box/Slot/AddProcessViewModelToSlot.hpp"
+#include "Commands/Constraint/Box/Slot/AddLayerModelToSlot.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddSlotToBox.hpp"
@@ -18,7 +18,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-class AddProcessViewModelToSlotTest: public QObject
+class AddLayerModelToSlotTest: public QObject
 {
         Q_OBJECT
 
@@ -55,7 +55,7 @@ class AddProcessViewModelToSlotTest: public QObject
             auto slotId = cmd_slot->m_createdSlotId;
             stack.redoAndPush(cmd_slot);
 
-            auto cmd_pvm = new AddProcessViewModelToSlot(
+            auto cmd_pvm = new AddLayerModelToSlot(
             {
                 {"ConstraintModel", {0}},
                 {"BoxModel", boxId},
@@ -84,6 +84,6 @@ class AddProcessViewModelToSlotTest: public QObject
         }
 };
 
-QTEST_MAIN(AddProcessViewModelToSlotTest)
-#include "AddProcessViewModelToSlotTest.moc"
+QTEST_MAIN(AddLayerModelToSlotTest)
+#include "AddLayerModelToSlotTest.moc"
 

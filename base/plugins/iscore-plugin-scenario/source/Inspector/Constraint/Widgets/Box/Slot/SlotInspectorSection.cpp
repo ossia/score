@@ -1,6 +1,6 @@
 #include "SlotInspectorSection.hpp"
 
-#include "Inspector/Constraint/Widgets/Box/Slot/AddProcessViewModelWidget.hpp"
+#include "Inspector/Constraint/Widgets/Box/Slot/AddLayerModelWidget.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 #include "Inspector/Constraint/Widgets/Box/BoxInspectorSection.hpp"
@@ -9,15 +9,15 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
-#include "Commands/Constraint/Box/Slot/AddProcessViewModelToSlot.hpp"
+#include "Commands/Constraint/Box/Slot/AddLayerModelToSlot.hpp"
 
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 
 #include "Commands/Constraint/Box/RemoveSlotFromBox.hpp"
-#include "Commands/Constraint/Box/Slot/RemoveProcessViewModelFromSlot.hpp"
+#include "Commands/Constraint/Box/Slot/RemoveLayerModelFromSlot.hpp"
 
-#include "ViewCommands/PutProcessViewModelToFront.hpp"
+#include "ViewCommands/PutLayerModelToFront.hpp"
 #include <QtWidgets>
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -43,20 +43,20 @@ SlotInspectorSection::SlotInspectorSection(
 
     // View model list
     m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
-    m_pvmSection->setObjectName("ProcessViewModels");
+    m_pvmSection->setObjectName("LayerModels");
 
-    connect(&m_model,	&SlotModel::processViewModelCreated,
-            this,		&SlotInspectorSection::on_processViewModelCreated);
+    connect(&m_model,	&SlotModel::layerModelCreated,
+            this,		&SlotInspectorSection::on_layerModelCreated);
 
-    connect(&m_model,	&SlotModel::processViewModelRemoved,
-            this,		&SlotInspectorSection::on_processViewModelRemoved);
+    connect(&m_model,	&SlotModel::layerModelRemoved,
+            this,		&SlotInspectorSection::on_layerModelRemoved);
 
-    for(const auto& pvm : m_model.processViewModels())
+    for(const auto& pvm : m_model.layerModels())
     {
-        displayProcessViewModel(*pvm);
+        displayLayerModel(*pvm);
     }
 
-    m_addPvmWidget = new AddProcessViewModelWidget{this};
+    m_addPvmWidget = new AddLayerModelWidget{this};
     lay->addWidget(m_pvmSection);
     lay->addWidget(m_addPvmWidget);
 
@@ -72,17 +72,17 @@ SlotInspectorSection::SlotInspectorSection(
     lay->addWidget(deleteButton);
 }
 
-void SlotInspectorSection::createProcessViewModel(
+void SlotInspectorSection::createLayerModel(
         const id_type<ProcessModel>& sharedProcessModelId)
 {
-    auto cmd = new AddProcessViewModelToSlot(
+    auto cmd = new AddLayerModelToSlot(
                    iscore::IDocument::path(m_model),
                    iscore::IDocument::path(m_model.parentConstraint().process(sharedProcessModelId)));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void SlotInspectorSection::displayProcessViewModel(const ProcessViewModel& pvm)
+void SlotInspectorSection::displayLayerModel(const LayerModel& pvm)
 {
     auto pvm_id = pvm.id();
 
@@ -102,7 +102,7 @@ void SlotInspectorSection::displayProcessViewModel(const ProcessViewModel& pvm)
 
     connect(pb, &QPushButton::clicked,
             [=]() {
-        PutProcessViewModelToFront cmd(iscore::IDocument::path(m_model), pvm_id);
+        PutLayerModelToFront cmd(iscore::IDocument::path(m_model), pvm_id);
         cmd.redo();
     });
     lay->addWidget(pb, 1, 0);
@@ -111,7 +111,7 @@ void SlotInspectorSection::displayProcessViewModel(const ProcessViewModel& pvm)
     auto deleteButton = new QPushButton{{tr("Delete")}};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveProcessViewModelFromSlot{iscore::IDocument::path(m_model), pvm_id};
+        auto cmd = new RemoveLayerModelFromSlot{iscore::IDocument::path(m_model), pvm_id};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);
@@ -121,23 +121,23 @@ void SlotInspectorSection::displayProcessViewModel(const ProcessViewModel& pvm)
 }
 
 
-void SlotInspectorSection::on_processViewModelCreated(
-        const id_type<ProcessViewModel>& pvmId)
+void SlotInspectorSection::on_layerModelCreated(
+        const id_type<LayerModel>& pvmId)
 {
-    displayProcessViewModel(m_model.processViewModel(pvmId));
+    displayLayerModel(m_model.layerModel(pvmId));
 }
 
-void SlotInspectorSection::on_processViewModelRemoved(
-        const id_type<ProcessViewModel>& pvmId)
+void SlotInspectorSection::on_layerModelRemoved(
+        const id_type<LayerModel>& pvmId)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
 
     m_pvmSection->removeAll();
-    for (auto& pvm : m_model.processViewModels())
+    for (auto& pvm : m_model.layerModels())
     {
         if (pvm->id() != pvmId)
         {
-            displayProcessViewModel(*pvm);
+            displayLayerModel(*pvm);
         }
     }
 }

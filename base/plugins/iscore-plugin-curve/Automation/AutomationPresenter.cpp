@@ -12,8 +12,8 @@
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveView.hpp"
 AutomationPresenter::AutomationPresenter(
-        const ProcessViewModel& model,
-        ProcessView* view,
+        const LayerModel& model,
+        Layer* view,
         QObject* parent) :
     ProcessPresenter {"AutomationPresenter", parent},
     m_viewModel{static_cast<const AutomationViewModel&>(model)},
@@ -86,7 +86,7 @@ void AutomationPresenter::parentGeometryChanged()
     updateCurve();
 }
 
-const ProcessViewModel& AutomationPresenter::viewModel() const
+const LayerModel& AutomationPresenter::viewModel() const
 {
     return m_viewModel;
 }

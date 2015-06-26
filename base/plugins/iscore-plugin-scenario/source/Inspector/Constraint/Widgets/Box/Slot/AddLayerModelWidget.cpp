@@ -1,17 +1,17 @@
-#include "AddProcessViewModelWidget.hpp"
+#include "AddLayerModelWidget.hpp"
 
 #include "SlotInspectorSection.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QToolButton>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QInputDialog>
 
-AddProcessViewModelWidget::AddProcessViewModelWidget(SlotInspectorSection* parentSlot) :
+AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
     QWidget {parentSlot}
 {
     QHBoxLayout* layout = new QHBoxLayout;
@@ -38,14 +38,14 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(SlotInspectorSection* paren
         auto shared_process_list = parentSlot->model().parentConstraint().processes();
 
         // 2. List the processes that already have a view in this slot
-        auto already_displayed_processes = parentSlot->model().processViewModels();
+        auto already_displayed_processes = parentSlot->model().layerModels();
 
         // 3. Compute the difference
         for(auto& process : shared_process_list)
         {
             auto it = std::find_if(std::begin(already_displayed_processes),
                                    std::end(already_displayed_processes),
-                                   [&process](ProcessViewModel * pvm)
+                                   [&process](LayerModel * pvm)
             {
                     return pvm->sharedProcessModel().id() == process->id();
         });
@@ -71,7 +71,7 @@ AddProcessViewModelWidget::AddProcessViewModelWidget(SlotInspectorSection* paren
                         &ok);
 
             if(ok)
-                parentSlot->createProcessViewModel(id_type<ProcessModel> {process_name.toInt() });
+                parentSlot->createLayerModel(id_type<ProcessModel> {process_name.toInt() });
         }
     });
 }

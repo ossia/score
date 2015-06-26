@@ -7,7 +7,7 @@ const ProcessModel* ProcessFocusManager::focusedModel()
 }
 
 
-const ProcessViewModel* ProcessFocusManager::focusedViewModel()
+const LayerModel* ProcessFocusManager::focusedViewModel()
 {
     return m_currentViewModel;
 }

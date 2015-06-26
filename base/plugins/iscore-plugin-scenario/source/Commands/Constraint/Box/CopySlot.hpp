@@ -10,7 +10,7 @@ namespace Scenario
     namespace Command
     {
         /**
-         * @brief The CopyProcessViewModel class
+         * @brief The CopyLayerModel class
          *
          * Copy a slot, in any Box of its parent constraint.
          * The process view models are recursively copied.

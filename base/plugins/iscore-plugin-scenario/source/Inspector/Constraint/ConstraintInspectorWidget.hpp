@@ -42,7 +42,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(QString processName);
         void createBox();
-        void createProcessViewInNewSlot(QString processName);
+        void createLayerInNewSlot(QString processName);
 
         void activeBoxChanged(QString box, AbstractConstraintViewModel* vm);
 

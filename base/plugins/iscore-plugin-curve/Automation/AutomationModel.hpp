@@ -45,11 +45,11 @@ class AutomationModel : public ProcessModel
         //// ProcessModel ////
         QString processName() const override;
 
-        ProcessViewModel* makeViewModel_impl(
-                const id_type<ProcessViewModel>& viewModelId,
+        LayerModel* makeViewModel_impl(
+                const id_type<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
-        ProcessViewModel* loadViewModel_impl(
+        LayerModel* loadViewModel_impl(
                 const VisitorVariant&,
                 QObject* parent) override;
 
@@ -93,9 +93,9 @@ class AutomationModel : public ProcessModel
         void setMax(double arg);
 
     protected:
-        ProcessViewModel* cloneViewModel_impl(
-                const id_type<ProcessViewModel>& newId,
-                const ProcessViewModel& source,
+        LayerModel* cloneViewModel_impl(
+                const id_type<LayerModel>& newId,
+                const LayerModel& source,
                 QObject* parent) override;
 
     private:

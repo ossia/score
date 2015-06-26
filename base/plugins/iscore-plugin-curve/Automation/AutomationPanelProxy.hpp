@@ -1,7 +1,7 @@
 #pragma once
-#include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
+#include <ProcessInterface/LayerModelPanelProxy.hpp>
 #include "AutomationViewModel.hpp"
-class AutomationPanelProxy : public ProcessViewModelPanelProxy
+class AutomationPanelProxy : public LayerModelPanelProxy
 {
     public:
         AutomationPanelProxy(const AutomationViewModel& vm,

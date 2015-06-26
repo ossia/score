@@ -1,5 +1,5 @@
 #include "ProcessModel.hpp"
-#include "ProcessViewModel.hpp"
+#include "LayerModel.hpp"
 
 
 ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel>& id, const QString& name, QObject* parent):
@@ -13,8 +13,8 @@ ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel
 QByteArray ProcessModel::makeViewModelConstructionData() const { return {}; }
 
 
-ProcessViewModel*ProcessModel::makeViewModel(
-        const id_type<ProcessViewModel>& viewModelId,
+LayerModel*ProcessModel::makeViewModel(
+        const id_type<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -25,7 +25,7 @@ ProcessViewModel*ProcessModel::makeViewModel(
 }
 
 
-ProcessViewModel*ProcessModel::loadViewModel(
+LayerModel*ProcessModel::loadViewModel(
         const VisitorVariant& v,
         QObject* parent)
 {
@@ -35,9 +35,9 @@ ProcessViewModel*ProcessModel::loadViewModel(
     return pvm;
 }
 
-ProcessViewModel*ProcessModel::cloneViewModel(
-        const id_type<ProcessViewModel>& newId,
-        const ProcessViewModel& source,
+LayerModel*ProcessModel::cloneViewModel(
+        const id_type<LayerModel>& newId,
+        const LayerModel& source,
         QObject* parent)
 {
     auto pvm = cloneViewModel_impl(newId, source, parent);
@@ -47,9 +47,9 @@ ProcessViewModel*ProcessModel::cloneViewModel(
 }
 
 
-ProcessViewModel*ProcessModel::makeTemporaryViewModel(
-        const id_type<ProcessViewModel>& newId,
-        const ProcessViewModel& source,
+LayerModel*ProcessModel::makeTemporaryViewModel(
+        const id_type<LayerModel>& newId,
+        const LayerModel& source,
         QObject* parent)
 {
     return cloneViewModel_impl(newId, source, parent);
@@ -57,7 +57,7 @@ ProcessViewModel*ProcessModel::makeTemporaryViewModel(
 
 
 
-QVector<ProcessViewModel*> ProcessModel::viewModels() const
+QVector<LayerModel*> ProcessModel::viewModels() const
 {
     return m_viewModels;
 }
@@ -91,15 +91,15 @@ const TimeValue&ProcessModel::duration() const
 }
 
 
-void ProcessModel::addViewModel(ProcessViewModel* m)
+void ProcessModel::addViewModel(LayerModel* m)
 {
-    connect(m, &ProcessViewModel::destroyed,
+    connect(m, &LayerModel::destroyed,
             this, [=] () { removeViewModel(m); });
     m_viewModels.push_back(m);
 }
 
 
-void ProcessModel::removeViewModel(ProcessViewModel* m)
+void ProcessModel::removeViewModel(LayerModel* m)
 {
     int index = m_viewModels.indexOf(m);
 

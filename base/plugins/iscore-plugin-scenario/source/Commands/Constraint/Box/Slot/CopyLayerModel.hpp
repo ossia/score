@@ -4,14 +4,14 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessViewModel;
+class LayerModel;
 class ProcessModel;
 namespace Scenario
 {
     namespace Command
     {
         ///
-        // @brief The CopyProcessViewModel class
+        // @brief The CopyLayerModel class
         //
         // Copy a process view from a Slot to another.
         // Note : this must be in the same constraint.
@@ -21,13 +21,13 @@ namespace Scenario
         // For instance, a message could be displayed saying that the PVM cannot be copied
         // as long as there is another pvm for the same process in the other slot (same for the merging of slots).
         ///
-        class CopyProcessViewModel : public iscore::SerializableCommand
+        class CopyLayerModel : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_COMMAND_DEFAULT_CTOR(CopyProcessViewModel, "ScenarioControl")
-                CopyProcessViewModel(ObjectPath&& pvmToCopy,
+                ISCORE_COMMAND_DEFAULT_CTOR(CopyLayerModel, "ScenarioControl")
+                CopyLayerModel(ObjectPath&& pvmToCopy,
                                      ObjectPath&& targetSlot);
 
                 virtual void undo() override;
@@ -41,7 +41,7 @@ namespace Scenario
                 ObjectPath m_pvmPath;
                 ObjectPath m_targetSlotPath;
 
-                id_type<ProcessViewModel> m_newProcessViewModelId;
+                id_type<LayerModel> m_newLayerModelId;
         };
     }
 }

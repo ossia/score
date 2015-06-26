@@ -1,6 +1,6 @@
 #include "AddProcessToConstraint.hpp"
-#include "AddProcessViewInNewSlot.hpp"
-#include "Box/Slot/AddProcessViewModelToSlot.hpp"
+#include "AddLayerInNewSlot.hpp"
+#include "Box/Slot/AddLayerModelToSlot.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
@@ -58,13 +58,13 @@ void AddProcessToConstraint::redo()
     constraint.addProcess(proc);
     if(m_noBoxes)
     {
-        m_cmdNewSlot = new AddProcessViewInNewSlot{ObjectPath{m_path}, m_createdProcessId};
+        m_cmdNewSlot = new AddLayerInNewSlot{ObjectPath{m_path}, m_createdProcessId};
         m_cmdNewSlot->redo();
     }
     else if (constraint.objectName() != "BaseConstraintModel")
     {
         auto firstSlotModel = *(*constraint.boxes().begin())->getSlots().begin();
-        m_cmdFirstSlot = new AddProcessViewModelToSlot(iscore::IDocument::path(*firstSlotModel),
+        m_cmdFirstSlot = new AddLayerModelToSlot(iscore::IDocument::path(*firstSlotModel),
                                                        iscore::IDocument::path(*proc) );
 
         m_cmdFirstSlot->redo();

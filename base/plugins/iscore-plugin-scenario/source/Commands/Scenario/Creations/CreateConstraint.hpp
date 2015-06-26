@@ -8,7 +8,7 @@
 class EventModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
-class ProcessViewModel;
+class LayerModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {

@@ -20,8 +20,8 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessViewModel;
-class ProcessView;
+class LayerModel;
+class Layer;
 
 class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
@@ -47,12 +47,12 @@ class TemporalScenarioPresenter : public ProcessPresenter
     public:
         TemporalScenarioPresenter(
                 const TemporalScenarioViewModel& model,
-                ProcessView* view,
+                Layer* view,
                 QObject* parent);
         ~TemporalScenarioPresenter();
 
 
-        const ProcessViewModel& viewModel() const override;
+        const LayerModel& viewModel() const override;
         const id_type<ProcessModel>& modelId() const override;
 
         void setWidth(int width) override;

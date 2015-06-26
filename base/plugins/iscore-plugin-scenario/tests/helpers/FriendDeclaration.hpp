@@ -1,4 +1,4 @@
-friend class ::AddProcessViewModelToSlotTest;
+friend class ::AddLayerModelToSlotTest;
 friend class ::AddBoxToConstraintTest;
 friend class ::AddSlotToBoxTest;
 friend class ::HideBoxInViewModelTest;

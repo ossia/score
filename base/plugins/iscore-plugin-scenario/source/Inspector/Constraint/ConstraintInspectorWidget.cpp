@@ -10,7 +10,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddProcessViewInNewSlot.hpp"
+#include "Commands/Constraint/AddLayerInNewSlot.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
@@ -249,11 +249,11 @@ void ConstraintInspectorWidget::createBox()
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::createProcessViewInNewSlot(QString processName)
+void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
 {
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
-    auto cmd = new AddProcessViewInNewSlot(
+    auto cmd = new AddLayerInNewSlot(
         iscore::IDocument::path(model()),
         id_type<ProcessModel>(processName.toInt()));
 
@@ -330,7 +330,7 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
     m_processSection->addContent(newProc);
 
     connect(processWidget,   SIGNAL(createViewInNewSlot(QString)),
-            this,   SLOT(createProcessViewInNewSlot(QString)));
+            this,   SLOT(createLayerInNewSlot(QString)));
 }
 
 void ConstraintInspectorWidget::setupBox(BoxModel* box)

@@ -7,8 +7,8 @@
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/ProcessPresenter.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
-#include "ProcessInterface/ProcessView.hpp"
+#include "ProcessInterface/LayerModel.hpp"
+#include "ProcessInterface/Layer.hpp"
 #include "ProcessInterface/ProcessFactory.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 
@@ -27,18 +27,18 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
 {
     m_view->setPos(0, 0);
 
-    for(const auto& proc_vm : m_model.processViewModels())
+    for(const auto& proc_vm : m_model.layerModels())
     {
-        on_processViewModelCreated_impl(*proc_vm);
+        on_layerModelCreated_impl(*proc_vm);
     }
 
-    connect(&m_model, &SlotModel::processViewModelCreated,
-            this,    &SlotPresenter::on_processViewModelCreated);
-    connect(&m_model, &SlotModel::processViewModelRemoved,
-            this,    &SlotPresenter::on_processViewModelDeleted);
+    connect(&m_model, &SlotModel::layerModelCreated,
+            this,    &SlotPresenter::on_layerModelCreated);
+    connect(&m_model, &SlotModel::layerModelRemoved,
+            this,    &SlotPresenter::on_layerModelDeleted);
 
-    connect(&m_model, &SlotModel::processViewModelPutToFront,
-            this,    &SlotPresenter::on_processViewModelPutToFront);
+    connect(&m_model, &SlotModel::layerModelPutToFront,
+            this,    &SlotPresenter::on_layerModelPutToFront);
 
     connect(&m_model, &SlotModel::heightChanged,
             this,    &SlotPresenter::on_heightChanged);
@@ -100,7 +100,7 @@ void SlotPresenter::enable()
     {
         pair.first->parentGeometryChanged();
     }
-    on_processViewModelPutToFront(m_model.frontProcessViewModel());
+    on_layerModelPutToFront(m_model.frontLayerModel());
 
     m_enabled = true;
 }
@@ -118,14 +118,14 @@ void SlotPresenter::disable()
 }
 
 
-void SlotPresenter::on_processViewModelCreated(
-        const id_type<ProcessViewModel>& processId)
+void SlotPresenter::on_layerModelCreated(
+        const id_type<LayerModel>& processId)
 {
-    on_processViewModelCreated_impl(m_model.processViewModel(processId));
+    on_layerModelCreated_impl(m_model.layerModel(processId));
 }
 
-void SlotPresenter::on_processViewModelDeleted(
-        const id_type<ProcessViewModel>& processId)
+void SlotPresenter::on_layerModelDeleted(
+        const id_type<LayerModel>& processId)
 {
     vec_erase_remove_if(m_processes,
                         [&processId](ProcessPair& pair)
@@ -146,8 +146,8 @@ void SlotPresenter::on_processViewModelDeleted(
     emit askUpdate();
 }
 
-void SlotPresenter::on_processViewModelPutToFront(
-        const id_type<ProcessViewModel>& processId)
+void SlotPresenter::on_layerModelPutToFront(
+        const id_type<LayerModel>& processId)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     for(auto& pair : m_processes)
@@ -186,8 +186,8 @@ void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-void SlotPresenter::on_processViewModelCreated_impl(
-        const ProcessViewModel& proc_vm)
+void SlotPresenter::on_layerModelCreated_impl(
+        const LayerModel& proc_vm)
 {
     auto procname = proc_vm.sharedProcessModel().processName();
 
@@ -202,9 +202,9 @@ void SlotPresenter::on_processViewModelCreated_impl(
         m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
-    if(m_model.frontProcessViewModel() == proc_vm.id())
+    if(m_model.frontLayerModel() == proc_vm.id())
     {
-        on_processViewModelPutToFront(proc_vm.id());
+        on_layerModelPutToFront(proc_vm.id());
     }
     updateProcessesShape();
 

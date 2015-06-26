@@ -19,14 +19,14 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         using model_type = ScenarioModel;
         using constraint_view_model_type = TemporalConstraintViewModel;
 
-        TemporalScenarioViewModel(const id_type<ProcessViewModel>& id,
+        TemporalScenarioViewModel(const id_type<LayerModel>& id,
                                   const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>>& constraintIds,
                                   ScenarioModel& model,
                                   QObject* parent);
 
         // Copy
         TemporalScenarioViewModel(const TemporalScenarioViewModel& source,
-                                  const id_type<ProcessViewModel>& id,
+                                  const id_type<LayerModel>& id,
                                   ScenarioModel& model,
                                   QObject* parent);
 
@@ -40,7 +40,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
         virtual ~TemporalScenarioViewModel() = default;
 

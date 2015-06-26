@@ -6,7 +6,7 @@
 
 #include <ProcessInterface/ExpandMode.hpp>
 
-class ProcessViewModel;
+class LayerModel;
 /**
  * @brief The ProcessModel class
  *
@@ -38,29 +38,29 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
-        ProcessViewModel* makeViewModel(
-                const id_type<ProcessViewModel>& viewModelId,
+        LayerModel* makeViewModel(
+                const id_type<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent);
 
         // Load
-        ProcessViewModel* loadViewModel(
+        LayerModel* loadViewModel(
                 const VisitorVariant& v,
                 QObject* parent);
 
         // Clone
-        ProcessViewModel* cloneViewModel(
-                const id_type<ProcessViewModel>& newId,
-                const ProcessViewModel& source,
+        LayerModel* cloneViewModel(
+                const id_type<LayerModel>& newId,
+                const LayerModel& source,
                 QObject* parent);
 
         // For use where the view model is ephemeral (e.g. process panel)
-        ProcessViewModel* makeTemporaryViewModel(
-                const id_type<ProcessViewModel>& newId,
-                const ProcessViewModel& source,
+        LayerModel* makeTemporaryViewModel(
+                const id_type<LayerModel>& newId,
+                const LayerModel& source,
                 QObject* parent);
         // Do a copy.
-        QVector<ProcessViewModel*> viewModels() const;
+        QVector<LayerModel*> viewModels() const;
 
         //// Features of a process
         /// Duration
@@ -98,26 +98,26 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
         virtual void serialize(const VisitorVariant& vis) const = 0;
 
     protected:
-        virtual ProcessViewModel* makeViewModel_impl(
-                const id_type<ProcessViewModel>& viewModelId,
+        virtual LayerModel* makeViewModel_impl(
+                const id_type<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) = 0;
-        virtual ProcessViewModel* loadViewModel_impl(
+        virtual LayerModel* loadViewModel_impl(
                 const VisitorVariant&,
                 QObject* parent) = 0;
-        virtual ProcessViewModel* cloneViewModel_impl(
-                const id_type<ProcessViewModel>& newId,
-                const ProcessViewModel& source,
+        virtual LayerModel* cloneViewModel_impl(
+                const id_type<LayerModel>& newId,
+                const LayerModel& source,
                 QObject* parent) = 0;
 
 
     private:
-        void addViewModel(ProcessViewModel* m);
-        void removeViewModel(ProcessViewModel* m);
+        void addViewModel(LayerModel* m);
+        void removeViewModel(LayerModel* m);
 
         // Ownership : the parent is the Slot or another widget, not the process.
         // A process view is never displayed alone, it is always in a view, which is in a box.
-        QVector<ProcessViewModel*> m_viewModels;
+        QVector<LayerModel*> m_viewModels;
         TimeValue m_duration;
 };
 

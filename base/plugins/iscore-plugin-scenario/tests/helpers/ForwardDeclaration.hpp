@@ -1,5 +1,5 @@
 class AddBoxToConstraintTest;
-class AddProcessViewModelToSlotTest;
+class AddLayerModelToSlotTest;
 class AddSlotToBoxTest;
 class HideBoxInViewModelTest;
 class ShowBoxInViewModelTest;

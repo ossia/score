@@ -1,6 +1,6 @@
 #pragma once
 #include <ProcessInterface/ProcessModel.hpp>
-#include <ProcessInterface/ProcessViewModel.hpp>
+#include <ProcessInterface/LayerModel.hpp>
 #include <ProcessInterface/ProcessPresenter.hpp>
 #include <QPointer>
 
@@ -13,7 +13,7 @@ class ProcessFocusManager : public QObject
 
     public:
         const ProcessModel* focusedModel();
-        const ProcessViewModel* focusedViewModel();
+        const LayerModel* focusedViewModel();
         ProcessPresenter* focusedPresenter();
 
     public slots:
@@ -25,13 +25,13 @@ class ProcessFocusManager : public QObject
         void sig_focusedPresenter(ProcessPresenter*);
         void sig_defocusedPresenter(ProcessPresenter*);
 
-        void sig_defocusedViewModel(const ProcessViewModel*);
-        void sig_focusedViewModel(const ProcessViewModel*);
+        void sig_defocusedViewModel(const LayerModel*);
+        void sig_focusedViewModel(const LayerModel*);
 
     private:
         void focusPresenter(ProcessPresenter*);
         void defocusPresenter(ProcessPresenter*);
         QPointer<const ProcessModel> m_currentModel{};
-        QPointer<const ProcessViewModel> m_currentViewModel{};
+        QPointer<const LayerModel> m_currentViewModel{};
         QPointer<ProcessPresenter> m_currentPresenter{};
 };

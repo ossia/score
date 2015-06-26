@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/ProcessViewModel.hpp>
+#include <ProcessInterface/LayerModel.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include <vector>
@@ -8,7 +8,7 @@ class BoxModel;
 class ConstraintModel;
 
 class ProcessModel;
-class ProcessViewModel;
+class LayerModel;
 
 // Note : the SlotModel is assumed to be in a Box, itself in a Constraint.
 class SlotModel : public IdentifiedObject<SlotModel>
@@ -46,23 +46,23 @@ class SlotModel : public IdentifiedObject<SlotModel>
 
         virtual ~SlotModel() = default;
 
-        void addProcessViewModel(
-                ProcessViewModel*);
-        void deleteProcessViewModel(
-                const id_type<ProcessViewModel>& processViewModelId);
+        void addLayerModel(
+                LayerModel*);
+        void deleteLayerModel(
+                const id_type<LayerModel>& layerModelId);
 
 
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void putToFront(
-                const id_type<ProcessViewModel>& processViewId);
-        const id_type<ProcessViewModel>& frontProcessViewModel() const;
+                const id_type<LayerModel>& layerId);
+        const id_type<LayerModel>& frontLayerModel() const;
 
-        const auto& processViewModels() const
-        { return m_processViewModels; }
+        const auto& layerModels() const
+        { return m_layerModels; }
 
-        ProcessViewModel& processViewModel(
-                const id_type<ProcessViewModel>& processViewModelId) const;
+        LayerModel& layerModel(
+                const id_type<LayerModel>& layerModelId) const;
 
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;
@@ -71,9 +71,9 @@ class SlotModel : public IdentifiedObject<SlotModel>
         bool focus() const;
 
     signals:
-        void processViewModelCreated(const id_type<ProcessViewModel>& processViewModelId);
-        void processViewModelRemoved(const id_type<ProcessViewModel>& processViewModelId);
-        void processViewModelPutToFront(const id_type<ProcessViewModel>& processViewModelId);
+        void layerModelCreated(const id_type<LayerModel>& layerModelId);
+        void layerModelRemoved(const id_type<LayerModel>& layerModelId);
+        void layerModelPutToFront(const id_type<LayerModel>& layerModelId);
 
         void heightChanged(int arg);
         void focusChanged(bool arg);
@@ -85,8 +85,8 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void setFocus(bool arg);
 
     private:
-        id_type<ProcessViewModel> m_frontProcessViewModelId;
-        IdContainer<ProcessViewModel> m_processViewModels;
+        id_type<LayerModel> m_frontLayerModelId;
+        IdContainer<LayerModel> m_layerModels;
 
         int m_height {200};
         bool m_focus{false};
@@ -98,4 +98,4 @@ class SlotModel : public IdentifiedObject<SlotModel>
  *
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
-ConstraintModel* parentConstraint(ProcessViewModel* pvm);
+ConstraintModel* parentConstraint(LayerModel* pvm);

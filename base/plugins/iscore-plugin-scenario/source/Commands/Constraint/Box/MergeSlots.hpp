@@ -1,8 +1,8 @@
 /*
 #pragma once
 #include <Document/Constraint/Box/Slot/SlotModel.hpp>
-#include "Slot/MoveProcessViewModel.hpp"
-#include <ProcessInterface/ProcessViewModel.hpp>
+#include "Slot/MoveLayerModel.hpp"
+#include <ProcessInterface/LayerModel.hpp>
 #include "RemoveSlotFromBox.hpp"
 #include "iscore/document/DocumentInterface.hpp"
 namespace Scenario
@@ -34,9 +34,9 @@ namespace Scenario
                 {
                     auto sourceslot = mergeSource.find<SlotModel>();
 
-                    for(ProcessViewModel* pvm : sourceslot->processViewModels())
+                    for(LayerModel* pvm : sourceslot->layerModels())
                     {
-                        addCommand(new MoveProcessViewModel(iscore::IDocument::path(pvm),
+                        addCommand(new MoveLayerModel(iscore::IDocument::path(pvm),
                         ObjectPath {mergeTarget}));
                     }
 

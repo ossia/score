@@ -16,12 +16,12 @@ class ScenarioFactory : public ProcessFactory
                 QObject* parent) override;
 
         virtual ProcessPresenter* makePresenter(
-                const ProcessViewModel&,
-                ProcessView*,
+                const LayerModel&,
+                Layer*,
                 QObject* parent) override;
 
-        virtual ProcessView* makeView(
-                const ProcessViewModel& viewmodel,
+        virtual Layer* makeView(
+                const LayerModel& viewmodel,
                 QObject* parent) override;
 
 };

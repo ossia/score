@@ -11,8 +11,8 @@ namespace iscore
 }
 class ProcessPresenter;
 class ProcessModel;
-class ProcessViewModel;
-class ProcessView;
+class LayerModel;
+class Layer;
 class BoxView;
 class SlotPresenter : public NamedObject
 {
@@ -36,7 +36,7 @@ class SlotPresenter : public NamedObject
         void enable();
         void disable();
 
-        using ProcessPair = QPair<ProcessPresenter*, ProcessView*>;
+        using ProcessPair = QPair<ProcessPresenter*, Layer*>;
         const QVector<ProcessPair>& processes() const { return m_processes; }
 
     signals:
@@ -48,16 +48,16 @@ class SlotPresenter : public NamedObject
 
     public slots:
         // From Model
-        void on_processViewModelCreated(const id_type<ProcessViewModel>& processId);
-        void on_processViewModelDeleted(const id_type<ProcessViewModel>& processId);
-        void on_processViewModelPutToFront(const id_type<ProcessViewModel>& processId);
+        void on_layerModelCreated(const id_type<LayerModel>& processId);
+        void on_layerModelDeleted(const id_type<LayerModel>& processId);
+        void on_layerModelPutToFront(const id_type<LayerModel>& processId);
         void on_heightChanged(double height);
         void on_parentGeometryChanged();
 
         void on_zoomRatioChanged(ZoomRatio);
 
     private:
-        void on_processViewModelCreated_impl(const ProcessViewModel&);
+        void on_layerModelCreated_impl(const LayerModel&);
 
         void updateProcessesShape();
 

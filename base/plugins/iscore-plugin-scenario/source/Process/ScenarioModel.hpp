@@ -51,14 +51,14 @@ class ScenarioModel : public ProcessModel
 
         //// ProcessModel specifics ////
         QByteArray makeViewModelConstructionData() const override;
-        ProcessViewModel* makeViewModel_impl(
-                const id_type<ProcessViewModel>& viewModelId,
+        LayerModel* makeViewModel_impl(
+                const id_type<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
 
-        ProcessViewModel* cloneViewModel_impl(
-                const id_type<ProcessViewModel>& newId,
-                const ProcessViewModel& source,
+        LayerModel* cloneViewModel_impl(
+                const id_type<LayerModel>& newId,
+                const LayerModel& source,
                 QObject* parent) override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
@@ -146,7 +146,7 @@ class ScenarioModel : public ProcessModel
             vis.writeTo(*this);
         }
 
-        virtual ProcessViewModel* loadViewModel_impl(
+        virtual LayerModel* loadViewModel_impl(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 

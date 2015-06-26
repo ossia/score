@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <QJsonDocument>
 
@@ -116,12 +116,12 @@ void CopyConstraintContent::redo()
                 m_boxIds[sourcebox->id()],
                 [&] (const SlotModel& source, SlotModel& target)
                 {
-                    for(const auto& pvm : source.processViewModels())
+                    for(const auto& pvm : source.layerModels())
                     {
                         // We can safely reuse the same id since it's in a different slot.
                         auto proc = processPairs[&pvm->sharedProcessModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
-                        target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
+                        target.addLayerModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                     }
                 },
                 &trg_constraint};

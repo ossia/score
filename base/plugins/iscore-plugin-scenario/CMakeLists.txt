@@ -26,8 +26,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/Layer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerModel.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
@@ -54,7 +54,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/ProcessModelSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/ProcessViewModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadataSerialization.cpp"
 
 
@@ -68,9 +68,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementModelSerialization.cpp"
 
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/AddProcessViewModelToSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/CopyProcessViewModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/RemoveProcessViewModelFromSlot.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/AddLayerModelToSlot.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/CopyLayerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/RemoveLayerModelFromSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/Slot/ResizeSlotVertically.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/AddSlotToBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/CopySlot.cpp"
@@ -78,7 +78,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Box/SwapSlots.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddBoxToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddProcessToConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddProcessViewInNewSlot.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddLayerInNewSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/CopyConstraintContent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/DuplicateBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveBoxFromConstraint.cpp"
@@ -111,7 +111,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/CommandNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/ResizeBaseConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/PutProcessViewModelToFront.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/PutLayerModelToFront.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
@@ -167,7 +167,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Box/AddSlotWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Box/Slot/AddProcessViewModelWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Box/Slot/AddLayerModelWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Box/Slot/SlotInspectorSection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Box/BoxInspectorSection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/LambdaFriendlyQComboBox.cpp"

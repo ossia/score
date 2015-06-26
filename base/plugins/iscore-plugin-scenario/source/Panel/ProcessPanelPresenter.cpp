@@ -7,10 +7,10 @@
 
 #include <ProcessInterface/ProcessList.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
-#include <ProcessInterface/ProcessViewModel.hpp>
-#include <ProcessInterface/ProcessViewModelPanelProxy.hpp>
+#include <ProcessInterface/LayerModel.hpp>
+#include <ProcessInterface/LayerModelPanelProxy.hpp>
 #include <ProcessInterface/ProcessPresenter.hpp>
-#include <ProcessInterface/ProcessView.hpp>
+#include <ProcessInterface/Layer.hpp>
 #include <ProcessInterface/ProcessFactory.hpp>
 
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
@@ -57,21 +57,21 @@ void ProcessPanelPresenter::on_modelChanged()
     on_focusedViewModelChanged(bem->focusManager().focusedViewModel());
 }
 
-void ProcessPanelPresenter::on_focusedViewModelChanged(const ProcessViewModel* thePVM)
+void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* thePVM)
 {
-    if(thePVM != m_processViewModel)
+    if(thePVM != m_layerModel)
     {
-        m_processViewModel = thePVM;
+        m_layerModel = thePVM;
         delete m_processPresenter;
         m_processPresenter = nullptr;
 
-        if(!m_processViewModel)
+        if(!m_layerModel)
             return;
 
-        auto& sharedmodel = m_processViewModel->sharedProcessModel();
+        auto& sharedmodel = m_layerModel->sharedProcessModel();
         auto fact = ProcessList::getFactory(sharedmodel.processName());
 
-        auto proxy = m_processViewModel->make_panelProxy(this);
+        auto proxy = m_layerModel->make_panelProxy(this);
 
         delete m_obj;
         m_obj = new ProcessPanelGraphicsProxy{*thePVM, *this};
@@ -80,14 +80,14 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const ProcessViewModel* t
         auto panelview = static_cast<ProcessPanelView*>(view());
         panelview->scene()->addItem(m_obj);
 
-        m_processView = fact->makeView(proxy->viewModel(),
+        m_layer = fact->makeView(proxy->viewModel(),
                                        m_obj);
 
         m_processPresenter = fact->makePresenter(proxy->viewModel(),
-                                                 m_processView,
+                                                 m_layer,
                                                  this);
 
-        connect(m_processViewModel, &QObject::destroyed,
+        connect(m_layerModel, &QObject::destroyed,
                 this, &ProcessPanelPresenter::cleanup);
 
 
@@ -123,7 +123,7 @@ void ProcessPanelPresenter::on_zoomChanged(ZoomRatio newzoom)
 
     // We want the value to be at least twice the duration of the constraint
     const auto& viewsize = static_cast<ProcessPanelView*>(view())->view()->size();
-    const auto& duration =  m_processViewModel->sharedProcessModel().duration();
+    const auto& duration =  m_layerModel->sharedProcessModel().duration();
 
     m_zoomRatio = mapZoom(1.0 - newzoom,
                           2.,
@@ -144,7 +144,7 @@ void ProcessPanelPresenter::on_zoomChanged(ZoomRatio newzoom)
 
 void ProcessPanelPresenter::cleanup()
 {
-    m_processViewModel = nullptr;
+    m_layerModel = nullptr;
 
     delete m_processPresenter; // Will delete the view, too
     m_processPresenter = nullptr;

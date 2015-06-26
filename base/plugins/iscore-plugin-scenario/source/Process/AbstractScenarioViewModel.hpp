@@ -1,5 +1,5 @@
 #pragma once
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -10,7 +10,7 @@ class TimeNodeModel;
 
 class EventModel;
 
-class AbstractScenarioViewModel : public ProcessViewModel
+class AbstractScenarioViewModel : public LayerModel
 {
         Q_OBJECT
     public:
@@ -46,11 +46,11 @@ class AbstractScenarioViewModel : public ProcessViewModel
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;
 
     protected:
-        AbstractScenarioViewModel(const id_type<ProcessViewModel>& viewModelId,
+        AbstractScenarioViewModel(const id_type<LayerModel>& viewModelId,
                                   const QString& name,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            ProcessViewModel {viewModelId,
+            LayerModel {viewModelId,
                                       name,
                                       sharedProcess,
                                       parent
@@ -60,11 +60,11 @@ class AbstractScenarioViewModel : public ProcessViewModel
 
         // Copy
         AbstractScenarioViewModel(const AbstractScenarioViewModel& source,
-                                  const id_type<ProcessViewModel>& viewModelId,
+                                  const id_type<LayerModel>& viewModelId,
                                   const QString& name,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            ProcessViewModel {viewModelId,
+            LayerModel {viewModelId,
                                       name,
                                       sharedProcess,
                                       parent
@@ -77,7 +77,7 @@ class AbstractScenarioViewModel : public ProcessViewModel
         AbstractScenarioViewModel(Deserializer<Impl>& vis,
                                   ProcessModel& sharedProcess,
                                   QObject* parent) :
-            ProcessViewModel {vis,
+            LayerModel {vis,
                                        sharedProcess,
                                        parent
         }

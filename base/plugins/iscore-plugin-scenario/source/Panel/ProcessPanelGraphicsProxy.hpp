@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 #include <QBrush>
-#include <ProcessInterface/ProcessViewModel.hpp>
+#include <ProcessInterface/LayerModel.hpp>
 class ProcessPanelPresenter;
 class ProcessPanelGraphicsProxy : public QGraphicsObject
 {
@@ -9,7 +9,7 @@ class ProcessPanelGraphicsProxy : public QGraphicsObject
         QBrush m_bgBrush;
 
     public:
-        ProcessPanelGraphicsProxy(const ProcessViewModel& pvm, const ProcessPanelPresenter& pres);
+        ProcessPanelGraphicsProxy(const LayerModel& pvm, const ProcessPanelPresenter& pres);
 
         QRectF boundingRect() const;
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);

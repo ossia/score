@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ProcessInterface/ProcessView.hpp>
+#include <ProcessInterface/Layer.hpp>
 
-class AutomationView : public ProcessView
+class AutomationView : public Layer
 {
     public:
         AutomationView(QGraphicsObject* parent);

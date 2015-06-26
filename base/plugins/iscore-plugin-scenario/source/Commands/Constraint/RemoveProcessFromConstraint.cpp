@@ -6,9 +6,9 @@
 
 
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
-#include "source/ProcessInterfaceSerialization/ProcessViewModelSerialization.hpp"
+#include "source/ProcessInterfaceSerialization/LayerModelSerialization.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -57,10 +57,10 @@ void RemoveProcessFromConstraint::undo()
                 ->slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
-        auto pvm = createProcessViewModel(s,
+        auto pvm = createLayerModel(s,
                                           slot->parentConstraint(),
                                           slot);
-        slot->addProcessViewModel(pvm);
+        slot->addLayerModel(pvm);
     }
 }
 

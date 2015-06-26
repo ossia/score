@@ -9,13 +9,13 @@
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddSlotToBox.hpp"
 #include "Commands/Constraint/Box/Slot/ResizeSlotVertically.hpp"
-#include "Commands/Constraint/Box/Slot/AddProcessViewModelToSlot.hpp"
+#include "Commands/Constraint/Box/Slot/AddLayerModelToSlot.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 
 #include <QApplication>
 using namespace Scenario;
@@ -107,7 +107,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     };
     cmd5.redo();
 
-    AddProcessViewModelToSlot cmd6
+    AddLayerModelToSlot cmd6
     {
         {
             {"BaseElementModel", this->id()},
@@ -125,7 +125,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 }
 
 namespace {
-void updateSlotFocus(const ProcessViewModel* pvm, bool b)
+void updateSlotFocus(const LayerModel* pvm, bool b)
 {
     if(pvm && pvm->parent())
     {
@@ -137,7 +137,7 @@ void updateSlotFocus(const ProcessViewModel* pvm, bool b)
 }
 }
 
-void BaseElementModel::on_viewModelDefocused(const ProcessViewModel* vm)
+void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
 {
     // Disable the focus on previously focused view model
     updateSlotFocus(vm, false);
@@ -148,7 +148,7 @@ void BaseElementModel::on_viewModelDefocused(const ProcessViewModel* vm)
     selectionDispatcher.setAndCommit(Selection{});
 }
 
-void BaseElementModel::on_viewModelFocused(const ProcessViewModel* process)
+void BaseElementModel::on_viewModelFocused(const LayerModel* process)
 {
     // TODO why not presenter ?
     // Enable focus on the new viewmodel

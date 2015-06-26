@@ -2,33 +2,33 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 
 class ProcessModel;
-class ProcessViewModelPanelProxy;
+class LayerModelPanelProxy;
 
 /**
- * @brief The ProcessViewModel class
+ * @brief The LayerModel class
  *
  * Interface to implement to make a process view model.
  */
-class ProcessViewModel: public IdentifiedObject<ProcessViewModel>
+class LayerModel: public IdentifiedObject<LayerModel>
 {
     public:
         ProcessModel& sharedProcessModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;
-        virtual ProcessViewModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
+        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
 
 
     protected:
-        ProcessViewModel(const id_type<ProcessViewModel>& viewModelId,
+        LayerModel(const id_type<LayerModel>& viewModelId,
                          const QString& name,
                          ProcessModel& sharedProcess,
                          QObject* parent);
 
         template<typename Impl>
-        ProcessViewModel(Deserializer<Impl>& vis,
+        LayerModel(Deserializer<Impl>& vis,
                          ProcessModel& sharedProcess,
                          QObject* parent) :
-            IdentifiedObject<ProcessViewModel> {vis, parent},
+            IdentifiedObject<LayerModel> {vis, parent},
             m_sharedProcessModel {sharedProcess}
         {
             // Nothing else to load

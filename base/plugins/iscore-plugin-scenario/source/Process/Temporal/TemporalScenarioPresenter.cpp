@@ -24,7 +24,7 @@
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         const TemporalScenarioViewModel& process_view_model,
-        ProcessView* view,
+        Layer* view,
         QObject* parent) :
     ProcessPresenter {"TemporalScenarioPresenter", parent},
     m_viewModel {process_view_model},
@@ -108,7 +108,7 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
     }
 }
 
-const ProcessViewModel& TemporalScenarioPresenter::viewModel() const
+const LayerModel& TemporalScenarioPresenter::viewModel() const
 {
     return m_viewModel;
 }

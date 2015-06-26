@@ -4,7 +4,7 @@
 #include <ProcessInterface/ZoomHelper.hpp>
 
 class ProcessModel;
-class ProcessViewModel;
+class LayerModel;
 namespace iscore
 {
     class SerializableCommand;
@@ -32,7 +32,7 @@ class ProcessPresenter : public NamedObject
         virtual void on_zoomRatioChanged(ZoomRatio) = 0;
         virtual void parentGeometryChanged() = 0;
 
-        virtual const ProcessViewModel& viewModel() const = 0;
+        virtual const LayerModel& viewModel() const = 0;
         virtual const id_type<ProcessModel>& modelId() const = 0;
 
 };

@@ -4,7 +4,7 @@
 #include <QKeyEvent>
 #include <QDebug>
 AutomationView::AutomationView(QGraphicsObject* parent) :
-    ProcessView {parent}
+    Layer {parent}
 {
     setZValue(parent->zValue() + 1);
     setFlags(ItemClipsChildrenToShape);

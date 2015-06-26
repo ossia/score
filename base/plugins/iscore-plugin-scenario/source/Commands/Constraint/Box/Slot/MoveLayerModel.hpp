@@ -1,6 +1,6 @@
 /*#pragma once
-#include "CopyProcessViewModel.hpp"
-#include "RemoveProcessViewModelFromSlot.hpp"
+#include "CopyLayerModel.hpp"
+#include "RemoveLayerModelFromSlot.hpp"
 #include <iscore/command/AggregateCommand.hpp>
 
 namespace Scenario
@@ -8,31 +8,31 @@ namespace Scenario
     namespace Command
     {
         //
-        // @brief The MoveProcessViewModel class
+        // @brief The MoveLayerModel class
         //
         // Moves a process view from a Slot to another.
         // Note : this must be in the same constraint.
         //s
-        class MoveProcessViewModel : public iscore::AggregateCommand
+        class MoveLayerModel : public iscore::AggregateCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveProcessViewModel():
+                MoveLayerModel():
                     AggregateCommand{"ScenarioControl",
                                      commandName(),
                                      description()} { }
 
-                MoveProcessViewModel(const ObjectPath& pvmToMove,
+                MoveLayerModel(const ObjectPath& pvmToMove,
                                      ObjectPath&& targetSlot) :
                     AggregateCommand{"ScenarioControl",
-                                     "MoveProcessViewModel",
+                                     "MoveLayerModel",
                                      QObject::tr("Move a process view model"),
-                                     new CopyProcessViewModel{ObjectPath{pvmToMove}, std::move(targetSlot) }}
+                                     new CopyLayerModel{ObjectPath{pvmToMove}, std::move(targetSlot) }}
         {
-            auto cmd = new RemoveProcessViewModelFromSlot{
+            auto cmd = new RemoveLayerModelFromSlot{
                     ObjectPath{pvmToMove},
-                    id_type<ProcessViewModel>(
+                    id_type<LayerModel>(
                         ObjectIdentifierVector(pvmToMove.vec()).takeLast().id())};
             addCommand(cmd);
 

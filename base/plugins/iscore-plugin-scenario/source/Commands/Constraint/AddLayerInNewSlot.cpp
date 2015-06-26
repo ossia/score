@@ -1,4 +1,4 @@
-#include "AddProcessViewInNewSlot.hpp"
+#include "AddLayerInNewSlot.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
@@ -6,14 +6,14 @@
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddProcessViewInNewSlot::AddProcessViewInNewSlot(ObjectPath&& constraintPath,
+AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
                                                  id_type<ProcessModel> process) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
@@ -35,11 +35,11 @@ AddProcessViewInNewSlot::AddProcessViewInNewSlot(ObjectPath&& constraintPath,
     }
 
     m_createdSlotId = id_type<SlotModel> (getNextId());
-    m_createdProcessViewId = id_type<ProcessViewModel> (getNextId());
+    m_createdLayerId = id_type<LayerModel> (getNextId());
     m_processData = constraint.process(m_sharedProcessModelId)->makeViewModelConstructionData();
 }
 
-void AddProcessViewInNewSlot::undo()
+void AddLayerInNewSlot::undo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
     auto box = constraint.box(m_createdBoxId);
@@ -54,7 +54,7 @@ void AddProcessViewInNewSlot::undo()
     }
 }
 
-void AddProcessViewInNewSlot::redo()
+void AddLayerInNewSlot::redo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
@@ -86,29 +86,29 @@ void AddProcessViewInNewSlot::redo()
     auto slot = box->slot(m_createdSlotId);
     auto proc = constraint.process(m_sharedProcessModelId);
 
-    slot->addProcessViewModel(proc->makeViewModel(m_createdProcessViewId, m_processData, slot));
+    slot->addLayerModel(proc->makeViewModel(m_createdLayerId, m_processData, slot));
 }
 
-void AddProcessViewInNewSlot::serializeImpl(QDataStream& s) const
+void AddLayerInNewSlot::serializeImpl(QDataStream& s) const
 {
     s << m_path
       << m_existingBox
       << m_processId
       << m_createdBoxId
       << m_createdSlotId
-      << m_createdProcessViewId
+      << m_createdLayerId
       << m_sharedProcessModelId
       << m_processData;
 }
 
-void AddProcessViewInNewSlot::deserializeImpl(QDataStream& s)
+void AddLayerInNewSlot::deserializeImpl(QDataStream& s)
 {
     s >> m_path
       >> m_existingBox
       >> m_processId
       >> m_createdBoxId
       >> m_createdSlotId
-      >> m_createdProcessViewId
+      >> m_createdLayerId
       >> m_sharedProcessModelId
       >> m_processData;
 }

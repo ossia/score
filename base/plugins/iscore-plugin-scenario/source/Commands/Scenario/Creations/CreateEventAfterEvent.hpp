@@ -7,7 +7,7 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 class EventModel;
-class ProcessViewModel;
+class LayerModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;

@@ -1,7 +1,7 @@
 #include "AutomationPanelProxy.hpp"
 
 AutomationPanelProxy::AutomationPanelProxy(const AutomationViewModel &vm, QObject *parent):
-    ProcessViewModelPanelProxy{parent},
+    LayerModelPanelProxy{parent},
     m_viewModel{vm}
 {
 

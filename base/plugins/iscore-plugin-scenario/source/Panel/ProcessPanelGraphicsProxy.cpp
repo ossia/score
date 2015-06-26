@@ -3,7 +3,7 @@
 #include "ProcessPanelPresenter.hpp"
 #include <QPainter>
 
-ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const ProcessViewModel& pvm,
+ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const LayerModel& pvm,
                                                      const ProcessPanelPresenter& pres)
 {
     QColor col = Qt::darkGray;

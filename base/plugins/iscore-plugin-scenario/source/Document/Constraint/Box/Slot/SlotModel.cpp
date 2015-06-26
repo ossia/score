@@ -4,7 +4,7 @@
 #include "Document/Constraint/Box/BoxModel.hpp"
 
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 
 SlotModel::SlotModel(
         const id_type<SlotModel>& id,
@@ -19,7 +19,7 @@ SlotModel::SlotModel(
         const id_type<SlotModel>& id,
         BoxModel *parent):
     IdentifiedObject<SlotModel> {id, "SlotModel", parent},
-    m_frontProcessViewModelId {source.frontProcessViewModel() }, // Keep the same id.
+    m_frontLayerModelId {source.frontLayerModel() }, // Keep the same id.
     m_height {source.height() }
 {
     pvmCopyMethod(source, *this);
@@ -29,85 +29,85 @@ void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
-    for(ProcessViewModel* pvm : source.processViewModels())
+    for(LayerModel* pvm : source.layerModels())
     {
         // We can safely reuse the same id since it's in a different slot.
         auto& proc = pvm->sharedProcessModel();
-        target.addProcessViewModel(
+        target.addLayerModel(
                     proc.cloneViewModel(pvm->id(),
                                         *pvm,
                                         &target));
     }
 }
 
-void SlotModel::addProcessViewModel(ProcessViewModel* viewmodel)
+void SlotModel::addLayerModel(LayerModel* viewmodel)
 {
-    m_processViewModels.insert(viewmodel);
+    m_layerModels.insert(viewmodel);
 
-    emit processViewModelCreated(viewmodel->id());
+    emit layerModelCreated(viewmodel->id());
 
     putToFront(viewmodel->id());
 }
 
-void SlotModel::deleteProcessViewModel(
-        const id_type<ProcessViewModel>& processViewId)
+void SlotModel::deleteLayerModel(
+        const id_type<LayerModel>& layerId)
 {
-    auto& pvm = processViewModel(processViewId);
-    m_processViewModels.remove(processViewId);
+    auto& pvm = layerModel(layerId);
+    m_layerModels.remove(layerId);
 
-    emit processViewModelRemoved(processViewId);
+    emit layerModelRemoved(layerId);
 
 
-    if(!m_processViewModels.empty())
+    if(!m_layerModels.empty())
     {
-        putToFront((*m_processViewModels.begin())->id());
+        putToFront((*m_layerModels.begin())->id());
     }
     else
     {
-        m_frontProcessViewModelId.setVal({});
+        m_frontLayerModelId.setVal({});
     }
 
     delete &pvm;
 }
 
 void SlotModel::putToFront(
-        const id_type<ProcessViewModel>& processViewId)
+        const id_type<LayerModel>& layerId)
 {
-    if(!processViewId.val())
+    if(!layerId.val())
         return;
 
-    if(processViewId != m_frontProcessViewModelId)
+    if(layerId != m_frontLayerModelId)
     {
-        m_frontProcessViewModelId = processViewId;
-        emit processViewModelPutToFront(processViewId);
+        m_frontLayerModelId = layerId;
+        emit layerModelPutToFront(layerId);
     }
 }
 
-const id_type<ProcessViewModel>& SlotModel::frontProcessViewModel() const
+const id_type<LayerModel>& SlotModel::frontLayerModel() const
 {
-    return m_frontProcessViewModelId;
+    return m_frontLayerModelId;
 }
 
-ProcessViewModel& SlotModel::processViewModel(
-        const id_type<ProcessViewModel>& processViewModelId) const
+LayerModel& SlotModel::layerModel(
+        const id_type<LayerModel>& layerModelId) const
 {
-    return *m_processViewModels.at(processViewModelId);
+    return *m_layerModels.at(layerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(
         const id_type<ProcessModel>& sharedProcessId)
 {
     using namespace std;
-    auto it = find_if(begin(m_processViewModels),
-                      end(m_processViewModels),
-                      [&sharedProcessId](const ProcessViewModel * pvm)
+    auto it = find_if(begin(m_layerModels),
+                      end(m_layerModels),
+                      [&sharedProcessId](const LayerModel * pvm)
     {
         return pvm->sharedProcessModel().id() == sharedProcessId;
     });
 
-    if(it != end(m_processViewModels))
+    if(it != end(m_layerModels))
     {
-        deleteProcessViewModel((*it)->id());
+        deleteLayerModel((*it)->id());
     }
 }
 

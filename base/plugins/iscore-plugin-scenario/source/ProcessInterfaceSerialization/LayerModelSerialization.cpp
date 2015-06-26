@@ -1,27 +1,27 @@
-#include "ProcessViewModelSerialization.hpp"
+#include "LayerModelSerialization.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessViewModel& processViewModel)
+void Visitor<Reader<DataStream>>::readFrom(const LayerModel& layerModel)
 {
-    // To allow recration using createProcessViewModel.
+    // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
-    m_stream << processViewModel.sharedProcessModel().id();
+    m_stream << layerModel.sharedProcessModel().id();
 
-    readFrom(static_cast<const IdentifiedObject<ProcessViewModel>&>(processViewModel));
+    readFrom(static_cast<const IdentifiedObject<LayerModel>&>(layerModel));
 
-    // ProcessViewModel doesn't have any particular data to save
+    // LayerModel doesn't have any particular data to save
 
     // Save the subclass
-    processViewModel.serialize(toVariant());
+    layerModel.serialize(toVariant());
 
     insertDelimiter();
 }
 
 template<>
-ProcessViewModel* createProcessViewModel(Deserializer<DataStream>& deserializer,
+LayerModel* createLayerModel(Deserializer<DataStream>& deserializer,
         const ConstraintModel& constraint,
         QObject* parent)
 {
@@ -38,22 +38,22 @@ ProcessViewModel* createProcessViewModel(Deserializer<DataStream>& deserializer,
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ProcessViewModel& processViewModel)
+void Visitor<Reader<JSONObject>>::readFrom(const LayerModel& layerModel)
 {
-    // To allow recration using createProcessViewModel.
+    // To allow recration using createLayerModel.
     // This supposes that the process is stored inside a Constraint.
-    m_obj["SharedProcessId"] = toJsonValue(processViewModel.sharedProcessModel().id());
+    m_obj["SharedProcessId"] = toJsonValue(layerModel.sharedProcessModel().id());
 
-    readFrom(static_cast<const IdentifiedObject<ProcessViewModel>&>(processViewModel));
+    readFrom(static_cast<const IdentifiedObject<LayerModel>&>(layerModel));
 
-    // ProcessViewModel doesn't have any particular data to save
+    // LayerModel doesn't have any particular data to save
 
     // Save the subclass
-    processViewModel.serialize(toVariant());
+    layerModel.serialize(toVariant());
 }
 
 template<>
-ProcessViewModel* createProcessViewModel(
+LayerModel* createLayerModel(
         Deserializer<JSONObject>& deserializer,
         const ConstraintModel& constraint,
         QObject* parent)

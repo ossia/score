@@ -24,8 +24,8 @@ addIScoreQtTest(AddBoxToConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddBoxToConstraintTest.cpp")
 addIScoreQtTest(AddSlotToBoxTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddSlotToBoxTest.cpp")
-addIScoreQtTest(AddProcessViewModelToSlotTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewModelToSlotTest.cpp")
+addIScoreQtTest(AddLayerModelToSlotTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddLayerModelToSlotTest.cpp")
 addIscoreQtTest(SplitTimeNodeTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeNodeTest.cpp")
 addIscoreQtTest(MergeTimeNodesTest
@@ -63,8 +63,8 @@ addIScoreQtTest(RemoveSlotFromBoxTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveSlotFromBoxTest.cpp")
 addIScoreQtTest(RemoveProcessFromConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessFromConstraintTest.cpp")
-addIScoreQtTest(RemoveProcessViewFromSlotTest # TODO Rename in RemoveProcessViewModel
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessViewFromSlotTest.cpp")
+addIScoreQtTest(RemoveLayerFromSlotTest # TODO Rename in RemoveLayerModel
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveLayerFromSlotTest.cpp")
 addIScoreQtTest(ResizeSlotVerticallyTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ResizeSlotVerticallyTest.cpp")
 

@@ -3,23 +3,23 @@
 #include "AutomationPanelProxy.hpp"
 
 AutomationViewModel::AutomationViewModel(AutomationModel& model,
-                                         const id_type<ProcessViewModel>& id,
+                                         const id_type<LayerModel>& id,
                                          QObject* parent) :
-    ProcessViewModel {id, "AutomationViewModel", model, parent}
+    LayerModel {id, "AutomationViewModel", model, parent}
 {
 
 }
 
 AutomationViewModel::AutomationViewModel(const AutomationViewModel& source,
                                          AutomationModel& model,
-                                         const id_type<ProcessViewModel>& id,
+                                         const id_type<LayerModel>& id,
                                          QObject* parent) :
-    ProcessViewModel {id, "AutomationViewModel", model, parent}
+    LayerModel {id, "AutomationViewModel", model, parent}
 {
     // Nothing to copy
 }
 
-ProcessViewModelPanelProxy* AutomationViewModel::make_panelProxy(QObject* parent) const
+LayerModelPanelProxy* AutomationViewModel::make_panelProxy(QObject* parent) const
 {
     return new AutomationPanelProxy{*this, parent};
 }

@@ -8,7 +8,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventData.hpp"
 
-#include "Commands/Constraint/Box/Slot/AddProcessViewModelToSlot.hpp"
+#include "Commands/Constraint/Box/Slot/AddLayerModelToSlot.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Commands/Constraint/Box/AddSlotToBox.hpp"
@@ -70,7 +70,7 @@ class ShowBoxInViewModelTest: public QObject
             auto slotId = cmd_slot->m_createdSlotId;
             stack.redoAndPush(cmd_slot);
 
-            auto cmd_pvm = new AddProcessViewModelToSlot(
+            auto cmd_pvm = new AddLayerModelToSlot(
             {
                 {"ConstraintModel", {}},
                 {"BoxModel", boxId},
@@ -82,7 +82,7 @@ class ShowBoxInViewModelTest: public QObject
             });
             stack.redoAndPush(cmd_pvm);
 
-            auto viewmodel = constraint->boxes().front()->getSlots().front()->processViewModels().front();
+            auto viewmodel = constraint->boxes().front()->getSlots().front()->layerModels().front();
             auto scenario_viewmodel = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
             // Put this in the tests for AbstractScenarioViewModel
             QVERIFY(scenario_viewmodel != nullptr);

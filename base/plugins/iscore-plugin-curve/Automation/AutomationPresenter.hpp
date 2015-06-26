@@ -5,7 +5,7 @@
 
 class CurvePresenter;
 class QCPGraph;
-class ProcessView;
+class Layer;
 class AutomationViewModel;
 class AutomationView;
 
@@ -13,8 +13,8 @@ class AutomationPresenter : public ProcessPresenter
 {
         Q_OBJECT
     public:
-        AutomationPresenter(const ProcessViewModel& model,
-                            ProcessView* view,
+        AutomationPresenter(const LayerModel& model,
+                            Layer* view,
                             QObject* parent);
         ~AutomationPresenter();
 
@@ -28,7 +28,7 @@ class AutomationPresenter : public ProcessPresenter
         void on_zoomRatioChanged(ZoomRatio) override;
         void parentGeometryChanged() override;
 
-        const ProcessViewModel& viewModel() const override;
+        const LayerModel& viewModel() const override;
         const id_type<ProcessModel>& modelId() const override;
 
     public slots:

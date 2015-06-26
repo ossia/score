@@ -2,23 +2,23 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-class ProcessViewModel;
+class LayerModel;
 namespace Scenario
 {
     namespace Command
     {
         /**
-         * @brief The RemoveProcessViewFromSlot class
+         * @brief The RemoveLayerFromSlot class
          *
          * Removes a process view from a slot.
          */
-        class RemoveProcessViewModelFromSlot : public iscore::SerializableCommand
+        class RemoveLayerModelFromSlot : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessViewModelFromSlot, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveLayerModelFromSlot, "ScenarioControl")
 
-                RemoveProcessViewModelFromSlot(ObjectPath&& slotPath, id_type<ProcessViewModel> processViewId);
+                RemoveLayerModelFromSlot(ObjectPath&& slotPath, id_type<LayerModel> layerId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -29,9 +29,9 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                id_type<ProcessViewModel> m_processViewId {};
+                id_type<LayerModel> m_layerId {};
 
-                QByteArray m_serializedProcessViewData;
+                QByteArray m_serializedLayerData;
         };
     }
 }

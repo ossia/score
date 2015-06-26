@@ -4,9 +4,9 @@
 
 #include <ProcessInterface/ZoomHelper.hpp>
 class BaseElementModel;
-class ProcessView;
+class Layer;
 class ProcessPresenter;
-class ProcessViewModel;
+class LayerModel;
 class ProcessPanelPresenter : public iscore::PanelPresenter
 {
         Q_OBJECT
@@ -21,7 +21,7 @@ class ProcessPanelPresenter : public iscore::PanelPresenter
         { return m_zoomRatio; }
 
     private slots:
-        void on_focusedViewModelChanged(const ProcessViewModel*);
+        void on_focusedViewModelChanged(const LayerModel*);
         void on_sizeChanged(const QSize& size);
         void on_zoomChanged(ZoomRatio ratio);
 
@@ -29,9 +29,9 @@ class ProcessPanelPresenter : public iscore::PanelPresenter
         void cleanup();
 
         ProcessPanelGraphicsProxy* m_obj{};
-        const ProcessViewModel* m_processViewModel{};
+        const LayerModel* m_layerModel{};
         ProcessPresenter* m_processPresenter{};
-        ProcessView* m_processView{};
+        Layer* m_layer{};
 
         ZoomRatio m_zoomRatio{};
 };

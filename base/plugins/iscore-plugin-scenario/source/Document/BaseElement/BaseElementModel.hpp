@@ -8,7 +8,7 @@ class BaseElementPresenter;
 class FullViewConstraintViewModel;
 class ConstraintModel;
 class ProcessModel;
-class ProcessViewModel;
+class LayerModel;
 
 class BaseElementModel : public iscore::DocumentDelegateModelInterface
 {
@@ -36,8 +36,8 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         void setFocusedPresenter(ProcessPresenter*);
 
     public slots:
-        void on_viewModelDefocused(const ProcessViewModel* vm);
-        void on_viewModelFocused(const ProcessViewModel* vm);
+        void on_viewModelDefocused(const LayerModel* vm);
+        void on_viewModelFocused(const LayerModel* vm);
 
     private:
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);

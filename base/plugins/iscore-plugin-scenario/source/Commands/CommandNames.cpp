@@ -1,12 +1,12 @@
 #include "Constraint/AddBoxToConstraint.hpp"
 #include "Constraint/AddProcessToConstraint.hpp"
-#include "Constraint/AddProcessViewInNewSlot.hpp"
+#include "Constraint/AddLayerInNewSlot.hpp"
 #include "Constraint/Box/AddSlotToBox.hpp"
 #include "Constraint/Box/CopySlot.hpp"
-#include "Constraint/Box/Slot/AddProcessViewModelToSlot.hpp"
-#include "Constraint/Box/Slot/CopyProcessViewModel.hpp"
-#include "Constraint/Box/Slot/MoveProcessViewModel.hpp"
-#include "Constraint/Box/Slot/RemoveProcessViewModelFromSlot.hpp"
+#include "Constraint/Box/Slot/AddLayerModelToSlot.hpp"
+#include "Constraint/Box/Slot/CopyLayerModel.hpp"
+#include "Constraint/Box/Slot/MoveLayerModel.hpp"
+#include "Constraint/Box/Slot/RemoveLayerModelFromSlot.hpp"
 #include "Constraint/Box/Slot/ResizeSlotVertically.hpp"
 #include "Constraint/Box/MergeSlots.hpp"
 #include "Constraint/Box/MoveSlot.hpp"
@@ -55,8 +55,8 @@
 const char* Scenario::Command::AddBoxToConstraint::commandName() { return "AddBoxToConstraint"; }
 const char* Scenario::Command::AddSlotToBox::commandName() { return "AddSlotToBox"; }
 const char* Scenario::Command::AddProcessToConstraint::commandName() { return "AddProcessToConstraint"; }
-const char* Scenario::Command::AddProcessViewInNewSlot::commandName() { return "AddProcessViewInNewSlot"; }
-const char* Scenario::Command::AddProcessViewModelToSlot::commandName() { return "AddProcessViewModelToSlot"; }
+const char* Scenario::Command::AddLayerInNewSlot::commandName() { return "AddLayerInNewSlot"; }
+const char* Scenario::Command::AddLayerModelToSlot::commandName() { return "AddLayerModelToSlot"; }
 const char* Scenario::Command::AddStateToEvent::commandName() { return "AddStateToEvent"; }
 const char* Scenario::Command::AssignMessagesToState::commandName() { return "AssignMessagesToState"; }
 
@@ -68,7 +68,7 @@ const char* Scenario::Command::ClearEvent::commandName() { return "ClearEvent"; 
 const char* Scenario::Command::DuplicateBox::commandName() { return "DuplicateBox"; }
 const char* Scenario::Command::CopyConstraintContent::commandName() { return "CopyConstraintContent"; }
 const char* Scenario::Command::CopySlot::commandName() { return "CopySlot"; }
-//const char* Scenario::Command::CopyProcessViewModel::commandName() { return "CopyProcessViewModel"; }
+//const char* Scenario::Command::CopyLayerModel::commandName() { return "CopyLayerModel"; }
 
 // CREATE
 const char* Scenario::Command::CreateConstraint::commandName() { return "CreateConstraint"; }
@@ -89,7 +89,7 @@ const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConst
 const char* Scenario::Command::MoveSlot::commandName() { return "MoveSlot"; }
 const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
 //const char* Scenario::Command::MoveNewEvent::commandName() { return "MoveNewEvent"; }
-//const char* Scenario::Command::MoveProcessViewModel::commandName() { return "MoveProcessViewModel"; }
+//const char* Scenario::Command::MoveLayerModel::commandName() { return "MoveLayerModel"; }
 const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
 
 // REMOVE
@@ -97,7 +97,7 @@ const char* Scenario::Command::RemoveBoxFromConstraint::commandName() { return "
 const char* Scenario::Command::RemoveSlotFromBox::commandName() { return "RemoveSlotFromBox"; }
 const char* Scenario::Command::RemoveMultipleElements::commandName() { return "RemoveMultipleElements"; }
 const char* Scenario::Command::RemoveProcessFromConstraint::commandName() { return "RemoveProcessFromConstraint"; }
-const char* Scenario::Command::RemoveProcessViewModelFromSlot::commandName() { return "RemoveProcessViewModelFromSlot"; }
+const char* Scenario::Command::RemoveLayerModelFromSlot::commandName() { return "RemoveLayerModelFromSlot"; }
 const char* Scenario::Command::RemoveStateFromEvent::commandName() { return "RemoveStateFromEvent"; }
 
 // RESIZE
@@ -124,8 +124,8 @@ const char* Scenario::Command::UnassignMessagesFromState::commandName() { return
 QString Scenario::Command::AddBoxToConstraint::description() { return QObject::tr("AddBoxToConstraint"); }
 QString Scenario::Command::AddSlotToBox::description() { return QObject::tr("AddSlotToBox"); }
 QString Scenario::Command::AddProcessToConstraint::description() { return QObject::tr("Add process"); }
-QString Scenario::Command::AddProcessViewInNewSlot::description() { return QObject::tr("AddProcessViewInNewSlot"); }
-QString Scenario::Command::AddProcessViewModelToSlot::description() { return QObject::tr("AddProcessViewModelToSlot"); }
+QString Scenario::Command::AddLayerInNewSlot::description() { return QObject::tr("AddLayerInNewSlot"); }
+QString Scenario::Command::AddLayerModelToSlot::description() { return QObject::tr("AddLayerModelToSlot"); }
 QString Scenario::Command::AddStateToEvent::description() { return QObject::tr("AddNewMessageToEvent"); }
 QString Scenario::Command::AssignMessagesToState::description() { return QObject::tr("AssignMessagesToState"); }
 
@@ -137,7 +137,7 @@ QString Scenario::Command::ClearEvent::description() { return QObject::tr("Clear
 QString Scenario::Command::DuplicateBox::description() { return QObject::tr("Copy a box"); }
 QString Scenario::Command::CopyConstraintContent::description() { return QObject::tr("Copy constraint content"); }
 QString Scenario::Command::CopySlot::description() { return QObject::tr("CopySlot"); }
-//QString Scenario::Command::CopyProcessViewModel::description() { return QObject::tr("CopyProcessViewModel"); }
+//QString Scenario::Command::CopyLayerModel::description() { return QObject::tr("CopyLayerModel"); }
 
 // CREATE
 QString Scenario::Command::CreateConstraint::description() { return QObject::tr("CreateConstraint"); }
@@ -157,7 +157,7 @@ QString Scenario::Command::MergeTimeNodes::description() { return QObject::tr("M
 QString Scenario::Command::MoveConstraint::description() { return QObject::tr("MoveConstraint"); }
 QString Scenario::Command::MoveSlot::description() { return QObject::tr("MoveSlot"); }
 QString Scenario::Command::MoveEvent::description() { return QObject::tr("MoveEvent"); }
-//QString Scenario::Command::MoveProcessViewModel::description() { return QObject::tr("MoveProcessViewModel"); }
+//QString Scenario::Command::MoveLayerModel::description() { return QObject::tr("MoveLayerModel"); }
 QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("MoveTimeNode"); }
 
 // REMOVE
@@ -165,7 +165,7 @@ QString Scenario::Command::RemoveBoxFromConstraint::description() { return QObje
 QString Scenario::Command::RemoveSlotFromBox::description() { return QObject::tr("RemoveSlotFromBox"); }
 QString Scenario::Command::RemoveMultipleElements::description() { return QObject::tr("RemoveMultipleElements"); }
 QString Scenario::Command::RemoveProcessFromConstraint::description() { return QObject::tr("RemoveProcessFromConstraint"); }
-QString Scenario::Command::RemoveProcessViewModelFromSlot::description() { return QObject::tr("RemoveProcessViewModelFromSlot"); }
+QString Scenario::Command::RemoveLayerModelFromSlot::description() { return QObject::tr("RemoveLayerModelFromSlot"); }
 QString Scenario::Command::RemoveStateFromEvent::description() { return QObject::tr("RemoveStateFromEvent"); }
 
 // RESIZE
@@ -204,8 +204,8 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == AddBoxToConstraint::commandName()) return new AddBoxToConstraint;
     else if(name == AddSlotToBox::commandName()) return new AddSlotToBox;
     else if(name == AddProcessToConstraint::commandName()) return new AddProcessToConstraint;
-    else if(name == AddProcessViewInNewSlot::commandName()) return new AddProcessViewInNewSlot;
-    else if(name == AddProcessViewModelToSlot::commandName()) return new AddProcessViewModelToSlot;
+    else if(name == AddLayerInNewSlot::commandName()) return new AddLayerInNewSlot;
+    else if(name == AddLayerModelToSlot::commandName()) return new AddLayerModelToSlot;
     else if(name == AddStateToEvent::commandName()) return new AddStateToEvent;
     else if(name == AssignMessagesToState::commandName()) return new AssignMessagesToState;
 
@@ -231,7 +231,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == DuplicateBox::commandName()) return new DuplicateBox;
     else if(name == CopyConstraintContent::commandName()) return new CopyConstraintContent;
     else if(name == CopySlot::commandName()) return new CopySlot;
- //   else if(name == CopyProcessViewModel::commandName()) return new CopyProcessViewModel;
+ //   else if(name == CopyLayerModel::commandName()) return new CopyLayerModel;
 
     // CREATE ELEMENT
     else if(name == CreateConstraint::commandName()) return new CreateConstraint;
@@ -252,7 +252,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == MoveSlot::commandName()) return new MoveSlot;
     else if(name == SwapSlots::commandName()) return new SwapSlots;
     else if(name == MoveEvent::commandName()) return new MoveEvent;
-//    else if(name == MoveProcessViewModel::commandName()) return new MoveProcessViewModel;
+//    else if(name == MoveLayerModel::commandName()) return new MoveLayerModel;
     else if(name == MoveTimeNode::commandName()) return new MoveTimeNode;
 
     // REMOVE ELEMENT
@@ -261,7 +261,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == RemoveMultipleElements::commandName()) return new RemoveMultipleElements;
     else if(name == RemoveSelection::commandName()) return new RemoveSelection;
     else if(name == RemoveProcessFromConstraint::commandName()) return new RemoveProcessFromConstraint;
-    else if(name == RemoveProcessViewModelFromSlot::commandName()) return new RemoveProcessViewModelFromSlot;
+    else if(name == RemoveLayerModelFromSlot::commandName()) return new RemoveLayerModelFromSlot;
     else if(name == RemoveStateFromEvent::commandName()) return new RemoveStateFromEvent;
 
     // RESIZE

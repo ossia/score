@@ -11,7 +11,7 @@
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
-#include <ProcessInterface/ProcessViewModel.hpp>
+#include <ProcessInterface/LayerModel.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -125,12 +125,12 @@ void MoveEvent::undo()
                         sourcebox->id(),
                         [&] (const SlotModel& source, SlotModel& target)
                         {
-                            for(const auto& pvm : source.processViewModels())
+                            for(const auto& pvm : source.layerModels())
                             {
                                 // We can safely reuse the same id since it's in a different slot.
                                 ProcessModel* proc = processPairs[&pvm->sharedProcessModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
-                                target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
+                                target.addLayerModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                             }
                         },
                         &constraint};

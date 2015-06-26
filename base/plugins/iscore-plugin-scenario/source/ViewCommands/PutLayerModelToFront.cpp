@@ -1,16 +1,16 @@
-#include "PutProcessViewModelToFront.hpp"
+#include "PutLayerModelToFront.hpp"
 #include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
-PutProcessViewModelToFront::PutProcessViewModelToFront(
+PutLayerModelToFront::PutLayerModelToFront(
         ObjectPath&& slotPath,
-        const id_type<ProcessViewModel>& pid):
+        const id_type<LayerModel>& pid):
     m_slotPath{std::move(slotPath)},
     m_pid{pid}
 {
 
 }
 
-void PutProcessViewModelToFront::redo()
+void PutLayerModelToFront::redo()
 {
     m_slotPath.find<SlotModel>().putToFront(m_pid);
 }

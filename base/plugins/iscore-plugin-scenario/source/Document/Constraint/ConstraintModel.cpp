@@ -7,7 +7,7 @@
 #include "Document/Event/EventModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
-#include "ProcessInterface/ProcessViewModel.hpp"
+#include "ProcessInterface/LayerModel.hpp"
 ConstraintModel::ConstraintModel(
         const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullViewId,
@@ -62,12 +62,12 @@ ConstraintModel::ConstraintModel(
                    box->id(),
         [&] (const SlotModel& source, SlotModel& target)
         {
-                   for(auto& pvm : source.processViewModels())
+                   for(auto& pvm : source.layerModels())
                    {
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&pvm->sharedProcessModel()];
                        // TODO harmonize the order of parameters (source first, then new id)
-                       target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
+                       target.addLayerModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
                    }
         }, this});
     }

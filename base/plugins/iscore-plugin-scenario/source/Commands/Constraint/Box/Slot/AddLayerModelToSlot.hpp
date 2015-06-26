@@ -3,24 +3,24 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessViewModel;
+class LayerModel;
 class ProcessModel;
 namespace Scenario
 {
     namespace Command
     {
         /**
-         * @brief The AddProcessViewToSlot class
+         * @brief The AddLayerToSlot class
          *
          * Adds a process view to a slot.
          */
-        class AddProcessViewModelToSlot : public iscore::SerializableCommand
+        class AddLayerModelToSlot : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessViewModelToSlot, "ScenarioControl")
-                AddProcessViewModelToSlot(ObjectPath&& slot, ObjectPath&& process);
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerModelToSlot, "ScenarioControl")
+                AddLayerModelToSlot(ObjectPath&& slot, ObjectPath&& process);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -35,7 +35,7 @@ namespace Scenario
 
                 QByteArray m_processData;
 
-                id_type<ProcessViewModel> m_createdProcessViewId {};
+                id_type<LayerModel> m_createdLayerId {};
         };
     }
 }
