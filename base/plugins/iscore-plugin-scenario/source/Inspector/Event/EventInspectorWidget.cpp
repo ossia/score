@@ -360,6 +360,7 @@ void EventInspectorWidget::on_addAddressClicked()
     auto split = txt.split(" ");
 
     // TODO Wrong : we should have a Message validator instead.
+    // Or better, open a dialog to craft the Message by hand with different fields.
     if(iscore::Address::validateString(split.first()))
     {
         iscore::Message m;

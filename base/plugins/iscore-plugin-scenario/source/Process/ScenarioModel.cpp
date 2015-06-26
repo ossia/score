@@ -47,7 +47,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
     m_endEventId = source.m_endEventId;
 }
 
-ProcessModel* ScenarioModel::clone(
+ScenarioModel* ScenarioModel::clone(
         const id_type<ProcessModel>& newId,
         QObject* newParent)
 {
