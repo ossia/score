@@ -1,0 +1,40 @@
+#pragma once
+#include <QGraphicsObject>
+
+class SlotPresenter;
+class SlotOverlay;
+class SlotHandle;
+
+class SlotView : public QGraphicsObject
+{
+        Q_OBJECT
+
+    public:
+        const SlotPresenter& presenter;
+
+        SlotView(const SlotPresenter&pres, QGraphicsObject* parent);
+        virtual ~SlotView() = default;
+
+        virtual QRectF boundingRect() const override;
+        virtual void paint(QPainter* painter,
+                           const QStyleOptionGraphicsItem* option,
+                           QWidget* widget) override;
+
+        void setHeight(qreal height);
+        qreal height() const;
+
+        void setWidth(qreal width);
+        qreal width() const;
+
+        void enable();
+        void disable();
+
+        void setFocus(bool b);
+
+    private:
+        qreal m_height {};
+        qreal m_width {};
+        SlotOverlay* m_overlay{};
+        SlotHandle* m_handle{};
+        bool m_focus{false};
+};
