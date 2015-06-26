@@ -12,7 +12,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     m_stream << scenario.m_endEventId;
 
     // Constraints
-    auto constraints = scenario.constraints();
+    const auto& constraints = scenario.constraints();
     m_stream << (int) constraints.size();
 
     for(const auto& constraint : constraints)
@@ -21,7 +21,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     }
 
     // Events
-    auto events = scenario.events();
+    const auto& events = scenario.events();
     m_stream << (int) events.size();
 
     for(const auto& event : events)
@@ -30,7 +30,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     }
 
     // Timenodes
-    auto timenodes = scenario.timeNodes();
+    const auto& timenodes = scenario.timeNodes();
     m_stream << (int) timenodes.size();
 
     for(const auto& timenode : timenodes)

@@ -1,25 +1,25 @@
 #include "ChangeGroup.hpp"
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Event/EventModel.hpp"
-
+#include <boost/range/algorithm/find_if.hpp>
 GroupMetadata* getGroupMetadata(QObject* obj)
 {
-    using namespace std;
+    using namespace boost::range;
     if(auto cstr = dynamic_cast<ConstraintModel*>(obj))
     {
         auto& plugs = cstr->pluginModelList.list();
-        auto plug_it = std::find_if(begin(plugs), end(plugs), [] (iscore::ElementPluginModel* elt)
+        auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
-        Q_ASSERT(plug_it != end(plugs));
+        Q_ASSERT(plug_it != plugs.end());
 
         return static_cast<GroupMetadata*>(*plug_it);
     }
     else if(auto ev = dynamic_cast<EventModel*>(obj))
     {
         auto& plugs = ev->pluginModelList.list();
-        auto plug_it = std::find_if(begin(plugs), end(plugs), [] (iscore::ElementPluginModel* elt)
+        auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
-        Q_ASSERT(plug_it != end(plugs));
+        Q_ASSERT(plug_it != plugs.end());
 
         return static_cast<GroupMetadata*>(*plug_it);
     }

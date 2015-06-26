@@ -187,12 +187,10 @@ void EventPresenter::constraintsChangedHelper(
     connections.clear();
 
     auto scenar = m_model.parentScenario();
-    auto constraints = scenar->constraints();
+    const auto& constraints = scenar->constraints();
     for(const auto& constraint : ids)
     {
-        auto constraint_it = std::find(constraints.begin(),
-                                       constraints.end(),
-                                       constraint);
+        auto constraint_it = constraints.find(constraint);
         if(constraint_it == constraints.end())
         {
             // We're constructing something
