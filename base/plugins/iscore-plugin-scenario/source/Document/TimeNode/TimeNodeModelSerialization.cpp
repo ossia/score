@@ -7,13 +7,13 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
     readFrom(static_cast<const IdentifiedObject<TimeNodeModel>&>(timenode));
 
     readFrom(timenode.metadata);
+    readFrom(timenode.pluginModelList);
 
     m_stream << timenode.m_date
              << timenode.m_y
              << timenode.m_events
              << timenode.m_eventHasPreviousConstraint;
 
-    readFrom(timenode.pluginModelList);
 
     insertDelimiter();
 }
@@ -22,13 +22,13 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
 {
     writeTo(timenode.metadata);
+    timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
 
     m_stream >> timenode.m_date
              >> timenode.m_y
              >> timenode.m_events
              >> timenode.m_eventHasPreviousConstraint;
 
-    timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
 
     checkDelimiter();
 }

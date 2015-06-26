@@ -1,12 +1,15 @@
 #pragma once
 #include <ProcessInterface/TimeValue.hpp>
+#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
+#include <ProcessInterface/ExpandMode.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
-
-#include <ProcessInterface/ExpandMode.hpp>
+#include <iscore/selection/Selection.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+class DataStream;
+class JSONObject;
 
 class LayerModel;
 /**
@@ -17,6 +20,11 @@ class LayerModel;
 class ProcessModel: public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
+        friend void Visitor<Reader<DataStream>>::readFrom<ProcessModel> (const ProcessModel&);
+        friend void Visitor<Writer<DataStream>>::writeTo<ProcessModel> (ProcessModel&);
+        friend void Visitor<Reader<JSONObject>>::readFrom<ProcessModel> (const ProcessModel&);
+        friend void Visitor<Writer<JSONObject>>::writeTo<ProcessModel> (ProcessModel&);
+
     public:
         iscore::ElementPluginModelList pluginModelList;
 
@@ -26,6 +34,13 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
                 const id_type<ProcessModel>& id,
                 const QString& name,
                 QObject* parent);
+
+        template<typename Impl>
+        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
+            IdentifiedObject {vis, parent}
+        {
+            vis.writeTo(*this);
+        }
 
         virtual ProcessModel* clone(
                 const id_type<ProcessModel>& newId,

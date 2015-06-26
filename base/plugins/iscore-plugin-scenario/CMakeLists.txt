@@ -21,6 +21,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 set(PROCESS_SRCS
+
+"${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/TimeValueSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/ProcessModelSerialization.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/Focus/FocusDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessFactory.cpp"
@@ -46,13 +50,11 @@ file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
 file(GLOB_RECURSE QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.qrc")
 
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/TimeValueSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModelSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/ProcessModelSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadataSerialization.cpp"
