@@ -55,7 +55,7 @@ class AddLayerModelToSlotTest: public QObject
             auto slotId = cmd_slot->m_createdSlotId;
             stack.redoAndPush(cmd_slot);
 
-            auto cmd_pvm = new AddLayerModelToSlot(
+            auto cmd_lm = new AddLayerModelToSlot(
             {
                 {"ConstraintModel", {0}},
                 {"BoxModel", boxId},
@@ -65,7 +65,7 @@ class AddLayerModelToSlotTest: public QObject
                 {"ConstraintModel", {0}},
                 {"ScenarioModel", procId}
             });
-            stack.redoAndPush(cmd_pvm);
+            stack.redoAndPush(cmd_lm);
 
             for(int i = 4; i -- > 0;)
             {

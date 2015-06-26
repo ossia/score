@@ -9,7 +9,7 @@ class ProcessPanelGraphicsProxy : public QGraphicsObject
         QBrush m_bgBrush;
 
     public:
-        ProcessPanelGraphicsProxy(const LayerModel& pvm, const ProcessPanelPresenter& pres);
+        ProcessPanelGraphicsProxy(const LayerModel& lm, const ProcessPanelPresenter& pres);
 
         QRectF boundingRect() const;
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);

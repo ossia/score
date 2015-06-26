@@ -52,10 +52,10 @@ class TemporalScenarioPanelProxy : public LayerModelPanelProxy
 {
     public:
         TemporalScenarioPanelProxy(
-                const TemporalScenarioViewModel& pvm,
+                const TemporalScenarioViewModel& lm,
                 QObject* parent):
             LayerModelPanelProxy{parent},
-            m_viewModel{pvm}
+            m_viewModel{lm}
         {
 
         }

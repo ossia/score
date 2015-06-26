@@ -18,8 +18,8 @@ namespace Scenario
         // Note : there cannot be two Process View Models of the same Process in the same Slot.
         // It is up to the user of this Command to prevent this.
         //
-        // For instance, a message could be displayed saying that the PVM cannot be copied
-        // as long as there is another pvm for the same process in the other slot (same for the merging of slots).
+        // For instance, a message could be displayed saying that the LM cannot be copied
+        // as long as there is another lm for the same process in the other slot (same for the merging of slots).
         ///
         class CopyLayerModel : public iscore::SerializableCommand
         {
@@ -27,7 +27,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_COMMAND_DEFAULT_CTOR(CopyLayerModel, "ScenarioControl")
-                CopyLayerModel(ObjectPath&& pvmToCopy,
+                CopyLayerModel(ObjectPath&& lmToCopy,
                                      ObjectPath&& targetSlot);
 
                 virtual void undo() override;
@@ -38,7 +38,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_pvmPath;
+                ObjectPath m_lmPath;
                 ObjectPath m_targetSlotPath;
 
                 id_type<LayerModel> m_newLayerModelId;

@@ -28,10 +28,10 @@ void RemoveLayerModelFromSlot::undo()
     auto& slot = m_path.find<SlotModel>();
     Deserializer<DataStream> s {m_serializedLayerData};
 
-    auto pvm = createLayerModel(s,
+    auto lm = createLayerModel(s,
                                       slot.parentConstraint(),
                                       &slot);
-    slot.addLayerModel(pvm);
+    slot.addLayerModel(lm);
 }
 
 void RemoveLayerModelFromSlot::redo()

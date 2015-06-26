@@ -57,10 +57,10 @@ void RemoveProcessFromConstraint::undo()
                 ->slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
-        auto pvm = createLayerModel(s,
+        auto lm = createLayerModel(s,
                                           slot->parentConstraint(),
                                           slot);
-        slot->addLayerModel(pvm);
+        slot->addLayerModel(lm);
     }
 }
 

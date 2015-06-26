@@ -92,23 +92,23 @@ LayerModel* AutomationModel::loadViewModel_impl(
 /////// ViewModel
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const AutomationViewModel& pvm)
+void Visitor<Reader<DataStream>>::readFrom(const AutomationViewModel& lm)
 {
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(AutomationViewModel& pvm)
+void Visitor<Writer<DataStream>>::writeTo(AutomationViewModel& lm)
 {
 }
 
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const AutomationViewModel& pvm)
+void Visitor<Reader<JSONObject>>::readFrom(const AutomationViewModel& lm)
 {
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(AutomationViewModel& pvm)
+void Visitor<Writer<JSONObject>>::writeTo(AutomationViewModel& lm)
 {
 }

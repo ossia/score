@@ -8,12 +8,12 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopyLayerModel::CopyLayerModel(ObjectPath&& pvmPath,
+CopyLayerModel::CopyLayerModel(ObjectPath&& lmPath,
         ObjectPath&& targetSlotPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_pvmPath {pvmPath},
+    m_lmPath {lmPath},
     m_targetSlotPath {targetSlotPath}
 {
     auto slot = m_targetSlotPath.find<SlotModel>();
@@ -28,23 +28,23 @@ void CopyLayerModel::undo()
 
 void CopyLayerModel::redo()
 {
-    auto sourcePVM = m_pvmPath.find<LayerModel>();
+    auto sourceLM = m_lmPath.find<LayerModel>();
     auto targetSlot = m_targetSlotPath.find<SlotModel>();
 
-    const auto& proc = sourcePVM->sharedProcessModel();
+    const auto& proc = sourceLM->sharedProcessModel();
     targetSlot->addLayerModel(
         proc.cloneViewModel(m_newLayerModelId,
-                            *sourcePVM,
+                            *sourceLM,
                             targetSlot));
 }
 
 void CopyLayerModel::serializeImpl(QDataStream& s) const
 {
-    s << m_pvmPath << m_targetSlotPath << m_newLayerModelId;
+    s << m_lmPath << m_targetSlotPath << m_newLayerModelId;
 }
 
 void CopyLayerModel::deserializeImpl(QDataStream& s)
 {
-    s >> m_pvmPath >> m_targetSlotPath >> m_newLayerModelId;
+    s >> m_lmPath >> m_targetSlotPath >> m_newLayerModelId;
 }
 */

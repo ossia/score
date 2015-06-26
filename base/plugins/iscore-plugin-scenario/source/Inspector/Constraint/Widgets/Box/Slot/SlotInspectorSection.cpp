@@ -42,8 +42,8 @@ SlotInspectorSection::SlotInspectorSection(
     addContent(framewidg);
 
     // View model list
-    m_pvmSection = new InspectorSectionWidget{"Process View Models", this};
-    m_pvmSection->setObjectName("LayerModels");
+    m_lmSection = new InspectorSectionWidget{"Process View Models", this};
+    m_lmSection->setObjectName("LayerModels");
 
     connect(&m_model,	&SlotModel::layerModelCreated,
             this,		&SlotInspectorSection::on_layerModelCreated);
@@ -51,14 +51,14 @@ SlotInspectorSection::SlotInspectorSection(
     connect(&m_model,	&SlotModel::layerModelRemoved,
             this,		&SlotInspectorSection::on_layerModelRemoved);
 
-    for(const auto& pvm : m_model.layerModels())
+    for(const auto& lm : m_model.layerModels())
     {
-        displayLayerModel(*pvm);
+        displayLayerModel(*lm);
     }
 
-    m_addPvmWidget = new AddLayerModelWidget{this};
-    lay->addWidget(m_pvmSection);
-    lay->addWidget(m_addPvmWidget);
+    m_addLmWidget = new AddLayerModelWidget{this};
+    lay->addWidget(m_lmSection);
+    lay->addWidget(m_addLmWidget);
 
 
     // Delete button
@@ -82,9 +82,9 @@ void SlotInspectorSection::createLayerModel(
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void SlotInspectorSection::displayLayerModel(const LayerModel& pvm)
+void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
 {
-    auto pvm_id = pvm.id();
+    auto lm_id = lm.id();
 
     // Layout
     auto frame = new QFrame;
@@ -94,15 +94,15 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& pvm)
     frame->setLayout(lay);
     frame->setFrameShape(QFrame::StyledPanel);
 
-    // PVM label
-    lay->addWidget(new QLabel {QString{"ViewModel.%1"} .arg(*pvm_id.val()) }, 0, 0);
+    // LM label
+    lay->addWidget(new QLabel {QString{"ViewModel.%1"} .arg(*lm_id.val()) }, 0, 0);
 
     // To front button
     auto pb = new QPushButton {tr("Front")};
 
     connect(pb, &QPushButton::clicked,
             [=]() {
-        PutLayerModelToFront cmd(iscore::IDocument::path(m_model), pvm_id);
+        PutLayerModelToFront cmd(iscore::IDocument::path(m_model), lm_id);
         cmd.redo();
     });
     lay->addWidget(pb, 1, 0);
@@ -111,33 +111,33 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& pvm)
     auto deleteButton = new QPushButton{{tr("Delete")}};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveLayerModelFromSlot{iscore::IDocument::path(m_model), pvm_id};
+        auto cmd = new RemoveLayerModelFromSlot{iscore::IDocument::path(m_model), lm_id};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);
 
 
-    m_pvmSection->addContent(frame);
+    m_lmSection->addContent(frame);
 }
 
 
 void SlotInspectorSection::on_layerModelCreated(
-        const id_type<LayerModel>& pvmId)
+        const id_type<LayerModel>& lmId)
 {
-    displayLayerModel(m_model.layerModel(pvmId));
+    displayLayerModel(m_model.layerModel(lmId));
 }
 
 void SlotInspectorSection::on_layerModelRemoved(
-        const id_type<LayerModel>& pvmId)
+        const id_type<LayerModel>& lmId)
 {
     qDebug() << Q_FUNC_INFO << "TODO";
 
-    m_pvmSection->removeAll();
-    for (auto& pvm : m_model.layerModels())
+    m_lmSection->removeAll();
+    for (auto& lm : m_model.layerModels())
     {
-        if (pvm->id() != pvmId)
+        if (lm->id() != lmId)
         {
-            displayLayerModel(*pvm);
+            displayLayerModel(*lm);
         }
     }
 }

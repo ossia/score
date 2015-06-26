@@ -30,7 +30,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
                   BoxModel* parent);
 
         // Copy
-        SlotModel(std::function<void(const SlotModel&, SlotModel&)> pvmCopyMethod,
+        SlotModel(std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                   const SlotModel& source,
                   const id_type<SlotModel>& id,
                   BoxModel* parent);
@@ -94,8 +94,8 @@ class SlotModel : public IdentifiedObject<SlotModel>
 
 /**
  * @brief parentConstraint Utility function to get the parent constraint of a process view model
- * @param pvm Process view model pointer
+ * @param lm Process view model pointer
  *
  * @return A pointer to the parent constraint if there is one, or nullptr.
  */
-ConstraintModel* parentConstraint(LayerModel* pvm);
+ConstraintModel* parentConstraint(LayerModel* lm);

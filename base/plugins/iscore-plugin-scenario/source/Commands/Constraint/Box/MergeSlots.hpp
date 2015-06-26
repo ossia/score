@@ -13,7 +13,7 @@ namespace Scenario
         // @brief The MergeSlots class
         //
         // Merges a Slot into another.
-        // This moves all the PVMs of the first slot, the source, into the second, the target,
+        // This moves all the LMs of the first slot, the source, into the second, the target,
         // and deletes the source.
         //
         class MergeSlots : public iscore::AggregateCommand
@@ -34,9 +34,9 @@ namespace Scenario
                 {
                     auto sourceslot = mergeSource.find<SlotModel>();
 
-                    for(LayerModel* pvm : sourceslot->layerModels())
+                    for(LayerModel* lm : sourceslot->layerModels())
                     {
-                        addCommand(new MoveLayerModel(iscore::IDocument::path(pvm),
+                        addCommand(new MoveLayerModel(iscore::IDocument::path(lm),
                         ObjectPath {mergeTarget}));
                     }
 

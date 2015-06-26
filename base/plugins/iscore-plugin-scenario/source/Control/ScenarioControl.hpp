@@ -51,6 +51,6 @@ class ScenarioControl : public iscore::PluginControlInterface
         TemporalScenarioPresenter* focusedPresenter() const;
 
         ProcessFocusManager* processFocusManager() const;
-        void on_presenterFocused(ProcessPresenter* pvm);
-        void on_presenterDefocused(ProcessPresenter* pvm);
+        void on_presenterFocused(ProcessPresenter* lm);
+        void on_presenterDefocused(ProcessPresenter* lm);
 };

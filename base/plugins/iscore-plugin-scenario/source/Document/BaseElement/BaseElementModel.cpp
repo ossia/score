@@ -125,11 +125,11 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 }
 
 namespace {
-void updateSlotFocus(const LayerModel* pvm, bool b)
+void updateSlotFocus(const LayerModel* lm, bool b)
 {
-    if(pvm && pvm->parent())
+    if(lm && lm->parent())
     {
-        if(auto slot = dynamic_cast<SlotModel*>(pvm->parent()))
+        if(auto slot = dynamic_cast<SlotModel*>(lm->parent()))
         {
             slot->setFocus(b);
         }

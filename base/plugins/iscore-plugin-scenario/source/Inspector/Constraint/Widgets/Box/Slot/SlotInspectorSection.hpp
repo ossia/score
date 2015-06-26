@@ -33,7 +33,7 @@ class SlotInspectorSection : public InspectorSectionWidget
         const SlotModel& m_model;
 
         ConstraintInspectorWidget* m_parent{};
-        InspectorSectionWidget* m_pvmSection {};
-        AddLayerModelWidget* m_addPvmWidget {};
-        //std::vector<InspectorSectionWidget*> m_pvmsSectionWidgets;
+        InspectorSectionWidget* m_lmSection {};
+        AddLayerModelWidget* m_addLmWidget {};
+        //std::vector<InspectorSectionWidget*> m_lmsSectionWidgets;
 };

@@ -29,13 +29,13 @@ SerializedConstraintViewModels serializeConstraintViewModels(
         const auto& cstrVM = viewModel->constraint(constraint.id());
         if(const auto& temporalCstrVM = dynamic_cast<const TemporalConstraintViewModel*>(&cstrVM))
         {
-            auto pvm_id = iscore::IDocument::path(viewModel);
+            auto lm_id = iscore::IDocument::path(viewModel);
 
             QByteArray arr;
             Serializer<DataStream> cvmReader{&arr};
             cvmReader.readFrom(*temporalCstrVM);
 
-            map.append({pvm_id, {"Temporal", arr}});
+            map.append({lm_id, {"Temporal", arr}});
         }
         else
         {

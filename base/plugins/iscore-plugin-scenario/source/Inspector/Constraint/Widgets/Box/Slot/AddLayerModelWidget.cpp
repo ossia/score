@@ -45,9 +45,9 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
         {
             auto it = std::find_if(std::begin(already_displayed_processes),
                                    std::end(already_displayed_processes),
-                                   [&process](LayerModel * pvm)
+                                   [&process](LayerModel * lm)
             {
-                    return pvm->sharedProcessModel().id() == process->id();
+                    return lm->sharedProcessModel().id() == process->id();
         });
 
             if(it == std::end(already_displayed_processes))

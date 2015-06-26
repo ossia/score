@@ -80,12 +80,12 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
     // Creation of all the constraint view models
     for(auto& viewModel : viewModels(scenario))
     {
-        auto pvm_id = iscore::IDocument::path(viewModel);
+        auto lm_id = iscore::IDocument::path(viewModel);
 
-        if(idMap.contains(pvm_id))
+        if(idMap.contains(lm_id))
         {
             viewModel->makeConstraintViewModel(constraintId,
-                                               idMap[pvm_id]);
+                                               idMap[lm_id]);
         }
         else
         {

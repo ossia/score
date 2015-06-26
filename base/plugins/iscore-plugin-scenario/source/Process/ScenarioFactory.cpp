@@ -22,11 +22,11 @@ Layer* ScenarioFactory::makeView(
 
 ProcessPresenter*
 ScenarioFactory::makePresenter(
-        const LayerModel& pvm,
+        const LayerModel& lm,
         Layer* view,
         QObject* parent)
 {
-    if(auto vm = dynamic_cast<const TemporalScenarioViewModel*>(&pvm))
+    if(auto vm = dynamic_cast<const TemporalScenarioViewModel*>(&lm))
     {
         auto pres = new TemporalScenarioPresenter {*vm, view, parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);

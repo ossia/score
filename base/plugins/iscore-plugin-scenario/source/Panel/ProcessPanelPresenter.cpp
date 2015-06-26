@@ -57,11 +57,11 @@ void ProcessPanelPresenter::on_modelChanged()
     on_focusedViewModelChanged(bem->focusManager().focusedViewModel());
 }
 
-void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* thePVM)
+void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
 {
-    if(thePVM != m_layerModel)
+    if(theLM != m_layerModel)
     {
-        m_layerModel = thePVM;
+        m_layerModel = theLM;
         delete m_processPresenter;
         m_processPresenter = nullptr;
 
@@ -74,7 +74,7 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* thePVM)
         auto proxy = m_layerModel->make_panelProxy(this);
 
         delete m_obj;
-        m_obj = new ProcessPanelGraphicsProxy{*thePVM, *this};
+        m_obj = new ProcessPanelGraphicsProxy{*theLM, *this};
         // Add the items to the scene early because
         // the presenters might call scene() in their ctor.
         auto panelview = static_cast<ProcessPanelView*>(view());

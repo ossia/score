@@ -116,12 +116,12 @@ void CopyConstraintContent::redo()
                 m_boxIds[sourcebox->id()],
                 [&] (const SlotModel& source, SlotModel& target)
                 {
-                    for(const auto& pvm : source.layerModels())
+                    for(const auto& lm : source.layerModels())
                     {
                         // We can safely reuse the same id since it's in a different slot.
-                        auto proc = processPairs[&pvm->sharedProcessModel()];
+                        auto proc = processPairs[&lm->sharedProcessModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
-                        target.addLayerModel(proc->cloneViewModel(pvm->id(), *pvm, &target));
+                        target.addLayerModel(proc->cloneViewModel(lm->id(), *lm, &target));
                     }
                 },
                 &trg_constraint};

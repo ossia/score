@@ -14,7 +14,7 @@ SlotModel::SlotModel(
 }
 
 SlotModel::SlotModel(
-        std::function<void(const SlotModel&, SlotModel&)> pvmCopyMethod,
+        std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
         const SlotModel& source,
         const id_type<SlotModel>& id,
         BoxModel *parent):
@@ -22,20 +22,20 @@ SlotModel::SlotModel(
     m_frontLayerModelId {source.frontLayerModel() }, // Keep the same id.
     m_height {source.height() }
 {
-    pvmCopyMethod(source, *this);
+    lmCopyMethod(source, *this);
 }
 
 void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
-    for(LayerModel* pvm : source.layerModels())
+    for(LayerModel* lm : source.layerModels())
     {
         // We can safely reuse the same id since it's in a different slot.
-        auto& proc = pvm->sharedProcessModel();
+        auto& proc = lm->sharedProcessModel();
         target.addLayerModel(
-                    proc.cloneViewModel(pvm->id(),
-                                        *pvm,
+                    proc.cloneViewModel(lm->id(),
+                                        *lm,
                                         &target));
     }
 }
@@ -52,7 +52,7 @@ void SlotModel::addLayerModel(LayerModel* viewmodel)
 void SlotModel::deleteLayerModel(
         const id_type<LayerModel>& layerId)
 {
-    auto& pvm = layerModel(layerId);
+    auto& lm = layerModel(layerId);
     m_layerModels.remove(layerId);
 
     emit layerModelRemoved(layerId);
@@ -67,7 +67,7 @@ void SlotModel::deleteLayerModel(
         m_frontLayerModelId.setVal({});
     }
 
-    delete &pvm;
+    delete &lm;
 }
 
 void SlotModel::putToFront(
@@ -100,9 +100,9 @@ void SlotModel::on_deleteSharedProcessModel(
     using namespace std;
     auto it = find_if(begin(m_layerModels),
                       end(m_layerModels),
-                      [&sharedProcessId](const LayerModel * pvm)
+                      [&sharedProcessId](const LayerModel * lm)
     {
-        return pvm->sharedProcessModel().id() == sharedProcessId;
+        return lm->sharedProcessModel().id() == sharedProcessId;
     });
 
     if(it != end(m_layerModels))

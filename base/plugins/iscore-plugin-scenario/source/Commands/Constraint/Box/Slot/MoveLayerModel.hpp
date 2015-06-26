@@ -23,17 +23,17 @@ namespace Scenario
                                      commandName(),
                                      description()} { }
 
-                MoveLayerModel(const ObjectPath& pvmToMove,
+                MoveLayerModel(const ObjectPath& lmToMove,
                                      ObjectPath&& targetSlot) :
                     AggregateCommand{"ScenarioControl",
                                      "MoveLayerModel",
                                      QObject::tr("Move a process view model"),
-                                     new CopyLayerModel{ObjectPath{pvmToMove}, std::move(targetSlot) }}
+                                     new CopyLayerModel{ObjectPath{lmToMove}, std::move(targetSlot) }}
         {
             auto cmd = new RemoveLayerModelFromSlot{
-                    ObjectPath{pvmToMove},
+                    ObjectPath{lmToMove},
                     id_type<LayerModel>(
-                        ObjectIdentifierVector(pvmToMove.vec()).takeLast().id())};
+                        ObjectIdentifierVector(lmToMove.vec()).takeLast().id())};
             addCommand(cmd);
 
 

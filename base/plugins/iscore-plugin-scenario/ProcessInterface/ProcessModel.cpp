@@ -18,10 +18,10 @@ LayerModel*ProcessModel::makeViewModel(
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto pvm = makeViewModel_impl(viewModelId, constructionData, parent);
-    addViewModel(pvm);
+    auto lm = makeViewModel_impl(viewModelId, constructionData, parent);
+    addViewModel(lm);
 
-    return pvm;
+    return lm;
 }
 
 
@@ -29,10 +29,10 @@ LayerModel*ProcessModel::loadViewModel(
         const VisitorVariant& v,
         QObject* parent)
 {
-    auto pvm = loadViewModel_impl(v, parent);
-    addViewModel(pvm);
+    auto lm = loadViewModel_impl(v, parent);
+    addViewModel(lm);
 
-    return pvm;
+    return lm;
 }
 
 LayerModel*ProcessModel::cloneViewModel(
@@ -40,10 +40,10 @@ LayerModel*ProcessModel::cloneViewModel(
         const LayerModel& source,
         QObject* parent)
 {
-    auto pvm = cloneViewModel_impl(newId, source, parent);
-    addViewModel(pvm);
+    auto lm = cloneViewModel_impl(newId, source, parent);
+    addViewModel(lm);
 
-    return pvm;
+    return lm;
 }
 
 

@@ -4,9 +4,9 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& pvm)
+void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& lm)
 {
-    auto constraints = constraintsViewModels(pvm);
+    auto constraints = constraintsViewModels(lm);
 
     m_stream << constraints.size();
 
@@ -19,15 +19,15 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& pvm)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& pvm)
+void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& lm)
 {
     int count;
     m_stream >> count;
 
     for(; count -- > 0;)
     {
-        auto cstr = loadConstraintViewModel(*this, &pvm);
-        pvm.addConstraintViewModel(cstr);
+        auto cstr = loadConstraintViewModel(*this, &lm);
+        lm.addConstraintViewModel(cstr);
     }
 
     checkDelimiter();
@@ -36,11 +36,11 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& pvm)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioViewModel& pvm)
+void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioViewModel& lm)
 {
     QJsonArray arr;
 
-    for(auto cstrvm : constraintsViewModels(pvm))
+    for(auto cstrvm : constraintsViewModels(lm))
     {
         arr.push_back(toJsonObject(*cstrvm));
     }
@@ -49,7 +49,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioViewModel& pvm)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& pvm)
+void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& lm)
 {
     QJsonArray arr = m_obj["Constraints"].toArray();
 
@@ -57,8 +57,8 @@ void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& pvm)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
         auto cstrvm = loadConstraintViewModel(deserializer,
-                                                &pvm);
-        pvm.addConstraintViewModel(cstrvm);
+                                                &lm);
+        lm.addConstraintViewModel(cstrvm);
     }
 }
 

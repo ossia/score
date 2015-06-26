@@ -12,14 +12,14 @@ BoxModel::BoxModel(const id_type<BoxModel>& id, QObject* parent) :
 
 BoxModel::BoxModel(const BoxModel& source,
                    const id_type<BoxModel>& id,
-                   std::function<void(const SlotModel&, SlotModel&)> pvmCopyMethod,
+                   std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
     metadata = source.metadata;
     for(auto& slot : source.m_slots)
     {
-        addSlot(new SlotModel{pvmCopyMethod, *slot, slot->id(), this},
+        addSlot(new SlotModel{lmCopyMethod, *slot, slot->id(), this},
                 source.slotPosition(slot->id()));
     }
 }

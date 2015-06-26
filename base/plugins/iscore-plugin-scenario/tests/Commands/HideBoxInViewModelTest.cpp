@@ -69,7 +69,7 @@ class HideBoxInViewModelTest: public QObject
             auto slotId = cmd_slot->m_createdSlotId;
             stack.redoAndPush(cmd_slot);
 
-            auto cmd_pvm = new AddLayerModelToSlot(
+            auto cmd_lm = new AddLayerModelToSlot(
             {
                 {"ConstraintModel", {}},
                 {"BoxModel", boxId},
@@ -79,7 +79,7 @@ class HideBoxInViewModelTest: public QObject
                 {"ConstraintModel", {}},
                 {"ScenarioModel", scenarioId}
             });
-            stack.redoAndPush(cmd_pvm);
+            stack.redoAndPush(cmd_lm);
 
             auto viewmodel = constraint->boxes().front()->getSlots().front()->layerModels().front();
             auto scenario_viewmodel = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
