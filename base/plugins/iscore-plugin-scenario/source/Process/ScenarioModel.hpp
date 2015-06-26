@@ -23,6 +23,7 @@ class EventModel;
 class AbstractScenarioViewModel;
 class AbstractConstraintViewModel;
 
+class OSSIAScenarioImpl;
 /**
  * @brief The ScenarioModel class
  *
@@ -45,7 +46,7 @@ class ScenarioModel : public ProcessModel
         ScenarioModel(const TimeValue& duration,
                       const id_type<ProcessModel>& id,
                       QObject* parent);
-        ProcessModel* clone(
+        ScenarioModel* clone(
                 const id_type<ProcessModel>& newId,
                 QObject* newParent) override;
 

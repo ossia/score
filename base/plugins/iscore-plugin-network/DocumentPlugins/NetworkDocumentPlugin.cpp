@@ -11,6 +11,7 @@
 
 #include "DistributedScenario/GroupMetadataWidget.hpp"
 
+#include <iscore/serialization/VisitorCommon.hpp>
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
                                              iscore::DocumentModel *doc):
@@ -50,9 +51,10 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
             }
         }
     }
+
+    // TODO here we have to instantiate Network "OSSIA" policies, and replace the existing "OSSIA" policies..
 }
 
-#include <iscore/serialization/VisitorCommon.hpp>
 NetworkDocumentPlugin::NetworkDocumentPlugin(const VisitorVariant &loader,
                                              iscore::DocumentModel *doc):
     iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc}
