@@ -26,7 +26,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
                              const id_type<ProcessModel>& id,
                              QObject* parent) :
-    ProcessModel {source.duration(), id, "ScenarioModel", parent}
+    ProcessModel {source, id, "ScenarioModel", parent}
 {
     for(ConstraintModel* constraint : source.m_constraints)
     {

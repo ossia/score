@@ -19,8 +19,8 @@ AutomationModel::AutomationModel(
 
     auto s1 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
-    s1->setEnd({0.2, 1.});
-
+    s1->setEnd({1., 1.});
+/*
     auto s2 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(2), m_curve);
     s2->setStart({0.2, 0.9});
     s2->setEnd({0.4, 0.5});
@@ -38,24 +38,33 @@ AutomationModel::AutomationModel(
     auto s4 = new SinCurveSegmentModel(id_type<CurveSegmentModel>(4), m_curve);
     s4->setStart({0.7, 0.0});
     s4->setEnd({1.0, 1.});
-
+*/
     m_curve->addSegment(s1);
+    /*
     m_curve->addSegment(s2);
     m_curve->addSegment(s3);
     m_curve->addSegment(s4);
+    */
+}
+
+AutomationModel::AutomationModel(
+        const AutomationModel& source,
+        const id_type<ProcessModel>& id,
+        QObject* parent):
+    ProcessModel{source, id,  processName(), parent},
+    m_address(source.address()),
+    m_curve{source.curve().clone(source.curve().id(), this)},
+    m_min{source.min()},
+    m_max{source.max()}
+{
+
 }
 
 ProcessModel* AutomationModel::clone(
         const id_type<ProcessModel>& newId,
         QObject* newParent)
 {
-    auto autom = new AutomationModel {this->duration(), newId, newParent};
-    autom->setAddress(address());
-    autom->setMin(min());
-    autom->setMax(max());
-    autom->setCurve(m_curve->clone(m_curve->id(), autom));
-
-    return autom;
+    return new AutomationModel {*this, newId, newParent};
 }
 
 QString AutomationModel::processName() const
@@ -244,3 +253,4 @@ void AutomationModel::setMax(double arg)
     m_max = arg;
     emit maxChanged(arg);
 }
+

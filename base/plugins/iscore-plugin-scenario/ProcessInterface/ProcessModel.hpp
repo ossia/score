@@ -18,6 +18,8 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
     public:
+        iscore::ElementPluginModelList pluginModelList;
+
         using IdentifiedObject<ProcessModel>::IdentifiedObject;
         ProcessModel(
                 const TimeValue& duration,
@@ -100,6 +102,13 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
         virtual void serialize(const VisitorVariant& vis) const = 0;
 
     protected:
+        // Clone
+        ProcessModel(
+                const ProcessModel& other,
+                const id_type<ProcessModel>& id,
+                const QString& name,
+                QObject* parent);
+
         virtual LayerModel* makeLayer_impl(
                 const id_type<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
@@ -114,8 +123,6 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
 
     private:
-        iscore::ElementPluginModelList m_pluginModelList;
-
         void addLayer(LayerModel* m);
         void removeLayer(LayerModel* m);
 

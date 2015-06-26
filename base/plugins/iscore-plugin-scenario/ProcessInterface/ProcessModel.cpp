@@ -2,9 +2,25 @@
 #include "LayerModel.hpp"
 
 
-ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel>& id, const QString& name, QObject* parent):
+ProcessModel::ProcessModel(
+        const TimeValue& duration,
+        const id_type<ProcessModel>& id,
+        const QString& name,
+        QObject* parent):
     IdentifiedObject<ProcessModel>{id, name, parent},
     m_duration{duration}
+{
+
+}
+
+ProcessModel::ProcessModel(
+        const ProcessModel& source,
+        const id_type<ProcessModel>& id,
+        const QString& name,
+        QObject* parent):
+    IdentifiedObject<ProcessModel>{id, name, parent},
+    pluginModelList{source.pluginModelList, this},
+    m_duration{source.duration()}
 {
 
 }
@@ -85,7 +101,7 @@ void ProcessModel::setDuration(const TimeValue& other)
 }
 
 
-const TimeValue&ProcessModel::duration() const
+const TimeValue& ProcessModel::duration() const
 {
     return m_duration;
 }

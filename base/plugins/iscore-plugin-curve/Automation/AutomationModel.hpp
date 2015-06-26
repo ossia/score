@@ -93,6 +93,9 @@ class AutomationModel : public ProcessModel
         void setMax(double arg);
 
     protected:
+        AutomationModel(const AutomationModel& source,
+                        const id_type<ProcessModel>& id,
+                        QObject* parent);
         LayerModel* cloneLayer_impl(
                 const id_type<LayerModel>& newId,
                 const LayerModel& source,
