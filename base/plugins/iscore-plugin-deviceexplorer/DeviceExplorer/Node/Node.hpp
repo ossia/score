@@ -13,10 +13,10 @@ namespace iscore
 {
 class Node
 {
-        friend void Visitor<Reader<DataStream>>::readFrom<Node>(const Node& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<Node>(const Node& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<Node>(Node& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<Node>(Node& ev);
+        friend void Visitor<Reader<DataStream>>::readFrom<iscore::Node>(const iscore::Node& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<iscore::Node>(const iscore::Node& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<iscore::Node>(iscore::Node& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<iscore::Node>(iscore::Node& ev);
 
     public:
         Node() = default;
