@@ -10,7 +10,7 @@ EventModel::EventModel(
         double yPos,
         QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    m_pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_timeNode{timenode},
     m_heightPercentage{yPos}
 {
@@ -21,7 +21,7 @@ EventModel::EventModel(const EventModel& source,
                        const id_type<EventModel>& id,
                        QObject* parent) :
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    m_pluginModelList{source.m_pluginModelList, this},
+    pluginModelList{source.pluginModelList, this},
     m_timeNode{source.timeNode()},
     m_previousConstraints(source.previousConstraints()),
     m_nextConstraints(source.nextConstraints()),

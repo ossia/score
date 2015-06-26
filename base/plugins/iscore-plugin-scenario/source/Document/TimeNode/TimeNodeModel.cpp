@@ -10,7 +10,7 @@ TimeNodeModel::TimeNodeModel(
         double ypos,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
-    m_pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_date{date},
     m_y{ypos}
 {
@@ -22,7 +22,7 @@ TimeNodeModel::TimeNodeModel(const TimeNodeModel &source,
         const id_type<TimeNodeModel>& id,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
-    m_pluginModelList{source.m_pluginModelList, this},
+    pluginModelList{source.pluginModelList, this},
     m_date{source.date()},
     m_y{source.y()},
     m_events(source.m_events),

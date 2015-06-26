@@ -4,6 +4,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/selection/Selection.hpp>
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
+#include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 
 #include <ProcessInterface/ExpandMode.hpp>
 
@@ -113,6 +114,8 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
 
     private:
+        iscore::ElementPluginModelList m_pluginModelList;
+
         void addLayer(LayerModel* m);
         void removeLayer(LayerModel* m);
 

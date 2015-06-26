@@ -108,6 +108,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         Selectable selection;
         ModelMetadata metadata;
         ModelConsistency consistency;
+        iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName()
         { return QObject::tr("Constraint"); }
@@ -207,11 +208,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return m_rigidity;
         }
 
-        iscore::ElementPluginModelList& pluginModelList()
-        { return m_pluginModelList; }
-        const iscore::ElementPluginModelList& pluginModelList() const
-        { return m_pluginModelList; }
-
     signals:
         void processCreated(const QString& processName,
                             const id_type<ProcessModel>& processId);
@@ -250,8 +246,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void on_destroyedViewModel(QObject*);
 
     private:
-        iscore::ElementPluginModelList m_pluginModelList;
-
         IdContainer<RackModel> m_racks; // No content -> Phantom ?
         IdContainer<ProcessModel> m_processes;
 

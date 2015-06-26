@@ -14,7 +14,7 @@ ConstraintModel::ConstraintModel(
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    m_pluginModelList{iscore::IDocument::documentFromObject(parent), this},
+    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     setupConstraintViewModel(m_fullViewModel);
@@ -27,7 +27,7 @@ ConstraintModel::ConstraintModel(
         const id_type<ConstraintModel>& id,
         QObject* parent):
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    m_pluginModelList{source.m_pluginModelList, this}
+    pluginModelList{source.pluginModelList, this}
 {
     metadata = source.metadata;
 //    consistency = source.consistency; // TODO : no necessary because it should be compute

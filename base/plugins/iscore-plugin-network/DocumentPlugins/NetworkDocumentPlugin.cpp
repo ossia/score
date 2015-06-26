@@ -33,8 +33,8 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     {
         for(const auto& plugid : elementPlugins())
         {
-            if(constraint->pluginModelList().canAdd(plugid))
-                constraint->pluginModelList().add(
+            if(constraint->pluginModelList.canAdd(plugid))
+                constraint->pluginModelList.add(
                             makeElementPlugin(constraint,
                                               plugid,
                                               constraint));
@@ -46,9 +46,9 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     {
         for(const auto& plugid : elementPlugins())
         {
-            if(event->pluginModelList().canAdd(plugid))
+            if(event->pluginModelList.canAdd(plugid))
             {
-                event->pluginModelList().add(
+                event->pluginModelList.add(
                             makeElementPlugin(event,
                                               plugid,
                                               event));

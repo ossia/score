@@ -50,6 +50,7 @@ class EventModel : public IdentifiedObject<EventModel>
         /** Public properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
+        iscore::ElementPluginModelList pluginModelList; // TODO public everywhere.
 
         static QString prettyName();
 
@@ -103,10 +104,6 @@ class EventModel : public IdentifiedObject<EventModel>
         const QString& condition() const;
         const QString& trigger() const;
 
-
-        auto& pluginModelList() { return m_pluginModelList; }
-        const auto& pluginModelList() const { return m_pluginModelList; }
-
         bool hasPreviousConstraint()
         {
             return ! m_previousConstraints.empty();
@@ -131,7 +128,6 @@ class EventModel : public IdentifiedObject<EventModel>
         void triggerChanged(const QString& trigger);
 
     private:
-        iscore::ElementPluginModelList m_pluginModelList;
         id_type<TimeNodeModel> m_timeNode {};
 
         QVector<id_type<ConstraintModel>> m_previousConstraints;

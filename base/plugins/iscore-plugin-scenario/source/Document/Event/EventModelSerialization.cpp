@@ -20,7 +20,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
     m_stream << ev.states();
 
-    readFrom(ev.m_pluginModelList);
+    readFrom(ev.pluginModelList);
 
     insertDelimiter();
 }
@@ -55,7 +55,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
     m_stream >> states;
     ev.replaceStates(states);
 
-    ev.m_pluginModelList = iscore::ElementPluginModelList{*this, &ev};
+    ev.pluginModelList = iscore::ElementPluginModelList{*this, &ev};
 
     checkDelimiter();
 }
@@ -78,7 +78,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const EventModel& ev)
 
     m_obj["States"] = toJsonArray(ev.states());
 
-    m_obj["PluginsMetadata"] = toJsonValue(ev.m_pluginModelList);
+    m_obj["PluginsMetadata"] = toJsonValue(ev.pluginModelList);
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
@@ -103,5 +103,5 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
     ev.replaceStates(states);
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    ev.m_pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
+    ev.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
 }

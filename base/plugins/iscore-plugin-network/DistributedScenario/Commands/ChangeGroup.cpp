@@ -7,7 +7,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
     using namespace std;
     if(auto cstr = dynamic_cast<ConstraintModel*>(obj))
     {
-        auto& plugs = cstr->pluginModelList().list();
+        auto& plugs = cstr->pluginModelList.list();
         auto plug_it = std::find_if(begin(plugs), end(plugs), [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
         Q_ASSERT(plug_it != end(plugs));
@@ -16,7 +16,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
     }
     else if(auto ev = dynamic_cast<EventModel*>(obj))
     {
-        auto& plugs = ev->pluginModelList().list();
+        auto& plugs = ev->pluginModelList.list();
         auto plug_it = std::find_if(begin(plugs), end(plugs), [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
         Q_ASSERT(plug_it != end(plugs));

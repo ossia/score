@@ -24,6 +24,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         /** Properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
+        iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName()
         { return QObject::tr("Time Node"); }
@@ -66,9 +67,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         const QVector<id_type<EventModel>>& events() const;
         void setEvents(const QVector<id_type<EventModel>>& events);
 
-        auto& pluginModelList() { return m_pluginModelList; }
-        const auto& pluginModelList() const { return m_pluginModelList; }
-
         bool checkIfPreviousConstraint();
 
     public slots:
@@ -80,7 +78,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         void timeNodeValid(bool);
 
     private:
-        iscore::ElementPluginModelList m_pluginModelList;
         TimeValue m_date {std::chrono::seconds{0}};
         double m_y {0.0};
 
