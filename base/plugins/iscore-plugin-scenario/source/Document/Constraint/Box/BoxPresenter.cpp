@@ -3,9 +3,9 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
 #include "Document/Constraint/Box/BoxView.hpp"
-#include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
-#include "Document/Constraint/Box/Deck/DeckView.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotPresenter.hpp"
+#include "Document/Constraint/Box/Slot/SlotView.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <QGraphicsScene>
@@ -17,9 +17,9 @@ BoxPresenter::BoxPresenter(const BoxModel& model,
     m_model {model},
     m_view {view}
 {
-    for(const auto& deckModel : m_model.decks())
+    for(const auto& slotModel : m_model.getSlots())
     {
-        on_deckCreated_impl(*deckModel);
+        on_slotCreated_impl(*slotModel);
     }
 
     m_duration = m_model.constraint().defaultDuration();
@@ -27,12 +27,12 @@ BoxPresenter::BoxPresenter(const BoxModel& model,
 
     on_askUpdate();
 
-    connect(&m_model, &BoxModel::deckCreated,
-            this, &BoxPresenter::on_deckCreated);
-    connect(&m_model,&BoxModel::deckRemoved,
-            this, &BoxPresenter::on_deckRemoved);
-    connect(&m_model, &BoxModel::deckPositionsChanged,
-            this, &BoxPresenter::on_deckPositionsChanged);
+    connect(&m_model, &BoxModel::slotCreated,
+            this, &BoxPresenter::on_slotCreated);
+    connect(&m_model,&BoxModel::slotRemoved,
+            this, &BoxPresenter::on_slotRemoved);
+    connect(&m_model, &BoxModel::slotPositionsChanged,
+            this, &BoxPresenter::on_slotPositionsChanged);
 
     connect(&m_model, &BoxModel::on_durationChanged,
             this, &BoxPresenter::on_durationChanged);
@@ -63,11 +63,11 @@ const BoxView &BoxPresenter::view() const
 
 int BoxPresenter::height() const
 {
-    int totalHeight = 25; // No deck -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
+    int totalHeight = 25; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 
-    for(auto& deck : m_decks)
+    for(auto& slot : m_slots)
     {
-        totalHeight += deck->height() + 5;
+        totalHeight += slot->height() + 5;
     }
 
     return totalHeight;
@@ -82,9 +82,9 @@ void BoxPresenter::setWidth(int w)
 {
     m_view->setWidth(w);
 
-    for(const auto& deck : m_decks)
+    for(const auto& slot : m_slots)
     {
-        deck->setWidth(m_view->boundingRect().width());
+        slot->setWidth(m_view->boundingRect().width());
     }
 }
 
@@ -93,19 +93,19 @@ const id_type<BoxModel>& BoxPresenter::id() const
     return m_model.id();
 }
 
-void BoxPresenter::setDisabledDeckState()
+void BoxPresenter::setDisabledSlotState()
 {
-    for(const auto& deck : m_decks)
+    for(const auto& slot : m_slots)
     {
-        deck->disable();
+        slot->disable();
     }
 }
 
-void BoxPresenter::setEnabledDeckState()
+void BoxPresenter::setEnabledSlotState()
 {
-    for(const auto& deck : m_decks)
+    for(const auto& slot : m_slots)
     {
-        deck->enable();
+        slot->enable();
     }
 }
 
@@ -115,46 +115,46 @@ void BoxPresenter::on_durationChanged(const TimeValue& duration)
     on_askUpdate();
 }
 
-void BoxPresenter::on_deckCreated(const id_type<DeckModel>& deckId)
+void BoxPresenter::on_slotCreated(const id_type<SlotModel>& slotId)
 {
-    on_deckCreated_impl(*m_model.deck(deckId));
+    on_slotCreated_impl(*m_model.slot(slotId));
     on_askUpdate();
 }
 
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-void BoxPresenter::on_deckCreated_impl(const DeckModel& deckModel)
+void BoxPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 {
-    auto deckPres = new DeckPresenter {deckModel,
+    auto slotPres = new SlotPresenter {slotModel,
                                        m_view,
                                        this};
-    m_decks.insert(deckPres);
-    deckPres->on_zoomRatioChanged(m_zoomRatio);
+    m_slots.insert(slotPres);
+    slotPres->on_zoomRatioChanged(m_zoomRatio);
 
-    connect(deckPres, &DeckPresenter::askUpdate,
+    connect(slotPres, &SlotPresenter::askUpdate,
             this,     &BoxPresenter::on_askUpdate);
 
-    connect(deckPres, &DeckPresenter::pressed, this, &BoxPresenter::pressed);
-    connect(deckPres, &DeckPresenter::moved, this, &BoxPresenter::moved);
-    connect(deckPres, &DeckPresenter::released, this, &BoxPresenter::released);
+    connect(slotPres, &SlotPresenter::pressed, this, &BoxPresenter::pressed);
+    connect(slotPres, &SlotPresenter::moved, this, &BoxPresenter::moved);
+    connect(slotPres, &SlotPresenter::released, this, &BoxPresenter::released);
 
 
-    // Set the correct view for the deck graphically if we're in a scenario
+    // Set the correct view for the slot graphically if we're in a scenario
     auto scenario = dynamic_cast<TemporalScenarioPresenter*>(this->parent()->parent());
     if(!scenario)
         return;
 
-    if(scenario->stateMachine().tool() == Tool::MoveDeck)
+    if(scenario->stateMachine().tool() == Tool::MoveSlot)
     {
-        deckPres->disable();
+        slotPres->disable();
     }
 }
 
-void BoxPresenter::on_deckRemoved(const id_type<DeckModel>& deckId)
+void BoxPresenter::on_slotRemoved(const id_type<SlotModel>& slotId)
 {
-    auto deck = m_decks.at(deckId);
+    auto slot = m_slots.at(slotId);
 
-    delete deck;
-    m_decks.remove(deckId);
+    delete slot;
+    m_slots.remove(slotId);
 
     on_askUpdate();
 }
@@ -165,23 +165,23 @@ void BoxPresenter::updateShape()
     // Vertical shape
     m_view->setHeight(height());
 
-    // Set the decks position graphically in order.
-    int currentDeckY = 20;
+    // Set the slots position graphically in order.
+    int currentSlotY = 20;
 
-    for(auto& deckId : m_model.decksPositions())
+    for(auto& slotId : m_model.slotsPositions())
     {
-        auto deckPres = m_decks.at(deckId);
-        deckPres->setWidth(width());
-        deckPres->setVerticalPosition(currentDeckY);
-        currentDeckY += deckPres->height() + 5; // Separation between decks
+        auto slotPres = m_slots.at(slotId);
+        slotPres->setWidth(width());
+        slotPres->setVerticalPosition(currentSlotY);
+        currentSlotY += slotPres->height() + 5; // Separation between slots
     }
 
     // Horizontal shape
     setWidth(m_duration.toPixels(m_zoomRatio));
 
-    for(DeckPresenter* deck : m_decks)
+    for(SlotPresenter* slot : m_slots)
     {
-        deck->on_parentGeometryChanged();
+        slot->on_parentGeometryChanged();
     }
 }
 
@@ -197,16 +197,16 @@ void BoxPresenter::on_zoomRatioChanged(ZoomRatio val)
 
     on_askUpdate();
 
-    // We have to change the width of the decks aftewards
+    // We have to change the width of the slots aftewards
     // because their width depend on the box width
     // TODO this smells.
-    for(DeckPresenter* deck : m_decks)
+    for(SlotPresenter* slot : m_slots)
     {
-        deck->on_zoomRatioChanged(m_zoomRatio);
+        slot->on_zoomRatioChanged(m_zoomRatio);
     }
 }
 
-void BoxPresenter::on_deckPositionsChanged()
+void BoxPresenter::on_slotPositionsChanged()
 {
     updateShape();
 }

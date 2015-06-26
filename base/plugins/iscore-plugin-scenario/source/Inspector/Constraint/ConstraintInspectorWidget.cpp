@@ -8,9 +8,9 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddProcessViewInNewDeck.hpp"
+#include "Commands/Constraint/AddProcessViewInNewSlot.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
@@ -249,11 +249,11 @@ void ConstraintInspectorWidget::createBox()
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::createProcessViewInNewDeck(QString processName)
+void ConstraintInspectorWidget::createProcessViewInNewSlot(QString processName)
 {
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
-    auto cmd = new AddProcessViewInNewDeck(
+    auto cmd = new AddProcessViewInNewSlot(
         iscore::IDocument::path(model()),
         id_type<ProcessModel>(processName.toInt()));
 
@@ -329,8 +329,8 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
     m_processesSectionWidgets.push_back(newProc);
     m_processSection->addContent(newProc);
 
-    connect(processWidget,   SIGNAL(createViewInNewDeck(QString)),
-            this,   SLOT(createProcessViewInNewDeck(QString)));
+    connect(processWidget,   SIGNAL(createViewInNewSlot(QString)),
+            this,   SLOT(createProcessViewInNewSlot(QString)));
 }
 
 void ConstraintInspectorWidget::setupBox(BoxModel* box)

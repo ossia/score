@@ -7,7 +7,7 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 #include <iscore/tools/ObjectPath.hpp>
-#include <Document/Constraint/Box/Deck/DeckModel.hpp>
+#include <Document/Constraint/Box/Slot/SlotModel.hpp>
 #include <Process/Algorithms/StandardCreationPolicy.hpp>
 
 
@@ -21,7 +21,7 @@ class ConstraintModelTests: public QObject
 
     private slots:
 
-        void CreateDeckTest()
+        void CreateSlotTest()
         {
             ConstraintModel model {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
             auto content_id = getStrongId(model.boxes());
@@ -29,17 +29,17 @@ class ConstraintModelTests: public QObject
             auto box = model.box(content_id);
             QVERIFY(box != nullptr);
 
-            auto deck_id = getStrongId(box->decks());
-            box->addDeck(new DeckModel
+            auto slot_id = getStrongId(box->getSlots());
+            box->addSlot(new SlotModel
             {
-                deck_id,
+                slot_id,
                 box
             });
-            auto deck = box->deck(deck_id);
-            QVERIFY(deck != nullptr);
+            auto slot = box->slot(slot_id);
+            QVERIFY(slot != nullptr);
         }
 
-        void DeleteDeckTest()
+        void DeleteSlotTest()
         {
             /////
             {
@@ -48,13 +48,13 @@ class ConstraintModelTests: public QObject
                 model.createBox(content_id);
                 auto box = model.box(content_id);
 
-                auto deck_id = getStrongId(box->decks());
-                box->addDeck(new DeckModel
+                auto slot_id = getStrongId(box->getSlots());
+                box->addSlot(new SlotModel
                 {
-                    deck_id,
+                    slot_id,
                     box
                 });
-                box->removeDeck(deck_id);
+                box->removeSlot(slot_id);
                 model.removeBox(content_id);
             }
 
@@ -67,21 +67,21 @@ class ConstraintModelTests: public QObject
                 model.createBox(content_id);
                 auto box = model.box(content_id);
 
-                box->addDeck(new DeckModel
+                box->addSlot(new SlotModel
                 {
-                    getStrongId(box->decks()),
+                    getStrongId(box->getSlots()),
                     box
                 });
 
-                box->addDeck(new DeckModel
+                box->addSlot(new SlotModel
                 {
-                    getStrongId(box->decks()),
+                    getStrongId(box->getSlots()),
                     box
                 });
 
-                box->addDeck(new DeckModel
+                box->addSlot(new SlotModel
                 {
-                    getStrongId(box->decks()),
+                    getStrongId(box->getSlots()),
                     box
                 });
 

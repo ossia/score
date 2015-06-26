@@ -1,7 +1,7 @@
 #include "BoxModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Deck/DeckModel.hpp"
+#include "Slot/SlotModel.hpp"
 
 
 BoxModel::BoxModel(const id_type<BoxModel>& id, QObject* parent) :
@@ -12,15 +12,15 @@ BoxModel::BoxModel(const id_type<BoxModel>& id, QObject* parent) :
 
 BoxModel::BoxModel(const BoxModel& source,
                    const id_type<BoxModel>& id,
-                   std::function<void(const DeckModel&, DeckModel&)> pvmCopyMethod,
+                   std::function<void(const SlotModel&, SlotModel&)> pvmCopyMethod,
                    QObject *parent) :
     IdentifiedObject<BoxModel> {id, "BoxModel", parent}
 {
     metadata = source.metadata;
-    for(auto& deck : source.m_decks)
+    for(auto& slot : source.m_slots)
     {
-        addDeck(new DeckModel{pvmCopyMethod, *deck, deck->id(), this},
-                source.deckPosition(deck->id()));
+        addSlot(new SlotModel{pvmCopyMethod, *slot, slot->id(), this},
+                source.slotPosition(slot->id()));
     }
 }
 
@@ -31,45 +31,45 @@ ConstraintModel& BoxModel::constraint() const
     return static_cast<ConstraintModel&>(*this->parent());
 }
 
-void BoxModel::addDeck(DeckModel* deck, int position)
+void BoxModel::addSlot(SlotModel* slot, int position)
 {
     // Connection
     connect(this, &BoxModel::on_deleteSharedProcessModel,
-            deck, &DeckModel::on_deleteSharedProcessModel);
-    m_decks.insert(deck);
-    m_positions.insert(position, deck->id());
+            slot, &SlotModel::on_deleteSharedProcessModel);
+    m_slots.insert(slot);
+    m_positions.insert(position, slot->id());
 
-    emit deckCreated(deck->id());
-    emit deckPositionsChanged();
+    emit slotCreated(slot->id());
+    emit slotPositionsChanged();
 }
 
-void BoxModel::addDeck(DeckModel* m)
+void BoxModel::addSlot(SlotModel* m)
 {
-    addDeck(m, m_positions.size());
+    addSlot(m, m_positions.size());
 }
 
 
-void BoxModel::removeDeck(const id_type<DeckModel>& deckId)
+void BoxModel::removeSlot(const id_type<SlotModel>& slotId)
 {
-    auto removedDeck = deck(deckId);
+    auto removedSlot = slot(slotId);
 
-    // Make the remaining decks decrease their position.
-    m_positions.removeAll(deckId);
-    m_decks.remove(deckId);
+    // Make the remaining slots decrease their position.
+    m_positions.removeAll(slotId);
+    m_slots.remove(slotId);
 
-    emit deckRemoved(deckId);
-    emit deckPositionsChanged();
-    delete removedDeck;
+    emit slotRemoved(slotId);
+    emit slotPositionsChanged();
+    delete removedSlot;
 }
 
-void BoxModel::swapDecks(const id_type<DeckModel>& firstdeck,
-                         const id_type<DeckModel>& seconddeck)
+void BoxModel::swapSlots(const id_type<SlotModel>& firstslot,
+                         const id_type<SlotModel>& secondslot)
 {
-    m_positions.swap(m_positions.indexOf(firstdeck), m_positions.indexOf(seconddeck));
-    emit deckPositionsChanged();
+    m_positions.swap(m_positions.indexOf(firstslot), m_positions.indexOf(secondslot));
+    emit slotPositionsChanged();
 }
 
-DeckModel* BoxModel::deck(const id_type<DeckModel>& deckId) const
+SlotModel* BoxModel::slot(const id_type<SlotModel>& slotId) const
 {
-    return m_decks.at(deckId);
+    return m_slots.at(slotId);
 }

@@ -1,15 +1,15 @@
 #include "BoxInspectorSection.hpp"
 
-#include "AddDeckWidget.hpp"
-#include "Deck/DeckInspectorSection.hpp"
+#include "AddSlotWidget.hpp"
+#include "Slot/SlotInspectorSection.hpp"
 
 #include "Inspector/Constraint/ConstraintInspectorWidget.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
-#include "Commands/Constraint/Box/AddDeckToBox.hpp"
+#include "Commands/Constraint/Box/AddSlotToBox.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -33,24 +33,24 @@ BoxInspectorSection::BoxInspectorSection(QString name,
     framewidg->setFrameShape(QFrame::StyledPanel);
     addContent(framewidg);
 
-    // Decks
-    m_deckSection = new InspectorSectionWidget{"Decks", this};  // TODO Make a custom widget.
-    m_deckSection->setObjectName("Decks");
+    // Slots
+    m_slotSection = new InspectorSectionWidget{"Slots", this};  // TODO Make a custom widget.
+    m_slotSection->setObjectName("Slots");
 
-    connect(box,	&BoxModel::deckCreated,
-            this,	&BoxInspectorSection::on_deckCreated);
+    connect(box,	&BoxModel::slotCreated,
+            this,	&BoxInspectorSection::on_slotCreated);
 
-    connect(box,	&BoxModel::deckRemoved,
-            this,	&BoxInspectorSection::on_deckRemoved);
+    connect(box,	&BoxModel::slotRemoved,
+            this,	&BoxInspectorSection::on_slotRemoved);
 
-    for(auto& deck : m_model->decks())
+    for(auto& slot : m_model->getSlots())
     {
-        addDeckInspectorSection(deck);
+        addSlotInspectorSection(slot);
     }
 
-    m_deckWidget = new AddDeckWidget{this};
-    lay->addWidget(m_deckSection);
-    lay->addWidget(m_deckWidget);
+    m_slotWidget = new AddSlotWidget{this};
+    lay->addWidget(m_slotSection);
+    lay->addWidget(m_slotWidget);
 
     // Delete button
     auto deleteButton = new QPushButton{"Delete"};
@@ -62,38 +62,38 @@ BoxInspectorSection::BoxInspectorSection(QString name,
     lay->addWidget(deleteButton);
 }
 
-void BoxInspectorSection::createDeck()
+void BoxInspectorSection::createSlot()
 {
-    auto cmd = new AddDeckToBox(
+    auto cmd = new AddSlotToBox(
                    iscore::IDocument::path(m_model));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void BoxInspectorSection::addDeckInspectorSection(DeckModel* deck)
+void BoxInspectorSection::addSlotInspectorSection(SlotModel* slot)
 {
-    DeckInspectorSection* newDeck = new DeckInspectorSection {
-                                    QString{"Deck.%1"} .arg(*deck->id().val()),
-                                    *deck,
+    SlotInspectorSection* newSlot = new SlotInspectorSection {
+                                    QString{"Slot.%1"} .arg(*slot->id().val()),
+                                    *slot,
                                     this};
 
-    m_deckSection->addContent(newDeck);
+    m_slotSection->addContent(newSlot);
 
-    m_decksSectionWidgets[deck->id()] = newDeck;
+    m_slotsSectionWidgets[slot->id()] = newSlot;
 }
 
 
-void BoxInspectorSection::on_deckCreated(id_type<DeckModel> deckId)
+void BoxInspectorSection::on_slotCreated(id_type<SlotModel> slotId)
 {
     // TODO display them in the order of their position.
-    // TODO issue : the box should grow of 10 more pixels for each deck.
-    addDeckInspectorSection(m_model->deck(deckId));
+    // TODO issue : the box should grow of 10 more pixels for each slot.
+    addSlotInspectorSection(m_model->slot(slotId));
 }
 
-void BoxInspectorSection::on_deckRemoved(id_type<DeckModel> deckId)
+void BoxInspectorSection::on_slotRemoved(id_type<SlotModel> slotId)
 {
-    auto ptr = m_decksSectionWidgets[deckId];
-    m_decksSectionWidgets.erase(deckId);
+    auto ptr = m_slotsSectionWidgets[slotId];
+    m_slotsSectionWidgets.erase(slotId);
 
     if(ptr)
     {

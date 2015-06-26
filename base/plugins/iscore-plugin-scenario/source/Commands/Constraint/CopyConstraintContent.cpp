@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
@@ -114,11 +114,11 @@ void CopyConstraintContent::redo()
         auto newbox = new BoxModel{
                 *sourcebox,
                 m_boxIds[sourcebox->id()],
-                [&] (const DeckModel& source, DeckModel& target)
+                [&] (const SlotModel& source, SlotModel& target)
                 {
                     for(const auto& pvm : source.processViewModels())
                     {
-                        // We can safely reuse the same id since it's in a different deck.
+                        // We can safely reuse the same id since it's in a different slot.
                         auto proc = processPairs[&pvm->sharedProcessModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
                         target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));

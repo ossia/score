@@ -58,13 +58,13 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
     });
 
     // MOVEDECK
-    auto deckmovetool = makeToolbarAction(
-                            tr("Move Deck"),
+    auto slotmovetool = makeToolbarAction(
+                            tr("Move Slot"),
                             m_scenarioToolActionGroup,
-                            Tool::MoveDeck,
+                            Tool::MoveSlot,
                             tr("Alt+b"));
-    connect(deckmovetool, &QAction::triggered, this, [=]() {
-        set_tool(Tool::MoveDeck);
+    connect(slotmovetool, &QAction::triggered, this, [=]() {
+        set_tool(Tool::MoveSlot);
     });
 
     // SHIFT

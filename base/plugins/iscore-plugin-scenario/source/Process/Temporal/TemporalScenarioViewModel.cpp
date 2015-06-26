@@ -1,6 +1,6 @@
 #include "TemporalScenarioViewModel.hpp"
 
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"

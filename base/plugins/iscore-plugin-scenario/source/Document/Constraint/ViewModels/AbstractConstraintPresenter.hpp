@@ -78,7 +78,7 @@ class AbstractConstraintPresenter : public NamedObject
         ZoomRatio m_zoomRatio {};
         BoxPresenter* m_box {};
 
-        // Process presenters are in the deck presenters.
+        // Process presenters are in the slot presenters.
         const AbstractConstraintViewModel& m_viewModel;
         AbstractConstraintView* m_view {};
 };

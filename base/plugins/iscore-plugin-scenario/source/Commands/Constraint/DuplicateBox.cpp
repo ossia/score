@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace iscore;
@@ -34,7 +34,7 @@ void DuplicateBox::redo()
     auto& constraint = box.constraint();
     constraint.addBox(new BoxModel {box,
                                     m_newBoxId,
-                                    &DeckModel::copyViewModelsInSameConstraint,
+                                    &SlotModel::copyViewModelsInSameConstraint,
                                     &constraint});
 }
 

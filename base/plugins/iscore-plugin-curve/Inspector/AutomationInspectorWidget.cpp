@@ -100,13 +100,13 @@ AutomationInspectorWidget::AutomationInspectorWidget(
         hlay->addWidget(pb);
     }
 
-    // Add it to a new deck
+    // Add it to a new slot
     auto display = new QPushButton{"~"};
     hlay->addWidget(display);
     connect(display,    &QPushButton::clicked,
             [ = ]()
     {
-        createViewInNewDeck(QString::number(m_model->id_val()));
+        createViewInNewSlot(QString::number(m_model->id_val()));
     });
 
     vlay->addLayout(hlay);

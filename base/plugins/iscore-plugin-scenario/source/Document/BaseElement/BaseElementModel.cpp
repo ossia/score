@@ -7,13 +7,13 @@
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddBoxToConstraint.hpp"
-#include "Commands/Constraint/Box/AddDeckToBox.hpp"
-#include "Commands/Constraint/Box/Deck/ResizeDeckVertically.hpp"
-#include "Commands/Constraint/Box/Deck/AddProcessViewModelToDeck.hpp"
+#include "Commands/Constraint/Box/AddSlotToBox.hpp"
+#include "Commands/Constraint/Box/Slot/ResizeSlotVertically.hpp"
+#include "Commands/Constraint/Box/Slot/AddProcessViewModelToSlot.hpp"
 #include "Commands/Scenario/ShowBoxInViewModel.hpp"
 
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/ProcessViewModel.hpp"
 
@@ -84,7 +84,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         box->id() };
     cmd3.redo();
 
-    AddDeckToBox cmd4
+    AddSlotToBox cmd4
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
@@ -93,27 +93,27 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd4.redo();
-    auto deckId = (*box->decks().begin())->id();
+    auto slotId = (*box->getSlots().begin())->id();
 
-    ResizeDeckVertically cmd5
+    ResizeSlotVertically cmd5
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"BoxModel", box->id() },
-            {"DeckModel", deckId}
+            {"SlotModel", slotId}
         },
         1500
     };
     cmd5.redo();
 
-    AddProcessViewModelToDeck cmd6
+    AddProcessViewModelToSlot cmd6
     {
         {
             {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"BoxModel", box->id() },
-            {"DeckModel", deckId}
+            {"SlotModel", slotId}
         },
         {
             {"BaseElementModel", this->id()},
@@ -125,13 +125,13 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 }
 
 namespace {
-void updateDeckFocus(const ProcessViewModel* pvm, bool b)
+void updateSlotFocus(const ProcessViewModel* pvm, bool b)
 {
     if(pvm && pvm->parent())
     {
-        if(auto deck = dynamic_cast<DeckModel*>(pvm->parent()))
+        if(auto slot = dynamic_cast<SlotModel*>(pvm->parent()))
         {
-            deck->setFocus(b);
+            slot->setFocus(b);
         }
     }
 }
@@ -140,7 +140,7 @@ void updateDeckFocus(const ProcessViewModel* pvm, bool b)
 void BaseElementModel::on_viewModelDefocused(const ProcessViewModel* vm)
 {
     // Disable the focus on previously focused view model
-    updateDeckFocus(vm, false);
+    updateSlotFocus(vm, false);
 
     // Deselect
     iscore::SelectionDispatcher selectionDispatcher(
@@ -152,7 +152,7 @@ void BaseElementModel::on_viewModelFocused(const ProcessViewModel* process)
 {
     // TODO why not presenter ?
     // Enable focus on the new viewmodel
-    updateDeckFocus(process, true);
+    updateSlotFocus(process, true);
 }
 
 // TODO candidate for ProcessSelectionManager.

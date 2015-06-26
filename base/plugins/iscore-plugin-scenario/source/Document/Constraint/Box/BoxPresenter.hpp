@@ -1,6 +1,6 @@
 #pragma once
-#include "Deck/DeckPresenter.hpp"
-#include "Deck/DeckModel.hpp"
+#include "Slot/SlotPresenter.hpp"
+#include "Slot/SlotModel.hpp"
 
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
@@ -8,10 +8,10 @@
 #include <ProcessInterface/ZoomHelper.hpp>
 
 class ProcessModel;
-class DeckPresenter;
+class SlotPresenter;
 class BoxModel;
 class BoxView;
-class DeckModel;
+class SlotModel;
 
 namespace iscore
 {
@@ -35,11 +35,11 @@ class BoxPresenter : public NamedObject
         void setWidth(int);
 
         const id_type<BoxModel>& id() const;
-        auto decks() const
-        { return m_decks; }
+        auto getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
+        { return m_slots; }
 
-        void setDisabledDeckState();
-        void setEnabledDeckState();
+        void setDisabledSlotState();
+        void setEnabledSlotState();
 
 
     signals:
@@ -52,23 +52,23 @@ class BoxPresenter : public NamedObject
 
     public slots:
         void on_durationChanged(const TimeValue& duration);
-        void on_deckCreated(const id_type<DeckModel>& deckId);
-        void on_deckRemoved(const id_type<DeckModel>& deckId);
+        void on_slotCreated(const id_type<SlotModel>& slotId);
+        void on_slotRemoved(const id_type<SlotModel>& slotId);
 
         void on_askUpdate();
 
         void on_zoomRatioChanged(ZoomRatio val);
-        void on_deckPositionsChanged();
+        void on_slotPositionsChanged();
 
     private:
-        void on_deckCreated_impl(const DeckModel& m);
+        void on_slotCreated_impl(const SlotModel& m);
 
         // Updates the shape of the view
         void updateShape();
 
         const BoxModel& m_model;
         BoxView* m_view;
-        IdContainer<DeckPresenter,DeckModel> m_decks;
+        IdContainer<SlotPresenter,SlotModel> m_slots;
 
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};

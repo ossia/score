@@ -147,7 +147,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // If the constraint is in a scenario, then returns the scenario
         ScenarioModel* parentScenario() const;
 
-        // Note : the Constraint does not have ownership (it's generally the Deck)
+        // Note : the Constraint does not have ownership (it's generally the Slot)
         void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
 
         // Sub-element creation

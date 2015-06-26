@@ -3,7 +3,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -60,11 +60,11 @@ ConstraintModel::ConstraintModel(
         addBox(new BoxModel {
                    *box,
                    box->id(),
-        [&] (const DeckModel& source, DeckModel& target)
+        [&] (const SlotModel& source, SlotModel& target)
         {
                    for(auto& pvm : source.processViewModels())
                    {
-                       // We can safely reuse the same id since it's in a different deck.
+                       // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&pvm->sharedProcessModel()];
                        // TODO harmonize the order of parameters (source first, then new id)
                        target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));

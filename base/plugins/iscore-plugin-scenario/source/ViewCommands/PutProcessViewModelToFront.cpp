@@ -1,10 +1,10 @@
 #include "PutProcessViewModelToFront.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 PutProcessViewModelToFront::PutProcessViewModelToFront(
-        ObjectPath&& deckPath,
+        ObjectPath&& slotPath,
         const id_type<ProcessViewModel>& pid):
-    m_deckPath{std::move(deckPath)},
+    m_slotPath{std::move(slotPath)},
     m_pid{pid}
 {
 
@@ -12,5 +12,5 @@ PutProcessViewModelToFront::PutProcessViewModelToFront(
 
 void PutProcessViewModelToFront::redo()
 {
-    m_deckPath.find<DeckModel>().putToFront(m_pid);
+    m_slotPath.find<SlotModel>().putToFront(m_pid);
 }

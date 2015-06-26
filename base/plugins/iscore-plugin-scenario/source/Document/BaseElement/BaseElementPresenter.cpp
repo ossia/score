@@ -17,13 +17,13 @@
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxPresenter.hpp"
-#include "Document/Constraint/Box/Deck/DeckPresenter.hpp"
+#include "Document/Constraint/Box/Slot/SlotPresenter.hpp"
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QApplication>
-#include "StateMachine/BaseMoveDeck.hpp"
+#include "StateMachine/BaseMoveSlot.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 
 using namespace iscore;
@@ -61,10 +61,10 @@ BaseElementStateMachine::BaseElementStateMachine(BaseElementPresenter* pres):
     });
     // TODO cancel
 
-    auto moveDeckState = new BaseMoveDeck(*m_presenter->view()->scene(),
+    auto moveSlotState = new BaseMoveSlot(*m_presenter->view()->scene(),
                                            IDocument::documentFromObject(m_presenter->model())->commandStack(),
                                            *this);
-    setInitialState(moveDeckState);
+    setInitialState(moveSlotState);
     start();
 }
 
@@ -108,9 +108,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
     // We set the focus on the main scenario.
     // TODO crash happens when we load an empty score
-    DeckPresenter* deck = *m_displayedConstraintPresenter->box()->decks().begin();
+    SlotPresenter* slot = *m_displayedConstraintPresenter->box()->getSlots().begin();
     model()->focusManager().setFocusedPresenter(
-                deck->processes().front().first);
+                slot->processes().front().first);
 
     // Setup of the state machine.
     m_stateMachine = new BaseElementStateMachine{this};

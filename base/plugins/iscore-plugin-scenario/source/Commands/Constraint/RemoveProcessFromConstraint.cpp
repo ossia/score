@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 
 #include "ProcessInterface/ProcessModel.hpp"
@@ -52,15 +52,15 @@ void RemoveProcessFromConstraint::undo()
     {
         const auto& path = it.first.vec();
         qDebug() << it.first.toString();
-        auto deck = constraint
+        auto slot = constraint
                 .box(id_type<BoxModel>(path.at(path.size() - 3).id()))
-                ->deck(id_type<DeckModel>(path.at(path.size() - 2).id()));
+                ->slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
         auto pvm = createProcessViewModel(s,
-                                          deck->parentConstraint(),
-                                          deck);
-        deck->addProcessViewModel(pvm);
+                                          slot->parentConstraint(),
+                                          slot);
+        slot->addProcessViewModel(pvm);
     }
 }
 

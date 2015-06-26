@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"

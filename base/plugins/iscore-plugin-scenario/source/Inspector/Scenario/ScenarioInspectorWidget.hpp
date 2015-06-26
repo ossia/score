@@ -11,7 +11,7 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
                                          QWidget* parent);
 
     signals:
-        void createViewInNewDeck(QString);
+        void createViewInNewSlot(QString);
 
     private:
         const ScenarioModel* m_model {};

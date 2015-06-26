@@ -1,7 +1,7 @@
 #pragma once
 #include <Document/Constraint/Box/BoxModel.hpp>
-#include <Document/Constraint/Box/Deck/DeckModel.hpp>
-#include "Box/MoveDeck.hpp"
+#include <Document/Constraint/Box/Slot/SlotModel.hpp>
+#include "Box/MoveSlot.hpp"
 #include "RemoveBoxFromConstraint.hpp"
 #include "iscore/document/DocumentInterface.hpp"
 namespace Scenario
@@ -31,10 +31,10 @@ namespace Scenario
                 {
                     auto& sourcebox = mergeSource.find<BoxModel>();
 
-                    for(const auto& deck : sourcebox.decks())
+                    for(const auto& slot : sourcebox.getSlots())
                     {
-                        addCommand(new MoveDeck{
-                                       iscore::IDocument::path(deck),
+                        addCommand(new MoveSlot{
+                                       iscore::IDocument::path(slot),
                                        ObjectPath {mergeTarget}});
                     }
 

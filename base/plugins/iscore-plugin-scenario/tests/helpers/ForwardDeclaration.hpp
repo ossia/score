@@ -1,10 +1,10 @@
 class AddBoxToConstraintTest;
-class AddProcessViewModelToDeckTest;
-class AddDeckToBoxTest;
+class AddProcessViewModelToSlotTest;
+class AddSlotToBoxTest;
 class HideBoxInViewModelTest;
 class ShowBoxInViewModelTest;
 class CreateEventTest;
 class MoveEventTest;
 class CreateEventAfterEventTest;
 class RemoveBoxFromConstraintTest;
-class RemoveDeckFromBoxTest;
+class RemoveSlotFromBoxTest;

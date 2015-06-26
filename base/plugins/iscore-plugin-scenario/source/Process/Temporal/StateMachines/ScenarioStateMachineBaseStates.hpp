@@ -70,14 +70,14 @@ class CreationState : public ScenarioStateBase
         id_type<ConstraintModel> m_createdConstraint;
 };
 
-class DeckState : public QState
+class SlotState : public QState
 {
     public:
-        DeckState(QState* parent):
+        SlotState(QState* parent):
             QState{parent}
         { }
 
-        ObjectPath currentDeck;
+        ObjectPath currentSlot;
 
         QPointF m_originalPoint;
         double m_originalHeight{};

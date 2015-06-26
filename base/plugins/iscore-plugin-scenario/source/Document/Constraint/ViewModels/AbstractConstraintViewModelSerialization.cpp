@@ -1,6 +1,6 @@
 #include "AbstractConstraintViewModelSerialization.hpp"
 #include "AbstractConstraintViewModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cvm)

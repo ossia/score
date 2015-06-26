@@ -6,12 +6,12 @@ class ProcessViewModel;
 class PutProcessViewModelToFront
 {
     public:
-        PutProcessViewModelToFront(ObjectPath&& deckPath,
+        PutProcessViewModelToFront(ObjectPath&& slotPath,
                                    const id_type<ProcessViewModel>& pid);
 
         void redo();
 
     private:
-        ObjectPath m_deckPath;
+        ObjectPath m_slotPath;
         const id_type<ProcessViewModel>& m_pid;
 };

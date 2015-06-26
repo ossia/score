@@ -11,7 +11,7 @@ namespace Scenario
         /**
          * @brief The AddBoxToConstraint class
          *
-         * Adds an empty box, with no decks, to a constraint.
+         * Adds an empty box, with no slots, to a constraint.
          */
         class AddBoxToConstraint : public iscore::SerializableCommand
         {

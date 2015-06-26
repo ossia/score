@@ -8,7 +8,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include "Commands/Scenario/Deletions/ClearConstraint.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include <ProcessInterface/ProcessViewModel.hpp>
@@ -123,11 +123,11 @@ void MoveEvent::undo()
                 auto newbox = new BoxModel{
                         *sourcebox,
                         sourcebox->id(),
-                        [&] (const DeckModel& source, DeckModel& target)
+                        [&] (const SlotModel& source, SlotModel& target)
                         {
                             for(const auto& pvm : source.processViewModels())
                             {
-                                // We can safely reuse the same id since it's in a different deck.
+                                // We can safely reuse the same id since it's in a different slot.
                                 ProcessModel* proc = processPairs[&pvm->sharedProcessModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
                                 target.addProcessViewModel(proc->cloneViewModel(pvm->id(), *pvm, &target));

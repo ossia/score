@@ -14,7 +14,7 @@ class ScenarioModel;
 class CreationToolState;
 class MoveToolState;
 class SelectionTool;
-class MoveDeckToolState;
+class MoveSlotToolState;
 class QGraphicsScene;
 
 namespace iscore
@@ -49,7 +49,7 @@ class ScenarioStateMachine : public BaseStateMachine
         void setCreateState();
         void setSelectState();
         void setMoveState();
-        void setDeckMoveState();
+        void setSlotMoveState();
         void exitState();
 
         void setScaleState();
@@ -67,7 +67,7 @@ class ScenarioStateMachine : public BaseStateMachine
         CreationToolState* createState{};
         MoveToolState* moveState{};
         SelectionTool* selectState{};
-        MoveDeckToolState* moveDeckState{};
+        MoveSlotToolState* moveSlotState{};
         QState* transitionState{};
 
         QState* scaleState{};

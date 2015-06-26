@@ -1,7 +1,7 @@
 #include "ScenarioStateMachine.hpp"
 #include "Tools/CreationToolState.hpp"
 #include "Tools/SelectionToolState.hpp"
-#include "Tools/MoveDeckToolState.hpp"
+#include "Tools/MoveSlotToolState.hpp"
 
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
@@ -31,8 +31,8 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         selectState->setParent(toolState);
         toolState->setInitialState(selectState);
 
-        moveDeckState = new MoveDeckToolState{*this};
-        moveDeckState->setParent(toolState);
+        moveSlotState = new MoveSlotToolState{*this};
+        moveSlotState->setParent(toolState);
 
         transitionState = new QState{this};
         transitionState->setParent(toolState);
@@ -71,21 +71,21 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
 
         auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), selectState);
         t_exit_select->setTargetState(transitionState);
-        auto t_exit_moveDeck = new QSignalTransition(this, SIGNAL(exitState()), moveDeckState);
-        t_exit_moveDeck->setTargetState(transitionState);
+        auto t_exit_moveSlot = new QSignalTransition(this, SIGNAL(exitState()), moveSlotState);
+        t_exit_moveSlot->setTargetState(transitionState);
         auto t_exit_create = new QSignalTransition(this, SIGNAL(exitState()), createState);
         t_exit_create->setTargetState(transitionState);
 
         auto t_enter_select = new QSignalTransition(this, SIGNAL(setSelectState()), transitionState);
         t_enter_select->setTargetState(selectState);
-        auto t_enter_moveDeck = new QSignalTransition(this, SIGNAL(setDeckMoveState()), transitionState);
-        t_enter_moveDeck->setTargetState(moveDeckState);
+        auto t_enter_moveSlot = new QSignalTransition(this, SIGNAL(setSlotMoveState()), transitionState);
+        t_enter_moveSlot->setTargetState(moveSlotState);
         auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
         t_enter_create->setTargetState(createState);
 
         createState->start();
         selectState->start();
-        moveDeckState->start();
+        moveSlotState->start();
     }
 
     auto expansionModeState = new QState{this};
@@ -139,8 +139,8 @@ Tool ScenarioStateMachine::tool() const
         return Tool::Create;
     if(selectState->active())
         return Tool::Select;
-    if(moveDeckState->active())
-        return Tool::MoveDeck;
+    if(moveSlotState->active())
+        return Tool::MoveSlot;
 
     return Tool::Select;
 }
@@ -171,8 +171,8 @@ void ScenarioStateMachine::changeTool(int state)
     case static_cast<int>(Tool::Create):
         emit setCreateState();
         break;
-    case static_cast<int>(Tool::MoveDeck):
-        emit setDeckMoveState();
+    case static_cast<int>(Tool::MoveSlot):
+        emit setSlotMoveState();
         break;
     case static_cast<int>(Tool::Select):
         emit setSelectState();

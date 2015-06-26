@@ -1,10 +1,10 @@
-friend class ::AddProcessViewModelToDeckTest;
+friend class ::AddProcessViewModelToSlotTest;
 friend class ::AddBoxToConstraintTest;
-friend class ::AddDeckToBoxTest;
+friend class ::AddSlotToBoxTest;
 friend class ::HideBoxInViewModelTest;
 friend class ::ShowBoxInViewModelTest;
 friend class ::CreateEventTest;
 friend class ::MoveEventTest;
 friend class ::CreateEventAfterEventTest;
 friend class ::RemoveBoxFromConstraintTest;
-friend class ::RemoveDeckFromBoxTest;
+friend class ::RemoveSlotFromBoxTest;

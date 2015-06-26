@@ -3,33 +3,33 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <unordered_map>
 class BoxModel;
-class DeckModel;
-class AddDeckWidget;
+class SlotModel;
+class AddSlotWidget;
 class ConstraintInspectorWidget;
-class DeckInspectorSection;
+class SlotInspectorSection;
 
-// Contains a single box which can contain multiple decks and a Add Deck button.
+// Contains a single box which can contain multiple slots and a Add Slot button.
 class BoxInspectorSection : public InspectorSectionWidget
 {
     public:
         BoxInspectorSection(QString name, BoxModel* model, ConstraintInspectorWidget* parent);
 
-        void addDeckInspectorSection(DeckModel*);
-        void createDeck();
+        void addSlotInspectorSection(SlotModel*);
+        void createSlot();
 
     public slots:
-        void on_deckCreated(id_type<DeckModel> deckId);
-        void on_deckRemoved(id_type<DeckModel> deckId);
+        void on_slotCreated(id_type<SlotModel> slotId);
+        void on_slotRemoved(id_type<SlotModel> slotId);
 
     private:
         BoxModel* m_model {};
 
-        InspectorSectionWidget* m_deckSection {};
-        AddDeckWidget* m_deckWidget {};
+        InspectorSectionWidget* m_slotSection {};
+        AddSlotWidget* m_slotWidget {};
     public:
         ConstraintInspectorWidget* m_parent{};
     private:
 
-        std::unordered_map<id_type<DeckModel>, DeckInspectorSection*, id_hash<DeckModel>> m_decksSectionWidgets;
-        //std::vector<DeckInspectorSection*> m_decksSectionWidgets;
+        std::unordered_map<id_type<SlotModel>, SlotInspectorSection*, id_hash<SlotModel>> m_slotsSectionWidgets;
+        //std::vector<SlotInspectorSection*> m_slotsSectionWidgets;
 };

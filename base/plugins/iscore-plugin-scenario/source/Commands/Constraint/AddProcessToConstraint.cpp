@@ -1,10 +1,10 @@
 #include "AddProcessToConstraint.hpp"
-#include "AddProcessViewInNewDeck.hpp"
-#include "Box/Deck/AddProcessViewModelToDeck.hpp"
+#include "AddProcessViewInNewSlot.hpp"
+#include "Box/Slot/AddProcessViewModelToSlot.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 
 #include "ProcessInterface/ProcessModel.hpp"
 
@@ -33,13 +33,13 @@ void AddProcessToConstraint::undo()
     auto& constraint = m_path.find<ConstraintModel>();
     if(m_noBoxes)
     {
-        m_cmdNewDeck->undo();
-        delete m_cmdNewDeck;
+        m_cmdNewSlot->undo();
+        delete m_cmdNewSlot;
     }
     else if (constraint.objectName() != "BaseConstraintModel")
     {
-        m_cmdFirstDeck->undo();
-        delete m_cmdFirstDeck;
+        m_cmdFirstSlot->undo();
+        delete m_cmdFirstSlot;
     }
     constraint.removeProcess(m_createdProcessId);
 }
@@ -58,16 +58,16 @@ void AddProcessToConstraint::redo()
     constraint.addProcess(proc);
     if(m_noBoxes)
     {
-        m_cmdNewDeck = new AddProcessViewInNewDeck{ObjectPath{m_path}, m_createdProcessId};
-        m_cmdNewDeck->redo();
+        m_cmdNewSlot = new AddProcessViewInNewSlot{ObjectPath{m_path}, m_createdProcessId};
+        m_cmdNewSlot->redo();
     }
     else if (constraint.objectName() != "BaseConstraintModel")
     {
-        auto firstDeckModel = *(*constraint.boxes().begin())->decks().begin();
-        m_cmdFirstDeck = new AddProcessViewModelToDeck(iscore::IDocument::path(*firstDeckModel),
+        auto firstSlotModel = *(*constraint.boxes().begin())->getSlots().begin();
+        m_cmdFirstSlot = new AddProcessViewModelToSlot(iscore::IDocument::path(*firstSlotModel),
                                                        iscore::IDocument::path(*proc) );
 
-        m_cmdFirstDeck->redo();
+        m_cmdFirstSlot->redo();
     }
 }
 

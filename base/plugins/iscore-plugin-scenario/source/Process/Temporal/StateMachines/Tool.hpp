@@ -2,5 +2,5 @@
 #include <QMetaType>
 
 // TODO ScenarioTool
-enum class Tool { Create, Select, MoveDeck };
+enum class Tool { Create, Select, MoveSlot };
 Q_DECLARE_METATYPE(Tool)

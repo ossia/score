@@ -2,7 +2,7 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
-#include "Document/Constraint/Box/Deck/DeckModel.hpp"
+#include "Document/Constraint/Box/Slot/SlotModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"

@@ -13,7 +13,7 @@ namespace Scenario
         /**
          * @brief The RemoveBoxFromConstraint class
          *
-         * Removes a box : all the decks and function views will be removed.
+         * Removes a box : all the slots and function views will be removed.
          */
         class RemoveBoxFromConstraint : public iscore::SerializableCommand
         {

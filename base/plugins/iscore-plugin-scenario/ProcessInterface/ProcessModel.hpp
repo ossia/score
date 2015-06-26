@@ -115,7 +115,7 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
         void addViewModel(ProcessViewModel* m);
         void removeViewModel(ProcessViewModel* m);
 
-        // Ownership : the parent is the Deck or another widget, not the process.
+        // Ownership : the parent is the Slot or another widget, not the process.
         // A process view is never displayed alone, it is always in a view, which is in a box.
         QVector<ProcessViewModel*> m_viewModels;
         TimeValue m_duration;

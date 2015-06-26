@@ -7,7 +7,7 @@
 class TimeNodeModel;
 class EventModel;
 class ConstraintModel;
-class DeckModel;
+class SlotModel;
 
 template<>
 struct PositionedEvent<ScenarioPoint> : public QEvent
@@ -57,7 +57,7 @@ struct PositionedWithId_ScenarioEvent : public PositionedScenarioEvent<N>
 ////////////
 // Events
 enum ScenarioElement {
-    Nothing, TimeNode, Event, Constraint, DeckOverlay_e, DeckHandle_e
+    Nothing, TimeNode, Event, Constraint, SlotOverlay_e, SlotHandle_e
 };
 
 using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Click>;
@@ -65,8 +65,8 @@ using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, Scen
 using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Click>;
 using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Click>;
 
-using ClickOnDeckOverlay_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier_tagme::Click>;
-using ClickOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier_tagme::Click>;
+using ClickOnSlotOverlay_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier_tagme::Click>;
+using ClickOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier_tagme::Click>;
 
 
 using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Move>;
@@ -74,8 +74,8 @@ using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, Scena
 using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Move>;
 using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Move>;
 
-using MoveOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier_tagme::Move>;
-using MoveOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier_tagme::Move>;
+using MoveOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier_tagme::Move>;
+using MoveOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier_tagme::Move>;
 
 
 using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Release>;
@@ -83,5 +83,5 @@ using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, Sc
 using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Release>;
 using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Release>;
 
-using ReleaseOnDeck_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckOverlay_e + Modifier_tagme::Release>;
-using ReleaseOnDeckHandle_Event = NumberedWithPath_Event<DeckModel, ScenarioElement::DeckHandle_e + Modifier_tagme::Release>;
+using ReleaseOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier_tagme::Release>;
+using ReleaseOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier_tagme::Release>;

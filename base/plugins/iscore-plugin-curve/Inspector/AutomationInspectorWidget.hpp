@@ -15,7 +15,7 @@ class AutomationInspectorWidget : public InspectorWidgetBase
                 QWidget* parent);
 
     signals:
-        void createViewInNewDeck(QString);
+        void createViewInNewSlot(QString);
 
     public slots:
         void on_addressChange(const iscore::Address& newText);

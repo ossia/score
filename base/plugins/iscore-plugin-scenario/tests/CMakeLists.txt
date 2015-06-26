@@ -22,10 +22,10 @@ addIScoreQtTest(AddProcessToConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintTest.cpp")
 addIScoreQtTest(AddBoxToConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddBoxToConstraintTest.cpp")
-addIScoreQtTest(AddDeckToBoxTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddDeckToBoxTest.cpp")
-addIScoreQtTest(AddProcessViewModelToDeckTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewModelToDeckTest.cpp")
+addIScoreQtTest(AddSlotToBoxTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddSlotToBoxTest.cpp")
+addIScoreQtTest(AddProcessViewModelToSlotTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessViewModelToSlotTest.cpp")
 addIscoreQtTest(SplitTimeNodeTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeNodeTest.cpp")
 addIscoreQtTest(MergeTimeNodesTest
@@ -59,14 +59,14 @@ addIScoreQtTest(MoveConstraintTest
 
 addIScoreQtTest(RemoveBoxFromConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveBoxFromConstraintTest.cpp")
-addIScoreQtTest(RemoveDeckFromBoxTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveDeckFromBoxTest.cpp")
+addIScoreQtTest(RemoveSlotFromBoxTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveSlotFromBoxTest.cpp")
 addIScoreQtTest(RemoveProcessFromConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessFromConstraintTest.cpp")
-addIScoreQtTest(RemoveProcessViewFromDeckTest # TODO Rename in RemoveProcessViewModel
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessViewFromDeckTest.cpp")
-addIScoreQtTest(ResizeDeckVerticallyTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ResizeDeckVerticallyTest.cpp")
+addIScoreQtTest(RemoveProcessViewFromSlotTest # TODO Rename in RemoveProcessViewModel
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessViewFromSlotTest.cpp")
+addIScoreQtTest(ResizeSlotVerticallyTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ResizeSlotVerticallyTest.cpp")
 
 ## Constraints
 addIScoreQtTest(ConstraintModelTest
