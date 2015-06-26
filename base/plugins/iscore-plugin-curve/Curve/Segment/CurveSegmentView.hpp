@@ -21,7 +21,7 @@ class CurveSegmentView : public QGraphicsObject
         void contextMenuRequested(const QPoint&);
 
     protected:
-        void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+        void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
 
     private:
         void updatePoints();

@@ -57,7 +57,7 @@ class EventView : public QGraphicsObject
         virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
         virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
-        virtual void dropEvent(QGraphicsSceneDragDropEvent *event);
+        virtual void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
         EventPresenter& m_presenter;

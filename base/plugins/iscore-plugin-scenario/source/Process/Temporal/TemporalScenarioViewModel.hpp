@@ -12,12 +12,12 @@ class ConstraintModel;
 class ScenarioStateMachine;
 
 
-class TemporalScenarioViewModel : public AbstractScenarioViewModel
+class TemporalScenarioViewModel : public AbstractScenarioLayer
 {
         Q_OBJECT
     public:
         using model_type = ScenarioModel;
-        using constraint_view_model_type = TemporalConstraintViewModel;
+        using constraint_layer_type = TemporalConstraintViewModel;
 
         TemporalScenarioViewModel(const id_type<LayerModel>& id,
                                   const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>>& constraintIds,
@@ -35,7 +35,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
         TemporalScenarioViewModel(Deserializer<Impl>& vis,
                                   ScenarioModel& model,
                                   QObject* parent) :
-            AbstractScenarioViewModel {vis, model, parent}
+            AbstractScenarioLayer {vis, model, parent}
         {
             vis.writeTo(*this);
         }
@@ -50,7 +50,7 @@ class TemporalScenarioViewModel : public AbstractScenarioViewModel
                 const id_type<ConstraintModel>& constraintModelId,
                 const id_type<AbstractConstraintViewModel>& constraintViewModelId) override;
 
-        void addConstraintViewModel(constraint_view_model_type* constraint_view_model);
+        void addConstraintViewModel(constraint_layer_type* constraint_view_model);
 
     public slots:
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) override;

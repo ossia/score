@@ -18,7 +18,7 @@ class AutomationPresenter : public ProcessPresenter
                             QObject* parent);
         ~AutomationPresenter();
 
-        void on_focusChanged();
+        void on_focusChanged() override;
 
         void setWidth(int width) override;
         void setHeight(int height) override;

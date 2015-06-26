@@ -16,13 +16,13 @@ typename Container::value_type findById(const Container& c, const id_T& id)
     throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(*id.val()).arg(typeid(c).name()).toLatin1().constData());
 }
 
-AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
+AbstractConstraintViewModel& AbstractScenarioLayer::constraint(
         const id_type<AbstractConstraintViewModel>& constraintViewModelid) const
 {
     return *findById(m_constraints, constraintViewModelid);
 }
 
-QVector<AbstractConstraintViewModel*> AbstractScenarioViewModel::constraints() const
+QVector<AbstractConstraintViewModel*> AbstractScenarioLayer::constraints() const
 {
     return m_constraints;
 }
@@ -45,7 +45,7 @@ void removeById(Vector& c, const id_T& id)
     });
 }
 
-void AbstractScenarioViewModel::removeConstraintViewModel(
+void AbstractScenarioLayer::removeConstraintViewModel(
         const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
     // We have to emit before, because on removal,
@@ -56,7 +56,7 @@ void AbstractScenarioViewModel::removeConstraintViewModel(
 
 }
 
-AbstractConstraintViewModel& AbstractScenarioViewModel::constraint(
+AbstractConstraintViewModel& AbstractScenarioLayer::constraint(
         const id_type<ConstraintModel>& constraintModelId) const
 {
     using namespace std;
@@ -78,7 +78,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const ScenarioModel& scenario)
 {
     // Creation of all the constraint view models
-    for(auto& viewModel : viewModels(scenario))
+    for(auto& viewModel : layers(scenario))
     {
         auto lm_id = iscore::IDocument::path(viewModel);
 

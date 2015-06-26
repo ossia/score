@@ -25,6 +25,7 @@ class EventModel : public IdentifiedObject<EventModel>
         Q_OBJECT
 
     private:
+        // TODO is this still useful?
         Q_PROPERTY(double heightPercentage
                    READ heightPercentage
                    WRITE setHeightPercentage
@@ -100,11 +101,11 @@ class EventModel : public IdentifiedObject<EventModel>
 
         // TODO use a stronger type for the condition.
         const QString& condition() const;
-        QString trigger() const;
+        const QString& trigger() const;
 
 
-        auto& pluginModelList() { return *m_pluginModelList; }
-        const auto& pluginModelList() const { return *m_pluginModelList; }
+        auto& pluginModelList() { return m_pluginModelList; }
+        const auto& pluginModelList() const { return m_pluginModelList; }
 
         bool hasPreviousConstraint()
         {
@@ -112,16 +113,14 @@ class EventModel : public IdentifiedObject<EventModel>
         }
 
 
-
     public slots:
         void setHeightPercentage(double arg);
         void setDate(const TimeValue& date);
 
         void setCondition(const QString& arg);
-        void setTrigger(QString trigger);
+        void setTrigger(const QString& trigger);
 
     signals:
-        void selectionChanged(bool);
         void heightPercentageChanged(double arg);
         void localStatesChanged();
         void dateChanged();
@@ -129,10 +128,10 @@ class EventModel : public IdentifiedObject<EventModel>
         void nextConstraintsChanged();
 
         void conditionChanged(const QString& arg);
-        void triggerChanged(QString trigger);
+        void triggerChanged(const QString& trigger);
 
     private:
-        iscore::ElementPluginModelList* m_pluginModelList{};
+        iscore::ElementPluginModelList m_pluginModelList;
         id_type<TimeNodeModel> m_timeNode {};
 
         QVector<id_type<ConstraintModel>> m_previousConstraints;

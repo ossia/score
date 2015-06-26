@@ -9,13 +9,15 @@ void removeEventFromTimeNode(
         ScenarioModel& scenario,
         const id_type<EventModel>& eventId)
 {
-    for(auto& timeNode : scenario.timeNodes())
+    for(TimeNodeModel* timeNode : scenario.timeNodes())
     {
         if(timeNode->removeEvent(eventId))
         {
-            if(timeNode->isEmpty())
+            if(timeNode->events().isEmpty())
             {
                 // TODO transform this into a class with algorithms on timenodes + scenario, etc.
+                // Note : this changes the scenario.timeNodes() iterator, however
+                // since we return afterwards there is no problem.
                 CreateTimeNodeMin::undo(timeNode->id(), scenario);
             }
 

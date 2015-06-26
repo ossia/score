@@ -41,6 +41,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
             IdentifiedObject<TimeNodeModel> {vis, parent}
         {
             vis.writeTo(*this);
+            checkIfPreviousConstraint();
         }
 
         TimeNodeModel(
@@ -59,15 +60,14 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         const TimeValue& date() const;
         void setDate(const TimeValue&);
 
-        bool isEmpty();
-
         double y() const;
         void setY(double y);
 
         const QVector<id_type<EventModel>>& events() const;
         void setEvents(const QVector<id_type<EventModel>>& events);
 
-        auto& pluginModelList() { return *m_pluginModelList; }
+        auto& pluginModelList() { return m_pluginModelList; }
+        const auto& pluginModelList() const { return m_pluginModelList; }
 
         bool checkIfPreviousConstraint();
 
@@ -80,7 +80,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         void timeNodeValid(bool);
 
     private:
-        iscore::ElementPluginModelList* m_pluginModelList{};
+        iscore::ElementPluginModelList m_pluginModelList;
         TimeValue m_date {std::chrono::seconds{0}};
         double m_y {0.0};
 

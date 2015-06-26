@@ -23,7 +23,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(
 {
     SerializedConstraintViewModels map;
     // The other constraint view models are in their respective scenario view models
-    for(const auto& viewModel : viewModels(scenario))
+    for(const auto& viewModel : layers(scenario))
     {
         // TODO we need to know its concrete type in order to serialize it correctly.
         const auto& cstrVM = viewModel->constraint(constraint.id());
@@ -52,7 +52,7 @@ void deserializeConstraintViewModels(
         const ScenarioModel& scenar)
 {
     using namespace std;
-    for(auto& viewModel : viewModels(scenar))
+    for(auto& viewModel : layers(scenar))
     {
         if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
         {

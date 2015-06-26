@@ -13,53 +13,53 @@ ProcessModel::ProcessModel(const TimeValue& duration, const id_type<ProcessModel
 QByteArray ProcessModel::makeViewModelConstructionData() const { return {}; }
 
 
-LayerModel*ProcessModel::makeViewModel(
+LayerModel*ProcessModel::makeLayer(
         const id_type<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto lm = makeViewModel_impl(viewModelId, constructionData, parent);
-    addViewModel(lm);
+    auto lm = makeLayer_impl(viewModelId, constructionData, parent);
+    addLayer(lm);
 
     return lm;
 }
 
 
-LayerModel*ProcessModel::loadViewModel(
+LayerModel*ProcessModel::loadLayer(
         const VisitorVariant& v,
         QObject* parent)
 {
-    auto lm = loadViewModel_impl(v, parent);
-    addViewModel(lm);
+    auto lm = loadLayer_impl(v, parent);
+    addLayer(lm);
 
     return lm;
 }
 
-LayerModel*ProcessModel::cloneViewModel(
+LayerModel*ProcessModel::cloneLayer(
         const id_type<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {
-    auto lm = cloneViewModel_impl(newId, source, parent);
-    addViewModel(lm);
+    auto lm = cloneLayer_impl(newId, source, parent);
+    addLayer(lm);
 
     return lm;
 }
 
 
-LayerModel*ProcessModel::makeTemporaryViewModel(
+LayerModel*ProcessModel::makeTemporaryLayer(
         const id_type<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {
-    return cloneViewModel_impl(newId, source, parent);
+    return cloneLayer_impl(newId, source, parent);
 }
 
 
 
-QVector<LayerModel*> ProcessModel::viewModels() const
+QVector<LayerModel*> ProcessModel::layers() const
 {
-    return m_viewModels;
+    return m_layers;
 }
 
 
@@ -91,21 +91,21 @@ const TimeValue&ProcessModel::duration() const
 }
 
 
-void ProcessModel::addViewModel(LayerModel* m)
+void ProcessModel::addLayer(LayerModel* m)
 {
     connect(m, &LayerModel::destroyed,
-            this, [=] () { removeViewModel(m); });
-    m_viewModels.push_back(m);
+            this, [=] () { removeLayer(m); });
+    m_layers.push_back(m);
 }
 
 
-void ProcessModel::removeViewModel(LayerModel* m)
+void ProcessModel::removeLayer(LayerModel* m)
 {
-    int index = m_viewModels.indexOf(m);
+    int index = m_layers.indexOf(m);
 
     if(index != -1)
     {
-        m_viewModels.remove(index);
+        m_layers.remove(index);
     }
 }
 

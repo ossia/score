@@ -20,7 +20,7 @@ namespace OSSIA
 class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
-class AbstractScenarioViewModel;
+class AbstractScenarioLayer;
 class AbstractConstraintViewModel;
 
 class OSSIAScenarioImpl;
@@ -41,7 +41,7 @@ class ScenarioModel : public ProcessModel
         friend class ScenarioFactory;
 
     public:
-        using view_model_type = AbstractScenarioViewModel;
+        using layer_type = AbstractScenarioLayer;
 
         ScenarioModel(const TimeValue& duration,
                       const id_type<ProcessModel>& id,
@@ -52,12 +52,12 @@ class ScenarioModel : public ProcessModel
 
         //// ProcessModel specifics ////
         QByteArray makeViewModelConstructionData() const override;
-        LayerModel* makeViewModel_impl(
+        LayerModel* makeLayer_impl(
                 const id_type<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
 
-        LayerModel* cloneViewModel_impl(
+        LayerModel* cloneLayer_impl(
                 const id_type<LayerModel>& newId,
                 const LayerModel& source,
                 QObject* parent) override;
@@ -147,7 +147,7 @@ class ScenarioModel : public ProcessModel
             vis.writeTo(*this);
         }
 
-        virtual LayerModel* loadViewModel_impl(
+        virtual LayerModel* loadLayer_impl(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 
@@ -163,7 +163,7 @@ class ScenarioModel : public ProcessModel
         ScenarioModel(const ScenarioModel& source,
                       const id_type<ProcessModel>& id,
                       QObject* parent);
-        void makeViewModel_impl(view_model_type*);
+        void makeLayer_impl(layer_type*);
 
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;

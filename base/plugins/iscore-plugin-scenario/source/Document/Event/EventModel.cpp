@@ -10,7 +10,7 @@ EventModel::EventModel(
         double yPos,
         QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
+    m_pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_timeNode{timenode},
     m_heightPercentage{yPos}
 {
@@ -20,20 +20,18 @@ EventModel::EventModel(
 EventModel::EventModel(const EventModel& source,
                        const id_type<EventModel>& id,
                        QObject* parent) :
-    EventModel {id,
-                source.timeNode(),
-                source.heightPercentage(),
-                parent}
+    IdentifiedObject<EventModel> {id, "EventModel", parent},
+    m_pluginModelList{source.m_pluginModelList, this},
+    m_timeNode{source.timeNode()},
+    m_previousConstraints(source.previousConstraints()),
+    m_nextConstraints(source.nextConstraints()),
+    m_heightPercentage{source.heightPercentage()},
+    m_states(source.m_states),
+    m_condition{source.m_condition},
+    m_date{source.m_date},
+    m_trigger{source.m_trigger}
 {
-    m_pluginModelList = new iscore::ElementPluginModelList{source.m_pluginModelList, this};
-    m_previousConstraints = source.previousConstraints();
-    m_nextConstraints = source.nextConstraints();
-
-    m_states = source.m_states;
-
-    m_condition = source.condition();
-    m_trigger = source.trigger();
-    m_date = source.date();
+    metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
 const QVector<id_type<ConstraintModel>>& EventModel::previousConstraints() const
@@ -179,7 +177,7 @@ void EventModel::setCondition(const QString& arg)
     emit conditionChanged(arg);
 }
 
-void EventModel::setTrigger(QString trigger)
+void EventModel::setTrigger(const QString& trigger)
 {
     if (m_trigger == trigger)
         return;
@@ -189,7 +187,7 @@ void EventModel::setTrigger(QString trigger)
 }
 
 
-QString EventModel::trigger() const
+const QString& EventModel::trigger() const
 {
     return m_trigger;
 }

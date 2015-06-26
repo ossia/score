@@ -73,7 +73,7 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
     return arr;
 }
 
-LayerModel* ScenarioModel::makeViewModel_impl(
+LayerModel* ScenarioModel::makeLayer_impl(
         const id_type<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -83,12 +83,12 @@ LayerModel* ScenarioModel::makeViewModel_impl(
     s >> map;
 
     auto scen = new TemporalScenarioViewModel {viewModelId, map, *this, parent};
-    makeViewModel_impl(scen);
+    makeLayer_impl(scen);
     return scen;
 }
 
 
-LayerModel* ScenarioModel::cloneViewModel_impl(
+LayerModel* ScenarioModel::cloneLayer_impl(
         const id_type<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
@@ -98,7 +98,7 @@ LayerModel* ScenarioModel::cloneViewModel_impl(
                 newId,
                 *this,
                 parent};
-    makeViewModel_impl(scen);
+    makeLayer_impl(scen);
     return scen;
 }
 
@@ -234,24 +234,24 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 }
 
 
-void ScenarioModel::makeViewModel_impl(ScenarioModel::view_model_type* scen)
+void ScenarioModel::makeLayer_impl(ScenarioModel::layer_type* scen)
 {
     // TODO why no ConstraintCreated ?
     connect(this, &ScenarioModel::constraintRemoved,
-            scen, &view_model_type::on_constraintRemoved);
+            scen, &layer_type::on_constraintRemoved);
 
     connect(this, &ScenarioModel::eventCreated,
-            scen, &view_model_type::eventCreated);
+            scen, &layer_type::eventCreated);
     connect(this, &ScenarioModel::timeNodeCreated,
-            scen, &view_model_type::timeNodeCreated);
+            scen, &layer_type::timeNodeCreated);
     connect(this, &ScenarioModel::eventRemoved,
-            scen, &view_model_type::eventDeleted);
+            scen, &layer_type::eventDeleted);
     connect(this, &ScenarioModel::timeNodeRemoved,
-            scen, &view_model_type::timeNodeDeleted);
+            scen, &layer_type::timeNodeDeleted);
     connect(this, &ScenarioModel::eventMoved,
-            scen, &view_model_type::eventMoved);
+            scen, &layer_type::eventMoved);
     connect(this, &ScenarioModel::constraintMoved,
-            scen, &view_model_type::constraintMoved);
+            scen, &layer_type::constraintMoved);
 }
 
 ///////// ADDITION //////////

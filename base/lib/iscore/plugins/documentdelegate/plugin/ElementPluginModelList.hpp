@@ -5,31 +5,35 @@
 namespace iscore
 {
     class Document;
-    class ElementPluginModelList : public QObject
+    // The owner of the elements is the class that contains the ElementPluginModelList.
+    class ElementPluginModelList
     {
-            Q_OBJECT
         public:
-            ElementPluginModelList(ElementPluginModelList* source, QObject* parent);
+            ElementPluginModelList() = default; // For safe serialization.
+            // Note: we could instead call the deserialization ctor in the Element ctor...
+
+            ElementPluginModelList(const ElementPluginModelList& source, QObject* parent);
             ElementPluginModelList(iscore::Document *doc, QObject* parent);
+            ~ElementPluginModelList();
+
+            QObject* parent();
 
             template<typename DeserializerVisitor>
-            ElementPluginModelList(DeserializerVisitor&& vis, QObject* parent) :
-                QObject{parent}
+            ElementPluginModelList(DeserializerVisitor&& vis, QObject* parent):
+                m_parent{parent}
             {
                 vis.writeTo(*this);
             }
 
             // Can add if no exisiting element plugins with this id.
-            bool canAdd(int pluginId) const;
+            bool canAdd(ElementPluginModelType pluginId) const;
             void add(iscore::ElementPluginModel* data);
 
             const QList<iscore::ElementPluginModel*>& list() const
             { return m_list; }
 
-        signals:
-            void pluginMetaDataChanged();
-
         private:
+            QObject* m_parent{};
             QList<iscore::ElementPluginModel*> m_list;
     };
 }

@@ -11,7 +11,7 @@ class GroupMetadata : public iscore::ElementPluginModel
         Q_OBJECT
 
     public:
-        static constexpr int staticPluginId() { return 1; }
+        static constexpr iscore::ElementPluginModelType staticPluginId() { return 1; }
 
         GroupMetadata(
                 const QObject* element,

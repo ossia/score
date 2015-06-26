@@ -36,7 +36,7 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
-    for(auto& viewModel : viewModels(scenar))
+    for(auto& viewModel : layers(scenar))
     {
         m_createdConstraintViewModelIDs[iscore::IDocument::path(viewModel)] = getStrongId(viewModel->constraints());
     }

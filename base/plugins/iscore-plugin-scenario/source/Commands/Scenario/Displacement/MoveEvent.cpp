@@ -130,7 +130,7 @@ void MoveEvent::undo()
                                 // We can safely reuse the same id since it's in a different slot.
                                 ProcessModel* proc = processPairs[&lm->sharedProcessModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
-                                target.addLayerModel(proc->cloneViewModel(lm->id(), *lm, &target));
+                                target.addLayerModel(proc->cloneLayer(lm->id(), *lm, &target));
                             }
                         },
                         &constraint};

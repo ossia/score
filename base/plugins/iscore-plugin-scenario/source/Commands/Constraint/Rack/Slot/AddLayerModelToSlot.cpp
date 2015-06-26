@@ -34,7 +34,7 @@ void AddLayerModelToSlot::redo()
     auto& slot = m_slotPath.find<SlotModel>();
     auto& proc = m_processPath.find<ProcessModel>();
 
-    slot.addLayerModel(proc.makeViewModel(m_createdLayerId, m_processData, &slot));
+    slot.addLayerModel(proc.makeLayer(m_createdLayerId, m_processData, &slot));
 }
 
 void AddLayerModelToSlot::serializeImpl(QDataStream& s) const

@@ -34,7 +34,7 @@ void SlotModel::copyViewModelsInSameConstraint(
         // We can safely reuse the same id since it's in a different slot.
         auto& proc = lm->sharedProcessModel();
         target.addLayerModel(
-                    proc.cloneViewModel(lm->id(),
+                    proc.cloneLayer(lm->id(),
                                         *lm,
                                         &target));
     }

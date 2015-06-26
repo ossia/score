@@ -36,7 +36,7 @@ namespace iscore
 
             // Plugin models
             void addPluginModel(DocumentDelegatePluginModel* m);
-            const auto& pluginModels() { return m_pluginModels; }
+            const QList<DocumentDelegatePluginModel*>& pluginModels() { return m_pluginModels; }
             DocumentDelegatePluginModel* pluginModel(const QString& name) const;
 
         signals:

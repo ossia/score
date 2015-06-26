@@ -178,7 +178,7 @@ QJsonArray toJsonMap(const QMap<double, Value>& map)
 {
     QJsonArray arr;
 
-    for(auto key : map.keys())
+    for(const auto& key : map.keys())
     {
         QJsonObject obj;
         obj["k"] = key;
@@ -194,7 +194,7 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 {
     QJsonArray arr;
 
-    for(auto key : map.keys())
+    for(const auto& key : map.keys())
     {
         QJsonObject obj;
         obj["k"] = *key.val();
@@ -206,12 +206,27 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 }
 
 
+template<typename Key, typename Value,
+         typename std::enable_if<std::is_same<bool, Value>::value>::type* = nullptr>
+QMap<Key, Value> fromJsonMap(const QJsonArray& array)
+{
+    QMap<Key, Value> map;
+
+    for(const auto& value : array)
+    {
+        QJsonObject obj = value.toObject();
+        map[Key {obj["k"].toInt()}] = obj["v"].toBool();
+    }
+
+    return map;
+}
+
 template<typename Key>
 QMap<Key, double> fromJsonMap(const QJsonArray& array)
 {
     QMap<Key, double> map;
 
-    for(auto value : array)
+    for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
         map[Key {obj["k"].toInt() }] = obj["v"].toDouble();
@@ -225,7 +240,7 @@ inline QMap<int32_t, double> fromJsonMap(const QJsonArray& array)
 {
     QMap<int32_t, double> map;
 
-    for(auto value : array)
+    for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
         map[obj["k"].toInt()] = obj["v"].toDouble();
@@ -238,7 +253,7 @@ inline QMap<double, double> fromJsonMap(const QJsonArray& array)
 {
     QMap<double, double> map;
 
-    for(auto value : array)
+    for(const auto& value : array)
     {
         QJsonObject obj = value.toObject();
         map[obj["k"].toDouble()] = obj["v"].toDouble();

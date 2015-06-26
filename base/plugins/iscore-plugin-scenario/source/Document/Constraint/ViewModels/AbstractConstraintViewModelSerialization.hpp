@@ -11,7 +11,7 @@ class AbstractConstraintViewModel;
 
 // Load a single constraint view model.
 template<typename ScenarioViewModelType>
-typename ScenarioViewModelType::constraint_view_model_type*
+typename ScenarioViewModelType::constraint_layer_type*
 loadConstraintViewModel(Deserializer<DataStream>& deserializer,
                           ScenarioViewModelType* svm)
 {
@@ -22,7 +22,7 @@ loadConstraintViewModel(Deserializer<DataStream>& deserializer,
 
     // Make it
     auto viewmodel =  new typename ScenarioViewModelType
-    ::constraint_view_model_type {deserializer,
+    ::constraint_layer_type {deserializer,
                                   constraint,
                                   svm};
 
@@ -33,7 +33,7 @@ loadConstraintViewModel(Deserializer<DataStream>& deserializer,
 }
 
 template<typename ScenarioViewModelType>
-typename ScenarioViewModelType::constraint_view_model_type*
+typename ScenarioViewModelType::constraint_layer_type*
 loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
                           ScenarioViewModelType* svm)
 {
@@ -43,7 +43,7 @@ loadConstraintViewModel(Deserializer<JSONObject>& deserializer,
 
     // Make it
     auto viewmodel =  new typename ScenarioViewModelType
-    ::constraint_view_model_type {deserializer,
+    ::constraint_layer_type {deserializer,
                                   constraint,
                                   svm};
 

@@ -48,7 +48,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 
     m_stream << constraint.isRigid();
 
-    readFrom(*constraint.m_pluginModelList);
+    readFrom(constraint.m_pluginModelList);
 
     insertDelimiter();
 }
@@ -108,7 +108,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
     constraint.setRigid(rigidity);
 
-    constraint.m_pluginModelList = new iscore::ElementPluginModelList{*this, &constraint};
+    constraint.m_pluginModelList = iscore::ElementPluginModelList{*this, &constraint};
 
     checkDelimiter();
 }
@@ -141,7 +141,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
 
     m_obj["Rigidity"] = constraint.isRigid();
 
-    m_obj["PluginsMetadata"] = toJsonValue(*constraint.m_pluginModelList);
+    m_obj["PluginsMetadata"] = toJsonValue(constraint.m_pluginModelList);
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint)
@@ -181,5 +181,5 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
 
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    constraint.m_pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &constraint};
+    constraint.m_pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &constraint};
 }

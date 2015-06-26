@@ -14,7 +14,7 @@ ConstraintModel::ConstraintModel(
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
-    m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
+    m_pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
     setupConstraintViewModel(m_fullViewModel);
@@ -26,9 +26,9 @@ ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
         const id_type<ConstraintModel>& id,
         QObject* parent):
-    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent}
+    IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
+    m_pluginModelList{source.m_pluginModelList, this}
 {
-    m_pluginModelList = new iscore::ElementPluginModelList{source.m_pluginModelList, this};
     metadata = source.metadata;
 //    consistency = source.consistency; // TODO : no necessary because it should be compute
 
@@ -67,7 +67,7 @@ ConstraintModel::ConstraintModel(
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&lm->sharedProcessModel()];
                        // TODO harmonize the order of parameters (source first, then new id)
-                       target.addLayerModel(proc->cloneViewModel(lm->id(), *lm, &target));
+                       target.addLayerModel(proc->cloneLayer(lm->id(), *lm, &target));
                    }
         }, this});
     }

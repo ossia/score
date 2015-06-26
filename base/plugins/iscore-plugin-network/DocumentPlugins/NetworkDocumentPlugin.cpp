@@ -31,28 +31,32 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
     for(ConstraintModel* constraint : constraints)
     {
-        for(auto& plugid : elementPlugins())
+        for(const auto& plugid : elementPlugins())
         {
             if(constraint->pluginModelList().canAdd(plugid))
                 constraint->pluginModelList().add(
                             makeElementPlugin(constraint,
-                                              &constraint->pluginModelList()));
+                                              plugid,
+                                              constraint));
         }
     }
+
     auto events = doc->modelDelegate()->findChildren<EventModel*>("EventModel");
     for(EventModel* event : events)
     {
-        for(auto& plugid : elementPlugins())
+        for(const auto& plugid : elementPlugins())
         {
             if(event->pluginModelList().canAdd(plugid))
             {
                 event->pluginModelList().add(
-                            makeElementPlugin(event, &event->pluginModelList()));
+                            makeElementPlugin(event,
+                                              plugid,
+                                              event));
             }
         }
     }
 
-    // TODO here we have to instantiate Network "OSSIA" policies, and replace the existing "OSSIA" policies..
+    // TODO here we have to instantiate Network "OSSIA" policies. OR does it go with GroupMetadata?
 }
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(const VisitorVariant &loader,
@@ -75,7 +79,7 @@ void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
     emit sessionChanged();
 }
 
-QList<int> NetworkDocumentPlugin::elementPlugins() const
+QList<iscore::ElementPluginModelType> NetworkDocumentPlugin::elementPlugins() const
 {
     return {GroupMetadata::staticPluginId()};
 }
@@ -93,16 +97,25 @@ void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
 iscore::ElementPluginModel*
 NetworkDocumentPlugin::makeElementPlugin(
         const QObject* element,
+        iscore::ElementPluginModelType type,
         QObject* parent)
 {
-    if((element->metaObject()->className() == QString{"ConstraintModel"})
-    || (element->metaObject()->className() == QString{"EventModel"}))
+    switch(type)
     {
-        auto plug = new GroupMetadata{element, m_groups->defaultGroup(), parent};
+        case GroupMetadata::staticPluginId():
+        {
+            if((element->metaObject()->className() == QString{"ConstraintModel"})
+            || (element->metaObject()->className() == QString{"EventModel"}))
+            {
+                auto plug = new GroupMetadata{element, m_groups->defaultGroup(), parent};
 
-        setupGroupPlugin(plug);
+                setupGroupPlugin(plug);
 
-        return plug;
+                return plug;
+            }
+
+            break;
+        }
     }
 
     return nullptr;

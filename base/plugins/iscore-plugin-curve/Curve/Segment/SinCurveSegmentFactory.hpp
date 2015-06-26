@@ -4,7 +4,7 @@
 class SinCurveSegmentFactory : public CurveSegmentFactory
 {
     public:
-        QString name() const;
+        QString name() const override;
 
         CurveSegmentModel *make(
                 const id_type<CurveSegmentModel>& id,

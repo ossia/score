@@ -10,7 +10,7 @@ class TimeNodeModel;
 
 class EventModel;
 
-class AbstractScenarioViewModel : public LayerModel
+class AbstractScenarioLayer : public LayerModel
 {
         Q_OBJECT
     public:
@@ -46,41 +46,39 @@ class AbstractScenarioViewModel : public LayerModel
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;
 
     protected:
-        AbstractScenarioViewModel(const id_type<LayerModel>& viewModelId,
-                                  const QString& name,
-                                  ProcessModel& sharedProcess,
-                                  QObject* parent) :
+        AbstractScenarioLayer(const id_type<LayerModel>& viewModelId,
+                              const QString& name,
+                              ProcessModel& sharedProcess,
+                              QObject* parent) :
             LayerModel {viewModelId,
-                                      name,
-                                      sharedProcess,
-                                      parent
-        }
+                        name,
+                        sharedProcess,
+                        parent
+}
         {
         }
 
         // Copy
-        AbstractScenarioViewModel(const AbstractScenarioViewModel& source,
-                                  const id_type<LayerModel>& viewModelId,
-                                  const QString& name,
-                                  ProcessModel& sharedProcess,
-                                  QObject* parent) :
+        AbstractScenarioLayer(const AbstractScenarioLayer& source,
+                              const id_type<LayerModel>& viewModelId,
+                              const QString& name,
+                              ProcessModel& sharedProcess,
+                              QObject* parent) :
             LayerModel {viewModelId,
-                                      name,
-                                      sharedProcess,
-                                      parent
-        }
+                        name,
+                        sharedProcess,
+                        parent}
         {
         }
 
         // Load
         template<typename Impl>
-        AbstractScenarioViewModel(Deserializer<Impl>& vis,
-                                  ProcessModel& sharedProcess,
-                                  QObject* parent) :
+        AbstractScenarioLayer(Deserializer<Impl>& vis,
+                              ProcessModel& sharedProcess,
+                              QObject* parent) :
             LayerModel {vis,
-                                       sharedProcess,
-                                       parent
-        }
+                        sharedProcess,
+                        parent}
         {
             // No data to save (the constraints vector will be rebuilt by the subclass accordingly.)
         }
@@ -89,22 +87,22 @@ class AbstractScenarioViewModel : public LayerModel
 };
 
 template<typename T>
-typename T::constraint_view_model_type& constraintViewModel(
+typename T::constraint_layer_type& constraintViewModel(
         const T& scenarioViewModel,
         const id_type<AbstractConstraintViewModel>& cvm_id)
 {
-    return static_cast<typename T::constraint_view_model_type&>(scenarioViewModel.constraint(cvm_id));
+    return static_cast<typename T::constraint_layer_type&>(scenarioViewModel.constraint(cvm_id));
 }
 
 
 template<typename T>
-QVector<typename T::constraint_view_model_type*> constraintsViewModels(const T& scenarioViewModel)
+QVector<typename T::constraint_layer_type*> constraintsViewModels(const T& scenarioViewModel)
 {
-    QVector<typename T::constraint_view_model_type*> v;
+    QVector<typename T::constraint_layer_type*> v;
 
     for(auto& elt : scenarioViewModel.constraints())
     {
-        v.push_back(static_cast<typename T::constraint_view_model_type*>(elt));
+        v.push_back(static_cast<typename T::constraint_layer_type*>(elt));
     }
 
     return v;

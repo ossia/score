@@ -86,7 +86,7 @@ void AddLayerInNewSlot::redo()
     auto slot = rack->slot(m_createdSlotId);
     auto proc = constraint.process(m_sharedProcessModelId);
 
-    slot->addLayerModel(proc->makeViewModel(m_createdLayerId, m_processData, slot));
+    slot->addLayerModel(proc->makeLayer(m_createdLayerId, m_processData, slot));
 }
 
 void AddLayerInNewSlot::serializeImpl(QDataStream& s) const

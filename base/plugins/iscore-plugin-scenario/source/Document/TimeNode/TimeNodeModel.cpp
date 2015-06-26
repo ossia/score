@@ -2,13 +2,15 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include "Document/Event/EventModel.hpp"
 
+#include "Process/ScenarioModel.hpp"
+
 TimeNodeModel::TimeNodeModel(
         const id_type<TimeNodeModel>& id,
         const TimeValue& date,
         double ypos,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
-    m_pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
+    m_pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_date{date},
     m_y{ypos}
 {
@@ -19,13 +21,19 @@ TimeNodeModel::TimeNodeModel(
 TimeNodeModel::TimeNodeModel(const TimeNodeModel &source,
         const id_type<TimeNodeModel>& id,
         QObject* parent):
-    TimeNodeModel{id, source.date(), source.y(), parent}
+    IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
+    m_pluginModelList{source.m_pluginModelList, this},
+    m_date{source.date()},
+    m_y{source.y()},
+    m_events(source.m_events),
+    m_eventHasPreviousConstraint(source.m_eventHasPreviousConstraint)
 {
-    m_pluginModelList = new iscore::ElementPluginModelList{source.m_pluginModelList, this};
-    m_events = source.m_events;
+    metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
+    metadata.setLabel("TimeNode");
+
+    checkIfPreviousConstraint();
 }
 
-#include "Process/ScenarioModel.hpp"
 ScenarioModel* TimeNodeModel::parentScenario() const
 {
     return dynamic_cast<ScenarioModel*>(parent());
@@ -65,10 +73,6 @@ void TimeNodeModel::setDate(const TimeValue& date)
     emit dateChanged();
 }
 
-bool TimeNodeModel::isEmpty()
-{
-    return (m_events.size() == 0);
-}
 double TimeNodeModel::y() const
 {
     return m_y;
@@ -78,6 +82,7 @@ void TimeNodeModel::setY(double y)
 {
     m_y = y;
 }
+
 const QVector<id_type<EventModel> >& TimeNodeModel::events() const
 {
     return m_events;

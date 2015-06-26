@@ -208,9 +208,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         }
 
         iscore::ElementPluginModelList& pluginModelList()
-        { return *m_pluginModelList; }
+        { return m_pluginModelList; }
         const iscore::ElementPluginModelList& pluginModelList() const
-        { return *m_pluginModelList; }
+        { return m_pluginModelList; }
 
     signals:
         void processCreated(const QString& processName,
@@ -250,7 +250,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void on_destroyedViewModel(QObject*);
 
     private:
-        iscore::ElementPluginModelList* m_pluginModelList{};
+        iscore::ElementPluginModelList m_pluginModelList;
 
         IdContainer<RackModel> m_racks; // No content -> Phantom ?
         IdContainer<ProcessModel> m_processes;

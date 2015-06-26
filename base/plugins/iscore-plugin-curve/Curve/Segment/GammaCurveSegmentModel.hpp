@@ -24,8 +24,8 @@ class GammaCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) override;
 
-        boost::optional<double> verticalParameter();
-        void setVerticalParameter(double p);
+        boost::optional<double> verticalParameter() override;
+        void setVerticalParameter(double p) override;
 
         double gamma = 0.5;
 

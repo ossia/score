@@ -74,7 +74,7 @@ ProcessModel* AutomationFactory::loadModel(
     { return new AutomationModel{deserializer, parent};});
 }
 
-LayerModel* AutomationModel::loadViewModel_impl(
+LayerModel* AutomationModel::loadLayer_impl(
         const VisitorVariant& vis,
         QObject* parent)
 {

@@ -27,6 +27,8 @@ class NetworkPluginPolicy : public QObject
 class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
+
+        // TODO make an ISCORE_SERIALIZE_FRIENDS macro
         friend void Visitor<Reader<DataStream>>::readFrom<NetworkDocumentPlugin>(const NetworkDocumentPlugin& ev);
         friend void Visitor<Reader<JSONObject>>::readFrom<NetworkDocumentPlugin>(const NetworkDocumentPlugin& ev);
         friend void Visitor<Writer<DataStream>>::writeTo<NetworkDocumentPlugin>(NetworkDocumentPlugin& ev);
@@ -39,10 +41,11 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         NetworkDocumentPlugin(const VisitorVariant& loader, iscore::DocumentModel* doc);
         void setPolicy(NetworkPluginPolicy*);
 
-        QList<int> elementPlugins() const override;
+        QList<iscore::ElementPluginModelType> elementPlugins() const override;
 
         iscore::ElementPluginModel* makeElementPlugin(
                 const QObject* element,
+                iscore::ElementPluginModelType,
                 QObject* parent) override;
 
         iscore::ElementPluginModel* loadElementPlugin(

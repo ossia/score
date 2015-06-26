@@ -157,7 +157,7 @@ void AutomationModel::setSelection(const Selection & s) const
     m_curve->setSelection(s);
 }
 
-LayerModel* AutomationModel::makeViewModel_impl(
+LayerModel* AutomationModel::makeLayer_impl(
         const id_type<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -166,7 +166,7 @@ LayerModel* AutomationModel::makeViewModel_impl(
     return vm;
 }
 
-LayerModel* AutomationModel::cloneViewModel_impl(
+LayerModel* AutomationModel::cloneLayer_impl(
         const id_type<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)

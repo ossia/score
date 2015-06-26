@@ -10,8 +10,10 @@ class CurveView : public QGraphicsObject
 
         void setRect(const QRectF& theRect);
 
-        QRectF boundingRect() const;
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter *painter,
+                   const QStyleOptionGraphicsItem *option,
+                   QWidget *widget) override;
 
         void setSelectionArea(const QRectF&);
     signals:

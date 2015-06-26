@@ -14,7 +14,7 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
         const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> >& constraintIds,
         ScenarioModel& model,
         QObject* parent) :
-    AbstractScenarioViewModel {viewModelId,
+    AbstractScenarioLayer {viewModelId,
                               "TemporalScenarioViewModel",
                               model,
                               parent}
@@ -30,7 +30,7 @@ TemporalScenarioViewModel::TemporalScenarioViewModel(
         const id_type<LayerModel>& id,
         ScenarioModel& newScenario,
         QObject* parent) :
-    AbstractScenarioViewModel {source,
+    AbstractScenarioLayer {source,
                               id,
                               "TemporalScenarioViewModel",
                               newScenario,
@@ -82,14 +82,14 @@ void TemporalScenarioViewModel::makeConstraintViewModel(
     auto& constraint_model = model(*this).constraint(constraintModelId);
 
     auto constraint_view_model =
-        constraint_model.makeConstraintViewModel<constraint_view_model_type> (
+        constraint_model.makeConstraintViewModel<constraint_layer_type> (
             constraintViewModelId,
             this);
 
     addConstraintViewModel(constraint_view_model);
 }
 
-void TemporalScenarioViewModel::addConstraintViewModel(constraint_view_model_type* constraint_view_model)
+void TemporalScenarioViewModel::addConstraintViewModel(constraint_layer_type* constraint_view_model)
 {
     m_constraints.push_back(constraint_view_model);
 

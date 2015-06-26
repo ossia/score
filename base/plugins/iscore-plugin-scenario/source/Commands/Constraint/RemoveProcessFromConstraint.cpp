@@ -31,7 +31,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
     s1.readFrom(*proc);
 
     // Save ALL the view models!
-    for(const auto& viewmodel : proc->viewModels())
+    for(const auto& viewmodel : proc->layers())
     {
         QByteArray vm_arr;
         Serializer<DataStream> s{&vm_arr};

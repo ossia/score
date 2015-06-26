@@ -4,6 +4,7 @@
 
 namespace iscore
 {
+using ElementPluginModelType = int;
 class ElementPluginModel : public QObject
 {
     public:
@@ -12,7 +13,7 @@ class ElementPluginModel : public QObject
 
         virtual ElementPluginModel* clone(const QObject* element, QObject* parent) const = 0;
 
-        virtual int elementPluginId() const = 0;
+        virtual ElementPluginModelType elementPluginId() const = 0;
 
         virtual void serialize(const VisitorVariant&) const = 0;
 };
