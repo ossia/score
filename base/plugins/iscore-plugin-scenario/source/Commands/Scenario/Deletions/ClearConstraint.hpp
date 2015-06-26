@@ -5,7 +5,7 @@
 #include <QMap>
 #include <tuple>
 class AbstractConstraintViewModel;
-class BoxModel;
+class RackModel;
 namespace Scenario
 {
     namespace Command
@@ -13,7 +13,7 @@ namespace Scenario
         /**
          * @brief The ClearConstraint class
          *
-         * Removes all the processes and the boxes of a constraint.
+         * Removes all the processes and the rackes of a constraint.
          */
         class ClearConstraint : public iscore::SerializableCommand
         {
@@ -31,10 +31,10 @@ namespace Scenario
             private:
                 ObjectPath m_path;
 
-                QVector<QByteArray> m_serializedBoxes;
+                QVector<QByteArray> m_serializedRackes;
                 QVector<QByteArray> m_serializedProcesses;
 
-                QMap<id_type<AbstractConstraintViewModel>, id_type<BoxModel>> m_boxMappings;
+                QMap<id_type<AbstractConstraintViewModel>, id_type<RackModel>> m_rackMappings;
         };
     }
 }

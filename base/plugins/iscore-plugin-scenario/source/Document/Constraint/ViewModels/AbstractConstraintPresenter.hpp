@@ -9,8 +9,8 @@
 
 class AbstractConstraintViewModel;
 class AbstractConstraintView;
-class BoxPresenter;
-class BoxModel;
+class RackPresenter;
+class RackModel;
 class ConstraintModel;
 class ProcessModel;
 
@@ -40,7 +40,7 @@ class AbstractConstraintPresenter : public NamedObject
 
         bool isSelected() const;
 
-        BoxPresenter* box() const;
+        RackPresenter* rack() const;
 
         const ConstraintModel& model() const;
         const AbstractConstraintViewModel& abstractConstraintViewModel() const;
@@ -65,18 +65,18 @@ class AbstractConstraintPresenter : public NamedObject
         void on_minDurationChanged(const TimeValue& min);
         void on_maxDurationChanged(const TimeValue& max);
 
-        void on_boxShown(const id_type<BoxModel>& boxId);
-        void on_boxHidden();
-        void on_boxRemoved();
+        void on_rackShown(const id_type<RackModel>& rackId);
+        void on_rackHidden();
+        void on_rackRemoved();
 
         void updateHeight();
 
     private:
-        void createBoxPresenter(BoxModel*);
-        void clearBoxPresenter();
+        void createRackPresenter(RackModel*);
+        void clearRackPresenter();
 
         ZoomRatio m_zoomRatio {};
-        BoxPresenter* m_box {};
+        RackPresenter* m_rack {};
 
         // Process presenters are in the slot presenters.
         const AbstractConstraintViewModel& m_viewModel;

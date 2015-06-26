@@ -19,7 +19,7 @@ FullViewConstraintViewModel* FullViewConstraintViewModel::clone(
         QObject* parent)
 {
     auto cstr = new FullViewConstraintViewModel {id, cm, parent};
-    cstr->showBox(this->shownBox());
+    cstr->showRack(this->shownRack());
 
     return cstr;
 }

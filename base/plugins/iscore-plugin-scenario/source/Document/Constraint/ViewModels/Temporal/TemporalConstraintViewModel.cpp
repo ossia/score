@@ -19,7 +19,7 @@ TemporalConstraintViewModel* TemporalConstraintViewModel::clone(
         QObject* parent)
 {
     auto cstr = new TemporalConstraintViewModel {id, cm, parent};
-    cstr->showBox(this->shownBox());
+    cstr->showRack(this->shownRack());
 
     return cstr;
 }

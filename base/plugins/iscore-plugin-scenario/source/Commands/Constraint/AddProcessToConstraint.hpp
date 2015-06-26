@@ -44,7 +44,7 @@ namespace Scenario
                 QString m_processName;
 
                 id_type<ProcessModel> m_createdProcessId {};
-                bool m_noBoxes;
+                bool m_noRackes;
                 AddLayerInNewSlot* m_cmdNewSlot;
                 AddLayerModelToSlot* m_cmdFirstSlot;
         };

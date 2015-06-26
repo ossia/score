@@ -3,8 +3,8 @@
 
 class FullViewConstraintViewModel;
 class FullViewConstraintView;
-class BoxPresenter;
-class BoxModel;
+class RackPresenter;
+class RackModel;
 class QGraphicsItem;
 #include <iscore/selection/SelectionDispatcher.hpp>
 

@@ -41,7 +41,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         BaseElementModel* model() const;
         BaseElementView* view() const;
 
-        // The height in pixels of the displayed constraint with its box.
+        // The height in pixels of the displayed constraint with its rack.
         double height() const;
 
     signals:

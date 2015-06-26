@@ -38,7 +38,7 @@ namespace Scenario
 
                 QByteArray m_serializedStates;
                 //		QByteArray m_serializedEvent;
-                //		QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
+                //		QVector<QByteArray> m_serializedConstraints; // The handlers inside the events are IN the constraints / Rackes / etc.
         };
     }
 }

@@ -16,8 +16,8 @@
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxPresenter.hpp"
-#include "Document/Constraint/Box/Slot/SlotPresenter.hpp"
+#include "Document/Constraint/Rack/RackPresenter.hpp"
+#include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -108,7 +108,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
     // We set the focus on the main scenario.
     // TODO crash happens when we load an empty score
-    SlotPresenter* slot = *m_displayedConstraintPresenter->box()->getSlots().begin();
+    SlotPresenter* slot = *m_displayedConstraintPresenter->rack()->getSlots().begin();
     model()->focusManager().setFocusedPresenter(
                 slot->processes().front().first);
 

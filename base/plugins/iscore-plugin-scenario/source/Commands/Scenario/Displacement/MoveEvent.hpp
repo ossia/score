@@ -9,7 +9,7 @@ class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
 class AbstractConstraintViewModel;
-class BoxModel;
+class RackModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 
@@ -70,7 +70,7 @@ namespace Scenario
                         >, // The constraint data
                         QMap< // Mapping for the view models of this constraint
                             id_type<AbstractConstraintViewModel>,
-                            id_type<BoxModel>
+                            id_type<RackModel>
                         >
                      >
                > m_savedConstraints;

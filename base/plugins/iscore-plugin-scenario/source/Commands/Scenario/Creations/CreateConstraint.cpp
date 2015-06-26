@@ -1,6 +1,6 @@
 #include "CreateConstraint.hpp"
 
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"

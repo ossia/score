@@ -1,12 +1,12 @@
 #include "MoveSlotToolState.hpp"
 #include "States/SlotStates.hpp"
 
-#include "Document/Constraint/Box/BoxPresenter.hpp"
-#include "Document/Constraint/Box/Slot/SlotPresenter.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotOverlay.hpp"
-#include "Document/Constraint/Box/Slot/SlotView.hpp"
-#include "Document/Constraint/Box/Slot/SlotHandle.hpp"
+#include "Document/Constraint/Rack/RackPresenter.hpp"
+#include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotOverlay.hpp"
+#include "Document/Constraint/Rack/Slot/SlotView.hpp"
+#include "Document/Constraint/Rack/Slot/SlotHandle.hpp"
 
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
@@ -29,8 +29,8 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     {
         for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
         {
-            if(!constraint->box()) continue;
-            constraint->box()->setDisabledSlotState();
+            if(!constraint->rack()) continue;
+            constraint->rack()->setDisabledSlotState();
         }
     });
     connect(this, &QState::exited,
@@ -38,8 +38,8 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     {
         for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
         {
-            if(!constraint->box()) continue;
-            constraint->box()->setEnabledSlotState();
+            if(!constraint->rack()) continue;
+            constraint->rack()->setEnabledSlotState();
         }
     });
 

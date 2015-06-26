@@ -23,9 +23,9 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     connect(::view(this), &TemporalConstraintView::constraintHoverLeave,
             this,       &TemporalConstraintPresenter::constraintHoverLeave);
 
-    if(viewModel(this)->isBoxShown())
+    if(viewModel(this)->isRackShown())
     {
-        on_boxShown(viewModel(this)->shownBox());
+        on_rackShown(viewModel(this)->shownRack());
     }
     ::view(this)->setLabel(cstr_model.model().metadata.label());
 

@@ -6,7 +6,7 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class ProcessModel;
-class BoxModel;
+class RackModel;
 class SlotModel;
 class LayerModel;
 
@@ -41,10 +41,10 @@ namespace Scenario
             private:
                 ObjectPath m_path;
 
-                bool m_existingBox {};
+                bool m_existingRack {};
 
                 id_type<ProcessModel> m_processId {};
-                id_type<BoxModel> m_createdBoxId {};
+                id_type<RackModel> m_createdRackId {};
                 id_type<SlotModel> m_createdSlotId {};
                 id_type<LayerModel> m_createdLayerId {};
                 id_type<ProcessModel> m_sharedProcessModelId {};

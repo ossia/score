@@ -46,7 +46,7 @@ namespace Scenario
                             QByteArray
                         >, SerializedConstraintViewModels
                     >
-                > m_removedConstraints; // The handlers inside the events are IN the constraints / Boxes / etc.
+                > m_removedConstraints; // The handlers inside the events are IN the constraints / Rackes / etc.
 
         };
     }

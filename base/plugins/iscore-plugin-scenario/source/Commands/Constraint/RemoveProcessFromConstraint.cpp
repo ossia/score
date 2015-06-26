@@ -1,8 +1,8 @@
 #include "RemoveProcessFromConstraint.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 
 #include "ProcessInterface/ProcessModel.hpp"
@@ -53,7 +53,7 @@ void RemoveProcessFromConstraint::undo()
         const auto& path = it.first.vec();
         qDebug() << it.first.toString();
         auto slot = constraint
-                .box(id_type<BoxModel>(path.at(path.size() - 3).id()))
+                .rack(id_type<RackModel>(path.at(path.size() - 3).id()))
                 ->slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};

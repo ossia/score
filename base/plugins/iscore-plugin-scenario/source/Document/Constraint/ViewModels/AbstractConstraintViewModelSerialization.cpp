@@ -1,6 +1,6 @@
 #include "AbstractConstraintViewModelSerialization.hpp"
 #include "AbstractConstraintViewModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cvm)
@@ -13,23 +13,23 @@ void Visitor<Reader<DataStream>>::readFrom(const AbstractConstraintViewModel& cv
     readFrom(static_cast<const IdentifiedObject<AbstractConstraintViewModel>&>(cvm));
 
     // Save the AbstractConstraintViewModelData
-    m_stream << cvm.shownBox();
+    m_stream << cvm.shownRack();
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AbstractConstraintViewModel& cvm)
 {
-    id_type<BoxModel> id;
+    id_type<RackModel> id;
     m_stream >> id;
 
     if(id.val())
     {
-        cvm.showBox(id);
+        cvm.showRack(id);
     }
     else
     {
-        cvm.hideBox();
+        cvm.hideRack();
     }
 
     checkDelimiter();
@@ -43,21 +43,21 @@ void Visitor<Reader<JSONObject>>::readFrom(const AbstractConstraintViewModel& cv
 
     readFrom(static_cast<const IdentifiedObject<AbstractConstraintViewModel>&>(cvm));
 
-    m_obj["ShownBox"] = toJsonValue(cvm.shownBox());
+    m_obj["ShownRack"] = toJsonValue(cvm.shownRack());
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(AbstractConstraintViewModel& cvm)
 {
-    auto id = fromJsonValue<id_type<BoxModel>>(m_obj["ShownBox"]);
+    auto id = fromJsonValue<id_type<RackModel>>(m_obj["ShownRack"]);
 
     if(id.val())
     {
-        cvm.showBox(id);
+        cvm.showRack(id);
     }
     else
     {
-        cvm.hideBox();
+        cvm.hideRack();
     }
 }
 

@@ -1,20 +1,20 @@
 #include "ConstraintInspectorWidget.hpp"
 
 #include "DialogWidget/AddProcessDialog.hpp"
-#include "Widgets/BoxWidget.hpp"
+#include "Widgets/RackWidget.hpp"
 #include "Widgets/DurationSectionWidget.hpp"
-#include "Widgets/Box/BoxInspectorSection.hpp"
+#include "Widgets/Rack/RackInspectorSection.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Constraint/AddLayerInNewSlot.hpp"
-#include "Commands/Constraint/AddBoxToConstraint.hpp"
+#include "Commands/Constraint/AddRackToConstraint.hpp"
 #include "Document/Event/EventModel.hpp"
-#include "Commands/Scenario/ShowBoxInViewModel.hpp"
-#include "Commands/Scenario/HideBoxInViewModel.hpp"
+#include "Commands/Scenario/ShowRackInViewModel.hpp"
+#include "Commands/Scenario/HideRackInViewModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
@@ -123,15 +123,15 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Separator
     m_properties.push_back(new Separator {this});
 
-    // Boxes
-    m_boxSection = new InspectorSectionWidget {"Boxes", this};
-    m_boxSection->setObjectName("Boxes");
-    m_boxSection->expand();
+    // Rackes
+    m_rackSection = new InspectorSectionWidget {"Rackes", this};
+    m_rackSection->setObjectName("Rackes");
+    m_rackSection->expand();
 
-    m_boxWidget = new BoxWidget {this};
+    m_rackWidget = new RackWidget {this};
 
-    m_properties.push_back(m_boxSection);
-    m_properties.push_back(m_boxWidget);
+    m_properties.push_back(m_rackSection);
+    m_properties.push_back(m_rackWidget);
 
     // Plugins
     iscore::Document* doc = iscore::IDocument::documentFromObject(object);
@@ -170,12 +170,12 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
 
     m_processesSectionWidgets.clear();
 
-    for(auto& box_pair : m_boxesSectionWidgets)
+    for(auto& rack_pair : m_rackesSectionWidgets)
     {
-        m_boxSection->removeContent(box_pair.second);
+        m_rackSection->removeContent(rack_pair.second);
     }
 
-    m_boxesSectionWidgets.clear();
+    m_rackesSectionWidgets.clear();
 
     // Cleanup the connections
     for(auto& connection : m_connections)
@@ -198,11 +198,11 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
             connect(model(),	&ConstraintModel::processRemoved,
                     this,		&ConstraintInspectorWidget::on_processRemoved));
         m_connections.push_back(
-            connect(model(),	&ConstraintModel::boxCreated,
-                    this,		&ConstraintInspectorWidget::on_boxCreated));
+            connect(model(),	&ConstraintModel::rackCreated,
+                    this,		&ConstraintInspectorWidget::on_rackCreated));
         m_connections.push_back(
-            connect(model(),	&ConstraintModel::boxRemoved,
-                    this,		&ConstraintInspectorWidget::on_boxRemoved));
+            connect(model(),	&ConstraintModel::rackRemoved,
+                    this,		&ConstraintInspectorWidget::on_rackRemoved));
 
         m_connections.push_back(
             connect(model(), &ConstraintModel::viewModelCreated,
@@ -217,18 +217,18 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
             displaySharedProcess(process);
         }
 
-        // Box
-        m_boxWidget->setModel(model());
+        // Rack
+        m_rackWidget->setModel(model());
 
-        for(BoxModel* box : model()->boxes())
+        for(RackModel* rack : model()->rackes())
         {
-            setupBox(box);
+            setupRack(rack);
         }
     }
     else
     {
         m_currentConstraint = nullptr;
-        m_boxWidget->setModel(nullptr);
+        m_rackWidget->setModel(nullptr);
     }
 }
 
@@ -242,9 +242,9 @@ void ConstraintInspectorWidget::createProcess(QString processName)
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::createBox()
+void ConstraintInspectorWidget::createRack()
 {
-    auto cmd = new AddBoxToConstraint(
+    auto cmd = new AddRackToConstraint(
         iscore::IDocument::path(model()));
     emit commandDispatcher()->submitCommand(cmd);
 }
@@ -260,28 +260,28 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::activeBoxChanged(QString box, AbstractConstraintViewModel* vm)
+void ConstraintInspectorWidget::activeRackChanged(QString rack, AbstractConstraintViewModel* vm)
 {
-    // TODO mettre à jour l'inspecteur si la box affichée change (i.e. via une commande réseau).
-    if (m_boxWidget == 0)
+    // TODO mettre à jour l'inspecteur si la rack affichée change (i.e. via une commande réseau).
+    if (m_rackWidget == 0)
         return;
 
-    if(box == m_boxWidget->hiddenText)
+    if(rack == m_rackWidget->hiddenText)
     {
-        if(vm->isBoxShown())
+        if(vm->isRackShown())
         {
-            auto cmd = new HideBoxInViewModel(vm);
+            auto cmd = new HideRackInViewModel(vm);
             emit commandDispatcher()->submitCommand(cmd);
         }
     }
     else
     {
         bool ok {};
-        auto id = id_type<BoxModel> (box.toInt(&ok));
+        auto id = id_type<RackModel> (rack.toInt(&ok));
 
         if(ok)
         {
-            auto cmd = new ShowBoxInViewModel(vm, id);
+            auto cmd = new ShowRackInViewModel(vm, id);
             emit commandDispatcher()->submitCommand(cmd);
         }
     }
@@ -333,16 +333,16 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
             this,   SLOT(createLayerInNewSlot(QString)));
 }
 
-void ConstraintInspectorWidget::setupBox(BoxModel* box)
+void ConstraintInspectorWidget::setupRack(RackModel* rack)
 {
     // Display the widget
-    BoxInspectorSection* newBox = new BoxInspectorSection {QString{"Box.%1"} .arg(*box->id().val()),
-                                                           box,
+    RackInspectorSection* newRack = new RackInspectorSection {QString{"Rack.%1"} .arg(*rack->id().val()),
+                                                           rack,
                                                            this
                                                           };
 
-    m_boxesSectionWidgets[box->id()] = newBox;
-    m_boxSection->addContent(newBox);
+    m_rackesSectionWidgets[rack->id()] = newRack;
+    m_rackSection->addContent(newRack);
 }
 
 QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
@@ -399,33 +399,33 @@ void ConstraintInspectorWidget::on_processRemoved(id_type<ProcessModel> processI
 }
 
 
-void ConstraintInspectorWidget::on_boxCreated(id_type<BoxModel> boxId)
+void ConstraintInspectorWidget::on_rackCreated(id_type<RackModel> rackId)
 {
-    setupBox(model()->box(boxId));
-    m_boxWidget->viewModelsChanged();
+    setupRack(model()->rack(rackId));
+    m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_boxRemoved(id_type<BoxModel> boxId)
+void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
 {
-    auto ptr = m_boxesSectionWidgets[boxId];
-    m_boxesSectionWidgets.erase(boxId);
+    auto ptr = m_rackesSectionWidgets[rackId];
+    m_rackesSectionWidgets.erase(rackId);
 
     if(ptr)
     {
         ptr->deleteLater();
     }
 
-    m_boxWidget->viewModelsChanged();
+    m_rackWidget->viewModelsChanged();
 }
 
 void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<AbstractConstraintViewModel> cvmId)
 {
     qDebug() << "Created";
-    m_boxWidget->viewModelsChanged();
+    m_rackWidget->viewModelsChanged();
 }
 
 void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId)
 {
     qDebug() << "Removed";
-    m_boxWidget->viewModelsChanged();
+    m_rackWidget->viewModelsChanged();
 }

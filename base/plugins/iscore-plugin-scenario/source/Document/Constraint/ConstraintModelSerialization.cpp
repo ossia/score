@@ -1,7 +1,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
 
@@ -25,13 +25,13 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
         readFrom(*process);
     }
 
-    // Boxes
-    const auto& boxes = constraint.boxes();
-    m_stream << (int) boxes.size();
+    // Rackes
+    const auto& rackes = constraint.rackes();
+    m_stream << (int) rackes.size();
 
-    for(const auto& box : boxes)
+    for(const auto& rack : rackes)
     {
-        readFrom(*box);
+        readFrom(*rack);
     }
 
     // Full view
@@ -70,13 +70,13 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
         constraint.addProcess(createProcess(*this, &constraint));
     }
 
-    // Boxes
-    int box_count;
-    m_stream >> box_count;
+    // Rackes
+    int rack_count;
+    m_stream >> rack_count;
 
-    for(; box_count -- > 0;)
+    for(; rack_count -- > 0;)
     {
-        constraint.addBox(new BoxModel(*this, &constraint));
+        constraint.addRack(new RackModel(*this, &constraint));
     }
 
     // Full view
@@ -128,8 +128,8 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
     // Processes
     m_obj["Processes"] = toJsonArray(constraint.processes());
 
-    // Boxes
-    m_obj["Boxes"] = toJsonArray(constraint.boxes());
+    // Rackes
+    m_obj["Rackes"] = toJsonArray(constraint.rackes());
 
 
     m_obj["FullView"] = toJsonObject(*constraint.fullView());
@@ -159,12 +159,12 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
         constraint.addProcess(createProcess(deserializer, &constraint));
     }
 
-    QJsonArray box_array = m_obj["Boxes"].toArray();
+    QJsonArray rack_array = m_obj["Rackes"].toArray();
 
-    for(const auto& json_vref : box_array)
+    for(const auto& json_vref : rack_array)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
-        constraint.addBox(new BoxModel(deserializer, &constraint));
+        constraint.addRack(new RackModel(deserializer, &constraint));
     }
 
     constraint.setFullView(new FullViewConstraintViewModel {

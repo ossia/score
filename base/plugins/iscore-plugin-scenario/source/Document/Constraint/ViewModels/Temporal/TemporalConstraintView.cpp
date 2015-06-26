@@ -2,8 +2,8 @@
 
 #include "TemporalConstraintViewModel.hpp"
 #include "TemporalConstraintPresenter.hpp"
-#include "Document/Constraint/Box/BoxPresenter.hpp"
-#include "Document/Constraint/Box/BoxView.hpp"
+#include "Document/Constraint/Rack/RackPresenter.hpp"
+#include "Document/Constraint/Rack/RackView.hpp"
 #include "Document/State/StateView.hpp"
 
 #include <QPainter>
@@ -35,17 +35,17 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-    // Draw the box bg
-    if(auto box = presenter().box())
+    // Draw the rack bg
+    if(auto rack = presenter().rack())
     {
-        auto boxRect = box->view().boundingRect();
-        painter->fillRect(boxRect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+        auto rackRect = rack->view().boundingRect();
+        painter->fillRect(rackRect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
 
         auto color = qApp->palette("ScenarioPalette").base().color();
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
-        painter->drawLine(boxRect.topLeft(), boxRect.bottomLeft());
-        painter->drawLine(boxRect.topRight(), boxRect.bottomRight());
+        painter->drawLine(rackRect.topLeft(), rackRect.bottomLeft());
+        painter->drawLine(rackRect.topRight(), rackRect.bottomRight());
     }
 
 

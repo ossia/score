@@ -4,7 +4,7 @@
 #include <QPointer>
 #include "source/Process/AbstractScenarioViewModel.hpp"
 class ScenarioModel;
-class BoxModel;
+class RackModel;
 class TemporalConstraintViewModel;
 class TemporalScenarioPresenter;
 

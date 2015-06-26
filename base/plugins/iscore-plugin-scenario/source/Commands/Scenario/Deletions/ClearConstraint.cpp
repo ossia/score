@@ -1,8 +1,8 @@
 #include "ClearConstraint.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
@@ -19,12 +19,12 @@ m_path {std::move(constraintPath) }
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
-    for(const BoxModel* box : constraint.boxes())
+    for(const RackModel* rack : constraint.rackes())
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};
-        s.readFrom(*box);
-        m_serializedBoxes.push_back(arr);
+        s.readFrom(*rack);
+        m_serializedRackes.push_back(arr);
     }
 
     for(const ProcessModel* process : constraint.processes())
@@ -38,7 +38,7 @@ m_path {std::move(constraintPath) }
     // TODO save view model data instead
     for(const auto& viewmodel : constraint.viewModels())
     {
-        m_boxMappings.insert(viewmodel->id(), viewmodel->shownBox());
+        m_rackMappings.insert(viewmodel->id(), viewmodel->shownRack());
     }
 }
 
@@ -52,18 +52,18 @@ void ClearConstraint::undo()
         constraint.addProcess(createProcess(s, &constraint));
     }
 
-    for(auto& serializedBox : m_serializedBoxes)
+    for(auto& serializedRack : m_serializedRackes)
     {
-        Deserializer<DataStream> s {serializedBox};
-        constraint.addBox(new BoxModel {s, &constraint});
+        Deserializer<DataStream> s {serializedRack};
+        constraint.addRack(new RackModel {s, &constraint});
     }
 
     auto bit = constraint.viewModels().begin(), eit = constraint.viewModels().end();
-    for(const auto& cvmid : m_boxMappings.keys())
+    for(const auto& cvmid : m_rackMappings.keys())
     {
         auto it = std::find(bit, eit, cvmid);
         Q_ASSERT(it != eit);
-        (*it)->showBox(m_boxMappings.value(cvmid));
+        (*it)->showRack(m_rackMappings.value(cvmid));
     }
 }
 
@@ -78,19 +78,19 @@ void ClearConstraint::redo()
         constraint.removeProcess(process->id());
     }
 
-    auto boxes = constraint.boxes();
-    for(const auto& box : boxes)
+    auto rackes = constraint.rackes();
+    for(const auto& rack : rackes)
     {
-        constraint.removeBox(box->id());
+        constraint.removeRack(rack->id());
     }
 }
 
 void ClearConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_serializedBoxes << m_serializedProcesses << m_boxMappings;
+    s << m_path << m_serializedRackes << m_serializedProcesses << m_rackMappings;
 }
 
 void ClearConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_serializedBoxes >> m_serializedProcesses >> m_boxMappings;
+    s >> m_path >> m_serializedRackes >> m_serializedProcesses >> m_rackMappings;
 }

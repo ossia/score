@@ -7,8 +7,8 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include "Commands/Scenario/Deletions/ClearConstraint.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include <ProcessInterface/LayerModel.hpp>
@@ -57,11 +57,11 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
         jr.readFrom(constraint);
 
         // Save for each view model of this constraint
-        // the identifier of the box that was displayed
-        QMap<id_type<AbstractConstraintViewModel>, id_type<BoxModel>> map;
+        // the identifier of the rack that was displayed
+        QMap<id_type<AbstractConstraintViewModel>, id_type<RackModel>> map;
         for(const AbstractConstraintViewModel* vm : constraint.viewModels())
         {
-            map[vm->id()] = vm->shownBox();
+            map[vm->id()] = vm->shownRack();
         }
 
         m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
@@ -92,7 +92,7 @@ void MoveEvent::undo()
         cmd1->redo();
 
         auto& constraint = obj.first.first.find<ConstraintModel>();
-        // 2. Restore the boxes & processes.
+        // 2. Restore the rackes & processes.
 
         // TODO if possible refactor this with CopyConstraintContent and ConstraintModel::clone
         // Be careful however, the code differs in subtle ways
@@ -112,17 +112,17 @@ void MoveEvent::undo()
                 constraint.addProcess(newproc);
             }
 
-            // Clone the boxes
-            for(const auto& sourcebox : src_constraint.boxes())
+            // Clone the rackes
+            for(const auto& sourcerack : src_constraint.rackes())
             {
                 // A note about what happens here :
                 // Since we want to duplicate our process view models using
                 // the target constraint's cloned shared processes (they might setup some specific data),
                 // we maintain a pair mapping each original process to their cloned counterpart.
                 // We can then use the correct cloned process to clone the process view model.
-                auto newbox = new BoxModel{
-                        *sourcebox,
-                        sourcebox->id(),
+                auto newrack = new RackModel{
+                        *sourcerack,
+                        sourcerack->id(),
                         [&] (const SlotModel& source, SlotModel& target)
                         {
                             for(const auto& lm : source.layerModels())
@@ -134,14 +134,14 @@ void MoveEvent::undo()
                             }
                         },
                         &constraint};
-                constraint.addBox(newbox);
+                constraint.addRack(newrack);
             }
         }
 
-        // 3. Restore the correct boxes in the constraint view models
+        // 3. Restore the correct rackes in the constraint view models
         for(auto& viewmodel : constraint.viewModels())
         {
-            viewmodel->showBox(obj.second[viewmodel->id()]);
+            viewmodel->showRack(obj.second[viewmodel->id()]);
         }
     }
 }

@@ -8,7 +8,7 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxPresenter.hpp"
+#include "Document/Constraint/Rack/RackPresenter.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventPresenter.hpp"

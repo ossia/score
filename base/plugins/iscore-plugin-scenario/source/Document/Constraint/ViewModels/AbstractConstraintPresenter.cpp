@@ -4,8 +4,8 @@
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxPresenter.hpp"
-#include "Document/Constraint/Box/BoxView.hpp"
+#include "Document/Constraint/Rack/RackPresenter.hpp"
+#include "Document/Constraint/Rack/RackView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include <QGraphicsScene>
 
@@ -39,12 +39,12 @@ AbstractConstraintPresenter::AbstractConstraintPresenter(QString name,
     connect(&m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
             this, &AbstractConstraintPresenter::heightPercentageChanged);
 
-    connect(&m_viewModel, &AbstractConstraintViewModel::boxShown,
-    this,                &AbstractConstraintPresenter::on_boxShown);
-    connect(&m_viewModel, &AbstractConstraintViewModel::boxHidden,
-    this,                &AbstractConstraintPresenter::on_boxHidden);
-    connect(&m_viewModel, &AbstractConstraintViewModel::boxRemoved,
-    this,                &AbstractConstraintPresenter::on_boxRemoved);
+    connect(&m_viewModel, &AbstractConstraintViewModel::rackShown,
+    this,                &AbstractConstraintPresenter::on_rackShown);
+    connect(&m_viewModel, &AbstractConstraintViewModel::rackHidden,
+    this,                &AbstractConstraintPresenter::on_rackHidden);
+    connect(&m_viewModel, &AbstractConstraintViewModel::rackRemoved,
+    this,                &AbstractConstraintPresenter::on_rackRemoved);
 
     connect(&m_viewModel.model(), &ConstraintModel::playDurationChanged,
             [&] (const TimeValue& t) { m_view->setPlayWidth(t.toPixels(m_zoomRatio));});
@@ -64,9 +64,9 @@ void AbstractConstraintPresenter::updateScaling()
     m_view->setMaxWidth(cm.maxDuration().isInfinite(),
                         cm.maxDuration().isInfinite()? -1 : cm.maxDuration().toPixels(m_zoomRatio));
 
-    if(box())
+    if(rack())
     {
-        box()->setWidth(m_view->defaultWidth() - 20);
+        rack()->setWidth(m_view->defaultWidth() - 20);
     }
 
     updateHeight();
@@ -77,9 +77,9 @@ void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
     m_zoomRatio = val;
     updateScaling();
 
-    if(box())
+    if(rack())
     {
-        box()->on_zoomRatioChanged(m_zoomRatio);
+        rack()->on_zoomRatioChanged(m_zoomRatio);
     }
 }
 
@@ -115,9 +115,9 @@ void AbstractConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 
 void AbstractConstraintPresenter::updateHeight()
 {
-    if(m_viewModel.isBoxShown())
+    if(m_viewModel.isRackShown())
     {
-        m_view->setHeight(box()->height() + 60);
+        m_view->setHeight(rack()->height() + 60);
     }
     else
     {
@@ -135,9 +135,9 @@ bool AbstractConstraintPresenter::isSelected() const
     return m_viewModel.model().selection.get();
 }
 
-BoxPresenter* AbstractConstraintPresenter::box() const
+RackPresenter* AbstractConstraintPresenter::rack() const
 {
-    return m_box;
+    return m_rack;
 }
 
 const ConstraintModel& AbstractConstraintPresenter::model() const
@@ -155,53 +155,53 @@ AbstractConstraintView*AbstractConstraintPresenter::view() const
     return m_view;
 }
 
-void AbstractConstraintPresenter::on_boxShown(const id_type<BoxModel>& boxId)
+void AbstractConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
 {
-    clearBoxPresenter();
-    createBoxPresenter(m_viewModel.model().box(boxId));
+    clearRackPresenter();
+    createRackPresenter(m_viewModel.model().rack(rackId));
 
     updateHeight();
 }
 
-void AbstractConstraintPresenter::on_boxHidden()
+void AbstractConstraintPresenter::on_rackHidden()
 {
-    clearBoxPresenter();
+    clearRackPresenter();
 
     updateHeight();
 }
 
-void AbstractConstraintPresenter::on_boxRemoved()
+void AbstractConstraintPresenter::on_rackRemoved()
 {
-    clearBoxPresenter();
+    clearRackPresenter();
 
     updateHeight();
 }
 
-void AbstractConstraintPresenter::clearBoxPresenter()
+void AbstractConstraintPresenter::clearRackPresenter()
 {
-    if(m_box)
+    if(m_rack)
     {
-        m_box->deleteLater();
-        m_box = nullptr;
+        m_rack->deleteLater();
+        m_rack = nullptr;
     }
 }
 
-void AbstractConstraintPresenter::createBoxPresenter(BoxModel* boxModel)
+void AbstractConstraintPresenter::createRackPresenter(RackModel* rackModel)
 {
-    auto boxView = new BoxView {m_view};
-    boxView->setPos(0, 5);
+    auto rackView = new RackView {m_view};
+    rackView->setPos(0, 5);
 
     // Cas par défaut
-    m_box = new BoxPresenter {*boxModel,
-                              boxView,
+    m_rack = new RackPresenter {*rackModel,
+                              rackView,
                               this};
 
-    m_box->on_zoomRatioChanged(m_zoomRatio);
+    m_rack->on_zoomRatioChanged(m_zoomRatio);
 
-    connect(m_box, &BoxPresenter::askUpdate,
+    connect(m_rack, &RackPresenter::askUpdate,
             this,  &AbstractConstraintPresenter::updateHeight);
 
-    connect(m_box, &BoxPresenter::pressed, this, &AbstractConstraintPresenter::pressed);
-    connect(m_box, &BoxPresenter::moved, this, &AbstractConstraintPresenter::moved);
-    connect(m_box, &BoxPresenter::released, this, &AbstractConstraintPresenter::released);
+    connect(m_rack, &RackPresenter::pressed, this, &AbstractConstraintPresenter::pressed);
+    connect(m_rack, &RackPresenter::moved, this, &AbstractConstraintPresenter::moved);
+    connect(m_rack, &RackPresenter::released, this, &AbstractConstraintPresenter::released);
 }

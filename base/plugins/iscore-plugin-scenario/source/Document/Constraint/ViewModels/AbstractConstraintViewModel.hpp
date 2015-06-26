@@ -2,7 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 
 class ConstraintModel;
-class BoxModel;
+class RackModel;
 class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintViewModel>
 {
         Q_OBJECT
@@ -30,19 +30,19 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
 
         const ConstraintModel& model() const;
 
-        bool isBoxShown() const;
-        const id_type<BoxModel>& shownBox() const;
+        bool isRackShown() const;
+        const id_type<RackModel>& shownRack() const;
 
-        void hideBox();
-        void showBox(const id_type<BoxModel>& boxId);
+        void hideRack();
+        void showRack(const id_type<RackModel>& rackId);
 
     signals:
-        void boxRemoved();
-        void boxHidden();
-        void boxShown(const id_type<BoxModel>& boxId);
+        void rackRemoved();
+        void rackHidden();
+        void rackShown(const id_type<RackModel>& rackId);
 
     public slots:
-        virtual void on_boxRemoved(const id_type<BoxModel>& boxId);
+        virtual void on_rackRemoved(const id_type<RackModel>& rackId);
 
 
     private:
@@ -50,5 +50,5 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
         // hence we are safe with a pointer
         const ConstraintModel& m_model;
 
-        id_type<BoxModel> m_shownBox {};
+        id_type<RackModel> m_shownRack {};
 };

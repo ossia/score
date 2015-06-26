@@ -2,8 +2,8 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -55,11 +55,11 @@ ConstraintModel::ConstraintModel(
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
-    for(const auto& box : source->boxes())
+    for(const auto& rack : source->rackes())
     {
-        addBox(new BoxModel {
-                   *box,
-                   box->id(),
+        addRack(new RackModel {
+                   *rack,
+                   rack->id(),
         [&] (const SlotModel& source, SlotModel& target)
         {
                    for(auto& lm : source.layerModels())
@@ -90,8 +90,8 @@ ScenarioModel *ConstraintModel::parentScenario() const
 
 void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* viewmodel)
 {
-    connect(this,		&ConstraintModel::boxRemoved,
-            viewmodel,	&AbstractConstraintViewModel::on_boxRemoved);
+    connect(this,		&ConstraintModel::rackRemoved,
+            viewmodel,	&AbstractConstraintViewModel::on_rackRemoved);
 
     connect(viewmodel, &QObject::destroyed,
             this,	   &ConstraintModel::on_destroyedViewModel);
@@ -130,24 +130,24 @@ void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
     delete proc;
 }
 
-void ConstraintModel::addBox(BoxModel* box)
+void ConstraintModel::addRack(RackModel* rack)
 {
     connect(this,	&ConstraintModel::processRemoved,
-            box,	&BoxModel::on_deleteSharedProcessModel);
+            rack,	&RackModel::on_deleteSharedProcessModel);
     connect(this,	&ConstraintModel::defaultDurationChanged,
-            box,	&BoxModel::on_durationChanged);
+            rack,	&RackModel::on_durationChanged);
 
-    m_boxes.insert(box);
-    emit boxCreated(box->id());
+    m_rackes.insert(rack);
+    emit rackCreated(rack->id());
 }
 
 
-void ConstraintModel::removeBox(const id_type<BoxModel>& boxId)
+void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
 {
-    auto b = box(boxId);
-    m_boxes.remove(boxId);
+    auto b = rack(rackId);
+    m_rackes.remove(rackId);
 
-    emit boxRemoved(boxId);
+    emit rackRemoved(rackId);
     delete b;
 }
 
@@ -172,10 +172,10 @@ void ConstraintModel::setEndEvent(const id_type<EventModel>& e)
 }
 
 
-// TODO BoxModel&
-BoxModel* ConstraintModel::box(const id_type<BoxModel>& id) const
+// TODO RackModel&
+RackModel* ConstraintModel::rack(const id_type<RackModel>& id) const
 {
-    return m_boxes.at(id);
+    return m_rackes.at(id);
 }
 
 ProcessModel* ConstraintModel::process(

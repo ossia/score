@@ -6,7 +6,7 @@
 #include "ProcessInterface/ExpandMode.hpp"
 
 class ProcessModel;
-class BoxModel;
+class RackModel;
 namespace Scenario
 {
     namespace Command
@@ -33,7 +33,7 @@ namespace Scenario
                 ObjectPath m_target;
                 ExpandMode m_mode{ExpandMode::Grow};
 
-                QMap<id_type<BoxModel>, id_type<BoxModel>> m_boxIds;
+                QMap<id_type<RackModel>, id_type<RackModel>> m_rackIds;
                 QMap<id_type<ProcessModel>, id_type<ProcessModel>> m_processIds;
         };
     }

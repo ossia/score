@@ -1,15 +1,15 @@
 #include <QtTest/QtTest>
 
 #include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Constraint/Box/BoxModel.hpp>
-#include <Document/Constraint/Box/Slot/SlotModel.hpp>
+#include <Document/Constraint/Rack/RackModel.hpp>
+#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <ProcessInterface/LayerModel.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
 
-#include "Commands/Constraint/Box/Slot/AddLayerModelToSlot.hpp"
+#include "Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddBoxToConstraint.hpp"
-#include "Commands/Constraint/Box/AddSlotToBox.hpp"
+#include "Commands/Constraint/AddRackToConstraint.hpp"
+#include "Commands/Constraint/Rack/AddSlotToRack.hpp"
 #include <Process/ScenarioFactory.hpp>
 #include "ProcessInterface/ProcessList.hpp"
 
@@ -41,16 +41,16 @@ class AddLayerModelToSlotTest: public QObject
             stack.redoAndPush(cmd_proc);
             auto procId = cmd_proc->m_createdProcessId;
 
-            auto cmd_box = new AddBoxToConstraint(
+            auto cmd_rack = new AddRackToConstraint(
             ObjectPath { {"ConstraintModel", {0}} });
-            stack.redoAndPush(cmd_box);
-            auto boxId = cmd_box->m_createdBoxId;
+            stack.redoAndPush(cmd_rack);
+            auto rackId = cmd_rack->m_createdRackId;
 
-            auto cmd_slot = new AddSlotToBox(
+            auto cmd_slot = new AddSlotToRack(
                 ObjectPath
             {
                 {"ConstraintModel", {0}},
-                {"BoxModel", boxId}
+                {"RackModel", rackId}
             });
             auto slotId = cmd_slot->m_createdSlotId;
             stack.redoAndPush(cmd_slot);
@@ -58,7 +58,7 @@ class AddLayerModelToSlotTest: public QObject
             auto cmd_lm = new AddLayerModelToSlot(
             {
                 {"ConstraintModel", {0}},
-                {"BoxModel", boxId},
+                {"RackModel", rackId},
                 {"SlotModel", slotId}
             },
             {

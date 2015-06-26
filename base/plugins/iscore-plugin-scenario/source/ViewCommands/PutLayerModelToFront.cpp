@@ -1,5 +1,5 @@
 #include "PutLayerModelToFront.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 PutLayerModelToFront::PutLayerModelToFront(
         ObjectPath&& slotPath,

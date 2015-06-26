@@ -1,13 +1,13 @@
 #include <QtTest/QtTest>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
-#include <Document/Constraint/Box/BoxModel.hpp>
+#include <Document/Constraint/Rack/RackModel.hpp>
 #include <Process/ScenarioModel.hpp>
 
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 #include <iscore/tools/ObjectPath.hpp>
-#include <Document/Constraint/Box/Slot/SlotModel.hpp>
+#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Process/Algorithms/StandardCreationPolicy.hpp>
 
 
@@ -24,18 +24,18 @@ class ConstraintModelTests: public QObject
         void CreateSlotTest()
         {
             ConstraintModel model {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
-            auto content_id = getStrongId(model.boxes());
-            model.createBox(content_id);
-            auto box = model.box(content_id);
-            QVERIFY(box != nullptr);
+            auto content_id = getStrongId(model.rackes());
+            model.createRack(content_id);
+            auto rack = model.rack(content_id);
+            QVERIFY(rack != nullptr);
 
-            auto slot_id = getStrongId(box->getSlots());
-            box->addSlot(new SlotModel
+            auto slot_id = getStrongId(rack->getSlots());
+            rack->addSlot(new SlotModel
             {
                 slot_id,
-                box
+                rack
             });
-            auto slot = box->slot(slot_id);
+            auto slot = rack->slot(slot_id);
             QVERIFY(slot != nullptr);
         }
 
@@ -44,18 +44,18 @@ class ConstraintModelTests: public QObject
             /////
             {
                 ConstraintModel model {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, this};
-                auto content_id = getStrongId(model.boxes());
-                model.createBox(content_id);
-                auto box = model.box(content_id);
+                auto content_id = getStrongId(model.rackes());
+                model.createRack(content_id);
+                auto rack = model.rack(content_id);
 
-                auto slot_id = getStrongId(box->getSlots());
-                box->addSlot(new SlotModel
+                auto slot_id = getStrongId(rack->getSlots());
+                rack->addSlot(new SlotModel
                 {
                     slot_id,
-                    box
+                    rack
                 });
-                box->removeSlot(slot_id);
-                model.removeBox(content_id);
+                rack->removeSlot(slot_id);
+                model.removeRack(content_id);
             }
 
             //////
@@ -63,29 +63,29 @@ class ConstraintModelTests: public QObject
                 ConstraintModel model {id_type<ConstraintModel>{0},
                                        id_type<AbstractConstraintViewModel>{0}, this
                                       };
-                auto content_id = getStrongId(model.boxes());
-                model.createBox(content_id);
-                auto box = model.box(content_id);
+                auto content_id = getStrongId(model.rackes());
+                model.createRack(content_id);
+                auto rack = model.rack(content_id);
 
-                box->addSlot(new SlotModel
+                rack->addSlot(new SlotModel
                 {
-                    getStrongId(box->getSlots()),
-                    box
+                    getStrongId(rack->getSlots()),
+                    rack
                 });
 
-                box->addSlot(new SlotModel
+                rack->addSlot(new SlotModel
                 {
-                    getStrongId(box->getSlots()),
-                    box
+                    getStrongId(rack->getSlots()),
+                    rack
                 });
 
-                box->addSlot(new SlotModel
+                rack->addSlot(new SlotModel
                 {
-                    getStrongId(box->getSlots()),
-                    box
+                    getStrongId(rack->getSlots()),
+                    rack
                 });
 
-                model.removeBox(content_id);
+                model.removeRack(content_id);
             }
         }
 

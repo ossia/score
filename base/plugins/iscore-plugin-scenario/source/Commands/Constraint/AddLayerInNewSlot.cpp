@@ -1,8 +1,8 @@
 #include "AddLayerInNewSlot.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include "ProcessInterface/ProcessModel.hpp"
@@ -23,15 +23,15 @@ AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
-    if(constraint.boxes().empty())
+    if(constraint.rackes().empty())
     {
-        m_createdBoxId = getStrongId(constraint.boxes());
-        m_existingBox = false;
+        m_createdRackId = getStrongId(constraint.rackes());
+        m_existingRack = false;
     }
     else
     {
-        m_createdBoxId = (*constraint.boxes().begin())->id();
-        m_existingBox = true;
+        m_createdRackId = (*constraint.rackes().begin())->id();
+        m_existingRack = true;
     }
 
     m_createdSlotId = id_type<SlotModel> (getNextId());
@@ -42,15 +42,15 @@ AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
 void AddLayerInNewSlot::undo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
-    auto box = constraint.box(m_createdBoxId);
+    auto rack = constraint.rack(m_createdRackId);
 
     // Removing the slot is enough
-    box->removeSlot(m_createdSlotId);
+    rack->removeSlot(m_createdSlotId);
 
-    // Remove the box
-    if(!m_existingBox)
+    // Remove the rack
+    if(!m_existingRack)
     {
-        constraint.removeBox(m_createdBoxId);
+        constraint.removeRack(m_createdRackId);
     }
 }
 
@@ -58,32 +58,32 @@ void AddLayerInNewSlot::redo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
 
-    // Box
-    if(!m_existingBox)
+    // Rack
+    if(!m_existingRack)
     {
-        // TODO refactor with AddBoxToConstraint
-        auto box = new BoxModel{m_createdBoxId, &constraint};
-        constraint.addBox(box);
-        box->metadata.setName(QString{"Box.%1"}.arg(constraint.boxes().size()));
+        // TODO refactor with AddRackToConstraint
+        auto rack = new RackModel{m_createdRackId, &constraint};
+        constraint.addRack(rack);
+        rack->metadata.setName(QString{"Rack.%1"}.arg(constraint.rackes().size()));
 
-        // If it is the first box created,
+        // If it is the first rack created,
         // it is also assigned to all the views of the constraint.
-        if(constraint.boxes().size() == 1)
+        if(constraint.rackes().size() == 1)
         {
             for(const auto& vm : constraint.viewModels())
             {
-                vm->showBox(m_createdBoxId);
+                vm->showRack(m_createdRackId);
             }
         }
     }
 
     // Slot
-    auto box = constraint.box(m_createdBoxId);
-    box->addSlot(new SlotModel {m_createdSlotId,
-                                box});
+    auto rack = constraint.rack(m_createdRackId);
+    rack->addSlot(new SlotModel {m_createdSlotId,
+                                rack});
 
     // Process View
-    auto slot = box->slot(m_createdSlotId);
+    auto slot = rack->slot(m_createdSlotId);
     auto proc = constraint.process(m_sharedProcessModelId);
 
     slot->addLayerModel(proc->makeViewModel(m_createdLayerId, m_processData, slot));
@@ -92,9 +92,9 @@ void AddLayerInNewSlot::redo()
 void AddLayerInNewSlot::serializeImpl(QDataStream& s) const
 {
     s << m_path
-      << m_existingBox
+      << m_existingRack
       << m_processId
-      << m_createdBoxId
+      << m_createdRackId
       << m_createdSlotId
       << m_createdLayerId
       << m_sharedProcessModelId
@@ -104,9 +104,9 @@ void AddLayerInNewSlot::serializeImpl(QDataStream& s) const
 void AddLayerInNewSlot::deserializeImpl(QDataStream& s)
 {
     s >> m_path
-      >> m_existingBox
+      >> m_existingRack
       >> m_processId
-      >> m_createdBoxId
+      >> m_createdRackId
       >> m_createdSlotId
       >> m_createdLayerId
       >> m_sharedProcessModelId

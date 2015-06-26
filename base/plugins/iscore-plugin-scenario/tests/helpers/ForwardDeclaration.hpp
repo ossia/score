@@ -1,10 +1,10 @@
-class AddBoxToConstraintTest;
+class AddRackToConstraintTest;
 class AddLayerModelToSlotTest;
-class AddSlotToBoxTest;
-class HideBoxInViewModelTest;
-class ShowBoxInViewModelTest;
+class AddSlotToRackTest;
+class HideRackInViewModelTest;
+class ShowRackInViewModelTest;
 class CreateEventTest;
 class MoveEventTest;
 class CreateEventAfterEventTest;
-class RemoveBoxFromConstraintTest;
-class RemoveSlotFromBoxTest;
+class RemoveRackFromConstraintTest;
+class RemoveSlotFromRackTest;

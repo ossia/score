@@ -1,7 +1,7 @@
 #include "AbstractScenarioViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 // TODO removeme
 template<typename Container, typename id_T>

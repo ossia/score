@@ -1,5 +1,5 @@
 #pragma once
-#include "Box/BoxModel.hpp"
+#include "Rack/RackModel.hpp"
 #include <ProcessInterface/ProcessModel.hpp>
 
 #include <source/Document/ModelMetadata.hpp>
@@ -17,16 +17,16 @@
 
 namespace OSSIA
 {
-    class TimeBox;
+    class TimeRack;
 }
 
 class ProcessModel;
 class AbstractConstraintViewModel;
 class FullViewConstraintViewModel;
 
-class BoxModel;
+class RackModel;
 class EventModel;
-class TimeBox;
+class TimeRack;
 class ScenarioModel;
 
 /**
@@ -154,8 +154,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void addProcess(ProcessModel*);
         void removeProcess(const id_type<ProcessModel>& processId);
 
-        void addBox(BoxModel*);
-        void removeBox(const id_type<BoxModel>& boxId);
+        void addRack(RackModel*);
+        void removeRack(const id_type<RackModel>& rackId);
 
         const id_type<EventModel>& startEvent() const;
         const id_type<EventModel>& endEvent() const;
@@ -164,13 +164,13 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
 
         // TODO reference
-        BoxModel* box(const id_type<BoxModel>& id) const;
+        RackModel* rack(const id_type<RackModel>& id) const;
         ProcessModel* process(
                 const id_type<ProcessModel>& processId) const;
 
 
-        const auto& boxes() const
-        { return m_boxes; }
+        const auto& rackes() const
+        { return m_rackes; }
 
         const auto& processes() const
         { return m_processes; }
@@ -218,8 +218,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void processRemoved(const id_type<ProcessModel>& processId);
         void processesChanged();
 
-        void boxCreated(const id_type<BoxModel>& boxId);
-        void boxRemoved(const id_type<BoxModel>& boxId);
+        void rackCreated(const id_type<RackModel>& rackId);
+        void rackRemoved(const id_type<RackModel>& rackId);
 
         void viewModelCreated(const id_type<AbstractConstraintViewModel>&);
         void viewModelRemoved(const id_type<AbstractConstraintViewModel>&);
@@ -252,7 +252,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
     private:
         iscore::ElementPluginModelList* m_pluginModelList{};
 
-        IdContainer<BoxModel> m_boxes; // No content -> Phantom ?
+        IdContainer<RackModel> m_rackes; // No content -> Phantom ?
         IdContainer<ProcessModel> m_processes;
 
         // The small view constraint view models that show this constraint

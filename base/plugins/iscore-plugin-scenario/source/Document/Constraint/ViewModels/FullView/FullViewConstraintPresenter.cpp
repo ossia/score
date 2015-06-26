@@ -21,9 +21,9 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
                                  parent},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model.model())->selectionStack()}
 {
-    if(viewModel(this)->isBoxShown())
+    if(viewModel(this)->isRackShown())
     {
-        on_boxShown(viewModel(this)->shownBox());
+        on_rackShown(viewModel(this)->shownRack());
     }
 
     updateHeight();

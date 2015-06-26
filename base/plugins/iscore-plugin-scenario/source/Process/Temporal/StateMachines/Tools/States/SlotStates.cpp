@@ -3,14 +3,14 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotOverlay.hpp"
-#include "Document/Constraint/Box/Slot/SlotView.hpp"
-#include "Document/Constraint/Box/Slot/SlotPresenter.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotOverlay.hpp"
+#include "Document/Constraint/Rack/Slot/SlotView.hpp"
+#include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 
-#include "Commands/Constraint/Box/Slot/ResizeSlotVertically.hpp"
-#include "Commands/Constraint/Box/MoveSlot.hpp"
-#include "Commands/Constraint/Box/SwapSlots.hpp"
+#include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
+#include "Commands/Constraint/Rack/MoveSlot.hpp"
+#include "Commands/Constraint/Rack/SwapSlots.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -85,12 +85,12 @@ DragSlotState::DragSlotState(CommandDispatcher<> &dispatcher,
             auto& baseSlot = this->currentSlot.find<SlotModel>();
             auto& releasedSlot = overlay->slotView().presenter.model();
             // If it is the same, we do nothing.
-            // If it is another (in the same box), we swap them
+            // If it is another (in the same rack), we swap them
             if(releasedSlot.id() != baseSlot.id()
                     && releasedSlot.parent() == baseSlot.parent())
             {
                 auto cmd = new Scenario::Command::SwapSlots{
-                        iscore::IDocument::path(releasedSlot.parent()), // Box
+                        iscore::IDocument::path(releasedSlot.parent()), // Rack
                         baseSlot.id(), releasedSlot.id()};
                 m_dispatcher.submitCommand(cmd);
             }
@@ -98,7 +98,7 @@ DragSlotState::DragSlotState(CommandDispatcher<> &dispatcher,
         else
         {
             // We throw it
-            auto cmd = new Scenario::Command::RemoveSlotFromBox(ObjectPath{this->currentSlot});
+            auto cmd = new Scenario::Command::RemoveSlotFromRack(ObjectPath{this->currentSlot});
             m_dispatcher.submitCommand(cmd);
             return;
         }

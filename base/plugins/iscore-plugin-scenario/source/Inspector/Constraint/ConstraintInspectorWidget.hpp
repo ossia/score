@@ -6,20 +6,20 @@
 class ConstraintModel;
 class TemporalConstraintViewModel;
 class AbstractConstraintViewModel;
-class BoxModel;
+class RackModel;
 class SlotModel;
 class ScenarioModel;
 class ProcessModel;
 
-class BoxWidget;
-class BoxInspectorSection;
+class RackWidget;
+class RackInspectorSection;
 class QFormLayout;
 class MetadataWidget;
 
 /*!
  * \brief The ConstraintInspectorWidget class
  *
- * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timebox) element.
+ * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
 class ConstraintInspectorWidget : public InspectorWidgetBase
 {
@@ -41,24 +41,24 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
         // These methods ask for creation and the signals originate from other parts of the inspector
         void createProcess(QString processName);
-        void createBox();
+        void createRack();
         void createLayerInNewSlot(QString processName);
 
-        void activeBoxChanged(QString box, AbstractConstraintViewModel* vm);
+        void activeRackChanged(QString rack, AbstractConstraintViewModel* vm);
 
         // Interface of Constraint
         void on_processCreated(QString processName, id_type<ProcessModel> processId);
         void on_processRemoved(id_type<ProcessModel> processId);
 
-        void on_boxCreated(id_type<BoxModel> boxId);
-        void on_boxRemoved(id_type<BoxModel> boxId);
+        void on_rackCreated(id_type<RackModel> rackId);
+        void on_rackRemoved(id_type<RackModel> rackId);
 
         void on_constraintViewModelCreated(id_type<AbstractConstraintViewModel> cvmId);
         void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId);
 
         // These methods are used to display created things
         void displaySharedProcess(ProcessModel*);
-        void setupBox(BoxModel*);
+        void setupRack(RackModel*);
 
     private:
         QWidget* makeEventWidget(ScenarioModel*);
@@ -71,9 +71,9 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         InspectorSectionWidget* m_processSection {};
         std::vector<InspectorSectionWidget*> m_processesSectionWidgets;
 
-        InspectorSectionWidget* m_boxSection {};
-        BoxWidget* m_boxWidget {};
-        std::unordered_map<id_type<BoxModel>, BoxInspectorSection*, id_hash<BoxModel>> m_boxesSectionWidgets;
+        InspectorSectionWidget* m_rackSection {};
+        RackWidget* m_rackWidget {};
+        std::unordered_map<id_type<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
 
         QVector<QWidget*> m_properties;
 

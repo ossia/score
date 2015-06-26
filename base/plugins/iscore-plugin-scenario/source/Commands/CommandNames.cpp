@@ -1,21 +1,21 @@
-#include "Constraint/AddBoxToConstraint.hpp"
+#include "Constraint/AddRackToConstraint.hpp"
 #include "Constraint/AddProcessToConstraint.hpp"
 #include "Constraint/AddLayerInNewSlot.hpp"
-#include "Constraint/Box/AddSlotToBox.hpp"
-#include "Constraint/Box/CopySlot.hpp"
-#include "Constraint/Box/Slot/AddLayerModelToSlot.hpp"
-#include "Constraint/Box/Slot/CopyLayerModel.hpp"
-#include "Constraint/Box/Slot/MoveLayerModel.hpp"
-#include "Constraint/Box/Slot/RemoveLayerModelFromSlot.hpp"
-#include "Constraint/Box/Slot/ResizeSlotVertically.hpp"
-#include "Constraint/Box/MergeSlots.hpp"
-#include "Constraint/Box/MoveSlot.hpp"
-#include "Constraint/Box/SwapSlots.hpp"
-#include "Constraint/Box/RemoveSlotFromBox.hpp"
+#include "Constraint/Rack/AddSlotToRack.hpp"
+#include "Constraint/Rack/CopySlot.hpp"
+#include "Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
+#include "Constraint/Rack/Slot/CopyLayerModel.hpp"
+#include "Constraint/Rack/Slot/MoveLayerModel.hpp"
+#include "Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp"
+#include "Constraint/Rack/Slot/ResizeSlotVertically.hpp"
+#include "Constraint/Rack/MergeSlots.hpp"
+#include "Constraint/Rack/MoveSlot.hpp"
+#include "Constraint/Rack/SwapSlots.hpp"
+#include "Constraint/Rack/RemoveSlotFromRack.hpp"
 #include "Constraint/CopyConstraintContent.hpp"
-#include "Constraint/DuplicateBox.hpp"
-#include "Constraint/MergeBoxes.hpp"
-#include "Constraint/RemoveBoxFromConstraint.hpp"
+#include "Constraint/DuplicateRack.hpp"
+#include "Constraint/MergeRackes.hpp"
+#include "Constraint/RemoveRackFromConstraint.hpp"
 #include "Constraint/RemoveProcessFromConstraint.hpp"
 #include "Constraint/SetMaxDuration.hpp"
 #include "Constraint/SetMinDuration.hpp"
@@ -40,9 +40,9 @@
 #include "Scenario/Displacement/MoveEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveTimeNode.hpp"
-#include "Scenario/HideBoxInViewModel.hpp"
+#include "Scenario/HideRackInViewModel.hpp"
 #include "Scenario/ResizeConstraint.hpp"
-#include "Scenario/ShowBoxInViewModel.hpp"
+#include "Scenario/ShowRackInViewModel.hpp"
 #include "SwitchStatePosition.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
@@ -52,8 +52,8 @@
 ///////////////////////////////////////////////////
 
 // ADD CONTENT
-const char* Scenario::Command::AddBoxToConstraint::commandName() { return "AddBoxToConstraint"; }
-const char* Scenario::Command::AddSlotToBox::commandName() { return "AddSlotToBox"; }
+const char* Scenario::Command::AddRackToConstraint::commandName() { return "AddRackToConstraint"; }
+const char* Scenario::Command::AddSlotToRack::commandName() { return "AddSlotToRack"; }
 const char* Scenario::Command::AddProcessToConstraint::commandName() { return "AddProcessToConstraint"; }
 const char* Scenario::Command::AddLayerInNewSlot::commandName() { return "AddLayerInNewSlot"; }
 const char* Scenario::Command::AddLayerModelToSlot::commandName() { return "AddLayerModelToSlot"; }
@@ -65,7 +65,7 @@ const char* Scenario::Command::ClearConstraint::commandName() { return "ClearCon
 const char* Scenario::Command::ClearEvent::commandName() { return "ClearEvent"; }
 
 // COPY
-const char* Scenario::Command::DuplicateBox::commandName() { return "DuplicateBox"; }
+const char* Scenario::Command::DuplicateRack::commandName() { return "DuplicateRack"; }
 const char* Scenario::Command::CopyConstraintContent::commandName() { return "CopyConstraintContent"; }
 const char* Scenario::Command::CopySlot::commandName() { return "CopySlot"; }
 //const char* Scenario::Command::CopyLayerModel::commandName() { return "CopyLayerModel"; }
@@ -77,10 +77,10 @@ const char* Scenario::Command::CreateEventAfterEventOnTimeNode::commandName() { 
 const char* Scenario::Command::CreateEventOnTimeNode::commandName() { return "CreateEventOnTimeNode"; }
 const char* Scenario::Command::CreationMetaCommand::commandName() { return "CreationMetaCommand"; }
 
-const char* Scenario::Command::HideBoxInViewModel::commandName() { return "HideBoxInViewModel"; }
+const char* Scenario::Command::HideRackInViewModel::commandName() { return "HideRackInViewModel"; }
 
 // MERGE
-const char* Scenario::Command::MergeBoxes::commandName() { return "MergeBoxes"; }
+const char* Scenario::Command::MergeRackes::commandName() { return "MergeRackes"; }
 //const char* Scenario::Command::MergeSlots::commandName() { return "MergeSlots"; }
 const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTimeNodes"; }
 
@@ -93,8 +93,8 @@ const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
 const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
 
 // REMOVE
-const char* Scenario::Command::RemoveBoxFromConstraint::commandName() { return "RemoveBoxFromConstraint"; }
-const char* Scenario::Command::RemoveSlotFromBox::commandName() { return "RemoveSlotFromBox"; }
+const char* Scenario::Command::RemoveRackFromConstraint::commandName() { return "RemoveRackFromConstraint"; }
+const char* Scenario::Command::RemoveSlotFromRack::commandName() { return "RemoveSlotFromRack"; }
 const char* Scenario::Command::RemoveMultipleElements::commandName() { return "RemoveMultipleElements"; }
 const char* Scenario::Command::RemoveProcessFromConstraint::commandName() { return "RemoveProcessFromConstraint"; }
 const char* Scenario::Command::RemoveLayerModelFromSlot::commandName() { return "RemoveLayerModelFromSlot"; }
@@ -111,7 +111,7 @@ const char* Scenario::Command::SetTrigger::commandName() { return "SetTrigger"; 
 const char* Scenario::Command::SetRigidity::commandName() { return "SetRigidity"; }
 
 // OTHER
-const char* Scenario::Command::ShowBoxInViewModel::commandName() { return "ShowBoxInViewModel"; }
+const char* Scenario::Command::ShowRackInViewModel::commandName() { return "ShowRackInViewModel"; }
 const char* Scenario::Command::SplitTimeNode::commandName() { return "SplitTimeNode"; }
 const char* Scenario::Command::SwitchStatePosition::commandName() { return "SwitchStatePosition"; }
 const char* Scenario::Command::UnassignMessagesFromState::commandName() { return "UnassignMessagesFromState"; }
@@ -121,8 +121,8 @@ const char* Scenario::Command::UnassignMessagesFromState::commandName() { return
 ///////////////////////////////////////////////////
 
 // ADD
-QString Scenario::Command::AddBoxToConstraint::description() { return QObject::tr("AddBoxToConstraint"); }
-QString Scenario::Command::AddSlotToBox::description() { return QObject::tr("AddSlotToBox"); }
+QString Scenario::Command::AddRackToConstraint::description() { return QObject::tr("AddRackToConstraint"); }
+QString Scenario::Command::AddSlotToRack::description() { return QObject::tr("AddSlotToRack"); }
 QString Scenario::Command::AddProcessToConstraint::description() { return QObject::tr("Add process"); }
 QString Scenario::Command::AddLayerInNewSlot::description() { return QObject::tr("AddLayerInNewSlot"); }
 QString Scenario::Command::AddLayerModelToSlot::description() { return QObject::tr("AddLayerModelToSlot"); }
@@ -134,7 +134,7 @@ QString Scenario::Command::ClearConstraint::description() { return QObject::tr("
 QString Scenario::Command::ClearEvent::description() { return QObject::tr("ClearEvent"); }
 
 // COPY
-QString Scenario::Command::DuplicateBox::description() { return QObject::tr("Copy a box"); }
+QString Scenario::Command::DuplicateRack::description() { return QObject::tr("Copy a rack"); }
 QString Scenario::Command::CopyConstraintContent::description() { return QObject::tr("Copy constraint content"); }
 QString Scenario::Command::CopySlot::description() { return QObject::tr("CopySlot"); }
 //QString Scenario::Command::CopyLayerModel::description() { return QObject::tr("CopyLayerModel"); }
@@ -146,10 +146,10 @@ QString Scenario::Command::CreateEventAfterEventOnTimeNode::description() { retu
 QString Scenario::Command::CreateEventOnTimeNode::description() { return QObject::tr("CreateEventOnTimeNode"); }
 QString Scenario::Command::CreationMetaCommand::description() { return QObject::tr("CreationMetaCommand"); }
 
-QString Scenario::Command::HideBoxInViewModel::description() { return QObject::tr("HideBoxInViewModel"); }
+QString Scenario::Command::HideRackInViewModel::description() { return QObject::tr("HideRackInViewModel"); }
 
 // MERGE
-QString Scenario::Command::MergeBoxes::description() { return QObject::tr("MergeBoxes"); }
+QString Scenario::Command::MergeRackes::description() { return QObject::tr("MergeRackes"); }
 //QString Scenario::Command::MergeSlots::description() { return QObject::tr("MergeSlots"); }
 QString Scenario::Command::MergeTimeNodes::description() { return QObject::tr("MergeTimeNodes"); }
 
@@ -161,8 +161,8 @@ QString Scenario::Command::MoveEvent::description() { return QObject::tr("MoveEv
 QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("MoveTimeNode"); }
 
 // REMOVE
-QString Scenario::Command::RemoveBoxFromConstraint::description() { return QObject::tr("RemoveBoxFromConstraint"); }
-QString Scenario::Command::RemoveSlotFromBox::description() { return QObject::tr("RemoveSlotFromBox"); }
+QString Scenario::Command::RemoveRackFromConstraint::description() { return QObject::tr("RemoveRackFromConstraint"); }
+QString Scenario::Command::RemoveSlotFromRack::description() { return QObject::tr("RemoveSlotFromRack"); }
 QString Scenario::Command::RemoveMultipleElements::description() { return QObject::tr("RemoveMultipleElements"); }
 QString Scenario::Command::RemoveProcessFromConstraint::description() { return QObject::tr("RemoveProcessFromConstraint"); }
 QString Scenario::Command::RemoveLayerModelFromSlot::description() { return QObject::tr("RemoveLayerModelFromSlot"); }
@@ -179,7 +179,7 @@ QString Scenario::Command::SetTrigger::description() { return QObject::tr("SetTr
 QString Scenario::Command::SetRigidity::description() { return QObject::tr("SetRigidity"); }
 
 // OTHER
-QString Scenario::Command::ShowBoxInViewModel::description() { return QObject::tr("ShowBoxInViewModel"); }
+QString Scenario::Command::ShowRackInViewModel::description() { return QObject::tr("ShowRackInViewModel"); }
 QString Scenario::Command::SplitTimeNode::description() { return QObject::tr("SplitTimeNode"); }
 QString Scenario::Command::SwitchStatePosition::description() { return QObject::tr("SwitchStatePosition"); }
 QString Scenario::Command::UnassignMessagesFromState::description() { return QObject::tr("UnassignMessagesFromState"); }
@@ -201,8 +201,8 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     //else if(name == Cut::commandName()) return new Cut;
 
     // ADD CONTENTS
-    else if(name == AddBoxToConstraint::commandName()) return new AddBoxToConstraint;
-    else if(name == AddSlotToBox::commandName()) return new AddSlotToBox;
+    else if(name == AddRackToConstraint::commandName()) return new AddRackToConstraint;
+    else if(name == AddSlotToRack::commandName()) return new AddSlotToRack;
     else if(name == AddProcessToConstraint::commandName()) return new AddProcessToConstraint;
     else if(name == AddLayerInNewSlot::commandName()) return new AddLayerInNewSlot;
     else if(name == AddLayerModelToSlot::commandName()) return new AddLayerModelToSlot;
@@ -228,7 +228,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == ClearEvent::commandName()) return new ClearEvent;
 
     // COPY
-    else if(name == DuplicateBox::commandName()) return new DuplicateBox;
+    else if(name == DuplicateRack::commandName()) return new DuplicateRack;
     else if(name == CopyConstraintContent::commandName()) return new CopyConstraintContent;
     else if(name == CopySlot::commandName()) return new CopySlot;
  //   else if(name == CopyLayerModel::commandName()) return new CopyLayerModel;
@@ -240,10 +240,10 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == CreateEventOnTimeNode::commandName()) return new CreateEventOnTimeNode;
     else if(name == CreationMetaCommand::commandName()) return new CreationMetaCommand;
 
-    else if(name == HideBoxInViewModel::commandName()) return new HideBoxInViewModel;
+    else if(name == HideRackInViewModel::commandName()) return new HideRackInViewModel;
 
     // MERGE
-    else if(name == MergeBoxes::commandName()) return new MergeBoxes;
+    else if(name == MergeRackes::commandName()) return new MergeRackes;
 //    else if(name == MergeSlots::commandName()) return new MergeSlots;
     else if(name == MergeTimeNodes::commandName()) return new MergeTimeNodes;
 
@@ -256,8 +256,8 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == MoveTimeNode::commandName()) return new MoveTimeNode;
 
     // REMOVE ELEMENT
-    else if(name == RemoveBoxFromConstraint::commandName()) return new RemoveBoxFromConstraint;
-    else if(name == RemoveSlotFromBox::commandName()) return new RemoveSlotFromBox;
+    else if(name == RemoveRackFromConstraint::commandName()) return new RemoveRackFromConstraint;
+    else if(name == RemoveSlotFromRack::commandName()) return new RemoveSlotFromRack;
     else if(name == RemoveMultipleElements::commandName()) return new RemoveMultipleElements;
     else if(name == RemoveSelection::commandName()) return new RemoveSelection;
     else if(name == RemoveProcessFromConstraint::commandName()) return new RemoveProcessFromConstraint;
@@ -278,7 +278,7 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == SetRigidity::commandName()) return new SetRigidity;
 
     // OTHER
-    else if(name == ShowBoxInViewModel::commandName()) return new ShowBoxInViewModel;
+    else if(name == ShowRackInViewModel::commandName()) return new ShowRackInViewModel;
     else if(name == SplitTimeNode::commandName()) return new SplitTimeNode;
     else if(name == SwitchStatePosition::commandName()) return new SwitchStatePosition;
     else if(name == UnassignMessagesFromState::commandName()) return new UnassignMessagesFromState;

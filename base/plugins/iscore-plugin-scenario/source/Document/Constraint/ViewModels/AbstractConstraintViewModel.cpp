@@ -1,41 +1,41 @@
 #include "AbstractConstraintViewModel.hpp"
 
-bool AbstractConstraintViewModel::isBoxShown() const
+bool AbstractConstraintViewModel::isRackShown() const
 {
-    return bool (m_shownBox.val());
+    return bool (m_shownRack.val());
 }
 
-const id_type<BoxModel>& AbstractConstraintViewModel::shownBox() const
+const id_type<RackModel>& AbstractConstraintViewModel::shownRack() const
 {
-    return m_shownBox;
+    return m_shownRack;
 }
 
-void AbstractConstraintViewModel::hideBox()
+void AbstractConstraintViewModel::hideRack()
 {
-    m_shownBox.unset();
-    emit boxHidden();
+    m_shownRack.unset();
+    emit rackHidden();
 }
 
-void AbstractConstraintViewModel::showBox(const id_type<BoxModel>& boxId)
+void AbstractConstraintViewModel::showRack(const id_type<RackModel>& rackId)
 {
-    if(boxId.val().is_initialized())
+    if(rackId.val().is_initialized())
     {
-        m_shownBox = boxId;
+        m_shownRack = rackId;
 
-        emit boxShown(m_shownBox);
+        emit rackShown(m_shownRack);
     }
     else
     {
-        hideBox();
+        hideRack();
     }
 }
 
-void AbstractConstraintViewModel::on_boxRemoved(const id_type<BoxModel>& boxId)
+void AbstractConstraintViewModel::on_rackRemoved(const id_type<RackModel>& rackId)
 {
-    if(shownBox() == boxId)
+    if(shownRack() == rackId)
     {
-        hideBox();
-        emit boxRemoved();
+        hideRack();
+        emit rackRemoved();
     }
 }
 

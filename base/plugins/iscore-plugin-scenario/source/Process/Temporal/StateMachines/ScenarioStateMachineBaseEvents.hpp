@@ -18,7 +18,7 @@ struct PositionedEvent<ScenarioPoint> : public QEvent
             QEvent{type},
             point(pt)
         {
-            // Here we artificially prevent to move over the header of the box
+            // Here we artificially prevent to move over the header of the rack
             // so that the elements won't disappear in the void.
             point.y = clamp(point.y, 0.004, 0.99);
         }

@@ -6,14 +6,14 @@
 #include <iscore/document/DocumentInterface.hpp>
 
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddBoxToConstraint.hpp"
-#include "Commands/Constraint/Box/AddSlotToBox.hpp"
-#include "Commands/Constraint/Box/Slot/ResizeSlotVertically.hpp"
-#include "Commands/Constraint/Box/Slot/AddLayerModelToSlot.hpp"
-#include "Commands/Scenario/ShowBoxInViewModel.hpp"
+#include "Commands/Constraint/AddRackToConstraint.hpp"
+#include "Commands/Constraint/Rack/AddSlotToRack.hpp"
+#include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
+#include "Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
+#include "Commands/Scenario/ShowRackInViewModel.hpp"
 
-#include "Document/Constraint/Box/BoxModel.hpp"
-#include "Document/Constraint/Box/Slot/SlotModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 
@@ -65,7 +65,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd1.redo();
     auto scenarioId = (*constraint_model.processes().begin())->id();
 
-    AddBoxToConstraint cmd2
+    AddRackToConstraint cmd2
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
@@ -73,34 +73,34 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd2.redo();
-    auto box = *constraint_model.boxes().begin();
+    auto rack = *constraint_model.rackes().begin();
 
-    ShowBoxInViewModel cmd3 {
+    ShowRackInViewModel cmd3 {
         ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
             {"FullViewConstraintViewModel", viewmodel->id()}
         },
-        box->id() };
+        rack->id() };
     cmd3.redo();
 
-    AddSlotToBox cmd4
+    AddSlotToRack cmd4
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
-            {"BoxModel", box->id() }
+            {"RackModel", rack->id() }
         }
     };
     cmd4.redo();
-    auto slotId = (*box->getSlots().begin())->id();
+    auto slotId = (*rack->getSlots().begin())->id();
 
     ResizeSlotVertically cmd5
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
-            {"BoxModel", box->id() },
+            {"RackModel", rack->id() },
             {"SlotModel", slotId}
         },
         1500
@@ -112,7 +112,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         {
             {"BaseElementModel", this->id()},
             {"BaseConstraintModel", {}},
-            {"BoxModel", box->id() },
+            {"RackModel", rack->id() },
             {"SlotModel", slotId}
         },
         {

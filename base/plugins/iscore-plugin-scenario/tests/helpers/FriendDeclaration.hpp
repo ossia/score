@@ -1,10 +1,10 @@
 friend class ::AddLayerModelToSlotTest;
-friend class ::AddBoxToConstraintTest;
-friend class ::AddSlotToBoxTest;
-friend class ::HideBoxInViewModelTest;
-friend class ::ShowBoxInViewModelTest;
+friend class ::AddRackToConstraintTest;
+friend class ::AddSlotToRackTest;
+friend class ::HideRackInViewModelTest;
+friend class ::ShowRackInViewModelTest;
 friend class ::CreateEventTest;
 friend class ::MoveEventTest;
 friend class ::CreateEventAfterEventTest;
-friend class ::RemoveBoxFromConstraintTest;
-friend class ::RemoveSlotFromBoxTest;
+friend class ::RemoveRackFromConstraintTest;
+friend class ::RemoveSlotFromRackTest;

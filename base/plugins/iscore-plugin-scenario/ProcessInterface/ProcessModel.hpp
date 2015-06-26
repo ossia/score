@@ -116,7 +116,7 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
         void removeViewModel(LayerModel* m);
 
         // Ownership : the parent is the Slot or another widget, not the process.
-        // A process view is never displayed alone, it is always in a view, which is in a box.
+        // A process view is never displayed alone, it is always in a view, which is in a rack.
         QVector<LayerModel*> m_viewModels;
         TimeValue m_duration;
 };
