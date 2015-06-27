@@ -28,6 +28,7 @@ class NetworkControl : public iscore::PluginControlInterface
         void on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession);
 
     private:
+        void setupCommands();
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,

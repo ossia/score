@@ -20,6 +20,8 @@ NetworkControl::NetworkControl(Presenter* pres) :
     connect(m_zeroconfBrowser, SIGNAL(sessionSelected(QString,int)),
             this, SLOT(setupClientConnection(QString, int)));
 #endif
+
+    setupCommands();
 }
 
 void NetworkControl::populateMenus(MenubarManager* menu)
@@ -59,8 +61,8 @@ void NetworkControl::populateMenus(MenubarManager* menu)
 void NetworkControl::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = new ClientSessionBuilder{
-                ip,
-                port};
+                       ip,
+                       port};
 
     connect(m_sessionBuilder, &ClientSessionBuilder::sessionReady,
             this, &NetworkControl::on_sessionBuilt, Qt::QueuedConnection);
@@ -89,6 +91,7 @@ void NetworkControl::on_sessionBuilt(
     delete sessionBuilder;
 }
 
+
 DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &name,
                                                                 const VisitorVariant &var,
                                                                 iscore::DocumentModel *parent)
@@ -107,37 +110,44 @@ DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &n
 #include "DistributedScenario/Commands/RemoveGroup.hpp"
 
 #include "DistributedScenario/Commands/ChangeGroup.hpp"
-SerializableCommand*NetworkControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
+#include <iscore/command/CommandGeneratorMap.hpp>
+
+struct NetworkCommandFactory
 {
-    iscore::SerializableCommand* cmd {};
+        static CommandGeneratorMap map;
+};
 
-    if(name == "AddClientToGroup")
-    {
-        cmd = new AddClientToGroup;
-    }
-    else if(name == "RemoveClientFromGroup")
-    {
-        cmd = new RemoveClientFromGroup;
-    }
-    else if(name == "CreateGroup")
-    {
-        cmd = new CreateGroup;
-    }
-    /*else if(name == "RemoveGroup")
-    {
-        cmd = new RemoveGroup;
-    }*/
-    else if(name == "ChangeGroup")
-    {
-        cmd = new ChangeGroup;
-    }
+CommandGeneratorMap NetworkCommandFactory::map;
 
+void NetworkControl::setupCommands()
+{
+    boost::mpl::for_each<
+            boost::mpl::list<
+                AddClientToGroup,
+                RemoveClientFromGroup,
+                CreateGroup,
+                ChangeGroup
+                // TODO RemoveGroup;
+            >,
+            boost::type<boost::mpl::_>
+    >(CommandGeneratorMapInserter<NetworkCommandFactory>());
+}
+
+// TODO : now this algorithm can finally be generalizer to all Controls
+SerializableCommand* NetworkControl::instantiateUndoCommand(
+        const QString& name,
+        const QByteArray& data)
+{
+    auto it = NetworkCommandFactory::map.find(name);
+    if(it != NetworkCommandFactory::map.end())
+    {
+        iscore::SerializableCommand* cmd = (*(*it).second)();
+        cmd->deserialize(data);
+        return cmd;
+    }
     else
     {
         qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
         return nullptr;
     }
-
-    cmd->deserialize(data);
-    return cmd;
 }

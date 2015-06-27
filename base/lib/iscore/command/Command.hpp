@@ -21,7 +21,7 @@
 
 #define ISCORE_COMMAND_DECL(name, desc) \
     public: \
-        static const char* commandName() { return name; } \
+        static constexpr const char* commandName() { return name; } \
         static QString description() { return desc; }  \
     static auto static_uid() \
     { \
