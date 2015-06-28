@@ -22,7 +22,7 @@ iscore::ElementPluginModel* OSSIATimeNodeElement::clone(
         const QObject* element,
         QObject* parent) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return nullptr;
 }
 
@@ -33,5 +33,5 @@ iscore::ElementPluginModelType OSSIATimeNodeElement::elementPluginId() const
 
 void OSSIATimeNodeElement::serialize(const VisitorVariant&) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 }

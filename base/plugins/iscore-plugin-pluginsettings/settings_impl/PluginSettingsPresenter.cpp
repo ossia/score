@@ -55,7 +55,7 @@ PluginSettingsView* PluginSettingsPresenter::view()
 
 void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     /*
     if(!m_blacklistCommand)
     {

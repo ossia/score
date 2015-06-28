@@ -29,7 +29,7 @@ iscore::ElementPluginModel* OSSIAEventElement::clone(
         const QObject* element,
         QObject* parent) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return nullptr;
 }
 
@@ -46,5 +46,5 @@ iscore::ElementPluginModelType OSSIAEventElement::elementPluginId() const
 
 void OSSIAEventElement::serialize(const VisitorVariant&) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 }

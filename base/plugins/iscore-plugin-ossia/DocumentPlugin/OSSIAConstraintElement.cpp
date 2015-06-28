@@ -24,7 +24,7 @@ iscore::ElementPluginModel* OSSIAConstraintElement::clone(
         const QObject* element,
         QObject* parent) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return nullptr;
 }
 
@@ -36,7 +36,7 @@ iscore::ElementPluginModelType OSSIAConstraintElement::elementPluginId() const
 
 void OSSIAConstraintElement::serialize(const VisitorVariant&) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 }
 
 void OSSIAConstraintElement::on_processAdded(

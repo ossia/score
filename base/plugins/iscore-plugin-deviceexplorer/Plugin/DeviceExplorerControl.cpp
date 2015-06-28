@@ -70,7 +70,7 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
 #include <core/document/DocumentModel.hpp>
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
-    qDebug() <<  Q_FUNC_INFO << "TODO";
+    qDebug() <<  "TODO: " << Q_FUNC_INFO;
     doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));
 
     // connect the device document plugin to the device explorer model in this document

@@ -38,7 +38,7 @@ iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
         const VisitorVariant& var,
         iscore::DocumentModel* parent)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 }
 
 void OSSIAControl::on_newDocument(iscore::Document* doc)
@@ -48,5 +48,5 @@ void OSSIAControl::on_newDocument(iscore::Document* doc)
 
 void OSSIAControl::on_documentChanged()
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 }

@@ -53,7 +53,7 @@ iscore::ElementPluginModel* OSSIAScenarioElement::clone(
         const QObject* element,
         QObject* parent) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return nullptr;
 }
 
@@ -65,7 +65,7 @@ iscore::ElementPluginModelType OSSIAScenarioElement::elementPluginId() const
 
 void OSSIAScenarioElement::serialize(const VisitorVariant&) const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 }
 
 void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& id)

@@ -223,13 +223,13 @@ void ScenarioModel::setSelection(const Selection& s) const
 
 ProcessStateDataInterface* ScenarioModel::startState() const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return nullptr;
 }
 
 ProcessStateDataInterface* ScenarioModel::endState() const
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return nullptr;
 }
 

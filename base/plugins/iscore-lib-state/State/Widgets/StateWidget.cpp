@@ -48,6 +48,6 @@ StateWidget::StateWidget(const State& state, QWidget* parent):
     }
     else if(state.data().canConvert<ProcessState>())
     {
-        qDebug() << Q_FUNC_INFO << "TODO";
+        qDebug() << "TODO: " << Q_FUNC_INFO;
     }
 }

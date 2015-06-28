@@ -130,7 +130,7 @@ void SlotInspectorSection::on_layerModelCreated(
 void SlotInspectorSection::on_layerModelRemoved(
         const id_type<LayerModel>& lmId)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
 
     m_lmSection->removeAll();
     for (auto& lm : m_model.layerModels())

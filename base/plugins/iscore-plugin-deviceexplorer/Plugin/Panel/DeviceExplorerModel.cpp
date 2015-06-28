@@ -459,7 +459,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 void
 DeviceExplorerModel::setColumnValue(Node* node, const QVariant& v, int col)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     return;
     /*
     if(col < 0 || col >= COLUMN_COUNT)
@@ -622,7 +622,7 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 
 void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
-    qDebug() << Q_FUNC_INFO << "TODO";
+    qDebug() << "TODO: " << Q_FUNC_INFO;
     // The command should modify the Node
     /*
     //TODO: check what's editable or not !!!
