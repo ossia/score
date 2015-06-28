@@ -1,6 +1,6 @@
 #include "ProcessModel.hpp"
 #include "LayerModel.hpp"
-
+#include <iscore/document/DocumentInterface.hpp>
 
 ProcessModel::ProcessModel(
         const TimeValue& duration,
@@ -19,7 +19,6 @@ ProcessModel::ProcessModel(
         const QString& name,
         QObject* parent):
     IdentifiedObject<ProcessModel>{id, name, parent},
-    pluginModelList{source.pluginModelList, this},
     m_duration{source.duration()}
 {
 

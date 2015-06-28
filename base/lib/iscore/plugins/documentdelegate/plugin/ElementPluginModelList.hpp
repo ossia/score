@@ -18,8 +18,13 @@ namespace iscore
 
             QObject* parent();
 
-            template<typename DeserializerVisitor>
-            ElementPluginModelList(DeserializerVisitor&& vis, QObject* parent):
+            template<typename DeserializerType,
+                     typename std::enable_if<
+                         not std::is_same<
+                             typename std::decay<DeserializerType>::type,
+                             iscore::ElementPluginModelList
+                         >::value>::type* = nullptr>
+            ElementPluginModelList(DeserializerType&& vis, QObject* parent):
                 m_parent{parent}
             {
                 vis.writeTo(*this);

@@ -8,8 +8,12 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 {
-    m_stream << scenario.m_startEventId;
-    m_stream << scenario.m_endEventId;
+    readFrom(*scenario.pluginModelList);
+
+    m_stream << scenario.m_startTimeNodeId
+             << scenario.m_endTimeNodeId;
+    m_stream << scenario.m_startEventId
+             << scenario.m_endEventId;
 
     // Constraints
     const auto& constraints = scenario.constraints();
@@ -44,8 +48,11 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 {
-    m_stream >> scenario.m_startEventId;
-    m_stream >> scenario.m_endEventId;
+    writeTo(*scenario.pluginModelList);
+    m_stream >> scenario.m_startTimeNodeId
+             >> scenario.m_endTimeNodeId;
+    m_stream >> scenario.m_startEventId
+             >> scenario.m_endEventId;
 
     // Constraints
     int constraint_count;
@@ -86,6 +93,10 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
 {
+    m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
+
+    m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
+    m_obj["EndTimeNodeId"] = toJsonValue(scenario.m_endTimeNodeId);
     m_obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
     m_obj["EndEventId"] = toJsonValue(scenario.m_endEventId);
 
@@ -97,6 +108,11 @@ void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 {
+    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
+    scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
+
+    scenario.m_startTimeNodeId = fromJsonValue<id_type<TimeNodeModel>> (m_obj["StartTimeNodeId"]);
+    scenario.m_endTimeNodeId = fromJsonValue<id_type<TimeNodeModel>> (m_obj["EndTimeNodeId"]);
     scenario.m_startEventId = fromJsonValue<id_type<EventModel>> (m_obj["StartEventId"]);
     scenario.m_endEventId = fromJsonValue<id_type<EventModel>> (m_obj["EndEventId"]);
 

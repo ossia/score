@@ -92,6 +92,8 @@ class ScenarioModel : public ProcessModel
         EventModel& event(const id_type<EventModel>& eventId) const;
         TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
 
+        TimeNodeModel& startTimeNode() const;
+        TimeNodeModel& endTimeNode() const;
         EventModel& startEvent() const;
         EventModel& endEvent() const;
 
@@ -169,6 +171,9 @@ class ScenarioModel : public ProcessModel
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;
         IdContainer<TimeNodeModel> m_timeNodes;
+
+        id_type<TimeNodeModel> m_startTimeNodeId {};
+        id_type<TimeNodeModel> m_endTimeNodeId {};
 
         id_type<EventModel> m_startEventId {};
         id_type<EventModel> m_endEventId {};

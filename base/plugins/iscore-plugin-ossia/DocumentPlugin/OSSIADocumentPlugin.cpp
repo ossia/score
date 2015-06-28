@@ -19,8 +19,8 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
     // TODO refactor this logic with NetworkDocumentPlugin.
     for(ScenarioModel* scenario: scenarios)
     {
-        if(scenario->pluginModelList.canAdd(OSSIAScenarioElement::staticPluginId()))
-            scenario->pluginModelList.add(
+        if(scenario->pluginModelList->canAdd(OSSIAScenarioElement::staticPluginId()))
+            scenario->pluginModelList->add(
                         makeElementPlugin(scenario,
                                           OSSIAScenarioElement::staticPluginId(),
                                           scenario));
@@ -30,9 +30,9 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
 
 QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() const
 {
-    return {OSSIAConstraintElement::staticPluginId(),
+    return {/*OSSIAConstraintElement::staticPluginId(),
             OSSIAEventElement::staticPluginId(),
-            OSSIATimeNodeElement::staticPluginId(),
+            OSSIATimeNodeElement::staticPluginId(),*/
             OSSIAScenarioElement::staticPluginId()};
 
 }
@@ -42,13 +42,20 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
         iscore::ElementPluginModelType type,
         QObject* parent)
 {
+    // TODO find a way to switch on-off the automatic creation in ElementPluginModelList?
+    // Or just don't present Event/Timenode/Constraint here in elementPlugins?
     switch(type)
     {
         case OSSIAScenarioElement::staticPluginId():
         {
             if(element->metaObject()->className() == QString{"ScenarioModel"})
             {
+                qDebug("makign a scenario");
                 auto plug = new OSSIAScenarioElement(static_cast<const ScenarioModel*>(element), parent);
+                connect(plug, &QObject::destroyed, [=] ()
+                {
+                    qDebug() << (void*) plug << "destroyed";
+                });
 
                 return plug;
             }
@@ -60,26 +67,6 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
 
 
     return nullptr;
-    /*
-    if(element->metaObject()->className() == QString{"ConstraintModel"})
-    {
-        auto plug = new OSSIAConstraintElement(static_cast<const ConstraintModel*>(element), parent);
-
-        return plug;
-    }
-    else if(element->metaObject()->className() == QString{"EventModel"})
-    {
-        auto plug = new OSSIAEventElement(static_cast<const EventModel*>(element), parent);
-
-        return plug;
-    }
-    else if(element->metaObject()->className() == QString{"TimeNodeModel"})
-    {
-        auto plug = new OSSIATimeNodeElement(static_cast<const TimeNodeModel*>(element), parent);
-
-        return plug;
-    }
-    */
 }
 
 iscore::ElementPluginModel* OSSIADocumentPlugin::loadElementPlugin(

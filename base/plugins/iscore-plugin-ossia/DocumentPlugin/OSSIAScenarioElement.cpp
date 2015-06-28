@@ -8,7 +8,7 @@
 #include <Process/ScenarioModel.hpp>
 #include "iscore2OSSIA.hpp"
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
-    iscore::ElementPluginModel{parent},
+    OSSIAProcessElement{parent},
     m_iscore_scenario{element}
 {
     m_ossia_scenario = OSSIA::Scenario::create();
@@ -124,11 +124,11 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
     // Note : this also default-creates an event.
 
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
-    if(id == m_iscore_scenario->startEvent().timeNode())
+    if(id == m_iscore_scenario->startTimeNode().id())
     {
         ossia_tn = m_ossia_scenario->getStartNode();
     }
-    else if(id == m_iscore_scenario->endEvent().timeNode())
+    else if(id == m_iscore_scenario->endTimeNode().id())
     {
         ossia_tn = m_ossia_scenario->getEndNode();
     }
@@ -146,13 +146,13 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
 
 void OSSIAScenarioElement::on_constraintMoved(const id_type<ConstraintModel>& id)
 {
-    qDebug(Q_FUNC_INFO);
+    //qDebug(Q_FUNC_INFO);
 
 }
 
 void OSSIAScenarioElement::on_eventMoved(const id_type<EventModel>& id)
 {
-    qDebug(Q_FUNC_INFO);
+    //qDebug(Q_FUNC_INFO);
 
 }
 

@@ -4,25 +4,9 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
-iscore::ElementPluginModelList::ElementPluginModelList(const ElementPluginModelList& source,
-                                                       QObject *parent):
-    m_parent{parent}
-{
-    // Used for cloning.
-    iscore::Document* doc = iscore::IDocument::documentFromObject(m_parent);
-    for(ElementPluginModel* elt : source.m_list)
-    {
-        for(DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
-        {
-            if(plugin->elementPlugins().contains(elt->elementPluginId()))
-            {
-                add(plugin->cloneElementPlugin(m_parent, elt, m_parent)); // Note : QObject::parent() is dangerous
-            }
-        }
-    }
-}
-
-iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QObject *parent):
+iscore::ElementPluginModelList::ElementPluginModelList(
+        iscore::Document* doc,
+        QObject *parent):
     m_parent{parent}
 {
     // We initialize the potential plug-ins of this document
@@ -39,6 +23,25 @@ iscore::ElementPluginModelList::ElementPluginModelList(iscore::Document* doc, QO
             // Create and add it.
             if(auto plugElement = plugin->makeElementPlugin(m_parent, plugid, m_parent))
                 add(plugElement);
+        }
+    }
+}
+
+iscore::ElementPluginModelList::ElementPluginModelList(
+        const ElementPluginModelList& source,
+        QObject *parent):
+    m_parent{parent}
+{
+    // Used for cloning.
+    iscore::Document* doc = iscore::IDocument::documentFromObject(m_parent);
+    for(ElementPluginModel* elt : source.m_list)
+    {
+        for(DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        {
+            if(plugin->elementPlugins().contains(elt->elementPluginId()))
+            {
+                add(plugin->cloneElementPlugin(m_parent, elt, m_parent)); // Note : QObject::parent() is dangerous
+            }
         }
     }
 }
@@ -64,5 +67,6 @@ bool iscore::ElementPluginModelList::canAdd(ElementPluginModelType pluginId) con
 void iscore::ElementPluginModelList::add(iscore::ElementPluginModel *data)
 {
     Q_ASSERT(data);
+    qDebug() << data;
     m_list.push_back(data);
 }

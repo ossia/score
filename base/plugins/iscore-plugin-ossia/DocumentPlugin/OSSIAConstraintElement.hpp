@@ -5,6 +5,7 @@
 
 class ConstraintModel;
 class ProcessModel;
+class OSSIAProcessElement;
 namespace OSSIA
 {
     class TimeConstraint;
@@ -36,5 +37,7 @@ class OSSIAConstraintElement : public iscore::ElementPluginModel
     private:
         const ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
+
+        std::map<id_type<ProcessModel>, OSSIAProcessElement*> m_processes;
 
 };

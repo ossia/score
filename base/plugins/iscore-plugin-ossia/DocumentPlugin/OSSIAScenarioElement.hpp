@@ -15,7 +15,14 @@ namespace OSSIA
 {
     class Scenario;
 }
-class OSSIAScenarioElement : public iscore::ElementPluginModel
+class OSSIAProcessElement :public iscore::ElementPluginModel
+{
+    public:
+        using iscore::ElementPluginModel::ElementPluginModel;
+
+};
+
+class OSSIAScenarioElement : public OSSIAProcessElement
 {
     public:
         OSSIAScenarioElement(

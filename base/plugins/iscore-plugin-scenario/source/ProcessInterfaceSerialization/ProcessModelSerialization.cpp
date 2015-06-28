@@ -14,7 +14,6 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessModel& process)
     readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
 
     readFrom(process.duration());
-    readFrom(process.pluginModelList);
 
     // Save the subclass
     process.serialize(toVariant());
@@ -28,7 +27,6 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(ProcessModel& process)
 {
     writeTo(process.m_duration);
-    writeTo(process.pluginModelList);
 
     // Delimiter checked on createProcess
 }
@@ -62,7 +60,6 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessModel& process)
     readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
 
     m_obj["Duration"] = toJsonValue(process.duration());
-    m_obj["PluginsMetadata"] = toJsonValue(process.pluginModelList);
 
     // Save the subclass
     process.serialize(toVariant());
@@ -73,9 +70,6 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(ProcessModel& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
-
-    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    process.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &process};
 }
 
 template<>

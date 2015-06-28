@@ -26,7 +26,7 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
         friend void Visitor<Writer<JSONObject>>::writeTo<ProcessModel> (ProcessModel&);
 
     public:
-        iscore::ElementPluginModelList pluginModelList;
+        iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
 
         using IdentifiedObject<ProcessModel>::IdentifiedObject;
         ProcessModel(

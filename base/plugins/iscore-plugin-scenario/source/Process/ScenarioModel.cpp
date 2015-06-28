@@ -13,11 +13,15 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const id_type<ProcessModel>& id,
                              QObject* parent) :
     ProcessModel {duration, id, "ScenarioModel", parent},
-    m_startEventId{0}, // Always
+    m_startTimeNodeId{0},
+    m_endTimeNodeId{1},
+    m_startEventId{0},
     m_endEventId{1}
 {
-    auto& start_tn = CreateTimeNodeMin::redo(id_type<TimeNodeModel>(0), TimeValue(ZeroTime{}), 0.5, *this);
-    auto& end_tn = CreateTimeNodeMin::redo(id_type<TimeNodeModel>(1), duration, 0.5, *this);
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+
+    auto& start_tn = CreateTimeNodeMin::redo(m_startTimeNodeId, TimeValue(ZeroTime{}), 0.5, *this);
+    auto& end_tn = CreateTimeNodeMin::redo(m_endTimeNodeId, duration, 0.5, *this);
 
     CreateEventMin::redo(m_startEventId, start_tn, 0., *this);
     CreateEventMin::redo(m_endEventId, end_tn, 0., *this);
@@ -26,8 +30,14 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
                              const id_type<ProcessModel>& id,
                              QObject* parent) :
-    ProcessModel {source, id, "ScenarioModel", parent}
+    ProcessModel {source, id, "ScenarioModel", parent},
+    m_startTimeNodeId{source.m_startTimeNodeId},
+    m_endTimeNodeId{source.m_endTimeNodeId},
+    m_startEventId{source.m_startEventId},
+    m_endEventId{source.m_endEventId}
 {
+    pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
+
     for(ConstraintModel* constraint : source.m_constraints)
     {
         addConstraint(new ConstraintModel {*constraint, constraint->id(), this});
@@ -43,8 +53,6 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
         addTimeNode(new TimeNodeModel {*timenode, timenode->id(), this});
     }
 
-    m_startEventId = source.m_startEventId;
-    m_endEventId = source.m_endEventId;
 }
 
 ScenarioModel* ScenarioModel::clone(
@@ -320,6 +328,16 @@ EventModel& ScenarioModel::event(const id_type<EventModel>& eventId) const
 TimeNodeModel& ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId) const
 {
     return *m_timeNodes.at(timeNodeId);
+}
+
+TimeNodeModel&ScenarioModel::startTimeNode() const
+{
+    return timeNode(m_startTimeNodeId);
+}
+
+TimeNodeModel&ScenarioModel::endTimeNode() const
+{
+    return timeNode(m_endTimeNodeId);
 }
 
 
