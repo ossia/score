@@ -14,7 +14,7 @@ set(CMAKE_AUTOMOC ON)
 
 # Files & main target
 include_directories(.)
-
+include_directories("${SCENARIO_INTERFACE_FOLDER}")
 include_directories("${ISCORE_ROOT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 

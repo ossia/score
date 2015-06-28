@@ -1,5 +1,5 @@
 #pragma once
-#include "Rack/RackModel.hpp"
+#include <Document/Constraint/Rack/RackModel.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
 
 #include <source/Document/ModelMetadata.hpp>

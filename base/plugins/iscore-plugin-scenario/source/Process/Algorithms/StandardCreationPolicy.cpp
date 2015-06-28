@@ -17,7 +17,7 @@ TimeNodeModel& CreateTimeNodeMin::redo(
         double y,
         ScenarioModel& s)
 {
-    auto timeNode = new TimeNodeModel {id, date, y, &s};
+    auto timeNode = new TimeNodeModel{id, date, y, &s};
     s.addTimeNode(timeNode);
     return *timeNode;
 }
@@ -61,7 +61,7 @@ void CreateConstraintMin::undo(
     s.removeConstraint(&cst);
 }
 
-ConstraintModel&CreateConstraintMin::redo(
+ConstraintModel& CreateConstraintMin::redo(
         const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullviewid,
         EventModel& sev,

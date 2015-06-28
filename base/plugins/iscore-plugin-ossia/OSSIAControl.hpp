@@ -10,6 +10,18 @@ class OSSIAControl : public iscore::PluginControlInterface
     public:
         OSSIAControl(iscore::Presenter* pres);
 
+        void populateMenus(iscore::MenubarManager*);
+
+        iscore::DocumentDelegatePluginModel*loadDocumentPlugin(
+                const QString& name,
+                const VisitorVariant& var,
+                iscore::DocumentModel* parent);
+
+        void on_newDocument(iscore::Document* doc);
+
+    protected:
+        void on_documentChanged();
+
     private:
         std::shared_ptr<OSSIA::Device> m_localDevice;
 };

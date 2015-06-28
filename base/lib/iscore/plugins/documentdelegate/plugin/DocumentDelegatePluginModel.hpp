@@ -34,9 +34,4 @@ class DocumentDelegatePluginModel : public NamedObject
         virtual void serialize(const VisitorVariant&) const = 0;
 };
 
-class DocumentDelegatePluginModelFactory
-{
-    public:
-        virtual DocumentDelegatePluginModel* make(QVariant data, QObject* parent) = 0;
-};
 }

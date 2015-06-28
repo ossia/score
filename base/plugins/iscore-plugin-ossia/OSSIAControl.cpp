@@ -1,4 +1,6 @@
 #include "OSSIAControl.hpp"
+#include "DocumentPlugin/OSSIADocumentPlugin.hpp"
+
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/Protocol.h>
@@ -9,8 +11,10 @@
 #include <API/Headers/Editor/ExpressionComposition.h>
 #include <API/Headers/Editor/Value.h>
 
+#include <core/document/DocumentModel.hpp>
+
 OSSIAControl::OSSIAControl(iscore::Presenter* pres):
-    iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
+    iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
 {
     using namespace OSSIA;
     Local localDevice;
@@ -22,4 +26,25 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
+}
+
+
+void OSSIAControl::populateMenus(iscore::MenubarManager*)
+{
+}
+
+iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
+        const QString& name,
+        const VisitorVariant& var,
+        iscore::DocumentModel* parent)
+{
+}
+
+void OSSIAControl::on_newDocument(iscore::Document* doc)
+{
+    doc->model()->addPluginModel(new OSSIADocumentPlugin{doc->model(), doc->model()});
+}
+
+void OSSIAControl::on_documentChanged()
+{
 }

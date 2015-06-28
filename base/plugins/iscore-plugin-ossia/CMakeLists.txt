@@ -20,6 +20,7 @@ include_directories(${ISCORE_ROOT_SOURCE_DIR}/API)
 include_directories(${ISCORE_ROOT_SOURCE_DIR}/API/Headers)
 # Files & main target
 include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
+include_directories("${SCENARIO_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 # TODO put this in CMake interface of iscore_lib
 

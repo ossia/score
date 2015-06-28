@@ -185,12 +185,14 @@ void RemoveSelection::undo()
 
             maybeTimenodes.erase(removed_timenode_it);
 
-            // TODO Why is it necessary to remove / readd?
-            // Maybe we should do a first pass where we only add the
-            // timenodes, and then all the events in bulk ?
+            // First, since the event is not yet in the scenario
+            // we remove it from the timenode since it might crash
             timeNode->removeEvent(event->id());
+
+            // And we add the timenode
             scenar.addTimeNode(timeNode);
 
+            // We can re-add the event.
             scenar.addEvent(event);
             timeNode->addEvent(event->id());
         }
