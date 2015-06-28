@@ -75,13 +75,14 @@ ConstraintModel& CreateConstraintMin::redo(
                       ypos,
                       &s};
 
+    constraint->setStartEvent(sev.id());
+    constraint->setEndEvent(eev.id());
+
     s.addConstraint(constraint);
 
     sev.addNextConstraint(id);
     eev.addPreviousConstraint(id);
 
-    constraint->setStartEvent(sev.id());
-    constraint->setEndEvent(eev.id());
 
     ConstraintModel::Algorithms::changeAllDurations(*constraint,
                                                     eev.date() - sev.date());

@@ -6,6 +6,9 @@
 #include <API/Headers/Editor/Value.h>
 #include <API/Headers/Editor/Domain.h>
 
+#include <API/Headers/Editor/TimeValue.h>
+#include <ProcessInterface/TimeValue.hpp>
+
 
 namespace iscore
 {
@@ -32,5 +35,14 @@ void updateOSSIAValue(
 
 OSSIA::Value* toValue(
         const QVariant&);
+
+inline OSSIA::TimeValue time(const TimeValue& t)
+{
+    return t.isInfinite()
+            ? OSSIA::TimeValue{t.isInfinite()}
+            : OSSIA::TimeValue{t.msec()};
+}
+
 }
 }
+

@@ -11,7 +11,7 @@ class OSSIAConstraintElement : public iscore::ElementPluginModel
 {
     public:
         static constexpr iscore::ElementPluginModelType staticPluginId() { return 1; }
-        OSSIAConstraintElement(const ConstraintModel* element, QObject* parent);
+        OSSIAConstraintElement(std::shared_ptr<OSSIA::TimeConstraint> element, QObject* parent);
 
         std::shared_ptr<OSSIA::TimeConstraint> constraint() const;
 

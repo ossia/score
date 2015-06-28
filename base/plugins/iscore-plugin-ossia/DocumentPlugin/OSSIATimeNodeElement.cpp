@@ -4,7 +4,8 @@
 
 OSSIATimeNodeElement::OSSIATimeNodeElement(
         const TimeNodeModel* element,
-        QObject* parent)
+        QObject* parent):
+    iscore::ElementPluginModel{parent}
 {
     using namespace OSSIA;
     m_node = TimeNode::create();

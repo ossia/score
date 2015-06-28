@@ -244,7 +244,7 @@ void ScenarioModel::makeLayer_impl(ScenarioModel::layer_type* scen)
             scen, &layer_type::eventCreated);
     connect(this, &ScenarioModel::timeNodeCreated,
             scen, &layer_type::timeNodeCreated);
-    connect(this, &ScenarioModel::eventRemoved,
+    connect(this, &ScenarioModel::eventRemoved_after,
             scen, &layer_type::eventDeleted);
     connect(this, &ScenarioModel::timeNodeRemoved,
             scen, &layer_type::timeNodeDeleted);
@@ -289,9 +289,11 @@ void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 void ScenarioModel::removeEvent(EventModel* ev)
 {
     auto eventId = ev->id();
+    emit eventRemoved_before(eventId);
+
     m_events.remove(ev->id());
 
-    emit eventRemoved(eventId);
+    emit eventRemoved_after(eventId);
     delete ev;
 }
 

@@ -5,6 +5,7 @@ OSSIAEventElement::OSSIAEventElement(
         std::shared_ptr<OSSIA::TimeEvent> event,
         const EventModel* element,
         QObject* parent):
+    iscore::ElementPluginModel{parent},
     m_event{event}
 {
     // If the event is the first - last of the timenode

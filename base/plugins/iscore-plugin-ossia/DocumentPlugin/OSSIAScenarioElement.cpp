@@ -6,7 +6,9 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 #include <Process/ScenarioModel.hpp>
+#include "iscore2OSSIA.hpp"
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
+    iscore::ElementPluginModel{parent},
     m_iscore_scenario{element}
 {
     m_ossia_scenario = OSSIA::Scenario::create();
@@ -25,7 +27,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
 
     connect(element, &ScenarioModel::constraintRemoved,
             this, &OSSIAScenarioElement::on_constraintRemoved);
-    connect(element, &ScenarioModel::eventRemoved,
+    connect(element, &ScenarioModel::eventRemoved_before,
             this, &OSSIAScenarioElement::on_eventRemoved);
     connect(element, &ScenarioModel::timeNodeRemoved,
             this, &OSSIAScenarioElement::on_timeNodeRemoved);
@@ -68,8 +70,26 @@ void OSSIAScenarioElement::serialize(const VisitorVariant&) const
 
 void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& id)
 {
-    qDebug(Q_FUNC_INFO);
+    auto& cst = m_iscore_scenario->constraint(id);
 
+    Q_ASSERT(m_ossia_timeevents.find(cst.startEvent()) != m_ossia_timeevents.end());
+    auto& ossia_sev = m_ossia_timeevents.at(cst.startEvent());
+    Q_ASSERT(m_ossia_timeevents.find(cst.endEvent()) != m_ossia_timeevents.end());
+    auto& ossia_eev = m_ossia_timeevents.at(cst.endEvent());
+
+    auto ossia_cst = OSSIA::TimeConstraint::create(
+                         ossia_sev->event(),
+                         ossia_eev->event(),
+                         iscore::convert::time(cst.defaultDuration()),
+                         iscore::convert::time(cst.minDuration()),
+                         iscore::convert::time(cst.maxDuration()));
+
+    auto elt = new OSSIAConstraintElement{ossia_cst, &cst};
+    m_ossia_constraints.insert({id, elt});
+
+    m_ossia_scenario->addConstraint(ossia_cst);
+
+    cst.pluginModelList.add(elt);
 }
 
 void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
@@ -91,21 +111,25 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     }
 
     // Pass the element in ctor
-    auto elt = new OSSIAEventElement(ossia_ev, &ev, &ev);
+    auto elt = new OSSIAEventElement{ossia_ev, &ev, &ev};
+    m_ossia_timeevents.insert({id, elt});
 
     ev.pluginModelList.add(elt);
-    m_ossia_timeevents.insert({id, elt});
-    // The OSSIA timenodes already have the event.
-
 }
 
 void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
 {
     auto& tn = m_iscore_scenario->timeNode(id);
+
+    // Note : this also default-creates an event.
+    // Note : why not passing the OSSIA::TimeNode in the ctor here too
+    // for the sake of consistency ?
     auto elt = new OSSIATimeNodeElement(&tn, &tn);
 
-    tn.pluginModelList.add(elt);
+    m_ossia_scenario->addTimeNode(elt->timeNode());
     m_ossia_timenodes.insert({id, elt});
+
+    tn.pluginModelList.add(elt);
 }
 
 void OSSIAScenarioElement::on_constraintMoved(const id_type<ConstraintModel>& id)
@@ -122,18 +146,35 @@ void OSSIAScenarioElement::on_eventMoved(const id_type<EventModel>& id)
 
 void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& id)
 {
-    qDebug(Q_FUNC_INFO);
+    auto it = m_ossia_constraints.find(id);
+    auto cst = (*it).second;
+    m_ossia_scenario->removeConstraint(cst->constraint());
 
+    m_ossia_constraints.erase(it);
+    // Deletion will be part of the ConstraintModel* delete.
 }
 
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)
 {
-    qDebug(Q_FUNC_INFO);
+    auto ev_it = m_ossia_timeevents.find(id);
+    OSSIAEventElement* ev = (*ev_it).second;
 
+    auto tn_it = m_ossia_timenodes.find(m_iscore_scenario->event(id).timeNode());
+    OSSIATimeNodeElement* tn = (*tn_it).second;
+
+    m_ossia_timeevents.erase(ev_it);
+
+    // TODO how ?
+    // TODO if this was the last event, we certainly have to remove the timenode, too.
 }
 
 void OSSIAScenarioElement::on_timeNodeRemoved(const id_type<TimeNodeModel>& id)
 {
-    qDebug(Q_FUNC_INFO);
+    auto tn_it = m_ossia_timenodes.find(id);
+    OSSIATimeNodeElement* tn = (*tn_it).second;
 
+    m_ossia_scenario->removeTimeNode(tn->timeNode());
+    // Deletion will be part of the TimeNodeModel* delete.
+
+    m_ossia_timenodes.erase(tn_it);
 }

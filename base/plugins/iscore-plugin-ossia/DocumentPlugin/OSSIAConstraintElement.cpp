@@ -2,10 +2,11 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include "../iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
 OSSIAConstraintElement::OSSIAConstraintElement(
-        const ConstraintModel* element, QObject* parent):
+        std::shared_ptr<OSSIA::TimeConstraint> cst,
+        QObject* parent):
     iscore::ElementPluginModel{parent}
 {
-    //m_constraint = OSSIA::TimeConstraint::create( );
+    m_constraint = cst;
 }
 
 std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() const
