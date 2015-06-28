@@ -37,7 +37,6 @@ namespace iscore
             virtual void serializeImpl(QDataStream&) const override;
             virtual void deserializeImpl(QDataStream&) override;
 
-        private:
             QList<iscore::SerializableCommand*> m_cmds;
     };
 }

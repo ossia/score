@@ -84,7 +84,7 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
                          iscore::convert::time(cst.minDuration()),
                          iscore::convert::time(cst.maxDuration()));
 
-    auto elt = new OSSIAConstraintElement{ossia_cst, &cst};
+    auto elt = new OSSIAConstraintElement{ossia_cst, cst, &cst};
     m_ossia_constraints.insert({id, elt});
 
     m_ossia_scenario->addConstraint(ossia_cst);
@@ -122,9 +122,21 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
     auto& tn = m_iscore_scenario->timeNode(id);
 
     // Note : this also default-creates an event.
-    // Note : why not passing the OSSIA::TimeNode in the ctor here too
-    // for the sake of consistency ?
-    auto elt = new OSSIATimeNodeElement(&tn, &tn);
+
+    std::shared_ptr<OSSIA::TimeNode> ossia_tn;
+    if(id == m_iscore_scenario->startEvent().timeNode())
+    {
+        ossia_tn = m_ossia_scenario->getStartNode();
+    }
+    else if(id == m_iscore_scenario->endEvent().timeNode())
+    {
+        ossia_tn = m_ossia_scenario->getEndNode();
+    }
+    else
+    {
+        ossia_tn = OSSIA::TimeNode::create();
+    }
+    auto elt = new OSSIATimeNodeElement{ossia_tn, tn, &tn};
 
     m_ossia_scenario->addTimeNode(elt->timeNode());
     m_ossia_timenodes.insert({id, elt});
@@ -164,7 +176,7 @@ void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)
 
     m_ossia_timeevents.erase(ev_it);
 
-    // TODO how ?
+    // TODO how to remove it in OSSIA?
     // TODO if this was the last event, we certainly have to remove the timenode, too.
 }
 

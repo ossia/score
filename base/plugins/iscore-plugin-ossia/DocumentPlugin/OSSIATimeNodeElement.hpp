@@ -13,7 +13,8 @@ class OSSIATimeNodeElement : public iscore::ElementPluginModel
     public:
         static constexpr iscore::ElementPluginModelType staticPluginId() { return 3; }
         OSSIATimeNodeElement(
-                const TimeNodeModel* element,
+                std::shared_ptr<OSSIA::TimeNode> ossia_tn,
+                const TimeNodeModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeNode> timeNode() const;

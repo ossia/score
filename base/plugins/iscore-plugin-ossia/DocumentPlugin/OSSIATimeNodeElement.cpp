@@ -3,9 +3,11 @@
 #include <API/Headers/Editor/TimeNode.h>
 
 OSSIATimeNodeElement::OSSIATimeNodeElement(
-        const TimeNodeModel* element,
+        std::shared_ptr<OSSIA::TimeNode> ossia_tn,
+        const TimeNodeModel& element,
         QObject* parent):
-    iscore::ElementPluginModel{parent}
+    iscore::ElementPluginModel{parent},
+    m_node{ossia_tn}
 {
     using namespace OSSIA;
     m_node = TimeNode::create();

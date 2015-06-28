@@ -1,8 +1,10 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <memory>
 
 class ConstraintModel;
+class ProcessModel;
 namespace OSSIA
 {
     class TimeConstraint;
@@ -11,7 +13,10 @@ class OSSIAConstraintElement : public iscore::ElementPluginModel
 {
     public:
         static constexpr iscore::ElementPluginModelType staticPluginId() { return 1; }
-        OSSIAConstraintElement(std::shared_ptr<OSSIA::TimeConstraint> element, QObject* parent);
+        OSSIAConstraintElement(
+                std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
+                const ConstraintModel& iscore_cst,
+                QObject* parent);
 
         std::shared_ptr<OSSIA::TimeConstraint> constraint() const;
 
@@ -23,6 +28,13 @@ class OSSIAConstraintElement : public iscore::ElementPluginModel
 
         void serialize(const VisitorVariant&) const;
 
+    private slots:
+        void on_processAdded(const QString& name,
+                             const id_type<ProcessModel>& id);
+        void on_processRemoved(const id_type<ProcessModel>& id);
+
     private:
-        std::shared_ptr<OSSIA::TimeConstraint> m_constraint;
+        const ConstraintModel& m_iscore_constraint;
+        std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
+
 };
