@@ -7,11 +7,38 @@
 
 #include <Process/ScenarioModel.hpp>
 #include "iscore2OSSIA.hpp"
+
+#include <QTimer>
+static std::shared_ptr<OSSIA::TimeConstraint> main_constraint;
+auto main_start_node = OSSIA::TimeNode::create();
+auto main_end_node = OSSIA::TimeNode::create();
+
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
     m_iscore_scenario{element}
 {
-    m_ossia_scenario = OSSIA::Scenario::create();
+    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin());
+    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin());
+
+    OSSIA::TimeValue main_duration(5000.);
+    main_constraint = OSSIA::TimeConstraint::create(*main_start_event_it, *main_end_event_it, main_duration);
+
+
+    qDebug("faukk");
+    m_ossia_scenario = OSSIA::Scenario::create([](const OSSIA::TimeValue& position, const OSSIA::TimeValue& date, std::shared_ptr<OSSIA::State> state)
+    {
+        qDebug() << "callback" << double(position);
+    });
+
+    main_constraint->addTimeProcess(m_ossia_scenario);
+
+    QTimer* t = new QTimer;
+    connect(t, &QTimer::timeout, this, [=] () {
+        qDebug("sdfqsdf");
+        (*main_start_event_it)->play();
+    });
+    t->start(5000);
+
 
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
@@ -46,6 +73,18 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
         on_constraintCreated(constraint->id());
     }
 }
+
+
+std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
+{
+    return m_ossia_scenario;
+}
+
+std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
+{
+    return scenario();
+}
+
 
 
 
@@ -99,16 +138,7 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
-    std::shared_ptr<OSSIA::TimeEvent> ossia_ev;
-    // If it's the first, it's already here
-    if(ossia_tn->timeNode()->timeEvents().size() == 1)
-    {
-        ossia_ev = ossia_tn->timeNode()->timeEvents().front();
-    }
-    else
-    {
-        ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin());
-    }
+    auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin());
 
     // Pass the element in ctor
     auto elt = new OSSIAEventElement{ossia_ev, &ev, &ev};

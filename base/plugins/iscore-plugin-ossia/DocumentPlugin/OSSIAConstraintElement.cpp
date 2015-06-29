@@ -56,6 +56,7 @@ void OSSIAConstraintElement::on_processAdded(
         {
             qDebug("awyisss");
             m_processes.insert({id, scenar_elt});
+            m_ossia_constraint->addTimeProcess(scenar_elt->process());
             break;
         }
     }

@@ -14,11 +14,13 @@ class ScenarioModel;
 namespace OSSIA
 {
     class Scenario;
+    class TimeProcess;
 }
 class OSSIAProcessElement :public iscore::ElementPluginModel
 {
     public:
         using iscore::ElementPluginModel::ElementPluginModel;
+        virtual std::shared_ptr<OSSIA::TimeProcess> process() const = 0;
 
 };
 
@@ -29,6 +31,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
                 const ScenarioModel* element,
                 QObject* parent);
 
+        std::shared_ptr<OSSIA::TimeProcess> process() const override;
         std::shared_ptr<OSSIA::Scenario> scenario() const;
 
         static constexpr iscore::ElementPluginModelType staticPluginId() { return 4; }
