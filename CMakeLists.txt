@@ -96,7 +96,7 @@ include(WriteCompilerDetectionHeader)
 write_compiler_detection_header(
   FILE iscore_compiler_detection.hpp
   PREFIX ISCORE
-  COMPILERS GNU Clang MSVC
+  COMPILERS GNU Clang AppleClang MSVC
   FEATURES cxx_relaxed_constexpr
   VERSION 3.1
 )

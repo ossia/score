@@ -30,8 +30,7 @@ namespace iscore
 
             auto uid() const
             {
-                using namespace std;
-                hash<string> fn;
+                std::hash<std::string> fn;
                 return fn(this->name().toStdString());
             }
 
