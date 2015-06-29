@@ -75,12 +75,15 @@ namespace iscore
 
             QList<PanelFactory*> panelFactories() const
             {
-                using namespace std;
                 QList<PanelFactory*> lst;
-                transform(begin(m_panelPresenters), end(m_panelPresenters),
-                          back_inserter(lst),
-                          [] (const QPair<PanelPresenter*,
-                        PanelFactory*>& elt) { return elt.second; });
+                std::transform(
+                            std::begin(m_panelPresenters),
+                            std::end(m_panelPresenters),
+                            std::back_inserter(lst),
+                    [] (const QPair<PanelPresenter*, PanelFactory*>& elt) {
+                        return elt.second;
+                    }
+                );
                 return lst;
             }
 
