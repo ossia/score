@@ -68,7 +68,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenarioSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementModelSerialization.cpp"
+
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
@@ -121,6 +123,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/OldFormatConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/ScenarioControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/AddProcessDialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ScenarioDocument.cpp"

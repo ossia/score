@@ -1,5 +1,5 @@
 #pragma once
-
+#include <type_traits>
 class AbstractVisitor
 {
 };
@@ -33,3 +33,5 @@ struct VisitorVariant
         const SerializationIdentifier identifier;
 };
 
+template<typename DeserializerVisitor>
+using enable_if_deserializer =  typename std::enable_if<std::decay<DeserializerVisitor>::type::is_visitor_tag::value>::type;

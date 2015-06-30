@@ -129,6 +129,18 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
     m_ossia_scenario->addConstraint(ossia_cst);
 
     cst.pluginModelList.add(elt);
+    connect(&cst, &ConstraintModel::defaultDurationChanged, this,
+            [=] (const TimeValue& t) {
+        ossia_cst->setDuration(iscore::convert::time(t));
+    });
+    connect(&cst, &ConstraintModel::minDurationChanged, this,
+            [=] (const TimeValue& t) {
+        ossia_cst->setDurationMin(iscore::convert::time(t));
+    });
+    connect(&cst, &ConstraintModel::maxDurationChanged, this,
+            [=] (const TimeValue& t) {
+        ossia_cst->setDurationMax(iscore::convert::time(t));
+    });
 }
 
 void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
@@ -176,13 +188,11 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
 
 void OSSIAScenarioElement::on_constraintMoved(const id_type<ConstraintModel>& id)
 {
-    //qDebug(Q_FUNC_INFO);
-
 }
 
 void OSSIAScenarioElement::on_eventMoved(const id_type<EventModel>& id)
 {
-    //qDebug(Q_FUNC_INFO);
+
 
 }
 

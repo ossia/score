@@ -1,6 +1,7 @@
 #include "BaseElementModel.hpp"
-#include "Document/Constraint/ConstraintModel.hpp"
+#include "BaseScenario.hpp"
 
+// TODO do this file properly
 BaseElementModel::BaseElementModel(const VisitorVariant& vis,
                                    QObject* parent) :
     iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(0),
@@ -15,21 +16,21 @@ BaseElementModel::BaseElementModel(const VisitorVariant& vis,
         des.writeTo(id);
         this->setId(std::move(id));
 
-        m_baseConstraint = new ConstraintModel{des, this};
+        m_baseScenario = new BaseScenario{des, this};
     }
     else if(vis.identifier == JSONObject::type())
     {
         auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
-        // TODO id
-        m_baseConstraint = new ConstraintModel{Deserializer<JSONObject>{des.m_obj["Constraint"].toObject()}, this};
+        this->setId(fromJsonValue<id_type<DocumentDelegateModelInterface>>(des.m_obj["id"]));
+        m_baseScenario = new BaseScenario{
+                            Deserializer<JSONObject>{des.m_obj["BaseScenario"].toObject()},
+                            this};
     }
     else
     {
         qFatal("Could not load BaseElementModel");
         return;
     }
-
-    m_baseConstraint->setObjectName("BaseConstraintModel");
 }
 
 void BaseElementModel::serialize(const VisitorVariant& vis) const
@@ -38,12 +39,12 @@ void BaseElementModel::serialize(const VisitorVariant& vis) const
     {
         auto& ser = static_cast<DataStream::Serializer&>(vis.visitor);
         ser.readFrom(this->id());
-        ser.readFrom(*baseConstraint());
+        ser.readFrom(*m_baseScenario);
     }
     else if(vis.identifier == JSONObject::type())
     {
         auto& ser = static_cast<JSONObject::Serializer&>(vis.visitor);
         ser.m_obj["id"] = toJsonValue(this->id());
-        ser.m_obj["Constraint"] = toJsonObject(*baseConstraint());
+        ser.m_obj["BaseScenario"] = toJsonObject(*m_baseScenario);
     }
 }

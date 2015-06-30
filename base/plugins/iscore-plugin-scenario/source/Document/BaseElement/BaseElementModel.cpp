@@ -1,4 +1,5 @@
 #include "BaseElementModel.hpp"
+#include "BaseScenario.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
@@ -26,18 +27,15 @@ using namespace Scenario;
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-BaseElementModel::BaseElementModel(QObject* parent) :
-    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(getNextId()), "BaseElementModel", parent},
-    m_baseConstraint {new ConstraintModel{
-                            id_type<ConstraintModel>{0},
-                            id_type<AbstractConstraintViewModel>{0},
-                            0,
-                            this}}
-{
-    ConstraintModel::Algorithms::changeAllDurations(*m_baseConstraint, std::chrono::minutes{3});
-    m_baseConstraint->setObjectName("BaseConstraintModel");
 
-    initializeNewDocument(m_baseConstraint->fullView());
+BaseElementModel::BaseElementModel(QObject* parent) :
+    iscore::DocumentDelegateModelInterface {
+        id_type<iscore::DocumentDelegateModelInterface>(getNextId()),
+        "BaseElementModel",
+        parent},
+    m_baseScenario{new BaseScenario{id_type<BaseScenario>{0}, this}}
+{
+    initializeNewDocument(m_baseScenario->baseConstraint()->fullView());
 
     // Help for the FocusDispatcher.
     connect(this, &BaseElementModel::setFocusedPresenter,
@@ -58,6 +56,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     {
         {
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}}
         },
         "Scenario"
@@ -69,6 +68,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}}
         }
     };
@@ -78,6 +78,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     ShowRackInViewModel cmd3 {
         ObjectPath{
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
             {"FullViewConstraintViewModel", viewmodel->id()}
         },
@@ -88,6 +89,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
             {"RackModel", rack->id() }
         }
@@ -99,6 +101,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     {
         ObjectPath{
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
             {"RackModel", rack->id() },
             {"SlotModel", slotId}
@@ -111,17 +114,23 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     {
         {
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
             {"RackModel", rack->id() },
             {"SlotModel", slotId}
         },
         {
             {"BaseElementModel", this->id()},
+            {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
             {"ScenarioModel", scenarioId}
         }
     };
     cmd6.redo();
+}
+ConstraintModel* BaseElementModel::baseConstraint() const
+{
+    return m_baseScenario->baseConstraint();
 }
 
 namespace {

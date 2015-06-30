@@ -1,5 +1,6 @@
 #pragma once
 #include <QDataStream>
+#include <type_traits>
 #include "iscore/serialization/VisitorInterface.hpp"
 #include <iscore/tools/IdentifiedObject.hpp>
 
@@ -22,6 +23,8 @@ template<>
 class Visitor<Reader<DataStream>> : public AbstractVisitor
 {
     public:
+        using is_visitor_tag = std::integral_constant<bool, true>;
+
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
         Visitor<Reader<DataStream>>() = default;
@@ -72,6 +75,8 @@ template<>
 class Visitor<Writer<DataStream>> : public AbstractVisitor
 {
     public:
+        using is_visitor_tag = std::integral_constant<bool, true>;
+
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
         Visitor<Writer<DataStream>>() = default;

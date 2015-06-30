@@ -29,6 +29,8 @@ template<>
 class Visitor<Reader<JSONObject>> : public AbstractVisitor
 {
     public:
+        using is_visitor_tag = std::integral_constant<bool, true>;
+
         Visitor<Reader<JSONObject>>() = default;
         Visitor<Reader<JSONObject>>(const Visitor<Reader<JSONObject>>&) = delete;
         Visitor<Reader<JSONObject>>& operator=(const Visitor<Reader<JSONObject>>&) = delete;
@@ -51,6 +53,8 @@ template<>
 class Visitor<Writer<JSONObject>> : public AbstractVisitor
 {
     public:
+        using is_visitor_tag = std::integral_constant<bool, true>;
+
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
         Visitor<Writer<JSONObject>>() = default;

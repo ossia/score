@@ -50,7 +50,7 @@ class EventModel : public IdentifiedObject<EventModel>
         /** Public properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
-        iscore::ElementPluginModelList pluginModelList; // TODO public everywhere.
+        iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName();
 

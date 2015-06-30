@@ -44,10 +44,13 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    auto& theEvent = parentScenario()->event(eventId);
-    theEvent.changeTimeNode(this->id());
-    m_eventHasPreviousConstraint[eventId] = theEvent.hasPreviousConstraint();
-    checkIfPreviousConstraint();
+    if(parentScenario())
+    {
+        auto& theEvent = parentScenario()->event(eventId);
+        theEvent.changeTimeNode(this->id());
+        m_eventHasPreviousConstraint[eventId] = theEvent.hasPreviousConstraint();
+        checkIfPreviousConstraint();
+    }
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)

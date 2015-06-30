@@ -4,11 +4,12 @@
 #include <iscore/selection/SelectionStack.hpp>
 #include "ProcessFocusManager.hpp"
 
+class BaseScenario;
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
-class ConstraintModel;
 class ProcessModel;
 class LayerModel;
+class ConstraintModel;
 
 class BaseElementModel : public iscore::DocumentDelegateModelInterface
 {
@@ -19,12 +20,10 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         BaseElementModel(const VisitorVariant& data, QObject* parent);
         virtual ~BaseElementModel() = default;
 
+        ConstraintModel* baseConstraint() const;
+
         void serialize(const VisitorVariant&) const override;
         void setNewSelection(const Selection& s) override;
-
-
-        ConstraintModel* baseConstraint() const
-        { return m_baseConstraint; }
 
         void setDisplayedConstraint(const ConstraintModel*);
 
@@ -41,9 +40,9 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
     private:
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
-        ConstraintModel* m_baseConstraint {};
         const ConstraintModel* m_displayedConstraint {};
 
         ProcessFocusManager m_focusManager;
+        BaseScenario* m_baseScenario{};
 };
 
