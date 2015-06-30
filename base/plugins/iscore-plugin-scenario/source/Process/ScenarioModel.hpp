@@ -2,6 +2,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/State/DisplayedStateModel.hpp"
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
@@ -114,6 +115,11 @@ class ScenarioModel : public ProcessModel
             return m_timeNodes;
         }
 
+        const auto& dispStates() const
+        {
+            return m_displayedStates;
+        }
+
     signals:
         void eventCreated(const id_type<EventModel>& eventId);
         void constraintCreated(const id_type<ConstraintModel>& constraintId);
@@ -168,6 +174,7 @@ class ScenarioModel : public ProcessModel
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;
         IdContainer<TimeNodeModel> m_timeNodes;
+        IdContainer<DisplayedStateModel> m_displayedStates;
 
         id_type<EventModel> m_startEventId {};
         id_type<EventModel> m_endEventId {};

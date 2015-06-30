@@ -47,7 +47,7 @@ EventModel& CreateEventMin::redo(
 }
 
 
-
+//TODO unused ?
 void CreateConstraintMin::undo(
         const id_type<ConstraintModel>& id,
         ScenarioModel& s)
@@ -61,9 +61,9 @@ void CreateConstraintMin::undo(
     s.removeConstraint(&cst);
 }
 
-ConstraintModel&CreateConstraintMin::redo(
-        const id_type<ConstraintModel>& id,
+ConstraintModel&CreateConstraintMin::redo(const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullviewid,
+        const id_type<DisplayedStateModel> &endStateId,
         EventModel& sev,
         EventModel& eev,
         double ypos,
@@ -82,6 +82,7 @@ ConstraintModel&CreateConstraintMin::redo(
 
     constraint->setStartEvent(sev.id());
     constraint->setEndEvent(eev.id());
+    constraint->setEndState(endStateId);
 
     ConstraintModel::Algorithms::changeAllDurations(*constraint,
                                                     eev.date() - sev.date());

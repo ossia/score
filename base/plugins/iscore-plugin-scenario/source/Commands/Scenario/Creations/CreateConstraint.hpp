@@ -9,6 +9,8 @@ class EventModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class LayerModel;
+class DisplayedStateModel;
+
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
@@ -47,6 +49,8 @@ namespace Scenario
                 id_type<ConstraintModel> m_createdConstraintId {};
                 id_type<EventModel> m_startEventId {};
                 id_type<EventModel> m_endEventId {};
+
+                id_type<DisplayedStateModel> m_endStateId {};
 
                 ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};

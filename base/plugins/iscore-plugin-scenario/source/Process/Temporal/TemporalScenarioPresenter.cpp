@@ -18,6 +18,8 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
+#include "Document/State/DisplayedStateModel.hpp"
+
 #include "ScenarioViewInterface.hpp"
 
 #include <QGraphicsScene>
@@ -331,6 +333,14 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
     cst_pres->view()->setPos({rect.x() + constraint_view_model.model().startDate().toPixels(m_zoomRatio),
                              rect.y() + rect.height() * constraint_view_model.model().heightPercentage() });
 
+
+    auto st = new DisplayedStateModel{
+                    cst_pres->model().endState(),
+                    cst_pres->model().heightPercentage(),
+                    cst_pres->view()->endState(),
+                    this };
+
+    m_displayedStates.insert(st);
 
 
     m_viewInterface->addPointInEvent(constraint_view_model.model().endEvent(),

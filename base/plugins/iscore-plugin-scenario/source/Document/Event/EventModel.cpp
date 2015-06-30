@@ -158,6 +158,11 @@ void EventModel::removeState(const iscore::State& s)
     emit localStatesChanged();
 }
 
+void EventModel::addDisplayedState(const id_type<DisplayedStateModel> &ds)
+{
+    m_dispStates.append(ds);
+}
+
 void EventModel::setHeightPercentage(double arg)
 {
     if(m_heightPercentage != arg)

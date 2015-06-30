@@ -167,6 +167,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/MainTimeRuler/TimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/AddSlotWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"
