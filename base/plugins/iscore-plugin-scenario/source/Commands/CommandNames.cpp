@@ -39,6 +39,7 @@
 #include "Scenario/Displacement/MoveConstraint.hpp"
 #include "Scenario/Displacement/MoveEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
+#include "Scenario/Displacement/MoveNewState.hpp"
 #include "Scenario/Displacement/MoveTimeNode.hpp"
 #include "Scenario/HideRackInViewModel.hpp"
 #include "Scenario/ResizeConstraint.hpp"
@@ -88,6 +89,7 @@ const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTime
 const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConstraint"; }
 const char* Scenario::Command::MoveSlot::commandName() { return "MoveSlot"; }
 const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
+//const char* Scenario::Command::MoveNewState::commandName() { return "MoveNewState"; }
 //const char* Scenario::Command::MoveNewEvent::commandName() { return "MoveNewEvent"; }
 //const char* Scenario::Command::MoveLayerModel::commandName() { return "MoveLayerModel"; }
 const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
