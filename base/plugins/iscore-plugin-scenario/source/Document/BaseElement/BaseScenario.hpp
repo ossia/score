@@ -17,6 +17,7 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
         friend void Visitor<Writer<JSONObject>>::writeTo<BaseScenario> (BaseScenario&);
 
     public:
+        iscore::ElementPluginModelList pluginModelList;
         BaseScenario(const id_type<BaseScenario>&, QObject* parent);
 
         template<typename DeserializerVisitor,
@@ -29,6 +30,11 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
 
 
         ConstraintModel* baseConstraint() const;
+        TimeNodeModel* startTimeNode() const;
+        TimeNodeModel* endTimeNode() const;
+
+        EventModel* startEvent() const;
+        EventModel* endEvent() const;
 
     private:
         TimeNodeModel* m_startNode{};
@@ -39,5 +45,4 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
 
         ConstraintModel* m_constraint{};
 
-        iscore::ElementPluginModelList pluginModelList;
 };

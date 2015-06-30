@@ -7,6 +7,7 @@
 class AbstractConstraintViewModel;
 BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
+    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_startNode{new TimeNodeModel{id_type<TimeNodeModel>{0}, TimeValue::zero(), 0, this}},
     m_endNode{new TimeNodeModel{id_type<TimeNodeModel>{1}, TimeValue::zero(), 0, this}}, // TODO baseconstraint duration
     m_startEvent{new EventModel{id_type<EventModel>{0}, m_startNode->id(), 0, this}},
@@ -15,8 +16,7 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
                             id_type<ConstraintModel>{0},
                             id_type<AbstractConstraintViewModel>{0},
                             0,
-                            this}},
-    pluginModelList{iscore::IDocument::documentFromObject(parent), this}
+                            this}}
 {
     m_startNode->setObjectName("BaseStartTimeNodeModel");
     m_startEvent->setObjectName("BaseStartEventModel");
@@ -38,4 +38,24 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
 ConstraintModel*BaseScenario::baseConstraint() const
 {
     return m_constraint;
+}
+
+TimeNodeModel *BaseScenario::startTimeNode() const
+{
+    return m_startNode;
+}
+
+TimeNodeModel *BaseScenario::endTimeNode() const
+{
+    return m_endNode;
+}
+
+EventModel *BaseScenario::startEvent() const
+{
+    return m_startEvent;
+}
+
+EventModel *BaseScenario::endEvent() const
+{
+    return m_endEvent;
 }

@@ -16,6 +16,11 @@ OSSIAConstraintElement::OSSIAConstraintElement(
             this, &OSSIAConstraintElement::on_processAdded);
     connect(&iscore_cst, &ConstraintModel::processRemoved,
             this, &OSSIAConstraintElement::on_processRemoved);
+
+    for(auto& process : iscore_cst.processes())
+    {
+        on_processAdded(process->processName(), process->id());
+    }
 }
 
 std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() const
@@ -50,11 +55,8 @@ void OSSIAConstraintElement::on_processAdded(
     auto proc = m_iscore_constraint.process(id);
     for(auto&& elt : proc->pluginModelList->list())
     {
-        qDebug() << (void*)elt;
-
         if(auto scenar_elt = dynamic_cast<OSSIAProcessElement*>(elt))
         {
-            qDebug("awyisss");
             m_processes.insert({id, scenar_elt});
             m_ossia_constraint->addTimeProcess(scenar_elt->process());
             break;

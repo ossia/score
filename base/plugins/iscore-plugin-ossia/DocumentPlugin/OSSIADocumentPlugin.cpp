@@ -5,8 +5,10 @@
 #include "OSSIAEventElement.hpp"
 #include "OSSIATimeNodeElement.hpp"
 
+#include "OSSIABaseScenarioElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 
+#include "Document/BaseElement/BaseScenario.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -26,6 +28,13 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
                                           scenario));
     }
 
+
+    auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
+    baseElement->pluginModelList.add(makeElementPlugin(baseElement,
+                                       OSSIABaseScenarioElement::staticPluginId(),
+                                       baseElement));
+
+
 }
 
 QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() const
@@ -33,7 +42,8 @@ QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() cons
     return {/*OSSIAConstraintElement::staticPluginId(),
             OSSIAEventElement::staticPluginId(),
             OSSIATimeNodeElement::staticPluginId(),*/
-            OSSIAScenarioElement::staticPluginId()};
+            OSSIAScenarioElement::staticPluginId(),
+            OSSIABaseScenarioElement::staticPluginId()};
 
 }
 
@@ -50,12 +60,17 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
         {
             if(element->metaObject()->className() == QString{"ScenarioModel"})
             {
-                qDebug("makign a scenario");
                 auto plug = new OSSIAScenarioElement(static_cast<const ScenarioModel*>(element), parent);
-                connect(plug, &QObject::destroyed, [=] ()
-                {
-                    qDebug() << (void*) plug << "destroyed";
-                });
+
+                return plug;
+            }
+            break;
+        }
+        case OSSIABaseScenarioElement::staticPluginId():
+        {
+            if(element->objectName() == QString{"BaseScenario"})
+            {
+                auto plug = new OSSIABaseScenarioElement(static_cast<const BaseScenario*>(element), parent);
 
                 return plug;
             }

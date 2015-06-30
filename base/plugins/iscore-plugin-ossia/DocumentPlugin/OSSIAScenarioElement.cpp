@@ -8,37 +8,14 @@
 #include <Process/ScenarioModel.hpp>
 #include "iscore2OSSIA.hpp"
 
-#include <QTimer>
-static std::shared_ptr<OSSIA::TimeConstraint> main_constraint;
-auto main_start_node = OSSIA::TimeNode::create();
-auto main_end_node = OSSIA::TimeNode::create();
-
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
     m_iscore_scenario{element}
 {
-    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin());
-    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin());
-
-    OSSIA::TimeValue main_duration(5000.);
-    main_constraint = OSSIA::TimeConstraint::create(*main_start_event_it, *main_end_event_it, main_duration);
-
-
-    qDebug("faukk");
     m_ossia_scenario = OSSIA::Scenario::create([](const OSSIA::TimeValue& position, const OSSIA::TimeValue& date, std::shared_ptr<OSSIA::State> state)
     {
         qDebug() << "callback" << double(position);
     });
-
-    main_constraint->addTimeProcess(m_ossia_scenario);
-
-    QTimer* t = new QTimer;
-    connect(t, &QTimer::timeout, this, [=] () {
-        qDebug("sdfqsdf");
-        (*main_start_event_it)->play();
-    });
-    t->start(5000);
-
 
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
