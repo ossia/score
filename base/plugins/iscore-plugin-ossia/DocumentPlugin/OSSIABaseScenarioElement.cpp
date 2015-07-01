@@ -12,7 +12,7 @@
 
 static void statusCallback(OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
 {
-    qDebug( ) << "Event callback" << int(newStatus);
+    qDebug( ) << "BaseScenario Event callback" << int(newStatus);
 }
 
 OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, QObject *parent)

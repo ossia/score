@@ -1,6 +1,9 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <memory>
+
+#include <Process/ScenarioModel.hpp>
 
 #include "OSSIAProcessElement.hpp"
 #include "OSSIAConstraintElement.hpp"
@@ -38,12 +41,8 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
     private:
         void on_constraintCreated(const id_type<ConstraintModel>& id);
-
         void on_eventCreated(const id_type<EventModel>& id);
         void on_timeNodeCreated(const id_type<TimeNodeModel>& id);
-
-        void on_constraintMoved(const id_type<ConstraintModel>& id);
-        void on_eventMoved(const id_type<EventModel>& id);
 
         void on_constraintRemoved(const id_type<ConstraintModel>& id);
         void on_eventRemoved(const id_type<EventModel>& id);
@@ -55,4 +54,8 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         std::map<id_type<EventModel>, OSSIAEventElement*> m_ossia_timeevents;
         std::shared_ptr<OSSIA::Scenario> m_ossia_scenario;
         const ScenarioModel* m_iscore_scenario{};
+
+        IdContainer<ConstraintModel> m_executingConstraints;
+
+        TimeValue m_previousExecutionDate;
 };

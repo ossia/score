@@ -11,7 +11,6 @@ iscore::ElementPluginModelList::ElementPluginModelList(
 {
     // We initialize the potential plug-ins of this document
     // with this object's metadata if necessary.
-
     for(auto& plugin : doc->model()->pluginModels())
     {
         for(const auto& plugid : plugin->elementPlugins())

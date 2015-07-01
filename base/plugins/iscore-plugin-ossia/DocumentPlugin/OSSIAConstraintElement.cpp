@@ -4,6 +4,7 @@
 #include "OSSIAScenarioElement.hpp"
 
 #include <boost/range/algorithm.hpp>
+#include "iscore2OSSIA.hpp"
 OSSIAConstraintElement::OSSIAConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
         const ConstraintModel& iscore_cst,
@@ -16,6 +17,22 @@ OSSIAConstraintElement::OSSIAConstraintElement(
             this, &OSSIAConstraintElement::on_processAdded);
     connect(&iscore_cst, &ConstraintModel::processRemoved,
             this, &OSSIAConstraintElement::on_processRemoved);
+
+    // Setup updates
+    // todo : should be in OSSIAConstraintElement
+    connect(&iscore_cst, &ConstraintModel::defaultDurationChanged, this,
+            [=] (const TimeValue& t) {
+        ossia_cst->setDuration(iscore::convert::time(t));
+    });
+    connect(&iscore_cst, &ConstraintModel::minDurationChanged, this,
+            [=] (const TimeValue& t) {
+        ossia_cst->setDurationMin(iscore::convert::time(t));
+    });
+    connect(&iscore_cst, &ConstraintModel::maxDurationChanged, this,
+            [=] (const TimeValue& t) {
+        ossia_cst->setDurationMax(iscore::convert::time(t));
+    });
+
 
     for(auto& process : iscore_cst.processes())
     {
@@ -46,7 +63,7 @@ void OSSIAConstraintElement::serialize(const VisitorVariant&) const
 {
     qDebug() << "TODO: " << Q_FUNC_INFO;
 }
-#include "OSSIAAutomationElement.hpp"
+
 void OSSIAConstraintElement::on_processAdded(
         const QString& name,
         const id_type<ProcessModel>& id)

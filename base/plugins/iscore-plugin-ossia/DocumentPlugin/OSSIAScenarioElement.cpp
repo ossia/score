@@ -5,21 +5,26 @@
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
 
-#include <Process/ScenarioModel.hpp>
 #include "iscore2OSSIA.hpp"
+#include "OSSIA2iscore.hpp"
 
 
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
     m_iscore_scenario{element}
 {
-    qDebug() << "Creating scenario id:" << element->id();
     m_ossia_scenario = OSSIA::Scenario::create([=](
                                                const OSSIA::TimeValue& position,
                                                const OSSIA::TimeValue& date,
                                                std::shared_ptr<OSSIA::State> state)
     {
-        qDebug() << "scenario callback" << double(position) << element->id();
+        auto currentTime = OSSIA::convert::time(position);
+        for(ConstraintModel* constraint : m_executingConstraints)
+        {
+            constraint->setPlayDuration(constraint->playDuration() + (currentTime - m_previousExecutionDate));
+        }
+
+        m_previousExecutionDate = currentTime;
     });
 
     if(element->parent()->objectName() != QString("BaseConstraintModel"))
@@ -29,7 +34,8 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
     else
     {
         m_ossia_scenario->getClock()->setSpeed(1.);
-        m_ossia_scenario->getClock()->setGranularity(250.);
+        m_ossia_scenario->getClock()->setGranularity(50.);
+        m_ossia_scenario->getClock()->setOffset(1.);
     }
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
@@ -37,11 +43,6 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
             this, &OSSIAScenarioElement::on_eventCreated);
     connect(element, &ScenarioModel::timeNodeCreated,
             this, &OSSIAScenarioElement::on_timeNodeCreated);
-
-    connect(element, &ScenarioModel::constraintMoved,
-            this, &OSSIAScenarioElement::on_constraintMoved);
-    connect(element, &ScenarioModel::eventMoved,
-            this, &OSSIAScenarioElement::on_eventMoved);
 
     connect(element, &ScenarioModel::constraintRemoved,
             this, &OSSIAScenarioElement::on_constraintRemoved);
@@ -114,21 +115,6 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
                          iscore::convert::time(cst.minDuration()),
                          iscore::convert::time(cst.maxDuration()));
 
-    // Setup updates
-    // todo : should be in OSSIAConstraintElement
-    connect(&cst, &ConstraintModel::defaultDurationChanged, this,
-            [=] (const TimeValue& t) {
-        ossia_cst->setDuration(iscore::convert::time(t));
-    });
-    connect(&cst, &ConstraintModel::minDurationChanged, this,
-            [=] (const TimeValue& t) {
-        ossia_cst->setDurationMin(iscore::convert::time(t));
-    });
-    connect(&cst, &ConstraintModel::maxDurationChanged, this,
-            [=] (const TimeValue& t) {
-        ossia_cst->setDurationMax(iscore::convert::time(t));
-    });
-
     m_ossia_scenario->addConstraint(ossia_cst);
 
     // Create the mapping object
@@ -136,7 +122,6 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
     m_ossia_constraints.insert({id, elt});
 
     cst.pluginModelList.add(elt);
-
 }
 
 void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
@@ -149,11 +134,30 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(),
                                                    [=] (OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
     {
-        for(const std::shared_ptr<OSSIA::TimeConstraint>& constraint : m_ossia_timeevents.at(id)->event()->previousTimeConstraints())
+        auto& the_event = m_iscore_scenario->event(id);
+        switch(newStatus)
         {
-            const std::shared_ptr<OSSIA::TimeProcess>& proc = constraint->timeProcesses().front();
-            qDebug() << "getRunning:" << proc->getClock()->getRunning();
-            qDebug() << "getPosition:" << proc->getClock()->getPosition();
+            case OSSIA::TimeEvent::Status::HAPPENED:
+            {
+                // Stop the previous constraints clocks,
+                // start the next constraints clocks
+                for(auto& constraint : the_event.previousConstraints())
+                {
+                    m_executingConstraints.remove(constraint);
+                }
+
+                for(auto& constraint : the_event.nextConstraints())
+                {
+                    m_executingConstraints.insert(&m_iscore_scenario->constraint(constraint));
+                }
+
+                break;
+            }
+
+            case OSSIA::TimeEvent::Status::DISPOSED:
+            {
+                // TODO disable the constraints graphically
+            }
         }
     });
 
@@ -188,16 +192,6 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
     m_ossia_timenodes.insert({id, elt});
 
     tn.pluginModelList.add(elt);
-}
-
-void OSSIAScenarioElement::on_constraintMoved(const id_type<ConstraintModel>& id)
-{
-}
-
-void OSSIAScenarioElement::on_eventMoved(const id_type<EventModel>& id)
-{
-
-
 }
 
 void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& id)
