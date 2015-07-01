@@ -201,14 +201,18 @@ void CreateFromEventState::createEventFromEventOnTimeNode()
 
 void CreateFromEventState::createConstraintBetweenEvents()
 {
-    auto cmd = new CreateConstraint{
-              ObjectPath{m_scenarioPath},
-              clickedEvent,
-              hoveredEvent};
+    if(hoveredEvent != clickedEvent)
+    {
+        auto cmd = new CreateConstraint{
+                  ObjectPath{m_scenarioPath},
+                  clickedEvent,
+                  clickedState,
+                  hoveredEvent};
 
-    setCreatedConstraint(cmd->createdConstraint());
+        setCreatedConstraint(cmd->createdConstraint());
 
-    m_dispatcher.submitCommand(cmd);
+        m_dispatcher.submitCommand(cmd);
+    }
 }
 
 void CreateFromEventState::createSingleEventOnTimeNode()

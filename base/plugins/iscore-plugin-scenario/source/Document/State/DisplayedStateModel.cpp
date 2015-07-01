@@ -8,19 +8,22 @@
 
 DisplayedStateModel::DisplayedStateModel(id_type<DisplayedStateModel> id,
                                          double yPos,
-                                         AbstractConstraintView *view,
                                          QObject *parent):
     IdentifiedObject<DisplayedStateModel> {id, "DisplayedStateModel", parent},
-    m_heightPercentage{yPos},
-    m_view{new StateView{*this, view} }
+    m_heightPercentage{yPos}
 {
 
+}
+
+void DisplayedStateModel::initView(AbstractConstraintView *parentView)
+{
+    m_view = new StateView{*this, parentView};
 }
 
 DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &copy,
                                          const id_type<DisplayedStateModel> &id,
                                          QObject *parent):
-    DisplayedStateModel(id, copy.heightPercentage(), dynamic_cast<AbstractConstraintView*>(copy.view()->parentWidget()), copy.parent())
+    DisplayedStateModel(id, copy.heightPercentage(), copy.parent())
 {
     m_states = copy.states();
     //TODO : view
@@ -28,7 +31,7 @@ DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &copy,
 
 const ScenarioModel *DisplayedStateModel::parentScenario() const
 {
-    return  &(dynamic_cast<TemporalScenarioPresenter*>(parent())->stateMachine().model());
+    return  (dynamic_cast<ScenarioModel*>(parent()));
 }
 
 double DisplayedStateModel::heightPercentage() const
@@ -46,6 +49,11 @@ void DisplayedStateModel::setHeightPercentage(double y)
     if(m_heightPercentage == y)
         return;
     m_heightPercentage = y;
+}
+
+void DisplayedStateModel::setPos(qreal y)
+{
+    m_view->setPos({0, y});
 }
 
 const iscore::StateList &DisplayedStateModel::states() const

@@ -83,10 +83,12 @@ class ScenarioModel : public ProcessModel
         void addConstraint(ConstraintModel* constraint);
         void addEvent(EventModel* event);
         void addTimeNode(TimeNodeModel* timeNode);
+        void addDisplayedState(DisplayedStateModel* state);
 
         void removeConstraint(ConstraintModel* constraint);
         void removeEvent(EventModel* event);
         void removeTimeNode(TimeNodeModel* timeNode);
+        //TODO state removeState
 
         // Accessors
         ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;

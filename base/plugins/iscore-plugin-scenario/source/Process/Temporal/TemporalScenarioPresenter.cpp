@@ -318,6 +318,13 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
+void TemporalScenarioPresenter::on_displayedStateCreated(const DisplayedStateModel &state)
+{
+    connect(state.view(), &StateView::pressed, m_view, &TemporalScenarioView::scenarioPressed);
+    connect(state.view(), &StateView::moved, m_view, &TemporalScenarioView::scenarioMoved);
+    connect(state.view(), &StateView::released, m_view, &TemporalScenarioView::scenarioReleased);
+}
+
 void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)
 {
     auto rect = m_view->boundingRect();
@@ -334,13 +341,15 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
                              rect.y() + rect.height() * constraint_view_model.model().heightPercentage() });
 
 
-    auto st = new DisplayedStateModel{
-                    constraint_view_model.model().endState(),
-                    constraint_view_model.model().heightPercentage(),
-                    cst_pres->view(),
-                    this };
+    auto& st = model(m_viewModel).displayedState(constraint_view_model.model().endState());
+    st.initView(cst_pres->view());
 
-    m_displayedStates.insert(st);
+    m_displayedStates.insert(&st);
+    on_displayedStateCreated(st);
+
+    st.setPos(constraint_view_model.model().defaultDuration().toPixels(m_zoomRatio));
+    st.view()->setPos({ rect.x() + constraint_view_model.model().defaultDuration().toPixels(m_zoomRatio),
+                         0 });
 
 
     m_viewInterface->addPointInEvent(constraint_view_model.model().endEvent(),
@@ -357,8 +366,6 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
                                   rect.y() + rect.height() * cst.heightPercentage() });
         m_viewInterface->updateTimeNode(m_events.at(cst.endEvent())->model().timeNode());
         m_viewInterface->updateTimeNode(m_events.at(cst.startEvent())->model().timeNode() );
-
-        m_displayedStates.at(cst.endState())->setHeightPercentage(cst.heightPercentage());
     });
 
     connect(cst_pres, &TemporalConstraintPresenter::askUpdate,

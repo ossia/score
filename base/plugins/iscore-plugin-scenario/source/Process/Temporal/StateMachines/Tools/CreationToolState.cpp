@@ -1,6 +1,7 @@
 #include "CreationToolState.hpp"
 #include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/StateTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
@@ -23,12 +24,14 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
 
+    // TODO state : create from a state
     /// Create from an event
     m_createFromEventState = new CreateFromEventState{
             m_parentSM,
             iscore::IDocument::path(m_parentSM.model()),
             m_parentSM.commandStack(), nullptr};
 
+    make_transition<ClickOnState_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
     make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
     m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
 

@@ -32,8 +32,9 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 
         DisplayedStateModel(id_type<DisplayedStateModel> id,
                             double yPos,
-                            AbstractConstraintView *view,
                             QObject* parent);
+
+        void initView(AbstractConstraintView *parentView);
 
         // Copy
         DisplayedStateModel(const DisplayedStateModel& copy,
@@ -53,13 +54,14 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 
     public slots:
         void setHeightPercentage(double y);
+        void setPos(qreal y);
 
     private:
 
         double m_heightPercentage{0.5}; // Usefull ? Not sure because it moves with his parent, the constraint ...
 
         iscore::StateList m_states;
-        StateView* m_view;
+        StateView* m_view{};
 
 };
 

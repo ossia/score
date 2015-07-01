@@ -15,18 +15,19 @@ using namespace Scenario::Command;
 
 CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
                                    id_type<EventModel> startEvent,
+                                   id_type<DisplayedStateModel> startState,
                                    id_type<EventModel> endEvent) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
     m_path {std::move(scenarioPath) },
     m_startEventId {startEvent},
-    m_endEventId {endEvent}
+    m_endEventId {endEvent},
+    m_startStateId{startState}
 {
     auto& scenar = m_path.find<ScenarioModel>();
     m_createdConstraintId = getStrongId(scenar.constraints());
     m_endStateId = getStrongId(scenar.dispStates());
-// TODO state : initialize start state
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too

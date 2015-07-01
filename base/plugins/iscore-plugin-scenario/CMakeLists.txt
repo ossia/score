@@ -207,6 +207,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/ConstraintTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/SlotTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/EventTransitions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/StateTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/NothingTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/ScenarioStateMachine.cpp"

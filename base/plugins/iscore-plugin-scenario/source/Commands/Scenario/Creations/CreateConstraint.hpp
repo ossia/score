@@ -28,7 +28,10 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
-                CreateConstraint(ObjectPath&& scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent);
+                CreateConstraint(ObjectPath&& scenarioPath,
+                                id_type<EventModel> startEvent,
+                                id_type<DisplayedStateModel> startState,
+                                id_type<EventModel> endEvent);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 
                 virtual void undo() override;

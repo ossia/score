@@ -75,6 +75,13 @@ ConstraintModel&CreateConstraintMin::redo(const id_type<ConstraintModel>& id,
                       ypos,
                       &s};
 
+    auto endst = new DisplayedStateModel{
+                        endStateId,
+                        ypos,
+                        &s };
+
+    s.addDisplayedState(endst);
+
     s.addConstraint(constraint);
 
     sev.addNextConstraint(id);

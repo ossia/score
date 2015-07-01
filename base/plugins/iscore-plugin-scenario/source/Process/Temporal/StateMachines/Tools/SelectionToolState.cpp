@@ -5,6 +5,7 @@
 
 #include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/StateTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
 #include "States/MoveStates.hpp"
@@ -72,6 +73,10 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
+
+    make_transition<ClickOnState_Transition>(m_state,
+                                             m_moveEvent,
+                                             *m_moveEvent);
 
     make_transition<ClickOnEvent_Transition>(m_state,
                                              m_moveEvent,

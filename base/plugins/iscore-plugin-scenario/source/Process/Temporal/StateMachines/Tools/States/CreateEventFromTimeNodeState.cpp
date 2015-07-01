@@ -271,6 +271,7 @@ void CreateFromTimeNodeState::createConstraintBetweenEvents()
     auto cmd = new CreateConstraint(
            ObjectPath{m_scenarioPath},
            m_createdFirstEvent,
+           clickedState,
            hoveredEvent);
 
     m_dispatcher.submitCommand(cmd);

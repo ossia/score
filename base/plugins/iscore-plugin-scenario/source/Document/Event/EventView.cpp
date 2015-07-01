@@ -109,10 +109,10 @@ void EventView::paint(QPainter* painter,
 */
     eventPen.setWidth(2);
 
-/*
+//*
     painter->setPen(Qt::darkCyan);
     painter->drawRect(boundingRect());
-*/
+//*/
     QPen pen{QBrush(eventPen.color()), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 

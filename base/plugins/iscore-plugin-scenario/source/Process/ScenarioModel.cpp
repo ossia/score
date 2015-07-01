@@ -276,6 +276,12 @@ void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
     emit timeNodeCreated(timeNode->id());
 }
 
+void ScenarioModel::addDisplayedState(DisplayedStateModel *state)
+{
+    m_displayedStates.insert(state);
+
+}
+
 ///////// DELETION //////////
 void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 {;

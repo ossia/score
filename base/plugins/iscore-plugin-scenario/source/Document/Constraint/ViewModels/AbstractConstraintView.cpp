@@ -43,6 +43,15 @@ void AbstractConstraintView::setDefaultWidth(double width)
 {
     prepareGeometryChange();
     m_defaultWidth = width;
+
+    for (auto child : this->childItems())
+    {
+        if (child->type() == QGraphicsItem::UserType + 4)
+        {
+            static_cast<StateView*>(child)->setX(width);
+        }
+    }
+
 }
 
 void AbstractConstraintView::setMaxWidth(bool infinite, double max)
