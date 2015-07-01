@@ -17,6 +17,7 @@
 #include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
+#include "../ScenarioRollbackStrategy.hpp"
 #include <QFinalState>
 
 using namespace Scenario::Command;
@@ -67,7 +68,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnNothingState, movingOnEventState, *this);
 
         connect(t_move_nothing_event, &MoveOnEvent_Transition::triggered,
-                [&] () { m_dispatcher.rollback(); createConstraintBetweenEvents(); });
+                [&] () { m_dispatcher.rollback<ScenarioRollbackStrategy>();; createConstraintBetweenEvents(); });
 
         // MoveOnNothing -> MoveOnTimeNode
         auto t_move_nothing_timenode =
@@ -75,7 +76,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnNothingState, movingOnTimeNodeState, *this);
 
         connect(t_move_nothing_timenode, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventFromEventOnTimeNode(); });
+                [&] () { m_dispatcher.rollback<ScenarioRollbackStrategy>();; createEventFromEventOnTimeNode(); });
 
 
         /// MoveOnEvent -> ...
@@ -85,7 +86,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnEventState, movingOnNothingState, *this);
 
         connect(t_move_event_nothing, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback();  createEventFromEventOnNothing(stateMachine); });
+                [&] () { m_dispatcher.rollback<ScenarioRollbackStrategy>();;  createEventFromEventOnNothing(stateMachine); });
 
         // MoveOnEvent -> MoveOnEvent : nothing to do.
 
@@ -95,7 +96,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnEventState, movingOnTimeNodeState, *this);
 
         connect(t_move_event_timenode, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventFromEventOnTimeNode(); });
+                [&] () { m_dispatcher.rollback<ScenarioRollbackStrategy>();; createEventFromEventOnTimeNode(); });
 
 
         /// MoveOnTimeNode -> ...
@@ -105,7 +106,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnTimeNodeState, movingOnNothingState, *this);
 
         connect(t_move_timenode_nothing, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createEventFromEventOnNothing(stateMachine); });
+                [&] () { m_dispatcher.rollback<ScenarioRollbackStrategy>();; createEventFromEventOnNothing(stateMachine); });
 
 
         // MoveOnTimeNode -> MoveOnEvent
@@ -114,7 +115,7 @@ CreateFromEventState::CreateFromEventState(
                     movingOnTimeNodeState, movingOnEventState, *this);
 
         connect(t_move_timenode_event, &MoveOnEvent_Transition::triggered,
-                [&] () {  m_dispatcher.rollback(); createConstraintBetweenEvents(); });
+                [&] () { m_dispatcher.rollback<ScenarioRollbackStrategy>();; createConstraintBetweenEvents(); });
 
 
         // MoveOnTimeNode -> MoveOnTimeNode
@@ -160,7 +161,7 @@ CreateFromEventState::CreateFromEventState(
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();;
     });
 
     setInitialState(mainState);

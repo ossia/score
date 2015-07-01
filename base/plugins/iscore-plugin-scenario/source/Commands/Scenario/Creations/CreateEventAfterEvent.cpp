@@ -1,16 +1,16 @@
 #include "CreateEventAfterEvent.hpp"
 
-#include "source/Process/ScenarioModel.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
-#include "source/Document/Event/EventModel.hpp"
-#include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/TimeNode/TimeNodeModel.hpp"
-#include "source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "source/Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
-#include "source/Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>

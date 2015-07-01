@@ -72,7 +72,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementModelSerialization.cpp"
 
 
-
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/CopyLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.cpp"

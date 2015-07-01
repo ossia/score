@@ -20,6 +20,7 @@
 
 #include <QFinalState>
 
+#include "../ScenarioRollbackStrategy.hpp"
 //TODO : is it really needed according to the lyon's workflow ?
     // i.e. we always create event from event or on nothing
 
@@ -86,7 +87,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         {
         return;
         }
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
         createConstraintBetweenEvents();
     });
@@ -103,7 +104,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         {
         return;
         }
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
         createEventFromEventOnTimenode();
      });
@@ -118,7 +119,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     connect(t_move_event_nothing, &QAbstractTransition::triggered,
         [&] ()
     {
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
         createEventFromEventOnNothing(stateMachine);
      });
@@ -137,7 +138,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         {
         return;
         }
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
         createEventFromEventOnTimenode();
     });
@@ -152,7 +153,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     connect(t_move_timenode_nothing, &QAbstractTransition::triggered,
         [&] ()
     {
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
         createEventFromEventOnNothing(stateMachine);
      });
@@ -170,7 +171,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
         {
         return;
         }
-        m_dispatcher.rollback();
+        m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
         createConstraintBetweenEvents();
     });
@@ -219,7 +220,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
-    m_dispatcher.rollback();
+    m_dispatcher.rollback<ScenarioRollbackStrategy>();
     });
 
     setInitialState(mainState);

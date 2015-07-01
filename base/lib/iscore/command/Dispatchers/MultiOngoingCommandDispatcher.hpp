@@ -5,6 +5,20 @@
 
 // Creates commands on a list and keep updating the latest command
 // up to the next new command.
+namespace RollbackStrategy
+{
+    struct Simple
+    {
+            static void rollback(const QList<iscore::SerializableCommand*>& cmds)
+            {
+                for(int i = cmds.size() - 1; i >= 0; --i)
+                {
+                    cmds[i]->undo();
+                }
+            }
+    };
+}
+
 class MultiOngoingCommandDispatcher : public ICommandDispatcher
 {
     public:
@@ -67,14 +81,12 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
             m_cmds.clear();
         }
 
+        template<typename RollbackStrategy>
         void rollback()
         {
-            for(int i = m_cmds.size() - 1; i >= 0; --i)
-            {
-                m_cmds[i]->undo();
-                delete m_cmds[i];
-            }
+            RollbackStrategy::rollback(m_cmds);
 
+            qDeleteAll(m_cmds);
             m_cmds.clear();
         }
 
