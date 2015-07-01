@@ -25,21 +25,14 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     OSSIA::TimeValue main_duration(iscore::convert::time(element->baseConstraint()->defaultDuration()));
     auto main_constraint = OSSIA::TimeConstraint::create(*main_start_event_it, *main_end_event_it, main_duration);
 
-    m_ossia_startTimeNode = new OSSIATimeNodeElement{main_start_node, *element->startTimeNode(), element->startTimeNode()};
-    m_ossia_endTimeNode = new OSSIATimeNodeElement{main_end_node, *element->endTimeNode(), element->endTimeNode()};
+    m_ossia_startTimeNode = new OSSIATimeNodeElement{main_start_node, *element->startTimeNode(), this};
+    m_ossia_endTimeNode = new OSSIATimeNodeElement{main_end_node, *element->endTimeNode(), this};
 
-    m_ossia_startEvent = new OSSIAEventElement{*main_start_event_it, element->startEvent(), element->startEvent()};
-    m_ossia_endEvent = new OSSIAEventElement{*main_end_event_it, element->endEvent(), element->endEvent()};
+    m_ossia_startEvent = new OSSIAEventElement{*main_start_event_it, element->startEvent(), this};
+    m_ossia_endEvent = new OSSIAEventElement{*main_end_event_it, element->endEvent(), this};
 
-    m_ossia_constraint = new OSSIAConstraintElement{main_constraint, *element->baseConstraint(), element->baseConstraint()};
+    m_ossia_constraint = new OSSIAConstraintElement{main_constraint, *element->baseConstraint(), this};
 
-    element->startTimeNode()->pluginModelList.add(m_ossia_startTimeNode);
-    element->endTimeNode()->pluginModelList.add(m_ossia_endTimeNode);
-
-    element->startEvent()->pluginModelList.add(m_ossia_startEvent);
-    element->endEvent()->pluginModelList.add(m_ossia_endEvent);
-
-    element->baseConstraint()->pluginModelList.add(m_ossia_constraint);
 }
 
 iscore::ElementPluginModelType OSSIABaseScenarioElement::elementPluginId() const

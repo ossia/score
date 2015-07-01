@@ -4,12 +4,15 @@
 #include "OSSIAScenarioElement.hpp"
 
 #include <boost/range/algorithm.hpp>
+#include "../iscore-plugin-curve/Automation/AutomationModel.hpp"
+#include "OSSIAAutomationElement.hpp"
+#include "OSSIAScenarioElement.hpp"
 #include "iscore2OSSIA.hpp"
 OSSIAConstraintElement::OSSIAConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
         const ConstraintModel& iscore_cst,
         QObject* parent):
-    iscore::ElementPluginModel{parent},
+    QObject{parent},
     m_iscore_constraint{iscore_cst},
     m_ossia_constraint{ossia_cst}
 {
@@ -45,42 +48,27 @@ std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() cons
     return m_ossia_constraint;
 }
 
-iscore::ElementPluginModel* OSSIAConstraintElement::clone(
-        const QObject* element,
-        QObject* parent) const
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    return nullptr;
-}
-
-
-iscore::ElementPluginModelType OSSIAConstraintElement::elementPluginId() const
-{
-    return staticPluginId();
-}
-
-void OSSIAConstraintElement::serialize(const VisitorVariant&) const
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-}
-
 void OSSIAConstraintElement::on_processAdded(
         const QString& name,
         const id_type<ProcessModel>& id)
 {
     // The DocumentPlugin creates the elements in the processes.
     auto proc = m_iscore_constraint.process(id);
-    for(auto&& elt : proc->pluginModelList->list())
+    OSSIAProcessElement* plug{};
+    if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
     {
-        if(auto process_elt = dynamic_cast<OSSIAProcessElement*>(elt))
-        {
-            m_processes.insert({id, process_elt});
-            m_ossia_constraint->addTimeProcess(process_elt->process());
-
-            break;
-        }
+        plug = new OSSIAScenarioElement{scenar, this};
+    }
+    else if(auto autom = dynamic_cast<AutomationModel*>(proc))
+    {
+        plug = new OSSIAAutomationElement{autom, this};
     }
 
+    if(plug)
+    {
+        m_processes.insert({id, plug});
+        m_ossia_constraint->addTimeProcess(plug->process());
+    }
 }
 
 void OSSIAConstraintElement::on_processRemoved(const id_type<ProcessModel>& process)

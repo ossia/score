@@ -17,27 +17,9 @@
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* parent):
     iscore::DocumentDelegatePluginModel{"OSSIADocumentPlugin", parent}
 {
-    auto scenarios = doc->findChildren<ScenarioModel*>("ScenarioModel");
-
-    // TODO refactor this logic with NetworkDocumentPlugin.
-    for(ScenarioModel* scenario: scenarios)
-    {
-        if(scenario->pluginModelList->canAdd(OSSIAScenarioElement::staticPluginId()))
-            scenario->pluginModelList->add(
-                        makeElementPlugin(scenario,
-                                          OSSIAScenarioElement::staticPluginId(),
-                                          scenario));
-    }
-
-
-    // Comes after because else the scenario is not yet constructed in the base constraint.
     auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
-    m_base = static_cast<OSSIABaseScenarioElement*>(makeElementPlugin(baseElement,
-                               OSSIABaseScenarioElement::staticPluginId(),
-                               baseElement));
+    m_base = new OSSIABaseScenarioElement(baseElement, baseElement);
     baseElement->pluginModelList.add(m_base);
-
-
 }
 
 OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
@@ -50,9 +32,7 @@ QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() cons
     // Note : these are the ones that are automatically added.
     // The constraint, timenode, timeevent are added by Scenario/BaseScenario.
     // TODO this should be apparent in the method / class names
-    return {OSSIAScenarioElement::staticPluginId(),
-            OSSIABaseScenarioElement::staticPluginId(),
-            OSSIAAutomationElement::staticPluginId()};
+    return {OSSIABaseScenarioElement::staticPluginId()};
 }
 
 iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
@@ -60,43 +40,6 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
         iscore::ElementPluginModelType type,
         QObject* parent)
 {
-    switch(type)
-    {
-        case OSSIAScenarioElement::staticPluginId():
-        {
-            if(element->metaObject()->className() == QString{"ScenarioModel"})
-            {
-                auto plug = new OSSIAScenarioElement(static_cast<const ScenarioModel*>(element), parent);
-
-                return plug;
-            }
-            break;
-        }
-        case OSSIAAutomationElement::staticPluginId():
-        {
-            if(element->metaObject()->className() == QString{"AutomationModel"})
-            {
-                auto plug = new OSSIAAutomationElement(static_cast<const AutomationModel*>(element), parent);
-
-                return plug;
-            }
-            break;
-        }
-        case OSSIABaseScenarioElement::staticPluginId():
-        {
-            if(element->objectName() == QString{"BaseScenario"})
-            {
-                auto plug = new OSSIABaseScenarioElement(static_cast<const BaseScenario*>(element), parent);
-
-                return plug;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
-
     return nullptr;
 }
 
@@ -106,6 +49,7 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::loadElementPlugin(
         QObject* parent)
 {
     qDebug() << "TODO: " << Q_FUNC_INFO;
+    return nullptr;
 }
 
 iscore::ElementPluginModel* OSSIADocumentPlugin::cloneElementPlugin(
@@ -114,6 +58,7 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::cloneElementPlugin(
         QObject* parent)
 {
     qDebug() << "TODO: " << Q_FUNC_INFO;
+    return nullptr;
 }
 
 QWidget* OSSIADocumentPlugin::makeElementPluginWidget(
@@ -121,6 +66,7 @@ QWidget* OSSIADocumentPlugin::makeElementPluginWidget(
         QWidget* parent) const
 {
     qDebug() << "TODO: " << Q_FUNC_INFO;
+    return nullptr;
 }
 
 void OSSIADocumentPlugin::serialize(

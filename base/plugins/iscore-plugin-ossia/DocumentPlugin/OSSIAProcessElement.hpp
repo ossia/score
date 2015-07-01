@@ -7,10 +7,10 @@ namespace OSSIA
     class Scenario;
     class TimeProcess;
 }
-class OSSIAProcessElement :public iscore::ElementPluginModel
+class OSSIAProcessElement :public QObject
 {
     public:
-        using iscore::ElementPluginModel::ElementPluginModel;
+        using QObject::QObject;
         virtual std::shared_ptr<OSSIA::TimeProcess> process() const = 0;
 
 };

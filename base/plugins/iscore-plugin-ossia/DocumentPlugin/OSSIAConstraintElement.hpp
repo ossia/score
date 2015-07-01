@@ -10,24 +10,15 @@ namespace OSSIA
 {
     class TimeConstraint;
 }
-class OSSIAConstraintElement : public iscore::ElementPluginModel
+class OSSIAConstraintElement : public QObject
 {
     public:
-        static constexpr iscore::ElementPluginModelType staticPluginId() { return 1; }
         OSSIAConstraintElement(
                 std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
                 const ConstraintModel& iscore_cst,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeConstraint> constraint() const;
-
-        iscore::ElementPluginModelType elementPluginId() const;
-
-        iscore::ElementPluginModel*clone(
-                const QObject* element,
-                QObject* parent) const override;
-
-        void serialize(const VisitorVariant&) const;
 
     private slots:
         void on_processAdded(const QString& name,

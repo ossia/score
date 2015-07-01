@@ -30,15 +30,6 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
         std::shared_ptr<OSSIA::Scenario> scenario() const;
 
-        static constexpr iscore::ElementPluginModelType staticPluginId() { return 4; }
-        iscore::ElementPluginModelType elementPluginId() const;
-
-        iscore::ElementPluginModel*clone(
-                const QObject* element,
-                QObject* parent) const override;
-
-        void serialize(const VisitorVariant&) const;
-
     private:
         void on_constraintCreated(const id_type<ConstraintModel>& id);
         void on_eventCreated(const id_type<EventModel>& id);

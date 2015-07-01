@@ -7,10 +7,9 @@ namespace OSSIA
 {
     class TimeEvent;
 }
-class OSSIAEventElement : public iscore::ElementPluginModel
+class OSSIAEventElement : public QObject
 {
     public:
-        static constexpr iscore::ElementPluginModelType staticPluginId() { return 2; }
         OSSIAEventElement(
                 std::shared_ptr<OSSIA::TimeEvent> event,
                 const EventModel* element,
@@ -18,13 +17,6 @@ class OSSIAEventElement : public iscore::ElementPluginModel
 
         std::shared_ptr<OSSIA::TimeEvent> event() const;
 
-        iscore::ElementPluginModelType elementPluginId() const;
-
-        iscore::ElementPluginModel*clone(
-                const QObject* element,
-                QObject* parent) const override;
-
-        void serialize(const VisitorVariant&) const;
 
     private:
         std::shared_ptr<OSSIA::TimeEvent> m_event;
