@@ -70,6 +70,7 @@ void OSSIAConstraintElement::on_processRemoved(const id_type<ProcessModel>& proc
     auto it = m_processes.find(process);
     if(it != m_processes.end())
     {
+        m_ossia_constraint->removeTimeProcess((*it).second->process());
         m_processes.erase(it);
     }
 }

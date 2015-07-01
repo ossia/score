@@ -8,15 +8,24 @@
 #include <Process/ScenarioModel.hpp>
 #include "iscore2OSSIA.hpp"
 
+static void statusCallback(OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
+{
+    qDebug( ) << int(newStatus);
+}
+
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
     m_iscore_scenario{element}
 {
-    m_ossia_scenario = OSSIA::Scenario::create([](const OSSIA::TimeValue& position, const OSSIA::TimeValue& date, std::shared_ptr<OSSIA::State> state)
+    m_ossia_scenario = OSSIA::Scenario::create([=](const OSSIA::TimeValue& position, const OSSIA::TimeValue& date, std::shared_ptr<OSSIA::State> state)
     {
-        qDebug() << "callback" << double(position);
+        qDebug() << "scenario callback" << double(position) << element->id();
     });
 
+    if(element->parent()->objectName() != QString("BaseConstraintModel"))
+    {
+        m_ossia_scenario->getClock()->setExternal(true);
+    }
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
     connect(element, &ScenarioModel::eventCreated,
@@ -127,7 +136,7 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
-    auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin());
+    auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(), statusCallback);
 
     // Pass the element in ctor
     auto elt = new OSSIAEventElement{ossia_ev, &ev, &ev};
@@ -139,8 +148,6 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
 void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
 {
     auto& tn = m_iscore_scenario->timeNode(id);
-
-    // Note : this also default-creates an event.
 
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
     if(id == m_iscore_scenario->startTimeNode().id())
@@ -154,10 +161,10 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
     else
     {
         ossia_tn = OSSIA::TimeNode::create();
+        m_ossia_scenario->addTimeNode(ossia_tn);
     }
-    auto elt = new OSSIATimeNodeElement{ossia_tn, tn, &tn};
 
-    m_ossia_scenario->addTimeNode(elt->timeNode());
+    auto elt = new OSSIATimeNodeElement{ossia_tn, tn, &tn};
     m_ossia_timenodes.insert({id, elt});
 
     tn.pluginModelList.add(elt);

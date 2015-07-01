@@ -1,8 +1,8 @@
 #pragma once
-#include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <memory>
 
+#include "OSSIAProcessElement.hpp"
 #include "OSSIAConstraintElement.hpp"
 #include "OSSIATimeNodeElement.hpp"
 #include "OSSIAEventElement.hpp"
@@ -11,18 +11,11 @@ class EventModel;
 class ConstraintModel;
 class TimeNodeModel;
 class ScenarioModel;
+
 namespace OSSIA
 {
     class Scenario;
-    class TimeProcess;
 }
-class OSSIAProcessElement :public iscore::ElementPluginModel
-{
-    public:
-        using iscore::ElementPluginModel::ElementPluginModel;
-        virtual std::shared_ptr<OSSIA::TimeProcess> process() const = 0;
-
-};
 
 class OSSIAScenarioElement : public OSSIAProcessElement
 {
@@ -43,7 +36,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
         void serialize(const VisitorVariant&) const;
 
-    private slots:
+    private:
         void on_constraintCreated(const id_type<ConstraintModel>& id);
 
         void on_eventCreated(const id_type<EventModel>& id);
@@ -56,7 +49,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void on_eventRemoved(const id_type<EventModel>& id);
         void on_timeNodeRemoved(const id_type<TimeNodeModel>& id);
 
-    private:
+
         std::map<id_type<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
         std::map<id_type<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
         std::map<id_type<EventModel>, OSSIAEventElement*> m_ossia_timeevents;

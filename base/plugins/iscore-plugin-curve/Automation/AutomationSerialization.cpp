@@ -9,6 +9,8 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 {
+    readFrom(*autom.pluginModelList);
+
     m_stream << autom.address();
     m_stream << autom.min();
     m_stream << autom.max();
@@ -20,6 +22,8 @@ void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 {
+    autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
+
     iscore::Address address;
     double min, max;
 
@@ -40,6 +44,8 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 {
+    m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
+
     m_obj["Address"] = toJsonObject(autom.address());
     m_obj["Min"] = autom.min();
     m_obj["Max"] = autom.max();
@@ -49,6 +55,9 @@ void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
 {
+    Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
+    autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
+
     autom.setAddress(fromJsonObject<iscore::Address>(m_obj["Address"].toObject()));
     autom.setMin(m_obj["Min"].toDouble());
     autom.setMax(m_obj["Max"].toDouble());

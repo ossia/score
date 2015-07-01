@@ -9,12 +9,18 @@
 #include "Document/BaseElement/BaseScenario.hpp"
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
+
+static void statusCallback(OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
+{
+    qDebug( ) << "Event callback" << int(newStatus);
+}
+
 OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, QObject *parent)
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();
-    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin());
-    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin());
+    auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), statusCallback);
+    auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), statusCallback);
 
     OSSIA::TimeValue main_duration(iscore::convert::time(element->baseConstraint()->defaultDuration()));
     auto main_constraint = OSSIA::TimeConstraint::create(*main_start_event_it, *main_end_event_it, main_duration);

@@ -11,6 +11,7 @@
 #include "Document/BaseElement/BaseScenario.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
+#include "../iscore-plugin-curve/Automation/AutomationModel.hpp"
 
 
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* parent):
@@ -29,6 +30,7 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
     }
 
 
+    // Comes after because else the scenario is not yet constructed in the base constraint.
     auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
     m_base = static_cast<OSSIABaseScenarioElement*>(makeElementPlugin(baseElement,
                                OSSIABaseScenarioElement::staticPluginId(),
@@ -45,12 +47,12 @@ OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
 
 QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() const
 {
-    return {/*OSSIAConstraintElement::staticPluginId(),
-            OSSIAEventElement::staticPluginId(),
-            OSSIATimeNodeElement::staticPluginId(),*/
-            OSSIAScenarioElement::staticPluginId(),
-            OSSIABaseScenarioElement::staticPluginId()};
-
+    // Note : these are the ones that are automatically added.
+    // The constraint, timenode, timeevent are added by Scenario/BaseScenario.
+    // TODO this should be apparent in the method / class names
+    return {OSSIAScenarioElement::staticPluginId(),
+            OSSIABaseScenarioElement::staticPluginId(),
+            OSSIAAutomationElement::staticPluginId()};
 }
 
 iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
@@ -58,8 +60,6 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
         iscore::ElementPluginModelType type,
         QObject* parent)
 {
-    // TODO find a way to switch on-off the automatic creation in ElementPluginModelList?
-    // Or just don't present Event/Timenode/Constraint here in elementPlugins?
     switch(type)
     {
         case OSSIAScenarioElement::staticPluginId():
@@ -67,6 +67,16 @@ iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
             if(element->metaObject()->className() == QString{"ScenarioModel"})
             {
                 auto plug = new OSSIAScenarioElement(static_cast<const ScenarioModel*>(element), parent);
+
+                return plug;
+            }
+            break;
+        }
+        case OSSIAAutomationElement::staticPluginId():
+        {
+            if(element->metaObject()->className() == QString{"AutomationModel"})
+            {
+                auto plug = new OSSIAAutomationElement(static_cast<const AutomationModel*>(element), parent);
 
                 return plug;
             }

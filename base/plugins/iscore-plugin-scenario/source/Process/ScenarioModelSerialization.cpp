@@ -48,6 +48,8 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 {
+    scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
+
     writeTo(*scenario.pluginModelList);
     m_stream >> scenario.m_startTimeNodeId
              >> scenario.m_endTimeNodeId;

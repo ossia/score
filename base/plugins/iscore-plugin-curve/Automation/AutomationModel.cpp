@@ -8,12 +8,16 @@
 #include "Curve/Segment/SinCurveSegmentModel.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const id_type<ProcessModel>& id,
         QObject* parent) :
     ProcessModel {duration, id, processName(), parent}
 {
+    pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+
     // Named shall be enough ?
     m_curve = new CurveModel{id_type<CurveModel>(45345), this};
 
@@ -57,7 +61,7 @@ AutomationModel::AutomationModel(
     m_min{source.min()},
     m_max{source.max()}
 {
-
+    pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 }
 
 ProcessModel* AutomationModel::clone(
