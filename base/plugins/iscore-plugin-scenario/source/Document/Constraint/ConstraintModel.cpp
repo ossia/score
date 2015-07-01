@@ -111,6 +111,16 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
         emit viewModelRemoved(cvm->id());
     }
 }
+const id_type<DisplayedStateModel> &ConstraintModel::endState() const
+{
+    return m_endState;
+}
+
+void ConstraintModel::setEndState(const id_type<DisplayedStateModel> &endState)
+{
+    m_endState = endState;
+}
+
 
 //// Complex commands
 void ConstraintModel::addProcess(ProcessModel* model)

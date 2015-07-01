@@ -33,6 +33,7 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
 
     m_createdEventId = getStrongId(scenar.events());
     m_createdConstraintId = getStrongId(scenar.constraints());
+    m_stateId = getStrongId(scenar.dispStates());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
@@ -57,6 +58,7 @@ void CreateEventAfterEventOnTimeNode::redo()
 
     CreateConstraintAndEvent(m_createdConstraintId,
                              m_createdConstraintFullViewId,
+                             m_stateId,
                              scenar.event(m_firstEventId),
                              scenar.timeNode(m_timeNodeId),
                              m_createdEventId,
@@ -81,6 +83,7 @@ void CreateEventAfterEventOnTimeNode::serializeImpl(QDataStream& s) const
       << m_createdEventId
       << m_createdConstraintId
       << m_timeNodeId
+      << m_stateId
       << m_createdConstraintViewModelIDs
       << m_createdConstraintFullViewId;
 }
@@ -94,6 +97,7 @@ void CreateEventAfterEventOnTimeNode::deserializeImpl(QDataStream& s)
             >> m_createdEventId
             >> m_createdConstraintId
             >> m_timeNodeId
+            >> m_stateId
             >> m_createdConstraintViewModelIDs
             >> m_createdConstraintFullViewId;
 }

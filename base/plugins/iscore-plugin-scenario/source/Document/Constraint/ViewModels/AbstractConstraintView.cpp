@@ -10,14 +10,11 @@ AbstractConstraintView::AbstractConstraintView(
 {
     setAcceptHoverEvents(true);
     m_dashPen.setDashPattern({2., 4.});
-
-    m_startState = new StateView(this);
-    m_endState = new StateView{this};
 }
 
 void AbstractConstraintView::setConnections()
 {
-    // NOTE : crash if in ctr ...
+/*    // NOTE : crash if in ctr ...
         connect(m_startState, &StateView::pressed,
                 &m_presenter, &AbstractConstraintPresenter::pressed);
         connect(m_startState, &StateView::moved,
@@ -31,6 +28,7 @@ void AbstractConstraintView::setConnections()
                 &m_presenter,    &AbstractConstraintPresenter::moved);
         connect(m_endState,   &StateView::released,
                 &m_presenter,    &AbstractConstraintPresenter::released);
+*/
 }
 
 void AbstractConstraintView::setInfinite(bool infinite)
@@ -45,6 +43,15 @@ void AbstractConstraintView::setDefaultWidth(double width)
 {
     prepareGeometryChange();
     m_defaultWidth = width;
+
+    for (auto child : this->childItems())
+    {
+        if (child->type() == QGraphicsItem::UserType + 4)
+        {
+            static_cast<StateView*>(child)->setX(width);
+        }
+    }
+
 }
 
 void AbstractConstraintView::setMaxWidth(bool infinite, double max)

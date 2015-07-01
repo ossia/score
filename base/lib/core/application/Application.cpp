@@ -6,6 +6,8 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoControl.hpp>
 
+#include "QSplashScreen"
+
 using namespace iscore;
 
 
@@ -16,6 +18,11 @@ Application::Application(int& argc, char** argv) :
     // Application
     // Crashes if put in member initialization list... :(
     m_app = new QApplication{argc, argv};
+
+    QPixmap logo{":/iscore.png"};
+    QSplashScreen splash(logo);
+    splash.show();
+
     m_app->setFont(QFont{":/images/Ubuntu-R.ttf", 10, QFont::Normal});
     this->setParent(m_app);
     this->setObjectName("Application");
@@ -57,6 +64,7 @@ Application::Application(int& argc, char** argv) :
 
     // View
     m_view->show();
+    splash.finish(m_view);
 
     if(!m_pluginManager.m_documentPanelList.empty())
         m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());

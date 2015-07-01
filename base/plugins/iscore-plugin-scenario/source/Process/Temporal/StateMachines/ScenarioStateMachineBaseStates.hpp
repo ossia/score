@@ -12,6 +12,7 @@
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
+class DisplayedStateModel;
 
 // TODO optimize this when we have all the tools
 class ScenarioStateBase : public QState
@@ -31,10 +32,12 @@ class ScenarioStateBase : public QState
             currentPoint = ScenarioPoint();
         }
 
+        id_type<DisplayedStateModel> clickedState;
         id_type<EventModel> clickedEvent;
         id_type<TimeNodeModel> clickedTimeNode;
         id_type<ConstraintModel> clickedConstraint;
 
+        id_type<DisplayedStateModel> hoveredState;
         id_type<EventModel> hoveredEvent;
         id_type<TimeNodeModel> hoveredTimeNode;
         id_type<ConstraintModel> hoveredConstraint;

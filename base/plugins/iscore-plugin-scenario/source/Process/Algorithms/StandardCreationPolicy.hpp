@@ -7,7 +7,7 @@ class EventModel;
 class ConstraintModel;
 class AbstractConstraintViewModel;
 class TimeNodeModel;
-
+class DisplayedStateModel;
 
 
 class CreateTimeNodeMin
@@ -45,9 +45,9 @@ class CreateConstraintMin
                 const id_type<ConstraintModel>& id,
                 ScenarioModel& s);
 
-        static ConstraintModel& redo(
-                const id_type<ConstraintModel>& id,
+        static ConstraintModel& redo(const id_type<ConstraintModel>& id,
                 const id_type<AbstractConstraintViewModel>& fullviewid,
+                const id_type<DisplayedStateModel>& endStateId,
                 EventModel& sev,
                 EventModel& eev,
                 double ypos,
@@ -69,6 +69,7 @@ inline EventModel& CreateTimenodeAndEvent(
 inline void CreateConstraintAndEvent(
         const id_type<ConstraintModel>& id_cst,
         const id_type<AbstractConstraintViewModel>& id_fv,
+        const id_type<DisplayedStateModel>& id_st,
         EventModel& sev,
         TimeNodeModel& tn,
         const id_type<EventModel>& ev_id,
@@ -76,7 +77,7 @@ inline void CreateConstraintAndEvent(
         double y,
         ScenarioModel& s)
 {
-    CreateConstraintMin::redo(id_cst, id_fv, sev, CreateEventMin::redo(ev_id, tn, y, s), y, s);
+    CreateConstraintMin::redo(id_cst, id_fv, id_st, sev, CreateEventMin::redo(ev_id, tn, y, s), y, s);
 }
 
 
@@ -84,6 +85,7 @@ inline void CreateConstraintAndEvent(
 inline void CreateTimenodeConstraintAndEvent(
         const id_type<ConstraintModel>& id_cst,
         const id_type<AbstractConstraintViewModel>& id_fv,
+        const id_type<DisplayedStateModel>& stId,
         EventModel& sev,
         const id_type<EventModel>& ev_id,
         const id_type<TimeNodeModel>& tn_id,
@@ -91,5 +93,5 @@ inline void CreateTimenodeConstraintAndEvent(
         double y,
         ScenarioModel& s)
 {
-    CreateConstraintMin::redo(id_cst, id_fv, sev, CreateTimenodeAndEvent(ev_id, tn_id, date, y, s), y, s);
+    CreateConstraintMin::redo(id_cst, id_fv, stId, sev, CreateTimenodeAndEvent(ev_id, tn_id, date, y, s), y, s);
 }

@@ -9,6 +9,8 @@ class EventModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class LayerModel;
+class DisplayedStateModel;
+
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
 {
@@ -26,7 +28,10 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
-                CreateConstraint(ObjectPath&& scenarioPath, id_type<EventModel> startEvent, id_type<EventModel> endEvent);
+                CreateConstraint(ObjectPath&& scenarioPath,
+                                id_type<EventModel> startEvent,
+                                id_type<DisplayedStateModel> startState,
+                                id_type<EventModel> endEvent);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 
                 virtual void undo() override;
@@ -47,6 +52,9 @@ namespace Scenario
                 id_type<ConstraintModel> m_createdConstraintId {};
                 id_type<EventModel> m_startEventId {};
                 id_type<EventModel> m_endEventId {};
+
+                id_type<DisplayedStateModel> m_startStateId {};
+                id_type<DisplayedStateModel> m_endStateId {};
 
                 ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
                 id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};

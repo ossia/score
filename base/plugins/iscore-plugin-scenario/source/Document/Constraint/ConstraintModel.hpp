@@ -4,6 +4,7 @@
 
 #include <source/Document/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>
+#include <source/Document/State/DisplayedStateModel.hpp>
 
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -163,6 +164,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setStartEvent(const id_type<EventModel>& eventId);
         void setEndEvent(const id_type<EventModel>& eventId);
 
+        const id_type<DisplayedStateModel>& endState() const;
+        void setEndState(const id_type<DisplayedStateModel> &endState);
 
         // TODO reference
         RackModel* rack(const id_type<RackModel>& id) const;
@@ -260,6 +263,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         id_type<EventModel> m_startEvent;
         id_type<EventModel> m_endEvent;
+        id_type<DisplayedStateModel> m_endState;
 
         TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
         TimeValue m_minDuration{m_defaultDuration};

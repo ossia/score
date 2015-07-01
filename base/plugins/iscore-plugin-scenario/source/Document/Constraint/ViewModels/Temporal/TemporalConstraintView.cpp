@@ -21,7 +21,6 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 
     this->setZValue(parent->zValue() + 1);
     this->setCursor(Qt::SizeVerCursor);
-
 }
 
 
@@ -51,9 +50,7 @@ void TemporalConstraintView::paint(
 
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
 
-    m_startState->setPos(0, 0);
-    m_endState->setPos(defaultWidth(), 0);
-    m_endState->show();
+//    m_endState->setPos(defaultWidth(), 0);
 
     // Paths
     if(infinite())

@@ -5,9 +5,10 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
-
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
+
+#include "Document/State/DisplayedStateModel.hpp"
 
 #include "StateMachines/ScenarioStateMachine.hpp"
 
@@ -70,6 +71,8 @@ class TemporalScenarioPresenter : public ProcessPresenter
         { return m_timeNodes; }
         const auto& constraints() const
         { return m_constraints; }
+        const auto& displayedStates() const
+        { return m_displayedStates; }
 
         TemporalScenarioView& view() const
         { return *m_view; }
@@ -105,6 +108,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
         IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
+        IdContainer<DisplayedStateModel> m_displayedStates;
 
         ZoomRatio m_zoomRatio {1};
 
@@ -115,6 +119,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
         void on_eventCreated_impl(const EventModel& event_model);
         void on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model);
         void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);
+        void on_displayedStateCreated(const DisplayedStateModel& state);
 
         void eventHasTrigger(const EventPresenter&, bool);
 

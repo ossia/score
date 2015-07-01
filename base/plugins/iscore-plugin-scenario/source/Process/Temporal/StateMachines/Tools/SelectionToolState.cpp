@@ -5,6 +5,7 @@
 
 #include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/StateTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
 #include "States/MoveStates.hpp"
@@ -73,6 +74,10 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
                   m_parentSM.locker(),
                   nullptr};
 
+    make_transition<ClickOnState_Transition>(m_state,
+                                             m_moveEvent,
+                                             *m_moveEvent);
+
     make_transition<ClickOnEvent_Transition>(m_state,
                                              m_moveEvent,
                                              *m_moveEvent);
@@ -110,6 +115,11 @@ void SelectionTool::on_pressed()
         localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
+    [&] (const id_type<DisplayedStateModel>& id) // State
+    {
+        localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint});
+        m_nothingPressed = false;
+    },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {
         localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint});
@@ -138,6 +148,8 @@ void SelectionTool::on_moved()
         mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
         [&] (const id_type<EventModel>& id)
         { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<DisplayedStateModel>& id)
+        { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<TimeNodeModel>& id)
         { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<ConstraintModel>& id)
@@ -159,6 +171,16 @@ void SelectionTool::on_released()
                                                    m_state->multiSelection()));
 
         localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint});
+    },
+    [&] (const id_type<DisplayedStateModel>& id) // State
+    {
+        const auto& elt = m_parentSM.presenter().displayedStates().at(id);
+
+        m_state->dispatcher.setAndCommit(filterSelections(elt,
+                                                   m_parentSM.model().selectedChildren(),
+                                                   m_state->multiSelection()));
+
+        localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint});
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {

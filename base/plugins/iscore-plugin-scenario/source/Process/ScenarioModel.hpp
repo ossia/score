@@ -2,6 +2,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Document/State/DisplayedStateModel.hpp>
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
@@ -82,15 +83,18 @@ class ScenarioModel : public ProcessModel
         void addConstraint(ConstraintModel* constraint);
         void addEvent(EventModel* event);
         void addTimeNode(TimeNodeModel* timeNode);
+        void addDisplayedState(DisplayedStateModel* state);
 
         void removeConstraint(ConstraintModel* constraint);
         void removeEvent(EventModel* event);
         void removeTimeNode(TimeNodeModel* timeNode);
+        //TODO state removeState
 
         // Accessors
         ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;
         EventModel& event(const id_type<EventModel>& eventId) const;
         TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
+        DisplayedStateModel& displayedState(const id_type<DisplayedStateModel>& stId) const;
 
         TimeNodeModel& startTimeNode() const;
         TimeNodeModel& endTimeNode() const;
@@ -114,6 +118,11 @@ class ScenarioModel : public ProcessModel
         const auto& timeNodes() const
         {
             return m_timeNodes;
+        }
+
+        const auto& dispStates() const
+        {
+            return m_displayedStates;
         }
 
     signals:
@@ -171,6 +180,7 @@ class ScenarioModel : public ProcessModel
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;
         IdContainer<TimeNodeModel> m_timeNodes;
+        IdContainer<DisplayedStateModel> m_displayedStates;
 
         id_type<TimeNodeModel> m_startTimeNodeId {};
         id_type<TimeNodeModel> m_endTimeNodeId {};

@@ -10,6 +10,7 @@
 
 #include <unordered_map>
 #include <State/State.hpp>
+#include "source/Document/State/DisplayedStateModel.hpp"
 
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 namespace OSSIA
@@ -94,6 +95,8 @@ class EventModel : public IdentifiedObject<EventModel>
         void addState(const iscore::State& s);
         void removeState(const iscore::State& s);
 
+        void addDisplayedState(const id_type<DisplayedStateModel>& ds);
+
         // Other properties
         double heightPercentage() const;
 
@@ -136,6 +139,8 @@ class EventModel : public IdentifiedObject<EventModel>
         double m_heightPercentage {0.5};
 
         iscore::StateList m_states;
+        QVector<id_type<DisplayedStateModel>> m_dispStates;
+
         QString m_condition {};
 
         TimeValue m_date {std::chrono::seconds{0}};

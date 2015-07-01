@@ -18,6 +18,8 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
+#include "Document/State/DisplayedStateModel.hpp"
+
 #include "ScenarioViewInterface.hpp"
 
 #include <QGraphicsScene>
@@ -316,6 +318,13 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
+void TemporalScenarioPresenter::on_displayedStateCreated(const DisplayedStateModel &state)
+{
+    connect(state.view(), &StateView::pressed, m_view, &TemporalScenarioView::scenarioPressed);
+    connect(state.view(), &StateView::moved, m_view, &TemporalScenarioView::scenarioMoved);
+    connect(state.view(), &StateView::released, m_view, &TemporalScenarioView::scenarioReleased);
+}
+
 void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)
 {
     auto rect = m_view->boundingRect();
@@ -331,6 +340,16 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
     cst_pres->view()->setPos({rect.x() + constraint_view_model.model().startDate().toPixels(m_zoomRatio),
                              rect.y() + rect.height() * constraint_view_model.model().heightPercentage() });
 
+
+    auto& st = model(m_viewModel).displayedState(constraint_view_model.model().endState());
+    st.initView(cst_pres->view());
+
+    m_displayedStates.insert(&st);
+    on_displayedStateCreated(st);
+
+    st.setPos(constraint_view_model.model().defaultDuration().toPixels(m_zoomRatio));
+    st.view()->setPos({ rect.x() + constraint_view_model.model().defaultDuration().toPixels(m_zoomRatio),
+                         0 });
 
 
     m_viewInterface->addPointInEvent(constraint_view_model.model().endEvent(),
