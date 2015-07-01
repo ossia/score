@@ -7,6 +7,8 @@
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
+class DisplayedStateModel;
+
 namespace iscore
 {
     class SerializableCommand;
@@ -46,15 +48,17 @@ class ScenarioTool : public ToolState
         id_type<EventModel> itemToEventId(const QGraphicsItem*) const;
         id_type<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem*) const;
         id_type<ConstraintModel> itemToConstraintId(const QGraphicsItem*) const;
-        id_type<EventModel> itemStateToEventId(const QGraphicsItem*) const;
+        id_type<DisplayedStateModel> itemToStateId(const QGraphicsItem*) const;
 
         template<typename EventFun,
+                 typename StateFun,
                  typename TimeNodeFun,
                  typename ConstraintFun,
                  typename NothingFun>
         void mapTopItem(
                 const QGraphicsItem* item,
                 EventFun&& ev_fun,
+                StateFun&& st_fun,
                 TimeNodeFun&& tn_fun,
                 ConstraintFun&& cst_fun,
                 NothingFun&& nothing_fun) const
@@ -72,9 +76,8 @@ class ScenarioTool : public ToolState
             };
 
             // Each time :
-            // Check if it is an event / timenode / constraint.
-            // If state, do the same like for event.
-            // TODO Possible crash : Check if it is in our scenario.
+            // Check if it is an event / timenode / constraint /state
+            // TODO Possible crash : Check if it is in our scenario. -> done in itemToEltId
             switch(item->type())
             {
                 case QGraphicsItem::UserType + 1:
@@ -90,7 +93,7 @@ class ScenarioTool : public ToolState
                     break;
 
                 case QGraphicsItem::UserType + 4:
-                    tryFun (ev_fun, itemStateToEventId(item));
+                    tryFun (st_fun, itemToStateId(item));
                     break;
 
                 default:

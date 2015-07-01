@@ -50,6 +50,7 @@ namespace Scenario
                 id_type<EventModel> m_startEventId {};
                 id_type<EventModel> m_endEventId {};
 
+                id_type<DisplayedStateModel> m_startStateId {};
                 id_type<DisplayedStateModel> m_endStateId {};
 
                 ConstraintViewModelIdMap m_createdConstraintViewModelIDs;

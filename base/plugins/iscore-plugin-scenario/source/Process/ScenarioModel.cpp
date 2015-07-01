@@ -320,6 +320,11 @@ TimeNodeModel& ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId)
     return *m_timeNodes.at(timeNodeId);
 }
 
+DisplayedStateModel &ScenarioModel::displayedState(const id_type<DisplayedStateModel> &stId) const
+{
+    return *m_displayedStates.at(stId);
+}
+
 
 EventModel& ScenarioModel::startEvent() const
 {

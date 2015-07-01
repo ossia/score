@@ -2,13 +2,17 @@
 
 #include "StateView.hpp"
 
+#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+
 DisplayedStateModel::DisplayedStateModel(id_type<DisplayedStateModel> id,
                                          double yPos,
-                                         StateView* view,
+                                         AbstractConstraintView *view,
                                          QObject *parent):
     IdentifiedObject<DisplayedStateModel> {id, "DisplayedStateModel", parent},
     m_heightPercentage{yPos},
-    m_view{view}
+    m_view{new StateView{*this, view} }
 {
 
 }
@@ -16,10 +20,15 @@ DisplayedStateModel::DisplayedStateModel(id_type<DisplayedStateModel> id,
 DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &copy,
                                          const id_type<DisplayedStateModel> &id,
                                          QObject *parent):
-    DisplayedStateModel(id, copy.heightPercentage(), copy.view(), copy.parent())
+    DisplayedStateModel(id, copy.heightPercentage(), dynamic_cast<AbstractConstraintView*>(copy.view()->parentWidget()), copy.parent())
 {
     m_states = copy.states();
-//TODO : view
+    //TODO : view
+}
+
+const ScenarioModel *DisplayedStateModel::parentScenario() const
+{
+    return  &(dynamic_cast<TemporalScenarioPresenter*>(parent())->stateMachine().model());
 }
 
 double DisplayedStateModel::heightPercentage() const

@@ -132,11 +132,12 @@ void EventPresenter::updateStateView() const
                     procs.end(),
                     [] (ProcessModel* proc) { return proc->endState() != nullptr; }))
         {
-            ::view(cstr_pres)->startState()->setContainMessage(true);
+// TODO state arent here
+//            ::view(cstr_pres)->startState()->setContainMessage(true);
         }
         else
         {
-            ::view(cstr_pres)->startState()->setContainMessage(false);
+//            ::view(cstr_pres)->startState()->setContainMessage(false);
         }
     }
 
@@ -167,11 +168,12 @@ void EventPresenter::updateStateView() const
                     procs.end(),
                     [] (ProcessModel* proc) { return proc->startState() != nullptr; }))
         {
-            ::view(cstr_pres)->startState()->setContainMessage(true);
+// TODO states arent here
+//            ::view(cstr_pres)->startState()->setContainMessage(true);
         }
         else
         {
-            ::view(cstr_pres)->startState()->setContainMessage(false);
+//            ::view(cstr_pres)->startState()->setContainMessage(false);
         }
     }
 }

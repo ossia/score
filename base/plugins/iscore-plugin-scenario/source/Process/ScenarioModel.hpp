@@ -92,6 +92,7 @@ class ScenarioModel : public ProcessModel
         ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;
         EventModel& event(const id_type<EventModel>& eventId) const;
         TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
+        DisplayedStateModel& displayedState(const id_type<DisplayedStateModel>& stId) const;
 
         EventModel& startEvent() const;
         EventModel& endEvent() const;

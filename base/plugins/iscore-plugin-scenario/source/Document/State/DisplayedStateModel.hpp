@@ -8,10 +8,12 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/selection/Selectable.hpp>
 
 #include "StateView.hpp"
 
-//class StateView;
+class AbstractConstraintView;
+class ScenarioModel;
 
 class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 {
@@ -25,11 +27,12 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         friend void Visitor<Writer<JSONObject>>::writeTo<DisplayedStateModel> (DisplayedStateModel& ev);
 
     public:
-        ModelMetadata metadata;
+        Selectable selection; // TODO state connections
+        ModelMetadata metadata; // TODO : usefull ?
 
         DisplayedStateModel(id_type<DisplayedStateModel> id,
                             double yPos,
-                            StateView *view,
+                            AbstractConstraintView *view,
                             QObject* parent);
 
         // Copy
@@ -37,21 +40,23 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
                             const id_type<DisplayedStateModel>&,
                             QObject* parent);
 
+        const ScenarioModel* parentScenario() const;
+
         double heightPercentage() const;
 
         StateView* view() const;
-
-    public slots:
-        void setHeightPercentage(double y);
 
         const iscore::StateList& states() const;
         void replaceStates(const iscore::StateList& newStates);
         void addState(const iscore::State& s);
         void removeState(const iscore::State& s);
 
+    public slots:
+        void setHeightPercentage(double y);
+
     private:
 
-        double m_heightPercentage{0.5};
+        double m_heightPercentage{0.5}; // Usefull ? Not sure because it moves with his parent, the constraint ...
 
         iscore::StateList m_states;
         StateView* m_view;

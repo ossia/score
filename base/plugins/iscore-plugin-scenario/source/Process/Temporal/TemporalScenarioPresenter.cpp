@@ -335,9 +335,9 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
 
 
     auto st = new DisplayedStateModel{
-                    cst_pres->model().endState(),
-                    cst_pres->model().heightPercentage(),
-                    cst_pres->view()->endState(),
+                    constraint_view_model.model().endState(),
+                    constraint_view_model.model().heightPercentage(),
+                    cst_pres->view(),
                     this };
 
     m_displayedStates.insert(st);
@@ -357,6 +357,8 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
                                   rect.y() + rect.height() * cst.heightPercentage() });
         m_viewInterface->updateTimeNode(m_events.at(cst.endEvent())->model().timeNode());
         m_viewInterface->updateTimeNode(m_events.at(cst.startEvent())->model().timeNode() );
+
+        m_displayedStates.at(cst.endState())->setHeightPercentage(cst.heightPercentage());
     });
 
     connect(cst_pres, &TemporalConstraintPresenter::askUpdate,

@@ -113,7 +113,7 @@ protected:
             Qt::SquareCap,
             Qt::RoundJoin
         };
-        StateView* m_startState{};
+        StateView* m_startState{};  // TODO state not initialized !!
         StateView* m_endState{};
 
     private:

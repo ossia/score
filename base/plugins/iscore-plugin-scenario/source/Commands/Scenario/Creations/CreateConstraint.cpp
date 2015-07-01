@@ -26,6 +26,7 @@ CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
     auto& scenar = m_path.find<ScenarioModel>();
     m_createdConstraintId = getStrongId(scenar.constraints());
     m_endStateId = getStrongId(scenar.dispStates());
+// TODO state : initialize start state
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
@@ -50,12 +51,13 @@ void CreateConstraint::redo()
     auto& scenar = m_path.find<ScenarioModel>();
     auto& sev = scenar.event(m_startEventId);
     auto& eev = scenar.event(m_endEventId);
+    auto& sst = scenar.displayedState(m_startStateId);
 
     CreateConstraintMin::redo(m_createdConstraintId,
                               m_createdConstraintFullViewId,
                               m_endStateId,
                               sev, eev,
-                              sev.heightPercentage(), //TODO : it has to be "stateHeightPercentage"
+                              sst.heightPercentage(),
                               scenar);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
@@ -71,6 +73,7 @@ void CreateConstraint::serializeImpl(QDataStream& s) const
       << m_startEventId
       << m_endEventId
       << m_createdConstraintId
+      << m_startStateId
       << m_endStateId
       << m_createdConstraintViewModelIDs
       << m_createdConstraintFullViewId;
@@ -82,6 +85,7 @@ void CreateConstraint::deserializeImpl(QDataStream& s)
             >> m_startEventId
             >> m_endEventId
             >> m_createdConstraintId
+            >> m_startStateId
             >> m_endStateId
             >> m_createdConstraintViewModelIDs
             >> m_createdConstraintFullViewId;
