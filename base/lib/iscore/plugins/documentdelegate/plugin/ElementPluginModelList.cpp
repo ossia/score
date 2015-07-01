@@ -67,6 +67,5 @@ bool iscore::ElementPluginModelList::canAdd(ElementPluginModelType pluginId) con
 void iscore::ElementPluginModelList::add(iscore::ElementPluginModel *data)
 {
     Q_ASSERT(data);
-    qDebug() << data;
     m_list.push_back(data);
 }
