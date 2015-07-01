@@ -19,8 +19,11 @@ class CreateFromEventState : public CreationState
         void createEventFromEventOnTimeNode();
 
         void createConstraintBetweenEvents();
+        void createSingleEventOnTimeNode();
 
         MultiOngoingCommandDispatcher m_dispatcher;
+        ScenarioPoint m_clickedPoint;
+
 };
 
 class CreateFromTimeNodeState : public CreationState

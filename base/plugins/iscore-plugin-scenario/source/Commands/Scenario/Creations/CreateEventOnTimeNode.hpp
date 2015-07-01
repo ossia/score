@@ -26,7 +26,7 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
-                auto createdEventId() const
+                auto createdEvent() const
                 { return m_createdEventId; }
 
             protected:

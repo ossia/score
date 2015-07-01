@@ -30,9 +30,13 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 {
     QPen statePen = QPen(Qt::white);
     statePen.setWidth(2);
+    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
     painter->setPen(statePen);
     painter->setBrush(Qt::white);
+    if(m_selected)
+        painter->setBrush(highlight);
+
     qreal radius = m_containMessage ? radiusFull : radiusVoid;
     painter->drawEllipse({0., 0.}, radius, radius);
 /*
