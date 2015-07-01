@@ -10,7 +10,6 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
     m_node{ossia_tn}
 {
     using namespace OSSIA;
-    m_node = TimeNode::create();
 }
 
 std::shared_ptr<OSSIA::TimeNode> OSSIATimeNodeElement::timeNode() const

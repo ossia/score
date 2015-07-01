@@ -16,6 +16,13 @@ namespace convert
 {
 // Gets a node from an address in a device.
 // Creates it if necessary.
+
+// OSSIA::Node* might be null.
+OSSIA::Node* findNodeFromPath(
+        const QStringList& path,
+        OSSIA::Device *dev);
+
+// OSSIA::Node* won't be null.
 OSSIA::Node* getNodeFromPath(
         const QStringList& path,
         OSSIA::Device *dev);

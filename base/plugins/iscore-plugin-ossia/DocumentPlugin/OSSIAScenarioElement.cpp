@@ -8,16 +8,16 @@
 #include <Process/ScenarioModel.hpp>
 #include "iscore2OSSIA.hpp"
 
-static void statusCallback(OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
-{
-    qDebug( ) << int(newStatus);
-}
 
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
     m_iscore_scenario{element}
 {
-    m_ossia_scenario = OSSIA::Scenario::create([=](const OSSIA::TimeValue& position, const OSSIA::TimeValue& date, std::shared_ptr<OSSIA::State> state)
+    qDebug() << "Creating scenario id:" << element->id();
+    m_ossia_scenario = OSSIA::Scenario::create([=](
+                                               const OSSIA::TimeValue& position,
+                                               const OSSIA::TimeValue& date,
+                                               std::shared_ptr<OSSIA::State> state)
     {
         qDebug() << "scenario callback" << double(position) << element->id();
     });
@@ -25,6 +25,11 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
     if(element->parent()->objectName() != QString("BaseConstraintModel"))
     {
         m_ossia_scenario->getClock()->setExternal(true);
+    }
+    else
+    {
+        m_ossia_scenario->getClock()->setSpeed(1.);
+        m_ossia_scenario->getClock()->setGranularity(250.);
     }
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
@@ -109,12 +114,8 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
                          iscore::convert::time(cst.minDuration()),
                          iscore::convert::time(cst.maxDuration()));
 
-    auto elt = new OSSIAConstraintElement{ossia_cst, cst, &cst};
-    m_ossia_constraints.insert({id, elt});
-
-    m_ossia_scenario->addConstraint(ossia_cst);
-
-    cst.pluginModelList.add(elt);
+    // Setup updates
+    // todo : should be in OSSIAConstraintElement
     connect(&cst, &ConstraintModel::defaultDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDuration(iscore::convert::time(t));
@@ -127,6 +128,15 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
             [=] (const TimeValue& t) {
         ossia_cst->setDurationMax(iscore::convert::time(t));
     });
+
+    m_ossia_scenario->addConstraint(ossia_cst);
+
+    // Create the mapping object
+    auto elt = new OSSIAConstraintElement{ossia_cst, cst, &cst};
+    m_ossia_constraints.insert({id, elt});
+
+    cst.pluginModelList.add(elt);
+
 }
 
 void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
@@ -136,9 +146,18 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
-    auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(), statusCallback);
+    auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(),
+                                                   [=] (OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
+    {
+        for(const std::shared_ptr<OSSIA::TimeConstraint>& constraint : m_ossia_timeevents.at(id)->event()->previousTimeConstraints())
+        {
+            const std::shared_ptr<OSSIA::TimeProcess>& proc = constraint->timeProcesses().front();
+            qDebug() << "getRunning:" << proc->getClock()->getRunning();
+            qDebug() << "getPosition:" << proc->getClock()->getPosition();
+        }
+    });
 
-    // Pass the element in ctor
+    // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, &ev, &ev};
     m_ossia_timeevents.insert({id, elt});
 
@@ -164,6 +183,7 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
         m_ossia_scenario->addTimeNode(ossia_tn);
     }
 
+    // Create the mapping object
     auto elt = new OSSIATimeNodeElement{ossia_tn, tn, &tn};
     m_ossia_timenodes.insert({id, elt});
 

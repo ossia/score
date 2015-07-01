@@ -46,7 +46,7 @@ void OSSIAConstraintElement::serialize(const VisitorVariant&) const
 {
     qDebug() << "TODO: " << Q_FUNC_INFO;
 }
-
+#include "OSSIAAutomationElement.hpp"
 void OSSIAConstraintElement::on_processAdded(
         const QString& name,
         const id_type<ProcessModel>& id)
@@ -55,10 +55,11 @@ void OSSIAConstraintElement::on_processAdded(
     auto proc = m_iscore_constraint.process(id);
     for(auto&& elt : proc->pluginModelList->list())
     {
-        if(auto scenar_elt = dynamic_cast<OSSIAProcessElement*>(elt))
+        if(auto process_elt = dynamic_cast<OSSIAProcessElement*>(elt))
         {
-            m_processes.insert({id, scenar_elt});
-            m_ossia_constraint->addTimeProcess(scenar_elt->process());
+            m_processes.insert({id, process_elt});
+            m_ossia_constraint->addTimeProcess(process_elt->process());
+
             break;
         }
     }

@@ -20,7 +20,7 @@ class DeviceList
         void addDevice(DeviceInterface* dev);
         void removeDevice(const QString& name);
 
-        QList<DeviceInterface*> devices() const;
+        const QList<DeviceInterface*>& devices() const;
 
     private:
         QList<DeviceInterface*> m_devices;

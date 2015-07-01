@@ -8,19 +8,6 @@ OSSIAEventElement::OSSIAEventElement(
     iscore::ElementPluginModel{parent},
     m_event{event}
 {
-    // If the event is the first - last of the timenode
-    // then it is already on it
-
-    // Else we have to create it
-    // What if the timenode has not been added to the scenario ? This should not happen in any case.
-    // See also for the first and last event / timenodes (on the base constraint).
-
-    // Note : we could add these elements on the OSSIAScenarioElement, when eventCreated() & al are emitted...
-    // But how to manage base constraint then ? Here ?
-    if(!element->parentScenario())
-    {
-
-    }
 
 }
 

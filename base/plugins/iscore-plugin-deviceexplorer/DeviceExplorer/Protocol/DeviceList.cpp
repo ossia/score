@@ -37,7 +37,7 @@ void DeviceList::removeDevice(const QString &name)
     m_devices.erase(it);
 }
 
-QList<DeviceInterface *> DeviceList::devices() const
+const QList<DeviceInterface*>& DeviceList::devices() const
 {
     return m_devices;
 }

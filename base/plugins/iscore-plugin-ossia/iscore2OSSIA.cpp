@@ -52,7 +52,28 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
 }
 
 
-OSSIA::Node *getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
+OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
+{
+    using namespace OSSIA;
+    // Find the relevant node to add in the device
+    OSSIA::Node* node = dev;
+    for(int i = 0; i < path.size(); i++)
+    {
+        const auto& children = node->children();
+        auto it = boost::range::find_if(children,
+                      [&] (const auto& ossia_node)
+                    { return ossia_node->getName() == path[i].toStdString(); });
+        if(it != children.end())
+            node = it->get();
+        else
+            return nullptr;
+    }
+
+    return node;
+
+}
+
+OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
