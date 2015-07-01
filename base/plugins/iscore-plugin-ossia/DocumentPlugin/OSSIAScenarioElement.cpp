@@ -14,11 +14,12 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
     m_iscore_scenario{element}
 {
     m_ossia_scenario = OSSIA::Scenario::create([=](
-                                               const OSSIA::TimeValue& position,
+                                               const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
                                                const OSSIA::TimeValue& date,
                                                std::shared_ptr<OSSIA::State> state)
     {
-        auto currentTime = OSSIA::convert::time(position);
+        auto currentTime = OSSIA::convert::time(date);
+
         for(ConstraintModel* constraint : m_executingConstraints)
         {
             constraint->setPlayDuration(constraint->playDuration() + (currentTime - m_previousExecutionDate));
@@ -148,7 +149,9 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
 
                 for(auto& constraint : the_event.nextConstraints())
                 {
-                    m_executingConstraints.insert(&m_iscore_scenario->constraint(constraint));
+                    auto& cst = m_iscore_scenario->constraint(constraint);
+                    m_executingConstraints.insert(&cst);
+                    cst.setPlayDuration(TimeValue::zero());
                 }
 
                 break;
