@@ -18,22 +18,12 @@ namespace OSSIA
     class TimeProcess;
 }
 
-class OSSIABaseScenarioElement :public iscore::ElementPluginModel
+class OSSIABaseScenarioElement : public QObject
 {
     public:
         OSSIABaseScenarioElement(
                 const BaseScenario* element,
                 QObject* parent);
-
-        static constexpr iscore::ElementPluginModelType staticPluginId() { return 5; }
-        iscore::ElementPluginModelType elementPluginId() const;
-
-        iscore::ElementPluginModel* clone(
-                const QObject* element,
-                QObject* parent) const override;
-
-        void serialize(const VisitorVariant&) const;
-
 
         OSSIAConstraintElement* baseConstraint() const;
         OSSIATimeNodeElement* startTimeNode() const;
@@ -48,5 +38,4 @@ class OSSIABaseScenarioElement :public iscore::ElementPluginModel
         OSSIATimeNodeElement* m_ossia_endTimeNode{};
         OSSIAEventElement* m_ossia_startEvent{};
         OSSIAEventElement* m_ossia_endEvent{};
-
 };

@@ -221,8 +221,15 @@ Document* Presenter::loadDocument(const QVariant& data,
 try
 {
     auto doc = new Document{data, doctype, m_view, this};
-
     m_documents.push_back(doc);
+
+    for(auto& control: m_controls)
+    {
+        control->on_loadedDocument(doc);
+    }
+
+    // TODO same for panels.
+
     m_view->addDocumentView(doc->view());
 
     setCurrentDocument(doc);

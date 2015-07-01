@@ -18,8 +18,7 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
     iscore::DocumentDelegatePluginModel{"OSSIADocumentPlugin", parent}
 {
     auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
-    m_base = new OSSIABaseScenarioElement(baseElement, baseElement);
-    baseElement->pluginModelList.add(m_base);
+    m_base = new OSSIABaseScenarioElement{baseElement, this};
 }
 
 OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
@@ -27,50 +26,7 @@ OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
     return m_base;
 }
 
-QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() const
-{
-    // Note : these are the ones that are automatically added.
-    // The constraint, timenode, timeevent are added by Scenario/BaseScenario.
-    // TODO this should be apparent in the method / class names
-    return {OSSIABaseScenarioElement::staticPluginId()};
-}
-
-iscore::ElementPluginModel* OSSIADocumentPlugin::makeElementPlugin(
-        const QObject* element,
-        iscore::ElementPluginModelType type,
-        QObject* parent)
-{
-    return nullptr;
-}
-
-iscore::ElementPluginModel* OSSIADocumentPlugin::loadElementPlugin(
-        const QObject* element,
-        const VisitorVariant&,
-        QObject* parent)
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    return nullptr;
-}
-
-iscore::ElementPluginModel* OSSIADocumentPlugin::cloneElementPlugin(
-        const QObject* element,
-        iscore::ElementPluginModel* source,
-        QObject* parent)
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    return nullptr;
-}
-
-QWidget* OSSIADocumentPlugin::makeElementPluginWidget(
-        const iscore::ElementPluginModel*,
-        QWidget* parent) const
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    return nullptr;
-}
-
 void OSSIADocumentPlugin::serialize(
         const VisitorVariant&) const
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
 }

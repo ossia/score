@@ -17,7 +17,8 @@ class OSSIAControl : public iscore::PluginControlInterface
                 const VisitorVariant& var,
                 iscore::DocumentModel* parent);
 
-        void on_newDocument(iscore::Document* doc);
+        void on_newDocument(iscore::Document* doc) override;
+        void on_loadedDocument(iscore::Document* doc) override;
 
     protected:
         void on_documentChanged();

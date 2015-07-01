@@ -51,9 +51,10 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
         const QString& name,
         const VisitorVariant& var,
-        iscore::DocumentModel* parent)
+        iscore::DocumentModel* model)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    // We don't have anything to load; it's easier to just recreate.
+    return nullptr;
 }
 
 void OSSIAControl::on_newDocument(iscore::Document* doc)
@@ -61,7 +62,11 @@ void OSSIAControl::on_newDocument(iscore::Document* doc)
     doc->model()->addPluginModel(new OSSIADocumentPlugin{doc->model(), doc->model()});
 }
 
+void OSSIAControl::on_loadedDocument(iscore::Document *doc)
+{
+    on_newDocument(doc);
+}
+
 void OSSIAControl::on_documentChanged()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
 }

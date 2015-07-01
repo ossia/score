@@ -63,3 +63,8 @@ void PluginControlInterface::on_newDocument(iscore::Document* doc)
 {
 
 }
+
+void PluginControlInterface::on_loadedDocument(iscore::Document *doc)
+{
+
+}

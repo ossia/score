@@ -32,23 +32,6 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     m_ossia_endEvent = new OSSIAEventElement{*main_end_event_it, element->endEvent(), this};
 
     m_ossia_constraint = new OSSIAConstraintElement{main_constraint, *element->baseConstraint(), this};
-
-}
-
-iscore::ElementPluginModelType OSSIABaseScenarioElement::elementPluginId() const
-{
-    return staticPluginId();
-}
-
-iscore::ElementPluginModel *OSSIABaseScenarioElement::clone(const QObject *element, QObject *parent) const
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    return nullptr;
-}
-
-void OSSIABaseScenarioElement::serialize(const VisitorVariant &) const
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
 }
 
 OSSIAConstraintElement *OSSIABaseScenarioElement::baseConstraint() const
