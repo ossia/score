@@ -35,6 +35,13 @@ class OSSIABaseScenarioElement :public iscore::ElementPluginModel
         void serialize(const VisitorVariant&) const;
 
 
+        OSSIAConstraintElement* baseConstraint() const;
+        OSSIATimeNodeElement* startTimeNode() const;
+        OSSIATimeNodeElement* endTimeNode() const;
+
+        OSSIAEventElement* startEvent() const;
+        OSSIAEventElement* endEvent() const;
+
     private:
         OSSIAConstraintElement* m_ossia_constraint{};
         OSSIATimeNodeElement* m_ossia_startTimeNode{};

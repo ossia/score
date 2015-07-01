@@ -30,11 +30,17 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
 
 
     auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
-    baseElement->pluginModelList.add(makeElementPlugin(baseElement,
-                                       OSSIABaseScenarioElement::staticPluginId(),
-                                       baseElement));
+    m_base = static_cast<OSSIABaseScenarioElement*>(makeElementPlugin(baseElement,
+                               OSSIABaseScenarioElement::staticPluginId(),
+                               baseElement));
+    baseElement->pluginModelList.add(m_base);
 
 
+}
+
+OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
+{
+    return m_base;
 }
 
 QList<iscore::ElementPluginModelType> OSSIADocumentPlugin::elementPlugins() const

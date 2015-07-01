@@ -1,10 +1,12 @@
 #include "OSSIAControl.hpp"
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
+#include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
 
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/Protocol.h>
 
+#include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/Expression.h>
 #include <API/Headers/Editor/ExpressionNot.h>
 #include <API/Headers/Editor/ExpressionAtom.h>
@@ -12,6 +14,8 @@
 #include <API/Headers/Editor/Value.h>
 
 #include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
 
 OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
@@ -29,8 +33,19 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 }
 
 
-void OSSIAControl::populateMenus(iscore::MenubarManager*)
+void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 {
+    QAction* play = new QAction {tr("Play (OSSIA engine)"), this};
+    connect(play, &QAction::triggered,
+            [&] ()
+    {
+        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
+        static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->startEvent()->event()->play();
+
+    });
+
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
+                                       play);
 }
 
 iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(

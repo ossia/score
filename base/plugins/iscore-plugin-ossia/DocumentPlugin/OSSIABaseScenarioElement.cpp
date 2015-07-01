@@ -34,15 +34,6 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     element->endEvent()->pluginModelList.add(m_ossia_endEvent);
 
     element->baseConstraint()->pluginModelList.add(m_ossia_constraint);
-
-    QTimer* t = new QTimer;
-    t->setSingleShot(true);
-   connect(t, &QTimer::timeout, this, [=] () {
-       qDebug("Starting!");
-       (*main_start_event_it)->play();
-   });
-   t->start(5000);
-
 }
 
 iscore::ElementPluginModelType OSSIABaseScenarioElement::elementPluginId() const
@@ -59,4 +50,29 @@ iscore::ElementPluginModel *OSSIABaseScenarioElement::clone(const QObject *eleme
 void OSSIABaseScenarioElement::serialize(const VisitorVariant &) const
 {
     qDebug() << "TODO: " << Q_FUNC_INFO;
+}
+
+OSSIAConstraintElement *OSSIABaseScenarioElement::baseConstraint() const
+{
+    return m_ossia_constraint;
+}
+
+OSSIATimeNodeElement *OSSIABaseScenarioElement::startTimeNode() const
+{
+    return m_ossia_startTimeNode;
+}
+
+OSSIATimeNodeElement *OSSIABaseScenarioElement::endTimeNode() const
+{
+    return m_ossia_endTimeNode;
+}
+
+OSSIAEventElement *OSSIABaseScenarioElement::startEvent() const
+{
+    return m_ossia_startEvent;
+}
+
+OSSIAEventElement *OSSIABaseScenarioElement::endEvent() const
+{
+    return m_ossia_endEvent;
 }
