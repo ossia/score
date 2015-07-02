@@ -5,6 +5,15 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+MoveNewEvent::MoveNewEvent():
+    SerializableCommand {"ScenarioControl",
+             commandName(),
+             description()},
+    m_cmd{new MoveEvent}
+{
+
+}
+
 MoveNewEvent::MoveNewEvent(ObjectPath&& scenarioPath,
                id_type<ConstraintModel> constraintId,
                id_type<EventModel> eventId,
@@ -21,6 +30,11 @@ MoveNewEvent::MoveNewEvent(ObjectPath&& scenarioPath,
     m_yLocked{yLocked}
 {
 
+}
+
+MoveNewEvent::~MoveNewEvent()
+{
+    delete m_cmd;
 }
 
 void MoveNewEvent::undo()

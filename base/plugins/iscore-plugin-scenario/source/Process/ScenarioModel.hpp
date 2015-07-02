@@ -35,10 +35,8 @@ class ScenarioModel : public ProcessModel
 {
         Q_OBJECT
 
-        friend void Visitor<Reader<DataStream>>::readFrom<ScenarioModel> (const ScenarioModel&);
-        friend void Visitor<Writer<DataStream>>::writeTo<ScenarioModel> (ScenarioModel&);
-        friend void Visitor<Reader<JSONObject>>::readFrom<ScenarioModel> (const ScenarioModel&);
-        friend void Visitor<Writer<JSONObject>>::writeTo<ScenarioModel> (ScenarioModel&);
+        ISCORE_SERIALIZE_FRIENDS(ScenarioModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ScenarioModel, JSONObject)
         friend class ScenarioFactory;
 
     public:

@@ -45,6 +45,11 @@ namespace iscore
             ObjectLocker& locker()
             { return m_objectLocker; }
 
+            QTemporaryFile& crashDataFile()
+            { return m_crashDataFile; }
+            QTemporaryFile& crashCommandFile()
+            { return m_crashCommandFile; }
+
 
 
 
@@ -85,7 +90,8 @@ namespace iscore
             DocumentView* m_view{};
             DocumentPresenter* m_presenter{};
 
-            QTemporaryFile m_crashFile;
+            QTemporaryFile m_crashDataFile;
+            QTemporaryFile m_crashCommandFile;
     };
 
 }

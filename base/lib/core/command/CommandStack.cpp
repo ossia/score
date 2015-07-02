@@ -78,8 +78,11 @@ void CommandStack::push(SerializableCommand* cmd)
         // Push operation
         m_undoable.push(cmd);
 
-        qDeleteAll(m_redoable);
-        m_redoable.clear();
+        if(!m_redoable.empty())
+        {
+            qDeleteAll(m_redoable);
+            m_redoable.clear();
+        }
     });
 }
 
@@ -100,8 +103,11 @@ void CommandStack::pushQuiet(SerializableCommand* cmd)
         // Push operation
         m_undoable.push(cmd);
 
-        qDeleteAll(m_redoable);
-        m_redoable.clear();
+        if(!m_redoable.empty())
+        {
+            qDeleteAll(m_redoable);
+            m_redoable.clear();
+        }
     });
 }
 

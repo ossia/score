@@ -22,21 +22,6 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     NamedObject {"Document", parent},
     m_objectLocker{this}
 {
-    /// Setup the crash file
-    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
-    qDebug() << s.fileName();
-
-    m_crashFile.open(); // TODO testme
-    auto existing_files = s.value("iscore/docs").toStringList();
-    qDebug() << "EXISTING_FILES BEFORe" << existing_files;
-
-    existing_files.append(m_crashFile.fileName());
-    qDebug() << existing_files.size();
-
-    s.setValue("iscore/docs", existing_files);
-
-    qDebug() << "EXISTING_FILES AFTER" << existing_files;
-
     /// Construction of the document model
 
     // Note : we have to separate allocation
@@ -51,6 +36,20 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
             m_view,
             this};
     init();
+
+    m_crashDataFile.open(); // TODO testme
+    m_crashCommandFile.open();
+
+    connect(&m_commandStack, &CommandStack::stackChanged,
+            this, [&] () {
+        m_crashCommandFile.resize(0);
+        m_crashCommandFile.reset();
+
+        Serializer<DataStream> ser(&m_crashCommandFile);
+        ser.readFrom(commandStack());
+
+        m_crashCommandFile.flush();
+    });
 }
 
 void Document::init()
@@ -81,7 +80,7 @@ Document::~Document()
                 QSettings::IniFormat);
 
     auto existing_files = s.value("iscore/docs").toStringList();
-    existing_files.removeOne(m_crashFile.fileName());
+    existing_files.removeOne(m_crashDataFile.fileName());
     s.setValue("iscore/docs", existing_files);
 }
 

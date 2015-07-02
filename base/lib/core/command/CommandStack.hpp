@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <QObject>
@@ -17,6 +18,7 @@ namespace iscore
     class CommandStack : public QObject
     {
             Q_OBJECT
+            ISCORE_SERIALIZE_FRIENDS(CommandStack, DataStream)
         public:
             CommandStack(QObject* parent = nullptr);
             ~CommandStack();

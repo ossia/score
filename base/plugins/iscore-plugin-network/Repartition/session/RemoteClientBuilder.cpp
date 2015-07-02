@@ -49,6 +49,7 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
             commandStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
         }
 
+        // TODO also transmit the position in the command stack (else if somebody undoes and transmits it will crash)
         QDataStream s{&doc.data, QIODevice::WriteOnly};
         s << commandStack << m_session.document()->saveAsByteArray();
 

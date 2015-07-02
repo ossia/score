@@ -47,6 +47,8 @@
 #include "SwitchStatePosition.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
+#include "Scenario/Displacement/MoveNewEvent.hpp"
+#include "Scenario/Displacement/MoveNewState.hpp"
 
 ///////////////////////////////////////////////////
 //              CLASS NAME
@@ -89,8 +91,6 @@ const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTime
 const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConstraint"; }
 const char* Scenario::Command::MoveSlot::commandName() { return "MoveSlot"; }
 const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
-//const char* Scenario::Command::MoveNewState::commandName() { return "MoveNewState"; }
-//const char* Scenario::Command::MoveNewEvent::commandName() { return "MoveNewEvent"; }
 //const char* Scenario::Command::MoveLayerModel::commandName() { return "MoveLayerModel"; }
 const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
 
@@ -254,6 +254,8 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
     else if(name == MoveSlot::commandName()) return new MoveSlot;
     else if(name == SwapSlots::commandName()) return new SwapSlots;
     else if(name == MoveEvent::commandName()) return new MoveEvent;
+    else if(name == MoveNewEvent::commandName()) return new MoveNewEvent;
+    else if(name == MoveNewState::commandName()) return new MoveNewState;
 //    else if(name == MoveLayerModel::commandName()) return new MoveLayerModel;
     else if(name == MoveTimeNode::commandName()) return new MoveTimeNode;
 

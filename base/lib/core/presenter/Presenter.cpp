@@ -216,6 +216,17 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
     m_view->addDocumentView(doc->view());
 
     setCurrentDocument(doc);
+
+
+    // Save the initial state of the document
+    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
+
+    auto existing_files = s.value("iscore/docs").toMap();
+    existing_files.insert(doc->crashDataFile().fileName(), doc->crashCommandFile().fileName());
+    s.setValue("iscore/docs", existing_files);
+
+    doc->crashDataFile().write(doc->saveAsByteArray());
+    doc->crashDataFile().flush();
 }
 
 Document* Presenter::loadDocument(const QVariant& data,
@@ -249,28 +260,30 @@ void Presenter::restoreDocuments()
 {
     QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
 
-    auto existing_files = s.value("iscore/docs").toStringList();
-    for(auto&& backup_filename : existing_files)
+    auto existing_files = s.value("iscore/docs").toMap();
+    for(const auto& element : existing_files.keys())
     {
-        QFile file(backup_filename);
-        if(file.exists())
+        QFile data_file{element};
+        if(data_file.exists())
         {
-            file.open(QFile::ReadOnly);
-            auto data = file.readAll();
+            data_file.open(QFile::ReadOnly);
+
+            auto doc = loadDocument(data_file.readAll(), m_availableDocuments.front());
+
+            QFile command_file(existing_files[element].toString());
+            if(command_file.exists())
+            {
+                command_file.open(QFile::ReadOnly);
+
+                Deserializer<DataStream> writer(&command_file);
+                writer.writeTo(doc->commandStack());
+            }
         }
     }
 }
 
 void Presenter::restoreDocument(const QByteArray &arr)
 {
-    QByteArray document, commands;
-    QDataStream wr{arr};
-
-    wr >> document >> commands;
-    // Two parts : the initial document
-    auto doc = loadDocument(document, m_availableDocuments.front());
-
-    // And the commands are serialized afterwards
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(
