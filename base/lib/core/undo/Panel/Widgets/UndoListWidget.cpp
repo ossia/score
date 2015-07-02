@@ -24,8 +24,8 @@ void UndoListWidget::on_stackChanged()
     addItem("<Clean state>");
     for(int i = 0; i < m_stack->size(); i++)
     {
-        addItem(m_stack->command(i)->name());
+       addItem(m_stack->command(i)->name());
     }
 
-    this->setCurrentRow(m_stack->currentIndex());
+    this->setCurrentRow(m_stack->currentIndex(), QItemSelectionModel::SelectionFlag::ClearAndSelect);
 }

@@ -29,25 +29,32 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
     QList<QPair <QPair <QString,QString>, QByteArray> > undoStack, redoStack;
     m_stream >> undoStack >> redoStack;
 
-    for(const auto& elt : undoStack)
+
+    stack.updateStack([&] ()
     {
-        auto cmd = IPresenter::instantiateUndoCommand(
-                    elt.first.first,
-                    elt.first.second,
-                    elt.second);
+        stack.setSavedIndex(-1);
 
-        stack.redoAndPushQuiet(cmd);
-    }
+        for(const auto& elt : undoStack)
+        {
+            auto cmd = IPresenter::instantiateUndoCommand(
+                        elt.first.first,
+                        elt.first.second,
+                        elt.second);
 
-    for(const auto& elt : redoStack)
-    {
-        auto cmd = IPresenter::instantiateUndoCommand(
-                    elt.first.first,
-                    elt.first.second,
-                    elt.second);
+            cmd->redo();
+            stack.m_undoable.push(cmd);
+        }
 
-        stack.m_redoable.push(cmd);
-    }
+        for(const auto& elt : redoStack)
+        {
+            auto cmd = IPresenter::instantiateUndoCommand(
+                        elt.first.first,
+                        elt.first.second,
+                        elt.second);
+
+            stack.m_redoable.push(cmd);
+        }
+    });
 
     checkDelimiter();
 }

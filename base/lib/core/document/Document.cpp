@@ -12,7 +12,6 @@
 
 #include <core/application/OpenDocumentsFile.hpp>
 #include <QLayout>
-#include <QStandardPaths>
 #include <QSettings>
 
 using namespace iscore;
@@ -38,18 +37,7 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     init();
 
     m_crashDataFile.open(); // TODO testme
-    m_crashCommandFile.open();
-
-    connect(&m_commandStack, &CommandStack::stackChanged,
-            this, [&] () {
-        m_crashCommandFile.resize(0);
-        m_crashCommandFile.reset();
-
-        Serializer<DataStream> ser(&m_crashCommandFile);
-        ser.readFrom(commandStack());
-
-        m_crashCommandFile.flush();
-    });
+    m_crashCommandFile = new CommandBackupFile{m_commandStack, this};
 }
 
 void Document::init()
@@ -82,6 +70,8 @@ Document::~Document()
     auto existing_files = s.value("iscore/docs").toStringList();
     existing_files.removeOne(m_crashDataFile.fileName());
     s.setValue("iscore/docs", existing_files);
+
+    // TODO should we remove the backup files?
 }
 
 void Document::setupNewPanel(PanelPresenter* pres,

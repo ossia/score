@@ -149,6 +149,7 @@ bool Presenter::closeDocument(Document* doc)
 
 bool Presenter::saveDocument(Document * doc)
 {
+    // TODO Use QSaveFile
     QFileDialog d{nullptr, tr("Save")};
     d.setNameFilter(tr("Binary (*.scorebin) ;; JSON (*.scorejson)"));
     d.setConfirmOverwrite(true);
@@ -187,13 +188,18 @@ void Presenter::loadDocument()
         QFile f {loadname};
         if(f.open(QIODevice::ReadOnly))
         {
+            Document* theDoc{};
             if (loadname.indexOf(".scorebin") != -1)
-                loadDocument(f.readAll(), m_availableDocuments.front());
+            {
+                theDoc = loadDocument(f.readAll(), m_availableDocuments.front());
+            }
             else
             {
                 auto doc = QJsonDocument::fromJson(f.readAll());
-                loadDocument(doc.object(), m_availableDocuments.front());
+                theDoc = loadDocument(doc.object(), m_availableDocuments.front());
             }
+
+            theDoc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
         }
     }
 }
@@ -222,7 +228,8 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
     QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
 
     auto existing_files = s.value("iscore/docs").toMap();
-    existing_files.insert(doc->crashDataFile().fileName(), doc->crashCommandFile().fileName());
+    existing_files.insert(doc->crashDataFile().fileName(),
+                          doc->crashCommandFile().fileName());
     s.setValue("iscore/docs", existing_files);
 
     doc->crashDataFile().write(doc->saveAsByteArray());
@@ -278,6 +285,8 @@ void Presenter::restoreDocuments()
                 Deserializer<DataStream> writer(&command_file);
                 writer.writeTo(doc->commandStack());
             }
+
+            doc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
         }
     }
 }

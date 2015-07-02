@@ -4,7 +4,7 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
 
-#include <QTemporaryFile>
+#include <core/application/CommandBackupFile.hpp>
 
 namespace iscore
 {
@@ -47,8 +47,13 @@ namespace iscore
 
             QTemporaryFile& crashDataFile()
             { return m_crashDataFile; }
-            QTemporaryFile& crashCommandFile()
-            { return m_crashCommandFile; }
+            CommandBackupFile& crashCommandFile()
+            { return *m_crashCommandFile; }
+            void setCrashCommandfile(CommandBackupFile* file)
+            {
+                m_crashCommandFile = file;
+                file->setParent(this);
+            }
 
 
 
@@ -90,8 +95,9 @@ namespace iscore
             DocumentView* m_view{};
             DocumentPresenter* m_presenter{};
 
+            // TODO use QSaveFile
             QTemporaryFile m_crashDataFile;
-            QTemporaryFile m_crashCommandFile;
+            CommandBackupFile* m_crashCommandFile{};
     };
 
 }
