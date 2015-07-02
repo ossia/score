@@ -10,7 +10,9 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
+#include <core/application/OpenDocumentsFile.hpp>
 #include <QLayout>
+#include <QSettings>
 
 using namespace iscore;
 Document::Document(DocumentDelegateFactoryInterface* factory,
@@ -19,6 +21,8 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     NamedObject {"Document", parent},
     m_objectLocker{this}
 {
+    /// Construction of the document model
+
     // Note : we have to separate allocation
     // because the model delegates init might call IDocument::path()
     // which requires the pointer to m_model to be intialized.
@@ -31,6 +35,9 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
             m_view,
             this};
     init();
+
+    m_crashDataFile.open(); // TODO testme
+    m_crashCommandFile = new CommandBackupFile{m_commandStack, this};
 }
 
 void Document::init()
@@ -55,6 +62,16 @@ Document::~Document()
 
     delete m_presenter;
     delete m_view;
+
+    // Remove the crash file
+    QSettings s(QStandardPaths::standardLocations(QStandardPaths::TempLocation).first() + "/iscore_open_docs",
+                QSettings::IniFormat);
+
+    auto existing_files = s.value("iscore/docs").toStringList();
+    existing_files.removeOne(m_crashDataFile.fileName());
+    s.setValue("iscore/docs", existing_files);
+
+    // TODO should we remove the backup files?
 }
 
 void Document::setupNewPanel(PanelPresenter* pres,

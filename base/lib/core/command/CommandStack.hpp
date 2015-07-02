@@ -1,4 +1,5 @@
 #pragma once
+#include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <QObject>
@@ -17,6 +18,9 @@ namespace iscore
     class CommandStack : public QObject
     {
             Q_OBJECT
+            ISCORE_SERIALIZE_FRIENDS(CommandStack, DataStream)
+
+            friend class CommandBackupFile;
         public:
             CommandStack(QObject* parent = nullptr);
             ~CommandStack();
@@ -89,6 +93,12 @@ namespace iscore
 
             void indexChanged(int);
             void stackChanged();
+
+            // These signals are low-level and are sent on each operation that affects the stacks
+            void sig_undo();
+            void sig_redo();
+            void sig_push();
+            void sig_indexChanged();
 
         public slots:
             void setIndex(int index);

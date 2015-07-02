@@ -11,11 +11,8 @@ CommandStack::CommandStack(QObject* parent) :
 
 CommandStack::~CommandStack()
 {
-    for(auto& elt : m_undoable)
-        delete elt;
-    for(auto& elt : m_redoable)
-        delete elt;
-
+    qDeleteAll(m_undoable);
+    qDeleteAll(m_redoable);
 }
 
 const SerializableCommand* CommandStack::command(int index) const
@@ -37,6 +34,8 @@ void CommandStack::setIndex(int index)
         else
             redoQuiet();
     }
+
+    emit sig_indexChanged();
 }
 
 void CommandStack::undoQuiet()
@@ -46,6 +45,8 @@ void CommandStack::undoQuiet()
         auto cmd = m_undoable.pop();
         cmd->undo();
         m_redoable.push(cmd);
+
+        emit sig_undo();
     });
 }
 
@@ -57,6 +58,8 @@ void CommandStack::redoQuiet()
         cmd->redo();
 
         m_undoable.push(cmd);
+
+        emit sig_redo();
     });
 }
 
@@ -78,8 +81,13 @@ void CommandStack::push(SerializableCommand* cmd)
         // Push operation
         m_undoable.push(cmd);
 
-        qDeleteAll(m_redoable);
-        m_redoable.clear();
+        if(!m_redoable.empty())
+        {
+            qDeleteAll(m_redoable);
+            m_redoable.clear();
+        }
+
+        emit sig_push();
     });
 }
 
@@ -100,8 +108,13 @@ void CommandStack::pushQuiet(SerializableCommand* cmd)
         // Push operation
         m_undoable.push(cmd);
 
-        qDeleteAll(m_redoable);
-        m_redoable.clear();
+        if(!m_redoable.empty())
+        {
+            qDeleteAll(m_redoable);
+            m_redoable.clear();
+        }
+
+        emit sig_push();
     });
 }
 

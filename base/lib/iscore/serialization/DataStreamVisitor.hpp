@@ -148,7 +148,9 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
 
 template<typename T,
-         typename std::enable_if<not std::is_arithmetic<T>::value>::type* = nullptr>
+         typename std::enable_if<
+             not std::is_arithmetic<T>::value
+         and not std::is_same<T, QStringList>::value>::type* = nullptr>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
     Visitor<Reader<DataStream>> reader(stream.device());
@@ -157,7 +159,9 @@ QDataStream& operator<< (QDataStream& stream, const T& obj)
 }
 
 template<typename T,
-         typename std::enable_if<not std::is_arithmetic<T>::value>::type* = nullptr>
+         typename std::enable_if<
+             not std::is_arithmetic<T>::value
+         and not std::is_same<T, QStringList>::value>::type* = nullptr>
 QDataStream& operator>> (QDataStream& stream, T& obj)
 {
     Visitor<Writer<DataStream>> writer(stream.device());
@@ -165,6 +169,7 @@ QDataStream& operator>> (QDataStream& stream, T& obj)
 
     return stream;
 }
+
 
 
 Q_DECLARE_METATYPE(Visitor<Reader<DataStream>>*)

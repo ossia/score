@@ -9,9 +9,9 @@ CreateCurveFromStates::CreateCurveFromStates():
     iscore::SerializableCommand{
         "IScoreCohesionControl",
         commandName(),
-        description()}
+        description()},
+    m_addProcessCmd{new Scenario::Command::AddProcessToConstraint}
 {
-
 }
 
 CreateCurveFromStates::~CreateCurveFromStates()

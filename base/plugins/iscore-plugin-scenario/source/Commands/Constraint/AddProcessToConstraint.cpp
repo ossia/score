@@ -73,10 +73,10 @@ void AddProcessToConstraint::redo()
 
 void AddProcessToConstraint::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_processName << m_createdProcessId;
+    s << m_path << m_processName << m_createdProcessId << m_noRackes;
 }
 
 void AddProcessToConstraint::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_processName >> m_createdProcessId;
+    s >> m_path >> m_processName >> m_createdProcessId >> m_noRackes;
 }

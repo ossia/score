@@ -21,7 +21,7 @@ namespace Scenario
         {
             ISCORE_COMMAND_DECL("MoveNewState", "MoveNewState")
             public:
-
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewState, "ScenarioControl")
             MoveNewState(ObjectPath&& scenarioPath,
                     id_type<EventModel> eventId,
                     const double y);

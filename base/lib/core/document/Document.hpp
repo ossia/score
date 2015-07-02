@@ -4,6 +4,8 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
 
+#include <core/application/CommandBackupFile.hpp>
+
 namespace iscore
 {
     class DocumentModel;
@@ -42,6 +44,16 @@ namespace iscore
 
             ObjectLocker& locker()
             { return m_objectLocker; }
+
+            QTemporaryFile& crashDataFile()
+            { return m_crashDataFile; }
+            CommandBackupFile& crashCommandFile()
+            { return *m_crashCommandFile; }
+            void setCrashCommandfile(CommandBackupFile* file)
+            {
+                m_crashCommandFile = file;
+                file->setParent(this);
+            }
 
 
 
@@ -83,6 +95,9 @@ namespace iscore
             DocumentView* m_view{};
             DocumentPresenter* m_presenter{};
 
+            // TODO use QSaveFile
+            QTemporaryFile m_crashDataFile;
+            CommandBackupFile* m_crashCommandFile{};
     };
 
 }
