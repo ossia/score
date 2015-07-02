@@ -1,5 +1,6 @@
 #include "OSSIAConstraintElement.hpp"
 #include <API/Headers/Editor/TimeConstraint.h>
+#include <API/Headers/Editor/TimeProcess.h>
 #include "../iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "OSSIAScenarioElement.hpp"
 
@@ -10,7 +11,7 @@
 #include "iscore2OSSIA.hpp"
 OSSIAConstraintElement::OSSIAConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
-        const ConstraintModel& iscore_cst,
+        ConstraintModel& iscore_cst,
         QObject* parent):
     QObject{parent},
     m_iscore_constraint{iscore_cst},
@@ -46,6 +47,16 @@ OSSIAConstraintElement::OSSIAConstraintElement(
 std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() const
 {
     return m_ossia_constraint;
+}
+
+void OSSIAConstraintElement::stop()
+{
+    for(auto& proc : m_processes)
+    {
+        proc.second->stop();
+    }
+
+    m_iscore_constraint.reset();
 }
 
 void OSSIAConstraintElement::on_processAdded(

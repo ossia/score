@@ -211,6 +211,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             return m_rigidity;
         }
 
+        // Resets the execution display recursively
+        void reset();
+
     signals:
         void processCreated(const QString& processName,
                             const id_type<ProcessModel>& processId);

@@ -227,6 +227,17 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
     setupConstraintViewModel(m_fullViewModel);
 }
 
+void ConstraintModel::reset()
+{
+    qDebug() << Q_FUNC_INFO;
+    setPlayDuration(TimeValue::zero());
+
+    for(auto& proc : m_processes)
+    {
+        proc->reset();
+    }
+}
+
 void ConstraintModel::setHeightPercentage(double arg)
 {
     if(m_heightPercentage != arg)

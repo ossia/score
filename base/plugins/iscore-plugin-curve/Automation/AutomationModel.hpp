@@ -57,6 +57,8 @@ class AutomationModel : public ProcessModel
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
+        void reset() override;
+
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
         void setSelection(const Selection&) const override;

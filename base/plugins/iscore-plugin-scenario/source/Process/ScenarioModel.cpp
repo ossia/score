@@ -186,6 +186,16 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
     this->setDuration(newDuration);
 }
 
+void ScenarioModel::reset()
+{
+    for(auto& constraint : m_constraints)
+    {
+        constraint->reset();
+    }
+
+    // TODO reset events / states display too
+}
+
 Selection ScenarioModel::selectableChildren() const
 {
     Selection objects;

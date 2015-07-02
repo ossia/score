@@ -104,6 +104,9 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
         const TimeValue& duration() const;
 
+        /// Execution
+        virtual void reset() = 0;
+
         /// States
         virtual ProcessStateDataInterface* startState() const = 0;
         virtual ProcessStateDataInterface* endState() const = 0;

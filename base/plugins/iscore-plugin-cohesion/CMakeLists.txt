@@ -26,11 +26,6 @@ file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurvesFromAddresses.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ConstraintExecutor.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Execution.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ScenarioExecutor.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/AutomationExecutor.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/FakeEngine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionControl.cpp"
 )

@@ -30,6 +30,8 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
         std::shared_ptr<OSSIA::Scenario> scenario() const;
 
+        void stop() override;
+
     private:
         void on_constraintCreated(const id_type<ConstraintModel>& id);
         void on_eventCreated(const id_type<EventModel>& id);

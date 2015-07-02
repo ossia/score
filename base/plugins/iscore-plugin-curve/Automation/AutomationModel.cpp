@@ -150,6 +150,11 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     setDuration(newDuration);
 }
 
+void AutomationModel::reset()
+{
+
+}
+
 Selection AutomationModel::selectableChildren() const
 {
     Selection s;

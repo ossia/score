@@ -73,6 +73,11 @@ std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
     return m_ossia_scenario;
 }
 
+void OSSIAScenarioElement::stop()
+{
+    m_executingConstraints.clear();
+}
+
 std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 {
     return scenario();

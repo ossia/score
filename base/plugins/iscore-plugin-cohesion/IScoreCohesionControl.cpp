@@ -22,16 +22,12 @@
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
-#include <Execution/Execution.hpp>
 #include <QKeySequence>
 
 using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
-    connect(&m_engine, &FakeEngine::currentTimeChanged,
-            this, &IScoreCohesionControl::on_currentTimeChanged);
-
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
     m_snapshot->setShortcut(tr("Ctrl+J"));
@@ -69,58 +65,6 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::ObjectMenu,
                                        m_interp);
-
-
-    QAction* play = new QAction {tr("Play (0.2 engine)"), this};
-    connect(play, &QAction::triggered,
-            [&] ()
-    {
-        m_scoreFile.close();
-        if(m_scoreFile.open())
-        {
-            auto data = JSONToZeroTwo(currentDocument()->saveAsJson());
-
-            m_scoreFile.write(data.toLatin1().constData(), data.size());
-            m_scoreFile.flush();
-            m_engine.runScore(m_scoreFile.fileName());
-        }
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::PlayMenu,
-                                       play);
-
-    QAction* play2 = new QAction {tr("Play (test engine)"), this};
-    connect(play2, &QAction::triggered,
-            [&] ()
-    {
-        auto& bem = IDocument::modelDelegate<BaseElementModel>(*currentDocument());
-        if(m_executor)
-        {
-            m_executor->stop();
-            delete m_executor;
-        }
-
-        m_executor = new Executor(*bem.baseConstraint());
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::PlayMenu,
-                                       play2);
-
-
-    QAction* stop = new QAction {tr("Stop (test engine)"), this};
-    connect(stop, &QAction::triggered,
-            [&] ()
-    {
-        if(m_executor)
-        {
-            m_executor->stop();
-            delete m_executor;
-            m_executor = nullptr;
-        }
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::PlayMenu,
-                                       stop);
 }
 
 #include <QToolBar>
@@ -152,12 +96,6 @@ SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString
 }
 
 #include <core/document/DocumentModel.hpp>
-void IScoreCohesionControl::on_currentTimeChanged(double t)
-{
-    auto bep = static_cast<BaseElementPresenter*>(currentDocument()->presenter()->presenterDelegate());
-    bep->setProgressBarTime(TimeValue(std::chrono::milliseconds((uint32_t)t)));
-}
-
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
     using namespace std;

@@ -7,6 +7,8 @@
 #include <API/Headers/Network/Protocol.h>
 
 #include <API/Headers/Editor/TimeEvent.h>
+#include <API/Headers/Editor/TimeConstraint.h>
+#include <API/Headers/Editor/TimeProcess.h>
 #include <API/Headers/Editor/Expression.h>
 #include <API/Headers/Editor/ExpressionNot.h>
 #include <API/Headers/Editor/ExpressionAtom.h>
@@ -35,7 +37,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 {
-    QAction* play = new QAction {tr("Play (OSSIA engine)"), this};
+    QAction* play = new QAction {tr("Play"), this};
     connect(play, &QAction::triggered,
             [&] ()
     {
@@ -46,6 +48,50 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        play);
+
+    QAction* pause = new QAction {tr("Pause"), this};
+    connect(pause, &QAction::triggered,
+            [&] ()
+    {
+        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
+        auto cst = static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->baseConstraint()->constraint();
+
+        for(auto& elt : cst->timeProcesses())
+        {
+            elt->pause();
+        }
+    });
+
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
+                                       pause);
+
+    QAction* resume = new QAction {tr("Resume"), this};
+    connect(resume, &QAction::triggered,
+            [&] ()
+    {
+        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
+        auto cst = static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->baseConstraint()->constraint();
+
+        for(auto& elt : cst->timeProcesses())
+        {
+            elt->resume();
+        }
+    });
+
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
+                                       resume);
+
+    QAction* stop = new QAction {tr("Stop"), this};
+    connect(stop, &QAction::triggered,
+            [&] ()
+    {
+        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
+        static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->baseConstraint()->stop();
+
+    });
+
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
+                                       stop);
 }
 
 iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
