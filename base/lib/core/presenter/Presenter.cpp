@@ -195,11 +195,11 @@ void Presenter::loadDocument()
             }
             else
             {
-                auto doc = QJsonDocument::fromJson(f.readAll());
-                theDoc = loadDocument(doc.object(), m_availableDocuments.front());
+                auto json = QJsonDocument::fromJson(f.readAll());
+                theDoc = loadDocument(json.object(), m_availableDocuments.front());
             }
 
-            theDoc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
+            theDoc->setCrashCommandfile(new CommandBackupFile{theDoc->commandStack(), theDoc});
         }
     }
 }
@@ -253,6 +253,9 @@ try
     m_view->addDocumentView(doc->view());
 
     setCurrentDocument(doc);
+
+    doc->crashDataFile().write(doc->saveAsByteArray());
+    doc->crashDataFile().flush();
 
     return doc;
 }
