@@ -3,13 +3,17 @@
 #include "StateView.hpp"
 
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
+#include "Document/Event/EventModel.hpp"
+
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 DisplayedStateModel::DisplayedStateModel(id_type<DisplayedStateModel> id,
+                                         id_type<EventModel> eventId,
                                          double yPos,
                                          QObject *parent):
     IdentifiedObject<DisplayedStateModel> {id, "DisplayedStateModel", parent},
+    m_eventId{eventId},
     m_heightPercentage{yPos}
 {
 
@@ -23,7 +27,7 @@ void DisplayedStateModel::initView(AbstractConstraintView *parentView)
 DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &copy,
                                          const id_type<DisplayedStateModel> &id,
                                          QObject *parent):
-    DisplayedStateModel(id, copy.heightPercentage(), copy.parent())
+    DisplayedStateModel(id, copy.eventId(), copy.heightPercentage(), copy.parent())
 {
     m_states = copy.states();
     //TODO : view
@@ -55,6 +59,11 @@ void DisplayedStateModel::setPos(qreal y)
 {
     m_view->setPos({0, y});
 }
+const id_type<EventModel> &DisplayedStateModel::eventId() const
+{
+    return m_eventId;
+}
+
 
 const iscore::StateList &DisplayedStateModel::states() const
 {

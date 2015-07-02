@@ -19,7 +19,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 {
     this->setParentItem(parent);
 
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(parent->zValue() + 3);
     this->setCursor(Qt::SizeVerCursor);
 }
 

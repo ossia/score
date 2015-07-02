@@ -28,6 +28,7 @@ class ScenarioStateBase : public QState
             clickedEvent = id_type<EventModel>{};
             clickedTimeNode = id_type<TimeNodeModel>{};
             clickedConstraint = id_type<ConstraintModel>{};
+            clickedState = id_type<DisplayedStateModel>{};
 
             currentPoint = ScenarioPoint();
         }

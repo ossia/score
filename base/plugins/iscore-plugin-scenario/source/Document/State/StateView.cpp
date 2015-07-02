@@ -13,7 +13,7 @@ StateView::StateView(DisplayedStateModel& model, QGraphicsObject *parent) :
 {
     this->setParentItem(parent);
 
-    this->setZValue(parent->zValue() + 10);
+    this->setZValue(parent->zValue() + 1);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
 }
@@ -61,7 +61,6 @@ void StateView::setContainMessage(bool arg)
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     emit pressed(event->scenePos());
-    qDebug() << "StateView pressed";
 }
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)

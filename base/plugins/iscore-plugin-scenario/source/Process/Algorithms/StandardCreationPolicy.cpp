@@ -78,8 +78,10 @@ ConstraintModel& CreateConstraintMin::redo(
 
     constraint->setStartEvent(sev.id());
     constraint->setEndEvent(eev.id());
+
     auto endst = new DisplayedStateModel{
                         endStateId,
+                        eev.id(),
                         ypos,
                         &s };
 

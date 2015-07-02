@@ -111,9 +111,16 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
         // What happens in each state.
         QObject::connect(moving, &QState::entered, [&] ()
         {
+            id_type<EventModel> evId{clickedEvent};
+            if(!bool(evId) && bool(clickedState))
+            {
+                auto& scenar = m_scenarioPath.find<ScenarioModel>();
+                evId = scenar.displayedState(clickedState).eventId();
+            }
+
             m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
-                            clickedEvent,
+                            evId,
                             currentPoint.date,
                             stateMachine.expandMode());
         });

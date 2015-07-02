@@ -8,8 +8,6 @@ void ClickOnState_Transition::onTransition(QEvent *ev)
 
     this->state().clickedState= qev->id;
     this->state().currentPoint = qev->point;
-
-    qDebug() << "state transition" << qev->id;
 }
 
 void MoveOnState_Transition::onTransition(QEvent *ev)

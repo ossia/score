@@ -14,6 +14,7 @@
 
 class AbstractConstraintView;
 class ScenarioModel;
+class EventModel;
 
 class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 {
@@ -31,6 +32,7 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         ModelMetadata metadata; // TODO : usefull ?
 
         DisplayedStateModel(id_type<DisplayedStateModel> id,
+                            id_type<EventModel> eventId,
                             double yPos,
                             QObject* parent);
 
@@ -52,12 +54,15 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         void addState(const iscore::State& s);
         void removeState(const iscore::State& s);
 
-    public slots:
+        const id_type<EventModel>& eventId() const;
+
+public slots:
         void setHeightPercentage(double y);
         void setPos(qreal y);
 
     private:
 
+        id_type<EventModel> m_eventId;  // TODO serialize
         double m_heightPercentage{0.5}; // Usefull ? Not sure because it moves with his parent, the constraint ...
 
         iscore::StateList m_states;

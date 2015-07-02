@@ -45,5 +45,6 @@ class CreationToolState : public ScenarioTool
 
         CreateFromEventState* m_createFromEventState{};
         CreateFromTimeNodeState* m_createFromTimeNodeState{};
+        CreateFromStateState* m_createFromStateState{};
         QState* m_waitState{};
 };

@@ -31,7 +31,6 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
             iscore::IDocument::path(m_parentSM.model()),
             m_parentSM.commandStack(), nullptr};
 
-    make_transition<ClickOnState_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
     make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
     m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
 
@@ -52,6 +51,20 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
                                                 *m_createFromTimeNodeState);
     m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, SIGNAL(finished()), m_waitState);
     localSM().addState(m_createFromTimeNodeState);
+
+    /// Create from a State
+    m_createFromStateState = new CreateFromStateState{
+            m_parentSM,
+            iscore::IDocument::path(m_parentSM.model()),
+            m_parentSM.commandStack(), nullptr};
+    make_transition<ClickOnState_Transition>(m_waitState,
+                                             m_createFromStateState,
+                                             *m_createFromStateState);
+
+    m_createFromStateState->addTransition(m_createFromStateState, SIGNAL(finished()), m_waitState);
+
+    localSM().addState(m_createFromStateState);
+
 }
 
 void CreationToolState::on_pressed()

@@ -105,12 +105,12 @@ iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
 
 void OSSIAControl::on_newDocument(iscore::Document* doc)
 {
-    doc->model()->addPluginModel(new OSSIADocumentPlugin{doc->model(), doc->model()});
+//    doc->model()->addPluginModel(new OSSIADocumentPlugin{doc->model(), doc->model()});
 }
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 {
-    on_newDocument(doc);
+//    on_newDocument(doc);
 }
 
 void OSSIAControl::on_documentChanged()

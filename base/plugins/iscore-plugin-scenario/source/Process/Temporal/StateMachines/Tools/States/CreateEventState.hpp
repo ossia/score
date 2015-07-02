@@ -26,6 +26,7 @@ class CreateFromEventState : public CreationState
 
 };
 
+// impl is in CreateEventFromTimeNodeState.cpp
 class CreateFromTimeNodeState : public CreationState
 {
     public:
@@ -46,6 +47,29 @@ class CreateFromTimeNodeState : public CreationState
 
         MultiOngoingCommandDispatcher m_dispatcher;
 
+        ScenarioPoint m_clickedPoint;
+        id_type<EventModel> m_createdFirstEvent;
+};
+
+class CreateFromStateState : public CreationState
+{
+    public:
+        CreateFromStateState(
+                const ScenarioStateMachine& stateMachine,
+                ObjectPath&& scenarioPath,
+                iscore::CommandStack& stack,
+                QState* parent);
+
+    private:
+        void createSingleEventOnTimeNode();
+
+        void createEventFromStateOnNothing(const ScenarioStateMachine& stateMachine);
+        void createEventFromStateOnTimeNode();
+
+        void createConstraintBetweenEvents();
+
+
+        MultiOngoingCommandDispatcher m_dispatcher;
         ScenarioPoint m_clickedPoint;
         id_type<EventModel> m_createdFirstEvent;
 };
