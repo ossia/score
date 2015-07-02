@@ -1,15 +1,15 @@
 #include <core/application/Application.hpp>
+#include <core/application/OpenDocumentsFile.hpp>
 
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoControl.hpp>
-
-#include "QSplashScreen"
+#include <QSplashScreen>
 
 using namespace iscore;
-
+#include <QMessageBox>
 
 
 Application::Application(int& argc, char** argv) :
@@ -20,7 +20,7 @@ Application::Application(int& argc, char** argv) :
     m_app = new QApplication{argc, argv};
 
     QPixmap logo{":/iscore.png"};
-    QSplashScreen splash(logo);
+    QSplashScreen splash(logo, Qt::FramelessWindowHint);
     splash.show();
 
     m_app->setFont(QFont{":/images/Ubuntu-R.ttf", 10, QFont::Normal});
@@ -35,7 +35,6 @@ Application::Application(int& argc, char** argv) :
     qRegisterMetaType<Selection>("Selection");
 
     // Colors
-
     QPalette scenarPalette;
     scenarPalette.setBrush(QPalette::Background, QColor::fromRgb(37, 41, 48));
 
@@ -64,17 +63,35 @@ Application::Application(int& argc, char** argv) :
 
     // View
     m_view->show();
-    splash.finish(m_view);
 
-    if(!m_pluginManager.m_documentPanelList.empty())
-        m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
+    // Try to reload if there was a crash
+    if(openDocumentsFileExists() && QMessageBox::question(
+                m_view,
+                tr("Reload?"),
+                tr("It seems that i-score previously crashed. Do you wish to reload your work?")) == QMessageBox::Yes)
+    {
+        m_presenter->restoreDocuments();
+    }
+    else
+    {
+        if(!m_pluginManager.m_documentPanelList.empty())
+            m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
+    }
+
+    splash.finish(m_view);
 }
 
 Application::~Application()
 {
     this->setParent(nullptr);
     delete m_presenter;
-    delete m_app;//m_app->deleteLater();
+
+    if(openDocumentsFileExists())
+    {
+        QFile f{openDocumentsFilePath()};
+        f.remove();
+    }
+    delete m_app;
 }
 
 void Application::loadPluginData()

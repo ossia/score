@@ -4,6 +4,8 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
 
+#include <QTemporaryFile>
+
 namespace iscore
 {
     class DocumentModel;
@@ -83,6 +85,7 @@ namespace iscore
             DocumentView* m_view{};
             DocumentPresenter* m_presenter{};
 
+            QTemporaryFile m_crashFile;
     };
 
 }

@@ -47,6 +47,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/ToolState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/OpenDocumentsFile.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentView.cpp"

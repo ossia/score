@@ -10,7 +10,10 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
+#include <core/application/OpenDocumentsFile.hpp>
 #include <QLayout>
+#include <QStandardPaths>
+#include <QSettings>
 
 using namespace iscore;
 Document::Document(DocumentDelegateFactoryInterface* factory,
@@ -19,6 +22,23 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     NamedObject {"Document", parent},
     m_objectLocker{this}
 {
+    /// Setup the crash file
+    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
+    qDebug() << s.fileName();
+
+    m_crashFile.open(); // TODO testme
+    auto existing_files = s.value("iscore/docs").toStringList();
+    qDebug() << "EXISTING_FILES BEFORe" << existing_files;
+
+    existing_files.append(m_crashFile.fileName());
+    qDebug() << existing_files.size();
+
+    s.setValue("iscore/docs", existing_files);
+
+    qDebug() << "EXISTING_FILES AFTER" << existing_files;
+
+    /// Construction of the document model
+
     // Note : we have to separate allocation
     // because the model delegates init might call IDocument::path()
     // which requires the pointer to m_model to be intialized.
@@ -55,6 +75,14 @@ Document::~Document()
 
     delete m_presenter;
     delete m_view;
+
+    // Remove the crash file
+    QSettings s(QStandardPaths::standardLocations(QStandardPaths::TempLocation).first() + "/iscore_open_docs",
+                QSettings::IniFormat);
+
+    auto existing_files = s.value("iscore/docs").toStringList();
+    existing_files.removeOne(m_crashFile.fileName());
+    s.setValue("iscore/docs", existing_files);
 }
 
 void Document::setupNewPanel(PanelPresenter* pres,

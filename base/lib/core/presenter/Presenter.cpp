@@ -1,6 +1,7 @@
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
 #include <core/application/Application.hpp>
+#include <core/application/OpenDocumentsFile.hpp>
 #include <core/view/View.hpp>
 
 #include <iscore/plugins/panel/PanelFactory.hpp>
@@ -14,6 +15,7 @@
 #include <core/undo/UndoControl.hpp>
 
 #include <QFileDialog>
+#include <QSettings>
 #include <QJsonDocument>
 
 using namespace iscore;
@@ -241,6 +243,34 @@ catch(std::runtime_error& e)
     QMessageBox::warning(nullptr, QObject::tr("Error"), e.what());
     throw;
     return nullptr;
+}
+
+void Presenter::restoreDocuments()
+{
+    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
+
+    auto existing_files = s.value("iscore/docs").toStringList();
+    for(auto&& backup_filename : existing_files)
+    {
+        QFile file(backup_filename);
+        if(file.exists())
+        {
+            file.open(QFile::ReadOnly);
+            auto data = file.readAll();
+        }
+    }
+}
+
+void Presenter::restoreDocument(const QByteArray &arr)
+{
+    QByteArray document, commands;
+    QDataStream wr{arr};
+
+    wr >> document >> commands;
+    // Two parts : the initial document
+    auto doc = loadDocument(document, m_availableDocuments.front());
+
+    // And the commands are serialized afterwards
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(
