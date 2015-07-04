@@ -33,6 +33,9 @@ ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presente
 
 void ScenarioViewInterface::on_eventMoved(const id_type<EventModel>& eventId)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto rect = m_presenter->m_view->boundingRect();
     auto ev = m_presenter->m_events.at(eventId);
 
@@ -45,10 +48,14 @@ void ScenarioViewInterface::on_eventMoved(const id_type<EventModel>& eventId)
                               rect.height() * timeNode->model().y()});
 
     m_presenter->m_view->update();
+    */
 }
 
 void ScenarioViewInterface::on_constraintMoved(const id_type<ConstraintModel>& constraintId)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto rect = m_presenter->m_view->boundingRect();
     auto msPerPixel = m_presenter->m_zoomRatio;
 
@@ -82,6 +89,7 @@ void ScenarioViewInterface::on_constraintMoved(const id_type<ConstraintModel>& c
     updateTimeNode(startTn);
 
     m_presenter->m_view->update();
+    */
 }
 
 template<typename T>
@@ -93,6 +101,9 @@ void update_min_max(const T& val, T& min, T& max)
 
 void ScenarioViewInterface::updateTimeNode(const id_type<TimeNodeModel>& timeNodeId)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto timeNode_it = m_presenter->m_timeNodes.find(timeNodeId);
     if(timeNode_it == m_presenter->m_timeNodes.end())
         return;
@@ -150,33 +161,44 @@ void ScenarioViewInterface::updateTimeNode(const id_type<TimeNodeModel>& timeNod
     tnMax -= timeNode->model().y();
 
     timeNode->view()->setExtremities(int (h * tnMin), int (h * tnMax));
+    */
 }
 
 void ScenarioViewInterface::addPointInEvent(const id_type<EventModel> &eventId, double y)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto event = m_presenter->m_events.at(eventId);
     auto h = m_presenter->m_view->boundingRect().height();
     event->view()->addPoint(int (h * (y - event->model().heightPercentage())));
 
     auto tn = m_presenter->m_timeNodes.at(event->model().timeNode());
     tn->view()->addPoint(int(h * (y - tn->model().y()) ));
+    */
 }
 
 void ScenarioViewInterface::on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     const auto& constraint = m_presenter->m_constraints.at(constraintId)->model();
     EventPresenter* start = m_presenter->m_events.at(constraint.startEvent());
     start->view()->setShadow(enter);
     EventPresenter* end = m_presenter->m_events.at(constraint.endEvent());
     end->view()->setShadow(enter);
+    */
 }
 
 void ScenarioViewInterface::on_hoverOnEvent(const id_type<EventModel>& eventId, bool enter)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     const auto& event = m_presenter->m_events.at(eventId)->model();
     for (const auto& cstr : event.constraints())
     {
         auto cstrView = view(m_presenter->m_constraints.at(cstr));
         cstrView->setShadow(enter);
     }
+    */
 }

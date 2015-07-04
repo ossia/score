@@ -31,6 +31,8 @@ void StandardRemovalPolicy::removeConstraint(
         ScenarioModel& scenario,
         const id_type<ConstraintModel>& constraintId)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& cstr = scenario.constraint(constraintId);
     auto& sev = scenario.event(cstr.startEvent());
     sev.removeNextConstraint(constraintId);
@@ -39,12 +41,15 @@ void StandardRemovalPolicy::removeConstraint(
     eev.removePreviousConstraint(constraintId);
 
     scenario.removeConstraint(&cstr);
+    */
 }
 
 void StandardRemovalPolicy::removeEventAndConstraints(
         ScenarioModel& scenario,
         const id_type<EventModel>& eventId)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& ev = scenario.event(eventId);
 
     for(const auto& constraint : ev.constraints())
@@ -55,4 +60,5 @@ void StandardRemovalPolicy::removeEventAndConstraints(
     removeEventFromTimeNode(scenario, eventId);
 
     scenario.removeEvent(&ev);
+    */
 }

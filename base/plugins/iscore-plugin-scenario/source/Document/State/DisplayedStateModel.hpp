@@ -15,6 +15,7 @@
 class AbstractConstraintView;
 class ScenarioModel;
 class EventModel;
+class ConstraintModel;
 
 class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 {
@@ -31,11 +32,12 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         Selectable selection; // TODO state connections
         ModelMetadata metadata; // TODO : usefull ?
 
-        DisplayedStateModel(id_type<DisplayedStateModel> id,
-                            id_type<EventModel> eventId,
+        DisplayedStateModel(const id_type<DisplayedStateModel>& id,
+                            const id_type<EventModel>& eventId,
                             double yPos,
                             QObject* parent);
 
+        // TODO berkkk
         void initView(AbstractConstraintView *parentView);
 
         // Copy
@@ -47,6 +49,7 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 
         double heightPercentage() const;
 
+        // TODO put in presenter
         StateView* view() const;
 
         const iscore::StateList& states() const;
@@ -61,9 +64,13 @@ public slots:
         void setPos(qreal y);
 
     private:
-
         id_type<EventModel> m_eventId;  // TODO serialize
-        double m_heightPercentage{0.5}; // Usefull ? Not sure because it moves with his parent, the constraint ...
+
+        // TODO When we shift to id_type = int, put this Optional
+        id_type<ConstraintModel> m_previousConstraint;
+        id_type<ConstraintModel> m_nextConstraint;
+
+        double m_heightPercentage{0.5}; // In the whole scenario
 
         iscore::StateList m_states;
         StateView* m_view{};

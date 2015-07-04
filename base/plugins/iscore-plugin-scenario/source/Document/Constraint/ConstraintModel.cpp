@@ -32,13 +32,13 @@ ConstraintModel::ConstraintModel(
     metadata = source.metadata;
 //    consistency = source.consistency; // TODO : no necessary because it should be compute
 
-    m_startEvent = source.startEvent();
-    m_endEvent = source.endEvent();
+    m_startState = source.startState();
+    m_endState = source.endState();
 
     m_defaultDuration = source.defaultDuration();
     m_minDuration = source.minDuration();
     m_maxDuration = source.maxDuration();
-    m_x = source.m_x;
+    m_startDate = source.m_startDate;
     m_heightPercentage = source.heightPercentage();
 
     // For an explanation of this, see CopyConstraintContent command
@@ -161,24 +161,14 @@ void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
     delete b;
 }
 
-const id_type<EventModel>& ConstraintModel::startEvent() const
+const id_type<DisplayedStateModel>& ConstraintModel::startState() const
 {
-    return m_startEvent;
+    return m_startState;
 }
 
-const id_type<EventModel>& ConstraintModel::endEvent() const
+void ConstraintModel::setStartState(const id_type<DisplayedStateModel>& e)
 {
-    return m_endEvent;
-}
-
-void ConstraintModel::setStartEvent(const id_type<EventModel>& e)
-{
-    m_startEvent = e;
-}
-
-void ConstraintModel::setEndEvent(const id_type<EventModel>& e)
-{
-    m_endEvent = e;
+    m_startState = e;
 }
 
 
@@ -199,18 +189,18 @@ ProcessModel* ConstraintModel::process(
 
 const TimeValue& ConstraintModel::startDate() const
 {
-    return m_x;
+    return m_startDate;
 }
 
 void ConstraintModel::setStartDate(const TimeValue& start)
 {
-    m_x = start;
+    m_startDate = start;
     emit startDateChanged(start);
 }
 
 void ConstraintModel::translate(const TimeValue& deltaTime)
 {
-    setStartDate(m_x + deltaTime);
+    setStartDate(m_startDate + deltaTime);
 }
 
 // Simple getters and setters

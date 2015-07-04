@@ -231,6 +231,9 @@ void TemporalScenarioPresenter::on_timeNodeRemoved(
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
         const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     for(const auto& pres : m_constraints)
     {
         // TODO add an index in the map on viewmodel id ?
@@ -251,6 +254,7 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
     }
 
     m_view->update();
+    */
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -264,6 +268,9 @@ void TemporalScenarioPresenter::on_askUpdate()
 // ELEMENTS CREATED
 void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_model)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto rect = m_view->boundingRect();
 
     auto ev_pres = new EventPresenter {event_model,
@@ -296,7 +303,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     connect(ev_pres, &EventPresenter::eventHoverLeave,
             this, [=] ()
     { m_viewInterface->on_hoverOnEvent(ev_pres->id(), false); });
-
+    */
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model)
@@ -327,6 +334,9 @@ void TemporalScenarioPresenter::on_displayedStateCreated(const DisplayedStateMod
 
 void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto rect = m_view->boundingRect();
 
     auto cst_pres = new TemporalConstraintPresenter{
@@ -387,4 +397,5 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
     connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    */
 }

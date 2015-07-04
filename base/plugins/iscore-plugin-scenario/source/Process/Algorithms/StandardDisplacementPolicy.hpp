@@ -31,6 +31,8 @@ namespace StandardDisplacementPolicy
             const TimeValue& deltaTime,
             ProcessScaleMethod&& scaleMethod)
     {
+        qDebug() << "TODO: " << Q_FUNC_INFO;
+        /*
         for (const auto& timeNode_id : translatedTimeNodes)
         {
             auto& timeNode = scenario.timeNode(timeNode_id);
@@ -65,6 +67,7 @@ namespace StandardDisplacementPolicy
 
             emit scenario.constraintMoved(constraint->id());
         }
+        */
     }
 
     // ProcessScaleMethod is a callable object that takes a ProcessModel*
@@ -76,6 +79,8 @@ namespace StandardDisplacementPolicy
             double heightPosition,
             ProcessScaleMethod&& scaleMethod)
     {
+        qDebug() << "TODO: " << Q_FUNC_INFO;
+        /*
         auto& ev = scenario.event(eventId);
 
         if (*ev.timeNode().val() == 0)
@@ -116,6 +121,7 @@ namespace StandardDisplacementPolicy
                 }
             }
         }
+        */
     }
 
     template<typename ProcessScaleMethod>
@@ -126,6 +132,8 @@ namespace StandardDisplacementPolicy
             double heightPosition,
             ProcessScaleMethod&& scaleMethod)
     {
+        qDebug() << "TODO: " << Q_FUNC_INFO;
+        /*
         auto& constraint = scenario.constraint(constraintId);
         constraint.setHeightPercentage(heightPosition);
         emit scenario.constraintMoved(constraintId);
@@ -140,5 +148,6 @@ namespace StandardDisplacementPolicy
                                                          sev.heightPercentage(),
                                                          scaleMethod);
         }
+        */
     }
 }

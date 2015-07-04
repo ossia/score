@@ -27,6 +27,8 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
     const auto& movedEvent = scenar.event(m_eventId);
     m_oldDate = movedEvent.date();
@@ -66,6 +68,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
 
         m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
     }
+    */
 }
 
 void MoveEvent::undo()

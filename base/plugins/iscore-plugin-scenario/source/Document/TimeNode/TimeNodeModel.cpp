@@ -41,6 +41,8 @@ ScenarioModel* TimeNodeModel::parentScenario() const
 
 void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
@@ -51,10 +53,13 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
         m_eventHasPreviousConstraint[eventId] = theEvent.hasPreviousConstraint();
         checkIfPreviousConstraint();
     }
+    */
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     if(m_events.indexOf(eventId) >= 0)
     {
         m_events.remove(m_events.indexOf(eventId));
@@ -63,6 +68,7 @@ bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)
     }
 
     return false;
+    */
 }
 
 const TimeValue& TimeNodeModel::date() const

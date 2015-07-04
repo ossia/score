@@ -14,39 +14,36 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 
     // Metadata
     readFrom(constraint.metadata);
-    m_stream << constraint.heightPercentage();
 
     // Processes
-    const auto& processes = constraint.processes();
-    m_stream << (int) processes.size();
-
-    for(const auto& process : processes)
+    m_stream << (int) constraint.m_processes.size();
+    for(const auto& process : constraint.m_processes)
     {
         readFrom(*process);
     }
 
     // Rackes
-    const auto& rackes = constraint.racks();
-    m_stream << (int) rackes.size();
-
-    for(const auto& rack : rackes)
+    m_stream << (int) constraint.m_racks.size();
+    for(const auto& rack : constraint.m_racks)
     {
         readFrom(*rack);
     }
 
     // Full view
-    readFrom(*constraint.fullView());
+    readFrom(*constraint.m_fullViewModel);
 
-    // Events
-    m_stream << constraint.startEvent();
-    m_stream << constraint.endEvent();
+    // Common data
+    m_stream << constraint.m_startState
+             << constraint.m_endState
 
-    m_stream << constraint.defaultDuration()
-             << constraint.startDate()
-             << constraint.minDuration()
-             << constraint.maxDuration();
+             << constraint.m_defaultDuration
+             << constraint.m_minDuration
+             << constraint.m_maxDuration
 
-    m_stream << constraint.isRigid();
+             << constraint.m_startDate
+             << constraint.m_heightPercentage
+
+             << constraint.m_rigidity;
 
     readFrom(constraint.pluginModelList);
 
@@ -55,11 +52,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
 
 template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint)
 {
-    double heightPercentage;
     writeTo(constraint.metadata);
-    m_stream >> heightPercentage;
-
-    constraint.setHeightPercentage(heightPercentage);
 
     // Processes
     int process_count;
@@ -85,28 +78,19 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     //(todo how to fix this ?)
     constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
 
-    // Events
-    id_type<EventModel> startId {}, endId {};
-    m_stream >> startId;
-    m_stream >> endId;
-    constraint.setStartEvent(startId);
-    constraint.setEndEvent(endId);
+    // Common data
+    m_stream >> constraint.m_startState
+             >> constraint.m_endState
 
-    TimeValue width {}, startDate {}, minDur {}, maxDur {};
-    m_stream >> width
-             >> startDate
-             >> minDur
-             >> maxDur;
+             >> constraint.m_defaultDuration
+             >> constraint.m_minDuration
+             >> constraint.m_maxDuration
 
-    bool rigidity;
-    m_stream >> rigidity;
+             >> constraint.m_startDate
+             >> constraint.m_heightPercentage
 
-    constraint.setDefaultDuration(width);
-    constraint.setStartDate(startDate);
-    constraint.setMinDuration(minDur);
-    constraint.setMaxDuration(maxDur);
+             >> constraint.m_rigidity;
 
-    constraint.setRigid(rigidity);
 
     constraint.pluginModelList = iscore::ElementPluginModelList{*this, &constraint};
 
@@ -115,15 +99,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
 
 
 
-
-
 template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
     m_obj["Metadata"] = toJsonObject(constraint.metadata);
-    m_obj["HeightPercentage"] = constraint.heightPercentage();
-    m_obj["StartEvent"] = toJsonValue(constraint.startEvent());
-    m_obj["EndEvent"] = toJsonValue(constraint.endEvent());
 
     // Processes
     m_obj["Processes"] = toJsonArray(constraint.processes());
@@ -131,15 +110,23 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
     // Rackes
     m_obj["Rackes"] = toJsonArray(constraint.racks());
 
-
+    // Full view
     m_obj["FullView"] = toJsonObject(*constraint.fullView());
 
-    m_obj["DefaultDuration"] = toJsonValue(constraint.defaultDuration());
-    m_obj["StartDate"] = toJsonValue(constraint.startDate());
-    m_obj["MinDuration"] = toJsonValue(constraint.minDuration());
-    m_obj["MaxDuration"] = toJsonValue(constraint.maxDuration());
+
+    // Common data
+    m_obj["StartState"] = toJsonValue(constraint.m_startState);
+    m_obj["EndState"] = toJsonValue(constraint.m_endState);
+
+    m_obj["DefaultDuration"] = toJsonValue(constraint.m_defaultDuration);
+    m_obj["MinDuration"] = toJsonValue(constraint.m_minDuration);
+    m_obj["MaxDuration"] = toJsonValue(constraint.m_maxDuration);
+
+    m_obj["StartDate"] = toJsonValue(constraint.m_startDate);
+    m_obj["HeightPercentage"] = constraint.m_heightPercentage;
 
     m_obj["Rigidity"] = constraint.isRigid();
+
 
     m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
@@ -147,20 +134,15 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
 template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint)
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
-    constraint.setHeightPercentage(m_obj["HeightPercentage"].toDouble());
-    constraint.setStartEvent(fromJsonValue<id_type<EventModel>> (m_obj["StartEvent"]));
-    constraint.setEndEvent(fromJsonValue<id_type<EventModel>> (m_obj["EndEvent"]));
 
     QJsonArray process_array = m_obj["Processes"].toArray();
-
     for(const auto& json_vref : process_array)
     {
-        Deserializer<JSONObject> deserializer {json_vref.toObject() };
+        Deserializer<JSONObject> deserializer{json_vref.toObject()};
         constraint.addProcess(createProcess(deserializer, &constraint));
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();
-
     for(const auto& json_vref : rack_array)
     {
         Deserializer<JSONObject> deserializer {json_vref.toObject() };
@@ -172,12 +154,17 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
                                constraint,
                                &constraint});
 
-    constraint.setDefaultDuration(fromJsonValue<TimeValue> (m_obj["DefaultDuration"]));
-    constraint.setStartDate(fromJsonValue<TimeValue> (m_obj["StartDate"]));
-    constraint.setMinDuration(fromJsonValue<TimeValue> (m_obj["MinDuration"]));
-    constraint.setMaxDuration(fromJsonValue<TimeValue> (m_obj["MaxDuration"]));
+    constraint.m_startState = fromJsonValue<id_type<DisplayedStateModel>> (m_obj["StartState"]);
+    constraint.m_endState = fromJsonValue<id_type<DisplayedStateModel>> (m_obj["EndState"]);
 
-    constraint.setRigid(m_obj["Rigidity"].toBool());
+    constraint.m_defaultDuration = fromJsonValue<TimeValue> (m_obj["DefaultDuration"]);
+    constraint.m_minDuration = fromJsonValue<TimeValue> (m_obj["MinDuration"]);
+    constraint.m_maxDuration = fromJsonValue<TimeValue> (m_obj["MaxDuration"]);
+
+    constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
+    constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
+
+    constraint.m_rigidity = m_obj["Rigidity"].toBool();
 
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);

@@ -8,8 +8,8 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
-DisplayedStateModel::DisplayedStateModel(id_type<DisplayedStateModel> id,
-                                         id_type<EventModel> eventId,
+DisplayedStateModel::DisplayedStateModel(const id_type<DisplayedStateModel>& id,
+                                         const id_type<EventModel>& eventId,
                                          double yPos,
                                          QObject *parent):
     IdentifiedObject<DisplayedStateModel> {id, "DisplayedStateModel", parent},

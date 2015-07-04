@@ -266,15 +266,6 @@ inline QMap<double, double> fromJsonMap(const QJsonArray& array)
     return map;
 }
 
-template<template<typename U> class T, typename V>
-void fromJsonArray(QJsonArray&& json_arr, const T<id_type<V>>& arr)
-{
-    for(const auto& elt : json_arr)
-    {
-        arr.push_back(fromJsonValue<id_type<V>>(elt));
-    }
-}
-
 template<template<typename U> class Container>
 void fromJsonArray(QJsonArray&& json_arr, Container<int>& arr)
 {

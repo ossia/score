@@ -25,17 +25,8 @@ class EventPresenter : public NamedObject
         const EventModel& model() const;
 
         bool isSelected() const;
-        void updateStateView() const;
 
         void handleDrop(const QMimeData* mime);
-
-        void on_previousConstraintsChanged();
-        void on_nextConstraintsChanged();
-
-        void updateMinExtremities(const id_type<ConstraintModel>&, const double);
-        void updateMaxExtremities(const id_type<ConstraintModel> &, const double);
-        const QPair<id_type<ConstraintModel>, double> extremityMin() const;
-        const QPair<id_type<ConstraintModel>, double> extremityMax() const;
 
     signals:
         void pressed(const QPointF&);
@@ -51,18 +42,9 @@ class EventPresenter : public NamedObject
         void triggerSetted(QString);
 
     private:
-        void constraintsChangedHelper(
-                const QVector<id_type<ConstraintModel>>& ids,
-                QVector<QMetaObject::Connection>& connections);
-
-        QPair<id_type<ConstraintModel>, double> m_extremityMin;
-        QPair<id_type<ConstraintModel>, double> m_extremityMax;
-
         const EventModel& m_model;
         EventView* m_view {};
 
         CommandDispatcher<> m_dispatcher;
-        QVector<QMetaObject::Connection> m_previousConstraintsConnections;
-        QVector<QMetaObject::Connection> m_nextConstraintsConnections;
 };
 

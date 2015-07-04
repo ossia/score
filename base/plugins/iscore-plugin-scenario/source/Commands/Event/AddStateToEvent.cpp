@@ -27,22 +27,30 @@ AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, State &&state) :
 
 void AddStateToEvent::undo()
 {
+    /*
     auto& event = m_path.find<EventModel>();
     event.removeState(m_state);
+    */
 }
 
 void AddStateToEvent::redo()
 {
+    /*
     auto& event = m_path.find<EventModel>();
     event.addState(m_state);
+    */
 }
 
 void AddStateToEvent::serializeImpl(QDataStream& s) const
 {
+    /*
     s << m_path << m_state;
+    */
 }
 
 void AddStateToEvent::deserializeImpl(QDataStream& s)
 {
+    /*
     s >> m_path >> m_state;
+    */
 }

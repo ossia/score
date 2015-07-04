@@ -159,10 +159,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void addRack(RackModel*);
         void removeRack(const id_type<RackModel>& rackId);
 
-        const id_type<EventModel>& startEvent() const;
-        const id_type<EventModel>& endEvent() const;
-        void setStartEvent(const id_type<EventModel>& eventId);
-        void setEndEvent(const id_type<EventModel>& eventId);
+        const id_type<DisplayedStateModel>& startState() const;
+        void setStartState(const id_type<DisplayedStateModel>& eventId);
 
         const id_type<DisplayedStateModel>& endState() const;
         void setEndState(const id_type<DisplayedStateModel> &endState);
@@ -246,6 +244,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         void setPlayDuration(const TimeValue& arg);
 
+        // TODO make a class that manages all the durations + rigidity in a coherent manner
         void setRigid(bool arg);
 
     private slots:
@@ -264,17 +263,18 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Note : it is also present in m_constraintViewModels.
         FullViewConstraintViewModel* m_fullViewModel {};
 
-        id_type<EventModel> m_startEvent;
-        id_type<EventModel> m_endEvent;
+        id_type<DisplayedStateModel> m_startState;
         id_type<DisplayedStateModel> m_endState;
 
         TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
         TimeValue m_minDuration{m_defaultDuration};
         TimeValue m_maxDuration{m_defaultDuration};
 
-        TimeValue m_x; // origin
+        TimeValue m_startDate; // origin
 
-        double m_heightPercentage {0.5};
+        double m_heightPercentage {0.5}; // TODO Redundant with state
+
+
         TimeValue m_playDuration;
         bool m_rigidity{true};
 };

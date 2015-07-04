@@ -14,6 +14,8 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
     SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
 
     // Serialize all the events and constraints and timenodes.
@@ -94,10 +96,13 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
         s2.readFrom(*tn);
         m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
     }
+    */
 }
 
 void RemoveSelection::undo()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
     // First instantiate everything
     QList<EventModel*> events;
@@ -222,6 +227,7 @@ void RemoveSelection::undo()
         // view model creation
         deserializeConstraintViewModels(constraintdata.second, scenar);
     }
+    */
 }
 
 void RemoveSelection::redo()

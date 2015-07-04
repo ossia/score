@@ -30,6 +30,9 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
 
 void MergeTimeNodes::undo()
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
 
     auto& aimedTimeNode = scenar.timeNode(m_aimedTimeNodeId);
@@ -50,10 +53,14 @@ void MergeTimeNodes::undo()
                                                      scenar.event(event).heightPercentage(),
                                                      [] (ProcessModel* p, TimeValue t) { p->setDurationAndScale(t); });
     }
+    */
 }
 
 void MergeTimeNodes::redo()
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
 
     auto& aimedTimeNode = scenar.timeNode(m_aimedTimeNodeId);
@@ -75,6 +82,7 @@ void MergeTimeNodes::redo()
     }
 
     CreateTimeNodeMin::undo(m_movingTimeNodeId, scenar);
+    */
 }
 
 void MergeTimeNodes::serializeImpl(QDataStream & s) const

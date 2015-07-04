@@ -26,12 +26,6 @@ class EventModel : public IdentifiedObject<EventModel>
         Q_OBJECT
 
     private:
-        // TODO is this still useful?
-        Q_PROPERTY(double heightPercentage
-                   READ heightPercentage
-                   WRITE setHeightPercentage
-                   NOTIFY heightPercentageChanged)
-
         Q_PROPERTY(QString condition
                    READ condition
                    WRITE setCondition
@@ -75,31 +69,15 @@ class EventModel : public IdentifiedObject<EventModel>
             vis.writeTo(*this);
         }
 
-        // Constraints
-        const QVector<id_type<ConstraintModel>>& previousConstraints() const;
-        const QVector<id_type<ConstraintModel>>& nextConstraints() const;
-        QVector<id_type<ConstraintModel> > constraints() const;
-
-        void addNextConstraint(const id_type<ConstraintModel>&);
-        void addPreviousConstraint(const id_type<ConstraintModel>&);
-        void removeNextConstraint(const id_type<ConstraintModel>&);
-        void removePreviousConstraint(const id_type<ConstraintModel>&);
-
         // Timenode
         void changeTimeNode(const id_type<TimeNodeModel>&);
         const id_type<TimeNodeModel>& timeNode() const;
 
         // States
-        const iscore::StateList& states() const;
-        void replaceStates(const iscore::StateList& newStates);
-        void addState(const iscore::State& s);
-        void removeState(const iscore::State& s);
-
         void addDisplayedState(const id_type<DisplayedStateModel>& ds);
+        void removeDisplayedState(const id_type<DisplayedStateModel>& ds);
 
         // Other properties
-        double heightPercentage() const;
-
         const TimeValue& date() const;
         void translate(const TimeValue& deltaTime);
 
@@ -107,14 +85,7 @@ class EventModel : public IdentifiedObject<EventModel>
         const QString& condition() const;
         const QString& trigger() const;
 
-        bool hasPreviousConstraint()
-        {
-            return ! m_previousConstraints.empty();
-        }
-
-
     public slots:
-        void setHeightPercentage(double arg);
         void setDate(const TimeValue& date);
 
         void setCondition(const QString& arg);
@@ -122,10 +93,8 @@ class EventModel : public IdentifiedObject<EventModel>
 
     signals:
         void heightPercentageChanged(double arg);
-        void localStatesChanged();
+        void statesChanged();
         void dateChanged();
-        void previousConstraintsChanged();
-        void nextConstraintsChanged();
 
         void conditionChanged(const QString& arg);
         void triggerChanged(const QString& trigger);
@@ -133,16 +102,10 @@ class EventModel : public IdentifiedObject<EventModel>
     private:
         id_type<TimeNodeModel> m_timeNode {};
 
-        QVector<id_type<ConstraintModel>> m_previousConstraints;
-        QVector<id_type<ConstraintModel>> m_nextConstraints;
+        QVector<id_type<DisplayedStateModel>> m_states;
 
-        double m_heightPercentage {0.5};
-
-        iscore::StateList m_states;
-        QVector<id_type<DisplayedStateModel>> m_dispStates;
-
-        QString m_condition {};
+        QString m_condition;
 
         TimeValue m_date {std::chrono::seconds{0}};
-        QString m_trigger;
+        QString m_trigger; // TODO in timenode?
 };

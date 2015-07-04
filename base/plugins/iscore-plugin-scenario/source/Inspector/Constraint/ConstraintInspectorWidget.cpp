@@ -347,6 +347,10 @@ void ConstraintInspectorWidget::setupRack(RackModel* rack)
 
 QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+
+    /*
     QWidget* eventWid = new QWidget{this};
     QFormLayout* eventLay = new QFormLayout {eventWid};
     eventLay->setVerticalSpacing(0);
@@ -384,6 +388,7 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     eventLay->addRow(tr("End Event"), end);
 
     return eventWid;
+    */
 }
 
 void ConstraintInspectorWidget::on_processCreated(

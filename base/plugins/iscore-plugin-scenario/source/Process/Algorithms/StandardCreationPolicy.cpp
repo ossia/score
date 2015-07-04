@@ -52,6 +52,8 @@ void CreateConstraintMin::undo(
         const id_type<ConstraintModel>& id,
         ScenarioModel& s)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& cst = s.constraint(id);
     auto& sev = s.event(cst.startEvent());
     auto& eev = s.event(cst.endEvent());
@@ -59,6 +61,7 @@ void CreateConstraintMin::undo(
     eev.removePreviousConstraint(id);
 
     s.removeConstraint(&cst);
+    */
 }
 
 ConstraintModel& CreateConstraintMin::redo(
@@ -70,6 +73,8 @@ ConstraintModel& CreateConstraintMin::redo(
         double ypos,
         ScenarioModel& s)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto constraint = new ConstraintModel {
                       id,
                       fullviewid,
@@ -99,4 +104,5 @@ ConstraintModel& CreateConstraintMin::redo(
     constraint->setStartDate(sev.date());
 
     return *constraint;
+    */
 }

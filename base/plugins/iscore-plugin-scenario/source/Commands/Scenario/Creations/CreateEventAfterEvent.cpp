@@ -28,6 +28,8 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
     m_firstEventId {firstEvent},
     m_time {date}
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
 
     if(m_firstEventId != scenar.startEvent().id() && !unlock)
@@ -49,6 +51,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
 
     // Finally, the id of the full view
     m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
+    */
 }
 
 void CreateEventAfterEvent::undo()

@@ -29,6 +29,8 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
                          commandName(),
                          description()}
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& constraint = constraintPath.find<ConstraintModel>();
     auto& endEvent = static_cast<ScenarioModel*>(constraint.parent())->event(constraint.endEvent());
 
@@ -40,6 +42,7 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
                           constraint.endEvent(),
                           constraint.startDate() + duration,
                           mode);
+                          */
 }
 
 void ResizeConstraint::undo()

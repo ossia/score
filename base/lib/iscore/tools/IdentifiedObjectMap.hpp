@@ -58,7 +58,8 @@ class MapBase
             auto item = find(id);
             if(item == map.end())
             {
-                qDebug("FAIL");
+                // If the stack trace is unreadable, put a breakpoint here before the Q_ASSERT.
+                qDebug() << model_type::staticMetaObject.className() << id << "could not be found. Aborting.";
             }
             Q_ASSERT(item != map.end());
             return *item;
@@ -144,3 +145,16 @@ auto end(const IdContainer<Element, Model>& theMap)
 {
     return theMap.end();
 }
+
+
+template<class Element, typename Model>
+auto cbegin(const IdContainer<Element, Model>& theMap)
+{
+    return theMap.cbegin();
+}
+template<class Element, typename Model>
+auto cend(const IdContainer<Element, Model>& theMap)
+{
+    return theMap.cend();
+}
+

@@ -45,9 +45,9 @@ EventInspectorWidget::EventInspectorWidget(
     setInspectedObject(m_model);
     setParent(parent);
 
-    connect(m_model, &EventModel::localStatesChanged,
+    connect(m_model, &EventModel::statesChanged,
             this,    &EventInspectorWidget::updateInspector);
-    connect (object, &EventModel::dateChanged,
+    connect (m_model, &EventModel::dateChanged,
              this,   &EventInspectorWidget::modelDateChanged);
 
     // Completion - only available if there is a device explorer
@@ -252,6 +252,8 @@ void EventInspectorWidget::updateDisplayedValues(
 
         auto scenar = event->parentScenario();
 
+        qDebug() << "TODO: " << Q_FUNC_INFO;
+        /*
         for(const auto& state : event->states())
         {
             addState(state);
@@ -308,7 +310,7 @@ void EventInspectorWidget::updateDisplayedValues(
                 }
             }
         }
-
+        */
 
         m_conditionLineEdit->setText(event->condition());
         m_triggerLineEdit->setText(event->trigger());

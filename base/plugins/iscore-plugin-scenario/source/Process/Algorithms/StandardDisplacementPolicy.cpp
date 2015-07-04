@@ -7,6 +7,8 @@ void translateNextElements(
         const TimeValue& deltaTime,
         QVector<id_type<EventModel>>& movedEvents)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;
     auto& cur_timeNode = scenario.timeNode(firstTimeNodeMovedId);
@@ -47,6 +49,7 @@ void translateNextElements(
             }
         }
     }
+    */
 }
 
 void StandardDisplacementPolicy::getRelatedElements(
@@ -54,6 +57,8 @@ void StandardDisplacementPolicy::getRelatedElements(
         const id_type<TimeNodeModel>& firstTimeNodeMovedId,
         QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;
 
@@ -78,4 +83,5 @@ void StandardDisplacementPolicy::getRelatedElements(
             getRelatedElements(scenario, endTnId, translatedTimeNodes);
         }
     }
+    */
 }

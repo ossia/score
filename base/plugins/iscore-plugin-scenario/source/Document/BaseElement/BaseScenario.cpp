@@ -18,6 +18,8 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
                             0,
                             this}}
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     m_startNode->setObjectName("BaseStartTimeNodeModel");
     m_startEvent->setObjectName("BaseStartEventModel");
     m_startNode->addEvent(m_startEvent->id());
@@ -31,7 +33,7 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
 
     ConstraintModel::Algorithms::changeAllDurations(*m_constraint, std::chrono::minutes{3});
     m_constraint->setObjectName("BaseConstraintModel");
-
+    */
 }
 
 

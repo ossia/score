@@ -36,6 +36,8 @@ void SetTrigger::undo()
 
 void SetTrigger::redo()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& event = m_path.find<EventModel>();
     event.setTrigger(m_trigger);
 
@@ -49,6 +51,7 @@ void SetTrigger::redo()
             m_cmd.push_back(cmd);
         }
     }
+    */
 }
 
 void SetTrigger::serializeImpl(QDataStream& s) const
