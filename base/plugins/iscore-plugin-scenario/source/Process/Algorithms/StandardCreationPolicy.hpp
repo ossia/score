@@ -8,9 +8,13 @@ class ConstraintModel;
 class AbstractConstraintViewModel;
 class TimeNodeModel;
 class DisplayedStateModel;
+class VerticalExtent;
 
+template<typename T>
+class ScenarioCreate;
 
-class CreateTimeNodeMin
+template<>
+class ScenarioCreate<TimeNodeModel>
 {
     public:
         static void undo(
@@ -19,11 +23,13 @@ class CreateTimeNodeMin
 
         static TimeNodeModel& redo(
                 const id_type<TimeNodeModel>& id,
+                const VerticalExtent& extent,
                 const TimeValue& date,
                 ScenarioModel& s);
 };
 
-class CreateEventMin
+template<>
+class ScenarioCreate<EventModel>
 {
     public:
         static void undo(
@@ -33,35 +39,39 @@ class CreateEventMin
         static EventModel& redo(
                 const id_type<EventModel>& id,
                 TimeNodeModel& timenode,
+                const VerticalExtent& extent,
                 ScenarioModel& s);
 };
 
-class CreateStateMin
+template<>
+class ScenarioCreate<DisplayedStateModel>
 {
     public:
         static void undo(
                 const id_type<DisplayedStateModel>& id,
                 ScenarioModel& s);
 
-        static DisplayedStateModel& redo(const id_type<DisplayedStateModel>& id,
+        static DisplayedStateModel& redo(
+                const id_type<DisplayedStateModel>& id,
                 EventModel& ev,
                 double y,
                 ScenarioModel& s);
 };
 
-class CreateConstraintMin
+template<>
+class ScenarioCreate<ConstraintModel>
 {
     public:
         static void undo(
                 const id_type<ConstraintModel>& id,
                 ScenarioModel& s);
 
-        static ConstraintModel& redo(const id_type<ConstraintModel>& id,
+        static ConstraintModel& redo(
+                const id_type<ConstraintModel>& id,
                 const id_type<AbstractConstraintViewModel>& fullviewid,
                 DisplayedStateModel& sst,
                 DisplayedStateModel& est,
                 double ypos,
                 ScenarioModel& s);
 };
-
 

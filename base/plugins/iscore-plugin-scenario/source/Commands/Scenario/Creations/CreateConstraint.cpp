@@ -13,21 +13,19 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
-                                   id_type<EventModel> startEvent,
-                                   id_type<DisplayedStateModel> startState,
-                                   id_type<EventModel> endEvent) :
+CreateConstraint::CreateConstraint(
+        ObjectPath&& scenarioPath,
+        const id_type<DisplayedStateModel>& startState,
+        const id_type<DisplayedStateModel>& endState) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
     m_path {std::move(scenarioPath) },
-    m_startEventId {startEvent},
-    m_endEventId {endEvent},
-    m_startStateId{startState}
+    m_startStateId{startState},
+    m_endStateId{endState}
 {
     auto& scenar = m_path.find<ScenarioModel>();
     m_createdConstraintId = getStrongId(scenar.constraints());
-    m_endStateId = getStrongId(scenar.displayedStates());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
@@ -49,26 +47,21 @@ void CreateConstraint::undo()
 
 void CreateConstraint::redo()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     auto& scenar = m_path.find<ScenarioModel>();
-    auto& sev = scenar.event(m_startEventId);
-    auto& eev = scenar.event(m_endEventId);
     auto& sst = scenar.displayedState(m_startStateId);
+    auto& est = scenar.displayedState(m_endStateId);
 
-    CreateConstraintMin::redo(m_createdConstraintId,
-                              m_createdConstraintFullViewId,
-                              m_endStateId,
-                              sev, eev,
-                              sst.heightPercentage(),
-                              scenar);
+    ScenarioCreate<ConstraintModel>::redo(
+                m_createdConstraintId,
+                m_createdConstraintFullViewId,
+                sst,
+                est,
+                sst.heightPercentage(),
+                scenar);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
                                scenar);
-
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    */
 }
 
 
@@ -76,8 +69,6 @@ void CreateConstraint::redo()
 void CreateConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path
-      << m_startEventId
-      << m_endEventId
       << m_createdConstraintId
       << m_startStateId
       << m_endStateId
@@ -88,8 +79,6 @@ void CreateConstraint::serializeImpl(QDataStream& s) const
 void CreateConstraint::deserializeImpl(QDataStream& s)
 {
     s >> m_path
-            >> m_startEventId
-            >> m_endEventId
             >> m_createdConstraintId
             >> m_startStateId
             >> m_endStateId

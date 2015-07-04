@@ -74,7 +74,6 @@ const char* Scenario::Command::CopySlot::commandName() { return "CopySlot"; }
 //const char* Scenario::Command::CopyLayerModel::commandName() { return "CopyLayerModel"; }
 
 // CREATE
-const char* Scenario::Command::CreateConstraint::commandName() { return "CreateConstraint"; }
 const char* Scenario::Command::CreateEventAfterEvent::commandName() { return "CreateEventAfterEvent"; }
 const char* Scenario::Command::CreateEventAfterEventOnTimeNode::commandName() { return "CreateEventAfterEventOnTimeNode"; }
 const char* Scenario::Command::CreateEventOnTimeNode::commandName() { return "CreateEventOnTimeNode"; }
@@ -142,7 +141,6 @@ QString Scenario::Command::CopySlot::description() { return QObject::tr("CopySlo
 //QString Scenario::Command::CopyLayerModel::description() { return QObject::tr("CopyLayerModel"); }
 
 // CREATE
-QString Scenario::Command::CreateConstraint::description() { return QObject::tr("CreateConstraint"); }
 QString Scenario::Command::CreateEventAfterEvent::description() { return QObject::tr("CreateEventAfterEvent"); }
 QString Scenario::Command::CreateEventAfterEventOnTimeNode::description() { return QObject::tr("CreateEventAfterEventOnTimeNode"); }
 QString Scenario::Command::CreateEventOnTimeNode::description() { return QObject::tr("CreateEventOnTimeNode"); }

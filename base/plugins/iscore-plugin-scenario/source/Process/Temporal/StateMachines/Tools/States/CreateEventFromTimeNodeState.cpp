@@ -269,6 +269,8 @@ void CreateFromTimeNodeState::createEventFromEventOnTimenode()
 
 void CreateFromTimeNodeState::createConstraintBetweenEvents()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto cmd = new CreateConstraint(
            ObjectPath{m_scenarioPath},
            m_createdFirstEvent,
@@ -276,5 +278,6 @@ void CreateFromTimeNodeState::createConstraintBetweenEvents()
            hoveredEvent);
 
     m_dispatcher.submitCommand(cmd);
+    */
 }
 

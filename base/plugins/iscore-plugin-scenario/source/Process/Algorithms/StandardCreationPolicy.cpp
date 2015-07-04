@@ -4,57 +4,51 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
-void CreateTimeNodeMin::undo(
+void ScenarioCreate<TimeNodeModel>::undo(
         const id_type<TimeNodeModel>& id,
         ScenarioModel& s)
 {
     s.removeTimeNode(&s.timeNode(id));
 }
 
-TimeNodeModel& CreateTimeNodeMin::redo(
+TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
         const id_type<TimeNodeModel>& id,
+        const VerticalExtent& extent,
         const TimeValue& date,
         ScenarioModel& s)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
-    auto timeNode = new TimeNodeModel{id, date, &s};
+    auto timeNode = new TimeNodeModel{id, extent, date, &s};
     s.addTimeNode(timeNode);
+
     return *timeNode;
-    */
+
 }
 
-void CreateEventMin::undo(
+void ScenarioCreate<EventModel>::undo(
         const id_type<EventModel>& id,
         ScenarioModel& s)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     auto& ev = s.event(id);
     s.timeNode(ev.timeNode()).removeEvent(id);
     s.removeEvent(&ev);
-    */
 }
 
-EventModel& CreateEventMin::redo(
+EventModel& ScenarioCreate<EventModel>::redo(
         const id_type<EventModel>& id,
         TimeNodeModel& timenode,
+        const VerticalExtent& extent,
         ScenarioModel& s)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
-    auto ev = new EventModel{id, timenode.id(), &s};
-    ev->setDate(timenode.date());
+    auto ev = new EventModel{id, timenode.id(), extent, timenode.date(), &s};
 
     s.addEvent(ev);
     timenode.addEvent(id);
 
     return *ev;
-*/
 }
 
 
-void CreateStateMin::undo(
+void ScenarioCreate<DisplayedStateModel>::undo(
         const id_type<DisplayedStateModel> &id,
         ScenarioModel &s)
 {
@@ -66,7 +60,7 @@ void CreateStateMin::undo(
     s.removeDisplayedState(&state);
 }
 
-DisplayedStateModel &CreateStateMin::redo(
+DisplayedStateModel &ScenarioCreate<DisplayedStateModel>::redo(
         const id_type<DisplayedStateModel> &id,
         EventModel &ev,
         double y,
@@ -81,10 +75,12 @@ DisplayedStateModel &CreateStateMin::redo(
     ev.addDisplayedState(state->id());
 
     s.addDisplayedState(state);
+
+    return *state;
 }
 
 //TODO unused ?
-void CreateConstraintMin::undo(
+void ScenarioCreate<ConstraintModel>::undo(
         const id_type<ConstraintModel>& id,
         ScenarioModel& s)
 {
@@ -99,7 +95,7 @@ void CreateConstraintMin::undo(
     s.removeConstraint(&cst);
 }
 
-ConstraintModel& CreateConstraintMin::redo(
+ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
         const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullviewid,
         DisplayedStateModel& sst,

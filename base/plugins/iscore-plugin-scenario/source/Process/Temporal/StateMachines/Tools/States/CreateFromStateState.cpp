@@ -210,6 +210,8 @@ void CreateFromStateState::createEventFromStateOnTimeNode()
 
 void CreateFromStateState::createConstraintBetweenEvents()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     if(hoveredEvent != clickedEvent)
     {
         auto cmd = new CreateConstraint{
@@ -222,6 +224,7 @@ void CreateFromStateState::createConstraintBetweenEvents()
 
         m_dispatcher.submitCommand(cmd);
     }
+    */
 }
 
 void CreateFromStateState::createSingleEventOnTimeNode()

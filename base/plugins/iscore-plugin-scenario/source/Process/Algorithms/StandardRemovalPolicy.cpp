@@ -18,7 +18,7 @@ void removeEventFromTimeNode(
                 // TODO transform this into a class with algorithms on timenodes + scenario, etc.
                 // Note : this changes the scenario.timeNodes() iterator, however
                 // since we return afterwards there is no problem.
-                CreateTimeNodeMin::undo(timeNode->id(), scenario);
+                ScenarioCreate<TimeNodeModel>::undo(timeNode->id(), scenario);
             }
 
             return;
