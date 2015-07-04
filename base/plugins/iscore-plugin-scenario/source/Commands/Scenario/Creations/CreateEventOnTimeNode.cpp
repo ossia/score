@@ -37,12 +37,15 @@ void CreateEventOnTimeNode::undo()
 
 void CreateEventOnTimeNode::redo()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
     CreateEventMin::redo(
                 m_createdEventId,
                 scenar.timeNode(m_timeNodeId),
                 m_heightPosition,
                 scenar);
+                */
 }
 
 void CreateEventOnTimeNode::serializeImpl(QDataStream &s) const

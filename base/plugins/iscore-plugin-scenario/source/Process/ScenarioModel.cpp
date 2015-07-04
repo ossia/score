@@ -18,6 +18,9 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     m_startEventId{0},
     m_endEventId{1}
 {
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& start_tn = CreateTimeNodeMin::redo(m_startTimeNodeId, TimeValue(ZeroTime{}), 0.5, *this);
     auto& end_tn = CreateTimeNodeMin::redo(m_endTimeNodeId, duration, 0.5, *this);
 
@@ -26,6 +29,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
     // At the end because plug-ins depend on the start/end timenode & al being here
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    */
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
@@ -39,9 +43,9 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 {
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 
-    for(ConstraintModel* constraint : source.m_constraints)
+    for(TimeNodeModel* timenode : source.m_timeNodes)
     {
-        addConstraint(new ConstraintModel {*constraint, constraint->id(), this});
+        addTimeNode(new TimeNodeModel {*timenode, timenode->id(), this});
     }
 
     for(EventModel* event : source.m_events)
@@ -49,11 +53,15 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
         addEvent(new EventModel {*event, event->id(), this});
     }
 
-    for(TimeNodeModel* timenode : source.m_timeNodes)
+    for(DisplayedStateModel* state : source.m_displayedStates)
     {
-        addTimeNode(new TimeNodeModel {*timenode, timenode->id(), this});
+        addDisplayedState(new DisplayedStateModel{*state, state->id(), this});
     }
 
+    for(ConstraintModel* constraint : source.m_constraints)
+    {
+        addConstraint(new ConstraintModel {*constraint, constraint->id(), this});
+    }
 }
 
 ScenarioModel* ScenarioModel::clone(

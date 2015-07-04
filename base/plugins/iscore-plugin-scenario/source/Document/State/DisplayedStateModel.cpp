@@ -24,12 +24,12 @@ void DisplayedStateModel::initView(AbstractConstraintView *parentView)
     m_view = new StateView{*this, parentView};
 }
 
-DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &copy,
+DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &source,
                                          const id_type<DisplayedStateModel> &id,
                                          QObject *parent):
-    DisplayedStateModel(id, copy.eventId(), copy.heightPercentage(), copy.parent())
+    DisplayedStateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
-    m_states = copy.states();
+    m_states = source.states();
     //TODO : view
 }
 
@@ -62,6 +62,16 @@ void DisplayedStateModel::setPos(qreal y)
 const id_type<EventModel> &DisplayedStateModel::eventId() const
 {
     return m_eventId;
+}
+
+void DisplayedStateModel::setNextConstraint(const id_type<ConstraintModel> & id)
+{
+    m_nextConstraint = id;
+}
+
+void DisplayedStateModel::setPreviousConstraint(const id_type<ConstraintModel> & id)
+{
+    m_previousConstraint = id;
 }
 
 

@@ -7,11 +7,14 @@
 EventModel::EventModel(
         const id_type<EventModel>& id,
         const id_type<TimeNodeModel>& timenode,
-        double yPos, // TODO removeme
+        const VerticalExtent &extent,
+        const TimeValue &date,
         QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
-    m_timeNode{timenode}
+    m_timeNode{timenode},
+    m_extent{extent},
+    m_date{date}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
@@ -21,11 +24,12 @@ EventModel::EventModel(const EventModel& source,
                        QObject* parent) :
     IdentifiedObject<EventModel> {id, "EventModel", parent},
     pluginModelList{source.pluginModelList, this},
-    m_timeNode{source.timeNode()},
+    m_timeNode{source.m_timeNode},
     m_states(source.m_states),
     m_condition{source.m_condition},
-    m_date{source.m_date},
-    m_trigger{source.m_trigger}
+    m_trigger{source.m_trigger},
+    m_extent{source.m_extent},
+    m_date{source.m_date}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
@@ -68,11 +72,6 @@ ScenarioModel* EventModel::parentScenario() const
     return dynamic_cast<ScenarioModel*>(parent());
 }
 
-const QString& EventModel::condition() const
-{
-    return m_condition;
-}
-
 void EventModel::addDisplayedState(const id_type<DisplayedStateModel> &ds)
 {
     m_states.append(ds);
@@ -83,6 +82,13 @@ void EventModel::removeDisplayedState(const id_type<DisplayedStateModel> &ds)
 {
     m_states.removeOne(ds);
     emit statesChanged();
+}
+
+
+
+const QString& EventModel::condition() const
+{
+    return m_condition;
 }
 
 void EventModel::setCondition(const QString& arg)
@@ -96,6 +102,11 @@ void EventModel::setCondition(const QString& arg)
     emit conditionChanged(arg);
 }
 
+const QString& EventModel::trigger() const
+{
+    return m_trigger;
+}
+
 void EventModel::setTrigger(const QString& trigger)
 {
     if (m_trigger == trigger)
@@ -106,7 +117,14 @@ void EventModel::setTrigger(const QString& trigger)
 }
 
 
-const QString& EventModel::trigger() const
+VerticalExtent EventModel::extent() const
 {
-    return m_trigger;
+    return m_extent;
 }
+
+void EventModel::setExtent(const VerticalExtent &extent)
+{
+    m_extent = extent;
+}
+
+

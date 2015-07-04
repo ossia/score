@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <source/Document/VerticalExtent.hpp>
 #include <source/Document/ModelMetadata.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
@@ -33,8 +34,8 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         /** The class **/
         TimeNodeModel(
                 const id_type<TimeNodeModel>& id,
+                const VerticalExtent& extent,
                 const TimeValue& date,
-                double ypos,
                 QObject* parent);
 
         template<typename DeserializerVisitor>
@@ -54,26 +55,26 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         ScenarioModel* parentScenario() const;
 
         // Data of the TimeNode
-        void addEvent(const id_type<EventModel>&);
-        bool removeEvent(const id_type<EventModel>&);
+        VerticalExtent extent() const;
+        void setExtent(const VerticalExtent &extent);
 
         const TimeValue& date() const;
         void setDate(const TimeValue&);
 
-        double y() const;
-        void setY(double y);
-
+        void addEvent(const id_type<EventModel>&);
+        bool removeEvent(const id_type<EventModel>&);
         const QVector<id_type<EventModel>>& events() const;
         void setEvents(const QVector<id_type<EventModel>>& events);
 
     signals:
         void dateChanged();
         void newEvent(const id_type<EventModel>& eventId);
+        // TODO no eventRemoved ? eventsChanged ?
         void timeNodeValid(bool); // TODO wtf
 
     private:
-        TimeValue m_date {std::chrono::seconds{0}};
-        double m_y {0.0}; // TODO should not be necessary ?
+        VerticalExtent m_extent;
+        TimeValue m_date{std::chrono::seconds{0}};
 
         QVector<id_type<EventModel>> m_events;
 };

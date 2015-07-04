@@ -41,9 +41,18 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         void initView(AbstractConstraintView *parentView);
 
         // Copy
-        DisplayedStateModel(const DisplayedStateModel& copy,
+        DisplayedStateModel(const DisplayedStateModel& source,
                             const id_type<DisplayedStateModel>&,
                             QObject* parent);
+
+        // Load
+        template<typename DeserializerVisitor,
+                 enable_if_deserializer<DeserializerVisitor>* = nullptr>
+        DisplayedStateModel(DeserializerVisitor&& vis, QObject* parent) :
+            IdentifiedObject<DisplayedStateModel> {vis, parent}
+        {
+            vis.writeTo(*this);
+        }
 
         const ScenarioModel* parentScenario() const;
 
@@ -58,6 +67,9 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         void removeState(const iscore::State& s);
 
         const id_type<EventModel>& eventId() const;
+
+        void setNextConstraint(const id_type<ConstraintModel>&);
+        void setPreviousConstraint(const id_type<ConstraintModel>&);
 
 public slots:
         void setHeightPercentage(double y);

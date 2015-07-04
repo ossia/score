@@ -1,5 +1,6 @@
 #pragma once
 #include <source/Document/ModelMetadata.hpp>
+#include <source/Document/VerticalExtent.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
@@ -54,7 +55,8 @@ class EventModel : public IdentifiedObject<EventModel>
         /** The class **/
         EventModel(const id_type<EventModel>&,
                    const id_type<TimeNodeModel>& timenode,
-                   double yPos,
+                   const VerticalExtent& extent,
+                   const TimeValue& date,
                    QObject* parent);
 
         // Copy
@@ -78,26 +80,31 @@ class EventModel : public IdentifiedObject<EventModel>
         void removeDisplayedState(const id_type<DisplayedStateModel>& ds);
 
         // Other properties
-        const TimeValue& date() const;
-        void translate(const TimeValue& deltaTime);
-
         // TODO use a stronger type for the condition.
         const QString& condition() const;
         const QString& trigger() const;
 
-    public slots:
-        void setDate(const TimeValue& date);
+        VerticalExtent extent() const;
 
+        const TimeValue& date() const;
+        void translate(const TimeValue& deltaTime);
+
+
+    public slots:
         void setCondition(const QString& arg);
         void setTrigger(const QString& trigger);
 
+        void setExtent(const VerticalExtent &extent);
+        void setDate(const TimeValue& date);
+
     signals:
-        void heightPercentageChanged(double arg);
-        void statesChanged();
+        void extentChanged(const VerticalExtent&);
         void dateChanged();
 
-        void conditionChanged(const QString& arg);
-        void triggerChanged(const QString& trigger);
+        void conditionChanged(const QString&);
+        void triggerChanged(const QString&);
+
+        void statesChanged();
 
     private:
         id_type<TimeNodeModel> m_timeNode {};
@@ -105,7 +112,8 @@ class EventModel : public IdentifiedObject<EventModel>
         QVector<id_type<DisplayedStateModel>> m_states;
 
         QString m_condition;
-
-        TimeValue m_date {std::chrono::seconds{0}};
         QString m_trigger; // TODO in timenode?
+
+        VerticalExtent m_extent;
+        TimeValue m_date {std::chrono::seconds{0}};
 };

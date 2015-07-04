@@ -20,7 +20,6 @@ class CreateTimeNodeMin
         static TimeNodeModel& redo(
                 const id_type<TimeNodeModel>& id,
                 const TimeValue& date,
-                double y,
                 ScenarioModel& s);
 };
 
@@ -34,6 +33,18 @@ class CreateEventMin
         static EventModel& redo(
                 const id_type<EventModel>& id,
                 TimeNodeModel& timenode,
+                ScenarioModel& s);
+};
+
+class CreateStateMin
+{
+    public:
+        static void undo(
+                const id_type<DisplayedStateModel>& id,
+                ScenarioModel& s);
+
+        static DisplayedStateModel& redo(const id_type<DisplayedStateModel>& id,
+                EventModel& ev,
                 double y,
                 ScenarioModel& s);
 };
@@ -47,51 +58,10 @@ class CreateConstraintMin
 
         static ConstraintModel& redo(const id_type<ConstraintModel>& id,
                 const id_type<AbstractConstraintViewModel>& fullviewid,
-                const id_type<DisplayedStateModel>& endStateId,
-                EventModel& sev,
-                EventModel& eev,
+                DisplayedStateModel& sst,
+                DisplayedStateModel& est,
                 double ypos,
                 ScenarioModel& s);
 };
 
 
-inline EventModel& CreateTimenodeAndEvent(
-        const id_type<EventModel>& ev_id,
-        const id_type<TimeNodeModel>& tn_id,
-        const TimeValue& date,
-        double y,
-        ScenarioModel& s)
-{
-    auto& tn = CreateTimeNodeMin::redo(tn_id, date, y, s);
-    return CreateEventMin::redo(ev_id, tn, y, s);
-}
-
-inline void CreateConstraintAndEvent(
-        const id_type<ConstraintModel>& id_cst,
-        const id_type<AbstractConstraintViewModel>& id_fv,
-        const id_type<DisplayedStateModel>& id_st,
-        EventModel& sev,
-        TimeNodeModel& tn,
-        const id_type<EventModel>& ev_id,
-        const TimeValue& date,
-        double y,
-        ScenarioModel& s)
-{
-    CreateConstraintMin::redo(id_cst, id_fv, id_st, sev, CreateEventMin::redo(ev_id, tn, y, s), y, s);
-}
-
-
-
-inline void CreateTimenodeConstraintAndEvent(
-        const id_type<ConstraintModel>& id_cst,
-        const id_type<AbstractConstraintViewModel>& id_fv,
-        const id_type<DisplayedStateModel>& stId,
-        EventModel& sev,
-        const id_type<EventModel>& ev_id,
-        const id_type<TimeNodeModel>& tn_id,
-        const TimeValue& date,
-        double y,
-        ScenarioModel& s)
-{
-    CreateConstraintMin::redo(id_cst, id_fv, stId, sev, CreateTimenodeAndEvent(ev_id, tn_id, date, y, s), y, s);
-}

@@ -308,6 +308,8 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
 
 void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto rect = m_view->boundingRect();
 
     auto tn_pres = new TimeNodePresenter {
@@ -323,6 +325,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    */
 }
 
 void TemporalScenarioPresenter::on_displayedStateCreated(const DisplayedStateModel &state)

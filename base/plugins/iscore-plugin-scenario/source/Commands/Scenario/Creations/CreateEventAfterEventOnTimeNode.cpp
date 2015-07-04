@@ -33,7 +33,7 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
 
     m_createdEventId = getStrongId(scenar.events());
     m_createdConstraintId = getStrongId(scenar.constraints());
-    m_stateId = getStrongId(scenar.dispStates());
+    m_stateId = getStrongId(scenar.displayedStates());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
@@ -54,6 +54,8 @@ void CreateEventAfterEventOnTimeNode::undo()
 
 void CreateEventAfterEventOnTimeNode::redo()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
 
     CreateConstraintAndEvent(m_createdConstraintId,
@@ -70,6 +72,7 @@ void CreateEventAfterEventOnTimeNode::redo()
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
                                scenar);
+                               */
 }
 
 

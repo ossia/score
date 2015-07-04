@@ -27,7 +27,7 @@ CreateConstraint::CreateConstraint(ObjectPath&& scenarioPath,
 {
     auto& scenar = m_path.find<ScenarioModel>();
     m_createdConstraintId = getStrongId(scenar.constraints());
-    m_endStateId = getStrongId(scenar.dispStates());
+    m_endStateId = getStrongId(scenar.displayedStates());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
@@ -49,6 +49,8 @@ void CreateConstraint::undo()
 
 void CreateConstraint::redo()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
     auto& sev = scenar.event(m_startEventId);
     auto& eev = scenar.event(m_endEventId);
@@ -64,6 +66,9 @@ void CreateConstraint::redo()
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
                                scenar);
+
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    */
 }
 
 

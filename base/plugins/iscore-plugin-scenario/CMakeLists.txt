@@ -61,6 +61,7 @@ file(GLOB_RECURSE HDRS
 file(GLOB_RECURSE QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.qrc")
 
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/VerticalExtentSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModelSerialization.cpp"

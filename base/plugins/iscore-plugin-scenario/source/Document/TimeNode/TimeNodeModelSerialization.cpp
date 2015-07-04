@@ -10,7 +10,6 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
     readFrom(timenode.pluginModelList);
 
     m_stream << timenode.m_date
-             << timenode.m_y
              << timenode.m_events;
 
 
@@ -24,7 +23,6 @@ void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
     timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
 
     m_stream >> timenode.m_date
-             >> timenode.m_y
              >> timenode.m_events;
 
 
@@ -38,7 +36,6 @@ void Visitor<Reader<JSONObject>>::readFrom(const TimeNodeModel& timenode)
     m_obj["Metadata"] = toJsonObject(timenode.metadata);
 
     m_obj["Date"] = toJsonValue(timenode.date());
-    m_obj["Y"] = timenode.y();
     m_obj["Events"] = toJsonArray(timenode.m_events);
 
     m_obj["PluginsMetadata"] = toJsonValue(timenode.pluginModelList);
@@ -50,7 +47,6 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
     timenode.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
     timenode.m_date = fromJsonValue<TimeValue> (m_obj["Date"]);
-    timenode.m_y = m_obj["Y"].toDouble();
 
     fromJsonValueArray(m_obj["Events"].toArray(), timenode.m_events);
 

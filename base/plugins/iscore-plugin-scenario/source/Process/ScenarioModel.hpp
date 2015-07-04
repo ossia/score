@@ -120,7 +120,7 @@ class ScenarioModel : public ProcessModel
             return m_timeNodes;
         }
 
-        const auto& dispStates() const
+        const auto& displayedStates() const
         {
             return m_displayedStates;
         }

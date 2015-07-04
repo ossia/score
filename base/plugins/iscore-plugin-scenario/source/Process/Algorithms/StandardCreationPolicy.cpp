@@ -14,95 +14,121 @@ void CreateTimeNodeMin::undo(
 TimeNodeModel& CreateTimeNodeMin::redo(
         const id_type<TimeNodeModel>& id,
         const TimeValue& date,
-        double y,
         ScenarioModel& s)
 {
-    auto timeNode = new TimeNodeModel{id, date, y, &s};
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
+    auto timeNode = new TimeNodeModel{id, date, &s};
     s.addTimeNode(timeNode);
     return *timeNode;
+    */
 }
 
 void CreateEventMin::undo(
         const id_type<EventModel>& id,
         ScenarioModel& s)
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& ev = s.event(id);
     s.timeNode(ev.timeNode()).removeEvent(id);
     s.removeEvent(&ev);
+    */
 }
 
 EventModel& CreateEventMin::redo(
         const id_type<EventModel>& id,
         TimeNodeModel& timenode,
-        double y,
         ScenarioModel& s)
 {
-    auto ev = new EventModel{id, timenode.id(), y, &s};
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
+    auto ev = new EventModel{id, timenode.id(), &s};
     ev->setDate(timenode.date());
 
     s.addEvent(ev);
     timenode.addEvent(id);
 
     return *ev;
+*/
 }
 
+
+void CreateStateMin::undo(
+        const id_type<DisplayedStateModel> &id,
+        ScenarioModel &s)
+{
+    auto& state = s.displayedState(id);
+    auto& ev = s.event(state.eventId());
+
+    ev.removeDisplayedState(id);
+
+    s.removeDisplayedState(&state);
+}
+
+DisplayedStateModel &CreateStateMin::redo(
+        const id_type<DisplayedStateModel> &id,
+        EventModel &ev,
+        double y,
+        ScenarioModel &s)
+{
+    auto state = new DisplayedStateModel{
+            id,
+            ev.id(),
+            y,
+            &s};
+
+    ev.addDisplayedState(state->id());
+
+    s.addDisplayedState(state);
+}
 
 //TODO unused ?
 void CreateConstraintMin::undo(
         const id_type<ConstraintModel>& id,
         ScenarioModel& s)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     auto& cst = s.constraint(id);
-    auto& sev = s.event(cst.startEvent());
-    auto& eev = s.event(cst.endEvent());
-    sev.removeNextConstraint(id);
-    eev.removePreviousConstraint(id);
+
+    auto& sev = s.displayedState(cst.startState());
+    auto& eev = s.displayedState(cst.endState());
+
+    sev.setNextConstraint(id_type<ConstraintModel>{});
+    eev.setPreviousConstraint(id_type<ConstraintModel>{});
 
     s.removeConstraint(&cst);
-    */
 }
 
 ConstraintModel& CreateConstraintMin::redo(
         const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullviewid,
-        const id_type<DisplayedStateModel> &endStateId,
-        EventModel& sev,
-        EventModel& eev,
+        DisplayedStateModel& sst,
+        DisplayedStateModel& est,
         double ypos,
         ScenarioModel& s)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     auto constraint = new ConstraintModel {
                       id,
                       fullviewid,
                       ypos,
                       &s};
 
-    constraint->setStartEvent(sev.id());
-    constraint->setEndEvent(eev.id());
-
-    auto endst = new DisplayedStateModel{
-                        endStateId,
-                        eev.id(),
-                        ypos,
-                        &s };
-
-    s.addDisplayedState(endst);
+    constraint->setStartState(sst.id());
+    constraint->setEndState(est.id());
 
     s.addConstraint(constraint);
 
-    sev.addNextConstraint(id);
-    eev.addPreviousConstraint(id);
+    sst.setNextConstraint(id);
+    est.setPreviousConstraint(id);
 
-    constraint->setEndState(endStateId);
+    const auto& sev = s.event(sst.eventId());
+    const auto& eev = s.event(est.eventId());
 
     ConstraintModel::Algorithms::changeAllDurations(*constraint,
                                                     eev.date() - sev.date());
     constraint->setStartDate(sev.date());
 
     return *constraint;
-    */
 }
+
+

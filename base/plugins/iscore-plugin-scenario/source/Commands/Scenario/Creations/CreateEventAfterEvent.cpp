@@ -62,8 +62,10 @@ void CreateEventAfterEvent::undo()
 
 void CreateEventAfterEvent::redo()
 {
+    qDebug() << "TODO: " << Q_FUNC_INFO;
+    /*
     auto& scenar = m_path.find<ScenarioModel>();
-    CreateTimenodeConstraintAndEvent(m_createdConstraintId,
+    CreateTimenodeEventStateAndConstraint(m_createdConstraintId,
                                      m_createdConstraintFullViewId,
                                      m_stateId,
                                      scenar.event(m_firstEventId),
@@ -76,6 +78,7 @@ void CreateEventAfterEvent::redo()
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
                                scenar);
+                               */
 }
 
 void CreateEventAfterEvent::serializeImpl(QDataStream& s) const

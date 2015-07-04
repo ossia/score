@@ -6,25 +6,26 @@
 
 TimeNodeModel::TimeNodeModel(
         const id_type<TimeNodeModel>& id,
+        const VerticalExtent& extent,
         const TimeValue& date,
-        double ypos,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
-    m_date{date},
-    m_y{ypos}
+    m_extent{extent},
+    m_date{date}
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
 }
 
-TimeNodeModel::TimeNodeModel(const TimeNodeModel &source,
+TimeNodeModel::TimeNodeModel(
+        const TimeNodeModel &source,
         const id_type<TimeNodeModel>& id,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
     pluginModelList{source.pluginModelList, this},
-    m_date{source.date()},
-    m_y{source.y()},
+    m_extent{source.m_extent},
+    m_date{source.m_date},
     m_events(source.m_events)
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
@@ -70,16 +71,6 @@ void TimeNodeModel::setDate(const TimeValue& date)
     emit dateChanged();
 }
 
-double TimeNodeModel::y() const
-{
-    return m_y;
-}
-
-void TimeNodeModel::setY(double y)
-{
-    m_y = y;
-}
-
 const QVector<id_type<EventModel> >& TimeNodeModel::events() const
 {
     return m_events;
@@ -89,3 +80,13 @@ void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
 {
     m_events = events;
 }
+VerticalExtent TimeNodeModel::extent() const
+{
+    return m_extent;
+}
+
+void TimeNodeModel::setExtent(const VerticalExtent &extent)
+{
+    m_extent = extent;
+}
+
