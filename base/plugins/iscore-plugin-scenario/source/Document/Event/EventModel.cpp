@@ -7,7 +7,7 @@
 EventModel::EventModel(
         const id_type<EventModel>& id,
         const id_type<TimeNodeModel>& timenode,
-        double yPos,
+        double yPos, // TODO removeme
         QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},

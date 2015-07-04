@@ -77,13 +77,6 @@ bool EventPresenter::isSelected() const
     return m_model.selection.get();
 }
 
-#include "Process/ScenarioModel.hpp"
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
-#include "Document/State/StateView.hpp"
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
-
 void EventPresenter::triggerSetted(QString trig)
 {
     m_view->setTrigger(trig);

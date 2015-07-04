@@ -47,7 +47,17 @@ set_target_properties(iscore_lib_process
                         COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 ### Plugin ###
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.hpp")
+file(GLOB_RECURSE HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/ScenarioPlugin.hpp"
+)
 file(GLOB_RECURSE QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.qrc")
 
 set(SRCS
@@ -174,28 +184,13 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/AddSlotWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/Slot/SlotInspectorSection.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/RackInspectorSection.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/LambdaFriendlyQComboBox.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/RackWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventWidgets/EventShortcut.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/MetadataWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelView.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardRemovalPolicy.cpp"
@@ -228,10 +223,47 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ScenarioPlugin.cpp"
 )
 
+if(TARGET iscore_lib_inspector)
+    set(INSPECTOR_SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/AddSlotWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/Slot/SlotInspectorSection.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/RackInspectorSection.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/LambdaFriendlyQComboBox.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/RackWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventWidgets/EventShortcut.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/MetadataWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
+    )
+
+    set(SRCS ${SRCS} ${INSPECTOR_SRCS})
+
+    file(GLOB_RECURSE INSPECTOR_HDRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/*.hpp")
+
+    set(HDRS ${HDRS} ${INSPECTOR_HDRS})
+endif()
+
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Svg
                      iscore_lib_base
-                     iscore_lib_inspector iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
+                     iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
+
+if(TARGET iscore_lib_inspector)
+    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
+    set_target_properties(iscore_plugin_scenario
+                          PROPERTIES
+                            COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
+    target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
+endif()
 
 cotire(iscore_plugin_scenario)
 set_target_properties(iscore_plugin_scenario

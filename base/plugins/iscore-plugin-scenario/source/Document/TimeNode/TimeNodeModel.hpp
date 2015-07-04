@@ -42,7 +42,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
             IdentifiedObject<TimeNodeModel> {vis, parent}
         {
             vis.writeTo(*this);
-            checkIfPreviousConstraint();
         }
 
         TimeNodeModel(
@@ -67,12 +66,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         const QVector<id_type<EventModel>>& events() const;
         void setEvents(const QVector<id_type<EventModel>>& events);
 
-        // TODO instead just prevent having reverse constraints...
-        bool checkIfPreviousConstraint();
-
-    public slots:
-        void previousConstraintsChanged(const id_type<EventModel> &, bool);
-
     signals:
         void dateChanged();
         void newEvent(const id_type<EventModel>& eventId);
@@ -83,6 +76,5 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         double m_y {0.0}; // TODO should not be necessary ?
 
         QVector<id_type<EventModel>> m_events;
-        QMap<id_type<EventModel>, bool> m_eventHasPreviousConstraint;
 };
 

@@ -1,6 +1,7 @@
 #include "BaseScenario.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/State/DisplayedStateModel.hpp"
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -12,14 +13,14 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     m_endNode{new TimeNodeModel{id_type<TimeNodeModel>{1}, TimeValue::zero(), 0, this}}, // TODO baseconstraint duration
     m_startEvent{new EventModel{id_type<EventModel>{0}, m_startNode->id(), 0, this}},
     m_endEvent{new EventModel{id_type<EventModel>{1}, m_endNode->id(), 0, this}},
+    m_startState{new DisplayedStateModel{id_type<DisplayedStateModel>{0}, m_startEvent->id(), 0, this}},
+    m_endState{new DisplayedStateModel{id_type<DisplayedStateModel>{1}, m_endEvent->id(), 0, this}},
     m_constraint {new ConstraintModel{
                             id_type<ConstraintModel>{0},
                             id_type<AbstractConstraintViewModel>{0},
                             0,
                             this}}
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     m_startNode->setObjectName("BaseStartTimeNodeModel");
     m_startEvent->setObjectName("BaseStartEventModel");
     m_startNode->addEvent(m_startEvent->id());
@@ -28,12 +29,16 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     m_endEvent->setObjectName("BaseEndEventModel");
     m_endNode->addEvent(m_endEvent->id());
 
-    m_constraint->setStartEvent(m_startEvent->id());
-    m_constraint->setEndEvent(m_endEvent->id());
+    m_startState->setObjectName("BaseStartState");
+    m_startEvent->addDisplayedState(m_startState->id());
+    m_endState->setObjectName("BaseEndState");
+    m_endEvent->addDisplayedState(m_endState->id());
+
+    m_constraint->setStartState(m_startState->id());
+    m_constraint->setEndState(m_endState->id());
 
     ConstraintModel::Algorithms::changeAllDurations(*m_constraint, std::chrono::minutes{3});
     m_constraint->setObjectName("BaseConstraintModel");
-    */
 }
 
 

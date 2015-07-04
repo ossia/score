@@ -331,6 +331,11 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
     delete tn;
 }
 
+void ScenarioModel::removeDisplayedState(DisplayedStateModel *state)
+{
+
+}
+
 /////////////////////////////
 ConstraintModel& ScenarioModel::constraint(const id_type<ConstraintModel>& constraintId) const
 {

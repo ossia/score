@@ -88,7 +88,7 @@ class ScenarioModel : public ProcessModel
         void removeConstraint(ConstraintModel* constraint);
         void removeEvent(EventModel* event);
         void removeTimeNode(TimeNodeModel* timeNode);
-        //TODO state removeState
+        void removeDisplayedState(DisplayedStateModel* state);
 
         // Accessors
         ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;
@@ -187,6 +187,10 @@ class ScenarioModel : public ProcessModel
 
         id_type<EventModel> m_startEventId {};
         id_type<EventModel> m_endEventId {};
+
+        // By default, creation in the void will make a constraint
+        // that goes to the startEvent and add a new state
+
 };
 
 #include <iterator>

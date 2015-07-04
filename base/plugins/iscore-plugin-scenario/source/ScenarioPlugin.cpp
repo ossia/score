@@ -3,13 +3,15 @@
 #include <Process/ScenarioFactory.hpp>
 #include <Panel/ProcessPanelFactory.hpp>
 
+#include <State/State.hpp>
+#include <State/Message.hpp>
+
+#if defined(ISCORE_INSPECTOR_LIB)
 #include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Inspector/Event/EventInspectorFactory.hpp>
 #include <Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
-
-#include <State/State.hpp>
-#include <State/Message.hpp>
+#endif
 
 iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
@@ -63,6 +65,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
         return {new ScenarioFactory};
     }
 
+#if defined(ISCORE_INSPECTOR_LIB)
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new ConstraintInspectorFactory,
@@ -70,6 +73,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
                 new ScenarioInspectorFactory,
                 new TimeNodeInspectorFactory};
     }
+#endif
 
     return {};
 }

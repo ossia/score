@@ -25,13 +25,10 @@ TimeNodeModel::TimeNodeModel(const TimeNodeModel &source,
     pluginModelList{source.pluginModelList, this},
     m_date{source.date()},
     m_y{source.y()},
-    m_events(source.m_events),
-    m_eventHasPreviousConstraint(source.m_eventHasPreviousConstraint)
+    m_events(source.m_events)
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
-
-    checkIfPreviousConstraint();
 }
 
 ScenarioModel* TimeNodeModel::parentScenario() const
@@ -41,8 +38,6 @@ ScenarioModel* TimeNodeModel::parentScenario() const
 
 void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
@@ -50,25 +45,18 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     {
         auto& theEvent = parentScenario()->event(eventId);
         theEvent.changeTimeNode(this->id());
-        m_eventHasPreviousConstraint[eventId] = theEvent.hasPreviousConstraint();
-        checkIfPreviousConstraint();
     }
-    */
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     if(m_events.indexOf(eventId) >= 0)
     {
         m_events.remove(m_events.indexOf(eventId));
-        m_eventHasPreviousConstraint.remove(eventId);
         return true;
     }
 
     return false;
-    */
 }
 
 const TimeValue& TimeNodeModel::date() const
@@ -100,20 +88,4 @@ const QVector<id_type<EventModel> >& TimeNodeModel::events() const
 void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
 {
     m_events = events;
-}
-
-bool TimeNodeModel::checkIfPreviousConstraint()
-{
-    for(bool ev : m_eventHasPreviousConstraint)
-    {
-        if(ev)
-            return true;
-    }
-    return false;
-}
-
-void TimeNodeModel::previousConstraintsChanged(const id_type<EventModel>& ev, bool hasPrevCstr)
-{
-    m_eventHasPreviousConstraint[ev] = hasPrevCstr;
-    emit timeNodeValid(checkIfPreviousConstraint());
 }

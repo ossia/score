@@ -11,8 +11,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
 
     m_stream << timenode.m_date
              << timenode.m_y
-             << timenode.m_events
-             << timenode.m_eventHasPreviousConstraint;
+             << timenode.m_events;
 
 
     insertDelimiter();
@@ -26,8 +25,7 @@ void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
 
     m_stream >> timenode.m_date
              >> timenode.m_y
-             >> timenode.m_events
-             >> timenode.m_eventHasPreviousConstraint;
+             >> timenode.m_events;
 
 
     checkDelimiter();
@@ -42,7 +40,6 @@ void Visitor<Reader<JSONObject>>::readFrom(const TimeNodeModel& timenode)
     m_obj["Date"] = toJsonValue(timenode.date());
     m_obj["Y"] = timenode.y();
     m_obj["Events"] = toJsonArray(timenode.m_events);
-    m_obj["EventsPreviousConstraintMap"] = toJsonMap(timenode.m_eventHasPreviousConstraint);
 
     m_obj["PluginsMetadata"] = toJsonValue(timenode.pluginModelList);
 }
@@ -56,7 +53,6 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
     timenode.m_y = m_obj["Y"].toDouble();
 
     fromJsonValueArray(m_obj["Events"].toArray(), timenode.m_events);
-    timenode.m_eventHasPreviousConstraint = fromJsonMap<id_type<EventModel>,bool>(m_obj["EventsPreviousConstraintMap"].toArray());
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     timenode.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &timenode};
