@@ -1,7 +1,10 @@
 #pragma once
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
-class ClickOnConstraint_Transition : public MatchedScenarioTransition<ClickOnConstraint_Event>
+
+template<>
+class ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Click_tag::value> :
+        public MatchedScenarioTransition<PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Click_tag::value>>
 {
     public:
         using MatchedScenarioTransition::MatchedScenarioTransition;
@@ -9,12 +12,17 @@ class ClickOnConstraint_Transition : public MatchedScenarioTransition<ClickOnCon
     protected:
         void onTransition(QEvent * ev) override;
 };
+using ClickOnConstraint_Transition = ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Click_tag::value>;
 
-class MoveOnConstraint_Transition : public MatchedScenarioTransition<MoveOnConstraint_Event>
+
+template<>
+class ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Move_tag::value> :
+        public MatchedScenarioTransition<PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Move_tag::value>>
 {
     public:
         using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
-        virtual void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override;
 };
+using MoveOnConstraint_Transition = ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Move_tag::value>;

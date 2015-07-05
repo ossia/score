@@ -321,7 +321,7 @@ void ScenarioModel::addDisplayedState(StateModel *state)
 
 ///////// DELETION //////////
 void ScenarioModel::removeConstraint(ConstraintModel* cstr)
-{;
+{
     const auto& constraintId = cstr->id();
     m_constraints.remove(constraintId);
 
@@ -349,7 +349,7 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
     delete tn;
 }
 
-void ScenarioModel::removeDisplayedState(StateModel *state)
+void ScenarioModel::removeState(StateModel *state)
 {
     const auto& id = state->id();
     m_states.remove(id);

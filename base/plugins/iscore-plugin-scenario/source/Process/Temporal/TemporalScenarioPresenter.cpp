@@ -228,7 +228,8 @@ void TemporalScenarioPresenter::on_timeNodeRemoved(
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
         const id_type<AbstractConstraintViewModel>& constraintViewModelId)
 {
-    for(const auto& pres : m_constraints)
+    // Don't put a const auto& here, else deletion will crash.
+    for(auto pres : m_constraints)
     {
         // TODO add an index in the map on viewmodel id ?
         if(::viewModel(pres)->id() == constraintViewModelId)

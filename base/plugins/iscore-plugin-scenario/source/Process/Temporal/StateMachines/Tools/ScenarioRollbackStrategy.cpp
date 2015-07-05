@@ -6,6 +6,8 @@
 
 void ScenarioRollbackStrategy::rollback(const QList<iscore::SerializableCommand *> &cmds)
 {
+    // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
+    // REFACTOR THIS IN A LIST SOMEWHERE.
     using namespace Scenario::Command;
     for(int i = cmds.size() - 1; i >= 0; --i)
     {

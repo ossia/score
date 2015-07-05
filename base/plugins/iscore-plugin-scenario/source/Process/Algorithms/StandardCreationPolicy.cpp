@@ -21,7 +21,6 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
     s.addTimeNode(timeNode);
 
     return *timeNode;
-
 }
 
 void ScenarioCreate<EventModel>::undo(
@@ -57,7 +56,7 @@ void ScenarioCreate<StateModel>::undo(
 
     ev.removeState(id);
 
-    s.removeDisplayedState(&state);
+    s.removeState(&state);
 }
 
 StateModel &ScenarioCreate<StateModel>::redo(

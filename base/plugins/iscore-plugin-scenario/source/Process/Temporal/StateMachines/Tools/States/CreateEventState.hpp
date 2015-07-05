@@ -2,8 +2,18 @@
 #include <iscore/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Commands/Scenario/Creations/CreationMetaCommand.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
+#include "../ScenarioRollbackStrategy.hpp"
+template<int Value>
+class StrongQState : public QState
+{
+    public:
+        static constexpr auto value() { return Value; }
+        using QState::QState;
+};
 class ScenarioStateMachine;
+
 // TODO correctly separate in files
 class CreateFromEventState : public CreationState
 {
@@ -15,9 +25,22 @@ class CreateFromEventState : public CreationState
                 QState* parent);
 
     private:
-        void createEventFromEventOnNothing(const ScenarioStateMachine& stateMachine);
-        void createEventFromEventOnTimeNode();
+        void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); }
 
+        template<typename OriginState, typename DestinationState, typename Function>
+        void makeTransition(OriginState* from, DestinationState* to, Function&& fun)
+        {
+            using transition_type = ScenarioTransition_T<DestinationState::value()>;
+            connect(make_transition<transition_type>(from, to, *this),
+                    &transition_type::triggered,
+                    this, fun);
+        }
+
+
+        void createEventFromEventOnNothing();
+        void createConstraintBetweenEventAndTimeNode();
+
+        void createConstraintBetweenEventAndState();
         void createConstraintBetweenEvents();
         void createSingleEventOnTimeNode();
 

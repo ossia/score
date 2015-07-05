@@ -15,3 +15,6 @@ class MatchedScenarioTransition : public GenericScenarioTransition<MatchedTransi
     public:
         using GenericScenarioTransition<MatchedTransition<Event>>::GenericScenarioTransition;
 };
+
+template<int Value>
+class ScenarioTransition_T;

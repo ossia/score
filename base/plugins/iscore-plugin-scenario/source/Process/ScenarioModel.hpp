@@ -88,7 +88,7 @@ class ScenarioModel : public ProcessModel
         void removeConstraint(ConstraintModel* constraint);
         void removeEvent(EventModel* event);
         void removeTimeNode(TimeNodeModel* timeNode);
-        void removeDisplayedState(StateModel* state);
+        void removeState(StateModel* state);
 
         // Accessors
         ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;

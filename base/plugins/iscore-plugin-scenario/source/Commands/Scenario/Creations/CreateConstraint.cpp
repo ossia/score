@@ -42,7 +42,7 @@ void CreateConstraint::undo()
 {
     auto& scenar = m_path.find<ScenarioModel>();
 
-    StandardRemovalPolicy::removeConstraint(scenar, m_createdConstraintId);
+    ScenarioCreate<ConstraintModel>::undo(m_createdConstraintId, scenar);
 }
 
 void CreateConstraint::redo()
