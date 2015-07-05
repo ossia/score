@@ -18,6 +18,12 @@ class CreateConstraint_State : public iscore::SerializableCommand
             const id_type<EventModel>& endEvent,
             double endStateY);
 
+        CreateConstraint_State(
+          const ObjectPath& scenario,
+          const id_type<StateModel>& startState,
+          const id_type<EventModel>& endEvent,
+          double endStateY);
+
         const ObjectPath& scenarioPath() const
         { return m_command.scenarioPath(); }
 

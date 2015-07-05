@@ -79,63 +79,63 @@ CreateFromEventState::CreateFromEventState(
 
         // MoveOnNothing -> MoveOnState.
         makeTransition(move_nothing, move_state,
-                       [&] () { rollback(); createConstraintBetweenEventAndState(); });
+                       [&] () { rollback(); createToState(); });
 
         // MoveOnNothing -> MoveOnEvent.
         makeTransition(move_nothing, move_event,
-                       [&] () { rollback(); createConstraintBetweenEvents(); });
+                       [&] () { rollback(); createToEvent(); });
 
         // MoveOnNothing -> MoveOnTimeNode
         makeTransition(move_nothing, move_timenode,
-                       [&] () { rollback(); createConstraintBetweenEventAndTimeNode(); });
+                       [&] () { rollback(); createToTimeNode(); });
 
 
         /// MoveOnState -> ...
         // MoveOnState -> MoveOnNothing
         makeTransition(move_state, move_nothing,
-                       [&] () { rollback(); createEventFromEventOnNothing(); });
+                       [&] () { rollback(); createToNothing(); });
 
         // MoveOnState -> MoveOnState
         // We don't do anything, the constraint should not move.
 
         // MoveOnState -> MoveOnEvent
         makeTransition(move_state, move_event,
-                       [&] () { rollback(); createConstraintBetweenEvents(); });
+                       [&] () { rollback(); createToEvent(); });
 
         // MoveOnState -> MoveOnTimeNode
         makeTransition(move_state, move_timenode,
-                       [&] () { rollback(); createConstraintBetweenEventAndTimeNode(); });
+                       [&] () { rollback(); createToTimeNode(); });
 
 
         /// MoveOnEvent -> ...
         // MoveOnEvent -> MoveOnNothing
         makeTransition(move_event, move_nothing,
-                       [&] () { rollback(); createEventFromEventOnNothing(); });
+                       [&] () { rollback(); createToNothing(); });
 
         // MoveOnEvent -> MoveOnState
         makeTransition(move_event, move_state,
-                       [&] () { rollback(); createConstraintBetweenEventAndState(); });
+                       [&] () { rollback(); createToState(); });
 
         // MoveOnEvent -> MoveOnEvent
         make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
 
         // MoveOnEvent -> MoveOnTimeNode
         makeTransition(move_event, move_timenode,
-                       [&] () { rollback(); createConstraintBetweenEventAndTimeNode(); });
+                       [&] () { rollback(); createToTimeNode(); });
 
 
         /// MoveOnTimeNode -> ...
         // MoveOnTimeNode -> MoveOnNothing
         makeTransition(move_timenode, move_nothing,
-                       [&] () { rollback(); createEventFromEventOnNothing(); });
+                       [&] () { rollback(); createToNothing(); });
 
         // MoveOnTimeNode -> MoveOnState
         makeTransition(move_timenode, move_state,
-                       [&] () { rollback(); createConstraintBetweenEventAndState(); });
+                       [&] () { rollback(); createToState(); });
 
         // MoveOnTimeNode -> MoveOnEvent
         makeTransition(move_timenode, move_event,
-                       [&] () { rollback(); createConstraintBetweenEvents(); });
+                       [&] () { rollback(); createToEvent(); });
 
         // MoveOnTimeNode -> MoveOnTimeNode
         make_transition<MoveOnTimeNode_Transition>(move_timenode , move_timenode , *this);
@@ -145,7 +145,7 @@ CreateFromEventState::CreateFromEventState(
                          [&] ()
         {
             m_clickedPoint = currentPoint;
-            createEventFromEventOnNothing();
+            createToNothing();
         });
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
@@ -162,13 +162,10 @@ CreateFromEventState::CreateFromEventState(
 
         QObject::connect(move_timenode , &QState::entered, [&] ()
         {
-            ISCORE_TODO
-                    /*
             m_dispatcher.submitCommand<MoveNewState>(
                         ObjectPath{m_scenarioPath},
                         createdEvents.last(),// TODO CheckMe
                         currentPoint.y);
-                                */
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -189,82 +186,77 @@ CreateFromEventState::CreateFromEventState(
     setInitialState(mainState);
 }
 
-
-// Note : clickedEvent is set at startEvent if clicking in the background.
-void CreateFromEventState::createEventFromEventOnNothing()
+void CreateFromEventState::createInitialState()
 {
     auto cmd = new CreateState{m_scenarioPath, clickedEvent, currentPoint.y};
     m_dispatcher.submitCommand(cmd);
 
     createdStates.append(cmd->createdState());
+}
 
-    auto cmd2 = new CreateConstraint_State_Event_TimeNode{
+
+// Note : clickedEvent is set at startEvent if clicking in the background.
+void CreateFromEventState::createToNothing()
+{
+    createInitialState();
+
+    auto cmd = new CreateConstraint_State_Event_TimeNode{
             m_scenarioPath,
-            cmd->createdState(),
+            createdStates.first(), // Put there in createInitialState
             currentPoint.date,
             currentPoint.y};
-    m_dispatcher.submitCommand(cmd2);
+    m_dispatcher.submitCommand(cmd);
 
-    createdStates.append(cmd2->createdState());
-    createdEvents.append(cmd2->createdEvent());
-    createdTimeNodes.append(cmd2->createdTimeNode());
-    createdConstraints.append(cmd2->createdConstraint());
+    createdStates.append(cmd->createdState());
+    createdEvents.append(cmd->createdEvent());
+    createdTimeNodes.append(cmd->createdTimeNode());
+    createdConstraints.append(cmd->createdConstraint());
 }
 
-void CreateFromEventState::createConstraintBetweenEventAndTimeNode()
+void CreateFromEventState::createToState()
 {
-    ISCORE_TODO
-            /*
-    auto cmd = new CreateEventAfterEventOnTimeNode(
-                   ObjectPath{m_scenarioPath},
-                   clickedEvent,
-                   hoveredTimeNode,
-                   currentPoint.date,
-                   currentPoint.y);
+    createInitialState();
 
-    setCreatedEvent(cmd->createdEvent());
-    setCreatedTimeNode(id_type<TimeNodeModel>{});
-    setCreatedConstraint(cmd->createdConstraint());
+    auto cmd = new CreateConstraint{
+            ObjectPath{m_scenarioPath},
+            createdStates.first(),
+            hoveredState};
 
     m_dispatcher.submitCommand(cmd);
-                    */
+
+    createdConstraints.append(cmd->createdConstraint());
 }
 
-void CreateFromEventState::createConstraintBetweenEventAndState()
+void CreateFromEventState::createToEvent()
 {
-
-}
-
-void CreateFromEventState::createConstraintBetweenEvents()
-{
-    ISCORE_TODO
-    /*
     if(hoveredEvent != clickedEvent)
     {
-        auto cmd = new CreateConstraint{
-                  ObjectPath{m_scenarioPath},
-                  clickedEvent,
-                  clickedState,
-                  hoveredEvent};
-
-        setCreatedConstraint(cmd->createdConstraint());
+        auto cmd = new CreateConstraint_State{
+                ObjectPath{m_scenarioPath},
+                clickedState,
+                hoveredEvent,
+                currentPoint.y};
 
         m_dispatcher.submitCommand(cmd);
+
+        createdConstraints.append(cmd->createdConstraint());
+        createdStates.append(cmd->createdState());
     }
-    */
 }
 
-void CreateFromEventState::createSingleEventOnTimeNode()
+void CreateFromEventState::createToTimeNode()
 {
-    auto& scenar = m_scenarioPath.find<ScenarioModel>();
-    clickedTimeNode = scenar.event(clickedEvent).timeNode();
+    createInitialState();
 
-    auto cmd =
-            new CreateEventOnTimeNode(
-                ObjectPath{m_scenarioPath},
-                clickedTimeNode,
-                m_clickedPoint.y);
+    auto cmd = new CreateConstraint_State_Event{
+            m_scenarioPath,
+            createdStates.first(),
+            hoveredTimeNode,
+            currentPoint.y};
+
     m_dispatcher.submitCommand(cmd);
+
+    createdStates.append(cmd->createdState());
+    createdEvents.append(cmd->createdEvent());
+    createdConstraints.append(cmd->createdConstraint());
 }
-
-

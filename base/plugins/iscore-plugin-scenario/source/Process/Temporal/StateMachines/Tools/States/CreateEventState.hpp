@@ -25,7 +25,9 @@ class CreateFromEventState : public CreationState
                 QState* parent);
 
     private:
-        void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); }
+        void createInitialState();
+
+        void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
 
         template<typename OriginState, typename DestinationState, typename Function>
         void makeTransition(OriginState* from, DestinationState* to, Function&& fun)
@@ -39,12 +41,10 @@ class CreateFromEventState : public CreationState
         }
 
 
-        void createEventFromEventOnNothing();
-        void createConstraintBetweenEventAndTimeNode();
-
-        void createConstraintBetweenEventAndState();
-        void createConstraintBetweenEvents();
-        void createSingleEventOnTimeNode();
+        void createToNothing();
+        void createToState();
+        void createToEvent();
+        void createToTimeNode();
 
         MultiOngoingCommandDispatcher m_dispatcher;
         ScenarioPoint m_clickedPoint;

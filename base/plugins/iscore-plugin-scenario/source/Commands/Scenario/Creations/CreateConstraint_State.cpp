@@ -22,6 +22,19 @@ CreateConstraint_State::CreateConstraint_State(
 
 }
 
+CreateConstraint_State::CreateConstraint_State(
+        const ObjectPath &scenario,
+        const id_type<StateModel> &startState,
+        const id_type<EventModel> &endEvent,
+        double endStateY):
+    CreateConstraint_State{scenario.find<ScenarioModel>(),
+                           startState,
+                           endEvent,
+                           endStateY}
+{
+
+}
+
 
 void CreateConstraint_State::undo()
 {
