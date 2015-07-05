@@ -1,4 +1,7 @@
 #pragma once
+// TODO is this necessary ?
+#include "Document/State/StatePresenter.hpp"
+
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventPresenter.hpp"
 
@@ -28,7 +31,7 @@ class AbstractConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 
-class TemporalScenarioViewModel;
+class TemporalScenarioLayer;
 class TemporalScenarioView;
 class TimeNodeModel;
 class TimeNodePresenter;
@@ -47,7 +50,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
     public:
         TemporalScenarioPresenter(
-                const TemporalScenarioViewModel& model,
+                const TemporalScenarioLayer& model,
                 Layer* view,
                 QObject* parent);
         ~TemporalScenarioPresenter();
@@ -92,34 +95,37 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
     public slots:
         // Model -> view
+        void on_stateCreated(const id_type<DisplayedStateModel>& eventId);
+        void on_stateRemoved(const id_type<DisplayedStateModel>& eventId);
+
         void on_eventCreated(const id_type<EventModel>& eventId);
         void on_eventRemoved(const id_type<EventModel>& eventId);
 
         void on_timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
         void on_timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void on_constraintCreated(const id_type<AbstractConstraintViewModel>& constraintId);
+        void on_constraintViewModelCreated(const id_type<AbstractConstraintViewModel>& constraintId);
         void on_constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintId);
 
         void on_askUpdate();
 
     protected:
         // TODO faire passer l'abstract et utiliser des free functions de cast?
-        IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
+        IdContainer<StatePresenter, DisplayedStateModel> m_displayedStates;
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
-        IdContainer<DisplayedStateModel> m_displayedStates;
+        IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
 
         ZoomRatio m_zoomRatio {1};
 
-        const TemporalScenarioViewModel& m_viewModel;
+        const TemporalScenarioLayer& m_viewModel;
         TemporalScenarioView* m_view;
 
     private:
+        void on_stateCreated_impl(const DisplayedStateModel& state);
         void on_eventCreated_impl(const EventModel& event_model);
-        void on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model);
         void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);
-        void on_displayedStateCreated(const DisplayedStateModel& state);
+        void on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model);
 
         void eventHasTrigger(const EventPresenter&, bool);
 

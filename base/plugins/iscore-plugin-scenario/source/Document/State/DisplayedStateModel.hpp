@@ -19,9 +19,7 @@ class ConstraintModel;
 
 class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 {
-    Q_OBJECT
-
-    private:
+        Q_OBJECT
 
         friend void Visitor<Reader<DataStream>>::readFrom<DisplayedStateModel> (const DisplayedStateModel& ev);
         friend void Visitor<Reader<JSONObject>>::readFrom<DisplayedStateModel> (const DisplayedStateModel& ev);
@@ -58,9 +56,6 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
 
         double heightPercentage() const;
 
-        // TODO put in presenter
-        StateView* view() const;
-
         const iscore::StateList& states() const;
         void replaceStates(const iscore::StateList& newStates);
         void addState(const iscore::State& s);
@@ -71,9 +66,11 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         void setNextConstraint(const id_type<ConstraintModel>&);
         void setPreviousConstraint(const id_type<ConstraintModel>&);
 
-public slots:
+    signals:
+        void statesChanged();
+
+    public slots:
         void setHeightPercentage(double y);
-        void setPos(qreal y);
 
     private:
         id_type<EventModel> m_eventId;  // TODO serialize
@@ -85,8 +82,6 @@ public slots:
         double m_heightPercentage{0.5}; // In the whole scenario
 
         iscore::StateList m_states;
-        StateView* m_view{};
-
 };
 
 using DisplayedStateList = QList<DisplayedStateModel>;

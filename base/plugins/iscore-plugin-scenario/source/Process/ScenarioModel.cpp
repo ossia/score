@@ -9,6 +9,9 @@
 
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+
+#include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
+#include "Commands/Scenario/Creations/CreateState.hpp"
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const id_type<ProcessModel>& id,
                              QObject* parent) :
@@ -26,6 +29,11 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
     // At the end because plug-ins depend on the start/end timenode & al being here
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+
+    Scenario::Command::CreateState test1(*this, m_startEventId, 0.6);
+    test1.redo();
+    Scenario::Command::CreateConstraint_State_Event_TimeNode cmdtest(*this, (*m_displayedStates.begin())->id(), TimeValue(std::chrono::seconds(25)), 0.7);
+    cmdtest.redo();
 
 }
 
@@ -96,7 +104,7 @@ LayerModel* ScenarioModel::makeLayer_impl(
     QDataStream s{constructionData};
     s >> map;
 
-    auto scen = new TemporalScenarioViewModel {viewModelId, map, *this, parent};
+    auto scen = new TemporalScenarioLayer {viewModelId, map, *this, parent};
     makeLayer_impl(scen);
     return scen;
 }
@@ -107,8 +115,8 @@ LayerModel* ScenarioModel::cloneLayer_impl(
         const LayerModel& source,
         QObject* parent)
 {
-    auto scen = new TemporalScenarioViewModel{
-                static_cast<const TemporalScenarioViewModel&>(source),
+    auto scen = new TemporalScenarioLayer{
+                static_cast<const TemporalScenarioLayer&>(source),
                 newId,
                 *this,
                 parent};
@@ -260,20 +268,30 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 
 void ScenarioModel::makeLayer_impl(ScenarioModel::layer_type* scen)
 {
-    // TODO why no ConstraintCreated ?
+    // There is no ConstraintCreated connection to the layer,
+    // because the constraints view models are created
+    // from the commands, since they require ids too.
     connect(this, &ScenarioModel::constraintRemoved,
             scen, &layer_type::on_constraintRemoved);
 
+    connect(this, &ScenarioModel::stateCreated,
+            scen, &layer_type::stateCreated);
+    connect(this, &ScenarioModel::stateRemoved,
+            scen, &layer_type::stateRemoved);
+
     connect(this, &ScenarioModel::eventCreated,
             scen, &layer_type::eventCreated);
+    connect(this, &ScenarioModel::eventRemoved_after,
+            scen, &layer_type::eventRemoved);
+
     connect(this, &ScenarioModel::timeNodeCreated,
             scen, &layer_type::timeNodeCreated);
-    connect(this, &ScenarioModel::eventRemoved_after,
-            scen, &layer_type::eventDeleted);
     connect(this, &ScenarioModel::timeNodeRemoved,
-            scen, &layer_type::timeNodeDeleted);
+            scen, &layer_type::timeNodeRemoved);
+
     connect(this, &ScenarioModel::eventMoved,
             scen, &layer_type::eventMoved);
+
     connect(this, &ScenarioModel::constraintMoved,
             scen, &layer_type::constraintMoved);
 }
@@ -304,13 +322,14 @@ void ScenarioModel::addDisplayedState(DisplayedStateModel *state)
 {
     m_displayedStates.insert(state);
 
+    emit stateCreated(state->id());
 }
 
 ///////// DELETION //////////
 void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 {;
-    auto constraintId = cstr->id();
-    m_constraints.remove(cstr->id());
+    const auto& constraintId = cstr->id();
+    m_constraints.remove(constraintId);
 
     emit constraintRemoved(constraintId);
     delete cstr;
@@ -318,10 +337,10 @@ void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 
 void ScenarioModel::removeEvent(EventModel* ev)
 {
-    auto eventId = ev->id();
+    const auto& eventId = ev->id();
     emit eventRemoved_before(eventId);
 
-    m_events.remove(ev->id());
+    m_events.remove(eventId);
 
     emit eventRemoved_after(eventId);
     delete ev;
@@ -329,8 +348,8 @@ void ScenarioModel::removeEvent(EventModel* ev)
 
 void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 {
-    auto timeNodeId = tn->id();
-    m_timeNodes.remove(tn->id());
+    const auto& timeNodeId = tn->id();
+    m_timeNodes.remove(timeNodeId);
 
     emit timeNodeRemoved(timeNodeId);
     delete tn;
@@ -338,7 +357,11 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 
 void ScenarioModel::removeDisplayedState(DisplayedStateModel *state)
 {
+    const auto& id = state->id();
+    m_displayedStates.remove(id);
 
+    emit stateRemoved(id);
+    delete state;
 }
 
 /////////////////////////////

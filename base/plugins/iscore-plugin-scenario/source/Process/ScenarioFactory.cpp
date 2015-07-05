@@ -14,7 +14,7 @@ Layer* ScenarioFactory::makeView(
         const LayerModel& viewmodel,
         QObject* parent)
 {
-    if(dynamic_cast<const TemporalScenarioViewModel*>(&viewmodel))
+    if(dynamic_cast<const TemporalScenarioLayer*>(&viewmodel))
         return new TemporalScenarioView {static_cast<QGraphicsObject*>(parent) };
 
     return nullptr;
@@ -26,7 +26,7 @@ ScenarioFactory::makePresenter(
         Layer* view,
         QObject* parent)
 {
-    if(auto vm = dynamic_cast<const TemporalScenarioViewModel*>(&lm))
+    if(auto vm = dynamic_cast<const TemporalScenarioLayer*>(&lm))
     {
         auto pres = new TemporalScenarioPresenter {*vm, view, parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);

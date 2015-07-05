@@ -7,9 +7,9 @@
 static const qreal radiusFull = 10.;
 static const qreal radiusVoid = 3.;
 
-StateView::StateView(DisplayedStateModel& model, QGraphicsObject *parent) :
+StateView::StateView(StatePresenter& pres, QGraphicsObject *parent) :
     QGraphicsObject(parent),
-    m_model{model}
+    m_presenter{pres}
 {
     this->setParentItem(parent);
 
@@ -23,9 +23,9 @@ int StateView::type() const
     return QGraphicsItem::UserType + 4;
 }
 
-const DisplayedStateModel &StateView::model() const
+const StatePresenter &StateView::presenter() const
 {
-    return m_model;
+    return m_presenter;
 }
 
 QRectF StateView::boundingRect() const

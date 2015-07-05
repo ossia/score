@@ -19,33 +19,22 @@ DisplayedStateModel::DisplayedStateModel(const id_type<DisplayedStateModel>& id,
 
 }
 
-void DisplayedStateModel::initView(AbstractConstraintView *parentView)
-{
-    m_view = new StateView{*this, parentView};
-}
-
 DisplayedStateModel::DisplayedStateModel(const DisplayedStateModel &source,
                                          const id_type<DisplayedStateModel> &id,
                                          QObject *parent):
     DisplayedStateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
     m_states = source.states();
-    //TODO : view
 }
 
-const ScenarioModel *DisplayedStateModel::parentScenario() const
+const ScenarioModel* DisplayedStateModel::parentScenario() const
 {
-    return  (dynamic_cast<ScenarioModel*>(parent()));
+    return (dynamic_cast<ScenarioModel*>(parent()));
 }
 
 double DisplayedStateModel::heightPercentage() const
 {
     return m_heightPercentage;
-}
-
-StateView *DisplayedStateModel::view() const
-{
-    return m_view;
 }
 
 void DisplayedStateModel::setHeightPercentage(double y)
@@ -55,10 +44,6 @@ void DisplayedStateModel::setHeightPercentage(double y)
     m_heightPercentage = y;
 }
 
-void DisplayedStateModel::setPos(qreal y)
-{
-    m_view->setPos({0, y});
-}
 const id_type<EventModel> &DisplayedStateModel::eventId() const
 {
     return m_eventId;
@@ -75,7 +60,7 @@ void DisplayedStateModel::setPreviousConstraint(const id_type<ConstraintModel> &
 }
 
 
-const iscore::StateList &DisplayedStateModel::states() const
+const iscore::StateList& DisplayedStateModel::states() const
 {
     return m_states;
 }
@@ -83,17 +68,18 @@ const iscore::StateList &DisplayedStateModel::states() const
 void DisplayedStateModel::replaceStates(const iscore::StateList &newStates)
 {
     m_states = newStates;
+    emit statesChanged();
 }
 
 void DisplayedStateModel::addState(const iscore::State &s)
 {
     m_states.append(s);
-
+    emit statesChanged();
 }
 
 void DisplayedStateModel::removeState(const iscore::State &s)
 {
     m_states.removeOne(s);
-
+    emit statesChanged();
 }
 

@@ -1,4 +1,4 @@
-#include "CreateConstraint_State_Event.hpp"
+#include "CreateEvent_State.hpp"
 
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/ScenarioModel.hpp"
@@ -6,23 +6,21 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 using namespace Scenario::Command;
-CreateConstraint_State_Event::CreateConstraint_State_Event(
+CreateEvent_State::CreateEvent_State(
         const ScenarioModel& scenario,
-        const id_type<DisplayedStateModel>& startState,
-        const id_type<TimeNodeModel>& endTimeNode,
-        double endStateY):
+        const id_type<TimeNodeModel>& timeNode,
+        double stateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newEvent{getStrongId(scenario.events())},
     m_command{scenario,
-              startState,
               m_newEvent,
-              endStateY},
-    m_endTimeNode{endTimeNode}
+              stateY},
+    m_timeNode{timeNode}
 {
 
 }
 
-void CreateConstraint_State_Event::undo()
+void CreateEvent_State::undo()
 {
     m_command.undo();
 
@@ -31,30 +29,30 @@ void CreateConstraint_State_Event::undo()
                 m_command.scenarioPath().find<ScenarioModel>());
 }
 
-void CreateConstraint_State_Event::redo()
+void CreateEvent_State::redo()
 {
     auto& scenar = m_command.scenarioPath().find<ScenarioModel>();
 
-    // Create the end event
+    // Create the event
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
-                scenar.timeNode(m_endTimeNode),
+                scenar.timeNode(m_timeNode),
                 {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1},
                 scenar);
 
-    // The state + constraint between
+    // And the state
     m_command.redo();
 }
 
-void CreateConstraint_State_Event::serializeImpl(QDataStream& s) const
+void CreateEvent_State::serializeImpl(QDataStream& s) const
 {
-    s << m_newEvent << m_command.serialize() << m_endTimeNode;
+    s << m_newEvent << m_command.serialize() << m_timeNode;
 }
 
-void CreateConstraint_State_Event::deserializeImpl(QDataStream& s)
+void CreateEvent_State::deserializeImpl(QDataStream& s)
 {
     QByteArray b;
-    s >> m_newEvent >> b >> m_endTimeNode;
+    s >> m_newEvent >> b >> m_timeNode;
 
     m_command.deserialize(b);
 }

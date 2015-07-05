@@ -13,12 +13,16 @@ class CreateConstraint_State_Event : public iscore::SerializableCommand
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint_State_Event, "ScenarioControl")
 
           CreateConstraint_State_Event(
-            ScenarioModel& scenario,
+            const ScenarioModel& scenario,
             const id_type<DisplayedStateModel>& startState,
             const id_type<TimeNodeModel>& endTimeNode,
             double endStateY);
 
-        const ObjectPath& scenarioPath() const;
+        const ObjectPath& scenarioPath() const
+        { return m_command.scenarioPath(); }
+
+        const double& endStateY() const
+        { return m_command.endStateY(); }
 
         void undo() override;
         void redo() override;
@@ -28,13 +32,11 @@ class CreateConstraint_State_Event : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        id_type<DisplayedStateModel> m_endStateId;
-        id_type<EventModel> m_endEventId;
+        id_type<EventModel> m_newEvent;
 
         CreateConstraint_State m_command;
 
-        id_type<EventModel> m_endTimeNode;
-        double m_endStateY{};
+        id_type<TimeNodeModel> m_endTimeNode;
 };
 }
 }

@@ -4,7 +4,7 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& lm)
+void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioLayer& lm)
 {
     auto constraints = constraintsViewModels(lm);
 
@@ -19,7 +19,7 @@ void Visitor<Reader<DataStream>>::readFrom(const TemporalScenarioViewModel& lm)
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& lm)
+void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioLayer& lm)
 {
     int count;
     m_stream >> count;
@@ -36,7 +36,7 @@ void Visitor<Writer<DataStream>>::writeTo(TemporalScenarioViewModel& lm)
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioViewModel& lm)
+void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioLayer& lm)
 {
     QJsonArray arr;
 
@@ -49,7 +49,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const TemporalScenarioViewModel& lm)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& lm)
+void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioLayer& lm)
 {
     QJsonArray arr = m_obj["Constraints"].toArray();
 
@@ -64,7 +64,7 @@ void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioViewModel& lm)
 
 
 #include <iscore/serialization/VisitorCommon.hpp>
-void TemporalScenarioViewModel::serialize(const VisitorVariant& vis) const
+void TemporalScenarioLayer::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }

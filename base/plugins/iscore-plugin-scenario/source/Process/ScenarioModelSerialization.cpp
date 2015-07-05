@@ -197,7 +197,7 @@ LayerModel* ScenarioModel::loadLayer_impl(
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto scen = new TemporalScenarioViewModel{
+        auto scen = new TemporalScenarioLayer{
                             deserializer, *this, parent};
         this->makeLayer_impl(scen);
         return scen;

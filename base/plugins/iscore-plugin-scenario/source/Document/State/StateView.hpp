@@ -1,17 +1,17 @@
 #pragma once
 #include <QGraphicsObject>
 
-class DisplayedStateModel;
+class StatePresenter;
 
 class StateView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        StateView(DisplayedStateModel &model, QGraphicsObject *parent = 0);
+        StateView(StatePresenter &presenter, QGraphicsObject *parent = 0);
         virtual ~StateView() = default;
         int type() const override;
 
-        const DisplayedStateModel& model() const;
+        const StatePresenter& presenter() const;
 
         QRectF boundingRect() const override;
         void paint(QPainter* painter,
@@ -23,6 +23,11 @@ class StateView : public QGraphicsObject
         {
             m_selected = arg;
             update();
+        }
+
+        void changeColor(const QColor&)
+        {
+            qDebug() << "TODO: " << Q_FUNC_INFO;
         }
 
     signals:
@@ -38,7 +43,7 @@ class StateView : public QGraphicsObject
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
     private:
-        DisplayedStateModel& m_model;
+        StatePresenter& m_presenter;
 
         bool m_containMessage{false};
         bool m_selected{false};

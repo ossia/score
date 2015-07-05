@@ -1,30 +1,34 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include "CreateConstraint.hpp"
+#include <iscore/tools/ObjectPath.hpp>
+
 class ScenarioModel;
+class EventModel;
+class DisplayedStateModel;
+
 namespace Scenario
 {
 namespace Command
 {
-class CreateConstraint_State : public iscore::SerializableCommand
+class CreateState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("CreateConstraint_State","CreateConstraint_State")
+        ISCORE_COMMAND_DECL("CreateState","CreateState")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint_State, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateState, "ScenarioControl")
 
-          CreateConstraint_State(
+          CreateState(
             const ScenarioModel& scenario,
-            const id_type<DisplayedStateModel>& startState,
-            const id_type<EventModel>& endEvent,
-            double endStateY);
+            const id_type<EventModel>& event,
+            double stateY);
 
         const ObjectPath& scenarioPath() const
-        { return m_command.scenarioPath(); }
+        { return m_path; }
 
         const double& endStateY() const
         { return m_stateY; }
 
         void undo() override;
+
         void redo() override;
 
     protected:
@@ -32,9 +36,10 @@ class CreateConstraint_State : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
+        ObjectPath m_path;
+
         id_type<DisplayedStateModel> m_newState;
-        CreateConstraint m_command;
-        id_type<EventModel> m_endEvent;
+        id_type<EventModel> m_event;
         double m_stateY{};
 };
 }

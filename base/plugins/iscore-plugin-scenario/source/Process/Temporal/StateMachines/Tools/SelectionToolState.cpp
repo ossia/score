@@ -176,7 +176,7 @@ void SelectionTool::on_released()
     {
         const auto& elt = m_parentSM.presenter().displayedStates().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(elt,
+        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 

@@ -54,7 +54,7 @@ void deserializeConstraintViewModels(
     using namespace std;
     for(auto& viewModel : layers(scenar))
     {
-        if(TemporalScenarioViewModel* temporalSVM = dynamic_cast<TemporalScenarioViewModel*>(viewModel))
+        if(TemporalScenarioLayer* temporalSVM = dynamic_cast<TemporalScenarioLayer*>(viewModel))
         {
             auto svm_id = iscore::IDocument::path(temporalSVM);
 

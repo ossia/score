@@ -126,15 +126,18 @@ class ScenarioModel : public ProcessModel
         }
 
     signals:
+        void stateCreated(const id_type<DisplayedStateModel>& stateId);
         void eventCreated(const id_type<EventModel>& eventId);
         void constraintCreated(const id_type<ConstraintModel>& constraintId);
         void timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
 
+        void stateRemoved(const id_type<DisplayedStateModel>& stateId);
         void eventRemoved_before(const id_type<EventModel>& eventId);
         void eventRemoved_after(const id_type<EventModel>& eventId);
         void constraintRemoved(const id_type<ConstraintModel>& constraintId);
         void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
+        void stateMoved(const id_type<DisplayedStateModel>& stateId);
         void eventMoved(const id_type<EventModel>& eventId);
         void constraintMoved(const id_type<ConstraintModel>& constraintId);
 

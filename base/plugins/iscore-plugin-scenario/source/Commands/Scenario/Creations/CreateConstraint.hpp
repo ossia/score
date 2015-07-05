@@ -3,7 +3,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
-#include <tuple>
 
 class EventModel;
 class AbstractConstraintViewModel;

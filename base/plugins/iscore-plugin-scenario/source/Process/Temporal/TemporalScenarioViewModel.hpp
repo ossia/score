@@ -11,30 +11,31 @@ class TemporalScenarioPresenter;
 class ConstraintModel;
 class ScenarioStateMachine;
 
-
-class TemporalScenarioViewModel : public AbstractScenarioLayer
+// TODO remove the file
+class TemporalScenarioLayer : public AbstractScenarioLayer
 {
         Q_OBJECT
     public:
         using model_type = ScenarioModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
-        TemporalScenarioViewModel(const id_type<LayerModel>& id,
-                                  const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>>& constraintIds,
-                                  ScenarioModel& model,
-                                  QObject* parent);
+        TemporalScenarioLayer(const id_type<LayerModel>& id,
+                              const QMap<id_type<ConstraintModel>,
+                              id_type<AbstractConstraintViewModel>>& constraintIds,
+                              ScenarioModel& model,
+                              QObject* parent);
 
         // Copy
-        TemporalScenarioViewModel(const TemporalScenarioViewModel& source,
-                                  const id_type<LayerModel>& id,
-                                  ScenarioModel& model,
-                                  QObject* parent);
+        TemporalScenarioLayer(const TemporalScenarioLayer& source,
+                              const id_type<LayerModel>& id,
+                              ScenarioModel& model,
+                              QObject* parent);
 
         // Load
         template<typename Impl>
-        TemporalScenarioViewModel(Deserializer<Impl>& vis,
-                                  ScenarioModel& model,
-                                  QObject* parent) :
+        TemporalScenarioLayer(Deserializer<Impl>& vis,
+                              ScenarioModel& model,
+                              QObject* parent) :
             AbstractScenarioLayer {vis, model, parent}
         {
             vis.writeTo(*this);
@@ -42,7 +43,7 @@ class TemporalScenarioViewModel : public AbstractScenarioLayer
 
         virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
-        virtual ~TemporalScenarioViewModel() = default;
+        virtual ~TemporalScenarioLayer() = default;
 
         virtual void serialize(const VisitorVariant&) const override;
 
