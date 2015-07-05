@@ -92,76 +92,28 @@ void ScenarioViewInterface::on_constraintMoved(const id_type<ConstraintModel>& c
     */
 }
 
+void ScenarioViewInterface::on_timeNodeMoved(const TimeNodePresenter &timenode)
+{
+    auto h = m_presenter->m_view->boundingRect().height();
+    timenode.view()->setExtent(timenode.model().extent().top * h,
+                               timenode.model().extent().bottom * h);
+
+    timenode.view()->setPos({timenode.model().date().msec() / m_presenter->m_zoomRatio,
+                             timenode.model().extent().top * h});
+
+    m_presenter->m_view->update();
+}
+
+void ScenarioViewInterface::on_stateMoved(const id_type<DisplayedStateModel> &constraintId)
+{
+
+}
+
 template<typename T>
 void update_min_max(const T& val, T& min, T& max)
 {
     min = val < min ? val : min;
     max = val > max ? val : max;
-}
-
-void ScenarioViewInterface::updateTimeNode(const id_type<TimeNodeModel>& timeNodeId)
-{
-
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
-    auto timeNode_it = m_presenter->m_timeNodes.find(timeNodeId);
-    if(timeNode_it == m_presenter->m_timeNodes.end())
-        return;
-
-    auto timeNode = *timeNode_it;
-
-    auto h =  m_presenter->m_view->boundingRect().height();
-
-    double min = 1.0;
-    double max = 0.0;
-
-    double tnMin = 1.0;
-    double tnMax = 0.0;
-
-    for(const auto& eventId : timeNode->model().events())
-    {
-        EventPresenter* event = m_presenter->m_events.at(eventId);
-
-        for(const auto& constraint_id : event->model().previousConstraints())
-        {
-            auto it = m_presenter->m_constraints.find(constraint_id);
-            // Note : here we do this test, because
-            // when removing / adding constraints,
-            // this may be called while the presenter doesn't have all the constraints.
-            // To fix this it would maybe be better to update the min / max height
-            // directly when something changes
-            // instead of recomputing everything every time (it would be faster, too).
-            if(it != m_presenter->m_constraints.end())
-            {
-                update_min_max((*it)->model().heightPercentage(), min, max);
-            }
-        }
-
-        for(const auto& constraint_id : event->model().nextConstraints())
-        {
-            auto it = m_presenter->m_constraints.find(constraint_id);
-            if(it != m_presenter->m_constraints.end())
-            {
-                update_min_max((*it)->model().heightPercentage(), min, max);
-            }
-        }
-
-        update_min_max(min, tnMin, tnMax);
-        update_min_max(max, tnMin, tnMax);
-
-        min -= event->model().heightPercentage();
-        max -= event->model().heightPercentage();
-        event->view()->setExtremities(int(h*min), int(h*max));
-
-        min = 1.;
-        max = 0.;
-    }
-
-    tnMin -= timeNode->model().y();
-    tnMax -= timeNode->model().y();
-
-    timeNode->view()->setExtremities(int (h * tnMin), int (h * tnMax));
-    */
 }
 
 void ScenarioViewInterface::addPointInEvent(const id_type<EventModel> &eventId, double y)

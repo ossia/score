@@ -3,6 +3,7 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include <QGraphicsScene>
+#include <QGraphicsObject>
 
 TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QGraphicsObject *parentview,
@@ -22,6 +23,14 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
 
     connect(&m_model,   &TimeNodeModel::timeNodeValid,
             m_view, &TimeNodeView::setValid);
+
+    connect(&m_model, &TimeNodeModel::extentChanged,
+            this, [&] (const VerticalExtent& extent) {
+        m_view->setPos({m_view->pos().x(),
+                        extent.top * parentview->boundingRect().height()});
+        m_view->setExtent(extent.top * parentview->boundingRect().height(),
+                          extent.bottom * parentview->boundingRect().height());
+    });
 
 }
 
@@ -58,24 +67,4 @@ TimeNodeView* TimeNodePresenter::view() const
 void TimeNodePresenter::on_eventAdded(const id_type<EventModel>& eventId)
 {
     emit eventAdded(eventId, m_model.id());
-}
-
-void TimeNodePresenter::updateMinExtremities(const id_type<ConstraintModel>& cstr, const double y)
-{
-    m_extremityMin = {cstr, y};
-}
-
-void TimeNodePresenter::updateMaxExtremities(const id_type<ConstraintModel>& cstr, const double y)
-{
-    m_extremityMax = {cstr, y};
-}
-
-const QPair<id_type<ConstraintModel>, double> TimeNodePresenter::extremityMin() const
-{
-    return m_extremityMin;
-}
-
-const QPair<id_type<ConstraintModel>, double> TimeNodePresenter::extremityMax() const
-{
-    return m_extremityMax;
 }

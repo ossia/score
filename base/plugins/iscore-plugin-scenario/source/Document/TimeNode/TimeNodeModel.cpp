@@ -14,6 +14,7 @@ TimeNodeModel::TimeNodeModel(
     m_extent{extent},
     m_date{date}
 {
+    qDebug() << m_extent;
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
 }
@@ -80,13 +81,16 @@ void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
 {
     m_events = events;
 }
-VerticalExtent TimeNodeModel::extent() const
+
+const VerticalExtent& TimeNodeModel::extent() const
 {
     return m_extent;
 }
 
 void TimeNodeModel::setExtent(const VerticalExtent &extent)
 {
+    // TODO if extent != ...
     m_extent = extent;
+    emit extentChanged(m_extent);
 }
 

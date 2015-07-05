@@ -7,7 +7,8 @@ class TemporalScenarioPresenter;
 class ConstraintModel;
 class EventModel;
 class TimeNodeModel;
-
+class TimeNodePresenter;
+class DisplayedStateModel;
 
 class ScenarioViewInterface : public QObject
 {
@@ -16,7 +17,12 @@ class ScenarioViewInterface : public QObject
 
         void on_eventMoved(const id_type<EventModel>& eventId);
         void on_constraintMoved(const id_type<ConstraintModel>& constraintId);
+        void on_timeNodeMoved(const TimeNodePresenter &timenode);
+        void on_stateMoved(const id_type<DisplayedStateModel>& constraintId);
+
         void updateTimeNode(const id_type<TimeNodeModel> &timeNodeId);
+
+
         void addPointInEvent(const id_type<EventModel> &eventId, double y);
 
     public slots:

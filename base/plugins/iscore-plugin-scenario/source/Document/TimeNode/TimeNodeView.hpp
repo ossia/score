@@ -25,7 +25,7 @@ class TimeNodeView : public QGraphicsObject
         // QGraphicsItem interface
         QRectF boundingRect() const override;
 
-        void setExtremities(int top, int bottom);
+        void setExtent(qreal top, qreal bottom);
         void addPoint(int newY);
 
         void setMoving(bool);
@@ -57,8 +57,8 @@ class TimeNodeView : public QGraphicsObject
 
     private:
         TimeNodePresenter& m_presenter;
-        int m_top {0};
-        int m_bottom {0};
+        qreal m_top{};
+        qreal m_bottom{};
 
         QPointF m_clickedPoint {};
         QColor m_color;

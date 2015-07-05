@@ -55,7 +55,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         ScenarioModel* parentScenario() const;
 
         // Data of the TimeNode
-        VerticalExtent extent() const;
+        const VerticalExtent& extent() const;
         void setExtent(const VerticalExtent &extent);
 
         const TimeValue& date() const;
@@ -68,6 +68,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
     signals:
         void dateChanged();
+        void extentChanged(const VerticalExtent&);
         void newEvent(const id_type<EventModel>& eventId);
         // TODO no eventRemoved ? eventsChanged ?
         void timeNodeValid(bool); // TODO wtf

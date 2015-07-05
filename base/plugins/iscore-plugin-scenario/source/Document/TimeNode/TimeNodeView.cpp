@@ -38,19 +38,23 @@ void TimeNodeView::paint(QPainter* painter,
     QPen pen{QBrush(pen_color), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
-    painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));
+    painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_bottom - m_top)));
 
-//    painter->setPen(Qt::darkMagenta);
-//    painter->drawRect(boundingRect());
+#if defined(ISCORE_SCENARIO_DEBUG_RECTS)
+    painter->setPen(Qt::darkMagenta);
+    painter->drawRect(boundingRect());
+#endif
 }
 
 QRectF TimeNodeView::boundingRect() const
 {
-    return { -3., (qreal) (m_top), 6., (qreal)(m_bottom - m_top) };
+    return { -3., 0., 6., (qreal)(m_bottom - m_top) };
 }
 
-void TimeNodeView::setExtremities(int top, int bottom)
+void TimeNodeView::setExtent(qreal top, qreal bottom)
 {
+    prepareGeometryChange();
+    // TODO Set pos at the same time ?
     m_top = top;
     m_bottom = bottom;
     this->update();
