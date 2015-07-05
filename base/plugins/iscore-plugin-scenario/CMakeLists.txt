@@ -75,6 +75,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/Slot/SlotModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/RackModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioViewModelSerialization.cpp"
@@ -187,7 +188,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/MainTimeRuler/TimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModelSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"
