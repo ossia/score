@@ -138,28 +138,8 @@ void TemporalScenarioPresenter::setWidth(int width)
 void TemporalScenarioPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
-
-    // Move all the elements accordingly
-    for(auto& constraint : m_constraints)
-    {
-        m_viewInterface->on_constraintMoved(*constraint);
-    }
-
-    for(auto& event : m_events)
-    {
-        m_viewInterface->on_eventMoved(*event);
-    }
-
-    for(auto& timenode : m_timeNodes)
-    {
-        m_viewInterface->on_timeNodeMoved(*timenode);
-    }
-
-    for(auto& state : m_displayedStates)
-    {
-        m_viewInterface->on_stateMoved(*state);
-    }
-
+    updateAllElements();
+    m_view->update();
 }
 
 void TemporalScenarioPresenter::putToFront()
@@ -176,55 +156,21 @@ void TemporalScenarioPresenter::putBehind()
 
 void TemporalScenarioPresenter::parentGeometryChanged()
 {
+    updateAllElements();
     m_view->update();
-    // Move all the elements accordingly
-    // TODO refactor this ffs
-    for(auto& constraint : m_constraints)
-    {
-        m_viewInterface->on_constraintMoved(*constraint);
-    }
-
-    for(auto& event : m_events)
-    {
-        m_viewInterface->on_eventMoved(*event);
-    }
-
-    for(auto& timenode : m_timeNodes)
-    {
-        m_viewInterface->on_timeNodeMoved(*timenode);
-    }
-
-    for(auto& state : m_displayedStates)
-    {
-        m_viewInterface->on_stateMoved(*state);
-    }
 }
 
 void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
 
-    // TODO maybe don't pass the id but directly the ptr.
     for(auto& constraint : m_constraints)
     {
         constraint->on_zoomRatioChanged(m_zoomRatio);
-        m_viewInterface->on_constraintMoved(*constraint);
     }
 
-    for(auto& event : m_events)
-    {
-        m_viewInterface->on_eventMoved(*event);
-    }
-
-    for(auto& timenode : m_timeNodes)
-    {
-        m_viewInterface->on_timeNodeMoved(*timenode);
-    }
-
-    for(auto& state : m_displayedStates)
-    {
-        m_viewInterface->on_stateMoved(*state);
-    }
+    updateAllElements();
+    m_view->update();
 }
 
 
@@ -390,4 +336,27 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
     connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
     connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
     connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+}
+
+void TemporalScenarioPresenter::updateAllElements()
+{
+    for(auto& constraint : m_constraints)
+    {
+        m_viewInterface->on_constraintMoved(*constraint);
+    }
+
+    for(auto& event : m_events)
+    {
+        m_viewInterface->on_eventMoved(*event);
+    }
+
+    for(auto& timenode : m_timeNodes)
+    {
+        m_viewInterface->on_timeNodeMoved(*timenode);
+    }
+
+    for(auto& state : m_displayedStates)
+    {
+        m_viewInterface->on_stateMoved(*state);
+    }
 }
