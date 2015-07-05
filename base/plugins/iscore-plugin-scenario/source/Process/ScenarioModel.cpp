@@ -255,13 +255,13 @@ void ScenarioModel::setSelection(const Selection& s) const
 
 ProcessStateDataInterface* ScenarioModel::startState() const
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     return nullptr;
 }
 
 ProcessStateDataInterface* ScenarioModel::endState() const
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     return nullptr;
 }
 

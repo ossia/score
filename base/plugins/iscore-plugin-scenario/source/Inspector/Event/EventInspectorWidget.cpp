@@ -252,7 +252,7 @@ void EventInspectorWidget::updateDisplayedValues(
 
         auto scenar = event->parentScenario();
 
-        qDebug() << "TODO: " << Q_FUNC_INFO;
+        ISCORE_TODO
         /*
         for(const auto& state : event->states())
         {

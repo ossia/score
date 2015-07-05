@@ -32,7 +32,7 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
     m_constraint{id},
     m_newHeightPosition{height}
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
     auto& cst = scenar.constraint(m_constraint);

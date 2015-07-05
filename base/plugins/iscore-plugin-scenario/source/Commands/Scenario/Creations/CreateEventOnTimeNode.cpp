@@ -37,7 +37,7 @@ void CreateEventOnTimeNode::undo()
 
 void CreateEventOnTimeNode::redo()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
     CreateEventMin::redo(

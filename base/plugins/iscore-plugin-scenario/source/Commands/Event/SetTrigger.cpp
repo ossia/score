@@ -36,7 +36,7 @@ void SetTrigger::undo()
 
 void SetTrigger::redo()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& event = m_path.find<EventModel>();
     event.setTrigger(m_trigger);

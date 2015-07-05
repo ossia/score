@@ -71,7 +71,7 @@ void Visitor<Writer<JSONObject>>::writeTo(State& state)
     }
     else
     {
-        qDebug() << "TODO: " << Q_FUNC_INFO;
+        ISCORE_TODO
     }
 }
 

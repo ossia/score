@@ -14,7 +14,7 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
     SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
 
@@ -101,7 +101,7 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
 
 void RemoveSelection::undo()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
     // First instantiate everything

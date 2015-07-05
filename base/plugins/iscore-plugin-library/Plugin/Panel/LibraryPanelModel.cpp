@@ -16,5 +16,5 @@ int LibraryPanelModel::panelId() const
 
 void LibraryPanelModel::serialize(const VisitorVariant&) const
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
 }

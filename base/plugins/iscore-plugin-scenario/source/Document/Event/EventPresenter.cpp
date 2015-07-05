@@ -22,7 +22,7 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,                 &EventView::changeColor);
 
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*connect(&m_model, &EventModel::heightPercentageChanged,
             this,    &EventPresenter::heightPercentageChanged);
     */

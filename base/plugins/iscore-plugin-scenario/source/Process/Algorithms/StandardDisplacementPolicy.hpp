@@ -31,7 +31,7 @@ namespace StandardDisplacementPolicy
             const TimeValue& deltaTime,
             ProcessScaleMethod&& scaleMethod)
     {
-        qDebug() << "TODO: " << Q_FUNC_INFO;
+        ISCORE_TODO
         /*
         for (const auto& timeNode_id : translatedTimeNodes)
         {
@@ -79,7 +79,7 @@ namespace StandardDisplacementPolicy
             double heightPosition,
             ProcessScaleMethod&& scaleMethod)
     {
-        qDebug() << "TODO: " << Q_FUNC_INFO;
+        ISCORE_TODO
         /*
         auto& ev = scenario.event(eventId);
 
@@ -132,7 +132,7 @@ namespace StandardDisplacementPolicy
             double heightPosition,
             ProcessScaleMethod&& scaleMethod)
     {
-        qDebug() << "TODO: " << Q_FUNC_INFO;
+        ISCORE_TODO
         /*
         auto& constraint = scenario.constraint(constraintId);
         constraint.setHeightPercentage(heightPosition);

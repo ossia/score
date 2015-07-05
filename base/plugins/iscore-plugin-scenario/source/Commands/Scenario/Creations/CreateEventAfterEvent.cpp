@@ -28,7 +28,7 @@ CreateEventAfterEvent::CreateEventAfterEvent(ObjectPath&& scenarioPath,
     m_firstEventId {firstEvent},
     m_time {date}
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
 
@@ -62,7 +62,7 @@ void CreateEventAfterEvent::undo()
 
 void CreateEventAfterEvent::redo()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
     CreateTimenodeEventStateAndConstraint(m_createdConstraintId,

@@ -29,7 +29,7 @@ ResizeConstraint::ResizeConstraint(ObjectPath&& constraintPath,
                          commandName(),
                          description()}
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& constraint = constraintPath.find<ConstraintModel>();
     auto& endEvent = static_cast<ScenarioModel*>(constraint.parent())->event(constraint.endEvent());

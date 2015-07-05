@@ -348,7 +348,7 @@ void ConstraintInspectorWidget::setupRack(RackModel* rack)
 QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 {
 
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
 
     /*
     QWidget* eventWid = new QWidget{this};

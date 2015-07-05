@@ -31,7 +31,7 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
 void MergeTimeNodes::undo()
 {
 
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
 
@@ -59,7 +59,7 @@ void MergeTimeNodes::undo()
 void MergeTimeNodes::redo()
 {
 
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
 

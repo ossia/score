@@ -1,5 +1,5 @@
 #include "StateView.hpp"
-
+#include <iscore/tools/Todo.hpp>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <QCursor>
@@ -56,6 +56,11 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 void StateView::setContainMessage(bool arg)
 {
     m_containMessage = arg;
+}
+
+void StateView::changeColor(const QColor &)
+{
+    ISCORE_TODO
 }
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)

@@ -4,6 +4,7 @@
 #include <queue>
 #include <iscore/plugins/settingsdelegate/SettingsDelegateFactoryInterface.hpp>
 #include <iscore/command/Command.hpp>
+#include <iscore/tools/Todo.hpp>
 #include <QDebug>
 
 namespace iscore

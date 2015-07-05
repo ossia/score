@@ -269,7 +269,7 @@ void CreateFromTimeNodeState::createEventFromEventOnTimenode()
 
 void CreateFromTimeNodeState::createConstraintBetweenEvents()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto cmd = new CreateConstraint(
            ObjectPath{m_scenarioPath},

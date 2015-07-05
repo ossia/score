@@ -210,7 +210,7 @@ void CreateFromStateState::createEventFromStateOnTimeNode()
 
 void CreateFromStateState::createConstraintBetweenEvents()
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if(hoveredEvent != clickedEvent)
     {

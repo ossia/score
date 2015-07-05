@@ -100,7 +100,7 @@ void NetworkSettingsPresenter::updateClientName()
 // Partie vue -> commande
 void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cmd)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if(!m_masterportCommand)
     {
@@ -115,7 +115,7 @@ void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cm
 }
 void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cmd)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if(!m_clientportCommand)
     {
@@ -130,7 +130,7 @@ void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cm
 }
 void NetworkSettingsPresenter::setClientNameCommand(ClientNameChangedCommand* cmd)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if(!m_clientnameCommand)
     {

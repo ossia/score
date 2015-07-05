@@ -3,6 +3,7 @@
 #include "PluginSettingsView.hpp"
 
 #include "commands/BlacklistCommand.hpp"
+#include <iscore/tools/Todo.hpp>
 
 using namespace iscore;
 
@@ -55,7 +56,7 @@ PluginSettingsView* PluginSettingsPresenter::view()
 
 void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if(!m_blacklistCommand)
     {

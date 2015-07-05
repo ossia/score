@@ -62,7 +62,7 @@ void OSSIADevice::sendMessage(iscore::Message &mess)
 
 bool OSSIADevice::check(const QString &str)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     return false;
 }
 

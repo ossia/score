@@ -31,7 +31,7 @@ void StandardRemovalPolicy::removeConstraint(
         ScenarioModel& scenario,
         const id_type<ConstraintModel>& constraintId)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& cstr = scenario.constraint(constraintId);
     auto& sev = scenario.event(cstr.startEvent());
@@ -48,7 +48,7 @@ void StandardRemovalPolicy::removeEventAndConstraints(
         ScenarioModel& scenario,
         const id_type<EventModel>& eventId)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& ev = scenario.event(eventId);
 

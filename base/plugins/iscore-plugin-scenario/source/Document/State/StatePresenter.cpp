@@ -65,7 +65,7 @@ bool StatePresenter::isSelected() const
 
 void StatePresenter::handleDrop(const QMimeData *mime)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     // Use the one from EventPresenter.
 
 }

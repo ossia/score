@@ -27,7 +27,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     auto& scenar = m_path.find<ScenarioModel>();
     const auto& movedEvent = scenar.event(m_eventId);

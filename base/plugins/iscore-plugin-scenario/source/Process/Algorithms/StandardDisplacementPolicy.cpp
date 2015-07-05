@@ -7,7 +7,7 @@ void translateNextElements(
         const TimeValue& deltaTime,
         QVector<id_type<EventModel>>& movedEvents)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;
@@ -57,7 +57,7 @@ void StandardDisplacementPolicy::getRelatedElements(
         const id_type<TimeNodeModel>& firstTimeNodeMovedId,
         QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
 {
-    qDebug() << "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO
     /*
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;

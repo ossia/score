@@ -39,7 +39,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(
         }
         else
         {
-            qDebug() << "TODO: " << Q_FUNC_INFO;
+            ISCORE_TODO
         }
     }
 
@@ -73,7 +73,7 @@ void deserializeConstraintViewModels(
         }
         else
         {
-            qDebug() << "TODO: " << Q_FUNC_INFO;
+            ISCORE_TODO
         }
     }
 }

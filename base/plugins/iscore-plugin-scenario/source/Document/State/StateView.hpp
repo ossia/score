@@ -25,10 +25,7 @@ class StateView : public QGraphicsObject
             update();
         }
 
-        void changeColor(const QColor&)
-        {
-            qDebug() << "TODO: " << Q_FUNC_INFO;
-        }
+        void changeColor(const QColor&);
 
     signals:
         void pressed(const QPointF&);
