@@ -29,12 +29,6 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
     // At the end because plug-ins depend on the start/end timenode & al being here
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
-
-    Scenario::Command::CreateState test1(*this, m_startEventId, 0.6);
-    test1.redo();
-    Scenario::Command::CreateConstraint_State_Event_TimeNode cmdtest(*this, (*m_states.begin())->id(), TimeValue(std::chrono::seconds(25)), 0.7);
-    cmdtest.redo();
-
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,

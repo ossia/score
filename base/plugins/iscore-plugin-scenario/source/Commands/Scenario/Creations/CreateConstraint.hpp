@@ -39,10 +39,8 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
-                id_type<ConstraintModel> createdConstraint() const
-                {
-                    return m_createdConstraintId;
-                }
+                const id_type<ConstraintModel>& createdConstraint() const
+                { return m_createdConstraintId; }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

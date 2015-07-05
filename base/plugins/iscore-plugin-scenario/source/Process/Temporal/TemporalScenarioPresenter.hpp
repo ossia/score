@@ -74,7 +74,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
         { return m_timeNodes; }
         const auto& constraints() const
         { return m_constraints; }
-        const auto& displayedStates() const
+        const auto& states() const
         { return m_displayedStates; }
 
         TemporalScenarioView& view() const

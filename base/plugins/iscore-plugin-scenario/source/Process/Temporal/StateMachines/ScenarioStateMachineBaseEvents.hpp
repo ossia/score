@@ -61,31 +61,31 @@ enum ScenarioElement {
     Nothing, TimeNode, Event, Constraint, State, SlotOverlay_e, SlotHandle_e
 };
 
-using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Click>;
-using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier_tagme::Click>;
-using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Click>;
-using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Click>;
-using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier_tagme::Click>;
+using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Click_tag::value>;
+using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Click_tag::value>;
+using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Click_tag::value>;
+using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Click_tag::value>;
+using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier::Click_tag::value>;
 
-using ClickOnSlotOverlay_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier_tagme::Click>;
-using ClickOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier_tagme::Click>;
-
-
-using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Move>;
-using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier_tagme::Move>;
-using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Move>;
-using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Move>;
-using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier_tagme::Move>;
-
-using MoveOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier_tagme::Move>;
-using MoveOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier_tagme::Move>;
+using ClickOnSlotOverlay_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Click_tag::value>;
+using ClickOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Click_tag::value>;
 
 
-using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier_tagme::Release>;
-using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier_tagme::Release>;
-using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier_tagme::Release>;
-using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier_tagme::Release>;
-using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier_tagme::Release>;
+using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Move_tag::value>;
+using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Move_tag::value>;
+using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Move_tag::value>;
+using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Move_tag::value>;
+using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier::Move_tag::value>;
 
-using ReleaseOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier_tagme::Release>;
-using ReleaseOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier_tagme::Release>;
+using MoveOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Move_tag::value>;
+using MoveOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Move_tag::value>;
+
+
+using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Release_tag::value>;
+using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Release_tag::value>;
+using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Release_tag::value>;
+using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Release_tag::value>;
+using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier::Release_tag::value>;
+
+using ReleaseOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Release_tag::value>;
+using ReleaseOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Release_tag::value>;

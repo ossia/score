@@ -21,14 +21,14 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 }
 
 template<typename PresenterContainer, typename IdToIgnore>
-auto getCollidingModels(const PresenterContainer& array, const IdToIgnore& id, const QPointF& scenePoint)
+auto getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnore>& ids, const QPointF& scenePoint)
 {
     using namespace std;
     QList<id_type<typename PresenterContainer::model_type>> colliding;
 
     for(const auto& elt : array)
     {
-        if((!bool(id) || id != elt->id()) && isUnderMouse(elt->view(), scenePoint))
+        if(!ids.contains(elt->id()) && isUnderMouse(elt->view(), scenePoint))
         {
             colliding.push_back(elt->model().id());
         }
@@ -57,8 +57,8 @@ class ScenarioTool : public ToolState
                  typename NothingFun>
         void mapTopItem(
                 const QGraphicsItem* item,
-                EventFun&& ev_fun,
                 StateFun&& st_fun,
+                EventFun&& ev_fun,
                 TimeNodeFun&& tn_fun,
                 ConstraintFun&& cst_fun,
                 NothingFun&& nothing_fun) const

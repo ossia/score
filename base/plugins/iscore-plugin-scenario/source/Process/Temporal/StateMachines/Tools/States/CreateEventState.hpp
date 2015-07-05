@@ -4,7 +4,7 @@
 #include "Commands/Scenario/Creations/CreationMetaCommand.hpp"
 
 class ScenarioStateMachine;
-
+// TODO correctly separate in files
 class CreateFromEventState : public CreationState
 {
     public:
@@ -48,7 +48,6 @@ class CreateFromTimeNodeState : public CreationState
         MultiOngoingCommandDispatcher m_dispatcher;
 
         ScenarioPoint m_clickedPoint;
-        id_type<EventModel> m_createdFirstEvent;
 };
 
 class CreateFromStateState : public CreationState
@@ -71,6 +70,5 @@ class CreateFromStateState : public CreationState
 
         MultiOngoingCommandDispatcher m_dispatcher;
         ScenarioPoint m_clickedPoint;
-        id_type<EventModel> m_createdFirstEvent;
 };
 

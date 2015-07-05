@@ -18,6 +18,15 @@ CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel
 
 }
 
+CreateState::CreateState(
+        const ObjectPath &scenarioPath,
+        const id_type<EventModel> &event,
+        double stateY):
+    CreateState{scenarioPath.find<ScenarioModel>(), event, stateY}
+{
+
+}
+
 void CreateState::undo()
 {
     auto& scenar = m_path.find<ScenarioModel>();

@@ -6,9 +6,17 @@
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
+
+
+#include "Commands/Scenario/Creations/CreateConstraint.hpp"
+#include "Commands/Scenario/Creations/CreateConstraint_State.hpp"
+#include "Commands/Scenario/Creations/CreateConstraint_State_Event.hpp"
+#include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
+#include "Commands/Scenario/Creations/CreateState.hpp"
+#include "Commands/Scenario/Creations/CreateEvent_State.hpp"
+
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateConstraint.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 #include "Commands/Scenario/Creations/CreateEventOnTimeNode.hpp"
 
@@ -34,8 +42,7 @@ CreateFromEventState::CreateFromEventState(
     auto finalState = new QFinalState{this};
     connect(finalState, &QState::entered, [&] ()
     {
-        setCreatedEvent(id_type<EventModel>{});
-        setCreatedTimeNode(id_type<TimeNodeModel>{});
+        clearCreatedIds();
     });
 
     QState* mainState = new QState{this};
@@ -134,20 +141,20 @@ CreateFromEventState::CreateFromEventState(
         QObject::connect(movingOnNothingState, &QState::entered, [&] ()
         {
             m_dispatcher.submitCommand<MoveNewEvent>(
-                            ObjectPath{m_scenarioPath},
-                            createdConstraint(),
-                            createdEvent(),
-                            currentPoint.date,
-                            currentPoint.y,
-                            !stateMachine.isShiftPressed());
+                        ObjectPath{m_scenarioPath},
+                        createdConstraints.last(), // TODO CheckMe
+                        createdEvents.last(),// TODO CheckMe
+                        currentPoint.date,
+                        currentPoint.y,
+                        !stateMachine.isShiftPressed());
         });
 
         QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
         {
             m_dispatcher.submitCommand<MoveNewState>(
-                            ObjectPath{m_scenarioPath},
-                            createdEvent(),
-                            currentPoint.y);
+                        ObjectPath{m_scenarioPath},
+                        createdEvents.last(),// TODO CheckMe
+                        currentPoint.y);
         });
 
         QObject::connect(releasedState, &QState::entered, [&] ()
@@ -171,21 +178,27 @@ CreateFromEventState::CreateFromEventState(
 // Note : clickedEvent is set at startEvent if clicking in the background.
 void CreateFromEventState::createEventFromEventOnNothing(const ScenarioStateMachine &stateMachine)
 {
-    auto cmd = new CreateEventAfterEvent{
-                ObjectPath{m_scenarioPath},
-                clickedEvent,
-                currentPoint.date,
-                currentPoint.y,
-                stateMachine.isShiftPressed()};
-    setCreatedEvent(cmd->createdEvent());
-    setCreatedTimeNode(cmd->createdTimeNode());
-    setCreatedConstraint(cmd->createdConstraint());
-
+    auto cmd = new CreateState{m_scenarioPath, clickedEvent, currentPoint.y};
     m_dispatcher.submitCommand(cmd);
+
+    createdStates.append(cmd->createdState());
+
+    auto cmd2 = new CreateConstraint_State_Event_TimeNode{
+            m_scenarioPath,
+            cmd->createdState(),
+            currentPoint.date,
+            currentPoint.y};
+    m_dispatcher.submitCommand(cmd2);
+
+    createdConstraints.append(cmd2->createdConstraint());
+    createdEvents.append(cmd2->createdEvent());
+    createdTimeNodes.append(cmd2->createdTimeNode());
 }
 
 void CreateFromEventState::createEventFromEventOnTimeNode()
 {
+    ISCORE_TODO
+            /*
     auto cmd = new CreateEventAfterEventOnTimeNode(
                    ObjectPath{m_scenarioPath},
                    clickedEvent,
@@ -198,6 +211,7 @@ void CreateFromEventState::createEventFromEventOnTimeNode()
     setCreatedConstraint(cmd->createdConstraint());
 
     m_dispatcher.submitCommand(cmd);
+            */
 }
 
 void CreateFromEventState::createConstraintBetweenEvents()

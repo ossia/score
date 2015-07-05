@@ -14,26 +14,41 @@ class CreationToolState : public ScenarioTool
         void on_released() override;
 
     private:
-        QList<id_type<EventModel>> getCollidingEvents(const id_type<EventModel>& createdEvent);
-        QList<id_type<TimeNodeModel>> getCollidingTimeNodes(const id_type<TimeNodeModel>& createdTimeNode);
-        template<typename EventFun,
+        // Return the colliding elements that were not created in the current commands
+        QList<id_type<StateModel>> getCollidingStates(const QVector<id_type<StateModel>>& createdStates);
+        QList<id_type<EventModel>> getCollidingEvents(const QVector<id_type<EventModel>>& createdEvents);
+        QList<id_type<TimeNodeModel>> getCollidingTimeNodes(const QVector<id_type<TimeNodeModel>>& createdTimeNodes);
+
+        CreationState& currentState() const;
+
+        template<typename StateFun,
+                 typename EventFun,
                  typename TimeNodeFun,
                  typename NothingFun>
         void mapWithCollision(
+                StateFun&& st_fun,
                 EventFun&& ev_fun,
                 TimeNodeFun&& tn_fun,
                 NothingFun&& nothing_fun,
-                const id_type<EventModel>& createdEvent,
-                const id_type<TimeNodeModel>& createdTimeNode)
+                const QVector<id_type<StateModel>>& createdStates,
+                const QVector<id_type<EventModel>>& createdEvents,
+                const QVector<id_type<TimeNodeModel>>& createdTimeNodes)
         {
-            auto collidingEvents = getCollidingEvents(createdEvent);
+            auto collidingStates = getCollidingStates(createdStates);
+            if(!collidingStates.empty())
+            {
+                st_fun(collidingStates.first());
+                return;
+            }
+
+            auto collidingEvents = getCollidingEvents(createdEvents);
             if(!collidingEvents.empty())
             {
                 ev_fun(collidingEvents.first());
                 return;
             }
 
-            auto collidingTimeNodes = getCollidingTimeNodes(createdTimeNode);
+            auto collidingTimeNodes = getCollidingTimeNodes(createdTimeNodes);
             if(!collidingTimeNodes.empty())
             {
                 tn_fun(collidingTimeNodes.first());

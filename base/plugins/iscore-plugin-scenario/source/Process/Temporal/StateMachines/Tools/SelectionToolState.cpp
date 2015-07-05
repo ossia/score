@@ -110,14 +110,14 @@ void SelectionTool::on_pressed()
 {
     using namespace std;
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-    [&] (const id_type<EventModel>& id) // Event
-    {
-        localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
-        m_nothingPressed = false;
-    },
     [&] (const id_type<StateModel>& id) // State
     {
         localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint});
+        m_nothingPressed = false;
+    },
+    [&] (const id_type<EventModel>& id) // Event
+    {
+        localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
@@ -146,10 +146,10 @@ void SelectionTool::on_moved()
     else
     {
         mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-        [&] (const id_type<EventModel>& id)
-        { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<StateModel>& id)
         { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<EventModel>& id)
+        { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<TimeNodeModel>& id)
         { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<ConstraintModel>& id)
@@ -162,6 +162,16 @@ void SelectionTool::on_moved()
 void SelectionTool::on_released()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    [&] (const id_type<StateModel>& id) // State
+    {
+        const auto& elt = m_parentSM.presenter().states().at(id);
+
+        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
+                                                   m_parentSM.model().selectedChildren(),
+                                                   m_state->multiSelection()));
+
+        localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint});
+    },
     [&] (const id_type<EventModel>& id) // Event
     {
         const auto& elt = m_parentSM.presenter().events().at(id);
@@ -171,16 +181,6 @@ void SelectionTool::on_released()
                                                    m_state->multiSelection()));
 
         localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint});
-    },
-    [&] (const id_type<StateModel>& id) // State
-    {
-        const auto& elt = m_parentSM.presenter().displayedStates().at(id);
-
-        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
-                                                   m_parentSM.model().selectedChildren(),
-                                                   m_state->multiSelection()));
-
-        localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint});
     },
     [&] (const id_type<TimeNodeModel>& id) // TimeNode
     {

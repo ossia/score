@@ -68,6 +68,7 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
             }
         }
 
+        // Give it something that behaves like AggregateCommand
         template<typename CommitCommand>
         void commit()
         {

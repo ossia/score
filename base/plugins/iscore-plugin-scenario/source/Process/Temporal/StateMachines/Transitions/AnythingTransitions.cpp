@@ -4,6 +4,7 @@ bool MoveOnAnything_Transition::eventTest(QEvent *e)
     using namespace std;
     static const constexpr QEvent::Type types[] = {
         QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
+        QEvent::Type(QEvent::User + MoveOnState_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnEvent_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnTimeNode_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type)};
@@ -24,6 +25,7 @@ bool ReleaseOnAnything_Transition::eventTest(QEvent *e)
     using namespace std;
     static const constexpr QEvent::Type types[] = {
         QEvent::Type(QEvent::User + ReleaseOnNothing_Event::user_type),
+        QEvent::Type(QEvent::User + ReleaseOnState_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnEvent_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnTimeNode_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnConstraint_Event::user_type)};

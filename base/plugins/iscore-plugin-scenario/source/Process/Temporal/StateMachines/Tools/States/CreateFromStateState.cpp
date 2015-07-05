@@ -38,8 +38,7 @@ CreateFromStateState::CreateFromStateState(
     auto finalState = new QFinalState{this};
     connect(finalState, &QState::entered, [&] ()
     {
-    setCreatedEvent(id_type<EventModel>{});
-    setCreatedTimeNode(id_type<TimeNodeModel>{});
+        clearCreatedIds();
     });
 
     QState* mainState = new QState{this};
@@ -137,6 +136,8 @@ CreateFromStateState::CreateFromStateState(
 
     QObject::connect(movingOnNothingState, &QState::entered, [&] ()
     {
+        ISCORE_TODO
+                /*
         m_dispatcher.submitCommand<MoveNewEvent>(
                 ObjectPath{m_scenarioPath},
                 createdConstraint(),
@@ -144,14 +145,18 @@ CreateFromStateState::CreateFromStateState(
                 currentPoint.date,
                 currentPoint.y,
                 !stateMachine.isShiftPressed());
+                        */
     });
 
     QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
     {
+        ISCORE_TODO
+                /*
         m_dispatcher.submitCommand<MoveNewState>(
                 ObjectPath{m_scenarioPath},
                 createdEvent(),
                 currentPoint.y);
+                        */
     });
 
     QObject::connect(releasedState, &QState::entered, [&] ()
@@ -175,6 +180,8 @@ CreateFromStateState::CreateFromStateState(
 // Note : clickedEvent is set at startEvent if clicking in the background.
 void CreateFromStateState::createEventFromStateOnNothing(const ScenarioStateMachine &stateMachine)
 {
+    ISCORE_TODO
+            /*
     auto& scenar = m_scenarioPath.find<ScenarioModel>();
     auto& ev = scenar.displayedState(clickedState).eventId();
 
@@ -190,10 +197,13 @@ void CreateFromStateState::createEventFromStateOnNothing(const ScenarioStateMach
     setCreatedConstraint(cmd->createdConstraint());
 
     m_dispatcher.submitCommand(cmd);
+            */
 }
 
 void CreateFromStateState::createEventFromStateOnTimeNode()
 {
+    ISCORE_TODO
+            /*
     auto cmd = new CreateEventAfterEventOnTimeNode(
            ObjectPath{m_scenarioPath},
            clickedEvent,
@@ -206,6 +216,7 @@ void CreateFromStateState::createEventFromStateOnTimeNode()
     setCreatedConstraint(cmd->createdConstraint());
 
     m_dispatcher.submitCommand(cmd);
+            */
 }
 
 void CreateFromStateState::createConstraintBetweenEvents()
@@ -229,6 +240,8 @@ void CreateFromStateState::createConstraintBetweenEvents()
 
 void CreateFromStateState::createSingleEventOnTimeNode()
 {
+    ISCORE_TODO
+            /*
     auto& scenar = m_scenarioPath.find<ScenarioModel>();
     clickedTimeNode = scenar.event(clickedEvent).timeNode();
 
@@ -238,6 +251,7 @@ void CreateFromStateState::createSingleEventOnTimeNode()
         clickedTimeNode,
         m_clickedPoint.y);
     m_dispatcher.submitCommand(cmd);
+            */
 }
 
 

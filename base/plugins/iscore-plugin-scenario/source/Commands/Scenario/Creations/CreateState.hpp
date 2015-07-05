@@ -21,11 +21,18 @@ class CreateState : public iscore::SerializableCommand
             const id_type<EventModel>& event,
             double stateY);
 
+        CreateState(const ObjectPath &scenarioPath,
+          const id_type<EventModel>& event,
+          double stateY);
+
         const ObjectPath& scenarioPath() const
         { return m_path; }
 
         const double& endStateY() const
         { return m_stateY; }
+
+        const id_type<StateModel>& createdState() const
+        { return m_newState; }
 
         void undo() override;
 

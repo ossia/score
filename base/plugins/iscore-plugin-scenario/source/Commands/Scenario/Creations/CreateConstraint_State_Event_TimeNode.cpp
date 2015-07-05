@@ -22,6 +22,22 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
 
 }
 
+CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
+        const ObjectPath &scenarioPath,
+        const id_type<StateModel> &startState,
+        const TimeValue &date,
+        double endStateY):
+    CreateConstraint_State_Event_TimeNode{scenarioPath.find<ScenarioModel>(),
+                                          startState, date, endStateY}
+{
+
+}
+
+const ObjectPath &CreateConstraint_State_Event_TimeNode::scenarioPath() const
+{
+    return m_command.scenarioPath();
+}
+
 
 void CreateConstraint_State_Event_TimeNode::undo()
 {

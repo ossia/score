@@ -24,6 +24,12 @@ class CreateConstraint_State : public iscore::SerializableCommand
         const double& endStateY() const
         { return m_stateY; }
 
+        const id_type<ConstraintModel>& createdConstraint() const
+        { return m_command.createdConstraint(); }
+
+        const id_type<StateModel>& createdState() const
+        { return m_newState; }
+
         void undo() override;
         void redo() override;
 

@@ -38,8 +38,7 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     auto finalState = new QFinalState{this};
     connect(finalState, &QState::entered, [&] ()
     {
-    setCreatedEvent(id_type<EventModel>{});
-    setCreatedTimeNode(id_type<TimeNodeModel>{});
+        clearCreatedIds();
     });
 
     QState* mainState = new QState{this};
@@ -83,9 +82,9 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     connect(t_move_nothing_event, &QAbstractTransition::triggered,
         [&] ()
     {
-        if(hoveredEvent == m_createdFirstEvent || hoveredEvent == createdEvent())
+        if(createdEvents.contains(hoveredEvent))
         {
-        return;
+            return;
         }
         m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
@@ -100,9 +99,9 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     connect(t_move_nothing_timenode, &QAbstractTransition::triggered,
         [&] ()
     {
-        if(hoveredTimeNode == createdTimeNode())
+        if(createdTimeNodes.contains(hoveredTimeNode))
         {
-        return;
+            return;
         }
         m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
@@ -134,9 +133,9 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     connect(t_move_event_timenode, &QAbstractTransition::triggered,
         [&] ()
     {
-        if(hoveredTimeNode == createdTimeNode())
+        if(createdTimeNodes.contains(hoveredTimeNode))
         {
-        return;
+            return;
         }
         m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
@@ -167,9 +166,9 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
     connect(t_move_timenode_event, &QAbstractTransition::triggered,
         [&] ()
     {
-        if(hoveredEvent == m_createdFirstEvent || hoveredEvent == createdEvent())
+        if(createdEvents.contains(hoveredEvent))
         {
-        return;
+            return;
         }
         m_dispatcher.rollback<ScenarioRollbackStrategy>();
         createSingleEventOnTimeNode();
@@ -191,6 +190,8 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
 
     QObject::connect(movingOnNothingState, &QState::entered, [&] ()
     {
+        ISCORE_TODO
+        /*
         m_dispatcher.submitCommand<MoveNewEvent>(
                 ObjectPath{m_scenarioPath},
                 createdConstraint(),
@@ -198,15 +199,19 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
                 currentPoint.date,
                 currentPoint.y,
                 !stateMachine.isShiftPressed());
+                */
     });
 
     QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
     {
+        ISCORE_TODO
+                /*
         m_dispatcher.submitCommand<MoveEvent>(
                 ObjectPath{m_scenarioPath},
                 createdEvent(),
                 m_scenarioPath.find<ScenarioModel>().timeNode(hoveredTimeNode).date(),
                 stateMachine.expandMode());
+                        */
     });
 
     QObject::connect(releasedState, &QState::entered, [&] ()
@@ -227,6 +232,8 @@ CreateFromTimeNodeState::CreateFromTimeNodeState(
 }
 void CreateFromTimeNodeState::createSingleEventOnTimeNode()
 {
+    ISCORE_TODO
+            /*
     auto cmd =
         new CreateEventOnTimeNode(
         ObjectPath{m_scenarioPath},
@@ -235,10 +242,13 @@ void CreateFromTimeNodeState::createSingleEventOnTimeNode()
     m_dispatcher.submitCommand(cmd);
 
     m_createdFirstEvent = cmd->createdEvent();
+            */
 }
 
 void CreateFromTimeNodeState::createEventFromEventOnNothing(const ScenarioStateMachine &stateMachine)
 {
+    ISCORE_TODO
+            /*
     // If we start moving, we have to put a createEventAfterEvent.
     // Note : there will be two created events; how to prevent a mess in collision management ?
     auto cmd = new CreateEventAfterEvent{
@@ -251,10 +261,14 @@ void CreateFromTimeNodeState::createEventFromEventOnNothing(const ScenarioStateM
     setCreatedEvent(cmd->createdEvent());
     setCreatedTimeNode(cmd->createdTimeNode());
     m_dispatcher.submitCommand(cmd);
+            */
 }
 
 void CreateFromTimeNodeState::createEventFromEventOnTimenode()
 {
+
+    ISCORE_TODO
+            /*
     auto cmd = new CreateEventAfterEventOnTimeNode(
            ObjectPath{m_scenarioPath},
            m_createdFirstEvent,
@@ -265,6 +279,7 @@ void CreateFromTimeNodeState::createEventFromEventOnTimenode()
     setCreatedEvent(cmd->createdEvent());
     setCreatedTimeNode(id_type<TimeNodeModel>{});
     m_dispatcher.submitCommand(cmd);
+            */
 }
 
 void CreateFromTimeNodeState::createConstraintBetweenEvents()

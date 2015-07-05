@@ -19,7 +19,25 @@ class CreateConstraint_State_Event_TimeNode : public iscore::SerializableCommand
             const TimeValue& date,
             double endStateY);
 
+        CreateConstraint_State_Event_TimeNode(
+          const ObjectPath& scenario,
+          const id_type<StateModel>& startState,
+          const TimeValue& date,
+          double endStateY);
+
         const ObjectPath& scenarioPath() const;
+
+        const id_type<ConstraintModel>& createdConstraint() const
+        { return m_command.createdConstraint(); }
+
+        const id_type<StateModel>& createdState() const
+        { return m_command.createdState(); }
+
+        const id_type<EventModel>& createdEvent() const
+        { return m_command.createdEvent(); }
+
+        const id_type<TimeNodeModel>& createdTimeNode() const
+        { return m_newTimeNode; }
 
         void undo() override;
         void redo() override;

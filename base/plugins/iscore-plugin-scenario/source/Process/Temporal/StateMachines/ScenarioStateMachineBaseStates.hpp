@@ -53,25 +53,19 @@ class CreationState : public ScenarioStateBase
 {
     public:
         using ScenarioStateBase::ScenarioStateBase;
-        const auto& createdEvent() const
-        { return m_createdEvent; }
-        void setCreatedEvent(const id_type<EventModel>& id)
-        { m_createdEvent = id; }
 
-        const auto& createdTimeNode() const
-        { return m_createdTimeNode; }
-        void setCreatedTimeNode(const id_type<TimeNodeModel>& id)
-        { m_createdTimeNode = id; }
+        QVector<id_type<StateModel>> createdStates;
+        QVector<id_type<EventModel>> createdEvents;
+        QVector<id_type<TimeNodeModel>> createdTimeNodes;
+        QVector<id_type<ConstraintModel>> createdConstraints;
 
-        const auto& createdConstraint() const
-        { return m_createdConstraint; }
-        void setCreatedConstraint(const id_type<ConstraintModel>& id)
-        { m_createdConstraint = id; }
-
-    private:
-        id_type<EventModel> m_createdEvent;
-        id_type<TimeNodeModel> m_createdTimeNode;
-        id_type<ConstraintModel> m_createdConstraint;
+        void clearCreatedIds()
+        {
+            createdEvents.clear();
+            createdConstraints.clear();
+            createdTimeNodes.clear();
+            createdStates.clear();
+        }
 };
 
 class SlotState : public QState

@@ -36,8 +36,6 @@ class EventPresenter : public NamedObject
         void eventHoverEnter();
         void eventHoverLeave();
 
-        void heightPercentageChanged();
-
     private slots:
         void triggerSetted(QString);
 
