@@ -48,8 +48,8 @@ EventModel& ScenarioCreate<EventModel>::redo(
 }
 
 
-void ScenarioCreate<DisplayedStateModel>::undo(
-        const id_type<DisplayedStateModel> &id,
+void ScenarioCreate<StateModel>::undo(
+        const id_type<StateModel> &id,
         ScenarioModel &s)
 {
     auto& state = s.displayedState(id);
@@ -60,13 +60,13 @@ void ScenarioCreate<DisplayedStateModel>::undo(
     s.removeDisplayedState(&state);
 }
 
-DisplayedStateModel &ScenarioCreate<DisplayedStateModel>::redo(
-        const id_type<DisplayedStateModel> &id,
+StateModel &ScenarioCreate<StateModel>::redo(
+        const id_type<StateModel> &id,
         EventModel &ev,
         double y,
         ScenarioModel &s)
 {
-    auto state = new DisplayedStateModel{
+    auto state = new StateModel{
             id,
             ev.id(),
             y,
@@ -98,8 +98,8 @@ void ScenarioCreate<ConstraintModel>::undo(
 ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
         const id_type<ConstraintModel>& id,
         const id_type<AbstractConstraintViewModel>& fullviewid,
-        DisplayedStateModel& sst,
-        DisplayedStateModel& est,
+        StateModel& sst,
+        StateModel& est,
         double ypos,
         ScenarioModel& s)
 {

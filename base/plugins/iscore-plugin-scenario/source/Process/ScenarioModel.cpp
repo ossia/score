@@ -58,9 +58,9 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
         addEvent(new EventModel {*event, event->id(), this});
     }
 
-    for(DisplayedStateModel* state : source.m_displayedStates)
+    for(StateModel* state : source.m_displayedStates)
     {
-        addDisplayedState(new DisplayedStateModel{*state, state->id(), this});
+        addDisplayedState(new StateModel{*state, state->id(), this});
     }
 
     for(ConstraintModel* constraint : source.m_constraints)
@@ -318,7 +318,7 @@ void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
     emit timeNodeCreated(timeNode->id());
 }
 
-void ScenarioModel::addDisplayedState(DisplayedStateModel *state)
+void ScenarioModel::addDisplayedState(StateModel *state)
 {
     m_displayedStates.insert(state);
 
@@ -355,7 +355,7 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
     delete tn;
 }
 
-void ScenarioModel::removeDisplayedState(DisplayedStateModel *state)
+void ScenarioModel::removeDisplayedState(StateModel *state)
 {
     const auto& id = state->id();
     m_displayedStates.remove(id);
@@ -390,7 +390,7 @@ TimeNodeModel&ScenarioModel::endTimeNode() const
     return timeNode(m_endTimeNodeId);
 }
 
-DisplayedStateModel &ScenarioModel::displayedState(const id_type<DisplayedStateModel> &stId) const
+StateModel &ScenarioModel::displayedState(const id_type<StateModel> &stId) const
 {
     return *m_displayedStates.at(stId);
 }

@@ -11,7 +11,7 @@ class LayerModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;
-class DisplayedStateModel;
+class StateModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -61,7 +61,7 @@ namespace Scenario
                 id_type<TimeNodeModel> m_timeNodeId {};
 
                 id_type<EventModel> m_firstEventId {};
-                id_type<DisplayedStateModel> m_stateId {};
+                id_type<StateModel> m_stateId {};
                 TimeValue m_time {};
                 double m_heightPosition {};
 

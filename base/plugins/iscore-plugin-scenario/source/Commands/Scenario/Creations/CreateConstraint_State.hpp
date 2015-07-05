@@ -14,7 +14,7 @@ class CreateConstraint_State : public iscore::SerializableCommand
 
           CreateConstraint_State(
             const ScenarioModel& scenario,
-            const id_type<DisplayedStateModel>& startState,
+            const id_type<StateModel>& startState,
             const id_type<EventModel>& endEvent,
             double endStateY);
 
@@ -32,7 +32,7 @@ class CreateConstraint_State : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        id_type<DisplayedStateModel> m_newState;
+        id_type<StateModel> m_newState;
         CreateConstraint m_command;
         id_type<EventModel> m_endEvent;
         double m_stateY{};

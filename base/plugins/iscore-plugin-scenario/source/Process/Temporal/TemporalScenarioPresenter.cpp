@@ -228,7 +228,7 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 }
 
 
-void TemporalScenarioPresenter::on_stateCreated(const id_type<DisplayedStateModel> &stateId)
+void TemporalScenarioPresenter::on_stateCreated(const id_type<StateModel> &stateId)
 {
     on_stateCreated_impl(model(m_layer).displayedState(stateId));
 }
@@ -251,7 +251,7 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(
     on_constraintCreated_impl(constraintViewModel(m_layer, constraintViewModelId));
 }
 
-void TemporalScenarioPresenter::on_stateRemoved(const id_type<DisplayedStateModel> &stateId)
+void TemporalScenarioPresenter::on_stateRemoved(const id_type<StateModel> &stateId)
 {
     delete m_displayedStates.at(stateId);
     m_displayedStates.remove(stateId);
@@ -367,7 +367,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
-void TemporalScenarioPresenter::on_stateCreated_impl(const DisplayedStateModel &state)
+void TemporalScenarioPresenter::on_stateCreated_impl(const StateModel &state)
 {
     auto st_pres = new StatePresenter{state, m_view, this};
     m_displayedStates.insert(st_pres);

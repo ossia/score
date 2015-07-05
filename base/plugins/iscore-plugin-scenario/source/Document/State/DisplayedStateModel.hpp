@@ -17,20 +17,20 @@ class ScenarioModel;
 class EventModel;
 class ConstraintModel;
 
-class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
+class StateModel : public IdentifiedObject<StateModel>
 {
         Q_OBJECT
 
-        friend void Visitor<Reader<DataStream>>::readFrom<DisplayedStateModel> (const DisplayedStateModel& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<DisplayedStateModel> (const DisplayedStateModel& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<DisplayedStateModel> (DisplayedStateModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<DisplayedStateModel> (DisplayedStateModel& ev);
+        friend void Visitor<Reader<DataStream>>::readFrom<StateModel> (const StateModel& ev);
+        friend void Visitor<Reader<JSONObject>>::readFrom<StateModel> (const StateModel& ev);
+        friend void Visitor<Writer<DataStream>>::writeTo<StateModel> (StateModel& ev);
+        friend void Visitor<Writer<JSONObject>>::writeTo<StateModel> (StateModel& ev);
 
     public:
         Selectable selection; // TODO state connections
         ModelMetadata metadata; // TODO : usefull ?
 
-        DisplayedStateModel(const id_type<DisplayedStateModel>& id,
+        StateModel(const id_type<StateModel>& id,
                             const id_type<EventModel>& eventId,
                             double yPos,
                             QObject* parent);
@@ -39,15 +39,15 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         void initView(AbstractConstraintView *parentView);
 
         // Copy
-        DisplayedStateModel(const DisplayedStateModel& source,
-                            const id_type<DisplayedStateModel>&,
+        StateModel(const StateModel& source,
+                            const id_type<StateModel>&,
                             QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
-        DisplayedStateModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject<DisplayedStateModel> {vis, parent}
+        StateModel(DeserializerVisitor&& vis, QObject* parent) :
+            IdentifiedObject<StateModel> {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -84,5 +84,5 @@ class DisplayedStateModel : public IdentifiedObject<DisplayedStateModel>
         iscore::StateList m_states;
 };
 
-using DisplayedStateList = QList<DisplayedStateModel>;
+using DisplayedStateList = QList<StateModel>;
 

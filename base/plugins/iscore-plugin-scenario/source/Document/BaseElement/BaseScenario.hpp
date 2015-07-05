@@ -6,7 +6,7 @@
 class ConstraintModel;
 class TimeNodeModel;
 class EventModel;
-class DisplayedStateModel;
+class StateModel;
 class DataStream;
 class JSONObject;
 
@@ -44,8 +44,8 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
         EventModel* m_startEvent{};
         EventModel* m_endEvent{};
 
-        DisplayedStateModel* m_startState{};
-        DisplayedStateModel* m_endState{};
+        StateModel* m_startState{};
+        StateModel* m_endState{};
 
         ConstraintModel* m_constraint{};
 

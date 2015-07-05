@@ -111,12 +111,12 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
         emit viewModelRemoved(cvm->id());
     }
 }
-const id_type<DisplayedStateModel> &ConstraintModel::endState() const
+const id_type<StateModel> &ConstraintModel::endState() const
 {
     return m_endState;
 }
 
-void ConstraintModel::setEndState(const id_type<DisplayedStateModel> &endState)
+void ConstraintModel::setEndState(const id_type<StateModel> &endState)
 {
     m_endState = endState;
 }
@@ -161,12 +161,12 @@ void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
     delete b;
 }
 
-const id_type<DisplayedStateModel>& ConstraintModel::startState() const
+const id_type<StateModel>& ConstraintModel::startState() const
 {
     return m_startState;
 }
 
-void ConstraintModel::setStartState(const id_type<DisplayedStateModel>& e)
+void ConstraintModel::setStartState(const id_type<StateModel>& e)
 {
     m_startState = e;
 }

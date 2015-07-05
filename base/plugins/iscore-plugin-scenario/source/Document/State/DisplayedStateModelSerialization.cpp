@@ -2,9 +2,9 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "source/Document/State/DisplayedStateModel.hpp"
 
-template<> void Visitor<Reader<DataStream>>::readFrom(const DisplayedStateModel& s)
+template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
 {
-    readFrom(static_cast<const IdentifiedObject<DisplayedStateModel>&>(s));
+    readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
 
     readFrom(s.metadata);
 
@@ -18,7 +18,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const DisplayedStateModel&
     insertDelimiter();
 }
 
-template<> void Visitor<Writer<DataStream>>::writeTo(DisplayedStateModel& s)
+template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
 {
     writeTo(s.metadata);
 
@@ -32,9 +32,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(DisplayedStateModel& s)
     checkDelimiter();
 }
 
-template<> void Visitor<Reader<JSONObject>>::readFrom(const DisplayedStateModel& s)
+template<> void Visitor<Reader<JSONObject>>::readFrom(const StateModel& s)
 {
-    readFrom(static_cast<const IdentifiedObject<DisplayedStateModel>&>(s));
+    readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
     m_obj["Metadata"] = toJsonObject(s.metadata);
 
     m_obj["Event"] = toJsonValue(s.m_eventId);
@@ -45,7 +45,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const DisplayedStateModel&
     m_obj["States"] = toJsonArray(s.m_states);
 }
 
-template<> void Visitor<Writer<JSONObject>>::writeTo(DisplayedStateModel& s)
+template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
 {
     s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 

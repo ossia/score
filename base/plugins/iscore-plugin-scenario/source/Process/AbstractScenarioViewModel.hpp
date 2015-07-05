@@ -7,7 +7,7 @@ class ScenarioModel;
 class AbstractConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;
-class DisplayedStateModel;
+class StateModel;
 
 class EventModel;
 
@@ -36,8 +36,8 @@ class AbstractScenarioLayer : public LayerModel
         void constraintViewModelCreated(const id_type<AbstractConstraintViewModel>& constraintViewModelid);
         void constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintViewModelid);
 
-        void stateCreated(const id_type<DisplayedStateModel>& eventId);
-        void stateRemoved(const id_type<DisplayedStateModel>& eventId);
+        void stateCreated(const id_type<StateModel>& eventId);
+        void stateRemoved(const id_type<StateModel>& eventId);
 
         void eventCreated(const id_type<EventModel>& eventId);
         void eventRemoved(const id_type<EventModel>& eventId);

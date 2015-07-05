@@ -49,11 +49,11 @@ id_type<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *p
             : id_type<ConstraintModel>{};
 }
 
-id_type<DisplayedStateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem) const
+id_type<StateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem) const
 {
     const auto& state = static_cast<const StateView*>(pressedItem)->presenter().model();
 
     return state.parentScenario() == &m_parentSM.model()
             ? state.id()
-            : id_type<DisplayedStateModel>{};
+            : id_type<StateModel>{};
 }

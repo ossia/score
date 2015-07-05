@@ -35,8 +35,6 @@ class StateView : public QGraphicsObject
         void moved(const QPointF&);
         void released(const QPointF&);
 
-    public slots:
-
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;

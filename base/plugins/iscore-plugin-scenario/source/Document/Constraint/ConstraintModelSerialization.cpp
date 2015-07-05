@@ -154,8 +154,8 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
                                constraint,
                                &constraint});
 
-    constraint.m_startState = fromJsonValue<id_type<DisplayedStateModel>> (m_obj["StartState"]);
-    constraint.m_endState = fromJsonValue<id_type<DisplayedStateModel>> (m_obj["EndState"]);
+    constraint.m_startState = fromJsonValue<id_type<StateModel>> (m_obj["StartState"]);
+    constraint.m_endState = fromJsonValue<id_type<StateModel>> (m_obj["EndState"]);
 
     constraint.m_defaultDuration = fromJsonValue<TimeValue> (m_obj["DefaultDuration"]);
     constraint.m_minDuration = fromJsonValue<TimeValue> (m_obj["MinDuration"]);

@@ -72,7 +72,7 @@ void CreationToolState::on_pressed()
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const id_type<EventModel>& id)
     { localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-    [&] (const id_type<DisplayedStateModel>& id)
+    [&] (const id_type<StateModel>& id)
     { localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint}); },
     [&] (const id_type<TimeNodeModel>& id)
     { localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },

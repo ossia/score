@@ -4,7 +4,7 @@
 
 class ScenarioModel;
 class EventModel;
-class DisplayedStateModel;
+class StateModel;
 
 namespace Scenario
 {
@@ -38,7 +38,7 @@ class CreateState : public iscore::SerializableCommand
     private:
         ObjectPath m_path;
 
-        id_type<DisplayedStateModel> m_newState;
+        id_type<StateModel> m_newState;
         id_type<EventModel> m_event;
         double m_stateY{};
 };

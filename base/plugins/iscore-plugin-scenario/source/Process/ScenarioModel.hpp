@@ -83,18 +83,18 @@ class ScenarioModel : public ProcessModel
         void addConstraint(ConstraintModel* constraint);
         void addEvent(EventModel* event);
         void addTimeNode(TimeNodeModel* timeNode);
-        void addDisplayedState(DisplayedStateModel* state);
+        void addDisplayedState(StateModel* state);
 
         void removeConstraint(ConstraintModel* constraint);
         void removeEvent(EventModel* event);
         void removeTimeNode(TimeNodeModel* timeNode);
-        void removeDisplayedState(DisplayedStateModel* state);
+        void removeDisplayedState(StateModel* state);
 
         // Accessors
         ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;
         EventModel& event(const id_type<EventModel>& eventId) const;
         TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
-        DisplayedStateModel& displayedState(const id_type<DisplayedStateModel>& stId) const;
+        StateModel& displayedState(const id_type<StateModel>& stId) const;
 
         TimeNodeModel& startTimeNode() const;
         TimeNodeModel& endTimeNode() const;
@@ -126,18 +126,18 @@ class ScenarioModel : public ProcessModel
         }
 
     signals:
-        void stateCreated(const id_type<DisplayedStateModel>& stateId);
+        void stateCreated(const id_type<StateModel>& stateId);
         void eventCreated(const id_type<EventModel>& eventId);
         void constraintCreated(const id_type<ConstraintModel>& constraintId);
         void timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
 
-        void stateRemoved(const id_type<DisplayedStateModel>& stateId);
+        void stateRemoved(const id_type<StateModel>& stateId);
         void eventRemoved_before(const id_type<EventModel>& eventId);
         void eventRemoved_after(const id_type<EventModel>& eventId);
         void constraintRemoved(const id_type<ConstraintModel>& constraintId);
         void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void stateMoved(const id_type<DisplayedStateModel>& stateId);
+        void stateMoved(const id_type<StateModel>& stateId);
         void eventMoved(const id_type<EventModel>& eventId);
         void constraintMoved(const id_type<ConstraintModel>& constraintId);
 
@@ -183,7 +183,7 @@ class ScenarioModel : public ProcessModel
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;
         IdContainer<TimeNodeModel> m_timeNodes;
-        IdContainer<DisplayedStateModel> m_displayedStates;
+        IdContainer<StateModel> m_displayedStates;
 
         id_type<TimeNodeModel> m_startTimeNodeId {};
         id_type<TimeNodeModel> m_endTimeNodeId {};

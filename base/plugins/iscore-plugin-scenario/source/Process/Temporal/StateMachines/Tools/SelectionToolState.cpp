@@ -115,7 +115,7 @@ void SelectionTool::on_pressed()
         localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
-    [&] (const id_type<DisplayedStateModel>& id) // State
+    [&] (const id_type<StateModel>& id) // State
     {
         localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
@@ -148,7 +148,7 @@ void SelectionTool::on_moved()
         mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
         [&] (const id_type<EventModel>& id)
         { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<DisplayedStateModel>& id)
+        [&] (const id_type<StateModel>& id)
         { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<TimeNodeModel>& id)
         { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
@@ -172,7 +172,7 @@ void SelectionTool::on_released()
 
         localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint});
     },
-    [&] (const id_type<DisplayedStateModel>& id) // State
+    [&] (const id_type<StateModel>& id) // State
     {
         const auto& elt = m_parentSM.presenter().displayedStates().at(id);
 

@@ -86,13 +86,13 @@ ScenarioModel* EventModel::parentScenario() const
     return dynamic_cast<ScenarioModel*>(parent());
 }
 
-void EventModel::addDisplayedState(const id_type<DisplayedStateModel> &ds)
+void EventModel::addDisplayedState(const id_type<StateModel> &ds)
 {
     m_states.append(ds);
     emit statesChanged();
 }
 
-void EventModel::removeDisplayedState(const id_type<DisplayedStateModel> &ds)
+void EventModel::removeDisplayedState(const id_type<StateModel> &ds)
 {
     m_states.removeOne(ds);
     emit statesChanged();

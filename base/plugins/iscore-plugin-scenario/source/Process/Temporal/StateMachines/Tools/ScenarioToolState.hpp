@@ -7,7 +7,7 @@
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
-class DisplayedStateModel;
+class StateModel;
 
 namespace iscore
 {
@@ -48,7 +48,7 @@ class ScenarioTool : public ToolState
         id_type<EventModel> itemToEventId(const QGraphicsItem*) const;
         id_type<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem*) const;
         id_type<ConstraintModel> itemToConstraintId(const QGraphicsItem*) const;
-        id_type<DisplayedStateModel> itemToStateId(const QGraphicsItem*) const;
+        id_type<StateModel> itemToStateId(const QGraphicsItem*) const;
 
         template<typename EventFun,
                  typename StateFun,

@@ -16,8 +16,8 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     m_startEvent{new EventModel{id_type<EventModel>{0}, m_startNode->id(), {{0.4, 0.6}}, TimeValue::zero(), this}},
     m_endEvent  {new EventModel{id_type<EventModel>{1}, m_endNode->id(),   {{0.4, 0.6}}, TimeValue::zero(), this}},
 
-    m_startState{new DisplayedStateModel{id_type<DisplayedStateModel>{0}, m_startEvent->id(), 0, this}},
-    m_endState  {new DisplayedStateModel{id_type<DisplayedStateModel>{1}, m_endEvent->id(),   0, this}},
+    m_startState{new StateModel{id_type<StateModel>{0}, m_startEvent->id(), 0, this}},
+    m_endState  {new StateModel{id_type<StateModel>{1}, m_endEvent->id(),   0, this}},
 
     m_constraint {new ConstraintModel{
                             id_type<ConstraintModel>{0},

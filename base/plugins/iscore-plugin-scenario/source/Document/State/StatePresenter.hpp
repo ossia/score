@@ -4,7 +4,7 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 class QGraphicsObject;
-class DisplayedStateModel;
+class StateModel;
 class StateView;
 class TemporalScenarioPresenter;
 class QMimeData;
@@ -15,17 +15,17 @@ class StatePresenter : public NamedObject
         Q_OBJECT
 
     public:
-        StatePresenter(const DisplayedStateModel& model,
+        StatePresenter(const StateModel& model,
                        QGraphicsObject* parentview,
                        QObject* parent);
 
         virtual ~StatePresenter();
 
-        const id_type<DisplayedStateModel>& id() const;
+        const id_type<StateModel>& id() const;
 
         StateView* view() const;
 
-        const DisplayedStateModel& model() const;
+        const StateModel& model() const;
 
         bool isSelected() const;
 
@@ -42,7 +42,7 @@ class StatePresenter : public NamedObject
         void heightPercentageChanged();
 
     private:
-        const DisplayedStateModel& m_model;
+        const StateModel& m_model;
         StateView* m_view {};
 
         CommandDispatcher<> m_dispatcher;

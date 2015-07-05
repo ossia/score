@@ -15,7 +15,7 @@ class CreateConstraint_State_Event_TimeNode : public iscore::SerializableCommand
 
           CreateConstraint_State_Event_TimeNode(
             const ScenarioModel& scenario,
-            const id_type<DisplayedStateModel>& startState,
+            const id_type<StateModel>& startState,
             const TimeValue& date,
             double endStateY);
 

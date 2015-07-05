@@ -159,11 +159,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void addRack(RackModel*);
         void removeRack(const id_type<RackModel>& rackId);
 
-        const id_type<DisplayedStateModel>& startState() const;
-        void setStartState(const id_type<DisplayedStateModel>& eventId);
+        const id_type<StateModel>& startState() const;
+        void setStartState(const id_type<StateModel>& eventId);
 
-        const id_type<DisplayedStateModel>& endState() const;
-        void setEndState(const id_type<DisplayedStateModel> &endState);
+        const id_type<StateModel>& endState() const;
+        void setEndState(const id_type<StateModel> &endState);
 
         // TODO reference
         RackModel* rack(const id_type<RackModel>& id) const;
@@ -263,8 +263,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Note : it is also present in m_constraintViewModels.
         FullViewConstraintViewModel* m_fullViewModel {};
 
-        id_type<DisplayedStateModel> m_startState;
-        id_type<DisplayedStateModel> m_endState;
+        id_type<StateModel> m_startState;
+        id_type<StateModel> m_endState;
 
         TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
         TimeValue m_minDuration{m_defaultDuration};

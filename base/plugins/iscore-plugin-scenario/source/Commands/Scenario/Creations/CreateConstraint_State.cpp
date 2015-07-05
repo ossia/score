@@ -8,7 +8,7 @@
 using namespace Scenario::Command;
 CreateConstraint_State::CreateConstraint_State(
         const ScenarioModel& scenario,
-        const id_type<DisplayedStateModel>& startState,
+        const id_type<StateModel>& startState,
         const id_type<EventModel>& endEvent,
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
@@ -27,7 +27,7 @@ void CreateConstraint_State::undo()
 {
     m_command.undo();
 
-    ScenarioCreate<DisplayedStateModel>::undo(
+    ScenarioCreate<StateModel>::undo(
                 m_newState,
                 m_command.scenarioPath().find<ScenarioModel>());
 }
@@ -37,7 +37,7 @@ void CreateConstraint_State::redo()
     auto& scenar = m_command.scenarioPath().find<ScenarioModel>();
 
     // Create the end state
-    ScenarioCreate<DisplayedStateModel>::redo(
+    ScenarioCreate<StateModel>::redo(
                 m_newState,
                 scenar.event(m_endEvent),
                 m_stateY,

@@ -76,8 +76,8 @@ class EventModel : public IdentifiedObject<EventModel>
         const id_type<TimeNodeModel>& timeNode() const;
 
         // States
-        void addDisplayedState(const id_type<DisplayedStateModel>& ds);
-        void removeDisplayedState(const id_type<DisplayedStateModel>& ds);
+        void addDisplayedState(const id_type<StateModel>& ds);
+        void removeDisplayedState(const id_type<StateModel>& ds);
 
         // Other properties
         // TODO use a stronger type for the condition.
@@ -109,7 +109,7 @@ class EventModel : public IdentifiedObject<EventModel>
     private:
         id_type<TimeNodeModel> m_timeNode {};
 
-        QVector<id_type<DisplayedStateModel>> m_states;
+        QVector<id_type<StateModel>> m_states;
 
         QString m_condition;
         QString m_trigger; // TODO in timenode?

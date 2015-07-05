@@ -6,7 +6,7 @@
 #include <core/document/Document.hpp>
 
 StatePresenter::StatePresenter(
-        const DisplayedStateModel &model,
+        const StateModel &model,
         QGraphicsObject *parentview,
         QObject *parent) :
     NamedObject {"StatePresenter", parent},
@@ -21,7 +21,7 @@ StatePresenter::StatePresenter(
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,               &StateView::changeColor);
 
-    connect(&m_model, &DisplayedStateModel::statesChanged,
+    connect(&m_model, &StateModel::statesChanged,
             this, [&] () {
         m_view->setContainMessage(!m_model.states().empty());
     });
@@ -43,7 +43,7 @@ StatePresenter::~StatePresenter()
     }
 }
 
-const id_type<DisplayedStateModel> &StatePresenter::id() const
+const id_type<StateModel> &StatePresenter::id() const
 {
     return m_model.id();
 }
@@ -53,7 +53,7 @@ StateView *StatePresenter::view() const
     return m_view;
 }
 
-const DisplayedStateModel &StatePresenter::model() const
+const StateModel &StatePresenter::model() const
 {
     return m_model;
 }

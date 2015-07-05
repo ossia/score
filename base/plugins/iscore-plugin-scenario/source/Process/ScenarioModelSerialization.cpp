@@ -92,7 +92,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 
     for(; state_count -- > 0;)
     {
-        auto stmodel = new DisplayedStateModel {*this, &scenario};
+        auto stmodel = new StateModel {*this, &scenario};
         scenario.addDisplayedState(stmodel);
     }
 
@@ -159,7 +159,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 
     for(const auto& json_vref : m_obj["States"].toArray())
     {
-        auto stmodel = new DisplayedStateModel {
+        auto stmodel = new StateModel {
                        Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 

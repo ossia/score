@@ -15,8 +15,8 @@ using namespace Scenario::Command;
 
 CreateConstraint::CreateConstraint(
         ObjectPath&& scenarioPath,
-        const id_type<DisplayedStateModel>& startState,
-        const id_type<DisplayedStateModel>& endState) :
+        const id_type<StateModel>& startState,
+        const id_type<StateModel>& endState) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},

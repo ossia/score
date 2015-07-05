@@ -22,7 +22,7 @@ void CreateState::undo()
 {
     auto& scenar = m_path.find<ScenarioModel>();
 
-    ScenarioCreate<DisplayedStateModel>::undo(
+    ScenarioCreate<StateModel>::undo(
                 m_newState,
                 scenar);
 }
@@ -32,7 +32,7 @@ void CreateState::redo()
     auto& scenar = m_path.find<ScenarioModel>();
 
     // Create the end state
-    ScenarioCreate<DisplayedStateModel>::redo(
+    ScenarioCreate<StateModel>::redo(
                 m_newState,
                 scenar.event(m_event),
                 m_stateY,

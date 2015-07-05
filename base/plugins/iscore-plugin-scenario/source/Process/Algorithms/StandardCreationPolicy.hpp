@@ -7,7 +7,7 @@ class EventModel;
 class ConstraintModel;
 class AbstractConstraintViewModel;
 class TimeNodeModel;
-class DisplayedStateModel;
+class StateModel;
 class VerticalExtent;
 
 template<typename T>
@@ -44,15 +44,15 @@ class ScenarioCreate<EventModel>
 };
 
 template<>
-class ScenarioCreate<DisplayedStateModel>
+class ScenarioCreate<StateModel>
 {
     public:
         static void undo(
-                const id_type<DisplayedStateModel>& id,
+                const id_type<StateModel>& id,
                 ScenarioModel& s);
 
-        static DisplayedStateModel& redo(
-                const id_type<DisplayedStateModel>& id,
+        static StateModel& redo(
+                const id_type<StateModel>& id,
                 EventModel& ev,
                 double y,
                 ScenarioModel& s);
@@ -69,8 +69,8 @@ class ScenarioCreate<ConstraintModel>
         static ConstraintModel& redo(
                 const id_type<ConstraintModel>& id,
                 const id_type<AbstractConstraintViewModel>& fullviewid,
-                DisplayedStateModel& sst,
-                DisplayedStateModel& est,
+                StateModel& sst,
+                StateModel& est,
                 double ypos,
                 ScenarioModel& s);
 };

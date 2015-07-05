@@ -8,7 +8,7 @@
 using namespace Scenario::Command;
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
         const ScenarioModel& scenario,
-        const id_type<DisplayedStateModel>& startState,
+        const id_type<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
