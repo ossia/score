@@ -42,6 +42,7 @@ void StateModel::setHeightPercentage(double y)
     if(m_heightPercentage == y)
         return;
     m_heightPercentage = y;
+    emit heightPercentageChanged();
 }
 
 const id_type<EventModel> &StateModel::eventId() const

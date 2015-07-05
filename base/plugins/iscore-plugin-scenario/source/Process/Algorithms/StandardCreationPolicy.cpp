@@ -55,7 +55,7 @@ void ScenarioCreate<StateModel>::undo(
     auto& state = s.displayedState(id);
     auto& ev = s.event(state.eventId());
 
-    ev.removeDisplayedState(id);
+    ev.removeState(id);
 
     s.removeDisplayedState(&state);
 }
@@ -72,7 +72,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
             y,
             &s};
 
-    ev.addDisplayedState(state->id());
+    ev.addState(state->id());
 
     s.addDisplayedState(state);
 

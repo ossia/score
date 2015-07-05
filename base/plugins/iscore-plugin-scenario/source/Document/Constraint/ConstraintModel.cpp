@@ -219,7 +219,6 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 
 void ConstraintModel::reset()
 {
-    qDebug() << Q_FUNC_INFO;
     setPlayDuration(TimeValue::zero());
 
     for(auto& proc : m_processes)

@@ -33,7 +33,7 @@ CreateEventAfterEventOnTimeNode::CreateEventAfterEventOnTimeNode(ObjectPath&& sc
 
     m_createdEventId = getStrongId(scenar.events());
     m_createdConstraintId = getStrongId(scenar.constraints());
-    m_stateId = getStrongId(scenar.displayedStates());
+    m_stateId = getStrongId(scenar.states());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too

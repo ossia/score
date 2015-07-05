@@ -34,7 +34,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     }
 
     // States
-    const auto& states = scenario.displayedStates();
+    const auto& states = scenario.states();
     m_stream << (int) states.size();
 
     for(const auto& state : states)
@@ -124,7 +124,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
 
     m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes());
     m_obj["Events"] = toJsonArray(scenario.events());
-    m_obj["States"] = toJsonArray(scenario.displayedStates());
+    m_obj["States"] = toJsonArray(scenario.states());
     m_obj["Constraints"] = toJsonArray(scenario.constraints());
 }
 

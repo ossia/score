@@ -67,8 +67,9 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         void setEvents(const QVector<id_type<EventModel>>& events);
 
     signals:
-        void dateChanged();
         void extentChanged(const VerticalExtent&);
+        void dateChanged(const TimeValue&);
+
         void newEvent(const id_type<EventModel>& eventId);
         // TODO no eventRemoved ? eventsChanged ?
         void timeNodeValid(bool); // TODO wtf

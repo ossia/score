@@ -76,8 +76,10 @@ class EventModel : public IdentifiedObject<EventModel>
         const id_type<TimeNodeModel>& timeNode() const;
 
         // States
-        void addDisplayedState(const id_type<StateModel>& ds);
-        void removeDisplayedState(const id_type<StateModel>& ds);
+        void addState(const id_type<StateModel>& ds);
+        void removeState(const id_type<StateModel>& ds);
+        const QVector<id_type<StateModel>>& states() const;
+
 
         // Other properties
         // TODO use a stronger type for the condition.

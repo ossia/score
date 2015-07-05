@@ -23,7 +23,7 @@ class TemporalConstraintPresenter : public AbstractConstraintPresenter
         Q_OBJECT
 
     public:
-        using layer_type = TemporalConstraintViewModel;
+        using viewmodel_type = TemporalConstraintViewModel;
         using view_type = TemporalConstraintView;
         const auto& id() const { return AbstractConstraintPresenter::id(); } // To please boost::const_mem_fun
 

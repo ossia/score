@@ -34,9 +34,9 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     m_endNode->addEvent(m_endEvent->id());
 
     m_startState->setObjectName("BaseStartState");
-    m_startEvent->addDisplayedState(m_startState->id());
+    m_startEvent->addState(m_startState->id());
     m_endState->setObjectName("BaseEndState");
-    m_endEvent->addDisplayedState(m_endState->id());
+    m_endEvent->addState(m_endState->id());
 
     m_constraint->setStartState(m_startState->id());
     m_constraint->setEndState(m_endState->id());

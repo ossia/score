@@ -86,9 +86,9 @@ class AbstractConstraintPresenter : public NamedObject
 // TODO concept: constraint view model.
 
 template<typename T>
-const typename T::layer_type* viewModel(const T* obj)
+const typename T::viewmodel_type* viewModel(const T* obj)
 {
-    return static_cast<const typename T::layer_type*>(&obj->abstractConstraintViewModel());
+    return static_cast<const typename T::viewmodel_type*>(&obj->abstractConstraintViewModel());
 }
 
 template<typename T>
@@ -107,13 +107,19 @@ typename T::view_type* view(T* obj)
 
 
 template<typename T>
-const typename T::layer_type& viewModel(const T& obj)
+const typename T::viewmodel_type& viewModel(const T& obj)
 {
-    return static_cast<const typename T::layer_type&>(obj->abstractConstraintViewModel());
+    return static_cast<const typename T::viewmodel_type&>(obj->abstractConstraintViewModel());
 }
 
 template<typename T>
-const typename T::view_type& view(const T& obj)
+typename T::view_type& view(const T& obj)
 {
-    return static_cast<const typename T::view_type&>(obj->view());
+    return static_cast<typename T::view_type&>(*obj.view());
+}
+
+template<typename T>
+typename T::view_type& view(T& obj)
+{
+    return static_cast<typename T::view_type&>(*obj.view());
 }

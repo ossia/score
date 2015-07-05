@@ -24,8 +24,6 @@ ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presente
     QObject{presenter},
     m_presenter(presenter)
 {
-    connect(&m_presenter->m_layer, &TemporalScenarioLayer::constraintMoved,
-            this, &ScenarioViewInterface::on_constraintMoved);
 }
 
 void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
@@ -37,48 +35,43 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
     ev.view()->setPos({ev.model().date().msec() / m_presenter->m_zoomRatio,
                              ev.model().extent().top() * h});
 
+    // We also have to move all the relevant states
+    for(const auto& state : ev.model().states())
+    {
+        on_stateMoved(*m_presenter->m_displayedStates.at(state));
+    }
     m_presenter->m_view->update();
 }
 
-void ScenarioViewInterface::on_constraintMoved(const id_type<ConstraintModel>& constraintId)
+void ScenarioViewInterface::on_constraintMoved(const TemporalConstraintPresenter& pres)
 {
-
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
     auto rect = m_presenter->m_view->boundingRect();
     auto msPerPixel = m_presenter->m_zoomRatio;
 
-    TemporalConstraintPresenter* pres = m_presenter->m_constraints.at(constraintId);
-    const auto& cstr_model = pres->model();
+    const auto& cstr_model = pres.model();
+    auto& cstr_view = view(pres);
 
     auto startPos = cstr_model.startDate().toPixels(msPerPixel);
-    auto delta = view(pres)->x() - startPos;
+    auto delta = cstr_view.x() - startPos;
     bool dateChanged = (delta * delta > 1); // Magnetism
 
     if(dateChanged)
     {
-        view(pres)->setPos({startPos,
+        cstr_view.setPos({startPos,
                             rect.height() * cstr_model.heightPercentage()});
     }
     else
     {
-        view(pres)->setY(qreal(rect.height() * cstr_model.heightPercentage()));
+        cstr_view.setY(qreal(rect.height() * cstr_model.heightPercentage()));
     }
 
-    view(pres)->setDefaultWidth(cstr_model.defaultDuration().toPixels(msPerPixel));
-    view(pres)->setMinWidth(cstr_model.minDuration().toPixels(msPerPixel));
-    view(pres)->setMaxWidth(cstr_model.maxDuration().isInfinite(),
+    cstr_view.setDefaultWidth(cstr_model.defaultDuration().toPixels(msPerPixel));
+    cstr_view.setMinWidth(cstr_model.minDuration().toPixels(msPerPixel));
+    cstr_view.setMaxWidth(cstr_model.maxDuration().isInfinite(),
                             cstr_model.maxDuration().isInfinite()? -1 :
                                                                    cstr_model.maxDuration().toPixels(msPerPixel));
 
-    auto endTn = m_presenter->m_events.at(cstr_model.endEvent())->model().timeNode();
-    updateTimeNode(endTn);
-
-    auto startTn = m_presenter->m_events.at(cstr_model.startEvent())->model().timeNode();
-    updateTimeNode(startTn);
-
     m_presenter->m_view->update();
-    */
 }
 
 void ScenarioViewInterface::on_timeNodeMoved(const TimeNodePresenter &timenode)

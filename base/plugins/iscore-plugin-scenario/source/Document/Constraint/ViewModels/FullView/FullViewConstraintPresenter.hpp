@@ -26,7 +26,7 @@ class FullViewConstraintPresenter : public AbstractConstraintPresenter
         Q_OBJECT
 
     public:
-        using layer_type = FullViewConstraintViewModel;
+        using viewmodel_type = FullViewConstraintViewModel;
         using view_type = FullViewConstraintView;
 
         FullViewConstraintPresenter(const FullViewConstraintViewModel& viewModel,

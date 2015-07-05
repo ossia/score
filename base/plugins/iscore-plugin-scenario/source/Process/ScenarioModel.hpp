@@ -120,9 +120,9 @@ class ScenarioModel : public ProcessModel
             return m_timeNodes;
         }
 
-        const auto& displayedStates() const
+        const auto& states() const
         {
-            return m_displayedStates;
+            return m_states;
         }
 
     signals:
@@ -183,7 +183,7 @@ class ScenarioModel : public ProcessModel
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;
         IdContainer<TimeNodeModel> m_timeNodes;
-        IdContainer<StateModel> m_displayedStates;
+        IdContainer<StateModel> m_states;
 
         id_type<TimeNodeModel> m_startTimeNodeId {};
         id_type<TimeNodeModel> m_endTimeNodeId {};

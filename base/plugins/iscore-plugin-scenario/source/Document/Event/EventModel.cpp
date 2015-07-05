@@ -86,16 +86,21 @@ ScenarioModel* EventModel::parentScenario() const
     return dynamic_cast<ScenarioModel*>(parent());
 }
 
-void EventModel::addDisplayedState(const id_type<StateModel> &ds)
+void EventModel::addState(const id_type<StateModel> &ds)
 {
     m_states.append(ds);
     emit statesChanged();
 }
 
-void EventModel::removeDisplayedState(const id_type<StateModel> &ds)
+void EventModel::removeState(const id_type<StateModel> &ds)
 {
     m_states.removeOne(ds);
     emit statesChanged();
+}
+
+const QVector<id_type<StateModel> > &EventModel::states() const
+{
+    return m_states;
 }
 
 
@@ -129,7 +134,3 @@ void EventModel::setTrigger(const QString& trigger)
     m_trigger = trigger;
     emit triggerChanged(trigger);
 }
-
-
-
-

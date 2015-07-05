@@ -39,8 +39,6 @@ class StatePresenter : public NamedObject
         void eventHoverEnter();
         void eventHoverLeave();
 
-        void heightPercentageChanged();
-
     private:
         const StateModel& m_model;
         StateView* m_view {};

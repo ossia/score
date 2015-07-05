@@ -11,7 +11,7 @@ CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel
                         commandName(),
                         description()},
     m_path {iscore::IDocument::path(scenario)},
-    m_newState{getStrongId(scenario.displayedStates())},
+    m_newState{getStrongId(scenario.states())},
     m_event{event},
     m_stateY{stateY}
 {

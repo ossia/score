@@ -68,6 +68,7 @@ class StateModel : public IdentifiedObject<StateModel>
 
     signals:
         void statesChanged();
+        void heightPercentageChanged();
 
     public slots:
         void setHeightPercentage(double y);

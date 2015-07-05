@@ -12,25 +12,6 @@ AbstractConstraintView::AbstractConstraintView(
     m_dashPen.setDashPattern({2., 4.});
 }
 
-void AbstractConstraintView::setConnections()
-{
-/*    // NOTE : crash if in ctr ...
-        connect(m_startState, &StateView::pressed,
-                &m_presenter, &AbstractConstraintPresenter::pressed);
-        connect(m_startState, &StateView::moved,
-                &m_presenter,    &AbstractConstraintPresenter::moved);
-        connect(m_startState,   &StateView::released,
-                &m_presenter,    &AbstractConstraintPresenter::released);
-
-        connect(m_endState, &StateView::pressed,
-                &m_presenter, &AbstractConstraintPresenter::pressed);
-        connect(m_endState, &StateView::moved,
-                &m_presenter,    &AbstractConstraintPresenter::moved);
-        connect(m_endState,   &StateView::released,
-                &m_presenter,    &AbstractConstraintPresenter::released);
-*/
-}
-
 void AbstractConstraintView::setInfinite(bool infinite)
 {
     prepareGeometryChange();

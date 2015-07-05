@@ -32,7 +32,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
     Scenario::Command::CreateState test1(*this, m_startEventId, 0.6);
     test1.redo();
-    Scenario::Command::CreateConstraint_State_Event_TimeNode cmdtest(*this, (*m_displayedStates.begin())->id(), TimeValue(std::chrono::seconds(25)), 0.7);
+    Scenario::Command::CreateConstraint_State_Event_TimeNode cmdtest(*this, (*m_states.begin())->id(), TimeValue(std::chrono::seconds(25)), 0.7);
     cmdtest.redo();
 
 }
@@ -58,7 +58,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
         addEvent(new EventModel {*event, event->id(), this});
     }
 
-    for(StateModel* state : source.m_displayedStates)
+    for(StateModel* state : source.m_states)
     {
         addDisplayedState(new StateModel{*state, state->id(), this});
     }
@@ -320,7 +320,7 @@ void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 
 void ScenarioModel::addDisplayedState(StateModel *state)
 {
-    m_displayedStates.insert(state);
+    m_states.insert(state);
 
     emit stateCreated(state->id());
 }
@@ -358,7 +358,7 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 void ScenarioModel::removeDisplayedState(StateModel *state)
 {
     const auto& id = state->id();
-    m_displayedStates.remove(id);
+    m_states.remove(id);
 
     emit stateRemoved(id);
     delete state;
@@ -392,7 +392,7 @@ TimeNodeModel&ScenarioModel::endTimeNode() const
 
 StateModel &ScenarioModel::displayedState(const id_type<StateModel> &stId) const
 {
-    return *m_displayedStates.at(stId);
+    return *m_states.at(stId);
 }
 
 

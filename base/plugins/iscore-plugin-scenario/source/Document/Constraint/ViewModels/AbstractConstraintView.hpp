@@ -16,8 +16,6 @@ class AbstractConstraintView : public QGraphicsObject
         AbstractConstraintView(AbstractConstraintPresenter& presenter,
                                QGraphicsItem* parent);
 
-        void setConnections();
-
         int type() const override
         { return QGraphicsItem::UserType + 2; }
 

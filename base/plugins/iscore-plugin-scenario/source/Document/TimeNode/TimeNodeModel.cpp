@@ -69,7 +69,7 @@ const TimeValue& TimeNodeModel::date() const
 void TimeNodeModel::setDate(const TimeValue& date)
 {
     m_date = date;
-    emit dateChanged();
+    emit dateChanged(m_date);
 }
 
 const QVector<id_type<EventModel> >& TimeNodeModel::events() const

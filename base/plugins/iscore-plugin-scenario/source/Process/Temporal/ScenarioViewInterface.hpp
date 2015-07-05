@@ -4,8 +4,9 @@
 #include <QObject>
 
 class TemporalScenarioPresenter;
-class ConstraintModel;
+class TemporalConstraintPresenter;
 class EventPresenter;
+class ConstraintModel;
 class EventModel;
 class TimeNodeModel;
 class TimeNodePresenter;
@@ -17,7 +18,7 @@ class ScenarioViewInterface : public QObject
         ScenarioViewInterface(TemporalScenarioPresenter* presenter);
 
         void on_eventMoved(const EventPresenter &event);
-        void on_constraintMoved(const id_type<ConstraintModel>& constraintId);
+        void on_constraintMoved(const TemporalConstraintPresenter &constraint);
         void on_timeNodeMoved(const TimeNodePresenter &timenode);
         void on_stateMoved(const StatePresenter &state);
 
