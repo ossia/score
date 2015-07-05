@@ -1,4 +1,4 @@
-#include "CreateEventState.hpp"
+#include "ScenarioCreation_FromEvent.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
@@ -32,7 +32,7 @@
 #include <QFinalState>
 
 using namespace Scenario::Command;
-CreateFromEventState::CreateFromEventState(
+ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
         const ScenarioStateMachine& stateMachine,
         ObjectPath &&scenarioPath,
         iscore::CommandStack& stack,
@@ -185,7 +185,7 @@ CreateFromEventState::CreateFromEventState(
     setInitialState(mainState);
 }
 
-void CreateFromEventState::createInitialState()
+void ScenarioCreation_FromEvent::createInitialState()
 {
     auto cmd = new CreateState{m_scenarioPath, clickedEvent, currentPoint.y};
     m_dispatcher.submitCommand(cmd);
@@ -195,7 +195,7 @@ void CreateFromEventState::createInitialState()
 
 
 // Note : clickedEvent is set at startEvent if clicking in the background.
-void CreateFromEventState::createToNothing()
+void ScenarioCreation_FromEvent::createToNothing()
 {
     createInitialState();
 
@@ -212,7 +212,7 @@ void CreateFromEventState::createToNothing()
     createdConstraints.append(cmd->createdConstraint());
 }
 
-void CreateFromEventState::createToState()
+void ScenarioCreation_FromEvent::createToState()
 {
     createInitialState();
 
@@ -226,7 +226,7 @@ void CreateFromEventState::createToState()
     createdConstraints.append(cmd->createdConstraint());
 }
 
-void CreateFromEventState::createToEvent()
+void ScenarioCreation_FromEvent::createToEvent()
 {
     if(hoveredEvent != clickedEvent)
     {
@@ -243,7 +243,7 @@ void CreateFromEventState::createToEvent()
     }
 }
 
-void CreateFromEventState::createToTimeNode()
+void ScenarioCreation_FromEvent::createToTimeNode()
 {
     createInitialState();
 

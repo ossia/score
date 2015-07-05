@@ -4,6 +4,9 @@
 #include "Process/Temporal/StateMachines/Transitions/StateTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
+#include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.hpp"
+#include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromState.hpp"
+#include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromTimeNode.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Document/Event/EventModel.hpp"
@@ -27,7 +30,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     auto scenarioPath = iscore::IDocument::path(m_parentSM.model());
 
     //// Create from an event ////
-    m_createFromEventState = new CreateFromEventState{
+    m_createFromEventState = new ScenarioCreation_FromEvent{
             m_parentSM,
             ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};
@@ -45,7 +48,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
 
 
     //// Create from a timenode ////
-    m_createFromTimeNodeState = new CreateFromTimeNodeState{
+    m_createFromTimeNodeState = new ScenarioCreation_FromTimeNode{
             m_parentSM,
             ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};
@@ -59,7 +62,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     localSM().addState(m_createFromTimeNodeState);
 
     //// Create from a State ////
-    m_createFromStateState = new CreateFromStateState{
+    m_createFromStateState = new ScenarioCreation_FromState{
             m_parentSM,
             ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};

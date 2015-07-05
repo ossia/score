@@ -1,9 +1,11 @@
 #pragma once
 #include "ScenarioToolState.hpp"
-#include "States/CreateEventState.hpp"
-
+#include "../ScenarioStateMachineBaseStates.hpp"
 class EventPresenter;
 class TimeNodePresenter;
+class ScenarioCreation_FromEvent;
+class ScenarioCreation_FromState;
+class ScenarioCreation_FromTimeNode;
 class CreationToolState : public ScenarioTool
 {
     public:
@@ -58,8 +60,8 @@ class CreationToolState : public ScenarioTool
             nothing_fun();
         }
 
-        CreateFromEventState* m_createFromEventState{};
-        CreateFromTimeNodeState* m_createFromTimeNodeState{};
-        CreateFromStateState* m_createFromStateState{};
+        ScenarioCreation_FromEvent* m_createFromEventState{};
+        ScenarioCreation_FromTimeNode* m_createFromTimeNodeState{};
+        ScenarioCreation_FromState* m_createFromStateState{};
         QState* m_waitState{};
 };
