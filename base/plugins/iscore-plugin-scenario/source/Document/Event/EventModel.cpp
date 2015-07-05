@@ -44,6 +44,19 @@ const id_type<TimeNodeModel>& EventModel::timeNode() const
     return m_timeNode;
 }
 
+
+VerticalExtent EventModel::extent() const
+{
+    return m_extent;
+}
+
+void EventModel::setExtent(const VerticalExtent &extent)
+{
+    // TODO add a check
+    m_extent = extent;
+    emit extentChanged(m_extent);
+}
+
 const TimeValue& EventModel::date() const
 {
     return m_date;
@@ -54,7 +67,7 @@ void EventModel::setDate(const TimeValue& date)
     if (m_date != date)
     {
         m_date = date;
-        emit dateChanged();
+        emit dateChanged(m_date);
     }
 } //TODO ajuster la date avec celle du Timenode
 
@@ -62,6 +75,7 @@ void EventModel::translate(const TimeValue& deltaTime)
 {
     setDate(m_date + deltaTime);
 }
+
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
 QString EventModel::prettyName()
@@ -117,14 +131,5 @@ void EventModel::setTrigger(const QString& trigger)
 }
 
 
-VerticalExtent EventModel::extent() const
-{
-    return m_extent;
-}
-
-void EventModel::setExtent(const VerticalExtent &extent)
-{
-    m_extent = extent;
-}
 
 

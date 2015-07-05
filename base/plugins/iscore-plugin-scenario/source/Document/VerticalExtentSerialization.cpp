@@ -5,27 +5,25 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const VerticalExtent& ve)
 {
-    m_stream << ve.top << ve.bottom;
+    m_stream << ve.point;
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(VerticalExtent& ve)
 {
-    m_stream >> ve.top >> ve.bottom;
+    m_stream >> ve.point;
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const VerticalExtent& ve)
 {
-    val = QJsonArray{ve.top, ve.bottom};
+    readFrom(ve.point);
 }
 
 template<>
 void Visitor<Writer<JSONValue>>::writeTo(VerticalExtent& ve)
 {
-    auto arr = val.toArray();
-    ve.top = arr.at(0).toDouble();
-    ve.bottom = arr.at(1).toDouble();
+    writeTo(ve.point);
 }

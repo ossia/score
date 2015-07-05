@@ -24,31 +24,20 @@ ScenarioViewInterface::ScenarioViewInterface(TemporalScenarioPresenter* presente
     QObject{presenter},
     m_presenter(presenter)
 {
-    connect(&m_presenter->m_viewModel, &TemporalScenarioLayer::eventMoved,
-            this, &ScenarioViewInterface::on_eventMoved);
-
-    connect(&m_presenter->m_viewModel, &TemporalScenarioLayer::constraintMoved,
+    connect(&m_presenter->m_layer, &TemporalScenarioLayer::constraintMoved,
             this, &ScenarioViewInterface::on_constraintMoved);
 }
 
-void ScenarioViewInterface::on_eventMoved(const id_type<EventModel>& eventId)
+void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
 {
+    auto h = m_presenter->m_view->boundingRect().height();
 
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
-    auto rect = m_presenter->m_view->boundingRect();
-    auto ev = m_presenter->m_events.at(eventId);
+    ev.view()->setExtent(ev.model().extent() * h);
 
-    ev->view()->setPos({(ev->model().date().msec() / m_presenter->m_zoomRatio),
-                        rect.height() * ev->model().heightPercentage()
-                       });
-
-    auto timeNode = m_presenter->m_timeNodes.at(ev->model().timeNode());
-    timeNode->view()->setPos({(timeNode->model().date().msec() / m_presenter->m_zoomRatio),
-                              rect.height() * timeNode->model().y()});
+    ev.view()->setPos({ev.model().date().msec() / m_presenter->m_zoomRatio,
+                             ev.model().extent().top() * h});
 
     m_presenter->m_view->update();
-    */
 }
 
 void ScenarioViewInterface::on_constraintMoved(const id_type<ConstraintModel>& constraintId)
@@ -95,18 +84,23 @@ void ScenarioViewInterface::on_constraintMoved(const id_type<ConstraintModel>& c
 void ScenarioViewInterface::on_timeNodeMoved(const TimeNodePresenter &timenode)
 {
     auto h = m_presenter->m_view->boundingRect().height();
-    timenode.view()->setExtent(timenode.model().extent().top * h,
-                               timenode.model().extent().bottom * h);
+    timenode.view()->setExtent(timenode.model().extent() * h);
 
     timenode.view()->setPos({timenode.model().date().msec() / m_presenter->m_zoomRatio,
-                             timenode.model().extent().top * h});
+                             timenode.model().extent().top() * h});
 
     m_presenter->m_view->update();
 }
 
-void ScenarioViewInterface::on_stateMoved(const id_type<DisplayedStateModel> &constraintId)
+void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
 {
+    auto rect = m_presenter->m_view->boundingRect();
+    const auto& ev = static_cast<const ScenarioModel&>(m_presenter->viewModel().sharedProcessModel()).event(state.model().eventId());
 
+    state.view()->setPos({ev.date().msec() / m_presenter->m_zoomRatio,
+                          rect.height() * state.model().heightPercentage()});
+
+    m_presenter->m_view->update();
 }
 
 template<typename T>
@@ -114,19 +108,6 @@ void update_min_max(const T& val, T& min, T& max)
 {
     min = val < min ? val : min;
     max = val > max ? val : max;
-}
-
-void ScenarioViewInterface::addPointInEvent(const id_type<EventModel> &eventId, double y)
-{
-    qDebug() << "TODO: " << Q_FUNC_INFO;
-    /*
-    auto event = m_presenter->m_events.at(eventId);
-    auto h = m_presenter->m_view->boundingRect().height();
-    event->view()->addPoint(int (h * (y - event->model().heightPercentage())));
-
-    auto tn = m_presenter->m_timeNodes.at(event->model().timeNode());
-    tn->view()->addPoint(int(h * (y - tn->model().y()) ));
-    */
 }
 
 void ScenarioViewInterface::on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter)

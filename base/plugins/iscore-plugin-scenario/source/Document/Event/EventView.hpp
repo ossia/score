@@ -2,7 +2,7 @@
 #include <QGraphicsObject>
 #include <QMouseEvent>
 #include <QKeyEvent>
-#include "EventHalves.hpp"
+#include "Document/VerticalExtent.hpp"
 class EventPresenter;
 class ConditionView;
 class TriggerView;
@@ -24,7 +24,6 @@ class EventView : public QGraphicsObject
                    QWidget* widget) override;
 
         void setSelected(bool selected);
-
         bool isSelected() const;
 
         bool isShadow() const;
@@ -35,8 +34,8 @@ class EventView : public QGraphicsObject
         void setTrigger(const QString& trig);
         bool hasTrigger() const;
 
-        void setExtremities(int top, int bottom);
-        void addPoint(int newY);
+        void setExtent(const VerticalExtent& extent);
+        void setExtent(VerticalExtent&& extent);
 
 
     signals:
@@ -69,8 +68,7 @@ class EventView : public QGraphicsObject
         bool m_shadow {false};
         bool m_selected{};
 
-        int m_top {0};
-        int m_bottom {0};
+        VerticalExtent m_extent;
 
         ConditionView* m_conditionItem{};
         TriggerView* m_triggerItem{};

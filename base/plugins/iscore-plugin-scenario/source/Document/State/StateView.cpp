@@ -46,11 +46,11 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
     qreal radius = m_containMessage ? radiusFull : radiusVoid;
     painter->drawEllipse({0., 0.}, radius, radius);
-//*
+#if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setBrush(Qt::NoBrush);
     painter->setPen(Qt::darkYellow);
     painter->drawRect(boundingRect());
-//*/
+#endif
 }
 
 void StateView::setContainMessage(bool arg)

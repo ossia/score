@@ -35,10 +35,10 @@ void TimeNodeView::paint(QPainter* painter,
         pen_color = Qt::red;
     }
 
-    QPen pen{QBrush(pen_color), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    QPen pen{QBrush(pen_color), 1.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
-    painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_bottom - m_top)));
+    painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top())));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkMagenta);
@@ -48,23 +48,23 @@ void TimeNodeView::paint(QPainter* painter,
 
 QRectF TimeNodeView::boundingRect() const
 {
-    return { -3., 0., 6., (qreal)(m_bottom - m_top) };
+    return { -3., 0., 6., m_extent.bottom() - m_extent.top()};
 }
 
-void TimeNodeView::setExtent(qreal top, qreal bottom)
+void TimeNodeView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();
     // TODO Set pos at the same time ?
-    m_top = top;
-    m_bottom = bottom;
+    m_extent = extent;
     this->update();
 }
 
-void TimeNodeView::addPoint(int newY)
+void TimeNodeView::setExtent(VerticalExtent &&extent)
 {
-    m_top = newY < m_top ? newY : m_top;
-    m_bottom = newY > m_bottom ? newY : m_bottom;
-    update();
+    prepareGeometryChange();
+    // TODO Set pos at the same time ?
+    m_extent = std::move(extent);
+    this->update();
 }
 
 void TimeNodeView::setMoving(bool arg)

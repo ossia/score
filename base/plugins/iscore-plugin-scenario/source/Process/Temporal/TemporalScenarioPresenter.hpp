@@ -118,7 +118,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
         ZoomRatio m_zoomRatio {1};
 
-        const TemporalScenarioLayer& m_viewModel;
+        const TemporalScenarioLayer& m_layer;
         TemporalScenarioView* m_view;
 
     private:

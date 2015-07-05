@@ -99,7 +99,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
     signals:
         void extentChanged(const VerticalExtent&);
-        void dateChanged();
+        void dateChanged(const TimeValue&);
 
         void conditionChanged(const QString&);
         void triggerChanged(const QString&);
@@ -115,5 +115,5 @@ class EventModel : public IdentifiedObject<EventModel>
         QString m_trigger; // TODO in timenode?
 
         VerticalExtent m_extent;
-        TimeValue m_date {std::chrono::seconds{0}};
+        TimeValue m_date{TimeValue::zero()};
 };

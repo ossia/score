@@ -10,11 +10,11 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
 
-    m_startNode{new TimeNodeModel{id_type<TimeNodeModel>{0}, {0.2, 0.8}, TimeValue::zero(),  this}},
-    m_endNode  {new TimeNodeModel{id_type<TimeNodeModel>{1}, {0.2, 0.8}, TimeValue::zero(), this}}, // TODO take the baseconstraint duration
+    m_startNode{new TimeNodeModel{id_type<TimeNodeModel>{0}, {{0.2, 0.8}}, TimeValue::zero(),  this}},
+    m_endNode  {new TimeNodeModel{id_type<TimeNodeModel>{1}, {{0.2, 0.8}}, TimeValue::zero(), this}}, // TODO take the baseconstraint duration
 
-    m_startEvent{new EventModel{id_type<EventModel>{0}, m_startNode->id(), {0.4, 0.6}, TimeValue::zero(), this}},
-    m_endEvent  {new EventModel{id_type<EventModel>{1}, m_endNode->id(),   {0.4, 0.6}, TimeValue::zero(), this}},
+    m_startEvent{new EventModel{id_type<EventModel>{0}, m_startNode->id(), {{0.4, 0.6}}, TimeValue::zero(), this}},
+    m_endEvent  {new EventModel{id_type<EventModel>{1}, m_endNode->id(),   {{0.4, 0.6}}, TimeValue::zero(), this}},
 
     m_startState{new DisplayedStateModel{id_type<DisplayedStateModel>{0}, m_startEvent->id(), 0, this}},
     m_endState  {new DisplayedStateModel{id_type<DisplayedStateModel>{1}, m_endEvent->id(),   0, this}},

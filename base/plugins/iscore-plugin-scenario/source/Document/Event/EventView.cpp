@@ -71,23 +71,10 @@ bool EventView::hasTrigger() const
     return !m_trigger.isEmpty();
 }
 
-void EventView::setExtremities(int top, int bottom)
-{
-    m_top = top;
-    m_bottom = bottom;
-    this->update();
-}
-
-void EventView::addPoint(int newY)
-{
-    m_top = newY < m_top ? newY : m_top;
-    m_bottom = newY > m_bottom ? newY : m_bottom;
-    update();
-}
 
 QRectF EventView::boundingRect() const
 {
-    return {- radius, qreal(m_top - 5), 2 * radius, qreal(m_bottom - m_top + 10)};
+    return {- radius, -5., 2 * radius, qreal(m_extent.bottom() - m_extent.top() + 10)};
 }
 
 void EventView::paint(QPainter* painter,
@@ -109,14 +96,34 @@ void EventView::paint(QPainter* painter,
 */
     eventPen.setWidth(2);
 
-//*
-    painter->setPen(Qt::darkCyan);
-    painter->drawRect(boundingRect());
-//*/
     QPen pen{QBrush(eventPen.color()), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
-    painter->drawRect(QRectF(QPointF(0, m_top), QPointF(0, m_bottom)));}
+    painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top())));
+
+#if defined(ISCORE_SCENARIO_DEBUG_RECTS)
+    painter->setPen(Qt::darkCyan);
+    painter->drawRect(boundingRect());
+#endif
+}
+
+
+void EventView::setExtent(const VerticalExtent& extent)
+{
+    prepareGeometryChange();
+    // TODO Set pos at the same time ?
+    m_extent = extent;
+    this->update();
+}
+
+void EventView::setExtent(VerticalExtent &&extent)
+{
+    prepareGeometryChange();
+    // TODO Set pos at the same time ?
+    m_extent = std::move(extent);
+    this->update();
+}
+
 
 void EventView::setSelected(bool selected)
 {

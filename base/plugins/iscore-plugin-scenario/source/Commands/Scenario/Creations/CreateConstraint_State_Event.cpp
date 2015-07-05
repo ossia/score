@@ -39,7 +39,7 @@ void CreateConstraint_State_Event::redo()
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
                 scenar.timeNode(m_endTimeNode),
-                {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1},
+                {{m_command.endStateY() - 0.1, m_command.endStateY() + 0.1}},
                 scenar);
 
     // The state + constraint between

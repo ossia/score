@@ -37,7 +37,7 @@ void CreateEvent_State::redo()
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
                 scenar.timeNode(m_timeNode),
-                {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1},
+                {{m_command.endStateY() - 0.1, m_command.endStateY() + 0.1}},
                 scenar);
 
     // And the state

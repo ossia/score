@@ -21,17 +21,15 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     connect(&(m_model.metadata), &ModelMetadata::colorChanged,
             m_view,               &TimeNodeView::changeColor);
 
-    connect(&m_model,   &TimeNodeModel::timeNodeValid,
+    connect(&m_model, &TimeNodeModel::timeNodeValid,
             m_view, &TimeNodeView::setValid);
 
     connect(&m_model, &TimeNodeModel::extentChanged,
             this, [&] (const VerticalExtent& extent) {
         m_view->setPos({m_view->pos().x(),
-                        extent.top * parentview->boundingRect().height()});
-        m_view->setExtent(extent.top * parentview->boundingRect().height(),
-                          extent.bottom * parentview->boundingRect().height());
+                        extent.top() * parentview->boundingRect().height()});
+        m_view->setExtent(extent * parentview->boundingRect().height());
     });
-
 }
 
 TimeNodePresenter::~TimeNodePresenter()

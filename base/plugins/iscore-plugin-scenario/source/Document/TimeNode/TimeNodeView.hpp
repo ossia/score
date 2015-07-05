@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 #include <QMouseEvent>
+#include "Document/VerticalExtent.hpp"
 
 class TimeNodePresenter;
 class TimeNodeView : public QGraphicsObject
@@ -25,7 +26,8 @@ class TimeNodeView : public QGraphicsObject
         // QGraphicsItem interface
         QRectF boundingRect() const override;
 
-        void setExtent(qreal top, qreal bottom);
+        void setExtent(const VerticalExtent& extent);
+        void setExtent(VerticalExtent&& extent);
         void addPoint(int newY);
 
         void setMoving(bool);
@@ -57,8 +59,7 @@ class TimeNodeView : public QGraphicsObject
 
     private:
         TimeNodePresenter& m_presenter;
-        qreal m_top{};
-        qreal m_bottom{};
+        VerticalExtent m_extent;
 
         QPointF m_clickedPoint {};
         QColor m_color;
