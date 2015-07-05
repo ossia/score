@@ -37,8 +37,7 @@ CreateFromEventState::CreateFromEventState(
         ObjectPath &&scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
-    CreationState{std::move(scenarioPath), parent},
-    m_dispatcher{stack}
+    ScenarioCreationState{stack, std::move(scenarioPath), parent}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};

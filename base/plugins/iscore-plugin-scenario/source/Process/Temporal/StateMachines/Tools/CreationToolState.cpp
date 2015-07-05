@@ -24,11 +24,12 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
 
-    // TODO state : create from a state
-    /// Create from an event
+    auto scenarioPath = iscore::IDocument::path(m_parentSM.model());
+
+    //// Create from an event ////
     m_createFromEventState = new CreateFromEventState{
             m_parentSM,
-            iscore::IDocument::path(m_parentSM.model()),
+            ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};
 
     make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
@@ -42,25 +43,25 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     { m_createFromEventState->clickedEvent = m_parentSM.model().startEvent().id(); });
     localSM().addState(m_createFromEventState);
 
-    /// Create from a timenode
+
+    //// Create from a timenode ////
     m_createFromTimeNodeState = new CreateFromTimeNodeState{
             m_parentSM,
-            iscore::IDocument::path(m_parentSM.model()),
+            ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};
-    ISCORE_TODO
-    /*
+
     make_transition<ClickOnTimeNode_Transition>(m_waitState,
                                                 m_createFromTimeNodeState,
                                                 *m_createFromTimeNodeState);
     m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, SIGNAL(finished()), m_waitState);
-    */
+
 
     localSM().addState(m_createFromTimeNodeState);
 
-    /// Create from a State
+    //// Create from a State ////
     m_createFromStateState = new CreateFromStateState{
             m_parentSM,
-            iscore::IDocument::path(m_parentSM.model()),
+            ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};
     ISCORE_TODO
     /*

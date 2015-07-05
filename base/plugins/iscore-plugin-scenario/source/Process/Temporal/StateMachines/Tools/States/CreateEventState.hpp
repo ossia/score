@@ -2,9 +2,9 @@
 #include <iscore/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Commands/Scenario/Creations/CreationMetaCommand.hpp"
+#include "../ScenarioRollbackStrategy.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
-#include "../ScenarioRollbackStrategy.hpp"
 template<int Value>
 class StrongQState : public QState
 {
@@ -14,21 +14,21 @@ class StrongQState : public QState
 };
 class ScenarioStateMachine;
 
-// TODO correctly separate in files
-class CreateFromEventState : public CreationState
+// Here to prevent pollution of the CreationState header with the command dispatcher
+class ScenarioCreationState : public CreationState
 {
     public:
-        CreateFromEventState(
-                const ScenarioStateMachine& stateMachine,
-                ObjectPath&& scenarioPath,
+        ScenarioCreationState(
                 iscore::CommandStack& stack,
-                QState* parent);
+                ObjectPath&& scenarioPath,
+                QState* parent):
+            CreationState{std::forward<ObjectPath>(scenarioPath), parent},
+            m_dispatcher{stack}
+        {
 
-    private:
-        void createInitialState();
+        }
 
-        void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
-
+    protected:
         template<typename OriginState, typename DestinationState, typename Function>
         void makeTransition(OriginState* from, DestinationState* to, Function&& fun)
         {
@@ -40,19 +40,35 @@ class CreateFromEventState : public CreationState
                     this, fun);
         }
 
+        void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
+        MultiOngoingCommandDispatcher m_dispatcher;
+
+        ScenarioPoint m_clickedPoint;
+};
+
+// TODO correctly separate in files
+class CreateFromEventState : public ScenarioCreationState
+{
+    public:
+        CreateFromEventState(
+                const ScenarioStateMachine& stateMachine,
+                ObjectPath&& scenarioPath,
+                iscore::CommandStack& stack,
+                QState* parent);
+
+    private:
+        void createInitialState();
 
         void createToNothing();
         void createToState();
         void createToEvent();
         void createToTimeNode();
 
-        MultiOngoingCommandDispatcher m_dispatcher;
-        ScenarioPoint m_clickedPoint;
-
+        // TODO create single state
 };
 
 // impl is in CreateEventFromTimeNodeState.cpp
-class CreateFromTimeNodeState : public CreationState
+class CreateFromTimeNodeState : public ScenarioCreationState
 {
     public:
         CreateFromTimeNodeState(
@@ -62,20 +78,15 @@ class CreateFromTimeNodeState : public CreationState
                 QState* parent);
 
     private:
-        void createSingleEventOnTimeNode();
+        void createSingleEventAndState();
 
-        void createEventFromEventOnNothing(const ScenarioStateMachine& stateMachine);
-        void createEventFromEventOnTimenode();
-
-        void createConstraintBetweenEvents();
-
-
-        MultiOngoingCommandDispatcher m_dispatcher;
-
-        ScenarioPoint m_clickedPoint;
+        void createToNothing(const ScenarioStateMachine& stateMachine);
+        void createToState();
+        void createToEvent();
+        void createToTimeNode();
 };
 
-class CreateFromStateState : public CreationState
+class CreateFromStateState : public ScenarioCreationState
 {
     public:
         CreateFromStateState(
@@ -91,9 +102,5 @@ class CreateFromStateState : public CreationState
         void createEventFromStateOnTimeNode();
 
         void createConstraintBetweenEvents();
-
-
-        MultiOngoingCommandDispatcher m_dispatcher;
-        ScenarioPoint m_clickedPoint;
 };
 
