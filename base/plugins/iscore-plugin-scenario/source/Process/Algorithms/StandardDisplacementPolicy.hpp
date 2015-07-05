@@ -18,7 +18,7 @@ void translateNextElements(
 namespace StandardDisplacementPolicy
 {
     // pick out each timeNode that need to move when firstTimeNodeMovedId is moving
-    void getRelatedElements(
+    void getRelatedTimeNodes(
             ScenarioModel& scenario,
             const id_type<TimeNodeModel>& firstTimeNodeMovedId,
             QVector<id_type<TimeNodeModel> >& translatedTimeNodes);
@@ -31,8 +31,6 @@ namespace StandardDisplacementPolicy
             const TimeValue& deltaTime,
             ProcessScaleMethod&& scaleMethod)
     {
-        ISCORE_TODO
-        /*
         for (const auto& timeNode_id : translatedTimeNodes)
         {
             auto& timeNode = scenario.timeNode(timeNode_id);
@@ -40,20 +38,19 @@ namespace StandardDisplacementPolicy
             for (const auto& event : timeNode.events())
             {
                 scenario.event(event).setDate(timeNode.date());
-                emit scenario.eventMoved(event);
             }
         }
 
         for(const auto& constraint : scenario.constraints())
         {
-            const auto& startEventDate = scenario.event(constraint->startEvent()).date();
-            const auto& endEventDate = scenario.event(constraint->endEvent()).date();
+            const auto& startDate = scenario.event(scenario.state(constraint->startState()).eventId()).date();
+            const auto& endDate = scenario.event(scenario.state(constraint->endState()).eventId()).date();
 
-            TimeValue newDuration = endEventDate - startEventDate;
+            TimeValue newDuration = endDate - startDate;
 
-            if (!(constraint->startDate() - startEventDate).isZero())
+            if (!(constraint->startDate() - startDate).isZero())
             {
-                constraint->setStartDate(startEventDate);
+                constraint->setStartDate(startDate);
             }
 
             if(!(constraint->defaultDuration() - newDuration).isZero())
@@ -67,7 +64,6 @@ namespace StandardDisplacementPolicy
 
             emit scenario.constraintMoved(constraint->id());
         }
-        */
     }
 
     // ProcessScaleMethod is a callable object that takes a ProcessModel*

@@ -31,7 +31,9 @@ class CreateFromEventState : public CreationState
         void makeTransition(OriginState* from, DestinationState* to, Function&& fun)
         {
             using transition_type = ScenarioTransition_T<DestinationState::value()>;
-            connect(make_transition<transition_type>(from, to, *this),
+            auto trans = make_transition<transition_type>(from, to, *this);
+            trans->setObjectName(QString::number(DestinationState::value()));
+            connect(trans,
                     &transition_type::triggered,
                     this, fun);
         }

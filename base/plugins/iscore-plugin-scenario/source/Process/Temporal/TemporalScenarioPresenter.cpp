@@ -176,7 +176,7 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 
 void TemporalScenarioPresenter::on_stateCreated(const id_type<StateModel> &stateId)
 {
-    on_stateCreated_impl(model(m_layer).displayedState(stateId));
+    on_stateCreated_impl(model(m_layer).state(stateId));
 }
 
 void TemporalScenarioPresenter::on_eventCreated(

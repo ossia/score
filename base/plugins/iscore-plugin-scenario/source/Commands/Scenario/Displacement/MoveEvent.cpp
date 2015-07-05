@@ -27,13 +27,11 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
-    ISCORE_TODO
-    /*
     auto& scenar = m_path.find<ScenarioModel>();
     const auto& movedEvent = scenar.event(m_eventId);
     m_oldDate = movedEvent.date();
 
-    StandardDisplacementPolicy::getRelatedElements(scenar,
+    StandardDisplacementPolicy::getRelatedTimeNodes(scenar,
                                                    scenar.event(m_eventId).timeNode(),
                                                    m_movableTimenodes);
 
@@ -44,7 +42,13 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
         const auto& tn = scenar.timeNode(tn_id);
         for(const auto& ev_id : tn.events())
         {
-            constraints += scenar.event(ev_id).constraints().toList().toSet();
+            const auto& ev = scenar.event(ev_id);
+            for(const auto& st_id : ev.states())
+            {
+                const auto& st = scenar.state(st_id);
+                if(st.previousConstraint())
+                    constraints += st.previousConstraint();
+            }
         }
     }
 
@@ -68,7 +72,6 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
 
         m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
     }
-    */
 }
 
 void MoveEvent::undo()

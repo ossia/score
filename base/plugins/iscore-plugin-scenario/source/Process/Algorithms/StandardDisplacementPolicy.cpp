@@ -52,13 +52,11 @@ void translateNextElements(
     */
 }
 
-void StandardDisplacementPolicy::getRelatedElements(
+void StandardDisplacementPolicy::getRelatedTimeNodes(
         ScenarioModel& scenario,
         const id_type<TimeNodeModel>& firstTimeNodeMovedId,
         QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
 {
-    ISCORE_TODO
-    /*
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;
 
@@ -76,12 +74,16 @@ void StandardDisplacementPolicy::getRelatedElements(
     {
         const auto& cur_event = scenario.event(cur_eventId);
 
-        for(const auto& cons : cur_event.nextConstraints())
+        for(const auto& state_id : cur_event.states())
         {
-            auto endEvId = scenario.constraint(cons).endEvent();
-            auto endTnId = scenario.event(endEvId).timeNode();
-            getRelatedElements(scenario, endTnId, translatedTimeNodes);
+            auto& state = scenario.state(state_id);
+            if(state.nextConstraint())
+            {
+                auto cons = state.nextConstraint();
+                auto endStateId = scenario.constraint(cons).endState();
+                auto endTnId = scenario.event(scenario.state(endStateId).eventId()).timeNode();
+                getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
+            }
         }
     }
-    */
 }

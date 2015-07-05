@@ -63,6 +63,8 @@ class StateModel : public IdentifiedObject<StateModel>
 
         const id_type<EventModel>& eventId() const;
 
+        const id_type<ConstraintModel>& previousConstraint() const;
+        const id_type<ConstraintModel>& nextConstraint() const;
         void setNextConstraint(const id_type<ConstraintModel>&);
         void setPreviousConstraint(const id_type<ConstraintModel>&);
 

@@ -384,7 +384,7 @@ TimeNodeModel&ScenarioModel::endTimeNode() const
     return timeNode(m_endTimeNodeId);
 }
 
-StateModel &ScenarioModel::displayedState(const id_type<StateModel> &stId) const
+StateModel &ScenarioModel::state(const id_type<StateModel> &stId) const
 {
     return *m_states.at(stId);
 }

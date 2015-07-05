@@ -51,7 +51,7 @@ void ScenarioCreate<StateModel>::undo(
         const id_type<StateModel> &id,
         ScenarioModel &s)
 {
-    auto& state = s.displayedState(id);
+    auto& state = s.state(id);
     auto& ev = s.event(state.eventId());
 
     ev.removeState(id);
@@ -85,8 +85,8 @@ void ScenarioCreate<ConstraintModel>::undo(
 {
     auto& cst = s.constraint(id);
 
-    auto& sev = s.displayedState(cst.startState());
-    auto& eev = s.displayedState(cst.endState());
+    auto& sev = s.state(cst.startState());
+    auto& eev = s.state(cst.endState());
 
     sev.setNextConstraint(id_type<ConstraintModel>{});
     eev.setPreviousConstraint(id_type<ConstraintModel>{});

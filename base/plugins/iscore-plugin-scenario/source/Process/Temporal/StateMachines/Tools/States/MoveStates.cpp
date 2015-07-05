@@ -115,7 +115,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
             if(!bool(evId) && bool(clickedState))
             {
                 auto& scenar = m_scenarioPath.find<ScenarioModel>();
-                evId = scenar.displayedState(clickedState).eventId();
+                evId = scenar.state(clickedState).eventId();
             }
 
             m_dispatcher.submitCommand<MoveEvent>(

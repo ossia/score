@@ -50,6 +50,16 @@ const id_type<EventModel> &StateModel::eventId() const
     return m_eventId;
 }
 
+const id_type<ConstraintModel> &StateModel::previousConstraint() const
+{
+    return m_previousConstraint;
+}
+
+const id_type<ConstraintModel> &StateModel::nextConstraint() const
+{
+    return m_nextConstraint;
+}
+
 void StateModel::setNextConstraint(const id_type<ConstraintModel> & id)
 {
     m_nextConstraint = id;

@@ -73,7 +73,7 @@ namespace Scenario
                             id_type<RackModel>
                         >
                      >
-               > m_savedConstraints;
+                > m_savedConstraints;
                 bool m_changeDate{};
         };
 

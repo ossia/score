@@ -6,6 +6,7 @@
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
+#include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
 
 
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
@@ -17,8 +18,9 @@
 
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/TimeNode/MergeTimeNodes.hpp"
 #include "Commands/Scenario/Creations/CreateEventOnTimeNode.hpp"
+
+#include "Commands/TimeNode/MergeTimeNodes.hpp"
 
 #include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
@@ -46,6 +48,7 @@ CreateFromEventState::CreateFromEventState(
     });
 
     QState* mainState = new QState{this};
+    mainState->setObjectName("Main state");
     {
         auto pressed = new QState{mainState};
         auto released = new QState{mainState};
@@ -54,6 +57,12 @@ CreateFromEventState::CreateFromEventState(
         auto move_event = new StrongQState<ScenarioElement::Event + Modifier::Move_tag::value>{mainState};
         auto move_timenode = new StrongQState<ScenarioElement::TimeNode + Modifier::Move_tag::value>{mainState};
 
+        pressed->setObjectName("Pressed");
+        released->setObjectName("Released");
+        move_nothing->setObjectName("Move on Nothing");
+        move_state->setObjectName("Move on State");
+        move_event->setObjectName("Move on Event");
+        move_timenode->setObjectName("Move on TimeNode");
         // General setup
         mainState->setInitialState(pressed);
         released->addTransition(finalState);
@@ -141,9 +150,7 @@ CreateFromEventState::CreateFromEventState(
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
         {
-            ISCORE_TODO
             // Move the timenode
-                    /*
             m_dispatcher.submitCommand<MoveNewEvent>(
                         ObjectPath{m_scenarioPath},
                         createdConstraints.last(), // TODO CheckMe
@@ -151,7 +158,6 @@ CreateFromEventState::CreateFromEventState(
                         currentPoint.date,
                         currentPoint.y,
                         !stateMachine.isShiftPressed());
-                                */
         });
 
         QObject::connect(move_timenode , &QState::entered, [&] ()
@@ -172,6 +178,7 @@ CreateFromEventState::CreateFromEventState(
     }
 
     QState* rollbackState = new QState{this};
+    rollbackState->setObjectName("Rollback");
     make_transition<Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
@@ -198,9 +205,10 @@ void CreateFromEventState::createEventFromEventOnNothing()
             currentPoint.y};
     m_dispatcher.submitCommand(cmd2);
 
-    createdConstraints.append(cmd2->createdConstraint());
+    createdStates.append(cmd2->createdState());
     createdEvents.append(cmd2->createdEvent());
     createdTimeNodes.append(cmd2->createdTimeNode());
+    createdConstraints.append(cmd2->createdConstraint());
 }
 
 void CreateFromEventState::createConstraintBetweenEventAndTimeNode()

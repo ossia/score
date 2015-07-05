@@ -48,8 +48,8 @@ void CreateConstraint::undo()
 void CreateConstraint::redo()
 {
     auto& scenar = m_path.find<ScenarioModel>();
-    auto& sst = scenar.displayedState(m_startStateId);
-    auto& est = scenar.displayedState(m_endStateId);
+    auto& sst = scenar.state(m_startStateId);
+    auto& est = scenar.state(m_endStateId);
 
     ScenarioCreate<ConstraintModel>::redo(
                 m_createdConstraintId,
