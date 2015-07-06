@@ -75,7 +75,23 @@ void OSSIAConstraintElement::on_processAdded(
     if(plug)
     {
         m_processes.insert({id, plug});
-        m_ossia_constraint->addTimeProcess(plug->process());
+
+        // Processes might change (for instance automation needs to be recreated
+        // at each address change) so we do this little dance.
+        connect(plug, &OSSIAProcessElement::changed,
+                this, [=] (auto&& oldProc, auto&& newProc) {
+            if(oldProc)
+                m_ossia_constraint->removeTimeProcess(oldProc);
+
+            if(newProc)
+                m_ossia_constraint->addTimeProcess(plug->process());
+        });
+
+        if(plug->process())
+        {
+            m_ossia_constraint->addTimeProcess(plug->process());
+        }
+
     }
 }
 

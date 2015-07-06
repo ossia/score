@@ -26,7 +26,6 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
                                                std::shared_ptr<OSSIA::State> state)
     {
         auto currentTime = OSSIA::convert::time(date);
-
         for(ConstraintModel* constraint : m_executingConstraints)
         {
             constraint->setPlayDuration(constraint->playDuration() + (currentTime - m_previousExecutionDate));

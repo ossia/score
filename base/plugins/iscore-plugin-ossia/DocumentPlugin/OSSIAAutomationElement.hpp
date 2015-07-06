@@ -8,6 +8,7 @@ namespace OSSIA
 }
 
 class AutomationModel;
+class DeviceList;
 
 
 class OSSIAAutomationElement : public OSSIAProcessElement
@@ -25,4 +26,6 @@ class OSSIAAutomationElement : public OSSIAProcessElement
     private:
         std::shared_ptr<OSSIA::Automation> m_ossia_autom;
         const AutomationModel* m_iscore_autom{};
+
+        const DeviceList& m_deviceList;
 };
