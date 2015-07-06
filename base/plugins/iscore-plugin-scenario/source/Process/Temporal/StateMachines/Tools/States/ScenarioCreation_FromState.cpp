@@ -1,7 +1,10 @@
 #include "ScenarioCreation_FromState.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/ScenarioModel.hpp"
 
+
+#include "Commands/Scenario/Creations/CreateState.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
@@ -180,36 +183,39 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
     setInitialState(mainState);
 }
 
-// Note : clickedEvent is set at startEvent if clicking in the background.
-void ScenarioCreation_FromState::createToNothing()
+
+template<typename Fun>
+void ScenarioCreation_FromState::creationCheck(Fun&& fun)
 {
-    creationCheck([&] (const id_type<StateModel>& id) { createToNothing_base(id); });
-    /*
     const auto& scenar = m_scenarioSM.model();
     if(m_scenarioSM.isShiftPressed())
     {
         // Create new state
-        auto cmd = new CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};
+        auto cmd = new Scenario::Command::CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};
         m_dispatcher.submitCommand(cmd);
 
         createdStates.append(cmd->createdState());
-        createToNothing_base(createdStates.first());
+        fun(createdStates.first());
     }
     else
     {
         const auto& st = scenar.state(clickedState);
-        // TODO in move, if! shiftpressed, currentPoint = clickedState.y
-        if(!st.nextConstraint()) // TODO & deltaX > deltaX
+        if(!st.nextConstraint()) // TODO & deltaY < deltaX
         {
             currentPoint.y = st.heightPercentage();
-            createToNothing_base(clickedState);
+            fun(clickedState);
         }
         else
         {
-            // create a single state on the same event.
+            // create a single state on the same event (deltaY > deltaX)
         }
     }
-    */
+}
+
+// Note : clickedEvent is set at startEvent if clicking in the background.
+void ScenarioCreation_FromState::createToNothing()
+{
+    creationCheck([&] (const id_type<StateModel>& id) { createToNothing_base(id); });
 }
 
 void ScenarioCreation_FromState::createToTimeNode()
