@@ -11,6 +11,7 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
+#include <QGraphicsScene>
 ScenarioSelectionState::ScenarioSelectionState(
         iscore::SelectionStack& stack,
         const ScenarioStateMachine& parentSM,

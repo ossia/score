@@ -12,10 +12,6 @@
 #include "Commands/Scenario/Creations/CreateEvent_State.hpp"
 
 
-#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateEventOnTimeNode.hpp"
-
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
 
 #include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"

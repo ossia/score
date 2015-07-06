@@ -21,7 +21,7 @@ class CreationToolState : public ScenarioTool
         QList<id_type<EventModel>> getCollidingEvents(const QVector<id_type<EventModel>>& createdEvents);
         QList<id_type<TimeNodeModel>> getCollidingTimeNodes(const QVector<id_type<TimeNodeModel>>& createdTimeNodes);
 
-        CreationState& currentState() const;
+        CreationState* currentState() const;
 
         template<typename StateFun,
                  typename EventFun,

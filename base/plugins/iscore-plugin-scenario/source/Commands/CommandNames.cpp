@@ -28,10 +28,14 @@
 #include "Event/State/UnassignMessagesFromState.hpp"
 #include "RemoveMultipleElements.hpp"
 #include "ResizeBaseConstraint.hpp"
+
+#include "Scenario/Creations/CreateState.hpp"
+#include "Scenario/Creations/CreateEvent_State.hpp"
 #include "Scenario/Creations/CreateConstraint.hpp"
-#include "Scenario/Creations/CreateEventAfterEvent.hpp"
-#include "Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
-#include "Scenario/Creations/CreateEventOnTimeNode.hpp"
+#include "Scenario/Creations/CreateConstraint_State.hpp"
+#include "Scenario/Creations/CreateConstraint_State_Event.hpp"
+#include "Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
+
 #include "Scenario/Creations/CreationMetaCommand.hpp"
 #include "Scenario/Deletions/ClearConstraint.hpp"
 #include "Scenario/Deletions/ClearEvent.hpp"
@@ -74,9 +78,6 @@ const char* Scenario::Command::CopySlot::commandName() { return "CopySlot"; }
 //const char* Scenario::Command::CopyLayerModel::commandName() { return "CopyLayerModel"; }
 
 // CREATE
-const char* Scenario::Command::CreateEventAfterEvent::commandName() { return "CreateEventAfterEvent"; }
-const char* Scenario::Command::CreateEventAfterEventOnTimeNode::commandName() { return "CreateEventAfterEventOnTimeNode"; }
-const char* Scenario::Command::CreateEventOnTimeNode::commandName() { return "CreateEventOnTimeNode"; }
 const char* Scenario::Command::CreationMetaCommand::commandName() { return "CreationMetaCommand"; }
 
 const char* Scenario::Command::HideRackInViewModel::commandName() { return "HideRackInViewModel"; }
@@ -141,9 +142,6 @@ QString Scenario::Command::CopySlot::description() { return QObject::tr("CopySlo
 //QString Scenario::Command::CopyLayerModel::description() { return QObject::tr("CopyLayerModel"); }
 
 // CREATE
-QString Scenario::Command::CreateEventAfterEvent::description() { return QObject::tr("CreateEventAfterEvent"); }
-QString Scenario::Command::CreateEventAfterEventOnTimeNode::description() { return QObject::tr("CreateEventAfterEventOnTimeNode"); }
-QString Scenario::Command::CreateEventOnTimeNode::description() { return QObject::tr("CreateEventOnTimeNode"); }
 QString Scenario::Command::CreationMetaCommand::description() { return QObject::tr("CreationMetaCommand"); }
 
 QString Scenario::Command::HideRackInViewModel::description() { return QObject::tr("HideRackInViewModel"); }
@@ -234,10 +232,12 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
  //   else if(name == CopyLayerModel::commandName()) return new CopyLayerModel;
 
     // CREATE ELEMENT
+    else if(name == CreateState::commandName()) return new CreateState;
+    else if(name == CreateEvent_State::commandName()) return new CreateEvent_State;
     else if(name == CreateConstraint::commandName()) return new CreateConstraint;
-    else if(name == CreateEventAfterEvent::commandName()) return new CreateEventAfterEvent;
-    else if(name == CreateEventAfterEventOnTimeNode::commandName()) return new CreateEventAfterEventOnTimeNode;
-    else if(name == CreateEventOnTimeNode::commandName()) return new CreateEventOnTimeNode;
+    else if(name == CreateConstraint_State::commandName()) return new CreateConstraint_State;
+    else if(name == CreateConstraint_State_Event::commandName()) return new CreateConstraint_State_Event;
+    else if(name == CreateConstraint_State_Event_TimeNode::commandName()) return new CreateConstraint_State_Event_TimeNode;
     else if(name == CreationMetaCommand::commandName()) return new CreationMetaCommand;
 
     else if(name == HideRackInViewModel::commandName()) return new HideRackInViewModel;

@@ -4,6 +4,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <QGraphicsScene>
 
 StatePresenter::StatePresenter(
         const StateModel &model,

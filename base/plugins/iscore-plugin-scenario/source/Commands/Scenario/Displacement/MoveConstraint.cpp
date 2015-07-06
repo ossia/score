@@ -30,16 +30,12 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
                         description()},
     m_path{std::move(scenarioPath)},
     m_constraint{id},
-    m_newHeightPosition{height}
+    m_newHeight{height}
 {
-    ISCORE_TODO
-    /*
     auto& scenar = m_path.find<ScenarioModel>();
     auto& cst = scenar.constraint(m_constraint);
 
-    m_oldHeightPosition = cst.heightPercentage();
-    m_eventHeight = scenar.event(cst.startEvent()).heightPercentage();
-    */
+    m_oldHeight = cst.heightPercentage();
 }
 
 void MoveConstraint::update(const ObjectPath& path,
@@ -47,20 +43,22 @@ void MoveConstraint::update(const ObjectPath& path,
                             const TimeValue& date,
                             double height)
 {
-    m_newHeightPosition = height;
+    m_newHeight = height;
 }
 
 void MoveConstraint::undo()
 {
     auto& scenar = m_path.find<ScenarioModel>();
-    scenar.constraint(m_constraint).setHeightPercentage(m_oldHeightPosition);
+    scenar.constraint(m_constraint).setHeightPercentage(m_oldHeight);
     emit scenar.constraintMoved(m_constraint);
+
+    // TODO Recursively move the following events, constraints, ... vertically
 }
 
 void MoveConstraint::redo()
 {
     auto& scenar = m_path.find<ScenarioModel>();
-    scenar.constraint(m_constraint).setHeightPercentage(m_newHeightPosition);
+    scenar.constraint(m_constraint).setHeightPercentage(m_newHeight);
     emit scenar.constraintMoved(m_constraint);
 }
 
@@ -68,9 +66,8 @@ void MoveConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path
       << m_constraint
-      << m_oldHeightPosition
-      << m_newHeightPosition
-      << m_eventHeight;
+      << m_oldHeight
+      << m_newHeight;
 }
 
 void MoveConstraint::deserializeImpl(QDataStream& s)
@@ -79,7 +76,6 @@ void MoveConstraint::deserializeImpl(QDataStream& s)
     s >> a
       >> m_path
       >> m_constraint
-      >> m_oldHeightPosition
-      >> m_newHeightPosition
-      >> m_eventHeight;
+      >> m_oldHeight
+      >> m_newHeight;
 }

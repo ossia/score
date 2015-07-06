@@ -81,8 +81,8 @@ void CreationToolState::on_pressed()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
 
-    // Press a state
-    [&] (const id_type<StateModel>& id)
+               // Press a state
+               [&] (const id_type<StateModel>& id)
     { localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint}); },
 
     // Press an event
@@ -104,34 +104,41 @@ void CreationToolState::on_pressed()
 
 void CreationToolState::on_moved()
 {
-    mapWithCollision(
-    [&] (const id_type<StateModel>& id)
-    { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
-    [&] (const id_type<EventModel>& id)
-    { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-    [&] (const id_type<TimeNodeModel>& id)
-    { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
-    [&] ()
-    { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint}); },
-    currentState().createdStates,
-    currentState().createdEvents,
-    currentState().createdTimeNodes);
+    if(auto cs = currentState())
+    {
+        mapWithCollision(
+                    [&] (const id_type<StateModel>& id)
+        { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<EventModel>& id)
+        { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<TimeNodeModel>& id)
+        { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+        [&] ()
+        { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint}); },
+        cs->createdStates,
+        cs->createdEvents,
+        cs->createdTimeNodes);
+
+    }
 }
 
 void CreationToolState::on_released()
 {
-    mapWithCollision(
-    [&] (const id_type<StateModel>& id)
-    { localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint}); },
-    [&] (const id_type<EventModel>& id)
-    { localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-    [&] (const id_type<TimeNodeModel>& id)
-    { localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
-    [&] ()
-    { localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); },
-    currentState().createdStates,
-    currentState().createdEvents,
-    currentState().createdTimeNodes);
+    if(auto cs = currentState())
+    {
+        mapWithCollision(
+                    [&] (const id_type<StateModel>& id)
+        { localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<EventModel>& id)
+        { localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const id_type<TimeNodeModel>& id)
+        { localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+        [&] ()
+        { localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); },
+        cs->createdStates,
+        cs->createdEvents,
+        cs->createdTimeNodes);
+    }
 }
 
 QList<id_type<StateModel> > CreationToolState::getCollidingStates(const QVector<id_type<StateModel> > &createdStates)
@@ -158,14 +165,13 @@ QList<id_type<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(const QVe
                 m_parentSM.scenePoint);
 }
 
-CreationState &CreationToolState::currentState() const
+CreationState* CreationToolState::currentState() const
 {
     if(m_createFromEventState->active())
-        return *m_createFromEventState;
+        return m_createFromEventState;
     if(m_createFromStateState->active())
-        return *m_createFromStateState;
+        return m_createFromStateState;
     if(m_createFromTimeNodeState->active())
-        return *m_createFromTimeNodeState;
-
-    Q_ASSERT(false);
+        return m_createFromTimeNodeState;
+    return nullptr;
 }

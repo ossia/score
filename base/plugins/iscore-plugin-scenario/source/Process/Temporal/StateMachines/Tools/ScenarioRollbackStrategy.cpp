@@ -6,9 +6,6 @@
 #include "Commands/Scenario/Creations/CreateConstraint_State.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateEventOnTimeNode.hpp"
 
 void ScenarioRollbackStrategy::rollback(const QList<iscore::SerializableCommand *> &cmds)
 {
@@ -24,9 +21,6 @@ void ScenarioRollbackStrategy::rollback(const QList<iscore::SerializableCommand 
                 || cmds[i]->uid() == CreateConstraint_State::static_uid()
                 || cmds[i]->uid() == CreateConstraint_State_Event::static_uid()
                 || cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_uid()
-                || cmds[i]->uid() == CreateEventAfterEvent::static_uid()
-                || cmds[i]->uid() == CreateEventAfterEventOnTimeNode::static_uid()
-                || cmds[i]->uid() == CreateEventOnTimeNode::static_uid()
                 )
         {
             cmds[i]->undo();

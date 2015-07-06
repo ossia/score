@@ -1,8 +1,5 @@
 #pragma once
 #include <iscore/command/AggregateCommand.hpp>
-#include "CreateEventAfterEvent.hpp"
-#include "CreateEventAfterEventOnTimeNode.hpp"
-#include "CreateEventOnTimeNode.hpp"
 
 #include "CreateState.hpp"
 #include "CreateEvent_State.hpp"
@@ -38,9 +35,6 @@ namespace Scenario
                         || m_cmds[i]->uid() == CreateConstraint_State::static_uid()
                         || m_cmds[i]->uid() == CreateConstraint_State_Event::static_uid()
                         || m_cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_uid()
-                        || m_cmds[i]->uid() == CreateEventAfterEvent::static_uid()
-                        || m_cmds[i]->uid() == CreateEventAfterEventOnTimeNode::static_uid()
-                        || m_cmds[i]->uid() == CreateEventOnTimeNode::static_uid()
                         )
                 {
                     m_cmds[i]->undo();

@@ -6,11 +6,9 @@
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
+
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
 #include "Commands/TimeNode/MergeTimeNodes.hpp"
-#include "Commands/Scenario/Creations/CreateEventOnTimeNode.hpp"
 
 #include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
