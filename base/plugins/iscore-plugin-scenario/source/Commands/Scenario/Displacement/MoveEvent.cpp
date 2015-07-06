@@ -12,6 +12,7 @@
 
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 #include <ProcessInterface/LayerModel.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
