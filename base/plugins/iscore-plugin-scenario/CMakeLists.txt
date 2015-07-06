@@ -212,6 +212,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/MoveStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/SlotStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreationState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioSelectionState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/CreationToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/MoveSlotToolState.cpp"

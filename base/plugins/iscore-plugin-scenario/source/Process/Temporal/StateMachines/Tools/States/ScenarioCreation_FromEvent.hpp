@@ -17,6 +17,4 @@ class ScenarioCreation_FromEvent : public ScenarioCreationState
         void createToState();
         void createToEvent();
         void createToTimeNode();
-
-        // TODO create single state
 };

@@ -15,6 +15,7 @@
 #include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
+#include "Process/Temporal/StateMachines/Transitions/StateTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp"
 
@@ -42,178 +43,167 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
     QState* mainState = new QState{this};
     {
-        QState* pressedState = new QState{mainState};
-        QState* releasedState = new QState{mainState};
-        QState* movingOnNothingState = new QState{mainState};
-        QState* movingOnEventState = new QState{mainState};
-        QState* movingOnTimeNodeState = new QState{mainState};
+        auto pressed = new QState{mainState};
+        auto released = new QState{mainState};
+        auto move_nothing = new StrongQState<ScenarioElement::Nothing + Modifier::Move_tag::value>{mainState};
+        auto move_state = new StrongQState<ScenarioElement::State + Modifier::Move_tag::value>{mainState};
+        auto move_event = new StrongQState<ScenarioElement::Event + Modifier::Move_tag::value>{mainState};
+        auto move_timenode = new StrongQState<ScenarioElement::TimeNode + Modifier::Move_tag::value>{mainState};
 
         // General setup
-        mainState->setInitialState(pressedState);
-        releasedState->addTransition(finalState);
+        mainState->setInitialState(pressed);
+        released->addTransition(finalState);
 
         // Release
-        make_transition<ReleaseOnAnything_Transition>(mainState, releasedState);
+        make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
         // Pressed -> ...
         auto t_pressed_moving_nothing =
                 make_transition<MoveOnNothing_Transition>(
-                    pressedState, movingOnNothingState, *this);
+                    pressed, move_nothing, *this);
 
         connect(t_pressed_moving_nothing, &QAbstractTransition::triggered,
                 [&] ()
         {
-            createToNothing(stateMachine);
+            rollback();
+            createToNothing();
         });
 
+
         /// MoveOnNothing -> ...
-        // MoveOnNothing -> MoveOnNothing. Nothing particular to trigger.
-        make_transition<MoveOnNothing_Transition>(
-                    movingOnNothingState, movingOnNothingState, *this);
+        // MoveOnNothing -> MoveOnNothing.
+        make_transition<MoveOnNothing_Transition>(move_nothing, move_nothing, *this);
 
-
+        // MoveOnNothing -> MoveOnState.
+        makeTransition(move_nothing, move_state,
+                       [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnNothing -> MoveOnEvent.
-        auto t_move_nothing_event =
-                make_transition<MoveOnEvent_Transition>(
-                    movingOnNothingState, movingOnEventState, *this);
-
-        connect(t_move_nothing_event, &QAbstractTransition::triggered,
-                [&] ()
-        {
+        makeTransition(move_nothing, move_event,
+                       [&] () {
             if(createdEvents.contains(hoveredEvent))
             {
                 return;
             }
-            m_dispatcher.rollback<ScenarioRollbackStrategy>();
-            createSingleEventAndState();
+            rollback();
+
             createToEvent();
         });
 
         // MoveOnNothing -> MoveOnTimeNode
-        auto t_move_nothing_timenode =
-                make_transition<MoveOnTimeNode_Transition>(
-                    movingOnNothingState, movingOnTimeNodeState, *this);
-
-        connect(t_move_nothing_timenode, &QAbstractTransition::triggered,
-                [&] ()
-        {
+        makeTransition(move_nothing, move_timenode,
+                       [&] () {
             if(createdTimeNodes.contains(hoveredTimeNode))
             {
                 return;
             }
-            m_dispatcher.rollback<ScenarioRollbackStrategy>();
-            createSingleEventAndState();
+            rollback();
             createToTimeNode();
         });
 
 
+        /// MoveOnState -> ...
+        // MoveOnState -> MoveOnNothing
+        makeTransition(move_state, move_nothing,
+                       [&] () { rollback(); ISCORE_TODO });
+
+        // MoveOnState -> MoveOnState
+        // We don't do anything, the constraint should not move.
+
+        // MoveOnState -> MoveOnEvent
+        makeTransition(move_state, move_event,
+                       [&] () { rollback(); ISCORE_TODO });
+
+        // MoveOnState -> MoveOnTimeNode
+        makeTransition(move_state, move_timenode,
+                       [&] () { rollback(); ISCORE_TODO });
+
+
         /// MoveOnEvent -> ...
         // MoveOnEvent -> MoveOnNothing
-        auto t_move_event_nothing =
-                make_transition<MoveOnNothing_Transition>(
-                    movingOnEventState, movingOnNothingState, *this);
-
-        connect(t_move_event_nothing, &QAbstractTransition::triggered,
-                [&] ()
-        {
-            m_dispatcher.rollback<ScenarioRollbackStrategy>();
-            createSingleEventAndState();
-            createToNothing(stateMachine);
+        makeTransition(move_event, move_nothing,
+                       [&] () {
+            rollback();
+            createToNothing();
         });
 
-        // MoveOnEvent -> MoveOnEvent : nothing to do.
+        // MoveOnEvent -> MoveOnState
+        makeTransition(move_event, move_state,
+                       [&] () { rollback(); ISCORE_TODO });
+
+        // MoveOnEvent -> MoveOnEvent
+        make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
 
         // MoveOnEvent -> MoveOnTimeNode
-        auto t_move_event_timenode =
-                make_transition<MoveOnTimeNode_Transition>(
-                    movingOnEventState, movingOnTimeNodeState, *this);
-
-        connect(t_move_event_timenode, &QAbstractTransition::triggered,
-                [&] ()
-        {
+        makeTransition(move_event, move_timenode,
+                       [&] () {
             if(createdTimeNodes.contains(hoveredTimeNode))
             {
                 return;
             }
-            m_dispatcher.rollback<ScenarioRollbackStrategy>();
-            createSingleEventAndState();
+            rollback();
             createToTimeNode();
         });
 
 
         /// MoveOnTimeNode -> ...
         // MoveOnTimeNode -> MoveOnNothing
-        auto t_move_timenode_nothing =
-                make_transition<MoveOnNothing_Transition>(
-                    movingOnTimeNodeState, movingOnNothingState, *this);
-
-        connect(t_move_timenode_nothing, &QAbstractTransition::triggered,
-                [&] ()
-        {
-            m_dispatcher.rollback<ScenarioRollbackStrategy>();
-            createSingleEventAndState();
-            createToNothing(stateMachine);
+        makeTransition(move_timenode, move_nothing,
+                       [&] () {
+            rollback();
+            createToNothing();
         });
 
+        // MoveOnTimeNode -> MoveOnState
+        makeTransition(move_timenode, move_state,
+                       [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnTimeNode -> MoveOnEvent
-        auto t_move_timenode_event =
-                make_transition<MoveOnEvent_Transition>(
-                    movingOnTimeNodeState, movingOnEventState, *this);
-
-        connect(t_move_timenode_event, &QAbstractTransition::triggered,
-                [&] ()
-        {
+        makeTransition(move_timenode, move_event,
+                       [&] () {
             if(createdEvents.contains(hoveredEvent))
             {
                 return;
             }
-            m_dispatcher.rollback<ScenarioRollbackStrategy>();
-            createSingleEventAndState();
+            rollback();
             createToEvent();
         });
 
-
         // MoveOnTimeNode -> MoveOnTimeNode
-        make_transition<MoveOnTimeNode_Transition>(
-                    movingOnTimeNodeState, movingOnTimeNodeState, *this);
+        make_transition<MoveOnTimeNode_Transition>(move_timenode , move_timenode , *this);
+
+
 
         // What happens in each state.
-        QObject::connect(pressedState, &QState::entered,
+        QObject::connect(pressed, &QState::entered,
                          [&] ()
         {
             m_clickedPoint = currentPoint;
-            createSingleEventAndState();
+            createInitialEventAndState();
         });
 
-        QObject::connect(movingOnNothingState, &QState::entered, [&] ()
+        QObject::connect(move_nothing, &QState::entered, [&] ()
         {
-            ISCORE_TODO
-                    /*
-                m_dispatcher.submitCommand<MoveNewEvent>(
+            // Move the timenode
+            m_dispatcher.submitCommand<MoveNewEvent>(
                         ObjectPath{m_scenarioPath},
-                        createdConstraint(),
-                        createdEvent(),
+                        createdConstraints.last(), // TODO CheckMe
+                        createdEvents.last(),// TODO CheckMe
                         currentPoint.date,
                         currentPoint.y,
                         !stateMachine.isShiftPressed());
-                        */
         });
 
-        QObject::connect(movingOnTimeNodeState, &QState::entered, [&] ()
+        QObject::connect(move_timenode, &QState::entered, [&] ()
         {
-            ISCORE_TODO
-                    /*
-                m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveEvent>(
                         ObjectPath{m_scenarioPath},
-                        createdEvent(),
+                        createdEvents.last(),
                         m_scenarioPath.find<ScenarioModel>().timeNode(hoveredTimeNode).date(),
                         stateMachine.expandMode());
-                                */
         });
 
-        QObject::connect(releasedState, &QState::entered, [&] ()
+        QObject::connect(released, &QState::entered, [&] ()
         {
             m_dispatcher.commit<Scenario::Command::CreationMetaCommand>();
         });
@@ -224,74 +214,42 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] ()
     {
-        m_dispatcher.rollback<ScenarioRollbackStrategy>();
+        rollback();
     });
 
     setInitialState(mainState);
 }
-void ScenarioCreation_FromTimeNode::createSingleEventAndState()
+void ScenarioCreation_FromTimeNode::createInitialEventAndState()
 {
-    ISCORE_TODO
-            /*
-            auto cmd =
-                new CreateEventOnTimeNode(
-                ObjectPath{m_scenarioPath},
-                clickedTimeNode,
-                m_clickedPoint.y);
-            m_dispatcher.submitCommand(cmd);
+    auto cmd = new CreateEvent_State{m_scenarioPath, clickedTimeNode, currentPoint.y};
+    m_dispatcher.submitCommand(cmd);
 
-            m_createdFirstEvent = cmd->createdEvent();
-                    */
+    createdStates.append(cmd->createdState());
+    createdEvents.append(cmd->createdEvent());
 }
 
-void ScenarioCreation_FromTimeNode::createToNothing(const ScenarioStateMachine &stateMachine)
+void ScenarioCreation_FromTimeNode::createToNothing()
 {
-    ISCORE_TODO
-            /*
-            // If we start moving, we have to put a createEventAfterEvent.
-            // Note : there will be two created events; how to prevent a mess in collision management ?
-            auto cmd = new CreateEventAfterEvent{
-                   ObjectPath{m_scenarioPath},
-                   m_createdFirstEvent,
-                   currentPoint.date,
-                   currentPoint.y,
-                   stateMachine.isShiftPressed()};
+    createInitialEventAndState();
+    createToNothing_base(createdStates.first());
+}
 
-            setCreatedEvent(cmd->createdEvent());
-            setCreatedTimeNode(cmd->createdTimeNode());
-            m_dispatcher.submitCommand(cmd);
-                    */
+void ScenarioCreation_FromTimeNode::createToState()
+{
+    createInitialEventAndState();
+    createToState_base(createdStates.first());
 }
 
 void ScenarioCreation_FromTimeNode::createToTimeNode()
 {
-
-    ISCORE_TODO
-            /*
-            auto cmd = new CreateEventAfterEventOnTimeNode(
-                   ObjectPath{m_scenarioPath},
-                   m_createdFirstEvent,
-                   hoveredTimeNode,
-                   currentPoint.date,
-                   currentPoint.y);
-
-            setCreatedEvent(cmd->createdEvent());
-            setCreatedTimeNode(id_type<TimeNodeModel>{});
-            m_dispatcher.submitCommand(cmd);
-                    */
+    // TODO "if hoveredTimeNode != clickedTimeNode"
+    createInitialEventAndState();
+    createToTimeNode_base(createdStates.first());
 }
 
 void ScenarioCreation_FromTimeNode::createToEvent()
 {
-    ISCORE_TODO
-            /*
-            auto cmd = new CreateConstraint(
-                   ObjectPath{m_scenarioPath},
-                   m_createdFirstEvent,
-                   clickedState,
-                   hoveredEvent);
-
-            m_dispatcher.submitCommand(cmd);
-            */
+    createInitialEventAndState();
+    createToEvent_base(createdStates.first());
 }
 

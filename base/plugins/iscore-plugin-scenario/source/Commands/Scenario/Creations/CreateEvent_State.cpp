@@ -20,6 +20,17 @@ CreateEvent_State::CreateEvent_State(
 
 }
 
+CreateEvent_State::CreateEvent_State(
+        const ObjectPath &scenario,
+        const id_type<TimeNodeModel> &timeNode,
+        double stateY):
+    CreateEvent_State{scenario.find<ScenarioModel>(),
+                      timeNode,
+                      stateY}
+{
+
+}
+
 void CreateEvent_State::undo()
 {
     m_command.undo();

@@ -29,7 +29,6 @@ CreateState::CreateState(
 
 void CreateState::undo()
 {
-    qDebug(Q_FUNC_INFO);
     auto& scenar = m_path.find<ScenarioModel>();
 
     ScenarioCreate<StateModel>::undo(

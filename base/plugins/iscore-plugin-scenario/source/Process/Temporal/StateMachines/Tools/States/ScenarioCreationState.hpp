@@ -29,6 +29,15 @@ class ScenarioCreationState : public CreationState
         }
 
     protected:
+        void createToState_base(const id_type<StateModel>&);
+
+        void createToEvent_base(const id_type<StateModel> &);
+
+        void createToTimeNode_base(const id_type<StateModel> &);
+
+        void createToNothing_base(const id_type<StateModel> &);
+
+
         template<typename OriginState, typename DestinationState, typename Function>
         void makeTransition(OriginState* from, DestinationState* to, Function&& fun)
         {

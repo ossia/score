@@ -8,13 +8,9 @@
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
 #include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
 
-
-#include "Commands/Scenario/Creations/CreateConstraint.hpp"
-#include "Commands/Scenario/Creations/CreateConstraint_State.hpp"
-#include "Commands/Scenario/Creations/CreateConstraint_State_Event.hpp"
-#include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateState.hpp"
 #include "Commands/Scenario/Creations/CreateEvent_State.hpp"
+
 
 #include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
 #include "Commands/Scenario/Creations/CreateEventAfterEventOnTimeNode.hpp"
@@ -62,6 +58,7 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
         move_state->setObjectName("Move on State");
         move_event->setObjectName("Move on Event");
         move_timenode->setObjectName("Move on TimeNode");
+
         // General setup
         mainState->setInitialState(pressed);
         released->addTransition(finalState);
@@ -161,6 +158,7 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
 
         QObject::connect(move_timenode , &QState::entered, [&] ()
         {
+            // TODO why ?
             m_dispatcher.submitCommand<MoveNewState>(
                         ObjectPath{m_scenarioPath},
                         createdEvents.last(),// TODO CheckMe
@@ -198,64 +196,26 @@ void ScenarioCreation_FromEvent::createInitialState()
 void ScenarioCreation_FromEvent::createToNothing()
 {
     createInitialState();
-
-    auto cmd = new CreateConstraint_State_Event_TimeNode{
-            m_scenarioPath,
-            createdStates.first(), // Put there in createInitialState
-            currentPoint.date,
-            currentPoint.y};
-    m_dispatcher.submitCommand(cmd);
-
-    createdStates.append(cmd->createdState());
-    createdEvents.append(cmd->createdEvent());
-    createdTimeNodes.append(cmd->createdTimeNode());
-    createdConstraints.append(cmd->createdConstraint());
+    createToNothing_base(createdStates.first());
 }
 
 void ScenarioCreation_FromEvent::createToState()
 {
     createInitialState();
-
-    auto cmd = new CreateConstraint{
-            ObjectPath{m_scenarioPath},
-            createdStates.first(),
-            hoveredState};
-
-    m_dispatcher.submitCommand(cmd);
-
-    createdConstraints.append(cmd->createdConstraint());
+    createToState_base(createdStates.first());
 }
 
 void ScenarioCreation_FromEvent::createToEvent()
 {
     if(hoveredEvent != clickedEvent)
     {
-        auto cmd = new CreateConstraint_State{
-                ObjectPath{m_scenarioPath},
-                clickedState,
-                hoveredEvent,
-                currentPoint.y};
-
-        m_dispatcher.submitCommand(cmd);
-
-        createdConstraints.append(cmd->createdConstraint());
-        createdStates.append(cmd->createdState());
+        createInitialState();
+        createToEvent_base(createdStates.first());
     }
 }
 
 void ScenarioCreation_FromEvent::createToTimeNode()
 {
     createInitialState();
-
-    auto cmd = new CreateConstraint_State_Event{
-            m_scenarioPath,
-            createdStates.first(),
-            hoveredTimeNode,
-            currentPoint.y};
-
-    m_dispatcher.submitCommand(cmd);
-
-    createdStates.append(cmd->createdState());
-    createdEvents.append(cmd->createdEvent());
-    createdConstraints.append(cmd->createdConstraint());
+    createToTimeNode_base(createdStates.first());
 }

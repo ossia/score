@@ -66,14 +66,13 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
             m_parentSM,
             ObjectPath{scenarioPath},
             m_parentSM.commandStack(), nullptr};
-    ISCORE_TODO
-    /*
+
     make_transition<ClickOnState_Transition>(m_waitState,
                                              m_createFromStateState,
                                              *m_createFromStateState);
 
     m_createFromStateState->addTransition(m_createFromStateState, SIGNAL(finished()), m_waitState);
-    */
+
     localSM().addState(m_createFromStateState);
 
 }

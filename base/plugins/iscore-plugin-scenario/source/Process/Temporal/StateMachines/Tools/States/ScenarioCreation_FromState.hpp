@@ -11,10 +11,8 @@ class ScenarioCreation_FromState : public ScenarioCreationState
                 QState* parent);
 
     private:
-        void createSingleEventOnTimeNode();
-
-        void createEventFromStateOnNothing(const ScenarioStateMachine& stateMachine);
-        void createEventFromStateOnTimeNode();
-
-        void createConstraintBetweenEvents();
+        void createToNothing();
+        void createToTimeNode();
+        void createToEvent();
+        void createToState();
 };
