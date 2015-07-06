@@ -1,7 +1,5 @@
 #include "CurvePlugin.hpp"
 
-#include "Inspector/AutomationInspectorFactory.hpp"
-#include "Inspector/AutomationStateInspectorFactory.hpp"
 #include "Automation/AutomationFactory.hpp"
 #include "AutomationControl.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
@@ -9,6 +7,11 @@
 #include "Curve/Segment/LinearCurveSegmentFactory.hpp"
 #include "Curve/Segment/GammaCurveSegmentFactory.hpp"
 #include "Curve/Segment/SinCurveSegmentFactory.hpp"
+
+#if defined(ISCORE_INSPECTOR_LIB)
+#include "Inspector/AutomationInspectorFactory.hpp"
+#include "Inspector/AutomationStateInspectorFactory.hpp"
+#endif
 
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
@@ -29,11 +32,13 @@ QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString&
         return {new AutomationFactory};
     }
 
+#if defined(ISCORE_INSPECTOR_LIB)
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new AutomationInspectorFactory,
                 new AutomationStateInspectorFactory};
     }
+#endif
 
     if(factoryName == CurveSegmentFactory::factoryName())
     {

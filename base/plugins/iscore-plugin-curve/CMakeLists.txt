@@ -15,7 +15,14 @@ include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
 include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+file(GLOB_RECURSE HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Automation/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Curve/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CurvePlugin.hpp"
+)
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/LinearCurveSegmentModelSerialization.cpp"
@@ -58,18 +65,37 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/CurvePlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationStateInspector.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationStateInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AutomationState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.cpp"
 )
 
+if(TARGET iscore_lib_inspector)
+    set(INSPECTOR_SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationStateInspector.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationStateInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationInspectorWidget.cpp"
+    )
+
+    set(SRCS ${SRCS} ${INSPECTOR_SRCS})
+
+    file(GLOB_RECURSE INSPECTOR_HDRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp")
+
+    set(HDRS ${HDRS} ${INSPECTOR_HDRS})
+endif()
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
-                     iscore_lib_base iscore_lib_inspector iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
+                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
+
+if(TARGET iscore_lib_inspector)
+    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
+    set_target_properties(${PROJECT_NAME}
+                          PROPERTIES
+                            COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
+    target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
+endif()
 
 cotire(${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME}
