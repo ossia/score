@@ -38,8 +38,11 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
         m_ossia_scenario->getClock()->setGranularity(50.);
         m_ossia_scenario->getClock()->setOffset(1.);
     }
+
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
+    connect(element, &ScenarioModel::stateCreated,
+            this, &OSSIAScenarioElement::on_stateCreated);
     connect(element, &ScenarioModel::eventCreated,
             this, &OSSIAScenarioElement::on_eventCreated);
     connect(element, &ScenarioModel::timeNodeCreated,
@@ -47,6 +50,8 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
 
     connect(element, &ScenarioModel::constraintRemoved,
             this, &OSSIAScenarioElement::on_constraintRemoved);
+    connect(element, &ScenarioModel::stateRemoved,
+            this, &OSSIAScenarioElement::on_stateRemoved);
     connect(element, &ScenarioModel::eventRemoved_before,
             this, &OSSIAScenarioElement::on_eventRemoved);
     connect(element, &ScenarioModel::timeNodeRemoved,
@@ -86,6 +91,8 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 
 void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& id)
 {
+    ISCORE_TODO;
+    /*
     auto& cst = m_iscore_scenario->constraint(id);
 
     Q_ASSERT(m_ossia_timeevents.find(cst.startEvent()) != m_ossia_timeevents.end());
@@ -105,10 +112,18 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
     // Create the mapping object
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
     m_ossia_constraints.insert({id, elt});
+    */
+}
+
+void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
+{
+    ISCORE_TODO;
 }
 
 void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
 {
+    ISCORE_TODO;
+    /*
     auto& ev = m_iscore_scenario->event(id);
 
     Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
@@ -149,6 +164,7 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, &ev, this};
     m_ossia_timeevents.insert({id, elt});
+    */
 }
 
 void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
@@ -183,6 +199,11 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
 
     m_ossia_constraints.erase(it);
     delete cst;
+}
+
+void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
+{
+    ISCORE_TODO;
 }
 
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)
