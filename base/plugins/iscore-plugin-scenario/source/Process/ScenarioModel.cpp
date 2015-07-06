@@ -212,6 +212,8 @@ Selection ScenarioModel::selectableChildren() const
         objects.insert(elt);
     for(const auto& elt : m_timeNodes)
         objects.insert(elt);
+    for(const auto& elt : m_states)
+        objects.insert(elt);
 
     return objects;
 }
@@ -232,6 +234,7 @@ Selection ScenarioModel::selectedChildren() const
     copySelected(m_events, objects);
     copySelected(m_timeNodes, objects);
     copySelected(m_constraints, objects);
+    copySelected(m_states, objects);
 
     return objects;
 }
@@ -244,6 +247,8 @@ void ScenarioModel::setSelection(const Selection& s) const
     for(auto& elt : m_events)
         elt->selection.set(s.find(elt) != s.end());
     for(auto& elt : m_timeNodes)
+      elt->selection.set(s.find(elt) != s.end());
+    for(auto& elt : m_states)
       elt->selection.set(s.find(elt) != s.end());
 }
 

@@ -8,7 +8,7 @@ class ConstraintModel;
 class AbstractConstraintViewModel;
 class TimeNodeModel;
 class StateModel;
-class VerticalExtent;
+struct VerticalExtent;
 
 template<typename T>
 class ScenarioCreate;

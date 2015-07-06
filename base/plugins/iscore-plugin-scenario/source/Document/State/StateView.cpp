@@ -59,6 +59,13 @@ void StateView::setContainMessage(bool arg)
     m_containMessage = arg;
 }
 
+void StateView::setSelected(bool arg)
+{
+    qDebug() << Q_FUNC_INFO;
+    m_selected = arg;
+    update();
+}
+
 void StateView::changeColor(const QColor &)
 {
     ISCORE_TODO

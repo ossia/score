@@ -109,6 +109,17 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
                     sel.insert(&tn_model);
                 break;
             }
+            case QGraphicsItem::UserType + 4: // state
+            {
+                const auto& st_model = static_cast<const StateView*>(item)->presenter().model();
+                if(st_model.parentScenario() == scenario)
+                {
+
+                    qDebug() << "yea";
+                    sel.insert(&st_model);
+                }
+                break;
+            }
         }
     }
 

@@ -45,8 +45,7 @@ namespace Scenario
                 ObjectPath m_path;
                 id_type<ConstraintModel> m_constraint;
                 double m_oldHeight{},
-                       m_newHeight{},
-                       m_eventHeight{};
+                       m_newHeight{};
         };
     }
 }

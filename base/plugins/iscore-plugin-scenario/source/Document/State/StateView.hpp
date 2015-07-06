@@ -19,11 +19,7 @@ class StateView : public QGraphicsObject
                QWidget* widget) override;
 
         void setContainMessage(bool);
-        void setSelected(bool arg)
-        {
-            m_selected = arg;
-            update();
-        }
+        void setSelected(bool arg);
 
         void changeColor(const QColor&);
 

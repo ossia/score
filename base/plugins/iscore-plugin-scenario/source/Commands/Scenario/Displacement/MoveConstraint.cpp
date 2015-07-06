@@ -72,9 +72,7 @@ void MoveConstraint::serializeImpl(QDataStream& s) const
 
 void MoveConstraint::deserializeImpl(QDataStream& s)
 {
-    QByteArray a;
-    s >> a
-      >> m_path
+    s >> m_path
       >> m_constraint
       >> m_oldHeight
       >> m_newHeight;

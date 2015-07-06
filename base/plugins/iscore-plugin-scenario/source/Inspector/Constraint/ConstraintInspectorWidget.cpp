@@ -95,25 +95,25 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     m_properties.push_back(m_processSection);
 
-        QWidget* addProc = new QWidget(this);
-        QHBoxLayout* addProcLayout = new QHBoxLayout;
-        addProcLayout->setContentsMargins(0, 0, 0 , 0);
-        addProc->setLayout(addProcLayout);
-        // Button
-        QToolButton* addProcButton = new QToolButton;
-        addProcButton->setText("+");
-        addProcButton->setObjectName("addAProcess");
+    QWidget* addProc = new QWidget(this);
+    QHBoxLayout* addProcLayout = new QHBoxLayout;
+    addProcLayout->setContentsMargins(0, 0, 0 , 0);
+    addProc->setLayout(addProcLayout);
+    // Button
+    QToolButton* addProcButton = new QToolButton;
+    addProcButton->setText("+");
+    addProcButton->setObjectName("addAProcess");
 
-        // Text
-        auto addProcText = new QLabel("Add Process");
-        addProcText->setStyleSheet(QString("text-align : left;"));
+    // Text
+    auto addProcText = new QLabel("Add Process");
+    addProcText->setStyleSheet(QString("text-align : left;"));
 
-        addProcLayout->addWidget(addProcButton);
-        addProcLayout->addWidget(addProcText);
-        auto addProcess = new AddProcessDialog {this};
+    addProcLayout->addWidget(addProcButton);
+    addProcLayout->addWidget(addProcText);
+    auto addProcess = new AddProcessDialog {this};
 
-        connect(addProcButton,  &QToolButton::pressed,
-                addProcess, &AddProcessDialog::launchWindow);
+    connect(addProcButton,  &QToolButton::pressed,
+            addProcess, &AddProcessDialog::launchWindow);
 
     m_properties.push_back(addProc);
 
@@ -192,24 +192,24 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
 
         // Constraint interface
         m_connections.push_back(
-            connect(model(),	&ConstraintModel::processCreated,
-                    this,		&ConstraintInspectorWidget::on_processCreated));
+                    connect(model(),	&ConstraintModel::processCreated,
+                            this,		&ConstraintInspectorWidget::on_processCreated));
         m_connections.push_back(
-            connect(model(),	&ConstraintModel::processRemoved,
-                    this,		&ConstraintInspectorWidget::on_processRemoved));
+                    connect(model(),	&ConstraintModel::processRemoved,
+                            this,		&ConstraintInspectorWidget::on_processRemoved));
         m_connections.push_back(
-            connect(model(),	&ConstraintModel::rackCreated,
-                    this,		&ConstraintInspectorWidget::on_rackCreated));
+                    connect(model(),	&ConstraintModel::rackCreated,
+                            this,		&ConstraintInspectorWidget::on_rackCreated));
         m_connections.push_back(
-            connect(model(),	&ConstraintModel::rackRemoved,
-                    this,		&ConstraintInspectorWidget::on_rackRemoved));
+                    connect(model(),	&ConstraintModel::rackRemoved,
+                            this,		&ConstraintInspectorWidget::on_rackRemoved));
 
         m_connections.push_back(
-            connect(model(), &ConstraintModel::viewModelCreated,
-                    this,    &ConstraintInspectorWidget::on_constraintViewModelCreated));
+                    connect(model(), &ConstraintModel::viewModelCreated,
+                            this,    &ConstraintInspectorWidget::on_constraintViewModelCreated));
         m_connections.push_back(
-            connect(model(), &ConstraintModel::viewModelRemoved,
-                    this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
+                    connect(model(), &ConstraintModel::viewModelRemoved,
+                            this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
         // Processes
         for(ProcessModel* process : model()->processes())
@@ -236,16 +236,16 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 {
     auto cmd = new AddProcessToConstraint
     {
-        iscore::IDocument::path(model()),
-        processName
-    };
+               iscore::IDocument::path(model()),
+               processName
+};
     emit commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createRack()
 {
     auto cmd = new AddRackToConstraint(
-        iscore::IDocument::path(model()));
+                   iscore::IDocument::path(model()));
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -254,8 +254,8 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
     auto cmd = new AddLayerInNewSlot(
-        iscore::IDocument::path(model()),
-        id_type<ProcessModel>(processName.toInt()));
+                   iscore::IDocument::path(model()),
+                   id_type<ProcessModel>(processName.toInt()));
 
     emit commandDispatcher()->submitCommand(cmd);
 }
@@ -337,9 +337,9 @@ void ConstraintInspectorWidget::setupRack(RackModel* rack)
 {
     // Display the widget
     RackInspectorSection* newRack = new RackInspectorSection {QString{"Rack.%1"} .arg(*rack->id().val()),
-                                                           rack,
-                                                           this
-                                                          };
+                                    rack,
+                                    this
+};
 
     m_rackesSectionWidgets[rack->id()] = newRack;
     m_rackSection->addContent(newRack);
@@ -347,10 +347,6 @@ void ConstraintInspectorWidget::setupRack(RackModel* rack)
 
 QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 {
-
-    ISCORE_TODO
-
-    /*
     QWidget* eventWid = new QWidget{this};
     QFormLayout* eventLay = new QFormLayout {eventWid};
     eventLay->setVerticalSpacing(0);
@@ -362,33 +358,30 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
     start->setFlat(true);
     end->setFlat(true);
 
-    auto sev = m_currentConstraint->startEvent();
-    auto eev = m_currentConstraint->endEvent();
-    if(sev)
-    {
-        start->setText(QString::number(*sev.val()));
+    auto sst = m_currentConstraint->startState();
+    auto est = m_currentConstraint->endState();
 
+    if(sst)
+    {
+        start->setText(QString::number(*sst.val()));
         connect(start, &QPushButton::clicked,
                 [=]() {
-            selectionDispatcher()->setAndCommit(Selection{&scenar->event(sev)});
+            selectionDispatcher()->setAndCommit(Selection{&scenar->state(sst)});
         });
     }
-
-    if(eev)
+    if(est)
     {
-        end->setText(QString::number(*eev.val()));
-        connect(end, &QPushButton::clicked,
-                [=]()
-        {
-            selectionDispatcher()->setAndCommit(Selection{&scenar->event(eev)});
+        end->setText(QString::number(*est.val()));
+        connect(start, &QPushButton::clicked,
+                [=]() {
+            selectionDispatcher()->setAndCommit(Selection{&scenar->state(est)});
         });
     }
-
-    eventLay->addRow(tr("Start Event"), start);
-    eventLay->addRow(tr("End Event"), end);
+    eventLay->addRow(tr("Start state"), start);
+    eventLay->addRow(tr("End state"), end);
 
     return eventWid;
-    */
+
 }
 
 void ConstraintInspectorWidget::on_processCreated(
