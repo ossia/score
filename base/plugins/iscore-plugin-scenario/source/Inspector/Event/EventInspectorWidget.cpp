@@ -148,9 +148,9 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // State
-    m_addressesWidget = new QWidget{this};
-    auto dispLayout = new QVBoxLayout{m_addressesWidget};
-    m_addressesWidget->setLayout(dispLayout);
+    m_statesWidget = new QWidget{this};
+    auto dispLayout = new QVBoxLayout{m_statesWidget};
+    m_statesWidget->setLayout(dispLayout);
 
     QWidget* addAddressWidget = new QWidget{this};
     auto addLayout = new QGridLayout{addAddressWidget};
@@ -166,7 +166,7 @@ EventInspectorWidget::EventInspectorWidget(
     addLayout->addWidget(ok_button, 0, 1);
 
     m_properties.push_back(new QLabel{"States"});
-    m_properties.push_back(m_addressesWidget);
+    m_properties.push_back(m_statesWidget);
     m_properties.push_back(addAddressWidget);
 
     if(deviceexplorer)
@@ -218,14 +218,20 @@ EventInspectorWidget::EventInspectorWidget(
     updateAreaLayout(m_properties);
 }
 
-#include <State/Widgets/StateWidget.hpp>
-void EventInspectorWidget::addState(const iscore::State& state)
+#include "Inspector/State/StateInspectorWidget.hpp"
+void EventInspectorWidget::addState(const StateModel* state)
 {
-    auto sw = new StateWidget{state, this};
-    connect(sw, &StateWidget::removeMe,
-            this, [&] () { removeState(state);});
-    m_addresses.push_back(sw);
-    m_addressesWidget->layout()->addWidget(sw);
+    auto sw = new StateInspectorWidget{state, this};
+//    connect(sw, &StateInspectorWidget::removeMe,
+//            this, [&] () { removeState(state);});
+
+    m_states.push_back(sw);
+    m_statesWidget->layout()->addWidget(sw);
+}
+
+void EventInspectorWidget::focusState(const StateModel* state)
+{
+    ISCORE_TODO
 }
 
 #include <Inspector/InspectorWidgetList.hpp>
@@ -233,12 +239,12 @@ void EventInspectorWidget::updateDisplayedValues(
         const EventModel* event)
 {
     // Cleanup
-    for(auto& elt : m_addresses)
+    for(auto& elt : m_states)
     {
         delete elt;
     }
 
-    m_addresses.clear();
+    m_states.clear();
 
     m_prevConstraints->removeAll();
     m_nextConstraints->removeAll();
@@ -251,66 +257,16 @@ void EventInspectorWidget::updateDisplayedValues(
         m_date->setText(QString::number(m_model->date().msec()));
 
         auto scenar = event->parentScenario();
+        if(!scenar)
+        {
+            ISCORE_TODO // Base scenario
+            return;
+        }
 
-        ISCORE_TODO
-        /*
         for(const auto& state : event->states())
         {
-            addState(state);
+            addState(&scenar->state(state));
         }
-
-        for(const auto& cstr : event->previousConstraints())
-        {
-            auto cstrBtn = new QPushButton {};
-            // TODO constraint.metadata. ...
-            cstrBtn->setText(QString::number(*cstr.val()));
-            cstrBtn->setFlat(true);
-            m_prevConstraints->addContent(cstrBtn);
-
-            connect(cstrBtn, &QPushButton::clicked,
-                    [ = ]()
-            {
-                selectionDispatcher()->setAndCommit(Selection{&scenar->constraint(cstr)});
-            });
-
-
-            // End state of previous
-            const auto& constraint = event->parentScenario()->constraint(cstr);
-            for(const auto& proc : constraint.processes())
-            {
-                if(const auto& end = proc->endState())
-                {
-                    auto endWidg = InspectorWidgetList::makeInspectorWidget(end->stateName(), end, m_prevConstraints);
-                    m_prevConstraints->addContent(endWidg);
-                }
-            }
-        }
-
-        for(const auto& cstr : event->nextConstraints())
-        {
-            auto cstrBtn = new QPushButton {};
-            cstrBtn->setText(QString::number(*cstr.val()));
-            cstrBtn->setFlat(true);
-            m_nextConstraints->addContent(cstrBtn);
-
-            connect(cstrBtn, &QPushButton::clicked, this,
-                    [ = ]()
-            {
-                selectionDispatcher()->setAndCommit(Selection{&scenar->constraint(cstr)});
-            });
-
-            // Start state of next
-            const auto& constraint = event->parentScenario()->constraint(cstr);
-            for(const auto& proc : constraint.processes())
-            {
-                if(auto start = proc->startState())
-                {
-                    auto startWidg = InspectorWidgetList::makeInspectorWidget(start->stateName(), start, m_nextConstraints);
-                    m_nextConstraints->addContent(startWidg);
-                }
-            }
-        }
-        */
 
         m_conditionLineEdit->setText(event->condition());
         m_triggerLineEdit->setText(event->trigger());

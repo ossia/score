@@ -18,6 +18,6 @@ class EventInspectorFactory : public InspectorWidgetFactory
 
         virtual QList<QString> correspondingObjectsNames() const override
         {
-            return {"EventModel"};
+            return {"EventModel", "StateModel"};
         }
 };

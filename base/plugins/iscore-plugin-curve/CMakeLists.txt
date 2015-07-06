@@ -91,9 +91,6 @@ target_link_libraries(${PROJECT_NAME}
 
 if(TARGET iscore_lib_inspector)
     # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
-    set_target_properties(${PROJECT_NAME}
-                          PROPERTIES
-                            COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
     target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
 endif()
 

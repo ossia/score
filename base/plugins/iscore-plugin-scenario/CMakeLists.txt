@@ -243,6 +243,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/RackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/State/StateInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventWidgets/EventShortcut.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorWidget.cpp"
@@ -268,9 +269,6 @@ target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5
 
 if(TARGET iscore_lib_inspector)
     # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
-    set_target_properties(iscore_plugin_scenario
-                          PROPERTIES
-                            COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
     target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
 endif()
 

@@ -25,6 +25,8 @@ target_link_libraries(iscore_lib_inspector Qt5::Core Qt5::Widgets iscore_lib_bas
 
 set_property(TARGET iscore_lib_inspector APPEND
              PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(TARGET iscore_lib_inspector APPEND
+             PROPERTY INTERFACE_COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
 
 cotire(iscore_lib_inspector)
 set_target_properties(iscore_lib_inspector

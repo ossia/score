@@ -37,8 +37,11 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     for(const auto& object : toDelete)
     {
         auto widget_it = m_map.get<0>().find(object);
-        (*widget_it)->deleteLater();
-        *m_map.get<0>().erase(widget_it);
+        if(widget_it != m_map.get<0>().end())
+        {
+            (*widget_it)->deleteLater();
+            *m_map.get<0>().erase(widget_it);
+        }
     }
 
     for(const auto& object : toCreate)

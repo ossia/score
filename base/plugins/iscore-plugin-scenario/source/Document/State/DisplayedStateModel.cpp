@@ -12,7 +12,7 @@ StateModel::StateModel(const id_type<StateModel>& id,
                                          const id_type<EventModel>& eventId,
                                          double yPos,
                                          QObject *parent):
-    IdentifiedObject<StateModel> {id, "DisplayedStateModel", parent},
+    IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
     m_heightPercentage{yPos}
 {
@@ -62,10 +62,6 @@ const id_type<ConstraintModel> &StateModel::nextConstraint() const
 
 void StateModel::setNextConstraint(const id_type<ConstraintModel> & id)
 {
-    if(m_nextConstraint && !id)
-    {
-        qDebug() << m_nextConstraint << id;
-    }
     m_nextConstraint = id;
 }
 
