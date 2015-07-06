@@ -42,7 +42,6 @@ void AbstractConstraintView::setMaxWidth(bool infinite, double max)
     setInfinite(infinite);
     if(!infinite)
     {
-        //qDebug() << max;
         m_maxWidth = max;
     }
 

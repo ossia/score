@@ -14,7 +14,6 @@ TimeNodeModel::TimeNodeModel(
     m_extent{extent},
     m_date{date}
 {
-    qDebug() << m_extent;
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
 }

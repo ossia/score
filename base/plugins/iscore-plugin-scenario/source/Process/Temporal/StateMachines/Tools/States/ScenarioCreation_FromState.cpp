@@ -1,7 +1,6 @@
 #include "ScenarioCreation_FromState.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
-#include <Process/ScenarioModel.hpp>
 
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
@@ -184,6 +183,8 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
 // Note : clickedEvent is set at startEvent if clicking in the background.
 void ScenarioCreation_FromState::createToNothing()
 {
+    creationCheck([&] (const id_type<StateModel>& id) { createToNothing_base(id); });
+    /*
     const auto& scenar = m_scenarioSM.model();
     if(m_scenarioSM.isShiftPressed())
     {
@@ -200,7 +201,6 @@ void ScenarioCreation_FromState::createToNothing()
         // TODO in move, if! shiftpressed, currentPoint = clickedState.y
         if(!st.nextConstraint()) // TODO & deltaX > deltaX
         {
-            qDebug() << "Clicked state has no next constraint ??";
             currentPoint.y = st.heightPercentage();
             createToNothing_base(clickedState);
         }
@@ -209,19 +209,22 @@ void ScenarioCreation_FromState::createToNothing()
             // create a single state on the same event.
         }
     }
+    */
 }
 
 void ScenarioCreation_FromState::createToTimeNode()
 {
-    createToTimeNode_base(clickedState);
+    creationCheck([&] (const id_type<StateModel>& id) { createToTimeNode_base(id); });
 }
 
 void ScenarioCreation_FromState::createToEvent()
 {
-    createToEvent_base(clickedState);
+    creationCheck([&] (const id_type<StateModel>& id) { createToEvent_base(id); });
 }
 
 void ScenarioCreation_FromState::createToState()
 {
-    createToState_base(clickedState);
+    creationCheck([&] (const id_type<StateModel>& id) { createToState_base(id); });
 }
+
+

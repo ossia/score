@@ -62,6 +62,10 @@ const id_type<ConstraintModel> &StateModel::nextConstraint() const
 
 void StateModel::setNextConstraint(const id_type<ConstraintModel> & id)
 {
+    if(m_nextConstraint && !id)
+    {
+        qDebug() << m_nextConstraint << id;
+    }
     m_nextConstraint = id;
 }
 
