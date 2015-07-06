@@ -325,6 +325,8 @@ void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstrai
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
             this, [=] () { m_viewInterface->on_constraintMoved(*cst_pres); });
+    connect(&constraint_view_model.model(), &ConstraintModel::startDateChanged,
+            this, [=] (const TimeValue&) { m_viewInterface->on_constraintMoved(*cst_pres); });
     connect(cst_pres, &TemporalConstraintPresenter::askUpdate,
             this,     &TemporalScenarioPresenter::on_askUpdate);
 
