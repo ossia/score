@@ -38,8 +38,8 @@ class ScenarioCreationState : public CreationState
         void createToNothing_base(const id_type<StateModel> &);
 
 
-        template<typename OriginState, typename DestinationState, typename Function>
-        void makeTransition(OriginState* from, DestinationState* to, Function&& fun)
+        template<typename DestinationState, typename Function>
+        void makeTransition(QState* from, DestinationState* to, Function&& fun)
         {
             using transition_type = ScenarioTransition_T<DestinationState::value()>;
             auto trans = make_transition<transition_type>(from, to, *this);

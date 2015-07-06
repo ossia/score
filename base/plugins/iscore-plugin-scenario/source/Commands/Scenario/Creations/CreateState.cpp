@@ -3,6 +3,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 
 #include "Process/ScenarioModel.hpp"
 using namespace Scenario::Command;
@@ -34,6 +35,7 @@ void CreateState::undo()
     ScenarioCreate<StateModel>::undo(
                 m_newState,
                 scenar);
+    updateEventExtent(m_event, scenar);
 }
 
 void CreateState::redo()
@@ -46,6 +48,8 @@ void CreateState::redo()
                 scenar.event(m_event),
                 m_stateY,
                 scenar);
+
+    updateEventExtent(m_event, scenar);
 }
 
 

@@ -27,7 +27,8 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         ObjectPath &&scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
-    ScenarioCreationState{stack, std::move(scenarioPath), parent}
+    ScenarioCreationState{stack, std::move(scenarioPath), parent},
+    m_scenarioSM{stateMachine}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -53,6 +54,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
         // Pressed -> ...
+        makeTransition(pressed, move_state, [&] () { createToNothing(); });
         make_transition<MoveOnNothing_Transition>(pressed, move_nothing, *this);
 
         /// MoveOnNothing -> ...
@@ -129,28 +131,37 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
                          [&] ()
         {
             m_clickedPoint = currentPoint;
-            createToNothing();
         });
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
         {
-            // Move the timenode
-            m_dispatcher.submitCommand<MoveNewEvent>(
-                        ObjectPath{m_scenarioPath},
-                        createdConstraints.last(), // TODO CheckMe
-                        createdEvents.last(),// TODO CheckMe
-                        currentPoint.date,
-                        currentPoint.y,
-                        !stateMachine.isShiftPressed());
+            if(!createdConstraints.empty() && !createdEvents.empty())
+            {
+                if(!m_scenarioSM.isShiftPressed())
+                {
+                    const auto&  st = m_scenarioSM.model().state(clickedState);
+                    currentPoint.y = st.heightPercentage();
+                }
+
+                m_dispatcher.submitCommand<MoveNewEvent>(
+                            ObjectPath{m_scenarioPath},
+                            createdConstraints.last(), // TODO CheckMe
+                            createdEvents.last(),// TODO CheckMe
+                            currentPoint.date,
+                            currentPoint.y,
+                            !stateMachine.isShiftPressed());
+            }
         });
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
         {
-            // TODO why ?
-            m_dispatcher.submitCommand<MoveNewState>(
-                        ObjectPath{m_scenarioPath},
-                        createdEvents.last(),// TODO CheckMe
-                        currentPoint.y);
+            if(!createdEvents.empty())
+            {
+                m_dispatcher.submitCommand<MoveNewState>(
+                            ObjectPath{m_scenarioPath},
+                            createdEvents.last(),// TODO CheckMe
+                            currentPoint.y);
+            }
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -170,11 +181,34 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
     setInitialState(mainState);
 }
 
-
 // Note : clickedEvent is set at startEvent if clicking in the background.
 void ScenarioCreation_FromState::createToNothing()
 {
-    createToNothing_base(clickedState);
+    const auto& scenar = m_scenarioSM.model();
+    if(m_scenarioSM.isShiftPressed())
+    {
+        // Create new state
+        auto cmd = new CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};
+        m_dispatcher.submitCommand(cmd);
+
+        createdStates.append(cmd->createdState());
+        createToNothing_base(createdStates.first());
+    }
+    else
+    {
+        const auto& st = scenar.state(clickedState);
+        // TODO in move, if! shiftpressed, currentPoint = clickedState.y
+        if(!st.nextConstraint()) // TODO & deltaX > deltaX
+        {
+            qDebug() << "Clicked state has no next constraint ??";
+            currentPoint.y = st.heightPercentage();
+            createToNothing_base(clickedState);
+        }
+        else
+        {
+            // create a single state on the same event.
+        }
+    }
 }
 
 void ScenarioCreation_FromState::createToTimeNode()

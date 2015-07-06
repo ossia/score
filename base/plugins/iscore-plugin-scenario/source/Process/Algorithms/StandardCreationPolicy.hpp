@@ -74,4 +74,3 @@ class ScenarioCreate<ConstraintModel>
                 double ypos,
                 ScenarioModel& s);
 };
-

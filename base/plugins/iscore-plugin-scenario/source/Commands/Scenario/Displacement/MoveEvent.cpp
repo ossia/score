@@ -11,6 +11,7 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include <ProcessInterface/LayerModel.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
@@ -150,6 +151,8 @@ void MoveEvent::undo()
             viewmodel->showRack(obj.second[viewmodel->id()]);
         }
     }
+
+    updateEventExtent(m_eventId, scenar);
 }
 
 void MoveEvent::redo()
@@ -166,6 +169,8 @@ void MoveEvent::redo()
                 deltaDate,
                 [&] (ProcessModel* p, const TimeValue& t)
     { p->expandProcess(m_mode, t); });
+
+    updateEventExtent(m_eventId, scenar);
 }
 
 void MoveEvent::serializeImpl(QDataStream& s) const

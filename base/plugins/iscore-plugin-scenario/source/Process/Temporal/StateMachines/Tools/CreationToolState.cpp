@@ -81,8 +81,8 @@ void CreationToolState::on_pressed()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
 
-               // Press a state
-               [&] (const id_type<StateModel>& id)
+    // Press a state
+    [&] (const id_type<StateModel>& id)
     { localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint}); },
 
     // Press an event

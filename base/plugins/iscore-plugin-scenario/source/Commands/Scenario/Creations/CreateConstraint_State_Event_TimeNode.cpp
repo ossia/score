@@ -55,7 +55,7 @@ void CreateConstraint_State_Event_TimeNode::redo()
     // Create the end timenode
     ScenarioCreate<TimeNodeModel>::redo(
                 m_newTimeNode,
-                {{m_command.endStateY() - 0.2, m_command.endStateY() + 0.2}},
+                {{m_command.endStateY(), m_command.endStateY()}},
                 m_date,
                 scenar);
 

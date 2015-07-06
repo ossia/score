@@ -200,6 +200,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardRemovalPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/VerticalMovePolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/ScenarioToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.cpp"

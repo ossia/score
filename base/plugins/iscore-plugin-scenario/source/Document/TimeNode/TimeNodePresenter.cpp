@@ -24,12 +24,8 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     connect(&m_model, &TimeNodeModel::timeNodeValid,
             m_view, &TimeNodeView::setValid);
 
-    connect(&m_model, &TimeNodeModel::extentChanged,
-            this, [&] (const VerticalExtent& extent) {
-        m_view->setPos({m_view->pos().x(),
-                        extent.top() * parentview->boundingRect().height()});
-        m_view->setExtent(extent * parentview->boundingRect().height());
-    });
+    // extentChanged is updated in scenario.
+
 }
 
 TimeNodePresenter::~TimeNodePresenter()

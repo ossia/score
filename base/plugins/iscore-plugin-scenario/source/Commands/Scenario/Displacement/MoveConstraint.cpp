@@ -3,7 +3,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 
-#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -48,18 +48,18 @@ void MoveConstraint::update(const ObjectPath& path,
 
 void MoveConstraint::undo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
-    scenar.constraint(m_constraint).setHeightPercentage(m_oldHeight);
-    emit scenar.constraintMoved(m_constraint);
-
-    // TODO Recursively move the following events, constraints, ... vertically
+    updateConstraintVerticalPos(
+                m_oldHeight,
+                m_constraint,
+                m_path.find<ScenarioModel>());
 }
 
 void MoveConstraint::redo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
-    scenar.constraint(m_constraint).setHeightPercentage(m_newHeight);
-    emit scenar.constraintMoved(m_constraint);
+    updateConstraintVerticalPos(
+                m_newHeight,
+                m_constraint,
+                m_path.find<ScenarioModel>());
 }
 
 void MoveConstraint::serializeImpl(QDataStream& s) const

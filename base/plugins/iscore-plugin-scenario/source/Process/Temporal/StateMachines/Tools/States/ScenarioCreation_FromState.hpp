@@ -11,8 +11,11 @@ class ScenarioCreation_FromState : public ScenarioCreationState
                 QState* parent);
 
     private:
+        const ScenarioStateMachine& m_scenarioSM;
         void createToNothing();
         void createToTimeNode();
         void createToEvent();
         void createToState();
+
+        bool creating{false};
 };

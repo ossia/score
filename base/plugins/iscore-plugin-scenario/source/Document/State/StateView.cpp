@@ -1,4 +1,5 @@
 #include "StateView.hpp"
+#include "StatePresenter.hpp"
 #include <iscore/tools/Todo.hpp>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
@@ -13,7 +14,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsObject *parent) :
 {
     this->setParentItem(parent);
 
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(parent->zValue() + 5);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
 }
@@ -65,16 +66,16 @@ void StateView::changeColor(const QColor &)
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit pressed(event->scenePos());
+    emit m_presenter.pressed(event->scenePos());
 }
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit moved(event->scenePos());
+    emit m_presenter.moved(event->scenePos());
 }
 
 void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit released(event->scenePos());
+    emit m_presenter.released(event->scenePos());
 }
 

@@ -72,14 +72,17 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
         template<typename CommitCommand>
         void commit()
         {
-            auto theCmd = new CommitCommand;
-            for(auto& cmd : m_cmds)
+            if(!m_cmds.empty())
             {
-                theCmd->addCommand(cmd);
-            }
+                auto theCmd = new CommitCommand;
+                for(auto& cmd : m_cmds)
+                {
+                    theCmd->addCommand(cmd);
+                }
 
-            SendStrategy::Quiet::send(stack(), theCmd);
-            m_cmds.clear();
+                SendStrategy::Quiet::send(stack(), theCmd);
+                m_cmds.clear();
+            }
         }
 
         template<typename RollbackStrategy>

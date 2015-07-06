@@ -1,6 +1,8 @@
 #include "MoveNewEvent.hpp"
 
 #include "Process/ScenarioModel.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
+
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -40,6 +42,7 @@ MoveNewEvent::~MoveNewEvent()
 void MoveNewEvent::undo()
 {
     m_cmd->undo();
+    // TODO we don't undo the contraint pos ?
 }
 
 void MoveNewEvent::redo()
@@ -47,8 +50,10 @@ void MoveNewEvent::redo()
     m_cmd->redo();
     if(! m_yLocked)
     {
-        auto& scenar = m_cmd->path().find<ScenarioModel>();
-        scenar.constraint(m_constraintId).setHeightPercentage(m_y);
+        updateConstraintVerticalPos(
+                    m_y,
+                    m_constraintId,
+                    m_cmd->path().find<ScenarioModel>());
     }
 }
 
