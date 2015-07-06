@@ -10,10 +10,11 @@ OSSIAAutomationElement::OSSIAAutomationElement(const AutomationModel *element, Q
     OSSIAProcessElement{parent},
     m_iscore_autom{element}
 {
-    m_ossia_autom = OSSIA::Automation<double>::create([](
-                                                      const OSSIA::TimeValue& position,
-                                                      const OSSIA::TimeValue& date,
-                                                      std::shared_ptr<OSSIA::State> state)
+    /*
+    m_ossia_autom = OSSIA::Automation::create([](
+                                              const OSSIA::TimeValue& position,
+                                              const OSSIA::TimeValue& date,
+                                              std::shared_ptr<OSSIA::State> state)
     {
         qDebug() << "automati callback" << double(position);
     });
@@ -31,6 +32,7 @@ OSSIAAutomationElement::OSSIAAutomationElement(const AutomationModel *element, Q
 
     connect(element, &AutomationModel::addressChanged,
             this, &OSSIAAutomationElement::on_addressChanged);
+    */
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::process() const

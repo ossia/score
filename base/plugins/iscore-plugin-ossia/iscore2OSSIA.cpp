@@ -183,6 +183,8 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
         }
         case OSSIA::Value::Type::GENERIC:
         {
+            ISCORE_TODO;
+            /*
             const auto& array = data.value<QByteArray>();
             auto& generic = dynamic_cast<OSSIA::Generic&>(val);
 
@@ -193,6 +195,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
 
             boost::range::copy(array, generic.start);
             break;
+            */
         }
         default:
             break;

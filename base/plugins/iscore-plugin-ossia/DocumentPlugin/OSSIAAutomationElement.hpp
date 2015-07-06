@@ -4,7 +4,7 @@
 
 namespace OSSIA
 {
-    template<typename> class Automation;
+    class Automation;
 }
 
 class AutomationModel;
@@ -23,6 +23,6 @@ class OSSIAAutomationElement : public OSSIAProcessElement
         void on_addressChanged(const iscore::Address&);
 
     private:
-        std::shared_ptr<OSSIA::Automation<double>> m_ossia_autom;
+        std::shared_ptr<OSSIA::Automation> m_ossia_autom;
         const AutomationModel* m_iscore_autom{};
 };

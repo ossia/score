@@ -79,9 +79,13 @@ QVariant ToVariant(const OSSIA::Value *val)
         }
         case OSSIA::Value::Type::GENERIC:
         {
+            ISCORE_TODO;
+            break;
+            /*
             auto generic = dynamic_cast<const OSSIA::Generic*>(val);
             v = QByteArray{generic->start, generic->size};
             break;
+            */
         }
         default:
             break;

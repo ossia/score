@@ -230,7 +230,20 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
 
 void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
 {
-    ISCORE_TODO;
+    auto it = m_ossia_states.find(id);
+    Q_ASSERT(it != m_ossia_states.end());
+    auto st = (*it).second;
+
+    auto ev_it = m_ossia_timeevents.find(m_iscore_scenario->state(id).eventId());
+    if(ev_it != m_ossia_timeevents.end())
+    {
+        OSSIAEventElement* ev = (*ev_it).second;
+        for(auto& state : st->states())
+            ev->event()->removeState(state);
+    }
+
+    m_ossia_states.erase(it);
+    delete st;
 }
 
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)

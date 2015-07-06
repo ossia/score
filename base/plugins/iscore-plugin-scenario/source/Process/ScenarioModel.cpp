@@ -352,9 +352,9 @@ void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
 void ScenarioModel::removeState(StateModel *state)
 {
     const auto& id = state->id();
-    m_states.remove(id);
-
     emit stateRemoved(id);
+
+    m_states.remove(id);
     delete state;
 }
 
