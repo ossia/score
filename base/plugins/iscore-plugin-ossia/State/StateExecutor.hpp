@@ -14,9 +14,6 @@ class StateExecutor
 //        void execute(const iscore::State&);
 
     private:
-//        std::shared_ptr<OSSIA::State> stateFromIscore(const iscore::State& state);
-//        std::shared_ptr<OSSIA::Message> messageFromIscore(const iscore::Message& mess);
-
         const DeviceList& m_deviceList;
 
 };

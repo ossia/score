@@ -8,6 +8,7 @@ using namespace mpl;
 #include <boost/mpl/at.hpp>
 #include <boost/range/algorithm.hpp>
 
+#include "Protocols/OSSIADevice.hpp"
 namespace iscore
 {
 namespace convert
@@ -243,9 +244,11 @@ OSSIA::Value* toValue(
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
             //TODO tuple & generic
+
             /*
-        case OSSIA::Value::Type::TUPLE:
+        case OSSIA::Value::Type::Tuple:
         {
+            ISCORE_TODO;
             QVariantList tuple = data.value<QVariantList>();
             const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
             Q_ASSERT(tuple.size() == (int)vec.size());
@@ -253,11 +256,11 @@ OSSIA::Value* toValue(
             {
                 updateOSSIAValue(tuple[i], *vec[i]);
             }
-
             break;
         }
         case OSSIA::Value::Type::GENERIC:
         {
+            ISCORE_TODO;
             const auto& array = data.value<QByteArray>();
             auto& generic = dynamic_cast<OSSIA::Generic&>(val);
 
@@ -269,7 +272,7 @@ OSSIA::Value* toValue(
             boost::range::copy(array, generic.start);
             break;
         }
-        */
+            */
         default:
             break;
     }
@@ -278,5 +281,59 @@ OSSIA::Value* toValue(
     return nullptr;
 }
 
+// TODO Handle the case where the message is not present.
+std::shared_ptr<OSSIA::Message> message(const iscore::Message &mess, const DeviceList& deviceList)
+{
+    const auto& dev = deviceList.device(mess.address.device);
+
+    if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&dev))
+    {
+        auto ossia_node = iscore::convert::getNodeFromPath(
+                    mess.address.path,
+                    &casted_dev->impl());
+
+        return OSSIA::Message::create(
+                    ossia_node->getAddress(),
+                    iscore::convert::toValue(mess.value));
+    }
+
+    return {};
+}
+
+std::shared_ptr<OSSIA::State> state(const iscore::State &iscore_state,  const DeviceList& deviceList)
+{
+    auto ossia_state = OSSIA::State::create();
+
+    auto& elts = ossia_state->stateElements();
+
+    if(iscore_state.data().canConvert<iscore::State>())
+    {
+        elts.push_back(state(iscore_state.data().value<iscore::State>(), deviceList));
+    }
+    else if(iscore_state.data().canConvert<iscore::StateList>())
+    {
+        for(const auto& st : iscore_state.data().value<iscore::StateList>())
+        {
+            elts.push_back(state(st, deviceList));
+        }
+    }
+    else if(iscore_state.data().canConvert<iscore::Message>())
+    {
+        elts.push_back(message(iscore_state.data().value<iscore::Message>(), deviceList));
+    }
+    else if(iscore_state.data().canConvert<iscore::MessageList>())
+    {
+        for(const auto& mess : iscore_state.data().value<iscore::MessageList>())
+        {
+            elts.push_back(message(mess, deviceList));
+        }
+    }
+    else
+    {
+        qDebug() << Q_FUNC_INFO << "todo";
+    }
+
+    return ossia_state;
+}
 }
 }

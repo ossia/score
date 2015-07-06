@@ -8,11 +8,18 @@
 #include "iscore2OSSIA.hpp"
 #include "OSSIA2iscore.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+// TODO ugly
+#include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
-    m_iscore_scenario{element}
+    m_iscore_scenario{element},
+    m_deviceList{static_cast<DeviceDocumentPlugin>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin")).list()}
 {
+    // Setup of the OSSIA API Part
     m_ossia_scenario = OSSIA::Scenario::create([=](
                                                const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
                                                const OSSIA::TimeValue& date,
@@ -39,6 +46,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
         m_ossia_scenario->getClock()->setOffset(1.);
     }
 
+    // Link with i-score
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
     connect(element, &ScenarioModel::stateCreated,
@@ -66,6 +74,10 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
     {
         on_eventCreated(event->id());
     }
+    for(auto& state : m_iscore_scenario->states())
+    {
+        on_stateCreated(state->id());
+    }
     for(auto& constraint : m_iscore_scenario->constraints())
     {
         on_constraintCreated(constraint->id());
@@ -91,14 +103,11 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 
 void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& id)
 {
-    ISCORE_TODO;
-    /*
     auto& cst = m_iscore_scenario->constraint(id);
-
-    Q_ASSERT(m_ossia_timeevents.find(cst.startEvent()) != m_ossia_timeevents.end());
-    auto& ossia_sev = m_ossia_timeevents.at(cst.startEvent());
-    Q_ASSERT(m_ossia_timeevents.find(cst.endEvent()) != m_ossia_timeevents.end());
-    auto& ossia_eev = m_ossia_timeevents.at(cst.endEvent());
+    Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.startState()).eventId()) != m_ossia_timeevents.end());
+    auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.startState()).eventId());
+    Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
+    auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create(
                 ossia_sev->event(),
@@ -112,59 +121,77 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
     // Create the mapping object
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
     m_ossia_constraints.insert({id, elt});
-    */
 }
 
 void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
 {
-    ISCORE_TODO;
+    auto& st = m_iscore_scenario->state(id);
+
+    Q_ASSERT(m_ossia_timeevents.find(st.eventId()) != m_ossia_timeevents.end());
+    auto ossia_ev = m_ossia_timeevents.at(st.eventId());
+
+    // Create the mapping object
+    auto state_elt = new OSSIAStateElement{&st, this};
+    for(auto& elt : st.states())
+    {
+        auto ossia_st = iscore::convert::state(elt, m_deviceList);
+        ossia_ev->event()->addState(ossia_st);
+
+        state_elt->addState(ossia_st);
+    }
+    m_ossia_states.insert({id, state_elt});
 }
 
 void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
 {
-    ISCORE_TODO;
-    /*
     auto& ev = m_iscore_scenario->event(id);
 
     Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
     auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(),
-                                                   [=] (OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
+                                                   [=] (OSSIA::TimeEvent::Status newStatus,
+                                                   OSSIA::TimeEvent::Status oldStatus)
     {
         auto& the_event = m_iscore_scenario->event(id);
-        switch(newStatus)
+        for(auto& state : the_event.states())
         {
-            case OSSIA::TimeEvent::Status::HAPPENED:
+            auto& iscore_state = m_iscore_scenario->state(state);
+
+            switch(newStatus)
             {
-                // Stop the previous constraints clocks,
-                // start the next constraints clocks
-                for(auto& constraint : the_event.previousConstraints())
+                case OSSIA::TimeEvent::Status::HAPPENED:
                 {
-                    m_executingConstraints.remove(constraint);
+                    // Stop the previous constraints clocks,
+                    // start the next constraints clocks
+                    if(iscore_state.previousConstraint())
+                        m_executingConstraints.remove(iscore_state.previousConstraint());
+
+                    if(iscore_state.nextConstraint())
+                    {
+                        auto& cst = m_iscore_scenario->constraint(iscore_state.nextConstraint());
+                        m_executingConstraints.insert(&cst);
+                        cst.setPlayDuration(TimeValue::zero());
+                    }
+                    break;
                 }
 
-                for(auto& constraint : the_event.nextConstraints())
+                case OSSIA::TimeEvent::Status::DISPOSED:
                 {
-                    auto& cst = m_iscore_scenario->constraint(constraint);
-                    m_executingConstraints.insert(&cst);
-                    cst.setPlayDuration(TimeValue::zero());
+                    // TODO disable the constraints graphically
+                    break;
                 }
-
-                break;
+                default:
+                    ISCORE_TODO;
+                    break;
             }
 
-            case OSSIA::TimeEvent::Status::DISPOSED:
-            {
-                // TODO disable the constraints graphically
-            }
         }
     });
 
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, &ev, this};
     m_ossia_timeevents.insert({id, elt});
-    */
 }
 
 void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)

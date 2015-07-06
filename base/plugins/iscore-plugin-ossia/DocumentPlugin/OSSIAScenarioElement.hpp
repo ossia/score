@@ -15,6 +15,7 @@ class EventModel;
 class ConstraintModel;
 class TimeNodeModel;
 class ScenarioModel;
+class DeviceList;
 
 namespace OSSIA
 {
@@ -46,7 +47,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
 
         std::map<id_type<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
-        std::map<id_type<ConstraintModel>, OSSIAStateElement*> m_ossia_states;
+        std::map<id_type<StateModel>, OSSIAStateElement*> m_ossia_states;
         std::map<id_type<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
         std::map<id_type<EventModel>, OSSIAEventElement*> m_ossia_timeevents;
         std::shared_ptr<OSSIA::Scenario> m_ossia_scenario;
@@ -55,4 +56,6 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         IdContainer<ConstraintModel> m_executingConstraints;
 
         TimeValue m_previousExecutionDate;
+
+        const DeviceList& m_deviceList;
 };

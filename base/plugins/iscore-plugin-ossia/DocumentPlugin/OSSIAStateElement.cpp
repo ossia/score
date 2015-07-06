@@ -1,14 +1,28 @@
 #include "OSSIAStateElement.hpp"
 #include <iscore/tools/Todo.hpp>
 OSSIAStateElement::OSSIAStateElement(
-        std::shared_ptr<OSSIA::State> event,
         const StateModel *element,
-        QObject *parent)
+        QObject *parent):
+    QObject{parent}
 {
-    ISCORE_TODO;
 }
 
-std::shared_ptr<OSSIA::State> OSSIAStateElement::state() const
+QList<std::shared_ptr<OSSIA::State> > OSSIAStateElement::states() const
 {
-    return m_state;
+    return m_states;
+}
+
+
+void OSSIAStateElement::addState(std::shared_ptr<OSSIA::State> s)
+{
+    m_states.append(s);
+}
+
+void OSSIAStateElement::removeState(std::shared_ptr<OSSIA::State> s)
+{
+    m_states.removeOne(s);
+}
+
+void OSSIAStateElement::handleEventTriggering(OSSIA::TimeEvent::Status status)
+{
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <memory>
+#include <API/Headers/Editor/TimeEvent.h>
 class StateModel;
 namespace OSSIA
 {
@@ -10,13 +11,15 @@ class OSSIAStateElement : public QObject
 {
     public:
         OSSIAStateElement(
-                std::shared_ptr<OSSIA::State> event,
                 const StateModel* element,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::State> state() const;
+        QList<std::shared_ptr<OSSIA::State>> states() const;
+        void addState(std::shared_ptr<OSSIA::State>);
+        void removeState(std::shared_ptr<OSSIA::State>);
 
+        void handleEventTriggering(OSSIA::TimeEvent::Status);
 
     private:
-        std::shared_ptr<OSSIA::State> m_state;
+        QList<std::shared_ptr<OSSIA::State>> m_states;
 };
