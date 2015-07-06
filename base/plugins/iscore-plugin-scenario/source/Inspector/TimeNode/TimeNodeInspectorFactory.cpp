@@ -12,3 +12,8 @@ InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
     auto timeNode = static_cast<const TimeNodeModel*>(sourceElement);
     return new TimeNodeInspectorWidget{timeNode, parent};
 }
+
+QList<QString> TimeNodeInspectorFactory::correspondingObjectsNames() const
+{
+    return {"TimeNodeModel"};
+}

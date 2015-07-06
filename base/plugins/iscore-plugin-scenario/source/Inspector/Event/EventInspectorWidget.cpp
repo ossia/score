@@ -95,6 +95,7 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_properties.push_back(infoWidg);
 
+    /*
     // Separator
     m_properties.push_back(new Separator {this});
 
@@ -146,12 +147,12 @@ EventInspectorWidget::EventInspectorWidget(
 
     // Separator
     m_properties.push_back(new Separator {this});
-
+*/
     // State
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
-
+/*
     QWidget* addAddressWidget = new QWidget{this};
     auto addLayout = new QGridLayout{addAddressWidget};
 
@@ -164,9 +165,10 @@ EventInspectorWidget::EventInspectorWidget(
             this,	   &EventInspectorWidget::on_addAddressClicked);
     addLayout->addWidget(m_stateLineEdit, 0, 0);
     addLayout->addWidget(ok_button, 0, 1);
-
+*/
     m_properties.push_back(new QLabel{"States"});
     m_properties.push_back(m_statesWidget);
+    /*
     m_properties.push_back(addAddressWidget);
 
     if(deviceexplorer)
@@ -182,16 +184,7 @@ EventInspectorWidget::EventInspectorWidget(
         });
         addLayout->addWidget(pb, 1, 0, 1, 2);
     }
-
-    // Separator
-    m_properties.push_back(new Separator {this});
-
-    // Constraint list
-    m_prevConstraints = new InspectorSectionWidget{tr("Previous Constraints") };
-    m_properties.push_back(m_prevConstraints);
-    m_nextConstraints = new InspectorSectionWidget{tr("Next Constraints") };
-    m_properties.push_back(m_nextConstraints);
-
+*/
     // Separator
     m_properties.push_back(new Separator {this});
 
@@ -222,8 +215,6 @@ EventInspectorWidget::EventInspectorWidget(
 void EventInspectorWidget::addState(const StateModel* state)
 {
     auto sw = new StateInspectorWidget{state, this};
-//    connect(sw, &StateInspectorWidget::removeMe,
-//            this, [&] () { removeState(state);});
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(sw);
@@ -245,10 +236,6 @@ void EventInspectorWidget::updateDisplayedValues(
     }
 
     m_states.clear();
-
-    m_prevConstraints->removeAll();
-    m_nextConstraints->removeAll();
-
     m_date->clear();
 
     // DEMO
@@ -268,8 +255,10 @@ void EventInspectorWidget::updateDisplayedValues(
             addState(&scenar->state(state));
         }
 
+        /*
         m_conditionLineEdit->setText(event->condition());
         m_triggerLineEdit->setText(event->trigger());
+        */
     }
 }
 
@@ -359,11 +348,13 @@ void EventInspectorWidget::on_triggerChanged()
     emit commandDispatcher()->submitCommand(cmd);
 }
 
+/*
 void EventInspectorWidget::removeState(const iscore::State& state)
 {
     auto cmd = new Scenario::Command::RemoveStateFromEvent{path(m_model), state};
     emit commandDispatcher()->submitCommand(cmd);
 }
+*/
 
 void EventInspectorWidget::updateInspector()
 {

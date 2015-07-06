@@ -3,10 +3,10 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class EventInspectorFactory : public InspectorWidgetFactory
+class StateInspectorFactory : public InspectorWidgetFactory
 {
     public:
-        EventInspectorFactory() :
+        StateInspectorFactory() :
             InspectorWidgetFactory {}
         {
 

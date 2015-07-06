@@ -16,8 +16,5 @@ class TimeNodeInspectorFactory : public InspectorWidgetFactory
                 const QObject* sourceElement,
                 QWidget* parent) override;
 
-        virtual QList<QString> correspondingObjectsNames() const override
-        {
-            return {"TimeNodeModel"};
-        }
+        virtual QList<QString> correspondingObjectsNames() const override;
 };

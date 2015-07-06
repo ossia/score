@@ -243,6 +243,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/RackWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/State/StateInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/State/StateInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Event/EventWidgets/EventShortcut.cpp"

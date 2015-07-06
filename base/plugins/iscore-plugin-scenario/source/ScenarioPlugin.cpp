@@ -11,6 +11,7 @@
 #include <Inspector/Event/EventInspectorFactory.hpp>
 #include <Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
+#include <Inspector/State/StateInspectorFactory.hpp>
 #endif
 
 iscore_plugin_scenario::iscore_plugin_scenario() :
@@ -68,10 +69,13 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
 #if defined(ISCORE_INSPECTOR_LIB)
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
-        return {new ConstraintInspectorFactory,
-                new EventInspectorFactory,
-                new ScenarioInspectorFactory,
-                new TimeNodeInspectorFactory};
+        return {
+                    new ConstraintInspectorFactory,
+                    new StateInspectorFactory,
+                    new EventInspectorFactory,
+                    new ScenarioInspectorFactory,
+                    new TimeNodeInspectorFactory
+        };
     }
 #endif
 

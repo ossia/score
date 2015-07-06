@@ -34,7 +34,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     QWidget* dateWid = new QWidget{this};
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
-    auto dateTitle = new QLabel{"default date : "};
+    auto dateTitle = new QLabel{"Default date"};
     m_date = new QLabel{QString::number(object->date().msec()) };
 
     dateLay->addWidget(dateTitle);

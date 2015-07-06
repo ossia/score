@@ -36,7 +36,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         void on_conditionChanged();
         void on_triggerChanged();
 
-        void removeState(const iscore::State&);
+        //void removeState(const iscore::State&);
 
         void updateInspector();
         void modelDateChanged();
@@ -52,9 +52,6 @@ class EventInspectorWidget : public InspectorWidgetBase
         QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel* m_model{};
-
-        InspectorSectionWidget* m_prevConstraints;
-        InspectorSectionWidget* m_nextConstraints;
 
         MetadataWidget* m_metadata {};
 };

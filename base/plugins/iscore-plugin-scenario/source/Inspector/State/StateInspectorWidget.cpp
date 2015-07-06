@@ -2,6 +2,7 @@
 #include "Document/State/DisplayedStateModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/ScenarioModel.hpp>
+#include <State/Widgets/StateWidget.hpp>
 #include <QPushButton>
 #include <QFormLayout>
 StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *parent):
@@ -12,11 +13,6 @@ StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *pa
     setInspectedObject(object);
     setParent(parent);
 
-    // States
-    //m_stateSection = new InspectorSectionWidget{"States", this};
-
-    //m_properties.push_back(m_stateSection);
-
     updateDisplayedValues(object);
 }
 
@@ -26,15 +22,17 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     qDeleteAll(m_stateWidgets);
     m_stateWidgets.clear();
 
-    auto constraintsWidget = new QWidget;
-    auto lay = new QFormLayout(constraintsWidget);
-    lay->setMargin(0);
-    lay->setContentsMargins(0, 0, 0, 0);
-    lay->setHorizontalSpacing(0);
-    lay->setVerticalSpacing(0);
 
     if(state)
     {
+        // Constraints setup
+        auto constraintsWidget = new QWidget;
+        auto lay = new QFormLayout(constraintsWidget);
+        lay->setMargin(0);
+        lay->setContentsMargins(0, 0, 0, 0);
+        lay->setHorizontalSpacing(0);
+        lay->setVerticalSpacing(0);
+
         auto scenar = state->parentScenario();
         if(state->previousConstraint())
         {
@@ -68,35 +66,24 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
                 selectionDispatcher()->setAndCommit(Selection{cstr});
             });
         }
+        m_properties.push_back(constraintsWidget);
+
+
+        // State setup
+        m_stateSection = new InspectorSectionWidget{"States", this};
+
+        for(auto& data_state : state->states())
+        {
+            auto widg = new StateWidget{data_state, this};
+            m_stateSection->addContent(widg);
+
+            //connect(widg, &StateInspectorWidget::removeMe,
+            //        this, [&] () { removeState(state);});
+        }
+        m_properties.push_back(m_stateSection);
     }
-    m_properties.push_back(constraintsWidget);
 
     updateAreaLayout(m_properties);
-    /*
-   if(timeNode)
-    {
-        m_date->setText(QString::number(m_model->date().msec()));
-
-        for(const auto& event : timeNode->events())
-        {
-            ScenarioModel* scenar = timeNode->parentScenario();
-            EventModel* evModel {};
-            if (scenar)
-                evModel = &scenar->event(event);
-
-            auto eventWid = new EventShortCut(QString::number((*event.val())));
-
-            m_events.push_back(eventWid);
-            m_eventList->addContent(eventWid);
-
-            connect(eventWid, &EventShortCut::eventSelected,
-                    [=]()
-            {
-                selectionDispatcher()->setAndCommit(Selection{evModel});
-            });
-        }
-    }
-    */
 }
 
 

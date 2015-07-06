@@ -16,8 +16,5 @@ class ScenarioInspectorFactory : public InspectorWidgetFactory
                 const QObject* sourceElement,
                 QWidget* parent) override;
 
-        virtual QList<QString> correspondingObjectsNames() const override
-        {
-            return {"Scenario"};
-        }
+        virtual QList<QString> correspondingObjectsNames() const override;
 };

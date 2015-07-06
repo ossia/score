@@ -10,3 +10,9 @@ InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
 {
     return new ScenarioInspectorWidget(static_cast<const ScenarioModel*>(sourceElement), parent);
 }
+
+
+QList<QString> ScenarioInspectorFactory::correspondingObjectsNames() const
+{
+    return {"Scenario"};
+}
