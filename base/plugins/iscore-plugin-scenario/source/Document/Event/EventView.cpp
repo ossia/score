@@ -81,7 +81,26 @@ void EventView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
-    QPen eventPen = m_color;
+    QPen eventPen;
+    switch(m_status)
+    {
+        case EventStatus::Waiting:
+            eventPen = QPen(Qt::lightGray);
+            break;
+        case EventStatus::Pending:
+            eventPen = QPen(Qt::yellow);
+            break;
+        case EventStatus::Happened:
+            eventPen = QPen(Qt::green);
+            break;
+        case EventStatus::Disposed:
+            eventPen = QPen(Qt::red);
+            break;
+        case EventStatus::Editing:
+            eventPen = QPen(m_color);
+            break;
+    }
+
     QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
     // Rect
@@ -95,6 +114,7 @@ void EventView::paint(QPainter* painter,
     }
 */
     eventPen.setWidth(2);
+
 
     QPen pen{QBrush(eventPen.color()), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
@@ -122,6 +142,12 @@ void EventView::setExtent(VerticalExtent &&extent)
     // TODO Set pos at the same time ?
     m_extent = std::move(extent);
     this->update();
+}
+
+void EventView::setStatus(EventStatus s)
+{
+    m_status = s;
+    update();
 }
 
 

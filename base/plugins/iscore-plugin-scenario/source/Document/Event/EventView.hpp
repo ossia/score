@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include "Document/VerticalExtent.hpp"
+#include "EventStatus.hpp"
 class EventPresenter;
 class ConditionView;
 class TriggerView;
@@ -37,6 +38,9 @@ class EventView : public QGraphicsObject
         void setExtent(const VerticalExtent& extent);
         void setExtent(VerticalExtent&& extent);
 
+        void setStatus(EventStatus s);
+
+
 
     signals:
         void eventHoverEnter();
@@ -65,6 +69,7 @@ class EventView : public QGraphicsObject
         QPointF m_clickedPoint;
         QColor m_color;
 
+        EventStatus m_status{EventStatus::Editing};
         bool m_shadow {false};
         bool m_selected{};
 

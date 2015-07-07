@@ -51,6 +51,7 @@ ConstraintModel*BaseScenario::baseConstraint() const
     return m_constraint;
 }
 
+
 TimeNodeModel *BaseScenario::startTimeNode() const
 {
     return m_startNode;
@@ -61,6 +62,7 @@ TimeNodeModel *BaseScenario::endTimeNode() const
     return m_endNode;
 }
 
+
 EventModel *BaseScenario::startEvent() const
 {
     return m_startEvent;
@@ -69,4 +71,15 @@ EventModel *BaseScenario::startEvent() const
 EventModel *BaseScenario::endEvent() const
 {
     return m_endEvent;
+}
+
+
+StateModel *BaseScenario::startState() const
+{
+    return m_startState;
+}
+
+StateModel *BaseScenario::endState() const
+{
+    return m_endState;
 }

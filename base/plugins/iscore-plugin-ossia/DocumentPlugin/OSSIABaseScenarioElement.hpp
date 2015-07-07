@@ -7,6 +7,7 @@
 #include "OSSIAConstraintElement.hpp"
 #include "OSSIATimeNodeElement.hpp"
 #include "OSSIAEventElement.hpp"
+#include "OSSIAStateElement.hpp"
 
 class EventModel;
 class ConstraintModel;
@@ -34,8 +35,13 @@ class OSSIABaseScenarioElement : public QObject
 
     private:
         OSSIAConstraintElement* m_ossia_constraint{};
+
         OSSIATimeNodeElement* m_ossia_startTimeNode{};
         OSSIATimeNodeElement* m_ossia_endTimeNode{};
+
         OSSIAEventElement* m_ossia_startEvent{};
         OSSIAEventElement* m_ossia_endEvent{};
+
+        OSSIAStateElement* m_ossia_startState{};
+        OSSIAStateElement* m_ossia_endState{};
 };

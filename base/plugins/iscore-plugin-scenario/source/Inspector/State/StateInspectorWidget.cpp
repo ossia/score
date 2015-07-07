@@ -26,12 +26,14 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     if(state)
     {
         // Constraints setup
-        auto constraintsWidget = new QWidget;
-        auto lay = new QFormLayout(constraintsWidget);
+        auto widget = new QWidget;
+        auto lay = new QFormLayout(widget);
         lay->setMargin(0);
         lay->setContentsMargins(0, 0, 0, 0);
         lay->setHorizontalSpacing(0);
         lay->setVerticalSpacing(0);
+
+        lay->addRow("Id", new QLabel{QString::number(state->id().val().get())});
 
         auto scenar = state->parentScenario();
         if(state->previousConstraint())
@@ -66,7 +68,7 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
                 selectionDispatcher()->setAndCommit(Selection{cstr});
             });
         }
-        m_properties.push_back(constraintsWidget);
+        m_properties.push_back(widget);
 
 
         // State setup

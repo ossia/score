@@ -119,6 +119,8 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
     const auto& sev = s.event(sst.eventId());
     const auto& eev = s.event(est.eventId());
 
+    qDebug() << "===== Constraint Creation =====" << sst.id() << est.id();
+
     ConstraintModel::Algorithms::changeAllDurations(*constraint,
                                                     eev.date() - sev.date());
     constraint->setStartDate(sev.date());

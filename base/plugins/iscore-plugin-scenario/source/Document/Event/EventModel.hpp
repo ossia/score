@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <State/State.hpp>
 #include "source/Document/State/DisplayedStateModel.hpp"
-
+#include "source/Document/Event/EventStatus.hpp"
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 namespace OSSIA
 {
@@ -36,6 +36,11 @@ class EventModel : public IdentifiedObject<EventModel>
                    READ trigger
                    WRITE setTrigger
                    NOTIFY triggerChanged)
+
+        Q_PROPERTY(EventStatus status
+                   READ status
+                   WRITE setStatus
+                   NOTIFY statusChanged)
 
         friend void Visitor<Reader<DataStream>>::readFrom<EventModel> (const EventModel& ev);
         friend void Visitor<Reader<JSONObject>>::readFrom<EventModel> (const EventModel& ev);
@@ -92,12 +97,17 @@ class EventModel : public IdentifiedObject<EventModel>
         void translate(const TimeValue& deltaTime);
 
 
+        EventStatus status() const;
+        void reset();
+
     public slots:
         void setCondition(const QString& arg);
         void setTrigger(const QString& trigger);
 
         void setExtent(const VerticalExtent &extent);
         void setDate(const TimeValue& date);
+
+        void setStatus(EventStatus status);
 
     signals:
         void extentChanged(const VerticalExtent&);
@@ -107,6 +117,8 @@ class EventModel : public IdentifiedObject<EventModel>
         void triggerChanged(const QString&);
 
         void statesChanged();
+
+        void statusChanged(EventStatus status);
 
     private:
         id_type<TimeNodeModel> m_timeNode {};
@@ -118,4 +130,5 @@ class EventModel : public IdentifiedObject<EventModel>
 
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};
+        EventStatus m_status;
 };

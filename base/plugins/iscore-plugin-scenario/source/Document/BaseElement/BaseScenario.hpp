@@ -12,10 +12,10 @@ class JSONObject;
 
 class BaseScenario : public IdentifiedObject<BaseScenario>
 {
-        friend void Visitor<Reader<DataStream>>::readFrom<BaseScenario> (const BaseScenario&);
-        friend void Visitor<Writer<DataStream>>::writeTo<BaseScenario> (BaseScenario&);
-        friend void Visitor<Reader<JSONObject>>::readFrom<BaseScenario> (const BaseScenario&);
-        friend void Visitor<Writer<JSONObject>>::writeTo<BaseScenario> (BaseScenario&);
+        friend void Visitor<Reader<DataStream>>::readFrom<BaseScenario>(const BaseScenario&);
+        friend void Visitor<Writer<DataStream>>::writeTo<BaseScenario>(BaseScenario&);
+        friend void Visitor<Reader<JSONObject>>::readFrom<BaseScenario>(const BaseScenario&);
+        friend void Visitor<Writer<JSONObject>>::writeTo<BaseScenario>(BaseScenario&);
 
     public:
         iscore::ElementPluginModelList pluginModelList;
@@ -31,11 +31,15 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
 
 
         ConstraintModel* baseConstraint() const;
+
         TimeNodeModel* startTimeNode() const;
         TimeNodeModel* endTimeNode() const;
 
         EventModel* startEvent() const;
         EventModel* endEvent() const;
+
+        StateModel* startState() const;
+        StateModel* endState() const;
 
     private:
         TimeNodeModel* m_startNode{};

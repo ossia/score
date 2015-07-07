@@ -16,5 +16,4 @@ class MinuitDevice : public OSSIADevice
 
     private:
         OSSIA::Minuit m_minuitSettings;
-        QThread m_updateThread;
 };

@@ -43,9 +43,32 @@ namespace iscore
 
             Presenter* presenter() const;
 
+            // A generic method to deserialize commands. Examples in the plug-ins.
+            template<typename CommandFactory>
+            SerializableCommand* instantiateUndoCommand(
+                    const QString& name,
+                    const QByteArray& data)
+            {
+                auto it = CommandFactory::map.find(name);
+                if(it != CommandFactory::map.end())
+                {
+                    iscore::SerializableCommand* cmd = (*(*it).second)();
+                    cmd->deserialize(data);
+                    return cmd;
+                }
+                else
+                {
+                    qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read. Aborting.";
+                    Q_ASSERT(false);
+
+                    return nullptr;
+                }
+            }
+
             virtual SerializableCommand* instantiateUndoCommand(
                     const QString& /*name*/,
                     const QByteArray& /*data*/);
+
             Document* currentDocument() const;
 
             virtual void on_newDocument(iscore::Document* doc);

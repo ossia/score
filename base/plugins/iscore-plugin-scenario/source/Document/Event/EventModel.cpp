@@ -63,17 +63,36 @@ const TimeValue& EventModel::date() const
 }
 
 void EventModel::setDate(const TimeValue& date)
-{
+{ //TODO ajuster la date avec celle du Timenode
     if (m_date != date)
     {
         m_date = date;
         emit dateChanged(m_date);
     }
-} //TODO ajuster la date avec celle du Timenode
+}
+
+void EventModel::setStatus(EventStatus status)
+{
+    if (m_status == status)
+        return;
+
+    m_status = status;
+    emit statusChanged(status);
+}
 
 void EventModel::translate(const TimeValue& deltaTime)
 {
     setDate(m_date + deltaTime);
+}
+
+EventStatus EventModel::status() const
+{
+    return m_status;
+}
+
+void EventModel::reset()
+{
+    setStatus(EventStatus::Editing);
 }
 
 

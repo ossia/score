@@ -287,3 +287,105 @@ iscore::SerializableCommand* makeCommandByName(const QString& name)
 
     else return nullptr;
 }
+
+#include "Control/ScenarioControl.hpp"
+#include <boost/mpl/list/list50.hpp>
+#include <boost/mpl/aux_/config/ctps.hpp>
+#include <boost/preprocessor/iterate.hpp>
+#include <boost/config.hpp>
+
+namespace boost { namespace mpl {
+#define BOOST_PP_ITERATION_PARAMS_1 \
+    (3,(51, 100, <boost/mpl/list/aux_/numbered.hpp>))
+#include BOOST_PP_ITERATE()
+}}
+#include <iscore/command/CommandGeneratorMap.hpp>
+
+struct ScenarioCommandFactory
+{
+        static CommandGeneratorMap map;
+};
+CommandGeneratorMap ScenarioCommandFactory::map;
+
+void ScenarioControl::setupCommands()
+{
+    using namespace Scenario::Command;
+    boost::mpl::for_each<
+            boost::mpl::list60<
+            AddRackToConstraint,
+            AddSlotToRack,
+            AddProcessToConstraint,
+            AddLayerInNewSlot,
+            AddLayerModelToSlot,
+            AddStateToEvent,
+            AssignMessagesToState,
+
+            ChangeElementColor<ConstraintModel>,
+            ChangeElementColor<EventModel>,
+            ChangeElementColor<TimeNodeModel>,
+            ChangeElementComments<ConstraintModel>,
+            ChangeElementComments<EventModel>,
+            ChangeElementComments<TimeNodeModel>,
+            ChangeElementLabel<ConstraintModel>,
+            ChangeElementLabel<EventModel>,
+            ChangeElementLabel<TimeNodeModel>,
+            ChangeElementName<ConstraintModel>,
+            ChangeElementName<EventModel>,
+            ChangeElementName<TimeNodeModel>,
+            // TODO StateModel
+
+            ClearConstraint,
+            ClearEvent,
+
+            DuplicateRack,
+            CopyConstraintContent,
+            CopySlot,
+
+            CreateState,
+            CreateEvent_State,
+            CreateConstraint,
+            CreateConstraint_State,
+            CreateConstraint_State_Event,
+            CreateConstraint_State_Event_TimeNode,
+            CreationMetaCommand,
+
+            ShowRackInViewModel,
+            HideRackInViewModel,
+
+            MergeRackes,
+            MergeTimeNodes,
+
+            MoveConstraint,
+            MoveSlot,
+            SwapSlots,
+            MoveEvent,
+            MoveNewEvent,
+            MoveNewState,
+            MoveTimeNode,
+
+            RemoveRackFromConstraint,
+            RemoveSlotFromRack,
+            RemoveMultipleElements,
+            RemoveSelection,
+            RemoveProcessFromConstraint,
+            RemoveLayerModelFromSlot,
+            RemoveStateFromEvent,
+
+            ResizeBaseConstraint,
+            ResizeConstraint,
+            ResizeSlotVertically,
+
+            SetCondition,
+            SetTrigger,
+
+            SetMaxDuration,
+            SetMinDuration,
+            SetRigidity,
+
+            SplitTimeNode,
+            SwitchStatePosition,
+            UnassignMessagesFromState
+            >,
+            boost::type<boost::mpl::_>
+    >(CommandGeneratorMapInserter<ScenarioCommandFactory>());
+}

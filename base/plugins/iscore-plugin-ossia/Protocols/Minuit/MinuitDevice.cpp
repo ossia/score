@@ -15,8 +15,8 @@ MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     return OSSIA::Minuit{stgs.host.toStdString(),
         stgs.inPort,
         stgs.outPort};
-}()}
-
+    }()
+    }
 {
     using namespace OSSIA;
 

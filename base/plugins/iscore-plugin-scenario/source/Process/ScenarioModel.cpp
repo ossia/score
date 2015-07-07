@@ -200,6 +200,11 @@ void ScenarioModel::reset()
         constraint->reset();
     }
 
+    for(auto& event : m_events)
+    {
+        event->reset();
+    }
+
     // TODO reset events / states display too
 }
 

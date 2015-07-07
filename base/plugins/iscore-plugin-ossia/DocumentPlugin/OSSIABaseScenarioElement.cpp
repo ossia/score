@@ -31,6 +31,9 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     m_ossia_startEvent = new OSSIAEventElement{*main_start_event_it, element->startEvent(), this};
     m_ossia_endEvent = new OSSIAEventElement{*main_end_event_it, element->endEvent(), this};
 
+    m_ossia_startState = new OSSIAStateElement{element->startState(), this};
+    m_ossia_endState = new OSSIAStateElement{element->endState(), this};
+
     m_ossia_constraint = new OSSIAConstraintElement{main_constraint, *element->baseConstraint(), this};
 }
 

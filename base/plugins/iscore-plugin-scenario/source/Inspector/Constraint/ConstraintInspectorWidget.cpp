@@ -76,7 +76,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Events
     if(auto scenario = qobject_cast<ScenarioModel*>(m_currentConstraint->parent()))
     {
-        m_properties.push_back(makeEventWidget(scenario));
+        m_properties.push_back(makeStatesWidget(scenario));
     }
 
     // Separator
@@ -336,16 +336,16 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
 void ConstraintInspectorWidget::setupRack(RackModel* rack)
 {
     // Display the widget
-    RackInspectorSection* newRack = new RackInspectorSection {QString{"Rack.%1"} .arg(*rack->id().val()),
-                                    rack,
-                                    this
-};
+    RackInspectorSection* newRack = new RackInspectorSection {
+            QString{"Rack.%1"} .arg(*rack->id().val()),
+            rack,
+            this};
 
     m_rackesSectionWidgets[rack->id()] = newRack;
     m_rackSection->addContent(newRack);
 }
 
-QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
+QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
 {
     QWidget* eventWid = new QWidget{this};
     QFormLayout* eventLay = new QFormLayout {eventWid};
@@ -353,15 +353,8 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
 
     QPushButton* start = new QPushButton{tr("None")};
     start->setStyleSheet ("text-align: left");
-    QPushButton* end = new QPushButton {tr("None")};
-    end->setStyleSheet ("text-align: left");
     start->setFlat(true);
-    end->setFlat(true);
-
-    auto sst = m_currentConstraint->startState();
-    auto est = m_currentConstraint->endState();
-
-    if(sst)
+    if(auto sst = m_currentConstraint->startState())
     {
         start->setText(QString::number(*sst.val()));
         connect(start, &QPushButton::clicked,
@@ -369,15 +362,20 @@ QWidget* ConstraintInspectorWidget::makeEventWidget(ScenarioModel* scenar)
             selectionDispatcher()->setAndCommit(Selection{&scenar->state(sst)});
         });
     }
-    if(est)
+    eventLay->addRow(tr("Start state"), start);
+
+
+    QPushButton* end = new QPushButton {tr("None")};
+    end->setStyleSheet ("text-align: left");
+    end->setFlat(true);
+    if(auto est = m_currentConstraint->endState())
     {
         end->setText(QString::number(*est.val()));
-        connect(start, &QPushButton::clicked,
+        connect(end, &QPushButton::clicked,
                 [=]() {
             selectionDispatcher()->setAndCommit(Selection{&scenar->state(est)});
         });
     }
-    eventLay->addRow(tr("Start state"), start);
     eventLay->addRow(tr("End state"), end);
 
     return eventWid;
@@ -418,12 +416,10 @@ void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
 
 void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<AbstractConstraintViewModel> cvmId)
 {
-    qDebug() << "Created";
     m_rackWidget->viewModelsChanged();
 }
 
 void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId)
 {
-    qDebug() << "Removed";
     m_rackWidget->viewModelsChanged();
 }

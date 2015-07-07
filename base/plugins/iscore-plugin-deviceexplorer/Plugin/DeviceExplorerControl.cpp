@@ -51,24 +51,14 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
         const QString& name,
         const QByteArray& data)
 {
-    auto it = DeviceExplorerCommandFactory::map.find(name);
-    if(it != DeviceExplorerCommandFactory::map.end())
-    {
-        iscore::SerializableCommand* cmd = (*(*it).second)();
-        cmd->deserialize(data);
-        return cmd;
-    }
-    else
-    {
-        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
-        return nullptr;
-    }
+    return PluginControlInterface::instantiateUndoCommand<DeviceExplorerCommandFactory>(name, data);
 }
+
 
 #include <core/document/DocumentModel.hpp>
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
-    qDebug() <<  "TODO: " << Q_FUNC_INFO;
+    ISCORE_TODO;
     doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));
 
     // connect the device document plugin to the device explorer model in this document

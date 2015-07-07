@@ -133,21 +133,10 @@ void NetworkControl::setupCommands()
     >(CommandGeneratorMapInserter<NetworkCommandFactory>());
 }
 
-// TODO : now this algorithm can finally be generalizer to all Controls
 SerializableCommand* NetworkControl::instantiateUndoCommand(
         const QString& name,
         const QByteArray& data)
 {
-    auto it = NetworkCommandFactory::map.find(name);
-    if(it != NetworkCommandFactory::map.end())
-    {
-        iscore::SerializableCommand* cmd = (*(*it).second)();
-        cmd->deserialize(data);
-        return cmd;
-    }
-    else
-    {
-        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
-        return nullptr;
-    }
+    return PluginControlInterface::instantiateUndoCommand<NetworkCommandFactory>(name, data);
 }
+

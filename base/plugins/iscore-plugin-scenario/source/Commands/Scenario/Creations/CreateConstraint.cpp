@@ -33,7 +33,6 @@ CreateConstraint::CreateConstraint(
     {
         m_createdConstraintViewModelIDs[iscore::IDocument::path(viewModel)] = getStrongId(viewModel->constraints());
     }
-    qDebug() << Q_FUNC_INFO << layers(scenar).first()->id();
 
     // Finally, the id of the full view
     m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
@@ -49,7 +48,6 @@ void CreateConstraint::undo()
 void CreateConstraint::redo()
 {
     auto& scenar = m_path.find<ScenarioModel>();
-    qDebug() << Q_FUNC_INFO << layers(scenar).first()->id();
     auto& sst = scenar.state(m_startStateId);
     auto& est = scenar.state(m_endStateId);
 

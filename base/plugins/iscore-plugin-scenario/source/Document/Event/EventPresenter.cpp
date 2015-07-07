@@ -24,6 +24,8 @@ EventPresenter::EventPresenter(const EventModel& model,
 
     connect(&m_model, &EventModel::conditionChanged,
             m_view,  &EventView::setCondition);
+    connect(&m_model, &EventModel::statusChanged,
+            m_view,  &EventView::setStatus);
     connect(&m_model, &EventModel::triggerChanged,
             this,   &EventPresenter::triggerSetted) ;
 

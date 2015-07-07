@@ -11,7 +11,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-// TODO ugly
+
 #include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
@@ -25,6 +25,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
                                                const OSSIA::TimeValue& date,
                                                std::shared_ptr<OSSIA::State> state)
     {
+        qDebug() << "ici" << OSSIA::convert::time(position) << OSSIA::convert::time(date);
         auto currentTime = OSSIA::convert::time(date);
         for(ConstraintModel* constraint : m_executingConstraints)
         {
@@ -153,12 +154,20 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
                                                    OSSIA::TimeEvent::Status oldStatus)
     {
         auto& the_event = m_iscore_scenario->event(id);
+
+        the_event.setStatus(static_cast<EventStatus>(newStatus));
+
         for(auto& state : the_event.states())
         {
             auto& iscore_state = m_iscore_scenario->state(state);
+            qDebug() << "AZEAZEAZE" << 1234124 << 2143 << "klm" << (int) newStatus;
 
             switch(newStatus)
             {
+                case OSSIA::TimeEvent::Status::WAITING:
+                    break;
+                case OSSIA::TimeEvent::Status::PENDING:
+                    break;
                 case OSSIA::TimeEvent::Status::HAPPENED:
                 {
                     // Stop the previous constraints clocks,
@@ -184,7 +193,6 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
                     ISCORE_TODO;
                     break;
             }
-
         }
     });
 

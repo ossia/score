@@ -9,6 +9,7 @@
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 //#include "Process/Temporal/TemporalScenarioView.hpp"
 //#include "Process/Temporal/StateMachines/Tool.hpp"
+#include <iscore/command/CommandGeneratorMap.hpp>
 
 #include "Control/OldFormatConversion.hpp"
 
@@ -30,6 +31,7 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
 {
+    setupCommands();
     m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
     m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
 }
@@ -110,21 +112,20 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
 }
 
 
-// Defined in CommandNames.cpp
-iscore::SerializableCommand *makeCommandByName(const QString &name);
-
-iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(const QString &name, const QByteArray &data)
+struct ScenarioCommandFactory
 {
-    iscore::SerializableCommand *cmd = makeCommandByName(name);
-    if (!cmd)
-    {
-        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
-        return nullptr;
-    }
+        static CommandGeneratorMap map;
+};
+// The map is in CommandNames.cpp
 
-    cmd->deserialize(data);
-    return cmd;
+
+iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
+        const QString& name,
+        const QByteArray& data)
+{
+    return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
 }
+
 
 void ScenarioControl::createContextMenu(const QPoint& pos)
 {

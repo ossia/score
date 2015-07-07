@@ -36,21 +36,9 @@ void AutomationControl::setupCommands()
     >(CommandGeneratorMapInserter<AutomationCommandFactory>());
 }
 
-// TODO : now this algorithm can finally be generalizer to all Controls
 iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
         const QString& name,
         const QByteArray& data)
 {
-    auto it = AutomationCommandFactory::map.find(name);
-    if(it != AutomationCommandFactory::map.end())
-    {
-        iscore::SerializableCommand* cmd = (*(*it).second)();
-        cmd->deserialize(data);
-        return cmd;
-    }
-    else
-    {
-        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
-        return nullptr;
-    }
+    return PluginControlInterface::instantiateUndoCommand<AutomationCommandFactory>(name, data);
 }
