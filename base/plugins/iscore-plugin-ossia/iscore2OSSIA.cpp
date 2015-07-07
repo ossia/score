@@ -1,7 +1,5 @@
 #include "iscore2OSSIA.hpp"
 
-using namespace boost;
-using namespace mpl;
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/int.hpp>
@@ -204,12 +202,12 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
 
 
 using OSSIATypeMap =
-mpl::map<
-mpl::pair<bool, OSSIA::Bool>,
-mpl::pair<int, OSSIA::Int>,
-mpl::pair<float, OSSIA::Float>,
-mpl::pair<char, OSSIA::Char>,
-mpl::pair<std::string, OSSIA::String>
+boost::mpl::map<
+boost::mpl::pair<bool, OSSIA::Bool>,
+boost::mpl::pair<int, OSSIA::Int>,
+boost::mpl::pair<float, OSSIA::Float>,
+boost::mpl::pair<char, OSSIA::Char>,
+boost::mpl::pair<std::string, OSSIA::String>
 >;
 /*
 using OSSIATypeEnumToTypeMap =
@@ -225,7 +223,7 @@ mpl::pair<mpl::int_<(int)OSSIA::Value::Type::STRING>, std::string>
 template<typename T>
 OSSIA::Value* createOSSIAValue(const T& val)
 {
-    return new typename mpl::at<OSSIATypeMap, T>::type(val);
+    return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
 
