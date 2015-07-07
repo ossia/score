@@ -5,7 +5,7 @@
 
 class AddDevice : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND
+        ISCORE_COMMAND_DECL("AddDevice", "AddDevice")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddDevice, "DeviceExplorerControl")
         AddDevice(ObjectPath&& device_tree,

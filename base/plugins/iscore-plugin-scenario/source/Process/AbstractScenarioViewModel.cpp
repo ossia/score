@@ -89,7 +89,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
         }
         else
         {
-            throw std::runtime_error("createConstraintViewModels : missing identifier.");
+           Q_ASSERT_X(false, "createConstraintViewModels", "missing identifier.");
         }
     }
 }

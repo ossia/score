@@ -114,8 +114,6 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
                 const auto& st_model = static_cast<const StateView*>(item)->presenter().model();
                 if(st_model.parentScenario() == scenario)
                 {
-
-                    qDebug() << "yea";
                     sel.insert(&st_model);
                 }
                 break;

@@ -61,7 +61,6 @@ void StateView::setContainMessage(bool arg)
 
 void StateView::setSelected(bool arg)
 {
-    qDebug() << Q_FUNC_INFO;
     m_selected = arg;
     update();
 }

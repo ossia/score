@@ -17,7 +17,7 @@
 DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     PluginControlInterface {pres, "DeviceExplorerControl", nullptr}
 {
-
+    setupCommands();
 }
 
 
@@ -42,11 +42,9 @@ void DeviceExplorerControl::setupCommands()
             Paste,
             Remove,
             ReplaceDevice
-                // TODO RemoveGroup;
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());
-
 }
 
 iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
