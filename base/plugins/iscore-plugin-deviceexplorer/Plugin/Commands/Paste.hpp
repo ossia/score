@@ -13,11 +13,11 @@ namespace DeviceExplorer
 
         class Paste : public iscore::SerializableCommand
         {
-            public:
+                ISCORE_COMMAND_DECL("Paste", "Paste")
+                public:
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Paste, "DeviceExplorerControl")
 
-                Paste();
-
-                void set(const Path& parentPath, int row,
+                Paste(const Path& parentPath, int row,
                          const QString& text,
                          ObjectPath&& modelPath);
 

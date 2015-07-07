@@ -103,7 +103,8 @@ AddressSettings ToAddressSettings(const OSSIA::Node &node)
 
     if(addr)
     {
-        s.value = ToVariant(addr->getValue());
+        if(auto val = addr->getValue())
+            s.value = ToVariant(val);
         s.ioType = ToIOType(addr->getAccessMode());
         s.clipMode = ToClipMode(addr->getBoundingMode());
         s.repetitionFilter = addr->getRepetitionFilter();

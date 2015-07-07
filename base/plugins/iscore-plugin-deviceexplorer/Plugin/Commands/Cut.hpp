@@ -12,13 +12,14 @@ namespace DeviceExplorer
     {
         class Cut : public iscore::SerializableCommand
         {
-            public:
+                ISCORE_COMMAND_DECL("Cut", "Cut")
+                public:
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Cut, "DeviceExplorerControl")
 
-                Cut();
-
-                void set(const Path& parentPath, int row,
-                         const QString& text,
-                         ObjectPath&& model);
+                Cut(const Path& parentPath,
+                    int row,
+                        const QString& text,
+                        ObjectPath&& model);
 
 
                 virtual void undo() override;

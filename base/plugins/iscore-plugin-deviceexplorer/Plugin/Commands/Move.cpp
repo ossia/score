@@ -3,17 +3,13 @@
 
 using namespace DeviceExplorer::Command;
 
-Move::Move()
-    : iscore::SerializableCommand("", "Move ", "")
-{
-
-}
-
-void
-Move::set(const Path &srcParentPath, int srcRow, int count,
-                               const Path &dstParentPath, int dstRow,
-                               const QString& text,
-                               ObjectPath &&tree_model)
+Move::Move(const Path &srcParentPath, int srcRow, int count,
+           const Path &dstParentPath, int dstRow,
+           const QString& text,
+           ObjectPath &&tree_model):
+    iscore::SerializableCommand{"DeviceExplorerControl",
+                                commandName(),
+                                description()}
 {
     m_model = tree_model;
     m_srcParentPath = srcParentPath;

@@ -10,14 +10,13 @@ namespace DeviceExplorer
 {
     namespace Command
     {
-
         class Move : public iscore::SerializableCommand
         {
-            public:
+                ISCORE_COMMAND_DECL("Move", "Move")
+                public:
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Move, "DeviceExplorerControl")
 
-                Move();
-
-                void set(const Path& srcParentPath, int srcRow, int count,
+                Move(const Path& srcParentPath, int srcRow, int count,
                          const Path& dstParentPath, int dstRow,
                          const QString& text,
                          ObjectPath&& tree_model);

@@ -8,7 +8,9 @@
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
 #include "Commands/Remove.hpp"
+#include "Commands/UpdateNamespace.hpp"
 
+#include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
@@ -19,52 +21,50 @@ DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
 }
 
 
-iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& arr)
+struct DeviceExplorerCommandFactory
+{
+        static CommandGeneratorMap map;
+};
+
+CommandGeneratorMap DeviceExplorerCommandFactory::map;
+
+void DeviceExplorerControl::setupCommands()
 {
     using namespace DeviceExplorer::Command;
-    iscore::SerializableCommand* cmd{};
-    if(name == "AddAddress")
+    boost::mpl::for_each<
+            boost::mpl::list<
+            AddAddress,
+            AddDevice,
+            Cut,
+            EditData,
+            Insert,
+            Move,
+            Paste,
+            Remove,
+            ReplaceDevice
+                // TODO RemoveGroup;
+            >,
+            boost::type<boost::mpl::_>
+    >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());
+
+}
+
+iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
+        const QString& name,
+        const QByteArray& data)
+{
+    auto it = DeviceExplorerCommandFactory::map.find(name);
+    if(it != DeviceExplorerCommandFactory::map.end())
     {
-        cmd = new AddAddress;
-    }
-    else if(name == "AddDevice")
-    {
-        cmd = new AddDevice;
-    }
-    else if(name == "Cut")
-    {
-        cmd = new Cut;
-    }
-    else if(name == "EditData")
-    {
-        cmd = new EditData;
-    }
-    else if(name == "Insert")
-    {
-        cmd = new Insert;
-    }
-    else if(name == "Move")
-    {
-        cmd = new Move;
-    }
-    else if(name == "Paste")
-    {
-        cmd = new Paste;
-    }
-    else if(name == "Remove")
-    {
-        cmd = new Remove;
+        iscore::SerializableCommand* cmd = (*(*it).second)();
+        cmd->deserialize(data);
+        return cmd;
     }
     else
     {
         qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
         return nullptr;
     }
-
-    cmd->deserialize(arr);
-    return cmd;
 }
 
 #include <core/document/DocumentModel.hpp>
@@ -84,8 +84,17 @@ void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
     // and add exploring.
 }
 
+iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
+        const QString &name,
+        const VisitorVariant &var,
+        iscore::DocumentModel *model)
+{
+    return new DeviceDocumentPlugin(var, model);
+}
+
 void DeviceExplorerControl::on_documentChanged()
 {
     // disconnect ...
     // connect(device explorer widget, document->device plugin
 }
+

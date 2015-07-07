@@ -1,18 +1,13 @@
-
 #include "Cut.hpp"
 
 using namespace DeviceExplorer::Command;
 
-Cut::Cut()
-    : iscore::SerializableCommand("", "Cut ", "")
-{
-
-}
-
-void
-Cut::set(const Path &parentPath, int row,
+Cut::Cut(const Path &parentPath, int row,
                               const QString& text,
-                              ObjectPath &&model)
+                              ObjectPath &&model):
+    iscore::SerializableCommand{"DeviceExplorerControl",
+                                commandName(),
+                                description()}
 {
     m_model = model;
     m_parentPath = parentPath;

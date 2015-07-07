@@ -1,13 +1,15 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-namespace iscore
-{
-class SerializableCommand;
-}
+
 class DeviceExplorerControl : public iscore::PluginControlInterface
 {
     public:
         DeviceExplorerControl(iscore::Presenter*);
+
+        virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
+                const QString& name,
+                const VisitorVariant& var,
+                iscore::DocumentModel *parent);
 
         iscore::SerializableCommand*
         instantiateUndoCommand(const QString & name,
@@ -16,4 +18,7 @@ class DeviceExplorerControl : public iscore::PluginControlInterface
     protected:
         void on_newDocument(iscore::Document* doc) override;
         void on_documentChanged() override;
+
+    private:
+        void setupCommands();
 };

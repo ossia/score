@@ -1,18 +1,13 @@
-
 #include "Paste.hpp"
 
 using namespace DeviceExplorer::Command;
 
-Paste::Paste()
-    : iscore::SerializableCommand("", "Paste ", "")
-{
-
-}
-
-void
-Paste::set(const Path &parentPath, int row,
+Paste::Paste(const Path &parentPath, int row,
                                 const QString& text,
-                                ObjectPath &&modelPath)
+                                ObjectPath &&modelPath):
+    iscore::SerializableCommand{"DeviceExplorerControl",
+                                commandName(),
+                                description()}
 {
     m_model = modelPath;
     m_row = row;
