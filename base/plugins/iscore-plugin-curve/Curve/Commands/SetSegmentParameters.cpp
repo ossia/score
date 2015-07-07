@@ -5,7 +5,8 @@
 SetSegmentParameters::SetSegmentParameters(
         ObjectPath&& model,
         SegmentParameterMap&& parameters):
-    iscore::SerializableCommand("CurveControl", commandName(), description()),
+    iscore::SerializableCommand{
+        "AutomationControl", commandName(), description()},
     m_model{std::move(model)},
     m_new{std::move(parameters)}
 {

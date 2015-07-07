@@ -4,23 +4,25 @@
 class ScenarioFactory : public ProcessFactory
 {
     public:
-        virtual QString name() const override;
+        QString name() const override;
 
-        virtual ProcessModel* makeModel(
+        ProcessModel* makeModel(
                 const TimeValue& duration,
                 const id_type<ProcessModel>& id,
                 QObject* parent) override;
 
-        virtual ProcessModel* loadModel(
+        ProcessModel* loadModel(
                 const VisitorVariant&,
                 QObject* parent) override;
 
-        virtual ProcessPresenter* makePresenter(
+        QByteArray makeStaticLayerConstructionData() const override;
+
+        ProcessPresenter* makePresenter(
                 const LayerModel&,
                 Layer*,
                 QObject* parent) override;
 
-        virtual Layer* makeView(
+        Layer* makeView(
                 const LayerModel& viewmodel,
                 QObject* parent) override;
 

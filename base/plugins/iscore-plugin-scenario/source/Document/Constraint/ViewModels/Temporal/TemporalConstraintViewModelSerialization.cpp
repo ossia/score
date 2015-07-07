@@ -16,7 +16,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const TemporalConstraintViewModel& co
 
 // TODO not the best place...
 #include "TemporalConstraintViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioLayer.hpp"
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
         const ScenarioModel& scenario)

@@ -1,6 +1,6 @@
 #include "Process/AbstractScenarioViewModel.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
-#include "TemporalScenarioViewModel.hpp"
+#include "TemporalScenarioLayer.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 
 template<>

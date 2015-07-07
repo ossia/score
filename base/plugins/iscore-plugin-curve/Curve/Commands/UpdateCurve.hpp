@@ -3,6 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 class CurveSegmentModel;
+// TODO due to AutomationControl this can't be put in a lib...
 class UpdateCurve : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("UpdateCurve", "UpdateCurve")

@@ -1,7 +1,7 @@
 #include "ScenarioModel.hpp"
 
 #include "Algorithms/StandardCreationPolicy.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioLayer.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"

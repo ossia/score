@@ -31,6 +31,10 @@ class ProcessFactory : public iscore::FactoryInterface
                 const id_type<ProcessModel>& id,
                 QObject* parent) = 0;
 
+        // The layers may need some specific static data to construct,
+        // this provides it (for the sake of commands)
+        virtual QByteArray makeStaticLayerConstructionData() const = 0;
+
         // throws if the serialization method is not implemented by the subclass
         virtual ProcessModel* loadModel(
                 const VisitorVariant&,

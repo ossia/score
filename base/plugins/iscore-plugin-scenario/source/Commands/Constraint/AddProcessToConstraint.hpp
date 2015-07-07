@@ -8,6 +8,9 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class ProcessModel;
+class LayerModel;
+class RackModel;
+class SlotModel;
 namespace Scenario
 {
     namespace Command
@@ -44,9 +47,12 @@ namespace Scenario
                 QString m_processName;
 
                 id_type<ProcessModel> m_createdProcessId {};
-                bool m_noRackes;
-                AddLayerInNewSlot* m_cmdNewSlot;
-                AddLayerModelToSlot* m_cmdFirstSlot;
+                id_type<RackModel> m_createdRackId {};
+                id_type<SlotModel> m_createdSlotId {};
+                id_type<LayerModel> m_createdLayerId {};
+                QByteArray m_layerConstructionData;
+                bool m_noRackes = false;
+                bool m_notBaseConstraint = false;
         };
     }
 }

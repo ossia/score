@@ -27,3 +27,9 @@ ProcessPresenter* AutomationFactory::makePresenter(
 {
     return new AutomationPresenter {viewModel, view, parent};
 }
+
+
+QByteArray AutomationFactory::makeStaticLayerConstructionData() const
+{
+    return {};
+}

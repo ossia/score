@@ -2,7 +2,7 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioLayer.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 QString ScenarioFactory::name() const
@@ -41,4 +41,17 @@ ProcessModel* ScenarioFactory::makeModel(
         QObject* parent)
 {
     return new ScenarioModel {duration, id, parent};
+}
+
+QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
+{
+    // Like ScenarioModel::makeViewModelConstructionData but without data since
+    // there won't be constraints at the beginning.
+    QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> map;
+
+    QByteArray arr;
+    QDataStream s{&arr, QIODevice::WriteOnly};
+    s << map;
+
+    return arr;
 }

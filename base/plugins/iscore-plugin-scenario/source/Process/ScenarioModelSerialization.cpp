@@ -1,7 +1,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioLayer.hpp"
 #include "ScenarioModel.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
 

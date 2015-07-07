@@ -4,7 +4,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioLayer.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 
 using namespace iscore;

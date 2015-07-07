@@ -1,4 +1,4 @@
-#include "TemporalScenarioViewModel.hpp"
+#include "TemporalScenarioLayer.hpp"
 
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -15,7 +15,7 @@ TemporalScenarioLayer::TemporalScenarioLayer(
         ScenarioModel& model,
         QObject* parent) :
     AbstractScenarioLayer {viewModelId,
-                              "TemporalScenarioViewModel",
+                              "TemporalScenarioLayer",
                               model,
                               parent}
 {
@@ -32,7 +32,7 @@ TemporalScenarioLayer::TemporalScenarioLayer(
         QObject* parent) :
     AbstractScenarioLayer {source,
                               id,
-                              "TemporalScenarioViewModel",
+                              "TemporalScenarioLayer",
                               newScenario,
                               parent
 }
