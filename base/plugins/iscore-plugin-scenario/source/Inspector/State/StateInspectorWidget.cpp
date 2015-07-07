@@ -5,6 +5,7 @@
 #include <State/Widgets/StateWidget.hpp>
 #include <QPushButton>
 #include <QFormLayout>
+#include <QLabel>
 StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *parent):
     InspectorWidgetBase {object, parent},
     m_model {object}

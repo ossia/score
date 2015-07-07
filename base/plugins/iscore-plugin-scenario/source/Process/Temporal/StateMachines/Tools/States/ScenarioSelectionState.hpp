@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/statemachine/CommonSelectionState.hpp>
+#include <QPointF>
 class ScenarioStateMachine;
 class TemporalScenarioView;
 

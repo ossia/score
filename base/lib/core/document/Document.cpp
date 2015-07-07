@@ -12,6 +12,7 @@
 
 #include <core/application/OpenDocumentsFile.hpp>
 #include <QLayout>
+#include <QStandardPaths>
 #include <QSettings>
 
 using namespace iscore;

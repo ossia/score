@@ -111,13 +111,7 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
 
-
-struct ScenarioCommandFactory
-{
-        static CommandGeneratorMap map;
-};
-// The map is in CommandNames.cpp
-
+#include "ScenarioCommandFactory.hpp"
 
 iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
         const QString& name,

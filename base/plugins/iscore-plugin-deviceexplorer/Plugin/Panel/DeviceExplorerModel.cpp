@@ -798,11 +798,14 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
 
     beginRemoveRows(index.parent(), row, row);
 
-#ifndef QT_NO_DEBUG
+    #ifndef QT_NO_DEBUG
     Node* child =
         #endif
             parent->takeChild(row);
+
+#ifndef QT_NO_DEBUG
     Q_ASSERT(child == cutNode);
+#endif
 
     endRemoveRows();
 

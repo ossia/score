@@ -300,11 +300,7 @@ namespace boost { namespace mpl {
 #include BOOST_PP_ITERATE()
 }}
 #include <iscore/command/CommandGeneratorMap.hpp>
-
-struct ScenarioCommandFactory
-{
-        static CommandGeneratorMap map;
-};
+#include "Control/ScenarioCommandFactory.hpp"
 CommandGeneratorMap ScenarioCommandFactory::map;
 
 void ScenarioControl::setupCommands()

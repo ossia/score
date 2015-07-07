@@ -6,13 +6,13 @@
 namespace iscore {
 class State
 {       friend
-        void Visitor<Reader<DataStream>>::readFrom<State>(const State& mess);
+        void Visitor<Reader<DataStream>>::readFrom<iscore::State>(const iscore::State& mess);
         friend
-        void Visitor<Reader<JSONObject>>::readFrom<State>(const State& mess);
+        void Visitor<Reader<JSONObject>>::readFrom<iscore::State>(const iscore::State& mess);
         friend
-        void Visitor<Writer<DataStream>>::writeTo<State>(State& mess);
+        void Visitor<Writer<DataStream>>::writeTo<iscore::State>(iscore::State& mess);
         friend
-        void Visitor<Writer<JSONObject>>::writeTo<State>(State& mess);
+        void Visitor<Writer<JSONObject>>::writeTo<iscore::State>(iscore::State& mess);
 
     public:
         State() = default;
