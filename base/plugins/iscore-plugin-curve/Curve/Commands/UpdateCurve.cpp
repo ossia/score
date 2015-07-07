@@ -27,6 +27,8 @@ void UpdateCurve::undo()
         Deserializer<DataStream> des(elt);
         curve.addSegment(createCurveSegment(des, &curve));
     }
+
+    curve.changed();
 }
 
 void UpdateCurve::redo()
@@ -39,6 +41,8 @@ void UpdateCurve::redo()
         Deserializer<DataStream> des(elt);
         curve.addSegment(createCurveSegment(des, &curve));
     }
+
+    curve.changed();
 }
 
 void UpdateCurve::update(ObjectPath&& model, QVector<QByteArray> &&segments)

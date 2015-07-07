@@ -44,6 +44,10 @@ AutomationModel::AutomationModel(
     s4->setEnd({1.0, 1.});
 */
     m_curve->addSegment(s1);
+    connect(m_curve, &CurveModel::changed,
+            this, &AutomationModel::curveChanged);
+
+
     /*
     m_curve->addSegment(s2);
     m_curve->addSegment(s3);
@@ -198,6 +202,9 @@ void AutomationModel::setCurve(CurveModel* newCurve)
 {
     delete m_curve;
     m_curve = newCurve;
+
+    connect(m_curve, &CurveModel::changed,
+            this, &AutomationModel::curveChanged);
 
     emit curveChanged();
 }

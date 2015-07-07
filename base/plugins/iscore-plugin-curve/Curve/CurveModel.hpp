@@ -44,13 +44,13 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void pointAdded(CurvePointModel*);
         void pointRemoved(CurvePointModel*); // dangerous if async
 
+        void changed();
         void cleared();
 
     private:
         void addPoint(CurvePointModel* pt);
         void removePoint(CurvePointModel* pt);
 
-        IdContainer<CurveSegmentModel> m_segments;
-        //QVector<CurveSegmentModel*> m_segments; // Each between 0, 1
+        IdContainer<CurveSegmentModel> m_segments; // TODO add ordered index
         QVector<CurvePointModel*> m_points; // Each between 0, 1
 };

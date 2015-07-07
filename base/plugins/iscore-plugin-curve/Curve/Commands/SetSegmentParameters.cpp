@@ -29,6 +29,8 @@ void SetSegmentParameters::undo()
         if(m_old.value(elt).second)
             seg->setHorizontalParameter(*m_old.value(elt).second);
     }
+
+    curve.changed();
 }
 
 void SetSegmentParameters::redo()
@@ -41,6 +43,8 @@ void SetSegmentParameters::redo()
         seg->setVerticalParameter(m_new.value(elt).first);
         seg->setHorizontalParameter(m_new.value(elt).second);
     }
+
+    curve.changed();
 }
 
 void SetSegmentParameters::update(ObjectPath&& model, SegmentParameterMap &&segments)

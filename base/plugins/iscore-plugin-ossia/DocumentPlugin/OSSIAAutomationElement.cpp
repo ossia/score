@@ -22,6 +22,9 @@ OSSIAAutomationElement::OSSIAAutomationElement(const AutomationModel *element, Q
 
     connect(element, &AutomationModel::addressChanged,
             this, &OSSIAAutomationElement::on_addressChanged);
+    connect(element, &AutomationModel::curveChanged,
+            this, &OSSIAAutomationElement::on_curveChanged);
+    on_curveChanged(); // Rebuild the curve with the correct data.
     on_addressChanged(element->address());
 }
 
@@ -64,86 +67,44 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
 
     // Add the real address
     auto address = node->getAddress();
+
+
     using namespace OSSIA;
 
-    auto curve = Curve<float>::create();
-    auto linearSegment = CurveSegmentLinear<float>::create(curve);
+    auto new_autom = Automation::create(
+                [](const OSSIA::TimeValue& position,
+                   const OSSIA::TimeValue& date,
+                   std::shared_ptr<OSSIA::State> state) { state->launch(); },
+                address,
+                new Behavior(m_ossia_curve));
 
-    curve->setInitialValue(0.);
-    curve->addPoint(0.5, 1., linearSegment);
-    curve->addPoint(1., 0., linearSegment);
-
-    // create a Tuple value of 3 Behavior values based on the same curve
-    std::vector<const Value*> t_curves = {new Behavior(curve)};
-    Tuple* curves = new Tuple(t_curves); // TODO memleak
-
-    // create an Automation for /test address drived by one curve
-    auto new_autom = Automation::create([](
-                                               const OSSIA::TimeValue& position,
-                                               const OSSIA::TimeValue& date,
-                                               std::shared_ptr<OSSIA::State> state)
-     {
-         qDebug() << "automati callback" << double(position);
-     }, address, new Behavior(curve));
-
-    // add "/test 0. 0. 0." message to Automation's start State
-    std::vector<const Value*> t_zero = {new Float(0.)};
-    Tuple* zero = new Tuple(t_zero);
+    // Fetch from the State in i-score
     auto first_start_message = Message::create(address, new Float(0.));
     new_autom->getStartState()->stateElements().push_back(first_start_message);
 
-    // add "/test 1. 1. 1." message to Automation's end State
-    std::vector<const Value*> t_one = {new Float(1.)};
-    Tuple* one = new Tuple(t_one);
     auto first_end_message = Message::create(address, new Float(1.));
     new_autom->getEndState()->stateElements().push_back(first_end_message);
 
-
-    /*
-    auto myCurve = Curve<float>::create();
-    auto firstCurveSegment = CurveSegmentLinear<float>::create(myCurve);
-    auto secondCurveSegment = CurveSegmentLinear<float>::create(myCurve);
-
-    myCurve->setInitialValue(0.);
-    myCurve->addPoint(1., 1., firstCurveSegment);
-    myCurve->addPoint(2., 0., secondCurveSegment);
-
-
-    auto new_autom = OSSIA::Automation::create([](
-                                              const OSSIA::TimeValue& position,
-                                              const OSSIA::TimeValue& date,
-                                              std::shared_ptr<OSSIA::State> state)
-    {
-        qDebug() << "automati callback" << double(position);
-    }, address, new Behavior{myCurve});
-
-    if(m_iscore_autom->parent()->objectName() != QString("BaseConstraintModel"))
-    {
-        new_autom->getClock()->setExternal(true);
-    }
-    else
-    {
-        new_autom->getClock()->setSpeed(1.);
-        new_autom->getClock()->setGranularity(250.);
-    }
-
-
-
-    // add "/test 0." message to Automation's start State
-    OSSIA::Float zero(0.);
-    auto first_start_message = OSSIA::Message::create(address, &zero);
-    // TODO is this okay for removal?
-    new_autom->getStartState()->stateElements().clear();
-    new_autom->getStartState()->stateElements().push_back(first_start_message);
-
-    // add "/test 1." message to Automation's end State
-    OSSIA::Float one(1.);
-    auto first_end_message = OSSIA::Message::create(address, &one);
-    new_autom->getEndState()->stateElements().clear();
-    new_autom->getEndState()->stateElements().push_back(first_end_message);
-
-    */
     auto old_autom = m_ossia_autom;
     m_ossia_autom = new_autom;
     emit changed(old_autom, new_autom);
+}
+
+#include "../iscore-plugin-curve/Curve/CurveModel.hpp"
+#include "../iscore-plugin-curve/Curve/Segment/LinearCurveSegmentModel.hpp"
+void OSSIAAutomationElement::on_curveChanged()
+{
+    using namespace OSSIA;
+    m_ossia_curve = Curve<float>::create();
+
+    // For now we will assume that every segment is dynamic
+    for(auto& iscore_segment : m_iscore_autom->curve().segments())
+    {
+        auto linearSegment = CurveSegmentLinear<float>::create(m_ossia_curve);
+        m_ossia_curve->addPoint(iscore_segment->start().x(), iscore_segment->start().y(), linearSegment);
+        m_ossia_curve->addPoint(iscore_segment->end().x(), iscore_segment->end().y(), linearSegment);
+    }
+
+    //m_ossia_curve->setInitialValue((*m_iscore_autom->curve().segments().begin()).start().y());
+
 }

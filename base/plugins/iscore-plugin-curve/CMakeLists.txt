@@ -14,7 +14,7 @@ find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
 include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
 include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-
+set(CURVE_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Automation/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp"
