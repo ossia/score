@@ -1,7 +1,7 @@
 #include "ProcessList.hpp"
 #include "ProcessInterface/ProcessFactory.hpp"
 
-ProcessList::ProcessList(NamedObject* parent) :
+ProcessList::ProcessList(NamedObject* parent):
     NamedObject {"ProcessList", parent}
 {
 
@@ -19,7 +19,7 @@ QStringList ProcessList::getProcessesName_impl() const
     return lst;
 }
 
-ProcessFactory* ProcessList::getProcess(QString name)
+ProcessFactory* ProcessList::getProcess(const QString &name)
 {
     auto it = std::find_if(m_processes.begin(),
                            m_processes.end(),

@@ -123,27 +123,35 @@ iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
 
 void ScenarioControl::createContextMenu(const QPoint& pos)
 {
-    QMenu contextMenu {};
-    contextMenu.clear();
+    QMenu contextMenu;
 
     contextMenu.addAction(m_selectAll);
     contextMenu.addAction(m_deselectAll);
     contextMenu.addSeparator();
 
-    if(focusedScenarioModel())
+    if(focusedScenarioModel()) // TODO weird
     {
         auto selectedCstr = selectedElements(focusedScenarioModel()->constraints());
         auto selectedEvt = selectedElements(focusedScenarioModel()->events());
         auto selectedTn = selectedElements(focusedScenarioModel()->timeNodes());
+        auto selectedSt = selectedElements(focusedScenarioModel()->states());
 
         m_objectAction->setConstraintAction(! selectedCstr.empty());
-        if(!selectedCstr.empty() || !selectedEvt.empty() || !selectedTn.empty() )
+        if(!selectedCstr.empty() || !selectedEvt.empty() || !selectedTn.empty() || !selectedSt.empty() )
         {
             m_objectAction->fillContextMenu(&contextMenu);
             contextMenu.addSeparator();
         }
     }
+    else
+    {
+        // should never happen
+        Q_ASSERT(false);
+    }
+
     m_toolActions->fillContextMenu(&contextMenu);
+
+    // TODO allow plug-ins to insert data from here.
 
     contextMenu.exec(pos);
 

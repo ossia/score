@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include "ProcessInterface/ProcessList.hpp"
+#include "Menus/Plugin/ScenarioContextMenuPluginList.hpp"
 #include "Document/BaseElement/ProcessFocusManager.hpp"
 
 class QActionGroup;
@@ -25,10 +26,10 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
                 const QByteArray& data) override;
 
-        // TODO why not in the plug-in ? (cf. DeviceExplorer)
-        // Or - why could not the control be instead the Plugin (what is its point) ?
         ProcessList* processList()
         { return &m_processList; }
+        ScenarioContextMenuPluginList* contextMenuList()
+        { return &m_contextMenuList; }
 
     public slots:
         void createContextMenu(const QPoint &);
@@ -39,6 +40,8 @@ class ScenarioControl : public iscore::PluginControlInterface
 
     private:
         ProcessList m_processList;
+        ScenarioContextMenuPluginList m_contextMenuList;
+
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 

@@ -5,7 +5,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const State &state) :
+AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const iscore::State &state) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -15,7 +15,7 @@ AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const State &state) :
 
 }
 
-AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, State &&state) :
+AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, iscore::State &&state) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

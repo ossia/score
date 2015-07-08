@@ -51,6 +51,4 @@ class ProcessFactory : public iscore::FactoryInterface
                 const LayerModel& view,
                 QObject* parent) = 0;
 
-
-
 };

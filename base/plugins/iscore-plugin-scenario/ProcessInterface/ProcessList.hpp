@@ -20,7 +20,7 @@ class ProcessList : public NamedObject
     public:
         ProcessList(NamedObject* parent);
 
-        ProcessFactory* getProcess(QString);
+        ProcessFactory* getProcess(const QString&);
         void registerProcess(iscore::FactoryInterface*);
 
         static QStringList getProcessesName();

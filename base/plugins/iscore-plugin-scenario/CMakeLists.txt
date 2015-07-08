@@ -137,6 +137,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/Plugin/ScenarioContextMenuPluginList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/OldFormatConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/ScenarioControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/AddProcessDialog.cpp"
@@ -273,10 +274,9 @@ if(TARGET iscore_lib_inspector)
     target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
 endif()
 
+set_target_properties(iscore_plugin_scenario PROPERTIES
+    COTIRE_PREFIX_HEADER_IGNORE_PATH "/usr/include/boost/preprocessor/")
 cotire(iscore_plugin_scenario)
-set_target_properties(iscore_plugin_scenario
-                      PROPERTIES
-                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
 
 install(TARGETS iscore_plugin_scenario
     LIBRARY DESTINATION plugins/

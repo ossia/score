@@ -56,9 +56,16 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 
 QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 {
-    return {{"Process",
-            [&] (iscore::FactoryInterface* fact)
-            { m_control->processList()->registerProcess(fact); }}};
+    return {
+            {"Process",
+             [&] (iscore::FactoryInterface* fact)
+             { m_control->processList()->registerProcess(fact); }
+            },
+            {"ScenarioContextMenu",
+             [&] (iscore::FactoryInterface* fact)
+             { m_control->contextMenuList()->registerContextMenu(fact); }
+            }
+           };
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)

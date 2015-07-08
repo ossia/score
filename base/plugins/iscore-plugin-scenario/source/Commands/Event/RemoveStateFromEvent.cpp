@@ -5,7 +5,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveStateFromEvent::RemoveStateFromEvent(ObjectPath &&eventPath, const State& state):
+RemoveStateFromEvent::RemoveStateFromEvent(ObjectPath &&eventPath, const iscore::State& state):
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
