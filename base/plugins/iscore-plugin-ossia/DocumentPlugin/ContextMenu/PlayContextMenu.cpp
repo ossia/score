@@ -29,8 +29,6 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
             }
         }
     });
-
-
 }
 
 void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)

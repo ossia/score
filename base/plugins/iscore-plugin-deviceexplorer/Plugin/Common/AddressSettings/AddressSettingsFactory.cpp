@@ -40,6 +40,8 @@ AddressSettingsFactory::AddressSettingsFactory()
                                           new AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget>);
     m_addressSettingsWidgetFactory.insert(QObject::tr("Char"),
                                           new AddressSettingsWidgetFactoryMethodT<AddressCharSettingsWidget>);
+    m_addressSettingsWidgetFactory.insert(QObject::tr("None"),
+                                          new AddressSettingsWidgetFactoryMethodT<AddressNoneSettingsWidget>);
 }
 
 

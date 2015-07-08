@@ -25,3 +25,20 @@ void AddressBoolSettingsWidget::setSettings(const AddressSettings& settings)
 {
     m_cb->setCurrentIndex(settings.value.value<bool>());
 }
+
+
+
+
+AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
+    : AddressSettingsWidget(parent)
+{
+}
+
+AddressSettings AddressNoneSettingsWidget::getSettings() const
+{
+    return getCommonSettings();
+}
+
+void AddressNoneSettingsWidget::setSettings(const AddressSettings& settings)
+{
+}

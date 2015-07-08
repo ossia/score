@@ -177,6 +177,7 @@ AddressEditDialog::setSettings(const AddressSettings& settings)
             type = "Tuple";
             break;
         default:
+            type = "None";
             break;
     }
 
