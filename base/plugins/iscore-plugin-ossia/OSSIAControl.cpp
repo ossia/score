@@ -110,7 +110,15 @@ void OSSIAControl::on_newDocument(iscore::Document* doc)
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 {
-    on_newDocument(doc);
+    if(auto plugmodel = doc->model()->pluginModel("OSSIADocumentPlugin"))
+    {
+        auto ossia_plug = static_cast<OSSIADocumentPlugin*>(plugmodel);
+        ossia_plug->reload(doc->model());
+    }
+    else
+    {
+        on_newDocument(doc);
+    }
 }
 
 void OSSIAControl::on_documentChanged()

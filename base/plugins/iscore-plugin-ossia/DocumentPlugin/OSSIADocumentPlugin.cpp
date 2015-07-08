@@ -17,6 +17,11 @@
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* parent):
     iscore::DocumentDelegatePluginModel{"OSSIADocumentPlugin", parent}
 {
+    reload(doc);
+}
+
+void OSSIADocumentPlugin::reload(iscore::DocumentModel* doc)
+{
     auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
     m_base = new OSSIABaseScenarioElement{baseElement, this};
 }
@@ -24,9 +29,4 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* pa
 OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
 {
     return m_base;
-}
-
-void OSSIADocumentPlugin::serialize(
-        const VisitorVariant&) const
-{
 }

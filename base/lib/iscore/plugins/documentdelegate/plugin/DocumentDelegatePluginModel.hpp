@@ -31,7 +31,7 @@ class DocumentDelegatePluginModel : public NamedObject
                 const ElementPluginModel*,
                 QWidget* parent) const { return nullptr; }
 
-        virtual void serialize(const VisitorVariant&) const = 0;
+        virtual void serialize(const VisitorVariant&) const {}
 };
 
 }
