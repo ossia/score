@@ -59,5 +59,12 @@ Q_DECLARE_METATYPE(iscore::State)
 Q_DECLARE_METATYPE(iscore::StateList)
 
 
-uint qHash(const iscore::State& state) noexcept;
-uint qHash(const iscore::State& state, uint seed) noexcept;
+std::size_t hash_value(const iscore::State& state) noexcept;
+
+struct state_hash
+{
+    std::size_t operator()(const iscore::State& state) const noexcept
+    {
+        return hash_value(state);
+    }
+};

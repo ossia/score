@@ -33,7 +33,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const State& state)
     }
     else
     {
-        qDebug() << "TODO";
+        ISCORE_TODO;
     }
 }
 

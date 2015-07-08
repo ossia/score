@@ -9,7 +9,6 @@
 #include <iscore/selection/Selectable.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
-#include <unordered_map>
 #include <State/State.hpp>
 #include "source/Document/State/DisplayedStateModel.hpp"
 #include "source/Document/Event/EventStatus.hpp"

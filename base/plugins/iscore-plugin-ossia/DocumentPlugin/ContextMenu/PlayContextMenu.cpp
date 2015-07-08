@@ -24,7 +24,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
             {
                 for(auto& ossia_state : s_plugin->states().at(state->id())->states())
                 {
-                    ossia_state->launch();
+                    ossia_state.second->launch();
                 }
             }
         }

@@ -18,7 +18,6 @@ OSSIAAutomationElement::OSSIAAutomationElement(const AutomationModel *element, Q
     m_deviceList{static_cast<DeviceDocumentPlugin>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin")).list()}
 {
     using namespace iscore::convert;
-    // auto node = getNodeFromPath(element->address().path, &static_cast<OSSIADevice*>(&m_deviceList.device(element->address().device))->impl());
 
     connect(element, &AutomationModel::addressChanged,
             this, &OSSIAAutomationElement::on_addressChanged);

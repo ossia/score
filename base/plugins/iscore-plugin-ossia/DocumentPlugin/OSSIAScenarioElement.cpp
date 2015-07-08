@@ -157,16 +157,16 @@ void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
     } );
     connect(&iscore_state, &StateModel::stateRemoved, this,
             [=] (const iscore::State& st_val) {
-        ossia_ev->event()->removeState(state_elt->states().value(st_val));
+        ossia_ev->event()->removeState(state_elt->states().at(st_val));
         state_elt->removeState(st_val);
     });
     connect(&iscore_state, &StateModel::statesReplaced, this,
             [=] () {
 
-        for(auto& st_val : state_elt->states().keys())
+        for(auto& states : state_elt->states())
         {
-            ossia_ev->event()->removeState(state_elt->states().value(st_val));
-            state_elt->removeState(st_val);
+            ossia_ev->event()->removeState(states.second);
+            state_elt->removeState(states.first);
         }
 
         for(auto& st_val : state_elt->iscoreState()->states())
@@ -278,18 +278,18 @@ void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
 {
     auto it = m_ossia_states.find(id);
     Q_ASSERT(it != m_ossia_states.end());
-    auto st = (*it).second;
+    auto state_elt = (*it).second;
 
     auto ev_it = m_ossia_timeevents.find(m_iscore_scenario->state(id).eventId());
     if(ev_it != m_ossia_timeevents.end())
     {
         OSSIAEventElement* ev = (*ev_it).second;
-        for(auto& state : st->states())
-            ev->event()->removeState(state);
+        for(auto& state : state_elt->states())
+            ev->event()->removeState(state.second);
     }
 
     m_ossia_states.erase(it);
-    delete st;
+    delete state_elt;
 }
 
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)

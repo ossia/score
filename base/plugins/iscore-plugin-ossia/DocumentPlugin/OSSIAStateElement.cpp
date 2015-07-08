@@ -13,7 +13,7 @@ const StateModel *OSSIAStateElement::iscoreState() const
     return m_iscore_state;
 }
 
-const QHash<iscore::State, std::shared_ptr<OSSIA::State>>& OSSIAStateElement::states() const
+const OSSIAStateElement::StateMap& OSSIAStateElement::states() const
 {
     return m_states;
 }
@@ -21,7 +21,7 @@ const QHash<iscore::State, std::shared_ptr<OSSIA::State>>& OSSIAStateElement::st
 
 void OSSIAStateElement::addState(const iscore::State& is, std::shared_ptr<OSSIA::State> os)
 {
-    m_states.insert(is, os);
+    m_states.insert({is, os});
 }
 
 void OSSIAStateElement::removeState(const iscore::State& s)
