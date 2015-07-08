@@ -52,6 +52,10 @@ std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() cons
 void OSSIAConstraintElement::stop()
 {
     m_ossia_constraint->stop();
+    for(auto& process : m_processes)
+    {
+        process.second->stop();
+    }
 
     m_iscore_constraint.reset();
 }

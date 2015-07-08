@@ -92,6 +92,7 @@ std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
 
 void OSSIAScenarioElement::stop()
 {
+    m_previousExecutionDate = TimeValue::zero();
     m_executingConstraints.clear();
 }
 
