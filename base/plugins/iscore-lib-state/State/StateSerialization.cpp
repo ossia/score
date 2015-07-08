@@ -57,17 +57,17 @@ void Visitor<Writer<JSONObject>>::writeTo(State& state)
     {
         StateList t;
         fromJsonArray(m_obj["Data"].toArray(), t);
-        state = t;
+        state = State(t);
     }
     else if("iscore::Message" == t)
     {
-        state = fromJsonObject<Message>(m_obj["Data"].toObject());
+        state = State(fromJsonObject<Message>(m_obj["Data"].toObject()));
     }
     else if("iscore::MessageList" == t)
     {
         MessageList t;
         fromJsonArray(m_obj["Data"].toArray(), t);
-        state = t;
+        state = State(t);
     }
     else
     {

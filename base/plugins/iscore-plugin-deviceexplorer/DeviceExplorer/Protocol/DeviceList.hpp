@@ -6,7 +6,6 @@
 class DeviceList
 {
     public:
-
         DeviceList() = default;
 
         DeviceList(DeviceList&&) = delete;
@@ -20,8 +19,8 @@ class DeviceList
         void addDevice(DeviceInterface* dev);
         void removeDevice(const QString& name);
 
-        const QList<DeviceInterface*>& devices() const;
+        const std::vector<DeviceInterface*>& devices() const;
 
     private:
-        QList<DeviceInterface*> m_devices;
+        std::vector<DeviceInterface*> m_devices;
 };

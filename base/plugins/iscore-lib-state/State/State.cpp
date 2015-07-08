@@ -75,12 +75,11 @@ uint qHash( const QVariant & var ) noexcept
     return -1;
 }
 
-template<typename Array>
-std::size_t ArrayHash(const Array& arr) noexcept
+std::size_t ArrayHash(const QStringList& arr) noexcept
 {
     uint hash = 0;
     for(auto & elt : arr)
-        hash = 31 * hash + ::hash_value(elt);
+        hash = 31 * hash + ::qHash(elt);
     return hash;
 }
 
@@ -89,10 +88,25 @@ std::size_t hash_value(const iscore::Address &addr) noexcept
     return qHash(addr.device) ^ ArrayHash(addr.path);
 }
 
-
-std::size_t hash_value(const iscore::Message &mess) noexcept
+std::size_t hash_message(const iscore::Message &mess) noexcept
 {
     return hash_value(mess.address) ^ qHash(mess.value);
+}
+
+std::size_t ArrayHash(const iscore::MessageList& arr) noexcept
+{
+    uint hash = 0;
+    for(auto & elt : arr)
+        hash = 31 * hash + ::hash_message(elt);
+    return hash;
+}
+
+std::size_t ArrayHash(const iscore::StateList& arr) noexcept
+{
+    uint hash = 0;
+    for(auto & elt : arr)
+        hash = 31 * hash + ::hash_value(elt);
+    return hash;
 }
 }
 
@@ -104,11 +118,11 @@ std::size_t hash_value(const iscore::State& state) noexcept
     }
     else if(state.data().canConvert<iscore::StateList>())
     {
-        return hash_value(state.data().value<iscore::StateList>());
+        return ArrayHash(state.data().value<iscore::StateList>());
     }
     else if(state.data().canConvert<iscore::Message>())
     {
-        return hash_value(state.data().value<iscore::Message>());
+        return hash_message(state.data().value<iscore::Message>());
     }
     else if(state.data().canConvert<iscore::MessageList>())
     {
@@ -116,6 +130,7 @@ std::size_t hash_value(const iscore::State& state) noexcept
     }
     else
     {
+        qDebug() << "Missing type" << state.data().typeName();
         ISCORE_TODO;
         return -1;
     }

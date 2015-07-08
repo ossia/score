@@ -6,9 +6,11 @@
 
 #include <Plugin/DeviceExplorerPlugin.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <QMessageBox>
 #include <QFile>
 #include <QtXml/QtXml>
+#include <QGuiApplication>
+#include <QWindow>
 
 using namespace iscore;
 // TODO check xml loading.
@@ -211,9 +213,18 @@ void AddDevice::redo()
     // Instantiate a real device.
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
     Q_ASSERT(explorer.deviceModel());
-    auto newdev = proto->makeDevice(m_parameters);
-    Q_ASSERT(newdev);
-    explorer.deviceModel()->list().addDevice(newdev);
+
+    try {
+        auto newdev = proto->makeDevice(m_parameters);
+        explorer.deviceModel()->list().addDevice(newdev);
+    }
+    catch(std::runtime_error e)
+    {
+        QMessageBox::warning(QApplication::activeWindow(),
+                             QObject::tr("Error loading device"),
+                             m_parameters.name + ": " + QString::fromLatin1(e.what()));
+    }
+
 
     // Put it in the tree.
     auto node = makeDeviceNode(m_parameters, m_filePath);

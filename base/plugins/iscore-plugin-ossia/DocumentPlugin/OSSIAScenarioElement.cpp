@@ -17,16 +17,16 @@
 OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
     OSSIAProcessElement{parent},
     m_iscore_scenario{element},
-    m_deviceList{static_cast<DeviceDocumentPlugin>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin")).list()}
+    m_deviceList{static_cast<DeviceDocumentPlugin*>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin"))->list()}
 {
     this->setObjectName("OSSIAScenarioElement");
+
     // Setup of the OSSIA API Part
     m_ossia_scenario = OSSIA::Scenario::create([=](
                                                const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
                                                const OSSIA::TimeValue& date,
                                                std::shared_ptr<OSSIA::State> state)
     {
-        qDebug() << "ici" << OSSIA::convert::time(position) << OSSIA::convert::time(date);
         auto currentTime = OSSIA::convert::time(date);
         for(ConstraintModel* constraint : m_executingConstraints)
         {
@@ -149,6 +149,7 @@ void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
 
     connect(&iscore_state, &StateModel::stateAdded, this,
             [=] (const iscore::State& st_val) {
+        qDebug() << "State added";
         auto ossia_st = iscore::convert::state(st_val, m_deviceList);
         ossia_ev->event()->addState(ossia_st);
 
@@ -157,12 +158,12 @@ void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
     } );
     connect(&iscore_state, &StateModel::stateRemoved, this,
             [=] (const iscore::State& st_val) {
+        qDebug() << "State removed";
         ossia_ev->event()->removeState(state_elt->states().at(st_val));
         state_elt->removeState(st_val);
     });
     connect(&iscore_state, &StateModel::statesReplaced, this,
             [=] () {
-
         for(auto& states : state_elt->states())
         {
             ossia_ev->event()->removeState(states.second);

@@ -21,8 +21,6 @@ MinuitDevice::MinuitDevice(const DeviceSettings &settings):
     using namespace OSSIA;
 
     m_dev = Device::create(m_minuitSettings, settings.name.toStdString());
-
-    Q_ASSERT(m_dev);
 }
 
 bool MinuitDevice::canRefresh() const
