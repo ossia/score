@@ -22,10 +22,13 @@ StatePresenter::StatePresenter(
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,               &StateView::changeColor);
 
-    connect(&m_model, &StateModel::statesChanged,
+    connect(&m_model, &StateModel::statesReplaced,
             this, [&] () {
         m_view->setContainMessage(!m_model.states().empty());
     });
+
+    connect(m_view, &StateView::dropReceived,
+            this, &StatePresenter::handleDrop);
 }
 
 StatePresenter::~StatePresenter()
@@ -64,9 +67,27 @@ bool StatePresenter::isSelected() const
     return m_model.selection.get();
 }
 
+#include "Commands/Event/AddStateToEvent.hpp"
+#include <QMimeData>
+#include <QJsonDocument>
+#include <iscore/document/DocumentInterface.hpp>
+#include "Commands/Event/State/AddStateWithData.hpp"
 void StatePresenter::handleDrop(const QMimeData *mime)
 {
-    ISCORE_TODO
-    // Use the one from EventPresenter.
+    // If the mime data has states in it we can handle it.
+    if(mime->formats().contains("application/x-iscore-state"))
+    {
+        Deserializer<JSONObject> deser{
+            QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
+        iscore::State s;
+        deser.writeTo(s);
 
+        Q_ASSERT(m_model.parentScenario());
+
+        auto cmd = new Scenario::Command::AddStateToStateModel{
+                iscore::IDocument::path(m_model),
+                std::move(s)};
+        m_dispatcher.submitCommand(cmd);
+    }
 }
+

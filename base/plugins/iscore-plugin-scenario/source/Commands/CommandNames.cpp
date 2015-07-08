@@ -25,6 +25,7 @@
 #include "Event/SetCondition.hpp"
 #include "Event/SetTrigger.hpp"
 #include "Event/State/AssignMessagesToState.hpp"
+#include "Event/State/AddStateWithData.hpp"
 #include "Event/State/UnassignMessagesFromState.hpp"
 #include "RemoveMultipleElements.hpp"
 #include "ResizeBaseConstraint.hpp"
@@ -79,7 +80,6 @@ const char* Scenario::Command::AddSlotToRack::commandName() { return "AddSlotToR
 const char* Scenario::Command::AddProcessToConstraint::commandName() { return "AddProcessToConstraint"; }
 const char* Scenario::Command::AddLayerInNewSlot::commandName() { return "AddLayerInNewSlot"; }
 const char* Scenario::Command::AddLayerModelToSlot::commandName() { return "AddLayerModelToSlot"; }
-const char* Scenario::Command::AddStateToEvent::commandName() { return "AddStateToEvent"; }
 const char* Scenario::Command::AssignMessagesToState::commandName() { return "AssignMessagesToState"; }
 
 // CLEAR CONTENT
@@ -104,7 +104,6 @@ const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTime
 
 // MOVE
 const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConstraint"; }
-const char* Scenario::Command::MoveSlot::commandName() { return "MoveSlot"; }
 const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
 //const char* Scenario::Command::MoveLayerModel::commandName() { return "MoveLayerModel"; }
 const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
@@ -143,7 +142,6 @@ QString Scenario::Command::AddSlotToRack::description() { return QObject::tr("Ad
 QString Scenario::Command::AddProcessToConstraint::description() { return QObject::tr("Add process"); }
 QString Scenario::Command::AddLayerInNewSlot::description() { return QObject::tr("AddLayerInNewSlot"); }
 QString Scenario::Command::AddLayerModelToSlot::description() { return QObject::tr("AddLayerModelToSlot"); }
-QString Scenario::Command::AddStateToEvent::description() { return QObject::tr("AddNewMessageToEvent"); }
 QString Scenario::Command::AssignMessagesToState::description() { return QObject::tr("AssignMessagesToState"); }
 
 // CLEAR
@@ -168,7 +166,6 @@ QString Scenario::Command::MergeTimeNodes::description() { return QObject::tr("M
 
 // MOVE
 QString Scenario::Command::MoveConstraint::description() { return QObject::tr("MoveConstraint"); }
-QString Scenario::Command::MoveSlot::description() { return QObject::tr("MoveSlot"); }
 QString Scenario::Command::MoveEvent::description() { return QObject::tr("MoveEvent"); }
 //QString Scenario::Command::MoveLayerModel::description() { return QObject::tr("MoveLayerModel"); }
 QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("MoveTimeNode"); }
@@ -212,14 +209,15 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list60<
+            boost::mpl::list61<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
-            AddStateToEvent,
+            AddStateToStateModel,
             AssignMessagesToState,
+            AddStateWithData,
 
             ChangeElementColor<ConstraintModel>,
             ChangeElementColor<EventModel>,

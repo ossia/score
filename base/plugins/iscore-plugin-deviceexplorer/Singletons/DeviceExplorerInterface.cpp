@@ -21,7 +21,7 @@ QString DeviceExplorer::explorerName()
 Address DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 {
     if(!m.isValid())
-        return {};
+        return Address();
 
     QModelIndex index = m;
     Address a;
@@ -46,7 +46,9 @@ Message DeviceExplorer::messageFromModelIndex(const QModelIndex& m)
 {
     Message mess;
     mess.address = addressFromModelIndex(m);
-    mess.value = m.sibling(m.row(), 1).data();
+
+    auto node = static_cast<Node*>(m.internalPointer());
+    mess.value = node->addressSettings().value;
 
     return mess;
 }

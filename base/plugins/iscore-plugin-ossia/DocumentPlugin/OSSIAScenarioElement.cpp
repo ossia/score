@@ -132,20 +132,52 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
 
 void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
 {
-    auto& st = m_iscore_scenario->state(id);
+    auto& iscore_state = m_iscore_scenario->state(id);
 
-    Q_ASSERT(m_ossia_timeevents.find(st.eventId()) != m_ossia_timeevents.end());
-    auto ossia_ev = m_ossia_timeevents.at(st.eventId());
+    Q_ASSERT(m_ossia_timeevents.find(iscore_state.eventId()) != m_ossia_timeevents.end());
+    auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
     // Create the mapping object
-    auto state_elt = new OSSIAStateElement{&st, this};
-    for(auto& elt : st.states())
+    auto state_elt = new OSSIAStateElement{&iscore_state, this};
+    for(auto& st_val : iscore_state.states())
     {
-        auto ossia_st = iscore::convert::state(elt, m_deviceList);
+        auto ossia_st = iscore::convert::state(st_val, m_deviceList);
         ossia_ev->event()->addState(ossia_st);
 
-        state_elt->addState(ossia_st);
+        state_elt->addState(st_val, ossia_st);
     }
+
+    connect(&iscore_state, &StateModel::stateAdded, this,
+            [=] (const iscore::State& st_val) {
+        auto ossia_st = iscore::convert::state(st_val, m_deviceList);
+        ossia_ev->event()->addState(ossia_st);
+
+        state_elt->addState(st_val, ossia_st);
+
+    } );
+    connect(&iscore_state, &StateModel::stateRemoved, this,
+            [=] (const iscore::State& st_val) {
+        ossia_ev->event()->removeState(state_elt->states().value(st_val));
+        state_elt->removeState(st_val);
+    });
+    connect(&iscore_state, &StateModel::statesReplaced, this,
+            [=] () {
+
+        for(auto& st_val : state_elt->states().keys())
+        {
+            ossia_ev->event()->removeState(state_elt->states().value(st_val));
+            state_elt->removeState(st_val);
+        }
+
+        for(auto& st_val : state_elt->iscoreState()->states())
+        {
+            auto ossia_st = iscore::convert::state(st_val, m_deviceList);
+            ossia_ev->event()->addState(ossia_st);
+
+            state_elt->addState(st_val, ossia_st);
+        }
+    });
+
     m_ossia_states.insert({id, state_elt});
 }
 

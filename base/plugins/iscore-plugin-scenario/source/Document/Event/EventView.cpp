@@ -209,5 +209,5 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
 #include <QMimeData>
 void EventView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
-    emit dropReceived(event->mimeData());
+    emit dropReceived(event->scenePos(), event->mimeData());
 }

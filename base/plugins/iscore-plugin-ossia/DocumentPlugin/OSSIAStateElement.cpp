@@ -3,26 +3,30 @@
 OSSIAStateElement::OSSIAStateElement(
         const StateModel *element,
         QObject *parent):
-    QObject{parent}
+    QObject{parent},
+    m_iscore_state{element}
 {
 }
 
-QList<std::shared_ptr<OSSIA::State> > OSSIAStateElement::states() const
+const StateModel *OSSIAStateElement::iscoreState() const
+{
+    return m_iscore_state;
+}
+
+const QHash<iscore::State, std::shared_ptr<OSSIA::State>>& OSSIAStateElement::states() const
 {
     return m_states;
 }
 
 
-void OSSIAStateElement::addState(std::shared_ptr<OSSIA::State> s)
+void OSSIAStateElement::addState(const iscore::State& is, std::shared_ptr<OSSIA::State> os)
 {
-    m_states.append(s);
+    m_states.insert(is, os);
 }
 
-void OSSIAStateElement::removeState(std::shared_ptr<OSSIA::State> s)
+void OSSIAStateElement::removeState(const iscore::State& s)
 {
-    m_states.removeOne(s);
-}
-
-void OSSIAStateElement::handleEventTriggering(OSSIA::TimeEvent::Status status)
-{
+    auto it = m_states.find(s);
+    if(it != m_states.end())
+        m_states.erase(it);
 }

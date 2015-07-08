@@ -69,7 +69,9 @@ class StateModel : public IdentifiedObject<StateModel>
         void setPreviousConstraint(const id_type<ConstraintModel>&);
 
     signals:
-        void statesChanged();
+        void statesReplaced();
+        void stateAdded(const iscore::State&);
+        void stateRemoved(const iscore::State&);
         void heightPercentageChanged();
 
     public slots:

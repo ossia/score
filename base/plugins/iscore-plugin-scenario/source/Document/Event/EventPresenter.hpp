@@ -26,7 +26,7 @@ class EventPresenter : public NamedObject
 
         bool isSelected() const;
 
-        void handleDrop(const QMimeData* mime);
+        void handleDrop(const QPointF& pos, const QMimeData* mime);
 
     signals:
         void pressed(const QPointF&);

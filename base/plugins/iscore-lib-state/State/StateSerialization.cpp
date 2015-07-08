@@ -49,21 +49,21 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(State& state)
 {
     QString t = QVariant::typeToName(m_obj["Type"].toInt());
-    if("State" == t)
+    if("iscore::State" == t)
     {
         state = fromJsonObject<State>(m_obj["Data"].toObject());
     }
-    else if("StateList" == t)
+    else if("iscore::StateList" == t)
     {
         StateList t;
         fromJsonArray(m_obj["Data"].toArray(), t);
         state = t;
     }
-    else if("Message" == t)
+    else if("iscore::Message" == t)
     {
         state = fromJsonObject<Message>(m_obj["Data"].toObject());
     }
-    else if("MessageList" == t)
+    else if("iscore::MessageList" == t)
     {
         MessageList t;
         fromJsonArray(m_obj["Data"].toArray(), t);
@@ -71,6 +71,7 @@ void Visitor<Writer<JSONObject>>::writeTo(State& state)
     }
     else
     {
+        qDebug() << "Type: " << t;
         ISCORE_TODO
     }
 }

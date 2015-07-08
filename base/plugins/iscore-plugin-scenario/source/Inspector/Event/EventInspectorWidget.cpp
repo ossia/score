@@ -315,7 +315,7 @@ void EventInspectorWidget::on_addAddressClicked()
         split.removeFirst();
         m.value = textToMessageValue(split);
 
-        auto cmd = new Scenario::Command::AddStateToEvent{path(m_model), m};
+        auto cmd = new Scenario::Command::AddStateToStateModel{path(m_model), m};
 
         emit commandDispatcher()->submitCommand(cmd);
         m_stateLineEdit->clear();

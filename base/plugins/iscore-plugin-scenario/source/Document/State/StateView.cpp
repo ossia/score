@@ -85,3 +85,8 @@ void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     emit m_presenter.released(event->scenePos());
 }
 
+void StateView::dropEvent(QGraphicsSceneDragDropEvent *event)
+{
+    emit dropReceived(event->mimeData());
+}
+

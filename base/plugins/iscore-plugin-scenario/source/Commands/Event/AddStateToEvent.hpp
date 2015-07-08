@@ -7,15 +7,13 @@ namespace Scenario
 {
     namespace Command
     {
-        // TODO change to AddNewMessageToEventInNewState
-        // TODO Add AddNewMessageToState
-        class AddStateToEvent : public iscore::SerializableCommand
+        class AddStateToStateModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("AddStateToStateModel", "AddStateToStateModel")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddStateToEvent, "ScenarioControl")
-                AddStateToEvent(ObjectPath&& eventPath, const iscore::State& state);
-                AddStateToEvent(ObjectPath&& eventPath, iscore::State&& state);
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddStateToStateModel, "ScenarioControl")
+                AddStateToStateModel(ObjectPath&& path, const iscore::State& state);
+                AddStateToStateModel(ObjectPath&& path, iscore::State&& state);
                 virtual void undo() override;
                 virtual void redo() override;
 

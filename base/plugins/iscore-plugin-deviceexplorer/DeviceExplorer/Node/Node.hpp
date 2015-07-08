@@ -39,9 +39,6 @@ class Node
 
         ~Node();
 
-        QStringList fullPathWithDevice() const;
-        QStringList fullPathWithoutDevice() const;
-
         void setParent(Node* parent);
         Node* parent() const;
         Node* childAt(int index) const;  //return 0 if invalid index
@@ -72,6 +69,9 @@ class Node
         AddressSettings& addressSettings();
 
         Node* clone() const;
+
+        QStringList fullPathWithDevice() const;
+        QStringList fullPathWithoutDevice() const;
 
     protected:
         Node* m_parent {};

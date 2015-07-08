@@ -46,7 +46,7 @@ class EventView : public QGraphicsObject
         void eventHoverEnter();
         void eventHoverLeave();
 
-        void dropReceived(const QMimeData*);
+        void dropReceived(const QPointF& pos, const QMimeData*);
 
     public slots:
         void changeColor(QColor);

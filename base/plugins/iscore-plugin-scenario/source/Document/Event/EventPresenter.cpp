@@ -86,7 +86,8 @@ void EventPresenter::triggerSetted(QString trig)
 #include <QMimeData>
 #include <QJsonDocument>
 #include <iscore/document/DocumentInterface.hpp>
-void EventPresenter::handleDrop(const QMimeData *mime)
+#include "Commands/Event/State/AddStateWithData.hpp"
+void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains("application/x-iscore-state"))
@@ -96,8 +97,12 @@ void EventPresenter::handleDrop(const QMimeData *mime)
         iscore::State s;
         deser.writeTo(s);
 
-        auto cmd = new Scenario::Command::AddStateToEvent{
-                iscore::IDocument::path(m_model),
+        Q_ASSERT(m_model.parentScenario());
+
+        auto cmd = new Scenario::Command::AddStateWithData{
+                *m_model.parentScenario(),
+                m_model.id(),
+                pos.y() / m_view->parentItem()->boundingRect().size().height(),
                 std::move(s)};
         m_dispatcher.submitCommand(cmd);
     }

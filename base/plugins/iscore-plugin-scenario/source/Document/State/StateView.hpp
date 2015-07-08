@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 
+class QMimeData;
 class StatePresenter;
 
 class StateView : public QGraphicsObject
@@ -28,11 +29,14 @@ class StateView : public QGraphicsObject
         void moved(const QPointF&);
         void released(const QPointF&);
 
+        void dropReceived(const QMimeData*);
+
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
+        virtual void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     private:
         StatePresenter& m_presenter;
 

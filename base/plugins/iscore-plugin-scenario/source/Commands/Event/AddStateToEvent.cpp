@@ -1,56 +1,48 @@
 #include "AddStateToEvent.hpp"
 
-#include "Document/Event/EventModel.hpp"
+#include "Document/State/DisplayedStateModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, const iscore::State &state) :
+AddStateToStateModel::AddStateToStateModel(ObjectPath&& statePath, const iscore::State &state) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_path {std::move(eventPath) },
+    m_path {std::move(statePath) },
     m_state{state}
 {
 
 }
 
-AddStateToEvent::AddStateToEvent(ObjectPath&& eventPath, iscore::State &&state) :
+AddStateToStateModel::AddStateToStateModel(ObjectPath&& statePath, iscore::State &&state) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_path {std::move(eventPath)},
+    m_path {std::move(statePath)},
     m_state{std::move(state)}
 {
 
 }
 
-void AddStateToEvent::undo()
+void AddStateToStateModel::undo()
 {
-    /*
-    auto& event = m_path.find<EventModel>();
-    event.removeState(m_state);
-    */
+    auto& state = m_path.find<StateModel>();
+    state.removeState(m_state);
 }
 
-void AddStateToEvent::redo()
+void AddStateToStateModel::redo()
 {
-    /*
-    auto& event = m_path.find<EventModel>();
-    event.addState(m_state);
-    */
+    auto& state = m_path.find<StateModel>();
+    state.addState(m_state);
 }
 
-void AddStateToEvent::serializeImpl(QDataStream& s) const
+void AddStateToStateModel::serializeImpl(QDataStream& s) const
 {
-    /*
     s << m_path << m_state;
-    */
 }
 
-void AddStateToEvent::deserializeImpl(QDataStream& s)
+void AddStateToStateModel::deserializeImpl(QDataStream& s)
 {
-    /*
     s >> m_path >> m_state;
-    */
 }

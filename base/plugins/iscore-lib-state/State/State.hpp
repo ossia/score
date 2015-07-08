@@ -58,3 +58,6 @@ using StateList = QList<State>;
 Q_DECLARE_METATYPE(iscore::State)
 Q_DECLARE_METATYPE(iscore::StateList)
 
+
+uint qHash(const iscore::State& state) noexcept;
+uint qHash(const iscore::State& state, uint seed) noexcept;

@@ -76,21 +76,21 @@ const iscore::StateList& StateModel::states() const
     return m_states;
 }
 
-void StateModel::replaceStates(const iscore::StateList &newStates)
+void StateModel::replaceStates(const iscore::StateList& newStates)
 {
     m_states = newStates;
-    emit statesChanged();
+    emit statesReplaced();
 }
 
 void StateModel::addState(const iscore::State &s)
 {
     m_states.append(s);
-    emit statesChanged();
+    emit stateAdded(s);
 }
 
 void StateModel::removeState(const iscore::State &s)
 {
     m_states.removeOne(s);
-    emit statesChanged();
+    emit stateRemoved(s);
 }
 
