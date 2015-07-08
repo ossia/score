@@ -5,10 +5,9 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/ScenarioModel.hpp"
-//#include "Process/ScenarioGlobalCommandManager.hpp"
+
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-//#include "Process/Temporal/TemporalScenarioView.hpp"
-//#include "Process/Temporal/StateMachines/Tool.hpp"
+
 #include <iscore/command/CommandGeneratorMap.hpp>
 
 #include "Control/OldFormatConversion.hpp"
@@ -22,7 +21,6 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QApplication>
-//#include <QClipboard>
 
 
 using namespace iscore;
@@ -32,6 +30,7 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     m_processList{this}
 {
     setupCommands();
+
     m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
     m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
 }
@@ -41,6 +40,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
     ///// File /////
     // Export in old format
+    /*
     auto toZeroTwo = new QAction("To i-score 0.2", this);
     connect(toZeroTwo, &QAction::triggered,
             [this]()
@@ -58,14 +58,12 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Quit,
                                        toZeroTwo);
-
+    */
 
     ///// Edit /////
-
     m_objectAction->fillMenuBar(menu);
 
     ///// View /////
-
     // TODO create ViewMenuActions
     m_selectAll = new QAction{tr("Select all"), this};
     m_selectAll->setShortcut(QKeySequence::SelectAll);
@@ -129,30 +127,17 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
     contextMenu.addAction(m_deselectAll);
     contextMenu.addSeparator();
 
-    if(focusedScenarioModel()) // TODO weird
+    if(auto scenario = focusedScenarioModel())
     {
-        auto selectedCstr = selectedElements(focusedScenarioModel()->constraints());
-        auto selectedEvt = selectedElements(focusedScenarioModel()->events());
-        auto selectedTn = selectedElements(focusedScenarioModel()->timeNodes());
-        auto selectedSt = selectedElements(focusedScenarioModel()->states());
+        auto selected = scenario->selectedChildren();
 
-        m_objectAction->setConstraintAction(! selectedCstr.empty());
-        if(!selectedCstr.empty() || !selectedEvt.empty() || !selectedTn.empty() || !selectedSt.empty() )
+        for(AbstractMenuActions*& elt : m_pluginActions)
         {
-            m_objectAction->fillContextMenu(&contextMenu);
+            elt->fillContextMenu(&contextMenu, selected);
             contextMenu.addSeparator();
+
         }
     }
-    else
-    {
-        // should never happen
-        Q_ASSERT(false);
-    }
-
-    m_toolActions->fillContextMenu(&contextMenu);
-
-    // TODO allow plug-ins to insert data from here.
-
     contextMenu.exec(pos);
 
     contextMenu.close();

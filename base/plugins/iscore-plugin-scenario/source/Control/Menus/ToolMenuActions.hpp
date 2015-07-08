@@ -1,13 +1,13 @@
 #pragma once
-
 #include "Control/Menus/AbstractMenuActions.hpp"
 
+class QToolBar;
 class ToolMenuActions : public AbstractMenuActions
 {
     public:
         ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent);
-        void fillMenuBar(iscore::MenubarManager *menu);
-        void fillContextMenu(QMenu* menu);
+        void fillMenuBar(iscore::MenubarManager *menu) override;
+        void fillContextMenu(QMenu* menu, const Selection&sel) override;
         void makeToolBar(QToolBar* bar);
         void setEnabled(bool);
 

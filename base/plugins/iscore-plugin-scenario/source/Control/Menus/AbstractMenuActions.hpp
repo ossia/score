@@ -1,7 +1,9 @@
 #pragma once
-
-#include <QObject>
-#include "Control/ScenarioControl.hpp"
+#include <iscore/selection/Selection.hpp>
+#include <iscore/menu/MenuInterface.hpp>
+#include <core/presenter/MenubarManager.hpp>
+class QAction;
+class ScenarioControl;
 
 class AbstractMenuActions : public QObject
 {
@@ -10,7 +12,7 @@ class AbstractMenuActions : public QObject
     public:
         explicit AbstractMenuActions(iscore::ToplevelMenuElement, ScenarioControl *);
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
-        virtual void fillContextMenu(QMenu*) = 0;
+        virtual void fillContextMenu(QMenu*, const Selection& s) = 0;
 
         virtual QList<QAction*> actions() = 0;
 

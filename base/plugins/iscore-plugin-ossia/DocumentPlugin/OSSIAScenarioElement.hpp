@@ -32,6 +32,11 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
         std::shared_ptr<OSSIA::Scenario> scenario() const;
 
+        const auto& states() const
+        { return m_ossia_states; }
+
+        const ProcessModel* iscoreProcess() const override;
+
         void stop() override;
 
     private:

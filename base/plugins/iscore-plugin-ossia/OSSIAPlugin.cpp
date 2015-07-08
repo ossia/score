@@ -5,6 +5,7 @@
 #include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 
+#include "DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
 
 iscore_plugin_ossia::iscore_plugin_ossia() :
     QObject {}
@@ -25,6 +26,11 @@ QVector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString&
         return {//new MIDIProtocolFactory,
                 new MinuitProtocolFactory,
                 new OSCProtocolFactory};
+    }
+
+    if(factoryName == ScenarioContextMenuFactory::factoryName())
+    {
+        return {new PlayContextMenuFactory};
     }
 
     return {};

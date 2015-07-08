@@ -69,16 +69,27 @@ void OSSIAConstraintElement::on_processAdded(
     OSSIAProcessElement* plug{};
     if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
     {
-        plug = new OSSIAScenarioElement{scenar, this};
+        plug = new OSSIAScenarioElement{scenar, proc};
     }
     else if(auto autom = dynamic_cast<AutomationModel*>(proc))
     {
-        plug = new OSSIAAutomationElement{autom, this};
+        plug = new OSSIAAutomationElement{autom, proc};
     }
 
     if(plug)
     {
         m_processes.insert({id, plug});
+
+        // i-score scenario has ownership, hence
+        // we have to remove it from the array if deleted
+        connect(plug, &QObject::destroyed, this,
+                [&] (QObject* obj) {
+            auto plug = static_cast<OSSIAProcessElement*>(obj);
+            if(plug->process())
+                m_ossia_constraint->removeTimeProcess(plug->process());
+
+            m_processes.erase(plug->iscoreProcess()->id());
+        });
 
         // Processes might change (for instance automation needs to be recreated
         // at each address change) so we do this little dance.

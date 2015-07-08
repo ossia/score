@@ -141,7 +141,7 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     }
 }
 
-void ToolMenuActions::fillContextMenu(QMenu *menu)
+void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
 {
     auto tool = menu->addMenu("Tool");
     tool->addActions(m_scenarioToolActionGroup->actions());

@@ -7,15 +7,13 @@
 class ObjectMenuActions : public AbstractMenuActions
 {
     public:
-        ObjectMenuActions(iscore::ToplevelMenuElement,ScenarioControl* parent);
-        void fillMenuBar(iscore::MenubarManager *menu);
-        void fillContextMenu(QMenu* menu);
+        ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);
+        void fillMenuBar(iscore::MenubarManager *menu) override;
+        void fillContextMenu(QMenu* menu, const Selection&) override;
 
         QList<QAction*> actions();
 
-        void setConstraintAction(bool constraintAction);
-
-private:
+    private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
         void writeJsonToSelectedElements(const QJsonObject &obj);
@@ -28,8 +26,6 @@ private:
         QAction *m_pasteContent;
         QAction *m_elementsToJson;
         QAction *m_addProcess;
-
-        bool m_constraintAction{false};
 
         AddProcessDialog m_addProcessDialog;
 };

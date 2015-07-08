@@ -27,10 +27,11 @@
 #include <QTextBlock>
 #include <QDialog>
 
+// TODO make a class
 class TextDialog : public QDialog
 {
     public:
-        TextDialog(QString s)
+        TextDialog(const QString& s)
         {
             this->setLayout(new QGridLayout);
             auto textEdit = new QTextEdit;
@@ -43,7 +44,9 @@ class TextDialog : public QDialog
         }
 };
 
-ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent) :
+ObjectMenuActions::ObjectMenuActions(
+        iscore::ToplevelMenuElement menuElt,
+        ScenarioControl* parent) :
     AbstractMenuActions(menuElt, parent)
 {
     // REMOVE
@@ -127,7 +130,7 @@ ObjectMenuActions::ObjectMenuActions(iscore::ToplevelMenuElement menuElt, Scenar
 
 }
 
-void ObjectMenuActions::fillMenuBar(iscore::MenubarManager *menu)
+void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
@@ -137,21 +140,26 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_copyContent);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_cutContent);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
-
 }
 
-void ObjectMenuActions::fillContextMenu(QMenu *menu)
+void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
 {
-    //TODO UGLY. Selection should enable/disable actions
-    if(m_constraintAction)
+    if(sel.empty())
+        return;
+
+    if(std::any_of(sel.cbegin(),
+                   sel.cend(),
+                   [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); }))
     {
         menu->addAction(m_addProcess);
         menu->addSeparator();
     }
+
     menu->addAction(m_elementsToJson);
     menu->addAction(m_removeElements);
     menu->addAction(m_clearElements);
     menu->addSeparator();
+
     menu->addAction(m_copyContent);
     menu->addAction(m_cutContent);
     menu->addAction(m_pasteContent);
@@ -191,6 +199,7 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
         base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
         base["Events"] = arrayToJson(selectedElements(sm->events()));
         base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
+        base["TimeNodes"] = arrayToJson(selectedElements(sm->states()));
     }
     else
     {
@@ -256,12 +265,4 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
     emit dispatcher.submitCommand(cmd);
 }
-
-void ObjectMenuActions::setConstraintAction(bool constraintAction)
-{
-    if(constraintAction == m_constraintAction)
-        return;
-    m_constraintAction = constraintAction;
-}
-
 

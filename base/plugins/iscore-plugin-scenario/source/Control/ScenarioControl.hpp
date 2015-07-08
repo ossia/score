@@ -11,47 +11,46 @@ class TemporalScenarioPresenter;
 
 class ObjectMenuActions;
 class ToolMenuActions;
-
+class AbstractMenuActions;
 class ScenarioControl : public iscore::PluginControlInterface
 {
-    friend class ObjectMenuActions;
-    friend class ToolMenuActions;
-
     public:
         ScenarioControl(iscore::Presenter* pres);
 
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual QList<OrderedToolbar> makeToolbars() override;
 
-        virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
+        virtual iscore::SerializableCommand* instantiateUndoCommand(
+                const QString& name,
                 const QByteArray& data) override;
 
         ProcessList* processList()
         { return &m_processList; }
-        ScenarioContextMenuPluginList* contextMenuList()
-        { return &m_contextMenuList; }
+
+        QVector<AbstractMenuActions*>& pluginActions()
+        { return m_pluginActions; }
+
+        const ScenarioModel* focusedScenarioModel() const;
+        TemporalScenarioPresenter* focusedPresenter() const;
 
     public slots:
         void createContextMenu(const QPoint &);
 
     protected:
         virtual void on_documentChanged() override;
-        const ScenarioModel* focusedScenarioModel() const;
 
     private:
         ProcessList m_processList;
-        ScenarioContextMenuPluginList m_contextMenuList;
-
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 
         ObjectMenuActions* m_objectAction;
         ToolMenuActions* m_toolActions;
+        QVector<AbstractMenuActions*> m_pluginActions;
 
         QAction *m_selectAll{};
         QAction *m_deselectAll{};
 
-        TemporalScenarioPresenter* focusedPresenter() const;
 
         ProcessFocusManager* processFocusManager() const;
         void on_presenterFocused(ProcessPresenter* lm);

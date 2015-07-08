@@ -6,6 +6,7 @@
 
 #include <State/State.hpp>
 #include <State/Message.hpp>
+#include "Control/Menus/ScenarioCommonContextMenuFactory.hpp"
 
 #if defined(ISCORE_INSPECTOR_LIB)
 #include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
@@ -57,13 +58,19 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 {
     return {
-            {"Process",
+            {ProcessFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
              { m_control->processList()->registerProcess(fact); }
             },
-            {"ScenarioContextMenu",
+            {ScenarioContextMenuFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
-             { m_control->contextMenuList()->registerContextMenu(fact); }
+             {
+                auto context_menu_fact = static_cast<ScenarioContextMenuFactory*>(fact);
+                for(auto& act : context_menu_fact->make(m_control))
+                {
+                    m_control->pluginActions().push_back(act);
+                }
+             }
             }
            };
 }
@@ -73,6 +80,11 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
     if(factoryName == ProcessFactory::factoryName())
     {
         return {new ScenarioFactory};
+    }
+
+    if(factoryName == ScenarioContextMenuFactory::factoryName())
+    {
+        return {new ScenarioCommonContextMenuFactory};
     }
 
 #if defined(ISCORE_INSPECTOR_LIB)

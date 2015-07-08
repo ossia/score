@@ -24,6 +24,11 @@ namespace iscore
         public:
             explicit MenubarManager(QMenuBar* bar, QObject* parent = 0);
 
+            QMenuBar* menuBar() const
+            {
+                return m_menuBar;
+            }
+
             void insertActionIntoToplevelMenu(ToplevelMenuElement tl, QAction* before, QAction* act);
             void insertActionIntoToplevelMenu(ToplevelMenuElement, QAction* act);
 

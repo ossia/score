@@ -19,6 +19,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
     m_iscore_scenario{element},
     m_deviceList{static_cast<DeviceDocumentPlugin>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin")).list()}
 {
+    this->setObjectName("OSSIAScenarioElement");
     // Setup of the OSSIA API Part
     m_ossia_scenario = OSSIA::Scenario::create([=](
                                                const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
@@ -88,6 +89,11 @@ OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject
 std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
 {
     return m_ossia_scenario;
+}
+
+const ProcessModel *OSSIAScenarioElement::iscoreProcess() const
+{
+    return m_iscore_scenario;
 }
 
 void OSSIAScenarioElement::stop()

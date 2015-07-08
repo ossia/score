@@ -19,7 +19,8 @@ class OSSIAAutomationElement : public OSSIAProcessElement
                 const AutomationModel* element,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeProcess> process() const;
+        std::shared_ptr<OSSIA::TimeProcess> process() const override;
+        const ProcessModel* iscoreProcess() const override;
 
     public slots:
         void on_addressChanged(const iscore::Address&);

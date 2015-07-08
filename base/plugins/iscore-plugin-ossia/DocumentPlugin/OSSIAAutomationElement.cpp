@@ -33,6 +33,11 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::process() const
     return m_ossia_autom;
 }
 
+const ProcessModel *OSSIAAutomationElement::iscoreProcess() const
+{
+    return m_iscore_autom;
+}
+
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
