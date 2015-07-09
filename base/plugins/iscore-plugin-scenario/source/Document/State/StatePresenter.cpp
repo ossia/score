@@ -22,10 +22,9 @@ StatePresenter::StatePresenter(
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,               &StateView::changeColor);
 
-    connect(&m_model, &StateModel::statesReplaced,
-            this, [&] () {
-        m_view->setContainMessage(!m_model.states().empty());
-    });
+    connect(&m_model, &StateModel::stateAdded, this, &StatePresenter::updateStateView);
+    connect(&m_model, &StateModel::stateRemoved, this, &StatePresenter::updateStateView);
+    connect(&m_model, &StateModel::statesReplaced, this, &StatePresenter::updateStateView);
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
@@ -89,5 +88,10 @@ void StatePresenter::handleDrop(const QMimeData *mime)
                 std::move(s)};
         m_dispatcher.submitCommand(cmd);
     }
+}
+
+void StatePresenter::updateStateView()
+{
+    m_view->setContainMessage(!m_model.states().empty());
 }
 
