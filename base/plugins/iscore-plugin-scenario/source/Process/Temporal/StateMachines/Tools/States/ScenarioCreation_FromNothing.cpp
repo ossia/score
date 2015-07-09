@@ -1,4 +1,4 @@
-#include "ScenarioCreation_FromEvent.hpp"
+#include "ScenarioCreation_FromNothing.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
@@ -24,7 +24,7 @@
 #include <QFinalState>
 
 using namespace Scenario::Command;
-ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
+ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
         const ScenarioStateMachine& stateMachine,
         ObjectPath &&scenarioPath,
         iscore::CommandStack& stack,
@@ -137,10 +137,8 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
                          [&] ()
         {
             m_clickedPoint = currentPoint;
-            // Create a simple state where we are
-
-            createInitialState();
-            //createToNothing();
+            clickedEvent = m_parentSM.model().startEvent().id();
+            createToNothing();
         });
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
@@ -190,7 +188,7 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
     setInitialState(mainState);
 }
 
-void ScenarioCreation_FromEvent::createInitialState()
+void ScenarioCreation_FromNothing::createInitialState()
 {
     auto cmd = new CreateState{m_scenarioPath, clickedEvent, currentPoint.y};
     m_dispatcher.submitCommand(cmd);
@@ -198,21 +196,19 @@ void ScenarioCreation_FromEvent::createInitialState()
     createdStates.append(cmd->createdState());
 }
 
-
-// Note : clickedEvent is set at startEvent if clicking in the background.
-void ScenarioCreation_FromEvent::createToNothing()
+void ScenarioCreation_FromNothing::createToNothing()
 {
     createInitialState();
     createToNothing_base(createdStates.first());
 }
 
-void ScenarioCreation_FromEvent::createToState()
+void ScenarioCreation_FromNothing::createToState()
 {
     createInitialState();
     createToState_base(createdStates.first());
 }
 
-void ScenarioCreation_FromEvent::createToEvent()
+void ScenarioCreation_FromNothing::createToEvent()
 {
     if(hoveredEvent != clickedEvent)
     {
@@ -221,7 +217,7 @@ void ScenarioCreation_FromEvent::createToEvent()
     }
 }
 
-void ScenarioCreation_FromEvent::createToTimeNode()
+void ScenarioCreation_FromNothing::createToTimeNode()
 {
     createInitialState();
     createToTimeNode_base(createdStates.first());

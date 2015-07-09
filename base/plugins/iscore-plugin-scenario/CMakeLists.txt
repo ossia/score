@@ -215,6 +215,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromNothing.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/MoveStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/SlotStates.cpp"

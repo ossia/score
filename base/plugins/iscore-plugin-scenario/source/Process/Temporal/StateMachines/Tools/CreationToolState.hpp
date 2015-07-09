@@ -3,6 +3,7 @@
 #include "../ScenarioStateMachineBaseStates.hpp"
 class EventPresenter;
 class TimeNodePresenter;
+class ScenarioCreation_FromNothing;
 class ScenarioCreation_FromEvent;
 class ScenarioCreation_FromState;
 class ScenarioCreation_FromTimeNode;
@@ -60,6 +61,7 @@ class CreationToolState : public ScenarioTool
             nothing_fun();
         }
 
+        ScenarioCreation_FromNothing* m_createFromNothingState{};
         ScenarioCreation_FromEvent* m_createFromEventState{};
         ScenarioCreation_FromTimeNode* m_createFromTimeNodeState{};
         ScenarioCreation_FromState* m_createFromStateState{};

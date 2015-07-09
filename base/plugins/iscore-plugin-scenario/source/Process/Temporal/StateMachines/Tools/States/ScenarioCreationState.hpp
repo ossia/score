@@ -58,6 +58,3 @@ class ScenarioCreationState : public CreationState
 
         ScenarioPoint m_clickedPoint;
 };
-
-
-
