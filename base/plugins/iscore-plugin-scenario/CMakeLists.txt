@@ -87,7 +87,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioLayerSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenarioSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementModelSerialization.cpp"
 
 
@@ -149,7 +149,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/OldFormatConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/ScenarioControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/AddProcessDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseElementStateMachine.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ScenarioDocument.cpp"
@@ -288,8 +290,10 @@ if(ISCORE_COTIRE)
     cotire(iscore_plugin_scenario)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(iscore_plugin_scenario PROPERTIES
-                              COTIRE_PREFIX_HEADER_IGNORE_PATH "/usr/include/boost/preprocessor/")
+                              COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+        set_target_properties(iscore_plugin_scenario PROPERTIES
+                              COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
 endif()
 
 install(TARGETS iscore_plugin_scenario

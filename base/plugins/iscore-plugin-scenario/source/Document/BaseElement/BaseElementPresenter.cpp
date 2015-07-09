@@ -25,48 +25,8 @@
 #include <QApplication>
 #include "StateMachine/BaseMoveSlot.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
-
+#include "BaseScenario/BaseElementStateMachine.hpp"
 using namespace iscore;
-
-class BaseElementStateMachine: public BaseStateMachine
-{
-        BaseElementPresenter* m_presenter;
-    public:
-        BaseElementStateMachine(BaseElementPresenter* pres);
-};
-
-BaseElementStateMachine::BaseElementStateMachine(BaseElementPresenter* pres):
-    BaseStateMachine{*pres->view()->scene()},
-    m_presenter{pres}
-{
-    connect(m_presenter, &BaseElementPresenter::displayedConstraintPressed,
-            [=] (const QPointF& point)
-    {
-        scenePoint = point;
-        this->postEvent(new Press_Event);
-    });
-
-    connect(m_presenter, &BaseElementPresenter::displayedConstraintMoved,
-            [=] (const QPointF& point)
-    {
-        scenePoint = point;
-        this->postEvent(new Move_Event);
-    });
-
-    connect(m_presenter, &BaseElementPresenter::displayedConstraintReleased,
-            [=] (const QPointF& point)
-    {
-        scenePoint = point;
-        this->postEvent(new Release_Event);
-    });
-    // TODO cancel
-
-    auto moveSlotState = new BaseMoveSlot(*m_presenter->view()->scene(),
-                                           IDocument::documentFromObject(m_presenter->model())->commandStack(),
-                                           *this);
-    setInitialState(moveSlotState);
-    start();
-}
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                            DocumentDelegateModelInterface* delegate_model,
@@ -106,12 +66,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     // Show our constraint
     setDisplayedConstraint(model()->baseConstraint());
 
-    // We set the focus on the main scenario.
-    // TODO crash happens when we load an empty score
-    SlotPresenter* slot = *m_displayedConstraintPresenter->rack()->getSlots().begin();
-    model()->focusManager().setFocusedPresenter(
-                slot->processes().front().first);
-
     // Setup of the state machine.
     m_stateMachine = new BaseElementStateMachine{this};
 }
@@ -143,7 +97,7 @@ void BaseElementPresenter::deselectAll()
 void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().last().objectName() == "ConstraintModel"
-            || path.vec().last().objectName() == "BaseConstraintModel")
+    || path.vec().last().objectName() == "BaseConstraintModel")
     {
         setDisplayedConstraint(&path.find<ConstraintModel>());
     }
@@ -168,37 +122,11 @@ void BaseElementPresenter::setDisplayedConstraint(const ConstraintModel* c)
 
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
-    const auto& constraintViewModel = *m_displayedConstraint->fullView();
-
     model()->focusManager().focusNothing();
 
-    delete m_displayedConstraintPresenter;
-    m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
-            this->view()->baseItem(),
-            this};
+    m_scenarioPresenter->on_displayedConstraintChanged();
 
-    m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model().startDate());
-    m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
-    m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
-
-    // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
-    on_zoomSliderChanged(0);
-    on_askUpdate();
-
-    connect(m_displayedConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
-            this,					        &BaseElementPresenter::on_askUpdate);
-    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::heightChanged,
-            this, [&] () { updateRect({0,
-                                       0,
-                                       m_displayedConstraint->defaultDuration().toPixels(m_millisecondsPerPixel),
-                                       height()});} );
-
-    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::pressed,
-            this, &BaseElementPresenter::displayedConstraintPressed);
-    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::moved,
-            this, &BaseElementPresenter::displayedConstraintMoved);
-    connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::released,
-            this, &BaseElementPresenter::displayedConstraintReleased);
+    m_scenarioPresenter->showConstraint();
 
     model()->setDisplayedConstraint(&m_displayedConstraintPresenter->model());
 

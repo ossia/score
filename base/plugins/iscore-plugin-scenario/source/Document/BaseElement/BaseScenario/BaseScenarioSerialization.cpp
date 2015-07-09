@@ -1,6 +1,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "BaseScenario.hpp"
+#include "BaseScenarioModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"

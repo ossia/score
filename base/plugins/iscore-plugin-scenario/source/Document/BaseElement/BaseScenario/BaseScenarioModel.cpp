@@ -1,4 +1,4 @@
-#include "BaseScenario.hpp"
+#include "BaseScenarioModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/State/DisplayedStateModel.hpp"

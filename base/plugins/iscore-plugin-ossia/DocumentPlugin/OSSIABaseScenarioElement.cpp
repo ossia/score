@@ -6,13 +6,13 @@
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
 
-#include "Document/BaseElement/BaseScenario.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
 
 static void statusCallback(OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
 {
-    qDebug( ) << "BaseScenario Event callback" << int(newStatus);
+
 }
 
 OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, QObject *parent)

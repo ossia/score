@@ -1,5 +1,5 @@
 #include "BaseElementModel.hpp"
-#include "BaseScenario.hpp"
+#include "BaseScenario/BaseScenarioModel.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"

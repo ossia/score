@@ -6,6 +6,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <QSize>
 #include <QRectF>
+#include "BaseScenario/BaseScenarioPresenter.hpp"
 class ProgressBar;
 namespace iscore
 {
@@ -77,6 +78,9 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
     private:
         void updateZoom(ZoomRatio newZoom, QPointF focus);
+
+        BaseScenarioPresenter* m_scenarioPresenter{};
+
         FullViewConstraintPresenter* m_displayedConstraintPresenter{};
         const ConstraintModel* m_displayedConstraint{};
 
