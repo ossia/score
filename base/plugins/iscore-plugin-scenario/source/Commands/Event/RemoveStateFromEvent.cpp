@@ -5,35 +5,34 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveStateFromEvent::RemoveStateFromEvent(ObjectPath &&eventPath, const iscore::State& state):
+RemoveStateFromStateModel::RemoveStateFromStateModel(ObjectPath &&statePath, const iscore::State& state):
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_path {std::move(eventPath) },
+    m_path {std::move(statePath) },
     m_state{state}
 {
 
 }
 
-void RemoveStateFromEvent::undo()
-{/*
-    auto& event = m_path.find<EventModel>();
-    event.addState(m_state);
-    */
+void RemoveStateFromStateModel::undo()
+{
+    auto& st = m_path.find<StateModel>();
+    st.addState(m_state);
 }
 
-void RemoveStateFromEvent::redo()
+void RemoveStateFromStateModel::redo()
 {
-//    auto& event = m_path.find<EventModel>();
-//    event.removeState(m_state);
+    auto& st = m_path.find<StateModel>();
+    st.removeState(m_state);
 }
 
-void RemoveStateFromEvent::serializeImpl(QDataStream& s) const
+void RemoveStateFromStateModel::serializeImpl(QDataStream& s) const
 {
-//    s << m_path << m_state;
+    s << m_path << m_state;
 }
 
-void RemoveStateFromEvent::deserializeImpl(QDataStream& s)
+void RemoveStateFromStateModel::deserializeImpl(QDataStream& s)
 {
-//    s >> m_path >> m_state;
+    s >> m_path >> m_state;
 }
