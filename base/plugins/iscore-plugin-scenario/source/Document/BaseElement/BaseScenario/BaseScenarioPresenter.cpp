@@ -1,17 +1,31 @@
 #include "BaseScenarioPresenter.hpp"
 #include "BaseScenarioModel.hpp"
+#include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp"
-void BaseScenarioPresenter::on_displayedConstraintChanged(ConstraintModel* m)
+
+#include "Document/Constraint/Rack/RackPresenter.hpp"
+#include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
+
+#include <iscore/document/DocumentInterface.hpp>
+BaseScenarioPresenter::BaseScenarioPresenter(BaseElementPresenter *parent):
+    NamedObject{"BaseScenarioPresenter", parent},
+    m_parent{parent}
+{
+
+}
+
+void BaseScenarioPresenter::on_displayedConstraintChanged(const ConstraintModel* m)
 {
     const auto& constraintViewModel = m->fullView();
 
     delete m_displayedConstraintPresenter;
-    m_displayedConstraintPresenter = new FullViewConstraintPresenter {constraintViewModel,
-            this->view()->baseItem(),
-            this};
+    m_displayedConstraintPresenter = new FullViewConstraintPresenter {*constraintViewModel,
+            m_parent->view()->baseItem(),
+            m_parent};
 
     /*
     m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model().startDate());
@@ -19,37 +33,33 @@ void BaseScenarioPresenter::on_displayedConstraintChanged(ConstraintModel* m)
     m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
     */
 
-    // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
-    on_zoomSliderChanged(0);
-    on_askUpdate();
-
     connect(m_displayedConstraintPresenter,	&FullViewConstraintPresenter::askUpdate,
-            this,					        &BaseElementPresenter::on_askUpdate);
+            m_parent,                       &BaseElementPresenter::on_askUpdate);
     connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::heightChanged,
-            this, [&] () { updateRect({0,
-                                       0,
-                                       m_displayedConstraint->defaultDuration().toPixels(m_millisecondsPerPixel),
-                                       height()});} );
+            this, [&] () { m_parent->updateRect({0, 0,
+                                       m_parent->displayedConstraint()->defaultDuration().toPixels(m_parent->zoomRatio()),
+                                       m_parent->height()});} );
 
     connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::pressed,
-            this, &BaseElementPresenter::displayedConstraintPressed);
+            m_parent, &BaseElementPresenter::displayedConstraintPressed);
     connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::moved,
-            this, &BaseElementPresenter::displayedConstraintMoved);
+            m_parent, &BaseElementPresenter::displayedConstraintMoved);
     connect(m_displayedConstraintPresenter, &FullViewConstraintPresenter::released,
-            this, &BaseElementPresenter::displayedConstraintReleased);
+            m_parent, &BaseElementPresenter::displayedConstraintReleased);
+
+    showConstraint();
 
 }
 
 void BaseScenarioPresenter::showConstraint()
 {
-
     // We set the focus on the main scenario.
     // TODO crash happens when we load an empty score
     if(m_displayedConstraintPresenter->rack() &&
             !m_displayedConstraintPresenter->rack()->getSlots().empty())
     {
         SlotPresenter* slot = *m_displayedConstraintPresenter->rack()->getSlots().begin();
-        model()->focusManager().setFocusedPresenter(
+        m_parent->model()->focusManager().setFocusedPresenter(
                     slot->processes().front().first);
     }
 }

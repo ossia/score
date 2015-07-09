@@ -44,6 +44,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         // The height in pixels of the displayed constraint with its rack.
         double height() const;
+        ZoomRatio zoomRatio() const;
 
     signals:
         void displayedConstraintPressed(const QPointF&);
@@ -64,7 +65,9 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void setProgressBarTime(const TimeValue &t);
         void setMillisPerPixel(ZoomRatio newFactor);
 
-        void on_newSelection(Selection);
+        void on_newSelection(Selection); // TODO const&
+
+        void updateRect(const QRectF& rect);
 
     private slots:
         void on_zoomSliderChanged(double);
@@ -74,14 +77,16 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         void updateGrid();
 
-        void updateRect(const QRectF& rect);
 
     private:
+        FullViewConstraintPresenter* displayedConstraintPresenter() const
+        {
+            return m_scenarioPresenter->constraintPresenter();
+        }
+
         void updateZoom(ZoomRatio newZoom, QPointF focus);
 
         BaseScenarioPresenter* m_scenarioPresenter{};
-
-        FullViewConstraintPresenter* m_displayedConstraintPresenter{};
         const ConstraintModel* m_displayedConstraint{};
 
         iscore::SelectionDispatcher m_selectionDispatcher;

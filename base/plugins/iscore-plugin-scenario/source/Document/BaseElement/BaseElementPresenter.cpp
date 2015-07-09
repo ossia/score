@@ -16,8 +16,6 @@
 
 // TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/Rack/RackPresenter.hpp"
-#include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -35,6 +33,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
+    m_scenarioPresenter{new BaseScenarioPresenter{this}},
     m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
     m_progressBar{new ProgressBar},
     m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}},
@@ -124,11 +123,13 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 {
     model()->focusManager().focusNothing();
 
-    m_scenarioPresenter->on_displayedConstraintChanged();
+    m_scenarioPresenter->on_displayedConstraintChanged(m_displayedConstraint);
 
-    m_scenarioPresenter->showConstraint();
+    // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
+    on_zoomSliderChanged(0);
+    on_askUpdate();
 
-    model()->setDisplayedConstraint(&m_displayedConstraintPresenter->model());
+    model()->setDisplayedConstraint(&displayedConstraintPresenter()->model());
 
     // Update the address bar
     view()->addressBar()
@@ -146,7 +147,7 @@ void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
     m_millisecondsPerPixel = newFactor;
     m_mainTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
     m_localTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
-    m_displayedConstraintPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
+    displayedConstraintPresenter()->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::on_newSelection(Selection sel)
@@ -313,7 +314,12 @@ BaseElementModel* BaseElementPresenter::model() const
 
 double BaseElementPresenter::height() const
 {
-    return m_displayedConstraintPresenter->view()->height();
+    return displayedConstraintPresenter()->view()->height();
+}
+
+ZoomRatio BaseElementPresenter::zoomRatio() const
+{
+    return m_millisecondsPerPixel;
 }
 
 BaseElementView* BaseElementPresenter::view() const
