@@ -48,7 +48,6 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     InspectorWidgetBase(object, parent)
 {
     setObjectName("Constraint");
-    setInspectedObject(object);
     m_currentConstraint = object;
 
     ////// HEADER

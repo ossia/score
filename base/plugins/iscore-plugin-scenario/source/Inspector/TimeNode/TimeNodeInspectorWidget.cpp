@@ -27,7 +27,6 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     m_model {object}
 {
     setObjectName("TimeNodeInspectorWidget");
-    setInspectedObject(object);
     setParent(parent);
 
     // default date
@@ -130,7 +129,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode(iscore::IDocument::path(inspectedObject()),
+        auto cmd = new SplitTimeNode(iscore::IDocument::path(m_model),
                                      eventGroup);
 
         commandDispatcher()->submitCommand(cmd);

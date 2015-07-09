@@ -4,7 +4,6 @@
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
 #include "Commands/Event/SetTrigger.hpp"
-#include "Commands/Event/RemoveStateFromEvent.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
@@ -42,7 +41,6 @@ EventInspectorWidget::EventInspectorWidget(
     m_model {object}
 {
     setObjectName("EventInspectorWidget");
-    setInspectedObject(m_model);
     setParent(parent);
 
     connect(m_model, &EventModel::statesChanged,
@@ -347,14 +345,6 @@ void EventInspectorWidget::on_triggerChanged()
     auto cmd = new Scenario::Command::SetTrigger{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
-
-/*
-void EventInspectorWidget::removeState(const iscore::State& state)
-{
-    auto cmd = new Scenario::Command::RemoveStateFromEvent{path(m_model), state};
-    emit commandDispatcher()->submitCommand(cmd);
-}
-*/
 
 void EventInspectorWidget::updateInspector()
 {

@@ -153,7 +153,6 @@ void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
 
     connect(&iscore_state, &StateModel::stateAdded, this,
             [=] (const iscore::State& st_val) {
-        qDebug() << "State added";
         auto ossia_st = iscore::convert::state(st_val, m_deviceList);
         ossia_ev->event()->addState(ossia_st);
 
@@ -162,7 +161,6 @@ void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
     } );
     connect(&iscore_state, &StateModel::stateRemoved, this,
             [=] (const iscore::State& st_val) {
-        qDebug() << "State removed";
         ossia_ev->event()->removeState(state_elt->states().at(st_val));
         state_elt->removeState(st_val);
     });

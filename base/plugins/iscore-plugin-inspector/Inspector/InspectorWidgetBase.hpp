@@ -36,6 +36,9 @@ class InspectorWidgetBase : public QWidget
         explicit InspectorWidgetBase(const QObject* inspectedObj, QWidget* parent);
         ~InspectorWidgetBase();
 
+        // By default returns the name of the object.
+        virtual QString tabName();
+
     public slots:
         void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
         void updateAreaLayout(QVector<QWidget*>& contents);
@@ -43,7 +46,6 @@ class InspectorWidgetBase : public QWidget
         void addHeader(QWidget* header);
 
         // Manage Values
-        void setInspectedObject(const QObject* object);
         const QObject* inspectedObject() const;
 
         // getters
@@ -59,12 +61,12 @@ class InspectorWidgetBase : public QWidget
         { return m_selectionDispatcher.get(); }
 
     private:
-        const QObject* _inspectedObject {};
+        const QObject* m_inspectedObject {};
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* m_scrollAreaLayout {};
 
-        QVector<QWidget*> _sections {};
+        QVector<QWidget*> m_sections {};
         QColor _currentColor {Qt::gray};
 
 
@@ -73,6 +75,6 @@ class InspectorWidgetBase : public QWidget
             21
         };
 
-        QVBoxLayout* _layout {};
+        QVBoxLayout* m_layout {};
 };
 

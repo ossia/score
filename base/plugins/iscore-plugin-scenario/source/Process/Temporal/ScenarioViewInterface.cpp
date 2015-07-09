@@ -105,7 +105,6 @@ void update_min_max(const T& val, T& min, T& max)
 
 void ScenarioViewInterface::on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter)
 {
-    ISCORE_TODO
     /*
     const auto& constraint = m_presenter->m_constraints.at(constraintId)->model();
     EventPresenter* start = m_presenter->m_events.at(constraint.startEvent());
@@ -117,8 +116,6 @@ void ScenarioViewInterface::on_hoverOnConstraint(const id_type<ConstraintModel>&
 
 void ScenarioViewInterface::on_hoverOnEvent(const id_type<EventModel>& eventId, bool enter)
 {
-
-    ISCORE_TODO
     /*
     const auto& event = m_presenter->m_events.at(eventId)->model();
     for (const auto& cstr : event.constraints())

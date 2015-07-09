@@ -7,12 +7,12 @@ namespace Scenario
 {
     namespace Command
     {
-        class RemoveStateFromEvent : public iscore::SerializableCommand
+        class RemoveStateFromStateModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("RemoveStateFromStateModel", "RemoveStateFromStateModel")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveStateFromEvent, "ScenarioControl")
-                RemoveStateFromEvent(ObjectPath&& eventPath, const iscore::State& state);
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveStateFromStateModel, "ScenarioControl")
+                RemoveStateFromStateModel(ObjectPath&& eventPath, const iscore::State& state);
                 virtual void undo() override;
                 virtual void redo() override;
 

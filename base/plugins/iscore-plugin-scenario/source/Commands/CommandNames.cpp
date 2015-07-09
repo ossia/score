@@ -114,7 +114,6 @@ const char* Scenario::Command::RemoveSlotFromRack::commandName() { return "Remov
 const char* Scenario::Command::RemoveMultipleElements::commandName() { return "RemoveMultipleElements"; }
 const char* Scenario::Command::RemoveProcessFromConstraint::commandName() { return "RemoveProcessFromConstraint"; }
 const char* Scenario::Command::RemoveLayerModelFromSlot::commandName() { return "RemoveLayerModelFromSlot"; }
-const char* Scenario::Command::RemoveStateFromEvent::commandName() { return "RemoveStateFromEvent"; }
 
 // RESIZE
 const char* Scenario::Command::ResizeBaseConstraint::commandName() { return "ResizeBaseConstraint"; }
@@ -176,7 +175,6 @@ QString Scenario::Command::RemoveSlotFromRack::description() { return QObject::t
 QString Scenario::Command::RemoveMultipleElements::description() { return QObject::tr("RemoveMultipleElements"); }
 QString Scenario::Command::RemoveProcessFromConstraint::description() { return QObject::tr("RemoveProcessFromConstraint"); }
 QString Scenario::Command::RemoveLayerModelFromSlot::description() { return QObject::tr("RemoveLayerModelFromSlot"); }
-QString Scenario::Command::RemoveStateFromEvent::description() { return QObject::tr("RemoveStateFromEvent"); }
 
 // RESIZE
 QString Scenario::Command::ResizeBaseConstraint::description() { return QObject::tr("ResizeBaseConstraint"); }
@@ -268,7 +266,7 @@ void ScenarioControl::setupCommands()
             RemoveSelection,
             RemoveProcessFromConstraint,
             RemoveLayerModelFromSlot,
-            RemoveStateFromEvent,
+            RemoveStateFromStateModel,
 
             ResizeBaseConstraint,
             ResizeConstraint,

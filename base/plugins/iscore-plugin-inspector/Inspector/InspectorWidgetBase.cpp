@@ -13,7 +13,7 @@ InspectorWidgetBase::InspectorWidgetBase(
         const QObject* inspectedObj,
         QWidget* parent) :
     QWidget(parent),
-    _inspectedObject {inspectedObj},
+    m_inspectedObject {inspectedObj},
     m_commandDispatcher(inspectedObj
                           ? new CommandDispatcher<>{iscore::IDocument::documentFromObject(inspectedObj)->commandStack()}
                           : nullptr),
@@ -22,12 +22,11 @@ InspectorWidgetBase::InspectorWidgetBase(
                            : nullptr)
 
 {
-    _layout = new QVBoxLayout;
-    _layout->setContentsMargins(0,1,0,0);
-    setLayout(_layout);
-    _layout->setMargin(0);
-    _layout->setSpacing(0);
-
+    m_layout = new QVBoxLayout;
+    m_layout->setContentsMargins(0,1,0,0);
+    setLayout(m_layout);
+    m_layout->setMargin(0);
+    m_layout->setSpacing(0);
 
     // scroll Area
     m_scrollAreaLayout = new QVBoxLayout;
@@ -40,14 +39,19 @@ InspectorWidgetBase::InspectorWidgetBase(
     scrollAreaContentWidget->setLayout(m_scrollAreaLayout);
     scrollArea->setWidget(scrollAreaContentWidget);
 
-    _sections.push_back(scrollArea);
+    m_sections.push_back(scrollArea);
 
-    updateSectionsView(_layout, _sections);
+    updateSectionsView(m_layout, m_sections);
 }
 
 InspectorWidgetBase::~InspectorWidgetBase()
 {
     delete m_commandDispatcher;
+}
+
+QString InspectorWidgetBase::tabName()
+{
+    return m_inspectedObject->objectName();
 }
 
 void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
@@ -71,7 +75,7 @@ void InspectorWidgetBase::updateAreaLayout(QVector<QWidget*>& contents)
 {
     while(! m_scrollAreaLayout->isEmpty())
     {
-        auto item = m_scrollAreaLayout->takeAt(0);
+        auto item = m_scrollAreaLayout->takeAt(m_scrollAreaLayout->count()-1);
 
         delete item->widget();
         delete item;
@@ -86,19 +90,11 @@ void InspectorWidgetBase::updateAreaLayout(QVector<QWidget*>& contents)
 
 void InspectorWidgetBase::addHeader(QWidget* header)
 {
-    _sections.push_front(header);
-    _layout->insertWidget(0, header);
-}
-
-// TODO replace with const reference and prevent this.
-void InspectorWidgetBase::setInspectedObject(const QObject* object)
-{
-    _inspectedObject = object;
+    m_sections.push_front(header);
+    m_layout->insertWidget(0, header);
 }
 
 const QObject* InspectorWidgetBase::inspectedObject() const
 {
-    return _inspectedObject;
+    return m_inspectedObject;
 }
-
-
