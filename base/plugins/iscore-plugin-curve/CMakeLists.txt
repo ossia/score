@@ -94,10 +94,12 @@ if(TARGET iscore_lib_inspector)
     target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
 endif()
 
-cotire(${PROJECT_NAME})
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES
-                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+if(ISCORE_COTIRE)
+    cotire(${PROJECT_NAME})
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+endif()
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

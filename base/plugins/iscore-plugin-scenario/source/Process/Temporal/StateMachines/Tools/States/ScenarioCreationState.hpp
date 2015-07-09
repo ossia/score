@@ -19,10 +19,12 @@ class ScenarioCreationState : public CreationState
 {
     public:
         ScenarioCreationState(
+                const ScenarioStateMachine& sm,
                 iscore::CommandStack& stack,
                 ObjectPath&& scenarioPath,
                 QState* parent):
             CreationState{std::forward<ObjectPath>(scenarioPath), parent},
+            m_parentSM{sm},
             m_dispatcher{stack}
         {
 
@@ -39,7 +41,7 @@ class ScenarioCreationState : public CreationState
 
 
         template<typename DestinationState, typename Function>
-        void makeTransition(QState* from, DestinationState* to, Function&& fun)
+        void add_transition(QState* from, DestinationState* to, Function&& fun)
         {
             using transition_type = ScenarioTransition_T<DestinationState::value()>;
             auto trans = make_transition<transition_type>(from, to, *this);
@@ -50,6 +52,8 @@ class ScenarioCreationState : public CreationState
         }
 
         void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
+
+        const ScenarioStateMachine& m_parentSM;
         MultiOngoingCommandDispatcher m_dispatcher;
 
         ScenarioPoint m_clickedPoint;

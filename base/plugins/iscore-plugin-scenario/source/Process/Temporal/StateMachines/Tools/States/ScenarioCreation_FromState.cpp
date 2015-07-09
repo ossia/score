@@ -29,8 +29,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         ObjectPath &&scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
-    ScenarioCreationState{stack, std::move(scenarioPath), parent},
-    m_scenarioSM{stateMachine}
+    ScenarioCreationState{stateMachine, stack, std::move(scenarioPath), parent}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -56,7 +55,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
         // Pressed -> ...
-        makeTransition(pressed, move_state, [&] () { createToNothing(); });
+        add_transition(pressed, move_state, [&] () { createToNothing(); });
         make_transition<MoveOnNothing_Transition>(pressed, move_nothing, *this);
 
         /// MoveOnNothing -> ...
@@ -64,63 +63,66 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         make_transition<MoveOnNothing_Transition>(move_nothing, move_nothing, *this);
 
         // MoveOnNothing -> MoveOnState.
-        makeTransition(move_nothing, move_state,
+        add_transition(move_nothing, move_state,
                        [&] () { rollback(); createToState(); });
 
         // MoveOnNothing -> MoveOnEvent.
-        makeTransition(move_nothing, move_event,
+        add_transition(move_nothing, move_event,
                        [&] () { rollback(); createToEvent(); });
 
         // MoveOnNothing -> MoveOnTimeNode
-        makeTransition(move_nothing, move_timenode,
+        add_transition(move_nothing, move_timenode,
                        [&] () { rollback(); createToTimeNode(); });
 
 
         /// MoveOnState -> ...
         // MoveOnState -> MoveOnNothing
-        makeTransition(move_state, move_nothing,
+        add_transition(move_state, move_nothing,
                        [&] () { rollback(); createToNothing(); });
 
         // MoveOnState -> MoveOnState
         // We don't do anything, the constraint should not move.
 
         // MoveOnState -> MoveOnEvent
-        makeTransition(move_state, move_event,
+        add_transition(move_state, move_event,
                        [&] () { rollback(); createToEvent(); });
 
         // MoveOnState -> MoveOnTimeNode
-        makeTransition(move_state, move_timenode,
+        add_transition(move_state, move_timenode,
                        [&] () { rollback(); createToTimeNode(); });
 
 
         /// MoveOnEvent -> ...
         // MoveOnEvent -> MoveOnNothing
-        makeTransition(move_event, move_nothing,
+        add_transition(move_event, move_nothing,
                        [&] () { rollback(); createToNothing(); });
 
         // MoveOnEvent -> MoveOnState
-        makeTransition(move_event, move_state,
-                       [&] () { rollback(); createToState(); });
+        add_transition(move_event, move_state,
+                       [&] () {
+            if(m_parentSM.model().state(clickedState).eventId() != m_parentSM.model().state(hoveredState).eventId())
+                rollback(); createToState();
+        });
 
         // MoveOnEvent -> MoveOnEvent
         make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
 
         // MoveOnEvent -> MoveOnTimeNode
-        makeTransition(move_event, move_timenode,
+        add_transition(move_event, move_timenode,
                        [&] () { rollback(); createToTimeNode(); });
 
 
         /// MoveOnTimeNode -> ...
         // MoveOnTimeNode -> MoveOnNothing
-        makeTransition(move_timenode, move_nothing,
+        add_transition(move_timenode, move_nothing,
                        [&] () { rollback(); createToNothing(); });
 
         // MoveOnTimeNode -> MoveOnState
-        makeTransition(move_timenode, move_state,
+        add_transition(move_timenode, move_state,
                        [&] () { rollback(); createToState(); });
 
         // MoveOnTimeNode -> MoveOnEvent
-        makeTransition(move_timenode, move_event,
+        add_transition(move_timenode, move_event,
                        [&] () { rollback(); createToEvent(); });
 
         // MoveOnTimeNode -> MoveOnTimeNode
@@ -139,9 +141,9 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         {
             if(!createdConstraints.empty() && !createdEvents.empty())
             {
-                if(!m_scenarioSM.isShiftPressed())
+                if(!m_parentSM.isShiftPressed())
                 {
-                    const auto&  st = m_scenarioSM.model().state(clickedState);
+                    const auto&  st = m_parentSM.model().state(clickedState);
                     currentPoint.y = st.heightPercentage();
                 }
 
@@ -155,13 +157,24 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
             }
         });
 
-        QObject::connect(move_timenode, &QState::entered, [&] ()
+        QObject::connect(move_event, &QState::entered, [&] ()
         {
-            if(!createdEvents.empty())
+            if(!createdStates.empty())
             {
                 m_dispatcher.submitCommand<MoveNewState>(
                             ObjectPath{m_scenarioPath},
-                            createdEvents.last(),// TODO CheckMe
+                            createdStates.last(),
+                            currentPoint.y);
+            }
+        });
+
+        QObject::connect(move_timenode, &QState::entered, [&] ()
+        {
+            if(!createdStates.empty())
+            {
+                m_dispatcher.submitCommand<MoveNewState>(
+                            ObjectPath{m_scenarioPath},
+                            createdStates.last(),
                             currentPoint.y);
             }
         });
@@ -187,8 +200,8 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
 template<typename Fun>
 void ScenarioCreation_FromState::creationCheck(Fun&& fun)
 {
-    const auto& scenar = m_scenarioSM.model();
-    if(m_scenarioSM.isShiftPressed())
+    const auto& scenar = m_parentSM.model();
+    if(m_parentSM.isShiftPressed())
     {
         // Create new state
         auto cmd = new Scenario::Command::CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};
@@ -225,7 +238,14 @@ void ScenarioCreation_FromState::createToTimeNode()
 
 void ScenarioCreation_FromState::createToEvent()
 {
-    creationCheck([&] (const id_type<StateModel>& id) { createToEvent_base(id); });
+    if(hoveredEvent == m_parentSM.model().state(clickedState).eventId())
+    {
+        creationCheck([&] (const id_type<StateModel>& id) { });
+    }
+    else
+    {
+        creationCheck([&] (const id_type<StateModel>& id) { createToEvent_base(id); });
+    }
 }
 
 void ScenarioCreation_FromState::createToState()

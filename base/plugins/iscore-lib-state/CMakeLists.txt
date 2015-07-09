@@ -34,10 +34,13 @@ target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)
 set_property(TARGET ${PROJECT_NAME} APPEND
              PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
-cotire(${PROJECT_NAME})
-set_target_properties(${PROJECT_NAME}
-                      PROPERTIES
-                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+
+if(ISCORE_COTIRE)
+    cotire(${PROJECT_NAME})
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+endif()
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION .

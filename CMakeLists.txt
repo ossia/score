@@ -64,6 +64,8 @@ endif()
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
 #endif()
 include(cotire)
+option(ISCORE_COTIRE "Use cotire. Will make the build faster." OFF)
+option(ISCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Faster for CI but slower for development" OFF)
 
 
 option(OSSIA_NO_EXAMPLES "Don't build OSSIA examples" True)

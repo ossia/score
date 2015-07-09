@@ -1,37 +1,45 @@
 #include "MoveNewState.hpp"
-
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 #include "Process/ScenarioModel.hpp"
 
 Scenario::Command::MoveNewState::MoveNewState(ObjectPath &&scenarioPath,
-                                              id_type<EventModel> eventId,
+                                              id_type<StateModel> stateId,
                                               const double y):
     SerializableCommand {"ScenarioControl",
              commandName(),
              description()},
     m_path(std::move(scenarioPath)),
-    m_eventId{eventId},
+    m_stateId{stateId},
     m_y{y}
 {
-
+    auto& scenar = m_path.find<ScenarioModel>();
+    m_oldy = scenar.state(m_stateId).heightPercentage();
 }
 
 void Scenario::Command::MoveNewState::undo()
 {
+    auto& scenar = m_path.find<ScenarioModel>();
+    auto& state = scenar.state(m_stateId);
+    state.setHeightPercentage(m_oldy);
 
+    updateEventExtent(state.eventId(), scenar);
 }
 
 void Scenario::Command::MoveNewState::redo()
 {
-//    auto scenar = m_path.find<ScenarioModel>();
-//    scenar.event(m_eventId).setHeightPercentage(m_y);
+    auto& scenar = m_path.find<ScenarioModel>();
+    auto& state = scenar.state(m_stateId);
+    state.setHeightPercentage(m_y);
+
+    updateEventExtent(state.eventId(), scenar);
 }
 
 void Scenario::Command::MoveNewState::serializeImpl(QDataStream & s) const
 {
-    s << m_path << m_eventId << m_y;
+    s << m_path << m_stateId << m_oldy << m_y;
 }
 
 void Scenario::Command::MoveNewState::deserializeImpl(QDataStream & s)
 {
-    s >> m_path >> m_eventId >> m_y;
+    s >> m_path >> m_stateId >> m_oldy >> m_y;
 }

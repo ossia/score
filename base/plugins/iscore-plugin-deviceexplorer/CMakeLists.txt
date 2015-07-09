@@ -81,10 +81,12 @@ target_link_libraries(iscore_plugin_deviceexplorer
                       Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Test
                       iscore_lib_base iscore_lib_state)
 
-cotire(iscore_plugin_deviceexplorer)
-set_target_properties(iscore_plugin_deviceexplorer
-                      PROPERTIES
-                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+if(ISCORE_COTIRE)
+    cotire(iscore_plugin_deviceexplorer)
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(iscore_plugin_deviceexplorer PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+endif()
 
 set_property(TARGET iscore_plugin_deviceexplorer APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")

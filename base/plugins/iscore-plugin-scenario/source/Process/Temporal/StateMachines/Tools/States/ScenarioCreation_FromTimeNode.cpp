@@ -30,7 +30,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         ObjectPath &&scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
-    ScenarioCreationState{stack, std::move(scenarioPath), parent}
+    ScenarioCreationState{stateMachine, stack, std::move(scenarioPath), parent}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -73,11 +73,11 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         make_transition<MoveOnNothing_Transition>(move_nothing, move_nothing, *this);
 
         // MoveOnNothing -> MoveOnState.
-        makeTransition(move_nothing, move_state,
+        add_transition(move_nothing, move_state,
                        [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnNothing -> MoveOnEvent.
-        makeTransition(move_nothing, move_event,
+        add_transition(move_nothing, move_event,
                        [&] () {
             if(createdEvents.contains(hoveredEvent))
             {
@@ -89,7 +89,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         });
 
         // MoveOnNothing -> MoveOnTimeNode
-        makeTransition(move_nothing, move_timenode,
+        add_transition(move_nothing, move_timenode,
                        [&] () {
             if(createdTimeNodes.contains(hoveredTimeNode))
             {
@@ -102,38 +102,38 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         /// MoveOnState -> ...
         // MoveOnState -> MoveOnNothing
-        makeTransition(move_state, move_nothing,
+        add_transition(move_state, move_nothing,
                        [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnState -> MoveOnState
         // We don't do anything, the constraint should not move.
 
         // MoveOnState -> MoveOnEvent
-        makeTransition(move_state, move_event,
+        add_transition(move_state, move_event,
                        [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnState -> MoveOnTimeNode
-        makeTransition(move_state, move_timenode,
+        add_transition(move_state, move_timenode,
                        [&] () { rollback(); ISCORE_TODO });
 
 
         /// MoveOnEvent -> ...
         // MoveOnEvent -> MoveOnNothing
-        makeTransition(move_event, move_nothing,
+        add_transition(move_event, move_nothing,
                        [&] () {
             rollback();
             createToNothing();
         });
 
         // MoveOnEvent -> MoveOnState
-        makeTransition(move_event, move_state,
+        add_transition(move_event, move_state,
                        [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnEvent -> MoveOnEvent
         make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
 
         // MoveOnEvent -> MoveOnTimeNode
-        makeTransition(move_event, move_timenode,
+        add_transition(move_event, move_timenode,
                        [&] () {
             if(createdTimeNodes.contains(hoveredTimeNode))
             {
@@ -146,18 +146,18 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         /// MoveOnTimeNode -> ...
         // MoveOnTimeNode -> MoveOnNothing
-        makeTransition(move_timenode, move_nothing,
+        add_transition(move_timenode, move_nothing,
                        [&] () {
             rollback();
             createToNothing();
         });
 
         // MoveOnTimeNode -> MoveOnState
-        makeTransition(move_timenode, move_state,
+        add_transition(move_timenode, move_state,
                        [&] () { rollback(); ISCORE_TODO });
 
         // MoveOnTimeNode -> MoveOnEvent
-        makeTransition(move_timenode, move_event,
+        add_transition(move_timenode, move_event,
                        [&] () {
             if(createdEvents.contains(hoveredEvent))
             {

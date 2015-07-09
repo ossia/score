@@ -4,7 +4,7 @@ before_install:
     - sudo add-apt-repository --yes ppa:boost-latest/ppa
 
     - sudo apt-get update -qq
-    - sudo apt-get install -qq qt54-meta-full libboost1.55-dev libavahi-compat-libdnssd-dev
+    - sudo apt-get install -qq qt54-meta-full libboost-dev libavahi-compat-libdnssd-dev
 
     - wget https://www.dropbox.com/s/3xot58gakn6w898/cmake_3.2.3-3.2.3_amd64.deb?dl=1 -O cmake_3.2.3-3.2.3_amd64.deb
     - sudo dpkg --force-overwrite -i cmake_3.2.3-3.2.3_amd64.deb
@@ -14,7 +14,7 @@ before_install:
 
 script:
     - source /opt/qt54/bin/qt54-env.sh
-    - /usr/local/bin/cmake .
+    - /usr/local/bin/cmake -DISCORE_COTIRE:Bool=True .
     - make all_unity -j2
 # Note : to make the tests work under travis, they have to be changed in order not to require QApplication but only QCoreApplication
 #    - LD_LIBRARY_PATH=/usr/lib64 make ExperimentalTest

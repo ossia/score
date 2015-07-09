@@ -16,7 +16,6 @@ set(HEADER_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/PluginSettingsPresenter.hpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/commands/BlacklistCommand.hpp
-
 )
 
 set(SOURCE_FILES
@@ -35,7 +34,12 @@ add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
 
-cotire(${PROJECT_NAME})
+if(ISCORE_COTIRE)
+    cotire(${PROJECT_NAME})
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+endif()
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
