@@ -9,6 +9,11 @@ set(CMAKE_AUTORCC ON)
 set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface" PARENT_SCOPE)
 set(SCENARIO_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source" PARENT_SCOPE)
 
+option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" ON)
+if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
+    add_definitions(-DISCORE_SCENARIO_DEBUG_RECTS)
+endif()
+
 # Packages
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
 
@@ -41,10 +46,12 @@ install(TARGETS iscore_lib_process
     LIBRARY DESTINATION ./
     ARCHIVE DESTINATION static_lib/)
 
-cotire(iscore_lib_process)
-set_target_properties(iscore_lib_process
-                      PROPERTIES
-                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+if(ISCORE_COTIRE)
+    cotire(iscore_lib_process)
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(iscore_lib_process PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+endif()
 
 ### Plugin ###
 file(GLOB_RECURSE HDRS
@@ -208,6 +215,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromNothing.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/MoveStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/SlotStates.cpp"
@@ -275,9 +283,14 @@ if(TARGET iscore_lib_inspector)
     target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
 endif()
 
-set_target_properties(iscore_plugin_scenario PROPERTIES
-    COTIRE_PREFIX_HEADER_IGNORE_PATH "/usr/include/boost/preprocessor/")
-cotire(iscore_plugin_scenario)
+
+if(ISCORE_COTIRE)
+    cotire(iscore_plugin_scenario)
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(iscore_plugin_scenario PROPERTIES
+                              COTIRE_PREFIX_HEADER_IGNORE_PATH "/usr/include/boost/preprocessor/")
+    endif()
+endif()
 
 install(TARGETS iscore_plugin_scenario
     LIBRARY DESTINATION plugins/

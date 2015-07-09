@@ -1,20 +1,20 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
-class ScenarioCreation_FromState : public ScenarioCreationState
+
+class ScenarioCreation_FromNothing : public ScenarioCreationState
 {
     public:
-        ScenarioCreation_FromState(
+        ScenarioCreation_FromNothing(
                 const ScenarioStateMachine& stateMachine,
                 ObjectPath&& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
 
     private:
-        void createToNothing();
-        void createToTimeNode();
-        void createToEvent();
-        void createToState();
+        void createInitialState();
 
-        template<typename Fun>
-        void creationCheck(Fun&& fun);
+        void createToNothing();
+        void createToState();
+        void createToEvent();
+        void createToTimeNode();
 };

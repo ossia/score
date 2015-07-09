@@ -125,7 +125,3 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
 
     return *constraint;
 }
-
-
-
-

@@ -6,6 +6,7 @@
 
 #include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.hpp"
 #include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromState.hpp"
+#include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromNothing.hpp"
 #include "Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromTimeNode.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
@@ -29,6 +30,18 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
 
     auto scenarioPath = iscore::IDocument::path(m_parentSM.model());
 
+    //// Create from nothing ////
+    m_createFromNothingState = new ScenarioCreation_FromNothing{
+            m_parentSM,
+            ObjectPath{scenarioPath},
+            m_parentSM.commandStack(), nullptr};
+
+    make_transition<ClickOnNothing_Transition>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
+    m_createFromNothingState->addTransition(m_createFromNothingState, SIGNAL(finished()), m_waitState);
+
+    localSM().addState(m_createFromNothingState);
+
+
     //// Create from an event ////
     m_createFromEventState = new ScenarioCreation_FromEvent{
             m_parentSM,
@@ -38,12 +51,6 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
     m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
 
-    // Creating from nothing is like creating from the start event.
-    auto t_click_nothing = make_transition<ClickOnNothing_Transition>(m_waitState,
-                                                                      m_createFromEventState,
-                                                                      *m_createFromEventState);
-    connect(t_click_nothing, &QAbstractTransition::triggered, [&] ()
-    { m_createFromEventState->clickedEvent = m_parentSM.model().startEvent().id(); });
     localSM().addState(m_createFromEventState);
 
 
@@ -58,8 +65,8 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
                                                 *m_createFromTimeNodeState);
     m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, SIGNAL(finished()), m_waitState);
 
-
     localSM().addState(m_createFromTimeNodeState);
+
 
     //// Create from a State ////
     m_createFromStateState = new ScenarioCreation_FromState{
@@ -169,6 +176,8 @@ CreationState* CreationToolState::currentState() const
 {
     if(m_createFromEventState->active())
         return m_createFromEventState;
+    if(m_createFromNothingState->active())
+        return m_createFromNothingState;
     if(m_createFromStateState->active())
         return m_createFromStateState;
     if(m_createFromTimeNodeState->active())

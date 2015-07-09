@@ -9,9 +9,6 @@
 #include <QApplication>
 #include <QPalette>
 
-static const qreal radius = 10.;
-static const qreal radiusIn = 3.;
-
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
     QGraphicsObject {parent},
@@ -74,7 +71,7 @@ bool EventView::hasTrigger() const
 
 QRectF EventView::boundingRect() const
 {
-    return {- radius, -5., 2 * radius, qreal(m_extent.bottom() - m_extent.top() + 10)};
+    return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};
 }
 
 void EventView::paint(QPainter* painter,
@@ -122,7 +119,7 @@ void EventView::paint(QPainter* painter,
     painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top())));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
-    painter->setPen(Qt::darkCyan);
+    painter->setPen(Qt::cyan);
     painter->drawRect(boundingRect());
 #endif
 }

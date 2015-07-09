@@ -84,10 +84,13 @@ else()
     endif()
 endif()
 
-cotire(${APPNAME})
-set_target_properties(${APPNAME}
-                      PROPERTIES
-                        COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+if(ISCORE_COTIRE)
+    cotire(${APPNAME})
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(${APPNAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+endif()
+
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION .
