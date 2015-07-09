@@ -8,7 +8,7 @@
 static const qreal radiusFull = 10.;
 static const qreal radiusVoid = 3.;
 
-StateView::StateView(StatePresenter& pres, QGraphicsObject *parent) :
+StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsObject(parent),
     m_presenter{pres}
 {

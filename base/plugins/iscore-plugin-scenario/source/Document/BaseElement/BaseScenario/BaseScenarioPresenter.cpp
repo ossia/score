@@ -10,6 +10,11 @@
 #include "Document/Constraint/Rack/RackPresenter.hpp"
 #include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 
+#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StatePresenter.hpp"
+
+#include "Process/ScenarioModel.hpp"
+
 #include <iscore/document/DocumentInterface.hpp>
 BaseScenarioPresenter::BaseScenarioPresenter(BaseElementPresenter *parent):
     NamedObject{"BaseScenarioPresenter", parent},
@@ -27,6 +32,20 @@ void BaseScenarioPresenter::on_displayedConstraintChanged(const ConstraintModel*
             m_parent->view()->baseItem(),
             m_parent};
 
+    // Create states / events
+    if(auto bs = dynamic_cast<BaseScenario*>(m->parent()))
+    {
+        m_startStatePresenter = new StatePresenter(*bs->startState(), m_parent->view()->baseItem(), this);
+
+        m_endStatePresenter = new StatePresenter(*bs->endState(), m_parent->view()->baseItem(), this);
+
+    }
+    else if(dynamic_cast<ScenarioModel*>(m->parent()))
+    {
+
+    }
+
+    ISCORE_TODO;
     /*
     m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model().startDate());
     m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
@@ -62,4 +81,12 @@ void BaseScenarioPresenter::showConstraint()
         m_parent->model()->focusManager().setFocusedPresenter(
                     slot->processes().front().first);
     }
+}
+
+void BaseScenarioPresenter::on_zoomRatioChanged(ZoomRatio r)
+{
+    m_startStatePresenter->view()->setPos(0, 0);
+    m_endStatePresenter->view()->setPos({m_displayedConstraintPresenter->abstractConstraintViewModel().model().defaultDuration().toPixels(r), 0});
+
+    m_displayedConstraintPresenter->on_zoomRatioChanged(r);
 }

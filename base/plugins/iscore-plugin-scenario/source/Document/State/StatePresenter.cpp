@@ -8,7 +8,7 @@
 
 StatePresenter::StatePresenter(
         const StateModel &model,
-        QGraphicsObject *parentview,
+        QGraphicsItem *parentview,
         QObject *parent) :
     NamedObject {"StatePresenter", parent},
     m_model {model},

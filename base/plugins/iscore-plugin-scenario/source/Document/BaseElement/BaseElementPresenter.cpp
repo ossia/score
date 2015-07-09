@@ -147,7 +147,8 @@ void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
     m_millisecondsPerPixel = newFactor;
     m_mainTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
     m_localTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
-    displayedConstraintPresenter()->on_zoomRatioChanged(m_millisecondsPerPixel);
+
+    m_scenarioPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::on_newSelection(Selection sel)
@@ -304,7 +305,7 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
     view()->view()->ensureVisible(newView,0,0);
-    updateGrid();
+    //updateGrid();
 }
 
 BaseElementModel* BaseElementPresenter::model() const

@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
+#include "ProcessInterface/ZoomHelper.hpp"
 
 class ConstraintModel;
 class FullViewConstraintPresenter;
@@ -16,6 +17,8 @@ class BaseScenarioPresenter : public NamedObject
 
         void on_displayedConstraintChanged(const ConstraintModel *m);
         void showConstraint();
+
+        void on_zoomRatioChanged(ZoomRatio r);
 
         auto constraintPresenter() const
         { return m_displayedConstraintPresenter; }

@@ -3,7 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-class QGraphicsObject;
+class QGraphicsItem;
 class StateModel;
 class StateView;
 class TemporalScenarioPresenter;
@@ -16,7 +16,7 @@ class StatePresenter : public NamedObject
 
     public:
         StatePresenter(const StateModel& model,
-                       QGraphicsObject* parentview,
+                       QGraphicsItem* parentview,
                        QObject* parent);
 
         virtual ~StatePresenter();

@@ -8,7 +8,7 @@ class StateView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        StateView(StatePresenter &presenter, QGraphicsObject *parent = 0);
+        StateView(StatePresenter &presenter, QGraphicsItem *parent = 0);
         virtual ~StateView() = default;
         int type() const override;
 
