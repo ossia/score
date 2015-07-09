@@ -36,12 +36,6 @@ class AbstractConstraintView : public QGraphicsObject
         void setPlayWidth(double width);
         void setValid(bool val);
 
-        StateView* startState() const
-        { return m_startState; }
-
-        StateView* endState() const
-        { return m_endState; }
-
         double height() const
         { return m_height; }
 
@@ -111,8 +105,6 @@ protected:
             Qt::SquareCap,
             Qt::RoundJoin
         };
-        StateView* m_startState{};  // TODO state not initialized !!
-        StateView* m_endState{};
 
     private:
         AbstractConstraintPresenter& m_presenter;

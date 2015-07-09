@@ -63,8 +63,7 @@ void TemporalConstraintView::paint(
             leftBrace.arcTo(minWidth() - 10, -10, 20, 20, 90, 180);
         }
 
-        m_endState->hide();
-
+        // TODO end state should be hidden
         dashedPath.moveTo(minWidth(), 0);
         dashedPath.lineTo(defaultWidth(), 0);
     }

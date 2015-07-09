@@ -31,7 +31,7 @@ class BaseElementStateMachine;
 class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 {
         Q_OBJECT
-
+    friend class BaseScenarioPresenter;
     public:
         BaseElementPresenter(iscore::DocumentPresenter* parent_presenter,
                              iscore::DocumentDelegateModelInterface* model,

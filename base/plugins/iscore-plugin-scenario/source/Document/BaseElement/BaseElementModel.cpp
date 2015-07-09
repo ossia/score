@@ -169,6 +169,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
 {;
     auto process = m_focusManager.focusedModel();
 
+    // TODO faire BaseDisplayedElements qui contient m_displayedConstraint et dont BaseScenarioPresenter est le présenteur.
     if(s.empty())
     {
         if(process)

@@ -36,12 +36,20 @@ void BaseScenarioPresenter::on_displayedConstraintChanged(const ConstraintModel*
     if(auto bs = dynamic_cast<BaseScenario*>(m->parent()))
     {
         m_startStatePresenter = new StatePresenter(*bs->startState(), m_parent->view()->baseItem(), this);
-
         m_endStatePresenter = new StatePresenter(*bs->endState(), m_parent->view()->baseItem(), this);
 
+        connect(m_startStatePresenter, &StatePresenter::pressed, this, [&] (const QPointF&)
+               {
+            m_parent->m_selectionDispatcher.setAndCommit({&m_startStatePresenter->model()});
+        });
+        connect(m_endStatePresenter, &StatePresenter::pressed, this, [&] (const QPointF&)
+               {
+            m_parent->m_selectionDispatcher.setAndCommit({&m_endStatePresenter->model()});
+        });
     }
     else if(dynamic_cast<ScenarioModel*>(m->parent()))
     {
+        ISCORE_TODO;
 
     }
 
@@ -67,7 +75,6 @@ void BaseScenarioPresenter::on_displayedConstraintChanged(const ConstraintModel*
             m_parent, &BaseElementPresenter::displayedConstraintReleased);
 
     showConstraint();
-
 }
 
 void BaseScenarioPresenter::showConstraint()

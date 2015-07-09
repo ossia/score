@@ -25,10 +25,6 @@ class StateView : public QGraphicsObject
         void changeColor(const QColor&);
 
     signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
-
         void dropReceived(const QMimeData*);
 
     protected:

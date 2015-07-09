@@ -9,7 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface" PARENT_SCOPE)
 set(SCENARIO_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source" PARENT_SCOPE)
 
-option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" ON)
+option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
 if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
     add_definitions(-DISCORE_SCENARIO_DEBUG_RECTS)
 endif()
