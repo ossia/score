@@ -9,7 +9,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QtXml/QtXml>
-#include <QGuiApplication>
+#include <QApplication>
 #include <QWindow>
 
 using namespace iscore;
@@ -214,6 +214,8 @@ void AddDevice::redo()
     auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
     Q_ASSERT(explorer.deviceModel());
 
+    // TODO faire code qui charge un device
+    // TODO faire code qui transforme un device iscore en device OSSIA
     try {
         auto newdev = proto->makeDevice(m_parameters);
         explorer.deviceModel()->list().addDevice(newdev);

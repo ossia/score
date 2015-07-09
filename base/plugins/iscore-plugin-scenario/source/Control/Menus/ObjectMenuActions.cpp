@@ -17,6 +17,8 @@
 #include "Commands/Constraint/CopyConstraintContent.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
+#include "Control/ScenarioControl.hpp"
+
 #include <QJsonDocument>
 #include <QApplication>
 #include <QClipboard>

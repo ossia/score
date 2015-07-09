@@ -10,12 +10,13 @@
 #include "OSSIATimeNodeElement.hpp"
 #include "OSSIAStateElement.hpp"
 #include "OSSIAEventElement.hpp"
-
+#include <QPointer>
 class EventModel;
 class ConstraintModel;
 class TimeNodeModel;
 class ScenarioModel;
 class DeviceList;
+class OSSIAConstraintElement;
 
 namespace OSSIA
 {
@@ -26,8 +27,10 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 {
     public:
         OSSIAScenarioElement(
+                OSSIAConstraintElement* parentConstraint,
                 const ScenarioModel* element,
                 QObject* parent);
+        ~OSSIAScenarioElement();
 
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
         std::shared_ptr<OSSIA::Scenario> scenario() const;
@@ -50,6 +53,8 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void on_eventRemoved(const id_type<EventModel>& id);
         void on_timeNodeRemoved(const id_type<TimeNodeModel>& id);
 
+
+        QPointer<OSSIAConstraintElement> m_parent_constraint;
 
         std::map<id_type<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
         std::map<id_type<StateModel>, OSSIAStateElement*> m_ossia_states;

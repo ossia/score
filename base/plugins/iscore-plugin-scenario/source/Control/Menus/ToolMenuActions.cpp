@@ -2,7 +2,7 @@
 
 #include "iscore/menu/MenuInterface.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-
+#include "Control/ScenarioControl.hpp"
 
 template<typename Data>
 QAction* makeToolbarAction(const QString& name,

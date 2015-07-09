@@ -12,8 +12,12 @@
 #include <core/document/DocumentModel.hpp>
 #include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include "Protocols/OSSIADevice.hpp"
-OSSIAAutomationElement::OSSIAAutomationElement(const AutomationModel *element, QObject *parent):
+OSSIAAutomationElement::OSSIAAutomationElement(
+        OSSIAConstraintElement* parentConstraint,
+        const AutomationModel *element,
+        QObject *parent):
     OSSIAProcessElement{parent},
+    m_parent_constraint{parentConstraint},
     m_iscore_autom{element},
     m_deviceList{static_cast<DeviceDocumentPlugin>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin")).list()}
 {
@@ -111,4 +115,14 @@ void OSSIAAutomationElement::on_curveChanged()
 
     //m_ossia_curve->setInitialValue((*m_iscore_autom->curve().segments().begin()).start().y());
 
+}
+
+#include "OSSIAConstraintElement.hpp"
+#include <API/Headers/Editor/TimeConstraint.h>
+OSSIAAutomationElement::~OSSIAAutomationElement()
+{
+    if(m_parent_constraint)
+    {
+        m_parent_constraint->constraint()->removeTimeProcess(m_ossia_autom);
+    }
 }

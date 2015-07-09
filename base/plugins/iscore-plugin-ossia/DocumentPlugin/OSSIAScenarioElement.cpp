@@ -14,8 +14,12 @@
 
 #include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
-OSSIAScenarioElement::OSSIAScenarioElement(const ScenarioModel* element, QObject* parent):
+OSSIAScenarioElement::OSSIAScenarioElement(
+        OSSIAConstraintElement *parentConstraint,
+        const ScenarioModel* element,
+        QObject* parent):
     OSSIAProcessElement{parent},
+    m_parent_constraint{parentConstraint},
     m_iscore_scenario{element},
     m_deviceList{static_cast<DeviceDocumentPlugin*>(iscore::IDocument::documentFromObject(element)->model()->pluginModel("DeviceDocumentPlugin"))->list()}
 {
@@ -323,4 +327,15 @@ void OSSIAScenarioElement::on_timeNodeRemoved(const id_type<TimeNodeModel>& id)
 
     m_ossia_timenodes.erase(tn_it);
     delete tn;
+}
+
+
+#include "OSSIAConstraintElement.hpp"
+#include <API/Headers/Editor/TimeConstraint.h>
+OSSIAScenarioElement::~OSSIAScenarioElement()
+{
+    if(m_parent_constraint)
+    {
+        m_parent_constraint->constraint()->removeTimeProcess(m_ossia_scenario);
+    }
 }
