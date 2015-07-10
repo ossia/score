@@ -53,8 +53,8 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 
         // TODO Add event id
 
-        // Constraints setup
         auto scenar = state->parentScenario();
+        // Constraints setup
         if(state->previousConstraint())
         {
             auto cstr = &scenar->constraint(state->previousConstraint());

@@ -100,9 +100,9 @@ void EventModel::reset()
 QString EventModel::prettyName()
 { return QObject::tr("Event"); }
 
-ScenarioModel* EventModel::parentScenario() const
+ScenarioInterface* EventModel::parentScenario() const
 {
-    return dynamic_cast<ScenarioModel*>(parent());
+    return dynamic_cast<ScenarioInterface*>(parent());
 }
 
 void EventModel::addState(const id_type<StateModel> &ds)

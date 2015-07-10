@@ -11,6 +11,7 @@
 #include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
 #include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
 
+#include "Process/ScenarioModel.hpp"
 #include <QGraphicsScene>
 ScenarioSelectionState::ScenarioSelectionState(
         iscore::SelectionStack& stack,
@@ -83,7 +84,8 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
     path.addRect(area);
     Selection sel;
 
-    auto scenario = &m_parentSM.presenter().viewModel().sharedProcessModel();
+    auto scenario = dynamic_cast<ScenarioInterface*>(&m_parentSM.presenter().viewModel().sharedProcessModel());
+    Q_ASSERT(scenario);
     for(const auto& item : m_parentSM.scene().items(path))
     {
         switch(item->type())

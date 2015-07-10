@@ -32,9 +32,9 @@ TimeNodeModel::TimeNodeModel(
     metadata.setLabel("TimeNode");
 }
 
-ScenarioModel* TimeNodeModel::parentScenario() const
+ScenarioInterface* TimeNodeModel::parentScenario() const
 {
-    return dynamic_cast<ScenarioModel*>(parent());
+    return dynamic_cast<ScenarioInterface*>(parent());
 }
 
 void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
@@ -42,11 +42,8 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    if(parentScenario())
-    {
-        auto& theEvent = parentScenario()->event(eventId);
-        theEvent.changeTimeNode(this->id());
-    }
+    auto& theEvent = parentScenario()->event(eventId);
+    theEvent.changeTimeNode(this->id());
 }
 
 bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)

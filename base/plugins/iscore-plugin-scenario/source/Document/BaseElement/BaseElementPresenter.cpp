@@ -26,6 +26,21 @@
 #include "BaseScenario/BaseElementStateMachine.hpp"
 using namespace iscore;
 
+BaseElementModel* BaseElementPresenter::model() const
+{
+    return static_cast<BaseElementModel*>(m_model);
+}
+
+ZoomRatio BaseElementPresenter::zoomRatio() const
+{
+    return m_millisecondsPerPixel;
+}
+
+BaseElementView* BaseElementPresenter::view() const
+{
+    return static_cast<BaseElementView*>(m_view);
+}
+
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                            DocumentDelegateModelInterface* delegate_model,
                                            DocumentDelegateViewInterface* delegate_view) :
@@ -33,7 +48,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
-    m_scenarioPresenter{new BaseScenarioPresenter{this}},
+    m_scenarioPresenter{new DisplayedElementsPresenter{this}},
     m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
     m_progressBar{new ProgressBar},
     m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}},
@@ -55,23 +70,26 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
-    // Progress bar, time rules
-    view()->scene()->addItem(m_progressBar);
-    setProgressBarTime(std::chrono::milliseconds{0});
-
-    m_mainTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
-    m_localTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
-
-    // Show our constraint
-    setDisplayedConstraint(model()->baseConstraint());
 
     // Setup of the state machine.
     m_stateMachine = new BaseElementStateMachine{this};
+
+    // Show our constraint
+    connect(model(), &BaseElementModel::displayedConstraintChanged,
+            this, &BaseElementPresenter::on_displayedConstraintChanged);
+
+    model()->setDisplayedConstraint(model()->baseConstraint());
+
+    // Progress bar, time rules
+    view()->scene()->addItem(m_progressBar);
+    setProgressBarTime(std::chrono::milliseconds{0});
+    m_mainTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
+    m_localTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
 }
 
-const ConstraintModel* BaseElementPresenter::displayedConstraint() const
+const ConstraintModel& BaseElementPresenter::displayedConstraint() const
 {
-    return m_displayedConstraint;
+    return model()->displayedElements.displayedConstraint();
 }
 
 void BaseElementPresenter::on_askUpdate()
@@ -98,42 +116,20 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
     if(path.vec().last().objectName() == "ConstraintModel"
     || path.vec().last().objectName() == "BaseConstraintModel")
     {
-        setDisplayedConstraint(&path.find<ConstraintModel>());
-    }
-}
-
-void BaseElementPresenter::setDisplayedConstraint(const ConstraintModel* c)
-{
-    if(c && c != m_displayedConstraint)
-    {
-        m_displayedConstraint = c;
-        on_displayedConstraintChanged();
-
-        disconnect(m_fullViewConnection);
-        if(c != model()->baseConstraint())
-        {
-            m_fullViewConnection =
-                    connect(c, &QObject::destroyed,
-                            this, [&] () { setDisplayedConstraint(model()->baseConstraint()); });
-        }
+        model()->setDisplayedConstraint(&path.find<ConstraintModel>());
     }
 }
 
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
-    model()->focusManager().focusNothing();
-
-    m_scenarioPresenter->on_displayedConstraintChanged(m_displayedConstraint);
+    m_scenarioPresenter->on_displayedConstraintChanged(displayedConstraint());
 
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
     on_zoomSliderChanged(0);
     on_askUpdate();
 
-    model()->setDisplayedConstraint(&displayedConstraintPresenter()->model());
-
     // Update the address bar
-    view()->addressBar()
-            ->setTargetObject(IDocument::path(displayedConstraint()));
+    view()->addressBar()->setTargetObject(IDocument::path(displayedConstraint()));
 }
 
 void BaseElementPresenter::setProgressBarTime(const TimeValue &t)
@@ -151,7 +147,7 @@ void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
     m_scenarioPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
-void BaseElementPresenter::on_newSelection(Selection sel)
+void BaseElementPresenter::on_newSelection(const Selection& sel)
 {
     int scroll = m_localTimeRuler->totalScroll();
     delete m_localTimeRuler;
@@ -198,7 +194,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
         // On veut que cette fonction retourne le facteur de
         // m_millisecondsPerPixel nécessaire pour que la contrainte affichée tienne à l'écran.
         double viewWidth = view()->view()->width();
-        double duration =  m_displayedConstraint->defaultDuration().msec();
+        double duration =  displayedConstraint().defaultDuration().msec();
 
         return 20 + duration / viewWidth;
     };
@@ -219,7 +215,7 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
         // On veut que cette fonction retourne le facteur de
         // m_millisecondsPerPixel nécessaire pour que la contrainte affichée tienne à l'écran.
         double viewWidth = view()->view()->width();
-        double duration =  m_displayedConstraint->defaultDuration().msec();
+        double duration =  displayedConstraint().defaultDuration().msec();
 
         return 5 + duration / viewWidth;
     };
@@ -250,23 +246,6 @@ void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
     m_mainTimeRuler->scroll(dx);
     m_localTimeRuler->scroll(dx);
-}
-
-void BaseElementPresenter::updateGrid()
-{
-    QPainterPath grid;
-    double x = 0;
-    const auto theHeight = height();
-    const auto trWidth = m_mainTimeRuler->view()->width();
-    const auto trSp = m_mainTimeRuler->view()->graduationSpacing();
-
-    while (x < trWidth)
-    {
-        grid.addRect(x, 0, 1, theHeight);
-        x += trSp;
-    }
-
-    view()->view()->setGrid(std::move(grid));
 }
 
 void BaseElementPresenter::updateRect(const QRectF& rect)
@@ -305,26 +284,6 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
     view()->view()->ensureVisible(newView,0,0);
-    //updateGrid();
 }
 
-BaseElementModel* BaseElementPresenter::model() const
-{
-    return static_cast<BaseElementModel*>(m_model);
-}
-
-double BaseElementPresenter::height() const
-{
-    return displayedConstraintPresenter()->view()->height();
-}
-
-ZoomRatio BaseElementPresenter::zoomRatio() const
-{
-    return m_millisecondsPerPixel;
-}
-
-BaseElementView* BaseElementPresenter::view() const
-{
-    return static_cast<BaseElementView*>(m_view);
-}
 

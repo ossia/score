@@ -2,6 +2,7 @@
 #include "BaseScenario/BaseScenarioModel.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
+#include "source/Document/Event/EventModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -166,34 +167,46 @@ void BaseElementModel::on_viewModelFocused(const LayerModel* process)
 
 // TODO candidate for ProcessSelectionManager.
 void BaseElementModel::setNewSelection(const Selection& s)
-{;
+{
     auto process = m_focusManager.focusedModel();
 
-    // TODO faire BaseDisplayedElements qui contient m_displayedConstraint et dont BaseScenarioPresenter est le présenteur.
+    // Manages the selection (different case if we're
+    // selecting something in a process, or something in full view)
     if(s.empty())
     {
         if(process)
         {
             process->setSelection(Selection{});
-            m_displayedConstraint->selection.set(false);
-            m_focusManager.focusNothing();
         }
+
+        displayedElements.setSelection(Selection{});
+        m_focusManager.focusNothing();
     }
-    else if(*s.begin() == m_displayedConstraint)
+    else if(std::any_of(s.begin(),
+                        s.end(),
+                        [&] (const QObject* obj)
+    {
+        return obj == &displayedElements.displayedConstraint()
+            || obj == &displayedElements.startEvent()
+            || obj == &displayedElements.endEvent()
+            || obj == &displayedElements.startState()
+            || obj == &displayedElements.endState();
+    }))
     {
         if(process)
         {
             process->setSelection(Selection{});
-            m_focusManager.focusNothing();
         }
 
-        m_displayedConstraint->selection.set(true);
+        displayedElements.setSelection(s);
+        m_focusManager.focusNothing();
     }
     else
     {
+        displayedElements.setSelection(Selection{});
+
         // We know by the presenter that all objects
         // in a given selection are in the same Process.
-        m_displayedConstraint->selection.set(false);
         auto newProc = parentProcess(*s.begin());
         if(process && newProc != process)
         {
@@ -211,7 +224,17 @@ void BaseElementModel::setNewSelection(const Selection& s)
 
 void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
 {
-    // TODO only keep it saved at one place.
-    m_displayedConstraint = constraint;
+    displayedElements.setDisplayedConstraint(constraint);
+
     m_focusManager.focusNothing();
+
+    disconnect(m_constraintConnection);
+    if(constraint != m_baseScenario->baseConstraint())
+    {
+        m_constraintConnection =
+                connect(constraint->fullView(), &QObject::destroyed,
+                        this, [&] () { setDisplayedConstraint(m_baseScenario->baseConstraint()); });
+    }
+
+    emit displayedConstraintChanged();
 }

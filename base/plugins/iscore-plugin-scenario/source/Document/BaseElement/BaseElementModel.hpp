@@ -3,6 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include "ProcessFocusManager.hpp"
+#include "DisplayedElementsModel.hpp"
 
 class BaseScenario;
 class BaseElementPresenter;
@@ -25,14 +26,18 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         void serialize(const VisitorVariant&) const override;
         void setNewSelection(const Selection& s) override;
 
-        void setDisplayedConstraint(const ConstraintModel*);
 
         ProcessFocusManager& focusManager()
         { return m_focusManager; }
 
+        void setDisplayedConstraint(const ConstraintModel *constraint);
+
+        DisplayedElementsModel displayedElements;
+
     signals:
         void focusMe();
         void setFocusedPresenter(ProcessPresenter*);
+        void displayedConstraintChanged();
 
     public slots:
         void on_viewModelDefocused(const LayerModel* vm);
@@ -40,9 +45,10 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
     private:
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
-        const ConstraintModel* m_displayedConstraint {};
 
         ProcessFocusManager m_focusManager;
         BaseScenario* m_baseScenario{};
+
+        QMetaObject::Connection m_constraintConnection;
 };
 

@@ -80,9 +80,9 @@ ConstraintModel::ConstraintModel(
     m_fullViewModel = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
-ScenarioModel *ConstraintModel::parentScenario() const
+ScenarioInterface* ConstraintModel::parentScenario() const
 {
-    return dynamic_cast<ScenarioModel*>(parent());
+    return dynamic_cast<ScenarioInterface*>(parent());
 }
 
 

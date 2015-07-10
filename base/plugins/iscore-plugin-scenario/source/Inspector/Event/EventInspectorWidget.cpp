@@ -84,10 +84,10 @@ EventInspectorWidget::EventInspectorWidget(
     {
         tnBtn->setText(QString::number(*timeNode.val()));
         auto scenar = m_model->parentScenario();
-        if (scenar)
-            connect(tnBtn,  &QPushButton::clicked,
-                    [=] () { selectionDispatcher()->setAndCommit(
-                            Selection{&scenar->timeNode(timeNode)}); });
+        connect(tnBtn,  &QPushButton::clicked,
+               [=] () {
+            selectionDispatcher()->setAndCommit(Selection{&scenar->timeNode(timeNode)});
+        });
     }
     infoLay->addRow(tr("TimeNode"), tnBtn);
 
@@ -242,12 +242,6 @@ void EventInspectorWidget::updateDisplayedValues(
         m_date->setText(QString::number(m_model->date().msec()));
 
         auto scenar = event->parentScenario();
-        if(!scenar)
-        {
-            ISCORE_TODO // Base scenario
-            return;
-        }
-
         for(const auto& state : event->states())
         {
             addState(&scenar->state(state));

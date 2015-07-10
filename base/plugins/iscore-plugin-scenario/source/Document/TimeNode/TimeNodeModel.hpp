@@ -11,7 +11,7 @@
 
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 class EventModel;
-class ScenarioModel;
+class ScenarioInterface;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
@@ -52,7 +52,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
 
         // Utility
-        ScenarioModel* parentScenario() const;
+        ScenarioInterface* parentScenario() const;
 
         // Data of the TimeNode
         const VerticalExtent& extent() const;

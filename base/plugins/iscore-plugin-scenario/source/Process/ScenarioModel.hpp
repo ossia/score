@@ -11,6 +11,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 #include <ProcessInterface/TimeValue.hpp>
+#include <Process/ScenarioInterface.hpp>
 
 #include <iterator>
 
@@ -31,7 +32,7 @@ class OSSIAScenarioImpl;
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
-class ScenarioModel : public ProcessModel
+class ScenarioModel : public ProcessModel, public ScenarioInterface
 {
         Q_OBJECT
 
@@ -91,10 +92,10 @@ class ScenarioModel : public ProcessModel
         void removeState(StateModel* state);
 
         // Accessors
-        ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const;
-        EventModel& event(const id_type<EventModel>& eventId) const;
-        TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const;
-        StateModel& state(const id_type<StateModel>& stId) const;
+        ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const override;
+        EventModel& event(const id_type<EventModel>& eventId) const override;
+        TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const override;
+        StateModel& state(const id_type<StateModel>& stId) const override;
 
         TimeNodeModel& startTimeNode() const;
         TimeNodeModel& endTimeNode() const;

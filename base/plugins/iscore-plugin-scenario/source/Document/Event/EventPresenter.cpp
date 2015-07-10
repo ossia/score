@@ -3,9 +3,13 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Event/EventView.hpp"
 
+#include "Commands/Event/State/AddStateWithData.hpp"
+#include "Process/ScenarioModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
+#include <QMimeData>
+#include <QJsonDocument>
 #include <QGraphicsScene>
 EventPresenter::EventPresenter(const EventModel& model,
                                QGraphicsObject* parentview,
@@ -82,25 +86,22 @@ void EventPresenter::triggerSetted(QString trig)
     m_view->setTrigger(trig);
 }
 
-#include "Commands/Event/AddStateToEvent.hpp"
-#include <QMimeData>
-#include <QJsonDocument>
-#include <iscore/document/DocumentInterface.hpp>
-#include "Commands/Event/State/AddStateWithData.hpp"
 void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
 {
+    // We don't want to create a new state in BaseScenario
+    auto scenar = dynamic_cast<ScenarioModel*>(m_model.parentScenario());
+    // todo Maybe the drop should be handled by the scenario presenter ?? or not
+
     // If the mime data has states in it we can handle it.
-    if(mime->formats().contains("application/x-iscore-state"))
+    if(scenar && mime->formats().contains("application/x-iscore-state")) // TODO Use macros
     {
         Deserializer<JSONObject> deser{
             QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
         iscore::State s;
         deser.writeTo(s);
 
-        Q_ASSERT(m_model.parentScenario());
-
         auto cmd = new Scenario::Command::AddStateWithData{
-                *m_model.parentScenario(),
+                *scenar,
                 m_model.id(),
                 pos.y() / m_view->parentItem()->boundingRect().size().height(),
                 std::move(s)};

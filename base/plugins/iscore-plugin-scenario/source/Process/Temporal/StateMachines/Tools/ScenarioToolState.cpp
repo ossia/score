@@ -1,4 +1,5 @@
 #include "ScenarioToolState.hpp"
+#include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 

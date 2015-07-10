@@ -13,7 +13,7 @@
 #include "StateView.hpp"
 
 class AbstractConstraintView;
-class ScenarioModel;
+class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
 
@@ -52,7 +52,7 @@ class StateModel : public IdentifiedObject<StateModel>
             vis.writeTo(*this);
         }
 
-        const ScenarioModel* parentScenario() const;
+        const ScenarioInterface* parentScenario() const;
 
         double heightPercentage() const;
 

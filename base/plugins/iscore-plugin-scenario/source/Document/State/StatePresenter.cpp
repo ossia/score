@@ -81,8 +81,6 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         iscore::State s;
         deser.writeTo(s);
 
-        Q_ASSERT(m_model.parentScenario());
-
         auto cmd = new Scenario::Command::AddStateToStateModel{
                 iscore::IDocument::path(m_model),
                 std::move(s)};

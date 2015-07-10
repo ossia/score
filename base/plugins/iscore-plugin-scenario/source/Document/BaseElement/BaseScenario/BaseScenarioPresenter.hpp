@@ -10,22 +10,22 @@ class BaseElementPresenter;
 
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
-class BaseScenarioPresenter : public NamedObject
+class DisplayedElementsPresenter : public QObject
 {
     public:
-        BaseScenarioPresenter(BaseElementPresenter* parent);
+        DisplayedElementsPresenter(BaseElementPresenter* parent);
 
-        void on_displayedConstraintChanged(const ConstraintModel *m);
+        void on_displayedConstraintChanged(const ConstraintModel &m);
         void showConstraint();
 
         void on_zoomRatioChanged(ZoomRatio r);
 
         auto constraintPresenter() const
-        { return m_displayedConstraintPresenter; }
+        { return m_constraintPresenter; }
     private:
         BaseElementPresenter* m_parent{};
 
-        FullViewConstraintPresenter* m_displayedConstraintPresenter{};
+        FullViewConstraintPresenter* m_constraintPresenter{};
         StatePresenter* m_startStatePresenter{};
         StatePresenter* m_endStatePresenter{};
         EventPresenter* m_startEventPresenter{};

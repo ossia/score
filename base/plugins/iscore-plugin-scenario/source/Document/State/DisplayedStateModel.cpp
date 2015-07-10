@@ -27,9 +27,9 @@ StateModel::StateModel(const StateModel &source,
     m_states = source.states();
 }
 
-const ScenarioModel* StateModel::parentScenario() const
+const ScenarioInterface* StateModel::parentScenario() const
 {
-    return (dynamic_cast<ScenarioModel*>(parent()));
+    return dynamic_cast<ScenarioInterface*>(parent());
 }
 
 double StateModel::heightPercentage() const

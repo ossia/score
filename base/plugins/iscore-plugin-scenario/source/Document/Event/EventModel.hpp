@@ -19,7 +19,7 @@ namespace OSSIA
 }
 class ConstraintModel;
 class TimeNodeModel;
-class ScenarioModel;
+class ScenarioInterface;
 
 class EventModel : public IdentifiedObject<EventModel>
 {
@@ -54,7 +54,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
         static QString prettyName();
 
-        ScenarioModel* parentScenario() const;
+        ScenarioInterface* parentScenario() const;
 
         /** The class **/
         EventModel(const id_type<EventModel>&,

@@ -25,21 +25,17 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
                             0,
                             this}}
 {
-    m_startNode->setObjectName("BaseStartTimeNodeModel");
-    m_startEvent->setObjectName("BaseStartEventModel");
     m_startNode->addEvent(m_startEvent->id());
-
-    m_endNode->setObjectName("BaseEndTimeNodeModel");
-    m_endEvent->setObjectName("BaseEndEventModel");
     m_endNode->addEvent(m_endEvent->id());
 
-    m_startState->setObjectName("BaseStartState");
     m_startEvent->addState(m_startState->id());
-    m_endState->setObjectName("BaseEndState");
     m_endEvent->addState(m_endState->id());
 
     m_constraint->setStartState(m_startState->id());
     m_constraint->setEndState(m_endState->id());
+
+    m_startState->setNextConstraint(m_constraint->id());
+    m_endState->setPreviousConstraint(m_constraint->id());
 
     ConstraintModel::Algorithms::changeAllDurations(*m_constraint, std::chrono::minutes{3});
     m_constraint->setObjectName("BaseConstraintModel");
@@ -82,4 +78,35 @@ StateModel *BaseScenario::startState() const
 StateModel *BaseScenario::endState() const
 {
     return m_endState;
+}
+
+
+ConstraintModel &BaseScenario::constraint(const id_type<ConstraintModel> &constraintId) const
+{
+    Q_ASSERT(constraintId == m_constraint->id());
+    return *m_constraint;
+}
+
+EventModel &BaseScenario::event(const id_type<EventModel> &id) const
+{
+    Q_ASSERT(id == m_startEvent->id() || id == m_endEvent->id());
+    return id == m_startEvent->id()
+            ? *m_startEvent
+            : *m_endEvent;
+}
+
+TimeNodeModel &BaseScenario::timeNode(const id_type<TimeNodeModel> &id) const
+{
+    Q_ASSERT(id == m_startNode->id() || id == m_endNode->id());
+    return id == m_startNode->id()
+            ? *m_startNode
+            : *m_endNode;
+}
+
+StateModel &BaseScenario::state(const id_type<StateModel> &id) const
+{
+    Q_ASSERT(id == m_startState->id() || id == m_endState->id());
+    return id == m_startState->id()
+            ? *m_startState
+            : *m_endState;
 }

@@ -15,7 +15,6 @@ namespace iscore
 
 class BaseElementModel;
 class BaseElementView;
-class FullViewConstraintPresenter;
 class ConstraintModel;
 class TimeRulerPresenter;
 class LocalTimeRulerPresenter;
@@ -31,19 +30,19 @@ class BaseElementStateMachine;
 class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 {
         Q_OBJECT
-    friend class BaseScenarioPresenter;
+    friend class DisplayedElementsPresenter;
     public:
         BaseElementPresenter(iscore::DocumentPresenter* parent_presenter,
                              iscore::DocumentDelegateModelInterface* model,
                              iscore::DocumentDelegateViewInterface* view);
         virtual ~BaseElementPresenter() = default;
 
-        const ConstraintModel* displayedConstraint() const;
+        const ConstraintModel& displayedConstraint() const;
         BaseElementModel* model() const;
         BaseElementView* view() const;
 
         // The height in pixels of the displayed constraint with its rack.
-        double height() const;
+        //double height() const;
         ZoomRatio zoomRatio() const;
 
     signals:
@@ -52,7 +51,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void displayedConstraintReleased(const QPointF&);
 
     public slots:
-        void setDisplayedConstraint(const ConstraintModel*);
         void setDisplayedObject(const ObjectPath&);
 
         void on_askUpdate();
@@ -60,34 +58,28 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void selectAll();
         void deselectAll();
 
-        void on_displayedConstraintChanged();
 
         void setProgressBarTime(const TimeValue &t);
         void setMillisPerPixel(ZoomRatio newFactor);
 
-        void on_newSelection(Selection); // TODO const&
+        void on_newSelection(const Selection &);
 
         void updateRect(const QRectF& rect);
 
     private slots:
+        void on_displayedConstraintChanged();
         void on_zoomSliderChanged(double);
         void on_zoomOnWheelEvent(QPointF, QPoint);
         void on_viewSizeChanged(const QSize& s);
         void on_horizontalPositionChanged(int dx);
 
-        void updateGrid();
+        //void updateGrid();
 
 
     private:
-        FullViewConstraintPresenter* displayedConstraintPresenter() const
-        {
-            return m_scenarioPresenter->constraintPresenter();
-        }
-
         void updateZoom(ZoomRatio newZoom, QPointF focus);
 
-        BaseScenarioPresenter* m_scenarioPresenter{};
-        const ConstraintModel* m_displayedConstraint{};
+        DisplayedElementsPresenter* m_scenarioPresenter{};
 
         iscore::SelectionDispatcher m_selectionDispatcher;
 
@@ -102,5 +94,4 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         // 30s displayed by default on average
         ZoomRatio m_millisecondsPerPixel{0.03};
 
-        QMetaObject::Connection m_fullViewConnection;
 };

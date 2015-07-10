@@ -3,6 +3,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
+
+#include "Process/ScenarioInterface.hpp"
 class ConstraintModel;
 class TimeNodeModel;
 class EventModel;
@@ -10,7 +12,7 @@ class StateModel;
 class DataStream;
 class JSONObject;
 
-class BaseScenario : public IdentifiedObject<BaseScenario>
+class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInterface
 {
         friend void Visitor<Reader<DataStream>>::readFrom<BaseScenario>(const BaseScenario&);
         friend void Visitor<Writer<DataStream>>::writeTo<BaseScenario>(BaseScenario&);
@@ -29,6 +31,10 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
             vis.writeTo(*this);
         }
 
+        ConstraintModel &constraint(const id_type<ConstraintModel> &constraintId) const override;
+        EventModel &event(const id_type<EventModel> &eventId) const override;
+        TimeNodeModel &timeNode(const id_type<TimeNodeModel> &timeNodeId) const override;
+        StateModel &state(const id_type<StateModel> &stId) const override;
 
         ConstraintModel* baseConstraint() const;
 
@@ -52,5 +58,4 @@ class BaseScenario : public IdentifiedObject<BaseScenario>
         StateModel* m_endState{};
 
         ConstraintModel* m_constraint{};
-
 };

@@ -19,7 +19,7 @@
 
 #include "Inspector/MetadataWidget.hpp"
 #include <Inspector/InspectorWidgetList.hpp>
-#include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Document/BaseElement/BaseElementModel.hpp"
 #include "Process/ScenarioModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
@@ -65,7 +65,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {
-        auto& base = get<BaseElementPresenter> (*documentFromObject(m_currentConstraint));
+        auto& base = get<BaseElementModel> (*documentFromObject(m_currentConstraint));
 
         base.setDisplayedConstraint(this->model());
     });
