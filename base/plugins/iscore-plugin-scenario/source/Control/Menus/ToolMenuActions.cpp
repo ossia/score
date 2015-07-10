@@ -88,7 +88,6 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
 
     // SCALEMODE
     m_scenarioScaleModeActionGroup = new QActionGroup{this};
-    m_scenarioScaleModeActionGroup->setDisabled(true);
 
     auto scale = makeToolbarAction(
                      tr("Scale"),
@@ -98,8 +97,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
     scale->setChecked(true);
     connect(scale, &QAction::triggered, this, [=]()
     {
-        if(auto&& pres = m_parent->focusedPresenter())
-            pres->stateMachine().setScaleState();
+        m_parent->setExpandMode(ExpandMode::Scale);
     });
 
     auto grow = makeToolbarAction(
@@ -109,8 +107,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                     tr("Alt+D"));
     connect(grow, &QAction::triggered, this, [=]()
     {
-        if(auto&& pres = m_parent->focusedPresenter())
-            pres->stateMachine().setGrowState();
+        m_parent->setExpandMode(ExpandMode::Grow);
     });
 
     auto fixed = makeToolbarAction(
@@ -120,8 +117,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                     tr("Alt+F"));
     connect(fixed, &QAction::triggered, this, [=]()
     {
-        if(auto&& pres = m_parent->focusedPresenter())
-            pres->stateMachine().setFixedState();
+        m_parent->setExpandMode(ExpandMode::Fixed);
     });
 
 }
@@ -132,6 +128,7 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     {
         menu->insertActionIntoToplevelMenu(m_menuElt, act);
     }
+
     menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_shiftAction);
     menu->addSeparatorIntoToplevelMenu(m_menuElt, iscore::ToolMenuElement::Separator_Tool);
@@ -152,7 +149,6 @@ void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
 
 void ToolMenuActions::makeToolBar(QToolBar *bar)
 {
-    m_scenarioScaleModeActionGroup->setDisabled(true);
     m_scenarioToolActionGroup->setDisabled(true);
     m_shiftAction->setDisabled(true);
 
@@ -164,7 +160,6 @@ void ToolMenuActions::makeToolBar(QToolBar *bar)
 
 void ToolMenuActions::setEnabled(bool arg)
 {
-    m_scenarioScaleModeActionGroup->setEnabled(arg);
     m_scenarioToolActionGroup->setEnabled(arg);
     m_shiftAction->setEnabled(arg);
     if(arg)

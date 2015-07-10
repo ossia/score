@@ -186,30 +186,6 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
                 s_pres->stateMachine().changeTool(action->data().toInt());
             }
         }
-
-        for(QAction* action : m_toolActions->modeActions())
-        {
-            if (action->isChecked())
-            {
-                switch (action->data().toInt())
-                {
-                    case ExpandMode::Scale:
-                        s_pres->stateMachine().setScaleState();
-                        break;
-                    case ExpandMode::Grow:
-                        s_pres->stateMachine().setGrowState();
-                        break;
-                    case ExpandMode::Fixed:
-                        s_pres->stateMachine().setFixedState();
-                        break;
-
-
-                    default:
-                        Q_ASSERT(false);
-                        break;
-                }
-            }
-        }
     }
 }
 

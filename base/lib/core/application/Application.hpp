@@ -25,6 +25,9 @@ namespace iscore
             Q_OBJECT
             friend class ChildEventFilter;
         public:
+            // Returns the direct child of qApp.
+            static Application& instance();
+
             Application(int& argc, char** argv);
             Application(const Application&) = delete;
             Application& operator= (const Application&) = delete;
@@ -43,6 +46,7 @@ namespace iscore
 
             Settings* settings() const
             { return m_settings.get(); }
+
 
         private:
             void loadPluginData();

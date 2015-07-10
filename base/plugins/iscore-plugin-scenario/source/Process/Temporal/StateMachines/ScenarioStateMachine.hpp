@@ -21,13 +21,14 @@ namespace iscore
 {
     class CommandStack;
     class ObjectLocker;
+    class Document;
 }
 
 class ScenarioStateMachine : public BaseStateMachine
 {
         Q_OBJECT
     public:
-        ScenarioStateMachine(TemporalScenarioPresenter& presenter);
+        ScenarioStateMachine(iscore::Document&, TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const;
         const ScenarioModel& model() const;
@@ -38,7 +39,8 @@ class ScenarioStateMachine : public BaseStateMachine
         { return m_locker; }
 
         Tool tool() const;
-        ExpandMode expandMode() const;
+        const ExpandMode& expandMode() const
+        { return m_expandMode; }
         bool isShiftPressed() const;
 
         void changeTool(int);
@@ -52,10 +54,6 @@ class ScenarioStateMachine : public BaseStateMachine
         void setSlotMoveState();
         void exitState();
 
-        void setScaleState();
-        void setGrowState();
-        void setFixedState();
-
         void shiftPressed();
         void shiftReleased();
 
@@ -63,6 +61,8 @@ class ScenarioStateMachine : public BaseStateMachine
         TemporalScenarioPresenter& m_presenter;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
+
+        const ExpandMode& m_expandMode; // Reference to the one in ScenarioControl.
 
         CreationToolState* createState{};
         MoveToolState* moveState{};

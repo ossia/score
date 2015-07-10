@@ -33,6 +33,12 @@ class ScenarioControl : public iscore::PluginControlInterface
         const ScenarioModel* focusedScenarioModel() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
+        const ExpandMode& expandMode() const
+        { return m_expandMode; }
+
+        void setExpandMode(ExpandMode e)
+        { m_expandMode = e; }
+
     public slots:
         void createContextMenu(const QPoint &);
 
@@ -40,6 +46,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual void on_documentChanged() override;
 
     private:
+        ExpandMode m_expandMode;
         ProcessList m_processList;
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;

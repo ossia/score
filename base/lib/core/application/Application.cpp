@@ -10,7 +10,7 @@
 
 using namespace iscore;
 #include <QMessageBox>
-
+static Application* application_instance = nullptr;
 
 Application::Application(int& argc, char** argv) :
     NamedObject {"Application", nullptr}
@@ -18,6 +18,7 @@ Application::Application(int& argc, char** argv) :
     // Application
     // Crashes if put in member initialization list... :(
     m_app = new QApplication{argc, argv};
+    ::application_instance = this;
 
     QPixmap logo{":/iscore.png"};
     QSplashScreen splash(logo, Qt::FramelessWindowHint);
@@ -92,6 +93,11 @@ Application::~Application()
         f.remove();
     }
     delete m_app;
+}
+
+Application &Application::instance()
+{
+    return *application_instance;
 }
 
 void Application::loadPluginData()

@@ -11,15 +11,24 @@
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+#include "Control/ScenarioControl.hpp"
 #include <QSignalTransition>
+#include <core/application/Application.hpp>
 
-ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter):
+ScenarioStateMachine::ScenarioStateMachine(
+        iscore::Document& doc,
+        TemporalScenarioPresenter& presenter):
     BaseStateMachine{*presenter.view().scene()},
     m_presenter{presenter},
-    m_commandStack{
-        iscore::IDocument::documentFromObject(
-            m_presenter.m_layer.sharedProcessModel())->commandStack()},
-    m_locker{iscore::IDocument::documentFromObject(m_presenter.m_layer.sharedProcessModel())->locker()}
+    m_commandStack{doc.commandStack()},
+    m_locker{doc.locker()},
+    m_expandMode{[] () -> auto&& {
+        const auto& controls = iscore::Application::instance().presenter()->pluginControls();
+        auto it = std::find_if(controls.begin(), controls.end(),
+                            [] (iscore::PluginControlInterface* pc) { return pc->objectName() == "ScenarioControl"; });
+        Q_ASSERT(it != controls.end());
+        return static_cast<ScenarioControl*>(*it)->expandMode();
+    }()}
 {
     this->setChildMode(ChildMode::ParallelStates);
     auto toolState = new QState{this};
@@ -88,28 +97,6 @@ ScenarioStateMachine::ScenarioStateMachine(TemporalScenarioPresenter& presenter)
         moveSlotState->start();
     }
 
-    auto expansionModeState = new QState{this};
-    {
-        scaleState = new QState{expansionModeState};
-        expansionModeState->setInitialState(scaleState);
-        growState = new QState{expansionModeState};
-        fixedState = new QState{expansionModeState};
-
-        auto t_scale_grow = new QSignalTransition(this, SIGNAL(setGrowState()), scaleState);
-        t_scale_grow->setTargetState(growState);
-        auto t_grow_fixed = new QSignalTransition(this, SIGNAL(setFixedState()), growState);
-        t_grow_fixed->setTargetState(fixedState);
-        auto t_fixed_scale = new QSignalTransition(this, SIGNAL(setScaleState()), fixedState);
-        t_fixed_scale->setTargetState(scaleState);
-
-        auto t_grow_scale = new QSignalTransition(this, SIGNAL(setScaleState()), growState);
-        t_grow_scale->setTargetState(scaleState);
-        auto t_scale_fixed = new QSignalTransition(this, SIGNAL(setFixedState()), scaleState);
-        t_scale_fixed->setTargetState(fixedState);
-        auto t_fixed_grow = new QSignalTransition(this, SIGNAL(setGrowState()), fixedState);
-        t_fixed_grow->setTargetState(growState);
-    }
-
     auto shiftModeState = new QState{this};
     {
         shiftReleasedState = new QState{shiftModeState};
@@ -143,18 +130,6 @@ Tool ScenarioStateMachine::tool() const
         return Tool::MoveSlot;
 
     return Tool::Select;
-}
-
-ExpandMode ScenarioStateMachine::expandMode() const
-{
-    if(scaleState->active())
-        return ExpandMode::Scale;
-    if(growState->active())
-        return ExpandMode::Grow;
-    if(fixedState->active())
-        return ExpandMode::Fixed;
-
-    return ExpandMode::Scale;
 }
 
 bool ScenarioStateMachine::isShiftPressed() const

@@ -32,7 +32,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
-    m_sm{*this},
+    m_sm{*iscore::IDocument::documentFromObject(m_layer.sharedProcessModel()), *this}, // TODO optimize
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())}
 {
     const ScenarioModel& scenario = model(m_layer);

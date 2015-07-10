@@ -157,7 +157,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
                 iscore::IDocument::path(m_model->parent()),
                 scenario->state(m_model->endState()).eventId(),
                 m_model->startDate() + TimeValue::fromMsecs(val),
-                ExpandMode::Scale); // todo Take mode from scenario
+                ExpandMode::Scale); // todo Take mode from scenario control
     }
     else
     {
