@@ -3,7 +3,7 @@
 #include "../iscore-plugin-scenario/source/Document/Event/EventModel.hpp"
 OSSIAEventElement::OSSIAEventElement(
         std::shared_ptr<OSSIA::TimeEvent> event,
-        const EventModel* element,
+        const EventModel &element,
         QObject* parent):
     QObject{parent},
     m_event{event}

@@ -4,11 +4,13 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 
+#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Constraint/SetMinDuration.hpp"
 #include "Commands/Constraint/SetMaxDuration.hpp"
-#include "Commands/Scenario/ResizeConstraint.hpp"
 #include "Commands/ResizeBaseConstraint.hpp"
 #include "Commands/Constraint/SetRigidity.hpp"
+
+#include "Process/ScenarioInterface.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -148,20 +150,22 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
+    auto scenario = m_model->parentScenario();
     if(m_model->objectName() != "BaseConstraintModel")
     {
-        m_cmdDispatcher.submitCommand<ResizeConstraint>(
-                    iscore::IDocument::path(m_model),
-                    std::chrono::milliseconds {val},
-                    ExpandMode::Scale); // todo Take mode from scenario
+        m_cmdDispatcher.submitCommand<MoveEvent>(
+                iscore::IDocument::path(m_model->parent()),
+                scenario->state(m_model->endState()).eventId(),
+                m_model->startDate() + TimeValue::fromMsecs(val),
+                ExpandMode::Scale); // todo Take mode from scenario
     }
     else
     {
-        m_cmdDispatcher.submitCommand<ResizeBaseConstraint>(
-                    iscore::IDocument::path(m_model),
-                    std::chrono::milliseconds {val});
+        m_cmdDispatcher.submitCommand<MoveBaseEvent>(
+                    iscore::IDocument::path(m_model->parent()),
+                    std::chrono::milliseconds {val},
+                    ExpandMode::Scale);
     }
-    qDebug(Q_FUNC_INFO);
 }
 
 void DurationSectionWidget::on_modelRigidityChanged(bool b)

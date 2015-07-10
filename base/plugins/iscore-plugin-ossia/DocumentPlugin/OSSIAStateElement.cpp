@@ -1,14 +1,14 @@
 #include "OSSIAStateElement.hpp"
 #include <iscore/tools/Todo.hpp>
 OSSIAStateElement::OSSIAStateElement(
-        const StateModel *element,
+        const StateModel &element,
         QObject *parent):
     QObject{parent},
     m_iscore_state{element}
 {
 }
 
-const StateModel *OSSIAStateElement::iscoreState() const
+const StateModel &OSSIAStateElement::iscoreState() const
 {
     return m_iscore_state;
 }

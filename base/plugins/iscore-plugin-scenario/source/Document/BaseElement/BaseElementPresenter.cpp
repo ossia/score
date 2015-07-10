@@ -78,13 +78,13 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     connect(model(), &BaseElementModel::displayedConstraintChanged,
             this, &BaseElementPresenter::on_displayedConstraintChanged);
 
-    model()->setDisplayedConstraint(model()->baseConstraint());
+    model()->setDisplayedConstraint(&model()->baseConstraint());
 
     // Progress bar, time rules
     view()->scene()->addItem(m_progressBar);
     setProgressBarTime(std::chrono::milliseconds{0});
-    m_mainTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
-    m_localTimeRuler->setDuration(model()->baseConstraint()->defaultDuration());
+    m_mainTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
+    m_localTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
 }
 
 const ConstraintModel& BaseElementPresenter::displayedConstraint() const

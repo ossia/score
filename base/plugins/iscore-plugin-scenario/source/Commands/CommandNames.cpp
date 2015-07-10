@@ -47,7 +47,6 @@
 #include "Scenario/Displacement/MoveNewState.hpp"
 #include "Scenario/Displacement/MoveTimeNode.hpp"
 #include "Scenario/HideRackInViewModel.hpp"
-#include "Scenario/ResizeConstraint.hpp"
 #include "Scenario/ShowRackInViewModel.hpp"
 #include "SwitchStatePosition.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
@@ -104,9 +103,6 @@ const char* Scenario::Command::MergeTimeNodes::commandName() { return "MergeTime
 
 // MOVE
 const char* Scenario::Command::MoveConstraint::commandName() { return "MoveConstraint"; }
-const char* Scenario::Command::MoveEvent::commandName() { return "MoveEvent"; }
-//const char* Scenario::Command::MoveLayerModel::commandName() { return "MoveLayerModel"; }
-const char* Scenario::Command::MoveTimeNode::commandName() { return "MoveTimeNode"; }
 
 // REMOVE
 const char* Scenario::Command::RemoveRackFromConstraint::commandName() { return "RemoveRackFromConstraint"; }
@@ -116,8 +112,6 @@ const char* Scenario::Command::RemoveProcessFromConstraint::commandName() { retu
 const char* Scenario::Command::RemoveLayerModelFromSlot::commandName() { return "RemoveLayerModelFromSlot"; }
 
 // RESIZE
-const char* Scenario::Command::ResizeBaseConstraint::commandName() { return "ResizeBaseConstraint"; }
-const char* Scenario::Command::ResizeConstraint::commandName() { return "ResizeConstraint"; }
 const char* Scenario::Command::ResizeSlotVertically::commandName() { return "ResizeSlotVertically"; }
 
 // SET VALUE
@@ -165,9 +159,7 @@ QString Scenario::Command::MergeTimeNodes::description() { return QObject::tr("M
 
 // MOVE
 QString Scenario::Command::MoveConstraint::description() { return QObject::tr("MoveConstraint"); }
-QString Scenario::Command::MoveEvent::description() { return QObject::tr("MoveEvent"); }
 //QString Scenario::Command::MoveLayerModel::description() { return QObject::tr("MoveLayerModel"); }
-QString Scenario::Command::MoveTimeNode::description() { return QObject::tr("MoveTimeNode"); }
 
 // REMOVE
 QString Scenario::Command::RemoveRackFromConstraint::description() { return QObject::tr("RemoveRackFromConstraint"); }
@@ -177,8 +169,6 @@ QString Scenario::Command::RemoveProcessFromConstraint::description() { return Q
 QString Scenario::Command::RemoveLayerModelFromSlot::description() { return QObject::tr("RemoveLayerModelFromSlot"); }
 
 // RESIZE
-QString Scenario::Command::ResizeBaseConstraint::description() { return QObject::tr("ResizeBaseConstraint"); }
-QString Scenario::Command::ResizeConstraint::description() { return QObject::tr("ResizeConstraint"); }
 QString Scenario::Command::ResizeSlotVertically::description() { return QObject::tr("ResizeSlotVertically"); }
 
 // SET VALUE
@@ -207,7 +197,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list61<
+            boost::mpl::list59<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -258,7 +248,6 @@ void ScenarioControl::setupCommands()
             MoveEvent,
             MoveNewEvent,
             MoveNewState,
-            MoveTimeNode,
 
             RemoveRackFromConstraint,
             RemoveSlotFromRack,
@@ -268,8 +257,7 @@ void ScenarioControl::setupCommands()
             RemoveLayerModelFromSlot,
             RemoveStateFromStateModel,
 
-            ResizeBaseConstraint,
-            ResizeConstraint,
+            MoveBaseEvent,
             ResizeSlotVertically,
 
             SetCondition,

@@ -12,7 +12,7 @@ class OSSIAEventElement : public QObject
     public:
         OSSIAEventElement(
                 std::shared_ptr<OSSIA::TimeEvent> event,
-                const EventModel* element,
+                const EventModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeEvent> event() const;

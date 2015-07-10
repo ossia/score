@@ -207,11 +207,11 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
     {
         // Full-view copy
         auto& bem = iscore::IDocument::modelDelegate<BaseElementModel>(*m_parent->currentDocument());
-        if(bem.baseConstraint()->selection.get())
+        if(bem.baseConstraint().selection.get())
         {
             QJsonArray arr;
             Visitor<Reader<JSONObject>> jr;
-            jr.readFrom(*bem.baseConstraint());
+            jr.readFrom(bem.baseConstraint());
             arr.push_back(jr.m_obj);
             base["Constraints"] = arr;
         }

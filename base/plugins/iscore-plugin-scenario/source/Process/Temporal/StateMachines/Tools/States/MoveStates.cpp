@@ -185,7 +185,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
             if (stateMachine.isShiftPressed())
                 date = tn.date();
 
-            m_dispatcher.submitCommand<MoveTimeNode>(
+            m_dispatcher.submitCommand<MoveEvent>(
                             ObjectPath{m_scenarioPath},
                             ev_id,
                             date,

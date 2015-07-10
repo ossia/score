@@ -19,11 +19,11 @@ void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel *const
     m_constraint = constraint;
     if(auto parent = dynamic_cast<BaseScenario*>(m_constraint->parent()))
     {
-        m_startEvent = parent->startEvent();
-        m_endEvent = parent->endEvent();
+        m_startEvent = &parent->startEvent();
+        m_endEvent = &parent->endEvent();
 
-        m_startState = parent->startState();
-        m_endState = parent->endState();
+        m_startState = &parent->startState();
+        m_endState = &parent->endState();
     }
     else if(auto parent = dynamic_cast<ScenarioModel*>(m_constraint->parent()))
     {

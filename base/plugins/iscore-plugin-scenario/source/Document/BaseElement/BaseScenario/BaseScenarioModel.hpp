@@ -36,16 +36,16 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
         TimeNodeModel &timeNode(const id_type<TimeNodeModel> &timeNodeId) const override;
         StateModel &state(const id_type<StateModel> &stId) const override;
 
-        ConstraintModel* baseConstraint() const;
+        ConstraintModel& baseConstraint() const;
 
-        TimeNodeModel* startTimeNode() const;
-        TimeNodeModel* endTimeNode() const;
+        TimeNodeModel& startTimeNode() const;
+        TimeNodeModel& endTimeNode() const;
 
-        EventModel* startEvent() const;
-        EventModel* endEvent() const;
+        EventModel& startEvent() const;
+        EventModel& endEvent() const;
 
-        StateModel* startState() const;
-        StateModel* endState() const;
+        StateModel& startState() const;
+        StateModel& endState() const;
 
     private:
         TimeNodeModel* m_startNode{};

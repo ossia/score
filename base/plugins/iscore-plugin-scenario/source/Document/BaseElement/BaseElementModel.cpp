@@ -36,7 +36,7 @@ BaseElementModel::BaseElementModel(QObject* parent) :
         parent},
     m_baseScenario{new BaseScenario{id_type<BaseScenario>{0}, this}}
 {
-    initializeNewDocument(m_baseScenario->baseConstraint()->fullView());
+    initializeNewDocument(m_baseScenario->baseConstraint().fullView());
 
     // Help for the FocusDispatcher.
     connect(this, &BaseElementModel::setFocusedPresenter,
@@ -129,7 +129,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     };
     cmd6.redo();
 }
-ConstraintModel* BaseElementModel::baseConstraint() const
+ConstraintModel& BaseElementModel::baseConstraint() const
 {
     return m_baseScenario->baseConstraint();
 }
@@ -229,11 +229,11 @@ void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
     m_focusManager.focusNothing();
 
     disconnect(m_constraintConnection);
-    if(constraint != m_baseScenario->baseConstraint())
+    if(constraint != &m_baseScenario->baseConstraint())
     {
         m_constraintConnection =
                 connect(constraint->fullView(), &QObject::destroyed,
-                        this, [&] () { setDisplayedConstraint(m_baseScenario->baseConstraint()); });
+                        this, [&] () { setDisplayedConstraint(&m_baseScenario->baseConstraint()); });
     }
 
     emit displayedConstraintChanged();

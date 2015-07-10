@@ -21,7 +21,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         BaseElementModel(const VisitorVariant& data, QObject* parent);
         virtual ~BaseElementModel() = default;
 
-        ConstraintModel* baseConstraint() const;
+        ConstraintModel& baseConstraint() const;
 
         void serialize(const VisitorVariant&) const override;
         void setNewSelection(const Selection& s) override;

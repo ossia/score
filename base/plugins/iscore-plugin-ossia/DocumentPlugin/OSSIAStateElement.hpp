@@ -15,10 +15,10 @@ class OSSIAStateElement : public QObject
     public:
         using StateMap = std::unordered_map<iscore::State, std::shared_ptr<OSSIA::State>, state_hash>;
         OSSIAStateElement(
-                const StateModel* element,
+                const StateModel& element,
                 QObject* parent);
 
-        const StateModel* iscoreState() const;
+        const StateModel& iscoreState() const;
         const StateMap &states() const;
 
         void addState(const iscore::State& is, std::shared_ptr<OSSIA::State>);
@@ -26,5 +26,5 @@ class OSSIAStateElement : public QObject
 
     private:
         StateMap m_states;
-        const StateModel* m_iscore_state{};
+        const StateModel& m_iscore_state;
 };

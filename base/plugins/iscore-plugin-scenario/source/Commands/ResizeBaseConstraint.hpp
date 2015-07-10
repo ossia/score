@@ -1,38 +1,48 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ObjectPath.hpp>
+#include <ProcessInterface/TimeValue.hpp>
+#include <ProcessInterface/ExpandMode.hpp>
 
-#include <QPointF>
+class EventModel;
+class TimeNodeModel;
+class ConstraintModel;
+class AbstractConstraintViewModel;
+class RackModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-#include <ProcessInterface/TimeValue.hpp>
+
+/*
+ * Command to change a constraint duration by moving event. Vertical move is not allowed.
+ */
 
 namespace Scenario
 {
     namespace Command
     {
-        /**
-        * @brief The ResizeConstraintCommand class
-        *
-        * This command creates an Event, which is linked to the first event in the
-        * scenario.
-        */
-        class ResizeBaseConstraint : public iscore::SerializableCommand
+        class MoveBaseEvent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("MoveBaseEvent", "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ResizeBaseConstraint, "ScenarioControl")
-                ResizeBaseConstraint(ObjectPath&& constraintPath,
-                                     TimeValue duration);
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveBaseEvent, "ScenarioControl")
+                MoveBaseEvent(ObjectPath&& scenarioPath,
+                  const TimeValue& date,
+                  ExpandMode mode);
+
                 virtual void undo() override;
                 virtual void redo() override;
 
-                void update(const ObjectPath&, const TimeValue& duration)
+                void update(const ObjectPath&,
+                            const TimeValue& date,
+                            ExpandMode)
                 {
-                    m_newDuration = duration;
+                    m_newDate = date;
                 }
+
+                const ObjectPath& path() const
+                { return m_path; }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
@@ -40,8 +50,20 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                TimeValue m_oldDuration {};
-                TimeValue m_newDuration {};
+
+                TimeValue m_oldDate {};
+                TimeValue m_newDate {};
+
+                ExpandMode m_mode{ExpandMode::Scale};
+
+                QPair<
+                    QByteArray, // The constraint data
+                    QMap< // Mapping for the view models of this constraint
+                        id_type<AbstractConstraintViewModel>,
+                        id_type<RackModel>
+                    >
+                > m_savedConstraint;
         };
+
     }
 }

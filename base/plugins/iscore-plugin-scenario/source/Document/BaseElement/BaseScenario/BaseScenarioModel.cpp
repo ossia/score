@@ -38,46 +38,48 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     m_endState->setPreviousConstraint(m_constraint->id());
 
     ConstraintModel::Algorithms::changeAllDurations(*m_constraint, std::chrono::minutes{3});
+    m_endEvent->setDate(m_constraint->defaultDuration());
+    m_endNode->setDate(m_constraint->defaultDuration());
     m_constraint->setObjectName("BaseConstraintModel");
 }
 
 
-ConstraintModel*BaseScenario::baseConstraint() const
+ConstraintModel& BaseScenario::baseConstraint() const
 {
-    return m_constraint;
+    return *m_constraint;
 }
 
 
-TimeNodeModel *BaseScenario::startTimeNode() const
+TimeNodeModel& BaseScenario::startTimeNode() const
 {
-    return m_startNode;
+    return *m_startNode;
 }
 
-TimeNodeModel *BaseScenario::endTimeNode() const
+TimeNodeModel& BaseScenario::endTimeNode() const
 {
-    return m_endNode;
-}
-
-
-EventModel *BaseScenario::startEvent() const
-{
-    return m_startEvent;
-}
-
-EventModel *BaseScenario::endEvent() const
-{
-    return m_endEvent;
+    return *m_endNode;
 }
 
 
-StateModel *BaseScenario::startState() const
+EventModel& BaseScenario::startEvent() const
 {
-    return m_startState;
+    return *m_startEvent;
 }
 
-StateModel *BaseScenario::endState() const
+EventModel& BaseScenario::endEvent() const
 {
-    return m_endState;
+    return *m_endEvent;
+}
+
+
+StateModel& BaseScenario::startState() const
+{
+    return *m_startState;
+}
+
+StateModel& BaseScenario::endState() const
+{
+    return *m_endState;
 }
 
 

@@ -40,8 +40,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     // Create states / events
     if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
     {
-        m_startStatePresenter = new StatePresenter(*bs->startState(), m_parent->view()->baseItem(), this);
-        m_endStatePresenter = new StatePresenter(*bs->endState(), m_parent->view()->baseItem(), this);
+        m_startStatePresenter = new StatePresenter(bs->startState(), m_parent->view()->baseItem(), this);
+        m_endStatePresenter = new StatePresenter(bs->endState(), m_parent->view()->baseItem(), this);
     }
     else if(auto sm = dynamic_cast<ScenarioModel*>(m.parent()))
     {

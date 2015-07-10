@@ -23,7 +23,7 @@ namespace Scenario
     {
         class MoveEvent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("MoveEvent", "MoveEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
@@ -74,7 +74,6 @@ namespace Scenario
                         >
                      >
                 > m_savedConstraints;
-                bool m_changeDate{};
         };
 
     }
