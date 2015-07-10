@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Note : to make the tests work under travis, they have to be changed in order not to require QApplication but only QCoreApplication
 #    - LD_LIBRARY_PATH=/usr/lib64 make ExperimentalTest
 
