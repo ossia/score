@@ -4,7 +4,7 @@ os:
   - osx
   - linux
 
-osx_image: beta-xcode6.3
+osx_image: xcode6.4
 
 before_install:
 - "./tools/travis/deps.sh"

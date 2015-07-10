@@ -16,7 +16,7 @@ case "$TRAVIS_OS_NAME" in
 		ls
 	;;
 	osx)
-		cmake -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
+		cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.2/lib/cmake;/usr/local/Cellar/jamomacore/HEAD/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
 		make all_unity -j2
 		make install
