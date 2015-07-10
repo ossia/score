@@ -6,7 +6,6 @@
 #include <Process/ScenarioModel.hpp>
 
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
-#include "Commands/Scenario/Displacement/MoveTimeNode.hpp"
 #include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 
 #include <QFinalState>

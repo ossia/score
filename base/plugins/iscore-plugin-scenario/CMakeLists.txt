@@ -131,7 +131,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SwitchStatePosition.cpp"
