@@ -8,7 +8,7 @@ QRectF ProgressBar::boundingRect() const
 
 void ProgressBar::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-    // TODO painter->drawRect(boundingRect());
+    painter->drawRect(boundingRect());
 }
 
 void ProgressBar::setHeight(qreal newHeight)

@@ -58,8 +58,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         void selectAll();
         void deselectAll();
 
-
-        void setProgressBarTime(const TimeValue &t);
         void setMillisPerPixel(ZoomRatio newFactor);
 
         void on_newSelection(const Selection &);
@@ -87,7 +85,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         BaseElementStateMachine* m_stateMachine{};
 
         // Various widgets
-        ProgressBar* m_progressBar{};
         TimeRulerPresenter* m_mainTimeRuler{};
         LocalTimeRulerPresenter* m_localTimeRuler {};
 

@@ -50,7 +50,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
     m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
-    m_progressBar{new ProgressBar},
     m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}},
     m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}
 {
@@ -81,8 +80,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     model()->setDisplayedConstraint(&model()->baseConstraint());
 
     // Progress bar, time rules
-    view()->scene()->addItem(m_progressBar);
-    setProgressBarTime(std::chrono::milliseconds{0});
     m_mainTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
     m_localTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
 }
@@ -130,11 +127,6 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 
     // Update the address bar
     view()->addressBar()->setTargetObject(IDocument::path(displayedConstraint()));
-}
-
-void BaseElementPresenter::setProgressBarTime(const TimeValue &t)
-{
-    m_progressBar->setPos({t.toPixels(m_millisecondsPerPixel), 0});
 }
 
 void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
@@ -238,7 +230,6 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
 
 void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 {
-    m_progressBar->setHeight(s.height());
     on_zoomSliderChanged(view()->zoomSlider()->value());
 }
 

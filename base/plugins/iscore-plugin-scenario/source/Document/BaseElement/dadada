@@ -1,0 +1,442 @@
+{
+    "Document": {
+        "BaseScenario": {
+            "Constraint": {
+                "DefaultDuration": 180000,
+                "EndState": 1,
+                "FullView": {
+                    "ConstraintId": 0,
+                    "ObjectName": "FullViewConstraintViewModel",
+                    "ShownRack": 1627644182,
+                    "id": 0
+                },
+                "HeightPercentage": 0,
+                "MaxDuration": 180000,
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Constraint.0"
+                },
+                "MinDuration": 180000,
+                "ObjectName": "BaseConstraintModel",
+                "PluginsMetadata": [
+                ],
+                "Processes": [
+                    {
+                        "Constraints": [
+                            {
+                                "DefaultDuration": 97254.493352418067,
+                                "EndState": -1294821353,
+                                "FullView": {
+                                    "ConstraintId": 1706493899,
+                                    "ObjectName": "FullViewConstraintViewModel",
+                                    "ShownRack": "none",
+                                    "id": 873381069
+                                },
+                                "HeightPercentage": 0.097528390113560459,
+                                "MaxDuration": 97254.493352418067,
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Constraint.1706493899"
+                                },
+                                "MinDuration": 97254.493352418067,
+                                "ObjectName": "ConstraintModel",
+                                "PluginsMetadata": [
+                                ],
+                                "Processes": [
+                                ],
+                                "Rackes": [
+                                ],
+                                "Rigidity": true,
+                                "StartDate": 0,
+                                "StartState": 1886908941,
+                                "id": 1706493899
+                            }
+                        ],
+                        "Duration": 180000,
+                        "EndEventId": 1,
+                        "EndTimeNodeId": 1,
+                        "Events": [
+                            {
+                                "Condition": "",
+                                "Date": 0,
+                                "Extent": [
+                                    0.097528390113560459,
+                                    0.097528390113560459,
+                                    0.097528390113560459,
+                                    0.097528390113560459
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.0"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    1886908941
+                                ],
+                                "TimeNode": 0,
+                                "Trigger": "",
+                                "id": 0
+                            },
+                            {
+                                "Condition": "",
+                                "Date": 180000,
+                                "Extent": [
+                                    0.40000000000000002,
+                                    0.59999999999999998,
+                                    0.40000000000000002,
+                                    0.59999999999999998
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.1"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                ],
+                                "TimeNode": 1,
+                                "Trigger": "",
+                                "id": 1
+                            },
+                            {
+                                "Condition": "",
+                                "Date": 97254.493352418067,
+                                "Extent": [
+                                    0.097528390113560459,
+                                    0.097528390113560459,
+                                    0.097528390113560459,
+                                    0.097528390113560459
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.-181287748"
+                                },
+                                "ObjectName": "EventModel",
+                                "PluginsMetadata": [
+                                ],
+                                "States": [
+                                    -1294821353
+                                ],
+                                "TimeNode": -962567273,
+                                "Trigger": "",
+                                "id": -181287748
+                            }
+                        ],
+                        "ObjectName": "ScenarioModel",
+                        "PluginsMetadata": [
+                        ],
+                        "ProcessName": "Scenario",
+                        "StartEventId": 0,
+                        "StartTimeNodeId": 0,
+                        "States": [
+                            {
+                                "Event": 0,
+                                "HeightPercentage": 0.097528390113560459,
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": 1706493899,
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": "none",
+                                "States": [
+                                ],
+                                "id": 1886908941
+                            },
+                            {
+                                "Event": -181287748,
+                                "HeightPercentage": 0.097528390113560459,
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": ""
+                                },
+                                "NextConstraint": "none",
+                                "ObjectName": "StateModel",
+                                "PreviousConstraint": 1706493899,
+                                "States": [
+                                ],
+                                "id": -1294821353
+                            }
+                        ],
+                        "TimeNodes": [
+                            {
+                                "Date": 0,
+                                "Events": [
+                                    0
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.0"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "id": 0
+                            },
+                            {
+                                "Date": 180000,
+                                "Events": [
+                                    1
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.1"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "id": 1
+                            },
+                            {
+                                "Date": 97254.493352418067,
+                                "Events": [
+                                    -181287748
+                                ],
+                                "Metadata": {
+                                    "Color": [
+                                        160,
+                                        160,
+                                        164
+                                    ],
+                                    "Comment": "",
+                                    "Label": "TimeNode",
+                                    "ScriptingName": "TimeNode.-962567273"
+                                },
+                                "ObjectName": "TimeNodeModel",
+                                "PluginsMetadata": [
+                                ],
+                                "id": -962567273
+                            }
+                        ],
+                        "id": 1301714874
+                    }
+                ],
+                "Rackes": [
+                    {
+                        "Metadata": {
+                            "Color": [
+                                160,
+                                160,
+                                164
+                            ],
+                            "Comment": "",
+                            "Label": "",
+                            "ScriptingName": "Rack.1"
+                        },
+                        "ObjectName": "RackModel",
+                        "Slots": [
+                            {
+                                "EditedProcess": 613482469,
+                                "Height": 1500,
+                                "LayerModels": [
+                                    {
+                                        "Constraints": [
+                                            {
+                                                "ConstraintId": 1706493899,
+                                                "ObjectName": "TemporalConstraintViewModel",
+                                                "ShownRack": "none",
+                                                "id": 1696254135
+                                            }
+                                        ],
+                                        "ObjectName": "TemporalScenarioLayer",
+                                        "SharedProcessId": 1301714874,
+                                        "id": 613482469
+                                    }
+                                ],
+                                "ObjectName": "SlotModel",
+                                "id": -1479984998
+                            }
+                        ],
+                        "SlotsPositions": [
+                            -1479984998
+                        ],
+                        "id": 1627644182
+                    }
+                ],
+                "Rigidity": true,
+                "StartDate": 0,
+                "StartState": 0,
+                "id": 0
+            },
+            "EndEvent": {
+                "Condition": "",
+                "Date": 180000,
+                "Extent": [
+                    0.40000000000000002,
+                    0.59999999999999998,
+                    0.40000000000000002,
+                    0.59999999999999998
+                ],
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.1"
+                },
+                "ObjectName": "EventModel",
+                "PluginsMetadata": [
+                ],
+                "States": [
+                    1
+                ],
+                "TimeNode": 1,
+                "Trigger": "",
+                "id": 1
+            },
+            "EndTimeNode": {
+                "Date": 180000,
+                "Events": [
+                    1
+                ],
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "TimeNode",
+                    "ScriptingName": "TimeNode.1"
+                },
+                "ObjectName": "TimeNodeModel",
+                "PluginsMetadata": [
+                ],
+                "id": 1
+            },
+            "ObjectName": "BaseScenario",
+            "PluginsMetadata": [
+            ],
+            "StartEvent": {
+                "Condition": "",
+                "Date": 0,
+                "Extent": [
+                    0.40000000000000002,
+                    0.59999999999999998,
+                    0.40000000000000002,
+                    0.59999999999999998
+                ],
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.0"
+                },
+                "ObjectName": "EventModel",
+                "PluginsMetadata": [
+                ],
+                "States": [
+                    0
+                ],
+                "TimeNode": 0,
+                "Trigger": "",
+                "id": 0
+            },
+            "StartTimeNode": {
+                "Date": 0,
+                "Events": [
+                    0
+                ],
+                "Metadata": {
+                    "Color": [
+                        160,
+                        160,
+                        164
+                    ],
+                    "Comment": "",
+                    "Label": "TimeNode",
+                    "ScriptingName": "TimeNode.0"
+                },
+                "ObjectName": "TimeNodeModel",
+                "PluginsMetadata": [
+                ],
+                "id": 0
+            },
+            "id": 0
+        },
+        "DocumentId": -1773784175,
+        "id": -357678308
+    },
+    "Panels": {
+        "DeviceExplorer": {
+        },
+        "Groups": {
+        },
+        "Inspector": {
+        },
+        "ProcessPanelModel": {
+        },
+        "Undo": {
+        }
+    },
+    "Plugins": {
+        "DeviceDocumentPlugin": {
+        },
+        "OSSIADocumentPlugin": {
+        }
+    }
+}
