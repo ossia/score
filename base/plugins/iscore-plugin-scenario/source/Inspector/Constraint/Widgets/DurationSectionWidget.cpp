@@ -14,6 +14,9 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <core/application/Application.hpp>
+#include <core/presenter/Presenter.hpp>
+#include "Control/ScenarioControl.hpp"
 
 #include <QCheckBox>
 #include <QSpinBox>
@@ -151,20 +154,26 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
     auto scenario = m_model->parentScenario();
+    const auto& controls = iscore::Application::instance().presenter()->pluginControls();
+    auto it = std::find_if(controls.begin(), controls.end(),
+                        [] (iscore::PluginControlInterface* pc) { return pc->objectName() == "ScenarioControl"; });
+    Q_ASSERT(it != controls.end());
+    auto expandmode = static_cast<ScenarioControl*>(*it)->expandMode();
+
     if(m_model->objectName() != "BaseConstraintModel")
     {
         m_cmdDispatcher.submitCommand<MoveEvent>(
                 iscore::IDocument::path(m_model->parent()),
                 scenario->state(m_model->endState()).eventId(),
                 m_model->startDate() + TimeValue::fromMsecs(val),
-                ExpandMode::Scale); // todo Take mode from scenario control
+                expandmode); // todo Take mode from scenario control
     }
     else
     {
         m_cmdDispatcher.submitCommand<MoveBaseEvent>(
                     iscore::IDocument::path(m_model->parent()),
                     std::chrono::milliseconds {val},
-                    ExpandMode::Scale);
+                    expandmode);
     }
 }
 
