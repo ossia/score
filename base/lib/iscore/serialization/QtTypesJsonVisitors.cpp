@@ -5,9 +5,6 @@ template<>
 void Visitor<Reader<JSONValue>>::readFrom(const QPointF& pt)
 {
     QJsonArray arr{pt.x(), pt.y()};
-    arr.append(pt.x());
-    arr.append(pt.y());
-
     val = arr;
 }
 
