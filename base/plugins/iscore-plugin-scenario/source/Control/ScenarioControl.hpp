@@ -46,7 +46,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual void on_documentChanged() override;
 
     private:
-        ExpandMode m_expandMode;
+        ExpandMode m_expandMode{ExpandMode::Scale};
         ProcessList m_processList;
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;

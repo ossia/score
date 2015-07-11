@@ -36,6 +36,9 @@ void CurvePointView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
+    if(!m_enabled)
+        return;
+
     QPen pen;
     QColor c = m_selected? Qt::yellow : Qt::green;
     pen.setColor(c);
@@ -49,6 +52,18 @@ void CurvePointView::paint(
 void CurvePointView::setSelected(bool selected)
 {
     m_selected = selected;
+    update();
+}
+
+void CurvePointView::enable()
+{
+    m_enabled = true;
+    update();
+}
+
+void CurvePointView::disable()
+{
+    m_enabled = false;
     update();
 }
 

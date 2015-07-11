@@ -358,6 +358,30 @@ void CurvePresenter::enableActions(bool b)
     m_actions->setEnabled(b);
 }
 
+void CurvePresenter::enable()
+{
+    for(auto& segment : m_segments)
+    {
+        segment->enable();
+    }
+    for(auto& point : m_points)
+    {
+        point->enable();
+    }
+}
+
+void CurvePresenter::disable()
+{
+    for(auto& segment : m_segments)
+    {
+        segment->disable();
+    }
+    for(auto& point : m_points)
+    {
+        point->disable();
+    }
+}
+
 void CurvePresenter::removeSelection()
 {
     // We remove all that is selected,

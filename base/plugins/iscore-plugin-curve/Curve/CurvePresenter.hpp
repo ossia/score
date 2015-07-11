@@ -53,6 +53,10 @@ class CurvePresenter : public QObject
 
         void enableActions(bool);
 
+        // Changes the colors
+        void enable();
+        void disable();
+
 
     private:
         // Context menu actions

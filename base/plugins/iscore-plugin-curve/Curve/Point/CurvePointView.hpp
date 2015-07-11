@@ -17,6 +17,9 @@ class CurvePointView : public QGraphicsObject
 
         void setSelected(bool selected);
 
+        void enable();
+        void disable();
+
     signals:
         void contextMenuRequested(const QPoint&);
 
@@ -27,4 +30,5 @@ class CurvePointView : public QGraphicsObject
     private:
         CurvePointModel* m_model;
         bool m_selected{};
+        bool m_enabled{true};
 };

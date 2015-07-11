@@ -17,6 +17,9 @@ class CurveSegmentView : public QGraphicsObject
 
         void setSelected(bool selected);
 
+        void enable();
+        void disable();
+
     signals:
         void contextMenuRequested(const QPoint&);
 
@@ -25,6 +28,7 @@ class CurveSegmentView : public QGraphicsObject
 
     private:
         void updatePoints();
+        void updateStroke();
         // Takes a table of points and draws them in a square given by the boundingRect
         // QGraphicsItem interface
         QRectF m_rect;
@@ -32,8 +36,9 @@ class CurveSegmentView : public QGraphicsObject
         CurveSegmentModel* m_model{};
         bool m_selected{};
 
+        QPainterPath m_unstrockedShape;
         QPainterPath m_shape;
         QVector<QLineF> m_lines;
 
-        // QGraphicsItem interface
+        bool m_enabled{true};
 };

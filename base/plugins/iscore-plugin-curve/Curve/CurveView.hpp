@@ -16,6 +16,7 @@ class CurveView : public QGraphicsObject
                    QWidget *widget) override;
 
         void setSelectionArea(const QRectF&);
+
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);

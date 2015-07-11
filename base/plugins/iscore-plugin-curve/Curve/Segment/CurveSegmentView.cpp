@@ -37,16 +37,34 @@ QRectF CurveSegmentView::boundingRect() const
 void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen pen;
-    pen.setWidth(2);
-    pen.setColor(m_selected ? Qt::yellow : baseColor);
+    pen.setWidth(m_enabled ? 2 : 1);
+    pen.setColor(m_enabled
+                    ? (m_selected
+                        ? Qt::yellow
+                        : baseColor)
+                    : Qt::gray);
+
     painter->setPen(pen);
     painter->drawPath(m_shape);
-    //painter->drawLines(m_lines);
 }
 
 void CurveSegmentView::setSelected(bool selected)
 {
     m_selected = selected;
+    update();
+}
+
+void CurveSegmentView::enable()
+{
+    m_enabled = true;
+    updateStroke();
+    update();
+}
+
+void CurveSegmentView::disable()
+{
+    m_enabled = false;
+    updateStroke();
     update();
 }
 
@@ -59,36 +77,36 @@ void CurveSegmentView::updatePoints()
     double scalex = m_rect.width() / len;
 
     m_model->updateData(25); // Set the number of required points here.
-    auto pts = m_model->data();
+    const auto& pts = m_model->data();
 
-    //m_lines.clear();
     // Map to the scene coordinates
-    if(!m_model->data().empty())
+    if(!pts.empty())
     {
-        //m_lines.resize(m_model->data().size());
-        auto first = m_model->data().first();
+        auto first = pts.first();
         auto first_scaled = QPointF{
                 first.x() * scalex - startx,
                 (1. - first.y()) * m_rect.height()};
-        QPainterPath p{first_scaled};
-        for(int i = 1; i < m_model->data().size(); i++)
-        {
-            const auto& next = m_model->data().at(i);
-            auto next_scaled = QPointF{
-                    next.x() * scalex - startx,
-                    (1. - next.y()) * m_rect.height()};
-            p.lineTo(next_scaled);
 
-            //m_lines[i] = QLineF(first_scaled, next_scaled);
-            //first_scaled = next_scaled;
+        m_unstrockedShape = QPainterPath{first_scaled};
+        for(int i = 1; i < pts.size(); i++)
+        {
+            const auto& next = pts.at(i);
+            m_unstrockedShape.lineTo(QPointF{
+                         next.x() * scalex - startx,
+                         (1. - next.y()) * m_rect.height()});
         }
 
-        QPainterPathStroker stroker;
-        stroker.setWidth(2);
-        m_shape = stroker.createStroke(p);
+        updateStroke();
     }
 
     update();
+}
+
+void CurveSegmentView::updateStroke()
+{
+    QPainterPathStroker stroker;
+    stroker.setWidth(m_enabled ? 2 : 1);
+    m_shape = stroker.createStroke(m_unstrockedShape);
 }
 
 

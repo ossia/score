@@ -68,11 +68,13 @@ void AutomationPresenter::setHeight(int height)
 void AutomationPresenter::putToFront()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+    m_curvepresenter->enable();
 }
 
 void AutomationPresenter::putBehind()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+    m_curvepresenter->disable();
 }
 
 void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
