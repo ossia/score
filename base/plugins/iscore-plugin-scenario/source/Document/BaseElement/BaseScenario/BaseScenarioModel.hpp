@@ -47,6 +47,7 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
         StateModel& startState() const;
         StateModel& endState() const;
 
+        bool event(QEvent* ev) override { return QObject::event(ev); }
     private:
         TimeNodeModel* m_startNode{};
         TimeNodeModel* m_endNode{};

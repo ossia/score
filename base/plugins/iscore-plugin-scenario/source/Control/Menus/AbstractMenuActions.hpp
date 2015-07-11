@@ -14,8 +14,6 @@ class AbstractMenuActions : public QObject
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
         virtual void fillContextMenu(QMenu*, const Selection& s) = 0;
 
-        virtual QList<QAction*> actions() = 0;
-
     protected:
         ScenarioControl* m_parent;
         iscore::ToplevelMenuElement m_menuElt;

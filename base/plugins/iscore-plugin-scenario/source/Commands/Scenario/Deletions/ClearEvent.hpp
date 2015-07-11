@@ -22,7 +22,7 @@ namespace Scenario
         */
         class ClearEvent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("ClearEvent", "ClearEvent")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearEvent, "ScenarioControl")
                 ClearEvent(ObjectPath&& path);

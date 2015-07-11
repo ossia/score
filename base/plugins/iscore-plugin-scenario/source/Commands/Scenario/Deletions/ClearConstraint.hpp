@@ -17,7 +17,7 @@ namespace Scenario
          */
         class ClearConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("ClearConstraint", "ClearConstraint")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearConstraint, "ScenarioControl")
                 ClearConstraint(ObjectPath&& constraintPath);

@@ -15,7 +15,7 @@ namespace Scenario
          */
         class SetRigidity : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("SetRigidity", "SetRigidity")
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:

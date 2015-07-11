@@ -14,7 +14,7 @@ namespace DeviceExplorer
 
         class Remove : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND
+            ISCORE_COMMAND_DECL("Remove", "Remove")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Remove, "DeviceExplorerControl")
 

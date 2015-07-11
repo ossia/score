@@ -48,11 +48,6 @@ EventInspectorWidget::EventInspectorWidget(
     connect (m_model, &EventModel::dateChanged,
              this,   &EventInspectorWidget::modelDateChanged);
 
-    // Completion - only available if there is a device explorer
-    auto deviceexplorer =
-            iscore::IDocument::documentFromObject(m_model)
-                ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
     ////// HEADER
     // metadata
     m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
@@ -94,6 +89,12 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(infoWidg);
 
     /*
+
+    // Completion - only available if there is a device explorer
+    auto deviceexplorer =
+            iscore::IDocument::documentFromObject(m_model)
+                ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+
     // Separator
     m_properties.push_back(new Separator {this});
 

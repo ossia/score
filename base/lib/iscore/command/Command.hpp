@@ -7,27 +7,17 @@
 
 #include <numeric>
 
-#define ISCORE_COMMAND \
-    public: \
-    static const char* commandName(); \
-    static QString description(); \
-    static auto static_uid() \
-    { \
-    using namespace std; \
-    hash<string> fn; \
-    return fn(std::string(commandName())); \
-    } \
-    private:
+#include <iscore/Settings.hpp>
 
 #define ISCORE_COMMAND_DECL(name, desc) \
     public: \
         static constexpr const char* commandName() { return name; } \
-        static QString description() { return desc; }  \
+        static QString description() { return QObject::tr(desc); }  \
     static auto static_uid() \
     { \
-    using namespace std; \
-    hash<string> fn; \
-    return fn(std::string(commandName())); \
+        using namespace std; \
+        hash<string> fn; \
+        return fn(std::string(commandName())); \
     } \
     private:
 

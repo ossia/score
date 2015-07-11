@@ -12,7 +12,7 @@ namespace DeviceExplorer
     {
         class EditData : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND
+            ISCORE_COMMAND_DECL("EditData", "EditData")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
                 EditData(ObjectPath&& device_tree,

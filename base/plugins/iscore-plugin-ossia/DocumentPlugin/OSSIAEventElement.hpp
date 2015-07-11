@@ -17,6 +17,7 @@ class OSSIAEventElement : public QObject
 
         std::shared_ptr<OSSIA::TimeEvent> event() const;
 
+        bool event(QEvent* ev) override { return QObject::event(ev); }
 
     private:
         std::shared_ptr<OSSIA::TimeEvent> m_event;

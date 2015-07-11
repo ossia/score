@@ -190,17 +190,17 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
     if(type)
     {
         m_obj["Type"] = QString::fromStdString(type);
-        if(n.value.type() == QMetaType::Float)
+        if(QMetaType::Type(n.value.type()) == QMetaType::Float)
         {
             m_obj["Value"] = n.value.toFloat();
             m_obj["Domain"] = domainToJSON<float>(n.domain);
         }
-        else if(n.value.type() == QMetaType::Int)
+        else if(QMetaType::Type(n.value.type()) == QMetaType::Int)
         {
             m_obj["Value"] = n.value.toInt();
             m_obj["Domain"] = domainToJSON<int>(n.domain);
         }
-        else if(n.value.type() == QMetaType::QString)
+        else if(QMetaType::Type(n.value.type()) == QMetaType::QString)
         {
             m_obj["Value"] = n.value.toString();
             m_obj["Domain"] = domainToJSON<QString>(n.domain);

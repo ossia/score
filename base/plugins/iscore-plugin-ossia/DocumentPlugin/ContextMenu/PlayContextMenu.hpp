@@ -8,11 +8,9 @@ class PlayContextMenu : public AbstractMenuActions
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&) override;
 
-        QList<QAction *> actions() override;
-
     private:
-        QAction* m_playStates;
-        QAction *m_playEvents;
-        QAction *m_playConstraints;
+        QAction* m_playStates{};
+        // TODO QAction *m_playEvents{};
+        // TODO QAction *m_playConstraints{};
 
 };

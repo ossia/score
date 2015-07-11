@@ -3,9 +3,6 @@
 
 using namespace DeviceExplorer::Command;
 
-const char* AddAddress::commandName() { return "AddAddress"; }
-QString AddAddress::description() { return QObject::tr("Add an address"); }
-
 AddAddress::AddAddress(ObjectPath &&device_tree,
                        Path nodePath,
                        DeviceExplorerModel::Insert insert,

@@ -10,7 +10,7 @@ namespace Scenario
     {
         class SetTrigger : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("SetTrigger", "SetTrigger")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetTrigger, "ScenarioControl")
                 SetTrigger(ObjectPath&& eventPath, QString condition);

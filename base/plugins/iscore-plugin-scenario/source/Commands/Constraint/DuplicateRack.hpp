@@ -11,7 +11,7 @@ namespace Scenario
     {
         class DuplicateRack : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("DuplicateRack", "DuplicateRack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(DuplicateRack, "ScenarioControl")

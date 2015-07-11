@@ -3,9 +3,6 @@
 
 using namespace DeviceExplorer::Command;
 
-const char* Remove::commandName() { return "Remove"; }
-QString Remove::description() { return "Remove Node"; }
-
 Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                             commandName(),

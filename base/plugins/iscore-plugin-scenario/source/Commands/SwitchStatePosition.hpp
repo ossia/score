@@ -7,7 +7,7 @@ namespace Scenario
     {
         class SwitchStatePosition : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("SwitchStatePosition", "SwitchStatePosition")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwitchStatePosition, "ScenarioControl")
                 virtual void undo() override;

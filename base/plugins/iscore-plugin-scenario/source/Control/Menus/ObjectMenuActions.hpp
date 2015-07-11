@@ -11,8 +11,6 @@ class ObjectMenuActions : public AbstractMenuActions
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&) override;
 
-        QList<QAction*> actions();
-
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();

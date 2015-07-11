@@ -42,5 +42,4 @@ class MoveSlotToolState : public GenericStateBase
         SingleOngoingCommandDispatcher m_ongoingDispatcher;
 
         QPointF m_originalPoint;
-        double m_originalHeight{};
 };

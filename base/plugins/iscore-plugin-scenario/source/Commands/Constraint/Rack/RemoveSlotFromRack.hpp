@@ -14,7 +14,7 @@ namespace Scenario
          */
         class RemoveSlotFromRack : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("RemoveSlotFromRack", "RemoveSlotFromRack")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSlotFromRack, "ScenarioControl")
                 RemoveSlotFromRack(ObjectPath&& slotPath);

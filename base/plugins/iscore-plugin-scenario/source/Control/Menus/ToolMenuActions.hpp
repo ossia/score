@@ -11,7 +11,6 @@ class ToolMenuActions : public AbstractMenuActions
         void makeToolBar(QToolBar* bar);
         void setEnabled(bool);
 
-        QList<QAction*> actions();
         QList<QAction*> modeActions();
         QList<QAction*> toolActions();
         QAction* shiftAction();

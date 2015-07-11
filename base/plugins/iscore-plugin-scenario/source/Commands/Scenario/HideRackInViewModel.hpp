@@ -18,7 +18,7 @@ namespace Scenario
          */
         class HideRackInViewModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("HideRackInViewModel", "HideRackInViewModel")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(HideRackInViewModel, "ScenarioControl")

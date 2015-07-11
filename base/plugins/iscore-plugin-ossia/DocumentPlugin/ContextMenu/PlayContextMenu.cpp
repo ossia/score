@@ -43,8 +43,3 @@ void PlayContextMenu::fillContextMenu(QMenu *menu, const Selection & s)
         menu->addAction(m_playStates);
     }
 }
-
-
-QList<QAction *> PlayContextMenu::actions()
-{
-}

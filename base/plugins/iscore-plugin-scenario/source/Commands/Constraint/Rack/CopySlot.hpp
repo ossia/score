@@ -18,7 +18,7 @@ namespace Scenario
          */
         class CopySlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("CopySlot", "CopySlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopySlot, "ScenarioControl")

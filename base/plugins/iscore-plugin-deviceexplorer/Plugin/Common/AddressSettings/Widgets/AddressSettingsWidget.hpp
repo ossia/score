@@ -27,7 +27,7 @@ class AddressSettingsWidget : public QWidget
     private:
         QComboBox* m_ioTypeCBox;
         QComboBox* m_clipModeCBox;
-        QSpinBox* m_prioritySBox;
+        // TODO priority QSpinBox* m_prioritySBox;
         QComboBox* m_tagsEdit;
 };
 

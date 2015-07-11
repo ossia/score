@@ -107,8 +107,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/DuplicateRack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveRackFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveProcessFromConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/SetMaxDuration.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/SetMinDuration.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/SetRigidity.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/AssignMessagesToState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/UnassignMessagesFromState.cpp"

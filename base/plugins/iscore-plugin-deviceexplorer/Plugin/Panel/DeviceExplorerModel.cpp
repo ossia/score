@@ -1009,8 +1009,6 @@ namespace
 {
     const QString MimeTypeDevice = "application/x-iscore-deviceexplorer-device";
     const QString MimeTypeAddress = "application/x-iscore-deviceexplorer-address";
-
-    const int compressionLevel = 6; //[0:no comrpession/fast ; 9:high compression/slow], -1: default zlib compression
 }
 
 

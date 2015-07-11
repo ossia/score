@@ -192,15 +192,6 @@ void ToolMenuActions::keyReleased(int key)
     }
 }
 
-QList<QAction *> ToolMenuActions::actions()
-{
-    QList<QAction*> list{m_shiftAction};
-    list += m_scenarioScaleModeActionGroup->actions();
-    list += m_scenarioToolActionGroup->actions();
-
-    return list;
-}
-
 QList<QAction *> ToolMenuActions::modeActions()
 {
     return m_scenarioScaleModeActionGroup->actions();

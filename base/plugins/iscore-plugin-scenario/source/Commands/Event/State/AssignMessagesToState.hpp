@@ -7,7 +7,7 @@ namespace Scenario
     {
         class AssignMessagesToState : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("AssignMessagesToState", "AssignMessagesToState")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AssignMessagesToState, "ScenarioControl")
                 virtual void undo() override;

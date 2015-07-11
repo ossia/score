@@ -13,7 +13,7 @@ namespace Scenario
     {
         class CopyConstraintContent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("CopyConstraintContent", "CopyConstraintContent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopyConstraintContent, "ScenarioControl")

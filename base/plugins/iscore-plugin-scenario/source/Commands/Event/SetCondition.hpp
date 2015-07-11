@@ -8,7 +8,7 @@ namespace Scenario
     {
         class SetCondition : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND
+                ISCORE_COMMAND_DECL("SetCondition", "SetCondition")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetCondition, "ScenarioControl")
                 SetCondition(ObjectPath&& eventPath, QString condition);

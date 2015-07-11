@@ -167,14 +167,6 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
     menu->addAction(m_pasteContent);
 }
 
-QList<QAction *> ObjectMenuActions::actions()
-{
-    QList<QAction*> list{m_elementsToJson, m_removeElements, m_clearElements,
-                        m_copyContent, m_cutContent, m_pasteContent,
-                        m_addProcess};
-    return list;
-}
-
 template<typename Selected_T>
 auto arrayToJson(Selected_T &&selected)
 {

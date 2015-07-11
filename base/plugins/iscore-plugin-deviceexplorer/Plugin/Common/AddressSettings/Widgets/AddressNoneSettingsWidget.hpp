@@ -1,15 +1,12 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
 
-class AddressBoolSettingsWidget : public AddressSettingsWidget
+class AddressNoneSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressBoolSettingsWidget(QWidget* parent = nullptr);
+        AddressNoneSettingsWidget(QWidget* parent = nullptr);
 
         virtual AddressSettings getSettings() const override;
 
         virtual void setSettings(const AddressSettings& settings) override;
-
-    private:
-        QComboBox* m_cb{};
 };

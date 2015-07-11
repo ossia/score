@@ -43,6 +43,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressTupleSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressStringSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsFactory.cpp"

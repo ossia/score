@@ -12,6 +12,7 @@ namespace Scenario
         class ChangeElementColor : public iscore::SerializableCommand
         {
                 // No ISCORE_COMMAND here since it's a template.
+                // TODO what about the uids ?
             public:
                 static const char * commandName()
                 {
