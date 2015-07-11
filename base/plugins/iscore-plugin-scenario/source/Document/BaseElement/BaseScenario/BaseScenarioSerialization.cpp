@@ -16,6 +16,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const BaseScenario& base_s
     readFrom(*base_scenario.m_startEvent);
     readFrom(*base_scenario.m_endEvent);
 
+    readFrom(*base_scenario.m_startState);
+    readFrom(*base_scenario.m_endState);
+
     readFrom(*base_scenario.m_constraint);
 
     readFrom(base_scenario.pluginModelList);
@@ -30,6 +33,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(BaseScenario& base_scenario
 
     base_scenario.m_startEvent = new EventModel{*this, &base_scenario};
     base_scenario.m_endEvent = new EventModel{*this, &base_scenario};
+
+    base_scenario.m_startState = new StateModel{*this, &base_scenario};
+    base_scenario.m_endState = new StateModel{*this, &base_scenario};
 
     base_scenario.m_constraint = new ConstraintModel{*this, &base_scenario};
 
@@ -48,6 +54,9 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const BaseScenario& base_s
 
     m_obj["StartEvent"] = toJsonObject(*base_scenario.m_startEvent);
     m_obj["EndEvent"] = toJsonObject(*base_scenario.m_endEvent);
+
+    m_obj["StartState"] = toJsonObject(*base_scenario.m_startState);
+    m_obj["EndState"] = toJsonObject(*base_scenario.m_endState);
 
     m_obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);
 
@@ -69,6 +78,13 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(BaseScenario& base_scenario
                                 &base_scenario};
     base_scenario.m_endEvent = new EventModel{
                             Deserializer<JSONObject>{m_obj["EndEvent"].toObject() },
+                            &base_scenario};
+
+    base_scenario.m_startState = new StateModel{
+                                Deserializer<JSONObject>{m_obj["StartState"].toObject() },
+                                &base_scenario};
+    base_scenario.m_endState = new StateModel{
+                            Deserializer<JSONObject>{m_obj["EndState"].toObject() },
                             &base_scenario};
 
     base_scenario.m_constraint = new ConstraintModel{

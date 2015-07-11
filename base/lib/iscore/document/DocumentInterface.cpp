@@ -15,10 +15,13 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
     }
 
     if(!obj)
+    {
+        qDebug("fail");
         throw std::runtime_error(
             QString("Object (name: %1) is not part of a Document!")
             .arg(objName)
             .toStdString());
+    }
 
     return static_cast<Document*>(const_cast<QObject*>(obj));
 }
