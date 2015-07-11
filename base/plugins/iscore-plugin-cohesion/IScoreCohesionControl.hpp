@@ -15,7 +15,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
 
     public slots:
         void createCurvesFromAddresses();
-        void snapshotParametersInEvents();
+        void snapshotParametersInStates();
         void interpolateStates();
 
     private:

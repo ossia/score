@@ -272,7 +272,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         TimeValue m_startDate; // origin
 
-        double m_heightPercentage {0.5}; // TODO Redundant with state
+        double m_heightPercentage {0.5};
 
 
         TimeValue m_playDuration;

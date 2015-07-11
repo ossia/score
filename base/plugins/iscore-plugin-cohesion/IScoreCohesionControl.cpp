@@ -33,7 +33,7 @@ IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     m_snapshot->setShortcut(tr("Ctrl+J"));
     m_snapshot->setToolTip(tr("Ctrl+J"));
     connect(m_snapshot, &QAction::triggered,
-            this, &IScoreCohesionControl::snapshotParametersInEvents);
+            this, &IScoreCohesionControl::snapshotParametersInStates);
 
     m_interp = new QAction {tr("Interpolate states"), this};
     m_interp->setShortcutContext(Qt::ApplicationShortcut);
@@ -170,11 +170,11 @@ void IScoreCohesionControl::interpolateStates()
     {
         // TODO state collapsing if twice the same message ?
         // Check the states similar between its start and end event
-        const auto& startEvent = scenar->event(constraint->startEvent());
-        const auto& endEvent = scenar->event(constraint->endEvent());
+        const auto& startState = scenar->state(constraint->startState());
+        const auto& endState = scenar->state(constraint->endState());
 
         QList<Message> startMessages;
-        for(const auto& state : startEvent.states())
+        for(const auto& state : startState.states())
         {
             if(state.data().canConvert<Message>())
             {
@@ -187,7 +187,7 @@ void IScoreCohesionControl::interpolateStates()
         }
 
         QList<Message> endMessages;
-        for(auto& state : endEvent.states())
+        for(auto& state : endState.states())
         {
             if(state.data().canConvert<Message>())
             {
@@ -223,7 +223,7 @@ void IScoreCohesionControl::interpolateStates()
 }
 
 
-void IScoreCohesionControl::snapshotParametersInEvents()
+void IScoreCohesionControl::snapshotParametersInStates()
 {
     using namespace std;
     // Fetch the selected events
@@ -231,12 +231,12 @@ void IScoreCohesionControl::snapshotParametersInEvents()
                  selectionStack().
                    currentSelection();
 
-    QList<const EventModel*> selected_events;
+    QList<const StateModel*> selected_states;
     for(auto obj : sel)
     {
-        if(auto ev = dynamic_cast<const EventModel*>(obj))
+        if(auto ev = dynamic_cast<const StateModel*>(obj))
             if(ev->selection.get()) // TODO this should not be necessary?
-                selected_events.push_back(ev);
+                selected_states.push_back(ev);
     }
 
     // Fetch the selected DeviceExplorer elements
@@ -249,10 +249,10 @@ void IScoreCohesionControl::snapshotParametersInEvents()
 
     MacroCommandDispatcher macro{new CreateStatesFromParametersInEvents,
                                  currentDocument()->commandStack()};
-    for(auto& event : selected_events)
+    for(auto& state : selected_states)
     {
-        auto cmd = new Scenario::Command::AddStateToEvent{
-                              iscore::IDocument::path(event), messages};
+        auto cmd = new Scenario::Command::AddStateToStateModel{
+                              iscore::IDocument::path(state), iscore::State(messages)};
         macro.submitCommand(cmd);
     }
 
