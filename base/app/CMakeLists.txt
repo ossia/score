@@ -25,8 +25,8 @@ endif()
 
 target_link_libraries(${APPNAME} iscore_lib_base)
 if(ISCORE_STATIC_PLUGINS)
-	target_compile_definitions(${APPNAME}
-							   PUBLIC ISCORE_STATIC_PLUGINS)
+        target_compile_definitions(${APPNAME}
+                                                           PUBLIC ISCORE_STATIC_PLUGINS)
     target_link_libraries(${APPNAME}
                 iscore_plugin_curve
                 iscore_plugin_inspector
@@ -36,20 +36,20 @@ if(ISCORE_STATIC_PLUGINS)
 
     # Put these definitions as partt of the CMake interface of the plugin
     if(TARGET iscore_plugin_network)
-		target_compile_definitions(${APPNAME}
-								   PUBLIC ISCORE_NETWORK)
+                target_compile_definitions(${APPNAME}
+                                                                   PUBLIC ISCORE_NETWORK)
         target_link_libraries(${APPNAME} iscore_plugin_network)
     endif()
 
-	if(TARGET iscore_plugin_cohesion)
-		target_compile_definitions(${APPNAME}
-								   PUBLIC ISCORE_COHESION)
+        if(TARGET iscore_plugin_cohesion)
+                target_compile_definitions(${APPNAME}
+                                                                   PUBLIC ISCORE_COHESION)
         target_link_libraries(${APPNAME} iscore_plugin_cohesion)
     endif()
 
-	if(TARGET iscore_plugin_ossia)
-		target_compile_definitions(${APPNAME}
-								   PUBLIC ISCORE_OSSIA)
+        if(TARGET iscore_plugin_ossia)
+                target_compile_definitions(${APPNAME}
+                                                                   PUBLIC ISCORE_OSSIA)
         target_link_libraries(${APPNAME} iscore_plugin_ossia)
     endif()
 else()
@@ -89,10 +89,10 @@ else()
 endif()
 
 if(ISCORE_COTIRE)
-    cotire(${APPNAME})
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${APPNAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(${APPNAME})
 endif()
 
 install(TARGETS ${APPNAME}
@@ -152,6 +152,7 @@ if(DEPLOYMENT_BUILD)
         set(CPACK_GENERATOR "DragNDrop")
 
     elseif(UNIX)
+
         # use the LSB stuff if possible :)
          EXECUTE_PROCESS(
           COMMAND cat /etc/lsb-release
@@ -162,6 +163,7 @@ if(DEPLOYMENT_BUILD)
           OUTPUT_VARIABLE LSB_ID
           RESULT_VARIABLE LSB_ID_RESULT
        )
+
          EXECUTE_PROCESS(
           COMMAND cat /etc/lsb-release
           COMMAND grep DISTRIB_RELEASE
@@ -172,7 +174,13 @@ if(DEPLOYMENT_BUILD)
           RESULT_VARIABLE LSB_VER_RESULT
        )
 
-        if(NOT ${LSB_ID} STREQUAL "")
+        if(LSB_ID_RESULT EQUAL 1)
+         set(LSB_ID "")
+         set(LSB_VER "")
+        endif()
+
+
+        if(NOT "${LSB_ID}" STREQUAL "")
           set(INSTALLER_PLATFORM "${LSB_ID}-${LSB_VER}" CACHE PATH "Installer chosen platform")
         else()
           set(INSTALLER_PLATFORM "linux-generic" CACHE PATH "Installer chosen platform")
@@ -180,7 +188,7 @@ if(DEPLOYMENT_BUILD)
 
         set(CPACK_SYSTEM_NAME "${INSTALLER_PLATFORM}")
 
-        if(${LSB_ID} STREQUAL "Debian" OR ${LSB_ID} STREQUAL "Ubuntu" OR ${LSB_ID} STREQUAL "Mint")
+        if("${LSB_ID}" STREQUAL "Debian" OR "${LSB_ID}" STREQUAL "Ubuntu" OR "${LSB_ID}" STREQUAL "Mint")
             set(CPACK_GENERATOR "DEB")
         else()
             set(CPACK_GENERATOR "TGZ")

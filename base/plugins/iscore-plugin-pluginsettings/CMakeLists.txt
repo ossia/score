@@ -35,10 +35,10 @@ add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
 
 if(ISCORE_COTIRE)
-    cotire(${PROJECT_NAME})
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(${PROJECT_NAME})
 endif()
 
 install(TARGETS ${PROJECT_NAME}

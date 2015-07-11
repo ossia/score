@@ -82,10 +82,10 @@ target_link_libraries(iscore_plugin_deviceexplorer
                       iscore_lib_base iscore_lib_state)
 
 if(ISCORE_COTIRE)
-    cotire(iscore_plugin_deviceexplorer)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(iscore_plugin_deviceexplorer PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(iscore_plugin_deviceexplorer)
 endif()
 
 set_property(TARGET iscore_plugin_deviceexplorer APPEND

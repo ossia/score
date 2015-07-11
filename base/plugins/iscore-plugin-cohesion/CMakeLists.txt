@@ -36,10 +36,10 @@ target_link_libraries(${PROJECT_NAME}
                         iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer
                         Jamoma::Foundation Jamoma::Modular Jamoma::Score)
 if(ISCORE_COTIRE)
-    cotire(${PROJECT_NAME})
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(${PROJECT_NAME})
 endif()
 
 install(TARGETS ${PROJECT_NAME}

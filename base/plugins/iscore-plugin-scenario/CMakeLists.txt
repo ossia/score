@@ -47,10 +47,10 @@ install(TARGETS iscore_lib_process
     ARCHIVE DESTINATION static_lib/)
 
 if(ISCORE_COTIRE)
-    cotire(iscore_lib_process)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(iscore_lib_process PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(iscore_lib_process)
 endif()
 
 ### Plugin ###
@@ -286,13 +286,14 @@ endif()
 
 
 if(ISCORE_COTIRE)
-    cotire(iscore_plugin_scenario)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(iscore_plugin_scenario PROPERTIES
                               COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
         set_target_properties(iscore_plugin_scenario PROPERTIES
                               COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
+
+    cotire(iscore_plugin_scenario)
 endif()
 
 install(TARGETS iscore_plugin_scenario

@@ -17,10 +17,10 @@ add_library(iscore_plugin_library ${PLUGIN_SRCS})
 target_link_libraries(iscore_plugin_library Qt5::Core Qt5::Widgets iscore_lib_base)
 
 if(ISCORE_COTIRE)
-    cotire(iscore_plugin_library)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(iscore_plugin_library PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(iscore_plugin_library)
 endif()
 install(TARGETS iscore_plugin_library
         LIBRARY DESTINATION plugins/

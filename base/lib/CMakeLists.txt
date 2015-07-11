@@ -77,10 +77,10 @@ target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets)
 
 
 if(ISCORE_COTIRE)
-    cotire(iscore_lib_base)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(iscore_lib_base PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
+    cotire(iscore_lib_base)
 endif()
 
 install(TARGETS iscore_lib_base
