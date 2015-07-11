@@ -243,10 +243,10 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 void
 DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 {
-    if (m_proxyModel)
-    {
-        delete m_proxyModel;    //? will also delete previous model ??
-    }
+    delete m_proxyModel;    //? will also delete previous model ??
+    m_proxyModel = nullptr;
+    delete m_cmdDispatcher;
+    m_cmdDispatcher = nullptr;
 
     if (model)
     {
@@ -256,7 +256,6 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         model->setView(m_ntView);
 
 
-        delete m_cmdDispatcher;
         m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
                 iscore::IDocument::documentFromObject(model)->commandStack()};
 

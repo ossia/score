@@ -69,7 +69,7 @@ class DeviceExplorerWidget : public QWidget
         virtual void contextMenuEvent(QContextMenuEvent* event) override;
 
         DeviceExplorerView* m_ntView;
-        DeviceExplorerFilterProxyModel* m_proxyModel;
+        DeviceExplorerFilterProxyModel* m_proxyModel{};
         DeviceEditDialog* m_deviceDialog;
         AddressEditDialog* m_addressDialog;
         //iscore::CommandQueue *m_cmdQ;
