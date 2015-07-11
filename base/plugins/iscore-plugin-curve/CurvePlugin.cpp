@@ -6,6 +6,7 @@
 
 #include "Curve/Segment/LinearCurveSegmentFactory.hpp"
 #include "Curve/Segment/GammaCurveSegmentFactory.hpp"
+#include "Curve/Segment/Power/PowerCurveSegmentFactory.hpp"
 #include "Curve/Segment/SinCurveSegmentFactory.hpp"
 
 #if defined(ISCORE_INSPECTOR_LIB)
@@ -43,8 +44,9 @@ QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString&
     if(factoryName == CurveSegmentFactory::factoryName())
     {
         return {new LinearCurveSegmentFactory,
+                new PowerCurveSegmentFactory/*,
                 new GammaCurveSegmentFactory,
-                new SinCurveSegmentFactory};
+                new SinCurveSegmentFactory*/};
     }
 
     return {};
