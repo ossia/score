@@ -12,6 +12,8 @@ class EqualityTest: public QObject
 
         void equalityTest()
         {
+            qRegisterMetaTypeStreamOperators<Address>();
+
             QMetaType::registerComparators<Message>();
             QMetaType::registerComparators<MessageList>();
             qRegisterMetaTypeStreamOperators<Message>();

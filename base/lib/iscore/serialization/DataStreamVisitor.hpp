@@ -83,13 +83,6 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         Visitor<Writer<DataStream>>(const Visitor<Writer<DataStream>>&) = delete;
         Visitor<Writer<DataStream>>& operator=(const Visitor<Writer<DataStream>>&) = delete;
 
-        // TODO a const ref is sufficient here
-        /*Visitor<Writer<DataStream>> (QByteArray* array) :
-                                     m_stream {array, QIODevice::ReadOnly}
-        {
-            m_stream.setVersion(QDataStream::Qt_5_3);
-        }
-        */
         Visitor<Writer<DataStream>> (const QByteArray& array) :
                                      m_stream {array}
         {
@@ -146,7 +139,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         QDataStream m_stream;
 };
 
-
+// TODO instead why not add a iscore_serializable tag to our classes ?
 template<typename T,
          typename std::enable_if<
              not std::is_arithmetic<T>::value
