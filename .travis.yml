@@ -6,12 +6,17 @@ os:
 
 osx_image: xcode6.4
 
+env:
+  global:
+  - secure: ZDQ/4JTo53cV4IVoJPQr1UJSgfVppOobV8jI+EVcB0/p8LQXW5TBcaIwTOrVHJrEYqGxdg8xj1yBKhkJ65LYaGXLdZvtWQzRZYWuhQUEqFVik13CCxt4C5aNzE7bzT/qbFWGFT0hkviCEpyuznl8ffL+w1bw8h4BmATHLqupFGk=
+  - secure: VBfGsDJv8Fq7m5X4lBdPnG71H1kFKKOUIaxiFwlebswFIl3buTvTWkDAYqlPr4fArQ5T9pmqH7oj0qhsmlPGQe4GgHef7wsQ32QybQWLY1v+CObDGDKDkPYOInzj7reb8pNy4uG5fvQaV224HfJ3I5jQLehOt5F8SPxaq83Wxb4=
+
 before_install:
 - "./tools/travis/deps.sh"
 
 script:
 - "./tools/travis/build.sh"
 
-#after_success:
-#- "./script/deploy.sh"
+after_success:
+- "./script/deploy.sh"
 
