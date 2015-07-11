@@ -14,12 +14,11 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
     SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
-    ISCORE_TODO
-    /*
     auto& scenar = m_path.find<ScenarioModel>();
 
-    // Serialize all the events and constraints and timenodes.
-    // For each removed event, we also add its constraints to the selection.
+    // Serialize all the events and constraints and timenodes and states.
+    // For each removed event, we also add its states to the selection.
+    // For each removed state, we add the constraints.
 
     // First we have to make a first round to remove all the events
     // of the selected time nodes.
@@ -37,15 +36,15 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
 
 
     QList<TimeNodeModel*> maybeRemovedTimenodes;
-    for(const auto& obj : sel)
+    for(const auto& obj : (sel)) // Make a copy
     {
         if(auto event = dynamic_cast<const EventModel*>(obj))
         {
             // TODO have scenario take something that takes a container of ids
             // and return the corresponding elements.
-            for (const auto& cstr : event->constraints())
+            for(const auto& state : event->states())
             {
-                sel.insert(&scenar.constraint(cstr));
+                sel.insert(&scenar.state(state));
             }
 
             // This timenode may be removed if the event is alone.
@@ -55,10 +54,28 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
         }
     }
 
+    for(const auto& obj : (sel))
+    {
+        if(auto state = dynamic_cast<const StateModel*>(obj))
+        {
+            if(state->previousConstraint())
+                sel.insert(&scenar.constraint(state->previousConstraint()));
+            if(state->nextConstraint())
+                sel.insert(&scenar.constraint(state->nextConstraint()));
+        }
+    }
 
     // Serialize ALL the things
     for(auto& obj : sel)
     {
+        if(auto state = dynamic_cast<const StateModel*>(obj))
+        {
+            QByteArray arr;
+            Serializer<DataStream> s{&arr};
+            s.readFrom(*state);
+            m_removedStates.push_back({state->id(), arr});
+        }
+
         if(auto event = dynamic_cast<const EventModel*>(obj))
         {
             QByteArray arr;
@@ -88,7 +105,7 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
         }
     }
 
-    // Plus the timenodes that we don't know if they will be removed (ugly fixme pls)
+    // Plus the timenodes that we don't know if they will be removed (todo ugly fixme pls)
     for(const auto& tn : maybeRemovedTimenodes)
     {
         QByteArray arr;
@@ -96,15 +113,23 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
         s2.readFrom(*tn);
         m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
     }
-    */
 }
 
 void RemoveSelection::undo()
 {
-    ISCORE_TODO
-    /*
     auto& scenar = m_path.find<ScenarioModel>();
     // First instantiate everything
+
+    QList<StateModel*> states;
+    std::transform(m_removedStates.begin(),
+                   m_removedStates.end(),
+                   std::back_inserter(states),
+                   [&] (const auto& data)
+    {
+        Deserializer<DataStream> s{data.second};
+        return new StateModel{s, &scenar};
+    });
+
     QList<EventModel*> events;
     std::transform(m_removedEvents.begin(),
                    m_removedEvents.end(),
@@ -203,6 +228,12 @@ void RemoveSelection::undo()
         }
     }
 
+    // All the states
+    for(const auto& state : states)
+    {
+        scenar.addDisplayedState(state);
+    }
+
     // And then all the constraints.
     for (const auto& constraintdata : m_removedConstraints)
     {
@@ -212,13 +243,13 @@ void RemoveSelection::undo()
         scenar.addConstraint(cstr);
 
         // Set-up the start / end events correctly.
-        auto& sev = scenar.event(cstr->startEvent());
-        if (!sev.nextConstraints().contains(cstr->id()))
-            sev.addNextConstraint(cstr->id());
+        auto& sst = scenar.state(cstr->startState());
+        if (sst.nextConstraint() != cstr->id())
+            sst.setNextConstraint(cstr->id());
 
-        auto& eev = scenar.event(cstr->endEvent());
-        if (!eev.previousConstraints().contains(cstr->id()))
-            eev.addPreviousConstraint(cstr->id());
+        auto& est = scenar.state(cstr->endState());
+        if (est.previousConstraint() != cstr->id())
+            est.setPreviousConstraint(cstr->id());
     }
 
     // And finally the constraint's view models
@@ -227,7 +258,6 @@ void RemoveSelection::undo()
         // view model creation
         deserializeConstraintViewModels(constraintdata.second, scenar);
     }
-    */
 }
 
 void RemoveSelection::redo()
@@ -239,10 +269,10 @@ void RemoveSelection::redo()
         StandardRemovalPolicy::removeConstraint(scenar, cstr.first.first);
     }
 
-    // Remove the events; the timenodes will be removed automatically.
+    // Remove the events; the timenodes and states will be removed automatically.
     for(auto& ev : m_removedEvents)
     {
-        StandardRemovalPolicy::removeEventAndConstraints(scenar, ev.first);
+        StandardRemovalPolicy::removeEventStatesAndConstraints(scenar, ev.first);
     }
 }
 

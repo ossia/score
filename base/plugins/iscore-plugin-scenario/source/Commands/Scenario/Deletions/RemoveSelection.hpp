@@ -37,6 +37,7 @@ namespace Scenario
                 // For timenodes that may be removed when there is only a single event
                 QVector<QPair<id_type<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;
 
+                QVector<QPair<id_type<StateModel>, QByteArray>> m_removedStates;
                 QVector<QPair<id_type<EventModel>, QByteArray>> m_removedEvents;
                 QVector<QPair<id_type<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
                 QVector<

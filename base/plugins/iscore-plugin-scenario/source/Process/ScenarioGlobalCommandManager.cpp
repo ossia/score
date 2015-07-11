@@ -15,22 +15,21 @@ using namespace iscore::IDocument; // for ::path
 void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel &scenario)
 {
     // 1. Select items
-    // TODO timenode ?
     auto constraintsToRemove = selectedElements(scenario.constraints());
-    auto eventsToRemove = selectedElements(scenario.events());
+    auto statesToRemove = selectedElements(scenario.states());
 
-    MacroCommandDispatcher cleaner(new RemoveMultipleElements,
+    MacroCommandDispatcher cleaner(new ClearSelection,
                                    m_commandStack);
 
-    // 3. Create a Delete command for each. For now : only emptying.
+    // 2. Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)
     {
         cleaner.submitCommand(new ClearConstraint(path(constraint)));
     }
 
-    for(auto& event : eventsToRemove)
+    for(auto& state : statesToRemove)
     {
-        cleaner.submitCommand(new ClearEvent(path(event)));
+        cleaner.submitCommand(new ClearState(path(state)));
     }
 
     cleaner.commit();

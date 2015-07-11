@@ -331,7 +331,7 @@ std::shared_ptr<OSSIA::State> state(const iscore::State &iscore_state,  const De
     }
     else
     {
-        qDebug() << Q_FUNC_INFO << "todo";
+        ISCORE_TODO;
     }
 
     return ossia_state;

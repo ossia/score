@@ -1,6 +1,6 @@
 #include "ClearEvent.hpp"
 
-#include "Document/Event/EventModel.hpp"
+#include "Document/State/DisplayedStateModel.hpp"
 
 #include "Process/ScenarioModel.hpp"
 
@@ -8,51 +8,39 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearEvent::ClearEvent(ObjectPath&& eventPath) :
+ClearState::ClearState(ObjectPath&& path) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_path {std::move(eventPath) }
+    m_path {std::move(path) }
 {
-    qDebug() << Q_FUNC_INFO << "TODO (clearEvent does nothing)";
-    /*
-    auto event = m_path.find<EventModel>();
+    const auto& state = m_path.find<StateModel>();
     QDataStream s(&m_serializedStates, QIODevice::WriteOnly);
-    s << event->states();
-    */
+    s << state.states();
 }
 
-void ClearEvent::undo()
+void ClearState::undo()
 {
-    qDebug() << Q_FUNC_INFO << "TODO (clearEvent does nothing)";
-    /*
-    auto event = m_path.find<EventModel>();
-    QList<State> states;
+    auto& state = m_path.find<StateModel>();
+    iscore::StateList states;
     QDataStream s(m_serializedStates);
     s >> states;
 
-    for(auto&& state : states)
-    {
-        event->addState(std::move(state));
-    }
-    */
+    state.replaceStates(states);
 }
 
-void ClearEvent::redo()
+void ClearState::redo()
 {
-    qDebug() << Q_FUNC_INFO << "TODO (clearEvent does nothing)";
-    /*
-    auto event = m_path.find<EventModel>();
-    event->replaceStates({});
-    */
+    auto& state = m_path.find<StateModel>();
+    state.replaceStates({});
 }
 
-void ClearEvent::serializeImpl(QDataStream& s) const
+void ClearState::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_serializedStates;
 }
 
-void ClearEvent::deserializeImpl(QDataStream& s)
+void ClearState::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_serializedStates;
 }

@@ -108,7 +108,7 @@ void ScenarioControl::setupCommands()
             // TODO StateModel
 
             ClearConstraint,
-            ClearEvent,
+            ClearState,
 
             DuplicateRack,
             CopyConstraintContent,
@@ -137,7 +137,7 @@ void ScenarioControl::setupCommands()
 
             RemoveRackFromConstraint,
             RemoveSlotFromRack,
-            RemoveMultipleElements,
+            ClearSelection,
             RemoveSelection,
             RemoveProcessFromConstraint,
             RemoveLayerModelFromSlot,

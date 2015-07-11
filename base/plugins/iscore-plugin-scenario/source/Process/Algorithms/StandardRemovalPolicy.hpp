@@ -5,6 +5,7 @@ class ScenarioModel;
 class EventModel;
 class ConstraintModel;
 class TimeNodeModel;
+class StateModel;
 
 namespace StandardRemovalPolicy
 {
@@ -12,7 +13,12 @@ namespace StandardRemovalPolicy
             ScenarioModel& scenario,
             const id_type<ConstraintModel>& constraintId);
 
-    void removeEventAndConstraints(
+    void removeState(
+            ScenarioModel& scenario,
+            const id_type<StateModel>& stateId);
+
+
+    void removeEventStatesAndConstraints(
             ScenarioModel& scenario,
             const id_type<EventModel>& eventId);
 }

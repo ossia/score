@@ -7,11 +7,11 @@ namespace Scenario
 {
     namespace Command
     {
-        class RemoveMultipleElements : public iscore::AggregateCommand
+        class ClearSelection : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("RemoveMultipleElements", "RemoveMultipleElements")
+                ISCORE_COMMAND_DECL("ClearSelection", "ClearSelection")
             public:
-                RemoveMultipleElements():
+                ClearSelection():
                       AggregateCommand{"ScenarioControl",
                                        commandName(),
                                        description()} { }
