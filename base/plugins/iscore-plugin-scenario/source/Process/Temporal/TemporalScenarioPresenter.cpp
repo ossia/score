@@ -371,6 +371,7 @@ void TemporalScenarioPresenter::updateAllElements()
 #include <core/document/Document.hpp>
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
+#include "Commands/Scenario/Creations/CreateStateMacro.hpp"
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.
@@ -381,15 +382,14 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         iscore::State s;
         deser.writeTo(s);
 
-        auto agr = new iscore::AggregateCommand("ScenarioControl", "Zecommand", "allaal");
-        MacroCommandDispatcher m(agr, iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())->commandStack());
-
-
+        MacroCommandDispatcher m(
+                    new  Scenario::Command::CreateStateMacro,
+                    iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())->commandStack());
 
         auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
                        static_cast<ScenarioModel&>(viewModel().sharedProcessModel()),
-                       TimeValue::fromMsecs(15000), // TODO
-                       pos.y() / m_view->parentItem()->boundingRect().size().height());
+                       TimeValue::fromMsecs(pos.x() * zoomRatio()),
+                       pos.y() / (m_view->boundingRect().size().height() + 150)); // TODO center it properly
         m.submitCommand(cmd);
 
         auto vecpath = cmd->scenarioPath().vec();

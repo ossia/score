@@ -30,8 +30,10 @@
 #include "RemoveMultipleElements.hpp"
 #include "ResizeBaseConstraint.hpp"
 
+#include "Scenario/Creations/CreateStateMacro.hpp"
 #include "Scenario/Creations/CreateState.hpp"
 #include "Scenario/Creations/CreateEvent_State.hpp"
+#include "Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Scenario/Creations/CreateConstraint.hpp"
 #include "Scenario/Creations/CreateConstraint_State.hpp"
 #include "Scenario/Creations/CreateConstraint_State_Event.hpp"
@@ -83,7 +85,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list59<
+            boost::mpl::list61<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -114,8 +116,10 @@ void ScenarioControl::setupCommands()
             CopyConstraintContent,
             CopySlot,
 
+            CreateStateMacro,
             CreateState,
             CreateEvent_State,
+            CreateTimeNode_Event_State,
             CreateConstraint,
             CreateConstraint_State,
             CreateConstraint_State_Event,

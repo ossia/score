@@ -123,6 +123,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateStateMacro.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/RemoveSelection.cpp"
