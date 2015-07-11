@@ -18,5 +18,5 @@ script:
 - "./tools/travis/build.sh"
 
 after_success:
-- "./script/deploy.sh"
+- "./tools/travis/deploy.sh"
 
