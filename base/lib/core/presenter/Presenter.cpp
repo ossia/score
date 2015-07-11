@@ -16,6 +16,7 @@
 
 #include <QFileDialog>
 #include <QSettings>
+#include <QSaveFile>
 #include <QJsonDocument>
 
 using namespace iscore;
@@ -121,19 +122,19 @@ bool Presenter::closeDocument(Document* doc)
         int ret = msgBox.exec();
         switch (ret)
         {
-        case QMessageBox::Save:
-            if(saveDocument(doc))
+            case QMessageBox::Save:
+                if(saveDocument(doc))
+                    break;
+                else
+                    return false;
+            case QMessageBox::Discard:
+                // Do nothing
                 break;
-            else
+            case QMessageBox::Cancel:
                 return false;
-        case QMessageBox::Discard:
-            // Do nothing
-            break;
-        case QMessageBox::Cancel:
-            return false;
-            break;
-        default:
-            break;
+                break;
+            default:
+                break;
         }
     }
 
@@ -149,8 +150,7 @@ bool Presenter::closeDocument(Document* doc)
 
 bool Presenter::saveDocument(Document * doc)
 {
-    // TODO Use QSaveFile
-    QFileDialog d{nullptr, tr("Save")};
+    QFileDialog d{m_view, tr("Save")};
     d.setNameFilter(tr("Binary (*.scorebin) ;; JSON (*.scorejson)"));
     d.setConfirmOverwrite(true);
     d.setFileMode(QFileDialog::AnyFile);
@@ -162,7 +162,7 @@ bool Presenter::saveDocument(Document * doc)
         auto suf = d.nameFilters();
         if(!savename.isEmpty())
         {
-            QFile f{savename};
+            QSaveFile f{savename};
             f.open(QIODevice::WriteOnly);
             if(savename.indexOf(".scorebin") != -1)
                 f.write(doc->saveAsByteArray());
@@ -181,7 +181,7 @@ bool Presenter::saveDocument(Document * doc)
 
 void Presenter::loadDocument()
 {
-    QString loadname = QFileDialog::getOpenFileName(nullptr, tr("Open"), QString(), "*.scorebin *.scorejson");
+    QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
 
     if(!loadname.isEmpty())
     {
@@ -199,7 +199,8 @@ void Presenter::loadDocument()
                 theDoc = loadDocument(json.object(), m_availableDocuments.front());
             }
 
-            theDoc->setCrashCommandfile(new CommandBackupFile{theDoc->commandStack(), theDoc});
+            if(theDoc)
+                theDoc->setCrashCommandfile(new CommandBackupFile{theDoc->commandStack(), theDoc});
         }
     }
 }
@@ -238,32 +239,43 @@ void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
 
 Document* Presenter::loadDocument(const QVariant& data,
                                   DocumentDelegateFactoryInterface* doctype)
-try
 {
-    auto doc = new Document{data, doctype, m_view, this};
-    m_documents.push_back(doc);
-
-    for(auto& control: m_controls)
+    Document* doc = nullptr;
+    bool inserted = false;
+    try
     {
-        control->on_loadedDocument(doc);
+        auto doc = new Document{data, doctype, m_view, this};
+        m_documents.push_back(doc);
+        inserted = true;
+
+        for(auto& control: m_controls)
+        {
+            control->on_loadedDocument(doc);
+        }
+
+        // TODO same for panels.
+
+        m_view->addDocumentView(doc->view());
+
+        setCurrentDocument(doc);
+
+        doc->crashDataFile().write(doc->saveAsByteArray());
+        doc->crashDataFile().flush();
+
+        return doc;
     }
+    catch(std::runtime_error& e)
+    {
+        if(inserted)
+        {
+            m_documents.removeOne(doc);
+            delete doc;
+        }
 
-    // TODO same for panels.
-
-    m_view->addDocumentView(doc->view());
-
-    setCurrentDocument(doc);
-
-    doc->crashDataFile().write(doc->saveAsByteArray());
-    doc->crashDataFile().flush();
-
-    return doc;
-}
-catch(std::runtime_error& e)
-{
-    QMessageBox::warning(nullptr, QObject::tr("Error"), e.what());
-    throw;
-    return nullptr;
+        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
+        QMessageBox::warning(m_view, QObject::tr("Error"), e.what());
+        return nullptr;
+    }
 }
 
 void Presenter::restoreDocuments()
@@ -279,17 +291,19 @@ void Presenter::restoreDocuments()
             data_file.open(QFile::ReadOnly);
 
             auto doc = loadDocument(data_file.readAll(), m_availableDocuments.front());
-
-            QFile command_file(existing_files[element].toString());
-            if(command_file.exists())
+            if(doc)
             {
-                command_file.open(QFile::ReadOnly);
+                QFile command_file(existing_files[element].toString());
+                if(command_file.exists())
+                {
+                    command_file.open(QFile::ReadOnly);
 
-                Deserializer<DataStream> writer(&command_file);
-                writer.writeTo(doc->commandStack());
+                    Deserializer<DataStream> writer(&command_file);
+                    writer.writeTo(doc->commandStack());
+                }
+
+                doc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
             }
-
-            doc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
         }
     }
 }
@@ -322,7 +336,7 @@ void Presenter::setupMenus()
     ////// File //////
     auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                                       FileMenuElement::New,
-                                 [&] () { newDocument(m_availableDocuments.front()); });
+                                                      [&] () { newDocument(m_availableDocuments.front()); });
 
     newAct->setShortcut(QKeySequence::New);
 
@@ -333,13 +347,13 @@ void Presenter::setupMenus()
     //// Save and load
     // Binary
     auto openAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                        FileMenuElement::Load,
-                                        [this]() { loadDocument(); });
+                                                       FileMenuElement::Load,
+                                                       [this]() { loadDocument(); });
     openAct->setShortcut(QKeySequence::Open);
 
     auto saveAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                        FileMenuElement::Save,
-                                        [this]() { saveDocument(currentDocument()); });
+                                                       FileMenuElement::Save,
+                                                       [this]() { saveDocument(currentDocument()); });
     saveAct->setShortcut(QKeySequence::Save);
 
 

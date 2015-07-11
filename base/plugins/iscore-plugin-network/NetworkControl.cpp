@@ -77,6 +77,7 @@ void NetworkControl::on_sessionBuilt(
     auto doc = presenter()->loadDocument(
                    m_sessionBuilder->documentData(),
                    presenter()->availableDocuments().front());
+    // TODO checkme
 
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
