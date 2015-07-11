@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QEvent>
 
+class QMimeData;
 class TemporalScenarioPresenter;
 class TemporalScenarioView : public Layer
 {
@@ -38,6 +39,8 @@ class TemporalScenarioView : public Layer
         void keyReleased(int);
 
         void askContextMenu(const QPoint&);
+        void dropReceived(const QPointF& pos, const QMimeData*);
+
 
     public slots:
         void lock()
@@ -60,6 +63,7 @@ class TemporalScenarioView : public Layer
         void keyPressEvent(QKeyEvent *event) override;
         void keyReleaseEvent(QKeyEvent *event) override;
 
+        void dropEvent(QGraphicsSceneDragDropEvent *event);
     private:
         QRectF m_selectArea;
 

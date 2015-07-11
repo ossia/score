@@ -93,7 +93,8 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
     connect(m_view, &TemporalScenarioView::askContextMenu,
             this,   &TemporalScenarioPresenter::contextMenuAsked);
-
+    connect(m_view, &TemporalScenarioView::dropReceived,
+            this,   &TemporalScenarioPresenter::handleDrop);
 
     connect(&model(m_layer), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);
@@ -361,5 +362,45 @@ void TemporalScenarioPresenter::updateAllElements()
     for(auto& state : m_displayedStates)
     {
         m_viewInterface->on_stateMoved(*state);
+    }
+}
+
+#include <QMimeData>
+#include <QJsonDocument>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <core/document/Document.hpp>
+#include "Commands/Event/AddStateToEvent.hpp"
+#include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
+void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
+{
+    // If the mime data has states in it we can handle it.
+    if(mime->formats().contains("application/x-iscore-state")) // TODO Use macros
+    {
+        Deserializer<JSONObject> deser{
+            QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
+        iscore::State s;
+        deser.writeTo(s);
+
+        auto agr = new iscore::AggregateCommand("ScenarioControl", "Zecommand", "allaal");
+        MacroCommandDispatcher m(agr, iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())->commandStack());
+
+
+
+        auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
+                       static_cast<ScenarioModel&>(viewModel().sharedProcessModel()),
+                       TimeValue::fromMsecs(15000), // TODO
+                       pos.y() / m_view->parentItem()->boundingRect().size().height());
+        m.submitCommand(cmd);
+
+        auto vecpath = cmd->scenarioPath().vec();
+        vecpath.append({"StateModel", cmd->createdState()});
+
+        auto cmd2 = new Scenario::Command::AddStateToStateModel{
+                   ObjectPath(std::move(vecpath)),
+                   std::move(s)};
+        m.submitCommand(cmd2);
+
+
+        m.commit();
     }
 }

@@ -117,6 +117,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateEvent_State.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateTimeNode_Event_State.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event.cpp"

@@ -85,6 +85,10 @@ class TemporalScenarioPresenter : public ProcessPresenter
         ScenarioStateMachine& stateMachine()
         { return m_sm; }
 
+
+        void handleDrop(const QPointF& pos, const QMimeData *mime);
+
+
     signals:
         void linesExtremityScaled(int, int);
 

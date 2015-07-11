@@ -13,6 +13,7 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
 {
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
     this->setCursor(Qt::ArrowCursor);
+    setAcceptDrops(true);
 
     this->setZValue(parent->zValue() + 1);
 }
@@ -85,4 +86,11 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
     {
         emit keyReleased(event->key());
     }
+}
+
+
+#include <QMimeData>
+void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent *event)
+{
+    emit dropReceived(event->scenePos(), event->mimeData());
 }
