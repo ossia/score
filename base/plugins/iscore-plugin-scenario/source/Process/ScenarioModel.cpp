@@ -177,6 +177,8 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 
 void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 {
+    return; // Disabled by Asana
+
     ///* Should work but does not ?
     /* StandardDisplacementPolicy::setEventPosition(*this,
                                                  endEvent()->id(),
@@ -185,12 +187,14 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
                                                  [&] (ProcessModel* p, const TimeValue& t)
      { p->expandProcess(ExpandMode::Grow, t); }); */
 
+    /*
     auto& eev = endEvent();
 
     eev.setDate(newDuration);
     timeNode(eev.timeNode()).setDate(newDuration);
     emit eventMoved(eev.id());
     this->setDuration(newDuration);
+    */
 }
 
 void ScenarioModel::reset()

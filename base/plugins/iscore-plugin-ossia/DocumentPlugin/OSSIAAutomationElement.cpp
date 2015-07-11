@@ -123,6 +123,8 @@ OSSIAAutomationElement::~OSSIAAutomationElement()
 {
     if(m_parent_constraint)
     {
-        m_parent_constraint->constraint()->removeTimeProcess(m_ossia_autom);
+        if(m_ossia_autom)
+            m_parent_constraint->constraint()->removeTimeProcess(m_ossia_autom);
+        // TODO this is also removed in the constraint!!
     }
 }
