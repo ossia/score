@@ -25,8 +25,8 @@ endif()
 
 target_link_libraries(${APPNAME} iscore_lib_base)
 if(ISCORE_STATIC_PLUGINS)
-        target_compile_definitions(${APPNAME}
-                                                           PUBLIC ISCORE_STATIC_PLUGINS)
+    target_compile_definitions(${APPNAME}
+                               PUBLIC ISCORE_STATIC_PLUGINS)
     target_link_libraries(${APPNAME}
                 iscore_plugin_curve
                 iscore_plugin_inspector
@@ -37,19 +37,19 @@ if(ISCORE_STATIC_PLUGINS)
     # Put these definitions as partt of the CMake interface of the plugin
     if(TARGET iscore_plugin_network)
                 target_compile_definitions(${APPNAME}
-                                                                   PUBLIC ISCORE_NETWORK)
+                                           PUBLIC ISCORE_NETWORK)
         target_link_libraries(${APPNAME} iscore_plugin_network)
     endif()
 
         if(TARGET iscore_plugin_cohesion)
                 target_compile_definitions(${APPNAME}
-                                                                   PUBLIC ISCORE_COHESION)
+                                           PUBLIC ISCORE_COHESION)
         target_link_libraries(${APPNAME} iscore_plugin_cohesion)
     endif()
 
         if(TARGET iscore_plugin_ossia)
                 target_compile_definitions(${APPNAME}
-                                                                   PUBLIC ISCORE_OSSIA)
+                                           PUBLIC ISCORE_OSSIA)
         target_link_libraries(${APPNAME} iscore_plugin_ossia)
     endif()
 else()
