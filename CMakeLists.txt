@@ -51,7 +51,7 @@ else()
   endif()
 
   if(APPLE)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O4")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
   endif()
 
   if(ENABLE_OPTIMIZE_CUSTOM)
