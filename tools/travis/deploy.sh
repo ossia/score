@@ -15,11 +15,15 @@ if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then
     fi
 
     DISTRO=i-score_ubuntu12.04
+    curl -T $GOOD_FILENAME -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/$GOOD_FILENAME
+
 else
-    zip -r -9 i-score-0.3.0-OSX.zip bundle/i-score.app
     GOOD_FILENAME=i-score-0.3.0-OSX.zip
+    zip -r -9 $GOOD_FILENAME bundle/i-score.app
     DISTRO=i-score_osx
+    
+    curl -T $GOOD_FILENAME -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/$GOOD_FILENAME
 fi
-curl -T build/i-score/$GOOD_FILENAME -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/$GOOD_FILENAME
+
 curl -XPOST -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/publish
 curl -XGET https://bintray.com/ossia/i-score/$DISTRO/0.3
