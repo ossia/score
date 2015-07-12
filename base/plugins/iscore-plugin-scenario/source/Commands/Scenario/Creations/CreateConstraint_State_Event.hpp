@@ -48,6 +48,7 @@ class CreateConstraint_State_Event : public iscore::SerializableCommand
 
     private:
         id_type<EventModel> m_newEvent;
+        QString m_createdName;
 
         CreateConstraint_State m_command;
 

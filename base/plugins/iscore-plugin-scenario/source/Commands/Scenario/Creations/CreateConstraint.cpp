@@ -10,6 +10,7 @@
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include "Tools/RandomNameProvider.hpp"
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -21,6 +22,7 @@ CreateConstraint::CreateConstraint(
                         commandName(),
                         description()},
     m_path {std::move(scenarioPath) },
+    m_createdName{RandomNameProvider::generateRandomName()},
     m_startStateId{startState},
     m_endStateId{endState}
 {
@@ -59,6 +61,8 @@ void CreateConstraint::redo()
                 sst.heightPercentage(),
                 scenar);
 
+    scenar.constraint(m_createdConstraintId).metadata.setName(m_createdName);
+
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,
                                scenar);
@@ -69,6 +73,7 @@ void CreateConstraint::redo()
 void CreateConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_path
+      << m_createdName
       << m_createdConstraintId
       << m_startStateId
       << m_endStateId
@@ -79,6 +84,7 @@ void CreateConstraint::serializeImpl(QDataStream& s) const
 void CreateConstraint::deserializeImpl(QDataStream& s)
 {
     s >> m_path
+            >> m_createdName
             >> m_createdConstraintId
             >> m_startStateId
             >> m_endStateId

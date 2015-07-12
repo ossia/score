@@ -48,6 +48,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
+                QString m_createdName;
 
                 id_type<ConstraintModel> m_createdConstraintId {};
 

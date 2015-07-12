@@ -48,6 +48,7 @@ class CreateConstraint_State_Event_TimeNode : public iscore::SerializableCommand
 
     private:
         id_type<TimeNodeModel> m_newTimeNode;
+        QString m_createdName;
 
         CreateConstraint_State_Event m_command;
 

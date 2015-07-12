@@ -4,6 +4,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include "Tools/RandomNameProvider.hpp"
 
 using namespace Scenario::Command;
 CreateEvent_State::CreateEvent_State(
@@ -12,6 +13,7 @@ CreateEvent_State::CreateEvent_State(
         double stateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newEvent{getStrongId(scenario.events())},
+    m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,
               m_newEvent,
               stateY},
@@ -51,19 +53,27 @@ void CreateEvent_State::redo()
                 {{m_command.endStateY() - 0.1, m_command.endStateY() + 0.1}},
                 scenar);
 
+    scenar.event(m_newEvent).metadata.setName(m_createdName);
+
     // And the state
     m_command.redo();
 }
 
 void CreateEvent_State::serializeImpl(QDataStream& s) const
 {
-    s << m_newEvent << m_command.serialize() << m_timeNode;
+    s << m_newEvent
+      << m_createdName
+      << m_command.serialize()
+      << m_timeNode;
 }
 
 void CreateEvent_State::deserializeImpl(QDataStream& s)
 {
     QByteArray b;
-    s >> m_newEvent >> b >> m_timeNode;
+    s >> m_newEvent
+            >> m_createdName
+            >> b
+            >> m_timeNode;
 
     m_command.deserialize(b);
 }

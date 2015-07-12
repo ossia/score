@@ -39,6 +39,7 @@ class CreateEvent_State : public iscore::SerializableCommand
 
     private:
         id_type<EventModel> m_newEvent;
+        QString m_createdName;
 
         CreateState m_command;
 
