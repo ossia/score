@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash -eux
+
 git submodule init
 
 case "$TRAVIS_OS_NAME" in
@@ -18,8 +19,9 @@ case "$TRAVIS_OS_NAME" in
 
 	;;
 	osx)
-	    brew tap ossia/taps
-	    brew install jamomacore --HEAD
+        brew install wget
+        wget https://www.dropbox.com/s/513io412ztndxqe/Jamoma-darwin.zip?dl=1 -O Jamoma-darwin.zip
+        unzip Jamoma-darwin.zip
 		brew install cmake qt5 boost
 	;;
 esac

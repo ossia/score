@@ -6,9 +6,11 @@ Q_IMPORT_PLUGIN(iscore_plugin_inspector)
 Q_IMPORT_PLUGIN(iscore_plugin_deviceexplorer)
 Q_IMPORT_PLUGIN(iscore_plugin_pluginsettings)  // static plug-ins should not be displayed.
 Q_IMPORT_PLUGIN(iscore_plugin_curve)
+
 #ifdef ISCORE_NETWORK
 Q_IMPORT_PLUGIN(iscore_plugin_network)
 #endif
+
 #ifdef ISCORE_COHESION
 Q_IMPORT_PLUGIN(iscore_plugin_cohesion)
 #endif

@@ -1,5 +1,6 @@
-#!/bin/bash
-if [[ "$TRAVIS_BRANCH" != "dev" ]];
+#!/bin/bash -eux
+
+if [[ "$TRAVIS_BRANCH" != "master" ]];
 then
     exit 0
 fi
@@ -16,9 +17,9 @@ if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then
 
     DISTRO=i-score_ubuntu12.04
 else
-  zip -r -9 i-score-0.3.0-OSX.zip bundle/i-score.app
-	GOOD_FILENAME=i-score-0.3.0-OSX.zip
-	DISTRO=i-score_osx
+    zip -r -9 i-score-0.3.0-OSX.zip bundle/i-score.app
+    GOOD_FILENAME=i-score-0.3.0-OSX.zip
+    DISTRO=i-score_osx
 fi
 curl -T build/i-score/$GOOD_FILENAME -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/$GOOD_FILENAME
 curl -XPOST -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/publish
