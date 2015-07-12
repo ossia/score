@@ -1,4 +1,4 @@
-#!/bin/bash -eux
+#!/bin/bash
 
 if [[ "$TRAVIS_BRANCH" != "master" ]];
 then
