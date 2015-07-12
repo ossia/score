@@ -13,13 +13,11 @@ case "$TRAVIS_OS_NAME" in
 
 #		make all_unity -j2
 		make package
-		ls
 	;;
 	osx)
 		cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.2/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
 #		make all_unity -j2
 		make install
-		ls bundle
 	;;
 esac

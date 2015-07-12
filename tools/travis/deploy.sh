@@ -1,4 +1,6 @@
 #!/bin/bash
+echo "=== Starting deployment ==="
+
 
 if [[ "$TRAVIS_BRANCH" != "master" ]];
 then
