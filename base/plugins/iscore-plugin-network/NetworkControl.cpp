@@ -8,7 +8,32 @@
 #ifdef USE_ZEROCONF
 #include "Zeroconf/ZeroconfBrowser.hpp"
 #endif
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QSpinBox>
+#include <QButtonGroup>
+#include "IpWidget.hpp"
+class IpDialog : public QDialog
+{
+    public:
+        IpDialog()
+        {
+            setLayout(new QVBoxLayout);
+            auto widg = new QWidget;
+            layout()->addWidget(widg);
+            widg->setLayout(new QHBoxLayout);
+            widg->layout()->addWidget(new IpWidget(this));
 
+            auto portBox = new QSpinBox;
+            portBox->setMinimum(1);
+            portBox->setMaximum(65535);
+            widg->layout()->addWidget(portBox);
+
+            auto box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+            layout()->addWidget(box);
+
+        }
+};
 
 using namespace iscore;
 
@@ -50,7 +75,11 @@ void NetworkControl::populateMenus(MenubarManager* menu)
 
     QAction* connectLocal = new QAction {tr("Join local"), this};
     connect(connectLocal, &QAction::triggered, this,
-            [&] () { setupClientConnection("127.0.0.1", 9090); });
+            [&] () {
+        auto dial = new IpDialog;
+        dial->exec();
+    //    setupClientConnection("127.0.0.1", 9090);
+    });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                        FileMenuElement::Separator_Load,
