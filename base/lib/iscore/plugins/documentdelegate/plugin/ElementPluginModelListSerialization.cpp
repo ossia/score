@@ -20,7 +20,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelL
 
     for(; plugin_count -- > 0;)
     {
-        elts.add(deserializeElementPluginModel(*this, elts.parent(), elts.parent()));
+        auto pm = deserializeElementPluginModel(*this, elts.parent(), elts.parent());
+        elts.add(pm);
     }
 
     checkDelimiter();

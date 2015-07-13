@@ -304,12 +304,11 @@ void Presenter::restoreDocuments()
 
                 doc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
             }
+
+            data_file.close();
+            data_file.remove();
         }
     }
-}
-
-void Presenter::restoreDocument(const QByteArray &arr)
-{
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(

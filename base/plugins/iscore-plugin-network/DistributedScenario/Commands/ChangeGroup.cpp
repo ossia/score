@@ -16,7 +16,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
     }
     else if(auto ev = dynamic_cast<EventModel*>(obj))
     {
-        auto& plugs = ev->pluginModelList.list();
+        auto& plugs = ev->pluginModelList->list();
         auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
         Q_ASSERT(plug_it != plugs.end());

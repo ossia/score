@@ -45,10 +45,8 @@ namespace iscore
             Document* loadDocument(const QVariant &data,
                               iscore::DocumentDelegateFactoryInterface* doctype);
 
-            void lol();
             // Restore documents after a crash
             void restoreDocuments();
-            void restoreDocument(const QByteArray& arr);
 
             Document* currentDocument() const;
             void setCurrentDocument(Document* doc);

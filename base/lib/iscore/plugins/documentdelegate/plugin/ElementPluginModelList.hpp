@@ -23,6 +23,11 @@ namespace iscore
                          not std::is_same<
                              typename std::decay<DeserializerType>::type,
                              iscore::ElementPluginModelList
+                         >::value
+                         and
+                         not std::is_same<
+                             typename std::decay<DeserializerType>::type,
+                             iscore::ElementPluginModelList*
                          >::value>::type* = nullptr>
             ElementPluginModelList(DeserializerType&& vis, QObject* parent):
                 m_parent{parent}

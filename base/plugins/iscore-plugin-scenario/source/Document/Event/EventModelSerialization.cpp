@@ -8,6 +8,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
     readFrom(static_cast<const IdentifiedObject<EventModel>&>(ev));
 
     readFrom(ev.metadata);
+    readFrom(*ev.pluginModelList);
 
     m_stream << ev.m_timeNode
              << ev.m_states
@@ -16,14 +17,13 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
              << ev.m_extent
              << ev.m_date;
 
-    readFrom(ev.pluginModelList);
-
     insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 {
     writeTo(ev.metadata);
+    ev.pluginModelList = new iscore::ElementPluginModelList{*this, &ev};
 
     m_stream >> ev.m_timeNode
              >> ev.m_states
@@ -31,8 +31,6 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
              >> ev.m_trigger
              >> ev.m_extent
              >> ev.m_date;
-
-    ev.pluginModelList = iscore::ElementPluginModelList{*this, &ev};
 
     checkDelimiter();
 }
@@ -54,7 +52,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const EventModel& ev)
     m_obj["Extent"] = toJsonValue(ev.m_extent);
     m_obj["Date"] = toJsonValue(ev.m_date);
 
-    m_obj["PluginsMetadata"] = toJsonValue(ev.pluginModelList);
+    m_obj["PluginsMetadata"] = toJsonValue(*ev.pluginModelList);
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
@@ -71,5 +69,5 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
     ev.m_date = fromJsonValue<TimeValue>(m_obj["Date"]);
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
-    ev.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
+    ev.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &ev};
 }

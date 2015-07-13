@@ -17,6 +17,7 @@ class GroupMetadata : public iscore::ElementPluginModel
                 const QObject* element,
                 id_type<Group> id,
                 QObject* parent);
+
         GroupMetadata* clone(const QObject* element, QObject* parent) const override;
 
         template<typename DeserializerVisitor>

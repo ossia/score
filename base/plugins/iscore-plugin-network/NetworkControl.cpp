@@ -79,6 +79,7 @@ void NetworkControl::on_sessionBuilt(
                    presenter()->availableDocuments().front());
     // TODO checkme
 
+    // TODO use same mechanism than in presenter instead (CommandBackupFile).
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
         auto cmd = presenter()->instantiateUndoCommand(elt.first.first,

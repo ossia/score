@@ -190,7 +190,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     iscore::Document* doc = iscore::IDocument::documentFromObject(object);
 
-    for(auto& plugdata : object->pluginModelList.list())
+    for(auto& plugdata : object->pluginModelList->list())
     {
         for(iscore::DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
         {
