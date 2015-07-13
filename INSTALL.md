@@ -1,18 +1,18 @@
 # BUILD INSTRUCTIONS 
 
-  * i-score requirements : Qt5, CMake 3.0
-  * Network plug-in requirements : boost, an implementation of dns_sd.h (ex. : libavahi-compat-libdnssd-dev on Debian/Ubuntu).
+  * i-score requirements : Qt5.4, CMake 3.0, boost
+  * Network plug-in requirements : libkf5-kdnssd for Bonjour
 
 ### Build : 
   
     $ mkdir -p build_folder
     $ cd build_folder
     $ cmake path/to/i-score/repo
-    $ make
+    $ make -j4
     
 ### And run : 
 
-    $ ./iscore_app
+    $ ./i-score
 
 # DOCUMENTATION
 
