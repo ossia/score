@@ -94,4 +94,5 @@ set_property(TARGET iscore_plugin_deviceexplorer APPEND
 
 install(TARGETS iscore_plugin_deviceexplorer
         LIBRARY DESTINATION plugins/
+        ARCHIVE DESTINATION static_plugins/
         COMPONENT DynamicRuntime)

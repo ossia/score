@@ -38,6 +38,7 @@ endif()
 
 install(TARGETS iscore_lib_inspector
         LIBRARY DESTINATION .
+        ARCHIVE DESTINATION static_lib/
         COMPONENT DynamicRuntime)
 
 # Inspector panel plug-in
@@ -68,4 +69,5 @@ endif()
 
 install(TARGETS iscore_plugin_inspector
         LIBRARY DESTINATION plugins/
+        ARCHIVE DESTINATION static_plugins/
         COMPONENT DynamicRuntime)

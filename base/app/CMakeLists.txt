@@ -98,12 +98,8 @@ endif()
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION .
-        COMPONENT StaticRuntime)
+        COMPONENT Runtime)
 
-install(TARGETS ${APPNAME}
-        BUNDLE DESTINATION .
-        RUNTIME DESTINATION .
-        COMPONENT DynamicRuntime)
 
 
 set(CPACK_PACKAGE_NAME "i-score")
@@ -201,7 +197,7 @@ if(DEPLOYMENT_BUILD)
 
         install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/i-score.sh"
                 DESTINATION "."
-                COMPONENT DynamicRuntime)
+                COMPONENT DynamicRuntimeHelper)
 
         set(CPACK_PACKAGE_FILE_NAME "i-score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
         set(CPACK_PACKAGING_INSTALL_PREFIX "")

@@ -44,6 +44,7 @@ endif()
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION .
+        ARCHIVE DESTINATION static_lib/
         COMPONENT DynamicRuntime)
 
 if(NOT DEPLOYMENT_BUILD)

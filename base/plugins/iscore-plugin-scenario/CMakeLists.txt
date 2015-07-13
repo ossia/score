@@ -43,7 +43,8 @@ set(PROCESS_SRCS
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
 target_link_libraries(iscore_lib_process Qt5::Core Qt5::Widgets iscore_lib_base)
 install(TARGETS iscore_lib_process
-    LIBRARY DESTINATION ./
+    LIBRARY DESTINATION .
+    ARCHIVE DESTINATION static_lib/
     COMPONENT DynamicRuntime)
 
 if(ISCORE_COTIRE)
@@ -302,6 +303,7 @@ endif()
 
 install(TARGETS iscore_plugin_scenario
     LIBRARY DESTINATION plugins/
-    ARCHIVE DESTINATION static_plugins/)
+    ARCHIVE DESTINATION static_plugins/
+    COMPONENT DynamicRuntime)
 
 #add_subdirectory(tests)

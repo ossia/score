@@ -85,6 +85,7 @@ endif()
 
 install(TARGETS iscore_lib_base
         LIBRARY DESTINATION .
+        ARCHIVE DESTINATION static_lib/
         COMPONENT DynamicRuntime)
 
 
