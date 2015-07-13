@@ -22,8 +22,11 @@ else
     DISTRO=i-score_osx
 fi
 
-echo "========== Sending... =========="
-echo "$GOOD_FILENAME"
-curl -T $GOOD_FILENAME -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/$GOOD_FILENAME
-curl -XPOST -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/publish
-curl -XGET https://bintray.com/ossia/i-score/$DISTRO/0.3
+BETTER_FILENAME=$(echo "$GOOD_FILENAME"|sed "s/0.3.0/$TRAVIS_TAG/")
+mv "$GOOD_FILENAME" "$BETTER_FILENAME"
+
+#echo "========== Sending... =========="
+#echo "$GOOD_FILENAME"
+#curl -T $GOOD_FILENAME -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/$GOOD_FILENAME
+#curl -XPOST -u$BINTRAY_USER:$BINTRAY_API_KEY https://api.bintray.com/content/ossia/i-score/$DISTRO/0.3/publish
+#curl -XGET https://bintray.com/ossia/i-score/$DISTRO/0.3
