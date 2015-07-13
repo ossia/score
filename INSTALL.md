@@ -8,7 +8,7 @@
     $ mkdir -p build_folder
     $ cd build_folder
     $ cmake path/to/i-score/repo
-    $ make
+    $ make -j4
     
 ### And run : 
 
