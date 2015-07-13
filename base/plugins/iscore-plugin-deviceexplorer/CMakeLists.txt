@@ -93,5 +93,5 @@ set_property(TARGET iscore_plugin_deviceexplorer APPEND
        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
 install(TARGETS iscore_plugin_deviceexplorer
-    LIBRARY DESTINATION plugins/
-    ARCHIVE DESTINATION static_plugins/)
+        LIBRARY DESTINATION plugins/
+        COMPONENT DynamicRuntime)

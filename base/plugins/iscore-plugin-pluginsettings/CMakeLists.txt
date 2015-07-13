@@ -43,4 +43,4 @@ endif()
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/)
+        COMPONENT DynamicRuntime)

@@ -44,7 +44,7 @@ add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
 target_link_libraries(iscore_lib_process Qt5::Core Qt5::Widgets iscore_lib_base)
 install(TARGETS iscore_lib_process
     LIBRARY DESTINATION ./
-    ARCHIVE DESTINATION static_lib/)
+    COMPONENT DynamicRuntime)
 
 if(ISCORE_COTIRE)
     if(ISCORE_COTIRE_ALL_HEADERS)

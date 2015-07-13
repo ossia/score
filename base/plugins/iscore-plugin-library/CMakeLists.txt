@@ -24,4 +24,4 @@ if(ISCORE_COTIRE)
 endif()
 install(TARGETS iscore_plugin_library
         LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/)
+        COMPONENT DynamicRuntime)

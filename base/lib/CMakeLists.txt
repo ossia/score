@@ -85,6 +85,7 @@ endif()
 
 install(TARGETS iscore_lib_base
         LIBRARY DESTINATION .
-        ARCHIVE DESTINATION .)
+        COMPONENT DynamicRuntime)
+
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
