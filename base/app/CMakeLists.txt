@@ -97,7 +97,7 @@ endif()
 
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
-        RUNTIME DESTINATION .
+        RUNTIME DESTINATION bin
         COMPONENT Runtime)
 
 
