@@ -138,7 +138,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         DeviceDocumentPlugin* m_devicePlugin{};
         iscore::Node* createRootNode() const;
 
-        void setColumnValue(iscore::Node* node, const QVariant& v, int col);
         QModelIndex bottomIndex(const QModelIndex& index) const;
 
         iscore::Node* m_rootNode;

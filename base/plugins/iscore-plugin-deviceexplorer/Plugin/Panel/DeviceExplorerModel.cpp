@@ -456,65 +456,6 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-void
-DeviceExplorerModel::setColumnValue(Node* node, const QVariant& v, int col)
-{
-    ISCORE_TODO
-    return;
-    /*
-    if(col < 0 || col >= COLUMN_COUNT)
-    {
-        return;
-    }
-
-    assert(node);
-
-    switch(col)
-    {
-        case NAME_COLUMN:
-        {
-            node->setName(v.toString());
-        }
-            break;
-
-        case VALUE_COLUMN:
-        {
-            node->setValue(v.toString());
-        }
-            break;
-
-        case IOTYPE_COLUMN:
-        {
-            //node->setType(v.toString());
-        }
-            break;
-
-        case MIN_COLUMN:
-        {
-            node->setMinValue(v.toFloat());   //TODO:change ! no necessarily a float !
-        }
-            break;
-
-        case MAX_COLUMN:
-        {
-            node->setMaxValue(v.toFloat());   //TODO:change ! no necessarily a float !
-        }
-            break;
-
-        case PRIORITY_COLUMN:
-        {
-            node->setPriority(v.toUInt());
-        }
-            break;
-
-        default :
-            assert(false);
-    }
-    */
-
-}
-
-
 QVariant
 DeviceExplorerModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -603,11 +544,18 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
                 changed = true;
             }
         }
-
-        if(index.column() == IOTYPE_COLUMN)
+        else if(index.column() == IOTYPE_COLUMN)
         {
             m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
             changed = true;
+        }
+        else if(index.column() == VALUE_COLUMN)
+        {
+            if(value.canConvert<int>() || value.canConvert<bool>() ||  value.canConvert<float>() || value.canConvert<QString>())
+            {
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
+                changed = true;
+            }
         }
     }
 
@@ -622,9 +570,6 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 
 void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
-    ISCORE_TODO
-    // The command should modify the Node
-    /*
     //TODO: check what's editable or not !!!
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
@@ -634,6 +579,9 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
 
+    if(node->isDevice())
+        return;
+
     if(role == Qt::EditRole)
     {
         if(index.column() == NAME_COLUMN)
@@ -642,39 +590,23 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
 
             if(! s.isEmpty())
             {
-                node->setName(s);
+                node->addressSettings().name = s;
             }
         }
 
         if(index.column() == IOTYPE_COLUMN)
         {
-            const QString iotype = value.toString();
+            // TODO use a combo box editor in the tree...
+            node->addressSettings().ioType = IOTypeStringMap().key(value.toString());
+        }
 
-            if(iotype == "->")
-            {
-                node->setIOType(IOType::In);
-            }
-            else if(iotype == "<-")
-            {
-                node->setIOType(IOType::Out);
-            }
-            else if(iotype == "<->")
-            {
-                node->setIOType(IOType::InOut);
-            }
+        if(index.column() == VALUE_COLUMN)
+        {
+            node->addressSettings().value = value;
         }
     }
 
-    //NON ! emitDatachanged devrait être fait pour tous les indices des fils !!!
-
-    {
-        Node* n1 = nodeFromModelIndex(changedTopLeft);
-        Node* n2 = nodeFromModelIndex(changedBottomRight);
-        std::cerr << "DeviceExplorerModel::setData i1=(" << n1->name().toStdString() << ", " << changedTopLeft.row() << ", " << changedTopLeft.column() << ") i2=(" << n2->name().toStdString() << ", " << changedBottomRight.row() << ", " << changedBottomRight.column() << ")\n";
-    }
-
     emit dataChanged(changedTopLeft, changedBottomRight);
-    */
 }
 
 
