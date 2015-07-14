@@ -6,10 +6,10 @@
 #include "State/Address.hpp"
 
 // TODO namespace
-enum class IOType { Invalid, In, Out, InOut };
+enum class IOType : int { Invalid, In, Out, InOut };
 const QMap<IOType, QString>& IOTypeStringMap();
 
-enum class ClipMode { Clip, Fold, Free, Wrap };
+enum class ClipMode : int { Clip, Fold, Free, Wrap };
 const QMap<ClipMode, QString> &ClipModeStringMap();
 
 namespace iscore

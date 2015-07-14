@@ -15,7 +15,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 {
     m_obj["Address"] = toJsonObject(mess.address);
-    m_obj["Value"] = mess.value.toString();
+    m_obj["Value"] = mess.value.toString(); // TODO : NOPENOPENOPE. Use serialization in AddressSettings. Make a Value class.
 }
 
 template<>
