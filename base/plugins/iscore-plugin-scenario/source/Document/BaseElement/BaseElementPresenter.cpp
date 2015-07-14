@@ -68,7 +68,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
 
     // Setup of the state machine.
-    m_stateMachine = new BaseElementStateMachine{this};
+    m_stateMachine = new BaseScenarioStateMachine{this};
 
     // Show our constraint
     connect(model(), &BaseElementModel::displayedConstraintChanged,

@@ -7,7 +7,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
-BaseElementStateMachine::BaseElementStateMachine(BaseElementPresenter* pres):
+BaseScenarioStateMachine::BaseScenarioStateMachine(BaseElementPresenter* pres):
     BaseStateMachine{*pres->view()->scene()},
     m_presenter{pres}
 {

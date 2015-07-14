@@ -78,6 +78,7 @@ QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
     iscore::SerializableCommand* cmd{};
+    // TODO use the new pattern here
     if(false);
     else if(name == "CreateCurvesFromAddresses") cmd = new CreateCurvesFromAddresses;
     else if(name == "CreateCurvesFromAddressesInConstraints") cmd = new CreateCurvesFromAddressesInConstraints;

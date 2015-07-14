@@ -120,6 +120,8 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
                 }
                 break;
             }
+            default:
+                break;
         }
     }
 

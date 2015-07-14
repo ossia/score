@@ -61,7 +61,7 @@ int RackPresenter::height() const
 {
     int totalHeight = 0; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 
-    for(auto& slot : m_slots)
+    for(const auto& slot : m_slots)
     {
         totalHeight += slot->height() + 5;
     }
@@ -175,7 +175,7 @@ void RackPresenter::updateShape()
     // Horizontal shape
     setWidth(m_duration.toPixels(m_zoomRatio));
 
-    for(SlotPresenter* slot : m_slots)
+    for(const auto& slot : m_slots)
     {
         slot->on_parentGeometryChanged();
     }
@@ -196,7 +196,7 @@ void RackPresenter::on_zoomRatioChanged(ZoomRatio val)
     // We have to change the width of the slots aftewards
     // because their width depend on the rack width
     // TODO this smells.
-    for(SlotPresenter* slot : m_slots)
+    for(const auto& slot : m_slots)
     {
         slot->on_zoomRatioChanged(m_zoomRatio);
     }

@@ -3,10 +3,10 @@
 class BaseElementPresenter;
 
 // TODO MoveMe to statemachine folder
-class BaseElementStateMachine: public BaseStateMachine
+class BaseScenarioStateMachine: public BaseStateMachine
 {
     public:
-        BaseElementStateMachine(BaseElementPresenter* pres);
+        BaseScenarioStateMachine(BaseElementPresenter* pres);
 
     private:
         BaseElementPresenter* m_presenter;

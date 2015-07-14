@@ -1069,14 +1069,17 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
                         n->isDevice() ? MimeTypeDevice : MimeTypeAddress,
                         QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
-            MessageList messages;
-            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+            if(!n->isDevice())
+            {
+                MessageList messages;
+                messages.push_back(DeviceExplorer::messageFromModelIndex(index));
 
-            State s{messages};
-            ser.m_obj = {};
-            ser.readFrom(s);
-            mimeData->setData("application/x-iscore-state",
-                              QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+                State s{messages};
+                ser.m_obj = {};
+                ser.readFrom(s);
+                mimeData->setData("application/x-iscore-state",
+                                  QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+            }
             return mimeData;
         }
     }
@@ -1085,19 +1088,25 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
         MessageList messages;
         for(const auto& index : indexes)
         {
-            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+            if(!nodeFromModelIndex(index)->isDevice())
+            {
+                messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+            }
         }
 
-        QMimeData* mimeData = new QMimeData;
-        State s{messages};
+        if(!messages.empty())
+        {
+            QMimeData* mimeData = new QMimeData;
+            State s{messages};
 
-        Serializer<JSONObject> ser;
-        ser.readFrom(s);
+            Serializer<JSONObject> ser;
+            ser.readFrom(s);
 
-        mimeData->setData("application/x-iscore-state",
-                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+            mimeData->setData("application/x-iscore-state",
+                              QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
-        return mimeData;
+            return mimeData;
+        }
     }
 
     return nullptr;

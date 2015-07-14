@@ -159,7 +159,7 @@ void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
 {
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
-    m_toolActions->setEnabled(s_pres);
+    m_toolActions->setEnabled(bool(s_pres));
 
     if(auto currentlyFocused = focusedPresenter())
     {

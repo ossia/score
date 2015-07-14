@@ -490,7 +490,6 @@ QString JSONToZeroTwo(QJsonObject base)
 
                 QJsonArray cstrProcesses = j_cstr["Processes"].toArray();
 
-                qDebug() << curvesMap;
                 for(const auto& cstrProcess : cstrProcesses)
                 {
                     auto autom = cstrProcess.toObject();
@@ -506,7 +505,6 @@ QString JSONToZeroTwo(QJsonObject base)
                         QString points;
                         QPair<double,double> minmax = curvesMap.value(autom["Address"].toString());
 
-                        qDebug() <<autom["Address"].toString();
                         for(auto point : autom["Points"].toArray())
                         {
                             double x = point.toArray().first().toDouble();

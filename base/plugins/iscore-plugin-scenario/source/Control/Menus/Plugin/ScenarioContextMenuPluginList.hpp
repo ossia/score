@@ -9,6 +9,7 @@ namespace iscore
 }
 
 class ScenarioContextMenuFactory;
+
 class ScenarioContextMenuPluginList
 {
     public:

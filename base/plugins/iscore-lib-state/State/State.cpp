@@ -17,34 +17,24 @@ uint qHash( const QVariant & var ) noexcept
     {
         case QVariant::Int:
                 return qHash( var.toInt() );
-            break;
         case QVariant::UInt:
                 return qHash( var.toUInt() );
-            break;
         case QVariant::Bool:
                 return qHash( var.toUInt() );
-            break;
         case QVariant::Double:
                 return qHash( var.toUInt() );
-            break;
         case QVariant::LongLong:
                 return qHash( var.toLongLong() );
-            break;
         case QVariant::ULongLong:
                 return qHash( var.toULongLong() );
-            break;
         case QVariant::String:
                 return qHash( var.toString() );
-            break;
         case QVariant::Char:
                 return qHash( var.toChar() );
-            break;
         case QVariant::StringList:
                 return qHash( var.toString() );
-            break;
         case QVariant::ByteArray:
                 return qHash( var.toByteArray() );
-            break;
         case QVariant::Date:
         case QVariant::Time:
         case QVariant::DateTime:
@@ -52,7 +42,6 @@ uint qHash( const QVariant & var ) noexcept
         case QVariant::Locale:
         case QVariant::RegExp:
                 return qHash( var.toString() );
-            break;
         case QVariant::Map:
         case QVariant::List:
         case QVariant::BitArray:

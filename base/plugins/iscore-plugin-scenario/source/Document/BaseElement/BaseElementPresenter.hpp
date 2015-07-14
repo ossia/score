@@ -19,7 +19,7 @@ class ConstraintModel;
 class TimeRulerPresenter;
 class LocalTimeRulerPresenter;
 
-class BaseElementStateMachine;
+class BaseScenarioStateMachine;
 
 /**
  * @brief The BaseElementPresenter class
@@ -82,7 +82,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         iscore::SelectionDispatcher m_selectionDispatcher;
 
         // State machine
-        BaseElementStateMachine* m_stateMachine{};
+        BaseScenarioStateMachine* m_stateMachine{};
 
         // Various widgets
         //TimeRulerPresenter* m_mainTimeRuler{};

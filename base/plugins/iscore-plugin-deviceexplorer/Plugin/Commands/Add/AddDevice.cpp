@@ -74,118 +74,40 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
     return;
 }
 
-Node* makeDeviceNode(const DeviceSettings& device, const QString& filePath)
+/*
+Node* loadfromxml(const QString& filePath)
 {
-    Node* node = new Node(device, nullptr);
-    return node;
-
-    if (filePath.isEmpty())
-    {
-        /*
-        //DEBUG: arbitrary population of the tree
-
-
-        if(device.protocol == "Minuit" || device.protocol == "OSC")
-        {
-            Node* node1 = new Node("debug1", node);
-            node1->setValueType("Int");
-            node1->setValue("10");
-            node1->setIOType(IOType::In);
-            node1->setMinValue(0);
-            node1->setMaxValue(10);
-            node1->setPriority(1);
-
-            Node* node2 = new Node("debug2", node);
-            node2->setValueType("Float");
-            node2->setValue("13.7");
-            node2->setIOType(IOType::Out);
-            node2->setMinValue(0.f);
-            node2->setMaxValue(76.f);
-            node2->setPriority(2);
-        }
-
-        if(device.protocol == "OSC" || device.protocol == "MIDI")
-        {
-            Node* node3 = new Node("debug3", node);
-            node3->setValueType("Float");
-            node3->setValue("13");
-            node3->setIOType(IOType::InOut);
-            node3->setMinValue(0.f);
-            node3->setMaxValue(100.f);
-            node3->setPriority(2);
-
-            Node* node4 = new Node("debug4", node3);
-            node4->setValueType("Float");
-            node4->setValue("11");
-            node4->setIOType(IOType::InOut);
-            node4->setMinValue(1.f);
-            node4->setMaxValue(78.f);
-            node4->setPriority(7);
-
-            if(device.protocol == "OSC")
-            {
-                Node* node5 = new Node("debug5", node4);
-                node5->setValueType("Float");
-                node5->setValue("777");
-                node5->setIOType(IOType::In);
-                node5->setMinValue(1.f);
-                node5->setMaxValue(3.f);
-                node5->setPriority(3);
-
-                Node* node6 = new Node("debug6", node5);
-                node6->setValueType("Float");
-                node6->setValue("777");
-                node6->setIOType(IOType::In);
-                node6->setMinValue(1.f);
-                node6->setMaxValue(3.f);
-                node6->setPriority(3);
-
-                Node* node7 = new Node("debug7", node5);
-                node7->setValueType("Float");
-                node7->setValue("754");
-                node7->setIOType(IOType::Out);
-                node7->setMinValue(1.33f);
-                node7->setMaxValue(2.3f);
-                node7->setPriority(33);
-            }
-        }
-        */
-    }
-    else
-    {
-        // ouverture d'un xml
-        QFile doc_xml(filePath);
-        if(!doc_xml.open(QIODevice::ReadOnly))
-        {
-            qDebug() << "Erreur : Impossible d'ouvrir le ficher XML";
-            doc_xml.close();
-            return node;
-        }
-        QDomDocument* domDoc = new QDomDocument;
-        if(!domDoc->setContent(&doc_xml))
-        {
-            qDebug() << "Erreur : Impossible de charger le ficher XML";
-            doc_xml.close();
-            return node;
-        }
-        doc_xml.close();
-
-        // extraction des données
-
-        QDomElement doc = domDoc->documentElement();
-        QDomElement application = doc.firstChildElement("application");
-        QDomElement dom_node = application.firstChildElement("");
-
-        while(!dom_node.isNull())
-        {
-            convertFromDomElement(dom_node, node);
-            dom_node = dom_node.nextSiblingElement("");
-        }
-
-    }
-
+// ouverture d'un xml
+QFile doc_xml(filePath);
+if(!doc_xml.open(QIODevice::ReadOnly))
+{
+    qDebug() << "Erreur : Impossible d'ouvrir le ficher XML";
+    doc_xml.close();
     return node;
 }
+QDomDocument* domDoc = new QDomDocument;
+if(!domDoc->setContent(&doc_xml))
+{
+    qDebug() << "Erreur : Impossible de charger le ficher XML";
+    doc_xml.close();
+    return node;
+}
+doc_xml.close();
+
+// extraction des données
+
+QDomElement doc = domDoc->documentElement();
+QDomElement application = doc.firstChildElement("application");
+QDomElement dom_node = application.firstChildElement("");
+
+while(!dom_node.isNull())
+{
+    convertFromDomElement(dom_node, node);
+    dom_node = dom_node.nextSiblingElement("");
+}
+
+}
+ */
 
 AddDevice::AddDevice(ObjectPath&& device_tree, const DeviceSettings& parameters, const QString &filePath):
     iscore::SerializableCommand{"DeviceExplorerControl",
@@ -229,8 +151,7 @@ void AddDevice::redo()
 
 
     // Put it in the tree.
-    auto node = makeDeviceNode(m_parameters, m_filePath);
-    m_row = explorer.addDevice(node);
+    m_row = explorer.addDevice(new Node(m_parameters, nullptr));
 }
 
 int AddDevice::deviceRow() const
