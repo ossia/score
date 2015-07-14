@@ -3,6 +3,7 @@
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
+#include "State/Address.hpp"
 
 // TODO namespace
 enum class IOType { Invalid, In, Out, InOut };
@@ -24,10 +25,8 @@ struct Domain
 using RefreshRate = int;
 using RepetitionFilter = bool;
 
-struct AddressSettings
+struct AddressSettingsCommon
 {
-    QString name;
-
     QVariant value;
     iscore::Domain domain;
 
@@ -43,5 +42,21 @@ struct AddressSettings
     QStringList tags;
 };
 
+struct AddressSettings : public AddressSettingsCommon
+{
+        QString name;
+};
+
 // This one has the whole path of the node in the name
-using FullAddressSettings = AddressSettings;
+
+struct FullAddressSettings : public AddressSettingsCommon
+{
+        iscore::Address address;
+        static FullAddressSettings make(const AddressSettingsCommon& other)
+        {
+            FullAddressSettings as;
+            static_cast<AddressSettingsCommon&>(as) = other;
+            return as;
+        }
+};
+

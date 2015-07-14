@@ -48,8 +48,11 @@ void AddAddress::redo()
 
     // Make a full path (not taking the device into account.. for instance MIDI.1:/a/b would give /a/b)
     // TODO use Address class.
-    FullAddressSettings full = m_addressSettings;
-    full.name = (parentnode->fullPathWithoutDevice() + QStringList{m_addressSettings.name}).join("/").prepend("/");
+
+    FullAddressSettings full = FullAddressSettings::make(m_addressSettings);
+    auto fullpath = parentnode->fullPathWithDevice() + QStringList{m_addressSettings.name};
+    full.address.device = fullpath.takeFirst();
+    full.address.path = fullpath;
 
     // Add in the device implementation
     explorer.deviceModel()->list().device(dev_node->deviceSettings().name).addAddress(full);

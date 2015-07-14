@@ -10,12 +10,9 @@ using namespace OSSIA::convert;
 void OSSIADevice::addAddress(const FullAddressSettings &settings)
 {
     using namespace OSSIA;
-    // Get the node
-    QStringList path = settings.name.split("/");
-    path.removeFirst();
 
-    // Create it
-    OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
+    // Create the node. It is added into the device.
+    OSSIA::Node* node = createNodeFromPath(settings.address.path, m_dev.get());
 
     // Populate the node with an address
     createOSSIAAddress(settings, node);
@@ -25,10 +22,8 @@ void OSSIADevice::addAddress(const FullAddressSettings &settings)
 void OSSIADevice::updateAddress(const FullAddressSettings &settings)
 {
     using namespace OSSIA;
-    QStringList path = settings.name.split("/");
-    path.removeFirst();
 
-    OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
+    OSSIA::Node* node = createNodeFromPath(settings.address.path, m_dev.get());
     updateOSSIAAddress(settings, node->getAddress());
 }
 
