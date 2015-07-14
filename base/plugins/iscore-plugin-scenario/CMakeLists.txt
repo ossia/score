@@ -180,6 +180,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/ClickableLabelItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/AddressBarItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.cpp"

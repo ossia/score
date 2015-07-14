@@ -1,3 +1,4 @@
+#pragma once
 #include "Document/Constraint/ViewModels/AbstractConstraintHeader.hpp"
 
 class FullViewConstraintHeader : public ConstraintHeader
