@@ -20,7 +20,6 @@ class OSSIAAutomationElement : public OSSIAProcessElement
                 OSSIAConstraintElement* parentConstraint,
                 const AutomationModel* element,
                 QObject* parent);
-        ~OSSIAAutomationElement();
 
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
         const ProcessModel* iscoreProcess() const override;

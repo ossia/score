@@ -30,7 +30,6 @@ class OSSIAScenarioElement : public OSSIAProcessElement
                 OSSIAConstraintElement* parentConstraint,
                 const ScenarioModel* element,
                 QObject* parent);
-        ~OSSIAScenarioElement();
 
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
         std::shared_ptr<OSSIA::Scenario> scenario() const;

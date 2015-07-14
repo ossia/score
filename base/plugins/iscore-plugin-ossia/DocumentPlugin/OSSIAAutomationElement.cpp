@@ -12,6 +12,7 @@
 #include <core/document/DocumentModel.hpp>
 #include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include "Protocols/OSSIADevice.hpp"
+#include "OSSIAConstraintElement.hpp"
 OSSIAAutomationElement::OSSIAAutomationElement(
         OSSIAConstraintElement* parentConstraint,
         const AutomationModel *element,
@@ -117,14 +118,3 @@ void OSSIAAutomationElement::on_curveChanged()
 
 }
 
-#include "OSSIAConstraintElement.hpp"
-#include <API/Headers/Editor/TimeConstraint.h>
-OSSIAAutomationElement::~OSSIAAutomationElement()
-{
-    if(m_parent_constraint)
-    {
-        if(m_ossia_autom)
-            m_parent_constraint->constraint()->removeTimeProcess(m_ossia_autom);
-        // TODO this is also removed in the constraint!!
-    }
-}

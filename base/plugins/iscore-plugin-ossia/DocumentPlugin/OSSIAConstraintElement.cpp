@@ -114,10 +114,14 @@ void OSSIAConstraintElement::on_processRemoved(const id_type<ProcessModel>& proc
     {
         // It is possible for a process to be null
         // (e.g. invalid state in GUI like automation without address)
-        if(auto proc = (*it).second->process())
+        auto proc = (*it).second->process();
+        auto proc_it =  std::find(m_ossia_constraint->timeProcesses().begin(),
+                                  m_ossia_constraint->timeProcesses().end(),
+                                  proc);
+        if(proc && proc_it != m_ossia_constraint->timeProcesses().end())
             m_ossia_constraint->removeTimeProcess(proc);
 
-        // We don't have ownership so we don't delete. The process has it.
+        // We don't have ownership so we don't delete. The ProcessModel has it.
         m_processes.erase(it);
     }
 }
