@@ -68,7 +68,7 @@ ConstraintPresenter::ConstraintPresenter(
     }
     else
     {
-        on_rackHidden();
+        on_rackRemoved();
     }
     updateHeight();
 }
@@ -184,6 +184,7 @@ void ConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
     clearRackPresenter();
     createRackPresenter(m_viewModel.model().rack(rackId));
 
+    m_header->show();
     updateHeight();
 }
 
@@ -196,6 +197,7 @@ void ConstraintPresenter::on_rackHidden()
 
 void ConstraintPresenter::on_rackRemoved()
 {
+    m_header->hide();
     clearRackPresenter();
 
     updateHeight();
@@ -208,8 +210,6 @@ void ConstraintPresenter::clearRackPresenter()
         m_rack->deleteLater();
         m_rack = nullptr;
     }
-
-    m_header->hide();
 }
 
 void ConstraintPresenter::createRackPresenter(RackModel* rackModel)
@@ -230,6 +230,4 @@ void ConstraintPresenter::createRackPresenter(RackModel* rackModel)
     connect(m_rack, &RackPresenter::pressed, this, &ConstraintPresenter::pressed);
     connect(m_rack, &RackPresenter::moved, this, &ConstraintPresenter::moved);
     connect(m_rack, &RackPresenter::released, this, &ConstraintPresenter::released);
-
-    m_header->show();
 }

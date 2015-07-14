@@ -8,6 +8,7 @@ class ConstraintHeader : public QGraphicsObject
     public:
         using QGraphicsObject::QGraphicsObject;
         static constexpr int headerHeight() { return 25; }
+        static const QFont font;
 
         void setWidth(double width);
         void setText(const QString &text);
@@ -15,6 +16,4 @@ class ConstraintHeader : public QGraphicsObject
     protected:
         double m_width{};
         QString m_text;
-
-        static const QFont m_font;
 };

@@ -1,5 +1,5 @@
 #include "AbstractConstraintHeader.hpp"
-const QFont ConstraintHeader::m_font("Ubuntu", 10, QFont::Bold);
+const QFont ConstraintHeader::font("Ubuntu", 10, QFont::Bold);
 void ConstraintHeader::setWidth(double width)
 {
     prepareGeometryChange();

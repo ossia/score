@@ -7,7 +7,7 @@ class RackPresenter;
 class RackModel;
 class QGraphicsItem;
 #include <iscore/selection/SelectionDispatcher.hpp>
-
+#include <iscore/tools/ObjectPath.hpp>
 
 namespace iscore
 {
@@ -35,6 +35,9 @@ class FullViewConstraintPresenter : public ConstraintPresenter
         virtual ~FullViewConstraintPresenter();
 
         void on_pressed(const QPointF &);
+
+    signals:
+        void objectSelected(ObjectPath);
 
     private:
         iscore::SelectionDispatcher m_selectionDispatcher;

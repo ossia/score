@@ -4,7 +4,6 @@
 #include <QGridLayout>
 
 #include "Widgets/DoubleSlider.hpp"
-#include "Widgets/AddressBar.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
@@ -15,7 +14,6 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_scene {new QGraphicsScene{m_widget}},
     m_view {new SizeNotifyingGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject},
-    m_addressBar {new AddressBar{nullptr}},
     m_timeRuler {new TimeRulerView},
     m_localTimeRuler {new LocalTimeRulerView}
 {
@@ -53,7 +51,7 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
-    lay->addWidget(m_addressBar);
+
     lay->addWidget(m_timeRulersView);
     lay->addWidget(m_view);
     lay->addWidget(transportWidget);

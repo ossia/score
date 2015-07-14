@@ -56,8 +56,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     // Setup the connections
     connect(&(m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
             this,                             &BaseElementPresenter::on_newSelection);
-    connect(view()->addressBar(), &AddressBar::objectSelected,
-            this,				  &BaseElementPresenter::setDisplayedObject);
     connect(view(), &BaseElementView::horizontalZoomChanged,
             this,   &BaseElementPresenter::on_zoomSliderChanged);
     connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
@@ -120,13 +118,11 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
     m_scenarioPresenter->on_displayedConstraintChanged(displayedConstraint());
-
+    connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
+            this,				  &BaseElementPresenter::setDisplayedObject);
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
     on_zoomSliderChanged(0);
     on_askUpdate();
-
-    // Update the address bar
-    view()->addressBar()->setTargetObject(IDocument::path(displayedConstraint()));
 }
 
 void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)

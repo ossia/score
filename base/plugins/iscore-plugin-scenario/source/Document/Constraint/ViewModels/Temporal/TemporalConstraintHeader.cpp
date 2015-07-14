@@ -12,9 +12,9 @@ void TemporalConstraintHeader::paint(QPainter *painter, const QStyleOptionGraphi
 {
     painter->setPen(Qt::white);
     // Header
-    painter->setFont(m_font);
+    painter->setFont(font);
 
-    QFontMetrics fm(m_font);
+    QFontMetrics fm(font);
     int textWidth = fm.width(m_text);
 
     // If the centered text is hidden, we put it at the left so that it's on the view.

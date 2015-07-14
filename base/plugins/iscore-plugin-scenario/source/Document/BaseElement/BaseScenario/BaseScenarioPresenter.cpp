@@ -33,7 +33,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     delete m_startEventPresenter;
     delete m_endEventPresenter;
 
-    m_constraintPresenter = new FullViewConstraintPresenter {*m.fullView(),
+    m_constraintPresenter = new FullViewConstraintPresenter {
+            *m.fullView(),
             m_parent->view()->baseItem(),
             m_parent};
 

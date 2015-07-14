@@ -224,6 +224,9 @@ void BaseElementModel::setNewSelection(const Selection& s)
 
 void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
 {
+    if(constraint == &displayedElements.displayedConstraint())
+        return;
+
     displayedElements.setDisplayedConstraint(constraint);
 
     m_focusManager.focusNothing();

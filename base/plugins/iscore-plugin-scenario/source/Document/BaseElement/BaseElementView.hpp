@@ -7,7 +7,6 @@ class QSlider;
 class QGraphicsScene;
 class QGraphicsView;
 class TemporalConstraintView;
-class AddressBar;
 class DoubleSlider;
 class TimeRulerView;
 class LocalTimeRulerView;
@@ -36,9 +35,6 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QGraphicsView* rulerView()
             { return m_timeRulersView;}
 
-        AddressBar* addressBar()
-            { return m_addressBar;}
-
         DoubleSlider* zoomSlider()
             { return m_zoomSlider;}
 
@@ -60,7 +56,6 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QGraphicsScene* m_scene {};
         SizeNotifyingGraphicsView* m_view {};
         GraphicsProxyObject* m_baseObject {};
-        AddressBar* m_addressBar {};
         QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};
         LocalTimeRulerView* m_localTimeRuler {};
