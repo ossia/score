@@ -1,4 +1,5 @@
 #include "FullViewConstraintPresenter.hpp"
+#include "FullViewConstraintHeader.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -15,20 +16,14 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
         const FullViewConstraintViewModel& cstr_model,
         QGraphicsItem*parentobject,
         QObject* parent) :
-    AbstractConstraintPresenter {"FullViewConstraintPresenter",
+    ConstraintPresenter {"FullViewConstraintPresenter",
                                  cstr_model,
                                  new FullViewConstraintView{*this, parentobject},
+                                 new FullViewConstraintHeader{parentobject},
                                  parent},
     m_selectionDispatcher{iscore::IDocument::documentFromObject(cstr_model.model())->selectionStack()}
 {
-    if(viewModel(this)->isRackShown())
-    {
-        on_rackShown(viewModel(this)->shownRack());
-    }
-
-    updateHeight();
-
-    connect(this, &AbstractConstraintPresenter::pressed,
+    connect(this, &ConstraintPresenter::pressed,
             this, &FullViewConstraintPresenter::on_pressed);
 }
 

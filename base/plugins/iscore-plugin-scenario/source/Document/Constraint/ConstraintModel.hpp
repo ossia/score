@@ -22,7 +22,7 @@ namespace OSSIA
 }
 
 class ProcessModel;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
 class RackModel;
@@ -117,7 +117,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         /** The class **/
         ConstraintModel(const id_type<ConstraintModel>&,
-                        const id_type<AbstractConstraintViewModel>& fullViewId,
+                        const id_type<ConstraintViewModel>& fullViewId,
                         double yPos,
                         QObject* parent);
 
@@ -138,7 +138,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Factories for the view models.
         template<typename ViewModelType> // Arg might be an id or a datastream [
         ViewModelType* makeConstraintViewModel(
-                const id_type<AbstractConstraintViewModel>& id,
+                const id_type<ConstraintViewModel>& id,
                 QObject* parent)
         {
             auto viewmodel = new ViewModelType {id, *this, parent};
@@ -150,7 +150,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ScenarioInterface* parentScenario() const;
 
         // Note : the Constraint does not have ownership (it's generally the Slot)
-        void setupConstraintViewModel(AbstractConstraintViewModel* viewmodel);
+        void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
         // Sub-element creation
         void addProcess(ProcessModel*);
@@ -179,7 +179,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         // Here we won't remove / add things from the outside so it is safe to
         // return a reference
-        const QVector<AbstractConstraintViewModel*>& viewModels() const
+        const QVector<ConstraintViewModel*>& viewModels() const
         { return m_constraintViewModels; }
 
         const TimeValue& startDate() const;
@@ -221,8 +221,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void rackCreated(const id_type<RackModel>& rackId);
         void rackRemoved(const id_type<RackModel>& rackId);
 
-        void viewModelCreated(const id_type<AbstractConstraintViewModel>&);
-        void viewModelRemoved(const id_type<AbstractConstraintViewModel>&);
+        void viewModelCreated(const id_type<ConstraintViewModel>&);
+        void viewModelRemoved(const id_type<ConstraintViewModel>&);
 
         void heightPercentageChanged(double arg);
 
@@ -257,7 +257,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // The small view constraint view models that show this constraint
         // The constraint does not have ownership of these: their parent (in the Qt sense) are
         // the scenario view models
-        QVector<AbstractConstraintViewModel*> m_constraintViewModels;
+        QVector<ConstraintViewModel*> m_constraintViewModels;
 
         // Model for the full view.
         // Note : it is also present in m_constraintViewModels.

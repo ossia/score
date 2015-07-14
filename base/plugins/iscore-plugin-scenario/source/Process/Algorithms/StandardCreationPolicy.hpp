@@ -5,7 +5,7 @@
 class ScenarioModel;
 class EventModel;
 class ConstraintModel;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class TimeNodeModel;
 class StateModel;
 struct VerticalExtent;
@@ -68,7 +68,7 @@ class ScenarioCreate<ConstraintModel>
 
         static ConstraintModel& redo(
                 const id_type<ConstraintModel>& id,
-                const id_type<AbstractConstraintViewModel>& fullviewid,
+                const id_type<ConstraintViewModel>& fullviewid,
                 StateModel& sst,
                 StateModel& est,
                 double ypos,

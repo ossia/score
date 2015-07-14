@@ -13,11 +13,11 @@ ShowRackInViewModel::ShowRackInViewModel(ObjectPath&& constraint_path,
     m_constraintViewModelPath {std::move(constraint_path) },
     m_rackId {rackId}
 {
-    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
     m_previousRackId = vm.shownRack();
 }
 
-ShowRackInViewModel::ShowRackInViewModel(const AbstractConstraintViewModel *vm,
+ShowRackInViewModel::ShowRackInViewModel(const ConstraintViewModel *vm,
                                        id_type<RackModel> rackId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
@@ -30,7 +30,7 @@ ShowRackInViewModel::ShowRackInViewModel(const AbstractConstraintViewModel *vm,
 
 void ShowRackInViewModel::undo()
 {
-    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
 
     if(m_previousRackId.val())
     {
@@ -44,7 +44,7 @@ void ShowRackInViewModel::undo()
 
 void ShowRackInViewModel::redo()
 {
-    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
     vm.showRack(m_rackId);
 }
 

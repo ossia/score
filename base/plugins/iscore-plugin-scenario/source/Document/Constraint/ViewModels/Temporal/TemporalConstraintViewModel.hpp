@@ -9,7 +9,7 @@ class ConstraintModel;
  *
  * The ViewModel of a Constraint shown inside a temporal view of a scenario
  */
-class TemporalConstraintViewModel : public AbstractConstraintViewModel
+class TemporalConstraintViewModel : public ConstraintViewModel
 {
         Q_OBJECT
 
@@ -21,12 +21,12 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
          * @param model Pointer to the corresponding model object
          * @param parent Parent object (most certainly ScenarioViewModel)
          */
-        TemporalConstraintViewModel(const id_type<AbstractConstraintViewModel>& id,
+        TemporalConstraintViewModel(const id_type<ConstraintViewModel>& id,
                                     const ConstraintModel& model,
                                     QObject* parent);
 
         virtual TemporalConstraintViewModel* clone(
-                const id_type<AbstractConstraintViewModel>& id,
+                const id_type<ConstraintViewModel>& id,
                 const ConstraintModel& cm,
                 QObject* parent) override;
 
@@ -34,7 +34,7 @@ class TemporalConstraintViewModel : public AbstractConstraintViewModel
         TemporalConstraintViewModel(DeserializerVisitor&& vis,
                                     const ConstraintModel& model,
                                     QObject* parent) :
-            AbstractConstraintViewModel {vis, model, parent}
+            ConstraintViewModel {vis, model, parent}
         {
             // Nothing to add, no vis.visit(*this);
         }

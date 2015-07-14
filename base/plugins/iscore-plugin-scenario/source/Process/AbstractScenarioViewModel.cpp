@@ -16,13 +16,13 @@ typename Container::value_type findById(const Container& c, const id_T& id)
     throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(*id.val()).arg(typeid(c).name()).toLatin1().constData());
 }
 
-AbstractConstraintViewModel& AbstractScenarioLayer::constraint(
-        const id_type<AbstractConstraintViewModel>& constraintViewModelid) const
+ConstraintViewModel& AbstractScenarioLayer::constraint(
+        const id_type<ConstraintViewModel>& constraintViewModelid) const
 {
     return *findById(m_constraints, constraintViewModelid);
 }
 
-QVector<AbstractConstraintViewModel*> AbstractScenarioLayer::constraints() const
+QVector<ConstraintViewModel*> AbstractScenarioLayer::constraints() const
 {
     return m_constraints;
 }
@@ -46,7 +46,7 @@ void removeById(Vector& c, const id_T& id)
 }
 
 void AbstractScenarioLayer::removeConstraintViewModel(
-        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
+        const id_type<ConstraintViewModel>& constraintViewModelId)
 {
     // We have to emit before, because on removal,
     // some other stuff might use the now-removed model id
@@ -56,13 +56,13 @@ void AbstractScenarioLayer::removeConstraintViewModel(
 
 }
 
-AbstractConstraintViewModel& AbstractScenarioLayer::constraint(
+ConstraintViewModel& AbstractScenarioLayer::constraint(
         const id_type<ConstraintModel>& constraintModelId) const
 {
     using namespace std;
     auto it = find_if(begin(m_constraints),
                       end(m_constraints),
-                      [&] (AbstractConstraintViewModel* vm)
+                      [&] (ConstraintViewModel* vm)
     {
         return vm->model().id() == constraintModelId;
     });

@@ -78,7 +78,7 @@ void RackWidget::viewModelsChanged()
     this->layout()->addWidget(m_comboBoxesWidget);
 }
 
-void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConstraintViewModel* vm)
+void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintViewModel* vm)
 {
     combobox->clear();
     combobox->addItem(hiddenText);
@@ -97,10 +97,10 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, AbstractConst
     connect(combobox, &LambdaFriendlyQComboBox::activated,
             combobox, [=] (QString s) { m_parent->activeRackChanged(s, vm); });
 
-    connect(vm, &AbstractConstraintViewModel::rackHidden,
+    connect(vm, &ConstraintViewModel::rackHidden,
             combobox, [=] () { combobox->setCurrentIndex(0); });
 
-    connect(vm, &AbstractConstraintViewModel::rackShown,
+    connect(vm, &ConstraintViewModel::rackShown,
             combobox, [=] (id_type<RackModel> id)
     {
         using namespace std;

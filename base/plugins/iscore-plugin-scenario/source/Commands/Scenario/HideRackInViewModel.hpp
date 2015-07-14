@@ -2,7 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class ConstraintModel;
 class RackModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -31,7 +31,7 @@ namespace Scenario
                  * Note : this will search it and make a path from an object named "BaseConstraintModel"
                  * Hence this constructor has to be used in a Scenario.
                  */
-                HideRackInViewModel(AbstractConstraintViewModel* constraint);
+                HideRackInViewModel(ConstraintViewModel* constraint);
 
                 virtual void undo() override;
                 virtual void redo() override;

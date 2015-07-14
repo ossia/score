@@ -7,7 +7,7 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoControl.hpp>
 #include <QSplashScreen>
-
+#include <QFontDatabase>
 using namespace iscore;
 #include <QMessageBox>
 static Application* application_instance = nullptr;
@@ -24,7 +24,8 @@ Application::Application(int& argc, char** argv) :
     QSplashScreen splash(logo, Qt::FramelessWindowHint);
     splash.show();
 
-    m_app->setFont(QFont{":/images/Ubuntu-R.ttf", 10, QFont::Normal});
+    qDebug() << QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");
+    m_app->setFont(QFont{"Ubuntu", 10, QFont::Normal});
     this->setParent(m_app);
     this->setObjectName("Application");
 

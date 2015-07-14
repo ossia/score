@@ -23,7 +23,6 @@ RackPresenter::RackPresenter(const RackModel& model,
     }
 
     m_duration = m_model.constraint().defaultDuration();
-    m_view->setText(m_model.constraint().metadata.name());
 
     on_askUpdate();
 
@@ -36,9 +35,6 @@ RackPresenter::RackPresenter(const RackModel& model,
 
     connect(&m_model, &RackModel::on_durationChanged,
             this, &RackPresenter::on_durationChanged);
-
-    connect(&m_model.constraint().metadata, &ModelMetadata::nameChanged,
-            this, [&] (const QString& name) { m_view->setText(name); });
 }
 
 RackPresenter::~RackPresenter()
@@ -63,7 +59,7 @@ const RackView &RackPresenter::view() const
 
 int RackPresenter::height() const
 {
-    int totalHeight = 25; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
+    int totalHeight = 0; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 
     for(auto& slot : m_slots)
     {
@@ -166,9 +162,9 @@ void RackPresenter::updateShape()
     m_view->setHeight(height());
 
     // Set the slots position graphically in order.
-    int currentSlotY = 20;
+    int currentSlotY = 0;
 
-    for(auto& slotId : m_model.slotsPositions())
+    for(const auto& slotId : m_model.slotsPositions())
     {
         auto slotPres = m_slots.at(slotId);
         slotPres->setWidth(width());

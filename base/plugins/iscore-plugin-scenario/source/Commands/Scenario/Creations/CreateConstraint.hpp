@@ -5,7 +5,7 @@
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 
 class EventModel;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class ConstraintModel;
 class LayerModel;
 class StateModel;
@@ -56,7 +56,7 @@ namespace Scenario
                 id_type<StateModel> m_endStateId {};
 
                 ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
-                id_type<AbstractConstraintViewModel> m_createdConstraintFullViewId {};
+                id_type<ConstraintViewModel> m_createdConstraintFullViewId {};
         };
     }
 }

@@ -66,8 +66,8 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
 
         // Save for each view model of this constraint
         // the identifier of the rack that was displayed
-        QMap<id_type<AbstractConstraintViewModel>, id_type<RackModel>> map;
-        for(const AbstractConstraintViewModel* vm : constraint.viewModels())
+        QMap<id_type<ConstraintViewModel>, id_type<RackModel>> map;
+        for(const ConstraintViewModel* vm : constraint.viewModels())
         {
             map[vm->id()] = vm->shownRack();
         }

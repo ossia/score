@@ -99,7 +99,7 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
             }
             case QGraphicsItem::UserType + 2: // constraint
             {
-                const auto& cst_model = static_cast<const AbstractConstraintView*>(item)->presenter().abstractConstraintViewModel().model();
+                const auto& cst_model = static_cast<const ConstraintView*>(item)->presenter().abstractConstraintViewModel().model();
                 if(cst_model.parentScenario() == scenario)
                     sel.insert(&cst_model);
                 break;

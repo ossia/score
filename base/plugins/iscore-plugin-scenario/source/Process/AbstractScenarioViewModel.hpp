@@ -4,7 +4,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class ScenarioModel;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class ConstraintModel;
 class TimeNodeModel;
 class StateModel;
@@ -19,22 +19,22 @@ class AbstractScenarioLayer : public LayerModel
 
         virtual void makeConstraintViewModel(
                 const id_type<ConstraintModel>& constraintModelId,
-                const id_type<AbstractConstraintViewModel>& constraintViewModelId) = 0;
+                const id_type<ConstraintViewModel>& constraintViewModelId) = 0;
 
         void removeConstraintViewModel(
-                const id_type<AbstractConstraintViewModel>& constraintViewModelId);
+                const id_type<ConstraintViewModel>& constraintViewModelId);
 
         // Access to elements
         // A given constraint can be represented only once in a given scenario VM, hence...
-        AbstractConstraintViewModel& constraint(
+        ConstraintViewModel& constraint(
                 const id_type<ConstraintModel>& constraintModelid) const;
-        AbstractConstraintViewModel& constraint(
-                const id_type<AbstractConstraintViewModel>& constraintViewModelid) const;
-        QVector<AbstractConstraintViewModel*> constraints() const;
+        ConstraintViewModel& constraint(
+                const id_type<ConstraintViewModel>& constraintViewModelid) const;
+        QVector<ConstraintViewModel*> constraints() const;
 
     signals:
-        void constraintViewModelCreated(const id_type<AbstractConstraintViewModel>& constraintViewModelid);
-        void constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintViewModelid);
+        void constraintViewModelCreated(const id_type<ConstraintViewModel>& constraintViewModelid);
+        void constraintViewModelRemoved(const id_type<ConstraintViewModel>& constraintViewModelid);
 
         void stateCreated(const id_type<StateModel>& eventId);
         void stateRemoved(const id_type<StateModel>& eventId);
@@ -89,13 +89,13 @@ class AbstractScenarioLayer : public LayerModel
             // No data to save (the constraints vector will be rebuilt by the subclass accordingly.)
         }
 
-        QVector<AbstractConstraintViewModel*> m_constraints;
+        QVector<ConstraintViewModel*> m_constraints;
 };
 
 template<typename T>
 typename T::constraint_layer_type& constraintViewModel(
         const T& scenarioViewModel,
-        const id_type<AbstractConstraintViewModel>& cvm_id)
+        const id_type<ConstraintViewModel>& cvm_id)
 {
     return static_cast<typename T::constraint_layer_type&>(scenarioViewModel.constraint(cvm_id));
 }

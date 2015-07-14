@@ -1,6 +1,7 @@
 #include "AbstractConstraintPresenter.hpp"
 #include "AbstractConstraintView.hpp"
 #include "AbstractConstraintViewModel.hpp"
+#include "AbstractConstraintHeader.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -11,6 +12,8 @@
 
 #include "Temporal/TemporalConstraintViewModel.hpp"
 #include "FullView/FullViewConstraintViewModel.hpp"
+
+#include "AbstractConstraintHeader.hpp"
 /**
  * TODO Mettre dans la doc :
  * L'abstract constraint presenter a deux interfaces :
@@ -18,52 +21,70 @@
  *  - une qui est là pour interagir avec le modèle (on_defaul/min/maxDurationChanged)
  */
 
-AbstractConstraintPresenter::AbstractConstraintPresenter(QString name,
-    const AbstractConstraintViewModel& model,
-    AbstractConstraintView* view,
-    QObject* parent) :
+ConstraintPresenter::ConstraintPresenter(
+        const QString& name,
+        const ConstraintViewModel& model,
+        ConstraintView* view,
+        ConstraintHeader* header,
+        QObject* parent) :
     NamedObject {name, parent},
     m_viewModel {model},
-    m_view {view}
+    m_view {view},
+    m_header{header}
 {
-    connect(&m_viewModel.model().selection, &Selectable::changed,
-            m_view, &AbstractConstraintView::setSelected);
+    m_header->setParentItem(m_view);
 
-    connect(&m_viewModel.model(),   &ConstraintModel::minDurationChanged,
-    this,                           &AbstractConstraintPresenter::on_minDurationChanged);
-    connect(&m_viewModel.model(),   &ConstraintModel::defaultDurationChanged,
-    this,                           &AbstractConstraintPresenter::on_defaultDurationChanged);
-    connect(&m_viewModel.model(),   &ConstraintModel::maxDurationChanged,
-    this,                           &AbstractConstraintPresenter::on_maxDurationChanged);
+    connect(&m_viewModel.model().selection, &Selectable::changed,
+            m_view, &ConstraintView::setSelected);
+
+    connect(&m_viewModel.model(), &ConstraintModel::minDurationChanged,
+            this,                 &ConstraintPresenter::on_minDurationChanged);
+    connect(&m_viewModel.model(), &ConstraintModel::defaultDurationChanged,
+            this,                 &ConstraintPresenter::on_defaultDurationChanged);
+    connect(&m_viewModel.model(), &ConstraintModel::maxDurationChanged,
+            this,                 &ConstraintPresenter::on_maxDurationChanged);
 
     connect(&m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
-            this, &AbstractConstraintPresenter::heightPercentageChanged);
+            this, &ConstraintPresenter::heightPercentageChanged);
 
-    connect(&m_viewModel, &AbstractConstraintViewModel::rackShown,
-    this,                &AbstractConstraintPresenter::on_rackShown);
-    connect(&m_viewModel, &AbstractConstraintViewModel::rackHidden,
-    this,                &AbstractConstraintPresenter::on_rackHidden);
-    connect(&m_viewModel, &AbstractConstraintViewModel::rackRemoved,
-    this,                &AbstractConstraintPresenter::on_rackRemoved);
+    connect(&m_viewModel, &ConstraintViewModel::rackShown,
+            this,         &ConstraintPresenter::on_rackShown);
+    connect(&m_viewModel, &ConstraintViewModel::rackHidden,
+            this,         &ConstraintPresenter::on_rackHidden);
+    connect(&m_viewModel, &ConstraintViewModel::rackRemoved,
+            this,         &ConstraintPresenter::on_rackRemoved);
 
     connect(&m_viewModel.model(), &ConstraintModel::playDurationChanged,
             [&] (const TimeValue& t) { m_view->setPlayWidth(t.toPixels(m_zoomRatio));});
 
     connect(&m_viewModel.model().consistency, &ModelConsistency::validChanged,
-            m_view, &AbstractConstraintView::setValid);
+            m_view, &ConstraintView::setValid);
     connect(&m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
-            m_view, &AbstractConstraintView::setWarning);
+            m_view, &ConstraintView::setWarning);
+
+    if(m_viewModel.isRackShown())
+    {
+        on_rackShown(m_viewModel.shownRack());
+    }
+    else
+    {
+        on_rackHidden();
+    }
+    updateHeight();
 }
 
-void AbstractConstraintPresenter::updateScaling()
+void ConstraintPresenter::updateScaling()
 {
     const auto& cm = m_viewModel.model();
     // prendre en compte la distance du clic à chaque côté
-    m_view->setDefaultWidth(cm.defaultDuration().toPixels(m_zoomRatio));
+
+    auto width = cm.defaultDuration().toPixels(m_zoomRatio);
+    m_view->setDefaultWidth(width);
     m_view->setMinWidth(cm.minDuration().toPixels(m_zoomRatio));
     m_view->setMaxWidth(cm.maxDuration().isInfinite(),
                         cm.maxDuration().isInfinite()? -1 : cm.maxDuration().toPixels(m_zoomRatio));
 
+    m_header->setWidth(width);
     if(rack())
     {
         rack()->setWidth(m_view->defaultWidth() - 20);
@@ -72,7 +93,7 @@ void AbstractConstraintPresenter::updateScaling()
     updateHeight();
 }
 
-void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
+void ConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
     updateScaling();
@@ -83,20 +104,22 @@ void AbstractConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-const id_type<ConstraintModel>& AbstractConstraintPresenter::id() const
+const id_type<ConstraintModel>& ConstraintPresenter::id() const
 {
     return model().id();
 }
 
-void AbstractConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
+void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
 {
-    m_view->setDefaultWidth(val.toPixels(m_zoomRatio));
+    auto width = val.toPixels(m_zoomRatio);
+    m_view->setDefaultWidth(width);
+    m_header->setWidth(width);
 
     emit askUpdate();
     m_view->update();
 }
 
-void AbstractConstraintPresenter::on_minDurationChanged(const TimeValue& min)
+void ConstraintPresenter::on_minDurationChanged(const TimeValue& min)
 {
     m_view->setMinWidth(min.toPixels(m_zoomRatio));
 
@@ -104,7 +127,7 @@ void AbstractConstraintPresenter::on_minDurationChanged(const TimeValue& min)
     m_view->update();
 }
 
-void AbstractConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
+void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 {
     m_view->setMaxWidth(max.isInfinite(),
                         max.isInfinite()? -1 : max.toPixels(m_zoomRatio));
@@ -113,16 +136,17 @@ void AbstractConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
     m_view->update();
 }
 
-void AbstractConstraintPresenter::updateHeight()
+void ConstraintPresenter::updateHeight()
 {
     if(m_viewModel.isRackShown())
     {
         m_view->setHeight(rack()->height() + 60);
     }
+    // TODO else if(rack but not shown)
     else
     {
         // TODO faire vue appropriée plus tard
-        m_view->setHeight(25);
+        m_view->setHeight(ConstraintHeader::headerHeight());
     }
 
     emit askUpdate();
@@ -130,32 +154,32 @@ void AbstractConstraintPresenter::updateHeight()
     emit heightChanged();
 }
 
-bool AbstractConstraintPresenter::isSelected() const
+bool ConstraintPresenter::isSelected() const
 {
     return m_viewModel.model().selection.get();
 }
 
-RackPresenter* AbstractConstraintPresenter::rack() const
+RackPresenter* ConstraintPresenter::rack() const
 {
     return m_rack;
 }
 
-const ConstraintModel& AbstractConstraintPresenter::model() const
+const ConstraintModel& ConstraintPresenter::model() const
 {
     return m_viewModel.model();
 }
 
-const AbstractConstraintViewModel&AbstractConstraintPresenter::abstractConstraintViewModel() const
+const ConstraintViewModel&ConstraintPresenter::abstractConstraintViewModel() const
 {
     return m_viewModel;
 }
 
-AbstractConstraintView*AbstractConstraintPresenter::view() const
+ConstraintView*ConstraintPresenter::view() const
 {
     return m_view;
 }
 
-void AbstractConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
+void ConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
 {
     clearRackPresenter();
     createRackPresenter(m_viewModel.model().rack(rackId));
@@ -163,45 +187,49 @@ void AbstractConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
     updateHeight();
 }
 
-void AbstractConstraintPresenter::on_rackHidden()
+void ConstraintPresenter::on_rackHidden()
 {
     clearRackPresenter();
 
     updateHeight();
 }
 
-void AbstractConstraintPresenter::on_rackRemoved()
+void ConstraintPresenter::on_rackRemoved()
 {
     clearRackPresenter();
 
     updateHeight();
 }
 
-void AbstractConstraintPresenter::clearRackPresenter()
+void ConstraintPresenter::clearRackPresenter()
 {
     if(m_rack)
     {
         m_rack->deleteLater();
         m_rack = nullptr;
     }
+
+    m_header->hide();
 }
 
-void AbstractConstraintPresenter::createRackPresenter(RackModel* rackModel)
+void ConstraintPresenter::createRackPresenter(RackModel* rackModel)
 {
     auto rackView = new RackView {m_view};
-    rackView->setPos(0, 5);
+    rackView->setPos(0, ConstraintHeader::headerHeight());
 
     // Cas par défaut
     m_rack = new RackPresenter {*rackModel,
-                              rackView,
-                              this};
+            rackView,
+            this};
 
     m_rack->on_zoomRatioChanged(m_zoomRatio);
 
     connect(m_rack, &RackPresenter::askUpdate,
-            this,  &AbstractConstraintPresenter::updateHeight);
+            this,  &ConstraintPresenter::updateHeight);
 
-    connect(m_rack, &RackPresenter::pressed, this, &AbstractConstraintPresenter::pressed);
-    connect(m_rack, &RackPresenter::moved, this, &AbstractConstraintPresenter::moved);
-    connect(m_rack, &RackPresenter::released, this, &AbstractConstraintPresenter::released);
+    connect(m_rack, &RackPresenter::pressed, this, &ConstraintPresenter::pressed);
+    connect(m_rack, &RackPresenter::moved, this, &ConstraintPresenter::moved);
+    connect(m_rack, &RackPresenter::released, this, &ConstraintPresenter::released);
+
+    m_header->show();
 }

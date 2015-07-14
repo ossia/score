@@ -4,7 +4,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <QMap>
 #include <tuple>
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class RackModel;
 namespace Scenario
 {
@@ -34,7 +34,7 @@ namespace Scenario
                 QVector<QByteArray> m_serializedRackes;
                 QVector<QByteArray> m_serializedProcesses;
 
-                QMap<id_type<AbstractConstraintViewModel>, id_type<RackModel>> m_rackMappings;
+                QMap<id_type<ConstraintViewModel>, id_type<RackModel>> m_rackMappings;
         };
     }
 }

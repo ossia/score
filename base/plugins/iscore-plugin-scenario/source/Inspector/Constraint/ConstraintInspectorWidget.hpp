@@ -5,7 +5,7 @@
 
 class ConstraintModel;
 class TemporalConstraintViewModel;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class RackModel;
 class SlotModel;
 class ScenarioModel;
@@ -44,7 +44,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void createRack();
         void createLayerInNewSlot(QString processName);
 
-        void activeRackChanged(QString rack, AbstractConstraintViewModel* vm);
+        void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
         // Interface of Constraint
         void on_processCreated(QString processName, id_type<ProcessModel> processId);
@@ -53,8 +53,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void on_rackCreated(id_type<RackModel> rackId);
         void on_rackRemoved(id_type<RackModel> rackId);
 
-        void on_constraintViewModelCreated(id_type<AbstractConstraintViewModel> cvmId);
-        void on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId);
+        void on_constraintViewModelCreated(id_type<ConstraintViewModel> cvmId);
+        void on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId);
 
         // These methods are used to display created things
         void displaySharedProcess(ProcessModel*);

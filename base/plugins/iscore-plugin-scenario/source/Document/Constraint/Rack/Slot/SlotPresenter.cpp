@@ -150,6 +150,7 @@ void SlotPresenter::on_layerModelPutToFront(
         const id_type<LayerModel>& processId)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
+    // TODO optimize by saving the previous to front and just switching...
     for(auto& pair : m_processes)
     {
         if(pair.first->viewModel().id() == processId)

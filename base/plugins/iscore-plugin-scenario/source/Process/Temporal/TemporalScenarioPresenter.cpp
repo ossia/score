@@ -193,7 +193,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated(
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelCreated(
-        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
+        const id_type<ConstraintViewModel>& constraintViewModelId)
 {
     on_constraintCreated_impl(constraintViewModel(m_layer, constraintViewModelId));
 }
@@ -227,7 +227,7 @@ void TemporalScenarioPresenter::on_timeNodeRemoved(
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
-        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
+        const id_type<ConstraintViewModel>& constraintViewModelId)
 {
     // Don't put a const auto& here, else deletion will crash.
     for(auto pres : m_constraints)

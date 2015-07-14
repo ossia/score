@@ -5,7 +5,7 @@
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
@@ -21,7 +21,7 @@ BaseScenario::BaseScenario(const id_type<BaseScenario>& id, QObject* parent):
 
     m_constraint {new ConstraintModel{
                             id_type<ConstraintModel>{0},
-                            id_type<AbstractConstraintViewModel>{0},
+                            id_type<ConstraintViewModel>{0},
                             0,
                             this}}
 {

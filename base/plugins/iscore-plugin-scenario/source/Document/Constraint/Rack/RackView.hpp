@@ -15,12 +15,6 @@ class RackView : public QGraphicsObject
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget) override;
 
-        void setText(QString s)
-        {
-            m_text = s;
-            update();
-        }
-
         void setHeight(int height)
         {
             prepareGeometryChange();
@@ -36,5 +30,4 @@ class RackView : public QGraphicsObject
     private:
         int m_height {};
         int m_width {};
-        QString m_text {"Rack"};
 };

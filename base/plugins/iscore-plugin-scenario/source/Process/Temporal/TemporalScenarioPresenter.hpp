@@ -27,7 +27,7 @@ namespace iscore
 class LayerModel;
 class Layer;
 
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 
@@ -108,8 +108,8 @@ class TemporalScenarioPresenter : public ProcessPresenter
         void on_timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
         void on_timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void on_constraintViewModelCreated(const id_type<AbstractConstraintViewModel>& constraintId);
-        void on_constraintViewModelRemoved(const id_type<AbstractConstraintViewModel>& constraintId);
+        void on_constraintViewModelCreated(const id_type<ConstraintViewModel>& constraintId);
+        void on_constraintViewModelRemoved(const id_type<ConstraintViewModel>& constraintId);
 
         void on_askUpdate();
 

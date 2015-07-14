@@ -11,7 +11,7 @@
 
 TemporalScenarioLayer::TemporalScenarioLayer(
         const id_type<LayerModel>& viewModelId,
-        const QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel> >& constraintIds,
+        const QMap<id_type<ConstraintModel>, id_type<ConstraintViewModel> >& constraintIds,
         ScenarioModel& model,
         QObject* parent) :
     AbstractScenarioLayer {viewModelId,
@@ -78,7 +78,7 @@ LayerModelPanelProxy*TemporalScenarioLayer::make_panelProxy(QObject* parent) con
 
 void TemporalScenarioLayer::makeConstraintViewModel(
         const id_type<ConstraintModel>& constraintModelId,
-        const id_type<AbstractConstraintViewModel>& constraintViewModelId)
+        const id_type<ConstraintViewModel>& constraintViewModelId)
 {
     auto& constraint_model = model(*this).constraint(constraintModelId);
 

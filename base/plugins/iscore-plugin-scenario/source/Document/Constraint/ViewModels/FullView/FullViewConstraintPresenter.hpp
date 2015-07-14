@@ -21,7 +21,7 @@ class ProcessPresenter;
  * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
  * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
  */
-class FullViewConstraintPresenter : public AbstractConstraintPresenter
+class FullViewConstraintPresenter : public ConstraintPresenter
 {
         Q_OBJECT
 

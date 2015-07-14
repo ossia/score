@@ -23,6 +23,7 @@ Q_IMPORT_PLUGIN(iscore_plugin_ossia)
 int main(int argc, char** argv)
 {
 #if defined(ISCORE_STATIC_PLUGINS)
+    Q_INIT_RESOURCE(i_score);
     Q_INIT_RESOURCE(iscore_pixmaps);
     Q_INIT_RESOURCE(scenario_resources);
     Q_INIT_RESOURCE(DeviceExplorer);

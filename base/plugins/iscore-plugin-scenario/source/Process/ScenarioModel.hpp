@@ -23,7 +23,7 @@ class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
 class AbstractScenarioLayer;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 
 class OSSIAScenarioImpl;
 /**

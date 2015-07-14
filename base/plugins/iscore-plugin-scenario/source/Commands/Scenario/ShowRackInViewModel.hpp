@@ -2,7 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class ConstraintModel;
 class RackModel;
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -23,7 +23,7 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowRackInViewModel, "ScenarioControl")
                 ShowRackInViewModel(ObjectPath&& constraint_path,
                                    id_type<RackModel> rackId);
-                ShowRackInViewModel(const AbstractConstraintViewModel* constraint,
+                ShowRackInViewModel(const ConstraintViewModel* constraint,
                                    id_type<RackModel> rackId);
 
                 virtual void undo() override;

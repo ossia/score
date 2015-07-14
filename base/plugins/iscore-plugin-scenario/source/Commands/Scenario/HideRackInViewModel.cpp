@@ -11,11 +11,11 @@ HideRackInViewModel::HideRackInViewModel(ObjectPath&& path) :
                          description()},
 m_constraintViewModelPath {std::move(path) }
 {
-    auto& constraint_vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& constraint_vm = m_constraintViewModelPath.find<ConstraintViewModel>();
     m_constraintPreviousId = constraint_vm.shownRack();
 }
 
-HideRackInViewModel::HideRackInViewModel(AbstractConstraintViewModel* constraint_vm) :
+HideRackInViewModel::HideRackInViewModel(ConstraintViewModel* constraint_vm) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -26,13 +26,13 @@ m_constraintViewModelPath {iscore::IDocument::path(constraint_vm) }
 
 void HideRackInViewModel::undo()
 {
-    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
     vm.showRack(m_constraintPreviousId);
 }
 
 void HideRackInViewModel::redo()
 {
-    auto& vm = m_constraintViewModelPath.find<AbstractConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
     vm.hideRack();
 }
 

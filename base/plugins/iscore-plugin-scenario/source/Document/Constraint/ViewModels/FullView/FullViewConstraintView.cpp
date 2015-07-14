@@ -11,7 +11,7 @@
 
 FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
                                                QGraphicsItem *parent) :
-    AbstractConstraintView {presenter, parent}
+    ConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
     this->setFlag(ItemIsSelectable);

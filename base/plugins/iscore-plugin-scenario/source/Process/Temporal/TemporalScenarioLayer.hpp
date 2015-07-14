@@ -21,7 +21,7 @@ class TemporalScenarioLayer : public AbstractScenarioLayer
 
         TemporalScenarioLayer(const id_type<LayerModel>& id,
                               const QMap<id_type<ConstraintModel>,
-                              id_type<AbstractConstraintViewModel>>& constraintIds,
+                              id_type<ConstraintViewModel>>& constraintIds,
                               ScenarioModel& model,
                               QObject* parent);
 
@@ -49,7 +49,7 @@ class TemporalScenarioLayer : public AbstractScenarioLayer
 
         virtual void makeConstraintViewModel(
                 const id_type<ConstraintModel>& constraintModelId,
-                const id_type<AbstractConstraintViewModel>& constraintViewModelId) override;
+                const id_type<ConstraintViewModel>& constraintViewModelId) override;
 
         void addConstraintViewModel(constraint_layer_type* constraint_view_model);
 

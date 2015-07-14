@@ -3,7 +3,7 @@
 #include <QPainter>
 class TemporalConstraintPresenter;
 
-class TemporalConstraintView : public AbstractConstraintView
+class TemporalConstraintView : public ConstraintView
 {
         Q_OBJECT
 

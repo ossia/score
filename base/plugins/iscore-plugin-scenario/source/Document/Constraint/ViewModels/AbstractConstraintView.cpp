@@ -2,8 +2,10 @@
 #include "AbstractConstraintPresenter.hpp"
 #include "Document/State/StateView.hpp"
 
-AbstractConstraintView::AbstractConstraintView(
-        AbstractConstraintPresenter& presenter,
+#include <QGraphicsSceneMouseEvent>
+
+ConstraintView::ConstraintView(
+        ConstraintPresenter& presenter,
         QGraphicsItem *parent) :
     QGraphicsObject {parent},
     m_presenter{presenter}
@@ -12,7 +14,7 @@ AbstractConstraintView::AbstractConstraintView(
     m_dashPen.setDashPattern({2., 4.});
 }
 
-void AbstractConstraintView::setInfinite(bool infinite)
+void ConstraintView::setInfinite(bool infinite)
 {
     prepareGeometryChange();
 
@@ -20,7 +22,7 @@ void AbstractConstraintView::setInfinite(bool infinite)
     update();
 }
 
-void AbstractConstraintView::setDefaultWidth(double width)
+void ConstraintView::setDefaultWidth(double width)
 {
     prepareGeometryChange();
     m_defaultWidth = width;
@@ -35,7 +37,7 @@ void AbstractConstraintView::setDefaultWidth(double width)
 
 }
 
-void AbstractConstraintView::setMaxWidth(bool infinite, double max)
+void ConstraintView::setMaxWidth(bool infinite, double max)
 {
     prepareGeometryChange();
 
@@ -47,50 +49,49 @@ void AbstractConstraintView::setMaxWidth(bool infinite, double max)
 
 }
 
-void AbstractConstraintView::setMinWidth(double min)
+void ConstraintView::setMinWidth(double min)
 {
     prepareGeometryChange();
     m_minWidth = min;
 }
 
-void AbstractConstraintView::setHeight(double height)
+void ConstraintView::setHeight(double height)
 {
     prepareGeometryChange();
     m_height = height;
 }
 
-void AbstractConstraintView::setPlayWidth(double width)
+void ConstraintView::setPlayWidth(double width)
 {
     m_playWidth = width;
     update();
 }
 
-void AbstractConstraintView::setValid(bool val)
+void ConstraintView::setValid(bool val)
 {
     m_validConstraint = val;
 }
 
-#include <QGraphicsSceneMouseEvent>
-void AbstractConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.pressed(event->scenePos());
 }
 
-void AbstractConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.moved(event->scenePos());
 }
 
-void AbstractConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.released(event->scenePos());
 }
-bool AbstractConstraintView::warning() const
+bool ConstraintView::warning() const
 {
     return m_warning;
 }
 
-void AbstractConstraintView::setWarning(bool warning)
+void ConstraintView::setWarning(bool warning)
 {
     m_warning = warning;
 }

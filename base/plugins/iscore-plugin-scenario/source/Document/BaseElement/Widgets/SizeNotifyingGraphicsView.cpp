@@ -30,6 +30,8 @@ void SizeNotifyingGraphicsView::resizeEvent(QResizeEvent* ev)
 void SizeNotifyingGraphicsView::scrollContentsBy(int dx, int dy)
 {
     QGraphicsView::scrollContentsBy(dx, dy);
+
+    this->scene()->update();
     emit scrolled(dx);
 }
 

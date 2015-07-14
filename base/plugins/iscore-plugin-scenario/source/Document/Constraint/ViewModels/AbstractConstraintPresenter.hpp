@@ -7,35 +7,31 @@
 #include "ProcessInterface/TimeValue.hpp"
 #include "ProcessInterface/ZoomHelper.hpp"
 
-class AbstractConstraintViewModel;
-class AbstractConstraintView;
+class ConstraintViewModel;
+class ConstraintView;
 class RackPresenter;
 class RackModel;
 class ConstraintModel;
 class ProcessModel;
-
+class ConstraintHeader;
 namespace iscore
 {
     class SerializableCommand;
 }
 class ProcessPresenter;
 
-/**
- * @brief The TemporalConstraintPresenter class
- *
- * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
- * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
- */
-class AbstractConstraintPresenter : public NamedObject
+class ConstraintPresenter : public NamedObject
 {
         Q_OBJECT
 
     public:
-        AbstractConstraintPresenter(QString name,
-                                    const AbstractConstraintViewModel& model,
-                                    AbstractConstraintView* view,
-                                    QObject* parent);
-        virtual ~AbstractConstraintPresenter() = default;
+        ConstraintPresenter(
+                const QString& name,
+                const ConstraintViewModel& model,
+                ConstraintView* view,
+                ConstraintHeader* header,
+                QObject* parent);
+        virtual ~ConstraintPresenter() = default;
         virtual void updateScaling();
 
         bool isSelected() const;
@@ -43,9 +39,9 @@ class AbstractConstraintPresenter : public NamedObject
         RackPresenter* rack() const;
 
         const ConstraintModel& model() const;
-        const AbstractConstraintViewModel& abstractConstraintViewModel() const;
+        const ConstraintViewModel& abstractConstraintViewModel() const;
 
-        AbstractConstraintView* view() const;
+        ConstraintView* view() const;
 
         void on_zoomRatioChanged(ZoomRatio val);
 
@@ -71,16 +67,18 @@ class AbstractConstraintPresenter : public NamedObject
 
         void updateHeight();
 
+    protected:
+        // Process presenters are in the slot presenters.
+        const ConstraintViewModel& m_viewModel;
+        ConstraintView* m_view {};
+        ConstraintHeader* m_header{};
+
     private:
         void createRackPresenter(RackModel*);
         void clearRackPresenter();
 
         ZoomRatio m_zoomRatio {};
         RackPresenter* m_rack {};
-
-        // Process presenters are in the slot presenters.
-        const AbstractConstraintViewModel& m_viewModel;
-        AbstractConstraintView* m_view {};
 };
 
 // TODO concept: constraint view model.

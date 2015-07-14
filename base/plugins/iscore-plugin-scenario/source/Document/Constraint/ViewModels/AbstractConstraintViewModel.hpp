@@ -3,28 +3,28 @@
 
 class ConstraintModel;
 class RackModel;
-class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintViewModel>
+class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
 {
         Q_OBJECT
 
     public:
-        AbstractConstraintViewModel(const id_type<AbstractConstraintViewModel>& id,
-                                    const QString& name,
-                                    const ConstraintModel& model,
-                                    QObject* parent);
+        ConstraintViewModel(const id_type<ConstraintViewModel>& id,
+                            const QString& name,
+                            const ConstraintModel& model,
+                            QObject* parent);
 
         template<typename DeserializerVisitor>
-        AbstractConstraintViewModel(DeserializerVisitor&& vis,
-                                    const ConstraintModel& model,
-                                    QObject* parent) :
-            IdentifiedObject<AbstractConstraintViewModel> {vis, parent},
+        ConstraintViewModel(DeserializerVisitor&& vis,
+                            const ConstraintModel& model,
+                            QObject* parent) :
+            IdentifiedObject<ConstraintViewModel> {vis, parent},
             m_model {model}
         {
             vis.writeTo(*this);
         }
 
-        virtual AbstractConstraintViewModel* clone(
-                const id_type<AbstractConstraintViewModel>& id,
+        virtual ConstraintViewModel* clone(
+                const id_type<ConstraintViewModel>& id,
                 const ConstraintModel& cm,
                 QObject* parent) = 0;
 
@@ -43,7 +43,6 @@ class AbstractConstraintViewModel : public IdentifiedObject<AbstractConstraintVi
 
     public slots:
         virtual void on_rackRemoved(const id_type<RackModel>& rackId);
-
 
     private:
         // A view model cannot be constructed without a model

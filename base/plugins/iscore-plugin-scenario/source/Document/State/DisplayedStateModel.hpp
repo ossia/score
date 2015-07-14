@@ -12,7 +12,7 @@
 
 #include "StateView.hpp"
 
-class AbstractConstraintView;
+class ConstraintView;
 class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
@@ -36,7 +36,7 @@ class StateModel : public IdentifiedObject<StateModel>
                             QObject* parent);
 
         // TODO berkkk
-        void initView(AbstractConstraintView *parentView);
+        void initView(ConstraintView *parentView);
 
         // Copy
         StateModel(const StateModel& source,

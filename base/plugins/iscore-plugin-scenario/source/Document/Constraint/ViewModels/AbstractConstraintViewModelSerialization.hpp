@@ -7,7 +7,7 @@
 #include "Process/AbstractScenarioViewModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 
 // Load a single constraint view model.
 template<typename ScenarioViewModelType>

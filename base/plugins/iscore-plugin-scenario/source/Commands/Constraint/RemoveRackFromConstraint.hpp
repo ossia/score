@@ -4,7 +4,7 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class RackModel;
 namespace Scenario
 {
@@ -37,7 +37,7 @@ namespace Scenario
 
                 QByteArray m_serializedRackData; // Should be done in the constructor
 
-                QMap<id_type<AbstractConstraintViewModel>, bool> m_rackMappings;
+                QMap<id_type<ConstraintViewModel>, bool> m_rackMappings;
         };
     }
 }

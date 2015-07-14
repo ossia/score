@@ -2,12 +2,14 @@
 
 #include "TemporalConstraintViewModel.hpp"
 #include "TemporalConstraintPresenter.hpp"
+#include "TemporalConstraintHeader.hpp"
 #include "Document/Constraint/Rack/RackPresenter.hpp"
 #include "Document/Constraint/Rack/RackView.hpp"
 #include "Document/State/StateView.hpp"
 
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
 
@@ -15,7 +17,7 @@
 #include <chrono>
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
-    AbstractConstraintView {presenter, parent}
+    ConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
 
@@ -34,23 +36,24 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-    // Draw the rack bg
-    if(auto rack = presenter().rack())
+    // Draw the stuff present if there is a rack
+    if(presenter().rack())
     {
-        auto rackRect = rack->view().boundingRect();
-        painter->fillRect(rackRect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+        // Background
+        auto rect = boundingRect();
+        rect.adjust(0,15,0,-10);
+        painter->fillRect(rect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
 
+        // Fake timenode continuation
         auto color = qApp->palette("ScenarioPalette").base().color();
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
-        painter->drawLine(rackRect.topLeft(), rackRect.bottomLeft());
-        painter->drawLine(rackRect.topRight(), rackRect.bottomRight());
+        painter->drawLine(rect.topLeft(), rect.bottomLeft());
+        painter->drawLine(rect.topRight(), rect.bottomRight());
     }
 
 
     QPainterPath solidPath, dashedPath, leftBrace, rightBrace;
-
-//    m_endState->setPos(defaultWidth(), 0);
 
     // Paths
     if(infinite())
@@ -165,11 +168,12 @@ void TemporalConstraintView::paint(
     painter->setFont(f);
     painter->setPen(m_labelColor);
     painter->drawText(labelRect, Qt::AlignCenter, m_label);
-/*
+
+#if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkRed);
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(boundingRect());
-*/
+#endif
 }
 
 void TemporalConstraintView::hoverEnterEvent(QGraphicsSceneHoverEvent *h)

@@ -259,7 +259,7 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
     emit commandDispatcher()->submitCommand(cmd);
 }
 
-void ConstraintInspectorWidget::activeRackChanged(QString rack, AbstractConstraintViewModel* vm)
+void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewModel* vm)
 {
     // TODO mettre à jour l'inspecteur si la rack affichée change (i.e. via une commande réseau).
     if (m_rackWidget == 0)
@@ -413,12 +413,12 @@ void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<AbstractConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<ConstraintViewModel> cvmId)
 {
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<AbstractConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId)
 {
     m_rackWidget->viewModelsChanged();
 }

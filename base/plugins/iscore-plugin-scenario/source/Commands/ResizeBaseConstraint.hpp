@@ -8,7 +8,7 @@
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
-class AbstractConstraintViewModel;
+class ConstraintViewModel;
 class RackModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
@@ -59,7 +59,7 @@ namespace Scenario
                 QPair<
                     QByteArray, // The constraint data
                     QMap< // Mapping for the view models of this constraint
-                        id_type<AbstractConstraintViewModel>,
+                        id_type<ConstraintViewModel>,
                         id_type<RackModel>
                     >
                 > m_savedConstraint;

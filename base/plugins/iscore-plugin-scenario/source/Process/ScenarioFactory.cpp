@@ -47,7 +47,7 @@ QByteArray ScenarioFactory::makeStaticLayerConstructionData() const
 {
     // Like ScenarioModel::makeViewModelConstructionData but without data since
     // there won't be constraints at the beginning.
-    QMap<id_type<ConstraintModel>, id_type<AbstractConstraintViewModel>> map;
+    QMap<id_type<ConstraintModel>, id_type<ConstraintViewModel>> map;
 
     QByteArray arr;
     QDataStream s{&arr, QIODevice::WriteOnly};

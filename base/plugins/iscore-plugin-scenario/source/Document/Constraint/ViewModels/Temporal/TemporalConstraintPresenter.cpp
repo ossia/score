@@ -6,16 +6,18 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
+#include "TemporalConstraintHeader.hpp"
 #include <QGraphicsScene>
 
 TemporalConstraintPresenter::TemporalConstraintPresenter(
         const TemporalConstraintViewModel& cstr_model,
         QGraphicsObject *parentobject,
         QObject* parent) :
-    AbstractConstraintPresenter {"TemporalConstraintPresenter",
-                                 cstr_model,
-                                 new TemporalConstraintView{*this, parentobject},
-                                 parent}
+    ConstraintPresenter {"TemporalConstraintPresenter",
+                         cstr_model,
+                         new TemporalConstraintView{*this, parentobject},
+                         new TemporalConstraintHeader,
+                         parent}
 {
     connect(::view(this), &TemporalConstraintView::constraintHoverEnter,
             this,       &TemporalConstraintPresenter::constraintHoverEnter);
@@ -23,18 +25,17 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     connect(::view(this), &TemporalConstraintView::constraintHoverLeave,
             this,       &TemporalConstraintPresenter::constraintHoverLeave);
 
-    if(viewModel(this)->isRackShown())
-    {
-        on_rackShown(viewModel(this)->shownRack());
-    }
     ::view(this)->setLabel(cstr_model.model().metadata.label());
 
-    connect(&cstr_model.model().metadata, &ModelMetadata::labelChanged,
+    connect(&m_viewModel.model().metadata, &ModelMetadata::labelChanged,
             ::view(this), &TemporalConstraintView::setLabel);
-    connect(&cstr_model.model().metadata,   &ModelMetadata::colorChanged,
+    connect(&m_viewModel.model().metadata,   &ModelMetadata::colorChanged,
             ::view(this),   &TemporalConstraintView::setLabelColor);
 
-    updateHeight();
+
+    m_header->setText(m_viewModel.model().metadata.name());
+    connect(&m_viewModel.model().metadata, &ModelMetadata::nameChanged,
+            this, [&] (const QString& name) { m_header->setText(name); });
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()

@@ -26,7 +26,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(ObjectPath&& rackPath) :
     // Save for each view model of this constraint
     // a bool indicating if the rack being deleted
     // was displayed
-    for(const AbstractConstraintViewModel* vm : constraint.viewModels())
+    for(const ConstraintViewModel* vm : constraint.viewModels())
     {
         m_rackMappings[vm->id()] = vm->shownRack() == m_rackId;
     }
@@ -46,7 +46,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
     Serializer<DataStream> s{&m_serializedRackData};
     s.readFrom(*constraint.rack(m_rackId));
 
-    for(const AbstractConstraintViewModel* vm : constraint.viewModels())
+    for(const ConstraintViewModel* vm : constraint.viewModels())
     {
         m_rackMappings[vm->id()] = vm->shownRack() == m_rackId;
     }
@@ -58,7 +58,7 @@ void RemoveRackFromConstraint::undo()
     Deserializer<DataStream> s {m_serializedRackData};
     constraint.addRack(new RackModel {s, &constraint});
 
-    for(AbstractConstraintViewModel* vm : constraint.viewModels())
+    for(ConstraintViewModel* vm : constraint.viewModels())
     {
         if(m_rackMappings[vm->id()])
         {

@@ -10,7 +10,7 @@
 #include "ProcessInterface/LayerModel.hpp"
 ConstraintModel::ConstraintModel(
         const id_type<ConstraintModel>& id,
-        const id_type<AbstractConstraintViewModel>& fullViewId,
+        const id_type<ConstraintViewModel>& fullViewId,
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
@@ -88,10 +88,10 @@ ScenarioInterface* ConstraintModel::parentScenario() const
 
 
 
-void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* viewmodel)
+void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
     connect(this,		&ConstraintModel::rackRemoved,
-            viewmodel,	&AbstractConstraintViewModel::on_rackRemoved);
+            viewmodel,	&ConstraintViewModel::on_rackRemoved);
 
     connect(viewmodel, &QObject::destroyed,
             this,	   &ConstraintModel::on_destroyedViewModel);
@@ -102,7 +102,7 @@ void ConstraintModel::setupConstraintViewModel(AbstractConstraintViewModel* view
 
 void ConstraintModel::on_destroyedViewModel(QObject* obj)
 {
-    auto cvm = static_cast<AbstractConstraintViewModel*>(obj);
+    auto cvm = static_cast<ConstraintViewModel*>(obj);
     int index = m_constraintViewModels.indexOf(cvm);
 
     if(index != -1)

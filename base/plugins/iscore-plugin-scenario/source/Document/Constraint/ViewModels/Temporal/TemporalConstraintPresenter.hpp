@@ -12,20 +12,14 @@ namespace iscore
 }
 class ProcessPresenter;
 
-/**
- * @brief The TemporalConstraintPresenter class
- *
- * Présenteur : reçoit signaux depuis modèle et vue et présenteurs enfants.
- * Exemple : cas d'un process ajouté : le modèle reçoit la commande addprocess, émet un signal, qui est capturé par le présenteur qui va instancier le présenteur nécessaire en appelant la factory.
- */
-class TemporalConstraintPresenter : public AbstractConstraintPresenter
+class TemporalConstraintPresenter : public ConstraintPresenter
 {
         Q_OBJECT
 
     public:
         using viewmodel_type = TemporalConstraintViewModel;
         using view_type = TemporalConstraintView;
-        const auto& id() const { return AbstractConstraintPresenter::id(); } // To please boost::const_mem_fun
+        const auto& id() const { return ConstraintPresenter::id(); } // To please boost::const_mem_fun
 
         TemporalConstraintPresenter(const TemporalConstraintViewModel& viewModel,
                                     QGraphicsObject* parentobject,

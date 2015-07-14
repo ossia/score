@@ -1,22 +1,22 @@
 #include "AbstractConstraintViewModel.hpp"
 
-bool AbstractConstraintViewModel::isRackShown() const
+bool ConstraintViewModel::isRackShown() const
 {
     return bool (m_shownRack.val());
 }
 
-const id_type<RackModel>& AbstractConstraintViewModel::shownRack() const
+const id_type<RackModel>& ConstraintViewModel::shownRack() const
 {
     return m_shownRack;
 }
 
-void AbstractConstraintViewModel::hideRack()
+void ConstraintViewModel::hideRack()
 {
     m_shownRack.unset();
     emit rackHidden();
 }
 
-void AbstractConstraintViewModel::showRack(const id_type<RackModel>& rackId)
+void ConstraintViewModel::showRack(const id_type<RackModel>& rackId)
 {
     if(rackId.val().is_initialized())
     {
@@ -30,7 +30,7 @@ void AbstractConstraintViewModel::showRack(const id_type<RackModel>& rackId)
     }
 }
 
-void AbstractConstraintViewModel::on_rackRemoved(const id_type<RackModel>& rackId)
+void ConstraintViewModel::on_rackRemoved(const id_type<RackModel>& rackId)
 {
     if(shownRack() == rackId)
     {
@@ -40,17 +40,17 @@ void AbstractConstraintViewModel::on_rackRemoved(const id_type<RackModel>& rackI
 }
 
 
-AbstractConstraintViewModel::AbstractConstraintViewModel(
-        const id_type<AbstractConstraintViewModel>& id,
+ConstraintViewModel::ConstraintViewModel(
+        const id_type<ConstraintViewModel>& id,
         const QString& name,
         const ConstraintModel& model,
         QObject* parent) :
-    IdentifiedObject<AbstractConstraintViewModel> {id, name, parent},
+    IdentifiedObject<ConstraintViewModel> {id, name, parent},
     m_model {model}
 {
 }
 
-const ConstraintModel& AbstractConstraintViewModel::model() const
+const ConstraintModel& ConstraintViewModel::model() const
 {
     return m_model;
 }

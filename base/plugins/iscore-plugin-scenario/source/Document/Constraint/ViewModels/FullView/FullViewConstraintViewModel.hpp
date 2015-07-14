@@ -10,7 +10,7 @@ class ConstraintModel;
  *
  * In addition if it's the base constraint, it should be extensible.
  */
-class FullViewConstraintViewModel : public AbstractConstraintViewModel
+class FullViewConstraintViewModel : public ConstraintViewModel
 {
         Q_OBJECT
 
@@ -23,12 +23,12 @@ class FullViewConstraintViewModel : public AbstractConstraintViewModel
          * @param parent Parent object (most certainly ScenarioViewModel)
          */
         FullViewConstraintViewModel(
-                const id_type<AbstractConstraintViewModel>& id,
+                const id_type<ConstraintViewModel>& id,
                 const ConstraintModel& model,
                 QObject* parent);
 
         virtual FullViewConstraintViewModel* clone(
-                const id_type<AbstractConstraintViewModel>& id,
+                const id_type<ConstraintViewModel>& id,
                 const ConstraintModel& cm,
                 QObject* parent) override;
 
@@ -36,7 +36,7 @@ class FullViewConstraintViewModel : public AbstractConstraintViewModel
         FullViewConstraintViewModel(DeserializerVisitor&& vis,
                                     const ConstraintModel& model,
                                     QObject* parent) :
-            AbstractConstraintViewModel {vis, model, parent}
+            ConstraintViewModel {vis, model, parent}
         {
             // Nothing to add, no vis.visit(*this);
         }

@@ -5,23 +5,23 @@
 #include <QPen>
 #include <ProcessInterface/TimeValue.hpp>
 
-class AbstractConstraintViewModel;
-class AbstractConstraintPresenter;
+class ConstraintViewModel;
+class ConstraintPresenter;
 class StateView;
-class AbstractConstraintView : public QGraphicsObject
+class ConstraintView : public QGraphicsObject
 {
         Q_OBJECT
 
     public:
-        AbstractConstraintView(AbstractConstraintPresenter& presenter,
+        ConstraintView(ConstraintPresenter& presenter,
                                QGraphicsItem* parent);
 
         int type() const override
         { return QGraphicsItem::UserType + 2; }
 
-        virtual ~AbstractConstraintView() = default;
+        virtual ~ConstraintView() = default;
 
-        const AbstractConstraintPresenter& presenter() const
+        const ConstraintPresenter& presenter() const
         { return m_presenter;}
 
 
@@ -107,7 +107,7 @@ protected:
         };
 
     private:
-        AbstractConstraintPresenter& m_presenter;
+        ConstraintPresenter& m_presenter;
         double m_defaultWidth {};
         double m_maxWidth {};
         double m_minWidth {};

@@ -44,7 +44,7 @@ id_type<TimeNodeModel> ScenarioTool::itemToTimeNodeId(const QGraphicsItem *press
 
 id_type<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
 {
-    const auto& constraint = static_cast<const AbstractConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
+    const auto& constraint = static_cast<const ConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
     return constraint.parentScenario() == &m_parentSM.model()
             ? constraint.id()
             : id_type<ConstraintModel>{};

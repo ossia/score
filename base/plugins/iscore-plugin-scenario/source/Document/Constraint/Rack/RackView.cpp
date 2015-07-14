@@ -23,17 +23,8 @@ QRectF RackView::boundingRect() const
            };
 }
 
-void RackView::paint(QPainter* painter,
-                    const QStyleOptionGraphicsItem* option,
-                    QWidget* widget)
+void RackView::paint(QPainter* ,
+                    const QStyleOptionGraphicsItem* ,
+                    QWidget* )
 {
-    painter->setPen(Qt::white);
-
-    QRectF header {0, 0, boundingRect().width(), 20};
-    QFont f("Ubuntu");
-    f.setPixelSize(16);
-    f.setBold(true);
-    painter->setFont(f);
-
-    painter->drawText(header, Qt::AlignCenter, m_text);
 }
