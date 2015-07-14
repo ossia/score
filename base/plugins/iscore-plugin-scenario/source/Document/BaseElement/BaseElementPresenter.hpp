@@ -6,7 +6,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <QSize>
 #include <QRectF>
-#include "BaseScenario/BaseScenarioPresenter.hpp"
+#include "DisplayedElements/DisplayedElementsPresenter.hpp"
 class ProgressBar;
 namespace iscore
 {

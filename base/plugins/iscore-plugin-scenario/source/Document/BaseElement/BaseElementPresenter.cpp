@@ -20,9 +20,9 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QApplication>
-#include "StateMachine/BaseMoveSlot.hpp"
+
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
-#include "BaseScenario/BaseElementStateMachine.hpp"
+#include "BaseScenario/BaseScenarioStateMachine.hpp"
 using namespace iscore;
 
 BaseElementModel* BaseElementPresenter::model() const

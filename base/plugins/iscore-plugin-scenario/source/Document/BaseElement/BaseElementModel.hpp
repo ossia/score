@@ -3,7 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include "ProcessFocusManager.hpp"
-#include "DisplayedElementsModel.hpp"
+#include "DisplayedElements/DisplayedElementsModel.hpp"
 
 class BaseScenario;
 class BaseElementPresenter;

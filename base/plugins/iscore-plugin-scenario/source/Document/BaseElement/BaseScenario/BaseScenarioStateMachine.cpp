@@ -1,5 +1,5 @@
-#include "BaseElementStateMachine.hpp"
-#include "Document/BaseElement/StateMachine/BaseMoveSlot.hpp"
+#include "BaseScenarioStateMachine.hpp"
+#include "StateMachine/BaseMoveSlot.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"

@@ -1,5 +1,5 @@
-#include "BaseScenarioPresenter.hpp"
-#include "BaseScenarioModel.hpp"
+#include "DisplayedElementsPresenter.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
