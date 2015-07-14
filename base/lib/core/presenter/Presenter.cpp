@@ -173,6 +173,7 @@ bool Presenter::saveDocument(Document * doc)
 
                 f.write(json_doc.toJson());
             }
+            f.commit();
         }
         return true;
     }
@@ -253,7 +254,10 @@ Document* Presenter::loadDocument(const QVariant& data,
             control->on_loadedDocument(doc);
         }
 
-        // TODO same for panels.
+        for(auto& panel : m_panelPresenters)
+        {
+            doc->setupNewPanel(panel.first, panel.second);
+        }
 
         m_view->addDocumentView(doc->view());
 

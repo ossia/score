@@ -35,8 +35,3 @@ iscore::PanelModel* DeviceExplorerPanelFactory::makeModel(DocumentModel* parent)
 {
     return new DeviceExplorerPanelModel {parent};
 }
-
-PanelModel *DeviceExplorerPanelFactory::loadModel(const VisitorVariant& data, DocumentModel *parent)
-{
-    return new DeviceExplorerPanelModel {data, parent};
-}

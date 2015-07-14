@@ -39,24 +39,7 @@ QJsonObject Document::saveDocumentModelAsJson()
 QJsonObject Document::saveAsJson()
 {
     using namespace std;
-    QJsonObject complete, json_panels, json_plugins;
-
-    auto panel_factories = iscore::IPresenter::panelFactories();
-    for(const auto& panel : model()->panels())
-    {
-        Serializer<JSONObject> s;
-        panel->serialize(s.toVariant());
-
-        // Find the factory corresponding to the panel model
-
-        auto factory = find_if(
-                           begin(panel_factories),
-                           end(panel_factories),
-                           [&] (iscore::PanelFactory* fact)
-        { return fact->panelId() == panel->panelId(); });
-        Q_ASSERT(factory != end(panel_factories));
-        json_panels[(*factory)->panelName()] = s.m_obj;
-    }
+    QJsonObject complete, json_plugins;
 
     for(const auto& plugin : model()->pluginModels())
     {
@@ -65,7 +48,6 @@ QJsonObject Document::saveAsJson()
         json_plugins[plugin->objectName()] = s.m_obj;
     }
 
-    complete["Panels"] = json_panels;
     complete["Plugins"] = json_plugins;
     complete["Document"] = saveDocumentModelAsJson();
 
@@ -83,22 +65,6 @@ QByteArray Document::saveAsByteArray()
     // Save the document
     auto docByteArray = saveDocumentModelAsByteArray();
 
-    // Save the panels
-    QVector<QPair<int, QByteArray>> panelModels;
-    std::transform(begin(model()->panels()),
-                   end(model()->panels()),
-                   std::back_inserter(panelModels),
-                   [] (PanelModel* panel)
-    {
-        QByteArray arr;
-        Serializer<DataStream> s{&arr};
-        panel->serialize(s.toVariant());
-
-        return QPair<int, QByteArray>{
-            panel->panelId(),
-            arr};
-    });
-
     // Save the document plug-ins
     QVector<QPair<QString, QByteArray>> documentPluginModels;
     std::transform(begin(model()->pluginModels()),
@@ -115,7 +81,7 @@ QByteArray Document::saveAsByteArray()
             arr};
     });
 
-    writer << docByteArray << panelModels << documentPluginModels;
+    writer << docByteArray << documentPluginModels;
 
     auto hash = QCryptographicHash::hash(global, QCryptographicHash::Algorithm::Sha512);
     writer << hash;
@@ -166,17 +132,16 @@ DocumentModel::DocumentModel(const QVariant& data,
     {
         // Deserialize the first parts
         QByteArray doc;
-        QVector<QPair<int, QByteArray>> panelModels;
         QVector<QPair<QString, QByteArray>> documentPluginModels;
         QByteArray hash;
 
         QDataStream wr{data.toByteArray()};
-        wr >> doc >> panelModels >> documentPluginModels >> hash;
+        wr >> doc >> documentPluginModels >> hash;
 
         // Perform hash verification
         QByteArray verif_arr;
         QDataStream writer(&verif_arr, QIODevice::WriteOnly);
-        writer << doc << panelModels << documentPluginModels;
+        writer << doc << documentPluginModels;
         if(QCryptographicHash::hash(verif_arr, QCryptographicHash::Algorithm::Sha512) != hash)
         {
             throw std::runtime_error("Invalid file.");
@@ -201,26 +166,6 @@ DocumentModel::DocumentModel(const QVariant& data,
                     addPluginModel(loaded_plug);
                 }
             }
-        }
-
-        // Load the panels now
-        auto panel_factories = iscore::IPresenter::panelFactories();
-        for(const auto& panel : panelModels)
-        {
-            auto factory = *find_if(
-                               begin(panel_factories),
-                               end(panel_factories),
-                               [&] (iscore::PanelFactory* fact)
-            { return fact->panelId() == panel.first; });
-
-            // Note : here we handle the case where the plug-in is not able to
-            // load data; generally because it is not useful (e.g. undo panel model...)
-
-            DataStream::Deserializer panel_writer{panel.second};
-            if(auto pnl = factory->loadModel(panel_writer.toVariant(), this))
-                addPanel(pnl);
-            else
-                addPanel(factory->makeModel(this));
         }
 
         // Load the document model
@@ -250,30 +195,6 @@ DocumentModel::DocumentModel(const QVariant& data,
                 }
             }
         }
-
-        // Load the panels
-        auto json_panels = json["Panels"].toObject();
-        auto factories = iscore::IPresenter::panelFactories();
-        for(const auto& key : json_panels.keys())
-        {
-            auto factory_it = find_if(begin(factories),
-                                   end(factories),
-                                   [&] (iscore::PanelFactory* fact)
-            { return fact->panelName() == key; });
-            if(factory_it != end(factories))
-            {
-                auto factory = *factory_it;
-                // Note : here we handle the case where the plug-in is not able to
-                // load data; generally because it is not useful (e.g. undo panel model...)
-
-                JSONObject::Deserializer panel_writer{json_panels[key].toObject()};
-                if(auto pnl = factory->loadModel(panel_writer.toVariant(), this))
-                    addPanel(pnl);
-                else
-                    addPanel(factory->makeModel(this));
-            }
-        }
-
 
         // Load the model
         JSONObject::Deserializer doc_writer{json["Document"].toObject()};

@@ -132,13 +132,11 @@ void AddDevice::redo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
 
-    // Instantiate a real device.
-    auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
     Q_ASSERT(explorer.deviceModel());
 
-    // TODO faire code qui charge un device
-    // TODO faire code qui transforme un device iscore en device OSSIA
     try {
+        // Instantiate a real device.
+        auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
         auto newdev = proto->makeDevice(m_parameters);
         explorer.deviceModel()->list().addDevice(newdev);
     }

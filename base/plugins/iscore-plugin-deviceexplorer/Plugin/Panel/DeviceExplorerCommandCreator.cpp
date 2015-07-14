@@ -217,7 +217,7 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     iscore::Node* parent = n->parent();
     Q_ASSERT(parent);
 
-    if(parent == m_model->rootNode())
+    if(parent == &m_model->rootNode())
     {
         return index;    // Already a top-level item
     }
@@ -225,7 +225,7 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     iscore::Node* grandParent = parent->parent();
     Q_ASSERT(grandParent);
 
-    if(grandParent == m_model->rootNode())
+    if(grandParent == &m_model->rootNode())
     {
         return index;    //We cannot move an Address at Device level.
     }
@@ -263,7 +263,7 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
     iscore::Node* parent = n->parent();
     Q_ASSERT(parent);
 
-    if(parent == m_model->rootNode())
+    if(parent == &m_model->rootNode())
     {
         return index;    //we can not demote/moveRight device nodes
     }

@@ -14,6 +14,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QJsonDocument>
+#include "DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -33,11 +34,14 @@ enum
 
 static QString HEADERS[COLUMN_COUNT];
 
-DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
-    : QAbstractItemModel(parent),
-      m_lastCutNodeIsCopied(false),
-      m_rootNode(nullptr),
-      m_cmdQ(nullptr)
+DeviceExplorerModel::DeviceExplorerModel(
+        DeviceDocumentPlugin* plug,
+        QObject* parent)
+    : QAbstractItemModel{parent},
+      m_lastCutNodeIsCopied{false},
+      m_devicePlugin{plug},
+      m_rootNode{plug->rootNode()},
+      m_cmdQ{nullptr}
 {
     this->setObjectName("DeviceExplorerModel");
 
@@ -49,63 +53,15 @@ DeviceExplorerModel::DeviceExplorerModel(QObject* parent)
     HEADERS[PRIORITY_COLUMN] = tr("priority");
 
     m_cmdCreator = new DeviceExplorerCommandCreator{this};
-
-}
-
-DeviceExplorerModel::DeviceExplorerModel(const VisitorVariant& vis, QObject* parent)
-    : QAbstractItemModel(parent),
-      m_lastCutNodeIsCopied(false),
-      m_rootNode(nullptr),
-      m_cmdQ(nullptr)
-{
-    this->setObjectName("DeviceExplorerModel");
-
-    HEADERS[NAME_COLUMN] = tr("Address");
-    HEADERS[VALUE_COLUMN] = tr("Value");
-    HEADERS[IOTYPE_COLUMN] = tr("I/O");
-    HEADERS[MIN_COLUMN] = tr("min");
-    HEADERS[MAX_COLUMN] = tr("max");
-    HEADERS[PRIORITY_COLUMN] = tr("priority");
-
-
-    beginResetModel();
-
-    m_rootNode = new Node;
-    if(vis.identifier == DataStream::type())
-    {
-        auto& des = static_cast<DataStream::Deserializer&>(vis.visitor);
-        bool b;
-        des.m_stream >> b;
-        if(b)
-            des.writeTo(*m_rootNode);
-    }
-    else if(vis.identifier == JSONObject::type())
-    {
-        auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
-        des.writeTo(*m_rootNode);
-    }
-
-    endResetModel();
-
-    m_cmdCreator = new DeviceExplorerCommandCreator{this};
-
 }
 
 DeviceExplorerModel::~DeviceExplorerModel()
 {
-    delete m_rootNode;
-
     for(QStack<CutElt>::iterator it = m_cutNodes.begin();
         it != m_cutNodes.end(); ++it)
     {
         delete it->first;
     }
-
-}
-
-void DeviceExplorerModel::setDeviceModel(DeviceDocumentPlugin *v)
-{
-    m_devicePlugin = v;
 }
 
 DeviceDocumentPlugin *DeviceExplorerModel::deviceModel() const
@@ -140,17 +96,11 @@ DeviceExplorerModel::getColumns() const
 
 int DeviceExplorerModel::addDevice(Node* deviceNode)
 {
-    if(m_rootNode == nullptr)
-    {
-        m_rootNode = createRootNode();
-    }
-    Q_ASSERT(m_rootNode);
-
-    int row = m_rootNode->childCount();
+    int row = m_rootNode.childCount();
     QModelIndex parent; //invalid
 
     beginInsertRows(parent, row, row);
-    m_rootNode->insertChild(row, deviceNode);
+    m_rootNode.insertChild(row, deviceNode);
     endInsertRows();
 
     return row;
@@ -159,7 +109,7 @@ int DeviceExplorerModel::addDevice(Node* deviceNode)
 Node* DeviceExplorerModel::addAddress(Node* parentNode, const AddressSettings &addressSettings)
 {
     Q_ASSERT(parentNode);
-    Q_ASSERT(parentNode != m_rootNode);
+    Q_ASSERT(parentNode != &m_rootNode);
 
     int row = parentNode->childCount(); //insert as last child
 
@@ -181,7 +131,7 @@ Node* DeviceExplorerModel::addAddress(Node* parentNode, const AddressSettings &a
 void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
 {
     Q_ASSERT(parentNode);
-    Q_ASSERT(parentNode != m_rootNode);
+    Q_ASSERT(parentNode != &m_rootNode);
 
     if (row == -1)
     {
@@ -203,11 +153,11 @@ void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
 void DeviceExplorerModel::removeNode(Node* node)
 {
     Q_ASSERT(node);
-    Q_ASSERT(node != m_rootNode);
+    Q_ASSERT(node != &m_rootNode);
 
     Node* parent = node->parent();
 
-    Q_ASSERT(parent != m_rootNode);
+    Q_ASSERT(parent != &m_rootNode);
     Node* grandparent = parent->parent();
     Q_ASSERT(grandparent);
     int rowParent = grandparent->indexOfChild(parent);
@@ -224,7 +174,7 @@ void DeviceExplorerModel::removeNode(Node* node)
 QModelIndex
 DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
 {
-    if(!m_rootNode || row < 0 || column < 0 || column >= COLUMN_COUNT)
+    if(row < 0 || column < 0 || column >= COLUMN_COUNT)
     {
         return QModelIndex();
     }
@@ -250,7 +200,7 @@ DeviceExplorerModel::nodeFromModelIndex(const QModelIndex& index) const
     }
     else
     {
-        return m_rootNode;
+        return &m_rootNode;
     }
 }
 
@@ -316,7 +266,7 @@ DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
 
 QVariant DeviceExplorerModel::getData(Path node, int column, int role)
 {
-    QModelIndex index = createIndex(convertPathToIndex(node).row(), column, node.toNode(rootNode())->parent());
+    QModelIndex index = createIndex(convertPathToIndex(node).row(), column, node.toNode(&rootNode())->parent());
     return data(index, role);
 }
 
@@ -635,23 +585,11 @@ DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
     return bottomIndex(createIndex(node->childCount() - 1, index.column(), node->childAt(node->childCount() - 1)));
 }
 
-Node*
-DeviceExplorerModel::createRootNode() const
-{
-    return new Node{InvisibleRootNodeTag{}};
-}
-
-
 //this method is called (behind the scenes) when there is a drag and drop to delete the original dragged rows once they have been dropped (dropped rows are inserted using insertRows)
 bool
 DeviceExplorerModel::removeRows(int row, int count, const QModelIndex& parent)
 {
-    if(! m_rootNode)
-    {
-        return false;
-    }
-
-    Node* parentNode = parent.isValid() ? nodeFromModelIndex(parent) : m_rootNode;
+    Node* parentNode = parent.isValid() ? nodeFromModelIndex(parent) : &m_rootNode;
     beginRemoveRows(parent, row, row + count - 1);
 
     for(int i = 0; i < count; ++i)
@@ -694,7 +632,7 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
 bool
 DeviceExplorerModel::isEmpty() const
 {
-    return (m_rootNode == nullptr || m_rootNode->childCount() == 0);
+    return m_rootNode.childCount() == 0;
 }
 
 bool
@@ -756,7 +694,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
         return createIndex(row, 0, parent->childAt(row));
     }
 
-    if(parent != m_rootNode)
+    if(parent != &m_rootNode)
     {
         Node* grandParent = parent->parent();
         Q_ASSERT(grandParent);
@@ -819,7 +757,7 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
         if(cutNodeIsDevice)
         {
             //we can only paste devices at the top-level
-            while(parent != m_rootNode)
+            while(parent != &m_rootNode)
             {
                 Q_ASSERT(parent);
                 n = parent;
@@ -838,8 +776,8 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
     else
     {
         Q_ASSERT(! index.isValid() && cutNodeIsDevice);
-        parent = m_rootNode;
-        row = m_rootNode->childCount();
+        parent = &m_rootNode;
+        row = m_rootNode.childCount();
         parentIndex = QModelIndex(); //invalid on purpose
     }
 
@@ -999,7 +937,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 
         if(n)
         {
-            Q_ASSERT(n != m_rootNode);  //m_rootNode not displayed thus should not be draggable
+            Q_ASSERT(n != &m_rootNode);  //m_rootNode not displayed thus should not be draggable
 
             Serializer<JSONObject> ser;
             ser.readFrom(*n);
@@ -1077,7 +1015,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
 
     if(mimeData->hasFormat(MimeTypeAddress))
     {
-        if(parentNode == m_rootNode)
+        if(parentNode == &m_rootNode)
         {
             return false;
         }
@@ -1086,7 +1024,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     {
         Q_ASSERT(mimeData->hasFormat(MimeTypeDevice));
 
-        if(parentNode != m_rootNode)
+        if(parentNode != &m_rootNode)
         {
             return false;
         }
@@ -1121,7 +1059,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     }
 
     QModelIndex parentIndex; //invalid
-    Node* parentNode = m_rootNode;
+    Node* parentNode = &m_rootNode;
     QString mimeType = MimeTypeDevice;
 
     if(mimeData->hasFormat(MimeTypeAddress))
@@ -1130,7 +1068,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         parentNode = nodeFromModelIndex(parent);
         mimeType = MimeTypeAddress;
 
-        if(parentNode == m_rootNode)
+        if(parentNode == &m_rootNode)
         {
             return false;
         }
@@ -1251,7 +1189,7 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
                 std::cerr << " n=" << n << " ";
                 Node* parent = n->parent();
 
-                if(n == m_rootNode)
+                if(n == &m_rootNode)
                 {
                     std::cerr << " rootNode parent=" << parent << "\n";
                 }

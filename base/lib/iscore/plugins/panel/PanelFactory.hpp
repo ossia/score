@@ -32,9 +32,5 @@ namespace iscore
 
             virtual PanelModel* makeModel(
                     DocumentModel* parent) = 0;
-
-            virtual PanelModel* loadModel(
-                    const VisitorVariant& data,
-                    DocumentModel* parent) { return nullptr; }
     };
 }

@@ -58,18 +58,7 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
 #include <core/document/DocumentModel.hpp>
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
-    ISCORE_TODO;
     doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));
-
-    // connect the device document plugin to the device explorer model in this document
-    // (do the connection from the point of view of the device explorer model, it's more sensical)
-    //
-    // Hence, in the building order, one must come before the other, preferably the document plug-in.
-    // hence PluginControl::on_newDocument has to be called first, and then the new PanelModel...
-
-    // But the device explorer model must save its state! So maybe should we reload from this one instead ?
-    // Also, add functions to enable / disable the connections to the remote devices (or maybe put a LED indicator ?)
-    // and add exploring.
 }
 
 iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
@@ -77,7 +66,9 @@ iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
         const VisitorVariant &var,
         iscore::DocumentModel *model)
 {
-    return new DeviceDocumentPlugin(var, model);
+    auto plug = new DeviceDocumentPlugin(var, model);
+
+    return plug;
 }
 
 void DeviceExplorerControl::on_documentChanged()

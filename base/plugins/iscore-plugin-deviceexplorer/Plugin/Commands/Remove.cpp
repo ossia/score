@@ -12,7 +12,7 @@ Remove::Remove(ObjectPath &&device_tree, Path nodePath):
     m_nodeIndex{m_nodePath.back()}
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    iscore::Node *node = m_nodePath.toNode(explorer.rootNode());
+    iscore::Node *node = m_nodePath.toNode(&explorer.rootNode());
 
     if (! node->isDevice())
     {
@@ -30,7 +30,7 @@ void
 Remove::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer.addAddress(m_parentPath.toNode(explorer.rootNode()), m_node, m_nodeIndex);
+    explorer.addAddress(m_parentPath.toNode(&explorer.rootNode()), m_node, m_nodeIndex);
 }
 
 void
@@ -38,9 +38,9 @@ Remove::redo()
 {
     // TODO remove from elsewhere, too.
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    iscore::Node *node = m_nodePath.toNode(explorer.rootNode());
+    iscore::Node *node = m_nodePath.toNode(&explorer.rootNode());
     m_node = node->clone();
-    iscore::Node* parent = m_parentPath.toNode(explorer.rootNode());
+    iscore::Node* parent = m_parentPath.toNode(&explorer.rootNode());
 
     explorer.removeNode(parent->childAt(m_nodeIndex));
 }

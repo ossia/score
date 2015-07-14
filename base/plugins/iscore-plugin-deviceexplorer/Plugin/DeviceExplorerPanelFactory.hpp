@@ -7,7 +7,6 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactory
         int panelId() const override;
         QString panelName() const override;
 
-
         iscore::PanelView* makeView(iscore::View*) override;
 
         iscore::PanelPresenter* makePresenter(
@@ -16,8 +15,4 @@ class DeviceExplorerPanelFactory : public iscore::PanelFactory
 
         iscore::PanelModel* makeModel(
                 iscore::DocumentModel*) override;
-        iscore::PanelModel* loadModel(
-                const VisitorVariant& data,
-                iscore::DocumentModel* parent) override;
-
 };

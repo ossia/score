@@ -39,12 +39,11 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         enum class Insert {AsSibling, AsChild};
 
-        explicit DeviceExplorerModel(QObject* parent = 0);
-        DeviceExplorerModel(const VisitorVariant& data, QObject* parent);
+        explicit DeviceExplorerModel(DeviceDocumentPlugin*, QObject* parent = 0);
 
         ~DeviceExplorerModel();
 
-        iscore::Node* rootNode() const
+        iscore::Node& rootNode() const
         {
             return m_rootNode;
         }
@@ -57,7 +56,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         // The class that does the link with the low-level implementation of the
         // devices. This is here so that commands don't need to save
         // at the same time a path to the device explorer, and the device doc plugin.
-        void setDeviceModel(DeviceDocumentPlugin* v);
         DeviceDocumentPlugin* deviceModel() const;
 
         QModelIndexList selectedIndexes() const;
@@ -136,11 +134,10 @@ class DeviceExplorerModel : public QAbstractItemModel
 
     private:
         DeviceDocumentPlugin* m_devicePlugin{};
-        iscore::Node* createRootNode() const;
 
         QModelIndex bottomIndex(const QModelIndex& index) const;
 
-        iscore::Node* m_rootNode;
+        iscore::Node& m_rootNode;
 
         iscore::CommandStack* m_cmdQ;
 

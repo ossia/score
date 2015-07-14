@@ -11,12 +11,9 @@ class DeviceExplorerPanelModel : public iscore::PanelModel
 {
         friend class DeviceExplorerPanelPresenter;
     public:
-
         DeviceExplorerPanelModel(iscore::DocumentModel* parent);
-        DeviceExplorerPanelModel(const VisitorVariant& data, iscore::DocumentModel* parent);
 
         int panelId() const override;
-        void serialize(const VisitorVariant&) const override;
 
         DeviceExplorerModel* deviceExplorer();
 

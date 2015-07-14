@@ -13,7 +13,6 @@ void OSSIADevice::addAddress(const FullAddressSettings &settings)
     // Get the node
     QStringList path = settings.name.split("/");
     path.removeFirst();
-    path.removeFirst();
 
     // Create it
     OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
@@ -28,7 +27,6 @@ void OSSIADevice::updateAddress(const FullAddressSettings &settings)
     using namespace OSSIA;
     QStringList path = settings.name.split("/");
     path.removeFirst();
-    path.removeFirst();
 
     OSSIA::Node* node = createNodeFromPath(path, m_dev.get());
     updateOSSIAAddress(settings, node->getAddress());
@@ -39,7 +37,6 @@ void OSSIADevice::removeAddress(const QString &address)
 {
     using namespace OSSIA;
     QStringList path = address.split("/");
-    path.removeFirst();
     path.removeFirst();
 
     OSSIA::Node* node = createNodeFromPath(path, m_dev.get());

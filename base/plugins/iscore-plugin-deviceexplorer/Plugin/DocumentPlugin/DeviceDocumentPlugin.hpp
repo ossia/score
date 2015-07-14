@@ -3,6 +3,7 @@
 
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
+#include <DeviceExplorer/Node/Node.hpp>
 namespace iscore
 {
     class Document;
@@ -23,6 +24,9 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 
         void serialize(const VisitorVariant&) const override;
 
+        iscore::Node& rootNode()
+        { return m_rootNode; }
+
         DeviceList& list()
         { return m_list; }
 
@@ -30,6 +34,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         { return m_list; }
 
     private:
+        iscore::Node m_rootNode{InvisibleRootNodeTag{}};
         DeviceList m_list;
 };
 

@@ -13,7 +13,6 @@ namespace iscore
             using NamedObject::NamedObject;
 
             virtual int panelId() const = 0;
-            virtual void serialize(const VisitorVariant&) const;
 
         public slots:
             virtual void setNewSelection(const Selection&);
