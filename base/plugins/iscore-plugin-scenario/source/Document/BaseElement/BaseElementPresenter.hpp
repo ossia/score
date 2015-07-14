@@ -85,8 +85,8 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         BaseElementStateMachine* m_stateMachine{};
 
         // Various widgets
-        TimeRulerPresenter* m_mainTimeRuler{};
-        LocalTimeRulerPresenter* m_localTimeRuler {};
+        //TimeRulerPresenter* m_mainTimeRuler{};
+        //LocalTimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average
         ZoomRatio m_millisecondsPerPixel{0.03};

@@ -48,9 +48,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_model,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
-    m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
+    m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()}/*,
     m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}},
-    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}
+    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}*/
 {
     // Setup the connections
     connect(&(m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
@@ -77,8 +77,10 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     model()->setDisplayedConstraint(&model()->baseConstraint());
 
     // Progress bar, time rules
+    /*
     m_mainTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
     m_localTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
+    */
 }
 
 const ConstraintModel& BaseElementPresenter::displayedConstraint() const
@@ -128,14 +130,16 @@ void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
 {
     // TODO harmonize
     m_millisecondsPerPixel = newFactor;
+    /*
     m_mainTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
     m_localTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
-
+    */
     m_scenarioPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
 }
 
 void BaseElementPresenter::on_newSelection(const Selection& sel)
 {
+    /*
     int scroll = m_localTimeRuler->totalScroll();
     delete m_localTimeRuler;
     view()->newLocalTimeRuler();
@@ -160,7 +164,7 @@ void BaseElementPresenter::on_newSelection(const Selection& sel)
             connect(cstr,               &ConstraintModel::startDateChanged,
                     m_localTimeRuler,   &LocalTimeRulerPresenter::setStartPoint);
         }
-    }
+    }*/
 }
 
 void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
@@ -174,19 +178,16 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
     auto mapZoom = [] (double val, double min, double max)
     { return (max - min) * val + min; };
 
-    // computedMax : the number of pixels in a millisecond when the whole constraint
+    // max : the number of pixels in a millisecond when the whole constraint
     // is displayed on screen;
-    auto computedMax = [&] ()
-    {
-        // On veut que cette fonction retourne le facteur de
-        // m_millisecondsPerPixel nécessaire pour que la contrainte affichée tienne à l'écran.
-        double viewWidth = view()->view()->width();
-        double duration =  displayedConstraint().defaultDuration().msec();
-
-        return 20 + duration / viewWidth;
-    };
-
-    auto newMillisPerPix = mapZoom(1.0 - newzoom, 2., std::max(4., computedMax()));
+    auto newMillisPerPix = mapZoom(
+                1.0 - newzoom,
+                16.,
+                std::max(
+                    24.,
+                    20 + displayedConstraint().defaultDuration().msec() / view()->view()->width()
+                    )
+                );
     updateZoom(newMillisPerPix, QPointF(0,0));
 }
 
@@ -230,17 +231,22 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
+    /*
     m_mainTimeRuler->scroll(dx);
     m_localTimeRuler->scroll(dx);
+    */
 }
 
 void BaseElementPresenter::updateRect(const QRectF& rect)
 {
     view()->view()->setSceneRect(rect);
+
+    /*
     QRectF other{view()->rulerView()->sceneRect()};
     other.setWidth(rect.width());
     other.setX(rect.x());
     view()->rulerView()->setSceneRect(other);
+    */
 }
 
 void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
