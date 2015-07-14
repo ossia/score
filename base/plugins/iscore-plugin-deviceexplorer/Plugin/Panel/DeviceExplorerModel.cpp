@@ -523,7 +523,8 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         return false;
     }
 
-    if(! nodeFromModelIndex(index))
+    auto n = nodeFromModelIndex(index);
+    if(! n)
     {
         return false;
     }
@@ -551,9 +552,15 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         }
         else if(index.column() == VALUE_COLUMN)
         {
-            if(value.canConvert<int>() || value.canConvert<bool>() ||  value.canConvert<float>() || value.canConvert<QString>())
+            QVariant copy = value;
+            auto res = copy.convert(n->addressSettings().value.type());
+            if(res)
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this),
+                                                 Path{index},
+                                                 index.column(),
+                                                 copy,
+                                                 role});
                 changed = true;
             }
         }
