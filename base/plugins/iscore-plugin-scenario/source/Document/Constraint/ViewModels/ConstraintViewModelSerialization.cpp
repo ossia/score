@@ -1,5 +1,5 @@
-#include "AbstractConstraintViewModelSerialization.hpp"
-#include "AbstractConstraintViewModel.hpp"
+#include "ConstraintViewModelSerialization.hpp"
+#include "ConstraintViewModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 template<>
@@ -12,7 +12,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ConstraintViewModel& cvm)
     // at compile time and calls this function.
     readFrom(static_cast<const IdentifiedObject<ConstraintViewModel>&>(cvm));
 
-    // Save the AbstractConstraintViewModelData
+    // Save the ConstraintViewModelData
     m_stream << cvm.shownRack();
     insertDelimiter();
 }

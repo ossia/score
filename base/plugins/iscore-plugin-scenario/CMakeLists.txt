@@ -71,7 +71,7 @@ file(GLOB_RECURSE QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.qrc")
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/VerticalExtentSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModelSerialization.cpp"
 
@@ -124,8 +124,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateStateMacro.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/RemoveSelection.cpp"
@@ -157,8 +155,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ScenarioDocument.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/StateMachine/BaseMoveSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/AddressBar.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/ClickableLabel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/ProgressBar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/SceneGraduations.cpp"
@@ -173,9 +169,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/Slot/SlotOverlay.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/RackModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/RackPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintViewModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintHeader.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/FullView/FullViewConstraintHeader.cpp"
@@ -186,7 +182,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/Temporal/TemporalConstraintHeader.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/AbstractConstraintView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/ConditionView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/TriggerView.cpp"

@@ -1,5 +1,5 @@
 #pragma once
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 
 
 class ConstraintModel;

@@ -16,9 +16,9 @@
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintView.hpp"
+#include "Document/Constraint/ViewModels/ConstraintPresenter.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 
 #include <iostream>
 ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm, QState* parent) :

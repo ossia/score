@@ -10,7 +10,7 @@
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/VerticalMovePolicy.hpp"
 #include <ProcessInterface/LayerModel.hpp>

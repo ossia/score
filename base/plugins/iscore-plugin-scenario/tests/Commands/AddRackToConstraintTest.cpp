@@ -15,7 +15,7 @@ class AddRackToConstraintTest: public QObject
         void CreateRackTest()
         {
             ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0},
-                                                                id_type<AbstractConstraintViewModel>{0},
+                                                                id_type<ConstraintViewModel>{0},
                                                                 qApp
                                                                };
 

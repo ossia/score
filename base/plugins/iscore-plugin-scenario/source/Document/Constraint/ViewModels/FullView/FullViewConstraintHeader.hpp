@@ -1,5 +1,5 @@
 #pragma once
-#include "Document/Constraint/ViewModels/AbstractConstraintHeader.hpp"
+#include "Document/Constraint/ViewModels/ConstraintHeader.hpp"
 
 class AddressBarItem;
 class FullViewConstraintHeader : public ConstraintHeader

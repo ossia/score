@@ -6,7 +6,6 @@
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
-#include "Document/BaseElement/Widgets/AddressBar.hpp"
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerPresenter.hpp"
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.hpp"

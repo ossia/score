@@ -13,7 +13,7 @@
 
 #include "iscore/document/DocumentInterface.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 using namespace iscore;
 using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QString process) :

@@ -27,7 +27,7 @@ class MoveConstraintTest: public QObject
             auto int_0_id = getStrongId(scenar->constraints());
             auto ev_0_id = getStrongId(scenar->events());
 
-            auto fv_0_id = id_type<AbstractConstraintViewModel> {234};
+            auto fv_0_id = id_type<ConstraintViewModel> {234};
             auto tb_0_id = getStrongId(scenar->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*scenar, scenar->startEvent()->id(), std::chrono::milliseconds {34}, 0.5, int_0_id, fv_0_id, ev_0_id);
 

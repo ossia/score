@@ -1,7 +1,7 @@
-#include "AbstractConstraintPresenter.hpp"
-#include "AbstractConstraintView.hpp"
-#include "AbstractConstraintViewModel.hpp"
-#include "AbstractConstraintHeader.hpp"
+#include "ConstraintPresenter.hpp"
+#include "ConstraintView.hpp"
+#include "ConstraintViewModel.hpp"
+#include "ConstraintHeader.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -13,7 +13,7 @@
 #include "Temporal/TemporalConstraintViewModel.hpp"
 #include "FullView/FullViewConstraintViewModel.hpp"
 
-#include "AbstractConstraintHeader.hpp"
+#include "ConstraintHeader.hpp"
 /**
  * TODO Mettre dans la doc :
  * L'abstract constraint presenter a deux interfaces :

@@ -1,5 +1,5 @@
 #pragma once
-#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
+#include "Document/Constraint/ViewModels/ConstraintView.hpp"
 
 class FullViewConstraintViewModel;
 class FullViewConstraintPresenter;

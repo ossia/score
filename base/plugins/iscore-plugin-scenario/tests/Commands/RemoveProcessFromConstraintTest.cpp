@@ -26,9 +26,9 @@ class RemoveProcessFromConstraintTest: public QObject
             ProcessList plist(obj);
             plist.registerProcess(new ScenarioFactory);
 
-            ConstraintModel* int_model  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
+            ConstraintModel* int_model  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<ConstraintViewModel>{0}, qApp};
             int_model->createRack(id_type<RackModel> {656});
-            ConstraintModel* int_model2 = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, int_model};
+            ConstraintModel* int_model2 = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<ConstraintViewModel>{0}, int_model};
             int_model2->createRack(id_type<RackModel> {656});
 
             QVERIFY(int_model2->processes().size() == 0);
@@ -44,7 +44,7 @@ class RemoveProcessFromConstraintTest: public QObject
 
             auto int_0_id = getStrongId(s0->constraints());
             auto ev_0_id = getStrongId(s0->events());
-            auto fv_0_id = id_type<AbstractConstraintViewModel> {234};
+            auto fv_0_id = id_type<ConstraintViewModel> {234};
             auto tb_0_id = getStrongId(s0->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
             s0->constraint(int_0_id)->createRack(id_type<RackModel> {5676});

@@ -32,7 +32,7 @@ class AddLayerModelToSlotTest: public QObject
             plist->registerProcess(new ScenarioFactory);
 
             // Setup
-            ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<AbstractConstraintViewModel>{0}, qApp};
+            ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<ConstraintViewModel>{0}, qApp};
 
             auto cmd_proc = new AddProcessToConstraint(
             {

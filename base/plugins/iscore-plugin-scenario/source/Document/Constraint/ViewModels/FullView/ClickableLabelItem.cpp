@@ -1,5 +1,5 @@
 #include "ClickableLabelItem.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintHeader.hpp"
+#include "Document/Constraint/ViewModels/ConstraintHeader.hpp"
 #include <QBrush>
 
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):

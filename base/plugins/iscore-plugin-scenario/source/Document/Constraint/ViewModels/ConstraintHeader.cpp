@@ -1,4 +1,4 @@
-#include "AbstractConstraintHeader.hpp"
+#include "ConstraintHeader.hpp"
 const QFont ConstraintHeader::font("Ubuntu", 10, QFont::Bold);
 void ConstraintHeader::setWidth(double width)
 {

@@ -4,7 +4,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include "LambdaFriendlyQComboBox.hpp"

@@ -1,5 +1,5 @@
 #pragma once
-#include "Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
+#include "Document/Constraint/ViewModels/ConstraintPresenter.hpp"
 
 class TemporalConstraintViewModel;
 class TemporalConstraintView;

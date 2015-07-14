@@ -1,6 +1,6 @@
 #include "FullViewConstraintViewModel.hpp"
 
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const FullViewConstraintViewModel& constraint)

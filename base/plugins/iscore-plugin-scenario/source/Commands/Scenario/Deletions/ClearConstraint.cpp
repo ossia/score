@@ -6,7 +6,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioLayer.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

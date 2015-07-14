@@ -1,5 +1,5 @@
 #include "HideRackInViewModel.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "iscore/document/DocumentInterface.hpp"
 
 using namespace iscore;

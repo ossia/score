@@ -1,8 +1,8 @@
 #include "IScoreCohesionControl.hpp"
 #include <QApplication>
 
-#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/AbstractConstraintPresenter.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
 #include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "base/plugins/iscore-plugin-scenario/source/Document/Event/EventModel.hpp"
 #include "base/plugins/iscore-plugin-scenario/source/Document/BaseElement/BaseElementPresenter.hpp"

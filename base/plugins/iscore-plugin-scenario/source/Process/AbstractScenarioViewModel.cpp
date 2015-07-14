@@ -1,5 +1,5 @@
 #include "AbstractScenarioViewModel.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 

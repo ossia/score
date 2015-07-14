@@ -8,8 +8,8 @@
 
 #include "Document/Event/EventView.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintView.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 
 #include "Process/ScenarioModel.hpp"
 #include <QGraphicsScene>

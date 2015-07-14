@@ -1,5 +1,5 @@
 #pragma once
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 

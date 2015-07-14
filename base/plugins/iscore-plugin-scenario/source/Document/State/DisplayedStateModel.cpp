@@ -2,7 +2,7 @@
 
 #include "StateView.hpp"
 
-#include "Document/Constraint/ViewModels/AbstractConstraintView.hpp"
+#include "Document/Constraint/ViewModels/ConstraintView.hpp"
 #include "Document/Event/EventModel.hpp"
 
 #include "Process/ScenarioModel.hpp"

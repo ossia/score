@@ -1,5 +1,5 @@
 #include "Process/AbstractScenarioViewModel.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModelSerialization.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
 #include "TemporalScenarioLayer.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 

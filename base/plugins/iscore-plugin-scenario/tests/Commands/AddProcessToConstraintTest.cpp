@@ -25,7 +25,7 @@ class AddProcessToConstraintTest: public QObject
             ProcessList* plist = new ProcessList {obj};
             plist->registerProcess(new ScenarioFactory);
 
-            ConstraintModel* cstrModel  = new ConstraintModel {id_type<ConstraintModel>{1}, id_type<AbstractConstraintViewModel>{0}, qApp};
+            ConstraintModel* cstrModel  = new ConstraintModel {id_type<ConstraintModel>{1}, id_type<ConstraintViewModel>{0}, qApp};
 
             AddRackToConstraint rackCmd(
                         ObjectPath { {"ConstraintModel", {1}} });

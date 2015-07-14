@@ -1,4 +1,4 @@
-#include "AbstractConstraintViewModel.hpp"
+#include "ConstraintViewModel.hpp"
 
 bool ConstraintViewModel::isRackShown() const
 {

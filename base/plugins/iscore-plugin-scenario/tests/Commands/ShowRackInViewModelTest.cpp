@@ -2,7 +2,7 @@
 #include "Commands/Scenario/ShowRackInViewModel.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ViewModels/AbstractConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Event/EventModel.hpp"
@@ -42,7 +42,7 @@ class ShowRackInViewModelTest: public QObject
 
             // Setup
             ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0},
-                                                                id_type<AbstractConstraintViewModel>{0}, qApp
+                                                                id_type<ConstraintViewModel>{0}, qApp
                                                                };
 
             // Creation of a scenario with a constraint
@@ -106,7 +106,7 @@ class ShowRackInViewModelTest: public QObject
             QCOMPARE(scenario_viewmodel->constraints().count(), 1);
 
             // Check that the constraint view model is properly instantiated
-            AbstractConstraintViewModel* constraint_viewmodel = scenario_viewmodel->constraints().front();
+            ConstraintViewModel* constraint_viewmodel = scenario_viewmodel->constraints().front();
             QCOMPARE(constraint_viewmodel->model(), scenario->constraint(cmd_event->m_cmd->m_createdConstraintId));
             QCOMPARE(constraint_viewmodel->isRackShown(), false);  // No rack can be shown since there isn't any in this constraint
 
