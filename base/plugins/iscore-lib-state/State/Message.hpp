@@ -1,9 +1,8 @@
 #pragma once
-#include <QVariant>
 #include <QObject>
 #include <QStringList>
 #include <State/Address.hpp>
-
+#include <State/Value.hpp>
 namespace iscore
 {
 struct Message
@@ -41,10 +40,10 @@ struct Message
     }
 
     QString toString() const
-    { return address.toString() + " " + value.toString(); }
+    { return address.toString() + " " + value.val.toString(); }
 
     Address address;
-    QVariant value;
+    Value value;
 };
 
 using MessageList = QList<Message>;

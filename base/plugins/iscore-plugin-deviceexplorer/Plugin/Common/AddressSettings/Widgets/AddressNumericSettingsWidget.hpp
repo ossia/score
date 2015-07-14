@@ -45,7 +45,7 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         virtual AddressSettings getSettings() const override
         {
             auto settings = getCommonSettings();
-            settings.value = T(m_valueSBox->value());
+            settings.value.val = T(m_valueSBox->value());
             settings.domain.min = T(m_minSBox->value());
             settings.domain.max = T(m_maxSBox->value());
             return settings;
@@ -53,9 +53,9 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
 
         virtual void setSettings(const AddressSettings& settings) override
         {
-            if (settings.value.canConvert<T>())
+            if (settings.value.val.canConvert<T>())
             {
-                m_valueSBox->setValue(settings.value.value<T>());
+                m_valueSBox->setValue(settings.value.val.value<T>());
             }
 
             m_minSBox->setValue(settings.domain.min.toDouble());

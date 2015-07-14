@@ -46,16 +46,16 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
     AddressSettings addr;
 
     bool ok = false;
-    addr.value = value.toUInt(&ok);
+    addr.value.val = value.toUInt(&ok);
     if(!ok)
     {
-        addr.value = value.toFloat(&ok);
+        addr.value.val = value.toFloat(&ok);
         if(!ok)
         {
-            addr.value = value.toInt(&ok);
+            addr.value.val = value.toInt(&ok);
             if(!ok)
             {
-                addr.value = value;
+                addr.value.val = value;
             }
         }
     }

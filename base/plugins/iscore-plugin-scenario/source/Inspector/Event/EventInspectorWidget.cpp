@@ -306,7 +306,7 @@ void EventInspectorWidget::on_addAddressClicked()
         iscore::Message m;
         m.address = iscore::Address::fromString(split.first());
         split.removeFirst();
-        m.value = textToMessageValue(split);
+        m.value.val = textToMessageValue(split);
 
         auto cmd = new Scenario::Command::AddStateToStateModel{path(m_model), iscore::State(m)};
 

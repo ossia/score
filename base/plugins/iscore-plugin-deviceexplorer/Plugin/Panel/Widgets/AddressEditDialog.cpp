@@ -127,7 +127,7 @@ AddressSettings AddressEditDialog::getSettings() const
     else
     {
         // Int by default
-        settings.value = 0;
+        settings.value.val = 0;
     }
 
     settings.name = m_nameEdit->text();
@@ -140,7 +140,7 @@ AddressSettings AddressEditDialog::makeDefaultSettings()
     static AddressSettings defaultSettings
             = [] () {
         AddressSettings s;
-        s.value = 0;
+        s.value.val = 0;
         s.domain.min = 0;
         s.domain.max = 0;
         return s;
@@ -156,7 +156,7 @@ AddressEditDialog::setSettings(const AddressSettings& settings)
     m_nameEdit->setText(name);
 
     QString type;
-    switch(QMetaType::Type(settings.value.type()))
+    switch(QMetaType::Type(settings.value.val.type()))
     {
         case QMetaType::Int:
             type = "Int";

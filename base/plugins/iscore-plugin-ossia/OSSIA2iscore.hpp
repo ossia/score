@@ -17,7 +17,7 @@ namespace convert
 IOType ToIOType(OSSIA::Address::AccessMode t);
 ClipMode ToClipMode(OSSIA::Address::BoundingMode b);
 iscore::Domain ToDomain(OSSIA::Domain& domain);
-QVariant ToVariant(const OSSIA::Value* val);
+iscore::Value ToValue(const OSSIA::Value* val);
 AddressSettings ToAddressSettings(const OSSIA::Node& node);
 iscore::Node* ToDeviceExplorer(const OSSIA::Node& node);
 

@@ -44,7 +44,7 @@ ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
 }
 
 
-QVariant ToVariant(const OSSIA::Value *val)
+iscore::Value ToValue(const OSSIA::Value *val)
 {
     QVariant v;
     switch(val->getType())
@@ -71,7 +71,7 @@ QVariant ToVariant(const OSSIA::Value *val)
             QVariantList tuple;
             for (const auto & e : dynamic_cast<const OSSIA::Tuple*>(val)->value)
             {
-                tuple.append(ToVariant(e));
+                tuple.append(ToValue(e).val); // TODO REVIEW THIS
             }
 
             v = tuple;
@@ -91,7 +91,8 @@ QVariant ToVariant(const OSSIA::Value *val)
             break;
     }
 
-    return v;
+    iscore::Value iv; iv.val = v;
+    return iv;
 }
 
 
@@ -104,7 +105,7 @@ AddressSettings ToAddressSettings(const OSSIA::Node &node)
     if(addr)
     {
         if(auto val = addr->getValue())
-            s.value = ToVariant(val);
+            s.value = ToValue(val);
 
         /* Debug code
         else
@@ -153,12 +154,12 @@ iscore::Node* ToDeviceExplorer(const OSSIA::Node &node)
 iscore::Domain ToDomain(OSSIA::Domain &domain)
 {
     iscore::Domain d;
-    d.min = ToVariant(domain.getMin());
-    d.max = ToVariant(domain.getMax());
+    d.min = ToValue(domain.getMin()).val;
+    d.max = ToValue(domain.getMax()).val;
 
     for(const auto& val : domain.getValues())
     {
-        d.values.append(ToVariant(val));
+        d.values.append(ToValue(val).val);
     }
 
     return d;

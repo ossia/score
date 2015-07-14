@@ -20,9 +20,10 @@ class SerializationTest: public QObject
             QMetaType::registerComparators<Message>();
             qRegisterMetaTypeStreamOperators<Message>();
             qRegisterMetaTypeStreamOperators<MessageList>();
+            qRegisterMetaTypeStreamOperators<iscore::Value>();
             Message m;
             m.address = {"dada", {"bilou", "yadaa", "zoo"}};
-            m.value = 5.5;
+            m.value.val = 5.5;
 
             State s(m);
 

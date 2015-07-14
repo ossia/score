@@ -79,7 +79,7 @@ std::size_t hash_value(const iscore::Address &addr) noexcept
 
 std::size_t hash_message(const iscore::Message &mess) noexcept
 {
-    return hash_value(mess.address) ^ qHash(mess.value);
+    return hash_value(mess.address) ^ qHash(mess.value.val);
 }
 
 std::size_t ArrayHash(const iscore::MessageList& arr) noexcept

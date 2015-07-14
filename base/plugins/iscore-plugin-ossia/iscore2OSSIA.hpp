@@ -46,7 +46,7 @@ void updateOSSIAValue(
         OSSIA::Value& val);
 
 OSSIA::Value* toValue(
-        const QVariant&);
+        const iscore::Value&);
 
 //// Other conversions
 inline OSSIA::TimeValue time(const TimeValue& t)

@@ -7,7 +7,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
 {
     readFrom(mess.address);
-    m_stream << mess.value;
+    ISCORE_TODO; //readFrom(mess.value);
     insertDelimiter();
 }
 
@@ -15,14 +15,14 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 {
     m_obj["Address"] = toJsonObject(mess.address);
-    m_obj["Value"] = mess.value.toString(); // TODO : NOPENOPENOPE. Use serialization in AddressSettings. Make a Value class.
+    ISCORE_TODO; //m_obj["Value"] = toJsonValue(mess.value); // TODO : NOPENOPENOPE. Use serialization in AddressSettings. Make a Value class.
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Message& mess)
 {
     writeTo(mess.address);
-    m_stream >> mess.value;
+    ISCORE_TODO; //writeTo(mess.value);
 
     checkDelimiter();
 }
@@ -31,5 +31,5 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
 {
     mess.address = fromJsonObject<Address>(m_obj["Address"].toObject());
-    mess.value = QJsonValue(m_obj["Value"]).toVariant();
+    ISCORE_TODO; //mess.value = fromJsonValue<iscore::Value>(m_obj["Value"]);
 }

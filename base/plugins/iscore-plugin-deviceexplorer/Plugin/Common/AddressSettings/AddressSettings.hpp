@@ -3,7 +3,8 @@
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
-#include "State/Address.hpp"
+#include <State/Address.hpp>
+#include <State/Value.hpp>
 
 // TODO namespace
 enum class IOType : int { Invalid, In, Out, InOut };
@@ -27,7 +28,7 @@ using RepetitionFilter = bool;
 
 struct AddressSettingsCommon
 {
-    QVariant value;
+    iscore::Value value;
     iscore::Domain domain;
 
     IOType ioType{};

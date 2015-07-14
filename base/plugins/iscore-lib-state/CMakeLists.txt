@@ -15,6 +15,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AddressSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateSerialization.cpp"
 

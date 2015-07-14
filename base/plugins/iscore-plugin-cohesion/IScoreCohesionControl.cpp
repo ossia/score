@@ -211,8 +211,8 @@ void IScoreCohesionControl::interpolateStates()
                 auto cmd = new CreateCurveFromStates{
                            iscore::IDocument::path(constraint),
                            message.address,
-                           message.value.toDouble(),
-                           (*it).value.toDouble()};
+                           message.value.val.toDouble(),
+                           (*it).value.val.toDouble()};
                 macro.submitCommand(cmd);
             }
         }

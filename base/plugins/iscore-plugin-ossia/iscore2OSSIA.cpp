@@ -120,28 +120,28 @@ void createOSSIAAddress(const FullAddressSettings &settings, OSSIA::Node *node)
     std::shared_ptr<OSSIA::Address> addr;
 
     // Read the Qt docs on QVariant::type for the relationship with QMetaType::Type
-    QMetaType::Type t = QMetaType::Type(settings.value.type());
+    QMetaType::Type t = QMetaType::Type(settings.value.val.type());
 
     if(t == QMetaType::Float)
-    { addr = node->createAddress(Value::Type::FLOAT); }
+    { addr = node->createAddress(OSSIA::Value::Type::FLOAT); }
 
     else if(t == QMetaType::Int)
-    { addr = node->createAddress(Value::Type::INT); }
+    { addr = node->createAddress(OSSIA::Value::Type::INT); }
 
     else if(t == QMetaType::QString)
-    { addr = node->createAddress(Value::Type::STRING); }
+    { addr = node->createAddress(OSSIA::Value::Type::STRING); }
 
     else if(t == QMetaType::Bool)
-    { addr = node->createAddress(Value::Type::BOOL); }
+    { addr = node->createAddress(OSSIA::Value::Type::BOOL); }
 
     else if(t == QMetaType::Char)
-    { addr = node->createAddress(Value::Type::CHAR); }
+    { addr = node->createAddress(OSSIA::Value::Type::CHAR); }
 
     else if(t == QMetaType::QVariantList)
-    { addr = node->createAddress(Value::Type::TUPLE); }
+    { addr = node->createAddress(OSSIA::Value::Type::TUPLE); }
 
     else if(t == QMetaType::QByteArray)
-    { addr = node->createAddress(Value::Type::GENERIC); }
+    { addr = node->createAddress(OSSIA::Value::Type::GENERIC); }
 
     updateOSSIAAddress(settings, addr);
 }
@@ -228,8 +228,9 @@ OSSIA::Value* createOSSIAValue(const T& val)
 
 
 OSSIA::Value* toValue(
-        const QVariant& val)
+        const iscore::Value& value)
 {
+    const QVariant& val = value.val;
     switch(QMetaType::Type(val.type()))
     {
         case QVariant::Type::Invalid:

@@ -16,12 +16,12 @@ AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
 AddressSettings AddressBoolSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
-    settings.value = m_cb->currentData().value<bool>();
+    settings.value.val = m_cb->currentData().value<bool>();
 
     return settings;
 }
 
 void AddressBoolSettingsWidget::setSettings(const AddressSettings& settings)
 {
-    m_cb->setCurrentIndex(settings.value.value<bool>());
+    m_cb->setCurrentIndex(settings.value.val.value<bool>());
 }

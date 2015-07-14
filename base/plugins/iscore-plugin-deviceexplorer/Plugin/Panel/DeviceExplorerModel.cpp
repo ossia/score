@@ -328,12 +328,12 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 const auto& val = node->addressSettings().value;
-                if(val.canConvert<QVariantList>())
+                if(val.val.canConvert<QVariantList>())
                 {
-                    return val.toStringList().join(", ");
+                    return val.val.toStringList().join(", ");
                 }
 
-                return val.toString();
+                return val.val.toString();
             }
             else if(role == Qt::ForegroundRole)
             {
@@ -503,7 +503,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         else if(index.column() == VALUE_COLUMN)
         {
             QVariant copy = value;
-            auto res = copy.convert(n->addressSettings().value.type());
+            auto res = copy.convert(n->addressSettings().value.val.type());
             if(res)
             {
                 m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this),
@@ -559,7 +559,7 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
 
         if(index.column() == VALUE_COLUMN)
         {
-            node->addressSettings().value = value;
+            node->addressSettings().value.val = value;
         }
     }
 

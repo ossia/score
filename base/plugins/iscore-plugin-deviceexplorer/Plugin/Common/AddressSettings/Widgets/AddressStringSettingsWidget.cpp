@@ -21,14 +21,14 @@ AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
 AddressSettings AddressStringSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
-    settings.value = m_valueEdit->text();
+    settings.value.val = m_valueEdit->text();
     return settings;
 }
 
 void
 AddressStringSettingsWidget::setSettings(const AddressSettings &settings)
 {
-    m_valueEdit->setText(settings.value.value<QString>());
+    m_valueEdit->setText(settings.value.val.value<QString>());
 }
 
 
