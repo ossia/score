@@ -19,8 +19,8 @@ IpWidget::IpWidget(QWidget *parent) : QFrame(parent)
             pLayout->setStretch( pLayout->count(), 0 );
         }
 
-        m_pLineEdit[i] = new QLineEdit( this );
-        QLineEdit* pEdit = m_pLineEdit[i];
+        lineEdits[i] = new QLineEdit( this );
+        QLineEdit* pEdit = lineEdits[i];
         pEdit->installEventFilter( this );
 
         pLayout->addWidget( pEdit );
@@ -40,6 +40,11 @@ IpWidget::IpWidget(QWidget *parent) : QFrame(parent)
 
     }
 
+    lineEdits[0]->setText("127");
+    lineEdits[1]->setText("0");
+    lineEdits[2]->setText("0");
+    lineEdits[3]->setText("1");
+
     setMaximumWidth( 30 * QTUTL_IP_SIZE );
 
     connect( this, SIGNAL(signalTextChanged(QLineEdit*)),
@@ -56,15 +61,15 @@ void IpWidget::slotTextChanged( QLineEdit* pEdit )
 {
     for ( unsigned int i = 0; i != QTUTL_IP_SIZE; ++i )
     {
-        if ( pEdit == m_pLineEdit[i] )
+        if ( pEdit == lineEdits[i] )
         {
             if ( ( pEdit->text().size() == MAX_DIGITS &&  pEdit->text().size() == pEdit->cursorPosition() ) || ( pEdit->text() == "0") )
             {
                 // auto-move to next item
                 if ( i+1 != QTUTL_IP_SIZE )
                 {
-                   m_pLineEdit[i+1]->setFocus();
-                   m_pLineEdit[i+1]->selectAll();
+                   lineEdits[i+1]->setFocus();
+                   lineEdits[i+1]->selectAll();
                 }
             }
         }
@@ -82,7 +87,7 @@ bool IpWidget::eventFilter(QObject *obj, QEvent *event)
         {
             for ( unsigned int i = 0; i != QTUTL_IP_SIZE; ++i )
             {
-                QLineEdit* pEdit = m_pLineEdit[i];
+                QLineEdit* pEdit = lineEdits[i];
                 if ( pEdit == obj )
                 {
                     switch ( pEvent->key() )
@@ -143,9 +148,9 @@ void IpWidget::MoveNextLineEdit(int i)
 {
     if ( i+1 != QTUTL_IP_SIZE )
     {
-        m_pLineEdit[i+1]->setFocus();
-        m_pLineEdit[i+1]->setCursorPosition( 0 );
-        m_pLineEdit[i+1]->selectAll();
+        lineEdits[i+1]->setFocus();
+        lineEdits[i+1]->setCursorPosition( 0 );
+        lineEdits[i+1]->selectAll();
     }
 }
 
@@ -153,8 +158,8 @@ void IpWidget::MovePrevLineEdit(int i)
 {
     if ( i != 0 )
     {
-        m_pLineEdit[i-1]->setFocus();
-        m_pLineEdit[i-1]->setCursorPosition( m_pLineEdit[i-1]->text().size() );
+        lineEdits[i-1]->setFocus();
+        lineEdits[i-1]->setCursorPosition( lineEdits[i-1]->text().size() );
         //m_pLineEdit[i-1]->selectAll();
     }
 }

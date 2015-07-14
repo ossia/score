@@ -48,6 +48,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkClientDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugins/NetworkMasterDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/IpDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IpWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/NetworkPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/NetworkControl.cpp"
@@ -61,8 +62,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkMessage.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkServer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkSocket.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/client/main.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/server/main.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/client/main.cpp" # TODO not here
+"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/server/main.cpp" # TODO not here
 "${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsPresenter.cpp"

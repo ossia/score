@@ -13,12 +13,18 @@ class IpWidget : public QFrame
 {
     Q_OBJECT
 
+        enum
+        {
+            QTUTL_IP_SIZE   = 4,
+            MAX_DIGITS      = 3
+        };
 public:
     IpWidget(QWidget *parent = 0);
     ~IpWidget();
 
     virtual bool eventFilter( QObject *obj, QEvent *event );
 
+    std::array<QLineEdit*, QTUTL_IP_SIZE> lineEdits;
 public slots:
     void slotTextChanged( QLineEdit* pEdit );
 
@@ -26,13 +32,6 @@ signals:
     void signalTextChanged( QLineEdit* pEdit );
 
 private:
-    enum
-    {
-        QTUTL_IP_SIZE   = 4,
-        MAX_DIGITS      = 3
-    };
-
-    QLineEdit *(m_pLineEdit[QTUTL_IP_SIZE]);
     void MoveNextLineEdit (int i);
     void MovePrevLineEdit (int i);
 };
