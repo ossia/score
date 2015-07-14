@@ -47,60 +47,90 @@ void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
     checkDelimiter();
 }
 
+
+
+#include <boost/fusion/container/map.hpp>
+#include <boost/fusion/include/map.hpp>
+#include <boost/fusion/container/map/map_fwd.hpp>
+#include <boost/fusion/include/map_fwd.hpp>
+#include <boost/fusion/container/generation/make_map.hpp>
+#include <boost/fusion/include/make_map.hpp>
+#include <boost/fusion/include/at_key.hpp>
+
+
+static QJsonArray convertQVariantList(const QVariantList& v)
+{
+    QJsonArray arr;
+    for(const QVariant& elt : v)
+    {
+        switch(QMetaType::Type(elt.type()))
+        {
+            case QMetaType::Float:
+            {
+                arr.append(elt.toFloat());
+                break;
+            }
+            case QMetaType::Int:
+            {
+                arr.append(elt.toInt());
+                break;
+            }
+            case QMetaType::QString:
+            {
+                arr.append(elt.toString());
+                break;
+            }
+            case QMetaType::Bool:
+            {
+                arr.append(elt.toBool());
+                break;
+            }
+            case QMetaType::Char:
+            {
+                arr.append((char)elt.toInt());
+                break;
+            }
+            case QMetaType::QVariantList:
+            {
+                arr.append(convertQVariantList(elt.toList()));
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return arr;
+}
+
+static const auto QVariantConversionMap(
+        boost::fusion::make_map<int,float,bool,QString, char, QVariantList>(
+            [] (const QVariant& v) { return v.toInt(); },
+            [] (const QVariant& v) { return v.toFloat(); },
+            [] (const QVariant& v) { return v.toBool(); },
+            [] (const QVariant& v) { return v.toString(); },
+            [] (const QVariant& v) { return (char) v.toInt(); },
+            [] (const QVariant& v) { return convertQVariantList(v.toList()); }
+     )
+);
+
 template<typename T>
-QJsonObject domainToJSON(const iscore::Domain& d);
-
-template<>
-QJsonObject domainToJSON<int>(const iscore::Domain& d)
+QJsonObject domainToJSON(const iscore::Domain& d)
 {
+    const auto& convert = boost::fusion::at_key<T>(QVariantConversionMap);
     QJsonObject obj;
     if(d.min.isValid())
-        obj["Min"] = d.min.toInt();
+        obj["Min"] = convert(d.min);
     if(d.max.isValid())
-        obj["Max"] = d.max.toInt();
+        obj["Max"] = convert(d.max);
 
     QJsonArray arr;
     for(auto& val : d.values)
-        arr.append(val.toInt());
+        arr.append(convert(val));
     obj["Values"] = arr;
 
     return obj;
 }
-
-template<>
-QJsonObject domainToJSON<float>(const iscore::Domain& d)
-{
-    QJsonObject obj;
-    if(d.min.isValid())
-        obj["Min"] = d.min.toFloat();
-    if(d.max.isValid())
-        obj["Max"] = d.max.toFloat();
-
-    QJsonArray arr;
-    for(auto& val : d.values)
-        arr.append(val.toFloat());
-    obj["Values"] = arr;
-
-    return obj;
-}
-
-template<>
-QJsonObject domainToJSON<QString>(const iscore::Domain& d)
-{
-    QJsonObject obj;
-    if(d.min.isValid())
-        obj["Min"] = d.min.toString();
-    if(d.max.isValid())
-        obj["Max"] = d.max.toString();
-
-    QJsonArray arr;
-    for(auto& val : d.values)
-        arr.append(val.toString());
-    obj["Values"] = arr;
-
-    return obj;
-}
-
 
 template<typename T>
 iscore::Domain JSONToDomain(const QJsonObject& d);
@@ -190,20 +220,51 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
     if(type)
     {
         m_obj["Type"] = QString::fromStdString(type);
-        if(QMetaType::Type(n.value.type()) == QMetaType::Float)
+        switch(QMetaType::Type(n.value.type()))
         {
-            m_obj["Value"] = n.value.toFloat();
-            m_obj["Domain"] = domainToJSON<float>(n.domain);
-        }
-        else if(QMetaType::Type(n.value.type()) == QMetaType::Int)
-        {
-            m_obj["Value"] = n.value.toInt();
-            m_obj["Domain"] = domainToJSON<int>(n.domain);
-        }
-        else if(QMetaType::Type(n.value.type()) == QMetaType::QString)
-        {
-            m_obj["Value"] = n.value.toString();
-            m_obj["Domain"] = domainToJSON<QString>(n.domain);
+            case QMetaType::Float:
+            {
+                m_obj["Value"] = n.value.toFloat();
+                m_obj["Domain"] = domainToJSON<float>(n.domain);
+                break;
+            }
+            case QMetaType::Int:
+            {
+                m_obj["Value"] = n.value.toInt();
+                m_obj["Domain"] = domainToJSON<int>(n.domain);
+                break;
+            }
+            case QMetaType::QString:
+            {
+                m_obj["Value"] = n.value.toString();
+                m_obj["Domain"] = domainToJSON<QString>(n.domain);
+                break;
+            }
+            case QMetaType::Bool:
+            {
+                m_obj["Value"] = n.value.toBool();
+                m_obj["Domain"] = domainToJSON<bool>(n.domain);
+                break;
+            }
+            case QMetaType::Char:
+            {
+                /*
+                m_obj["Value"] = n.value.toChar();
+                m_obj["Domain"] = domainToJSON<char>(n.domain);
+                */
+                break;
+            }
+            case QMetaType::QVariantList:
+            {
+                /*
+                m_obj["Value"] = n.value.toBool();
+                m_obj["Domain"] = domainToJSON<char>(n.domain);
+                */
+                break;
+            }
+            default:
+                ISCORE_TODO;
+                break;
         }
     }
 }
@@ -239,6 +300,11 @@ void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
         {
             n.value = QVariant::fromValue(m_obj["Value"].toInt());
             n.domain = JSONToDomain<int>(m_obj["Domain"].toObject());
+        }
+        else if(valueType == QString(QVariant::typeToName(QMetaType::QString)))
+        {
+            n.value = m_obj["Value"].toString();
+            n.domain = JSONToDomain<QString>(m_obj["Domain"].toObject());
         }
         else if(valueType == QString(QVariant::typeToName(QMetaType::QString)))
         {

@@ -48,7 +48,6 @@ struct AddressSettings : public AddressSettingsCommon
 };
 
 // This one has the whole path of the node in the name
-
 struct FullAddressSettings : public AddressSettingsCommon
 {
         iscore::Address address;

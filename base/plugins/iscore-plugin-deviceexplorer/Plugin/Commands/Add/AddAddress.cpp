@@ -47,8 +47,6 @@ void AddAddress::redo()
     auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
 
     // Make a full path (not taking the device into account.. for instance MIDI.1:/a/b would give /a/b)
-    // TODO use Address class.
-
     FullAddressSettings full = FullAddressSettings::make(m_addressSettings);
     auto fullpath = parentnode->fullPathWithDevice() + QStringList{m_addressSettings.name};
     full.address.device = fullpath.takeFirst();
@@ -58,9 +56,9 @@ void AddAddress::redo()
     explorer.deviceModel()->list().device(dev_node->deviceSettings().name).addAddress(full);
 
     // Add in the device explorer
-    iscore::Node* newNode = explorer.addAddress( m_parentNodePath.toNode(&explorer.rootNode()), m_addressSettings);
+    iscore::Node* newNode = explorer.addAddress(parentnode, m_addressSettings);
 
-    m_createdNodeIndex = m_parentNodePath.toNode(&explorer.rootNode())->indexOfChild(newNode);
+    m_createdNodeIndex = parentnode->indexOfChild(newNode);
 }
 
 int AddAddress::createdNodeIndex() const
