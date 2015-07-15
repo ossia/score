@@ -57,3 +57,5 @@ install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION bin
         COMPONENT Runtime)
+
+include(IScoreDeployment)

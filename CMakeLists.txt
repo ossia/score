@@ -41,5 +41,3 @@ write_compiler_detection_header(
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(base)
-
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreDeployment.cmake")
