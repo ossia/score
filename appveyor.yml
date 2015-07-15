@@ -17,4 +17,4 @@ build_script:
   - mkdir build
   - cd build
   - cmake -G"MinGW Makefiles" -DISCORE_STATIC_PLUGINS:Bool=True -DISCORE_COTIRE:Bool=True -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DCMAKE_PREFIX_PATH="C:/Qt/5.4/mingw491_32/lib/cmake/Qt5" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
-  - mingw32-make
+  - mingw32-make all_unity
