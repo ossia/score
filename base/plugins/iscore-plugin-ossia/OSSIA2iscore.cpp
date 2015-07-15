@@ -91,8 +91,7 @@ iscore::Value ToValue(const OSSIA::Value *val)
             break;
     }
 
-    iscore::Value iv; iv.val = v;
-    return iv;
+    return iscore::Value::fromVariant(v);
 }
 
 

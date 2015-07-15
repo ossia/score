@@ -7,6 +7,7 @@
 #include <State/Value.hpp>
 
 // TODO namespace
+// TODO moveme
 enum class IOType : int { Invalid, In, Out, InOut };
 const QMap<IOType, QString>& IOTypeStringMap();
 
@@ -52,7 +53,7 @@ struct AddressSettings : public AddressSettingsCommon
 struct FullAddressSettings : public AddressSettingsCommon
 {
         iscore::Address address;
-        static FullAddressSettings make(const AddressSettingsCommon& other)
+        static FullAddressSettings make(const AddressSettingsCommon& other) // TODO put it a qstringlist in args
         {
             FullAddressSettings as;
             static_cast<AddressSettingsCommon&>(as) = other;

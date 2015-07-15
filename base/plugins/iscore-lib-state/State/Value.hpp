@@ -20,6 +20,13 @@ struct Value
             return s;
         }
 
+        static Value fromVariant(const QVariant& var)
+        {
+            Value v;
+            v.val = var;
+            return v;
+        }
+
         Value() = default;
         Value(const Value&) = default;
         Value(Value&&) = default;
