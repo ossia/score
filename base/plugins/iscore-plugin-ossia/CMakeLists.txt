@@ -33,12 +33,7 @@ target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
                         iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer APIJamoma)
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(${PROJECT_NAME})
-endif()
+iscore_cotire(${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

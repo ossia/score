@@ -1,0 +1,8 @@
+function(iscore_cotire TheTarget)
+if(ISCORE_COTIRE)
+    if(ISCORE_COTIRE_ALL_HEADERS)
+        set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
+    endif()
+    cotire(${TheTarget})
+endif()
+endfunction()

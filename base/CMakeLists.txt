@@ -6,8 +6,9 @@ include_directories(lib)
 
 add_subdirectory(lib)
 add_subdirectory(plugins)
+
 if(ANDROID)
-	add_subdirectory(app-android)
+    add_subdirectory(app-android)
 else()
-	add_subdirectory(app)
+    add_subdirectory(app)
 endif()

@@ -109,12 +109,7 @@ if(NOT APPLE AND NOT WIN32)
     target_link_libraries(${PROJECT_NAME} dns_sd)
 endif()
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(${PROJECT_NAME})
-endif()
+iscore_cotire(${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/

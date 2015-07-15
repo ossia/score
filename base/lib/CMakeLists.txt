@@ -16,6 +16,7 @@ file(GLOB_RECURSE HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/core/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/iscore/*.hpp)
 
+qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/iscore.qrc")
 set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/menu/MenuInterface.cpp"
@@ -72,16 +73,10 @@ set(SRCS
 
 )
 
-add_library(iscore_lib_base ${SRCS} ${HEADERS})
+add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets)
 
-
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_lib_base PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(iscore_lib_base)
-endif()
+iscore_cotire(iscore_lib_base)
 
 install(TARGETS iscore_lib_base
         LIBRARY DESTINATION .

@@ -29,12 +29,7 @@ set_property(TARGET iscore_lib_inspector APPEND
              PROPERTY INTERFACE_COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
 
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_lib_inspector PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(iscore_lib_inspector)
-endif()
+iscore_cotire(iscore_lib_inspector)
 
 install(TARGETS iscore_lib_inspector
         LIBRARY DESTINATION .
@@ -59,13 +54,7 @@ add_library(iscore_plugin_inspector ${PLUGIN_HDRS} ${PLUGIN_SRCS})
 
 target_link_libraries(iscore_plugin_inspector iscore_lib_inspector)
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_plugin_inspector PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(iscore_plugin_inspector)
-endif()
-
+iscore_cotire(iscore_plugin_inspector)
 
 install(TARGETS iscore_plugin_inspector
         LIBRARY DESTINATION plugins/
