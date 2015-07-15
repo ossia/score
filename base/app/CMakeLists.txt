@@ -5,7 +5,6 @@ set(APPNAME "i-score")
 
 # TODO strip symbols after deployment build
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/)
-set(CMAKE_AUTORCC ON)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
@@ -15,7 +14,8 @@ set(JAMOMA_LIBS "Score;Modular;Foundation;DSP")
 set(JAMOMA_PLUGINS "MIDI;Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
 
 file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
-file(GLOB_RECURSE QRCS "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/iscore.qrc")
+
+qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/iscore.qrc")
 
 if(DEPLOYMENT_BUILD)
     add_executable(${APPNAME} WIN32 MACOSX_BUNDLE ${SRCS} ${QRCS})

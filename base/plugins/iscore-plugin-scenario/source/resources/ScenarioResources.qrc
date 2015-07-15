@@ -1,5 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+    <file>images/exit.svg</file>
+    <file>images/trigger.svg</file>
+    <file>images/loop.svg</file>
     <file>dict.txt</file>
 </qresource>
 </RCC>

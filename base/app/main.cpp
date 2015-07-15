@@ -24,7 +24,6 @@ int main(int argc, char** argv)
 {
 #if defined(ISCORE_STATIC_PLUGINS)
     Q_INIT_RESOURCE(iscore);
-    Q_INIT_RESOURCE(ScenarioPixmaps);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(DeviceExplorer);
 #endif

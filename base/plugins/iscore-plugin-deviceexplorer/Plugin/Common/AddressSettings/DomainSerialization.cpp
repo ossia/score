@@ -3,6 +3,7 @@
 #include <State/ValueSerialization.hpp>
 
 #include "DomainSerialization.hpp"
+
 QJsonObject DomainToJson(const iscore::Domain& d)
 {
     QJsonObject obj;
