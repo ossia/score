@@ -30,8 +30,6 @@ endif()
 
 find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools)
 
-message("Qt dir: ${QTDIR}")
-return()
 include(WriteCompilerDetectionHeader)
 write_compiler_detection_header(
   FILE iscore_compiler_detection.hpp
