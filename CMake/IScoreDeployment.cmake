@@ -16,13 +16,13 @@ set(CPACK_SOURCE_GENERATOR TGZ)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "i-score")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-include(CMake/IScoreDeploymentOSX.cmake)
+include(IScoreDeploymentOSX)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Android")
-include(CMake/IScoreDeploymentAndroid.cmake)
+include(IScoreDeploymentAndroid)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-include(CMake/IScoreDeploymentLinux.cmake)
+include(IScoreDeploymentLinux)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-include(CMake/IScoreDeploymentWindows.cmake)
+include(IScoreDeploymentWindows)
 endif()
 
 
