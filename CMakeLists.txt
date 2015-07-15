@@ -1,6 +1,8 @@
 project(iscore)
 cmake_minimum_required(VERSION 3.1)
 
+set(APPNAME "i-score")
+
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 
