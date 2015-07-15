@@ -41,7 +41,7 @@ else()
     set(CPACK_GENERATOR "TGZ")
 endif()
 
-install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/base/app/i-score.sh"
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/i-score.sh"
         DESTINATION "."
         COMPONENT DynamicRuntimeHelper)
 
