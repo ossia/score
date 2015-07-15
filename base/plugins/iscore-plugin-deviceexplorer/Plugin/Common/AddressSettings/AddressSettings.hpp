@@ -18,9 +18,9 @@ namespace iscore
 {
 struct Domain
 {
-        QVariant min;
-        QVariant max;
-        QVariantList values;
+        Value min;
+        Value max;
+        ValueList values;
 };
 }
 

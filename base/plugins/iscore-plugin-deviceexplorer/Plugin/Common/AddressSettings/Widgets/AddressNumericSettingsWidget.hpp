@@ -46,8 +46,8 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         {
             auto settings = getCommonSettings();
             settings.value.val = T(m_valueSBox->value());
-            settings.domain.min = T(m_minSBox->value());
-            settings.domain.max = T(m_maxSBox->value());
+            settings.domain.min.val = T(m_minSBox->value());
+            settings.domain.max.val = T(m_maxSBox->value());
             return settings;
         }
 
@@ -58,8 +58,8 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
                 m_valueSBox->setValue(settings.value.val.value<T>());
             }
 
-            m_minSBox->setValue(settings.domain.min.toDouble());
-            m_maxSBox->setValue(settings.domain.max.toDouble());
+            m_minSBox->setValue(settings.domain.min.val.toDouble());
+            m_maxSBox->setValue(settings.domain.max.val.toDouble());
 
             // TODO if the "values" part of the domain is set, we
             // have to display a combobox instead.

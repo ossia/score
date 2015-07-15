@@ -153,12 +153,12 @@ iscore::Node* ToDeviceExplorer(const OSSIA::Node &node)
 iscore::Domain ToDomain(OSSIA::Domain &domain)
 {
     iscore::Domain d;
-    d.min = ToValue(domain.getMin()).val;
-    d.max = ToValue(domain.getMax()).val;
+    d.min = ToValue(domain.getMin());
+    d.max = ToValue(domain.getMax());
 
     for(const auto& val : domain.getValues())
     {
-        d.values.append(ToValue(val).val);
+        d.values.append(ToValue(val));
     }
 
     return d;

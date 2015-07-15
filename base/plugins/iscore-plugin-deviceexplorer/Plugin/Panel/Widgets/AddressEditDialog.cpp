@@ -140,9 +140,9 @@ AddressSettings AddressEditDialog::makeDefaultSettings()
     static AddressSettings defaultSettings
             = [] () {
         AddressSettings s;
-        s.value.val = 0;
-        s.domain.min = 0;
-        s.domain.max = 0;
+        s.value = iscore::Value::fromVariant(0);
+        s.domain.min = iscore::Value::fromVariant(0);
+        s.domain.max = iscore::Value::fromVariant(100);
         return s;
     }();
 

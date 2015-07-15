@@ -373,7 +373,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->addressSettings().domain.min;
+                return node->addressSettings().domain.min.val;
             }
         }
             break;
@@ -382,7 +382,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->addressSettings().domain.max;
+                return node->addressSettings().domain.max.val;
             }
         }
             break;

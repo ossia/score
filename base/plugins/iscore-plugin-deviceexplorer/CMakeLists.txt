@@ -17,6 +17,8 @@ file(GLOB_RECURSE HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.hpp")
 
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/DomainSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/NodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/SingletonProtocolList.cpp"
 
@@ -47,7 +49,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressStringSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPlugin.cpp"
