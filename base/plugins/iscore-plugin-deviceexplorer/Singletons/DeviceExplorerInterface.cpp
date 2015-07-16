@@ -48,6 +48,7 @@ Message DeviceExplorer::messageFromModelIndex(const QModelIndex& m)
     mess.address = addressFromModelIndex(m);
 
     auto node = static_cast<Node*>(m.internalPointer());
+    qDebug() << node->addressSettings().name << node->addressSettings().value.val;
     mess.value = node->addressSettings().value;
 
     return mess;
