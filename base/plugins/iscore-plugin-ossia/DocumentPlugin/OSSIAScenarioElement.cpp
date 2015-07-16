@@ -127,7 +127,7 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
                 iscore::convert::time(cst.minDuration()),
                 iscore::convert::time(cst.maxDuration()));
 
-    m_ossia_scenario->addConstraint(ossia_cst);
+    m_ossia_scenario->addTimeConstraint(ossia_cst);
 
     // Create the mapping object
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
@@ -271,7 +271,7 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
 {
     auto it = m_ossia_constraints.find(id);
     auto cst = (*it).second;
-    m_ossia_scenario->removeConstraint(cst->constraint());
+    m_ossia_scenario->removeTimeConstraint(cst->constraint());
 
     m_ossia_constraints.erase(it);
     delete cst;
