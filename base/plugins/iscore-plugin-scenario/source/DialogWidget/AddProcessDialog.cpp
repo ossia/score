@@ -4,7 +4,7 @@
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QInputDialog>
-
+#include <QApplication>
 AddProcessDialog::AddProcessDialog(QWidget *parent) :
     QWidget {parent}
 {
@@ -15,7 +15,7 @@ void AddProcessDialog::launchWindow()
 {
     bool ok = false;
     auto process_list = ProcessList::getProcessesName();
-    auto process_name = QInputDialog::getItem(this,
+    auto process_name = QInputDialog::getItem(qApp->activeWindow(),
         tr("Choose a process"),
         tr("Choose a process"),
         process_list,
