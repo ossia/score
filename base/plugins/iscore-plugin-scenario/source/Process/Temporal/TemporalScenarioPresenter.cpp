@@ -201,8 +201,12 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(
 // TODO refactor these three ?
 void TemporalScenarioPresenter::on_stateRemoved(const id_type<StateModel> &stateId)
 {
-    delete m_displayedStates.at(stateId);
-    m_displayedStates.remove(stateId);
+    auto it = m_displayedStates.find(stateId);
+    if(it != m_displayedStates.end())
+    {
+        delete *it;
+        m_displayedStates.get().erase(it);
+    }
 
     m_view->update();
 }
@@ -211,8 +215,12 @@ void TemporalScenarioPresenter::on_stateRemoved(const id_type<StateModel> &state
 void TemporalScenarioPresenter::on_eventRemoved(
         const id_type<EventModel>& eventId)
 {
-    delete m_events.at(eventId);
-    m_events.remove(eventId);
+    auto it = m_events.find(eventId);
+    if(it != m_events.end())
+    {
+        delete *it;
+        m_events.get().erase(it);
+    }
 
     m_view->update();
 }
@@ -220,8 +228,12 @@ void TemporalScenarioPresenter::on_eventRemoved(
 void TemporalScenarioPresenter::on_timeNodeRemoved(
         const id_type<TimeNodeModel>& timeNodeId)
 {
-    delete m_timeNodes.at(timeNodeId);
-    m_timeNodes.remove(timeNodeId);
+    auto it = m_timeNodes.find(timeNodeId);
+    if(it != m_timeNodes.end())
+    {
+        delete *it;
+        m_timeNodes.get().erase(it);
+    }
 
     m_view->update();
 }
@@ -236,8 +248,12 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
         if(::viewModel(pres)->id() == constraintViewModelId)
         {
             auto cid = pres->id();
-            m_constraints.remove(cid);
-            delete pres;
+            auto it = m_constraints.find(cid);
+            if(it != m_constraints.end())
+            {
+                m_constraints.remove(cid);
+                delete pres;
+            }
 
             m_view->update();
             break;

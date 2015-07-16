@@ -345,7 +345,7 @@ void ScenarioModel::removeConstraint(ConstraintModel* cstr)
 
 void ScenarioModel::removeEvent(EventModel* ev)
 {
-    const auto& eventId = ev->id();
+    auto eventId = ev->id(); // Copy because it gets deleted.
     emit eventRemoved_before(eventId);
 
     m_events.remove(eventId);

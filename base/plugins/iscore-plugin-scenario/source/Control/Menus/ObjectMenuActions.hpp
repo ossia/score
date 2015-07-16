@@ -25,5 +25,5 @@ class ObjectMenuActions : public AbstractMenuActions
         QAction *m_elementsToJson;
         QAction *m_addProcess;
 
-        AddProcessDialog m_addProcessDialog;
+        AddProcessDialog* m_addProcessDialog;
 };

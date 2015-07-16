@@ -119,15 +119,16 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     // ADD PROCESS
-    m_addProcessDialog.setParent(qApp->activeWindow());
-    connect(&m_addProcessDialog, &AddProcessDialog::okPressed,
+    m_addProcessDialog = new AddProcessDialog(qApp->activeWindow());
+
+    connect(m_addProcessDialog, &AddProcessDialog::okPressed,
             this, &ObjectMenuActions::addProcessInConstraint);
 
     m_addProcess = new QAction{tr("Add Process in constraint"), this};
     connect(m_addProcess, &QAction::triggered,
             [this]()
     {
-        m_addProcessDialog.launchWindow();
+        m_addProcessDialog->launchWindow();
     });
 
 }
