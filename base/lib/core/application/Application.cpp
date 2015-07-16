@@ -12,19 +12,60 @@ using namespace iscore;
 #include <QMessageBox>
 static Application* application_instance = nullptr;
 
+/**	A TTBlue exception is thown with this object. */
+class TTException {
+    const char*	reason;
+public:
+    TTException(const char* aReason)
+    : reason(aReason)
+    {}
+
+    const char* getReason()
+    {
+        return reason;
+    }
+};
+
+class CatchyApplication : public QApplication
+{
+    public:
+        using QApplication::QApplication;
+        bool notify(QObject * receiver, QEvent * event)
+        {
+            try
+            {
+                return QApplication::notify(receiver, event);
+            }
+            catch(TTException& e)
+            {
+                QMessageBox::information(0, "", QObject::tr("Internal error: ") + e.getReason(),QMessageBox::Ok);
+            }
+            catch(std::exception& e)
+            {
+                QMessageBox::information(0, "", QObject::tr("Internal error: ") + e.what(),QMessageBox::Ok);
+            }
+            catch(...)
+            {
+                QMessageBox::information(0, "", QObject::tr("Internal error.") ,QMessageBox::Ok);
+            }
+
+            return false;
+        }
+};
+
 Application::Application(int& argc, char** argv) :
     NamedObject {"Application", nullptr}
 {
     // Application
     // Crashes if put in member initialization list... :(
-    m_app = new QApplication{argc, argv};
+    m_app = new CatchyApplication{argc, argv};
     ::application_instance = this;
 
     QPixmap logo{":/iscore.png"};
     QSplashScreen splash(logo, Qt::FramelessWindowHint);
     splash.show();
 
-    qDebug() << QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");
+    QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");
     m_app->setFont(QFont{"Ubuntu", 10, QFont::Normal});
     this->setParent(m_app);
     this->setObjectName("Application");
