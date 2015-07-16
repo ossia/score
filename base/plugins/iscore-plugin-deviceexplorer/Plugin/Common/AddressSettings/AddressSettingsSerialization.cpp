@@ -36,7 +36,7 @@ void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
 {
     m_stream >> n.name
             >> n.value
-            >> n.domain
+            >> n.domain // TODO how is it saved ?
             >> (int&)n.ioType
             >> (int&)n.clipMode
             >> n.unit

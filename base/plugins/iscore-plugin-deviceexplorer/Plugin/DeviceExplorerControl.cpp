@@ -66,8 +66,10 @@ iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
         const VisitorVariant &var,
         iscore::DocumentModel *model)
 {
-    auto plug = new DeviceDocumentPlugin(var, model);
+    if(name != DeviceDocumentPlugin::staticMetaObject.className())
+        return nullptr;
 
+    auto plug = new DeviceDocumentPlugin(var, model);
     return plug;
 }
 

@@ -29,6 +29,8 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
     QList<QPair <QPair <QString,QString>, QByteArray> > undoStack, redoStack;
     m_stream >> undoStack >> redoStack;
 
+    checkDelimiter();
+
 
     stack.updateStack([&] ()
     {
@@ -55,6 +57,4 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
             stack.m_redoable.push(cmd);
         }
     });
-
-    checkDelimiter();
 }

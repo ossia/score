@@ -132,7 +132,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
             if(val != int32_t (0xDEADBEEF))
             {
-                throw std::runtime_error("Corrupt QDataStream");
+                throw std::runtime_error("Corrupt save file.");
             }
         }
 
