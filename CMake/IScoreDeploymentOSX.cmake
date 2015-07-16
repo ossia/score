@@ -49,7 +49,7 @@ if(ISCORE_STATIC_PLUGINS) # For now we only take this branch
     endforeach()
 
     # We don't put the Jamoma path in here, because the paths get perverted by DeployQt5.
-    install_qt5_executable(${APPNAME}.app "" "" "${CMAKE_BINARY_DIR}/base/lib")
+    install_qt5_executable(${APPNAME}.app "" "Qt5Core;Qt5Widgets;Qt5Network;Qt5PrintSupport;Qt5Test;Qt5Gui;" "${CMAKE_BINARY_DIR}/base/lib")
 else()
     # TODO fix this.
     set(ISCORE_PLUGINS "device_explorer_plugin;inspector_plugin;scenario_process;CurvePlugin;iscore_cohesion;networkplugin;pluginsettings_plugin")

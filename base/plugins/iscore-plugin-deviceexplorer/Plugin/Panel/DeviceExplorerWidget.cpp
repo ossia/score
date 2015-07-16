@@ -216,28 +216,31 @@ void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     updateActions();
-    QMenu contextMenu(this);
-    contextMenu.addAction(m_editAction);
-    contextMenu.addAction(m_refreshAction);
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_addDeviceAction);
-    contextMenu.addAction(m_addSiblingAction);
-    contextMenu.addAction(m_addChildAction);
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_copyAction);
-    contextMenu.addAction(m_cutAction);
-    contextMenu.addAction(m_pasteAction);
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_moveUpAction);
-    contextMenu.addAction(m_moveDownAction);
-    contextMenu.addAction(m_promoteAction);
-    contextMenu.addAction(m_demoteAction);
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_removeNodeAction);/*
-  contextMenu.addAction(m_undoAction);
-  contextMenu.addAction(m_redoAction);*/
+    QMenu* contextMenu = new QMenu(this);
 
-    contextMenu.exec(event->globalPos());
+    connect(contextMenu, &QMenu::triggered,
+            [=] () { contextMenu->deleteLater(); });
+    contextMenu->addAction(m_editAction);
+    contextMenu->addAction(m_refreshAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(m_addDeviceAction);
+    contextMenu->addAction(m_addSiblingAction);
+    contextMenu->addAction(m_addChildAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(m_copyAction);
+    contextMenu->addAction(m_cutAction);
+    contextMenu->addAction(m_pasteAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(m_moveUpAction);
+    contextMenu->addAction(m_moveDownAction);
+    contextMenu->addAction(m_promoteAction);
+    contextMenu->addAction(m_demoteAction);
+    contextMenu->addSeparator();
+    contextMenu->addAction(m_removeNodeAction);/*
+  contextMenu->addAction(m_undoAction);
+  contextMenu->addAction(m_redoAction);*/
+
+    contextMenu->exec(event->globalPos());
 }
 
 void
