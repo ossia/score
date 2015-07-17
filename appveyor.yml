@@ -27,6 +27,9 @@ build_script:
   - mingw32-make all_unity
   - cpack -G NSIS all_unity
   
+on_failure: 
+  - type C:/projects/i-score/build/_CPack_Packages/win32/NSIS/PreinstallOutput.log
+  
 artifacts:
   - name: Installer
     path: 'i-score-*-win32.exe'
