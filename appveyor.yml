@@ -1,14 +1,17 @@
 clone_depth: 1
 
 environment:
-  QTDIR: C:\Qt\5.4\mingw491_32
-  MINGW: C:\Qt\Tools\mingw491_32
+  QTDIR: C:\Qt\5.5\mingw492_32
+  MINGW: C:\Qt\Tools\mingw492_32
   BOOST_ROOT: c:\Libraries\boost
   BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
+  JAMOMA_ROOT: c:\Jamoma
   
 configuration: Release
 
 install:
+  - appveyor DownloadFile "https://www.dropbox.com/s/wfzjuyt6nu73e7p/JamomaCore-0.6-dev-win32.exe?dl=1" -FileName Jamoma.exe
+  - Jamoma.exe /S /D=%JAMOMA_ROOT%
   - choco install -y nsis cmake.portable
   - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   
@@ -16,7 +19,7 @@ build_script:
   - git submodule update --init
   - mkdir build
   - cd build
-  - cmake -G"MinGW Makefiles" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DISCORE_COTIRE:Bool=True -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DCMAKE_PREFIX_PATH="C:/Qt/5.5/mingw492_32/lib/cmake/Qt5;c:\Program Files (x86)\JamomaCore 0.6-dev\share\cmake\jamoma" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
+  - cmake -G"MinGW Makefiles" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DISCORE_COTIRE:Bool=True -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%\share\cmake\jamoma" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
   - mingw32-make all_unity
   - cpack
   - mv i-score-0.3.0-win32.exe i-score
