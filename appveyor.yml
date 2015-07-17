@@ -28,7 +28,7 @@ build_script:
   - cpack -G NSIS all_unity
   
 on_failure: 
-  - type C:/projects/i-score/build/_CPack_Packages/win32/NSIS/PreinstallOutput.log
+  - type C:\projects\i-score\build\_CPack_Packages\win32\NSIS\PreinstallOutput.log
   
 artifacts:
   - name: Installer
