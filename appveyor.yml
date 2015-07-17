@@ -38,6 +38,8 @@ deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
   artifact: /.*\.exe/
+  auth_token: 
+    secure: j0nBV9xVItdG3j6d0gHoyvrzi7TOhAy9/QIeyCbFeP8PTqq7DPr1oYwL5WIkPaXe
   draft: false
   prerelease: false
   on:
