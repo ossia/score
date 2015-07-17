@@ -12,7 +12,8 @@ configuration: Release
 install:
   - appveyor DownloadFile "https://www.dropbox.com/s/wfzjuyt6nu73e7p/JamomaCore-0.6-dev-win32.exe?dl=1" -FileName Jamoma.exe
   - Jamoma.exe /S /D=%JAMOMA_ROOT%
-  - choco install -y nsis cmake.portable
+  - choco install -y nsis -pre
+  - choco install -y cmake.portable
   - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   
 build_script:
