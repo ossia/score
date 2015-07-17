@@ -24,6 +24,15 @@
 
 #include <QGraphicsScene>
 
+#include <State/StateMimeTypes.hpp>
+#include <QMimeData>
+#include <QJsonDocument>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <core/document/Document.hpp>
+#include "Commands/Event/AddStateToEvent.hpp"
+#include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
+#include "Commands/Scenario/Creations/CreateStateMacro.hpp"
+
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         const TemporalScenarioLayer& process_view_model,
         Layer* view,
@@ -381,20 +390,13 @@ void TemporalScenarioPresenter::updateAllElements()
     }
 }
 
-#include <QMimeData>
-#include <QJsonDocument>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <core/document/Document.hpp>
-#include "Commands/Event/AddStateToEvent.hpp"
-#include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
-#include "Commands/Scenario/Creations/CreateStateMacro.hpp"
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.
-    if(mime->formats().contains("application/x-iscore-state")) // TODO Use macros
+    if(mime->formats().contains(iscore::mime::state()))
     {
         Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
+            QJsonDocument::fromJson(mime->data(iscore::mime::state())).object()};
         iscore::State s;
         deser.writeTo(s);
 

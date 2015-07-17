@@ -2,9 +2,15 @@
 #include "DisplayedStateModel.hpp"
 #include "StateView.hpp"
 
+#include "Commands/Event/AddStateToEvent.hpp"
+#include "Commands/Event/State/AddStateWithData.hpp"
+#include <State/StateMimeTypes.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QGraphicsScene>
+#include <QMimeData>
+#include <QJsonDocument>
 
 StatePresenter::StatePresenter(
         const StateModel &model,
@@ -66,18 +72,13 @@ bool StatePresenter::isSelected() const
     return m_model.selection.get();
 }
 
-#include "Commands/Event/AddStateToEvent.hpp"
-#include <QMimeData>
-#include <QJsonDocument>
-#include <iscore/document/DocumentInterface.hpp>
-#include "Commands/Event/State/AddStateWithData.hpp"
 void StatePresenter::handleDrop(const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.
-    if(mime->formats().contains("application/x-iscore-state"))
+    if(mime->formats().contains(iscore::mime::state()))
     {
         Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
+            QJsonDocument::fromJson(mime->data(iscore::mime::state())).object()};
         iscore::State s;
         deser.writeTo(s);
 

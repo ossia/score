@@ -15,6 +15,8 @@
 #include <core/document/Document.hpp>
 #include <QJsonDocument>
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <State/StateMimeTypes.hpp>
+#include "DeviceExplorerMimeTypes.hpp"
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -882,17 +884,10 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
 }
 
 
-namespace
-{
-    const QString MimeTypeDevice = "application/x-iscore-deviceexplorer-device";
-    const QString MimeTypeAddress = "application/x-iscore-deviceexplorer-address";
-}
-
-
 /*
 Drag and drop works by deleting the dragged items and creating a new set of dropped items that match those dragged.
 I will/may call insertRows(), removeRows(), dropMimeData(), ...
-We define two MimeTypes : MimeTypeDevice & MimeTypeAddress.
+We define two MimeTypes : address and device.
 It allows to distinguish whether we are drag'n dropping devices or addresses.
  */
 
@@ -915,7 +910,7 @@ DeviceExplorerModel::supportedDragActions() const
 QStringList
 DeviceExplorerModel::mimeTypes() const
 {
-    return {MimeTypeDevice, MimeTypeAddress}; //TODO: add an xml MimeType to support drop of namespace XML file ?
+    return {iscore::mime::device(), iscore::mime::address()}; //TODO: add an xml MimeType to support drop of namespace XML file ?
 }
 
 #include <Singletons/DeviceExplorerInterface.hpp>
@@ -943,7 +938,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
             ser.readFrom(*n);
             QMimeData* mimeData = new QMimeData;
             mimeData->setData(
-                        n->isDevice() ? MimeTypeDevice : MimeTypeAddress,
+                        n->isDevice() ? iscore::mime::device() : iscore::mime::address(),
                         QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
             if(!n->isDevice())
@@ -954,7 +949,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
                 State s{messages};
                 ser.m_obj = {};
                 ser.readFrom(s);
-                mimeData->setData("application/x-iscore-state",
+                mimeData->setData(iscore::mime::state(),
                                   QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
             }
             return mimeData;
@@ -979,7 +974,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
             Serializer<JSONObject> ser;
             ser.readFrom(s);
 
-            mimeData->setData("application/x-iscore-state",
+            mimeData->setData(iscore::mime::state(),
                               QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
             return mimeData;
@@ -1005,7 +1000,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
         return false;
     }
 
-    if(! mimeData || (! mimeData->hasFormat(MimeTypeDevice) && ! mimeData->hasFormat(MimeTypeAddress)))
+    if(! mimeData || (! mimeData->hasFormat(iscore::mime::device()) && ! mimeData->hasFormat(iscore::mime::address())))
     {
         return false;
     }
@@ -1013,7 +1008,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
 
     Node* parentNode = nodeFromModelIndex(parent);
 
-    if(mimeData->hasFormat(MimeTypeAddress))
+    if(mimeData->hasFormat(iscore::mime::address()))
     {
         if(parentNode == &m_rootNode)
         {
@@ -1022,7 +1017,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     }
     else
     {
-        Q_ASSERT(mimeData->hasFormat(MimeTypeDevice));
+        Q_ASSERT(mimeData->hasFormat(iscore::mime::device()));
 
         if(parentNode != &m_rootNode)
         {
@@ -1053,20 +1048,20 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         return false;
     }
 
-    if(! mimeData || (! mimeData->hasFormat(MimeTypeDevice) && ! mimeData->hasFormat(MimeTypeAddress)))
+    if(! mimeData || (! mimeData->hasFormat(iscore::mime::device()) && ! mimeData->hasFormat(iscore::mime::address())))
     {
         return false;
     }
 
     QModelIndex parentIndex; //invalid
     Node* parentNode = &m_rootNode;
-    QString mimeType = MimeTypeDevice;
+    QString mimeType = iscore::mime::device();
 
-    if(mimeData->hasFormat(MimeTypeAddress))
+    if(mimeData->hasFormat(iscore::mime::address()))
     {
         parentIndex = parent;
         parentNode = nodeFromModelIndex(parent);
-        mimeType = MimeTypeAddress;
+        mimeType = iscore::mime::address();
 
         if(parentNode == &m_rootNode)
         {
@@ -1075,8 +1070,8 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     }
     else
     {
-        Q_ASSERT(mimeData->hasFormat(MimeTypeDevice));
-        Q_ASSERT(mimeType == MimeTypeDevice);
+        Q_ASSERT(mimeData->hasFormat(iscore::mime::device()));
+        Q_ASSERT(mimeType == iscore::mime::device());
     }
 
     if(parentNode)

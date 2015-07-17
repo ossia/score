@@ -7,6 +7,7 @@
 #include "Process/ScenarioModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <State/StateMimeTypes.hpp>
 
 #include <QMimeData>
 #include <QJsonDocument>
@@ -93,10 +94,10 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
     // todo Maybe the drop should be handled by the scenario presenter ?? or not
 
     // If the mime data has states in it we can handle it.
-    if(scenar && mime->formats().contains("application/x-iscore-state")) // TODO Use macros
+    if(scenar && mime->formats().contains(iscore::mime::state()))
     {
         Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data("application/x-iscore-state")).object()};
+            QJsonDocument::fromJson(mime->data(iscore::mime::state())).object()};
         iscore::State s;
         deser.writeTo(s);
 
