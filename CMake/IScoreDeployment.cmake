@@ -3,7 +3,7 @@ if(NOT DEPLOYMENT_BUILD)
 endif()
 
 set(JAMOMA_LIBS "Score;Modular;Foundation;DSP")
-set(JAMOMA_PLUGINS "MIDI;Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
+set(JAMOMA_PLUGINS "Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
 
 # TODO use git tags
 set(CPACK_PACKAGE_NAME "i-score")
