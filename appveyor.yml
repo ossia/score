@@ -30,7 +30,7 @@ artifacts:
     path: 'i-score-*-win32.exe'
 
 deploy:
-  release: $(appveyor_build_version)
+  release: $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
   artifact: /.*\.exe/
   draft: false
