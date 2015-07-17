@@ -15,12 +15,12 @@ install:
   - appveyor DownloadFile "https://unsis.googlecode.com/files/nsis-2.46.5-Unicode-setup.exe" -FileName nsis.exe
   - nsis.exe /S
   - choco install -y cmake.portable
-  - set PATH=%PATH%;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   
 build_script:
   - git submodule update --init
   - mkdir build
   - cd build
+  - set PATH=%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   - cmake -G"MinGW Makefiles" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DISCORE_COTIRE:Bool=True -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%\share\cmake\jamoma" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
   - mingw32-make all_unity
   - cpack
