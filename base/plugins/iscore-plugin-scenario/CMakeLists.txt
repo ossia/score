@@ -142,6 +142,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TextDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/Plugin/ScenarioContextMenuPluginList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/OldFormatConversion.cpp"

@@ -28,23 +28,7 @@
 #include <QDialogButtonBox>
 #include <QTextBlock>
 #include <QDialog>
-
-// TODO make a class
-class TextDialog : public QDialog
-{
-    public:
-        TextDialog(const QString& s)
-        {
-            this->setLayout(new QGridLayout);
-            auto textEdit = new QTextEdit;
-            textEdit->setPlainText(s);
-            layout()->addWidget(textEdit);
-            auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-            layout()->addWidget(buttonBox);
-
-            connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-        }
-};
+#include "TextDialog.hpp"
 
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
@@ -113,7 +97,7 @@ ObjectMenuActions::ObjectMenuActions(
             [this]()
     {
         QJsonDocument doc{copySelectedElementsToJson()};
-        auto s = new TextDialog(doc.toJson(QJsonDocument::Indented));
+        auto s = new TextDialog{doc.toJson(QJsonDocument::Indented), qApp->activeWindow()};
 
         s->show();
     });
