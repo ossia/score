@@ -3,6 +3,9 @@
 #include <QDebug>
 #include <QMimeData>
 #include <QMap>
+
+#include <State/StateMimeTypes.hpp>
+#include "Plugin/Panel/DeviceExplorerMimeTypes.hpp"
 enum class LibraryColumns
 {
     Name, Category, Tags, Json
@@ -135,17 +138,14 @@ bool JSONModel::moveRows(
 
 
 // TODO refactor with device explorer
-static const QString MimeTypeState = "application/x-iscore-state";
 static const QString MimeTypeScenarioData = "application/x-iscore-scenariodata";
 static const QString MimeTypeProcess = "application/x-iscore-processdata";
-static const QString MimeTypeDevice = "application/x-iscore-deviceexplorer-device";
-static const QString MimeTypeAddress = "application/x-iscore-deviceexplorer-address";
 static const QMap<Category, QString> mimeTypeMap{
-    {Category::State, MimeTypeState},
+	{Category::State, iscore::mime::state()},
     {Category::ScenarioData, MimeTypeScenarioData},
     {Category::Process, MimeTypeProcess},
-    {Category::Device, MimeTypeDevice},
-    {Category::Address, MimeTypeAddress}
+	{Category::Device, iscore::mime::device()},
+	{Category::Address, iscore::mime::address()}
 };
 
 static const QMap<Category, QString>& categoryMimeTypeMap()
@@ -156,11 +156,11 @@ static const QMap<Category, QString>& categoryMimeTypeMap()
 QStringList JSONModel::mimeTypes() const
 {
     return {
-        MimeTypeState,
+		iscore::mime::state(),
         MimeTypeScenarioData,
         MimeTypeProcess,
-        MimeTypeDevice,
-        MimeTypeAddress
+		iscore::mime::device(),
+		iscore::mime::address()
     };
 }
 

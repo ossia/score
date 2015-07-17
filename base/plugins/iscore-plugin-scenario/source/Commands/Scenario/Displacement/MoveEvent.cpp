@@ -95,9 +95,9 @@ void MoveEvent::undo()
     for(auto& obj : m_savedConstraints)
     {
         // 1. Clear the constraint
-        auto cmd1 = new ClearConstraint{
-                    ObjectPath{obj.first.first}};
-        cmd1->redo();
+        // TODO Don't use a command since it serializes a ton of unused stuff.
+        ClearConstraint clear_cmd{ObjectPath{obj.first.first}};
+        clear_cmd.redo();
 
         auto& constraint = obj.first.first.find<ConstraintModel>();
         // 2. Restore the rackes & processes.

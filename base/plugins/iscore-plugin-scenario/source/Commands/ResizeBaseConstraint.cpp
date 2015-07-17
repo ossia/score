@@ -79,7 +79,6 @@ void MoveBaseEvent::undo()
     // during this command.
 
     // 1. Clear the constraint
-    // TODO check if there is some new ClearConstraint leaking somewhere else
     ClearConstraint clearCmd{iscore::IDocument::path(scenar.baseConstraint())};
     clearCmd.redo();
 
