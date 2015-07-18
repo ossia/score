@@ -1,16 +1,13 @@
 #pragma once
+#include <QDialog>
+#include <QList>
+#include <QString>
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 
 class QComboBox;
 class QGridLayout;
 class QLineEdit;
 class AddressSettingsWidget;
-
-#include <QDialog>
-#include <QList>
-#include <QString>
-#include "Common/AddressSettings/AddressSettings.hpp"
-
-
 class AddressEditDialog : public QDialog
 {
         Q_OBJECT
@@ -25,13 +22,10 @@ class AddressEditDialog : public QDialog
         void setSettings(const AddressSettings& settings);
 
     protected slots:
-
         void updateNodeWidget();
 
     protected:
-
         void buildGUI();
-
         void initAvailableValueTypes();
 
     protected:

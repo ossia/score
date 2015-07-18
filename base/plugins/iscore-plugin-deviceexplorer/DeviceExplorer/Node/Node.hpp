@@ -4,7 +4,7 @@
 #include <QJsonObject>
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
-#include <Plugin/Common/AddressSettings/AddressSettings.hpp>
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 

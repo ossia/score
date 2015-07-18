@@ -2,7 +2,7 @@
 #include <QString>
 #include <State/Message.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
-#include <Plugin/Common/AddressSettings/AddressSettings.hpp>
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 #include <memory>
 
 #include <DeviceExplorer/Node/Node.hpp>

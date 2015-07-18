@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
@@ -7,21 +6,12 @@
 #include <State/Value.hpp>
 #include "IOType.hpp"
 #include "ClipMode.hpp"
-
+#include "Domain.hpp"
 namespace iscore
 {
-
-
-struct Domain
-{
-        Value min;
-        Value max;
-        ValueList values;
-};
-}
-
 using RefreshRate = int;
 using RepetitionFilter = bool;
+}
 
 struct AddressSettingsCommon
 {
@@ -32,8 +22,8 @@ struct AddressSettingsCommon
     iscore::ClipMode clipMode{};
     QString unit;
 
-    RepetitionFilter repetitionFilter{};
-    RefreshRate rate{};
+    iscore::RepetitionFilter repetitionFilter{};
+    iscore::RefreshRate rate{};
 
     int priority{};
 

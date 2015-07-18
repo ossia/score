@@ -17,8 +17,8 @@ file(GLOB_RECURSE HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/*.hpp")
 
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/DomainSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/DomainSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/AddressSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/NodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/SingletonProtocolList.cpp"
 
@@ -30,6 +30,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/ProtocolList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/ProtocolFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceList.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/AddressSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/IOType.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/ClipMode.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/NodePath.cpp"
 
@@ -42,15 +47,14 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Insert.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/UpdateNamespace.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettings.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/IOType.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/ClipMode.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressTupleSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressStringSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsFactory.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPlugin.cpp"

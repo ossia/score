@@ -8,9 +8,6 @@
 #include <QSpinBox>
 #include <QFormLayout>
 
-#include "Common/AddressSettings/AddressSettings.hpp"
-
-
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {

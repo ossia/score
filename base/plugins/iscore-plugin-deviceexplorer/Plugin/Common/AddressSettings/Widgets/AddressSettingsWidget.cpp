@@ -5,7 +5,6 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QInputDialog>
-#include "../AddressSettings.hpp"
 
 AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     QWidget(parent),

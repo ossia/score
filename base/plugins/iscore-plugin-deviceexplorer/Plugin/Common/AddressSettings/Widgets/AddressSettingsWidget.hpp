@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QList>
 #include <QString>
-#include "Common/AddressSettings/AddressSettings.hpp"
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 
 struct AddressSettings;
 class QComboBox;
