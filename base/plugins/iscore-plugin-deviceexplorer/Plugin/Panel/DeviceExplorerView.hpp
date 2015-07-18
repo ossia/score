@@ -20,8 +20,6 @@ class DeviceExplorerView : public QTreeView
         DeviceExplorerModel* model();
         const DeviceExplorerModel* model() const;
 
-        int getIOTypeColumn() const;
-
         bool hasCut() const;
         void copy();
         void cut();

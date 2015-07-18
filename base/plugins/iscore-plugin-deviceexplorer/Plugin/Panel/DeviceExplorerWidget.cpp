@@ -38,7 +38,7 @@ DeviceExplorerWidget::buildGUI()
 {
     m_ntView = new DeviceExplorerView(this);
 
-    m_ntView->setItemDelegateForColumn(m_ntView->getIOTypeColumn(), new IOTypeDelegate);
+    m_ntView->setItemDelegateForColumn((int)DeviceExplorerModel::Column::IOType, new IOTypeDelegate);
 
     connect(m_ntView, SIGNAL(selectionChanged()), this, SLOT(updateActions()));
 

@@ -38,6 +38,17 @@ class DeviceExplorerModel : public QAbstractItemModel
     public:
 
         enum class Insert {AsSibling, AsChild};
+        enum class Column : int
+        {
+            Name = 0,
+            Value,
+            IOType,
+            Min,
+            Max,
+            Priority,
+
+            Count //column count, always last
+        };
 
         explicit DeviceExplorerModel(DeviceDocumentPlugin*, QObject* parent = 0);
 
@@ -109,9 +120,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         virtual QMimeData* mimeData(const QModelIndexList& indexes) const override;
         virtual bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
         virtual bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
-
-        int getIOTypeColumn() const;
-        int getNameColumn() const;
 
         iscore::Node* nodeFromModelIndex(const QModelIndex& index) const;
         QModelIndex convertPathToIndex(const Path& path);

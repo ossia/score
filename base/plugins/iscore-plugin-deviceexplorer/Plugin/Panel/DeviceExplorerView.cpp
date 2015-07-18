@@ -79,13 +79,13 @@ DeviceExplorerView::setInitialColumnsSizes()
 {
     Q_ASSERT(model());
 
-    header()->resizeSection(this->model()->getNameColumn(), 220);
-    header()->resizeSection(this->model()->getIOTypeColumn(), 36);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Name, 220);
+    header()->resizeSection((int)DeviceExplorerModel::Column::IOType, 36);
     //TODO:UGLY : give proper access to columns in DeviceExplorerModel
-    header()->resizeSection(1, 50);
-    header()->resizeSection(3, 50);
-    header()->resizeSection(4, 50);
-    header()->resizeSection(6, 70);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Value, 50);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Min, 50);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Max, 50);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Priority, 70);
 
 }
 
@@ -264,27 +264,6 @@ DeviceExplorerView::headerMenuRequested(const QPoint& pos)
     contextMenu.exec(pos);
 }
 
-
-int
-DeviceExplorerView::getIOTypeColumn() const
-{
-    //TODO: how do we get the view/displayed column number & not the model column number ???
-
-    const DeviceExplorerModel* m = const_cast<DeviceExplorerView*>(this)->model();
-
-    if(m)
-    {
-        return m->getIOTypeColumn();
-    }
-    else
-    {
-        return 2; //TODO:UGLY : it should be static in DeviceExplorerModel ???
-    }
-
-
-
-}
-
 void
 DeviceExplorerView::selectionChanged(const QItemSelection& selected, const QItemSelection& deselected)
 {
@@ -323,7 +302,7 @@ DeviceExplorerView::selectedIndexes() const
     //We want only the indexes of the NAME column.
 
 
-    const int col = model()->getNameColumn();
+    const int col = (int)DeviceExplorerModel::Column::Name;
     QModelIndexList l = QTreeView::selectedIndexes();
 
     QModelIndexList l0;

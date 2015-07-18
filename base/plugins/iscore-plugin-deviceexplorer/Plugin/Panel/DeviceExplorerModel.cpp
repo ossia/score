@@ -21,20 +21,15 @@
 using namespace DeviceExplorer::Command;
 using namespace iscore;
 
-enum
-{
-    NAME_COLUMN = 0,
-    VALUE_COLUMN,
-    IOTYPE_COLUMN,
-    MIN_COLUMN,
-    MAX_COLUMN,
-    PRIORITY_COLUMN,
 
-    COLUMN_COUNT //always last
+static QMap<DeviceExplorerModel::Column, QString> HEADERS{
+    {DeviceExplorerModel::Column::Name, QObject::tr("Address")},
+    {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
+    {DeviceExplorerModel::Column::IOType, QObject::tr("I/O")},
+    {DeviceExplorerModel::Column::Min, QObject::tr("Min")},
+    {DeviceExplorerModel::Column::Max, QObject::tr("Max")},
+    {DeviceExplorerModel::Column::Priority, QObject::tr("Priority")},
 };
-
-
-static QString HEADERS[COLUMN_COUNT];
 
 DeviceExplorerModel::DeviceExplorerModel(
         DeviceDocumentPlugin* plug,
@@ -46,13 +41,6 @@ DeviceExplorerModel::DeviceExplorerModel(
       m_cmdQ{nullptr}
 {
     this->setObjectName("DeviceExplorerModel");
-
-    HEADERS[NAME_COLUMN] = tr("Address");
-    HEADERS[VALUE_COLUMN] = tr("Value");
-    HEADERS[IOTYPE_COLUMN] = tr("I/O");
-    HEADERS[MIN_COLUMN] = tr("min");
-    HEADERS[MAX_COLUMN] = tr("max");
-    HEADERS[PRIORITY_COLUMN] = tr("priority");
 
     m_cmdCreator = new DeviceExplorerCommandCreator{this};
 }
@@ -86,14 +74,7 @@ DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
 QStringList
 DeviceExplorerModel::getColumns() const
 {
-    QStringList l;
-
-    for(int i = 0; i < COLUMN_COUNT; ++i)
-    {
-        l.append(HEADERS[i]);
-    }
-
-    return l;
+    return HEADERS.values();
 }
 
 int DeviceExplorerModel::addDevice(Node* deviceNode)
@@ -176,7 +157,7 @@ void DeviceExplorerModel::removeNode(Node* node)
 QModelIndex
 DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
 {
-    if(row < 0 || column < 0 || column >= COLUMN_COUNT)
+    if(row < 0 || column < 0 || column >= (int)Column::Count)
     {
         return QModelIndex();
     }
@@ -257,13 +238,13 @@ DeviceExplorerModel::rowCount(const QModelIndex& parent) const
 int
 DeviceExplorerModel::columnCount() const
 {
-    return COLUMN_COUNT;
+    return (int)Column::Count;
 }
 
 int
 DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
 {
-    return COLUMN_COUNT;
+    return (int)Column::Count;
 }
 
 QVariant DeviceExplorerModel::getData(Path node, int column, int role)
@@ -281,7 +262,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
     const int col = index.column();
 
-    if(col < 0 || col >= COLUMN_COUNT)
+    if(col < 0 || col >= (int)Column::Count)
     {
         return QVariant();
     }
@@ -293,9 +274,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         return QVariant();
     }
 
-    switch(col)
+    switch((Column)col)
     {
-        case NAME_COLUMN:
+        case Column::Name:
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
@@ -325,7 +306,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         }
             break;
 
-        case VALUE_COLUMN:
+        case Column::Value:
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
@@ -349,7 +330,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         }
             break;
 
-        case IOTYPE_COLUMN:
+        case Column::IOType:
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
@@ -371,7 +352,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         }
             break;
 
-        case MIN_COLUMN:
+        case Column::Min:
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
@@ -380,7 +361,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         }
             break;
 
-        case MAX_COLUMN:
+        case Column::Max:
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
@@ -389,7 +370,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         }
             break;
 
-        case PRIORITY_COLUMN:
+        case Column::Priority:
         {
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
@@ -413,9 +394,9 @@ DeviceExplorerModel::headerData(int section, Qt::Orientation orientation, int ro
 {
     if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
-        if(section >= 0 && section < COLUMN_COUNT)
+        if(section >= 0 && section < (int)Column::Count)
         {
-            return HEADERS[section];
+            return HEADERS[(Column)section];
         }
     }
 
@@ -439,7 +420,7 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
         }
 
         //we allow drag'n drop only from the name column
-        if(index.column() == NAME_COLUMN)
+        if(index.column() == (int)Column::Name)
         {
             f |= Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
         }
@@ -487,7 +468,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
     if(role == Qt::EditRole)
     {
-        if(index.column() == NAME_COLUMN)
+        if(index.column() == (int)Column::Name)
         {
             const QString s = value.toString();
 
@@ -497,12 +478,12 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
                 changed = true;
             }
         }
-        else if(index.column() == IOTYPE_COLUMN)
+        else if(index.column() == (int)Column::IOType)
         {
             m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
             changed = true;
         }
-        else if(index.column() == VALUE_COLUMN)
+        else if(index.column() == (int)Column::Value)
         {
             QVariant copy = value;
             auto res = copy.convert(n->addressSettings().value.val.type());
@@ -543,7 +524,7 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
 
     if(role == Qt::EditRole)
     {
-        if(index.column() == NAME_COLUMN)
+        if(index.column() == (int)Column::Name)
         {
             const QString s = value.toString();
 
@@ -553,13 +534,13 @@ void DeviceExplorerModel::editData(const Path &path, int column, const QVariant 
             }
         }
 
-        if(index.column() == IOTYPE_COLUMN)
+        if(index.column() == (int)Column::IOType)
         {
             // TODO use a combo box editor in the tree...
             node->addressSettings().ioType = IOTypeStringMap().key(value.toString());
         }
 
-        if(index.column() == VALUE_COLUMN)
+        if(index.column() == (int)Column::Value)
         {
             node->addressSettings().value.val = value;
         }
@@ -604,19 +585,6 @@ DeviceExplorerModel::removeRows(int row, int count, const QModelIndex& parent)
 
     return true;
 }
-
-int
-DeviceExplorerModel::getIOTypeColumn() const
-{
-    return IOTYPE_COLUMN;
-}
-
-int
-DeviceExplorerModel::getNameColumn() const
-{
-    return NAME_COLUMN;
-}
-
 
 bool
 DeviceExplorerModel::isDevice(QModelIndex index) const
