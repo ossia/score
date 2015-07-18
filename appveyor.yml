@@ -7,7 +7,8 @@ environment:
   BOOST_LIBRARYDIR: c:\Libraries\boost\stage\lib
   JAMOMA_ROOT: c:\Jamoma
   CHOCO_PATH: c:\ProgramData\chocolatey\bin
-  
+  CMAKE_PATH: c:\projects\i-score\cmake-3.3.0-rc4-win32-x86
+
 configuration: Release
 
 install:
@@ -17,22 +18,19 @@ install:
   - nsis.exe /S
   - appveyor DownloadFile "http://www.cmake.org/files/v3.3/cmake-3.3.0-rc4-win32-x86.zip"
   - 7z x cmake-3.3.0-rc4-win32-x86.zip -y > nul
-  
+
 build_script:
   - git submodule update --init
   - mkdir build
   - cd build
-  - set PATH=C:\projects\i-score\cmake-3.3.0-rc4-win32-x86\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
+  - set PATH=%CMAKE_PATH%\bin;%QTDIR%\bin;%MINGW%\bin;C:\Qt\Tools\QtCreator\bin
   - cmake -G"MinGW Makefiles" -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5;%JAMOMA_ROOT%\share\cmake\jamoma" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
   - mingw32-make -j2
   - cpack 
-  
-on_failure: 
-  - type C:\projects\i-score\build\_CPack_Packages\win32\NSIS\PreinstallOutput.log
-  
+
 artifacts:
   - name: Installer
-    path: 'i-score-*-win32.exe'
+    path: 'build/i-score-*-win32.exe'
 
 deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)
