@@ -95,7 +95,6 @@ namespace iscore
             DocumentView* m_view{};
             DocumentPresenter* m_presenter{};
 
-            // TODO use QSaveFile
             QTemporaryFile m_crashDataFile;
             CommandBackupFile* m_crashCommandFile{};
     };

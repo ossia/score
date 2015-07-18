@@ -5,17 +5,13 @@
 #include <QVariantList>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
-
-// TODO namespace
-// TODO moveme
-enum class IOType : int { Invalid, In, Out, InOut };
-const QMap<IOType, QString>& IOTypeStringMap();
-
-enum class ClipMode : int { Clip, Fold, Free, Wrap };
-const QMap<ClipMode, QString> &ClipModeStringMap();
+#include "IOType.hpp"
+#include "ClipMode.hpp"
 
 namespace iscore
 {
+
+
 struct Domain
 {
         Value min;
@@ -32,8 +28,8 @@ struct AddressSettingsCommon
     iscore::Value value;
     iscore::Domain domain;
 
-    IOType ioType{};
-    ClipMode clipMode{};
+    iscore::IOType ioType{};
+    iscore::ClipMode clipMode{};
     QString unit;
 
     RepetitionFilter repetitionFilter{};

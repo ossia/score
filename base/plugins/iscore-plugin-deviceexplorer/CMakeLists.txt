@@ -43,6 +43,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/UpdateNamespace.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/IOType.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/ClipMode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressTupleSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressBoolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressNoneSettingsWidget.cpp"

@@ -60,7 +60,6 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         m_session->transmit(id_type<Client>(m.clientId), m);
     });
 
-    // TODO aspect-orientation would *really* help here.
     // Undo-redo
     s->mapper().addHandler("/undo", [&] (NetworkMessage m)
     {

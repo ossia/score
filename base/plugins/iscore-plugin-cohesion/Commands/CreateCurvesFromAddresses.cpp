@@ -5,34 +5,22 @@
 
 using namespace iscore;
 
-#define CMD_UID 4000
-#define CMD_NAME "CreateCurvesFromAddresses"
-#define CMD_DESC QObject::tr("Create curves from addresses")
-
-CreateCurvesFromAddresses::CreateCurvesFromAddresses() :
+CreateCurvesFromAddresses::CreateCurvesFromAddresses(
+        ObjectPath&& constraint,
+        const QList<Address>& addresses):
     SerializableCommand {"IScoreCohesionControl",
-    CMD_NAME,
-    CMD_DESC
-}
-{
-}
-
-CreateCurvesFromAddresses::CreateCurvesFromAddresses(ObjectPath&& constraint,
-        const QList<Address>& addresses) :
-    SerializableCommand {"IScoreCohesionControl",
-    CMD_NAME,
-    CMD_DESC
-},
-m_path {constraint},
-m_addresses {addresses}
+                         commandName(),
+                         description()},
+    m_path {constraint},
+    m_addresses {addresses}
 {
     for(int i = 0; i < m_addresses.size(); ++i)
     {
         auto cmd = new Scenario::Command::AddProcessToConstraint
         {
-            ObjectPath{m_path},
-            "Automation"
-        };
+                   ObjectPath{m_path},
+                   "Automation"
+    };
         m_serializedCommands.push_back(cmd->serialize());
         delete cmd;
     }

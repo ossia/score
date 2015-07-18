@@ -591,7 +591,7 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
 {
     if(!index.isValid())
     {
-        return true; // TODO why ?
+        return false;
     }
 
     Node* n = nodeFromModelIndex(index);

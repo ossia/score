@@ -4,42 +4,42 @@ namespace OSSIA
 {
 namespace convert
 {
-IOType ToIOType(OSSIA::Address::AccessMode t)
+iscore::IOType ToIOType(OSSIA::Address::AccessMode t)
 {
     switch(t)
     {
         case OSSIA::Address::AccessMode::GET:
-            return IOType::In;
+            return iscore::IOType::In;
         case OSSIA::Address::AccessMode::SET:
-            return IOType::Out;
+            return iscore::IOType::Out;
         case OSSIA::Address::AccessMode::BI:
-            return IOType::InOut;
+            return iscore::IOType::InOut;
         default:
             Q_ASSERT(false);
-            return IOType::Invalid;
+            return iscore::IOType::Invalid;
     }
 }
 
 
-ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
+iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
 {
     switch(b)
     {
         case OSSIA::Address::BoundingMode::CLIP:
-            return ClipMode::Clip;
+            return iscore::ClipMode::Clip;
             break;
         case OSSIA::Address::BoundingMode::FOLD:
-            return ClipMode::Fold;
+            return iscore::ClipMode::Fold;
             break;
         case OSSIA::Address::BoundingMode::FREE:
-            return ClipMode::Free;
+            return iscore::ClipMode::Free;
             break;
         case OSSIA::Address::BoundingMode::WRAP:
-            return ClipMode::Wrap;
+            return iscore::ClipMode::Wrap;
             break;
         default:
             Q_ASSERT(false);
-            return static_cast<ClipMode>(-1);
+            return static_cast<iscore::ClipMode>(-1);
     }
 }
 

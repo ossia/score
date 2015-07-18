@@ -3,10 +3,11 @@
 
 class CreateStatesFromParametersInEvents : public iscore::AggregateCommand
 {
+        ISCORE_COMMAND_DECL("CreateStatesFromParametersInEvents", "CreateStatesFromParametersInEvents")
     public:
         CreateStatesFromParametersInEvents():
             AggregateCommand{"IScoreCohesionControl",
-                             "CreateStatesFromParametersInEvents",
-                             "TODO"}
+                             commandName(),
+                             description()}
         { }
 };

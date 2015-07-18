@@ -54,8 +54,8 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
     m_obj["Name"] = n.name;
 
     // Metadata
-    m_obj["ioType"] = IOTypeStringMap()[n.ioType];
-    m_obj["ClipMode"] = ClipModeStringMap()[n.clipMode];
+    m_obj["ioType"] = iscore::IOTypeStringMap()[n.ioType];
+    m_obj["ClipMode"] = iscore::ClipModeStringMap()[n.clipMode];
     m_obj["Unit"] = n.unit;
 
     m_obj["RepetitionFilter"] = n.repetitionFilter;
@@ -83,8 +83,8 @@ void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
 {
     n.name = m_obj["Name"].toString();
 
-    n.ioType = IOTypeStringMap().key(m_obj["ioType"].toString());
-    n.clipMode = ClipModeStringMap().key(m_obj["ClipMode"].toString());
+    n.ioType = iscore::IOTypeStringMap().key(m_obj["ioType"].toString());
+    n.clipMode = iscore::ClipModeStringMap().key(m_obj["ClipMode"].toString());
     n.unit = m_obj["Unit"].toString();
 
     n.repetitionFilter = m_obj["RepetitionFilter"].toBool();

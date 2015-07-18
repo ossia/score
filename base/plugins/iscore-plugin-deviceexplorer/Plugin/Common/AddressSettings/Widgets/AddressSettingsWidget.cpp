@@ -37,14 +37,14 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     m_layout->addRow(tr("Tags"), tagLayout);
 
     // Populate the combo boxes
-    for(const auto& key : IOTypeStringMap().keys())
+    for(const auto& key : iscore::IOTypeStringMap().keys())
     {
-        m_ioTypeCBox->addItem(IOTypeStringMap()[key], (int)key);
+        m_ioTypeCBox->addItem(iscore::IOTypeStringMap()[key], (int)key);
     }
 
-    for(const auto& key : ClipModeStringMap().keys())
+    for(const auto& key : iscore::ClipModeStringMap().keys())
     {
-        m_clipModeCBox->addItem(ClipModeStringMap()[key], (int)key);
+        m_clipModeCBox->addItem(iscore::ClipModeStringMap()[key], (int)key);
     }
 
     setLayout(m_layout);
@@ -53,8 +53,8 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
 AddressSettings AddressSettingsWidget::getCommonSettings() const
 {
     AddressSettings settings;
-    settings.ioType = static_cast<IOType>(m_ioTypeCBox->currentData().value<int>());
-    settings.clipMode = static_cast<ClipMode>(m_clipModeCBox->currentData().value<int>());
+    settings.ioType = static_cast<iscore::IOType>(m_ioTypeCBox->currentData().value<int>());
+    settings.clipMode = static_cast<iscore::ClipMode>(m_clipModeCBox->currentData().value<int>());
 
     for(int i = 0; i < m_tagsEdit->count(); i++)
         settings.tags.append(m_tagsEdit->itemText(i));

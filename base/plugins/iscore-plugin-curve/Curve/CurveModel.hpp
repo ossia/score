@@ -25,7 +25,10 @@ class CurveModel : public IdentifiedObject<CurveModel>
 
         CurveModel* clone(const id_type<CurveModel>&, QObject* parent);
         void addSegment(CurveSegmentModel* m);
-        void removeSegment(CurveSegmentModel* m); // TODO why not id?
+
+        // Here we don't pass an id because it's more efficient
+        void removeSegment(CurveSegmentModel* m);
+
 
         Selection selectedChildren() const;
         void setSelection(const Selection& s);

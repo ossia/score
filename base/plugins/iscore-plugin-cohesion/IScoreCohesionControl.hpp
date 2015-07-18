@@ -19,6 +19,8 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void interpolateStates();
 
     private:
+        void setupCommands();
+
         QAction* m_snapshot{};
         QAction* m_curves{};
         QAction* m_interp{};

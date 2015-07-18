@@ -14,8 +14,8 @@ namespace OSSIA
 {
 namespace convert
 {
-IOType ToIOType(OSSIA::Address::AccessMode t);
-ClipMode ToClipMode(OSSIA::Address::BoundingMode b);
+iscore::IOType ToIOType(OSSIA::Address::AccessMode t);
+iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b);
 iscore::Domain ToDomain(OSSIA::Domain& domain);
 iscore::Value ToValue(const OSSIA::Value* val);
 AddressSettings ToAddressSettings(const OSSIA::Node& node);

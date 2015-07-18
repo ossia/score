@@ -143,11 +143,13 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
         {
-            // Move the timenode
+            if(createdConstraints.empty() || createdEvents.empty())
+                return;
+
             m_dispatcher.submitCommand<MoveNewEvent>(
                         ObjectPath{m_scenarioPath},
-                        createdConstraints.last(), // TODO CheckMe
-                        createdEvents.last(),// TODO CheckMe
+                        createdConstraints.last(),
+                        createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
                         !stateMachine.isShiftPressed());
@@ -155,7 +157,9 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
 
         QObject::connect(move_timenode , &QState::entered, [&] ()
         {
-            // TODO why ?
+            if(createdStates.empty())
+                return;
+
             m_dispatcher.submitCommand<MoveNewState>(
                         ObjectPath{m_scenarioPath},
                         createdStates.last(),
@@ -164,6 +168,9 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
 
         QObject::connect(move_event, &QState::entered, [&] ()
         {
+            if(createdStates.empty())
+                return;
+
             m_dispatcher.submitCommand<MoveNewState>(
                         ObjectPath{m_scenarioPath},
                         createdStates.last(),

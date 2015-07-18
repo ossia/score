@@ -37,11 +37,14 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
     }
     else if (m_notBaseConstraint)
     {
-        // TODO what if there is a rack without slots???
-        const auto& firstSlotModel = *(*constraint.racks().begin()).getSlots().begin();
+        const auto& firstRack = (*constraint.racks().begin());
+        if(!firstRack.getSlots().empty())
+        {
+            const auto& firstSlotModel = *(*constraint.racks().begin()).getSlots().begin();
 
-        m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
-        m_createdLayerId = getStrongId(firstSlotModel.layerModels());
+            m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
+            m_createdLayerId = getStrongId(firstSlotModel.layerModels());
+        }
     }
     else
     {

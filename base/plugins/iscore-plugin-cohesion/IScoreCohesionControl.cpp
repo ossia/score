@@ -23,11 +23,14 @@
 #include <source/Control/OldFormatConversion.hpp>
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QKeySequence>
+#include <iscore/command/CommandGeneratorMap.hpp>
 
 using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
+    setupCommands();
+
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
     m_snapshot->setShortcut(tr("Ctrl+J"));
@@ -75,25 +78,30 @@ QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
     return QList<OrderedToolbar>{OrderedToolbar(2, bar)};
 }
 
+
+struct IScoreionCohesionCommandFactory
+{
+        static CommandGeneratorMap map;
+};
+
+CommandGeneratorMap IScoreionCohesionCommandFactory::map;
+
+void IScoreCohesionControl::setupCommands()
+{
+    boost::mpl::for_each<
+            boost::mpl::list<
+                CreateCurvesFromAddresses,
+                CreateCurvesFromAddressesInConstraints,
+                InterpolateMacro,
+                CreateStatesFromParametersInEvents
+            >,
+            boost::type<boost::mpl::_>
+    >(CommandGeneratorMapInserter<IScoreionCohesionCommandFactory>());
+}
+
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
-    iscore::SerializableCommand* cmd{};
-    // TODO use the new pattern here
-    if(false);
-    else if(name == "CreateCurvesFromAddresses") cmd = new CreateCurvesFromAddresses;
-    else if(name == "CreateCurvesFromAddressesInConstraints") cmd = new CreateCurvesFromAddressesInConstraints;
-    else if(name == "InterpolateMacro") cmd = new InterpolateMacro;
-    else if(name == "CreateStatesFromParametersInEvents") cmd = new CreateStatesFromParametersInEvents;;
-
-    if(!cmd)
-    {
-        qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read.";
-        return nullptr;
-    }
-
-    // TODO the "deserialize" should be outside.
-    cmd->deserialize(data);
-    return cmd;
+    return PluginControlInterface::instantiateUndoCommand<IScoreionCohesionCommandFactory>(name, data);
 }
 
 #include <core/document/DocumentModel.hpp>
