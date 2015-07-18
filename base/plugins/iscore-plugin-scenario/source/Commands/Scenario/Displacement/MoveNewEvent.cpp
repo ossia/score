@@ -7,14 +7,6 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveNewEvent::MoveNewEvent():
-    SerializableCommand {"ScenarioControl",
-             commandName(),
-             description()}
-{
-
-}
-
 MoveNewEvent::MoveNewEvent(ObjectPath&& scenarioPath,
                id_type<ConstraintModel> constraintId,
                id_type<EventModel> eventId,

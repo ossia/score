@@ -20,7 +20,7 @@ namespace Scenario
         {
                 ISCORE_COMMAND_DECL("MoveNewEvent", "MoveNewEvent")
                 public:
-                    MoveNewEvent();
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewEvent, "ScenarioControl")
                 MoveNewEvent(ObjectPath&& scenarioPath,
                              id_type<ConstraintModel> constraintId,
                              id_type<EventModel> eventId,
@@ -38,7 +38,7 @@ namespace Scenario
                             const double y,
                             bool yLocked)
                 {
-                    m_cmd->update(path, id, date, ExpandMode::Fixed);
+                    m_cmd.update(path, id, date, ExpandMode::Fixed);
                     m_y = y;
                     m_yLocked = yLocked;
                 }
