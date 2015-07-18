@@ -10,8 +10,7 @@ using namespace Scenario::Command;
 MoveNewEvent::MoveNewEvent():
     SerializableCommand {"ScenarioControl",
              commandName(),
-             description()},
-    m_cmd{new MoveEvent}
+             description()}
 {
 
 }
@@ -27,39 +26,34 @@ MoveNewEvent::MoveNewEvent(ObjectPath&& scenarioPath,
              description()},
     m_path {scenarioPath},
     m_constraintId {constraintId},
-    m_cmd{new MoveEvent(std::move(scenarioPath), eventId, date, ExpandMode::Fixed)},
+    m_cmd{std::move(scenarioPath), eventId, date, ExpandMode::Fixed},
     m_y{y},
     m_yLocked{yLocked}
 {
 
 }
 
-MoveNewEvent::~MoveNewEvent()
-{
-    delete m_cmd;
-}
-
 void MoveNewEvent::undo()
 {
-    m_cmd->undo();
+    m_cmd.undo();
     // TODO we don't undo the contraint pos ?
 }
 
 void MoveNewEvent::redo()
 {
-    m_cmd->redo();
+    m_cmd.redo();
     if(! m_yLocked)
     {
         updateConstraintVerticalPos(
                     m_y,
                     m_constraintId,
-                    m_cmd->path().find<ScenarioModel>());
+                    m_cmd.path().find<ScenarioModel>());
     }
 }
 
 void MoveNewEvent::serializeImpl(QDataStream & s) const
 {
-     s << m_path << m_cmd->serialize() << m_constraintId << m_y << m_yLocked;
+     s << m_path << m_cmd.serialize() << m_constraintId << m_y << m_yLocked;
 }
 
 void MoveNewEvent::deserializeImpl(QDataStream & s)
@@ -67,6 +61,5 @@ void MoveNewEvent::deserializeImpl(QDataStream & s)
     QByteArray a;
     s >> m_path >> a >> m_constraintId >> m_y >> m_yLocked;
 
-    m_cmd->deserialize(a);
+    m_cmd.deserialize(a);
 }
-

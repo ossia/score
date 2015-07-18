@@ -28,8 +28,6 @@ namespace Scenario
                              const double y,
                              bool yLocked);
 
-                ~MoveNewEvent();
-
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -56,7 +54,7 @@ namespace Scenario
                 ObjectPath m_path;
                 id_type<ConstraintModel> m_constraintId{};
 
-                MoveEvent* m_cmd;
+                MoveEvent m_cmd;
                 double m_y;
                 bool m_yLocked; // default is true and constraints are on the same y.
         };
