@@ -16,12 +16,12 @@
 #include <QKeyEvent>
 #include <QMenu>
 
-CurvePresenter::CurvePresenter(CurveModel* model, CurveView* view, QObject* parent):
+CurvePresenter::CurvePresenter(const CurveModel& model, CurveView* view, QObject* parent):
     QObject{parent},
     m_model{model},
     m_view{view},
-    m_commandDispatcher{iscore::IDocument::documentFromObject(*model)->commandStack()},
-    m_selectionDispatcher{iscore::IDocument::documentFromObject(*model)->selectionStack()}
+    m_commandDispatcher{iscore::IDocument::documentFromObject(model)->commandStack()},
+    m_selectionDispatcher{iscore::IDocument::documentFromObject(model)->selectionStack()}
 {
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
@@ -47,7 +47,7 @@ CurvePresenter::~CurvePresenter()
     }
 }
 
-CurveModel* CurvePresenter::model() const
+const CurveModel& CurvePresenter::model() const
 {
     return m_model;
 }
@@ -84,12 +84,12 @@ void CurvePresenter::setPos(CurvePointView * point)
     // Get the previous or next segment. There has to be at least one.
     if(point->model().previous())
     {
-        auto& curvemodel = *m_model->segments().find(point->model().previous());
+        auto& curvemodel = *m_model.segments().find(point->model().previous());
         point->setPos(myscale(curvemodel->end(), size));
     }
     else if(point->model().following())
     {
-        auto& curvemodel = *m_model->segments().find(point->model().following());
+        auto& curvemodel = *m_model.segments().find(point->model().following());
         point->setPos(myscale(curvemodel->start(), size));
     }
 }
@@ -109,19 +109,19 @@ void CurvePresenter::setPos(CurveSegmentView * segment)
 
 void CurvePresenter::setupSignals()
 {
-    connect(m_model, &CurveModel::segmentAdded, this,
+    connect(&m_model, &CurveModel::segmentAdded, this,
             [&] (const CurveSegmentModel& segment)
     {
         addSegment(new CurveSegmentView{segment, m_view});
     });
 
-    connect(m_model, &CurveModel::pointAdded, this,
+    connect(&m_model, &CurveModel::pointAdded, this,
             [&] (const CurvePointModel& point)
     {
         addPoint(new CurvePointView{point, m_view});
     });
 
-    connect(m_model, &CurveModel::pointRemoved, this,
+    connect(&m_model, &CurveModel::pointRemoved, this,
             [&] (const id_type<CurvePointModel>& m)
     {
         auto it = m_points.find(m);
@@ -132,7 +132,7 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    connect(m_model, &CurveModel::segmentRemoved, this,
+    connect(&m_model, &CurveModel::segmentRemoved, this,
             [&] (const id_type<CurveSegmentModel>& m)
     {
         auto it = m_segments.find(m);
@@ -143,7 +143,7 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    connect(m_model, &CurveModel::cleared, this,
+    connect(&m_model, &CurveModel::cleared, this,
             [&] ()
     {
         qDeleteAll(m_points);
@@ -156,12 +156,12 @@ void CurvePresenter::setupSignals()
 void CurvePresenter::setupView()
 {
     // Initialize the elements
-    for(CurveSegmentModel* segment : m_model->segments())
+    for(CurveSegmentModel* segment : m_model.segments())
     {
         addSegment(new CurveSegmentView{*segment, m_view});
     }
 
-    for(CurvePointModel* pt : m_model->points())
+    for(CurvePointModel* pt : m_model.points())
     {
         addPoint(new CurvePointView{*pt, m_view});
     }
@@ -372,7 +372,7 @@ void CurvePresenter::removeSelection()
     // And set the bounds correctly
     QSet<id_type<CurveSegmentModel>> segmentsToDelete;
 
-    for(const auto& elt : m_model->selectedChildren())
+    for(const auto& elt : m_model.selectedChildren())
     {
         if(auto point = dynamic_cast<const CurvePointModel*>(elt))
         {
@@ -389,9 +389,9 @@ void CurvePresenter::removeSelection()
     }
 
     QVector<QByteArray> newSegments;
-    newSegments.resize(m_model->segments().size() - segmentsToDelete.size());
+    newSegments.resize(m_model.segments().size() - segmentsToDelete.size());
     int i = 0;
-    for(const CurveSegmentModel* segment : m_model->segments())
+    for(const CurveSegmentModel* segment : m_model.segments())
     {
         if(!segmentsToDelete.contains(segment->id()))
         {
@@ -420,9 +420,9 @@ void CurvePresenter::updateSegmentsType(const QString& segmentName)
     auto factory = SingletonCurveSegmentList::instance().get(segmentName);
 
     QVector<QByteArray> newSegments;
-    newSegments.resize(m_model->segments().size());
+    newSegments.resize(m_model.segments().size());
     int i = 0;
-    for(CurveSegmentModel* segment : m_model->segments())
+    for(CurveSegmentModel* segment : m_model.segments())
     {
         CurveSegmentModel* current;
         if(segment->selection.get())

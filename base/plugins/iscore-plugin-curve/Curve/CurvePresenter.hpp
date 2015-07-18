@@ -25,7 +25,7 @@ class CurvePresenter : public QObject
     public:
         enum class AddPointBehaviour
         { LinearBefore, LinearAfter, DuplicateSegment };
-        CurvePresenter(CurveModel*, CurveView*, QObject* parent);
+        CurvePresenter(const CurveModel&, CurveView*, QObject* parent);
         virtual ~CurvePresenter();
 
         const auto& points() const
@@ -36,7 +36,7 @@ class CurvePresenter : public QObject
         // Removes all the points & segments
         void clear();
 
-        CurveModel* model() const;
+        const CurveModel& model() const;
         CurveView& view() const;
 
         // Taken from the view. First set this,
@@ -83,7 +83,7 @@ class CurvePresenter : public QObject
 
         CurveStateMachine* m_sm{};
 
-        CurveModel* m_model{};
+        const CurveModel& m_model;
         CurveView* m_view{};
 
         IdContainer<CurvePointView, CurvePointModel> m_points;

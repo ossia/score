@@ -17,7 +17,7 @@ SetSegmentParametersCommandObject::SetSegmentParametersCommandObject(
 void SetSegmentParametersCommandObject::press()
 {
     auto segment = m_state->clickedSegmentId;
-    CurveSegmentModel* seg = m_presenter->model()->segments().at(segment);
+    CurveSegmentModel* seg = m_presenter->model().segments().at(segment);
     m_verticalOrig = seg->verticalParameter();
     m_horizontalOrig = seg->horizontalParameter();
 

@@ -25,7 +25,7 @@ AutomationPresenter::AutomationPresenter(
             this, &AutomationPresenter::updateCurve);
 
     auto cv = new CurveView{m_view};
-    m_curvepresenter = new CurvePresenter{&m_viewModel.model().curve(), cv, this};
+    m_curvepresenter = new CurvePresenter{m_viewModel.model().curve(), cv, this};
 
 
     connect(cv, &CurveView::pressed,

@@ -36,7 +36,7 @@ CurvePresenter& CurveStateMachine::presenter() const
 
 const CurveModel& CurveStateMachine::model() const
 {
-    return *m_presenter.model();
+    return m_presenter.model();
 }
 
 iscore::CommandStack& CurveStateMachine::commandStack() const

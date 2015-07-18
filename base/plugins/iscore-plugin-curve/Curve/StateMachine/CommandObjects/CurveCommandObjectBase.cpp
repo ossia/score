@@ -19,7 +19,7 @@ CurveCommandObjectBase::CurveCommandObjectBase(
 
 void CurveCommandObjectBase::press()
 {
-    const auto& current = m_presenter->model()->segments();
+    const auto& current = m_presenter->model().segments();
 
     // Serialize the current state of the curve
     m_startSegments.clear();

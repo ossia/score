@@ -17,7 +17,7 @@ void CreatePointCommandObject::on_press()
     // Save the start data.
     m_originalPress = m_state->currentPoint;
 
-    for(CurvePointModel* pt : m_presenter->model()->points())
+    for(CurvePointModel* pt : m_presenter->model().points())
     {
         auto pt_x = pt->pos().x();
 
