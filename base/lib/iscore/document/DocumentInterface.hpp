@@ -44,6 +44,7 @@ namespace iscore
             return static_cast<T&>(presenterDelegate_generic(d));
         }
 
+        // TODO investigate why enable_if_t does not work here.
         template<typename T,
                  typename std::enable_if<std::is_base_of<DocumentDelegatePresenterInterface, T>::value>::type* = nullptr>
         T& get(const Document& d)

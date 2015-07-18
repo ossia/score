@@ -64,7 +64,7 @@ void PowerCurveSegmentModel::setVerticalParameter(double p)
 }
 
 
-boost::optional<double> PowerCurveSegmentModel::verticalParameter()
+boost::optional<double> PowerCurveSegmentModel::verticalParameter() const
 {
     return gamma / 6. - 1;
 }

@@ -19,7 +19,7 @@ RackPresenter::RackPresenter(const RackModel& model,
 {
     for(const auto& slotModel : m_model.getSlots())
     {
-        on_slotCreated_impl(*slotModel);
+        on_slotCreated_impl(slotModel);
     }
 
     m_duration = m_model.constraint().defaultDuration();
@@ -63,7 +63,7 @@ int RackPresenter::height() const
 
     for(const auto& slot : m_slots)
     {
-        totalHeight += slot->height() + 5;
+        totalHeight += slot.height() + 5;
     }
 
     return totalHeight;
@@ -78,9 +78,9 @@ void RackPresenter::setWidth(int w)
 {
     m_view->setWidth(w);
 
-    for(const auto& slot : m_slots)
+    for(auto& slot : m_slots)
     {
-        slot->setWidth(m_view->boundingRect().width());
+        slot.setWidth(m_view->boundingRect().width());
     }
 }
 
@@ -91,17 +91,17 @@ const id_type<RackModel>& RackPresenter::id() const
 
 void RackPresenter::setDisabledSlotState()
 {
-    for(const auto& slot : m_slots)
+    for(auto& slot : m_slots)
     {
-        slot->disable();
+        slot.disable();
     }
 }
 
 void RackPresenter::setEnabledSlotState()
 {
-    for(const auto& slot : m_slots)
+    for(auto& slot : m_slots)
     {
-        slot->enable();
+        slot.enable();
     }
 }
 
@@ -113,7 +113,7 @@ void RackPresenter::on_durationChanged(const TimeValue& duration)
 
 void RackPresenter::on_slotCreated(const id_type<SlotModel>& slotId)
 {
-    on_slotCreated_impl(*m_model.slot(slotId));
+    on_slotCreated_impl(m_model.slot(slotId));
     on_askUpdate();
 }
 
@@ -147,7 +147,7 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 
 void RackPresenter::on_slotRemoved(const id_type<SlotModel>& slotId)
 {
-    auto slot = m_slots.at(slotId);
+    auto slot = &m_slots.at(slotId);
 
     delete slot;
     m_slots.remove(slotId);
@@ -166,18 +166,18 @@ void RackPresenter::updateShape()
 
     for(const auto& slotId : m_model.slotsPositions())
     {
-        auto slotPres = m_slots.at(slotId);
-        slotPres->setWidth(width());
-        slotPres->setVerticalPosition(currentSlotY);
-        currentSlotY += slotPres->height() + 5; // Separation between slots
+        auto& slotPres = m_slots.at(slotId);
+        slotPres.setWidth(width());
+        slotPres.setVerticalPosition(currentSlotY);
+        currentSlotY += slotPres.height() + 5; // Separation between slots
     }
 
     // Horizontal shape
     setWidth(m_duration.toPixels(m_zoomRatio));
 
-    for(const auto& slot : m_slots)
+    for(auto& slot : m_slots)
     {
-        slot->on_parentGeometryChanged();
+        slot.on_parentGeometryChanged();
     }
 }
 
@@ -196,9 +196,9 @@ void RackPresenter::on_zoomRatioChanged(ZoomRatio val)
     // We have to change the width of the slots aftewards
     // because their width depend on the rack width
     // TODO this smells.
-    for(const auto& slot : m_slots)
+    for(auto& slot : m_slots)
     {
-        slot->on_zoomRatioChanged(m_zoomRatio);
+        slot.on_zoomRatioChanged(m_zoomRatio);
     }
 }
 

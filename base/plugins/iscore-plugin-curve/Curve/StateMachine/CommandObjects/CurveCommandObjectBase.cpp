@@ -28,7 +28,7 @@ void CurveCommandObjectBase::press()
     for(const auto& segment : current)
     {
         Serializer<DataStream> s{&m_startSegments[i++]};
-        s.readFrom(*segment);
+        s.readFrom(segment);
     }
 
     m_xmin = 0;

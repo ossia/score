@@ -202,7 +202,7 @@ void RemoveSelection::undo()
             scenar.addEvent(event);
 
             // Maybe this shall be done after everything has been added to prevent problems ?
-            (*scenar_timenode_it)->addEvent(event->id());
+            (*scenar_timenode_it).addEvent(event->id());
         }
         else
         {
@@ -231,7 +231,7 @@ void RemoveSelection::undo()
     // All the states
     for(const auto& state : states)
     {
-        scenar.addDisplayedState(state);
+        scenar.addState(state);
     }
 
     // And then all the constraints.

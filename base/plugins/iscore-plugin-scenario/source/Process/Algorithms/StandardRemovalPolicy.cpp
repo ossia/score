@@ -9,19 +9,17 @@ void removeEventFromTimeNode(
         ScenarioModel& scenario,
         const id_type<EventModel>& eventId)
 {
-    for(TimeNodeModel* timeNode : scenario.timeNodes())
+    for(auto& timeNode : scenario.timeNodes())
     {
-        if(timeNode->removeEvent(eventId))
+        if(timeNode.removeEvent(eventId))
         {
-            if(timeNode->events().isEmpty())
+            if(timeNode.events().isEmpty())
             {
                 // TODO transform this into a class with algorithms on timenodes + scenario, etc.
                 // Note : this changes the scenario.timeNodes() iterator, however
                 // since we return afterwards there is no problem.
-                ScenarioCreate<TimeNodeModel>::undo(timeNode->id(), scenario);
+                ScenarioCreate<TimeNodeModel>::undo(timeNode.id(), scenario);
             }
-
-            return;
         }
     }
 }
@@ -35,7 +33,7 @@ void StandardRemovalPolicy::removeConstraint(
     auto cstr_it = scenario.constraints().find(constraintId);
     if(cstr_it != scenario.constraints().end())
     {
-        ConstraintModel& cstr =  **cstr_it;
+        ConstraintModel& cstr =  *cstr_it;
         auto& sst = scenario.state(cstr.startState());
         sst.setNextConstraint(id_type<ConstraintModel>{});
 

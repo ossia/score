@@ -70,7 +70,7 @@ AutomationModel::AutomationModel(
 
 ProcessModel* AutomationModel::clone(
         const id_type<ProcessModel>& newId,
-        QObject* newParent)
+        QObject* newParent) const
 {
     return new AutomationModel {*this, newId, newParent};
 }
@@ -99,13 +99,13 @@ void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
     double scale = duration() / newDuration;
     for(auto& segment : m_curve->segments())
     {
-        CurvePoint pt = segment->start();
+        CurvePoint pt = segment.start();
         pt.setX(pt.x() * scale);
-        segment->setStart(pt);
+        segment.setStart(pt);
 
-        pt = segment->end();
+        pt = segment.end();
         pt.setX(pt.x() * scale);
-        segment->setEnd(pt);
+        segment.setEnd(pt);
     }
 
     setDuration(newDuration);
@@ -124,13 +124,13 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     double scale = duration() / newDuration;
     for(auto& segment : m_curve->segments())
     {
-        CurvePoint pt = segment->start();
+        CurvePoint pt = segment.start();
         pt.setX(pt.x() * scale);
-        segment->setStart(pt);
+        segment.setStart(pt);
 
-        pt = segment->end();
+        pt = segment.end();
         pt.setX(pt.x() * scale);
-        segment->setEnd(pt);
+        segment.setEnd(pt);
     }
 
     // Since we shrink, scale > 1. so we have to cut.
@@ -138,16 +138,16 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     auto segments = m_curve->segments(); // Make a copy since we will change the map.
     for(auto& segment : segments)
     {
-        if(segment->start().x() >= 1.)
+        if(segment.start().x() >= 1.)
         {
             // bye
-            m_curve->removeSegment(segment);
+            m_curve->removeSegment(&segment);
         }
-        else if(segment->end().x() >= 1.)
+        else if(segment.end().x() >= 1.)
         {
-            auto end = segment->end();
+            auto end = segment.end();
             end.setX(1.);
-            segment->setEnd(end);
+            segment.setEnd(end);
         }
     }
 
@@ -163,7 +163,7 @@ Selection AutomationModel::selectableChildren() const
 {
     Selection s;
     for(auto& segment : m_curve->segments())
-        s.insert(segment);
+        s.insert(&segment);
     for(auto& point : m_curve->points())
         s.insert(point);
     return s;

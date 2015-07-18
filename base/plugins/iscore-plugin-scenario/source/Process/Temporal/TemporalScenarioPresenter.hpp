@@ -126,6 +126,9 @@ class TemporalScenarioPresenter : public ProcessPresenter
         TemporalScenarioView* m_view;
 
     private:
+        template<typename Map, typename Id>
+        void removeElement(Map& map, const Id& id);
+
         void on_stateCreated_impl(const StateModel& state);
         void on_eventCreated_impl(const EventModel& event_model);
         void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);

@@ -47,7 +47,7 @@ class RackModel : public IdentifiedObject<RackModel>
         void swapSlots(const id_type<SlotModel>& firstslot,
                        const id_type<SlotModel>& secondslot);
 
-        SlotModel* slot(const id_type<SlotModel>& slotId) const;
+        SlotModel& slot(const id_type<SlotModel>& slotId) const;
         int slotPosition(const id_type<SlotModel>& slotId) const
         {
             return m_positions.indexOf(slotId);

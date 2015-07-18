@@ -71,12 +71,12 @@ void SinCurveSegmentModel::setHorizontalParameter(double p)
     emit dataChanged();
 }
 
-boost::optional<double> SinCurveSegmentModel::verticalParameter()
+boost::optional<double> SinCurveSegmentModel::verticalParameter() const
 {
     return 2. * ampl - 1.;
 }
 
-boost::optional<double> SinCurveSegmentModel::horizontalParameter()
+boost::optional<double> SinCurveSegmentModel::horizontalParameter() const
 {
     return (freq - 1.) / 7. - 1.;
 }

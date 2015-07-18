@@ -19,14 +19,14 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     m_stream << (int) constraint.m_processes.size();
     for(const auto& process : constraint.m_processes)
     {
-        readFrom(*process);
+        readFrom(process);
     }
 
     // Rackes
     m_stream << (int) constraint.m_racks.size();
     for(const auto& rack : constraint.m_racks)
     {
-        readFrom(*rack);
+        readFrom(rack);
     }
 
     // Full view

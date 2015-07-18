@@ -38,10 +38,10 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
     else if (m_notBaseConstraint)
     {
         // TODO what if there is a rack without slots???
-        auto firstSlotModel = *(*constraint.racks().begin())->getSlots().begin();
+        const auto& firstSlotModel = *(*constraint.racks().begin()).getSlots().begin();
 
         m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
-        m_createdLayerId = getStrongId(firstSlotModel->layerModels());
+        m_createdLayerId = getStrongId(firstSlotModel.layerModels());
     }
     else
     {
@@ -54,16 +54,16 @@ void AddProcessToConstraint::undo()
     auto& constraint = m_path.find<ConstraintModel>();
     if(m_noRackes)
     {
-        auto rack = constraint.rack(m_createdRackId);
+        auto& rack = constraint.rack(m_createdRackId);
 
         // Removing the slot will remove the layer
-        rack->removeSlot(m_createdSlotId);
+        rack.removeSlot(m_createdSlotId);
         constraint.removeRack(m_createdRackId);
     }
     else if(m_notBaseConstraint)
     {
-        auto slot = *(*constraint.racks().begin())->getSlots().begin();
-        slot->deleteLayerModel(m_createdLayerId);
+        auto& slot = *(*constraint.racks().begin()).getSlots().begin();
+        slot.deleteLayerModel(m_createdLayerId);
     }
 
     constraint.removeProcess(m_createdProcessId);
@@ -103,16 +103,15 @@ void AddProcessToConstraint::redo()
                                     rack});
 
         // Process View
-        auto slot = rack->slot(m_createdSlotId);
-        auto proc = constraint.process(m_createdProcessId);
+        auto& slot = rack->slot(m_createdSlotId);
 
-        slot->addLayerModel(proc->makeLayer(m_createdLayerId, m_layerConstructionData, slot));
+        slot.addLayerModel(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
     }
     else if(m_notBaseConstraint)
     {
-        auto slot = *(*constraint.racks().begin())->getSlots().begin();
+        auto& slot = *(*constraint.racks().begin()).getSlots().begin();
 
-        slot->addLayerModel(proc->makeLayer(m_createdLayerId, m_layerConstructionData, slot));
+        slot.addLayerModel(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
     }
 }
 

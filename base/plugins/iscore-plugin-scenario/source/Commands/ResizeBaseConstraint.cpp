@@ -56,7 +56,7 @@ static void updateDuration(BaseScenario& scenar, const TimeValue& newDuration, S
 
     auto& constraint = scenar.baseConstraint();
     ConstraintModel::Algorithms::setDurationInBounds(constraint, newDuration);
-    for(const auto& process : constraint.processes())
+    for(auto& process : constraint.processes())
     {
         scaleMethod(process, newDuration);
     }
@@ -68,7 +68,7 @@ void MoveBaseEvent::undo()
 
     updateDuration(scenar,
               m_oldDate,
-              [&] (ProcessModel* p , const TimeValue& v) {
+              [&] (ProcessModel& p , const TimeValue& v) {
         // Nothing is needed since the processes will be replaced anyway.
     });
 
@@ -96,9 +96,9 @@ void MoveBaseEvent::undo()
     // Clone the processes
     for(const auto& sourceproc : src_constraint.processes())
     {
-        auto newproc = sourceproc->clone(sourceproc->id(), &constraint);
+        auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
-        processPairs.insert(std::make_pair(sourceproc, newproc));
+        processPairs.insert(std::make_pair(&sourceproc, newproc));
         constraint.addProcess(newproc);
     }
 
@@ -111,16 +111,16 @@ void MoveBaseEvent::undo()
         // we maintain a pair mapping each original process to their cloned counterpart.
         // We can then use the correct cloned process to clone the process view model.
         auto newrack = new RackModel{
-                *sourcerack,
-                sourcerack->id(),
+                sourcerack,
+                sourcerack.id(),
                 [&] (const SlotModel& source, SlotModel& target)
         {
             for(const auto& lm : source.layerModels())
             {
                 // We can safely reuse the same id since it's in a different slot.
-                ProcessModel* proc = processPairs[&lm->sharedProcessModel()];
+                ProcessModel* proc = processPairs[&lm.sharedProcessModel()];
                 // TODO harmonize the order of parameters (source first, then new id)
-                target.addLayerModel(proc->cloneLayer(lm->id(), *lm, &target));
+                target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
             }
         },
         &constraint};
@@ -141,8 +141,8 @@ void MoveBaseEvent::redo()
 
     updateDuration(scenar,
               m_newDate,
-              [&] (ProcessModel* p , const TimeValue& v) {
-        p->expandProcess(m_mode, v);
+              [&] (ProcessModel& p , const TimeValue& v) {
+        p.expandProcess(m_mode, v);
     });
 }
 

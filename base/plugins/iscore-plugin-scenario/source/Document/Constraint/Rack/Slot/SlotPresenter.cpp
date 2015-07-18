@@ -29,7 +29,7 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
 
     for(const auto& proc_vm : m_model.layerModels())
     {
-        on_layerModelCreated_impl(*proc_vm);
+        on_layerModelCreated_impl(proc_vm);
     }
 
     connect(&m_model, &SlotModel::layerModelCreated,

@@ -211,7 +211,7 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
                             this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
         // Processes
-        for(ProcessModel* process : model()->processes())
+        for(const auto& process : model()->processes())
         {
             displaySharedProcess(process);
         }
@@ -219,7 +219,7 @@ void ConstraintInspectorWidget::updateDisplayedValues(const ConstraintModel* con
         // Rack
         m_rackWidget->setModel(model());
 
-        for(RackModel* rack : model()->racks())
+        for(const auto& rack : model()->racks())
         {
             setupRack(rack);
         }
@@ -287,12 +287,12 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 }
 
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
-void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
+void ConstraintInspectorWidget::displaySharedProcess(const ProcessModel& process)
 {
-    InspectorSectionWidget* newProc = new InspectorSectionWidget(process->processName());
+    InspectorSectionWidget* newProc = new InspectorSectionWidget(process.processName());
 
     // Process
-    auto processWidget = InspectorWidgetList::makeInspectorWidget(process->processName(), process, newProc);
+    auto processWidget = InspectorWidgetList::makeInspectorWidget(process.processName(), &process, newProc);
     newProc->addContent(processWidget);
 
     // Start & end state
@@ -302,13 +302,13 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
     stateLayout->setContentsMargins(0, 0, 0, 0);
     stateWidget->setLayout(stateLayout);
 
-    if(auto start = process->startState())
+    if(auto start = process.startState())
     {
         auto startWidg = InspectorWidgetList::makeInspectorWidget(start->stateName(), start, newProc);
         stateLayout->addRow(tr("Start state"), startWidg);
     }
 
-    if(auto end = process->endState())
+    if(auto end = process.endState())
     {
         auto endWidg = InspectorWidgetList::makeInspectorWidget(end->stateName(), end, newProc);
         stateLayout->addRow(tr("End state"), endWidg);
@@ -317,9 +317,9 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
 
     // Delete button
     auto deleteButton = new QPushButton{"Delete"};
-    connect(deleteButton, &QPushButton::pressed, this, [=] ()
+    connect(deleteButton, &QPushButton::pressed, this, [=,proc=&process] ()
     {
-        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), process->id()};
+        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), proc->id()};
         emit commandDispatcher()->submitCommand(cmd);
     });
     newProc->addContent(deleteButton);
@@ -332,15 +332,15 @@ void ConstraintInspectorWidget::displaySharedProcess(ProcessModel* process)
             this,   SLOT(createLayerInNewSlot(QString)));
 }
 
-void ConstraintInspectorWidget::setupRack(RackModel* rack)
+void ConstraintInspectorWidget::setupRack(const RackModel& rack)
 {
     // Display the widget
     RackInspectorSection* newRack = new RackInspectorSection {
-            QString{"Rack.%1"} .arg(*rack->id().val()),
+            QString{"Rack.%1"} .arg(*rack.id().val()),
             rack,
             this};
 
-    m_rackesSectionWidgets[rack->id()] = newRack;
+    m_rackesSectionWidgets[rack.id()] = newRack;
     m_rackSection->addContent(newRack);
 }
 

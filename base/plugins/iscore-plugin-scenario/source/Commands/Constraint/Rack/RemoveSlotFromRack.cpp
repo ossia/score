@@ -18,7 +18,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(ObjectPath&& slotPath) :
     m_position = rack.slotPosition(m_slotId);
 
     Serializer<DataStream> s{&m_serializedSlotData};
-    s.readFrom(*rack.slot(m_slotId));
+    s.readFrom(rack.slot(m_slotId));
 }
 
 RemoveSlotFromRack::RemoveSlotFromRack(ObjectPath&& rackPath, id_type<SlotModel> slotId) :
@@ -29,7 +29,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(ObjectPath&& rackPath, id_type<SlotModel>
     auto& rack = m_path.find<RackModel>();
     Serializer<DataStream> s{&m_serializedSlotData};
 
-    s.readFrom(*rack.slot(slotId));
+    s.readFrom(rack.slot(slotId));
     m_position = rack.slotPosition(slotId);
 }
 

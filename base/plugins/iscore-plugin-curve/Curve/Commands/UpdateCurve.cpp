@@ -13,7 +13,7 @@ UpdateCurve::UpdateCurve(ObjectPath&& model, QVector<QByteArray> &&segments):
     {
         QByteArray arr;
         Serializer<DataStream> s(&arr);
-        s.readFrom(*segment);
+        s.readFrom(segment);
         m_oldCurveData.append(arr);
     }
 }

@@ -44,7 +44,7 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
         virtual ProcessModel* clone(
                 const id_type<ProcessModel>& newId,
-                QObject* newParent) = 0;
+                QObject* newParent) const = 0;
 
         virtual QString processName() const = 0; // Needed for serialization.
 

@@ -62,7 +62,7 @@ void GammaCurveSegmentModel::setVerticalParameter(double p)
 }
 
 
-boost::optional<double> GammaCurveSegmentModel::verticalParameter()
+boost::optional<double> GammaCurveSegmentModel::verticalParameter() const
 {
     return gamma;
 }

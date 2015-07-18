@@ -49,17 +49,17 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     // For each constraint & event, display' em
     for(const auto& state_model : scenario.states())
     {
-        on_stateCreated_impl(*state_model);
+        on_stateCreated_impl(state_model);
     }
 
     for(const auto& event_model : scenario.events())
     {
-        on_eventCreated_impl(*event_model);
+        on_eventCreated_impl(event_model);
     }
 
     for(const auto& tn_model : scenario.timeNodes())
     {
-        on_timeNodeCreated_impl(*tn_model);
+        on_timeNodeCreated_impl(tn_model);
     }
 
     for(const auto& constraint_view_model : constraintsViewModels(m_layer))
@@ -176,7 +176,7 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 
     for(auto& constraint : m_constraints)
     {
-        constraint->on_zoomRatioChanged(m_zoomRatio);
+        constraint.on_zoomRatioChanged(m_zoomRatio);
     }
 
     updateAllElements();
@@ -207,61 +207,56 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(
     on_constraintCreated_impl(constraintViewModel(m_layer, constraintViewModelId));
 }
 
-// TODO refactor these three ?
-void TemporalScenarioPresenter::on_stateRemoved(const id_type<StateModel> &stateId)
+
+template<typename Map, typename Id>
+void TemporalScenarioPresenter::removeElement(
+        Map& map,
+        const Id& id)
 {
-    auto it = m_displayedStates.find(stateId);
-    if(it != m_displayedStates.end())
+    auto it = map.find(id);
+    if(it != map.end())
     {
         delete *it;
-        m_displayedStates.get().erase(it);
+        map.erase(it);
     }
 
     m_view->update();
+}
+
+void TemporalScenarioPresenter::on_stateRemoved(
+        const id_type<StateModel> &stateId)
+{
+    removeElement(m_displayedStates.get(), stateId);
 }
 
 
 void TemporalScenarioPresenter::on_eventRemoved(
         const id_type<EventModel>& eventId)
 {
-    auto it = m_events.find(eventId);
-    if(it != m_events.end())
-    {
-        delete *it;
-        m_events.get().erase(it);
-    }
-
-    m_view->update();
+    removeElement(m_events.get(), eventId);
 }
 
 void TemporalScenarioPresenter::on_timeNodeRemoved(
         const id_type<TimeNodeModel>& timeNodeId)
 {
-    auto it = m_timeNodes.find(timeNodeId);
-    if(it != m_timeNodes.end())
-    {
-        delete *it;
-        m_timeNodes.get().erase(it);
-    }
-
-    m_view->update();
+    removeElement(m_timeNodes.get(), timeNodeId);
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
         const id_type<ConstraintViewModel>& constraintViewModelId)
 {
     // Don't put a const auto& here, else deletion will crash.
-    for(auto pres : m_constraints)
+    for(auto& pres : m_constraints)
     {
         // TODO add an index in the map on viewmodel id ?
-        if(::viewModel(pres)->id() == constraintViewModelId)
+        if(::viewModel(pres).id() == constraintViewModelId)
         {
-            auto cid = pres->id();
+            auto cid = pres.id();
             auto it = m_constraints.find(cid);
             if(it != m_constraints.end())
             {
                 m_constraints.remove(cid);
-                delete pres;
+                delete &pres;
             }
 
             m_view->update();
@@ -371,22 +366,22 @@ void TemporalScenarioPresenter::updateAllElements()
 {
     for(auto& constraint : m_constraints)
     {
-        m_viewInterface->on_constraintMoved(*constraint);
+        m_viewInterface->on_constraintMoved(constraint);
     }
 
     for(auto& event : m_events)
     {
-        m_viewInterface->on_eventMoved(*event);
+        m_viewInterface->on_eventMoved(event);
     }
 
     for(auto& timenode : m_timeNodes)
     {
-        m_viewInterface->on_timeNodeMoved(*timenode);
+        m_viewInterface->on_timeNodeMoved(timenode);
     }
 
     for(auto& state : m_displayedStates)
     {
-        m_viewInterface->on_stateMoved(*state);
+        m_viewInterface->on_stateMoved(state);
     }
 }
 

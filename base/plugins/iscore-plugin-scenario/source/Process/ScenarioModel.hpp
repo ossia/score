@@ -48,7 +48,7 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
                       QObject* parent);
         ScenarioModel* clone(
                 const id_type<ProcessModel>& newId,
-                QObject* newParent) override;
+                QObject* newParent) const override;
 
         //// ProcessModel specifics ////
         QByteArray makeViewModelConstructionData() const override;
@@ -84,7 +84,7 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
         void addConstraint(ConstraintModel* constraint);
         void addEvent(EventModel* event);
         void addTimeNode(TimeNodeModel* timeNode);
-        void addDisplayedState(StateModel* state);
+        void addState(StateModel* state);
 
         void removeConstraint(ConstraintModel* constraint);
         void removeEvent(EventModel* event);
@@ -92,15 +92,39 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
         void removeState(StateModel* state);
 
         // Accessors
-        ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const override;
-        EventModel& event(const id_type<EventModel>& eventId) const override;
-        TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const override;
-        StateModel& state(const id_type<StateModel>& stId) const override;
+        ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const override
+        {
+            return m_constraints.at(constraintId);
+        }
+        EventModel& event(const id_type<EventModel>& eventId) const override
+        {
+            return m_events.at(eventId);
+        }
+        TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const override
+        {
+            return m_timeNodes.at(timeNodeId);
+        }
+        StateModel& state(const id_type<StateModel>& stId) const override
+        {
+            return m_states.at(stId);
+        }
 
-        TimeNodeModel& startTimeNode() const;
-        TimeNodeModel& endTimeNode() const;
-        EventModel& startEvent() const;
-        EventModel& endEvent() const;
+        TimeNodeModel& startTimeNode() const
+        {
+            return timeNode(m_startTimeNodeId);
+        }
+        TimeNodeModel& endTimeNode() const
+        {
+            return timeNode(m_endTimeNodeId);
+        }
+        EventModel& startEvent() const
+        {
+            return event(m_startEventId);
+        }
+        EventModel& endEvent() const
+        {
+            return event(m_endEventId);
+        }
 
         // Here, a copy is returned because it might be possible
         // to call a method on the scenario (e.g. removeConstraint) that changes the vector
@@ -199,13 +223,13 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
 
 #include <iterator>
 template<typename Vector>
-Vector selectedElements(const Vector& in)
+auto selectedElements(const Vector& in)
 {
-    Vector out;
+    QList<const typename Vector::value_type*> out;
     for(const auto& elt : in)
     {
-        if(elt->selection.get())
-            out.insert(elt);
+        if(elt.selection.get())
+            out.append(&elt);
     }
 
     return out;

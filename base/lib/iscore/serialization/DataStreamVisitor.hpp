@@ -141,9 +141,9 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
 // TODO instead why not add a iscore_serializable tag to our classes ?
 template<typename T,
-         typename std::enable_if<
+         typename = std::enable_if_t<
              not std::is_arithmetic<T>::value
-         and not std::is_same<T, QStringList>::value>::type* = nullptr>
+         and not std::is_same<T, QStringList>::value>>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
     Visitor<Reader<DataStream>> reader(stream.device());
@@ -152,9 +152,9 @@ QDataStream& operator<< (QDataStream& stream, const T& obj)
 }
 
 template<typename T,
-         typename std::enable_if<
+         typename = std::enable_if_t<
              not std::is_arithmetic<T>::value
-         and not std::is_same<T, QStringList>::value>::type* = nullptr>
+         and not std::is_same<T, QStringList>::value>>
 QDataStream& operator>> (QDataStream& stream, T& obj)
 {
     Visitor<Writer<DataStream>> writer(stream.device());

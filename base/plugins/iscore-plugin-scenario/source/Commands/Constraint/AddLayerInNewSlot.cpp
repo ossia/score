@@ -30,22 +30,22 @@ AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
     }
     else
     {
-        m_createdRackId = (*constraint.racks().begin())->id();
+        m_createdRackId = (*constraint.racks().begin()).id();
         m_existingRack = true;
     }
 
     m_createdSlotId = id_type<SlotModel> (getNextId());
     m_createdLayerId = id_type<LayerModel> (getNextId());
-    m_processData = constraint.process(m_sharedProcessModelId)->makeViewModelConstructionData();
+    m_processData = constraint.process(m_sharedProcessModelId).makeViewModelConstructionData();
 }
 
 void AddLayerInNewSlot::undo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
-    auto rack = constraint.rack(m_createdRackId);
+    auto& rack = constraint.rack(m_createdRackId);
 
     // Removing the slot is enough
-    rack->removeSlot(m_createdSlotId);
+    rack.removeSlot(m_createdSlotId);
 
     // Remove the rack
     if(!m_existingRack)
@@ -78,15 +78,17 @@ void AddLayerInNewSlot::redo()
     }
 
     // Slot
-    auto rack = constraint.rack(m_createdRackId);
-    rack->addSlot(new SlotModel {m_createdSlotId,
-                                rack});
+    auto& rack = constraint.rack(m_createdRackId);
+    rack.addSlot(new SlotModel {m_createdSlotId,
+                                &rack});
 
     // Process View
-    auto slot = rack->slot(m_createdSlotId);
-    auto proc = constraint.process(m_sharedProcessModelId);
+    auto& slot = rack.slot(m_createdSlotId);
+    auto& proc = constraint.process(m_sharedProcessModelId);
 
-    slot->addLayerModel(proc->makeLayer(m_createdLayerId, m_processData, slot));
+    slot.addLayerModel(proc.makeLayer(m_createdLayerId,
+                                      m_processData,
+                                      &slot));
 }
 
 void AddLayerInNewSlot::serializeImpl(QDataStream& s) const

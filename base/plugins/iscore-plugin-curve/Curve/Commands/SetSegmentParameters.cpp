@@ -13,8 +13,8 @@ SetSegmentParameters::SetSegmentParameters(
     const auto& curve = m_model.find<CurveModel>();
     for(const auto& elt : m_new.keys())
     {
-        CurveSegmentModel* seg = curve.segments().at(elt);
-        m_old.insert(elt, {seg->verticalParameter(), seg->horizontalParameter()});
+        const auto& seg = curve.segments().at(elt);
+        m_old.insert(elt, {seg.verticalParameter(), seg.horizontalParameter()});
     }
 }
 
@@ -23,12 +23,12 @@ void SetSegmentParameters::undo()
     auto& curve = m_model.find<CurveModel>();
     for(const auto& elt : m_old.keys())
     {
-        CurveSegmentModel* seg = curve.segments().at(elt);
+        auto& seg = curve.segments().at(elt);
 
         if(m_old.value(elt).first)
-            seg->setVerticalParameter(*m_old.value(elt).first);
+            seg.setVerticalParameter(*m_old.value(elt).first);
         if(m_old.value(elt).second)
-            seg->setHorizontalParameter(*m_old.value(elt).second);
+            seg.setHorizontalParameter(*m_old.value(elt).second);
     }
 
     curve.changed();
@@ -39,10 +39,10 @@ void SetSegmentParameters::redo()
     auto& curve = m_model.find<CurveModel>();
     for(const auto& elt : m_new.keys())
     {
-        CurveSegmentModel* seg = curve.segments().at(elt);
+        auto& seg = curve.segments().at(elt);
 
-        seg->setVerticalParameter(m_new.value(elt).first);
-        seg->setHorizontalParameter(m_new.value(elt).second);
+        seg.setVerticalParameter(m_new.value(elt).first);
+        seg.setHorizontalParameter(m_new.value(elt).second);
     }
 
     curve.changed();

@@ -57,8 +57,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId);
 
         // These methods are used to display created things
-        void displaySharedProcess(ProcessModel*);
-        void setupRack(RackModel*);
+        void displaySharedProcess(const ProcessModel&);
+        void setupRack(const RackModel&);
 
     private:
         QWidget* makeStatesWidget(ScenarioModel*);

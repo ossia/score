@@ -28,9 +28,9 @@ auto getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnor
 
     for(const auto& elt : array)
     {
-        if(!ids.contains(elt->id()) && isUnderMouse(elt->view(), scenePoint))
+        if(!ids.contains(elt.id()) && isUnderMouse(elt.view(), scenePoint))
         {
-            colliding.push_back(elt->model().id());
+            colliding.push_back(elt.model().id());
         }
     }
     // TODO sort the elements according to their Z pos.

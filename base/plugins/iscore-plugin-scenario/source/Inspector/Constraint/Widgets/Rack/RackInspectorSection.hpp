@@ -12,9 +12,12 @@ class SlotInspectorSection;
 class RackInspectorSection : public InspectorSectionWidget
 {
     public:
-        RackInspectorSection(QString name, RackModel* model, ConstraintInspectorWidget* parent);
+        RackInspectorSection(
+                const QString& name,
+                const RackModel& model,
+                ConstraintInspectorWidget* parent);
 
-        void addSlotInspectorSection(SlotModel*);
+        void addSlotInspectorSection(const SlotModel&);
         void createSlot();
 
     public slots:
@@ -22,7 +25,7 @@ class RackInspectorSection : public InspectorSectionWidget
         void on_slotRemoved(id_type<SlotModel> slotId);
 
     private:
-        RackModel* m_model {};
+        const RackModel& m_model;
 
         InspectorSectionWidget* m_slotSection {};
         AddSlotWidget* m_slotWidget {};

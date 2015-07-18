@@ -30,46 +30,81 @@ inline int getNextId(const Vector& ids)
     return id;
 }
 
-template<typename Vector,
+
+// TODO refactor
+template<typename T>
+auto getStrongId(const std::vector<id_type<T>>& v)
+{
+    using namespace boost::range;
+    id_type<T> id {};
+
+    do
+    {
+        id = id_type<T>{getNextId()};
+    }
+    while(find(v, id) != std::end(v));
+
+    return id;
+}
+
+template<typename T>
+auto getStrongId(const QVector<id_type<T>>& v)
+{
+    using namespace boost::range;
+    id_type<T> id {};
+
+    do
+    {
+        id = id_type<T>{getNextId()};
+    }
+    while(find(v, id) != std::end(v));
+
+    return id;
+}
+
+template<typename Container,
          typename std::enable_if<
                     std::is_pointer<
-                      typename Vector::value_type
+                      typename Container::value_type
                     >::value
                   >::type* = nullptr>
-auto getStrongId(const Vector& v)
-    -> id_type<typename std::remove_pointer<typename Vector::value_type>::type>
+auto getStrongId(const Container& v)
+    -> id_type<typename std::remove_pointer<typename Container::value_type>::type>
 {
     using namespace std;
+    using local_id_t = id_type<typename std::remove_pointer<typename Container::value_type>::type>;
     vector<int> ids(v.size());   // Map reduce
 
-    transform(begin(v),
-              end(v),
-              begin(ids),
-              [](const typename Vector::value_type& elt)
+    transform(v.begin(),
+              v.end(),
+              ids.begin(),
+              [](const typename Container::value_type& elt)
     {
         return * (elt->id().val());
     });
 
-    return id_type<typename std::remove_pointer<typename Vector::value_type>::type> {getNextId(ids)};
+    return local_id_t{getNextId(ids)};
 }
 
-template<typename Vector,
+template<typename Container,
          typename std::enable_if<
                     not std::is_pointer<
-                      typename Vector::value_type
+                      typename Container::value_type
                     >::value
                   >::type* = nullptr>
-auto getStrongId(const Vector& ids) ->
-    typename Vector::value_type
+auto getStrongId(const Container& v) ->
+    id_type<typename Container::value_type>
 {
-    using namespace boost::range;
-    typename Vector::value_type id {};
+    using namespace std;
+    vector<int> ids(v.size());   // Map reduce
 
-    do
+    transform(v.begin(),
+              v.end(),
+              ids.begin(),
+              [](const typename Container::value_type& elt)
     {
-        id = typename Vector::value_type{getNextId()};
-    }
-    while(find(ids, id) != std::end(ids));
+        return * (elt.id().val());
+    });
 
-    return id;
+    return id_type<typename Container::value_type>{getNextId(ids)};
 }

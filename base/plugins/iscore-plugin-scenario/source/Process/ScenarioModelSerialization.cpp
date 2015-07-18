@@ -21,7 +21,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     for(const auto& timenode : timenodes)
     {
-        readFrom(*timenode);
+        readFrom(timenode);
     }
 
     // Events
@@ -30,7 +30,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     for(const auto& event : events)
     {
-        readFrom(*event);
+        readFrom(event);
     }
 
     // States
@@ -39,7 +39,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     for(const auto& state : states)
     {
-        readFrom(*state);
+        readFrom(state);
     }
 
     // Constraints
@@ -48,7 +48,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     for(const auto& constraint : constraints)
     {
-        readFrom(*constraint);
+        readFrom(constraint);
     }
 
 
@@ -93,7 +93,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     for(; state_count -- > 0;)
     {
         auto stmodel = new StateModel {*this, &scenario};
-        scenario.addDisplayedState(stmodel);
+        scenario.addState(stmodel);
     }
 
     // Constraints
@@ -163,7 +163,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
                        Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
-        scenario.addDisplayedState(stmodel);
+        scenario.addState(stmodel);
     }
 
     for(const auto& json_vref : m_obj["Constraints"].toArray())

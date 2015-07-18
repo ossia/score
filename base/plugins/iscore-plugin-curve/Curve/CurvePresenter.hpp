@@ -70,8 +70,8 @@ class CurvePresenter : public QObject
         void updateSegmentsType(const QString& segment);
 
         // Setup utilities
-        void setPos(CurvePointView*);
-        void setPos(CurveSegmentView*);
+        void setPos(CurvePointView&);
+        void setPos(CurveSegmentView&);
         void setupSignals();
         void setupView();
         void setupStateMachine();

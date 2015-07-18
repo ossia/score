@@ -165,9 +165,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         const id_type<StateModel>& endState() const;
         void setEndState(const id_type<StateModel> &endState);
 
-        // TODO reference
-        RackModel* rack(const id_type<RackModel>& id) const;
-        ProcessModel* process(
+        RackModel& rack(const id_type<RackModel>& id) const;
+        ProcessModel& process(
                 const id_type<ProcessModel>& processId) const;
 
 

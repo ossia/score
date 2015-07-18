@@ -33,7 +33,7 @@ class AutomationModel : public ProcessModel
                         const id_type<ProcessModel>& id,
                         QObject* parent);
         ProcessModel* clone(const id_type<ProcessModel>& newId,
-                                           QObject* newParent) override;
+                                           QObject* newParent) const override;
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :

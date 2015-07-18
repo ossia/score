@@ -17,10 +17,10 @@ RackModel::RackModel(const RackModel& source,
     IdentifiedObject<RackModel> {id, "RackModel", parent}
 {
     metadata = source.metadata;
-    for(auto& slot : source.m_slots)
+    for(const auto& slot : source.m_slots)
     {
-        addSlot(new SlotModel{lmCopyMethod, *slot, slot->id(), this},
-                source.slotPosition(slot->id()));
+        addSlot(new SlotModel{lmCopyMethod, slot, slot.id(), this},
+                source.slotPosition(slot.id()));
     }
 }
 
@@ -51,7 +51,7 @@ void RackModel::addSlot(SlotModel* m)
 
 void RackModel::removeSlot(const id_type<SlotModel>& slotId)
 {
-    auto removedSlot = slot(slotId);
+    auto& removedSlot = slot(slotId);
 
     // Make the remaining slots decrease their position.
     m_positions.removeAll(slotId);
@@ -59,7 +59,7 @@ void RackModel::removeSlot(const id_type<SlotModel>& slotId)
 
     emit slotRemoved(slotId);
     emit slotPositionsChanged();
-    delete removedSlot;
+    delete &removedSlot;
 }
 
 void RackModel::swapSlots(const id_type<SlotModel>& firstslot,
@@ -69,7 +69,7 @@ void RackModel::swapSlots(const id_type<SlotModel>& firstslot,
     emit slotPositionsChanged();
 }
 
-SlotModel* RackModel::slot(const id_type<SlotModel>& slotId) const
+SlotModel& RackModel::slot(const id_type<SlotModel>& slotId) const
 {
     return m_slots.at(slotId);
 }

@@ -25,19 +25,19 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     connect(this, &QState::entered,
             [&] ()
     {
-        for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
+        for(const auto& constraint : m_sm.presenter().constraints())
         {
-            if(!constraint->rack()) continue;
-            constraint->rack()->setDisabledSlotState();
+            if(!constraint.rack()) continue;
+            constraint.rack()->setDisabledSlotState();
         }
     });
     connect(this, &QState::exited,
             [&] ()
     {
-        for(TemporalConstraintPresenter* constraint : m_sm.presenter().constraints())
+        for(const auto& constraint : m_sm.presenter().constraints())
         {
-            if(!constraint->rack()) continue;
-            constraint->rack()->setEnabledSlotState();
+            if(!constraint.rack()) continue;
+            constraint.rack()->setEnabledSlotState();
         }
     });
 

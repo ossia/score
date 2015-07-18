@@ -24,7 +24,7 @@ class PowerCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) const override;
 
-        boost::optional<double> verticalParameter() override;
+        boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
         double gamma = 0.5;

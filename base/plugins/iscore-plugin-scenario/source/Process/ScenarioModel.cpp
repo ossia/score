@@ -42,30 +42,30 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 {
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 
-    for(TimeNodeModel* timenode : source.m_timeNodes)
+    for(const auto& timenode : source.m_timeNodes)
     {
-        addTimeNode(new TimeNodeModel {*timenode, timenode->id(), this});
+        addTimeNode(new TimeNodeModel {timenode, timenode.id(), this});
     }
 
-    for(EventModel* event : source.m_events)
+    for(const auto& event : source.m_events)
     {
-        addEvent(new EventModel {*event, event->id(), this});
+        addEvent(new EventModel {event, event.id(), this});
     }
 
-    for(StateModel* state : source.m_states)
+    for(const auto& state : source.m_states)
     {
-        addDisplayedState(new StateModel{*state, state->id(), this});
+        addState(new StateModel{state, state.id(), this});
     }
 
-    for(ConstraintModel* constraint : source.m_constraints)
+    for(const auto& constraint : source.m_constraints)
     {
-        addConstraint(new ConstraintModel {*constraint, constraint->id(), this});
+        addConstraint(new ConstraintModel {constraint, constraint.id(), this});
     }
 }
 
 ScenarioModel* ScenarioModel::clone(
         const id_type<ProcessModel>& newId,
-        QObject* newParent)
+        QObject* newParent) const
 {
     return new ScenarioModel {*this, newId, newParent};
 }
@@ -80,7 +80,7 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
     {
         auto id = getStrongId(vec);
         vec.push_back(id);
-        map.insert(constraint->id(), id);
+        map.insert(constraint.id(), id);
     }
 
     QByteArray arr;
@@ -124,33 +124,33 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 
     // Is it recursive ?? Make a scale() method on the constraint, maybe ?
     // TODO we should only have to set the date of the event / constraint
-    for(TimeNodeModel* timenode : m_timeNodes)
+    for(auto& timenode : m_timeNodes)
     {
-        timenode->setDate(timenode->date() * scale);
+        timenode.setDate(timenode.date() * scale);
         // Since events will also move we do not need
         // to move the timenode.
     }
 
-    for(EventModel* event : m_events)
+    for(auto& event : m_events)
     {
-        event->setDate(event->date() * scale);
-        emit eventMoved(event->id());
+        event.setDate(event.date() * scale);
+        emit eventMoved(event.id());
     }
 
-    for(ConstraintModel* constraint : m_constraints)
+    for(auto& constraint : m_constraints)
     {
-        constraint->setStartDate(constraint->startDate() * scale);
+        constraint.setStartDate(constraint.startDate() * scale);
         // Note : scale the min / max.
 
-        ConstraintModel::Algorithms::changeAllDurations(*constraint,
-                                                        constraint->defaultDuration() * scale);
+        ConstraintModel::Algorithms::changeAllDurations(constraint,
+                                                        constraint.defaultDuration() * scale);
 
-        for(auto& process : constraint->processes())
+        for(auto& process : constraint.processes())
         {
-            process->setDurationAndScale(constraint->defaultDuration() * scale);
+            process.setDurationAndScale(constraint.defaultDuration() * scale);
         }
 
-        emit constraintMoved(constraint->id());
+        emit constraintMoved(constraint.id());
     }
 
     this->setDuration(newDuration);
@@ -201,12 +201,12 @@ void ScenarioModel::reset()
 {
     for(auto& constraint : m_constraints)
     {
-        constraint->reset();
+        constraint.reset();
     }
 
     for(auto& event : m_events)
     {
-        event->reset();
+        event.reset();
     }
 
     // TODO reset events / states display too
@@ -216,13 +216,13 @@ Selection ScenarioModel::selectableChildren() const
 {
     Selection objects;
     for(const auto& elt : m_constraints)
-        objects.insert(elt);
+        objects.insert(&elt);
     for(const auto& elt : m_events)
-        objects.insert(elt);
+        objects.insert(&elt);
     for(const auto& elt : m_timeNodes)
-        objects.insert(elt);
+        objects.insert(&elt);
     for(const auto& elt : m_states)
-        objects.insert(elt);
+        objects.insert(&elt);
 
     return objects;
 }
@@ -232,8 +232,8 @@ static void copySelected(const InputVec& in, OutputVec& out)
 {
     for(const auto& elt : in)
     {
-        if(elt->selection.get())
-            out.insert(elt);
+        if(elt.selection.get())
+            out.insert(&elt);
     }
 }
 
@@ -252,13 +252,13 @@ void ScenarioModel::setSelection(const Selection& s) const
 {
     // TODO optimize if possible?
     for(auto& elt : m_constraints)
-        elt->selection.set(s.find(elt) != s.end());
+        elt.selection.set(s.find(&elt) != s.end());
     for(auto& elt : m_events)
-        elt->selection.set(s.find(elt) != s.end());
+        elt.selection.set(s.find(&elt) != s.end());
     for(auto& elt : m_timeNodes)
-      elt->selection.set(s.find(elt) != s.end());
+      elt.selection.set(s.find(&elt) != s.end());
     for(auto& elt : m_states)
-      elt->selection.set(s.find(elt) != s.end());
+      elt.selection.set(s.find(&elt) != s.end());
 }
 
 ProcessStateDataInterface* ScenarioModel::startState() const
@@ -326,7 +326,7 @@ void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
     emit timeNodeCreated(timeNode->id());
 }
 
-void ScenarioModel::addDisplayedState(StateModel *state)
+void ScenarioModel::addState(StateModel *state)
 {
     m_states.insert(state);
 
@@ -370,46 +370,4 @@ void ScenarioModel::removeState(StateModel *state)
 
     m_states.remove(id);
     delete state;
-}
-
-/////////////////////////////
-ConstraintModel& ScenarioModel::constraint(const id_type<ConstraintModel>& constraintId) const
-{
-    return *m_constraints.at(constraintId);
-}
-
-EventModel& ScenarioModel::event(const id_type<EventModel>& eventId) const
-{
-    return *m_events.at(eventId);
-}
-
-TimeNodeModel& ScenarioModel::timeNode(const id_type<TimeNodeModel>& timeNodeId) const
-{
-    return *m_timeNodes.at(timeNodeId);
-}
-
-TimeNodeModel&ScenarioModel::startTimeNode() const
-{
-    return timeNode(m_startTimeNodeId);
-}
-
-TimeNodeModel&ScenarioModel::endTimeNode() const
-{
-    return timeNode(m_endTimeNodeId);
-}
-
-StateModel &ScenarioModel::state(const id_type<StateModel> &stId) const
-{
-    return *m_states.at(stId);
-}
-
-
-EventModel& ScenarioModel::startEvent() const
-{
-    return event(m_startEventId);
-}
-
-EventModel& ScenarioModel::endEvent() const
-{
-    return event(m_endEventId);
 }

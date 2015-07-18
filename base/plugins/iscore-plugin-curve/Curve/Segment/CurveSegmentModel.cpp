@@ -43,12 +43,12 @@ void CurveSegmentModel::setHorizontalParameter(double p)
 
 }
 
-boost::optional<double> CurveSegmentModel::verticalParameter()
+boost::optional<double> CurveSegmentModel::verticalParameter() const
 {
     return {};
 }
 
-boost::optional<double> CurveSegmentModel::horizontalParameter()
+boost::optional<double> CurveSegmentModel::horizontalParameter() const
 {
     return {};
 }

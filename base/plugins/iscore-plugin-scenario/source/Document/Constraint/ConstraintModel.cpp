@@ -47,9 +47,9 @@ ConstraintModel::ConstraintModel(
     // Clone the processes
     for(const auto& process : source.processes())
     {
-        auto newproc = process->clone(process->id(), this);
+        auto newproc = process.clone(process.id(), this);
 
-        processPairs.insert(std::make_pair(process, newproc));
+        processPairs.insert(std::make_pair(&process, newproc));
         addProcess(newproc);
 
         // We don't need to resize them since the new constraint will have the same duration.
@@ -58,16 +58,16 @@ ConstraintModel::ConstraintModel(
     for(const auto& rack : source.racks())
     {
         addRack(new RackModel {
-                   *rack,
-                   rack->id(),
+                   rack,
+                   rack.id(),
         [&] (const SlotModel& source, SlotModel& target)
         {
                    for(auto& lm : source.layerModels())
                    {
                        // We can safely reuse the same id since it's in a different slot.
-                       auto proc = processPairs[&lm->sharedProcessModel()];
+                       auto proc = processPairs[&lm.sharedProcessModel()];
                        // TODO harmonize the order of parameters (source first, then new id)
-                       target.addLayerModel(proc->cloneLayer(lm->id(), *lm, &target));
+                       target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
                    }
         }, this});
     }
@@ -132,7 +132,7 @@ void ConstraintModel::addProcess(ProcessModel* model)
 
 void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
 {
-    auto proc = process(processId);
+    auto proc = &process(processId);
     m_processes.remove(processId);
 
     emit processRemoved(processId);
@@ -154,7 +154,7 @@ void ConstraintModel::addRack(RackModel* rack)
 
 void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
 {
-    auto b = rack(rackId);
+    auto b = &rack(rackId);
     m_racks.remove(rackId);
 
     emit rackRemoved(rackId);
@@ -172,13 +172,12 @@ void ConstraintModel::setStartState(const id_type<StateModel>& e)
 }
 
 
-// TODO RackModel&
-RackModel* ConstraintModel::rack(const id_type<RackModel>& id) const
+RackModel& ConstraintModel::rack(const id_type<RackModel>& id) const
 {
     return m_racks.at(id);
 }
 
-ProcessModel* ConstraintModel::process(
+ProcessModel& ConstraintModel::process(
         const id_type<ProcessModel>& id) const
 {
     return m_processes.at(id);
@@ -223,7 +222,7 @@ void ConstraintModel::reset()
 
     for(auto& proc : m_processes)
     {
-        proc->reset();
+        proc.reset();
     }
 }
 

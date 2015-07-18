@@ -166,7 +166,7 @@ void SelectionTool::on_released()
     {
         const auto& elt = m_parentSM.presenter().states().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 
@@ -176,7 +176,7 @@ void SelectionTool::on_released()
     {
         const auto& elt = m_parentSM.presenter().events().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 
@@ -186,7 +186,7 @@ void SelectionTool::on_released()
     {
         const auto& elt = m_parentSM.presenter().timeNodes().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
         localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint});
@@ -195,7 +195,7 @@ void SelectionTool::on_released()
     {
         const auto& elt = m_parentSM.presenter().constraints().at(id);
 
-        m_state->dispatcher.setAndCommit(filterSelections(&elt->model(),
+        m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
         localSM().postEvent(new ReleaseOnConstraint_Event{id, m_parentSM.scenarioPoint});

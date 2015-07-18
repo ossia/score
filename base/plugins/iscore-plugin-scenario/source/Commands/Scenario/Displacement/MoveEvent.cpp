@@ -88,7 +88,7 @@ void MoveEvent::undo()
                 scenar,
                 m_movableTimenodes,
                 m_oldDate - event.date(),
-                [&] (ProcessModel* , const TimeValue& ) { });
+                [&] (ProcessModel& , const TimeValue& ) { });
 
     // Now we have to restore the state of each constraint that might have been modified
     // during this command.
@@ -114,9 +114,9 @@ void MoveEvent::undo()
             // Clone the processes
             for(const auto& sourceproc : src_constraint.processes())
             {
-                auto newproc = sourceproc->clone(sourceproc->id(), &constraint);
+                auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
-                processPairs.insert(std::make_pair(sourceproc, newproc));
+                processPairs.insert(std::make_pair(&sourceproc, newproc));
                 constraint.addProcess(newproc);
             }
 
@@ -129,16 +129,16 @@ void MoveEvent::undo()
                 // we maintain a pair mapping each original process to their cloned counterpart.
                 // We can then use the correct cloned process to clone the process view model.
                 auto newrack = new RackModel{
-                        *sourcerack,
-                        sourcerack->id(),
+                        sourcerack,
+                        sourcerack.id(),
                         [&] (const SlotModel& source, SlotModel& target)
                         {
                             for(const auto& lm : source.layerModels())
                             {
                                 // We can safely reuse the same id since it's in a different slot.
-                                ProcessModel* proc = processPairs[&lm->sharedProcessModel()];
+                                ProcessModel* proc = processPairs[&lm.sharedProcessModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
-                                target.addLayerModel(proc->cloneLayer(lm->id(), *lm, &target));
+                                target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
                             }
                         },
                         &constraint};
@@ -168,8 +168,8 @@ void MoveEvent::redo()
                 scenar,
                 m_movableTimenodes,
                 deltaDate,
-                [&] (ProcessModel* p, const TimeValue& t)
-    { p->expandProcess(m_mode, t); });
+                [&] (ProcessModel& p, const TimeValue& t)
+    { p.expandProcess(m_mode, t); });
 
     updateEventExtent(m_eventId, scenar);
 }

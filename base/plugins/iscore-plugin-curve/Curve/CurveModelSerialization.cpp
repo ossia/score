@@ -13,7 +13,7 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
 
     m_stream << (int32_t)segments.size();
     for(const auto& segment : segments)
-        readFrom(*segment);
+        readFrom(segment);
 
     insertDelimiter();
 }

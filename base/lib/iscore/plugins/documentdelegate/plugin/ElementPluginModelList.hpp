@@ -19,7 +19,7 @@ namespace iscore
             QObject* parent();
 
             template<typename DeserializerType,
-                     typename std::enable_if<
+                     typename = std::enable_if_t<
                          not std::is_same<
                              typename std::decay<DeserializerType>::type,
                              iscore::ElementPluginModelList
@@ -28,7 +28,7 @@ namespace iscore
                          not std::is_same<
                              typename std::decay<DeserializerType>::type,
                              iscore::ElementPluginModelList*
-                         >::value>::type* = nullptr>
+                         >::value>>
             ElementPluginModelList(DeserializerType&& vis, QObject* parent):
                 m_parent{parent}
             {

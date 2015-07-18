@@ -32,12 +32,12 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
     QVector<id_type<RackModel>> target_rackes_ids;
     std::transform(target_rackes.begin(), target_rackes.end(),
                    std::back_inserter(target_rackes_ids),
-                   [] (RackModel* rack) { return rack->id(); });
+                   [] (const auto& rack) { return rack.id(); });
 
     for(const auto& rack : src_constraint.racks())
     {
         auto newId = getStrongId(target_rackes_ids);
-        m_rackIds.insert(rack->id(), newId);
+        m_rackIds.insert(rack.id(), newId);
         target_rackes_ids.append(newId);
     }
 
@@ -46,12 +46,12 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
     QVector<id_type<ProcessModel>> target_processes_ids;
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
-                   [] (ProcessModel* proc) { return proc->id(); });
+                   [] (const auto& proc) { return proc.id(); });
 
     for(const auto& proc : src_constraint.processes())
     {
         auto newId = getStrongId(target_processes_ids);
-        m_processIds.insert(proc->id(), newId);
+        m_processIds.insert(proc.id(), newId);
         target_processes_ids.append(newId);
     }
 }
@@ -86,9 +86,9 @@ void CopyConstraintContent::redo()
     auto src_procs = src_constraint.processes();
     for(const auto& sourceproc : src_procs)
     {
-        auto newproc = sourceproc->clone(m_processIds[sourceproc->id()], &trg_constraint);
+        auto newproc = sourceproc.clone(m_processIds[sourceproc.id()], &trg_constraint);
 
-        processPairs.insert(std::make_pair(sourceproc, newproc));
+        processPairs.insert(std::make_pair(&sourceproc, newproc));
         trg_constraint.addProcess(newproc);
 
         // Resize the processes according to the new constraint.
@@ -112,16 +112,16 @@ void CopyConstraintContent::redo()
         // we maintain a pair mapping each original process to their cloned counterpart.
         // We can then use the correct cloned process to clone the process view model.
         auto newrack = new RackModel{
-                *sourcerack,
-                m_rackIds[sourcerack->id()],
+                sourcerack,
+                m_rackIds[sourcerack.id()],
                 [&] (const SlotModel& source, SlotModel& target)
                 {
                     for(const auto& lm : source.layerModels())
                     {
                         // We can safely reuse the same id since it's in a different slot.
-                        auto proc = processPairs[&lm->sharedProcessModel()];
+                        auto proc = processPairs[&lm.sharedProcessModel()];
                         // TODO harmonize the order of parameters (source first, then new id)
-                        target.addLayerModel(proc->cloneLayer(lm->id(), *lm, &target));
+                        target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
                     }
                 },
                 &trg_constraint};

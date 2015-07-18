@@ -53,7 +53,7 @@ SlotInspectorSection::SlotInspectorSection(
 
     for(const auto& lm : m_model.layerModels())
     {
-        displayLayerModel(*lm);
+        displayLayerModel(lm);
     }
 
     m_addLmWidget = new AddLayerModelWidget{this};
@@ -133,11 +133,11 @@ void SlotInspectorSection::on_layerModelRemoved(
     ISCORE_TODO
 
     m_lmSection->removeAll();
-    for (auto& lm : m_model.layerModels())
+    for (const auto& lm : m_model.layerModels())
     {
-        if (lm->id() != lmId)
+        if (lm.id() != lmId)
         {
-            displayLayerModel(*lm);
+            displayLayerModel(lm);
         }
     }
 }

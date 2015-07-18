@@ -63,7 +63,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         "Scenario"
     };
     cmd1.redo();
-    auto scenarioId = (*constraint_model.processes().begin())->id();
+    auto scenarioId = (*constraint_model.processes().begin()).id();
 
     AddRackToConstraint cmd2
     {
@@ -74,7 +74,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         }
     };
     cmd2.redo();
-    auto rack = *constraint_model.racks().begin();
+    auto& rack = *constraint_model.racks().begin();
 
     ShowRackInViewModel cmd3 {
         ObjectPath{
@@ -83,7 +83,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
             {"BaseConstraintModel", {}},
             {"FullViewConstraintViewModel", viewmodel->id()}
         },
-        rack->id() };
+        rack.id() };
     cmd3.redo();
 
     AddSlotToRack cmd4
@@ -92,11 +92,11 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
             {"BaseElementModel", this->id()},
             {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
-            {"RackModel", rack->id() }
+            {"RackModel", rack.id() }
         }
     };
     cmd4.redo();
-    auto slotId = (*rack->getSlots().begin())->id();
+    auto slotId = (*rack.getSlots().begin()).id();
 
     ResizeSlotVertically cmd5
     {
@@ -104,7 +104,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
             {"BaseElementModel", this->id()},
             {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
-            {"RackModel", rack->id() },
+            {"RackModel", rack.id() },
             {"SlotModel", slotId}
         },
         1500
@@ -117,7 +117,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
             {"BaseElementModel", this->id()},
             {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
-            {"RackModel", rack->id() },
+            {"RackModel", rack.id() },
             {"SlotModel", slotId}
         },
         {

@@ -212,13 +212,13 @@ void ConstraintPresenter::clearRackPresenter()
     }
 }
 
-void ConstraintPresenter::createRackPresenter(RackModel* rackModel)
+void ConstraintPresenter::createRackPresenter(const RackModel& rackModel)
 {
     auto rackView = new RackView {m_view};
     rackView->setPos(0, ConstraintHeader::headerHeight());
 
     // Cas par défaut
-    m_rack = new RackPresenter {*rackModel,
+    m_rack = new RackPresenter {rackModel,
             rackView,
             this};
 

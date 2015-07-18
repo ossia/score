@@ -27,17 +27,17 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 
     // Save the process
     Serializer<DataStream> s1{&m_serializedProcessData};
-    auto proc = constraint.process(m_processId);
-    s1.readFrom(*proc);
+    auto& proc = constraint.process(m_processId);
+    s1.readFrom(proc);
 
     // Save ALL the view models!
-    for(const auto& viewmodel : proc->layers())
+    for(const auto& layer : proc.layers())
     {
         QByteArray vm_arr;
         Serializer<DataStream> s{&vm_arr};
-        s.readFrom(*viewmodel);
+        s.readFrom(*layer);
 
-        m_serializedViewModels.append({iscore::IDocument::path(viewmodel), vm_arr});
+        m_serializedViewModels.append({iscore::IDocument::path(layer), vm_arr});
     }
 }
 
@@ -51,16 +51,16 @@ void RemoveProcessFromConstraint::undo()
     for(const auto& it : m_serializedViewModels)
     {
         const auto& path = it.first.vec();
-        qDebug() << it.first.toString();
-        auto slot = constraint
+
+        auto& slot = constraint
                 .rack(id_type<RackModel>(path.at(path.size() - 3).id()))
-                ->slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
+                .slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
         auto lm = createLayerModel(s,
-                                          slot->parentConstraint(),
-                                          slot);
-        slot->addLayerModel(lm);
+                                   slot.parentConstraint(),
+                                   &slot);
+        slot.addLayerModel(lm);
     }
 }
 

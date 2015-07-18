@@ -85,10 +85,10 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
 
     for(const auto& rack : m_model->racks())
     {
-        auto id = *rack->id().val();
+        auto id = *rack.id().val();
         combobox->addItem(QString::number(id));
         // TODO check that
-        if(vm->shownRack() == rack->id())
+        if(vm->shownRack() == rack.id())
         {
             combobox->setCurrentIndex(combobox->count() - 1);
         }

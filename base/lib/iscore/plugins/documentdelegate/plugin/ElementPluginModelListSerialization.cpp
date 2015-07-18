@@ -5,7 +5,7 @@
 template<> void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModelList& elts)
 {
     m_stream << elts.list().size();
-    for(auto& plug : elts.list())
+    for(const iscore::ElementPluginModel* plug : elts.list())
     {
         readFrom(*plug);
     }

@@ -43,16 +43,17 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
         // 3. Compute the difference
         for(auto& process : shared_process_list)
         {
-            auto it = std::find_if(std::begin(already_displayed_processes),
-                                   std::end(already_displayed_processes),
-                                   [&process](LayerModel * lm)
-            {
-                    return lm->sharedProcessModel().id() == process->id();
-        });
+            auto beg_it = already_displayed_processes.begin();
+            auto end_it = already_displayed_processes.end();
+            auto it = std::find_if(beg_it,
+                                   end_it,
+                                   [&process](const LayerModel& lm)
+            { return lm.sharedProcessModel().id() == process.id(); });
 
-            if(it == std::end(already_displayed_processes))
+            beg_it != end_it;
+            if(it == end_it)
             {
-                available_models += QString::number(*process->id().val());
+                available_models += QString::number(*process.id().val());
             }
         }
 

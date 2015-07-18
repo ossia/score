@@ -24,8 +24,8 @@ class SinCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) const override;
 
-        boost::optional<double> verticalParameter() override;
-        boost::optional<double> horizontalParameter() override;
+        boost::optional<double> verticalParameter() const override;
+        boost::optional<double> horizontalParameter() const override;
         void setVerticalParameter(double p) override;
         void setHorizontalParameter(double p) override;
 

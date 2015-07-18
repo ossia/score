@@ -33,28 +33,28 @@ namespace StandardDisplacementPolicy
             }
         }
 
-        for(const auto& constraint : scenario.constraints())
+        for(auto& constraint : scenario.constraints())
         {
-            const auto& startDate = scenario.event(scenario.state(constraint->startState()).eventId()).date();
-            const auto& endDate = scenario.event(scenario.state(constraint->endState()).eventId()).date();
+            const auto& startDate = scenario.event(scenario.state(constraint.startState()).eventId()).date();
+            const auto& endDate = scenario.event(scenario.state(constraint.endState()).eventId()).date();
 
             TimeValue newDuration = endDate - startDate;
 
-            if (!(constraint->startDate() - startDate).isZero())
+            if (!(constraint.startDate() - startDate).isZero())
             {
-                constraint->setStartDate(startDate);
+                constraint.setStartDate(startDate);
             }
 
-            if(!(constraint->defaultDuration() - newDuration).isZero())
+            if(!(constraint.defaultDuration() - newDuration).isZero())
             {
-                ConstraintModel::Algorithms::setDurationInBounds(*constraint, newDuration);
-                for(const auto& process : constraint->processes())
+                ConstraintModel::Algorithms::setDurationInBounds(constraint, newDuration);
+                for(auto& process : constraint.processes())
                 {
                     scaleMethod(process, newDuration);
                 }
             }
 
-            emit scenario.constraintMoved(constraint->id());
+            emit scenario.constraintMoved(constraint.id());
         }
     }
 }

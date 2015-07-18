@@ -58,3 +58,9 @@ bool operator==(const T* obj, const id_type<U>& id)
 {
     return obj->id() == id;
 }
+
+template<typename T, typename U, typename = std::enable_if_t<not std::is_pointer<std::decay_t<T>>::value>>
+bool operator==(const T& obj, const id_type<U>& id)
+{
+    return obj.id() == id;
+}

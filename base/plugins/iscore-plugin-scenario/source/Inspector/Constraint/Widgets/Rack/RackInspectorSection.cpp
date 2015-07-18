@@ -20,9 +20,10 @@
 
 using namespace Scenario::Command;
 #include "Commands/Constraint/RemoveRackFromConstraint.hpp"
-RackInspectorSection::RackInspectorSection(QString name,
-                                         RackModel* rack,
-                                         ConstraintInspectorWidget* parentConstraint) :
+RackInspectorSection::RackInspectorSection(
+        const QString& name,
+        const RackModel& rack,
+        ConstraintInspectorWidget* parentConstraint) :
     InspectorSectionWidget {name, parentConstraint},
     m_model {rack},
     m_parent{parentConstraint}
@@ -37,13 +38,13 @@ RackInspectorSection::RackInspectorSection(QString name,
     m_slotSection = new InspectorSectionWidget{"Slots", this};  // TODO Make a custom widget.
     m_slotSection->setObjectName("Slots");
 
-    connect(rack,	&RackModel::slotCreated,
+    connect(&m_model,	&RackModel::slotCreated,
             this,	&RackInspectorSection::on_slotCreated);
 
-    connect(rack,	&RackModel::slotRemoved,
+    connect(&m_model,	&RackModel::slotRemoved,
             this,	&RackInspectorSection::on_slotRemoved);
 
-    for(auto& slot : m_model->getSlots())
+    for(auto& slot : m_model.getSlots())
     {
         addSlotInspectorSection(slot);
     }
@@ -56,7 +57,9 @@ RackInspectorSection::RackInspectorSection(QString name,
     auto deleteButton = new QPushButton{"Delete"};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveRackFromConstraint{iscore::IDocument::path(parentConstraint->model()), rack->id()};
+        auto cmd = new RemoveRackFromConstraint{
+                   iscore::IDocument::path(parentConstraint->model()),
+                   m_model.id()};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton);
@@ -70,16 +73,16 @@ void RackInspectorSection::createSlot()
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
-void RackInspectorSection::addSlotInspectorSection(SlotModel* slot)
+void RackInspectorSection::addSlotInspectorSection(const SlotModel& slot)
 {
     SlotInspectorSection* newSlot = new SlotInspectorSection {
-                                    QString{"Slot.%1"} .arg(*slot->id().val()),
-                                    *slot,
+                                    QString{"Slot.%1"} .arg(*slot.id().val()),
+                                    slot,
                                     this};
 
     m_slotSection->addContent(newSlot);
 
-    m_slotsSectionWidgets[slot->id()] = newSlot;
+    m_slotsSectionWidgets[slot.id()] = newSlot;
 }
 
 
@@ -87,7 +90,7 @@ void RackInspectorSection::on_slotCreated(id_type<SlotModel> slotId)
 {
     // TODO display them in the order of their position.
     // TODO issue : the rack should grow of 10 more pixels for each slot.
-    addSlotInspectorSection(m_model->slot(slotId));
+    addSlotInspectorSection(m_model.slot(slotId));
 }
 
 void RackInspectorSection::on_slotRemoved(id_type<SlotModel> slotId)

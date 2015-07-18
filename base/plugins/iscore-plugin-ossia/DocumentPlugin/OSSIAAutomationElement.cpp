@@ -107,11 +107,11 @@ void OSSIAAutomationElement::on_curveChanged()
     m_ossia_curve = Curve<float>::create();
 
     // For now we will assume that every segment is dynamic
-    for(auto& iscore_segment : m_iscore_autom->curve().segments())
+    for(const auto& iscore_segment : m_iscore_autom->curve().segments())
     {
         auto linearSegment = CurveSegmentLinear<float>::create(m_ossia_curve);
-        m_ossia_curve->addPoint(iscore_segment->start().x(), iscore_segment->start().y(), linearSegment);
-        m_ossia_curve->addPoint(iscore_segment->end().x(), iscore_segment->end().y(), linearSegment);
+        m_ossia_curve->addPoint(iscore_segment.start().x(), iscore_segment.start().y(), linearSegment);
+        m_ossia_curve->addPoint(iscore_segment.end().x(), iscore_segment.end().y(), linearSegment);
     }
 
     //m_ossia_curve->setInitialValue((*m_iscore_autom->curve().segments().begin()).start().y());

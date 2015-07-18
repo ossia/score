@@ -90,9 +90,9 @@ void DisplayedElementsPresenter::showConstraint()
     // We set the focus on the main scenario.
     if(m_constraintPresenter->rack() && !m_constraintPresenter->rack()->getSlots().empty())
     {
-        SlotPresenter* slot = *m_constraintPresenter->rack()->getSlots().begin();
+        const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
         m_parent->model()->focusManager().setFocusedPresenter(
-                    slot->processes().front().first);
+                    slot.processes().front().first);
     }
 }
 

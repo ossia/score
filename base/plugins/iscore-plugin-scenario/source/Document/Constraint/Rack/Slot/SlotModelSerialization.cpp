@@ -14,9 +14,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
     auto lms = slot.layerModels();
     m_stream << (int) lms.size();
 
-    for(auto lm : lms)
+    for(const auto& lm : lms)
     {
-        readFrom(*lm);
+        readFrom(lm);
     }
 
     m_stream << slot.height();
@@ -64,7 +64,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const SlotModel& slot)
 
     for(const auto& lm : slot.layerModels())
     {
-        arr.push_back(toJsonObject(*lm));
+        arr.push_back(toJsonObject(lm));
     }
 
     m_obj["LayerModels"] = arr;

@@ -29,14 +29,14 @@ void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
-    for(LayerModel* lm : source.layerModels())
+    for(const auto& lm : source.layerModels())
     {
         // We can safely reuse the same id since it's in a different slot.
-        auto& proc = lm->sharedProcessModel();
+        auto& proc = lm.sharedProcessModel();
         target.addLayerModel(
-                    proc.cloneLayer(lm->id(),
-                                        *lm,
-                                        &target));
+                    proc.cloneLayer(lm.id(),
+                                    lm,
+                                    &target));
     }
 }
 
@@ -60,7 +60,7 @@ void SlotModel::deleteLayerModel(
 
     if(!m_layerModels.empty())
     {
-        putToFront((*m_layerModels.begin())->id());
+        putToFront((*m_layerModels.begin()).id());
     }
     else
     {
@@ -91,7 +91,7 @@ const id_type<LayerModel>& SlotModel::frontLayerModel() const
 LayerModel& SlotModel::layerModel(
         const id_type<LayerModel>& layerModelId) const
 {
-    return *m_layerModels.at(layerModelId);
+    return m_layerModels.at(layerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(
@@ -100,14 +100,14 @@ void SlotModel::on_deleteSharedProcessModel(
     using namespace std;
     auto it = find_if(begin(m_layerModels),
                       end(m_layerModels),
-                      [&sharedProcessId](const LayerModel * lm)
+                      [&sharedProcessId](const LayerModel& lm)
     {
-        return lm->sharedProcessModel().id() == sharedProcessId;
+        return lm.sharedProcessModel().id() == sharedProcessId;
     });
 
     if(it != end(m_layerModels))
     {
-        deleteLayerModel((*it)->id());
+        deleteLayerModel((*it).id());
     }
 }
 

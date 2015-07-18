@@ -38,9 +38,9 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     });
 
 
-    for(auto& process : iscore_cst.processes())
+    for(const auto& process : iscore_cst.processes())
     {
-        on_processAdded(process->processName(), process->id());
+        on_processAdded(process.processName(), process.id());
     }
 }
 
@@ -65,7 +65,7 @@ void OSSIAConstraintElement::on_processAdded(
         const id_type<ProcessModel>& id)
 {
     // The DocumentPlugin creates the elements in the processes.
-    auto proc = m_iscore_constraint.process(id);
+    auto proc = &m_iscore_constraint.process(id);
     OSSIAProcessElement* plug{};
     if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
     {

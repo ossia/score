@@ -28,9 +28,9 @@ LayerModel* createLayerModel(Deserializer<DataStream>& deserializer,
     id_type<ProcessModel> sharedProcessId;
     deserializer.m_stream >> sharedProcessId;
 
-    auto process = constraint.process(sharedProcessId);
-    auto viewmodel = process->loadLayer(deserializer.toVariant(),
-                                            parent);
+    auto& process = constraint.process(sharedProcessId);
+    auto viewmodel = process.loadLayer(deserializer.toVariant(),
+                                       parent);
 
     deserializer.checkDelimiter();
 
@@ -58,9 +58,9 @@ LayerModel* createLayerModel(
         const ConstraintModel& constraint,
         QObject* parent)
 {
-    auto process = constraint.process(
+    auto& process = constraint.process(
                 fromJsonValue<id_type<ProcessModel>>(deserializer.m_obj["SharedProcessId"]));
-    auto viewmodel = process->loadLayer(deserializer.toVariant(),
+    auto viewmodel = process.loadLayer(deserializer.toVariant(),
                                             parent);
 
     return viewmodel;

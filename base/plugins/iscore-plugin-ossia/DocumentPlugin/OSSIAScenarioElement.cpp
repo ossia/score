@@ -32,9 +32,9 @@ OSSIAScenarioElement::OSSIAScenarioElement(
                                                std::shared_ptr<OSSIA::State> state)
     {
         auto currentTime = OSSIA::convert::time(date);
-        for(ConstraintModel* constraint : m_executingConstraints)
+        for(auto& constraint : m_executingConstraints)
         {
-            constraint->setPlayDuration(constraint->playDuration() + (currentTime - m_previousExecutionDate));
+            constraint.setPlayDuration(constraint.playDuration() + (currentTime - m_previousExecutionDate));
         }
 
         m_previousExecutionDate = currentTime;
@@ -71,21 +71,21 @@ OSSIAScenarioElement::OSSIAScenarioElement(
             this, &OSSIAScenarioElement::on_timeNodeRemoved);
 
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
-    for(auto& timenode : m_iscore_scenario->timeNodes())
+    for(const auto& timenode : m_iscore_scenario->timeNodes())
     {
-        on_timeNodeCreated(timenode->id());
+        on_timeNodeCreated(timenode.id());
     }
-    for(auto& event : m_iscore_scenario->events())
+    for(const auto& event : m_iscore_scenario->events())
     {
-        on_eventCreated(event->id());
+        on_eventCreated(event.id());
     }
-    for(auto& state : m_iscore_scenario->states())
+    for(const auto& state : m_iscore_scenario->states())
     {
-        on_stateCreated(state->id());
+        on_stateCreated(state.id());
     }
-    for(auto& constraint : m_iscore_scenario->constraints())
+    for(const auto& constraint : m_iscore_scenario->constraints())
     {
-        on_constraintCreated(constraint->id());
+        on_constraintCreated(constraint.id());
     }
 }
 

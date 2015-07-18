@@ -74,7 +74,7 @@ class ConstraintPresenter : public NamedObject
         ConstraintHeader* m_header{};
 
     private:
-        void createRackPresenter(RackModel*);
+        void createRackPresenter(const RackModel&);
         void clearRackPresenter();
 
         ZoomRatio m_zoomRatio {};
@@ -107,7 +107,7 @@ typename T::view_type* view(T* obj)
 template<typename T>
 const typename T::viewmodel_type& viewModel(const T& obj)
 {
-    return static_cast<const typename T::viewmodel_type&>(obj->abstractConstraintViewModel());
+    return static_cast<const typename T::viewmodel_type&>(obj.abstractConstraintViewModel());
 }
 
 template<typename T>
