@@ -35,7 +35,7 @@ void GammaCurveSegmentModel::on_endChanged()
     emit dataChanged();
 }
 
-void GammaCurveSegmentModel::updateData(int numInterp)
+void GammaCurveSegmentModel::updateData(int numInterp) const
 {
     if(numInterp + 1 != m_data.size())
         m_valid = false;

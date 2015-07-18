@@ -35,7 +35,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
         virtual QString name() const = 0;
         virtual void serialize(const VisitorVariant&) const = 0;
-        virtual void updateData(int numInterp) = 0; // Will interpolate
+        virtual void updateData(int numInterp) const = 0; // Will interpolate.
 
         const QVector<QPointF>& data() const
         { return m_data; }
@@ -80,8 +80,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual void on_startChanged() = 0;
         virtual void on_endChanged() = 0;
 
-        QVector<QPointF> m_data;
-        bool m_valid{}; // Used to perform caching.
+        mutable QVector<QPointF> m_data; // A data cache.
+        mutable bool m_valid{}; // Used to perform caching.
 
     private:
         CurvePoint m_start, m_end;

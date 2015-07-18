@@ -4,17 +4,24 @@
 #include <QPainter>
 
 static QColor baseColor{QColor::fromRgb(3, 195, 221)};
-CurveSegmentView::CurveSegmentView(CurveSegmentModel *model, QGraphicsItem *parent):
+CurveSegmentView::CurveSegmentView(
+        const CurveSegmentModel& model,
+        QGraphicsItem *parent):
     QGraphicsObject{parent},
     m_model{model}
 {
     this->setZValue(parent->zValue() + 1);
     this->setFlag(ItemIsFocusable, false);
 
-    connect(&m_model->selection, &Selectable::changed,
+    connect(&m_model.selection, &Selectable::changed,
             this, &CurveSegmentView::setSelected);
-    connect(m_model, &CurveSegmentModel::dataChanged,
+    connect(&m_model, &CurveSegmentModel::dataChanged,
             this, &CurveSegmentView::updatePoints);
+}
+
+const id_type<CurveSegmentModel>& CurveSegmentView::id() const
+{
+    return m_model.id();
 }
 
 int CurveSegmentView::type() const
@@ -72,12 +79,12 @@ void CurveSegmentView::disable()
 void CurveSegmentView::updatePoints()
 {
     // Get the length of the segment to scale.
-    double len = m_model->end().x() - m_model->start().x();
-    double startx = m_model->start().x() * m_rect.width() / len;
+    double len = m_model.end().x() - m_model.start().x();
+    double startx = m_model.start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
-    m_model->updateData(25); // Set the number of required points here.
-    const auto& pts = m_model->data();
+    m_model.updateData(25); // Set the number of required points here.
+    const auto& pts = m_model.data();
 
     // Map to the scene coordinates
     if(!pts.empty())

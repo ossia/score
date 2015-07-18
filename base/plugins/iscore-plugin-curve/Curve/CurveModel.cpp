@@ -2,6 +2,7 @@
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
 #include <boost/range/algorithm.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
 CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
@@ -26,7 +27,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     m->setParent(this);
     m_segments.insert(m);
 
-    emit segmentAdded(m);
+    emit segmentAdded(*m);
 
     // Add points if necessary
     // If there is an existing previous segment, its end point also exists
@@ -45,7 +46,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
             }
             else
             {
-                auto pt = new CurvePointModel{this};
+                auto pt = new CurvePointModel{getStrongId(m_points), this};
                 pt->setFollowing(m->id());
                 pt->setPos(m->start());
                 addPoint(pt);
@@ -53,7 +54,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
         }
         else
         {
-            auto pt = new CurvePointModel{this};
+            auto pt = new CurvePointModel{getStrongId(m_points), this};
             pt->setFollowing(m->id());
             pt->setPos(m->start());
             addPoint(pt);
@@ -63,7 +64,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
                     [&] (CurvePointModel* pt)
                     { return pt->following() == m->id(); }))
     {
-        auto pt = new CurvePointModel{this};
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
         pt->setFollowing(m->id());
         pt->setPos(m->start());
         addPoint(pt);
@@ -84,7 +85,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
             }
             else
             {
-                auto pt = new CurvePointModel{this};
+                auto pt = new CurvePointModel{getStrongId(m_points), this};
                 pt->setPrevious(m->id());
                 pt->setPos(m->end());
                 addPoint(pt);
@@ -92,7 +93,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
         }
         else
         {
-            auto pt = new CurvePointModel{this};
+            auto pt = new CurvePointModel{getStrongId(m_points), this};
             pt->setPrevious(m->id());
             pt->setPos(m->end());
             addPoint(pt);
@@ -102,7 +103,7 @@ void CurveModel::addSegment(CurveSegmentModel* m)
                     [&] (CurvePointModel* pt)
                     { return pt->previous() == m->id(); }))
     {
-        auto pt = new CurvePointModel{this};
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
         pt->setPrevious(m->id());
         pt->setPos(m->end());
         addPoint(pt);
@@ -114,7 +115,7 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
 {
     m_segments.remove(m->id());
 
-    emit segmentRemoved(m);
+    emit segmentRemoved(m->id());
 
     for(CurvePointModel* pt : m_points)
     {
@@ -185,7 +186,7 @@ void CurveModel::addPoint(CurvePointModel *pt)
 {
     m_points.append(pt);
 
-    emit pointAdded(pt);
+    emit pointAdded(*pt);
 }
 
 void CurveModel::removePoint(CurvePointModel *pt)
@@ -196,6 +197,6 @@ void CurveModel::removePoint(CurvePointModel *pt)
         m_points.remove(index);
     }
 
-    emit pointRemoved(pt);
+    emit pointRemoved(pt->id());
     delete pt;
 }

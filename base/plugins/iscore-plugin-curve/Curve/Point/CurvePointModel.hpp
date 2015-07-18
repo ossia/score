@@ -5,12 +5,12 @@
 
 class CurveSegmentModel;
 
-class CurvePointModel : public QObject
+class CurvePointModel : public IdentifiedObject<CurvePointModel>
 {
     public:
         Selectable selection;
-        CurvePointModel(QObject* parent):
-            QObject{parent}
+        CurvePointModel(const id_type<CurvePointModel>& id, QObject* parent):
+            IdentifiedObject<CurvePointModel>{id, "CurvePointModel", parent}
         {
 
         }

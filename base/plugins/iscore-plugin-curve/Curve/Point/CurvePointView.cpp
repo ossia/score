@@ -6,19 +6,24 @@
 #include <QGraphicsSceneContextMenuEvent>
 
 CurvePointView::CurvePointView(
-        CurvePointModel* model,
+        const CurvePointModel& model,
         QGraphicsItem* parent):
     QGraphicsObject{parent},
     m_model{model}
 {
     this->setZValue(parent->zValue() + 2);
-    connect(&m_model->selection, &Selectable::changed,
+    connect(&m_model.selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
 }
 
-CurvePointModel &CurvePointView::model() const
+const CurvePointModel& CurvePointView::model() const
 {
-    return *m_model;
+    return m_model;
+}
+
+const id_type<CurvePointModel>& CurvePointView::id() const
+{
+    return m_model.id();
 }
 
 int CurvePointView::type() const
@@ -28,7 +33,7 @@ int CurvePointView::type() const
 
 QRectF CurvePointView::boundingRect() const
 {
-    return {-3, -3, 6, 6};
+    return {-2.5, -2.5, 5., 5.};
 }
 
 void CurvePointView::paint(

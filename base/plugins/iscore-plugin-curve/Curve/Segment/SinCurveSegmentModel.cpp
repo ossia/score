@@ -37,7 +37,7 @@ void SinCurveSegmentModel::on_endChanged()
     emit dataChanged();
 }
 
-void SinCurveSegmentModel::updateData(int numInterp)
+void SinCurveSegmentModel::updateData(int numInterp) const
 {
     if(2*numInterp+1 != m_data.size())
         m_valid = false;

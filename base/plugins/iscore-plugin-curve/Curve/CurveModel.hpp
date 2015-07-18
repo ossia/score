@@ -39,10 +39,10 @@ class CurveModel : public IdentifiedObject<CurveModel>
         const QVector<CurvePointModel*>& points() const;
 
     signals:
-        void segmentAdded(CurveSegmentModel*);
-        void segmentRemoved(CurveSegmentModel*); // dangerous if async
-        void pointAdded(CurvePointModel*);
-        void pointRemoved(CurvePointModel*); // dangerous if async
+        void segmentAdded(const CurveSegmentModel&);
+        void segmentRemoved(const id_type<CurveSegmentModel>&); // dangerous if async
+        void pointAdded(const CurvePointModel&);
+        void pointRemoved(const id_type<CurvePointModel>&); // dangerous if async
 
         void changed();
         void cleared();

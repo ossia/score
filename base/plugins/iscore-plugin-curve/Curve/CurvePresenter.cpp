@@ -1,11 +1,7 @@
 #include "CurvePresenter.hpp"
 #include "CurveModel.hpp"
 #include "CurveView.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Segment/CurveSegmentView.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Point/CurvePointView.hpp"
 #include "Curve/StateMachine/OngoingCommandState.hpp"
 
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
@@ -114,48 +110,36 @@ void CurvePresenter::setPos(CurveSegmentView * segment)
 void CurvePresenter::setupSignals()
 {
     connect(m_model, &CurveModel::segmentAdded, this,
-            [&] (CurveSegmentModel* segment)
+            [&] (const CurveSegmentModel& segment)
     {
         addSegment(new CurveSegmentView{segment, m_view});
     });
 
     connect(m_model, &CurveModel::pointAdded, this,
-            [&] (CurvePointModel* point)
+            [&] (const CurvePointModel& point)
     {
         addPoint(new CurvePointView{point, m_view});
     });
 
     connect(m_model, &CurveModel::pointRemoved, this,
-            [&] (CurvePointModel* m)
+            [&] (const id_type<CurvePointModel>& m)
     {
-        auto it = std::find_if(
-                      m_points.begin(),
-                      m_points.end(),
-                      [&] (CurvePointView* pt) { return &pt->model() == m; });
-
+        auto it = m_points.find(m);
         if(it != m_points.end()) // TODO should never happen ?
         {
-            auto val = *it;
-            m_points.removeOne(val);
-
-            delete val;
+            delete *it;
+            m_points.get().erase(it);
         }
     });
+
     connect(m_model, &CurveModel::segmentRemoved, this,
-            [&] (CurveSegmentModel* m)
-
+            [&] (const id_type<CurveSegmentModel>& m)
     {
-        auto it = std::find_if(
-                      m_segments.begin(),
-                      m_segments.end(),
-                      [&] (CurveSegmentView* segment) { return &segment->model() == m; });
-
-        if(it != m_segments.end())
+        auto it = m_segments.find(m);
+        if(it != m_segments.end()) // TODO should never happen ?
         {
-            auto val = *it;
-            m_segments.removeOne(val);
-
-            delete val;
+            delete *it;
+            m_segments.get().erase(it);
         }
     });
 
@@ -174,12 +158,12 @@ void CurvePresenter::setupView()
     // Initialize the elements
     for(CurveSegmentModel* segment : m_model->segments())
     {
-        addSegment(new CurveSegmentView{segment, m_view});
+        addSegment(new CurveSegmentView{*segment, m_view});
     }
 
     for(CurvePointModel* pt : m_model->points())
     {
-        addPoint(new CurvePointView{pt, m_view});
+        addPoint(new CurvePointView{*pt, m_view});
     }
 
     // Setup the actions
@@ -329,7 +313,7 @@ void CurvePresenter::addPoint(CurvePointView * pt_view)
 {
     connect(pt_view, &CurvePointView::contextMenuRequested,
             m_view, &CurveView::contextMenuRequested);
-    m_points.push_back(pt_view);
+    m_points.insert(pt_view);
 
     setPos(pt_view);
 }
@@ -338,7 +322,7 @@ void CurvePresenter::addSegment(CurveSegmentView * seg_view)
 {
     connect(seg_view, &CurveSegmentView::contextMenuRequested,
             m_view, &CurveView::contextMenuRequested);
-    m_segments.push_back(seg_view);
+    m_segments.insert(seg_view);
 
     setPos(seg_view);
 }

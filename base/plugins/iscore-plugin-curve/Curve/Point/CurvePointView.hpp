@@ -6,10 +6,11 @@ class CurvePointView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurvePointView(CurvePointModel* model,
+        CurvePointView(const CurvePointModel& model,
                        QGraphicsItem* parent);
 
-        CurvePointModel& model() const;
+        const CurvePointModel& model() const;
+        const id_type<CurvePointModel>& id() const;
 
         int type() const override;
         QRectF boundingRect() const override;
@@ -28,7 +29,7 @@ class CurvePointView : public QGraphicsObject
 
 
     private:
-        CurvePointModel* m_model;
+        const CurvePointModel& m_model;
         bool m_selected{};
         bool m_enabled{true};
 };

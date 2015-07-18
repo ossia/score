@@ -4,7 +4,13 @@
 #include <QVector>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/tools/IdentifiedObjectMap.hpp>
 
+#include "Curve/Segment/CurveSegmentModel.hpp"
+#include "Curve/Point/CurvePointModel.hpp"
+
+#include "Curve/Point/CurvePointView.hpp"
+#include "Curve/Segment/CurveSegmentView.hpp"
 class CurveModel;
 class CurveView;
 class CurvePointView;
@@ -22,9 +28,9 @@ class CurvePresenter : public QObject
         CurvePresenter(CurveModel*, CurveView*, QObject* parent);
         virtual ~CurvePresenter();
 
-        const QList<CurvePointView*>& points() const
+        const auto& points() const
         { return m_points; }
-        const QList<CurveSegmentView*>& segments() const
+        const auto& segments() const
         { return m_segments; }
 
         // Removes all the points & segments
@@ -80,8 +86,8 @@ class CurvePresenter : public QObject
         CurveModel* m_model{};
         CurveView* m_view{};
 
-        QList<CurvePointView*> m_points;
-        QList<CurveSegmentView*> m_segments;
+        IdContainer<CurvePointView, CurvePointModel> m_points;
+        IdContainer<CurveSegmentView, CurveSegmentModel> m_segments;
 
         // Boolean values that keep the editing state. Should they go here ?
         // Maybe in the settings, instead ?

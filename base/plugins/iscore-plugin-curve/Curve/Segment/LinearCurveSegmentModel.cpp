@@ -33,7 +33,7 @@ void LinearCurveSegmentModel::on_endChanged()
     emit dataChanged();
 }
 
-void LinearCurveSegmentModel::updateData(int numInterp)
+void LinearCurveSegmentModel::updateData(int numInterp) const
 {
     if(!m_valid)
     {
