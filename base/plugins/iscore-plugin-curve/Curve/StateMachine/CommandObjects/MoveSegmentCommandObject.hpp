@@ -25,5 +25,5 @@ class MoveSegmentCommandObject
         void cancel();
 
     private:
-        SingleOngoingCommandDispatcher m_dispatcher;
+        //SingleOngoingCommandDispatcher m_dispatcher;
 };

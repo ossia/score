@@ -1,6 +1,7 @@
 #include "MoveSegmentCommandObject.hpp"
-MoveSegmentCommandObject::MoveSegmentCommandObject(iscore::CommandStack& stack):
-    m_dispatcher{stack}
+MoveSegmentCommandObject::MoveSegmentCommandObject(iscore::CommandStack& stack)
+    //:
+    //m_dispatcher{stack}
 {
 
 }

@@ -3,27 +3,28 @@
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
+#include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
 class BaseStateMachine;
 class QGraphicsScene;
 class ResizeSlotState : public SlotState
 {
     public:
         ResizeSlotState(
-                SingleOngoingCommandDispatcher& dispatcher,
+                iscore::CommandStack& stack,
                 const BaseStateMachine& sm,
                 QState* parent);
 
     private:
-        SingleOngoingCommandDispatcher& m_ongoingDispatcher;
+        SingleOngoingCommandDispatcher<Scenario::Command::ResizeSlotVertically> m_ongoingDispatcher;
         const BaseStateMachine& m_sm;
 };
 
-
+// TODO split file
 class DragSlotState : public SlotState
 {
     public:
         DragSlotState(
-                CommandDispatcher<>& dispatcher,
+                iscore::CommandStack& stack,
                 const BaseStateMachine& sm,
                 const QGraphicsScene& scene,
                 QState* parent);

@@ -81,7 +81,6 @@ DeviceExplorerView::setInitialColumnsSizes()
 
     header()->resizeSection((int)DeviceExplorerModel::Column::Name, 220);
     header()->resizeSection((int)DeviceExplorerModel::Column::IOType, 36);
-    //TODO:UGLY : give proper access to columns in DeviceExplorerModel
     header()->resizeSection((int)DeviceExplorerModel::Column::Value, 50);
     header()->resizeSection((int)DeviceExplorerModel::Column::Min, 50);
     header()->resizeSection((int)DeviceExplorerModel::Column::Max, 50);

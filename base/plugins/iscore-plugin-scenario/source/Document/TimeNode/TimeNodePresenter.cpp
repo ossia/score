@@ -21,9 +21,7 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     connect(&(m_model.metadata), &ModelMetadata::colorChanged,
             m_view,               &TimeNodeView::changeColor);
 
-    connect(&m_model, &TimeNodeModel::timeNodeValid,
-            m_view, &TimeNodeView::setValid);
-
+    // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.
 
 }

@@ -29,7 +29,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
-    m_cmdDispatcher{parent->commandDispatcher()->stack()}
+    m_dispatcher{parent->commandDispatcher()->stack()}
 {
     QWidget* widg{new QWidget{this}};
     m_grid = new QGridLayout{widg};
@@ -139,14 +139,14 @@ using namespace Scenario::Command;
 
 void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
-    emit m_cmdDispatcher.submitCommand<SetMinDuration>(
+    emit m_dispatcher.submitCommand<SetMinDuration>(
                 iscore::IDocument::path(m_model),
                 TimeValue{std::chrono::milliseconds{val}});
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
-    m_cmdDispatcher.submitCommand<SetMaxDuration>(
+    m_dispatcher.submitCommand<SetMaxDuration>(
                 iscore::IDocument::path(m_model),
                 TimeValue{std::chrono::milliseconds {val}});
 }
@@ -162,7 +162,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 
     if(m_model->objectName() != "BaseConstraintModel")
     {
-        m_cmdDispatcher.submitCommand<MoveEvent>(
+        m_dispatcher.submitCommand<MoveEvent>(
                 iscore::IDocument::path(m_model->parent()),
                 scenario->state(m_model->endState()).eventId(),
                 m_model->startDate() + TimeValue::fromMsecs(val),
@@ -170,7 +170,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     }
     else
     {
-        m_cmdDispatcher.submitCommand<MoveBaseEvent>(
+        m_dispatcher.submitCommand<MoveBaseEvent>(
                     iscore::IDocument::path(m_model->parent()),
                     std::chrono::milliseconds {val},
                     expandmode);
@@ -232,18 +232,18 @@ void DurationSectionWidget::on_durationsChanged()
     if (m_model->defaultDuration().toQTime() != m_valueSpin->time())
     {
         defaultDurationSpinboxChanged(m_valueSpin->time().msecsSinceStartOfDay());
-        m_cmdDispatcher.commit();
+        m_dispatcher.commit();
     }
 
     if (m_model->minDuration().toQTime() != m_minSpin->time())
     {
         minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
-        m_cmdDispatcher.commit();
+        m_dispatcher.commit();
 
     }if (m_model->maxDuration().toQTime() != m_maxSpin->time())
     {
         maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
-        m_cmdDispatcher.commit();
+        m_dispatcher.commit();
     }
 
 }

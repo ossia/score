@@ -5,8 +5,6 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
-#include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 
 #include <QFinalState>
 #include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
@@ -52,7 +50,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
 
         QObject::connect(moving, &QState::entered, [&] ()
         {
-            m_dispatcher.submitCommand<MoveConstraint>(
+            m_dispatcher.submitCommand(
                             ObjectPath{m_scenarioPath},
                             clickedConstraint,
                             m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
@@ -117,7 +115,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                 evId = scenar.state(clickedState).eventId();
             }
 
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand(
                             ObjectPath{m_scenarioPath},
                             evId,
                             currentPoint.date,
@@ -184,7 +182,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
             if (stateMachine.isShiftPressed())
                 date = tn.date();
 
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand(
                             ObjectPath{m_scenarioPath},
                             ev_id,
                             date,

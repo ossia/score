@@ -8,7 +8,6 @@
 #include "Document/Constraint/Rack/Slot/SlotView.hpp"
 #include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 
-#include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
 #include "Commands/Constraint/Rack/MoveSlot.hpp"
 #include "Commands/Constraint/Rack/SwapSlots.hpp"
 
@@ -17,11 +16,11 @@
 #include <QFinalState>
 #include <QGraphicsScene>
 ResizeSlotState::ResizeSlotState(
-        SingleOngoingCommandDispatcher &dispatcher,
+        iscore::CommandStack& stack,
         const BaseStateMachine &sm,
         QState *parent):
     SlotState{parent},
-    m_ongoingDispatcher{dispatcher},
+    m_ongoingDispatcher{stack},
     m_sm{sm}
 {
     auto press = new QState{this};
@@ -45,7 +44,7 @@ ResizeSlotState::ResizeSlotState(
         auto val = std::max(20.0,
                             m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-        m_ongoingDispatcher.submitCommand<Scenario::Command::ResizeSlotVertically>(
+        m_ongoingDispatcher.submitCommand(
                     ObjectPath{this->currentSlot},
                     val);
         return;
@@ -58,12 +57,12 @@ ResizeSlotState::ResizeSlotState(
 }
 
 
-DragSlotState::DragSlotState(CommandDispatcher<> &dispatcher,
+DragSlotState::DragSlotState(iscore::CommandStack& stack,
         const BaseStateMachine &sm,
         const QGraphicsScene &scene,
         QState *parent):
     SlotState{parent},
-    m_dispatcher{dispatcher},
+    m_dispatcher{stack},
     m_sm{sm},
     m_scene{scene}
 {

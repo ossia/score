@@ -1,5 +1,4 @@
 #include "SetSegmentParametersCommandObject.hpp"
-#include "Curve/Commands/SetSegmentParameters.hpp"
 #include "Curve/CurveModel.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
@@ -24,7 +23,7 @@ void SetSegmentParametersCommandObject::press()
 
     m_originalPress = m_state->currentPoint;
 
-    m_dispatcher.submitCommand<SetSegmentParameters>(
+    m_dispatcher.submitCommand(
                 iscore::IDocument::path(m_presenter->model()),
     SegmentParameterMap{{m_state->clickedSegmentId, {m_verticalOrig.get_value_or(0), m_horizontalOrig.get_value_or(0)}}});
 
@@ -38,7 +37,9 @@ void SetSegmentParametersCommandObject::move()
     double newHorizontal = m_horizontalOrig
       ? clamp(*m_horizontalOrig + (m_state->currentPoint.x() - m_originalPress.x()) , -1., 1.)
       : 0;
-    m_dispatcher.submitCommand<SetSegmentParameters>(
+
+    // TODO here we can clearly optimize ...
+    m_dispatcher.submitCommand(
         ObjectPath{},
         SegmentParameterMap{{m_state->clickedSegmentId, {newVertical, newHorizontal
           }}});

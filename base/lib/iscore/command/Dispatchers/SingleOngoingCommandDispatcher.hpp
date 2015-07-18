@@ -4,7 +4,7 @@
 
 #include <core/command/CommandStack.hpp>
 
-// TODO why not template the whole class on the command type ?
+template<typename TheCommand>
 class SingleOngoingCommandDispatcher : public ICommandDispatcher
 {
     public:
@@ -19,7 +19,7 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
             delete m_cmd;
         }
 
-        template<typename TheCommand, typename... Args> // TODO split in two ?
+        template<typename... Args> // TODO split in two ?
         void submitCommand(Args&&... args)
         {
             if(!m_cmd)
@@ -30,9 +30,8 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
             }
             else
             {
-                Q_ASSERT(m_cmd->uid() == TheCommand::static_uid());
-                static_cast<TheCommand*>(m_cmd)->update(std::forward<Args>(args)...);
-                static_cast<TheCommand*>(m_cmd)->redo();
+                m_cmd->update(std::forward<Args>(args)...);
+                m_cmd->redo();
             }
         }
 
@@ -51,5 +50,5 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
         }
 
     private:
-        iscore::SerializableCommand* m_cmd{};
+        TheCommand* m_cmd{};
 };

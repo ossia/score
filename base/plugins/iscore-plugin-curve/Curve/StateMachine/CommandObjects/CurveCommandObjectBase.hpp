@@ -3,11 +3,12 @@
 #include <QPointF>
 #include "Curve/StateMachine/CurveStateMachineBaseStates.hpp"
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include "Curve/Commands/UpdateCurve.hpp"
 class CurvePresenter;
 
 
 /*
-class CommandObject
+concept CommandObject
 {
     public:
         void instantiate();
@@ -54,7 +55,7 @@ class CurveCommandObjectBase
         Curve::StateBase* m_state{};
 
 
-        SingleOngoingCommandDispatcher m_dispatcher;
+        SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
         QVector<QByteArray> m_startSegments;
 
         double m_xmin, m_xmax;

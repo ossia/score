@@ -38,8 +38,5 @@ class MoveSlotToolState : public GenericStateBase
     private:
         QState* m_waitState{};
 
-        CommandDispatcher<> m_dispatcher;
-        SingleOngoingCommandDispatcher m_ongoingDispatcher;
-
         QPointF m_originalPoint;
 };

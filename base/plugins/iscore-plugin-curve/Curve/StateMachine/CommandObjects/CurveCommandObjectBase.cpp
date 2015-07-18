@@ -3,7 +3,6 @@
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/Segment/CurveSegmentModelSerialization.hpp"
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -90,6 +89,6 @@ void CurveCommandObjectBase::submit(const QVector<CurveSegmentModel*> segments)
 
     qDeleteAll(segments);
 
-    m_dispatcher.submitCommand<UpdateCurve>(iscore::IDocument::path(m_presenter->model()),
-                                            std::move(newSegments));
+    m_dispatcher.submitCommand(iscore::IDocument::path(m_presenter->model()),
+                               std::move(newSegments));
 }

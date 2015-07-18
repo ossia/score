@@ -72,7 +72,6 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
         void newEvent(const id_type<EventModel>& eventId);
         // TODO no eventRemoved ? eventsChanged ?
-        void timeNodeValid(bool); // TODO wtf
 
     private:
         VerticalExtent m_extent;

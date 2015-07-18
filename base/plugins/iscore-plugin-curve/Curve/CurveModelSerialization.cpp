@@ -3,7 +3,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "Curve/Segment/CurveSegmentModelSerialization.hpp"
-// TODO write this process down somewhere
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
 {

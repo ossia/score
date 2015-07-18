@@ -2,6 +2,8 @@
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
+#include "Commands/Scenario/Displacement/MoveConstraint.hpp"
+#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 class ScenarioStateMachine;
 
 class MoveConstraintState : public ScenarioStateBase
@@ -13,7 +15,7 @@ class MoveConstraintState : public ScenarioStateBase
                             iscore::ObjectLocker& locker,
                             QState* parent);
 
-    SingleOngoingCommandDispatcher m_dispatcher;
+    SingleOngoingCommandDispatcher<Scenario::Command::MoveConstraint> m_dispatcher;
 
     private:
         TimeValue m_constraintInitialClickDate;
@@ -29,7 +31,7 @@ class MoveEventState : public ScenarioStateBase
                        iscore::ObjectLocker& locker,
                        QState* parent);
 
-        SingleOngoingCommandDispatcher m_dispatcher;
+        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent> m_dispatcher;
 };
 
 class MoveTimeNodeState : public ScenarioStateBase
@@ -41,5 +43,5 @@ class MoveTimeNodeState : public ScenarioStateBase
                           iscore::ObjectLocker& locker,
                           QState* parent);
 
-        SingleOngoingCommandDispatcher m_dispatcher;
+        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent> m_dispatcher;
 };

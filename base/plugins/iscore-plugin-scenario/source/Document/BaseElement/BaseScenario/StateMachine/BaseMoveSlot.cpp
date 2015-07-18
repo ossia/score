@@ -25,8 +25,6 @@ BaseMoveSlot::BaseMoveSlot(
         BaseStateMachine& sm):
     QState{&sm},
     m_sm{sm},
-    m_dispatcher{stack},
-    m_ongoingDispatcher{stack},
     m_scene{scene}
 {
     /// 2. Setup the sub-state machine.
@@ -34,7 +32,7 @@ BaseMoveSlot::BaseMoveSlot(
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the slot, one for resizing with the handle.
     {
-        auto dragSlot = new DragSlotState{m_dispatcher, m_sm, m_scene, &m_localSM};
+        auto dragSlot = new DragSlotState{stack, m_sm, m_scene, &m_localSM};
         // Enter the state
         make_transition<ClickOnSlotOverlay_Transition>(
                     m_waitState,
@@ -45,7 +43,7 @@ BaseMoveSlot::BaseMoveSlot(
     }
 
     {
-        auto resizeSlot = new ResizeSlotState{m_ongoingDispatcher, m_sm, &m_localSM};
+        auto resizeSlot = new ResizeSlotState{stack, m_sm, &m_localSM};
         make_transition<ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,

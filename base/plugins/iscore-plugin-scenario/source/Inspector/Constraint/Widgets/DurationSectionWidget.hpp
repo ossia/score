@@ -1,7 +1,7 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
 class QLabel;
 class ConstraintModel;
@@ -56,5 +56,5 @@ class DurationSectionWidget : public InspectorSectionWidget
         TimeValue m_max;
         TimeValue m_default;
 
-        SingleOngoingCommandDispatcher m_cmdDispatcher;
+        OngoingCommandDispatcher m_dispatcher;
 };

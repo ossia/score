@@ -2,6 +2,7 @@
 #include <QVector>
 #include <QPointF>
 #include "Curve/StateMachine/CurveStateMachineBaseStates.hpp"
+#include "Curve/Commands/SetSegmentParameters.hpp"
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 class CurvePresenter;
 
@@ -22,7 +23,7 @@ class SetSegmentParametersCommandObject
 
     private:
         CurvePresenter* m_presenter{};
-        SingleOngoingCommandDispatcher m_dispatcher;
+        SingleOngoingCommandDispatcher<SetSegmentParameters> m_dispatcher;
 
         Curve::StateBase* m_state{};
         QPointF m_originalPress;

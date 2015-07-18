@@ -19,9 +19,7 @@
 #include <QFinalState>
 #include <QGraphicsScene>
 MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
-    GenericStateBase{sm},
-    m_dispatcher{m_sm.commandStack()},
-    m_ongoingDispatcher{m_sm.commandStack()}
+    GenericStateBase{sm}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
     connect(this, &QState::entered,
@@ -48,7 +46,7 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the slot, one for resizing with the handle.
     {
-        auto dragSlot = new DragSlotState{m_dispatcher, m_sm, m_sm.scene(), &m_localSM};
+        auto dragSlot = new DragSlotState{m_sm.commandStack(), m_sm, m_sm.scene(), &m_localSM};
         // Enter the state
         make_transition<ClickOnSlotOverlay_Transition>(
                     m_waitState,
@@ -59,7 +57,7 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     }
 
     {
-        auto resizeSlot = new ResizeSlotState{m_ongoingDispatcher, m_sm, &m_localSM};
+        auto resizeSlot = new ResizeSlotState{m_sm.commandStack(), m_sm, &m_localSM};
         make_transition<ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,

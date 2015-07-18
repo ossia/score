@@ -3,7 +3,6 @@
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentList.hpp"
 
-// TODO write this process down somewhere
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 {
