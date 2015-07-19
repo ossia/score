@@ -70,8 +70,7 @@ class Node
 
         Node* clone() const;
 
-        QStringList fullPathWithDevice() const;
-        QStringList fullPathWithoutDevice() const;
+        iscore::Address address() const;
 
     protected:
         Node* m_parent {};

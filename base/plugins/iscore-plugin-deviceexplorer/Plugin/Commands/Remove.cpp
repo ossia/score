@@ -1,66 +1,68 @@
-
 #include "Remove.hpp"
 
 using namespace DeviceExplorer::Command;
 
-Remove::Remove(ObjectPath &&device_tree, Path nodePath):
+Remove::Remove(
+        ObjectPath&& device_tree,
+        const iscore::Node& node):
     iscore::SerializableCommand{"DeviceExplorerControl",
                             commandName(),
-                            description()},
-    m_deviceTree{device_tree},
-    m_nodePath{nodePath},
-    m_nodeIndex{m_nodePath.back()}
+                            description()}
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    iscore::Node *node = m_nodePath.toNode(&explorer.rootNode());
-
-    if (! node->isDevice())
+    if (!node.isDevice())
     {
-        m_parentPath = Path{node->parent()};
+        m_device = false;
+        m_cmd = new AddAddress{
+                    std::move(device_tree),
+                    Path{node.parent()},
+                    DeviceExplorerModel::Insert::AsChild,
+                    node.addressSettings()};
     }
     else
     {
-        m_parentPath.clear();
+        m_device = true;
+        m_cmd = new AddDevice{
+                    std::move(device_tree),
+                    node.deviceSettings()};
+    }
+}
+
+Remove::~Remove()
+{
+    delete m_cmd;
+}
+
+void Remove::undo()
+{
+    m_cmd->redo();
+
+}
+
+void Remove::redo()
+{
+    m_cmd->undo();
+}
+
+void Remove::serializeImpl(QDataStream& d) const
+{
+    d << m_device
+      << m_cmd->serialize();
+}
+
+void Remove::deserializeImpl(QDataStream& d)
+{
+    QByteArray cmd_data;
+    d >> m_device
+      >> cmd_data;
+
+    if(m_device)
+    {
+        m_cmd = new AddDevice;
+    }
+    else
+    {
+        m_cmd = new AddAddress;
     }
 
-    m_addressSettings = node->addressSettings();
-}
-
-void
-Remove::undo()
-{
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    explorer.addAddress(m_parentPath.toNode(&explorer.rootNode()), m_node, m_nodeIndex);
-}
-
-void
-Remove::redo()
-{
-    // TODO remove from elsewhere, too.
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    iscore::Node *node = m_nodePath.toNode(&explorer.rootNode());
-    m_node = node->clone();
-    iscore::Node* parent = m_parentPath.toNode(&explorer.rootNode());
-
-    explorer.removeNode(parent->childAt(m_nodeIndex));
-}
-
-void
-Remove::serializeImpl(QDataStream& d) const
-{
-    d << m_deviceTree
-      << m_parentPath
-      << m_nodePath;
-
-    d << *m_node;
-}
-
-void
-Remove::deserializeImpl(QDataStream& d)
-{
-    d >> m_deviceTree
-      >> m_parentPath
-      >> m_nodePath;
-
-    d >> *m_node;
+    m_cmd->deserialize(cmd_data);
 }

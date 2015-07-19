@@ -35,6 +35,7 @@ class Path
         int &back();
 
         int size() const;
+        bool empty() const;
 
         void removeLast();
         void clear();

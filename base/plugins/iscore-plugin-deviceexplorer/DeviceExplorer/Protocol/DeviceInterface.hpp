@@ -1,6 +1,7 @@
 #pragma once
 #include <QString>
 #include <State/Message.hpp>
+#include <State/Address.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 #include <memory>
@@ -21,7 +22,7 @@ class DeviceInterface : public QObject
 
         virtual void addAddress(const FullAddressSettings& address) = 0;
         virtual void updateAddress(const FullAddressSettings& address) = 0;
-        virtual void removeAddress(const QString& path) = 0;
+        virtual void removeAddress(const iscore::Address& path) = 0;
 
         // Execution API... Maybe we don't need it here.
         virtual void sendMessage(iscore::Message& mess) = 0;

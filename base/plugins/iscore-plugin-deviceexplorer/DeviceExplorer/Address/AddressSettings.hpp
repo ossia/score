@@ -30,19 +30,28 @@ struct AddressSettingsCommon
     QStringList tags;
 };
 
+// this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
 struct AddressSettings : public AddressSettingsCommon
 {
         QString name;
 };
 
-// This one has the whole path of the node in the name
+// This one has the whole path of the node in address
 struct FullAddressSettings : public AddressSettingsCommon
 {
         iscore::Address address;
-        static FullAddressSettings make(const AddressSettingsCommon& other) // TODO put it a qstringlist in args
+
+        // Second argument should be the address of the parent.
+        static FullAddressSettings make(
+                const AddressSettings& other,
+                const iscore::Address& addr)
         {
             FullAddressSettings as;
             static_cast<AddressSettingsCommon&>(as) = other;
+
+            as.address = addr;
+            as.address.path.append(other.name);
+
             return as;
         }
 };

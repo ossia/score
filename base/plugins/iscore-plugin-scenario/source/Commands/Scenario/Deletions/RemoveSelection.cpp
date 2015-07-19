@@ -191,6 +191,7 @@ void RemoveSelection::undo()
             auto to_delete = std::find(maybeTimenodes.begin(),
                                        maybeTimenodes.end(),
                                        event->timeNode());
+
             // TODO why do we need to check for this ? Q_ASSERT sometime fails...
             if(to_delete != maybeTimenodes.end())
             {

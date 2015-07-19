@@ -77,7 +77,7 @@ class ScenarioTool : public ToolState
 
             // Each time :
             // Check if it is an event / timenode / constraint /state
-            // TODO Possible crash : Check if it is in our scenario. -> done in itemToEltId
+            // The itemToXXXId methods check that we are in the correct scenario, too.
             switch(item->type())
             {
                 case QGraphicsItem::UserType + 1:

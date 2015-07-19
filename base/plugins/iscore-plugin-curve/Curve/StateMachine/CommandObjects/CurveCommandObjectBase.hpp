@@ -23,7 +23,6 @@ concept CommandObject
 // RemoveSegment -> easy peasy
 // RemovePoint -> which segment do we merge ? At the left or at the right ?
 // A point(view) has pointers to one or both of its curve segments.
-// TODO do automation where only points are sent.
 class CurveSegmentModel;
 class CurveCommandObjectBase
 {

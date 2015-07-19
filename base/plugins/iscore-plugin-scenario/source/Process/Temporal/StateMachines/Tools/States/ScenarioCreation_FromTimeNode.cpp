@@ -20,8 +20,6 @@
 #include <QFinalState>
 
 #include "../ScenarioRollbackStrategy.hpp"
-//TODO : is it really needed according to the lyon's workflow ?
-// i.e. we always create event from event or on nothing
 
 using namespace Scenario::Command;
 

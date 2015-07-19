@@ -3,7 +3,7 @@
 #include <QComboBox>
 
 #include <iostream>//DEBUG
-
+#include <DeviceExplorer/Address/IOType.hpp>
 IOTypeDelegate::IOTypeDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
 {
@@ -16,13 +16,11 @@ IOTypeDelegate::createEditor(QWidget* parent,
                              const QModelIndex& /*index*/) const
 {
     QComboBox* comboBox = new QComboBox(parent);
-    //TODO: use an enum inside QVariant !?! or boost::multimap
-    comboBox->addItem(QString("<- "), QVariant("<-"));
-    comboBox->addItem(QString(" ->"), QVariant("->"));
-    comboBox->addItem(QString("<->"), QVariant("<->"));
-    comboBox->setFrame(false);
 
-    std::cerr << "IOTypeDelegate::createEditor comboBox: " << comboBox->currentIndex() << "\n";
+    comboBox->addItem(iscore::IOTypeStringMap()[iscore::IOType::In], (int)iscore::IOType::In);
+    comboBox->addItem(iscore::IOTypeStringMap()[iscore::IOType::Out], (int)iscore::IOType::Out);
+    comboBox->addItem(iscore::IOTypeStringMap()[iscore::IOType::InOut], (int)iscore::IOType::InOut);
+    comboBox->setFrame(false);
 
     return comboBox;
 }
@@ -30,17 +28,13 @@ IOTypeDelegate::createEditor(QWidget* parent,
 void
 IOTypeDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-    QString value = index.model()->data(index, Qt::EditRole).toString();
     QComboBox* comboBox = static_cast<QComboBox*>(editor);
-    const int i = comboBox->findData(value);  //or findText with Qt::MatchContains);
+    const int i = comboBox->findData(index.model()->data(index, Qt::EditRole).toInt());
 
     if(i != -1)
     {
         comboBox->setCurrentIndex(i);
     }
-
-    std::cerr << "IOTypeDelegate::setEditorData comboBox: " << comboBox->currentIndex() << "\n";
-
 }
 
 void
@@ -48,6 +42,7 @@ IOTypeDelegate::setModelData(QWidget* editor,
                              QAbstractItemModel* model,
                              const QModelIndex& index) const
 {
+    // TODO is this into the undo/redo framework ?
     QComboBox* comboBox = static_cast<QComboBox*>(editor);
     QString value = comboBox->currentText();
     model->setData(index, value, Qt::EditRole);

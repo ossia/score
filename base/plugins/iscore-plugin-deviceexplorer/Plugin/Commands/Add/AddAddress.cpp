@@ -32,13 +32,23 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
 void AddAddress::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    iscore::Node* parent = m_parentNodePath.toNode(&explorer.rootNode());
-    explorer.removeNode(parent->childAt(m_createdNodeIndex));
+    iscore::Node* parentnode = m_parentNodePath.toNode(&explorer.rootNode());
+
+    auto addr = parentnode->address();
+    addr.path.append(m_addressSettings.name);
+
+    // Remove from the device implementation
+    auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
+    explorer.deviceModel()->list().device(
+                dev_node->deviceSettings().name)
+            .removeAddress(addr);
+
+    // Remove from the device explorer
+    explorer.removeNode(parentnode->childAt(m_createdNodeIndex));
 }
 
 void AddAddress::redo()
 {
-    // TODO review why ne need so much ::toNode.
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
     auto parentnode = m_parentNodePath.toNode(&explorer.rootNode());
 
@@ -46,17 +56,20 @@ void AddAddress::redo()
     // Get the device node :
     auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
 
-    // Make a full path (not taking the device into account.. for instance MIDI.1:/a/b would give /a/b)
-    FullAddressSettings full = FullAddressSettings::make(m_addressSettings);
-    auto fullpath = parentnode->fullPathWithDevice() + QStringList{m_addressSettings.name};
-    full.address.device = fullpath.takeFirst();
-    full.address.path = fullpath;
+    // Make a full path
+    FullAddressSettings full = FullAddressSettings::make(
+                                   m_addressSettings,
+                                   parentnode->address());
 
     // Add in the device implementation
-    explorer.deviceModel()->list().device(dev_node->deviceSettings().name).addAddress(full);
+    explorer.deviceModel()->list().device(
+                dev_node->deviceSettings().name)
+            .addAddress(full);
 
     // Add in the device explorer
-    iscore::Node* newNode = explorer.addAddress(parentnode, m_addressSettings);
+    iscore::Node* newNode = explorer.addAddress(
+                                parentnode,
+                                m_addressSettings);
 
     m_createdNodeIndex = parentnode->indexOfChild(newNode);
 }

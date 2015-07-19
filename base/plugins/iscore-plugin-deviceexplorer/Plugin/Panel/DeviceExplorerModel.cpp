@@ -464,8 +464,6 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
     bool changed = false;
 
-    //TODO: check what's editable or not !!!
-
     if(role == Qt::EditRole)
     {
         if(index.column() == (int)Column::Name)
@@ -510,7 +508,6 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 
 void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
 {
-    //TODO: check what's editable or not !!!
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
 

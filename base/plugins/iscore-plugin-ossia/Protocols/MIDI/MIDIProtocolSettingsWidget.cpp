@@ -1,4 +1,5 @@
 #include "MIDIProtocolSettingsWidget.hpp"
+#include "MIDISpecificSettings.hpp"
 
 #include <QComboBox>
 #include <QGridLayout>
@@ -40,7 +41,6 @@ MIDIProtocolSettingsWidget::buildGUI()
     updateInputDevices();
 }
 
-#include "MIDISpecificSettings.hpp"
 DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_deviceCBox);
@@ -94,40 +94,14 @@ MIDIProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
     }
 }
 
-
-
-QList<QString> getAvailableInputMIDIDevices()
-{
-    QList<QString> list;
-    list.append(QObject::tr("MIDI.1"));
-    list.append(QObject::tr("MIDI.5"));
-    list.append(QObject::tr("MIDI.Z"));
-    return list;
-}
-
-QList<QString> getAvailableOutputMIDIDevices()
-{
-    QList<QString> list;
-    list.append(QObject::tr("MIDI.out.2"));
-    list.append(QObject::tr("MIDI.7"));
-    list.append(QObject::tr("MIDI.AB"));
-    list.append(QObject::tr("MIDI.Abcdef"));
-    return list;
-}
-
-
 void
 MIDIProtocolSettingsWidget::updateInputDevices()
 {
     m_deviceCBox->clear();
-    QList<QString> deviceNames = getAvailableInputMIDIDevices();
-    m_deviceCBox->addItems(deviceNames);
 }
 
 void
 MIDIProtocolSettingsWidget::updateOutputDevices()
 {
     m_deviceCBox->clear();
-    QList<QString> deviceNames = getAvailableOutputMIDIDevices();
-    m_deviceCBox->addItems(deviceNames);
 }

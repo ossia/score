@@ -62,43 +62,21 @@ Node::~Node()
     qDeleteAll(m_children);  //calls delete on each children
 }
 
-#include <QDebug>
-QStringList Node::fullPathWithDevice() const
+iscore::Address Node::address() const
 {
-    QStringList l;
+    Address addr;
     const Node* n = this;
     while(n->parent() && !n->isDevice())
     {
-        l.append(n->addressSettings().name);
+        addr.path.prepend(n->addressSettings().name);
         n = n->parent();
     }
 
     Q_ASSERT(n->isDevice());
-    l.append(n->deviceSettings().name);
+    addr.device = n->deviceSettings().name;
 
-    std::reverse(l.begin(), l.end());
-    return l;
+    return addr;
 }
-
-QStringList Node::fullPathWithoutDevice() const
-{
-    if(isDevice())
-    {
-        return {};
-    }
-
-    QStringList l;
-    const Node* n = this;
-    while(n->parent() && !n->isDevice())
-    {
-        l.append(n->addressSettings().name);
-        n = n->parent();
-    }
-
-    std::reverse(l.begin(), l.end());
-    return l;
-}
-
 
 void Node::setParent(Node* parent)
 {

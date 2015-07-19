@@ -28,7 +28,8 @@ MoveNewEvent::MoveNewEvent(ObjectPath&& scenarioPath,
 void MoveNewEvent::undo()
 {
     m_cmd.undo();
-    // TODO we don't undo the contraint pos ?
+    // It is not needed to move the constraint since
+    // the sub-command already does it correctly.
 }
 
 void MoveNewEvent::redo()

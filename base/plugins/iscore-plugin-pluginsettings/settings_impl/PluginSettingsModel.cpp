@@ -19,6 +19,8 @@ PluginSettingsModel::PluginSettingsModel() :
     // TODO use a singleton instead.
     ISCORE_TODO
     return;
+
+
     auto systemlist = qApp->findChild<PluginManager*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 

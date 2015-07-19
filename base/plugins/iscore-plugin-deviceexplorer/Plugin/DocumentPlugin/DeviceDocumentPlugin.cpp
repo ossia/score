@@ -17,12 +17,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(QObject* parent):
 
 void recurse_addPaths(DeviceInterface& dev, iscore::Node& node)
 {
-    // TODO refactor with AddAddress
-    // Make a full path (not taking the device into account.. for instance /MIDI.1/a/b would give /a/b)
-    FullAddressSettings full = FullAddressSettings::make(node.addressSettings());
-    auto fullpath = node.fullPathWithDevice();
-    full.address.device = fullpath.takeFirst();
-    full.address.path = fullpath;
+    auto full = FullAddressSettings::make(node.addressSettings(), node.parent()->address());
 
     // Add in the device implementation
     dev.addAddress(full);

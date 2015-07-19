@@ -79,6 +79,11 @@ int Path::size() const
     return m_path.size();
 }
 
+bool Path::empty() const
+{
+    return m_path.empty();
+}
+
 void Path::removeLast()
 {
     m_path.removeLast();
