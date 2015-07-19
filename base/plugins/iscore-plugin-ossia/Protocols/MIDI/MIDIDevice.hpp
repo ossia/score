@@ -4,7 +4,7 @@
 class MIDIDevice : public OSSIADevice
 {
     public:
-        MIDIDevice(const DeviceSettings& settings);
+        MIDIDevice(const iscore::DeviceSettings& settings);
 
 
 };

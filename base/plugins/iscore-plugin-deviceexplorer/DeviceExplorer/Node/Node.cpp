@@ -12,7 +12,7 @@ bool Node::isInvisibleRoot() const
     return  "___InvisibleRootNodeTag___" == deviceSettings().name;
 }
 
-Node::Node(const AddressSettings& settings, Node* parent):
+Node::Node(const iscore::AddressSettings& settings, Node* parent):
     m_parent{parent},
     m_addressSettings(settings)
 {
@@ -204,18 +204,18 @@ DeviceSettings& Node::deviceSettings()
     return m_deviceSettings;
 }
 
-void Node::setAddressSettings(const AddressSettings &settings)
+void Node::setAddressSettings(const iscore::AddressSettings &settings)
 {
     m_addressSettings = settings;
     return;
 }
 
-const AddressSettings &Node::addressSettings() const
+const iscore::AddressSettings &Node::addressSettings() const
 {
     return m_addressSettings;
 }
 
-AddressSettings&Node::addressSettings()
+iscore::AddressSettings &Node::addressSettings()
 {
     return m_addressSettings;
 }

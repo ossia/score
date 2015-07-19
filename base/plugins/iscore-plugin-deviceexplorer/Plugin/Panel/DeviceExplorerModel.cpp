@@ -89,7 +89,9 @@ int DeviceExplorerModel::addDevice(Node* deviceNode)
     return row;
 }
 
-Node* DeviceExplorerModel::addAddress(Node* parentNode, const AddressSettings &addressSettings)
+Node* DeviceExplorerModel::addAddress(
+        Node* parentNode,
+        const iscore::AddressSettings &addressSettings)
 {
     Q_ASSERT(parentNode);
     Q_ASSERT(parentNode != &m_rootNode);

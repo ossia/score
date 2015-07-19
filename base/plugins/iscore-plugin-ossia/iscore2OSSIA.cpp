@@ -93,7 +93,7 @@ OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
 }
 
 
-void updateOSSIAAddress(const FullAddressSettings &settings, const std::shared_ptr<OSSIA::Address> &addr)
+void updateOSSIAAddress(const iscore::FullAddressSettings &settings, const std::shared_ptr<OSSIA::Address> &addr)
 {
     using namespace OSSIA;
     switch(settings.ioType)
@@ -114,7 +114,7 @@ void updateOSSIAAddress(const FullAddressSettings &settings, const std::shared_p
 }
 
 
-void createOSSIAAddress(const FullAddressSettings &settings, OSSIA::Node *node)
+void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node *node)
 {
     using namespace OSSIA;
     std::shared_ptr<OSSIA::Address> addr;

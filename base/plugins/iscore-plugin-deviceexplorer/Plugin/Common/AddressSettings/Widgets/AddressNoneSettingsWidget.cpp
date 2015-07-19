@@ -5,11 +5,11 @@ AddressNoneSettingsWidget::AddressNoneSettingsWidget(QWidget* parent)
 {
 }
 
-AddressSettings AddressNoneSettingsWidget::getSettings() const
+iscore::AddressSettings AddressNoneSettingsWidget::getSettings() const
 {
     return getCommonSettings();
 }
 
-void AddressNoneSettingsWidget::setSettings(const AddressSettings& settings)
+void AddressNoneSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
 }

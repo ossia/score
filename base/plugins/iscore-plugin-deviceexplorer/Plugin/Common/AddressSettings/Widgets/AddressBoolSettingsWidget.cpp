@@ -13,7 +13,7 @@ AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
     m_layout->insertRow(0, tr("Value"), m_cb);
 }
 
-AddressSettings AddressBoolSettingsWidget::getSettings() const
+iscore::AddressSettings AddressBoolSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     settings.value.val = m_cb->currentData().value<bool>();
@@ -21,7 +21,7 @@ AddressSettings AddressBoolSettingsWidget::getSettings() const
     return settings;
 }
 
-void AddressBoolSettingsWidget::setSettings(const AddressSettings& settings)
+void AddressBoolSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
     m_cb->setCurrentIndex(settings.value.val.value<bool>());
 }

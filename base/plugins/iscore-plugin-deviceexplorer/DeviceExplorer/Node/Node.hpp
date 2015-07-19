@@ -13,10 +13,8 @@ namespace iscore
 {
 class Node
 {
-        friend void Visitor<Reader<DataStream>>::readFrom<iscore::Node>(const iscore::Node& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<iscore::Node>(const iscore::Node& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<iscore::Node>(iscore::Node& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<iscore::Node>(iscore::Node& ev);
+        ISCORE_SERIALIZE_FRIENDS(Node, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Node, JSONObject)
 
     public:
         Node() = default;
@@ -25,7 +23,7 @@ class Node
         bool isInvisibleRoot() const;
 
         // Address
-        Node(const AddressSettings& settings,
+        Node(const iscore::AddressSettings& settings,
              Node* parent = nullptr);
 
         // Device
@@ -60,13 +58,13 @@ class Node
         bool isEditable() const;
 
         bool isDevice() const;
-        void setDeviceSettings(const DeviceSettings& settings);
-        const DeviceSettings& deviceSettings() const;
-        DeviceSettings& deviceSettings();
+        void setDeviceSettings(const iscore::DeviceSettings& settings);
+        const iscore::DeviceSettings& deviceSettings() const;
+        iscore::DeviceSettings& deviceSettings();
 
-        void setAddressSettings(const AddressSettings& settings);
-        const AddressSettings& addressSettings() const;
-        AddressSettings& addressSettings();
+        void setAddressSettings(const iscore::AddressSettings& settings);
+        const iscore::AddressSettings& addressSettings() const;
+        iscore::AddressSettings& addressSettings();
 
         Node* clone() const;
 
@@ -77,8 +75,8 @@ class Node
         QList<Node*> m_children;
 
         // TODO make an union here maybe ?
-        DeviceSettings m_deviceSettings;
-        AddressSettings m_addressSettings;
+        iscore::DeviceSettings m_deviceSettings;
+        iscore::AddressSettings m_addressSettings;
 };
 
 Node* getNodeFromString(Node* n, QStringList&& str);

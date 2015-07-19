@@ -12,16 +12,16 @@ class DeviceInterface : public QObject
         Q_OBJECT
 
     public:
-        DeviceInterface(const DeviceSettings& s);
-        const DeviceSettings& settings() const;
+        DeviceInterface(const iscore::DeviceSettings& s);
+        const iscore::DeviceSettings& settings() const;
 
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
         // The addresses are not applied to the device, they have to be via a command!
         virtual bool canRefresh() const { return false; }
         virtual iscore::Node refresh() { return {}; }
 
-        virtual void addAddress(const FullAddressSettings& address) = 0;
-        virtual void updateAddress(const FullAddressSettings& address) = 0;
+        virtual void addAddress(const iscore::FullAddressSettings& address) = 0;
+        virtual void updateAddress(const iscore::FullAddressSettings& address) = 0;
         virtual void removeAddress(const iscore::Address& path) = 0;
 
         // Execution API... Maybe we don't need it here.
@@ -30,13 +30,13 @@ class DeviceInterface : public QObject
 
     signals:
         // These signals are emitted if a device changes from the inside
-        void pathAdded(const FullAddressSettings&);
-        void pathUpdated(const FullAddressSettings&);
+        void pathAdded(const iscore::FullAddressSettings&);
+        void pathUpdated(const iscore::FullAddressSettings&);
         void pathRemoved(const QString&);
 
         // In case the whole namespace changed?
         void namespaceUpdated();
 
     private:
-        DeviceSettings m_settings;
+        iscore::DeviceSettings m_settings;
 };

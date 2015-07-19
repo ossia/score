@@ -49,9 +49,9 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget *parent) :
     setLayout(m_layout);
 }
 
-AddressSettings AddressSettingsWidget::getCommonSettings() const
+iscore::AddressSettings AddressSettingsWidget::getCommonSettings() const
 {
-    AddressSettings settings;
+    iscore::AddressSettings settings;
     settings.ioType = static_cast<iscore::IOType>(m_ioTypeCBox->currentData().value<int>());
     settings.clipMode = static_cast<iscore::ClipMode>(m_clipModeCBox->currentData().value<int>());
 
@@ -61,7 +61,7 @@ AddressSettings AddressSettingsWidget::getCommonSettings() const
     return settings;
 }
 
-void AddressSettingsWidget::setCommonSettings(const AddressSettings & settings)
+void AddressSettingsWidget::setCommonSettings(const iscore::AddressSettings & settings)
 {
     const int ioTypeIndex = m_ioTypeCBox->findData((int)settings.ioType);
     Q_ASSERT(ioTypeIndex != -1);

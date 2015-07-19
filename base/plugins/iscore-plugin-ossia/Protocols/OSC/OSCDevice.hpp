@@ -6,5 +6,5 @@ class OSCDevice : public OSSIADevice
 {
         //std::shared_ptr<OSSIA::Device> m_device{};
     public:
-        OSCDevice(const DeviceSettings& stngs);
+        OSCDevice(const iscore::DeviceSettings& stngs);
 };

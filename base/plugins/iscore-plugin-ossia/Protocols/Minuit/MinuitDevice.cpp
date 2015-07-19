@@ -8,7 +8,7 @@
 using namespace iscore::convert;
 using namespace OSSIA::convert;
 
-MinuitDevice::MinuitDevice(const DeviceSettings &settings):
+MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings},
     m_minuitSettings{[&] () {
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();

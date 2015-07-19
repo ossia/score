@@ -18,9 +18,8 @@
 class CurveModel;
 class AutomationModel : public ProcessModel
 {
-
-        friend void Visitor<Writer<DataStream>>::writeTo<AutomationModel>(AutomationModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<AutomationModel>(AutomationModel& ev);
+        ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)
 
         Q_OBJECT
         Q_PROPERTY(iscore::Address address READ address WRITE setAddress NOTIFY addressChanged)

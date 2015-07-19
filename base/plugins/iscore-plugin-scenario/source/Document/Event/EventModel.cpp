@@ -52,9 +52,11 @@ VerticalExtent EventModel::extent() const
 
 void EventModel::setExtent(const VerticalExtent &extent)
 {
-    // TODO add a check
-    m_extent = extent;
-    emit extentChanged(m_extent);
+    if(extent != m_extent)
+    {
+        m_extent = extent;
+        emit extentChanged(m_extent);
+    }
 }
 
 const TimeValue& EventModel::date() const
@@ -63,7 +65,7 @@ const TimeValue& EventModel::date() const
 }
 
 void EventModel::setDate(const TimeValue& date)
-{ //TODO ajuster la date avec celle du Timenode
+{
     if (m_date != date)
     {
         m_date = date;

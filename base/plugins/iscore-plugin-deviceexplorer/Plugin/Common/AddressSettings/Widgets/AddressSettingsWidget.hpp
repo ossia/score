@@ -5,7 +5,9 @@
 #include <QString>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 
+namespace iscore{
 struct AddressSettings;
+}
 class QComboBox;
 class QLineEdit;
 class QSpinBox;
@@ -16,12 +18,12 @@ class AddressSettingsWidget : public QWidget
     public:
         AddressSettingsWidget(QWidget* parent = nullptr);
 
-        virtual AddressSettings getSettings() const = 0;
-        virtual void setSettings(const AddressSettings& settings) = 0;
+        virtual iscore::AddressSettings getSettings() const = 0;
+        virtual void setSettings(const iscore::AddressSettings& settings) = 0;
 
     protected:
-        AddressSettings getCommonSettings() const;
-        void setCommonSettings(const AddressSettings&);
+        iscore::AddressSettings getCommonSettings() const;
+        void setCommonSettings(const iscore::AddressSettings&);
         QFormLayout* m_layout;
 
     private:

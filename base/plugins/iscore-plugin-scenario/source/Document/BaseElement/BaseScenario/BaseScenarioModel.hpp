@@ -12,12 +12,11 @@ class StateModel;
 class DataStream;
 class JSONObject;
 
+// TODO rename file
 class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInterface
 {
-        friend void Visitor<Reader<DataStream>>::readFrom<BaseScenario>(const BaseScenario&);
-        friend void Visitor<Writer<DataStream>>::writeTo<BaseScenario>(BaseScenario&);
-        friend void Visitor<Reader<JSONObject>>::readFrom<BaseScenario>(const BaseScenario&);
-        friend void Visitor<Writer<JSONObject>>::writeTo<BaseScenario>(BaseScenario&);
+        ISCORE_SERIALIZE_FRIENDS(BaseScenario, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(BaseScenario, JSONObject)
 
     public:
         iscore::ElementPluginModelList pluginModelList;

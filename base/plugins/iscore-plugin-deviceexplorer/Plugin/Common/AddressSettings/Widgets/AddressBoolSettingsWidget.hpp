@@ -6,9 +6,9 @@ class AddressBoolSettingsWidget : public AddressSettingsWidget
     public:
         AddressBoolSettingsWidget(QWidget* parent = nullptr);
 
-        virtual AddressSettings getSettings() const override;
+        virtual iscore::AddressSettings getSettings() const override;
 
-        virtual void setSettings(const AddressSettings& settings) override;
+        virtual void setSettings(const iscore::AddressSettings& settings) override;
 
     private:
         QComboBox* m_cb{};

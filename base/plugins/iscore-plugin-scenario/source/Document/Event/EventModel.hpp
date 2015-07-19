@@ -25,7 +25,6 @@ class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
 
-    private:
         Q_PROPERTY(QString condition
                    READ condition
                    WRITE setCondition
@@ -41,10 +40,8 @@ class EventModel : public IdentifiedObject<EventModel>
                    WRITE setStatus
                    NOTIFY statusChanged)
 
-        friend void Visitor<Reader<DataStream>>::readFrom<EventModel> (const EventModel& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<EventModel> (const EventModel& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<EventModel> (EventModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<EventModel> (EventModel& ev);
+        ISCORE_SERIALIZE_FRIENDS(EventModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(EventModel, JSONObject)
 
     public:
         /** Public properties of the class **/

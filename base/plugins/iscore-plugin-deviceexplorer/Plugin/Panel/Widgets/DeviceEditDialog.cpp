@@ -65,7 +65,7 @@ DeviceEditDialog::initAvailableProtocols()
 
     for(int i = 0; i < m_protocolCBox->count(); ++i)
     {
-        m_previousSettings.append(DeviceSettings());
+        m_previousSettings.append(iscore::DeviceSettings{});
     }
 
     m_index = m_protocolCBox->currentIndex();
@@ -100,9 +100,9 @@ DeviceEditDialog::updateProtocolWidget()
 
 }
 
-DeviceSettings DeviceEditDialog::getSettings() const
+iscore::DeviceSettings DeviceEditDialog::getSettings() const
 {
-    DeviceSettings settings;
+    iscore::DeviceSettings settings;
 
     if(m_protocolWidget)
     {
@@ -120,7 +120,7 @@ QString DeviceEditDialog::getPath() const
 }
 
 void
-DeviceEditDialog::setSettings(DeviceSettings &settings)
+DeviceEditDialog::setSettings(iscore::DeviceSettings &settings)
 {
 
     const QString protocol = settings.protocol;

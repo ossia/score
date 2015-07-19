@@ -20,10 +20,9 @@ class LayerModel;
 class ProcessModel: public IdentifiedObject<ProcessModel>
 {
         Q_OBJECT
-        friend void Visitor<Reader<DataStream>>::readFrom<ProcessModel> (const ProcessModel&);
-        friend void Visitor<Writer<DataStream>>::writeTo<ProcessModel> (ProcessModel&);
-        friend void Visitor<Reader<JSONObject>>::readFrom<ProcessModel> (const ProcessModel&);
-        friend void Visitor<Writer<JSONObject>>::writeTo<ProcessModel> (ProcessModel&);
+
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
 
     public:
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.

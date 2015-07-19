@@ -95,9 +95,9 @@ iscore::Value ToValue(const OSSIA::Value *val)
 }
 
 
-AddressSettings ToAddressSettings(const OSSIA::Node &node)
+iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 {
-    AddressSettings s;
+    iscore::AddressSettings s;
     const auto& addr = node.getAddress();
     s.name = QString::fromStdString(node.getName());
 

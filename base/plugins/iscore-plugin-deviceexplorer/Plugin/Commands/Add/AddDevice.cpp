@@ -43,7 +43,7 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
 
     value = dom_element.attribute("valueDefault");
 
-    AddressSettings addr;
+    iscore::AddressSettings addr;
 
     bool ok = false;
     addr.value.val = value.toUInt(&ok);

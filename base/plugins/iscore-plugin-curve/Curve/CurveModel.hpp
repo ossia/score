@@ -10,8 +10,8 @@ class CurvePointModel;
 
 class CurveModel : public IdentifiedObject<CurveModel>
 {
-        friend void Visitor<Writer<DataStream>>::writeTo<CurveModel>(CurveModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<CurveModel>(CurveModel& ev);
+        ISCORE_SERIALIZE_FRIENDS(CurveModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(CurveModel, JSONObject)
         Q_OBJECT
     public:
         CurveModel(const id_type<CurveModel>&, QObject* parent);

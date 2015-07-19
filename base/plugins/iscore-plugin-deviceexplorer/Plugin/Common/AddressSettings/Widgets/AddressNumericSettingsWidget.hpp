@@ -42,7 +42,7 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
             m_maxSBox->setValue(100);
         }
 
-        virtual AddressSettings getSettings() const override
+        virtual iscore::AddressSettings getSettings() const override
         {
             auto settings = getCommonSettings();
             settings.value.val = T(m_valueSBox->value());
@@ -51,7 +51,7 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
             return settings;
         }
 
-        virtual void setSettings(const AddressSettings& settings) override
+        virtual void setSettings(const iscore::AddressSettings& settings) override
         {
             if (settings.value.val.canConvert<T>())
             {

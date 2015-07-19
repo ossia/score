@@ -41,12 +41,12 @@ MIDIProtocolSettingsWidget::buildGUI()
     updateInputDevices();
 }
 
-DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
+iscore::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_deviceCBox);
     Q_ASSERT(m_inButton);
 
-    DeviceSettings s;
+    iscore::DeviceSettings s;
     MIDISpecificSettings midi;
     s.name = m_deviceCBox->currentText();
 
@@ -59,7 +59,7 @@ DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 }
 
 void
-MIDIProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
+MIDIProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
 {
     /*
     Q_ASSERT(settings.size() == 2);

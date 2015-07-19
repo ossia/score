@@ -14,7 +14,7 @@ class ProtocolFactory : public iscore::FactoryInterface
         static QString factoryName();
         virtual QString name() const = 0;
 
-        virtual DeviceInterface* makeDevice(const DeviceSettings& settings) = 0;
+        virtual DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) = 0;
         virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
 
         // Save

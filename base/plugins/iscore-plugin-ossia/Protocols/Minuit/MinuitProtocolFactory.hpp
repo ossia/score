@@ -9,7 +9,7 @@ class MinuitProtocolFactory : public ProtocolFactory
         QString name() const override
         { return "Minuit"; }
 
-        DeviceInterface* makeDevice(const DeviceSettings& settings) override
+        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {
             return new MinuitDevice{settings};
         }

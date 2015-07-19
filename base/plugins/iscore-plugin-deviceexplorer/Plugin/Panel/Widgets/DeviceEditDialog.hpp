@@ -18,10 +18,10 @@ class DeviceEditDialog : public QDialog
         DeviceEditDialog(QWidget* parent);
         ~DeviceEditDialog();
 
-        DeviceSettings getSettings() const;
+        iscore::DeviceSettings getSettings() const;
         QString getPath() const;
 
-        void setSettings(DeviceSettings& settings);
+        void setSettings(iscore::DeviceSettings& settings);
 
 
     protected slots:
@@ -39,7 +39,7 @@ class DeviceEditDialog : public QDialog
         QComboBox* m_protocolCBox;
         ProtocolSettingsWidget* m_protocolWidget;
         QGridLayout* m_gLayout;
-        QList<DeviceSettings> m_previousSettings;
+        QList<iscore::DeviceSettings> m_previousSettings;
         int m_index;
 };
 

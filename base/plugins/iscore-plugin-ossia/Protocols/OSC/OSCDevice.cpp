@@ -1,7 +1,7 @@
 #include "OSCDevice.hpp"
 #include <API/Headers/Network/Protocol.h>
 #include <API/Headers/Network/Device.h>
-OSCDevice::OSCDevice(const DeviceSettings &stngs):
+OSCDevice::OSCDevice(const iscore::DeviceSettings &stngs):
     OSSIADevice{stngs}
 {
     using namespace OSSIA;

@@ -5,15 +5,16 @@
 class QComboBox;
 class QLineEdit;
 class QSpinBox;
-struct AddressSettings;
-
+namespace iscore{
+struct iscore::AddressSettings;
+}
 class AddressStringSettingsWidget : public AddressSettingsWidget
 {
     public:
         AddressStringSettingsWidget(QWidget* parent = nullptr);
 
-        virtual AddressSettings getSettings() const override;
-        virtual void setSettings(const AddressSettings& settings) override;
+        virtual iscore::AddressSettings getSettings() const override;
+        virtual void setSettings(const iscore::AddressSettings& settings) override;
 
     protected:
         QLineEdit* m_valueEdit;

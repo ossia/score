@@ -17,15 +17,13 @@ class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
 
+// TODO rename file
 class StateModel : public IdentifiedObject<StateModel>
 {
         Q_OBJECT
 
-        friend void Visitor<Reader<DataStream>>::readFrom<StateModel> (const StateModel& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<StateModel> (const StateModel& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<StateModel> (StateModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<StateModel> (StateModel& ev);
-
+        ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
     public:
         Selectable selection; // TODO state connections
         ModelMetadata metadata; // TODO : usefull ?

@@ -75,7 +75,7 @@ AddressEditDialog::initAvailableValueTypes()
 
     for(int i = 0; i < m_valueTypeCBox->count(); ++i)
     {
-        m_previousSettings.append(AddressSettings());
+        m_previousSettings.append(iscore::AddressSettings{});
     }
 
     m_index = m_valueTypeCBox->currentIndex();
@@ -116,9 +116,9 @@ AddressEditDialog::updateNodeWidget()
 }
 
 
-AddressSettings AddressEditDialog::getSettings() const
+iscore::AddressSettings AddressEditDialog::getSettings() const
 {
-    AddressSettings settings;
+    iscore::AddressSettings settings;
 
     if(m_addressWidget)
     {
@@ -135,11 +135,11 @@ AddressSettings AddressEditDialog::getSettings() const
     return settings;
 }
 
-AddressSettings AddressEditDialog::makeDefaultSettings()
+iscore::AddressSettings AddressEditDialog::makeDefaultSettings()
 {
-    static AddressSettings defaultSettings
+    static iscore::AddressSettings defaultSettings
             = [] () {
-        AddressSettings s;
+        iscore::AddressSettings s;
         s.value = iscore::Value::fromVariant(0);
         s.domain.min = iscore::Value::fromVariant(0);
         s.domain.max = iscore::Value::fromVariant(100);
@@ -150,7 +150,7 @@ AddressSettings AddressEditDialog::makeDefaultSettings()
 }
 
 void
-AddressEditDialog::setSettings(const AddressSettings& settings)
+AddressEditDialog::setSettings(const iscore::AddressSettings& settings)
 {
     const QString name = settings.name;
     m_nameEdit->setText(name);

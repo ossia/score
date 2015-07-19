@@ -11,7 +11,6 @@ namespace iscore
 {
 using RefreshRate = int;
 using RepetitionFilter = bool;
-}
 
 struct AddressSettingsCommon
 {
@@ -31,19 +30,19 @@ struct AddressSettingsCommon
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
-struct AddressSettings : public AddressSettingsCommon
+struct AddressSettings : public iscore::AddressSettingsCommon
 {
         QString name;
 };
 
 // This one has the whole path of the node in address
-struct FullAddressSettings : public AddressSettingsCommon
+struct FullAddressSettings : public iscore::AddressSettingsCommon
 {
         iscore::Address address;
 
         // Second argument should be the address of the parent.
         static FullAddressSettings make(
-                const AddressSettings& other,
+                const iscore::AddressSettings& other,
                 const iscore::Address& addr)
         {
             FullAddressSettings as;
@@ -56,3 +55,4 @@ struct FullAddressSettings : public AddressSettingsCommon
         }
 };
 
+}

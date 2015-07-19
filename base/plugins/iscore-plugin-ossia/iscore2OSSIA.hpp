@@ -36,10 +36,10 @@ OSSIA::Node* createNodeFromPath(
         OSSIA::Device* dev);
 
 void createOSSIAAddress(
-        const FullAddressSettings& settings,
+        const iscore::FullAddressSettings& settings,
         OSSIA::Node* node);
 void updateOSSIAAddress(
-        const FullAddressSettings& settings,
+        const iscore::FullAddressSettings& settings,
         const std::shared_ptr<OSSIA::Address>& addr);
 void updateOSSIAValue(
         const QVariant& data,

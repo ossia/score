@@ -6,7 +6,7 @@ using namespace DeviceExplorer::Command;
 AddAddress::AddAddress(ObjectPath &&device_tree,
                        Path nodePath,
                        DeviceExplorerModel::Insert insert,
-                       const AddressSettings &addressSettings):
+                       const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()},
@@ -57,7 +57,7 @@ void AddAddress::redo()
     auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
 
     // Make a full path
-    FullAddressSettings full = FullAddressSettings::make(
+    iscore::FullAddressSettings full = iscore::FullAddressSettings::make(
                                    m_addressSettings,
                                    parentnode->address());
 

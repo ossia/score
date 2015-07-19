@@ -1,5 +1,4 @@
 #pragma once
-// TODO is this necessary ?
 #include "Document/State/StatePresenter.hpp"
 
 #include "Document/Event/EventModel.hpp"

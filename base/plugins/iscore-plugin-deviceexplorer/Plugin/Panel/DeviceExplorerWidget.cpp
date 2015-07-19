@@ -511,10 +511,14 @@ DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
 
     if(code == QDialog::Accepted)
     {
-        const AddressSettings addressSettings = m_addressDialog->getSettings();
+        const iscore::AddressSettings addressSettings = m_addressDialog->getSettings();
         Q_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
-        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::AddAddress{iscore::IDocument::path(model()), Path{index}, insert, addressSettings });
+        m_cmdDispatcher->submitCommand(
+                    new DeviceExplorer::Command::AddAddress{
+                        iscore::IDocument::path(model()),
+                        Path{index},
+                        insert, addressSettings });
         updateActions();
     }
 

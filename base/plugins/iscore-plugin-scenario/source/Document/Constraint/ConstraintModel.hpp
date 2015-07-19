@@ -38,10 +38,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
         Q_OBJECT
 
-        friend void Visitor<Reader<DataStream>>::readFrom<ConstraintModel> (const ConstraintModel& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<ConstraintModel> (const ConstraintModel& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<ConstraintModel> (ConstraintModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<ConstraintModel> (ConstraintModel& ev);
+        ISCORE_SERIALIZE_FRIENDS(ConstraintModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ConstraintModel, JSONObject)
 
         // TODO must go in view model
         Q_PROPERTY(double heightPercentage

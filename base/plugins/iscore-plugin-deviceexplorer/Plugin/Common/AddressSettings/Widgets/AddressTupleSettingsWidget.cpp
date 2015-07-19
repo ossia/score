@@ -7,13 +7,13 @@ AddressTupleSettingsWidget::AddressTupleSettingsWidget(QWidget* parent)
     // we have to separate the global and per-tuple settings widgets...
 }
 
-AddressSettings AddressTupleSettingsWidget::getSettings() const
+iscore::AddressSettings AddressTupleSettingsWidget::getSettings() const
 {
     auto settings = getCommonSettings();
     return settings;
 }
 
-void AddressTupleSettingsWidget::setSettings(const AddressSettings& settings)
+void AddressTupleSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
 
 }

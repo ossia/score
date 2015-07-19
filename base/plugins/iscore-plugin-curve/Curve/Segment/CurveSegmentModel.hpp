@@ -11,8 +11,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 {
         Q_OBJECT
 
-        friend void Visitor<Writer<DataStream>>::writeTo<CurveSegmentModel>(CurveSegmentModel& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<CurveSegmentModel>(CurveSegmentModel& ev);
+        ISCORE_SERIALIZE_FRIENDS(CurveSegmentModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(CurveSegmentModel, JSONObject)
     public:
         Selectable selection;
         CurveSegmentModel(

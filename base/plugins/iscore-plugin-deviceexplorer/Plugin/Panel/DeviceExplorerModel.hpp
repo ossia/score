@@ -24,7 +24,9 @@ namespace DeviceExplorer {
 class DeviceExplorerView;
 class DeviceExplorerCommandCreator;
 class DeviceDocumentPlugin;
+namespace iscore {
 struct AddressSettings;
+}
 
 class DeviceExplorerModel : public QAbstractItemModel
 {
@@ -76,7 +78,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         // Returns the row (useful for undo)
         int addDevice(iscore::Node* deviceNode);
         iscore::Node* addAddress(iscore::Node * parentNode,
-                        const AddressSettings& addressSettings);
+                        const iscore::AddressSettings& addressSettings);
         void addAddress(iscore::Node* parentNode, iscore::Node* node, int row = -1);
 
         void removeNode(iscore::Node* node);

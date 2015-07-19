@@ -28,11 +28,8 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
 
-        // TODO make an ISCORE_SERIALIZE_FRIENDS macro
-        friend void Visitor<Reader<DataStream>>::readFrom<NetworkDocumentPlugin>(const NetworkDocumentPlugin& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<NetworkDocumentPlugin>(const NetworkDocumentPlugin& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<NetworkDocumentPlugin>(NetworkDocumentPlugin& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<NetworkDocumentPlugin>(NetworkDocumentPlugin& ev);
+        ISCORE_SERIALIZE_FRIENDS(NetworkDocumentPlugin, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(NetworkDocumentPlugin, JSONObject)
     public:
         NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::DocumentModel *doc);
 

@@ -7,7 +7,7 @@
 using namespace iscore::convert;
 using namespace OSSIA::convert;
 
-void OSSIADevice::addAddress(const FullAddressSettings &settings)
+void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
 {
     using namespace OSSIA;
 
@@ -19,7 +19,7 @@ void OSSIADevice::addAddress(const FullAddressSettings &settings)
 }
 
 
-void OSSIADevice::updateAddress(const FullAddressSettings &settings)
+void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
 {
     using namespace OSSIA;
 
@@ -45,8 +45,9 @@ void OSSIADevice::sendMessage(iscore::Message &mess)
 {
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 
-    auto val = node->getAddress()->getValue();
-    updateOSSIAValue(mess.value.val, const_cast<OSSIA::Value&>(*val)); // TODO naye
+    auto val = node->getAddress()->getValue()->clone();
+
+    updateOSSIAValue(mess.value.val,*val);
     node->getAddress()->sendValue(val);
 }
 

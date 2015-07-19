@@ -9,7 +9,7 @@ class MIDIProtocolFactory : public ProtocolFactory
         QString name() const override
         { return "MIDI"; }
 
-        DeviceInterface* makeDevice(const DeviceSettings& settings) override
+        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {
             return new MIDIDevice{settings};
         }

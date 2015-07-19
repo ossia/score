@@ -1,6 +1,10 @@
 #include "ElementPluginModel.hpp"
 #include "ElementPluginModelSerialization.hpp"
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+
 
 // TODO do the same for DocumentDelegateModel...
 template<>
@@ -18,10 +22,6 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::ElementPluginModel& elt
     m_obj["PluginId"] = elt.elementPluginId();
     elt.serialize(this->toVariant());
 }
-
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
 template<>
 iscore::ElementPluginModel* deserializeElementPluginModel(

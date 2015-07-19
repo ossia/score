@@ -16,11 +16,8 @@ class Group : public IdentifiedObject<Group>
         Q_OBJECT
         Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 
-        friend void Visitor<Reader<DataStream>>::readFrom<Group>(const Group& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<Group>(const Group& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<Group>(Group& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<Group>(Group& ev);
-
+        ISCORE_SERIALIZE_FRIENDS(Group, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Group, JSONObject)
     public:
         Group(QString name, id_type<Group> id, QObject* parent);
 

@@ -13,10 +13,8 @@
  */
 class ModelMetadata : public QObject
 {
-        friend void Visitor<Reader<DataStream>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
-        friend void Visitor<Reader<JSONObject>>::readFrom<ModelMetadata> (const ModelMetadata& ev);
-        friend void Visitor<Writer<DataStream>>::writeTo<ModelMetadata> (ModelMetadata& ev);
-        friend void Visitor<Writer<JSONObject>>::writeTo<ModelMetadata> (ModelMetadata& ev);
+        ISCORE_SERIALIZE_FRIENDS(ModelMetadata, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ModelMetadata, JSONObject)
 
         Q_OBJECT
         Q_PROPERTY(QString name

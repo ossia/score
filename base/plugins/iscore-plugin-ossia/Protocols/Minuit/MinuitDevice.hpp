@@ -10,7 +10,7 @@ class Device;
 class MinuitDevice : public OSSIADevice
 {
     public:
-        MinuitDevice(const DeviceSettings& settings);
+        MinuitDevice(const iscore::DeviceSettings& settings);
         bool canRefresh() const override;
         iscore::Node refresh() override;
 

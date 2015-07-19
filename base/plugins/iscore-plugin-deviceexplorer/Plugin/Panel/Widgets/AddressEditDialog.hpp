@@ -16,10 +16,10 @@ class AddressEditDialog : public QDialog
         AddressEditDialog(QWidget* parent);
         ~AddressEditDialog();
 
-        AddressSettings getSettings() const;
-        static AddressSettings makeDefaultSettings();
+        iscore::AddressSettings getSettings() const;
+        static iscore::AddressSettings makeDefaultSettings();
 
-        void setSettings(const AddressSettings& settings);
+        void setSettings(const iscore::AddressSettings& settings);
 
     protected slots:
         void updateNodeWidget();
@@ -33,7 +33,7 @@ class AddressEditDialog : public QDialog
         QComboBox* m_valueTypeCBox;
         AddressSettingsWidget* m_addressWidget;
         QGridLayout* m_gLayout;
-        QList<AddressSettings> m_previousSettings;
+        QList<iscore::AddressSettings> m_previousSettings;
         int m_index;
 };
 

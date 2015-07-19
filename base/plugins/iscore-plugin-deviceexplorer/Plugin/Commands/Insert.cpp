@@ -34,7 +34,11 @@ Insert::undo()
 
 void recurse_addAddress(const ObjectPath& model, const Node& n, Path nodePath)
 {
-    AddAddress addr{ObjectPath(model), nodePath, DeviceExplorerModel::Insert::AsChild, n.addressSettings()};
+    AddAddress addr{
+        ObjectPath(model),
+                nodePath,
+                DeviceExplorerModel::Insert::AsChild,
+                n.addressSettings()};
     addr.redo();
 
     nodePath.append(addr.createdNodeIndex());

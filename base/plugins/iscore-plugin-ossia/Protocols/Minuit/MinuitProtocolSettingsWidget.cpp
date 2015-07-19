@@ -62,11 +62,11 @@ MinuitProtocolSettingsWidget::setDefaults()
 }
 
 #include "MinuitSpecificSettings.hpp"
-DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
+iscore::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 {
     Q_ASSERT(m_deviceNameEdit);
 
-    DeviceSettings s;
+    iscore::DeviceSettings s;
     s.name = m_deviceNameEdit->text();
 
     MinuitSpecificSettings minuit;
@@ -79,7 +79,7 @@ DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 }
 
 void
-MinuitProtocolSettingsWidget::setSettings(const DeviceSettings &settings)
+MinuitProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
 {
     m_deviceNameEdit->setText(settings.name);
     MinuitSpecificSettings minuit;

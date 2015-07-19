@@ -9,7 +9,7 @@ class OSCProtocolFactory : public ProtocolFactory
         QString name() const override
         { return "OSC"; }
 
-        DeviceInterface* makeDevice(const DeviceSettings& settings) override
+        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {
             return new OSCDevice{settings};
         }

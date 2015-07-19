@@ -19,7 +19,7 @@ namespace DeviceExplorer
                 AddAddress(ObjectPath&& device_tree,
                            Path nodePath,
                            DeviceExplorerModel::Insert insert,
-                           const AddressSettings& addressSettings);
+                           const iscore::AddressSettings& addressSettings);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -33,7 +33,7 @@ namespace DeviceExplorer
             private:
                 ObjectPath m_deviceTree;
                 Path m_parentNodePath;
-                AddressSettings m_addressSettings;
+                iscore::AddressSettings m_addressSettings;
                 int m_createdNodeIndex;
 
         };

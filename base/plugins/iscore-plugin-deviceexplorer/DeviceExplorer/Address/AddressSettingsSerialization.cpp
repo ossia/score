@@ -16,7 +16,7 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
 }
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const AddressSettings& n)
+void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
 {
     m_stream << n.name
              << n.value
@@ -32,7 +32,7 @@ void Visitor<Reader<DataStream>>::readFrom(const AddressSettings& n)
     insertDelimiter();
 }
 template<>
-void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
+void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
 {
     m_stream >> n.name
             >> n.value
@@ -49,7 +49,7 @@ void Visitor<Writer<DataStream>>::writeTo(AddressSettings& n)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
+void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
 {
     m_obj["Name"] = n.name;
 
@@ -79,7 +79,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const AddressSettings& n)
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(AddressSettings& n)
+void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
 {
     n.name = m_obj["Name"].toString();
 
