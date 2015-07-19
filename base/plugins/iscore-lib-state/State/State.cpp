@@ -9,7 +9,7 @@
 namespace {
 
     template<typename T,
-             typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+             typename = std::enable_if_t<std::is_arithmetic<T>::value>>
     uint qHash(T val) {  return val; }
 // Found on stackoverflow : http://stackoverflow.com/questions/17208813/qvariant-as-key-in-qhash
 uint qHash( const QVariant & var ) noexcept

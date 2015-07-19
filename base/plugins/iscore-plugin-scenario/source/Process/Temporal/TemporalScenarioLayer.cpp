@@ -8,6 +8,7 @@
 #include <ProcessInterface/LayerModelPanelProxy.hpp>
 #include "StateMachines/ScenarioStateMachine.hpp"
 #include "TemporalScenarioPresenter.hpp"
+#include "TemporalScenarioPanelProxy.hpp"
 
 TemporalScenarioLayer::TemporalScenarioLayer(
         const id_type<LayerModel>& viewModelId,
@@ -47,28 +48,6 @@ TemporalScenarioLayer::TemporalScenarioLayer(
                         this));
     }
 }
-
-// TODO move me outside
-class TemporalScenarioPanelProxy : public LayerModelPanelProxy
-{
-    public:
-        TemporalScenarioPanelProxy(
-                const TemporalScenarioLayer& lm,
-                QObject* parent):
-            LayerModelPanelProxy{parent},
-            m_viewModel{lm}
-        {
-
-        }
-
-        const TemporalScenarioLayer& viewModel() override
-        {
-            return m_viewModel;
-        }
-
-    private:
-        const TemporalScenarioLayer& m_viewModel;
-};
 
 LayerModelPanelProxy*TemporalScenarioLayer::make_panelProxy(QObject* parent) const
 {

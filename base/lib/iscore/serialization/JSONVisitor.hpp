@@ -133,9 +133,9 @@ QJsonArray toJsonArray(const Container<int>& array)
 }
 
 template<class Container,
-         typename std::enable_if<
+         typename std::enable_if_t<
              not std::is_pointer<return_type_of_iterator<Container>>::value
-         >::type* = nullptr>
+         >* = nullptr>
 QJsonArray toJsonArray(const Container& array)
 {
     QJsonArray arr;
@@ -149,11 +149,11 @@ QJsonArray toJsonArray(const Container& array)
 }
 
 template<class Container,
-         typename std::enable_if<
+         typename std::enable_if_t<
              std::is_pointer<
                  return_type_of_iterator<Container>
              >::value
-         >::type* = nullptr>
+         >* = nullptr>
 QJsonArray toJsonArray(const Container& array)
 {
     QJsonArray arr;
@@ -213,7 +213,7 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 
 
 template<typename Key, typename Value,
-         typename std::enable_if<std::is_same<bool, Value>::value>::type* = nullptr>
+         typename = std::enable_if_t<std::is_same<bool, Value>::value>>
 QMap<Key, Value> fromJsonMap(const QJsonArray& array)
 {
     QMap<Key, Value> map;

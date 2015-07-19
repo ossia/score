@@ -7,7 +7,7 @@ class AutomationPanelProxy : public LayerModelPanelProxy
         AutomationPanelProxy(const AutomationViewModel& vm,
                              QObject* parent);
 
-        const AutomationViewModel& viewModel() override;
+        const AutomationViewModel& layer() override;
 
     private:
         const AutomationViewModel& m_viewModel;

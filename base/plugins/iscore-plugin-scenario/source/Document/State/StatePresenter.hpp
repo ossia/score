@@ -36,9 +36,8 @@ class StatePresenter : public NamedObject
         void moved(const QPointF&);
         void released(const QPointF&);
 
-        // TODO rename
-        void eventHoverEnter();
-        void eventHoverLeave();
+        void hoverEnter();
+        void hoverLeave();
 
     private:
         void updateStateView();

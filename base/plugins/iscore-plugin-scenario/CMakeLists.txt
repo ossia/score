@@ -138,7 +138,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SplitTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/CommandNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/ResizeBaseConstraint.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/PutLayerModelToFront.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
@@ -147,7 +149,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/OldFormatConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/ScenarioControl.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/AddProcessDialog.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioModel.cpp"
@@ -216,12 +220,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardRemovalPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/VerticalMovePolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioFactory.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/ScenarioToolState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromTimeNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreation_FromNothing.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/MoveStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/SlotStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/States/ScenarioCreationState.cpp"
@@ -241,6 +245,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/ScenarioViewInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/AbstractScenarioViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioGlobalCommandManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioModel.cpp"

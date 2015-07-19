@@ -1,4 +1,4 @@
-#include "CurvePlugin.hpp"
+#include "iscore_plugin_curve.hpp"
 
 #include "Automation/AutomationFactory.hpp"
 #include "AutomationControl.hpp"

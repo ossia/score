@@ -7,7 +7,7 @@ AutomationPanelProxy::AutomationPanelProxy(const AutomationViewModel &vm, QObjec
 
 }
 
-const AutomationViewModel &AutomationPanelProxy::viewModel()
+const AutomationViewModel &AutomationPanelProxy::layer()
 {
     return m_viewModel;
 }

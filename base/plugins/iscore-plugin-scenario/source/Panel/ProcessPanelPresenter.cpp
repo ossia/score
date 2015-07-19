@@ -80,10 +80,10 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
         auto panelview = static_cast<ProcessPanelView*>(view());
         panelview->scene()->addItem(m_obj);
 
-        m_layer = fact->makeView(proxy->viewModel(),
+        m_layer = fact->makeView(proxy->layer(),
                                        m_obj);
 
-        m_processPresenter = fact->makePresenter(proxy->viewModel(),
+        m_processPresenter = fact->makePresenter(proxy->layer(),
                                                  m_layer,
                                                  this);
 

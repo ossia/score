@@ -67,7 +67,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CurveStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/CurvePlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_curve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AutomationState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.cpp"
 )

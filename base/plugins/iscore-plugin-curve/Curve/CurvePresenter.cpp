@@ -2,7 +2,7 @@
 #include "CurveModel.hpp"
 #include "CurveView.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
-#include "Curve/StateMachine/OngoingCommandState.hpp"
+#include "Curve/StateMachine/OngoingState.hpp"
 
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
 #include "Curve/StateMachine/States/Tools/MoveTool.hpp"

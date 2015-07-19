@@ -8,7 +8,6 @@
 
 namespace Curve
 {
-// TODO rename file
 class OngoingState : public Curve::StateBase
 {
     public:

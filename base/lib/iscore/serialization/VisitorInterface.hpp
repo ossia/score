@@ -34,7 +34,7 @@ struct VisitorVariant
 };
 
 template<typename DeserializerVisitor>
-using enable_if_deserializer =  typename std::enable_if<std::decay<DeserializerVisitor>::type::is_visitor_tag::value>::type;
+using enable_if_deserializer = typename std::enable_if_t<std::decay<DeserializerVisitor>::type::is_visitor_tag::value>;
 
 
 // Declaration of common friends for classes that serialize themselves

@@ -8,6 +8,6 @@ class LayerModelPanelProxy : public QObject
         virtual ~LayerModelPanelProxy() = default;
 
         // Can return the same view model, or a new one.
-        virtual const LayerModel& viewModel() = 0;
+        virtual const LayerModel& layer() = 0;
 
 };

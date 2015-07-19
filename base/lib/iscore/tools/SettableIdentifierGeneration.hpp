@@ -63,11 +63,11 @@ auto getStrongId(const QVector<id_type<T>>& v)
 }
 
 template<typename Container,
-         typename std::enable_if<
+         typename std::enable_if_t<
                     std::is_pointer<
                       typename Container::value_type
                     >::value
-                  >::type* = nullptr>
+                  >* = nullptr>
 auto getStrongId(const Container& v)
     -> id_type<typename std::remove_pointer<typename Container::value_type>::type>
 {
@@ -87,11 +87,11 @@ auto getStrongId(const Container& v)
 }
 
 template<typename Container,
-         typename std::enable_if<
+         typename std::enable_if_t<
                     not std::is_pointer<
                       typename Container::value_type
                     >::value
-                  >::type* = nullptr>
+                  >* = nullptr>
 auto getStrongId(const Container& v) ->
     id_type<typename Container::value_type>
 {

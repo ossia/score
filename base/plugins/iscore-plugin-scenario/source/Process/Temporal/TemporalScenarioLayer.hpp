@@ -11,7 +11,6 @@ class TemporalScenarioPresenter;
 class ConstraintModel;
 class ScenarioStateMachine;
 
-// TODO remove the file
 class TemporalScenarioLayer : public AbstractScenarioLayer
 {
         Q_OBJECT

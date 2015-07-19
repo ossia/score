@@ -5,7 +5,6 @@
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
 class AutomationControl;
-// TODO rename file
 class iscore_plugin_curve:
     public QObject,
     public iscore::FactoryInterface_QtInterface,

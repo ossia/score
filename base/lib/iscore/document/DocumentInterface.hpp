@@ -44,9 +44,8 @@ namespace iscore
             return static_cast<T&>(presenterDelegate_generic(d));
         }
 
-        // TODO investigate why enable_if_t does not work here.
         template<typename T,
-                 typename std::enable_if<std::is_base_of<DocumentDelegatePresenterInterface, T>::value>::type* = nullptr>
+                 typename std::enable_if_t<std::is_base_of<DocumentDelegatePresenterInterface, T>::value>* = nullptr>
         T& get(const Document& d)
         {
             return presenterDelegate<T> (d);
@@ -62,7 +61,7 @@ namespace iscore
         }
 
         template<typename T,
-                 typename std::enable_if<std::is_base_of<DocumentDelegateModelInterface, T>::value>::type* = nullptr>
+                 typename std::enable_if_t<std::is_base_of<DocumentDelegateModelInterface, T>::value>* = nullptr>
         T& get(const Document& d)
         {
             return modelDelegate<T> (d);

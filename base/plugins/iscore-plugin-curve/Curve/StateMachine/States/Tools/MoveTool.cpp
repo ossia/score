@@ -1,6 +1,6 @@
 #include "MoveTool.hpp"
 #include "Curve/CurveModel.hpp"
-#include "Curve/StateMachine/OngoingCommandState.hpp"
+#include "Curve/StateMachine/OngoingState.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QSignalTransition>
