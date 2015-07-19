@@ -31,7 +31,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/ProtocolFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceList.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/AddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/IOType.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/ClipMode.cpp"
 

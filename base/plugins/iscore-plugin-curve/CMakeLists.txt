@@ -38,7 +38,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationViewModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/SetSegmentParameters.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/UpdateCurve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
