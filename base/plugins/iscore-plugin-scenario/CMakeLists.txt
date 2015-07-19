@@ -104,7 +104,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddRackToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddLayerInNewSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/CopyConstraintContent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/ReplaceConstraintContent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/DuplicateRack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveRackFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveProcessFromConstraint.cpp"

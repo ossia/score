@@ -9,12 +9,17 @@ using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Node& n)
 {
-    m_stream << n.addressSettings();
-
-    m_stream << n.isDevice();
-    if(n.isDevice())
+    m_stream << (int)n.type();
+    switch(n.type())
     {
-        m_stream << n.deviceSettings();
+        case Node::Type::Address:
+            m_stream << n.addressSettings();
+            break;
+        case Node::Type::Device:
+            m_stream << n.deviceSettings();
+            break;
+        default:
+            break;
     }
 
     m_stream << n.childCount();
@@ -29,14 +34,28 @@ void Visitor<Reader<DataStream>>::readFrom(const Node& n)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Node& n)
 {
-    bool isDev;
+    int type;
     int childCount;
 
-    m_stream >> n.m_addressSettings
-             >> isDev;
-    if (isDev)
+    m_stream >> type;
+    switch(Node::Type(type))
     {
-        m_stream >> n.m_deviceSettings;
+        case Node::Type::Address:
+        {
+            AddressSettings s;
+            m_stream >> s;
+            n.setAddressSettings(s);
+            break;
+        }
+        case Node::Type::Device:
+        {
+            DeviceSettings s;
+            m_stream >> s;
+            n.setDeviceSettings(s);
+            break;
+        }
+        default:
+            break;
     }
 
     m_stream >> childCount;
@@ -53,11 +72,16 @@ void Visitor<Writer<DataStream>>::writeTo(Node& n)
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
 {
-    m_obj["AddressSettings"] = toJsonObject(n.addressSettings());
-
-    if(n.isDevice())
+    switch(n.type())
     {
-        m_obj["DeviceSettings"] = toJsonObject(n.deviceSettings());
+        case Node::Type::Address:
+            m_obj["AddressSettings"] = toJsonObject(n.addressSettings());
+            break;
+        case Node::Type::Device:
+            m_obj["DeviceSettings"] = toJsonObject(n.deviceSettings());
+            break;
+        default:
+            break;
     }
 
     m_obj["Children"] = toJsonArray(n.children());
@@ -66,10 +90,17 @@ void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Node& n)
 {
-    fromJsonObject(m_obj["AddressSettings"].toObject(), n.m_addressSettings);
-    if(m_obj.contains("DeviceSettings"))
+    if(m_obj.contains("AddressSettings"))
     {
-        n.setDeviceSettings(fromJsonObject<DeviceSettings>(m_obj["DeviceSettings"].toObject()));
+        AddressSettings s;
+        fromJsonObject(m_obj["AddressSettings"].toObject(), s);
+        n.setAddressSettings(s);
+    }
+    else if(m_obj.contains("DeviceSettings"))
+    {
+        DeviceSettings s;
+        fromJsonObject(m_obj["DeviceSettings"].toObject(), s);
+        n.setDeviceSettings(s);
     }
 
     for (const auto& val : m_obj["Children"].toArray())

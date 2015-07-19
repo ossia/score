@@ -41,7 +41,7 @@ ConstraintModel::ConstraintModel(
     m_startDate = source.m_startDate;
     m_heightPercentage = source.heightPercentage();
 
-    // For an explanation of this, see CopyConstraintContent command
+    // For an explanation of this, see ReplaceConstraintContent command
     std::map<const ProcessModel*, ProcessModel*> processPairs;
 
     // Clone the processes

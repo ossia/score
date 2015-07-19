@@ -52,6 +52,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/IpWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/NetworkPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/NetworkControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Repartition/client/ClientSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ClientSession.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/ClientSessionBuilder.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Repartition/session/MasterSession.cpp"

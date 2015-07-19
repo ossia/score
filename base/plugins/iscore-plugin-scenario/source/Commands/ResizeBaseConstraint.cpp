@@ -85,7 +85,7 @@ void MoveBaseEvent::undo()
     auto& constraint = scenar.baseConstraint();
     // 2. Restore the rackes & processes.
 
-    // TODO if possible refactor this with CopyConstraintContent and ConstraintModel::clone
+    // TODO if possible refactor this with ReplaceConstraintContent and ConstraintModel::clone
     // Be careful however, the code differs in subtle ways
     ConstraintModel src_constraint{
         Deserializer<DataStream>{m_savedConstraint.first},

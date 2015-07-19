@@ -11,13 +11,13 @@ namespace Scenario
 {
     namespace Command
     {
-        class CopyConstraintContent : public iscore::SerializableCommand
+        class ReplaceConstraintContent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("CopyConstraintContent", "CopyConstraintContent")
+                ISCORE_COMMAND_DECL("ReplaceConstraintContent", "ReplaceConstraintContent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopyConstraintContent, "ScenarioControl")
-                CopyConstraintContent(QJsonObject&& sourceConstraint,
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceConstraintContent, "ScenarioControl")
+                ReplaceConstraintContent(QJsonObject&& sourceConstraint,
                                       ObjectPath&&  targetConstraint,
                                       ExpandMode mode);
 

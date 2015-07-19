@@ -1,4 +1,4 @@
-#include "CopyConstraintContent.hpp"
+#include "ReplaceConstraintContent.hpp"
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
@@ -11,8 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-// TODO rename in SetConstraintContent ?
-CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
+ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstraint,
                                              ObjectPath&& targetConstraint,
                                              ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
@@ -56,7 +55,7 @@ CopyConstraintContent::CopyConstraintContent(QJsonObject&& sourceConstraint,
     }
 }
 
-void CopyConstraintContent::undo()
+void ReplaceConstraintContent::undo()
 {
     // We just have to remove what we added
     auto& trg_constraint = m_target.find<ConstraintModel>();
@@ -73,7 +72,7 @@ void CopyConstraintContent::undo()
 }
 
 
-void CopyConstraintContent::redo()
+void ReplaceConstraintContent::redo()
 {
     auto& trg_constraint = m_target.find<ConstraintModel>();
     ConstraintModel src_constraint{
@@ -129,12 +128,12 @@ void CopyConstraintContent::redo()
     }
 }
 
-void CopyConstraintContent::serializeImpl(QDataStream& s) const
+void ReplaceConstraintContent::serializeImpl(QDataStream& s) const
 {
     s << m_source << m_target << m_rackIds << m_processIds << (int) m_mode;
 }
 
-void CopyConstraintContent::deserializeImpl(QDataStream& s)
+void ReplaceConstraintContent::deserializeImpl(QDataStream& s)
 {
     int mode;
     s >> m_source >> m_target >> m_rackIds >> m_processIds >> mode;

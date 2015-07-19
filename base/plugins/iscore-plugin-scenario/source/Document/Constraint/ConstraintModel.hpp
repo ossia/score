@@ -30,10 +30,6 @@ class EventModel;
 class TimeRack;
 class ScenarioInterface;
 
-/**
- * @brief The ConstraintModel class
- */
-// TODO put some of this stuff in the corresponding view models.
 class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
         Q_OBJECT

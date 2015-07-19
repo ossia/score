@@ -11,13 +11,15 @@
 struct InvisibleRootNodeTag{};
 namespace iscore
 {
+
 class Node
 {
         ISCORE_SERIALIZE_FRIENDS(Node, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Node, JSONObject)
 
     public:
-        Node() = default;
+            enum class Type { Device, Address, RootNode };
+        Node();
 
         Node(InvisibleRootNodeTag);
         bool isInvisibleRoot() const;
@@ -29,6 +31,7 @@ class Node
         // Device
         Node(const DeviceSettings& settings,
              Node* parent = nullptr);
+        bool isDevice() const;
 
         // Clone
         Node(const Node& source,
@@ -57,7 +60,6 @@ class Node
         bool isSelectable() const;
         bool isEditable() const;
 
-        bool isDevice() const;
         void setDeviceSettings(const iscore::DeviceSettings& settings);
         const iscore::DeviceSettings& deviceSettings() const;
         iscore::DeviceSettings& deviceSettings();
@@ -70,13 +72,19 @@ class Node
 
         iscore::Address address() const;
 
-    protected:
+        Type type() const;
+
+    private:
         Node* m_parent {};
         QList<Node*> m_children;
 
-        // TODO make an union here maybe ?
+        union {
         iscore::DeviceSettings m_deviceSettings;
         iscore::AddressSettings m_addressSettings;
+        bool m_rootNode;
+        };
+
+        Type m_type;
 };
 
 Node* getNodeFromString(Node* n, QStringList&& str);

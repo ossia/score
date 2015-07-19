@@ -14,7 +14,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-#include "Commands/Constraint/CopyConstraintContent.hpp"
+#include "Commands/Constraint/ReplaceConstraintContent.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 
 #include "Control/ScenarioControl.hpp"
@@ -222,7 +222,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
     {
         for(const auto& constraint : selectedConstraints)
         {
-            auto cmd = new Scenario::Command::CopyConstraintContent{
+            auto cmd = new Scenario::Command::ReplaceConstraintContent{
                        json_vref.toObject(),
                        iscore::IDocument::path(constraint),
                        pres->stateMachine().expandMode()};

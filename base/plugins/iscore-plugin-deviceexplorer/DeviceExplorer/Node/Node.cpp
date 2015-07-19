@@ -2,19 +2,29 @@
 #include <QJsonArray>
 using namespace iscore;
 
-Node::Node(InvisibleRootNodeTag)
+Node::Node():
+    m_rootNode{true},
+    m_type{Type::RootNode}
 {
-    deviceSettings().name = "___InvisibleRootNodeTag___";
+
+}
+
+Node::Node(InvisibleRootNodeTag):
+    m_rootNode{true},
+    m_type{Type::RootNode}
+{
 }
 
 bool Node::isInvisibleRoot() const
 {
-    return  "___InvisibleRootNodeTag___" == deviceSettings().name;
+    return m_type == Type::RootNode;
 }
 
-Node::Node(const iscore::AddressSettings& settings, Node* parent):
+Node::Node(const iscore::AddressSettings& settings,
+           Node* parent):
     m_parent{parent},
-    m_addressSettings(settings)
+    m_addressSettings{settings},
+    m_type{Type::Address}
 {
     if(m_parent)
     {
@@ -23,11 +33,14 @@ Node::Node(const iscore::AddressSettings& settings, Node* parent):
 }
 
 Node::Node(const Node &source, Node *parent):
-    m_parent{parent}
+    m_parent{parent},
+    m_rootNode{false}
 {
     if(source.isDevice())
         m_deviceSettings = source.deviceSettings();
-    m_addressSettings = source.addressSettings();
+    else
+        m_addressSettings = source.addressSettings();
+    m_type = source.m_type;
 
     for(const auto& child : source.children())
     {
@@ -39,7 +52,9 @@ Node& Node::operator=(const Node &source)
 {
     if(source.isDevice())
         m_deviceSettings = source.deviceSettings();
-    m_addressSettings = source.addressSettings();
+    else
+        m_addressSettings = source.addressSettings();
+    m_type = source.m_type;
 
     for(const auto& child : source.children())
     {
@@ -52,7 +67,8 @@ Node& Node::operator=(const Node &source)
 Node::Node(const DeviceSettings& settings,
            Node* parent) :
     m_parent{parent},
-    m_deviceSettings(settings)
+    m_deviceSettings{settings},
+    m_type{Type::Device}
 {
 }
 
@@ -77,6 +93,12 @@ iscore::Address Node::address() const
 
     return addr;
 }
+
+Node::Type Node::type() const
+{
+    return m_type;
+}
+
 
 void Node::setParent(Node* parent)
 {
@@ -182,23 +204,30 @@ bool Node::isSelectable() const
 
 bool Node::isEditable() const
 {
-    return m_addressSettings.ioType == IOType::InOut ||  m_addressSettings.ioType == IOType::Invalid;
+    return m_type == Type::Address
+            && (m_addressSettings.ioType == IOType::InOut
+               ||  m_addressSettings.ioType == IOType::Invalid);
 }
 
 bool Node::isDevice() const
 {
-    return deviceSettings().protocol != "";
+    return m_type == Type::Device;
 }
 
 void Node::setDeviceSettings(const DeviceSettings &settings)
 {
-    m_deviceSettings = settings;
+    if(m_type == Type::Address)
+        m_addressSettings.~AddressSettings();
+
+    new (&m_deviceSettings) DeviceSettings{settings};
+    m_type = Type::Device;
 }
 
 const DeviceSettings& Node::deviceSettings() const
 {
     return m_deviceSettings;
 }
+
 DeviceSettings& Node::deviceSettings()
 {
     return m_deviceSettings;
@@ -206,8 +235,11 @@ DeviceSettings& Node::deviceSettings()
 
 void Node::setAddressSettings(const iscore::AddressSettings &settings)
 {
-    m_addressSettings = settings;
-    return;
+    if(m_type == Type::Device)
+        m_deviceSettings.~DeviceSettings();
+
+    new (&m_addressSettings) AddressSettings{settings};
+    m_type = Type::Address;
 }
 
 const iscore::AddressSettings &Node::addressSettings() const

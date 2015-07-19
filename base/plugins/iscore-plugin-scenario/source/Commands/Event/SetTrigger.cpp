@@ -18,8 +18,11 @@ m_trigger(message)
 {
     auto& event = m_path.find<EventModel>();
     m_previousTrigger = event.trigger();
+}
 
-
+SetTrigger::~SetTrigger()
+{
+    qDeleteAll(m_cmds);
 }
 
 void SetTrigger::undo()
@@ -27,7 +30,7 @@ void SetTrigger::undo()
     auto& event = m_path.find<EventModel>();
     event.setTrigger(m_previousTrigger);
 
-    for (auto cmd : m_cmd)
+    for (auto cmd : m_cmds)
     {
         cmd->undo();
         delete cmd;
@@ -57,9 +60,25 @@ void SetTrigger::redo()
 void SetTrigger::serializeImpl(QDataStream& s) const
 {
     s << m_path << m_trigger << m_previousTrigger;
+    s << m_cmds.count();
+
+    for(const auto& cmd : m_cmds)
+    {
+        s << cmd->serialize();
+    }
 }
 
 void SetTrigger::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_trigger >> m_previousTrigger;
+    int n;
+    s >> m_path >> m_trigger >> m_previousTrigger >> n;
+
+    for(;n-->0;)
+    {
+        QByteArray a;
+        s >> a;
+        auto cmd = new SetRigidity;
+        cmd->deserialize(a);
+        m_cmds.append(cmd);
+    }
 }

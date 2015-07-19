@@ -14,6 +14,8 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetTrigger, "ScenarioControl")
                 SetTrigger(ObjectPath&& eventPath, QString condition);
+                ~SetTrigger();
+
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -26,7 +28,7 @@ namespace Scenario
                 QString m_trigger;
                 QString m_previousTrigger;
 
-                QVector<SetRigidity*> m_cmd; //TODO serialization
+                QVector<SetRigidity*> m_cmds;
         };
     }
 }

@@ -3,39 +3,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-// TODO put in own file
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const Client& elt)
-{
-    readFrom(static_cast<const IdentifiedObject<Client>&>(elt));
-    m_stream << elt.name();
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(Client& elt)
-{
-    QString s;
-    m_stream  >> s;
-    elt.setName(s);
-
-    checkDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const Client& elt)
-{
-    readFrom(static_cast<const IdentifiedObject<Client>&>(elt));
-    m_obj["Name"] = elt.name();
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(Client& elt)
-{
-    elt.setName(m_obj["Name"].toString());
-}
-
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const NetworkPluginPolicy& elt)
 {
@@ -50,6 +17,22 @@ void Visitor<Reader<DataStream>>::readFrom(const NetworkPluginPolicy& elt)
 
     insertDelimiter();
 }
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const NetworkPluginPolicy& elt)
+{
+    m_obj["SessionId"] = toJsonValue(elt.session()->id());
+    m_obj["LocalClient"] = toJsonObject(static_cast<Client&>(elt.session()->localClient()));
+
+    QJsonArray arr;
+    for(auto& clt : elt.session()->remoteClients())
+    {
+        arr.push_back(toJsonObject(static_cast<Client&>(*clt)));
+    }
+    m_obj["RemoteClients"] = arr;
+}
+
+
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(PlaceholderNetworkPolicy& elt)
@@ -69,19 +52,6 @@ void Visitor<Writer<DataStream>>::writeTo(PlaceholderNetworkPolicy& elt)
     checkDelimiter();
 }
 
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const NetworkPluginPolicy& elt)
-{
-    m_obj["SessionId"] = toJsonValue(elt.session()->id());
-    m_obj["LocalClient"] = toJsonObject(static_cast<Client&>(elt.session()->localClient()));
-
-    QJsonArray arr;
-    for(auto& clt : elt.session()->remoteClients())
-    {
-        arr.push_back(toJsonObject(static_cast<Client&>(*clt)));
-    }
-    m_obj["RemoteClients"] = arr;
-}
 
 
 template<>

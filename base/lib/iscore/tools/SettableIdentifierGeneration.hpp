@@ -30,17 +30,15 @@ inline int getNextId(const Vector& ids)
     return id;
 }
 
-
-// TODO refactor
-template<typename T>
-auto getStrongId(const std::vector<id_type<T>>& v)
+template<typename Container>
+auto getStrongIdFromIdContainer(const Container& v)
 {
     using namespace boost::range;
-    id_type<T> id {};
+    typename Container::value_type id;
 
     do
     {
-        id = id_type<T>{getNextId()};
+        id = typename Container::value_type{getNextId()};
     }
     while(find(v, id) != std::end(v));
 
@@ -48,18 +46,15 @@ auto getStrongId(const std::vector<id_type<T>>& v)
 }
 
 template<typename T>
+auto getStrongId(const std::vector<id_type<T>>& v)
+{
+    return getStrongIdFromIdContainer(v);
+}
+
+template<typename T>
 auto getStrongId(const QVector<id_type<T>>& v)
 {
-    using namespace boost::range;
-    id_type<T> id {};
-
-    do
-    {
-        id = id_type<T>{getNextId()};
-    }
-    while(find(v, id) != std::end(v));
-
-    return id;
+    return getStrongIdFromIdContainer(v);
 }
 
 template<typename Container,

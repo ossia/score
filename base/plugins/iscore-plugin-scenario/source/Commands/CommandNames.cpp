@@ -12,7 +12,7 @@
 #include "Constraint/Rack/MoveSlot.hpp"
 #include "Constraint/Rack/SwapSlots.hpp"
 #include "Constraint/Rack/RemoveSlotFromRack.hpp"
-#include "Constraint/CopyConstraintContent.hpp"
+#include "Constraint/ReplaceConstraintContent.hpp"
 #include "Constraint/DuplicateRack.hpp"
 #include "Constraint/MergeRackes.hpp"
 #include "Constraint/RemoveRackFromConstraint.hpp"
@@ -113,7 +113,7 @@ void ScenarioControl::setupCommands()
             ClearState,
 
             DuplicateRack,
-            CopyConstraintContent,
+            ReplaceConstraintContent,
             CopySlot,
 
             CreateStateMacro,
