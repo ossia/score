@@ -63,7 +63,7 @@ class MapBase
                 qDebug() << model_type::staticMetaObject.className() << id << "could not be found. Aborting.";
             }
             Q_ASSERT(item != map.end());
-            return *item;
+            return **item;
         }
 #else
         auto& at(const id_type<model_type>& id) const
