@@ -89,6 +89,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         //LocalTimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average
-        ZoomRatio m_millisecondsPerPixel{0.03};
+        ZoomRatio m_zoomRatio{0.03};
 
 };

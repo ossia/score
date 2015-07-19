@@ -1,26 +1,23 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
 #include <State/Address.hpp>
+#include <iscore/command/PropertyCommand.hpp>
 
-// TODO maybe use property command.
-class ChangeAddress : public iscore::SerializableCommand
+class ChangeAddress : public iscore::PropertyCommand
 {
         ISCORE_COMMAND_DECL("ChangeAddress", "ChangeAddress")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeAddress, "AutomationControl")
-        ChangeAddress(ObjectPath&& pointPath, const iscore::Address &addr);
+        ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(ChangeAddress, "AutomationControl")
 
-        virtual void undo() override;
-        virtual void redo() override;
+        ChangeAddress(
+                ObjectPath&& path,
+                const iscore::Address& newval):
+            iscore::PropertyCommand{
+                std::move(path),
+                "address",
+                QVariant::fromValue(newval),
+                "AutomationControl", commandName(), description()}
+        {
 
-    protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
-
-    private:
-        ObjectPath m_path;
-
-        iscore::Address m_newAddr;
-        iscore::Address m_oldAddr;
+        }
 };
+

@@ -5,9 +5,6 @@
 class QComboBox;
 class QLineEdit;
 class QSpinBox;
-namespace iscore{
-struct iscore::AddressSettings;
-}
 class AddressStringSettingsWidget : public AddressSettingsWidget
 {
     public:

@@ -2,7 +2,7 @@
 
 using namespace DeviceExplorer::Command;
 
-Paste::Paste(const Path &parentPath, int row,
+Paste::Paste(const NodePath &parentPath, int row,
                                 const QString& text,
                                 ObjectPath &&modelPath):
     iscore::SerializableCommand{"DeviceExplorerControl",

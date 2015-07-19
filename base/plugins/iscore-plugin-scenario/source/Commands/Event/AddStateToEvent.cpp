@@ -1,6 +1,6 @@
 #include "AddStateToEvent.hpp"
 
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 
 using namespace iscore;
 using namespace Scenario::Command;

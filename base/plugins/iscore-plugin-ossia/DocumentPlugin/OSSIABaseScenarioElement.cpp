@@ -6,7 +6,7 @@
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
 
-#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
 

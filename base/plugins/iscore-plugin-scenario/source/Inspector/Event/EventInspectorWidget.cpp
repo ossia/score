@@ -103,8 +103,8 @@ EventInspectorWidget::EventInspectorWidget(
     connect(m_conditionLineEdit, SIGNAL(editingFinished()),
             this,			 SLOT(on_conditionChanged()));
 
-    m_properties.push_back(new QLabel{tr("Condition (unavailable)")});
- //   m_properties.push_back(m_conditionLineEdit); TODO uncomment when API
+    m_properties.push_back(new QLabel{tr("Condition")});
+    m_properties.push_back(m_conditionLineEdit);
     m_conditionLineEdit->hide();
 
     if(deviceexplorer)
@@ -118,7 +118,7 @@ EventInspectorWidget::EventInspectorWidget(
         {
             m_conditionLineEdit->setText(addr.toString());
         });
-//       m_properties.push_back(pb); TODO uncomment when API
+        m_properties.push_back(pb);
     }
 
     /// Trigger
@@ -126,8 +126,8 @@ EventInspectorWidget::EventInspectorWidget(
     connect(m_triggerLineEdit, SIGNAL(editingFinished()),
             this,			 SLOT(on_triggerChanged()));
 
-    m_properties.push_back(new QLabel{tr("Trigger (unavailable)")});
-//    m_properties.push_back(m_triggerLineEdit); TODO uncomment when API
+    m_properties.push_back(new QLabel{tr("Trigger")});
+    m_properties.push_back(m_triggerLineEdit);
     m_triggerLineEdit->hide();
 
     if(deviceexplorer)
@@ -141,7 +141,7 @@ EventInspectorWidget::EventInspectorWidget(
         {
             m_triggerLineEdit->setText(addr.toString());
         });
-//       m_properties.push_back(pb); TODO uncomment when API
+        m_properties.push_back(pb);
     }
 
     // Separator

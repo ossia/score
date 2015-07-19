@@ -1,4 +1,4 @@
-#include "DisplayedStateModel.hpp"
+#include "StateModel.hpp"
 
 #include "StateView.hpp"
 

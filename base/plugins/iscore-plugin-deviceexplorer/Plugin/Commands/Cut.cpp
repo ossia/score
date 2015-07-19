@@ -2,7 +2,7 @@
 
 using namespace DeviceExplorer::Command;
 
-Cut::Cut(const Path &parentPath, int row,
+Cut::Cut(const NodePath &parentPath, int row,
                               const QString& text,
                               ObjectPath &&model):
     iscore::SerializableCommand{"DeviceExplorerControl",

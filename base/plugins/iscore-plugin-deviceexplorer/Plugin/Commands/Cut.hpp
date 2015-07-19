@@ -16,7 +16,7 @@ namespace DeviceExplorer
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Cut, "DeviceExplorerControl")
 
-                Cut(const Path& parentPath,
+                Cut(const NodePath& parentPath,
                     int row,
                         const QString& text,
                         ObjectPath&& model);
@@ -34,7 +34,7 @@ namespace DeviceExplorer
             protected:
                 ObjectPath m_model{};
                 QByteArray m_data;
-                Path m_parentPath;
+                NodePath m_parentPath;
                 int m_row{};
         };
 

@@ -1,6 +1,6 @@
 #include "ClearEvent.hpp"
 
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 
 #include "Process/ScenarioModel.hpp"
 

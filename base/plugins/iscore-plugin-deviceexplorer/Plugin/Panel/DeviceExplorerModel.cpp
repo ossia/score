@@ -249,7 +249,7 @@ DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
     return (int)Column::Count;
 }
 
-QVariant DeviceExplorerModel::getData(Path node, int column, int role)
+QVariant DeviceExplorerModel::getData(NodePath node, int column, int role)
 {
     QModelIndex index = createIndex(convertPathToIndex(node).row(), column, node.toNode(&rootNode())->parent());
     return data(index, role);
@@ -474,13 +474,13 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), NodePath{index}, index.column(), value, role});
                 changed = true;
             }
         }
         else if(index.column() == (int)Column::IOType)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), Path{index}, index.column(), value, role});
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), NodePath{index}, index.column(), value, role});
             changed = true;
         }
         else if(index.column() == (int)Column::Value)
@@ -490,7 +490,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
             if(res)
             {
                 m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this),
-                                                 Path{index},
+                                                 NodePath{index},
                                                  index.column(),
                                                  copy,
                                                  role});
@@ -508,7 +508,7 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
-void DeviceExplorerModel::editData(const Path &path, int column, const QVariant &value, int role)
+void DeviceExplorerModel::editData(const NodePath &path, int column, const QVariant &value, int role)
 {
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
@@ -1104,7 +1104,7 @@ DeviceExplorerModel::setCachedResult(DeviceExplorer::Result r)
 }
 
 QModelIndex
-DeviceExplorerModel::convertPathToIndex(const Path& path)
+DeviceExplorerModel::convertPathToIndex(const NodePath& path)
 {
     QModelIndex iter;
     const int pathSize = path.size();
@@ -1123,7 +1123,7 @@ DeviceExplorerCommandCreator *DeviceExplorerModel::cmdCreator()
 }
 
 void
-DeviceExplorerModel::debug_printPath(const Path& path)
+DeviceExplorerModel::debug_printPath(const NodePath& path)
 {
     const int pathSize = path.size();
 

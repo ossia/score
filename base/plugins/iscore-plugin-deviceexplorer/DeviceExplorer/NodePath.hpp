@@ -12,19 +12,20 @@ using ref = T&;
 template<typename T>
 using cref = const T&;
 
-// TODO Rename in NodePath to prevent confusion ?
-class Path
+// Sadly we can't have a non-const interface
+// because of QList<Node*> in Node::children...
+class NodePath
 {
     public:
-        Path();
-        Path(const QList<int>& other):
+        NodePath();
+        NodePath(const QList<int>& other):
             m_path{other}
         {
 
         }
 
-        Path(QModelIndex index);
-        Path(iscore::Node* node);
+        NodePath(QModelIndex index);
+        NodePath(iscore::Node& node);
 
         iscore::Node* toNode(iscore::Node* iter);
 

@@ -20,7 +20,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Insert, "DeviceExplorerControl")
 
-                Insert(const Path& parentPath,
+                Insert(const NodePath& parentPath,
                        int row,
                        iscore::Node&& node,
                        ObjectPath&& modelPath);
@@ -35,7 +35,7 @@ namespace DeviceExplorer
             protected:
                 ObjectPath m_model;
                 iscore::Node m_node;
-                Path m_parentPath;
+                NodePath m_parentPath;
                 int m_row{};
         };
     }

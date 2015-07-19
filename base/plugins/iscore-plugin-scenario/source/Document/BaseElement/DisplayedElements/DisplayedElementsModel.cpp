@@ -3,7 +3,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
-#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include "Process/ScenarioModel.hpp"
 void DisplayedElementsModel::setSelection(const Selection & s)
 {

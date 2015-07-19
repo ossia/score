@@ -2,7 +2,7 @@
 #include "source/Control/ScenarioControl.hpp"
 #include "DocumentPlugin/OSSIAStateElement.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 #include "DocumentPlugin/OSSIAScenarioElement.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>

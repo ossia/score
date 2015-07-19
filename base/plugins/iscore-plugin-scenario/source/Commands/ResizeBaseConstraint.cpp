@@ -1,6 +1,6 @@
 #include "ResizeBaseConstraint.hpp"
 
-#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"

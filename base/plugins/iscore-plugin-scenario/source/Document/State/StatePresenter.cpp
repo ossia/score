@@ -1,5 +1,5 @@
 #include "StatePresenter.hpp"
-#include "DisplayedStateModel.hpp"
+#include "StateModel.hpp"
 #include "StateView.hpp"
 
 #include "Commands/Event/AddStateToEvent.hpp"

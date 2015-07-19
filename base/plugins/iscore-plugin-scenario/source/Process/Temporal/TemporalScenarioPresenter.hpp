@@ -10,7 +10,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp"
 
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 
 #include "StateMachines/ScenarioStateMachine.hpp"
 

@@ -16,7 +16,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
                 EditData(ObjectPath&& device_tree,
-                            Path nodePath,
+                            NodePath nodePath,
                             int column,
                             QVariant value,
                             int role);
@@ -30,7 +30,7 @@ namespace DeviceExplorer
 
             private:
                 ObjectPath m_deviceTree;
-                Path m_nodePath;
+                NodePath m_nodePath;
                 int m_column;
                 QVariant m_oldValue;
                 QVariant m_newValue;

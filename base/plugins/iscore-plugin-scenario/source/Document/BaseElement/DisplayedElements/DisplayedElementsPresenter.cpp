@@ -1,5 +1,5 @@
 #include "DisplayedElementsPresenter.hpp"
-#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Document/BaseElement/BaseElementView.hpp"
@@ -12,7 +12,7 @@
 #include "Document/Constraint/Rack/RackPresenter.hpp"
 #include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 #include "Document/State/StatePresenter.hpp"
 
 #include "Process/ScenarioModel.hpp"

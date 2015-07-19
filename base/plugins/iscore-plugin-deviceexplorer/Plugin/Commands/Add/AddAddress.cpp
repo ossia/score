@@ -4,7 +4,7 @@
 using namespace DeviceExplorer::Command;
 
 AddAddress::AddAddress(ObjectPath &&device_tree,
-                       Path nodePath,
+                       NodePath nodePath,
                        DeviceExplorerModel::Insert insert,
                        const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
@@ -25,7 +25,7 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
     {
         parentNode =  nodePath.toNode(&explorer.rootNode())->parent();
     }
-    m_parentNodePath = Path{parentNode};
+    m_parentNodePath = NodePath{*parentNode};
     // TODO prevent add sibling on device
 }
 

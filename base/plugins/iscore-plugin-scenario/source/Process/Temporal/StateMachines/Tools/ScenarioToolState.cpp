@@ -9,7 +9,7 @@
 
 #include "Document/State/StateView.hpp"
 #include "Document/State/StatePresenter.hpp"
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"

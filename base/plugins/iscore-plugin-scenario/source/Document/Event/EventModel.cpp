@@ -126,12 +126,12 @@ const QVector<id_type<StateModel> > &EventModel::states() const
 
 
 
-const QString& EventModel::condition() const
+const iscore::Condition& EventModel::condition() const
 {
     return m_condition;
 }
 
-void EventModel::setCondition(const QString& arg)
+void EventModel::setCondition(const iscore::Condition& arg)
 {
     if(m_condition == arg)
     {
@@ -142,12 +142,12 @@ void EventModel::setCondition(const QString& arg)
     emit conditionChanged(arg);
 }
 
-const QString& EventModel::trigger() const
+const iscore::Trigger& EventModel::trigger() const
 {
     return m_trigger;
 }
 
-void EventModel::setTrigger(const QString& trigger)
+void EventModel::setTrigger(const iscore::Trigger& trigger)
 {
     if (m_trigger == trigger)
         return;

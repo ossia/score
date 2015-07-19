@@ -3,8 +3,8 @@
 
 using namespace DeviceExplorer::Command;
 
-Move::Move(const Path &srcParentPath, int srcRow, int count,
-           const Path &dstParentPath, int dstRow,
+Move::Move(const NodePath &srcParentPath, int srcRow, int count,
+           const NodePath &dstParentPath, int dstRow,
            const QString& text,
            ObjectPath &&tree_model):
     iscore::SerializableCommand{"DeviceExplorerControl",

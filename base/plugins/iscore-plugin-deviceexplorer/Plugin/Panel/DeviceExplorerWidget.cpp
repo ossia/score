@@ -517,7 +517,7 @@ DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
         m_cmdDispatcher->submitCommand(
                     new DeviceExplorer::Command::AddAddress{
                         iscore::IDocument::path(model()),
-                        Path{index},
+                        NodePath{index},
                         insert, addressSettings });
         updateActions();
     }

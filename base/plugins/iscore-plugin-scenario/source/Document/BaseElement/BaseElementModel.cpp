@@ -1,5 +1,5 @@
 #include "BaseElementModel.hpp"
-#include "BaseScenario/BaseScenarioModel.hpp"
+#include "BaseScenario/BaseScenario.hpp"
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Event/EventModel.hpp"

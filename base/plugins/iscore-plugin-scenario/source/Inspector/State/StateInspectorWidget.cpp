@@ -1,5 +1,5 @@
 #include "StateInspectorWidget.hpp"
-#include "Document/State/DisplayedStateModel.hpp"
+#include "Document/State/StateModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/ScenarioModel.hpp>
 #include <State/Widgets/StateWidget.hpp>

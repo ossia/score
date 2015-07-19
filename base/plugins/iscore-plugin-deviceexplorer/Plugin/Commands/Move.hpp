@@ -16,8 +16,8 @@ namespace DeviceExplorer
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Move, "DeviceExplorerControl")
 
-                Move(const Path& srcParentPath, int srcRow, int count,
-                         const Path& dstParentPath, int dstRow,
+                Move(const NodePath& srcParentPath, int srcRow, int count,
+                         const NodePath& dstParentPath, int dstRow,
                          const QString& text,
                          ObjectPath&& tree_model);
 
@@ -31,8 +31,8 @@ namespace DeviceExplorer
 
             protected:
                 ObjectPath m_model{};
-                Path m_srcParentPath;
-                Path m_dstParentPath;
+                NodePath m_srcParentPath;
+                NodePath m_dstParentPath;
                 int m_srcRow{};
                 int m_dstRow{};
                 int m_count{};

@@ -10,7 +10,9 @@
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <State/State.hpp>
-#include "source/Document/State/DisplayedStateModel.hpp"
+#include <State/Expression.hpp>
+
+#include "source/Document/State/StateModel.hpp"
 #include "source/Document/Event/EventStatus.hpp"
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 namespace OSSIA
@@ -25,12 +27,12 @@ class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
 
-        Q_PROPERTY(QString condition
+        Q_PROPERTY(iscore::Condition condition
                    READ condition
                    WRITE setCondition
                    NOTIFY conditionChanged)
 
-        Q_PROPERTY(QString trigger
+        Q_PROPERTY(iscore::Trigger trigger
                    READ trigger
                    WRITE setTrigger
                    NOTIFY triggerChanged)
@@ -83,9 +85,8 @@ class EventModel : public IdentifiedObject<EventModel>
 
 
         // Other properties
-        // TODO use a stronger type for the condition.
-        const QString& condition() const;
-        const QString& trigger() const;
+        const iscore::Condition& condition() const;
+        const iscore::Trigger& trigger() const;
 
         VerticalExtent extent() const;
 
@@ -97,8 +98,8 @@ class EventModel : public IdentifiedObject<EventModel>
         void reset();
 
     public slots:
-        void setCondition(const QString& arg);
-        void setTrigger(const QString& trigger);
+        void setCondition(const iscore::Condition& arg);
+        void setTrigger(const iscore::Trigger& trigger);
 
         void setExtent(const VerticalExtent &extent);
         void setDate(const TimeValue& date);
@@ -109,8 +110,8 @@ class EventModel : public IdentifiedObject<EventModel>
         void extentChanged(const VerticalExtent&);
         void dateChanged(const TimeValue&);
 
-        void conditionChanged(const QString&);
-        void triggerChanged(const QString&);
+        void conditionChanged(const iscore::Condition&);
+        void triggerChanged(const iscore::Trigger&);
 
         void statesChanged();
 
@@ -121,8 +122,8 @@ class EventModel : public IdentifiedObject<EventModel>
 
         QVector<id_type<StateModel>> m_states;
 
-        QString m_condition;
-        QString m_trigger; // TODO in timenode?
+        iscore::Condition m_condition;
+        iscore::Trigger m_trigger; // TODO in timenode?
 
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};

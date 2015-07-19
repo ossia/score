@@ -1,5 +1,5 @@
 #include "BaseElementModel.hpp"
-#include "BaseScenario/BaseScenarioModel.hpp"
+#include "BaseScenario/BaseScenario.hpp"
 
 // TODO do this file properly
 BaseElementModel::BaseElementModel(const VisitorVariant& vis,

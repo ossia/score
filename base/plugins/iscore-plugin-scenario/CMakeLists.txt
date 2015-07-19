@@ -83,7 +83,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/Slot/SlotModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/RackModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioLayerSerialization.cpp"
@@ -154,7 +154,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenario.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ProcessFocusManager.cpp"
@@ -207,7 +207,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/MainTimeRuler/TimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StatePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/DisplayedStateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"

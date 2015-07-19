@@ -100,7 +100,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         int rowCount(const QModelIndex& parent) const override;
         int columnCount(const QModelIndex& parent) const override;
 
-        QVariant getData(Path node, int column, int role);
+        QVariant getData(NodePath node, int column, int role);
         QVariant data(const QModelIndex& index, int role) const override;
         QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
@@ -109,7 +109,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool setData(const QModelIndex& index, const QVariant& value, int role) override;
         bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
 
-        void editData(const Path &path, int column, const QVariant& value, int role);
+        void editData(const NodePath &path, int column, const QVariant& value, int role);
 
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
 
@@ -124,7 +124,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         virtual bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
 
         iscore::Node* nodeFromModelIndex(const QModelIndex& index) const;
-        QModelIndex convertPathToIndex(const Path& path);
+        QModelIndex convertPathToIndex(const NodePath& path);
 
         DeviceExplorerCommandCreator* cmdCreator();
         void setCachedResult(DeviceExplorer::Result r);
@@ -136,7 +136,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         DeviceExplorer::Result pasteBefore_aux(const QModelIndex& index);
         DeviceExplorer::Result pasteAfter_aux(const QModelIndex& index);
 
-        void debug_printPath(const Path& path);
+        void debug_printPath(const NodePath& path);
 
         typedef QPair<iscore::Node*, bool> CutElt;
         QStack<CutElt> m_cutNodes;

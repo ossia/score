@@ -30,6 +30,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     qRegisterMetaTypeStreamOperators<iscore::StateList>();
     qRegisterMetaTypeStreamOperators<iscore::Message>();
     qRegisterMetaTypeStreamOperators<iscore::MessageList>();
+    qRegisterMetaTypeStreamOperators<iscore::Address>();
     qRegisterMetaTypeStreamOperators<iscore::Value>();
     qRegisterMetaTypeStreamOperators<iscore::ValueList>();
 

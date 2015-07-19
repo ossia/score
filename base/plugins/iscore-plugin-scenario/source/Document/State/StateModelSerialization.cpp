@@ -1,6 +1,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "source/Document/State/DisplayedStateModel.hpp"
+#include "source/Document/State/StateModel.hpp"
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
 {

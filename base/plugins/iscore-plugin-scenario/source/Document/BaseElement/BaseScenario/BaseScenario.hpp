@@ -12,7 +12,6 @@ class StateModel;
 class DataStream;
 class JSONObject;
 
-// TODO rename file
 class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInterface
 {
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, DataStream)

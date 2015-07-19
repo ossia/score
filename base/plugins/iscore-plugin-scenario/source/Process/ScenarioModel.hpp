@@ -2,7 +2,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
-#include <Document/State/DisplayedStateModel.hpp>
+#include <Document/State/StateModel.hpp>
 
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>

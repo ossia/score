@@ -115,13 +115,13 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
 }
 
-void AutomationInspectorWidget::on_addressChange(const iscore::Address& newText)
+void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
 {
-    if(newText != m_model->address())
+    if(newAddr != m_model->address())
     {
         auto cmd = new ChangeAddress{
                     iscore::IDocument::path(m_model),
-                    newText };
+                    newAddr };
 
         commandDispatcher()->submitCommand(cmd);
     }

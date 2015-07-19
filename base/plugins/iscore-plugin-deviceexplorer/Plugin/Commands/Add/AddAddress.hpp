@@ -17,7 +17,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddAddress, "DeviceExplorerControl")
                 AddAddress(ObjectPath&& device_tree,
-                           Path nodePath,
+                           NodePath nodePath,
                            DeviceExplorerModel::Insert insert,
                            const iscore::AddressSettings& addressSettings);
 
@@ -32,7 +32,7 @@ namespace DeviceExplorer
 
             private:
                 ObjectPath m_deviceTree;
-                Path m_parentNodePath;
+                NodePath m_parentNodePath;
                 iscore::AddressSettings m_addressSettings;
                 int m_createdNodeIndex;
 

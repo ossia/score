@@ -4,7 +4,7 @@
 
 #include <source/Document/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>
-#include <source/Document/State/DisplayedStateModel.hpp>
+#include <source/Document/State/StateModel.hpp>
 
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>

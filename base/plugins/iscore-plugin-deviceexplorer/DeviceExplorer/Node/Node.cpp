@@ -219,7 +219,7 @@ void Node::setDeviceSettings(const DeviceSettings &settings)
     if(m_type == Type::Address)
         m_addressSettings.~AddressSettings();
 
-    new (&m_deviceSettings) DeviceSettings{settings};
+    new (&m_deviceSettings) DeviceSettings(settings);
     m_type = Type::Device;
 }
 
@@ -238,7 +238,7 @@ void Node::setAddressSettings(const iscore::AddressSettings &settings)
     if(m_type == Type::Device)
         m_deviceSettings.~DeviceSettings();
 
-    new (&m_addressSettings) AddressSettings{settings};
+    new (&m_addressSettings) AddressSettings(settings);
     m_type = Type::Address;
 }
 

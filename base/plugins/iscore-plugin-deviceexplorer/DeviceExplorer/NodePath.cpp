@@ -3,12 +3,12 @@
 #include <QModelIndex>
 #include "DeviceExplorer/Node/Node.hpp"
 using namespace iscore;
-Path::Path()
+NodePath::NodePath()
 {
 
 }
 
-Path::Path(QModelIndex index)
+NodePath::NodePath(QModelIndex index)
 {
     QModelIndex iter = index;
 
@@ -19,14 +19,13 @@ Path::Path(QModelIndex index)
     }
 }
 
-Path::Path(Node *node)
+NodePath::NodePath(iscore::Node& node)
 {
-    Node* iter = node;
-
     // We have to take care of the root node.
-    if(node->isInvisibleRoot())
+    if(node.isInvisibleRoot())
         return;
 
+    auto iter = &node;
     while(! iter->isDevice())
     {
         m_path.prepend(iter->parent()->indexOfChild(iter));
@@ -35,7 +34,7 @@ Path::Path(Node *node)
     m_path.prepend(iter->parent()->indexOfChild(iter));
 }
 
-Node *Path::toNode(Node *iter)
+Node* NodePath::toNode(Node *iter)
 {
     const int pathSize = m_path.size();
 
@@ -54,47 +53,47 @@ Node *Path::toNode(Node *iter)
     return iter;
 }
 
-void Path::append(int i)
+void NodePath::append(int i)
 {
     m_path.append(i);
 }
 
-void Path::prepend(int i)
+void NodePath::prepend(int i)
 {
     m_path.prepend(i);
 }
 
-const int &Path::at(int i) const
+const int &NodePath::at(int i) const
 {
     return m_path.at(i);
 }
 
-int &Path::back()
+int &NodePath::back()
 {
     return m_path.back();
 }
 
-int Path::size() const
+int NodePath::size() const
 {
     return m_path.size();
 }
 
-bool Path::empty() const
+bool NodePath::empty() const
 {
     return m_path.empty();
 }
 
-void Path::removeLast()
+void NodePath::removeLast()
 {
     m_path.removeLast();
 }
 
-void Path::clear()
+void NodePath::clear()
 {
     m_path.clear();
 }
 
-void Path::reserve(int size)
+void NodePath::reserve(int size)
 {
     m_path.reserve(size);
 }

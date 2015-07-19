@@ -24,16 +24,4 @@ Address Address::fromString(const QString &str)
 
     return {device, path};
 }
-
-QDataStream& operator<<(QDataStream &s, const iscore::Address &a)
-{
-    s << a.device << a.path;
-    return s;
-}
-
-QDataStream& operator>>(QDataStream &s, iscore::Address &a)
-{
-    s >> a.device >> a.path;
-    return s;
-}
 }

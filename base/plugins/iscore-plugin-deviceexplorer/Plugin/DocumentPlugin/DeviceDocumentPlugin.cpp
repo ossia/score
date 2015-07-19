@@ -33,16 +33,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
         QObject* parent):
     iscore::DocumentDelegatePluginModel{"DeviceDocumentPlugin", parent}
 {
-    if(vis.identifier == DataStream::type())
-    {
-        auto& des = static_cast<DataStream::Deserializer&>(vis.visitor);
-        des.writeTo(m_rootNode);
-    }
-    else if(vis.identifier == JSONObject::type())
-    {
-        auto& des = static_cast<JSONObject::Deserializer&>(vis.visitor);
-        des.writeTo(m_rootNode);
-    }
+    deserialize_dyn(vis, m_rootNode);
 
     // Here we recreate the correct structures in term of devices,
     // given what's present in the node hierarchy
@@ -70,15 +61,5 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
 
 void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
 {
-    // TODO use visitorcommon
-    if(vis.identifier == DataStream::type())
-    {
-        auto& ser = static_cast<DataStream::Serializer&>(vis.visitor);
-        ser.readFrom(m_rootNode);
-    }
-    else if(vis.identifier == JSONObject::type())
-    {
-        auto& ser = static_cast<JSONObject::Serializer&>(vis.visitor);
-        ser.readFrom(m_rootNode);
-    }
+    serialize_dyn(vis, m_rootNode);
 }

@@ -17,7 +17,6 @@ class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
 
-// TODO rename file
 class StateModel : public IdentifiedObject<StateModel>
 {
         Q_OBJECT
@@ -32,9 +31,6 @@ class StateModel : public IdentifiedObject<StateModel>
                             const id_type<EventModel>& eventId,
                             double yPos,
                             QObject* parent);
-
-        // TODO berkkk
-        void initView(ConstraintView *parentView);
 
         // Copy
         StateModel(const StateModel& source,

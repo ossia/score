@@ -65,9 +65,9 @@ class TimeValue_T
             return double(*m_impl)/1000;
         }
 
-        double toPixels(ZoomRatio millisecondsPerPixel) const
+        double toPixels(ZoomRatio ratio) const
         {
-            return *m_impl / millisecondsPerPixel;
+            return *m_impl / ratio;
         }
 
         QTime toQTime() const

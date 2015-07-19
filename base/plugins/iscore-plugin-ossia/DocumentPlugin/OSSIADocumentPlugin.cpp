@@ -8,7 +8,7 @@
 #include "OSSIABaseScenarioElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 
-#include "Document/BaseElement/BaseScenario/BaseScenarioModel.hpp"
+#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
 #include "../iscore-plugin-curve/Automation/AutomationModel.hpp"

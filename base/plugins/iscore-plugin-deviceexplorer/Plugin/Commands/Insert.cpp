@@ -4,7 +4,7 @@
 #include "Add/AddAddress.hpp"
 using namespace DeviceExplorer::Command;
 using namespace iscore;
-Insert::Insert(const Path &parentPath,
+Insert::Insert(const NodePath &parentPath,
                int row,
                Node &&data,
                ObjectPath&& modelPath):
@@ -32,7 +32,7 @@ Insert::undo()
     model.setCachedResult(result);
 }
 
-void recurse_addAddress(const ObjectPath& model, const Node& n, Path nodePath)
+void recurse_addAddress(const ObjectPath& model, const Node& n, NodePath nodePath)
 {
     AddAddress addr{
         ObjectPath(model),
@@ -56,7 +56,7 @@ Insert::redo()
         AddDevice dev{ObjectPath{m_model}, m_node.deviceSettings()};
         dev.redo();
 
-        Path p;
+        NodePath p;
         p.append(dev.deviceRow());
         for(auto& child : m_node.children())
         {
@@ -73,21 +73,10 @@ void
 Insert::serializeImpl(QDataStream& d) const
 {
     d << m_model << m_node << m_parentPath << m_row;
-    /*
-    // TODO keep this "read/write raw data" in mind for other places!!
-    d << (qint32) m_data.size();
-    d.writeRawData(m_data.data(), m_data.size());
-    */
 }
 
 void
 Insert::deserializeImpl(QDataStream& d)
 {
     d >> m_model >> m_node >> m_parentPath >> m_row;
-    /*
-    d >> v;
-    int size = v;
-    m_data.resize(size);
-    d.readRawData(m_data.data(), size);
-    */
 }

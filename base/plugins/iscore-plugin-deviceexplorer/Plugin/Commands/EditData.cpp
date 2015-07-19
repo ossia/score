@@ -2,7 +2,7 @@
 
 using namespace DeviceExplorer::Command;
 
-EditData::EditData(ObjectPath &&device_tree, Path nodePath, int column, QVariant value, int role):
+EditData::EditData(ObjectPath &&device_tree, NodePath nodePath, int column, QVariant value, int role):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()},

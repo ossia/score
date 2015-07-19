@@ -1,6 +1,9 @@
 #pragma once
 #include <QStringList>
 #include <QMetaType>
+
+// For qRegisterDataStreamOperators...
+#include <iscore/serialization/DataStreamVisitor.hpp>
 namespace iscore
 {
 struct Address
@@ -29,10 +32,6 @@ struct Address
         {
             return !(*this == a);
         }
-
-        // For qDeclareMetaTypeStreamOperators...
-        friend QDataStream& operator<<(QDataStream& s, const iscore::Address& a);
-        friend QDataStream& operator>>(QDataStream& s, iscore::Address& a);
 };
 }
 Q_DECLARE_METATYPE(iscore::Address)

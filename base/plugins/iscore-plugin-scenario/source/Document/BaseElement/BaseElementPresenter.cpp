@@ -32,7 +32,7 @@ BaseElementModel* BaseElementPresenter::model() const
 
 ZoomRatio BaseElementPresenter::zoomRatio() const
 {
-    return m_millisecondsPerPixel;
+    return m_zoomRatio;
 }
 
 BaseElementView* BaseElementPresenter::view() const
@@ -126,15 +126,14 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     on_askUpdate();
 }
 
-void BaseElementPresenter::setMillisPerPixel(ZoomRatio newFactor)
+void BaseElementPresenter::setMillisPerPixel(ZoomRatio newRatio)
 {
-    // TODO harmonize
-    m_millisecondsPerPixel = newFactor;
+    m_zoomRatio = newRatio;
     /*
-    m_mainTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
-    m_localTimeRuler->setPixelPerMillis(1.0 / m_millisecondsPerPixel);
+    m_mainTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
+    m_localTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
     */
-    m_scenarioPresenter->on_zoomRatioChanged(m_millisecondsPerPixel);
+    m_scenarioPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
 void BaseElementPresenter::on_newSelection(const Selection& sel)
@@ -145,7 +144,7 @@ void BaseElementPresenter::on_newSelection(const Selection& sel)
     view()->newLocalTimeRuler();
     m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
     m_localTimeRuler->scroll(scroll);
-    m_localTimeRuler->setPixelPerMillis(1./m_millisecondsPerPixel);
+    m_localTimeRuler->setPixelPerMillis(1./m_zoomRatio);
 
     if (sel.empty())
     {
@@ -201,7 +200,7 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
     auto computedMax = [&] ()
     {
         // On veut que cette fonction retourne le facteur de
-        // m_millisecondsPerPixel nécessaire pour que la contrainte affichée tienne à l'écran.
+        // m_zoomRatio nécessaire pour que la contrainte affichée tienne à l'écran.
         double viewWidth = view()->view()->width();
         double duration =  displayedConstraint().defaultDuration().msec();
 
@@ -259,19 +258,19 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
 
     qreal center = (focus.isNull() ?
-                  visible_scene_rect.center().x() * m_millisecondsPerPixel :
-                  focus.x() * m_millisecondsPerPixel);
+                  visible_scene_rect.center().x() * m_zoomRatio :
+                  focus.x() * m_zoomRatio);
 
-    auto leftT = visible_scene_rect.left() * m_millisecondsPerPixel;
-    auto deltaX = (center - leftT) / m_millisecondsPerPixel;
+    auto leftT = visible_scene_rect.left() * m_zoomRatio;
+    auto deltaX = (center - leftT) / m_zoomRatio;
 
     auto y = visible_scene_rect.top();
 
-    if(newZoom != m_millisecondsPerPixel)
+    if(newZoom != m_zoomRatio)
         setMillisPerPixel(newZoom);
 
     qreal x;
-        x = center/m_millisecondsPerPixel - deltaX;
+        x = center/m_zoomRatio - deltaX;
 
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
