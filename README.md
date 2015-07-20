@@ -24,6 +24,6 @@ The previous version source is located at : http://github.com/i-score/i-score
 
 ### Quick install
 * Arch Linux : (in the AUR4)
-yaourt -S jamomacore-git iscore-git
+`yaourt -S jamomacore-git iscore-git`
 
 * Windows, OS X : [Latest release](https://github.com/OSSIA/i-score/releases/latest)
