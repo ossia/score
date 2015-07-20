@@ -20,7 +20,7 @@ class DisplayedElementsPresenter : public QObject
 
         void on_zoomRatioChanged(ZoomRatio r);
 
-        auto constraintPresenter() const
+        FullViewConstraintPresenter* constraintPresenter() const
         { return m_constraintPresenter; }
     private:
         BaseElementPresenter* m_parent{};

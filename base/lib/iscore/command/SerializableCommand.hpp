@@ -28,7 +28,7 @@ namespace iscore
             const QString& text() const;
             void setText(const QString& t);
 
-            auto uid() const
+            std::size_t uid() const
             {
                 std::hash<std::string> fn;
                 return fn(this->name().toStdString());

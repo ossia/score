@@ -35,7 +35,7 @@ class RackPresenter : public NamedObject
         void setWidth(int);
 
         const id_type<RackModel>& id() const;
-        auto getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
+        const IdContainer<SlotPresenter,SlotModel>& getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
         { return m_slots; }
 
         void setDisabledSlotState();

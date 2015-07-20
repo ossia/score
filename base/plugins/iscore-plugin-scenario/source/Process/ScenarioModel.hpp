@@ -224,6 +224,7 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
 #include <iterator>
 template<typename Vector>
 auto selectedElements(const Vector& in)
+    -> QList<const typename Vector::value_type*>
 {
     QList<const typename Vector::value_type*> out;
     for(const auto& elt : in)

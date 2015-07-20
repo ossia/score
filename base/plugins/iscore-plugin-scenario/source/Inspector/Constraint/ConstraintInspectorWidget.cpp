@@ -317,10 +317,10 @@ void ConstraintInspectorWidget::displaySharedProcess(const ProcessModel& process
     newProc->addContent(stateWidget);
 
     // Delete button
-    auto deleteButton = new QPushButton{"Delete"};
-    connect(deleteButton, &QPushButton::pressed, this, [=,proc=&process] ()
+    auto deleteButton = new QPushButton{tr("Delete")};
+    connect(deleteButton, &QPushButton::pressed, this, [=,id=process.id()] ()
     {
-        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), proc->id()};
+        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
         emit commandDispatcher()->submitCommand(cmd);
     });
     newProc->addContent(deleteButton);
