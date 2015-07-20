@@ -20,3 +20,10 @@ The previous version source is located at : http://github.com/i-score/i-score
 * Linux, OS X : [![Travis Status](https://travis-ci.org/OSSIA/i-score.svg?branch=dev)](https://travis-ci.org/OSSIA/i-score)
 * Windows : [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/OSSIA/i-score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/i-score)
 * Coverity : [![Coverity Status](https://scan.coverity.com/projects/3356/badge.svg)](https://scan.coverity.com/projects/3356)
+
+
+### Quick install
+* Arch Linux : (in the AUR4)
+yaourt -S jamomacore-git iscore-git
+
+* Windows, OS X : [Latest release](https://github.com/OSSIA/i-score/releases/latest)
