@@ -29,8 +29,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
-#include <Inspector/Separator.hpp>
-
+#include "Inspector/Separator.hpp"
+#include "Inspector/SelectionButton.hpp"
 #include "core/document/DocumentModel.hpp"
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
@@ -52,12 +52,9 @@ EventInspectorWidget::EventInspectorWidget(
     // metadata
     m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
     m_metadata->setType(EventModel::prettyName());
-
     m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
-
-
 
     ////// BODY
     /// Information
@@ -70,22 +67,17 @@ EventInspectorWidget::EventInspectorWidget(
     infoLay->addRow(tr("Default date"), m_date);
 
     // timeNode
-    QPushButton* tnBtn = new QPushButton {tr("None")};
-    tnBtn->setStyleSheet ("text-align: left");
-    tnBtn->setFlat(true);
-
     auto timeNode = m_model->timeNode();
     if(timeNode)
     {
-        tnBtn->setText(QString::number(*timeNode.val()));
         auto scenar = m_model->parentScenario();
-        connect(tnBtn,  &QPushButton::clicked,
-               [=] () {
-            selectionDispatcher()->setAndCommit(Selection{&scenar->timeNode(timeNode)});
-        });
-    }
-    infoLay->addRow(tr("TimeNode"), tnBtn);
+        auto tnBtn = SelectionButton::make(
+                &scenar->timeNode(timeNode),
+                selectionDispatcher(),
+                this);
 
+        infoLay->addRow(tr("TimeNode"), tnBtn);
+    }
     m_properties.push_back(infoWidg);
 
     /*

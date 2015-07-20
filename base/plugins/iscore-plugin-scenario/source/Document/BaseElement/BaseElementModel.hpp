@@ -4,7 +4,8 @@
 #include <iscore/selection/SelectionStack.hpp>
 #include "ProcessFocusManager.hpp"
 #include "DisplayedElements/DisplayedElementsModel.hpp"
-
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 class BaseScenario;
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
@@ -15,7 +16,8 @@ class ConstraintModel;
 class BaseElementModel : public iscore::DocumentDelegateModelInterface
 {
         Q_OBJECT
-
+        ISCORE_SERIALIZE_FRIENDS(BaseElementModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(BaseElementModel, JSONObject)
     public:
         BaseElementModel(QObject* parent);
         BaseElementModel(const VisitorVariant& data, QObject* parent);

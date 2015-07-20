@@ -18,18 +18,18 @@ QString GroupPanelFactory::panelName() const
     return "Groups";
 }
 
-iscore::PanelView*GroupPanelFactory::makeView(iscore::View* v)
+iscore::PanelView* GroupPanelFactory::makeView(iscore::View* v)
 {
     return new GroupPanelView{v};
 }
 
-iscore::PanelPresenter*GroupPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
+iscore::PanelPresenter* GroupPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
                                                                  iscore::PanelView* view)
 {
     return new GroupPanelPresenter{parent_presenter, view};
 }
 
-iscore::PanelModel*GroupPanelFactory::makeModel(iscore::DocumentModel* m)
+iscore::PanelModel* GroupPanelFactory::makeModel(iscore::DocumentModel* m)
 {
     return new GroupPanelModel{m};
 }

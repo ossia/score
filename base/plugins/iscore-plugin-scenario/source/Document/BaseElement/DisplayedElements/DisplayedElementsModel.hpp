@@ -3,6 +3,7 @@
 #include <iscore/selection/Selection.hpp>
 
 class ConstraintModel;
+class TimeNodeModel;
 class EventModel;
 class StateModel;
 class DisplayedElementsModel
@@ -14,14 +15,19 @@ class DisplayedElementsModel
         void setDisplayedConstraint(const ConstraintModel* cst);
         const ConstraintModel& displayedConstraint() const;
 
+        const TimeNodeModel& startNode() const;
+        const TimeNodeModel& endNode() const;
+
         const EventModel& startEvent() const;
         const EventModel& endEvent() const;
 
         const StateModel& startState() const;
-
         const StateModel& endState() const;
 
     private:
+        const TimeNodeModel* m_startNode{};
+        const TimeNodeModel* m_endNode{};
+
         const EventModel* m_startEvent{};
         const EventModel* m_endEvent{};
 

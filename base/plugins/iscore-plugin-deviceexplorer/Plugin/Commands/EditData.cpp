@@ -20,14 +20,12 @@ void EditData::undo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
     explorer.editData(m_nodePath, m_column, m_oldValue, m_role);
-    // TODO update OSSIA device.
 }
 
 void EditData::redo()
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
     explorer.editData(m_nodePath, m_column, m_newValue, m_role);
-    // TODO update OSSIA device.
 }
 
 void EditData::serializeImpl(QDataStream &d) const

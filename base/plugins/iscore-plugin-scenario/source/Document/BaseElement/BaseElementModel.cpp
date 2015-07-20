@@ -3,6 +3,7 @@
 
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include "source/Document/Event/EventModel.hpp"
+#include "source/Document/TimeNode/TimeNodeModel.hpp"
 #include "source/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -187,6 +188,8 @@ void BaseElementModel::setNewSelection(const Selection& s)
                         [&] (const QObject* obj)
     {
         return obj == &displayedElements.displayedConstraint()
+            || obj == &displayedElements.startNode()
+            || obj == &displayedElements.endNode()
             || obj == &displayedElements.startEvent()
             || obj == &displayedElements.endEvent()
             || obj == &displayedElements.startState()

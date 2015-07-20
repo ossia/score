@@ -26,17 +26,13 @@ class EventInspectorWidget : public InspectorWidgetBase
 
         void addState(const StateModel* state);
         void focusState(const StateModel* state);
-    signals:
 
     public slots:
-
         void updateDisplayedValues(const EventModel* obj);
 
         void on_addAddressClicked();
         void on_conditionChanged();
         void on_triggerChanged();
-
-        //void removeState(const iscore::State&);
 
         void updateInspector();
         void modelDateChanged();

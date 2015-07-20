@@ -26,7 +26,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
-#include <Inspector/Separator.hpp>
+#include "Inspector/Separator.hpp"
+#include "Inspector/SelectionButton.hpp"
 #include <QFrame>
 #include <QLineEdit>
 #include <QLayout>
@@ -350,35 +351,25 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
     QFormLayout* eventLay = new QFormLayout {eventWid};
     eventLay->setVerticalSpacing(0);
 
-    QPushButton* start = new QPushButton{tr("None")};
-    start->setStyleSheet ("text-align: left");
-    start->setFlat(true);
     if(auto sst = m_currentConstraint->startState())
     {
-        start->setText(QString::number(*sst.val()));
-        connect(start, &QPushButton::clicked,
-                [=]() {
-            selectionDispatcher()->setAndCommit(Selection{&scenar->state(sst)});
-        });
+        auto btn = SelectionButton::make(
+                    &scenar->state(sst),
+                    selectionDispatcher(),
+                    this);
+        eventLay->addRow(tr("Start state"), btn);
     }
-    eventLay->addRow(tr("Start state"), start);
 
-
-    QPushButton* end = new QPushButton {tr("None")};
-    end->setStyleSheet ("text-align: left");
-    end->setFlat(true);
     if(auto est = m_currentConstraint->endState())
     {
-        end->setText(QString::number(*est.val()));
-        connect(end, &QPushButton::clicked,
-                [=]() {
-            selectionDispatcher()->setAndCommit(Selection{&scenar->state(est)});
-        });
+        auto btn = SelectionButton::make(
+                    &scenar->state(est),
+                    selectionDispatcher(),
+                    this);
+        eventLay->addRow(tr("End state"), btn);
     }
-    eventLay->addRow(tr("End state"), end);
 
     return eventWid;
-
 }
 
 void ConstraintInspectorWidget::on_processCreated(

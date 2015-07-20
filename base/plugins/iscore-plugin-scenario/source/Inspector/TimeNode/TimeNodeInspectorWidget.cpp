@@ -98,7 +98,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues(const TimeNodeModel* timeNod
             connect(eventWid, &EventShortCut::eventSelected,
                     [=]()
             {
-                selectionDispatcher()->setAndCommit(Selection{evModel});
+                selectionDispatcher().setAndCommit(Selection{evModel});
             });
         }
     }

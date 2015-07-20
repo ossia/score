@@ -257,6 +257,7 @@ set(SRCS
 
 if(TARGET iscore_lib_inspector)
     set(INSPECTOR_SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/ConstraintInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/AddSlotWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Constraint/Widgets/Rack/Slot/AddLayerModelWidget.cpp"

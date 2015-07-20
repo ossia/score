@@ -57,8 +57,8 @@ class InspectorWidgetBase : public QWidget
         CommandDispatcher<>* commandDispatcher() const
         { return m_commandDispatcher; }
 
-        iscore::SelectionDispatcher* selectionDispatcher() const
-        { return m_selectionDispatcher.get(); }
+        iscore::SelectionDispatcher& selectionDispatcher() const
+        { return *m_selectionDispatcher.get(); }
 
     private:
         const QObject* m_inspectedObject {};
