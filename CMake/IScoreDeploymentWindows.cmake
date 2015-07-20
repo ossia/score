@@ -48,9 +48,14 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Test${DEBUG_CHAR}.dll"
   DESTINATION ${ISCORE_BIN_INSTALL_DIR})
 
+# Qt conf file
+install(
+  FILES
+    "${CMAKE_CURRENT_LIST_DIR}/Deployment/Windows/qt.conf"
+  DESTINATION
+    ${ISCORE_BIN_INSTALL_DIR})
+
 # Qt Platform Plugin
 install(FILES
   "${QT_DLL_DIR}/../plugins/platforms/qwindows${DEBUG_CHAR}.dll"
   DESTINATION ${ISCORE_BIN_INSTALL_DIR}/plugins/platforms)
-
-return()
