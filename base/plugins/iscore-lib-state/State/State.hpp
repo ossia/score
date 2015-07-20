@@ -5,14 +5,9 @@
 
 namespace iscore {
 class State
-{       friend
-        void Visitor<Reader<DataStream>>::readFrom<iscore::State>(const iscore::State& mess);
-        friend
-        void Visitor<Reader<JSONObject>>::readFrom<iscore::State>(const iscore::State& mess);
-        friend
-        void Visitor<Writer<DataStream>>::writeTo<iscore::State>(iscore::State& mess);
-        friend
-        void Visitor<Writer<JSONObject>>::writeTo<iscore::State>(iscore::State& mess);
+{
+        ISCORE_SERIALIZE_FRIENDS(State, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(State, JSONObject)
 
     public:
         State() = default;
