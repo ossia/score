@@ -6,8 +6,8 @@
 namespace iscore {
 class State
 {
-        ISCORE_SERIALIZE_FRIENDS(State, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(State, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(iscore::State, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(iscore::State, JSONObject)
 
     public:
         State() = default;
