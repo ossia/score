@@ -38,7 +38,11 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
     // We also have to move all the relevant states
     for(const auto& state : ev.model().states())
     {
-        on_stateMoved(m_presenter->m_displayedStates.at(state));
+        auto state_it = m_presenter->m_displayedStates.find(state);
+        if(state_it != m_presenter->m_displayedStates.end())
+        {
+            on_stateMoved(*state_it);
+        }
     }
     m_presenter->m_view->update();
 }

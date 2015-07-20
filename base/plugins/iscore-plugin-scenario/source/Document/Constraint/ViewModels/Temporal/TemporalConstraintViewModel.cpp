@@ -23,3 +23,8 @@ TemporalConstraintViewModel* TemporalConstraintViewModel::clone(
 
     return cstr;
 }
+
+QString TemporalConstraintViewModel::type() const
+{
+    return "Temporal";
+}

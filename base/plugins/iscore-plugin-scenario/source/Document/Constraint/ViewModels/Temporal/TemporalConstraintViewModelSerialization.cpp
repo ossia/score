@@ -14,7 +14,6 @@ void Visitor<Reader<JSONObject>>::readFrom(const TemporalConstraintViewModel& co
     readFrom(static_cast<const ConstraintViewModel&>(constraint));
 }
 
-// TODO not the best place...
 #include "TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioLayer.hpp"
 SerializedConstraintViewModels serializeConstraintViewModels(
@@ -25,23 +24,22 @@ SerializedConstraintViewModels serializeConstraintViewModels(
     // The other constraint view models are in their respective scenario view models
     for(const auto& viewModel : layers(scenario))
     {
-        // TODO we need to know its concrete type in order to serialize it correctly.
-        // This should be done by serializing its type first...
-        const auto& cstrVM = viewModel->constraint(constraint.id());
+        const ConstraintViewModel& cstrVM = viewModel->constraint(constraint.id());
+
+        auto lm_id = iscore::IDocument::path(viewModel);
+        QByteArray arr;
+
         if(const auto& temporalCstrVM = dynamic_cast<const TemporalConstraintViewModel*>(&cstrVM))
         {
-            auto lm_id = iscore::IDocument::path(viewModel);
-
-            QByteArray arr;
             Serializer<DataStream> cvmReader{&arr};
             cvmReader.readFrom(*temporalCstrVM);
-
-            map.append({lm_id, {"Temporal", arr}});
         }
         else
         {
             ISCORE_TODO
         }
+
+        map.append({lm_id, {cstrVM.type(), arr}});
     }
 
     return map;

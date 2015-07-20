@@ -40,4 +40,6 @@ class FullViewConstraintViewModel : public ConstraintViewModel
         {
             // Nothing to add, no vis.visit(*this);
         }
+
+        QString type() const override;
 };

@@ -13,7 +13,6 @@
 
 #include <ProcessInterface/LayerModel.hpp>
 
-// TODO put this somewhere else
 #include "Document/Constraint/ConstraintModel.hpp"
 
 #include <ProcessInterface/ProcessModel.hpp>

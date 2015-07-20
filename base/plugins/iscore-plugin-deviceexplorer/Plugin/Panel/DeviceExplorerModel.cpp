@@ -535,7 +535,6 @@ void DeviceExplorerModel::editData(const NodePath &path, int column, const QVari
 
         if(index.column() == (int)Column::IOType)
         {
-            // TODO use a combo box editor in the tree...
             node->addressSettings().ioType = IOTypeStringMap().key(value.toString());
         }
 

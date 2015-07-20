@@ -9,7 +9,9 @@ void removeEventFromTimeNode(
         ScenarioModel& scenario,
         const id_type<EventModel>& eventId)
 {
-    for(auto& timeNode : scenario.timeNodes())
+    // We have to make a copy else the iterator explodes.
+    auto timenodes = scenario.timeNodes();
+    for(auto& timeNode : timenodes)
     {
         if(timeNode.removeEvent(eventId))
         {

@@ -270,7 +270,7 @@ void RemoveSelection::redo()
         StandardRemovalPolicy::removeConstraint(scenar, cstr.first.first);
     }
 
-    // Remove the events; the timenodes and states will be removed automatically.
+    // The other things
     for(auto& ev : m_removedEvents)
     {
         StandardRemovalPolicy::removeEventStatesAndConstraints(scenar, ev.first);

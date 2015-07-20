@@ -78,7 +78,6 @@ StateModel &ScenarioCreate<StateModel>::redo(
     return *state;
 }
 
-//TODO unused ?
 void ScenarioCreate<ConstraintModel>::undo(
         const id_type<ConstraintModel>& id,
         ScenarioModel& s)

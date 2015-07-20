@@ -122,8 +122,6 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 {
     double scale =  newDuration / duration();
 
-    // Is it recursive ?? Make a scale() method on the constraint, maybe ?
-    // TODO we should only have to set the date of the event / constraint
     for(auto& timenode : m_timeNodes)
     {
         timenode.setDate(timenode.date() * scale);

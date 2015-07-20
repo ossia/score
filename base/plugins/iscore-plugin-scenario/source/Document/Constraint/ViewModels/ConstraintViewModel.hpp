@@ -28,6 +28,7 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
                 const ConstraintModel& cm,
                 QObject* parent) = 0;
 
+        virtual QString type() const = 0;
         const ConstraintModel& model() const;
 
         bool isRackShown() const;
