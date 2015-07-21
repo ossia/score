@@ -132,11 +132,8 @@ QJsonArray toJsonArray(const Container<int>& array)
     return arr;
 }
 
-template<class Container,
-         std::enable_if_t<
-             ! std::is_pointer<return_type_of_iterator<Container>>::value
-         >* = nullptr>
-QJsonArray toJsonArray(const Container& array)
+template<class Container>
+QJsonArray toJsonArray_sub(const Container& array, std::false_type)
 {
     QJsonArray arr;
 
@@ -148,13 +145,8 @@ QJsonArray toJsonArray(const Container& array)
     return arr;
 }
 
-template<class Container,
-         std::enable_if_t<
-             std::is_pointer<
-                 return_type_of_iterator<Container>
-             >::value
-         >* = nullptr>
-QJsonArray toJsonArray(const Container& array)
+template<class Container>
+QJsonArray toJsonArray_sub(const Container& array, std::true_type)
 {
     QJsonArray arr;
 
@@ -164,6 +156,12 @@ QJsonArray toJsonArray(const Container& array)
     }
 
     return arr;
+}
+
+template<class Container>
+QJsonArray toJsonArray(const Container& array)
+{
+    return toJsonArray_sub(array, std::is_pointer<return_type_of_iterator<Container>>());
 }
 
 template<template<typename U> class T, typename V>
