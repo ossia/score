@@ -65,7 +65,7 @@ DeviceEditDialog::initAvailableProtocols()
 
     for(int i = 0; i < m_protocolCBox->count(); ++i)
     {
-        m_previousSettings.append(iscore::DeviceSettings{});
+        m_previousSettings.append(iscore::DeviceSettings());
     }
 
     m_index = m_protocolCBox->currentIndex();

@@ -80,13 +80,12 @@ class MapBase
 // IdentifiedObject<T> and don't have an id() method by themselves.
 template<typename Element, typename Model>
 class IdContainer<Element, Model,
-        typename
-        std::enable_if<
+        std::enable_if_t<
             std::is_base_of<
                 IdentifiedObject<Model>,
                 Element
             >::value
-        >::type> : public MapBase<
+        >> : public MapBase<
             Element,
             Model,
             bmi::multi_index_container<
@@ -111,13 +110,12 @@ class IdContainer<Element, Model,
 // like a Presenter whose id() would return its model's.
 template<typename Element, typename Model>
 class IdContainer<Element, Model,
-        typename
-        std::enable_if<
-            not std::is_base_of<
+        std::enable_if_t<
+            ! std::is_base_of<
                 IdentifiedObject<Model>,
                 Element
             >::value
-        >::type> : public MapBase<
+        >> : public MapBase<
             Element,
             Model,
             bmi::multi_index_container<

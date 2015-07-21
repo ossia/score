@@ -36,7 +36,7 @@ namespace iscore
             QAction* addActionIntoToplevelMenu(ToplevelMenuElement tl,
                                                MenuElement elt,
                                                Functor f,
-                                               typename std::enable_if<std::is_enum<MenuElement>::value>::type* = 0)
+                                               std::enable_if_t<std::is_enum<MenuElement>::value>* = nullptr)
             {
                 QAction* act = new QAction {MenuInterface::name(elt), this};
                 connect(act, &QAction::triggered, f);
@@ -48,7 +48,7 @@ namespace iscore
             void insertActionIntoToplevelMenu(ToplevelMenuElement tl,
                                               MenuElement before,
                                               QAction* act,
-                                              typename std::enable_if<std::is_enum<MenuElement>::value>::type* = 0)
+                                              std::enable_if_t<std::is_enum<MenuElement>::value>* = nullptr)
             {
                 auto actions = m_menusMap[tl]->actions();
                 auto beforeact_it = std::find_if(

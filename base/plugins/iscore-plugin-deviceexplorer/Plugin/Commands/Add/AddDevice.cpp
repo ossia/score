@@ -19,9 +19,11 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
     QDomElement dom_child = dom_element.firstChildElement("");
     QString name;
     QString value{"0"};
+    /*
     int priority;
     float min{0};
     float max{100};
+    */
 
     if(dom_element.hasAttribute("address"))
     {
@@ -32,14 +34,14 @@ void convertFromDomElement(QDomElement dom_element, Node* parentNode)
         name = dom_element.tagName();
     }
 
-    priority = dom_element.attribute("priority").toInt();
+    //priority = dom_element.attribute("priority").toInt();
 
     QString bounds = dom_element.attribute("rangeBounds");
     QString minB = bounds;
     minB.truncate(bounds.indexOf(" "));
     bounds.remove(0, minB.length() + 1);
-    min = minB.toFloat();
-    max = bounds.toFloat();
+    //min = minB.toFloat();
+    //max = bounds.toFloat();
 
     value = dom_element.attribute("valueDefault");
 
