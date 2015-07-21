@@ -8,6 +8,13 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 
+# too hardcore for jamoma
+# if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+#     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#         add_definitions(-D_GLIBCXX_DEBUG)
+#     endif()
+# endif()
+
 if(ANDROID)
   set(ISCORE_STATIC_PLUGINS True)
   set(Boost_FOUND True)
