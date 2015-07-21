@@ -39,7 +39,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
 
         template<typename Impl>
         SlotModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject<SlotModel> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

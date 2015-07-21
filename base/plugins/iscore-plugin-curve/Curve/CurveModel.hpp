@@ -18,7 +18,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
 
         template<typename Impl>
         CurveModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject<CurveModel>{vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

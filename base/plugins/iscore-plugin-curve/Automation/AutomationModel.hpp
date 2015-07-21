@@ -36,7 +36,7 @@ class AutomationModel : public ProcessModel
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
-            ProcessModel {vis, parent}
+            ProcessModel{vis, parent}
         {
             vis.writeTo(*this);
         }

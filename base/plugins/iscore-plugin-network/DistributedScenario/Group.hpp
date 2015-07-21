@@ -23,7 +23,7 @@ class Group : public IdentifiedObject<Group>
 
         template<typename Deserializer>
         Group(Deserializer&& vis, QObject* parent) :
-            IdentifiedObject<Group> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

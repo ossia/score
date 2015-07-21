@@ -21,7 +21,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
         template<typename Impl>
         CurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject<CurveSegmentModel>{vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

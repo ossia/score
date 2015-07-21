@@ -24,7 +24,7 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
         BaseScenario(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject<BaseScenario> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

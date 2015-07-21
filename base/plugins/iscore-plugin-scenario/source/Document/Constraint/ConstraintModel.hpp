@@ -124,7 +124,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Serialization
         template<typename Deserializer>
         ConstraintModel(Deserializer&& vis, QObject* parent) :
-            IdentifiedObject<ConstraintModel> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

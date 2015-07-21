@@ -11,7 +11,7 @@ class GroupManager : public IdentifiedObject<GroupManager>
 
         template<typename Deserializer>
         GroupManager(Deserializer&& vis, QObject* parent) :
-            IdentifiedObject<GroupManager> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

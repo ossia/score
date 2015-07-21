@@ -20,7 +20,7 @@ class Client : public IdentifiedObject<Client>
 
         template<typename Deserializer>
         Client(Deserializer&& vis, QObject* parent) :
-            IdentifiedObject<Client> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

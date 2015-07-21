@@ -17,7 +17,7 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
         ConstraintViewModel(DeserializerVisitor&& vis,
                             const ConstraintModel& model,
                             QObject* parent) :
-            IdentifiedObject<ConstraintViewModel> {vis, parent},
+            IdentifiedObject{vis, parent},
             m_model {model}
         {
             vis.writeTo(*this);

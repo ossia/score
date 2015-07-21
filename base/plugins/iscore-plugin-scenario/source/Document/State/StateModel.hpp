@@ -41,7 +41,7 @@ class StateModel : public IdentifiedObject<StateModel>
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
         StateModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject<StateModel> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

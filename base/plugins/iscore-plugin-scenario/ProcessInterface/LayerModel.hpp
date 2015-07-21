@@ -28,7 +28,7 @@ class LayerModel: public IdentifiedObject<LayerModel>
         LayerModel(Deserializer<Impl>& vis,
                          ProcessModel& sharedProcess,
                          QObject* parent) :
-            IdentifiedObject<LayerModel> {vis, parent},
+            IdentifiedObject{vis, parent},
             m_sharedProcessModel {sharedProcess}
         {
             // Nothing else to load

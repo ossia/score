@@ -38,7 +38,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
         template<typename DeserializerVisitor>
         TimeNodeModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject<TimeNodeModel> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

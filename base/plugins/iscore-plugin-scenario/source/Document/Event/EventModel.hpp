@@ -69,7 +69,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
         template<typename DeserializerVisitor>
         EventModel(DeserializerVisitor&& vis, QObject* parent) :
-            IdentifiedObject<EventModel> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }

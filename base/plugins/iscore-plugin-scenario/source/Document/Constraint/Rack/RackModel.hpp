@@ -32,7 +32,7 @@ class RackModel : public IdentifiedObject<RackModel>
 
         template<typename Impl>
         RackModel(Deserializer<Impl>& vis, QObject* parent) :
-            IdentifiedObject<RackModel> {vis, parent}
+            IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
         }
