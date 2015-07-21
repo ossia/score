@@ -60,7 +60,7 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
   endif()
 
-  # Common Unix flags 
+  # Common Unix flags
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wabi -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wstrict-null-sentinel -Wno-non-template-friend -Woverloaded-virtual -Wno-pmf-conversions -Wsign-promo -Wextra -Wall -Waddress -Waggregate-return -Warray-bounds -Wno-attributes -Wno-builtin-macro-redefined")
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wc++0x-compat -Wcast-align -Wcast-qual -Wchar-subscripts -Wclobbered -Wcomment -Wconversion -Wcoverage-mismatch -Wno-deprecated -Wno-deprecated-declarations -Wdisabled-optimization -Wno-div-by-zero -Wempty-body -Wenum-compare")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -pipe -Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas")
@@ -75,6 +75,9 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-DISCORE_DEBUG)
+  add_definitions(-DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE)
+  add_definitions(-DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING)
+
 endif()
 
 #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
