@@ -20,8 +20,14 @@ Q_IMPORT_PLUGIN(iscore_plugin_ossia)
 #endif
 #endif
 
+//#define ELPP_STACKTRACE_ON_CRASH
+//#include <easylogging++.h>
+//INITIALIZE_EASYLOGGINGPP
+
 int main(int argc, char** argv)
 {
+//    START_EASYLOGGINGPP(argc, argv);
+
 #if defined(ISCORE_STATIC_PLUGINS)
     Q_INIT_RESOURCE(iscore);
     Q_INIT_RESOURCE(ScenarioResources);
