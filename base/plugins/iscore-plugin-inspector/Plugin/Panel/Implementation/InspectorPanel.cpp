@@ -27,13 +27,20 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     // Create items in objects and not in current
     // Delete items in current and not in objects
     Selection toCreate, toDelete;
-    std::set_difference(objects.begin(), objects.end(),
-                        m_currentSel.begin(), m_currentSel.end(),
-                        std::inserter(toCreate, toCreate.begin()));
 
-    std::set_difference(m_currentSel.begin(), m_currentSel.end(),
-                        objects.begin(), objects.end(),
-                        std::inserter(toDelete, toDelete.begin()));
+    // TODO OPTIMIZEME (set_difference won't work due to unordered_set)
+    for(auto& elt : objects)
+    {
+        auto it = std::find(m_currentSel.begin(), m_currentSel.end(), elt);
+        if(it == m_currentSel.end())
+            toCreate.insert(elt);
+    }
+    for(auto& elt : m_currentSel)
+    {
+        auto it = std::find(objects.begin(), objects.end(), elt);
+        if(it == objects.end())
+            toDelete.insert(elt);
+    }
     for(const auto& object : toDelete)
     {
         auto widget_it = m_map.get<0>().find(object);
