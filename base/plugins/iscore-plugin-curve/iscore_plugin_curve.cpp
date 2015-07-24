@@ -21,9 +21,7 @@ iscore_plugin_curve::iscore_plugin_curve() :
 
 iscore::PluginControlInterface* iscore_plugin_curve::make_control(iscore::Presenter* pres)
 {
-    delete m_control;
-    m_control = new AutomationControl{pres};
-    return m_control;
+    return new AutomationControl{pres};
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)

@@ -1,0 +1,73 @@
+cmake_minimum_required(VERSION 2.8)
+project(iscore_plugin_space)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+cmake_policy(SET CMP0020 NEW)
+cmake_policy(SET CMP0042 NEW)
+
+find_package(GiNaC)
+if(NOT GINAC_FOUND)
+    return()
+endif()
+
+# Files & main target
+include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
+include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
+
+file(GLOB_RECURSE HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+)
+set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessFactory.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessPanelProxy.cpp"
+
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpacePresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/AreaModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/AreaPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/AreaView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"
+)
+
+#~ if(TARGET iscore_lib_inspector)
+    #~ set(INSPECTOR_SRCS
+    #~
+    #~ )
+#~
+    #~ set(SRCS ${SRCS} ${INSPECTOR_SRCS})
+#~
+    #~ file(GLOB_RECURSE INSPECTOR_HDRS
+        #~ "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp")
+#~
+    #~ set(HDRS ${HDRS} ${INSPECTOR_HDRS})
+#~ endif()
+
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+target_link_libraries(${PROJECT_NAME}
+                     Qt5::Core Qt5::Widgets
+                     iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
+
+target_link_libraries(${PROJECT_NAME} cln ginac)
+#~ if(TARGET iscore_lib_inspector)
+    #~ # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
+    #~ target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
+#~ endif()
+
+iscore_cotire(${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION plugins/
+        ARCHIVE DESTINATION static_plugins/
+        COMPONENT DynamicRuntime)
