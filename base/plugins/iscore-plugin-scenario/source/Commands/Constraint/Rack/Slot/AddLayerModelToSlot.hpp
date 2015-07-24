@@ -4,7 +4,7 @@
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class LayerModel;
-class ProcessModel;
+class Process;
 namespace Scenario
 {
     namespace Command

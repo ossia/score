@@ -16,7 +16,7 @@
  *
  */
 class CurveModel;
-class AutomationModel : public ProcessModel
+class AutomationModel : public Process
 {
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)
@@ -29,14 +29,14 @@ class AutomationModel : public ProcessModel
 
     public:
         AutomationModel(const TimeValue& duration,
-                        const id_type<ProcessModel>& id,
+                        const id_type<Process>& id,
                         QObject* parent);
-        ProcessModel* clone(const id_type<ProcessModel>& newId,
+        Process* clone(const id_type<Process>& newId,
                                            QObject* newParent) const override;
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
-            ProcessModel{vis, parent}
+            Process{vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -95,7 +95,7 @@ class AutomationModel : public ProcessModel
 
     protected:
         AutomationModel(const AutomationModel& source,
-                        const id_type<ProcessModel>& id,
+                        const id_type<Process>& id,
                         QObject* parent);
         LayerModel* cloneLayer_impl(
                 const id_type<LayerModel>& newId,

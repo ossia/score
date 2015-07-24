@@ -14,7 +14,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
-                                     id_type<ProcessModel> process) :
+                                     id_type<Process> process) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

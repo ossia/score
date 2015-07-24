@@ -11,28 +11,28 @@ class TemporalScenarioPresenter;
 class ConstraintModel;
 class ScenarioStateMachine;
 
-class TemporalScenarioLayer : public AbstractScenarioLayer
+class TemporalScenarioLayerModel : public AbstractScenarioLayer
 {
         Q_OBJECT
     public:
         using model_type = ScenarioModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
-        TemporalScenarioLayer(const id_type<LayerModel>& id,
+        TemporalScenarioLayerModel(const id_type<LayerModel>& id,
                               const QMap<id_type<ConstraintModel>,
                               id_type<ConstraintViewModel>>& constraintIds,
                               ScenarioModel& model,
                               QObject* parent);
 
         // Copy
-        TemporalScenarioLayer(const TemporalScenarioLayer& source,
+        TemporalScenarioLayerModel(const TemporalScenarioLayerModel& source,
                               const id_type<LayerModel>& id,
                               ScenarioModel& model,
                               QObject* parent);
 
         // Load
         template<typename Impl>
-        TemporalScenarioLayer(Deserializer<Impl>& vis,
+        TemporalScenarioLayerModel(Deserializer<Impl>& vis,
                               ScenarioModel& model,
                               QObject* parent) :
             AbstractScenarioLayer {vis, model, parent}
@@ -42,7 +42,7 @@ class TemporalScenarioLayer : public AbstractScenarioLayer
 
         virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
-        virtual ~TemporalScenarioLayer() = default;
+        virtual ~TemporalScenarioLayerModel() = default;
 
         virtual void serialize(const VisitorVariant&) const override;
 

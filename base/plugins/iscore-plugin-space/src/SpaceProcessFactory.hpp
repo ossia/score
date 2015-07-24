@@ -6,23 +6,24 @@ class SpaceProcessFactory : public ProcessFactory
     public:
         QString name() const;
 
-        ProcessModel *makeModel(
+        Process* makeModel(
                 const TimeValue &duration,
-                const id_type<ProcessModel> &id,
+                const id_type<Process> &id,
                 QObject *parent);
 
-        QByteArray makeStaticLayerConstructionData() const;
-
-        ProcessModel *loadModel(
+        Process* loadModel(
                 const VisitorVariant &,
                 QObject *parent);
 
-        ProcessPresenter *makePresenter(
+
+        QByteArray makeStaticLayerConstructionData() const;
+
+        LayerPresenter* makeLayerPresenter(
                 const LayerModel &,
-                Layer *,
+                LayerView *,
                 QObject *parent);
 
-        Layer* makeView(
+        LayerView* makeLayerView(
                 const LayerModel &view,
                 QObject *parent);
 };

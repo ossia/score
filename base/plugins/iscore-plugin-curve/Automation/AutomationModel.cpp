@@ -12,9 +12,9 @@
 
 AutomationModel::AutomationModel(
         const TimeValue& duration,
-        const id_type<ProcessModel>& id,
+        const id_type<Process>& id,
         QObject* parent) :
-    ProcessModel {duration, id, processName(), parent}
+    Process {duration, id, processName(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
 
@@ -57,9 +57,9 @@ AutomationModel::AutomationModel(
 
 AutomationModel::AutomationModel(
         const AutomationModel& source,
-        const id_type<ProcessModel>& id,
+        const id_type<Process>& id,
         QObject* parent):
-    ProcessModel{source, id,  processName(), parent},
+    Process{source, id,  processName(), parent},
     m_address(source.address()),
     m_curve{source.curve().clone(source.curve().id(), this)},
     m_min{source.min()},
@@ -68,8 +68,8 @@ AutomationModel::AutomationModel(
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 }
 
-ProcessModel* AutomationModel::clone(
-        const id_type<ProcessModel>& newId,
+Process* AutomationModel::clone(
+        const id_type<Process>& newId,
         QObject* newParent) const
 {
     return new AutomationModel {*this, newId, newParent};

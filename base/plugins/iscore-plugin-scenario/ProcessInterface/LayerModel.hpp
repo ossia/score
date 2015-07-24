@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 
-class ProcessModel;
+class Process;
 class LayerModelPanelProxy;
 
 /**
@@ -12,21 +12,22 @@ class LayerModelPanelProxy;
 class LayerModel: public IdentifiedObject<LayerModel>
 {
     public:
-        ProcessModel& sharedProcessModel() const;
+        Process& sharedProcessModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
 
 
     protected:
+        // TODO this argument order sucks
         LayerModel(const id_type<LayerModel>& viewModelId,
                          const QString& name,
-                         ProcessModel& sharedProcess,
+                         Process& sharedProcess,
                          QObject* parent);
 
         template<typename Impl>
         LayerModel(Deserializer<Impl>& vis,
-                         ProcessModel& sharedProcess,
+                         Process& sharedProcess,
                          QObject* parent) :
             IdentifiedObject{vis, parent},
             m_sharedProcessModel {sharedProcess}
@@ -35,7 +36,7 @@ class LayerModel: public IdentifiedObject<LayerModel>
         }
 
     private:
-        ProcessModel& m_sharedProcessModel;
+        Process& m_sharedProcessModel;
 };
 
 

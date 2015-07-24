@@ -42,7 +42,7 @@ ConstraintModel::ConstraintModel(
     m_heightPercentage = source.heightPercentage();
 
     // For an explanation of this, see ReplaceConstraintContent command
-    std::map<const ProcessModel*, ProcessModel*> processPairs;
+    std::map<const Process*, Process*> processPairs;
 
     // Clone the processes
     for(const auto& process : source.processes())
@@ -123,14 +123,14 @@ void ConstraintModel::setEndState(const id_type<StateModel> &endState)
 
 
 //// Complex commands
-void ConstraintModel::addProcess(ProcessModel* model)
+void ConstraintModel::addProcess(Process* model)
 {
     m_processes.insert(model);
     emit processCreated(model->processName(), model->id());
     emit processesChanged();
 }
 
-void ConstraintModel::removeProcess(const id_type<ProcessModel>& processId)
+void ConstraintModel::removeProcess(const id_type<Process>& processId)
 {
     auto proc = &process(processId);
     m_processes.remove(processId);
@@ -177,8 +177,8 @@ RackModel& ConstraintModel::rack(const id_type<RackModel>& id) const
     return m_racks.at(id);
 }
 
-ProcessModel& ConstraintModel::process(
-        const id_type<ProcessModel>& id) const
+Process& ConstraintModel::process(
+        const id_type<Process>& id) const
 {
     return m_processes.at(id);
 }

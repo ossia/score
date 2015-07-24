@@ -2,7 +2,7 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
-#include "Process/Temporal/TemporalScenarioLayer.hpp"
+#include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 QString ScenarioFactory::name() const
@@ -10,23 +10,23 @@ QString ScenarioFactory::name() const
     return "Scenario";
 }
 
-Layer* ScenarioFactory::makeView(
+LayerView* ScenarioFactory::makeLayerView(
         const LayerModel& viewmodel,
         QObject* parent)
 {
-    if(dynamic_cast<const TemporalScenarioLayer*>(&viewmodel))
+    if(dynamic_cast<const TemporalScenarioLayerModel*>(&viewmodel))
         return new TemporalScenarioView {static_cast<QGraphicsObject*>(parent) };
 
     return nullptr;
 }
 
-ProcessPresenter*
-ScenarioFactory::makePresenter(
+LayerPresenter*
+ScenarioFactory::makeLayerPresenter(
         const LayerModel& lm,
-        Layer* view,
+        LayerView* view,
         QObject* parent)
 {
-    if(auto vm = dynamic_cast<const TemporalScenarioLayer*>(&lm))
+    if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
     {
         auto pres = new TemporalScenarioPresenter {*vm, view, parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
@@ -35,9 +35,9 @@ ScenarioFactory::makePresenter(
     return nullptr;
 }
 
-ProcessModel* ScenarioFactory::makeModel(
+Process* ScenarioFactory::makeModel(
         const TimeValue& duration,
-        const id_type<ProcessModel>& id,
+        const id_type<Process>& id,
         QObject* parent)
 {
     return new ScenarioModel {duration, id, parent};

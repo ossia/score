@@ -3,7 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessModel;
+class Process;
 namespace Scenario
 {
     namespace Command
@@ -14,7 +14,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessFromConstraint, "ScenarioControl")
-                RemoveProcessFromConstraint(ObjectPath&& constraintPath, id_type<ProcessModel> processId);
+                RemoveProcessFromConstraint(ObjectPath&& constraintPath, id_type<Process> processId);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -24,7 +24,7 @@ namespace Scenario
 
             private:
                 ObjectPath m_path;
-                id_type<ProcessModel> m_processId;
+                id_type<Process> m_processId;
 
                 QByteArray m_serializedProcessData;
                 QVector<QPair<ObjectPath, QByteArray>> m_serializedViewModels;

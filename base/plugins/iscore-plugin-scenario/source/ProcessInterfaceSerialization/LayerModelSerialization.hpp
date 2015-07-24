@@ -2,7 +2,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 class QObject;
 class LayerModel;
-class ProcessModel;
+class Process;
 class ConstraintModel;
 
 

@@ -18,11 +18,10 @@ AreaPresenter::AreaPresenter(const AreaModel& model,
 // Il vaut mieux faire comme dans les courbes ou le curvepresenter s'occupe des segments....
 void AreaPresenter::on_areaChanged()
 {
-    spacelib::square_renderer<QPointF, PainterPathDevice> renderer;
+    spacelib::square_renderer<QPointF, RectDevice> renderer;
     renderer.size = {800, 600};
     renderer.render(m_model.area(), m_model.space().space());
 
     m_view->rects = renderer.render_device.rects;
     m_view->update();
-
 }

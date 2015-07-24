@@ -5,7 +5,7 @@
 #include <QString>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessModel;
+class Process;
 class RackModel;
 class SlotModel;
 class LayerModel;
@@ -24,12 +24,12 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerInNewSlot, "ScenarioControl")
                 AddLayerInNewSlot(ObjectPath&& constraintPath,
-                                        id_type<ProcessModel> process);
+                                        id_type<Process> process);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                id_type<ProcessModel> processId() const
+                id_type<Process> processId() const
                 {
                     return m_processId;
                 }
@@ -43,11 +43,11 @@ namespace Scenario
 
                 bool m_existingRack {};
 
-                id_type<ProcessModel> m_processId {};
+                id_type<Process> m_processId {};
                 id_type<RackModel> m_createdRackId {};
                 id_type<SlotModel> m_createdSlotId {};
                 id_type<LayerModel> m_createdLayerId {};
-                id_type<ProcessModel> m_sharedProcessModelId {};
+                id_type<Process> m_sharedProcessModelId {};
 
                 QByteArray m_processData;
         };

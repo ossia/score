@@ -14,7 +14,7 @@
 
 #include "StateMachines/ScenarioStateMachine.hpp"
 
-#include <ProcessInterface/ProcessPresenter.hpp>
+#include <ProcessInterface/LayerPresenter.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
@@ -24,13 +24,13 @@ namespace iscore
     class SerializableCommand;
 }
 class LayerModel;
-class Layer;
+class LayerView;
 
 class ConstraintViewModel;
 class TemporalConstraintViewModel;
 class TemporalConstraintPresenter;
 
-class TemporalScenarioLayer;
+class TemporalScenarioLayerModel;
 class TemporalScenarioView;
 class TimeNodeModel;
 class TimeNodePresenter;
@@ -39,7 +39,7 @@ class ScenarioSelectionManager;
 class ScenarioViewInterface;
 class SelectionDispatcher;
 
-class TemporalScenarioPresenter : public ProcessPresenter
+class TemporalScenarioPresenter : public LayerPresenter
 {
         Q_OBJECT
 
@@ -49,14 +49,14 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
     public:
         TemporalScenarioPresenter(
-                const TemporalScenarioLayer& model,
-                Layer* view,
+                const TemporalScenarioLayerModel& model,
+                LayerView* view,
                 QObject* parent);
         ~TemporalScenarioPresenter();
 
 
         const LayerModel& viewModel() const override;
-        const id_type<ProcessModel>& modelId() const override;
+        const id_type<Process>& modelId() const override;
 
         void setWidth(int width) override;
         void setHeight(int height) override;
@@ -121,7 +121,7 @@ class TemporalScenarioPresenter : public ProcessPresenter
 
         ZoomRatio m_zoomRatio {1};
 
-        const TemporalScenarioLayer& m_layer;
+        const TemporalScenarioLayerModel& m_layer;
         TemporalScenarioView* m_view;
 
     private:

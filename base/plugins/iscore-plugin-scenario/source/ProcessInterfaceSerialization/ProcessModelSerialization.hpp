@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-class ProcessModel;
+class Process;
 
 template<typename T>
-ProcessModel* createProcess(Deserializer<T>& deserializer,
+Process* createProcess(Deserializer<T>& deserializer,
         QObject* parent);

@@ -17,32 +17,32 @@ class LayerModel;
  *
  * Interface to implement to make a process.
  */
-class ProcessModel: public IdentifiedObject<ProcessModel>
+class Process: public IdentifiedObject<Process>
 {
         Q_OBJECT
 
-        ISCORE_SERIALIZE_FRIENDS(ProcessModel, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(ProcessModel, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(Process, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(Process, JSONObject)
 
     public:
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
 
-        using IdentifiedObject<ProcessModel>::IdentifiedObject;
-        ProcessModel(
+        using IdentifiedObject<Process>::IdentifiedObject;
+        Process(
                 const TimeValue& duration,
-                const id_type<ProcessModel>& id,
+                const id_type<Process>& id,
                 const QString& name,
                 QObject* parent);
 
         template<typename Impl>
-        ProcessModel(Deserializer<Impl>& vis, QObject* parent) :
+        Process(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject {vis, parent}
         {
             vis.writeTo(*this);
         }
 
-        virtual ProcessModel* clone(
-                const id_type<ProcessModel>& newId,
+        virtual Process* clone(
+                const id_type<Process>& newId,
                 QObject* newParent) const = 0;
 
         virtual QString processName() const = 0; // Needed for serialization.
@@ -120,9 +120,9 @@ class ProcessModel: public IdentifiedObject<ProcessModel>
 
     protected:
         // Clone
-        ProcessModel(
-                const ProcessModel& other,
-                const id_type<ProcessModel>& id,
+        Process(
+                const Process& other,
+                const id_type<Process>& id,
                 const QString& name,
                 QObject* parent);
 
@@ -162,5 +162,5 @@ QVector<typename T::layer_type*> layers(const T& processModel)
     return v;
 }
 
-ProcessModel* parentProcess(QObject* obj);
-const ProcessModel* parentProcess(const QObject* obj);
+Process* parentProcess(QObject* obj);
+const Process* parentProcess(const QObject* obj);

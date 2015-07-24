@@ -7,7 +7,7 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
-class ProcessModel;
+class Process;
 
 /**
  * @brief The RackModel class
@@ -64,7 +64,7 @@ class RackModel : public IdentifiedObject<RackModel>
         void slotRemoved(const id_type<SlotModel>& id);
         void slotPositionsChanged();
 
-        void on_deleteSharedProcessModel(const id_type<ProcessModel>& processId);
+        void on_deleteSharedProcessModel(const id_type<Process>& processId);
         void on_durationChanged(const TimeValue& dur);
 
     private:

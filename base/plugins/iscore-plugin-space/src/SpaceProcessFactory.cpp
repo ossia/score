@@ -1,13 +1,15 @@
 #include "SpaceProcessFactory.hpp"
-
+#include "SpaceProcess.hpp"
+#include "SpaceLayerPresenter.hpp"
+#include "SpaceLayerView.hpp"
 QString SpaceProcessFactory::name() const
 {
     return "SpaceProcess";
 }
 
-ProcessModel *SpaceProcessFactory::makeModel(const TimeValue &duration, const id_type<ProcessModel> &id, QObject *parent)
+Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const id_type<Process> &id, QObject *parent)
 {
-    return nullptr;
+    return new SpaceProcess{id, parent};
 }
 
 QByteArray SpaceProcessFactory::makeStaticLayerConstructionData() const
@@ -15,17 +17,17 @@ QByteArray SpaceProcessFactory::makeStaticLayerConstructionData() const
     return {};
 }
 
-ProcessModel *SpaceProcessFactory::loadModel(const VisitorVariant &, QObject *parent)
+Process *SpaceProcessFactory::loadModel(const VisitorVariant &, QObject *parent)
 {
     return nullptr;
 }
 
-ProcessPresenter *SpaceProcessFactory::makePresenter(const LayerModel &, Layer *, QObject *parent)
+LayerPresenter *SpaceProcessFactory::makeLayerPresenter(const LayerModel & model, LayerView * view, QObject *parent)
 {
-    return nullptr;
+    return new SpaceLayerPresenter{model, view, parent};
 }
 
-Layer *SpaceProcessFactory::makeView(const LayerModel &view, QObject *parent)
+LayerView *SpaceProcessFactory::makeLayerView(const LayerModel &view, QObject *parent)
 {
     return nullptr;
 }

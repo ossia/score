@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 
-class Layer : public QGraphicsObject
+class LayerView : public QGraphicsObject
 {
     public:
         using QGraphicsObject::QGraphicsObject;

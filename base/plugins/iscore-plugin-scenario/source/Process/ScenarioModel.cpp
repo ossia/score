@@ -1,7 +1,7 @@
 #include "ScenarioModel.hpp"
 
 #include "Algorithms/StandardCreationPolicy.hpp"
-#include "Process/Temporal/TemporalScenarioLayer.hpp"
+#include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
@@ -13,9 +13,9 @@
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateState.hpp"
 ScenarioModel::ScenarioModel(const TimeValue& duration,
-                             const id_type<ProcessModel>& id,
+                             const id_type<Process>& id,
                              QObject* parent) :
-    ProcessModel {duration, id, "ScenarioModel", parent},
+    Process {duration, id, "ScenarioModel", parent},
     m_startTimeNodeId{0},
     m_endTimeNodeId{1},
     m_startEventId{0},
@@ -32,9 +32,9 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
-                             const id_type<ProcessModel>& id,
+                             const id_type<Process>& id,
                              QObject* parent) :
-    ProcessModel {source, id, "ScenarioModel", parent},
+    Process {source, id, "ScenarioModel", parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},
     m_startEventId{source.m_startEventId},
@@ -64,7 +64,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 }
 
 ScenarioModel* ScenarioModel::clone(
-        const id_type<ProcessModel>& newId,
+        const id_type<Process>& newId,
         QObject* newParent) const
 {
     return new ScenarioModel {*this, newId, newParent};
@@ -98,7 +98,7 @@ LayerModel* ScenarioModel::makeLayer_impl(
     QDataStream s{constructionData};
     s >> map;
 
-    auto scen = new TemporalScenarioLayer {viewModelId, map, *this, parent};
+    auto scen = new TemporalScenarioLayerModel {viewModelId, map, *this, parent};
     makeLayer_impl(scen);
     return scen;
 }
@@ -109,8 +109,8 @@ LayerModel* ScenarioModel::cloneLayer_impl(
         const LayerModel& source,
         QObject* parent)
 {
-    auto scen = new TemporalScenarioLayer{
-                static_cast<const TemporalScenarioLayer&>(source),
+    auto scen = new TemporalScenarioLayerModel{
+                static_cast<const TemporalScenarioLayerModel&>(source),
                 newId,
                 *this,
                 parent};

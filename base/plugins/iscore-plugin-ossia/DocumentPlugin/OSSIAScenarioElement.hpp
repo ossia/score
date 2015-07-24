@@ -37,7 +37,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         const auto& states() const
         { return m_ossia_states; }
 
-        const ProcessModel* iscoreProcess() const override;
+        const Process* iscoreProcess() const override;
 
         void stop() override;
 

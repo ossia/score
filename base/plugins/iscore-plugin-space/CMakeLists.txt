@@ -21,10 +21,10 @@ file(GLOB_RECURSE HDRS
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessViewModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceLayerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceLayerPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceLayerView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessPanelProxy.cpp"
 

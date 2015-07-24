@@ -1,7 +1,7 @@
 #include "ProcessFocusManager.hpp"
 
 
-const ProcessModel* ProcessFocusManager::focusedModel()
+const Process* ProcessFocusManager::focusedModel()
 {
     return m_currentModel;
 }
@@ -13,13 +13,13 @@ const LayerModel* ProcessFocusManager::focusedViewModel()
 }
 
 
-ProcessPresenter* ProcessFocusManager::focusedPresenter()
+LayerPresenter* ProcessFocusManager::focusedPresenter()
 {
     return m_currentPresenter;
 }
 
 
-void ProcessFocusManager::setFocusedPresenter(ProcessPresenter* p)
+void ProcessFocusManager::setFocusedPresenter(LayerPresenter* p)
 {
     if(p == m_currentPresenter)
         return;
@@ -64,13 +64,13 @@ void ProcessFocusManager::focusNothing()
     m_currentPresenter = nullptr;
 }
 
-void ProcessFocusManager::focusPresenter(ProcessPresenter* p)
+void ProcessFocusManager::focusPresenter(LayerPresenter* p)
 {
     p->setFocus(true);
     emit sig_focusedPresenter(p);
 }
 
-void ProcessFocusManager::defocusPresenter(ProcessPresenter* p)
+void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
     p->setFocus(false);
     emit sig_defocusedPresenter(p);

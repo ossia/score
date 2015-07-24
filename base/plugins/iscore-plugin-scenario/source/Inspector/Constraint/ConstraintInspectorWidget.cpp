@@ -255,7 +255,7 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
     // We will have to stock the id's somewhere.
     auto cmd = new AddLayerInNewSlot(
                    iscore::IDocument::path(model()),
-                   id_type<ProcessModel>(processName.toInt()));
+                   id_type<Process>(processName.toInt()));
 
     emit commandDispatcher()->submitCommand(cmd);
 }
@@ -288,7 +288,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 }
 
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
-void ConstraintInspectorWidget::displaySharedProcess(const ProcessModel& process)
+void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 {
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process.processName());
 
@@ -374,12 +374,12 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
 
 void ConstraintInspectorWidget::on_processCreated(
         QString processName,
-        id_type<ProcessModel> processId)
+        id_type<Process> processId)
 {
     reloadDisplayedValues();
 }
 
-void ConstraintInspectorWidget::on_processRemoved(id_type<ProcessModel> processId)
+void ConstraintInspectorWidget::on_processRemoved(id_type<Process> processId)
 {
     reloadDisplayedValues();
 }

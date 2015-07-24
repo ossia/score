@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QPainter>
-class PainterPathDevice
+class RectDevice
 {
     public:
         QVector<QRectF> rects;

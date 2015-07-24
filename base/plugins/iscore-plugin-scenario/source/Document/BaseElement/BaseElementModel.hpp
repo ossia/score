@@ -9,7 +9,7 @@
 class BaseScenario;
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
-class ProcessModel;
+class Process;
 class LayerModel;
 class ConstraintModel;
 
@@ -38,7 +38,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
 
     signals:
         void focusMe();
-        void setFocusedPresenter(ProcessPresenter*);
+        void setFocusedPresenter(LayerPresenter*);
         void displayedConstraintChanged();
 
     public slots:

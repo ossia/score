@@ -32,7 +32,7 @@ class OSSIAScenarioImpl;
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
-class ScenarioModel : public ProcessModel, public ScenarioInterface
+class ScenarioModel : public Process, public ScenarioInterface
 {
         Q_OBJECT
 
@@ -44,10 +44,10 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
         using layer_type = AbstractScenarioLayer;
 
         ScenarioModel(const TimeValue& duration,
-                      const id_type<ProcessModel>& id,
+                      const id_type<Process>& id,
                       QObject* parent);
         ScenarioModel* clone(
-                const id_type<ProcessModel>& newId,
+                const id_type<Process>& newId,
                 QObject* newParent) const override;
 
         //// ProcessModel specifics ////
@@ -182,7 +182,7 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
     protected:
         template<typename Impl>
         ScenarioModel(Deserializer<Impl>& vis, QObject* parent) :
-            ProcessModel {vis, parent}
+            Process {vis, parent}
         {
             vis.writeTo(*this);
         }
@@ -201,7 +201,7 @@ class ScenarioModel : public ProcessModel, public ScenarioInterface
 
     private:
         ScenarioModel(const ScenarioModel& source,
-                      const id_type<ProcessModel>& id,
+                      const id_type<Process>& id,
                       QObject* parent);
         void makeLayer_impl(layer_type*);
 

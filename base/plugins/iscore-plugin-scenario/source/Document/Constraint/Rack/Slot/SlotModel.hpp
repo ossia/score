@@ -7,7 +7,7 @@
 class RackModel;
 class ConstraintModel;
 
-class ProcessModel;
+class Process;
 class LayerModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
@@ -79,7 +79,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void focusChanged(bool arg);
 
     public slots:
-        void on_deleteSharedProcessModel(const id_type<ProcessModel>& sharedProcessId);
+        void on_deleteSharedProcessModel(const id_type<Process>& sharedProcessId);
 
         void setHeight(int arg);
         void setFocus(bool arg);

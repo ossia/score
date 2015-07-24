@@ -143,7 +143,7 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
     contextMenu.close();
 }
 
-void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
+void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
@@ -155,7 +155,7 @@ void ScenarioControl::on_presenterDefocused(ProcessPresenter* pres)
 }
 
 
-void ScenarioControl::on_presenterFocused(ProcessPresenter* pres)
+void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
 {
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);

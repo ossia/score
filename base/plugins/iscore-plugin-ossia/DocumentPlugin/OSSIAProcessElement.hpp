@@ -7,14 +7,14 @@ namespace OSSIA
     class Scenario;
     class TimeProcess;
 }
-class ProcessModel;
+class Process;
 class OSSIAProcessElement : public QObject
 {
         Q_OBJECT
     public:
         using QObject::QObject;
         virtual std::shared_ptr<OSSIA::TimeProcess> process() const = 0;
-        virtual const ProcessModel* iscoreProcess() const = 0;
+        virtual const Process* iscoreProcess() const = 0;
         virtual void stop(){}
 
     signals:

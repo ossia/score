@@ -4,15 +4,15 @@
 #include "AutomationPresenter.hpp"
 
 
-ProcessModel* AutomationFactory::makeModel(
+Process* AutomationFactory::makeModel(
         const TimeValue& duration,
-        const id_type<ProcessModel>& id,
+        const id_type<Process>& id,
         QObject* parent)
 {
     return new AutomationModel {duration, id, parent};
 }
 
-Layer* AutomationFactory::makeView(
+LayerView* AutomationFactory::makeLayerView(
         const LayerModel& view,
         QObject* parent)
 {
@@ -20,9 +20,9 @@ Layer* AutomationFactory::makeView(
 }
 
 
-ProcessPresenter* AutomationFactory::makePresenter(
+LayerPresenter* AutomationFactory::makeLayerPresenter(
         const LayerModel& viewModel,
-        Layer* view,
+        LayerView* view,
         QObject* parent)
 {
     return new AutomationPresenter {viewModel, view, parent};

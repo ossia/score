@@ -1,4 +1,5 @@
 #include "TemporalConstraintViewModel.hpp"
+#include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 
 #include "Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
 
@@ -14,8 +15,6 @@ void Visitor<Reader<JSONObject>>::readFrom(const TemporalConstraintViewModel& co
     readFrom(static_cast<const ConstraintViewModel&>(constraint));
 }
 
-#include "TemporalConstraintViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioLayer.hpp"
 SerializedConstraintViewModels serializeConstraintViewModels(
         const ConstraintModel& constraint,
         const ScenarioModel& scenario)
@@ -53,7 +52,7 @@ void deserializeConstraintViewModels(
     using namespace std;
     for(auto& viewModel : layers(scenar))
     {
-        if(TemporalScenarioLayer* temporalSVM = dynamic_cast<TemporalScenarioLayer*>(viewModel))
+        if(TemporalScenarioLayerModel* temporalSVM = dynamic_cast<TemporalScenarioLayerModel*>(viewModel))
         {
             auto svm_id = iscore::IDocument::path(temporalSVM);
 

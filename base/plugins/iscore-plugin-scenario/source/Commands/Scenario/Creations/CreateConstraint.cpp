@@ -5,7 +5,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
-#include "Process/Temporal/TemporalScenarioLayer.hpp"
+#include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
 #include <iscore/document/DocumentInterface.hpp>

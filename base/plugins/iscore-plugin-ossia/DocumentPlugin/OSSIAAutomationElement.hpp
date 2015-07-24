@@ -22,7 +22,7 @@ class OSSIAAutomationElement : public OSSIAProcessElement
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
-        const ProcessModel* iscoreProcess() const override;
+        const Process* iscoreProcess() const override;
 
     public slots:
         void on_addressChanged(const iscore::Address&);

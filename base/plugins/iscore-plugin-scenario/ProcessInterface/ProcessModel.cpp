@@ -2,33 +2,33 @@
 #include "LayerModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 
-ProcessModel::ProcessModel(
+Process::Process(
         const TimeValue& duration,
-        const id_type<ProcessModel>& id,
+        const id_type<Process>& id,
         const QString& name,
         QObject* parent):
-    IdentifiedObject<ProcessModel>{id, name, parent},
+    IdentifiedObject<Process>{id, name, parent},
     m_duration{duration}
 {
 
 }
 
-ProcessModel::ProcessModel(
-        const ProcessModel& source,
-        const id_type<ProcessModel>& id,
+Process::Process(
+        const Process& source,
+        const id_type<Process>& id,
         const QString& name,
         QObject* parent):
-    IdentifiedObject<ProcessModel>{id, name, parent},
+    IdentifiedObject<Process>{id, name, parent},
     m_duration{source.duration()}
 {
 
 }
 
 
-QByteArray ProcessModel::makeViewModelConstructionData() const { return {}; }
+QByteArray Process::makeViewModelConstructionData() const { return {}; }
 
 
-LayerModel*ProcessModel::makeLayer(
+LayerModel*Process::makeLayer(
         const id_type<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
@@ -40,7 +40,7 @@ LayerModel*ProcessModel::makeLayer(
 }
 
 
-LayerModel*ProcessModel::loadLayer(
+LayerModel*Process::loadLayer(
         const VisitorVariant& v,
         QObject* parent)
 {
@@ -50,7 +50,7 @@ LayerModel*ProcessModel::loadLayer(
     return lm;
 }
 
-LayerModel*ProcessModel::cloneLayer(
+LayerModel*Process::cloneLayer(
         const id_type<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
@@ -62,7 +62,7 @@ LayerModel*ProcessModel::cloneLayer(
 }
 
 
-LayerModel*ProcessModel::makeTemporaryLayer(
+LayerModel*Process::makeTemporaryLayer(
         const id_type<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
@@ -72,13 +72,13 @@ LayerModel*ProcessModel::makeTemporaryLayer(
 
 
 
-QVector<LayerModel*> ProcessModel::layers() const
+QVector<LayerModel*> Process::layers() const
 {
     return m_layers;
 }
 
 
-void ProcessModel::expandProcess(ExpandMode mode, const TimeValue& t)
+void Process::expandProcess(ExpandMode mode, const TimeValue& t)
 {
     if(mode == ExpandMode::Scale)
     {
@@ -94,19 +94,19 @@ void ProcessModel::expandProcess(ExpandMode mode, const TimeValue& t)
 }
 
 
-void ProcessModel::setDuration(const TimeValue& other)
+void Process::setDuration(const TimeValue& other)
 {
     m_duration = other;
 }
 
 
-const TimeValue& ProcessModel::duration() const
+const TimeValue& Process::duration() const
 {
     return m_duration;
 }
 
 
-void ProcessModel::addLayer(LayerModel* m)
+void Process::addLayer(LayerModel* m)
 {
     connect(m, &LayerModel::destroyed,
             this, [=] () { removeLayer(m); });
@@ -114,7 +114,7 @@ void ProcessModel::addLayer(LayerModel* m)
 }
 
 
-void ProcessModel::removeLayer(LayerModel* m)
+void Process::removeLayer(LayerModel* m)
 {
     int index = m_layers.indexOf(m);
 
@@ -125,7 +125,7 @@ void ProcessModel::removeLayer(LayerModel* m)
 }
 
 
-ProcessModel* parentProcess(QObject* obj)
+Process* parentProcess(QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
     while(obj && !obj->inherits("ProcessModel"))
@@ -139,11 +139,11 @@ ProcessModel* parentProcess(QObject* obj)
                 .arg(objName)
                 .toStdString());
 
-    return static_cast<ProcessModel*>(obj);
+    return static_cast<Process*>(obj);
 }
 
 
-const ProcessModel* parentProcess(const QObject* obj)
+const Process* parentProcess(const QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
     while(obj && !obj->inherits("ProcessModel"))
@@ -157,5 +157,5 @@ const ProcessModel* parentProcess(const QObject* obj)
                 .arg(objName)
                 .toStdString());
 
-    return static_cast<const ProcessModel*>(obj);
+    return static_cast<const Process*>(obj);
 }

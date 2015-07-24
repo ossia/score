@@ -21,7 +21,7 @@ namespace OSSIA
     class TimeRack;
 }
 
-class ProcessModel;
+class Process;
 class ConstraintViewModel;
 class FullViewConstraintViewModel;
 
@@ -147,8 +147,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
         // Sub-element creation
-        void addProcess(ProcessModel*);
-        void removeProcess(const id_type<ProcessModel>& processId);
+        void addProcess(Process*);
+        void removeProcess(const id_type<Process>& processId);
 
         void addRack(RackModel*);
         void removeRack(const id_type<RackModel>& rackId);
@@ -160,8 +160,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setEndState(const id_type<StateModel> &endState);
 
         RackModel& rack(const id_type<RackModel>& id) const;
-        ProcessModel& process(
-                const id_type<ProcessModel>& processId) const;
+        Process& process(
+                const id_type<Process>& processId) const;
 
 
         const auto& racks() const
@@ -207,8 +207,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
     signals:
         void processCreated(const QString& processName,
-                            const id_type<ProcessModel>& processId);
-        void processRemoved(const id_type<ProcessModel>& processId);
+                            const id_type<Process>& processId);
+        void processRemoved(const id_type<Process>& processId);
         void processesChanged();
 
         void rackCreated(const id_type<RackModel>& rackId);
@@ -245,7 +245,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
     private:
         IdContainer<RackModel> m_racks; // No content -> Phantom ?
-        IdContainer<ProcessModel> m_processes;
+        IdContainer<Process> m_processes;
 
         // The small view constraint view models that show this constraint
         // The constraint does not have ownership of these: their parent (in the Qt sense) are

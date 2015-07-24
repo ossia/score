@@ -2,7 +2,7 @@
 
 #include "TemporalScenarioPresenter.hpp"
 #include "source/Process/ScenarioModel.hpp"
-#include "source/Process/Temporal/TemporalScenarioLayer.hpp"
+#include "source/Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioView.hpp"
 
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"

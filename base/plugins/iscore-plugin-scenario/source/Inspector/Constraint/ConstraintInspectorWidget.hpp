@@ -9,7 +9,7 @@ class ConstraintViewModel;
 class RackModel;
 class SlotModel;
 class ScenarioModel;
-class ProcessModel;
+class Process;
 
 class RackWidget;
 class RackInspectorSection;
@@ -47,8 +47,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
         // Interface of Constraint
-        void on_processCreated(QString processName, id_type<ProcessModel> processId);
-        void on_processRemoved(id_type<ProcessModel> processId);
+        void on_processCreated(QString processName, id_type<Process> processId);
+        void on_processRemoved(id_type<Process> processId);
 
         void on_rackCreated(id_type<RackModel> rackId);
         void on_rackRemoved(id_type<RackModel> rackId);
@@ -57,7 +57,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId);
 
         // These methods are used to display created things
-        void displaySharedProcess(const ProcessModel&);
+        void displaySharedProcess(const Process&);
         void setupRack(const RackModel&);
 
     private:

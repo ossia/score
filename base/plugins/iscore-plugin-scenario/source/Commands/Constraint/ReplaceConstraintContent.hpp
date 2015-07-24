@@ -5,7 +5,7 @@
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include "ProcessInterface/ExpandMode.hpp"
 
-class ProcessModel;
+class Process;
 class RackModel;
 namespace Scenario
 {
@@ -34,7 +34,7 @@ namespace Scenario
                 ExpandMode m_mode{ExpandMode::Grow};
 
                 QMap<id_type<RackModel>, id_type<RackModel>> m_rackIds;
-                QMap<id_type<ProcessModel>, id_type<ProcessModel>> m_processIds;
+                QMap<id_type<Process>, id_type<Process>> m_processIds;
         };
     }
 }

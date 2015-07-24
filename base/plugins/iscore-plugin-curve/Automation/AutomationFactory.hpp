@@ -9,23 +9,23 @@ class AutomationFactory : public ProcessFactory
             return "Automation";
         }
 
-        ProcessModel* makeModel(
+        Process* makeModel(
                 const TimeValue& duration,
-                const id_type<ProcessModel>& id,
+                const id_type<Process>& id,
                 QObject* parent) override;
 
-        ProcessModel* loadModel(
+        Process* loadModel(
                 const VisitorVariant&,
                 QObject* parent) override;
 
         QByteArray makeStaticLayerConstructionData() const override;
 
-        Layer* makeView(
+        LayerView* makeLayerView(
                 const LayerModel& viewmodel,
                 QObject* parent) override;
 
-        ProcessPresenter* makePresenter(
+        LayerPresenter* makeLayerPresenter(
                 const LayerModel&,
-                Layer*,
+                LayerView*,
                 QObject* parent) override;
 };

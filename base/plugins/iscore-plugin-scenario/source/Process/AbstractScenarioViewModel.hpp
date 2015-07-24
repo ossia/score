@@ -54,7 +54,7 @@ class AbstractScenarioLayer : public LayerModel
     protected:
         AbstractScenarioLayer(const id_type<LayerModel>& viewModelId,
                               const QString& name,
-                              ProcessModel& sharedProcess,
+                              Process& sharedProcess,
                               QObject* parent) :
             LayerModel {viewModelId,
                         name,
@@ -68,7 +68,7 @@ class AbstractScenarioLayer : public LayerModel
         AbstractScenarioLayer(const AbstractScenarioLayer& source,
                               const id_type<LayerModel>& viewModelId,
                               const QString& name,
-                              ProcessModel& sharedProcess,
+                              Process& sharedProcess,
                               QObject* parent) :
             LayerModel {viewModelId,
                         name,
@@ -80,7 +80,7 @@ class AbstractScenarioLayer : public LayerModel
         // Load
         template<typename Impl>
         AbstractScenarioLayer(Deserializer<Impl>& vis,
-                              ProcessModel& sharedProcess,
+                              Process& sharedProcess,
                               QObject* parent) :
             LayerModel {vis,
                         sharedProcess,

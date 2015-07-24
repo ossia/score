@@ -13,7 +13,7 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenter;
+class LayerPresenter;
 
 /**
  * @brief The FullViewConstraintPresenter class

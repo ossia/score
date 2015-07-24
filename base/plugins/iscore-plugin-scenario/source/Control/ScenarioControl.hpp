@@ -60,7 +60,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 
 
         ProcessFocusManager* processFocusManager() const;
-        void on_presenterFocused(ProcessPresenter* lm);
-        void on_presenterDefocused(ProcessPresenter* lm);
+        void on_presenterFocused(LayerPresenter* lm);
+        void on_presenterDefocused(LayerPresenter* lm);
         void setupCommands();
 };

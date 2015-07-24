@@ -13,9 +13,9 @@
 #include "Curve/CurveView.hpp"
 AutomationPresenter::AutomationPresenter(
         const LayerModel& model,
-        Layer* view,
+        LayerView* view,
         QObject* parent) :
-    ProcessPresenter {"AutomationPresenter", parent},
+    LayerPresenter {"AutomationPresenter", parent},
     m_viewModel{static_cast<const AutomationViewModel&>(model)},
     m_view{static_cast<AutomationView*>(view)},
     m_commandDispatcher{iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())->commandStack()},
@@ -93,7 +93,7 @@ const LayerModel& AutomationPresenter::viewModel() const
     return m_viewModel;
 }
 
-const id_type<ProcessModel>& AutomationPresenter::modelId() const
+const id_type<Process>& AutomationPresenter::modelId() const
 {
     return m_viewModel.model().id();
 }

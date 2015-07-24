@@ -3,13 +3,13 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
-class ProcessModel;
+class Process;
 class LayerModel;
 namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenter : public NamedObject
+class LayerPresenter : public NamedObject
 {
         Q_OBJECT
         bool m_focus{false};
@@ -21,7 +21,7 @@ class ProcessPresenter : public NamedObject
         void setFocus(bool focus);
         virtual void on_focusChanged();
 
-        virtual ~ProcessPresenter() = default;
+        virtual ~LayerPresenter() = default;
 
         virtual void setWidth(int width) = 0;
         virtual void setHeight(int height) = 0;
@@ -33,6 +33,6 @@ class ProcessPresenter : public NamedObject
         virtual void parentGeometryChanged() = 0;
 
         virtual const LayerModel& viewModel() const = 0;
-        virtual const id_type<ProcessModel>& modelId() const = 0;
+        virtual const id_type<Process>& modelId() const = 0;
 
 };

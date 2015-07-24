@@ -1,7 +1,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Process/Temporal/TemporalScenarioLayer.hpp"
+#include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "ScenarioModel.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
@@ -183,7 +183,7 @@ void ScenarioModel::serialize(const VisitorVariant& vis) const
 }
 
 #include "ScenarioFactory.hpp"
-ProcessModel* ScenarioFactory::loadModel(
+Process* ScenarioFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)
 {
@@ -197,7 +197,7 @@ LayerModel* ScenarioModel::loadLayer_impl(
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto scen = new TemporalScenarioLayer{
+        auto scen = new TemporalScenarioLayerModel{
                             deserializer, *this, parent};
         this->makeLayer_impl(scen);
         return scen;

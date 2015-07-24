@@ -95,7 +95,7 @@ LayerModel& SlotModel::layerModel(
 }
 
 void SlotModel::on_deleteSharedProcessModel(
-        const id_type<ProcessModel>& sharedProcessId)
+        const id_type<Process>& sharedProcessId)
 {
     using namespace std;
     auto it = find_if(begin(m_layerModels),

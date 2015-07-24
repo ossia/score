@@ -4,7 +4,7 @@
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "Process/Temporal/TemporalScenarioLayer.hpp"
+#include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 

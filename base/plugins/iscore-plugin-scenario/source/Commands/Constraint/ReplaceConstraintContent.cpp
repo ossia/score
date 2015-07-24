@@ -42,7 +42,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstrain
 
     // Same for processes
     auto target_processes = trg_constraint.processes();
-    QVector<id_type<ProcessModel>> target_processes_ids;
+    QVector<id_type<Process>> target_processes_ids;
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
                    [] (const auto& proc) { return proc.id(); });
@@ -79,7 +79,7 @@ void ReplaceConstraintContent::redo()
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent
 
-    std::map<const ProcessModel*, ProcessModel*> processPairs;
+    std::map<const Process*, Process*> processPairs;
 
     // Clone the processes
     auto src_procs = src_constraint.processes();

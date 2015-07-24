@@ -6,9 +6,9 @@
 #include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "ProcessInterface/ProcessPresenter.hpp"
+#include "ProcessInterface/LayerPresenter.hpp"
 #include "ProcessInterface/LayerModel.hpp"
-#include "ProcessInterface/Layer.hpp"
+#include "ProcessInterface/LayerView.hpp"
 #include "ProcessInterface/ProcessFactory.hpp"
 #include "ProcessInterface/ProcessModel.hpp"
 
@@ -194,8 +194,8 @@ void SlotPresenter::on_layerModelCreated_impl(
 
     auto factory = ProcessList::getFactory(procname);
 
-    auto proc_view = factory->makeView(proc_vm, m_view);
-    auto proc_pres = factory->makePresenter(proc_vm, proc_view, this);
+    auto proc_view = factory->makeLayerView(proc_vm, m_view);
+    auto proc_pres = factory->makeLayerPresenter(proc_vm, proc_view, this);
 
     if(m_enabled)
         m_view->enable();

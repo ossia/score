@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-class ProcessPresenter;
+class LayerPresenter;
 namespace iscore
 {
     class Document;
@@ -14,7 +14,7 @@ class FocusDispatcher : public QObject
         FocusDispatcher(iscore::Document& doc);
 
     signals:
-        void focus(ProcessPresenter* obj);
+        void focus(LayerPresenter* obj);
 
     private:
         iscore::DocumentDelegateModelInterface& m_baseElementModel;

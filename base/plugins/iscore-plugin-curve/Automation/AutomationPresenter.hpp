@@ -1,20 +1,20 @@
 #pragma once
-#include <ProcessInterface/ProcessPresenter.hpp>
+#include <ProcessInterface/LayerPresenter.hpp>
 #include <ProcessInterface/Focus/FocusDispatcher.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 class CurvePresenter;
 class QCPGraph;
-class Layer;
+class LayerView;
 class AutomationViewModel;
 class AutomationView;
 
-class AutomationPresenter : public ProcessPresenter
+class AutomationPresenter : public LayerPresenter
 {
         Q_OBJECT
     public:
         AutomationPresenter(const LayerModel& model,
-                            Layer* view,
+                            LayerView* view,
                             QObject* parent);
         ~AutomationPresenter();
 
@@ -29,7 +29,7 @@ class AutomationPresenter : public ProcessPresenter
         void parentGeometryChanged() override;
 
         const LayerModel& viewModel() const override;
-        const id_type<ProcessModel>& modelId() const override;
+        const id_type<Process>& modelId() const override;
 
     public slots:
         // From model

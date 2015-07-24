@@ -8,7 +8,7 @@ class ConstraintInspectorWidget;
 class LayerModel;
 class AddLayerModelWidget;
 class RackInspectorSection;
-class ProcessModel;
+class Process;
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
 class SlotInspectorSection : public InspectorSectionWidget
@@ -21,7 +21,7 @@ class SlotInspectorSection : public InspectorSectionWidget
 
         void displayLayerModel(const LayerModel&);
         void createLayerModel(
-                const id_type<ProcessModel>& sharedProcessId);
+                const id_type<Process>& sharedProcessId);
 
         const SlotModel& model() const;
 

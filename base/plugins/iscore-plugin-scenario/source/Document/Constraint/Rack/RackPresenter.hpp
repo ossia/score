@@ -7,7 +7,7 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
-class ProcessModel;
+class Process;
 class SlotPresenter;
 class RackModel;
 class RackView;

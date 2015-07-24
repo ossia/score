@@ -4,7 +4,7 @@
 #include <memory>
 
 class ConstraintModel;
-class ProcessModel;
+class Process;
 class OSSIAProcessElement;
 namespace OSSIA
 {
@@ -24,13 +24,13 @@ class OSSIAConstraintElement : public QObject
 
     private slots:
         void on_processAdded(const QString& name,
-                             const id_type<ProcessModel>& id);
-        void on_processRemoved(const id_type<ProcessModel>& id);
+                             const id_type<Process>& id);
+        void on_processRemoved(const id_type<Process>& id);
 
     private:
         ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
 
-        std::map<id_type<ProcessModel>, OSSIAProcessElement*> m_processes;
+        std::map<id_type<Process>, OSSIAProcessElement*> m_processes;
 
 };

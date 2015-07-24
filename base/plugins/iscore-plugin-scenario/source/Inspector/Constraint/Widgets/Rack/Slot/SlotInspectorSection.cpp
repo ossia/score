@@ -73,7 +73,7 @@ SlotInspectorSection::SlotInspectorSection(
 }
 
 void SlotInspectorSection::createLayerModel(
-        const id_type<ProcessModel>& sharedProcessModelId)
+        const id_type<Process>& sharedProcessModelId)
 {
     auto cmd = new AddLayerModelToSlot(
                    iscore::IDocument::path(m_model),

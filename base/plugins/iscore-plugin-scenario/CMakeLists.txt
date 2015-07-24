@@ -34,8 +34,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/Layer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerModel.cpp"
 )
 
@@ -242,7 +242,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/ScenarioStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioLayer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/ScenarioViewInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioPanelProxy.cpp"

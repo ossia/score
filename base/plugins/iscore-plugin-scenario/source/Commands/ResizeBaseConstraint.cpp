@@ -68,7 +68,7 @@ void MoveBaseEvent::undo()
 
     updateDuration(scenar,
               m_oldDate,
-              [&] (ProcessModel& p , const TimeValue& v) {
+              [&] (Process& p , const TimeValue& v) {
         // Nothing is needed since the processes will be replaced anyway.
     });
 
@@ -91,7 +91,7 @@ void MoveBaseEvent::undo()
         Deserializer<DataStream>{m_savedConstraint.first},
         &constraint}; // Temporary parent
 
-    std::map<const ProcessModel*, ProcessModel*> processPairs;
+    std::map<const Process*, Process*> processPairs;
 
     // Clone the processes
     for(const auto& sourceproc : src_constraint.processes())
@@ -118,7 +118,7 @@ void MoveBaseEvent::undo()
             for(const auto& lm : source.layerModels())
             {
                 // We can safely reuse the same id since it's in a different slot.
-                ProcessModel* proc = processPairs[&lm.sharedProcessModel()];
+                Process* proc = processPairs[&lm.sharedProcessModel()];
                 // TODO harmonize the order of parameters (source first, then new id)
                 target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
             }
@@ -141,7 +141,7 @@ void MoveBaseEvent::redo()
 
     updateDuration(scenar,
               m_newDate,
-              [&] (ProcessModel& p , const TimeValue& v) {
+              [&] (Process& p , const TimeValue& v) {
         p.expandProcess(m_mode, v);
     });
 }

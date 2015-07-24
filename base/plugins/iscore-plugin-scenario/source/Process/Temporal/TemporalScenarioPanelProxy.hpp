@@ -1,16 +1,16 @@
 #pragma once
 #include <ProcessInterface/LayerModelPanelProxy.hpp>
-#include "TemporalScenarioLayer.hpp"
+#include "TemporalScenarioLayerModel.hpp"
 
 class TemporalScenarioPanelProxy : public LayerModelPanelProxy
 {
     public:
         TemporalScenarioPanelProxy(
-                const TemporalScenarioLayer& lm,
+                const TemporalScenarioLayerModel& lm,
                 QObject* parent);
 
-        const TemporalScenarioLayer& layer() override;
+        const TemporalScenarioLayerModel& layer() override;
 
     private:
-        const TemporalScenarioLayer& m_viewModel;
+        const TemporalScenarioLayerModel& m_viewModel;
 };

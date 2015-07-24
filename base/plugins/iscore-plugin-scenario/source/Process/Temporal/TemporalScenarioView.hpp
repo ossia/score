@@ -1,12 +1,12 @@
 #pragma once
-#include "ProcessInterface/Layer.hpp"
+#include "ProcessInterface/LayerView.hpp"
 
 #include <QAction>
 #include <QEvent>
 
 class QMimeData;
 class TemporalScenarioPresenter;
-class TemporalScenarioView : public Layer
+class TemporalScenarioView : public LayerView
 {
         Q_OBJECT
 

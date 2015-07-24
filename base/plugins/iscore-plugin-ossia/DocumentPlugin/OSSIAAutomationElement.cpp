@@ -37,7 +37,7 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::process() const
     return m_ossia_autom;
 }
 
-const ProcessModel *OSSIAAutomationElement::iscoreProcess() const
+const Process *OSSIAAutomationElement::iscoreProcess() const
 {
     return m_iscore_autom;
 }

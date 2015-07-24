@@ -95,7 +95,7 @@ std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
     return m_ossia_scenario;
 }
 
-const ProcessModel *OSSIAScenarioElement::iscoreProcess() const
+const Process *OSSIAScenarioElement::iscoreProcess() const
 {
     return m_iscore_scenario;
 }

@@ -8,9 +8,9 @@
 
 #include <ProcessInterface/TimeValue.hpp>
 class LayerModel;
-class ProcessModel;
-class Layer;
-class ProcessPresenter;
+class Process;
+class LayerView;
+class LayerPresenter;
 
 /**
      * @brief The ProcessFactory class
@@ -26,9 +26,9 @@ class ProcessFactory : public iscore::FactoryInterface
         // The process name
         virtual QString name() const = 0;
 
-        virtual ProcessModel* makeModel(
+        virtual Process* makeModel(
                 const TimeValue& duration,
-                const id_type<ProcessModel>& id,
+                const id_type<Process>& id,
                 QObject* parent) = 0;
 
         // The layers may need some specific static data to construct,
@@ -36,18 +36,18 @@ class ProcessFactory : public iscore::FactoryInterface
         virtual QByteArray makeStaticLayerConstructionData() const = 0;
 
         // throws if the serialization method is not implemented by the subclass
-        virtual ProcessModel* loadModel(
+        virtual Process* loadModel(
                 const VisitorVariant&,
                 QObject* parent) = 0;
 
         // TODO Make it take a view name, too (cf. logical / temporal).
         // Or make it be created by the ViewModel, and the View be created by the presenter.
-        virtual ProcessPresenter* makePresenter(
+        virtual LayerPresenter* makeLayerPresenter(
                 const LayerModel&,
-                Layer*,
+                LayerView*,
                 QObject* parent) = 0;
 
-        virtual Layer* makeView(
+        virtual LayerView* makeLayerView(
                 const LayerModel& view,
                 QObject* parent) = 0;
 

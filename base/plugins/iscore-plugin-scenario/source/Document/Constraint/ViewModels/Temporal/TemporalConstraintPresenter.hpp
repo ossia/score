@@ -10,7 +10,7 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenter;
+class LayerPresenter;
 
 class TemporalConstraintPresenter : public ConstraintPresenter
 {

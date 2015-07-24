@@ -9,10 +9,10 @@ namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenter;
-class ProcessModel;
+class LayerPresenter;
+class Process;
 class LayerModel;
-class Layer;
+class LayerView;
 class RackView;
 class SlotPresenter : public NamedObject
 {
@@ -36,7 +36,7 @@ class SlotPresenter : public NamedObject
         void enable();
         void disable();
 
-        using ProcessPair = QPair<ProcessPresenter*, Layer*>;
+        using ProcessPair = QPair<LayerPresenter*, LayerView*>;
         const QVector<ProcessPair>& processes() const { return m_processes; }
 
     signals:

@@ -9,7 +9,7 @@
 #include "TemporalScenarioPresenter.hpp"
 
 TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
-    Layer {parent}
+    LayerView {parent}
 {
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
     this->setCursor(Qt::ArrowCursor);

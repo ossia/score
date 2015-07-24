@@ -7,7 +7,7 @@
 #include <QString>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
-class ProcessModel;
+class Process;
 class LayerModel;
 class RackModel;
 class SlotModel;
@@ -33,7 +33,7 @@ namespace Scenario
 
                 const ObjectPath& constraintPath() const
                 { return m_path; }
-                id_type<ProcessModel> processId() const
+                id_type<Process> processId() const
                 {
                     return m_createdProcessId;
                 }
@@ -46,7 +46,7 @@ namespace Scenario
                 ObjectPath m_path;
                 QString m_processName;
 
-                id_type<ProcessModel> m_createdProcessId {};
+                id_type<Process> m_createdProcessId {};
                 id_type<RackModel> m_createdRackId {};
                 id_type<SlotModel> m_createdSlotId {};
                 id_type<LayerModel> m_createdLayerId {};

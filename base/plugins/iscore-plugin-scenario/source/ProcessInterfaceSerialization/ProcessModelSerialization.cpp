@@ -6,12 +6,12 @@
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessModel& process)
+void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 {
     // To allow recration using createProcess
     m_stream << process.processName();
 
-    readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
     readFrom(process.duration());
 
@@ -24,7 +24,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ProcessModel& process)
 // We only load the members of the process here.
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ProcessModel& process)
+void Visitor<Writer<DataStream>>::writeTo(Process& process)
 {
     writeTo(process.m_duration);
 
@@ -32,7 +32,7 @@ void Visitor<Writer<DataStream>>::writeTo(ProcessModel& process)
 }
 
 template<>
-ProcessModel* createProcess(Deserializer<DataStream>& deserializer,
+Process* createProcess(Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
     QString processName;
@@ -52,12 +52,12 @@ ProcessModel* createProcess(Deserializer<DataStream>& deserializer,
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ProcessModel& process)
+void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
 {
     // To allow recration using createProcess
     m_obj["ProcessName"] = process.processName();
 
-    readFrom(static_cast<const IdentifiedObject<ProcessModel>&>(process));
+    readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
     m_obj["Duration"] = toJsonValue(process.duration());
 
@@ -67,13 +67,13 @@ void Visitor<Reader<JSONObject>>::readFrom(const ProcessModel& process)
 
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ProcessModel& process)
+void Visitor<Writer<JSONObject>>::writeTo(Process& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
 }
 
 template<>
-ProcessModel* createProcess(Deserializer<JSONObject>& deserializer,
+Process* createProcess(Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
     auto model = ProcessList::getFactory(

@@ -9,8 +9,8 @@
 #include <ProcessInterface/ProcessModel.hpp>
 #include <ProcessInterface/LayerModel.hpp>
 #include <ProcessInterface/LayerModelPanelProxy.hpp>
-#include <ProcessInterface/ProcessPresenter.hpp>
-#include <ProcessInterface/Layer.hpp>
+#include <ProcessInterface/LayerPresenter.hpp>
+#include <ProcessInterface/LayerView.hpp>
 #include <ProcessInterface/ProcessFactory.hpp>
 
 #include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
@@ -80,10 +80,10 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
         auto panelview = static_cast<ProcessPanelView*>(view());
         panelview->scene()->addItem(m_obj);
 
-        m_layer = fact->makeView(proxy->layer(),
+        m_layer = fact->makeLayerView(proxy->layer(),
                                        m_obj);
 
-        m_processPresenter = fact->makePresenter(proxy->layer(),
+        m_processPresenter = fact->makeLayerPresenter(proxy->layer(),
                                                  m_layer,
                                                  this);
 

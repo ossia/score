@@ -1,7 +1,7 @@
 #include "TemporalScenarioPresenter.hpp"
 
 #include "source/Process/ScenarioModel.hpp"
-#include "source/Process/Temporal/TemporalScenarioLayer.hpp"
+#include "source/Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "source/Process/Temporal/TemporalScenarioView.hpp"
 
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
@@ -34,10 +34,10 @@
 #include "Commands/Scenario/Creations/CreateStateMacro.hpp"
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
-        const TemporalScenarioLayer& process_view_model,
-        Layer* view,
+        const TemporalScenarioLayerModel& process_view_model,
+        LayerView* view,
         QObject* parent) :
-    ProcessPresenter {"TemporalScenarioPresenter", parent},
+    LayerPresenter {"TemporalScenarioPresenter", parent},
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
@@ -69,24 +69,24 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
 
     /////// Connections
-    connect(&m_layer, &TemporalScenarioLayer::stateCreated,
+    connect(&m_layer, &TemporalScenarioLayerModel::stateCreated,
             this,		 &TemporalScenarioPresenter::on_stateCreated);
-    connect(&m_layer, &TemporalScenarioLayer::stateRemoved,
+    connect(&m_layer, &TemporalScenarioLayerModel::stateRemoved,
             this,		 &TemporalScenarioPresenter::on_stateRemoved);
 
-    connect(&m_layer, &TemporalScenarioLayer::eventCreated,
+    connect(&m_layer, &TemporalScenarioLayerModel::eventCreated,
             this,		 &TemporalScenarioPresenter::on_eventCreated);
-    connect(&m_layer, &TemporalScenarioLayer::eventRemoved,
+    connect(&m_layer, &TemporalScenarioLayerModel::eventRemoved,
             this,		 &TemporalScenarioPresenter::on_eventRemoved);
 
-    connect(&m_layer, &TemporalScenarioLayer::timeNodeCreated,
+    connect(&m_layer, &TemporalScenarioLayerModel::timeNodeCreated,
             this,        &TemporalScenarioPresenter::on_timeNodeCreated);
-    connect(&m_layer, &TemporalScenarioLayer::timeNodeRemoved,
+    connect(&m_layer, &TemporalScenarioLayerModel::timeNodeRemoved,
             this,        &TemporalScenarioPresenter::on_timeNodeRemoved);
 
-    connect(&m_layer, &TemporalScenarioLayer::constraintViewModelCreated,
+    connect(&m_layer, &TemporalScenarioLayerModel::constraintViewModelCreated,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelCreated);
-    connect(&m_layer, &TemporalScenarioLayer::constraintViewModelRemoved,
+    connect(&m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
     connect(m_view, &TemporalScenarioView::scenarioPressed,
@@ -135,7 +135,7 @@ const LayerModel& TemporalScenarioPresenter::viewModel() const
     return m_layer;
 }
 
-const id_type<ProcessModel>& TemporalScenarioPresenter::modelId() const
+const id_type<Process>& TemporalScenarioPresenter::modelId() const
 {
     return m_layer.sharedProcessModel().id();
 }

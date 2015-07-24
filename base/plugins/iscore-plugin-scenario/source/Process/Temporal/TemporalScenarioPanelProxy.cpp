@@ -1,8 +1,8 @@
 #include "TemporalScenarioPanelProxy.hpp"
-#include "TemporalScenarioLayer.hpp"
+#include "TemporalScenarioLayerModel.hpp"
 
 TemporalScenarioPanelProxy::TemporalScenarioPanelProxy(
-        const TemporalScenarioLayer& lm,
+        const TemporalScenarioLayerModel& lm,
         QObject* parent):
     LayerModelPanelProxy{parent},
     m_viewModel{lm}
@@ -10,7 +10,7 @@ TemporalScenarioPanelProxy::TemporalScenarioPanelProxy(
 
 }
 
-const TemporalScenarioLayer& TemporalScenarioPanelProxy::layer()
+const TemporalScenarioLayerModel& TemporalScenarioPanelProxy::layer()
 {
     return m_viewModel;
 }

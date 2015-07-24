@@ -4,8 +4,8 @@
 
 #include <ProcessInterface/ZoomHelper.hpp>
 class BaseElementModel;
-class Layer;
-class ProcessPresenter;
+class LayerView;
+class LayerPresenter;
 class LayerModel;
 class ProcessPanelPresenter : public iscore::PanelPresenter
 {
@@ -30,8 +30,8 @@ class ProcessPanelPresenter : public iscore::PanelPresenter
 
         ProcessPanelGraphicsProxy* m_obj{};
         const LayerModel* m_layerModel{};
-        ProcessPresenter* m_processPresenter{};
-        Layer* m_layer{};
+        LayerPresenter* m_processPresenter{};
+        LayerView* m_layer{};
 
         ZoomRatio m_zoomRatio{};
 };

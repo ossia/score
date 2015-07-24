@@ -12,13 +12,13 @@ class ConstraintView;
 class RackPresenter;
 class RackModel;
 class ConstraintModel;
-class ProcessModel;
+class Process;
 class ConstraintHeader;
 namespace iscore
 {
     class SerializableCommand;
 }
-class ProcessPresenter;
+class LayerPresenter;
 
 class ConstraintPresenter : public NamedObject
 {
