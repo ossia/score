@@ -4,6 +4,7 @@
 namespace OSSIA
 {
     class Device;
+    class TimeConstraint;
 }
 class OSSIAControl : public iscore::PluginControlInterface
 {
@@ -24,5 +25,6 @@ class OSSIAControl : public iscore::PluginControlInterface
         void on_documentChanged();
 
     private:
+        OSSIA::TimeConstraint& baseConstraint() const;
         std::shared_ptr<OSSIA::Device> m_localDevice;
 };

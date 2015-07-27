@@ -128,7 +128,7 @@ void Process::removeLayer(LayerModel* m)
 Process* parentProcess(QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
-    while(obj && !obj->inherits("ProcessModel"))
+    while(obj && !obj->inherits(Process::staticMetaObject.className()))
     {
         obj = obj->parent();
     }
@@ -146,7 +146,7 @@ Process* parentProcess(QObject* obj)
 const Process* parentProcess(const QObject* obj)
 {
     QString objName (obj ? obj->objectName() : "INVALID");
-    while(obj && !obj->inherits("ProcessModel"))
+    while(obj && !obj->inherits(Process::staticMetaObject.className()))
     {
         obj = obj->parent();
     }

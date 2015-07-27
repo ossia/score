@@ -61,6 +61,8 @@ class ConstraintPresenter : public NamedObject
         void on_minDurationChanged(const TimeValue& min);
         void on_maxDurationChanged(const TimeValue& max);
 
+        void on_playDurationChanged(const TimeValue& t);
+
         void on_rackShown(const id_type<RackModel>& rackId);
         void on_rackHidden();
         void on_rackRemoved();

@@ -55,7 +55,7 @@ ConstraintPresenter::ConstraintPresenter(
             this,         &ConstraintPresenter::on_rackRemoved);
 
     connect(&m_viewModel.model(), &ConstraintModel::playDurationChanged,
-            [&] (const TimeValue& t) { m_view->setPlayWidth(t.toPixels(m_zoomRatio));});
+            this, &ConstraintPresenter::on_playDurationChanged, Qt::QueuedConnection);
 
     connect(&m_viewModel.model().consistency, &ModelConsistency::validChanged,
             m_view, &ConstraintView::setValid);
@@ -70,7 +70,6 @@ ConstraintPresenter::ConstraintPresenter(
     {
         on_rackRemoved();
     }
-    updateHeight();
 }
 
 void ConstraintPresenter::updateScaling()
@@ -78,17 +77,10 @@ void ConstraintPresenter::updateScaling()
     const auto& cm = m_viewModel.model();
     // prendre en compte la distance du clic à chaque côté
 
-    auto width = cm.defaultDuration().toPixels(m_zoomRatio);
-    m_view->setDefaultWidth(width);
-    m_view->setMinWidth(cm.minDuration().toPixels(m_zoomRatio));
-    m_view->setMaxWidth(cm.maxDuration().isInfinite(),
-                        cm.maxDuration().isInfinite()? -1 : cm.maxDuration().toPixels(m_zoomRatio));
+    on_defaultDurationChanged(cm.defaultDuration());
+    on_minDurationChanged(cm.minDuration());
+    on_maxDurationChanged(cm.maxDuration());
 
-    m_header->setWidth(width);
-    if(rack())
-    {
-        rack()->setWidth(m_view->defaultWidth() - 20);
-    }
 
     updateHeight();
 }
@@ -115,8 +107,14 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
     m_view->setDefaultWidth(width);
     m_header->setWidth(width);
 
+    if(rack())
+    {
+        rack()->setWidth(m_view->defaultWidth() - 20);
+    }
+
     emit askUpdate();
     m_view->update();
+    m_header->update();
 }
 
 void ConstraintPresenter::on_minDurationChanged(const TimeValue& min)
@@ -134,6 +132,13 @@ void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 
     emit askUpdate();
     m_view->update();
+    m_header->update();
+}
+
+void ConstraintPresenter::on_playDurationChanged(const TimeValue &t)
+{
+    m_view->setPlayWidth(t.toPixels(m_zoomRatio));
+    m_header->update();
 }
 
 void ConstraintPresenter::updateHeight()
@@ -151,6 +156,7 @@ void ConstraintPresenter::updateHeight()
 
     emit askUpdate();
     m_view->update();
+    m_header->update();
     emit heightChanged();
 }
 

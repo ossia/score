@@ -35,16 +35,17 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 }
 
 
+OSSIA::TimeConstraint &OSSIAControl::baseConstraint() const
+{
+    return *static_cast<OSSIADocumentPlugin*>(currentDocument()->model()->pluginModel("OSSIADocumentPlugin"))->baseScenario()->baseConstraint()->constraint();
+}
+
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 {
     QAction* play = new QAction {tr("Play"), this};
     connect(play, &QAction::triggered,
             [&] ()
-    {
-        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
-        static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->startEvent()->event()->play();
-
-    });
+    { baseConstraint().start(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        play);
@@ -52,15 +53,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* pause = new QAction {tr("Pause"), this};
     connect(pause, &QAction::triggered,
             [&] ()
-    {
-        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
-        auto cst = static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->baseConstraint()->constraint();
-
-        for(auto& elt : cst->timeProcesses())
-        {
-            elt->pause();
-        }
-    });
+    { baseConstraint().pause(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        pause);
@@ -68,15 +61,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* resume = new QAction {tr("Resume"), this};
     connect(resume, &QAction::triggered,
             [&] ()
-    {
-        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
-        auto cst = static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->baseConstraint()->constraint();
-
-        for(auto& elt : cst->timeProcesses())
-        {
-            elt->resume();
-        }
-    });
+    { baseConstraint().resume(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        resume);
@@ -84,11 +69,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* stop = new QAction {tr("Stop"), this};
     connect(stop, &QAction::triggered,
             [&] ()
-    {
-        auto plug = currentDocument()->model()->pluginModel("OSSIADocumentPlugin");
-        static_cast<OSSIADocumentPlugin*>(plug)->baseScenario()->baseConstraint()->stop();
-
-    });
+    { baseConstraint().stop(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        stop);
@@ -124,3 +105,4 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 void OSSIAControl::on_documentChanged()
 {
 }
+

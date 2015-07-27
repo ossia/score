@@ -73,10 +73,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                     // Rigid
                     if(cstr.isRigid())
                     {
+                        cstr.setDefaultDuration(time);
+
                         cstr.setMinDuration(time);
                         cstr.setMaxDuration(time);
-
-                        cstr.setDefaultDuration(time);
                     }
                     else // TODO The checking must be done elsewhere if(arg >= m_minDuration && arg <= m_maxDuration)
                         // --> it should be in a command to be undoable
@@ -90,10 +90,13 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
             {
                 if(cstr.defaultDuration() != time)
                 {
-                    cstr.setMinDuration(cstr.minDuration() + (time - cstr.defaultDuration()));
-                    cstr.setMaxDuration(cstr.maxDuration() + (time - cstr.defaultDuration()));
-
+                    // Note: the OSSIA implementation requires min <= dur <= max at all time
+                    // and will throw if not the case. Hence this order.
+                    auto delta = time - cstr.defaultDuration();
                     cstr.setDefaultDuration(time);
+
+                    cstr.setMinDuration(cstr.minDuration() + delta);
+                    cstr.setMaxDuration(cstr.maxDuration() + delta);
                 }
             }
         };

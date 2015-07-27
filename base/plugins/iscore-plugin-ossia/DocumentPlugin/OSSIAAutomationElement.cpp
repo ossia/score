@@ -81,9 +81,6 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
     using namespace OSSIA;
 
     auto new_autom = Automation::create(
-                [](const OSSIA::TimeValue& position,
-                   const OSSIA::TimeValue& date,
-                   std::shared_ptr<OSSIA::State> state) { state->launch(); },
                 address,
                 new Behavior(m_ossia_curve));
 

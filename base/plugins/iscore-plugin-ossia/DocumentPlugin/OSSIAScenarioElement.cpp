@@ -26,7 +26,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     this->setObjectName("OSSIAScenarioElement");
 
     // Setup of the OSSIA API Part
-    m_ossia_scenario = OSSIA::Scenario::create([=](
+    m_ossia_scenario = OSSIA::Scenario::create(/*[=](
                                                const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
                                                const OSSIA::TimeValue& date,
                                                std::shared_ptr<OSSIA::State> state)
@@ -38,8 +38,8 @@ OSSIAScenarioElement::OSSIAScenarioElement(
         }
 
         m_previousExecutionDate = currentTime;
-    });
-
+    }*/);
+/*
     if(element->parent()->objectName() != QString("BaseConstraintModel"))
     {
         m_ossia_scenario->getClock()->setExternal(true);
@@ -50,7 +50,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(
         m_ossia_scenario->getClock()->setGranularity(50.);
         m_ossia_scenario->getClock()->setOffset(1.);
     }
-
+*/
     // Link with i-score
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
@@ -120,12 +120,27 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
     Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.endState()).eventId());
 
-    auto ossia_cst = OSSIA::TimeConstraint::create(
+    auto ossia_cst = OSSIA::TimeConstraint::create([=,iscore_constraint=&cst](
+                                                   const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
+                                                   const OSSIA::TimeValue& date,
+                                                   std::shared_ptr<OSSIA::StateElement> state) {
+        auto currentTime = OSSIA::convert::time(date);
+        iscore_constraint->setPlayDuration(currentTime);
+        /*
+        for(auto& constraint : m_executingConstraints)
+        {
+            constraint.setPlayDuration(constraint.playDuration() + (currentTime - m_previousExecutionDate));
+        }
+
+        m_previousExecutionDate = currentTime;
+        */
+    },
                 ossia_sev->event(),
                 ossia_eev->event(),
                 iscore::convert::time(cst.defaultDuration()),
                 iscore::convert::time(cst.minDuration()),
                 iscore::convert::time(cst.maxDuration()));
+
 
     m_ossia_scenario->addTimeConstraint(ossia_cst);
 
@@ -192,21 +207,18 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
     auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(),
-                                                   [=] (OSSIA::TimeEvent::Status newStatus,
-                                                   OSSIA::TimeEvent::Status oldStatus)
+                                                   [=,the_event=&ev] (OSSIA::TimeEvent::Status newStatus)
     {
-        auto& the_event = m_iscore_scenario->event(id);
+        the_event->setStatus(static_cast<EventStatus>(newStatus));
 
-        the_event.setStatus(static_cast<EventStatus>(newStatus));
-
-        for(auto& state : the_event.states())
+        for(auto& state : the_event->states())
         {
             auto& iscore_state = m_iscore_scenario->state(state);
-            qDebug() << "AZEAZEAZE" << 1234124 << 2143 << "klm" << (int) newStatus;
+            // qDebug() << "AZEAZEAZE" << 1234124 << 2143 << "klm" << (int) newStatus;
 
             switch(newStatus)
             {
-                case OSSIA::TimeEvent::Status::WAITING:
+                case OSSIA::TimeEvent::Status::NONE:
                     break;
                 case OSSIA::TimeEvent::Status::PENDING:
                     break;
@@ -271,7 +283,23 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
 {
     auto it = m_ossia_constraints.find(id);
     auto cst = (*it).second;
+
+    auto ref = cst->constraint();
+
+    // API Cleanup
     m_ossia_scenario->removeTimeConstraint(cst->constraint());
+
+    // Remove the constraint from the events
+    auto& startEventNextConstraints = ref->getStartEvent()->nextTimeConstraints();
+    startEventNextConstraints.erase(std::remove(startEventNextConstraints.begin(),
+                                                startEventNextConstraints.end(),
+                                                ref),
+                                    startEventNextConstraints.end());
+    auto& endEventPreviousConstraints = ref->getEndEvent()->previousTimeConstraints();
+    endEventPreviousConstraints.erase(std::remove(endEventPreviousConstraints.begin(),
+                                                  endEventPreviousConstraints.end(),
+                                                  ref),
+                                      endEventPreviousConstraints.end());
 
     m_ossia_constraints.erase(it);
     delete cst;

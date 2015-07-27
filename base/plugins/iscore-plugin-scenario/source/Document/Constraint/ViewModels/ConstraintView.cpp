@@ -26,15 +26,6 @@ void ConstraintView::setDefaultWidth(double width)
 {
     prepareGeometryChange();
     m_defaultWidth = width;
-
-    for (auto child : this->childItems())
-    {
-        if (child->type() == QGraphicsItem::UserType + 4)
-        {
-            static_cast<StateView*>(child)->setX(width);
-        }
-    }
-
 }
 
 void ConstraintView::setMaxWidth(bool infinite, double max)
@@ -86,6 +77,7 @@ void ConstraintView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     emit m_presenter.released(event->scenePos());
 }
+
 bool ConstraintView::warning() const
 {
     return m_warning;

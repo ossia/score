@@ -12,7 +12,6 @@ using namespace iscore;
 #include <QMessageBox>
 static Application* application_instance = nullptr;
 
-/**	A TTBlue exception is thown with this object. */
 class TTException {
     const char*	reason;
 public:
@@ -30,6 +29,7 @@ class CatchyApplication : public QApplication
 {
     public:
         using QApplication::QApplication;
+#if !defined(ISCORE_DEBUG)
         bool notify(QObject * receiver, QEvent * event)
         {
             try
@@ -51,6 +51,7 @@ class CatchyApplication : public QApplication
 
             return false;
         }
+#endif
 };
 
 Application::Application(int& argc, char** argv) :

@@ -10,7 +10,11 @@
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
 
-static void statusCallback(OSSIA::TimeEvent::Status newStatus, OSSIA::TimeEvent::Status oldStatus)
+static void constraintCallback(const OSSIA::TimeValue&, const OSSIA::TimeValue&, std::shared_ptr<OSSIA::StateElement>)
+{
+
+}
+static void statusCallback(OSSIA::TimeEvent::Status newStatus)
 {
 
 }
@@ -23,7 +27,7 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), statusCallback);
 
     OSSIA::TimeValue main_duration(iscore::convert::time(element->baseConstraint().defaultDuration()));
-    auto main_constraint = OSSIA::TimeConstraint::create(*main_start_event_it, *main_end_event_it, main_duration);
+    auto main_constraint = OSSIA::TimeConstraint::create(constraintCallback, *main_start_event_it, *main_end_event_it, main_duration);
 
     m_ossia_startTimeNode = new OSSIATimeNodeElement{main_start_node, element->startTimeNode(), this};
     m_ossia_endTimeNode = new OSSIATimeNodeElement{main_end_node, element->endTimeNode(), this};
