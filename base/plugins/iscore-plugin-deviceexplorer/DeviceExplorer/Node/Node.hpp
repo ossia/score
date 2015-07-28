@@ -87,5 +87,6 @@ class Node
         Type m_type;
 };
 
-Node* getNodeFromString(Node* n, QStringList&& str);
+Node* try_getNodeFromString(Node* n, QStringList&& str);
+Node* getNodeFromString(Node* n, QStringList&& str); // Fails if not present.
 }

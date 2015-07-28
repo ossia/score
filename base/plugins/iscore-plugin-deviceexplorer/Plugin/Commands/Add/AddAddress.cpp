@@ -58,7 +58,7 @@ void AddAddress::redo()
     Q_ASSERT(dev_node->isDevice());
 
     // Make a full path
-    iscore::FullAddressSettings full = iscore::FullAddressSettings::make(
+    iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
                                    m_addressSettings,
                                    parentnode->address());
 

@@ -33,6 +33,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/IOType.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/ClipMode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/FullAddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/NodePath.cpp"

@@ -9,6 +9,9 @@
 #include "OSSIAAutomationElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 #include "iscore2OSSIA.hpp"
+
+#include <sstream>
+
 OSSIAConstraintElement::OSSIAConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
         ConstraintModel& iscore_cst,
@@ -106,7 +109,7 @@ void OSSIAConstraintElement::on_processAdded(
         }
     }
 }
-#include <sstream>
+
 void OSSIAConstraintElement::on_processRemoved(const id_type<Process>& process)
 {
     auto it = m_processes.find(process);

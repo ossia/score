@@ -17,7 +17,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(QObject* parent):
 
 void recurse_addPaths(DeviceInterface& dev, iscore::Node& node)
 {
-    auto full = iscore::FullAddressSettings::make(node.addressSettings(), node.parent()->address());
+    auto full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(node.addressSettings(), node.parent()->address());
 
     // Add in the device implementation
     dev.addAddress(full);

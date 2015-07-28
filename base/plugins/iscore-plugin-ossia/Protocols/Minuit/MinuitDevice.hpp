@@ -12,7 +12,7 @@ class MinuitDevice : public OSSIADevice
     public:
         MinuitDevice(const iscore::DeviceSettings& settings);
         bool canRefresh() const override;
-        iscore::Node refresh() override;
+        iscore::Node refresh() override; // throws std::runtime_error
         iscore::Value refresh(const iscore::Address&) override;
 
     private:

@@ -26,31 +26,8 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     this->setObjectName("OSSIAScenarioElement");
 
     // Setup of the OSSIA API Part
-    m_ossia_scenario = OSSIA::Scenario::create(/*[=](
-                                               const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
-                                               const OSSIA::TimeValue& date,
-                                               std::shared_ptr<OSSIA::State> state)
-    {
-        auto currentTime = OSSIA::convert::time(date);
-        for(auto& constraint : m_executingConstraints)
-        {
-            constraint.setPlayDuration(constraint.playDuration() + (currentTime - m_previousExecutionDate));
-        }
+    m_ossia_scenario = OSSIA::Scenario::create();
 
-        m_previousExecutionDate = currentTime;
-    }*/);
-/*
-    if(element->parent()->objectName() != QString("BaseConstraintModel"))
-    {
-        m_ossia_scenario->getClock()->setExternal(true);
-    }
-    else
-    {
-        m_ossia_scenario->getClock()->setSpeed(1.);
-        m_ossia_scenario->getClock()->setGranularity(50.);
-        m_ossia_scenario->getClock()->setOffset(1.);
-    }
-*/
     // Link with i-score
     connect(element, &ScenarioModel::constraintCreated,
             this, &OSSIAScenarioElement::on_constraintCreated);
@@ -126,14 +103,8 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
         iscore_constraint->setPlayDuration(currentTime);
-        /*
-        for(auto& constraint : m_executingConstraints)
-        {
-            constraint.setPlayDuration(constraint.playDuration() + (currentTime - m_previousExecutionDate));
-        }
 
-        m_previousExecutionDate = currentTime;
-        */
+        state->launch();
     },
                 ossia_sev->event(),
                 ossia_eev->event(),

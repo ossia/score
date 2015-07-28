@@ -14,4 +14,5 @@ class ExplorationWorker : public QObject
 
     signals:
         void finished();
+        void failed(QString);
 };

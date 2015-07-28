@@ -32,7 +32,6 @@ iscore::Node MinuitDevice::refresh()
 {
     iscore::Node device_node;
 
-    try {
     if(m_dev->updateNamespace())
     {
         // Make a device explorer node from the current state of the device.
@@ -46,11 +45,6 @@ iscore::Node MinuitDevice::refresh()
         {
             device_node.addChild(ToDeviceExplorer(*node.get()));
         }
-    }
-    }
-    catch(std::runtime_error& e)
-    {
-        qDebug() << "Couldn't load the device:" << e.what();
     }
 
     device_node.deviceSettings().name = settings().name;

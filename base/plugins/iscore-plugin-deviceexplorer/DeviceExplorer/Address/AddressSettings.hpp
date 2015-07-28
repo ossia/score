@@ -38,21 +38,15 @@ struct AddressSettings : public iscore::AddressSettingsCommon
 // This one has the whole path of the node in address
 struct FullAddressSettings : public iscore::AddressSettingsCommon
 {
+        struct as_parent;
+        struct as_child;
         iscore::Address address;
 
-        // Second argument should be the address of the parent.
+        template<typename T>
         static FullAddressSettings make(
                 const iscore::AddressSettings& other,
-                const iscore::Address& addr)
-        {
-            FullAddressSettings as;
-            static_cast<AddressSettingsCommon&>(as) = other;
-
-            as.address = addr;
-            as.address.path.append(other.name);
-
-            return as;
-        }
+                const iscore::Address& addr);
+        // Specializations are in FullAddressSettings.cpp
 };
 
 }

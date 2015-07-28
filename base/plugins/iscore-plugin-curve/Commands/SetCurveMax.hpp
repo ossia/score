@@ -3,7 +3,7 @@
 
 class SetCurveMax : public iscore::PropertyCommand
 {
-        ISCORE_COMMAND_DECL("SetCurveMax", "Set curve minimum")
+        ISCORE_COMMAND_DECL("SetCurveMax", "Set curve maximum")
     public:
         ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetCurveMax, "AutomationControl")
 

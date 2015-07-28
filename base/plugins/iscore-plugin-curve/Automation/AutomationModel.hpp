@@ -107,6 +107,6 @@ class AutomationModel : public Process
         iscore::Address m_address;
         CurveModel* m_curve{};
 
-        double m_min;
-        double m_max;
+        double m_min{};
+        double m_max{};
 };

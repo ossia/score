@@ -27,7 +27,7 @@
 #include "Commands/UpdateNamespace.hpp"
 #include "Commands/UpdateAddress.hpp"
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
-
+#include <QMessageBox>
 
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
     : QWidget(parent),
@@ -449,8 +449,14 @@ void DeviceExplorerWidget::refresh()
         auto worker = new ExplorationWorker{dev};
 
         connect(thread, &QThread::started, worker, [=] () {
-            worker->node = worker->dev.refresh();
-            emit worker->finished();
+            try {
+                worker->node = worker->dev.refresh();
+                emit worker->finished();
+            }
+            catch(std::runtime_error& e)
+            {
+                emit worker->failed(e.what());
+            }
         }, Qt::QueuedConnection);
 
         connect(worker, &ExplorationWorker::finished, this,
@@ -465,6 +471,15 @@ void DeviceExplorerWidget::refresh()
             thread->quit();
             worker->deleteLater();
         }, Qt::QueuedConnection);
+
+        connect(worker, &ExplorationWorker::failed, this,
+                [=] (const QString& error_txt) {
+            QMessageBox::warning(this,
+                                 tr("Unable to refresh the device"),
+                                 tr("Unable to refresh the device: ") + select->deviceSettings().name + tr(".\nCause: ") + error_txt);
+            thread->quit();
+            worker->deleteLater();
+        });
 
         worker->moveToThread(thread);
         thread->start();

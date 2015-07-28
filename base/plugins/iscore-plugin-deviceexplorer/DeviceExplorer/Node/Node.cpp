@@ -283,6 +283,13 @@ Node* Node::clone() const
 
 Node* getNodeFromString(Node* n, QStringList&& parts)
 {
+    auto theN = try_getNodeFromString(n, std::move(parts));
+    Q_ASSERT(theN);
+    return theN;
+}
+
+Node* try_getNodeFromString(Node* n, QStringList&& parts)
+{
     if(parts.size() == 0)
         return n;
 
@@ -291,11 +298,10 @@ Node* getNodeFromString(Node* n, QStringList&& parts)
         if(child->displayName() == parts[0])
         {
             parts.removeFirst();
-            return getNodeFromString(child, std::move(parts));
+            return try_getNodeFromString(child, std::move(parts));
         }
     }
 
-    Q_ASSERT(false);
     return nullptr;
 }
 }

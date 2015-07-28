@@ -36,7 +36,40 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
 {
     m_stream >> n.name
             >> n.value
-            >> n.domain // TODO how is it saved ?
+            >> n.domain
+            >> (int&)n.ioType
+            >> (int&)n.clipMode
+            >> n.unit
+            >> n.repetitionFilter
+            >> n.rate
+            >> n.priority
+            >> n.tags;
+
+    checkDelimiter();
+}
+// TODO refactor.
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const iscore::FullAddressSettings& n)
+{
+    m_stream << n.address
+             << n.value
+             << n.domain
+             << (int)n.ioType
+             << (int)n.clipMode
+             << n.unit
+             << n.repetitionFilter
+             << n.rate
+             << n.priority
+             << n.tags;
+
+    insertDelimiter();
+}
+template<>
+void Visitor<Writer<DataStream>>::writeTo(iscore::FullAddressSettings& n)
+{
+    m_stream >> n.address
+            >> n.value
+            >> n.domain
             >> (int&)n.ioType
             >> (int&)n.clipMode
             >> n.unit
