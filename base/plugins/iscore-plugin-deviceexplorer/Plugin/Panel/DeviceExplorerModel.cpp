@@ -249,9 +249,9 @@ DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
     return (int)Column::Count;
 }
 
-QVariant DeviceExplorerModel::getData(NodePath node, int column, int role)
+QVariant DeviceExplorerModel::getData(NodePath node, Column column, int role)
 {
-    QModelIndex index = createIndex(convertPathToIndex(node).row(), column, node.toNode(&rootNode())->parent());
+    QModelIndex index = createIndex(convertPathToIndex(node).row(), (int)column, node.toNode(&rootNode())->parent());
     return data(index, role);
 }
 
@@ -495,25 +495,26 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
     }
 
     bool changed = false;
+    auto col = DeviceExplorerModel::Column(index.column());
 
     if(role == Qt::EditRole)
     {
-        if(index.column() == (int)Column::Name)
+        if(col == Column::Name)
         {
             const QString s = value.toString();
 
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), NodePath{index}, index.column(), value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), NodePath{index}, col, value, role});
                 changed = true;
             }
         }
-        else if(index.column() == (int)Column::IOType)
+        else if(col == Column::IOType)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), NodePath{index}, index.column(), value, role});
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this), NodePath{index}, col, value, role});
             changed = true;
         }
-        else if(index.column() == (int)Column::Value)
+        else if(col == Column::Value)
         {
             QVariant copy = value;
             auto res = copy.convert(n->addressSettings().value.val.type());
@@ -521,7 +522,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
             {
                 m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this),
                                                  NodePath{index},
-                                                 index.column(),
+                                                 col,
                                                  copy,
                                                  role});
                 changed = true;
@@ -538,12 +539,12 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
-void DeviceExplorerModel::editData(const NodePath &path, int column, const QVariant &value, int role)
+void DeviceExplorerModel::editData(const NodePath &path, DeviceExplorerModel::Column column, const QVariant &value, int role)
 {
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
 
-    QModelIndex index = createIndex(nodeIndex.row(), column, node->parent());
+    QModelIndex index = createIndex(nodeIndex.row(), (int)column, node->parent());
 
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;

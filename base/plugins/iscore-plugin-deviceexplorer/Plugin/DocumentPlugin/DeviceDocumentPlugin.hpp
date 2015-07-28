@@ -33,6 +33,8 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         const DeviceList& list() const
         { return m_list; }
 
+        // TODO make functions that take an address and call list().device(...).TheRelevantMethod
+
     private:
         iscore::Node m_rootNode{InvisibleRootNodeTag{}};
         DeviceList m_list;

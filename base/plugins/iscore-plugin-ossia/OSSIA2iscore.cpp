@@ -126,6 +126,7 @@ iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
             qDebug() << total.join("/");
         }
         */
+
         s.ioType = ToIOType(addr->getAccessMode());
         s.clipMode = ToClipMode(addr->getBoundingMode());
         s.repetitionFilter = addr->getRepetitionFilter();

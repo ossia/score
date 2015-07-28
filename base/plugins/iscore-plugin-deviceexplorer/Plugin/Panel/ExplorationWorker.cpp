@@ -1,14 +1,8 @@
 #include "ExplorationWorker.hpp"
 #include <DeviceExplorer/Protocol/DeviceInterface.hpp>
 
-ExplorationWorker::ExplorationWorker(DeviceInterface &dev):
-    m_dev{dev}
+ExplorationWorker::ExplorationWorker(DeviceInterface &theDev):
+    dev{theDev}
 {
 
-}
-
-void ExplorationWorker::process()
-{
-    node = m_dev.refresh();
-    emit finished();
 }

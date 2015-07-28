@@ -5,8 +5,9 @@
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <DeviceExplorer/Node/Node.hpp>
-#include "DeviceExplorer/NodePath.hpp"
+#include <DeviceExplorer/NodePath.hpp>
 
+// TODO rename file.
 namespace DeviceExplorer
 {
     namespace Command

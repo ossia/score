@@ -2,7 +2,12 @@
 
 using namespace DeviceExplorer::Command;
 
-EditData::EditData(ObjectPath &&device_tree, NodePath nodePath, int column, QVariant value, int role):
+EditData::EditData(
+        ObjectPath &&device_tree,
+        const NodePath& nodePath,
+        DeviceExplorerModel::Column column,
+        const QVariant& value,
+        int role):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()},
@@ -32,7 +37,7 @@ void EditData::serializeImpl(QDataStream &d) const
 {
     d << m_deviceTree
       << m_nodePath;
-    d << m_column;
+    d << (int)m_column;
     d << m_oldValue;
     d << m_newValue;
     d << m_role;
@@ -42,7 +47,7 @@ void EditData::deserializeImpl(QDataStream &d)
 {
     d >> m_deviceTree
       >> m_nodePath;
-    d >> m_column;
+    d >> (int&)m_column;
     d >> m_oldValue;
     d >> m_newValue;
     d >> m_role;

@@ -57,3 +57,11 @@ iscore::Node MinuitDevice::refresh()
 
     return device_node;
 }
+
+iscore::Value MinuitDevice::refresh(const iscore::Address & address)
+{
+    OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
+    auto addr = node->getAddress();
+    addr->updateValue();
+    return ToValue(addr->getValue());
+}

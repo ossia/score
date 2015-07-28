@@ -19,6 +19,7 @@ class DeviceInterface : public QObject
         // The addresses are not applied to the device, they have to be via a command!
         virtual bool canRefresh() const { return false; }
         virtual iscore::Node refresh() { return {}; }
+        virtual iscore::Value refresh(const iscore::Address&) { return {}; }
 
         virtual void addAddress(const iscore::FullAddressSettings& address) = 0;
         virtual void updateAddress(const iscore::FullAddressSettings& address) = 0;

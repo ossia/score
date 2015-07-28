@@ -19,7 +19,7 @@ NodePath::NodePath(QModelIndex index)
     }
 }
 
-NodePath::NodePath(iscore::Node& node)
+NodePath::NodePath(const iscore::Node& node)
 {
     // We have to take care of the root node.
     if(node.isInvisibleRoot())

@@ -25,7 +25,7 @@ class NodePath
         }
 
         NodePath(QModelIndex index);
-        NodePath(iscore::Node& node);
+        NodePath(const iscore::Node& node);
 
         iscore::Node* toNode(iscore::Node* iter);
 

@@ -274,7 +274,7 @@ DeviceExplorerView::selectionChanged(const QItemSelection& selected, const QItem
       QModelIndexList l = selectedIndexes();
       QModelIndexList l0;
       foreach (const QModelIndex &index, l) {
-      if (index.column() == col) {
+      if (index.column() == (int)DeviceExplorerModel::Column::Name) {
 
         if (!index.isValid())
           std::cerr<<" !!! invalid index in selection !!!\n";
@@ -315,7 +315,11 @@ DeviceExplorerView::selectedIndexes() const
                 std::cerr << " !!! invalid index in selection !!!\n";
             }
 
-            l0.append(index);
+            if (! m_hasProxy)
+                l0.append(index);
+            else
+                l0.append(static_cast<const QAbstractProxyModel *>(QTreeView::model())->mapToSource(index));
+
             //REM: we append index in ProxyModel if m_hasProxy
             // it is necesary because drag'n drop will automatically call selectedIndexes() & mapToSource().
         }

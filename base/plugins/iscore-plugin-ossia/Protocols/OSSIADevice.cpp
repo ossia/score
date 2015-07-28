@@ -23,7 +23,7 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
 {
     using namespace OSSIA;
 
-    OSSIA::Node* node = createNodeFromPath(settings.address.path, m_dev.get());
+    OSSIA::Node* node = getNodeFromPath(settings.address.path, m_dev.get());
     updateOSSIAAddress(settings, node->getAddress());
 }
 

@@ -125,9 +125,9 @@ Node* Node::childAt(int index) const
     return m_children.value(index);
 }
 
-int Node::indexOfChild(Node* child) const
+int Node::indexOfChild(const Node* child) const
 {
-    return m_children.indexOf(child);
+    return m_children.indexOf(const_cast<Node*>(child));
 }
 
 int Node::childCount() const
@@ -189,7 +189,18 @@ void Node::removeChild(Node* child)
  * ************************************************************/
 QString Node::displayName() const
 {
-    return isDevice()? m_deviceSettings.name : m_addressSettings.name;
+    switch(m_type)
+    {
+        case Type::Address:
+            return m_addressSettings.name;
+            break;
+        case Type::Device:
+            return m_deviceSettings.name;
+            break;
+        case Type::RootNode:
+            return "Invisible Root Node";
+            break;
+    }
 }
 
 /* *************************************************************

@@ -43,7 +43,7 @@ class Node
         void setParent(Node* parent);
         Node* parent() const;
         Node* childAt(int index) const;  //return 0 if invalid index
-        int indexOfChild(Node* child) const;  //return -1 if not found
+        int indexOfChild(const Node* child) const;  //return -1 if not found
         int childCount() const;
         bool hasChildren() const;
         QList<Node*> children() const;

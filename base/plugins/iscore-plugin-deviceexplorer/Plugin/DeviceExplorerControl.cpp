@@ -9,11 +9,13 @@
 #include "Commands/Paste.hpp"
 #include "Commands/Remove.hpp"
 #include "Commands/UpdateNamespace.hpp"
+#include "Commands/UpdateAddress.hpp"
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <core/document/DocumentModel.hpp>
 DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     PluginControlInterface {pres, "DeviceExplorerControl", nullptr}
 {
@@ -41,7 +43,8 @@ void DeviceExplorerControl::setupCommands()
             Move,
             Paste,
             Remove,
-            ReplaceDevice
+            ReplaceDevice,
+            UpdateAddresses
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());
@@ -54,8 +57,6 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
     return PluginControlInterface::instantiateUndoCommand<DeviceExplorerCommandFactory>(name, data);
 }
 
-
-#include <core/document/DocumentModel.hpp>
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
     doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));

@@ -15,11 +15,12 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL("EditData", "EditData")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
-                EditData(ObjectPath&& device_tree,
-                            NodePath nodePath,
-                            int column,
-                            QVariant value,
-                            int role);
+                EditData(
+                    ObjectPath&& device_tree,
+                    const NodePath& nodePath,
+                    DeviceExplorerModel::Column column,
+                    const QVariant& value,
+                    int role);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,7 +32,7 @@ namespace DeviceExplorer
             private:
                 ObjectPath m_deviceTree;
                 NodePath m_nodePath;
-                int m_column;
+                DeviceExplorerModel::Column m_column;
                 QVariant m_oldValue;
                 QVariant m_newValue;
                 int m_role;

@@ -25,6 +25,7 @@
 
 #include "ExplorationWorker.hpp"
 #include "Commands/UpdateNamespace.hpp"
+#include "Commands/UpdateAddress.hpp"
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 
@@ -60,6 +61,8 @@ DeviceExplorerWidget::buildGUI()
     m_refreshAction = new QAction(tr("Refresh namespace"), this);
     m_refreshAction->setShortcut(QKeySequence::Refresh);
 
+    m_refreshValueAction = new QAction(tr("Refresh value"), this);
+
     m_copyAction = new QAction(QIcon(":/resources/images/copy.png"), tr("Copy"), this);
     m_copyAction->setShortcut(QKeySequence::Copy);
     m_cutAction = new QAction(QIcon(":/resources/images/cut.png"), tr("Cut"), this);
@@ -80,6 +83,7 @@ DeviceExplorerWidget::buildGUI()
 
     m_editAction->setEnabled(false);
     m_refreshAction->setEnabled(false);
+    m_refreshValueAction->setEnabled(false);
     m_removeNodeAction->setEnabled(false);
     m_copyAction->setEnabled(false);
     m_cutAction->setEnabled(false);
@@ -90,16 +94,17 @@ DeviceExplorerWidget::buildGUI()
     m_demoteAction->setEnabled(false);
 
 
-    connect(m_editAction, SIGNAL(triggered()), this, SLOT(edit()));
-    connect(m_refreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
-    connect(m_copyAction, SIGNAL(triggered()), this, SLOT(copy()));
-    connect(m_cutAction, SIGNAL(triggered()), this, SLOT(cut()));
-    connect(m_pasteAction, SIGNAL(triggered()), this, SLOT(paste()));
-    connect(m_moveUpAction, SIGNAL(triggered()), this, SLOT(moveUp()));
-    connect(m_moveDownAction, SIGNAL(triggered()), this, SLOT(moveDown()));
-    connect(m_promoteAction, SIGNAL(triggered()), this, SLOT(promote()));
-    connect(m_demoteAction, SIGNAL(triggered()), this, SLOT(demote()));
-    connect(m_removeNodeAction, SIGNAL(triggered()), this, SLOT(removeNode()));
+    connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
+    connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
+    connect(m_refreshValueAction, &QAction::triggered, this, &DeviceExplorerWidget::refreshValue);
+    connect(m_copyAction, &QAction::triggered, this, &DeviceExplorerWidget::copy);
+    connect(m_cutAction, &QAction::triggered, this, &DeviceExplorerWidget::cut);
+    connect(m_pasteAction, &QAction::triggered, this, &DeviceExplorerWidget::paste);
+    connect(m_moveUpAction, &QAction::triggered, this, &DeviceExplorerWidget::moveUp);
+    connect(m_moveDownAction, &QAction::triggered, this, &DeviceExplorerWidget::moveDown);
+    connect(m_promoteAction, &QAction::triggered, this, &DeviceExplorerWidget::promote);
+    connect(m_demoteAction, &QAction::triggered, this, &DeviceExplorerWidget::demote);
+    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNode);
 
     /*
     QPushButton *addDeviceButton = new QPushButton(this);
@@ -226,6 +231,7 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
             [=] () { contextMenu->deleteLater(); });
     contextMenu->addAction(m_editAction);
     contextMenu->addAction(m_refreshAction);
+    contextMenu->addAction(m_refreshValueAction);
     contextMenu->addSeparator();
     contextMenu->addAction(m_addDeviceAction);
     contextMenu->addAction(m_addSiblingAction);
@@ -307,6 +313,7 @@ DeviceExplorerWidget::updateActions()
         {
             m_editAction->setEnabled(false);
             m_refreshAction->setEnabled(false);
+            m_refreshValueAction->setEnabled(false);
             m_copyAction->setEnabled(false);
             m_cutAction->setEnabled(false);
             m_promoteAction->setEnabled(false);
@@ -318,6 +325,7 @@ DeviceExplorerWidget::updateActions()
         else
         {
             m_refreshAction->setEnabled(true);
+            m_refreshValueAction->setEnabled(true);
             m_copyAction->setEnabled(true);
             m_cutAction->setEnabled(true);
 //            m_moveUpAction->setEnabled(true);
@@ -355,6 +363,7 @@ DeviceExplorerWidget::updateActions()
     {
         m_editAction->setEnabled(false);
         m_refreshAction->setEnabled(false);
+        m_refreshValueAction->setEnabled(false);
         m_copyAction->setEnabled(false);
         m_cutAction->setEnabled(false);
         m_promoteAction->setEnabled(false);
@@ -439,7 +448,11 @@ void DeviceExplorerWidget::refresh()
         auto thread = new QThread;
         auto worker = new ExplorationWorker{dev};
 
-        connect(thread, &QThread::started, worker, &ExplorationWorker::process, Qt::QueuedConnection);
+        connect(thread, &QThread::started, worker, [=] () {
+            worker->node = worker->dev.refresh();
+            emit worker->finished();
+        }, Qt::QueuedConnection);
+
         connect(worker, &ExplorationWorker::finished, this,
                 [=] () {
             auto cmd = new DeviceExplorer::Command::ReplaceDevice{
@@ -458,10 +471,42 @@ void DeviceExplorerWidget::refresh()
     }
 }
 
+void DeviceExplorerWidget::refreshValue()
+{
+    QList<QPair<const iscore::Node*, iscore::Value>> lst;
+    for(auto& index : m_ntView->selectedIndexes())
+    {
+        // Model checks
+        iscore::Node* node = index.isValid()
+                              ? static_cast<iscore::Node*>(index.internalPointer())
+                              : nullptr;
+
+        if(!node || node->isDevice())
+            continue;
+
+        // Device checks
+        auto addr = node->address();
+        auto& dev = model()->deviceModel()->list().device(addr.device);
+        if(!dev.canRefresh())
+            return;
+
+        // Getting the new values
+        lst.append({node, dev.refresh(addr)});
+    }
+
+    if(lst.empty())
+        return;
+
+    // Send the command
+    auto cmd = new DeviceExplorer::Command::UpdateAddresses{
+                     iscore::IDocument::path(model()), lst};
+
+    m_cmdDispatcher->submitCommand(cmd);
+}
+
 void
 DeviceExplorerWidget::addDevice()
 {
-
     if(! m_deviceDialog)
     {
         m_deviceDialog = new DeviceEditDialog(this);

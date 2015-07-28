@@ -6,12 +6,11 @@ class DeviceInterface;
 class ExplorationWorker : public QObject
 {
         Q_OBJECT
-        DeviceInterface& m_dev;
     public:
-        iscore::Node node;
-        ExplorationWorker(DeviceInterface& dev);
+        DeviceInterface& dev;
+        iscore::Node node; // Result
 
-        void process();
+        ExplorationWorker(DeviceInterface& dev);
 
     signals:
         void finished();
