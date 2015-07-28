@@ -39,7 +39,7 @@ iscore::Node MinuitDevice::refresh()
         // First make the node corresponding to the root node.
 
         device_node.setDeviceSettings(settings());
-        device_node.setAddressSettings(ToAddressSettings(*m_dev.get()));
+        //device_node.setAddressSettings(ToAddressSettings(*m_dev.get()));
 
         // Recurse on the children
         for(const auto& node : m_dev->children())

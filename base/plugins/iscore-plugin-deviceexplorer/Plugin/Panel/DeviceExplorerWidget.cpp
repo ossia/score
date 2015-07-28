@@ -23,6 +23,10 @@
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Remove.hpp"
 
+#include "ExplorationWorker.hpp"
+#include "Commands/UpdateNamespace.hpp"
+#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+
 
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
     : QWidget(parent),
@@ -383,7 +387,7 @@ void DeviceExplorerWidget::edit()
 {
     // TODO there should be a command here
     iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if ( model()->isDevice(m_ntView->selectedIndex()))
+    if (select->isDevice())
     {
         if(! m_deviceDialog)
         {
@@ -422,9 +426,6 @@ void DeviceExplorerWidget::edit()
     }
 }
 
-#include "ExplorationWorker.hpp"
-#include "Commands/UpdateNamespace.hpp"
-#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 void DeviceExplorerWidget::refresh()
 {
     iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());

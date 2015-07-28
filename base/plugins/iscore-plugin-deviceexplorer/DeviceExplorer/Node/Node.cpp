@@ -1,6 +1,7 @@
 #include "Node.hpp"
-#include <QJsonArray>
-using namespace iscore;
+
+namespace iscore
+{
 
 Node::Node():
     m_rootNode{true},
@@ -34,13 +35,13 @@ Node::Node(const iscore::AddressSettings& settings,
 
 Node::Node(const Node &source, Node *parent):
     m_parent{parent},
-    m_rootNode{false}
+    m_rootNode{false},
+    m_type{source.type()}
 {
     if(source.isDevice())
-        m_deviceSettings = source.deviceSettings();
+        setDeviceSettings(source.deviceSettings());
     else
-        m_addressSettings = source.addressSettings();
-    m_type = source.m_type;
+        setAddressSettings(source.addressSettings());
 
     for(const auto& child : source.children())
     {
@@ -50,11 +51,12 @@ Node::Node(const Node &source, Node *parent):
 
 Node& Node::operator=(const Node &source)
 {
-    if(source.isDevice())
-        m_deviceSettings = source.deviceSettings();
-    else
-        m_addressSettings = source.addressSettings();
     m_type = source.m_type;
+
+    if(source.isDevice())
+        setDeviceSettings(source.deviceSettings());
+    else
+        setAddressSettings(source.addressSettings());
 
     for(const auto& child : source.children())
     {
@@ -268,8 +270,6 @@ Node* Node::clone() const
     return n;
 }
 
-namespace iscore
-{
 Node* getNodeFromString(Node* n, QStringList&& parts)
 {
     if(parts.size() == 0)

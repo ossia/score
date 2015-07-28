@@ -55,6 +55,7 @@ void AddAddress::redo()
     // Add in the device impl
     // Get the device node :
     auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
+    Q_ASSERT(dev_node->isDevice());
 
     // Make a full path
     iscore::FullAddressSettings full = iscore::FullAddressSettings::make(

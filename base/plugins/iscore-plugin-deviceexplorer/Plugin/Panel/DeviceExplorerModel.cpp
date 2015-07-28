@@ -280,28 +280,38 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     {
         case Column::Name:
         {
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
+            if(node->isDevice())
             {
-                return node->displayName();
-            }
-            else if(role == Qt::FontRole)
-            {
-                const IOType ioType = node->addressSettings().ioType;
-
-                if(ioType == IOType::In || ioType == IOType::Out)
+                if(role == Qt::DisplayRole || role == Qt::EditRole)
                 {
-                    QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
-                    f.setItalic(true);
-                    return f;
+                    return node->deviceSettings().name;
                 }
             }
-            else if(role == Qt::ForegroundRole)
+            else
             {
-                const IOType ioType = node->addressSettings().ioType;
-
-                if(ioType == IOType::In || ioType == IOType::Out)
+                if(role == Qt::DisplayRole || role == Qt::EditRole)
                 {
-                    return QBrush(Qt::black);
+                    return node->displayName();
+                }
+                else if(role == Qt::FontRole)
+                {
+                    const IOType ioType = node->addressSettings().ioType;
+
+                    if(ioType == IOType::In || ioType == IOType::Out)
+                    {
+                        QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
+                        f.setItalic(true);
+                        return f;
+                    }
+                }
+                else if(role == Qt::ForegroundRole)
+                {
+                    const IOType ioType = node->addressSettings().ioType;
+
+                    if(ioType == IOType::In || ioType == IOType::Out)
+                    {
+                        return QBrush(Qt::black);
+                    }
                 }
             }
 
@@ -310,6 +320,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Value:
         {
+            if(node->isDevice())
+                return {};
+
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 const auto& val = node->addressSettings().value;
@@ -334,6 +347,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::IOType:
         {
+            if(node->isDevice())
+                return {};
+
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 switch(node->addressSettings().ioType)
@@ -356,6 +372,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Min:
         {
+            if(node->isDevice())
+                return {};
+
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 return node->addressSettings().domain.min.val;
@@ -365,6 +384,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Max:
         {
+            if(node->isDevice())
+                return {};
+
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 return node->addressSettings().domain.max.val;
@@ -374,6 +396,9 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Priority:
         {
+            if(node->isDevice())
+                return {};
+
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
                 return node->addressSettings().priority;
@@ -460,6 +485,11 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
     auto n = nodeFromModelIndex(index);
     if(! n)
+    {
+        return false;
+    }
+
+    if(n->isDevice())
     {
         return false;
     }
@@ -1156,9 +1186,9 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
                 }
                 else
                 {
-                    std::cerr << " n->name=" << n->addressSettings().name.toStdString();
+                    std::cerr << " n->name=" << n->displayName().toStdString();
                     std::cerr << " parent=" << parent;
-                    std::cerr << " parent->name=" << parent->addressSettings().name.toStdString() << "\n";
+                    std::cerr << " parent->name=" << parent->displayName().toStdString() << "\n";
                 }
             }
             else
