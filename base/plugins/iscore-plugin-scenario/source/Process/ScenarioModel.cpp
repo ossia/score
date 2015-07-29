@@ -132,7 +132,7 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
     for(auto& event : m_events)
     {
         event.setDate(event.date() * scale);
-        emit eventMoved(event.id());
+        emit eventMoved(event);
     }
 
     for(auto& constraint : m_constraints)
@@ -148,7 +148,7 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
             process.setDurationAndScale(constraint.defaultDuration() * scale);
         }
 
-        emit constraintMoved(constraint.id());
+        emit constraintMoved(constraint);
     }
 
     this->setDuration(newDuration);
@@ -169,7 +169,7 @@ void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 
     eev.setDate(newDuration);
     timeNode(eev.timeNode()).setDate(newDuration);
-    emit eventMoved(eev.id());
+    emit eventMoved(eev);
     this->setDuration(newDuration);
 }
 
@@ -272,34 +272,34 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 }
 
 
-void ScenarioModel::makeLayer_impl(ScenarioModel::layer_type* scen)
+void ScenarioModel::makeLayer_impl(AbstractScenarioLayer* scen)
 {
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
     connect(this, &ScenarioModel::constraintRemoved,
-            scen, &layer_type::on_constraintRemoved);
+            scen, &AbstractScenarioLayer::on_constraintRemoved);
 
     connect(this, &ScenarioModel::stateCreated,
-            scen, &layer_type::stateCreated);
+            scen, &AbstractScenarioLayer::stateCreated);
     connect(this, &ScenarioModel::stateRemoved,
-            scen, &layer_type::stateRemoved);
+            scen, &AbstractScenarioLayer::stateRemoved);
 
     connect(this, &ScenarioModel::eventCreated,
-            scen, &layer_type::eventCreated);
+            scen, &AbstractScenarioLayer::eventCreated);
     connect(this, &ScenarioModel::eventRemoved_after,
-            scen, &layer_type::eventRemoved);
+            scen, &AbstractScenarioLayer::eventRemoved);
 
     connect(this, &ScenarioModel::timeNodeCreated,
-            scen, &layer_type::timeNodeCreated);
+            scen, &AbstractScenarioLayer::timeNodeCreated);
     connect(this, &ScenarioModel::timeNodeRemoved,
-            scen, &layer_type::timeNodeRemoved);
+            scen, &AbstractScenarioLayer::timeNodeRemoved);
 
     connect(this, &ScenarioModel::eventMoved,
-            scen, &layer_type::eventMoved);
+            scen, &AbstractScenarioLayer::eventMoved);
 
     connect(this, &ScenarioModel::constraintMoved,
-            scen, &layer_type::constraintMoved);
+            scen, &AbstractScenarioLayer::constraintMoved);
 }
 
 ///////// ADDITION //////////
@@ -307,28 +307,28 @@ void ScenarioModel::addConstraint(ConstraintModel* constraint)
 {
     m_constraints.insert(constraint);
 
-    emit constraintCreated(constraint->id());
+    emit constraintCreated(*constraint);
 }
 
 void ScenarioModel::addEvent(EventModel* event)
 {
     m_events.insert(event);
 
-    emit eventCreated(event->id());
+    emit eventCreated(*event);
 }
 
 void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
 {
     m_timeNodes.insert(timeNode);
 
-    emit timeNodeCreated(timeNode->id());
+    emit timeNodeCreated(*timeNode);
 }
 
 void ScenarioModel::addState(StateModel *state)
 {
     m_states.insert(state);
 
-    emit stateCreated(state->id());
+    emit stateCreated(*state);
 }
 
 ///////// DELETION //////////

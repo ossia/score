@@ -42,7 +42,6 @@ class ScenarioModel : public Process, public ScenarioInterface
 
     public:
         using layer_type = AbstractScenarioLayer;
-
         ScenarioModel(const TimeValue& duration,
                       const id_type<Process>& id,
                       QObject* parent);
@@ -151,10 +150,10 @@ class ScenarioModel : public Process, public ScenarioInterface
         }
 
     signals:
-        void stateCreated(const id_type<StateModel>& stateId);
-        void eventCreated(const id_type<EventModel>& eventId);
-        void constraintCreated(const id_type<ConstraintModel>& constraintId);
-        void timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
+        void stateCreated(const StateModel& stateId);
+        void eventCreated(const EventModel& eventId);
+        void constraintCreated(const ConstraintModel& constraintId);
+        void timeNodeCreated(const TimeNodeModel& timeNodeId);
 
         void stateRemoved(const id_type<StateModel>& stateId);
         void eventRemoved_before(const id_type<EventModel>& eventId);
@@ -162,9 +161,9 @@ class ScenarioModel : public Process, public ScenarioInterface
         void constraintRemoved(const id_type<ConstraintModel>& constraintId);
         void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void stateMoved(const id_type<StateModel>& stateId);
-        void eventMoved(const id_type<EventModel>& eventId);
-        void constraintMoved(const id_type<ConstraintModel>& constraintId);
+        void stateMoved(const StateModel& stateId);
+        void eventMoved(const EventModel& eventId);
+        void constraintMoved(const ConstraintModel& constraintId);
 
         void locked();
         void unlocked();
@@ -203,7 +202,7 @@ class ScenarioModel : public Process, public ScenarioInterface
         ScenarioModel(const ScenarioModel& source,
                       const id_type<Process>& id,
                       QObject* parent);
-        void makeLayer_impl(layer_type*);
+        void makeLayer_impl(AbstractScenarioLayer*);
 
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;

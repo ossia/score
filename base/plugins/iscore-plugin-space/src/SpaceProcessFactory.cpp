@@ -4,7 +4,7 @@
 #include "SpaceLayerView.hpp"
 QString SpaceProcessFactory::name() const
 {
-    return "SpaceProcess";
+    return "Space";
 }
 
 Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const id_type<Process> &id, QObject *parent)
@@ -24,10 +24,12 @@ Process *SpaceProcessFactory::loadModel(const VisitorVariant &, QObject *parent)
 
 LayerPresenter *SpaceProcessFactory::makeLayerPresenter(const LayerModel & model, LayerView * view, QObject *parent)
 {
+    // TODO check with panel proxy
     return new SpaceLayerPresenter{model, view, parent};
 }
 
 LayerView *SpaceProcessFactory::makeLayerView(const LayerModel &layer, QGraphicsItem* parent)
 {
+    // TODO check with panel proxy
     return new SpaceLayerView{parent};
 }

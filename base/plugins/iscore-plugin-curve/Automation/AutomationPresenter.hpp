@@ -6,7 +6,7 @@
 class CurvePresenter;
 class QCPGraph;
 class LayerView;
-class AutomationViewModel;
+class AutomationLayerModel;
 class AutomationView;
 
 class AutomationPresenter : public LayerPresenter
@@ -36,13 +36,10 @@ class AutomationPresenter : public LayerPresenter
         void updateCurve();
 
     private:
-        const AutomationViewModel& m_viewModel;
+        const AutomationLayerModel& m_viewModel;
         AutomationView* m_view {};
 
         CurvePresenter* m_curvepresenter{};
-        //Curve* m_curve;
-
-//        QCustomPlotCurve* m_curve{};
 
         CommandDispatcher<> m_commandDispatcher;
         FocusDispatcher m_focusDispatcher;

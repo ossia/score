@@ -118,7 +118,7 @@ void MoveBaseEvent::undo()
             for(const auto& lm : source.layerModels())
             {
                 // We can safely reuse the same id since it's in a different slot.
-                Process* proc = processPairs[&lm.sharedProcessModel()];
+                Process* proc = processPairs[&lm.processModel()];
                 // TODO harmonize the order of parameters (source first, then new id)
                 target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
             }

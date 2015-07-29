@@ -49,7 +49,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
     }
 }
 
-LayerModelPanelProxy*TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
+LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* parent) const
 {
     return new TemporalScenarioPanelProxy{*this, parent};
 }
@@ -73,7 +73,7 @@ void TemporalScenarioLayerModel::addConstraintViewModel(constraint_layer_type* c
 {
     m_constraints.push_back(constraint_view_model);
 
-    emit constraintViewModelCreated(constraint_view_model->id());
+    emit constraintViewModelCreated(*constraint_view_model);
 }
 
 void TemporalScenarioLayerModel::on_constraintRemoved(const id_type<ConstraintModel>& constraintSharedModelId)

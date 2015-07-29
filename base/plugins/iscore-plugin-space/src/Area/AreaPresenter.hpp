@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 class QGraphicsItem;
 class AreaModel;
 class AreaView;
@@ -11,6 +12,9 @@ class AreaPresenter : public NamedObject
                 QGraphicsItem* parentview,
                 QObject* parent);
 
+        const id_type<AreaModel>& id() const;
+
+        void update();
 
     private:
         void on_areaChanged();

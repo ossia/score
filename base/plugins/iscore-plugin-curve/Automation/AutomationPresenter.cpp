@@ -16,10 +16,10 @@ AutomationPresenter::AutomationPresenter(
         LayerView* view,
         QObject* parent) :
     LayerPresenter {"AutomationPresenter", parent},
-    m_viewModel{static_cast<const AutomationViewModel&>(model)},
+    m_viewModel{static_cast<const AutomationLayerModel&>(model)},
     m_view{static_cast<AutomationView*>(view)},
-    m_commandDispatcher{iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())->commandStack()},
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.sharedProcessModel())}
+    m_commandDispatcher{iscore::IDocument::documentFromObject(m_viewModel.processModel())->commandStack()},
+    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.processModel())}
 {
     connect(&m_viewModel.model(), &AutomationModel::curveChanged,
             this, &AutomationPresenter::updateCurve);

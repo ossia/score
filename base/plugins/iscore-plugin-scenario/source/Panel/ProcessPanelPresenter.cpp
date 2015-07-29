@@ -68,7 +68,7 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
         if(!m_layerModel)
             return;
 
-        auto& sharedmodel = m_layerModel->sharedProcessModel();
+        auto& sharedmodel = m_layerModel->processModel();
         auto fact = ProcessList::getFactory(sharedmodel.processName());
 
         auto proxy = m_layerModel->make_panelProxy(this);
@@ -106,7 +106,7 @@ void ProcessPanelPresenter::on_sizeChanged(const QSize& size)
     m_processPresenter->setHeight(size.height());
     m_processPresenter->parentGeometryChanged();
 
-    auto fullWidth = m_processPresenter->layerModel().sharedProcessModel().duration().toPixels(m_zoomRatio);
+    auto fullWidth = m_processPresenter->layerModel().processModel().duration().toPixels(m_zoomRatio);
 
     m_obj->setSize(QSizeF{(double)fullWidth, (double)size.height()});
 }
@@ -123,7 +123,7 @@ void ProcessPanelPresenter::on_zoomChanged(ZoomRatio newzoom)
 
     // We want the value to be at least twice the duration of the constraint
     const auto& viewsize = static_cast<ProcessPanelView*>(view())->view()->size();
-    const auto& duration =  m_layerModel->sharedProcessModel().duration();
+    const auto& duration =  m_layerModel->processModel().duration();
 
     m_zoomRatio = mapZoom(1.0 - newzoom,
                           2.,

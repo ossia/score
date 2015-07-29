@@ -25,8 +25,12 @@ class AreaView : public QGraphicsItem
         QVector<QRectF> rects;
 
         QRectF boundingRect() const;
+        void updateRect(const QRectF&);
 
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* ,
                    QWidget*);
+
+    private:
+        QRectF m_rect;
 };

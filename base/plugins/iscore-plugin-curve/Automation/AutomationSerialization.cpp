@@ -89,7 +89,7 @@ LayerModel* AutomationModel::loadLayer_impl(
 {
     return deserialize_dyn(vis, [&] (auto&& deserializer)
     {
-        auto autom = new AutomationViewModel{
+        auto autom = new AutomationLayerModel{
                         deserializer, *this, parent};
 
         return autom;
@@ -99,25 +99,26 @@ LayerModel* AutomationModel::loadLayer_impl(
 
 
 /////// ViewModel
-
+// TODO in its own file.
+// Also id's should be saved.
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const AutomationViewModel& lm)
+void Visitor<Reader<DataStream>>::readFrom(const AutomationLayerModel& lm)
 {
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(AutomationViewModel& lm)
+void Visitor<Writer<DataStream>>::writeTo(AutomationLayerModel& lm)
 {
 }
 
 
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const AutomationViewModel& lm)
+void Visitor<Reader<JSONObject>>::readFrom(const AutomationLayerModel& lm)
 {
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(AutomationViewModel& lm)
+void Visitor<Writer<JSONObject>>::writeTo(AutomationLayerModel& lm)
 {
 }

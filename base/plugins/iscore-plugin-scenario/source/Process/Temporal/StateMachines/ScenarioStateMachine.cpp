@@ -117,7 +117,7 @@ const TemporalScenarioPresenter &ScenarioStateMachine::presenter() const
 
 const ScenarioModel& ScenarioStateMachine::model() const
 {
-    return static_cast<const ScenarioModel&>(m_presenter.m_layer.sharedProcessModel());
+    return static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel());
 }
 
 Tool ScenarioStateMachine::tool() const

@@ -32,7 +32,7 @@ void SlotModel::copyViewModelsInSameConstraint(
     for(const auto& lm : source.layerModels())
     {
         // We can safely reuse the same id since it's in a different slot.
-        auto& proc = lm.sharedProcessModel();
+        auto& proc = lm.processModel();
         target.addLayerModel(
                     proc.cloneLayer(lm.id(),
                                     lm,
@@ -102,7 +102,7 @@ void SlotModel::on_deleteSharedProcessModel(
                       end(m_layerModels),
                       [&sharedProcessId](const LayerModel& lm)
     {
-        return lm.sharedProcessModel().id() == sharedProcessId;
+        return lm.processModel().id() == sharedProcessId;
     });
 
     if(it != end(m_layerModels))

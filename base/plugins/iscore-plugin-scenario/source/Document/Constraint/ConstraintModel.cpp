@@ -65,7 +65,7 @@ ConstraintModel::ConstraintModel(
                    for(auto& lm : source.layerModels())
                    {
                        // We can safely reuse the same id since it's in a different slot.
-                       auto proc = processPairs[&lm.sharedProcessModel()];
+                       auto proc = processPairs[&lm.processModel()];
                        // TODO harmonize the order of parameters (source first, then new id)
                        target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
                    }

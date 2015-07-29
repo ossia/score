@@ -1,6 +1,6 @@
 #include "LayerModel.hpp"
 
-Process&LayerModel::sharedProcessModel() const
+Process& LayerModel::processModel() const
 { return m_sharedProcessModel; }
 
 

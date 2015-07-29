@@ -11,7 +11,7 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
                                          QWidget* parent);
 
     signals:
-        void createViewInNewSlot(QString);
+        void createViewInNewSlot(QString); // TODO make a ProcessInspectorWidget
 
     private:
         const ScenarioModel* m_model {};

@@ -52,6 +52,9 @@ class TemporalScenarioLayerModel : public AbstractScenarioLayer
 
         void addConstraintViewModel(constraint_layer_type* constraint_view_model);
 
+    signals:
+        void constraintViewModelCreated(const TemporalConstraintViewModel& constraintViewModelid);
+
     public slots:
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) override;
 
