@@ -4,6 +4,12 @@
 class SpaceLayerView : public LayerView
 {
     public:
-        using LayerView::LayerView;
+        SpaceLayerView(QGraphicsItem* parent):
+            LayerView{parent}
+        {
+            this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
+            this->setZValue(parent->zValue() + 1);
+        }
+
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };

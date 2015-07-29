@@ -3,22 +3,24 @@
 #include <ProcessInterface/LayerModel.hpp>
 
 class AutomationModel;
-class AutomationViewModel : public LayerModel
+// TODO rename file
+class AutomationLayerModel : public LayerModel
 {
+        Q_OBJECT
     public:
-        AutomationViewModel(AutomationModel& model,
+        AutomationLayerModel(AutomationModel& model,
                             const id_type<LayerModel>& id,
                             QObject* parent);
 
         // Copy
-        AutomationViewModel(const AutomationViewModel& source,
+        AutomationLayerModel(const AutomationLayerModel& source,
                             AutomationModel& model,
                             const id_type<LayerModel>& id,
                             QObject* parent);
 
         // Load
         template<typename Impl>
-        AutomationViewModel(Deserializer<Impl>& vis,
+        AutomationLayerModel(Deserializer<Impl>& vis,
                             AutomationModel& model,
                             QObject* parent) :
             LayerModel {vis, model, parent}

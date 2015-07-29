@@ -8,10 +8,14 @@
 class SpaceModel : public IdentifiedObject<SpaceModel>
 {
     public:
-        SpaceModel(const id_type<SpaceModel>& id, QObject* parent);
+        SpaceModel(
+                std::unique_ptr<spacelib::space>&& sp,
+                const id_type<SpaceModel>& id,
+                QObject* parent);
 
         const auto& space() const
         { return *m_space; }
+
     private:
         std::unique_ptr<spacelib::space> m_space;
 };

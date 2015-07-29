@@ -27,6 +27,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceLayerView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessPanelProxy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceProcessProxyLayerModel.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceModel.cpp"

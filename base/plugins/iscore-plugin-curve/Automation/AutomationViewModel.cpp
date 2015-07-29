@@ -2,34 +2,34 @@
 #include "AutomationModel.hpp"
 #include "AutomationPanelProxy.hpp"
 
-AutomationViewModel::AutomationViewModel(AutomationModel& model,
+AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
                                          const id_type<LayerModel>& id,
                                          QObject* parent) :
-    LayerModel {id, "AutomationViewModel", model, parent}
+    LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
 {
 
 }
 
-AutomationViewModel::AutomationViewModel(const AutomationViewModel& source,
+AutomationLayerModel::AutomationLayerModel(const AutomationLayerModel& source,
                                          AutomationModel& model,
                                          const id_type<LayerModel>& id,
                                          QObject* parent) :
-    LayerModel {id, "AutomationViewModel", model, parent}
+    LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
 {
     // Nothing to copy
 }
 
-LayerModelPanelProxy* AutomationViewModel::make_panelProxy(QObject* parent) const
+LayerModelPanelProxy* AutomationLayerModel::make_panelProxy(QObject* parent) const
 {
     return new AutomationPanelProxy{*this, parent};
 }
 
-void AutomationViewModel::serialize(const VisitorVariant&) const
+void AutomationLayerModel::serialize(const VisitorVariant&) const
 {
     // Nothing to save
 }
 
-const AutomationModel& AutomationViewModel::model() const
+const AutomationModel& AutomationLayerModel::model() const
 {
-    return static_cast<const AutomationModel&>(sharedProcessModel());
+    return static_cast<const AutomationModel&>(processModel());
 }

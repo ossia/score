@@ -11,6 +11,7 @@ class StateModel;
 
 class EventModel;
 
+// TODO rename file
 class AbstractScenarioLayer : public LayerModel
 {
         Q_OBJECT
@@ -33,20 +34,20 @@ class AbstractScenarioLayer : public LayerModel
         QVector<ConstraintViewModel*> constraints() const;
 
     signals:
-        void constraintViewModelCreated(const id_type<ConstraintViewModel>& constraintViewModelid);
+        // "created" signal is in the relevant subclasses
         void constraintViewModelRemoved(const id_type<ConstraintViewModel>& constraintViewModelid);
 
-        void stateCreated(const id_type<StateModel>& eventId);
+        void stateCreated(const StateModel& eventId);
         void stateRemoved(const id_type<StateModel>& eventId);
 
-        void eventCreated(const id_type<EventModel>& eventId);
+        void eventCreated(const EventModel& eventId);
         void eventRemoved(const id_type<EventModel>& eventId);
 
-        void timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
+        void timeNodeCreated(const TimeNodeModel& timeNodeId);
         void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void eventMoved(const id_type<EventModel>& eventId);
-        void constraintMoved(const id_type<ConstraintModel>& constraintId);
+        void eventMoved(const EventModel& eventId);
+        void constraintMoved(const ConstraintModel& constraintId);
 
     public slots:
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;

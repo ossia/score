@@ -42,10 +42,10 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void stop() override;
 
     private:
-        void on_constraintCreated(const id_type<ConstraintModel>& id);
-        void on_stateCreated(const id_type<StateModel>& id);
-        void on_eventCreated(const id_type<EventModel>& id);
-        void on_timeNodeCreated(const id_type<TimeNodeModel>& id);
+        void on_constraintCreated(const ConstraintModel& id);
+        void on_stateCreated(const StateModel& id);
+        void on_eventCreated(const EventModel& id);
+        void on_timeNodeCreated(const TimeNodeModel& id);
 
         void on_constraintRemoved(const id_type<ConstraintModel>& id);
         void on_stateRemoved(const id_type<StateModel>& id);

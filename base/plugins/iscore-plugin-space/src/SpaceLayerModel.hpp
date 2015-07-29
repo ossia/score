@@ -6,6 +6,7 @@ class SpaceLayerModel : public LayerModel
 {
         Q_OBJECT
     public:
+        using model_type = SpaceProcess;
         SpaceLayerModel(
                 const id_type<LayerModel>&,
                 SpaceProcess&,

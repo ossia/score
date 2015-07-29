@@ -98,16 +98,16 @@ class TemporalScenarioPresenter : public LayerPresenter
 
     public slots:
         // Model -> view
-        void on_stateCreated(const id_type<StateModel>& eventId);
+        void on_stateCreated(const StateModel& state);
         void on_stateRemoved(const id_type<StateModel>& eventId);
 
-        void on_eventCreated(const id_type<EventModel>& eventId);
+        void on_eventCreated(const EventModel& event_model);
         void on_eventRemoved(const id_type<EventModel>& eventId);
 
-        void on_timeNodeCreated(const id_type<TimeNodeModel>& timeNodeId);
+        void on_timeNodeCreated(const TimeNodeModel& timeNode_model);
         void on_timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
 
-        void on_constraintViewModelCreated(const id_type<ConstraintViewModel>& constraintId);
+        void on_constraintViewModelCreated(const TemporalConstraintViewModel& cstr);
         void on_constraintViewModelRemoved(const id_type<ConstraintViewModel>& constraintId);
 
         void on_askUpdate();
@@ -128,10 +128,6 @@ class TemporalScenarioPresenter : public LayerPresenter
         template<typename Map, typename Id>
         void removeElement(Map& map, const Id& id);
 
-        void on_stateCreated_impl(const StateModel& state);
-        void on_eventCreated_impl(const EventModel& event_model);
-        void on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model);
-        void on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model);
 
         void updateAllElements();
         void eventHasTrigger(const EventPresenter&, bool);

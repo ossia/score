@@ -31,7 +31,7 @@ void CopyLayerModel::redo()
     auto sourceLM = m_lmPath.find<LayerModel>();
     auto targetSlot = m_targetSlotPath.find<SlotModel>();
 
-    const auto& proc = sourceLM->sharedProcessModel();
+    const auto& proc = sourceLM->processModel();
     targetSlot->addLayerModel(
         proc.cloneViewModel(m_newLayerModelId,
                             *sourceLM,

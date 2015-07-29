@@ -6,9 +6,11 @@ class AreaModel : public IdentifiedObject<AreaModel>
 {
         Q_OBJECT
     public:
-        AreaModel(const SpaceModel& space,
-                  const id_type<AreaModel>&,
-                  QObject* parent);
+        AreaModel(
+                std::unique_ptr<spacelib::area>&& area,
+                const SpaceModel& space,
+                const id_type<AreaModel>&,
+                QObject* parent);
 
         void setArea(std::unique_ptr<spacelib::area> &&ar);
 

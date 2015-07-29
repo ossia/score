@@ -190,7 +190,7 @@ void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
 void SlotPresenter::on_layerModelCreated_impl(
         const LayerModel& proc_vm)
 {
-    auto procname = proc_vm.sharedProcessModel().processName();
+    auto procname = proc_vm.processModel().processName();
 
     auto factory = ProcessList::getFactory(procname);
 

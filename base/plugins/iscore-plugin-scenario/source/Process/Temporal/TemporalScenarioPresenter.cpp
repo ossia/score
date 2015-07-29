@@ -41,30 +41,30 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
-    m_sm{*iscore::IDocument::documentFromObject(m_layer.sharedProcessModel()), *this}, // TODO optimize
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())}
+    m_sm{*iscore::IDocument::documentFromObject(m_layer.processModel()), *this}, // TODO optimize
+    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.processModel())}
 {
     const ScenarioModel& scenario = model(m_layer);
     /////// Setup of existing data
     // For each constraint & event, display' em
     for(const auto& state_model : scenario.states())
     {
-        on_stateCreated_impl(state_model);
+        on_stateCreated(state_model);
     }
 
     for(const auto& event_model : scenario.events())
     {
-        on_eventCreated_impl(event_model);
+        on_eventCreated(event_model);
     }
 
     for(const auto& tn_model : scenario.timeNodes())
     {
-        on_timeNodeCreated_impl(tn_model);
+        on_timeNodeCreated(tn_model);
     }
 
     for(const auto& constraint_view_model : constraintsViewModels(m_layer))
     {
-        on_constraintCreated_impl(*constraint_view_model);
+        on_constraintViewModelCreated(*constraint_view_model);
     }
 
 
@@ -137,7 +137,7 @@ const LayerModel& TemporalScenarioPresenter::layerModel() const
 
 const id_type<Process>& TemporalScenarioPresenter::modelId() const
 {
-    return m_layer.sharedProcessModel().id();
+    return m_layer.processModel().id();
 }
 
 void TemporalScenarioPresenter::setWidth(int width)
@@ -181,30 +181,6 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 
     updateAllElements();
     m_view->update();
-}
-
-
-void TemporalScenarioPresenter::on_stateCreated(const id_type<StateModel> &stateId)
-{
-    on_stateCreated_impl(model(m_layer).state(stateId));
-}
-
-void TemporalScenarioPresenter::on_eventCreated(
-        const id_type<EventModel>& eventId)
-{
-    on_eventCreated_impl(model(m_layer).event(eventId));
-}
-
-void TemporalScenarioPresenter::on_timeNodeCreated(
-        const id_type<TimeNodeModel>& timeNodeId)
-{
-    on_timeNodeCreated_impl(model(m_layer).timeNode(timeNodeId));
-}
-
-void TemporalScenarioPresenter::on_constraintViewModelCreated(
-        const id_type<ConstraintViewModel>& constraintViewModelId)
-{
-    on_constraintCreated_impl(constraintViewModel(m_layer, constraintViewModelId));
 }
 
 
@@ -274,7 +250,7 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
-void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_model)
+void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
 {
     auto ev_pres = new EventPresenter {event_model,
                            m_view,
@@ -299,7 +275,7 @@ void TemporalScenarioPresenter::on_eventCreated_impl(const EventModel& event_mod
     connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
-void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& timeNode_model)
+void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode_model)
 {
     auto tn_pres = new TimeNodePresenter {timeNode_model, m_view, this};
     m_timeNodes.insert(tn_pres);
@@ -317,7 +293,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated_impl(const TimeNodeModel& tim
     connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
-void TemporalScenarioPresenter::on_stateCreated_impl(const StateModel &state)
+void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
 {
     auto st_pres = new StatePresenter{state, m_view, this};
     m_displayedStates.insert(st_pres);
@@ -333,7 +309,7 @@ void TemporalScenarioPresenter::on_stateCreated_impl(const StateModel &state)
     connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
 }
 
-void TemporalScenarioPresenter::on_constraintCreated_impl(const TemporalConstraintViewModel& constraint_view_model)
+void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalConstraintViewModel& constraint_view_model)
 {
     auto cst_pres = new TemporalConstraintPresenter{
                                 constraint_view_model,
@@ -397,10 +373,10 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
-                    iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())->commandStack());
+                    iscore::IDocument::documentFromObject(m_layer.processModel())->commandStack());
 
         auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
-                       static_cast<ScenarioModel&>(layerModel().sharedProcessModel()),
+                       static_cast<ScenarioModel&>(layerModel().processModel()),
                        TimeValue::fromMsecs(pos.x() * zoomRatio()),
                        pos.y() / (m_view->boundingRect().size().height() + 150)); // TODO center it properly
         m.submitCommand(cmd);

@@ -12,7 +12,7 @@ class LayerModelPanelProxy;
 class LayerModel: public IdentifiedObject<LayerModel>
 {
     public:
-        Process& sharedProcessModel() const;
+        Process& processModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const = 0;
@@ -21,14 +21,14 @@ class LayerModel: public IdentifiedObject<LayerModel>
     protected:
         // TODO this argument order sucks
         LayerModel(const id_type<LayerModel>& viewModelId,
-                         const QString& name,
-                         Process& sharedProcess,
-                         QObject* parent);
+                   const QString& name,
+                   Process& sharedProcess,
+                   QObject* parent);
 
         template<typename Impl>
         LayerModel(Deserializer<Impl>& vis,
-                         Process& sharedProcess,
-                         QObject* parent) :
+                   Process& sharedProcess,
+                   QObject* parent) :
             IdentifiedObject{vis, parent},
             m_sharedProcessModel {sharedProcess}
         {
@@ -49,12 +49,12 @@ class LayerModel: public IdentifiedObject<LayerModel>
 template<typename T>
 const typename T::model_type* model(const T* viewModel)
 {
-    return static_cast<const typename T::model_type*>(viewModel->sharedProcessModel());
+    return static_cast<const typename T::model_type*>(viewModel->processModel());
 }
 
 
 template<typename T>
 const typename T::model_type& model(const T& viewModel)
 {
-    return static_cast<const typename T::model_type&>(viewModel.sharedProcessModel());
+    return static_cast<const typename T::model_type&>(viewModel.processModel());
 }

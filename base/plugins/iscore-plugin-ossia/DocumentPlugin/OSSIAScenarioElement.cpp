@@ -50,19 +50,19 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
     for(const auto& timenode : m_iscore_scenario->timeNodes())
     {
-        on_timeNodeCreated(timenode.id());
+        on_timeNodeCreated(timenode);
     }
     for(const auto& event : m_iscore_scenario->events())
     {
-        on_eventCreated(event.id());
+        on_eventCreated(event);
     }
     for(const auto& state : m_iscore_scenario->states())
     {
-        on_stateCreated(state.id());
+        on_stateCreated(state);
     }
     for(const auto& constraint : m_iscore_scenario->constraints())
     {
-        on_constraintCreated(constraint.id());
+        on_constraintCreated(constraint);
     }
 }
 
@@ -89,9 +89,10 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 }
 
 
-void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& id)
+void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_constraint)
 {
-    auto& cst = m_iscore_scenario->constraint(id);
+    auto& cst = const_cast<ConstraintModel&>(const_constraint);
+    // TODO have a ConstraintPlayAspect
     Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.startState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.startState()).eventId());
     Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
@@ -117,13 +118,11 @@ void OSSIAScenarioElement::on_constraintCreated(const id_type<ConstraintModel>& 
 
     // Create the mapping object
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
-    m_ossia_constraints.insert({id, elt});
+    m_ossia_constraints.insert({cst.id(), elt});
 }
 
-void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
+void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 {
-    auto& iscore_state = m_iscore_scenario->state(id);
-
     Q_ASSERT(m_ossia_timeevents.find(iscore_state.eventId()) != m_ossia_timeevents.end());
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
@@ -167,13 +166,13 @@ void OSSIAScenarioElement::on_stateCreated(const id_type<StateModel> &id)
         }
     });
 
-    m_ossia_states.insert({id, state_elt});
+    m_ossia_states.insert({iscore_state.id(), state_elt});
 }
 
-void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
+void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
 {
-    auto& ev = m_iscore_scenario->event(id);
-
+    // TODO have a EventPlayAspect too
+    auto& ev = const_cast<EventModel&>(const_ev);
     Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
@@ -223,19 +222,17 @@ void OSSIAScenarioElement::on_eventCreated(const id_type<EventModel>& id)
 
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, ev, this};
-    m_ossia_timeevents.insert({id, elt});
+    m_ossia_timeevents.insert({ev.id(), elt});
 }
 
-void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
+void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
 {
-    auto& tn = m_iscore_scenario->timeNode(id);
-
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
-    if(id == m_iscore_scenario->startTimeNode().id())
+    if(&tn == &m_iscore_scenario->startTimeNode())
     {
         ossia_tn = m_ossia_scenario->getStartNode();
     }
-    else if(id == m_iscore_scenario->endTimeNode().id())
+    else if(&tn == &m_iscore_scenario->endTimeNode())
     {
         ossia_tn = m_ossia_scenario->getEndNode();
     }
@@ -247,7 +244,7 @@ void OSSIAScenarioElement::on_timeNodeCreated(const id_type<TimeNodeModel>& id)
 
     // Create the mapping object
     auto elt = new OSSIATimeNodeElement{ossia_tn, tn, this};
-    m_ossia_timenodes.insert({id, elt});
+    m_ossia_timenodes.insert({tn.id(), elt});
 }
 
 void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& id)

@@ -54,7 +54,7 @@ namespace StandardDisplacementPolicy
                 }
             }
 
-            emit scenario.constraintMoved(constraint.id());
+            emit scenario.constraintMoved(constraint);
         }
     }
 }

@@ -184,7 +184,7 @@ LayerModel* AutomationModel::makeLayer_impl(
         const QByteArray& constructionData,
         QObject* parent)
 {
-    auto vm = new AutomationViewModel{*this, viewModelId, parent};
+    auto vm = new AutomationLayerModel{*this, viewModelId, parent};
     return vm;
 }
 
@@ -193,8 +193,8 @@ LayerModel* AutomationModel::cloneLayer_impl(
         const LayerModel& source,
         QObject* parent)
 {
-    auto vm = new AutomationViewModel {
-              static_cast<const AutomationViewModel&>(source), *this, newId, parent};
+    auto vm = new AutomationLayerModel {
+              static_cast<const AutomationLayerModel&>(source), *this, newId, parent};
     return vm;
 }
 
