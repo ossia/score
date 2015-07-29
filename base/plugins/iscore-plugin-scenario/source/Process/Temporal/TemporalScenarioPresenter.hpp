@@ -55,7 +55,7 @@ class TemporalScenarioPresenter : public LayerPresenter
         ~TemporalScenarioPresenter();
 
 
-        const LayerModel& viewModel() const override;
+        const LayerModel& layerModel() const override;
         const id_type<Process>& modelId() const override;
 
         void setWidth(int width) override;

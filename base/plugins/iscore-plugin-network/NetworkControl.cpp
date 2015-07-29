@@ -97,7 +97,7 @@ void NetworkControl::on_sessionBuilt(
         doc->commandStack().pushQuiet(cmd);
     }
 
-    auto np = static_cast<NetworkDocumentPlugin*>(doc->model()->pluginModel("NetworkDocumentPlugin"));
+    auto np = static_cast<NetworkDocumentPlugin*>(doc->model()->pluginModel<NetworkDocumentPlugin>());
     np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
     delete sessionBuilder;
 }

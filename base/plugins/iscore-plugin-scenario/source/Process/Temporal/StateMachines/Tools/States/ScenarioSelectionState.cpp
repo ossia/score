@@ -84,7 +84,7 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
     path.addRect(area);
     Selection sel;
 
-    auto scenario = dynamic_cast<ScenarioInterface*>(&m_parentSM.presenter().viewModel().sharedProcessModel());
+    auto scenario = dynamic_cast<ScenarioInterface*>(&m_parentSM.presenter().layerModel().sharedProcessModel());
     Q_ASSERT(scenario);
     for(const auto& item : m_parentSM.scene().items(path))
     {

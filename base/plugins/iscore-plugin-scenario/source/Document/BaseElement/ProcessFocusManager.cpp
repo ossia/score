@@ -37,7 +37,7 @@ void ProcessFocusManager::setFocusedPresenter(LayerPresenter* p)
 
     if(m_currentPresenter)
     {
-        m_currentViewModel = &m_currentPresenter->viewModel();
+        m_currentViewModel = &m_currentPresenter->layerModel();
         m_currentModel = &m_currentViewModel->sharedProcessModel();
 
         emit sig_focusedViewModel(m_currentViewModel);

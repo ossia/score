@@ -130,7 +130,7 @@ void SlotPresenter::on_layerModelDeleted(
     vec_erase_remove_if(m_processes,
                         [&processId](ProcessPair& pair)
     {
-        bool to_delete = pair.first->viewModel().id() == processId;
+        bool to_delete = pair.first->layerModel().id() == processId;
 
         if(to_delete)
         {
@@ -153,7 +153,7 @@ void SlotPresenter::on_layerModelPutToFront(
     // TODO optimize by saving the previous to front and just switching...
     for(auto& pair : m_processes)
     {
-        if(pair.first->viewModel().id() == processId)
+        if(pair.first->layerModel().id() == processId)
         {
             pair.first->putToFront();
         }

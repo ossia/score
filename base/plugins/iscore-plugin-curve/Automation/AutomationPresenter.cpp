@@ -88,7 +88,7 @@ void AutomationPresenter::parentGeometryChanged()
     updateCurve();
 }
 
-const LayerModel& AutomationPresenter::viewModel() const
+const LayerModel& AutomationPresenter::layerModel() const
 {
     return m_viewModel;
 }

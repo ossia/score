@@ -130,7 +130,7 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
     }
 }
 
-const LayerModel& TemporalScenarioPresenter::viewModel() const
+const LayerModel& TemporalScenarioPresenter::layerModel() const
 {
     return m_layer;
 }
@@ -400,7 +400,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
                     iscore::IDocument::documentFromObject(m_layer.sharedProcessModel())->commandStack());
 
         auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
-                       static_cast<ScenarioModel&>(viewModel().sharedProcessModel()),
+                       static_cast<ScenarioModel&>(layerModel().sharedProcessModel()),
                        TimeValue::fromMsecs(pos.x() * zoomRatio()),
                        pos.y() / (m_view->boundingRect().size().height() + 150)); // TODO center it properly
         m.submitCommand(cmd);

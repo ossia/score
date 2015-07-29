@@ -28,7 +28,7 @@ class AutomationPresenter : public LayerPresenter
         void on_zoomRatioChanged(ZoomRatio) override;
         void parentGeometryChanged() override;
 
-        const LayerModel& viewModel() const override;
+        const LayerModel& layerModel() const override;
         const id_type<Process>& modelId() const override;
 
     public slots:

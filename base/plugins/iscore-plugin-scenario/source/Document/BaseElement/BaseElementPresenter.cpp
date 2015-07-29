@@ -108,8 +108,7 @@ void BaseElementPresenter::deselectAll()
 
 void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
-    if(path.vec().last().objectName() == "ConstraintModel"
-    || path.vec().last().objectName() == "BaseConstraintModel")
+    if(path.vec().last().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
     {
         model()->setDisplayedConstraint(&path.find<ConstraintModel>());
     }

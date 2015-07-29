@@ -32,12 +32,34 @@ namespace iscore
             // Panel models
             void addPanel(PanelModel* m);
             const auto& panels() const { return m_panelModels; }
-            PanelModel* panel(const QString& name) const;
+
+            template<typename T>
+            T* panel() const
+            {
+                using namespace std;
+                auto it = find_if(begin(m_panelModels),
+                                  end(m_panelModels),
+                                  [&](PanelModel * pm)
+                { return qobject_cast<T*>(pm); });
+
+                return it != end(m_panelModels) ? static_cast<T*>(*it) : nullptr;
+            }
 
             // Plugin models
             void addPluginModel(DocumentDelegatePluginModel* m);
             const QList<DocumentDelegatePluginModel*>& pluginModels() { return m_pluginModels; }
-            DocumentDelegatePluginModel* pluginModel(const QString& name) const;
+
+            template<typename T>
+            T* pluginModel() const
+            {
+                using namespace std;
+                auto it = find_if(begin(m_pluginModels),
+                                  end(m_pluginModels),
+                                  [&](DocumentDelegatePluginModel * pm)
+                { return qobject_cast<T*>(pm); });
+
+                return it != end(m_pluginModels) ? static_cast<T*>(*it) : nullptr;
+            }
 
         signals:
             void pluginModelsChanged();

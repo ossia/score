@@ -5,7 +5,7 @@ SpaceLayerModel::SpaceLayerModel(
         const id_type<LayerModel> & id,
         SpaceProcess & proc,
         QObject *parent):
-    LayerModel{id, "ScenarioLayerModel", proc, parent}
+    LayerModel{id, staticMetaObject.className(), proc, parent}
 {
 
 }
@@ -17,5 +17,6 @@ void SpaceLayerModel::serialize(const VisitorVariant &) const
 
 LayerModelPanelProxy *SpaceLayerModel::make_panelProxy(QObject *parent) const
 {
+    ISCORE_TODO;
     return nullptr;
 }

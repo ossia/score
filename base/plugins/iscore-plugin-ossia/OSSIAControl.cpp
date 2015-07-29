@@ -37,7 +37,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
 OSSIA::TimeConstraint &OSSIAControl::baseConstraint() const
 {
-    return *static_cast<OSSIADocumentPlugin*>(currentDocument()->model()->pluginModel("OSSIADocumentPlugin"))->baseScenario()->baseConstraint()->constraint();
+    return *currentDocument()->model()->pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint()->constraint();
 }
 
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
@@ -91,10 +91,9 @@ void OSSIAControl::on_newDocument(iscore::Document* doc)
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 {
-    if(auto plugmodel = doc->model()->pluginModel("OSSIADocumentPlugin"))
+    if(auto plugmodel = doc->model()->pluginModel<OSSIADocumentPlugin>())
     {
-        auto ossia_plug = static_cast<OSSIADocumentPlugin*>(plugmodel);
-        ossia_plug->reload(doc->model());
+        plugmodel->reload(doc->model());
     }
     else
     {

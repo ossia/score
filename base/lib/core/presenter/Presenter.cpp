@@ -8,6 +8,7 @@
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
+#include <iscore/tools/exceptions/MissingCommand.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
@@ -328,9 +329,12 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(
         }
     }
 
+#if defined(ISCORE_DEBUG)
     qDebug() << "ALERT: Command" << parent_name << "::" << name << "could not be instantiated.";
     Q_ASSERT(false);
-
+#else
+    throw MissingCommandException(parent_name, name);
+#endif
     return nullptr;
 }
 

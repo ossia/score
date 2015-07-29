@@ -14,6 +14,7 @@ class ToolMenuActions;
 class AbstractMenuActions;
 class ScenarioControl : public iscore::PluginControlInterface
 {
+        Q_OBJECT
     public:
         ScenarioControl(iscore::Presenter* pres);
 

@@ -52,11 +52,13 @@ ProcessStateDataInterface *SpaceProcess::endState() const
 Selection SpaceProcess::selectableChildren() const
 {
     ISCORE_TODO;
+    return {};
 }
 
 Selection SpaceProcess::selectedChildren() const
 {
     ISCORE_TODO;
+    return {};
 }
 
 void SpaceProcess::setSelection(const Selection &s) const
@@ -71,12 +73,18 @@ void SpaceProcess::serialize(const VisitorVariant &vis) const
 
 LayerModel *SpaceProcess::makeLayer_impl(const id_type<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent)
 {
+    ISCORE_TODO;
+    return nullptr;
 }
 
 LayerModel *SpaceProcess::loadLayer_impl(const VisitorVariant &, QObject *parent)
 {
+    ISCORE_TODO;
+    return nullptr;
 }
 
 LayerModel *SpaceProcess::cloneLayer_impl(const id_type<LayerModel> &newId, const LayerModel &source, QObject *parent)
 {
+    ISCORE_TODO;
+    return nullptr;
 }

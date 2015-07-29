@@ -21,10 +21,10 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
     for(auto& identifier : m_currentPath)
     {
         i++;
-        if(identifier.objectName() != "BaseConstraintModel"
-                && identifier.objectName() != "ConstraintModel")
+        if(!identifier.objectName().contains("ConstraintModel"))
             continue;
 
+        // Todo find the path and use the constraint name.
         QString txt = QString{"%1%2"}
                 .arg(identifier.objectName())
                 .arg(identifier.id()

@@ -92,7 +92,7 @@ void ScenarioViewInterface::on_timeNodeMoved(const TimeNodePresenter &timenode)
 void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
 {
     auto rect = m_presenter->m_view->boundingRect();
-    const auto& ev = static_cast<const ScenarioModel&>(m_presenter->viewModel().sharedProcessModel()).event(state.model().eventId());
+    const auto& ev = static_cast<const ScenarioModel&>(m_presenter->layerModel().sharedProcessModel()).event(state.model().eventId());
 
     state.view()->setPos({ev.date().msec() / m_presenter->m_zoomRatio,
                           rect.height() * state.model().heightPercentage()});

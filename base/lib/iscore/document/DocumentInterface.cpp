@@ -9,7 +9,7 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
 {
     QString objName {obj ? obj->objectName() : "INVALID"};
 
-    while(obj && obj->objectName() != "Document")
+    while(obj && !qobject_cast<const Document*>(obj))
     {
         obj = obj->parent();
     }

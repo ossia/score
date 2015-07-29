@@ -1,7 +1,7 @@
 #include "AreaPresenter.hpp"
 #include "AreaModel.hpp"
 #include "AreaView.hpp"
-#include "SpaceModel.hpp"
+#include "src/Space/SpaceModel.hpp"
 
 #include <Space/square_renderer.hpp>
 AreaPresenter::AreaPresenter(const AreaModel& model,

@@ -21,7 +21,7 @@ class SpaceLayerPresenter : public LayerPresenter
         void on_zoomRatioChanged(ZoomRatio);
         void parentGeometryChanged();
 
-        const LayerModel &viewModel() const;
+        const LayerModel &layerModel() const;
         const id_type<Process> &modelId() const;
 
     private:

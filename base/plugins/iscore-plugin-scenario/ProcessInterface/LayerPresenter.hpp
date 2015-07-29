@@ -32,7 +32,7 @@ class LayerPresenter : public NamedObject
         virtual void on_zoomRatioChanged(ZoomRatio) = 0;
         virtual void parentGeometryChanged() = 0;
 
-        virtual const LayerModel& viewModel() const = 0;
+        virtual const LayerModel& layerModel() const = 0;
         virtual const id_type<Process>& modelId() const = 0;
 
 };

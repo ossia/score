@@ -20,18 +20,7 @@ void DocumentModel::addPanel(PanelModel *m)
 }
 
 
-PanelModel* DocumentModel::panel(const QString &name) const
-{
-    using namespace std;
-    auto it = find_if(begin(m_panelModels),
-                      end(m_panelModels),
-                      [&](PanelModel * pm)
-    {
-        return pm->objectName() == name;
-    });
 
-    return it != end(m_panelModels) ? *it : nullptr;
-}
 
 void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
 {
@@ -40,18 +29,7 @@ void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
     emit pluginModelsChanged();
 }
 
-DocumentDelegatePluginModel*DocumentModel::pluginModel(const QString &name) const
-{
-    using namespace std;
-    auto it = find_if(begin(m_pluginModels),
-                      end(m_pluginModels),
-                      [&](DocumentDelegatePluginModel * pm)
-    {
-        return pm->objectName() == name;
-    });
 
-    return it != end(m_pluginModels) ? *it : nullptr;
-}
 
 void DocumentModel::setNewSelection(const Selection& s)
 {

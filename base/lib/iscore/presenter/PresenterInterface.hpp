@@ -17,6 +17,8 @@ namespace iscore
          * @param data The data of the command.
          *
          * Ownership of the command is transferred to the caller, and he must delete it.
+         *
+         * This will throw a MissingCommandException if not found.
          */
         iscore::SerializableCommand*
         instantiateUndoCommand(const QString& parent_name,
