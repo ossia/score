@@ -22,7 +22,7 @@ class AutomationFactory : public ProcessFactory
 
         LayerView* makeLayerView(
                 const LayerModel& viewmodel,
-                QObject* parent) override;
+                QGraphicsItem* parent) override;
 
         LayerPresenter* makeLayerPresenter(
                 const LayerModel&,

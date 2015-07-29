@@ -73,8 +73,7 @@ void SpaceProcess::serialize(const VisitorVariant &vis) const
 
 LayerModel *SpaceProcess::makeLayer_impl(const id_type<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent)
 {
-    ISCORE_TODO;
-    return nullptr;
+    return new SpaceLayerModel{viewModelId, *this, parent};
 }
 
 LayerModel *SpaceProcess::loadLayer_impl(const VisitorVariant &, QObject *parent)

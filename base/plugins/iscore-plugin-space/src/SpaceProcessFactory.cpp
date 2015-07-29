@@ -27,7 +27,7 @@ LayerPresenter *SpaceProcessFactory::makeLayerPresenter(const LayerModel & model
     return new SpaceLayerPresenter{model, view, parent};
 }
 
-LayerView *SpaceProcessFactory::makeLayerView(const LayerModel &view, QObject *parent)
+LayerView *SpaceProcessFactory::makeLayerView(const LayerModel &layer, QGraphicsItem* parent)
 {
-    return nullptr;
+    return new SpaceLayerView{parent};
 }

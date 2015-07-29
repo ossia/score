@@ -11,6 +11,7 @@ class LayerModel;
 class Process;
 class LayerView;
 class LayerPresenter;
+class QGraphicsItem;
 
 /**
      * @brief The ProcessFactory class
@@ -49,6 +50,6 @@ class ProcessFactory : public iscore::FactoryInterface
 
         virtual LayerView* makeLayerView(
                 const LayerModel& view,
-                QObject* parent) = 0;
+                QGraphicsItem* parent) = 0;
 
 };

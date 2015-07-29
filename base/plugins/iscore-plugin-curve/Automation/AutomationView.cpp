@@ -3,7 +3,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QDebug>
-AutomationView::AutomationView(QGraphicsObject* parent) :
+AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}
 {
     setZValue(parent->zValue() + 1);

@@ -14,7 +14,6 @@ void Visitor<Reader<DataStream>>::readFrom(const BaseElementModel& obj)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(BaseElementModel& obj)
 {
-    writeTo(static_cast<IdentifiedObject<iscore::DocumentDelegateModelInterface>&>(obj));
     obj.m_baseScenario = new BaseScenario{*this, &obj};
 
     checkDelimiter();
@@ -34,16 +33,6 @@ void Visitor<Writer<JSONObject>>::writeTo(BaseElementModel& obj)
     obj.m_baseScenario = new BaseScenario{
                         Deserializer<JSONObject>{m_obj["BaseScenario"].toObject()},
                         &obj};
-}
-
-
-BaseElementModel::BaseElementModel(const VisitorVariant& vis,
-                                   QObject* parent) :
-    iscore::DocumentDelegateModelInterface {id_type<iscore::DocumentDelegateModelInterface>(0),
-                                            "BaseElementModel",
-                                            parent}
-{
-    deserialize_dyn(vis, *this);
 }
 
 void BaseElementModel::serialize(const VisitorVariant& vis) const

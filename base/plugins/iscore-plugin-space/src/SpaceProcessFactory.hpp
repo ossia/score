@@ -25,5 +25,5 @@ class SpaceProcessFactory : public ProcessFactory
 
         LayerView* makeLayerView(
                 const LayerModel &view,
-                QObject *parent);
+                QGraphicsItem *parent);
 };

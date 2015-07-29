@@ -7,6 +7,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 
+#include <iscore/serialization/VisitorCommon.hpp>
 iscore::DocumentDelegateViewInterface*
 ScenarioDocument::makeView(iscore::DocumentView* parent)
 {
@@ -29,5 +30,7 @@ ScenarioDocument::makeModel(iscore::DocumentModel* parent)
 
 iscore::DocumentDelegateModelInterface* ScenarioDocument::loadModel(const VisitorVariant& vis, iscore::DocumentModel* parent)
 {
-    return new BaseElementModel {vis, parent};
+
+    return deserialize_dyn(vis, [&] (auto&& deserializer)
+    { return new BaseElementModel{deserializer, parent};});
 }

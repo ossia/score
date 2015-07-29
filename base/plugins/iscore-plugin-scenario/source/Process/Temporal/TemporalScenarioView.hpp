@@ -11,7 +11,7 @@ class TemporalScenarioView : public LayerView
         Q_OBJECT
 
     public:
-        TemporalScenarioView(QGraphicsObject* parent);
+        TemporalScenarioView(QGraphicsItem* parent);
         ~TemporalScenarioView();
 
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;

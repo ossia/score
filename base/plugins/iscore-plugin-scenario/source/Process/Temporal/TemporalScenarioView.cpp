@@ -8,7 +8,7 @@
 
 #include "TemporalScenarioPresenter.hpp"
 
-TemporalScenarioView::TemporalScenarioView(QGraphicsObject* parent) :
+TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     LayerView {parent}
 {
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?

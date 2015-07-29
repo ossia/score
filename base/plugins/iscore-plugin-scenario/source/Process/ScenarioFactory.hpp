@@ -24,6 +24,6 @@ class ScenarioFactory : public ProcessFactory
 
         LayerView* makeLayerView(
                 const LayerModel& viewmodel,
-                QObject* parent) override;
+                QGraphicsItem* parent) override;
 
 };

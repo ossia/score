@@ -20,7 +20,14 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ISCORE_SERIALIZE_FRIENDS(BaseElementModel, JSONObject)
     public:
         BaseElementModel(QObject* parent);
-        BaseElementModel(const VisitorVariant& data, QObject* parent);
+
+        template<typename Impl>
+        BaseElementModel(Deserializer<Impl>& vis, QObject* parent) :
+            iscore::DocumentDelegateModelInterface {vis, parent}
+        {
+            vis.writeTo(*this);
+        }
+
         virtual ~BaseElementModel() = default;
 
         ConstraintModel& baseConstraint() const;

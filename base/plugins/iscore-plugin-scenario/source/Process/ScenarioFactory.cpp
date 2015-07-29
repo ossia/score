@@ -12,10 +12,10 @@ QString ScenarioFactory::name() const
 
 LayerView* ScenarioFactory::makeLayerView(
         const LayerModel& viewmodel,
-        QObject* parent)
+        QGraphicsItem* parent)
 {
     if(dynamic_cast<const TemporalScenarioLayerModel*>(&viewmodel))
-        return new TemporalScenarioView {static_cast<QGraphicsObject*>(parent) };
+        return new TemporalScenarioView {parent};
 
     return nullptr;
 }

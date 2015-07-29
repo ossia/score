@@ -9,14 +9,14 @@ Process* AutomationFactory::makeModel(
         const id_type<Process>& id,
         QObject* parent)
 {
-    return new AutomationModel {duration, id, parent};
+    return new AutomationModel{duration, id, parent};
 }
 
 LayerView* AutomationFactory::makeLayerView(
         const LayerModel& view,
-        QObject* parent)
+        QGraphicsItem* parent)
 {
-    return new AutomationView {static_cast<QGraphicsObject*>(parent) };
+    return new AutomationView{parent};
 }
 
 
