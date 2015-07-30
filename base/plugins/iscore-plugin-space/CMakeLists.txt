@@ -72,3 +72,6 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/
         COMPONENT DynamicRuntime)
+
+
+add_subdirectory(tests)
