@@ -9,7 +9,7 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
 {
     public:
         SpaceModel(
-                std::unique_ptr<spacelib::space>&& sp,
+                std::unique_ptr<spacelib::space<2>>&& sp,
                 const id_type<SpaceModel>& id,
                 QObject* parent);
 
@@ -17,5 +17,5 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
         { return *m_space; }
 
     private:
-        std::unique_ptr<spacelib::space> m_space;
+        std::unique_ptr<spacelib::space<2>> m_space;
 };

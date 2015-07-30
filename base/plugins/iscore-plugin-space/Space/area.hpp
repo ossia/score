@@ -35,7 +35,7 @@ class area
             m_parameters.at(sym) = val;
         }
 
-        equation map_to_space(const space& s) const
+        equation map_to_space(const space<2>& s) const
         {
             // Space dim must be >= to variables dim
             Q_ASSERT(s.variables().size() >= m_variables.size());

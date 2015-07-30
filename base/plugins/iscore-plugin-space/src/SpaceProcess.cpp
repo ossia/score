@@ -13,7 +13,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     symbol y("y");
 
     m_space = new SpaceModel(
-                std::make_unique<spacelib::space>(space::variable_lst{x, y}),
+                std::make_unique<spacelib::space<2>>(space<2>::variable_lst{x, y}),
                 id_type<SpaceModel>(),
                 this);
 

@@ -51,7 +51,7 @@ main() {
 int main()
 {
     using namespace spacelib;
-    space s({GiNaC::symbol("x")});
+    space<2> s({GiNaC::symbol("x")});
 
     for(auto elt : square_approx<100, 10>(s, 1))
     {

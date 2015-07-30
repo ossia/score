@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 #include <Space/area.hpp>
 
 namespace spacelib
@@ -8,7 +9,7 @@ template<int size = 800, int side = 5>
 class square_approx
 {
     public:
-        square_approx(const space& s, int dim) // TODO  require concept bounded_space with min/max
+        square_approx(const space<2>& s, int dim) // TODO  require concept bounded_space with min/max
         {
 
         }
@@ -61,23 +62,31 @@ class dimension_iterator
         {
         }
 
-        // TODO var_map size known at compile time
-        // and std::enable_if(dim == var_map.size) for the last case...
-        void rec(std::size_t dim, GiNaC::exmap& var_map)
+             template<int Dimension,
+                    std::enable_if_t< Dimension < std::decay_t<Space>::dimension - 1 >* = nullptr >
+        void rec_impl(GiNaC::exmap& var_map)
         {
             for(int i : m_approx)
             {
-                var_map[m_space.variables()[dim]] = i;
-                if(dim < m_space.variables().size() - 1)
-                    rec(dim+1, var_map);
-                else
-                    m_fun(var_map);
+                var_map[m_space.variables()[Dimension]] = i;
+                rec_impl<Dimension+1>(var_map);
+            }
+        }
+
+             template<int Dimension,
+                    std::enable_if_t< Dimension == std::decay_t<Space>::dimension - 1 >* = nullptr >
+        void rec_impl(GiNaC::exmap& var_map)
+        {
+            for(int i : m_approx)
+            {
+                var_map[m_space.variables()[Dimension]] = i;
+                m_fun(var_map);
             }
         }
 
         void rec(GiNaC::exmap& var_map)
         {
-            rec(0, var_map);
+            rec_impl<0>(var_map);
         }
 
 
@@ -92,7 +101,7 @@ class square_renderer
         double side = 5.; // square size
         Size size; //complete size.
 
-        void render(const area& a, const space& s)
+        void render(const area& a, const space<2>& s)
         {
             GiNaC::exmap var_map;
             auto eqn = a.map_to_space(s);
