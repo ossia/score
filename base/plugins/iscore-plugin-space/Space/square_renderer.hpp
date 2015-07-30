@@ -1,5 +1,6 @@
 #pragma once
 #include <type_traits>
+#include <iscore/Settings.hpp>
 #include <Space/area.hpp>
 
 namespace spacelib
@@ -17,18 +18,18 @@ class square_approx
         class iterator
         {
             public:
-                iterator() = default;
-                iterator(int p): pos{p} { }
+                constexpr iterator() = default;
+                constexpr iterator(int p): pos{p} { }
 
-                iterator operator++()
-                { pos++; return *this; }
-                iterator operator++(int)
-                { pos++; return *this; }
+                constexpr iterator operator++()
+                { return ++pos, *this; }
+                constexpr iterator operator++(int)
+                { return ++pos, *this; }
 
-                int operator*() const
+                constexpr int operator*() const
                 { return pos * side; }
 
-                bool operator!=(iterator other) const
+                constexpr bool operator!=(iterator other) const
                 { return other.pos != pos; }
 
             private:
@@ -36,9 +37,9 @@ class square_approx
         };
 
 
-        iterator begin()
+        constexpr iterator begin()
         { return iterator(); }
-        iterator end()
+        constexpr iterator end()
         { return iterator(size/side); }
 };
 
@@ -62,6 +63,13 @@ class dimension_iterator
         {
         }
 
+
+        void rec(GiNaC::exmap& var_map)
+        {
+            rec_impl<0>(var_map);
+        }
+
+    private:
              template<int Dimension,
                     std::enable_if_t< Dimension < std::decay_t<Space>::dimension - 1 >* = nullptr >
         void rec_impl(GiNaC::exmap& var_map)
@@ -83,13 +91,6 @@ class dimension_iterator
                 m_fun(var_map);
             }
         }
-
-        void rec(GiNaC::exmap& var_map)
-        {
-            rec_impl<0>(var_map);
-        }
-
-
 };
 
 
