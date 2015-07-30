@@ -38,7 +38,7 @@ class area
         equation map_to_space(const space<2>& s) const
         {
             // Space dim must be >= to variables dim
-            Q_ASSERT(s.variables().size() >= m_variables.size());
+            Q_ASSERT(s.dimension >= m_variables.size());
 
             // We affect all the space dimensions we can to the
             // dimensions here.

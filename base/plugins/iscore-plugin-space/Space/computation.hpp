@@ -1,6 +1,7 @@
 #pragma once
 #include <Space/area.hpp>
-
+#include <Space/dimension_iterator.hpp>
+#include <Space/square_approximator.hpp>
 namespace spacelib
 {
 namespace rcc {
@@ -47,7 +48,12 @@ class overlap_computation
             auto m1 = a1.map_to_space(s);
             auto m2 = a2.map_to_space(s);
 
+            auto dim = make<dimension_eval>(s, square_approx<800, 5>(s, 0),
+            [&] (const GiNaC::exmap& map) {
+                return area::check(m1, a1.parameters(), map) && area::check(m2, a2.parameters(), map);
+            });
 
+            return dim.rec();
         }
 };
 
