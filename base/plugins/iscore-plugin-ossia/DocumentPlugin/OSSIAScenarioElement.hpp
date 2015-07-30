@@ -64,7 +64,5 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
         IdContainer<ConstraintModel> m_executingConstraints;
 
-        TimeValue m_previousExecutionDate;
-
         const DeviceList& m_deviceList;
 };

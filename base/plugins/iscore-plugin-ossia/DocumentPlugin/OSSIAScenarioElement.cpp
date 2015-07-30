@@ -79,7 +79,6 @@ const Process *OSSIAScenarioElement::iscoreProcess() const
 
 void OSSIAScenarioElement::stop()
 {
-    m_previousExecutionDate = TimeValue::zero();
     m_executingConstraints.clear();
 }
 

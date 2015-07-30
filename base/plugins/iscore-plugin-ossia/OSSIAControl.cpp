@@ -35,9 +35,9 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 }
 
 
-OSSIA::TimeConstraint &OSSIAControl::baseConstraint() const
+OSSIAConstraintElement &OSSIAControl::baseConstraint() const
 {
-    return *currentDocument()->model()->pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint()->constraint();
+    return *currentDocument()->model()->pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
@@ -45,7 +45,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* play = new QAction {tr("Play"), this};
     connect(play, &QAction::triggered,
             [&] ()
-    { baseConstraint().start(); });
+    { baseConstraint().constraint()->start(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        play);
@@ -53,7 +53,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* pause = new QAction {tr("Pause"), this};
     connect(pause, &QAction::triggered,
             [&] ()
-    { baseConstraint().pause(); });
+    { baseConstraint().constraint()->pause(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        pause);
@@ -61,7 +61,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* resume = new QAction {tr("Resume"), this};
     connect(resume, &QAction::triggered,
             [&] ()
-    { baseConstraint().resume(); });
+    { baseConstraint().constraint()->resume(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        resume);
