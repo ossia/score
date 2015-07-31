@@ -4,6 +4,7 @@
 
 namespace spacelib
 {
+
 class area
 {
     public:
@@ -36,6 +37,7 @@ class area
             m_parameters.at(sym) = val;
         }
 
+        // Should take a mapping in argument, too. Maybge area should be mapped_area ?
         template<typename Space>
         equation map_to_space(const Space& s) const
         {
@@ -64,9 +66,6 @@ class area
             return bool(GiNaC::ex_to<equation>(e.subs(m)));
         }
 
-        const variable_lst& variables() const
-        { return m_variables; }
-
         const parameter_map& parameters() const
         { return m_parameters; }
 
@@ -79,4 +78,19 @@ class area
         // Map between symbol and numeric value.
         parameter_map m_parameters;
 };
+
+
+
+// An area projected on a space given a mapping.
+class projected_area
+{
+    public:
+        template<typename Space>
+        projected_area(const area& a, const Space& space, std::array<std::pair<GiNaC::symbol, int>, Space::dimension> map)
+        {
+
+        }
+
+};
+
 }

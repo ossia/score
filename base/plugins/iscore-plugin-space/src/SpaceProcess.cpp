@@ -9,11 +9,9 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
 {
     using namespace GiNaC;
     using namespace spacelib;
-    symbol x("x");
-    symbol y("y");
 
     m_space = new SpaceModel(
-                std::make_unique<spacelib::space<2>>(space<2>::variable_lst{x, y}),
+                std::make_unique<spacelib::space<2>>(symbol("x"), symbol("y")),
                 id_type<SpaceModel>(),
                 this);
 
@@ -118,4 +116,12 @@ LayerModel *SpaceProcess::cloneLayer_impl(const id_type<LayerModel> &newId, cons
 {
     ISCORE_TODO;
     return nullptr;
+}
+
+
+void SpaceProcess::addComputation(ComputationModel * c)
+{
+    m_computations.insert(c);
+
+    emit computationAdded(*c);
 }

@@ -92,11 +92,71 @@ void t2()
     // Todo : restrict computations to an area so that we can do z = x^2 + y^2 ony in a circle for instance. -> it's a kind of mapping.
 }
 
+enum class RelType
+{
+    Different, Equal, Inferior, InferiorEqual, Superior, SuperiorEqual
+};
+
+class area_parser
+{
+        GiNaC::parser m_reader;
+        GiNaC::ex m_res;
+    public:
+        area_parser(const std::string& str)
+        { m_res = m_reader(str); }
+
+        bool check() const
+        { return GiNaC::is_a<GiNaC::relational>(m_res); }
+
+        area result() const
+        {
+            auto rel = GiNaC::ex_to<GiNaC::relational>(m_res);
+
+            area a(rel, {}, {});
+
+        }
+};
+
+spacelib::area make_area(const std::string& r1)
+{
+    using namespace GiNaC;
+    parser reader;
+    ex r = reader(r1);
+    bool is_rel = GiNaC::is_a<GiNaC::relational>(r);
+
+    /*
+
+    ex e1 = reader(r1); // Error handling ?
+    ex e2 = reader(r2); // Error handling ? What happens if the same symbol is on both sides ?
+    relational r;
+
+    switch(operatorp)
+    {
+
+    }
+
+    symtab table = reader.get_syms();
+    */
+    // area a(e, {}, {});
+
+}
+
+void t3()
+{
+    // Parsing
+    using namespace GiNaC;
+    parser reader;
+    ex e = reader("2*x+sin(y)");
+    symtab table = reader.get_syms();
+    symbol x = GiNaC::ex_to<GiNaC::symbol>(table["x"]);
+    symbol y = GiNaC::ex_to<GiNaC::symbol>(table["y"]);
+
+    // Have an abstract area that runs with a variable number of space variables, and a fixed one afterwards ?
+}
 
 int main()
 {
-    t2();
-
+    t3();
 
     return 0;
 }

@@ -1,8 +1,8 @@
 #pragma once
 #include <ginac/ginac.h>
-#include <array>
 #include <Space/bounded_symbol.hpp>
 
+#include <array>
 namespace spacelib
 {
 template<typename Symbol, int N>
@@ -12,8 +12,9 @@ class space_t
         static const constexpr int dimension{N};
         using variable_lst = std::array<Symbol, N>;
 
-        space_t(const variable_lst& vars):
-            m_variables(vars)
+        template<typename... T>
+        space_t(T&&... vars):
+            m_variables{std::forward<T>(vars)...}
         {
 
         }

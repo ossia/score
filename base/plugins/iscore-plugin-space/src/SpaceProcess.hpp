@@ -28,13 +28,20 @@ class SpaceProcess : public Process
 
         void serialize(const VisitorVariant &vis) const;
 
+        const auto& space() const
+        { return m_space; }
 
         const auto& areas() const
         { return m_areas; }
         void addArea(AreaModel*);
 
+        const auto& computations() const
+        { return m_computations; }
+        void addComputation(ComputationModel*);
+
     signals:
         void areaAdded(const AreaModel&);
+        void computationAdded(const ComputationModel&);
 
     protected:
         LayerModel *makeLayer_impl(const id_type<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent);
