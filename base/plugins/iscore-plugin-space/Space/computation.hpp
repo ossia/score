@@ -23,22 +23,32 @@ namespace rcc {
 // Have a notion of point (x, y) of symbols that can be replaced?
 class computation
 {
+    public:
+        virtual ~computation() = default;
+};
+
+class value_computation : public computation
+{
         using formula = GiNaC::ex;
     public:
-        formula e;
+        formula f;
 
-        inline double evaluate(GiNaC::exmap values)
+        double evaluate(GiNaC::exmap values) const
         {
-            return GiNaC::ex_to<GiNaC::numeric>(e.subs(values).evalf()).to_double();
+            return GiNaC::ex_to<GiNaC::numeric>(f.subs(values).evalf()).to_double();
         }
 };
 
 
-class overlap_computation
+class overlap_computation : public computation
 {
     public:
         template<typename Space, typename Approximator>
-        static bool evaluate(area a1, area a2, Space s, Approximator approx)
+        static bool evaluate(
+                const area& a1,
+                const area& a2,
+                const Space& s,
+                const Approximator& approx)
         {
             // 1. Map space to a1, a2 free variables.
             // 2. For each value of each approximated dimension of the area
@@ -47,7 +57,7 @@ class overlap_computation
             auto m1 = a1.map_to_space(s);
             auto m2 = a2.map_to_space(s);
 
-            auto dim = make<dimension_eval>(s, square_approx<800, 5>(s, 0),
+            auto dim = make<dimension_eval>(s, approx,
             [&] (const GiNaC::exmap& map) {
                 return area::check(m1, a1.parameters(), map) && area::check(m2, a2.parameters(), map);
             });

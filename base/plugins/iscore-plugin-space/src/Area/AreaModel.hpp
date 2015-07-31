@@ -22,11 +22,23 @@ class AreaModel : public IdentifiedObject<AreaModel>
         const auto& space() const
         { return m_space; }
 
+        void mapAddressToParameter(const QString& str,
+                                   const iscore::FullAddressSettings& addr);
+
+        void mapValueToParameter(const QString& str,
+                                 const iscore::Value&& val);
+
     signals:
         void areaChanged();
 
     private:
+        spacelib::area::parameter parameterFromString(const QString& str);
         const SpaceModel& m_space;
         std::unique_ptr<spacelib::area> m_area;
-        std::map<spacelib::area::parameter, iscore::FullAddressSettings> m_addressMap;
+
+        // bool is true if we use only the value, false if we
+        // use the whole address
+        QMap<spacelib::area::parameter,
+             QPair<bool, iscore::FullAddressSettings>
+        > m_addressMap;
 };

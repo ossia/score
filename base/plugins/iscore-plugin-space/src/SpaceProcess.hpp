@@ -2,6 +2,7 @@
 #include <ProcessInterface/ProcessModel.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include "Area/AreaModel.hpp"
+#include "Computation/ComputationModel.hpp"
 class SpaceModel;
 class SpaceProcess : public Process
 {
@@ -43,4 +44,5 @@ class SpaceProcess : public Process
     private:
         SpaceModel* m_space{};
         IdContainer<AreaModel> m_areas;
+        IdContainer<ComputationModel> m_computations;
 };

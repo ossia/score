@@ -19,6 +19,7 @@ class area
         // Symbol2 : p_0, p_1 : the parameters
 
         // ex: (x - p_0)² + (y - p_1)² <= p_2² for a disc
+        // Should we have all variables readily accessible instead?
         area(const equation& e,
              const variable_lst& vars,
              const parameter_map& params):
@@ -35,13 +36,14 @@ class area
             m_parameters.at(sym) = val;
         }
 
-        equation map_to_space(const space<2>& s) const
+        template<typename Space>
+        equation map_to_space(const Space& s) const
         {
             // Space dim must be >= to variables dim
-            Q_ASSERT(s.dimension >= m_variables.size());
+            Q_ASSERT(Space::dimension >= m_variables.size());
 
             // We affect all the space dimensions we can to the
-            // dimensions here.
+            // dimensions here. This should be done by the user...
             GiNaC::exmap m;
             for(std::size_t i = 0; i < m_variables.size(); i++)
             {
