@@ -27,10 +27,9 @@ class computation
     public:
         formula e;
 
-        template<typename Space>
-        bool overlap(area a1, area a2, Space s)
+        inline double evaluate(GiNaC::exmap values)
         {
-            return true;
+            return GiNaC::ex_to<GiNaC::numeric>(e.subs(values).evalf()).to_double();
         }
 };
 
@@ -39,7 +38,7 @@ class overlap_computation
 {
     public:
         template<typename Space, typename Approximator>
-        bool evaluate(area a1, area a2, Space s, Approximator approx)
+        static bool evaluate(area a1, area a2, Space s, Approximator approx)
         {
             // 1. Map space to a1, a2 free variables.
             // 2. For each value of each approximated dimension of the area
@@ -56,12 +55,5 @@ class overlap_computation
             return dim.rec();
         }
 };
-
-inline auto evaluate(computation c, GiNaC::exmap values)
-{
-    //area e1, e2;
-    // Replace
-    return GiNaC::ex_to<GiNaC::numeric>(c.e.subs(values).evalf()).to_double();
-}
 
 }

@@ -1,7 +1,10 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <Space/area.hpp>
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 class SpaceModel;
+
+// Maps addresses / values to the parameter of an area
 class AreaModel : public IdentifiedObject<AreaModel>
 {
         Q_OBJECT
@@ -25,4 +28,5 @@ class AreaModel : public IdentifiedObject<AreaModel>
     private:
         const SpaceModel& m_space;
         std::unique_ptr<spacelib::area> m_area;
+        std::map<spacelib::area::parameter, iscore::FullAddressSettings> m_addressMap;
 };
