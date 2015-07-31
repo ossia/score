@@ -33,7 +33,7 @@ void AreaPresenter::on_areaChanged()
 {
     spacelib::square_renderer<QPointF, RectDevice> renderer;
     renderer.size = {800, 600};
-    renderer.render(m_model.area(), m_model.space().space());
+    renderer.render(m_model.valuedArea(), m_model.space().space());
 
     m_view->rects = renderer.render_device.rects;
     m_view->update();

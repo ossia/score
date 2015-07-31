@@ -1,4 +1,6 @@
 #include "AreaModel.hpp"
+
+#include <DeviceExplorer/Node/Node.hpp>
 AreaModel::AreaModel(
         std::unique_ptr<spacelib::area>&& area,
         const SpaceModel& space,
@@ -8,10 +10,13 @@ AreaModel::AreaModel(
     m_space{space},
     m_area{std::move(area)}
 {
-    for(const auto& parameter : m_area->parameters())
+    for(const auto& sym : m_area->symbols())
     {
-        m_addressMap.insert(GiNaC::ex_to<GiNaC::symbol>(parameter.first), {false, iscore::FullAddressSettings{}});
+        m_addressMap.insert(
+                    sym.get_name().c_str(),
+                    {sym, {false, iscore::FullAddressSettings{}}});
     }
+
 }
 
 void AreaModel::setArea(std::unique_ptr<spacelib::area> &&ar)
@@ -19,25 +24,41 @@ void AreaModel::setArea(std::unique_ptr<spacelib::area> &&ar)
     m_area = std::move(ar);
 }
 
+void AreaModel::setSpaceMapping(const GiNaC::exmap& mapping)
+{
+    m_spaceMapping = mapping;
+}
+
+spacelib::projected_area AreaModel::projectedArea() const
+{
+    return spacelib::projected_area(*m_area.get(), m_spaceMapping);
+}
+
+spacelib::valued_area AreaModel::valuedArea() const
+{
+    GiNaC::exmap mapping;
+    for(auto& elt : m_addressMap)
+    {
+        if(elt.second.first) // We use the value
+        {
+            mapping[elt.first] = elt.second.second.value.val.toDouble();
+        }
+        else // We fetch it from the device tree
+        {
+            // What do we do if the address is not there ? Mark the area as invalid ?
+        }
+    }
+    return spacelib::valued_area(projectedArea(), mapping);
+}
+
 void AreaModel::mapAddressToParameter(const QString& str, const iscore::FullAddressSettings& addr)
 {
-    m_addressMap[parameterFromString(str)] = {false, addr};
+    m_addressMap[str].second = {false, addr};
 }
 
 void AreaModel::mapValueToParameter(const QString& str, const iscore::Value&& val)
 {
-    auto param = parameterFromString(str);
-    m_addressMap[param].first = true;
-    m_addressMap[param].second.value = val;
+    m_addressMap[str].second.first = true;
+    m_addressMap[str].second.second.value = val;
 }
 
-spacelib::area::parameter AreaModel::parameterFromString(const QString& str)
-{
-    auto it = std::find_if(m_addressMap.keys().begin(),
-                           m_addressMap.keys().end(),
-                           [&] (const spacelib::area::parameter& param)
-    { return param.get_name() == str.toStdString(); });
-
-    Q_ASSERT(it != m_addressMap.keys().end());
-    return *it;
-}

@@ -16,11 +16,17 @@ class AreaModel : public IdentifiedObject<AreaModel>
                 QObject* parent);
 
         void setArea(std::unique_ptr<spacelib::area> &&ar);
+        void setSpaceMapping(const GiNaC::exmap& mapping);
 
         const auto& area() const
         { return *m_area; }
+        spacelib::projected_area projectedArea() const;
+        spacelib::valued_area valuedArea() const;
+
         const auto& space() const
         { return m_space; }
+        const auto& spaceMapping() const
+        { return m_spaceMapping; }
 
         void mapAddressToParameter(const QString& str,
                                    const iscore::FullAddressSettings& addr);
@@ -32,13 +38,14 @@ class AreaModel : public IdentifiedObject<AreaModel>
         void areaChanged();
 
     private:
-        spacelib::area::parameter parameterFromString(const QString& str);
         const SpaceModel& m_space;
         std::unique_ptr<spacelib::area> m_area;
 
+        GiNaC::exmap m_spaceMapping;
+
         // bool is true if we use only the value, false if we
         // use the whole address
-        QMap<spacelib::area::parameter,
-             QPair<bool, iscore::FullAddressSettings>
+        QMap<QString,
+             QPair<GiNaC::symbol, QPair<bool, iscore::FullAddressSettings>>
         > m_addressMap;
 };

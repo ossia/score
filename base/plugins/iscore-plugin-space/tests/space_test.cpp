@@ -71,8 +71,8 @@ void t2()
     symbol y0_a0("y0");
     symbol r_a0("r");
     area a0{pow((xv_a0 - x0_a0),2) + pow((yv_a0 - y0_a0),2) <= pow(r_a0,2),
-            {xv_a0, yv_a0},
-            {{x0_a0, numeric(100)}, {y0_a0, numeric(100)}, {r_a0, 10}}};
+            {xv_a0, yv_a0, x0_a0, y0_a0, r_a0}/*,
+            {{x0_a0, numeric(100)}, {y0_a0, numeric(100)}, {r_a0, 10}}*/};
 
 
     symbol xv_a1("xv");
@@ -81,10 +81,15 @@ void t2()
     symbol y0_a1("y0");
     symbol r_a1("r");
     area a1{pow((xv_a1 - x0_a1),2) + pow((yv_a1 - y0_a1),2) <= pow(r_a1,2),
-            {xv_a1, yv_a1},
-            {{x0_a1, numeric(100)}, {y0_a1, numeric(105)}, {r_a1, 10}}};
+            {xv_a1, yv_a1, x0_a1, y0_a1, r_a1}/*,
+            {{x0_a1, numeric(100)}, {y0_a1, numeric(105)}, {r_a1, 10}}*/};
 
-    qDebug() << overlap_computation::evaluate(a0, a1, s, square_approx<800, 5>(s, 0));
+    projected_area pa0(a0, {{xv_a0, s.variables()[0]}, {yv_a0, s.variables()[1]}} );
+    projected_area pa1(a1, {{xv_a1, s.variables()[0]}, {yv_a1, s.variables()[1]}} );
+
+    valued_area va0(pa0,  {{x0_a0, numeric(100)}, {y0_a0, numeric(100)}, {r_a0, 10}});
+    valued_area va1(pa1,  {{x0_a1, numeric(100)}, {y0_a1, numeric(105)}, {r_a1, 10}});
+    qDebug() << overlap_computation::evaluate(va0, va1, s, square_approx<800, 5>(s, 0));
 
     // Note : if we have equalities no need to aprroximate, we just replace.
     // hence we should strongly-type relations?
@@ -112,7 +117,7 @@ class area_parser
         {
             auto rel = GiNaC::ex_to<GiNaC::relational>(m_res);
 
-            area a(rel, {}, {});
+            area a(rel, {});
 
         }
 };
@@ -155,7 +160,7 @@ void t3()
 }
 
 int main()
-{
+{   t2();
     t3();
 
     return 0;

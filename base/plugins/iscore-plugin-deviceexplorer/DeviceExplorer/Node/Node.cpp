@@ -200,6 +200,9 @@ QString Node::displayName() const
         case Type::RootNode:
             return "Invisible Root Node";
             break;
+        default:
+            return "==ERROR==";
+            break;
     }
 }
 

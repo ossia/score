@@ -22,9 +22,15 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     symbol r("r");
     auto ar1 = new AreaModel(std::make_unique<spacelib::area>(
                                  pow((xv - x0),2) + pow((yv - y0),2) <= pow(r,2),
-                                 area::variable_lst{xv, yv},
-                                 area::parameter_map{{x0, numeric(400)}, {y0, numeric(400)}, {r, 100}}),
+                                 std::vector<GiNaC::symbol>{xv, yv, x0, y0, r}/*,
+                                 GiNaC::exmap{{x0, numeric(400)}, {y0, numeric(400)}, {r, 100}}*/),
                              *m_space, id_type<AreaModel>(0), this);
+
+    ar1->setSpaceMapping({{xv, m_space->space().variables()[0]},
+                          {yv, m_space->space().variables()[1]}});
+    ar1->mapValueToParameter("x0", iscore::Value::fromVariant(200));
+    ar1->mapValueToParameter("y0", iscore::Value::fromVariant(200));
+    ar1->mapValueToParameter("r", iscore::Value::fromVariant(100));
 
     addArea(ar1);
 

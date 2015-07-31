@@ -47,6 +47,11 @@ struct Value
         {
             return false;
         }
+
+        template<typename Fun> auto map(Fun&& f)
+        {
+            // todo make a generic switch like serialize_dyn.
+        }
 };
 
 using ValueList = QList<Value>;

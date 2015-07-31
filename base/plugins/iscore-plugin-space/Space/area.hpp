@@ -4,93 +4,98 @@
 
 namespace spacelib
 {
-
 class area
 {
+        friend class projected_area;
     public:
-        using variable_lst = std::vector<GiNaC::symbol>;
-        using parameter = GiNaC::symbol;
-        using number = GiNaC::numeric;
-        using parameter_map = GiNaC::exmap;
-        using variable_map = GiNaC::exmap;
-        using numlst = GiNaC::lst;
-        using equation = GiNaC::relational;
-
-        // Symbol1 : x, y
-        // Symbol2 : p_0, p_1 : the parameters
-
-        // ex: (x - p_0)² + (y - p_1)² <= p_2² for a disc
-        // Should we have all variables readily accessible instead?
-        area(const equation& e,
-             const variable_lst& vars,
-             const parameter_map& params):
-            m_exp{e},
-            m_variables(vars),
-            m_parameters(params)
+        area(const GiNaC::relational& e,
+             const std::vector<GiNaC::symbol>& vars
+             ):
+            m_rel{e},
+            m_symbols(vars)
         {
 
         }
 
-        // Set a parameter
-        void set(const parameter& sym, const number& val)
+
+        std::vector<GiNaC::symbol> symbols() const
         {
-            m_parameters.at(sym) = val;
+            return m_symbols;
         }
 
-        // Should take a mapping in argument, too. Maybge area should be mapped_area ?
-        template<typename Space>
-        equation map_to_space(const Space& s) const
-        {
-            // Space dim must be >= to variables dim
-            Q_ASSERT(Space::dimension >= m_variables.size());
-
-            // We affect all the space dimensions we can to the
-            // dimensions here. This should be done by the user...
-            GiNaC::exmap m;
-            for(std::size_t i = 0; i < m_variables.size(); i++)
-            {
-                m.insert({m_variables[i], s.variables()[i]});
-            }
-
-            return GiNaC::ex_to<equation>(m_exp.subs(m));
-        }
-
-        static bool check(
-                const equation& e,
-                const variable_map& vars,
-                const parameter_map& params)
-        {
-            auto m = params;
-            m.insert(vars.begin(), vars.end());
-
-            return bool(GiNaC::ex_to<equation>(e.subs(m)));
-        }
-
-        const parameter_map& parameters() const
-        { return m_parameters; }
+        const GiNaC::relational& rel() const
+        { return m_rel; }
 
     private:
-        equation m_exp;
+        GiNaC::relational m_rel;
 
         // Variables that can map to a dimension of space
-        variable_lst m_variables;
+        std::vector<GiNaC::symbol> m_symbols;
 
         // Map between symbol and numeric value.
-        parameter_map m_parameters;
+        //GiNaC::exmap m_parameters;
 };
 
 
 
 // An area projected on a space given a mapping.
+// e.g. given
+//  - the space [x, y]
+//  - the area (a - b)² + (c - d)² = r²,
+//  - the map {{a, 1}, {c, 2}}
+// get (x - a)² + (y - d)² = r².
 class projected_area
 {
-    public:
-        template<typename Space>
-        projected_area(const area& a, const Space& space, std::array<std::pair<GiNaC::symbol, int>, Space::dimension> map)
-        {
+        GiNaC::relational m_rel;
 
+        // Map between symbol and numeric value.
+        GiNaC::exmap m_parameters;
+
+    public:
+        projected_area(
+                const area& a,
+                const GiNaC::exmap& map)
+        {
+            // We substitute sybmols with other symbols corresponding to our space.
+            m_rel = GiNaC::ex_to<GiNaC::relational>(a.rel().subs(map));
+
+            // All the symbols that weren't mapped are parameters.
+            for(auto& sym : a.symbols())
+            {
+                if(map.find(sym) != map.end())
+                    m_parameters.insert({sym, 0});
+            }
         }
 
+        const GiNaC::relational& rel() const
+        { return m_rel; }
+
+        // Set a parameter
+        void set(const GiNaC::symbol& sym, const GiNaC::numeric& val)
+        {
+            m_parameters.at(sym) = val;
+        }
+};
+
+// A projected area with all the parameters replaced by values
+class valued_area
+{
+        GiNaC::relational m_rel;
+
+    public:
+        valued_area(
+                const projected_area& a,
+                const GiNaC::exmap& map)
+        {
+            m_rel = GiNaC::ex_to<GiNaC::relational>(a.rel().subs(map));
+        }
+
+
+        // a map of the space parameters (e.g. x, y) to values
+        bool check(const GiNaC::exmap& map) const
+        {
+            return bool(GiNaC::ex_to<GiNaC::relational>(m_rel.subs(map)));
+        }
 };
 
 }
