@@ -21,6 +21,20 @@
     } \
     private:
 
+
+#define ISCORE_COMMAND_DECL2(facName, name, desc) \
+    public: \
+        static constexpr const char* factoryName() { return facName; } \
+        static constexpr const char* commandName() { return name; } \
+        static QString description() { return QObject::tr(desc); }  \
+    static auto static_uid() \
+    { \
+        using namespace std; \
+        hash<string> fn; \
+        return fn(std::string(commandName())); \
+    } \
+    private:
+
 namespace iscore
 {
     /**

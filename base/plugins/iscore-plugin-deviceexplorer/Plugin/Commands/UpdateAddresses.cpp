@@ -1,4 +1,4 @@
-#include "UpdateAddress.hpp"
+#include "UpdateAddresses.hpp"
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 using namespace DeviceExplorer::Command;

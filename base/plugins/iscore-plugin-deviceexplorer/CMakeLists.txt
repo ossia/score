@@ -46,8 +46,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/EditData.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Insert.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/UpdateNamespace.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/UpdateAddress.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/ReplaceDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/UpdateAddresses.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/AddressSettingsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Common/AddressSettings/Widgets/AddressTupleSettingsWidget.cpp"

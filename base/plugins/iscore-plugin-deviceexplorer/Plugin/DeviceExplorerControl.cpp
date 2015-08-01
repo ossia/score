@@ -8,8 +8,8 @@
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
 #include "Commands/Remove.hpp"
-#include "Commands/UpdateNamespace.hpp"
-#include "Commands/UpdateAddress.hpp"
+#include "Commands/ReplaceDevice.hpp"
+#include "Commands/UpdateAddresses.hpp"
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>

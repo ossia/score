@@ -89,7 +89,6 @@ void AddProcessToConstraint::redo()
         // TODO refactor with AddRackToConstraint
         auto rack = new RackModel{m_createdRackId, &constraint};
         constraint.addRack(rack);
-        rack->metadata.setName(QString{"Rack.%1"}.arg(constraint.racks().size()));
 
         // If it is the first rack created,
         // it is also assigned to all the views of the constraint.

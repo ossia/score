@@ -16,7 +16,6 @@ RackModel::RackModel(const RackModel& source,
                    QObject *parent) :
     IdentifiedObject<RackModel> {id, "RackModel", parent}
 {
-    metadata = source.metadata;
     for(const auto& slot : source.m_slots)
     {
         addSlot(new SlotModel{lmCopyMethod, slot, slot.id(), this},

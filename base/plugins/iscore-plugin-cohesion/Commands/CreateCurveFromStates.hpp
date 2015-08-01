@@ -15,7 +15,7 @@ class UpdateCurve;
 
 class CreateCurveFromStates : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("CreateCurveFromStates", "CreateCurveFromStates")
+        ISCORE_COMMAND_DECL2("IScoreCohesionControl", "CreateCurveFromStates", "CreateCurveFromStates")
     public:
         CreateCurveFromStates();
         ~CreateCurveFromStates();

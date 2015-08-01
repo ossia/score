@@ -20,8 +20,6 @@ class RackModel : public IdentifiedObject<RackModel>
         Q_OBJECT
 
     public:
-        ModelMetadata metadata; // TODO REMOVEME
-
         RackModel(const id_type<RackModel>& id, QObject* parent);
 
         // Copy

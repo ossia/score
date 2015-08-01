@@ -54,6 +54,6 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void addPoint(CurvePointModel* pt);
         void removePoint(CurvePointModel* pt);
 
-        IdContainer<CurveSegmentModel> m_segments; // TODO add ordered index
+        IdContainer<CurveSegmentModel> m_segments;
         QVector<CurvePointModel*> m_points; // Each between 0, 1
 };

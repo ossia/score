@@ -53,6 +53,8 @@ spacelib::valued_area AreaModel::valuedArea() const
 
 void AreaModel::mapAddressToParameter(const QString& str, const iscore::FullAddressSettings& addr)
 {
+    // TODO how to update when a value changes ??
+    // Maybe we should have a default value ?
     m_addressMap[str].second = {false, addr};
 }
 

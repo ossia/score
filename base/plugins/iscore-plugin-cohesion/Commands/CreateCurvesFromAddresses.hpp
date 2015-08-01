@@ -5,9 +5,10 @@
 
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("CreateCurvesFromAddresses", "CreateCurvesFromAddresses")
+        //TODO now use this everywhere
+        ISCORE_COMMAND_DECL2("IScoreCohesionControl", "CreateCurvesFromAddresses", "CreateCurvesFromAddresses")
     public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateCurvesFromAddresses, "IScoreCohesionControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(CreateCurvesFromAddresses)
 
         CreateCurvesFromAddresses(ObjectPath&& constraint,
                                   const QList<iscore::Address> &addresses);

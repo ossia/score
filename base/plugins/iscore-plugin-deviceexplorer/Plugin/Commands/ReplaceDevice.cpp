@@ -1,4 +1,4 @@
-#include "UpdateNamespace.hpp"
+#include "ReplaceDevice.hpp"
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;

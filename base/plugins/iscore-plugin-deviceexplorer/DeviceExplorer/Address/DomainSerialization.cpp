@@ -4,6 +4,18 @@
 
 #include "DomainSerialization.hpp"
 
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const iscore::Domain& n)
+{
+    m_stream << n.min << n.max << n.values;
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
+{
+    m_stream >> n.min >> n.max >> n.values;
+}
+
 QJsonObject DomainToJson(const iscore::Domain& d)
 {
     QJsonObject obj;

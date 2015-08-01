@@ -3,23 +3,12 @@
 #include "AddressSettings.hpp"
 #include "DomainSerialization.hpp"
 #include <State/ValueSerialization.hpp>
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::Domain& n)
-{
-    m_stream << n.min << n.max << n.values;
-}
+
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
+void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettingsCommon& n)
 {
-    m_stream >> n.min >> n.max >> n.values;
-}
-
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
-{
-    m_stream << n.name
-             << n.value
+    m_stream << n.value
              << n.domain
              << (int)n.ioType
              << (int)n.clipMode
@@ -28,55 +17,53 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
              << n.rate
              << n.priority
              << n.tags;
+}
+
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettingsCommon& n)
+{
+    m_stream >> n.value
+             >> n.domain
+             >> (int&)n.ioType
+             >> (int&)n.clipMode
+             >> n.unit
+             >> n.repetitionFilter
+             >> n.rate
+             >> n.priority
+             >> n.tags;
+}
+
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettings& n)
+{
+    readFrom(static_cast<const iscore::AddressSettingsCommon&>(n));
+    m_stream << n.name;
 
     insertDelimiter();
 }
 template<>
 void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettings& n)
 {
-    m_stream >> n.name
-            >> n.value
-            >> n.domain
-            >> (int&)n.ioType
-            >> (int&)n.clipMode
-            >> n.unit
-            >> n.repetitionFilter
-            >> n.rate
-            >> n.priority
-            >> n.tags;
+    writeTo(static_cast<iscore::AddressSettingsCommon&>(n));
+    m_stream >> n.name;
 
     checkDelimiter();
 }
-// TODO refactor.
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::FullAddressSettings& n)
 {
-    m_stream << n.address
-             << n.value
-             << n.domain
-             << (int)n.ioType
-             << (int)n.clipMode
-             << n.unit
-             << n.repetitionFilter
-             << n.rate
-             << n.priority
-             << n.tags;
+    readFrom(static_cast<const iscore::AddressSettingsCommon&>(n));
+    m_stream << n.address;
 
     insertDelimiter();
 }
 template<>
 void Visitor<Writer<DataStream>>::writeTo(iscore::FullAddressSettings& n)
 {
-    m_stream >> n.address
-            >> n.value
-            >> n.domain
-            >> (int&)n.ioType
-            >> (int&)n.clipMode
-            >> n.unit
-            >> n.repetitionFilter
-            >> n.rate
-            >> n.priority
-            >> n.tags;
+    writeTo(static_cast<iscore::AddressSettingsCommon&>(n));
+    m_stream >> n.address;
 
     checkDelimiter();
 }

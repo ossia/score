@@ -24,8 +24,8 @@
 #include "Commands/Remove.hpp"
 
 #include "ExplorationWorker.hpp"
-#include "Commands/UpdateNamespace.hpp"
-#include "Commands/UpdateAddress.hpp"
+#include "Commands/ReplaceDevice.hpp"
+#include "Commands/UpdateAddresses.hpp"
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include <QMessageBox>
 

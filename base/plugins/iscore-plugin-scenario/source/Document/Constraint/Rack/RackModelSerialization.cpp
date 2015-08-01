@@ -7,7 +7,6 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
 {
     readFrom(static_cast<const IdentifiedObject<RackModel>&>(rack));
 
-    readFrom(rack.metadata);
     m_stream << rack.slotsPositions();
 
     auto theSlots = rack.getSlots();
@@ -25,7 +24,6 @@ template<> void Visitor<Writer<DataStream>>::writeTo(RackModel& rack)
 {
     int slots_size;
     QList<id_type<SlotModel>> positions;
-    writeTo(rack.metadata);
     m_stream >> positions;
 
     m_stream >> slots_size;
@@ -43,8 +41,6 @@ template<> void Visitor<Writer<DataStream>>::writeTo(RackModel& rack)
 template<> void Visitor<Reader<JSONObject>>::readFrom(const RackModel& rack)
 {
     readFrom(static_cast<const IdentifiedObject<RackModel>&>(rack));
-
-    m_obj["Metadata"] = toJsonObject(rack.metadata);
 
     QJsonArray arr;
     for(const auto& slot : rack.getSlots())
@@ -66,8 +62,6 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const RackModel& rack)
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(RackModel& rack)
 {
-    rack.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
-
     QJsonArray theSlots = m_obj["Slots"].toArray();
     QJsonArray slotsPositions = m_obj["SlotsPositions"].toArray();
     QList<id_type<SlotModel>> list;
