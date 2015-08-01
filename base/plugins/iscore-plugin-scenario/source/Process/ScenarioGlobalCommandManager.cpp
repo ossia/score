@@ -10,6 +10,7 @@
 
 #include "Commands/Scenario/Deletions/RemoveSelection.hpp"
 
+#include <iscore/tools/utilsCPP11.hpp>
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
 void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel &scenario)
@@ -37,7 +38,16 @@ void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel
 
 void ScenarioGlobalCommandManager::removeSelection(const ScenarioModel &scenario)
 {
-    auto sel = scenario.selectedChildren();
+    Selection sel = scenario.selectedChildren();
+
+    // We have to remove the first / last timenodes / events from the selection.
+    erase_if(sel, [&] (auto&& elt) {
+        return elt == &scenario.startEvent()
+            || elt == &scenario.endEvent()
+            || elt == &scenario.startTimeNode()
+            || elt == &scenario.endTimeNode();
+    });
+
     if(!sel.empty())
     {
         CommandDispatcher<> dispatcher(m_commandStack);

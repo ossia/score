@@ -3,6 +3,7 @@
 #include <iscore/command/AggregateCommand.hpp>
 #include <QVector>
 
+// TODO rename file
 namespace Scenario
 {
     namespace Command

@@ -11,3 +11,14 @@ using return_type_of_iterator =
     typename std::remove_reference<
         decltype(*std::declval<Container>().begin())
     >::type;
+
+
+
+template<typename Range, typename Fun>
+void erase_if(Range&& r, Fun&& f)
+{
+    for(auto&& it = begin(r); it != end(r); )
+    {
+        it = f(*it) ? r.erase(it) : ++it;
+    }
+}
