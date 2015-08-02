@@ -19,8 +19,7 @@ bool iscore::DocumentBackups::canRestoreDocuments()
         }
         else
         {
-            // Remove backup
-            QFile(openDocumentsFilePath()).remove();
+            DocumentBackups::clear();
             return false;
         }
     }
@@ -79,7 +78,6 @@ void iscore::DocumentBackups::clear()
         }
 
         // Remove the file containing the map
-        QFile f{openDocumentsFilePath()};
-        f.remove();
+        QFile{openDocumentsFilePath()}.remove();
     }
 }
