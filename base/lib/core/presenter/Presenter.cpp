@@ -15,9 +15,11 @@
 
 #include <core/undo/UndoControl.hpp>
 
+#include <core/document/DocumentBackups.hpp>
+
 #include <QFileDialog>
-#include <QSettings>
 #include <QSaveFile>
+#include <QMessageBox>
 #include <QJsonDocument>
 
 using namespace iscore;
@@ -78,6 +80,25 @@ const std::vector<PluginControlInterface *> &Presenter::pluginControls() const
 const std::vector<DocumentDelegateFactoryInterface *>& Presenter::availableDocuments() const
 {
     return m_availableDocuments;
+}
+
+void Presenter::setupDocument(Document* doc)
+{
+    if(doc)
+    {
+        for(auto& panel : m_panelPresenters)
+        {
+            doc->setupNewPanel(panel.first, panel.second);
+        }
+
+        m_documents.push_back(doc);
+        m_view->addDocumentView(doc->view());
+        setCurrentDocument(doc);
+    }
+    else
+    {
+        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
+    }
 }
 
 Document *Presenter::currentDocument() const
@@ -190,129 +211,25 @@ void Presenter::loadDocument()
         QFile f {loadname};
         if(f.open(QIODevice::ReadOnly))
         {
-            Document* theDoc{};
             if (loadname.indexOf(".scorebin") != -1)
             {
-                theDoc = loadDocument(f.readAll(), m_availableDocuments.front());
+                loadDocument(f.readAll(), m_availableDocuments.front());
             }
-            else
+            else if (loadname.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                theDoc = loadDocument(json.object(), m_availableDocuments.front());
+                loadDocument(json.object(), m_availableDocuments.front());
             }
-
-            if(theDoc)
-                theDoc->setCrashCommandfile(new CommandBackupFile{theDoc->commandStack(), theDoc});
         }
     }
 }
 
-void Presenter::newDocument(DocumentDelegateFactoryInterface* doctype)
-{
-    auto doc = new Document{doctype, m_view, this};
-    m_documents.push_back(doc);
-
-    for(auto& control: m_controls)
-    {
-        control->on_newDocument(doc);
-    }
-
-    for(auto& panel : m_panelPresenters)
-    {
-        doc->setupNewPanel(panel.first, panel.second);
-    }
-
-    m_view->addDocumentView(doc->view());
-
-    setCurrentDocument(doc);
-
-
-    // Save the initial state of the document
-    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
-
-    auto existing_files = s.value("iscore/docs").toMap();
-    existing_files.insert(doc->crashDataFile().fileName(),
-                          doc->crashCommandFile().fileName());
-    s.setValue("iscore/docs", existing_files);
-
-    doc->crashDataFile().write(doc->saveAsByteArray());
-    doc->crashDataFile().flush();
-}
-
-Document* Presenter::loadDocument(const QVariant& data,
-                                  DocumentDelegateFactoryInterface* doctype)
-{
-    Document* doc = nullptr;
-    bool inserted = false;
-    try
-    {
-        auto doc = new Document{data, doctype, m_view, this};
-        m_documents.push_back(doc);
-        inserted = true;
-
-        for(auto& control: m_controls)
-        {
-            control->on_loadedDocument(doc);
-        }
-
-        for(auto& panel : m_panelPresenters)
-        {
-            doc->setupNewPanel(panel.first, panel.second);
-        }
-
-        m_view->addDocumentView(doc->view());
-
-        setCurrentDocument(doc);
-
-        doc->crashDataFile().write(doc->saveAsByteArray());
-        doc->crashDataFile().flush();
-
-        return doc;
-    }
-    catch(std::runtime_error& e)
-    {
-        if(inserted)
-        {
-            m_documents.removeOne(doc);
-            delete doc;
-        }
-
-        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
-        QMessageBox::warning(m_view, QObject::tr("Error"), e.what());
-        return nullptr;
-    }
-}
 
 void Presenter::restoreDocuments()
 {
-    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
-
-    auto existing_files = s.value("iscore/docs").toMap();
-    for(const auto& element : existing_files.keys())
+    for(const auto& backup : DocumentBackups::restorableDocuments())
     {
-        QFile data_file{element};
-        if(data_file.exists())
-        {
-            data_file.open(QFile::ReadOnly);
-
-            auto doc = loadDocument(data_file.readAll(), m_availableDocuments.front());
-            if(doc)
-            {
-                QFile command_file(existing_files[element].toString());
-                if(command_file.exists())
-                {
-                    command_file.open(QFile::ReadOnly);
-
-                    Deserializer<DataStream> writer(&command_file);
-                    writer.writeTo(doc->commandStack());
-                }
-
-                doc->setCrashCommandfile(new CommandBackupFile{doc->commandStack(), doc});
-            }
-
-            data_file.close();
-            data_file.remove();
-        }
+        restoreDocument(backup.first, backup.second, m_availableDocuments.front());
     }
 }
 
@@ -404,3 +321,14 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
                                         AboutMenuElement::About, [] () { QMessageBox::about(nullptr, tr("About i-score"), tr("With love and sweat from the i-score team.")); });
 }
+View* Presenter::view() const
+{
+    return m_view;
+}
+
+
+const std::vector<iscore::PluginControlInterface*>& Presenter::controls() const
+{
+    return m_controls;
+}
+

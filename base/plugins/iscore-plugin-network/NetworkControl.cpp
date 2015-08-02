@@ -83,6 +83,8 @@ void NetworkControl::on_sessionBuilt(
         ClientSessionBuilder* sessionBuilder,
         ClientSession* builtSession)
 {
+    // TODO Use RestoreDocument mechanism.
+    /*
     auto doc = presenter()->loadDocument(
                    m_sessionBuilder->documentData(),
                    presenter()->availableDocuments().front());
@@ -100,6 +102,7 @@ void NetworkControl::on_sessionBuilt(
     auto np = static_cast<NetworkDocumentPlugin*>(doc->model()->pluginModel<NetworkDocumentPlugin>());
     np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
     delete sessionBuilder;
+    */
 }
 
 

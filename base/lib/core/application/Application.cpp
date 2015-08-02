@@ -8,6 +8,7 @@
 #include <core/undo/UndoControl.hpp>
 #include <QSplashScreen>
 #include <QFontDatabase>
+#include <core/document/DocumentBackups.hpp>
 using namespace iscore;
 #include <QMessageBox>
 static Application* application_instance = nullptr;
@@ -62,9 +63,11 @@ Application::Application(int& argc, char** argv) :
     m_app = new CatchyApplication{argc, argv};
     ::application_instance = this;
 
+#if !defined(ISCORE_DEBUG)
     QPixmap logo{":/iscore.png"};
-    QSplashScreen splash(logo, Qt::FramelessWindowHint);
+    QSplashScreen splash{logo, Qt::FramelessWindowHint};
     splash.show();
+#endif
 
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");
     m_app->setFont(QFont{"Ubuntu", 10, QFont::Normal});
@@ -109,10 +112,7 @@ Application::Application(int& argc, char** argv) :
     m_view->show();
 
     // Try to reload if there was a crash
-    if(openDocumentsFileExists() && QMessageBox::question(
-                m_view,
-                tr("Reload?"),
-                tr("It seems that i-score previously crashed. Do you wish to reload your work?")) == QMessageBox::Yes)
+    if(DocumentBackups::canRestoreDocuments())
     {
         m_presenter->restoreDocuments();
     }
@@ -122,7 +122,9 @@ Application::Application(int& argc, char** argv) :
             m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
     }
 
+#if !defined(ISCORE_DEBUG)
     splash.finish(m_view);
+#endif
 }
 
 Application::~Application()
@@ -130,11 +132,7 @@ Application::~Application()
     this->setParent(nullptr);
     delete m_presenter;
 
-    if(openDocumentsFileExists())
-    {
-        QFile f{openDocumentsFilePath()};
-        f.remove();
-    }
+    DocumentBackups::clear();
     delete m_app;
 }
 

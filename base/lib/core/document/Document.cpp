@@ -20,7 +20,8 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
                    QWidget* parentview,
                    QObject* parent) :
     NamedObject {"Document", parent},
-    m_objectLocker{this}
+    m_objectLocker{this},
+    m_backupMgr{new DocumentBackupManager{*this}}
 {
     /// Construction of the document model
 
@@ -35,10 +36,8 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
             m_model,
             m_view,
             this};
-    init();
 
-    m_crashDataFile.open(); // TODO testme
-    m_crashCommandFile = new CommandBackupFile{m_commandStack, this};
+    init();
 }
 
 void Document::init()
@@ -52,6 +51,12 @@ void Document::init()
                 }
                 m_model->setNewSelection(s);
             });
+
+}
+
+void Document::setBackupMgr(DocumentBackupManager* backupMgr)
+{
+    m_backupMgr = backupMgr;
 }
 
 Document::~Document()
@@ -63,16 +68,6 @@ Document::~Document()
 
     delete m_presenter;
     delete m_view;
-
-    // Remove the crash file
-    QSettings s(QStandardPaths::standardLocations(QStandardPaths::TempLocation).first() + "/iscore_open_docs",
-                QSettings::IniFormat);
-
-    auto existing_files = s.value("iscore/docs").toStringList();
-    existing_files.removeOne(m_crashDataFile.fileName());
-    s.setValue("iscore/docs", existing_files);
-
-    // TODO should we remove the backup files?
 }
 
 void Document::setupNewPanel(PanelPresenter* pres,

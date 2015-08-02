@@ -3,6 +3,7 @@
 
 #include <set>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentBuilder.hpp>
 
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
@@ -41,9 +42,23 @@ namespace iscore
             const std::vector<DocumentDelegateFactoryInterface *> &availableDocuments() const;
 
             // Document management
-            void newDocument(iscore::DocumentDelegateFactoryInterface* doctype);
-            Document* loadDocument(const QVariant &data,
-                              iscore::DocumentDelegateFactoryInterface* doctype);
+            void setupDocument(iscore::Document* doc);
+
+            template<typename... Args>
+            void newDocument(Args&&... args)
+            {
+                setupDocument(m_builder.newDocument(std::forward<Args>(args)...));
+            }
+            template<typename... Args>
+            void loadDocument(Args&&... args)
+            {
+                setupDocument(m_builder.loadDocument(std::forward<Args>(args)...));
+            }
+            template<typename... Args>
+            void restoreDocument(Args&&... args)
+            {
+                setupDocument(m_builder.restoreDocument(std::forward<Args>(args)...));
+            }
 
             // Restore documents after a crash
             void restoreDocuments();
@@ -90,6 +105,9 @@ namespace iscore
                 return lst;
             }
 
+            const std::vector<PluginControlInterface*>& controls() const;
+            View* view() const;
+
         signals:
             void currentDocumentChanged(Document* newDoc);
 
@@ -109,5 +127,7 @@ namespace iscore
                         PanelFactory*>> m_panelPresenters;
 
             QList<OrderedToolbar> m_toolbars;
+
+            DocumentBuilder m_builder{*this};
     };
 }

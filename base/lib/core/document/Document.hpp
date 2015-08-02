@@ -4,7 +4,7 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
 
-#include <core/application/CommandBackupFile.hpp>
+#include <core/document/DocumentBackupManager.hpp>
 
 namespace iscore
 {
@@ -28,6 +28,7 @@ namespace iscore
                      QWidget* parentview,
                      QObject* parent);
 
+            // Load
             Document(const QVariant& data,
                      DocumentDelegateFactoryInterface* type,
                      QWidget* parentview,
@@ -44,19 +45,6 @@ namespace iscore
 
             ObjectLocker& locker()
             { return m_objectLocker; }
-
-            QTemporaryFile& crashDataFile()
-            { return m_crashDataFile; }
-            CommandBackupFile& crashCommandFile()
-            { return *m_crashCommandFile; }
-            void setCrashCommandfile(CommandBackupFile* file)
-            {
-                m_crashCommandFile = file;
-                file->setParent(this);
-            }
-
-
-
 
             DocumentModel* model() const
             {
@@ -84,6 +72,11 @@ namespace iscore
             QJsonObject saveAsJson();
             QByteArray saveAsByteArray();
 
+            DocumentBackupManager* backupManager() const
+            { return m_backupMgr; }
+
+            void setBackupMgr(DocumentBackupManager* backupMgr);
+
         private:
             void init();
 
@@ -95,8 +88,7 @@ namespace iscore
             DocumentView* m_view{};
             DocumentPresenter* m_presenter{};
 
-            QTemporaryFile m_crashDataFile;
-            CommandBackupFile* m_crashCommandFile{};
+            DocumentBackupManager* m_backupMgr{};
     };
 
 }

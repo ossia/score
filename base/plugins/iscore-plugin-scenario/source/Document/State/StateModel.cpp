@@ -8,20 +8,21 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
-StateModel::StateModel(const id_type<StateModel>& id,
-                                         const id_type<EventModel>& eventId,
-                                         double yPos,
-                                         QObject *parent):
+StateModel::StateModel(
+        const id_type<StateModel>& id,
+        const id_type<EventModel>& eventId,
+        double yPos,
+        QObject *parent):
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
     m_heightPercentage{yPos}
 {
-
 }
 
-StateModel::StateModel(const StateModel &source,
-                                         const id_type<StateModel> &id,
-                                         QObject *parent):
+StateModel::StateModel(
+        const StateModel &source,
+        const id_type<StateModel> &id,
+        QObject *parent):
     StateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
     m_states = source.states();

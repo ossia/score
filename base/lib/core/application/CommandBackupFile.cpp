@@ -70,6 +70,9 @@ CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject 
     {
         m_savedRedo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
     }
+
+    // Initial backup so that the file is always in a loadable state.
+    commit();
 }
 
 QString CommandBackupFile::fileName() const
