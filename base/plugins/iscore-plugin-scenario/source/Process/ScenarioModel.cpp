@@ -272,34 +272,34 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 }
 
 
-void ScenarioModel::makeLayer_impl(AbstractScenarioLayer* scen)
+void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
 {
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
     connect(this, &ScenarioModel::constraintRemoved,
-            scen, &AbstractScenarioLayer::on_constraintRemoved);
+            scen, &AbstractScenarioLayerModel::on_constraintRemoved);
 
     connect(this, &ScenarioModel::stateCreated,
-            scen, &AbstractScenarioLayer::stateCreated);
+            scen, &AbstractScenarioLayerModel::stateCreated);
     connect(this, &ScenarioModel::stateRemoved,
-            scen, &AbstractScenarioLayer::stateRemoved);
+            scen, &AbstractScenarioLayerModel::stateRemoved);
 
     connect(this, &ScenarioModel::eventCreated,
-            scen, &AbstractScenarioLayer::eventCreated);
+            scen, &AbstractScenarioLayerModel::eventCreated);
     connect(this, &ScenarioModel::eventRemoved_after,
-            scen, &AbstractScenarioLayer::eventRemoved);
+            scen, &AbstractScenarioLayerModel::eventRemoved);
 
     connect(this, &ScenarioModel::timeNodeCreated,
-            scen, &AbstractScenarioLayer::timeNodeCreated);
+            scen, &AbstractScenarioLayerModel::timeNodeCreated);
     connect(this, &ScenarioModel::timeNodeRemoved,
-            scen, &AbstractScenarioLayer::timeNodeRemoved);
+            scen, &AbstractScenarioLayerModel::timeNodeRemoved);
 
     connect(this, &ScenarioModel::eventMoved,
-            scen, &AbstractScenarioLayer::eventMoved);
+            scen, &AbstractScenarioLayerModel::eventMoved);
 
     connect(this, &ScenarioModel::constraintMoved,
-            scen, &AbstractScenarioLayer::constraintMoved);
+            scen, &AbstractScenarioLayerModel::constraintMoved);
 }
 
 ///////// ADDITION //////////

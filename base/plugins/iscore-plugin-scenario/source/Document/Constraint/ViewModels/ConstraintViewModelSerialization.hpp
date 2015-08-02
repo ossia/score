@@ -4,7 +4,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/AbstractScenarioViewModel.hpp"
+#include "Process/AbstractScenarioLayerModel.hpp"
 #include "Process/ScenarioModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 class ConstraintViewModel;

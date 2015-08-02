@@ -2,7 +2,7 @@
 
 #include <QMap>
 #include <QPointer>
-#include "source/Process/AbstractScenarioViewModel.hpp"
+#include "source/Process/AbstractScenarioLayerModel.hpp"
 class ScenarioModel;
 class RackModel;
 class TemporalConstraintViewModel;
@@ -11,7 +11,7 @@ class TemporalScenarioPresenter;
 class ConstraintModel;
 class ScenarioStateMachine;
 
-class TemporalScenarioLayerModel : public AbstractScenarioLayer
+class TemporalScenarioLayerModel : public AbstractScenarioLayerModel
 {
         Q_OBJECT
     public:
@@ -35,7 +35,7 @@ class TemporalScenarioLayerModel : public AbstractScenarioLayer
         TemporalScenarioLayerModel(Deserializer<Impl>& vis,
                               ScenarioModel& model,
                               QObject* parent) :
-            AbstractScenarioLayer {vis, model, parent}
+            AbstractScenarioLayerModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }

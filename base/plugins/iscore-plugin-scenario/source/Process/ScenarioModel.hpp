@@ -22,7 +22,7 @@ namespace OSSIA
 class TimeNodeModel;
 class ConstraintModel;
 class EventModel;
-class AbstractScenarioLayer;
+class AbstractScenarioLayerModel;
 class ConstraintViewModel;
 
 class OSSIAScenarioImpl;
@@ -41,7 +41,7 @@ class ScenarioModel : public Process, public ScenarioInterface
         friend class ScenarioFactory;
 
     public:
-        using layer_type = AbstractScenarioLayer;
+        using layer_type = AbstractScenarioLayerModel;
         ScenarioModel(const TimeValue& duration,
                       const id_type<Process>& id,
                       QObject* parent);
@@ -202,7 +202,7 @@ class ScenarioModel : public Process, public ScenarioInterface
         ScenarioModel(const ScenarioModel& source,
                       const id_type<Process>& id,
                       QObject* parent);
-        void makeLayer_impl(AbstractScenarioLayer*);
+        void makeLayer_impl(AbstractScenarioLayerModel*);
 
         IdContainer<ConstraintModel> m_constraints;
         IdContainer<EventModel> m_events;

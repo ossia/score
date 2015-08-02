@@ -5,7 +5,7 @@
 #include "Commands/Scenario/Deletions/ClearConstraint.hpp"
 #include "Commands/Scenario/Deletions/ClearEvent.hpp"
 
-#include "Commands/RemoveMultipleElements.hpp"
+#include "Commands/ClearSelection.hpp"
 #include "Document/Event/EventModel.hpp"
 
 #include "Commands/Scenario/Deletions/RemoveSelection.hpp"

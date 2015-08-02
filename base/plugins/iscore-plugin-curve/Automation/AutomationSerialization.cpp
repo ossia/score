@@ -1,5 +1,5 @@
 #include "AutomationModel.hpp"
-#include "AutomationViewModel.hpp"
+#include "AutomationLayerModel.hpp"
 #include "AutomationFactory.hpp"
 #include "Curve/CurveModel.hpp"
 

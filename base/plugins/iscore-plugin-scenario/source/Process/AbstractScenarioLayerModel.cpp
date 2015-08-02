@@ -1,4 +1,4 @@
-#include "AbstractScenarioViewModel.hpp"
+#include "AbstractScenarioLayerModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
@@ -16,13 +16,13 @@ typename Container::value_type findById(const Container& c, const id_T& id)
     throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(*id.val()).arg(typeid(c).name()).toLatin1().constData());
 }
 
-ConstraintViewModel& AbstractScenarioLayer::constraint(
+ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const id_type<ConstraintViewModel>& constraintViewModelid) const
 {
     return *findById(m_constraints, constraintViewModelid);
 }
 
-QVector<ConstraintViewModel*> AbstractScenarioLayer::constraints() const
+QVector<ConstraintViewModel*> AbstractScenarioLayerModel::constraints() const
 {
     return m_constraints;
 }
@@ -45,7 +45,7 @@ void removeById(Vector& c, const id_T& id)
     });
 }
 
-void AbstractScenarioLayer::removeConstraintViewModel(
+void AbstractScenarioLayerModel::removeConstraintViewModel(
         const id_type<ConstraintViewModel>& constraintViewModelId)
 {
     // We have to emit before, because on removal,
@@ -56,7 +56,7 @@ void AbstractScenarioLayer::removeConstraintViewModel(
 
 }
 
-ConstraintViewModel& AbstractScenarioLayer::constraint(
+ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const id_type<ConstraintModel>& constraintModelId) const
 {
     using namespace std;

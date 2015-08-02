@@ -1,6 +1,6 @@
 #pragma once
 #include <ProcessInterface/LayerModelPanelProxy.hpp>
-#include "AutomationViewModel.hpp"
+#include "AutomationLayerModel.hpp"
 class AutomationPanelProxy : public LayerModelPanelProxy
 {
     public:

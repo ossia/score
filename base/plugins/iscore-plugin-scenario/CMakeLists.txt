@@ -246,7 +246,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/ScenarioViewInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/TemporalScenarioPanelProxy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/AbstractScenarioViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/AbstractScenarioLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioGlobalCommandManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioModel.cpp"
 

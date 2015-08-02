@@ -27,7 +27,7 @@
 #include "Event/State/AssignMessagesToState.hpp"
 #include "Event/State/AddStateWithData.hpp"
 #include "Event/State/UnassignMessagesFromState.hpp"
-#include "RemoveMultipleElements.hpp"
+#include "ClearSelection.hpp"
 #include "ResizeBaseConstraint.hpp"
 
 #include "Scenario/Creations/CreateStateMacro.hpp"

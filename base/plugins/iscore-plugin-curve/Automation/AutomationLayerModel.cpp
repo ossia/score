@@ -1,4 +1,4 @@
-#include "AutomationViewModel.hpp"
+#include "AutomationLayerModel.hpp"
 #include "AutomationModel.hpp"
 #include "AutomationPanelProxy.hpp"
 

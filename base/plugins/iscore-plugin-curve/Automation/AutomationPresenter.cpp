@@ -1,6 +1,6 @@
 #include "AutomationPresenter.hpp"
 #include "AutomationModel.hpp"
-#include "AutomationViewModel.hpp"
+#include "AutomationLayerModel.hpp"
 #include "AutomationView.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>

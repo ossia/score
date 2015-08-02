@@ -11,8 +11,7 @@ class StateModel;
 
 class EventModel;
 
-// TODO rename file
-class AbstractScenarioLayer : public LayerModel
+class AbstractScenarioLayerModel : public LayerModel
 {
         Q_OBJECT
     public:
@@ -53,7 +52,7 @@ class AbstractScenarioLayer : public LayerModel
         virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;
 
     protected:
-        AbstractScenarioLayer(const id_type<LayerModel>& viewModelId,
+        AbstractScenarioLayerModel(const id_type<LayerModel>& viewModelId,
                               const QString& name,
                               Process& sharedProcess,
                               QObject* parent) :
@@ -66,7 +65,7 @@ class AbstractScenarioLayer : public LayerModel
         }
 
         // Copy
-        AbstractScenarioLayer(const AbstractScenarioLayer& source,
+        AbstractScenarioLayerModel(const AbstractScenarioLayerModel& source,
                               const id_type<LayerModel>& viewModelId,
                               const QString& name,
                               Process& sharedProcess,
@@ -80,7 +79,7 @@ class AbstractScenarioLayer : public LayerModel
 
         // Load
         template<typename Impl>
-        AbstractScenarioLayer(Deserializer<Impl>& vis,
+        AbstractScenarioLayerModel(Deserializer<Impl>& vis,
                               Process& sharedProcess,
                               QObject* parent) :
             LayerModel {vis,

@@ -3,7 +3,6 @@
 #include <ProcessInterface/LayerModel.hpp>
 
 class AutomationModel;
-// TODO rename file
 class AutomationLayerModel : public LayerModel
 {
         Q_OBJECT

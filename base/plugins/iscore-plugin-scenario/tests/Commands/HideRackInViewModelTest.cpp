@@ -17,7 +17,7 @@
 
 #include "Process/ScenarioFactory.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "Process/AbstractScenarioViewModel.hpp"
+#include "Process/AbstractScenarioLayerModel.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "iscore/document/DocumentInterface.hpp"
