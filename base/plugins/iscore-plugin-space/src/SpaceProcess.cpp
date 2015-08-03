@@ -10,7 +10,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     using namespace GiNaC;
     using namespace spacelib;
 
-    m_space = new SpaceModel(
+/*    m_space = new SpaceModel(
                 std::make_unique<spacelib::space<2>>(symbol("x"), symbol("y")),
                 id_type<SpaceModel>(),
                 this);
@@ -22,8 +22,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     symbol r("r");
     auto ar1 = new AreaModel(std::make_unique<spacelib::area>(
                                  pow((xv - x0),2) + pow((yv - y0),2) <= pow(r,2),
-                                 std::vector<GiNaC::symbol>{xv, yv, x0, y0, r}/*,
-                                 GiNaC::exmap{{x0, numeric(400)}, {y0, numeric(400)}, {r, 100}}*/),
+                                 std::vector<GiNaC::symbol>{xv, yv, x0, y0, r}),
                              *m_space, id_type<AreaModel>(0), this);
 
     ar1->setSpaceMapping({{xv, m_space->space().variables()[0]},
@@ -33,7 +32,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     ar1->mapValueToParameter("r", iscore::Value::fromVariant(100));
 
     addArea(ar1);
-
+*/
 }
 
 Process *SpaceProcess::clone(const id_type<Process> &newId, QObject *newParent) const

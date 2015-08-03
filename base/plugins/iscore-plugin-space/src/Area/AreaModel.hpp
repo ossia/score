@@ -23,7 +23,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
         spacelib::projected_area projectedArea() const;
         spacelib::valued_area valuedArea() const;
 
-        const auto& space() const
+        const SpaceModel& space() const
         { return m_space; }
         const auto& spaceMapping() const
         { return m_spaceMapping; }

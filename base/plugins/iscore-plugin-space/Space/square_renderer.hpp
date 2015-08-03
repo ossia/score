@@ -12,6 +12,7 @@ class square_renderer
         const int side = 5.; // square size
         Size size; //complete size.
 
+        // TODO make a render_dynamic which takes the sizes in argument, etc etc
         void render(const valued_area& a, const space<2>& s)
         {
             auto dim = make<dimension_apply>(s, square_approx<800, 5>(s, 0),

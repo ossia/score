@@ -33,7 +33,9 @@ void AreaPresenter::on_areaChanged()
 {
     spacelib::square_renderer<QPointF, RectDevice> renderer;
     renderer.size = {800, 600};
-    renderer.render(m_model.valuedArea(), m_model.space().space());
+
+    // Convert our dynamic space to a static one for rendering
+    renderer.render(m_model.valuedArea(), spacelib::toStaticSpace<2>(m_model.space().space()));
 
     m_view->rects = renderer.render_device.rects;
     m_view->update();
