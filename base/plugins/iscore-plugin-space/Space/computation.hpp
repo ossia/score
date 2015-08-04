@@ -32,7 +32,7 @@ class value_computation : public computation
     public:
         GiNaC::ex f;
 
-        double evaluate(GiNaC::exmap values) const
+        double evaluate(const GiNaC::exmap& values) const
         {
             return GiNaC::ex_to<GiNaC::numeric>(f.subs(values).evalf()).to_double();
         }

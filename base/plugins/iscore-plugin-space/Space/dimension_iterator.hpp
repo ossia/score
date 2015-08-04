@@ -9,10 +9,10 @@ namespace spacelib
 
 
 template<typename Space_t, int Dimension>
-using dim_less_t = std::enable_if_t< Dimension < std::decay_t<Space_t>::dimension - 1 >;
+using dim_less_t = std::enable_if_t< Dimension < std::decay_t<Space_t>::dimension() - 1 >;
 
 template<typename Space_t, int Dimension>
-using dim_equal_t = std::enable_if_t< Dimension == std::decay_t<Space_t>::dimension - 1 >;
+using dim_equal_t = std::enable_if_t< Dimension == std::decay_t<Space_t>::dimension() - 1 >;
 
 
 template<typename Space, typename Approx, typename Fun>
@@ -21,7 +21,7 @@ class dimension_iterator
     public:
         dimension_iterator(
                 const Space& s,
-                Approx approx,
+                const Approx& approx,
                 Fun&& f):
             m_space{s},
             m_fun{std::move(f)},
@@ -51,9 +51,9 @@ class dimension_apply : public dimension_iterator<Space, Approx, Fun>
         template<int Dimension, dim_less_t<Space, Dimension>* = nullptr >
         void rec_impl(GiNaC::exmap& var_map) const
         {
-            for(int i : this->m_approx)
+            for(int i : this->m_approx(Dimension))
             {
-                var_map[this->m_space.variables()[Dimension]] = i;
+                var_map[this->m_space.variables()[Dimension].symbol()] = i;
                 rec_impl<Dimension+1>(var_map);
             }
         }
@@ -61,9 +61,9 @@ class dimension_apply : public dimension_iterator<Space, Approx, Fun>
         template<int Dimension, dim_equal_t<Space, Dimension>* = nullptr >
         void rec_impl(GiNaC::exmap& var_map) const
         {
-            for(int i : this->m_approx)
+            for(int i : this->m_approx(Dimension))
             {
-                var_map[this->m_space.variables()[Dimension]] = i;
+                var_map[this->m_space.variables()[Dimension].symbol()] = i;
                 this->m_fun(var_map);
             }
         }

@@ -9,8 +9,7 @@ class area
         friend class projected_area;
     public:
         area(const GiNaC::relational& e,
-             const std::vector<GiNaC::symbol>& vars
-             ):
+             const std::vector<GiNaC::symbol>& vars):
             m_rel{e},
             m_symbols(vars)
         {
