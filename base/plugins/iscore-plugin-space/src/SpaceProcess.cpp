@@ -30,8 +30,19 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     ar1->mapValueToParameter("y0", iscore::Value::fromVariant(200));
     ar1->mapValueToParameter("r", iscore::Value::fromVariant(100));
 
-    addArea(ar1);
+    AreaParser parser("x + y >= 100 * c");
 
+    auto ar2 = new AreaModel(parser.result(), *m_space, id_type<AreaModel>(1), this);
+
+    ar2->setSpaceMapping({{ar2->area().symbols()[0], m_space->space().variables()[0].symbol()},
+                          {ar2->area().symbols()[1], m_space->space().variables()[1].symbol()}});
+
+    ar2->mapValueToParameter(
+                QString::fromStdString(ar2->area().symbols()[2].get_name()),
+            iscore::Value::fromVariant(5));
+
+    addArea(ar1);
+    addArea(ar2);
 }
 
 Process *SpaceProcess::clone(const id_type<Process> &newId, QObject *newParent) const

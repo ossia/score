@@ -161,17 +161,14 @@ DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
 {
     if(row < 0 || column < 0 || column >= (int)Column::Count)
     {
-        return QModelIndex();
+        return {};
     }
 
     Node* parentNode = nodeFromModelIndex(parent);
-    assert(parentNode);
-    Node* childNode = parentNode->childAt(row);  //value() return 0 if out of bounds
+    if(! parentNode) return {};
 
-    if(! childNode)
-    {
-        return QModelIndex();
-    }
+    Node* childNode = parentNode->childAt(row);  //value() return 0 if out of bounds
+    if(! childNode) return {};
 
     return createIndex(row, column, childNode);
 }
@@ -179,14 +176,9 @@ DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
 Node*
 DeviceExplorerModel::nodeFromModelIndex(const QModelIndex& index) const
 {
-    if(index.isValid())
-    {
-        return static_cast<Node*>(index.internalPointer());
-    }
-    else
-    {
-        return &m_rootNode;
-    }
+    return index.isValid()
+            ? static_cast<Node*>(index.internalPointer())
+            : &m_rootNode;
 }
 
 QModelIndex
@@ -929,7 +921,9 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 
         if(n)
         {
-            Q_ASSERT(n != &m_rootNode);  //m_rootNode not displayed thus should not be draggable
+            //m_rootNode not displayed thus should not be draggable
+            if(n == &m_rootNode)
+                return nullptr;
 
             Serializer<JSONObject> ser;
             ser.readFrom(*n);

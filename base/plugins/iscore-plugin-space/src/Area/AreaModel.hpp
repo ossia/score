@@ -4,6 +4,79 @@
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 class SpaceModel;
 
+// in the end, isn't an area the same thing as a domain???
+class AreaParser
+{
+        QStringList m_str;
+        GiNaC::ex m_lhs, m_rhs;
+        GiNaC::relational::operators m_op;
+
+    private:
+
+        static GiNaC::relational::operators toOp(const QString& str)
+        {
+            static const QStringList rels{"==", "!=", "<", "<=", ">", ">="};
+
+            return static_cast<GiNaC::relational::operators>(rels.indexOf(str));
+        }
+
+        QStringList splitRelationship(const QString& eq)
+        {
+            static const QStringList rels{"==", "!=", "<=", ">=", "<", ">"};
+            QString found_rel;
+            QStringList res;
+
+            for(const QString& rel : rels)
+            {
+                if(eq.contains(rel))
+                {
+                    res = eq.split(rel);
+                    found_rel = rel;
+                    break;
+                }
+            }
+
+            if(res.size() != 2)
+                return {};
+
+
+            m_op = toOp(found_rel);
+
+            qDebug() <<"split:" << res;
+            return res;
+        }
+
+    public:
+        AreaParser(const QString& str)
+        {
+            m_str = splitRelationship(str);
+        }
+
+        bool check() const
+        { return !m_str.empty(); }
+
+        std::unique_ptr<spacelib::area> result()
+        {
+            GiNaC::parser lhs_p, rhs_p;
+            if(!m_str.empty())
+            {
+                m_lhs = lhs_p(m_str[0].toStdString());
+                m_rhs = rhs_p(m_str[1].toStdString());
+            }
+
+            // Get all the variables.
+            std::vector<GiNaC::symbol> syms;
+            for(const auto& sym : lhs_p.get_syms())
+            { syms.push_back(GiNaC::ex_to<GiNaC::symbol>(sym.second)); }
+            for(const auto& sym : rhs_p.get_syms())
+            { syms.push_back(GiNaC::ex_to<GiNaC::symbol>(sym.second)); }
+
+            return std::make_unique<spacelib::area>(
+                        GiNaC::relational(m_lhs, m_rhs, m_op),
+                        syms);
+        }
+};
+
 // Maps addresses / values to the parameter of an area
 class AreaModel : public IdentifiedObject<AreaModel>
 {
@@ -18,7 +91,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
         void setArea(std::unique_ptr<spacelib::area> &&ar);
         void setSpaceMapping(const GiNaC::exmap& mapping);
 
-        const auto& area() const
+        const spacelib::area& area() const
         { return *m_area; }
         spacelib::projected_area projectedArea() const;
         spacelib::valued_area valuedArea() const;
