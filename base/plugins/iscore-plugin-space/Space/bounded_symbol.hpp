@@ -48,8 +48,10 @@ class bounded_symbol
 
         // The value should only be set in a valid range ?
 
-        auto& symbol() { return m_sym; }
-        auto& domain() { return m_dom; }
+        Symbol& symbol() { return m_sym; }
+        Domain& domain() { return m_dom; }
+        const Symbol& symbol() const { return m_sym; }
+        const Domain& domain() const { return m_dom; }
 
     private:
         Symbol m_sym;
