@@ -36,6 +36,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpacePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaView.cpp"

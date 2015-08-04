@@ -1,6 +1,6 @@
 #include "SpaceProcess.hpp"
 #include "SpaceLayerModel.hpp"
-
+#include "Area/AreaParser.hpp"
 #include "Space/SpaceModel.hpp"
 
 
