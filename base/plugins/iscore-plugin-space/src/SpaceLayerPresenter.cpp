@@ -13,13 +13,17 @@ SpaceLayerPresenter::SpaceLayerPresenter(const LayerModel& model, LayerView* vie
     m_model{static_cast<const SpaceLayerModel&>(model)},
     m_view{static_cast<SpaceLayerView*>(view)}
 {
+    const SpaceProcess& procmodel = static_cast<SpaceProcess&>(m_model.processModel());
     m_spaceWindowView = new QMainWindow;
-    m_spaceWindowView->setCentralWidget(new AreaWidget(iscore::IDocument::documentFromObject(model)->commandStack(), static_cast<SpaceProcess&>(m_model.processModel()), m_spaceWindowView));
+    m_spaceWindowView->setCentralWidget(new AreaWidget(iscore::IDocument::documentFromObject(model)->commandStack(), procmodel, m_spaceWindowView));
+
     connect(m_view, SIGNAL(guiRequested()), m_spaceWindowView, SLOT(show()));
     for(const auto& area : ::model(m_model).areas())
     {
         on_areaAdded(area);
     }
+
+    connect(&procmodel, &SpaceProcess::areaAdded, this, &SpaceLayerPresenter::on_areaAdded);
 }
 
 SpaceLayerPresenter::~SpaceLayerPresenter()

@@ -40,7 +40,7 @@ void AddArea::redo()
     for(const auto& elt : m_varToDimensionMap.keys())
     {
         auto sym_it = std::find_if(syms.begin(), syms.end(),
-                                   [&] (const GiNaC::symbol& sym) { return sym.get_name() == elt.toStdString(); });
+                                   [&] (const GiNaC::symbol& sym) { return sym.get_name() == m_varToDimensionMap[elt].toStdString(); });
         Q_ASSERT(sym_it != syms.end());
 
         sym_map[*sym_it] = proc.space().dimension(elt).sym().symbol();
