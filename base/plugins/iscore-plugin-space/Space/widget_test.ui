@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
+    <width>783</width>
     <height>833</height>
    </rect>
   </property>
@@ -95,7 +95,7 @@
        <item row="1" column="1">
         <widget class="QComboBox" name="yComboBox">
          <property name="currentText">
-          <string>yv</string>
+          <string>xv</string>
          </property>
          <item>
           <property name="text">
@@ -126,8 +126,6 @@
        </item>
       </layout>
      </widget>
-     <zorder>formLayoutWidget</zorder>
-     <zorder>groupBox_3</zorder>
     </widget>
    </item>
    <item row="2" column="0">
@@ -195,8 +193,6 @@
        </item>
       </layout>
      </widget>
-     <zorder>formLayoutWidget_2</zorder>
-     <zorder>groupBox_3</zorder>
     </widget>
    </item>
    <item row="1" column="1" rowspan="2">

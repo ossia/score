@@ -16,7 +16,6 @@ class area
 
         }
 
-
         std::vector<GiNaC::symbol> symbols() const
         {
             return m_symbols;

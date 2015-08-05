@@ -4,6 +4,7 @@
 
 #include "Area/AreaModel.hpp"
 #include "Area/AreaPresenter.hpp"
+class QMainWindow;
 class LayerView;
 class SpaceLayerModel;
 class SpaceLayerView;
@@ -28,12 +29,13 @@ class SpaceLayerPresenter : public LayerPresenter
         const id_type<Process> &modelId() const;
 
         void update();
+
     private:
         void on_areaAdded(const AreaModel&);
 
         const SpaceLayerModel& m_model;
         SpaceLayerView* m_view;
 
-
+        QMainWindow* m_spaceWindowView{};
         IdContainer<AreaPresenter, AreaModel> m_areas;
 };

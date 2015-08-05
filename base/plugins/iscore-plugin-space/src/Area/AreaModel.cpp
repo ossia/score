@@ -12,7 +12,7 @@ AreaModel::AreaModel(
 {
     for(const auto& sym : m_area->symbols())
     {
-        m_addressMap.insert(
+        m_parameterMap.insert(
                     sym.get_name().c_str(),
                     {sym, {false, iscore::FullAddressSettings{}}});
     }
@@ -29,6 +29,11 @@ void AreaModel::setSpaceMapping(const GiNaC::exmap& mapping)
     m_spaceMapping = mapping;
 }
 
+void AreaModel::setParameterMapping(const AreaModel::ParameterMap &mapping)
+{
+    m_parameterMap = mapping;
+}
+
 spacelib::projected_area AreaModel::projectedArea() const
 {
     return spacelib::projected_area(*m_area.get(), m_spaceMapping);
@@ -37,7 +42,7 @@ spacelib::projected_area AreaModel::projectedArea() const
 spacelib::valued_area AreaModel::valuedArea() const
 {
     GiNaC::exmap mapping;
-    for(auto& elt : m_addressMap)
+    for(auto& elt : m_parameterMap)
     {
         if(elt.second.first) // We use the value
         {
@@ -55,12 +60,12 @@ void AreaModel::mapAddressToParameter(const QString& str, const iscore::FullAddr
 {
     // TODO how to update when a value changes ??
     // Maybe we should have a default value ?
-    m_addressMap[str].second = {false, addr};
+    m_parameterMap[str].second = {false, addr};
 }
 
 void AreaModel::mapValueToParameter(const QString& str, const iscore::Value&& val)
 {
-    m_addressMap[str].second.first = true;
-    m_addressMap[str].second.second.value = val;
+    m_parameterMap[str].second.first = true;
+    m_parameterMap[str].second.second.value = val;
 }
 

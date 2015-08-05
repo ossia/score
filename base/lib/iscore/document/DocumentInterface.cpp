@@ -32,11 +32,15 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject& obj)
     return documentFromObject(&obj);
 }
 
-ObjectPath iscore::IDocument::path(const QObject* obj)
+ObjectPath iscore::IDocument::path(QObject const * const&  obj)
 {
     return ObjectPath::pathBetweenObjects(documentFromObject(obj)->model(), obj);
 }
 
+ObjectPath iscore::IDocument::path(const QObject &obj)
+{
+    return path(&obj);
+}
 
 iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate_generic(const iscore::Document& d)
 {
@@ -55,7 +59,3 @@ const QList<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Docume
     return d->model()->panels();
 }
 
-ObjectPath iscore::IDocument::path(const QObject &obj)
-{
-    return path(&obj);
-}

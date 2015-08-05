@@ -1,11 +1,12 @@
 #include "AreaParser.hpp"
 
 // Maps to GiNaC::relational::operators
-static const QStringList rels{"==", "!=", "<", "<=", ">", ">="};
+static const QStringList operator_map_rels{"==", "!=", "<", "<=", ">", ">="}; // In the order of GiNaC::relational::operators
+static const QStringList ordered_rels{"==", "!=", "<=", ">=", "<", ">"}; // Else parsing fails due to < matching before <=
 
 GiNaC::relational::operators AreaParser::toOp(const QString& str)
 {
-    return static_cast<GiNaC::relational::operators>(rels.indexOf(str));
+    return static_cast<GiNaC::relational::operators>(operator_map_rels.indexOf(str));
 }
 
 QStringList AreaParser::splitRelationship(const QString& eq)
@@ -13,7 +14,7 @@ QStringList AreaParser::splitRelationship(const QString& eq)
     QString found_rel;
     QStringList res;
 
-    for(const QString& rel : rels)
+    for(const QString& rel : ordered_rels)
     {
         if(eq.contains(rel))
         {

@@ -28,12 +28,13 @@ class SpaceProcess : public Process
 
         void serialize(const VisitorVariant &vis) const;
 
-        const auto& space() const
-        { return m_space; }
+        const SpaceModel& space() const
+        { return *m_space; }
 
         const auto& areas() const
         { return m_areas; }
         void addArea(AreaModel*);
+        void removeArea(const id_type<AreaModel>& id);
 
         const auto& computations() const
         { return m_computations; }

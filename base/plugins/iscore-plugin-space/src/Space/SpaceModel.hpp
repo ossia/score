@@ -4,27 +4,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <Space/space.hpp>
 #include <Space/bounded_symbol.hpp>
-// For now a simple min-max.
-
-
-
-class DimensionModel
-{
-    public:
-        DimensionModel(const QString& name):
-            m_name{name},
-            m_sym{GiNaC::symbol(name.toLatin1().constData()), spacelib::MinMaxDomain{}}
-        {
-        }
-
-        const QString& name() const;
-        spacelib::minmax_symbol& sym();
-        const spacelib::minmax_symbol& sym() const;
-
-    private:
-        QString m_name;
-        spacelib::minmax_symbol m_sym;
-};
+#include "DimensionModel.hpp"
 
 // A space has a number of dimensions
 class SpaceModel : public IdentifiedObject<SpaceModel>
@@ -41,6 +21,8 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
 
         void addDimension(const DimensionModel& dim);
         void removeDimension(const QString& name);
+        const DimensionModel& dimension(const QString& name) const;
+
         const auto& dimensions() const
         { return m_dimensions; }
 

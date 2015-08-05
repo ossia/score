@@ -17,7 +17,6 @@
  *	ObjectPath p{ {"MyObject", {}}, {"SomeSubObjectInACollection", 27} };
  * @endcode
 */
-// TODO try to maek a type-tagged version?
 class ObjectPath
 {
         friend Serializer<DataStream>;
@@ -97,6 +96,7 @@ class ObjectPath
         ObjectIdentifierVector m_objectIdentifiers;
         mutable QPointer<QObject> m_cache;
 };
+
 
 inline
 uint qHash(const ObjectPath& obj, uint seed)

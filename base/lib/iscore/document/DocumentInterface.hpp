@@ -1,6 +1,9 @@
 #pragma once
 #include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
+template<typename T>
+using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
 namespace iscore
 {
     class Document;
@@ -28,8 +31,16 @@ namespace iscore
         *
         * @return The path between a Document and this object.
         */
-        ObjectPath path(const QObject* obj);
+        ObjectPath path(QObject const * const& obj);
         ObjectPath path(const QObject& obj);
+
+        template<typename T>
+        ModelPath<T> safe_path(const T& obj)
+        {
+            return path(static_cast<const QObject&>(obj));
+        }
+
+
 
 
         //// Various getters ////

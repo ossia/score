@@ -11,7 +11,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     using namespace spacelib;
 
     m_space = new SpaceModel{{DimensionModel("x"), DimensionModel("y")},
-                id_type<SpaceModel>(),
+                id_type<SpaceModel>(0),
                 this};
 
     symbol xv("xv");
@@ -114,6 +114,12 @@ void SpaceProcess::addArea(AreaModel* a)
     m_areas.insert(a);
 
     emit areaAdded(*a);
+}
+
+void SpaceProcess::removeArea(const id_type<AreaModel> &id)
+{
+    ISCORE_TODO;
+
 }
 
 LayerModel *SpaceProcess::makeLayer_impl(const id_type<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent)

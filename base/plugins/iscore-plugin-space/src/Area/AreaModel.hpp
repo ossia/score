@@ -10,6 +10,10 @@ class AreaModel : public IdentifiedObject<AreaModel>
 {
         Q_OBJECT
     public:
+
+        // bool is true if we use only the value, false if we
+        // use the whole address
+        using ParameterMap = QMap<QString, QPair<GiNaC::symbol, QPair<bool, iscore::FullAddressSettings>>>;
         AreaModel(
                 std::unique_ptr<spacelib::area>&& area,
                 const SpaceModel& space,
@@ -18,6 +22,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
 
         void setArea(std::unique_ptr<spacelib::area> &&ar);
         void setSpaceMapping(const GiNaC::exmap& mapping);
+        void setParameterMapping(const ParameterMap& mapping);
 
         const spacelib::area& area() const
         { return *m_area; }
@@ -44,9 +49,5 @@ class AreaModel : public IdentifiedObject<AreaModel>
 
         GiNaC::exmap m_spaceMapping;
 
-        // bool is true if we use only the value, false if we
-        // use the whole address
-        QMap<QString,
-             QPair<GiNaC::symbol, QPair<bool, iscore::FullAddressSettings>>
-        > m_addressMap;
+        ParameterMap m_parameterMap;
 };

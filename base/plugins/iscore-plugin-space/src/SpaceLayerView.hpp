@@ -3,13 +3,15 @@
 
 class SpaceLayerView : public LayerView
 {
+        Q_OBJECT
     public:
-        SpaceLayerView(QGraphicsItem* parent):
-            LayerView{parent}
-        {
-            this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
-            this->setZValue(parent->zValue() + 1);
-        }
+        SpaceLayerView(QGraphicsItem* parent);
 
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+    signals:
+        void guiRequested();
+
+    protected:
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 };
