@@ -42,7 +42,7 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 0);
     transportLayout->addWidget(m_zoomSlider, 0, 1);
-    transportLayout->setMargin(0);
+    transportLayout->setContentsMargins(0, 0, 0, 0);
 
     transportWidget->setLayout(transportLayout);
 

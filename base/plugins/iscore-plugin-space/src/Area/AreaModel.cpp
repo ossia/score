@@ -17,16 +17,13 @@ AreaModel::AreaModel(
                     {sym, {false, iscore::FullAddressSettings{}}});
     }
 
+    // TODO we should have instead {default value, address} and default value is used if address is empty.
 }
 
-void AreaModel::setArea(std::unique_ptr<spacelib::area> &&ar)
-{
-    m_area = std::move(ar);
-}
 
 void AreaModel::setSpaceMapping(const GiNaC::exmap& mapping)
 {
-    m_spaceMapping = mapping;
+    m_spaceMap = mapping;
 }
 
 void AreaModel::setParameterMapping(const AreaModel::ParameterMap &mapping)
@@ -36,7 +33,7 @@ void AreaModel::setParameterMapping(const AreaModel::ParameterMap &mapping)
 
 spacelib::projected_area AreaModel::projectedArea() const
 {
-    return spacelib::projected_area(*m_area.get(), m_spaceMapping);
+    return spacelib::projected_area(*m_area.get(), m_spaceMap);
 }
 
 spacelib::valued_area AreaModel::valuedArea() const
@@ -50,6 +47,7 @@ spacelib::valued_area AreaModel::valuedArea() const
         }
         else // We fetch it from the device tree
         {
+            ISCORE_TODO
             // What do we do if the address is not there ? Mark the area as invalid ?
         }
     }
@@ -67,5 +65,12 @@ void AreaModel::mapValueToParameter(const QString& str, const iscore::Value&& va
 {
     m_parameterMap[str].second.first = true;
     m_parameterMap[str].second.second.value = val;
+}
+
+QString AreaModel::toString() const
+{
+    std::stringstream s;
+    s << static_cast<const GiNaC::ex&>(m_area->rel());
+    return QString::fromStdString(s.str());
 }
 

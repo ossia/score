@@ -10,19 +10,16 @@ class AreaModel : public IdentifiedObject<AreaModel>
 {
         Q_OBJECT
     public:
-
         // bool is true if we use only the value, false if we
         // use the whole address
         using ParameterMap = QMap<QString, QPair<GiNaC::symbol, QPair<bool, iscore::FullAddressSettings>>>;
+
         AreaModel(
                 std::unique_ptr<spacelib::area>&& area,
                 const SpaceModel& space,
                 const id_type<AreaModel>&,
                 QObject* parent);
 
-        void setArea(std::unique_ptr<spacelib::area> &&ar);
-        void setSpaceMapping(const GiNaC::exmap& mapping);
-        void setParameterMapping(const ParameterMap& mapping);
 
         const spacelib::area& area() const
         { return *m_area; }
@@ -31,14 +28,22 @@ class AreaModel : public IdentifiedObject<AreaModel>
 
         const SpaceModel& space() const
         { return m_space; }
-        const auto& spaceMapping() const
-        { return m_spaceMapping; }
+
+        void setSpaceMapping(const GiNaC::exmap& mapping);
+        const GiNaC::exmap& spaceMapping() const
+        { return m_spaceMap; }
+
+        void setParameterMapping(const ParameterMap& mapping);
+        const ParameterMap& parameterMapping() const
+        { return m_parameterMap; }
 
         void mapAddressToParameter(const QString& str,
                                    const iscore::FullAddressSettings& addr);
 
         void mapValueToParameter(const QString& str,
                                  const iscore::Value&& val);
+
+        QString toString() const;
 
     signals:
         void areaChanged();
@@ -47,7 +52,10 @@ class AreaModel : public IdentifiedObject<AreaModel>
         const SpaceModel& m_space;
         std::unique_ptr<spacelib::area> m_area;
 
-        GiNaC::exmap m_spaceMapping;
+        // Maps a variable from m_area to a variable from m_space.
+        GiNaC::exmap m_spaceMap;
 
         ParameterMap m_parameterMap;
 };
+
+Q_DECLARE_METATYPE(id_type<AreaModel>)

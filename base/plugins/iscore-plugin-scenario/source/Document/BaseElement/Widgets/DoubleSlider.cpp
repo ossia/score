@@ -17,7 +17,6 @@ DoubleSlider::DoubleSlider(QWidget* parent):
     setLayout(lay);
     lay->addWidget(m_slider);
     lay->setContentsMargins(0, 0, 0, 0);
-    lay->setMargin(0);
     lay->setSpacing(0);
 
     connect(m_slider, &QSlider::valueChanged,

@@ -42,7 +42,6 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 
     auto widget = new QWidget;
     auto lay = new QFormLayout(widget);
-    lay->setMargin(0);
     lay->setContentsMargins(0, 0, 0, 0);
     lay->setHorizontalSpacing(0);
     lay->setVerticalSpacing(0);

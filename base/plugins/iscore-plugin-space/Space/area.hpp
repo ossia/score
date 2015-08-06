@@ -67,12 +67,6 @@ class projected_area
 
         const GiNaC::relational& rel() const
         { return m_rel; }
-
-        // Set a parameter
-        void set(const GiNaC::symbol& sym, const GiNaC::numeric& val)
-        {
-            m_parameters.at(sym) = val;
-        }
 };
 
 // A projected area with all the parameters replaced by values

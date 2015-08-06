@@ -42,6 +42,7 @@ class SpaceProcess : public Process
 
     signals:
         void areaAdded(const AreaModel&);
+        void areaRemoved(const id_type<AreaModel>&);
         void computationAdded(const ComputationModel&);
 
     protected:

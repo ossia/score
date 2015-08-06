@@ -42,8 +42,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/ComputationsTab.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceTab.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaTab.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceGuiWindow.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddArea.cpp"
 

@@ -25,12 +25,11 @@ InspectorWidgetBase::InspectorWidgetBase(
     m_layout = new QVBoxLayout;
     m_layout->setContentsMargins(0,1,0,0);
     setLayout(m_layout);
-    m_layout->setMargin(0);
     m_layout->setSpacing(0);
 
     // scroll Area
     m_scrollAreaLayout = new QVBoxLayout;
-    m_scrollAreaLayout->setMargin(0);
+    m_scrollAreaLayout->setContentsMargins(0, 0, 0, 0);
     m_scrollAreaLayout->setSpacing(0);
     QScrollArea* scrollArea = new QScrollArea;
     QWidget* scrollAreaContentWidget = new QWidget;

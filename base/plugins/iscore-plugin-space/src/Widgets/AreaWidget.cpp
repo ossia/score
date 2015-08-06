@@ -43,16 +43,91 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
         paramBox->setLayout(m_paramMappingLayout);
     }
 
-    QPushButton* val = new QPushButton;
+    QPushButton* val = new QPushButton{"Create / update"};
     lay->addWidget(val);
 
     connect(val, &QPushButton::pressed, this, &AreaWidget::validate);
 }
 
-
-void AreaWidget::updateArea()
+void AreaWidget::setActiveArea(const AreaModel *area)
 {
+    m_area = area;
+    m_lineEdit->setText(m_area->toString());
+
+    on_formulaChanged();
+
+    if(m_area)
+    {
+        // Load all the data
+        const auto& dim_map = area->spaceMapping();
+        for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
+        {
+            auto label = static_cast<QLabel*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::LabelRole)->widget());
+            Q_ASSERT(label);
+            auto cb = static_cast<QComboBox*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::FieldRole)->widget());
+            Q_ASSERT(cb);
+
+            auto dim_map_it = std::find_if(dim_map.begin(), dim_map.end(), [&] (const auto& exp) { return GiNaC::ex_to<GiNaC::symbol>(exp.first).get_name() == label->text().toStdString(); });
+            if(dim_map_it == dim_map.end())
+            {
+                // Error : the requested dimension does not seem to exist in our space.
+                continue;
+            }
+
+            auto target_sym = GiNaC::ex_to<GiNaC::symbol>((*dim_map_it).second).get_name();
+            // Find it in the combobox
+
+            cb->setCurrentIndex(cb->findText(QString::fromStdString(target_sym)));
+        }
+
+
+
+        const auto& param_map = area->parameterMapping();
+        // debug
+        for(auto& elt : param_map.keys())
+            qDebug() << elt;
+
+        for(int param_i = 0; param_i < m_paramMappingLayout->rowCount(); param_i++)
+        {
+            auto it = m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::LabelRole);
+            if(!it)
+                continue;
+
+            auto widg = it->widget();
+            if(!widg)
+                continue;
+
+            auto label = qobject_cast<QLabel*>(widg);
+            Q_ASSERT(label);
+            auto line_edit = static_cast<QLineEdit*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
+            Q_ASSERT(line_edit);
+            line_edit->setEnabled(false);
+
+            auto param_it = param_map.find(label->text());
+            if(param_it == param_map.end())
+            {
+                // The parameter is not mapped
+                continue;
+            }
+
+            if((*param_it).second.first)
+            {
+                // Storing a value
+                line_edit->setText((*param_it).second.second.value.val.toString());
+            }
+            else
+            {
+                // Storing an address
+                ISCORE_TODO;
+            }
+
+            line_edit->setEnabled(true);
+
+        }
+
+    }
 }
+
 
 
 void AreaWidget::on_formulaChanged()
@@ -80,7 +155,6 @@ void AreaWidget::on_formulaChanged()
     {
         m_paramMappingLayout->addRow(QString::fromStdString(sym.get_name()), new QLineEdit);
     }
-    //auto ar = new AreaModel{parser.result(), proc.space(), m_createdAreaId, &proc};
 }
 
 
@@ -157,10 +231,15 @@ void AreaWidget::validate()
     }
 
 
-
-    auto cmd = new AddArea(iscore::IDocument::safe_path(m_space), m_lineEdit->text(), dim_map, param_map);
-
-    m_dispatcher.submitCommand(cmd);
+    if(m_area)
+    {
+        // Make a UpdateArea command.
+    }
+    else
+    {
+        auto cmd = new AddArea(iscore::IDocument::safe_path(m_space), m_lineEdit->text(), dim_map, param_map);
+        m_dispatcher.submitCommand(cmd);
+    }
 }
 
 void AreaWidget::cleanup()
@@ -177,7 +256,4 @@ void AreaWidget::cleanup()
         item->widget()->deleteLater();
         delete item;
     }
-
-
-
 }
