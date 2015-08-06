@@ -60,3 +60,11 @@ QString AreaModel::toString() const
     return QString::fromStdString(s.str());
 }
 
+
+#include "AreaPresenter.hpp"
+#include "AreaView.hpp"
+AreaPresenter*AreaModel::makePresenter(QGraphicsItem* parentItem, QObject* parentObject) const
+{
+    return new AreaPresenter{new AreaView{parentItem}, *this, parentObject};
+}
+

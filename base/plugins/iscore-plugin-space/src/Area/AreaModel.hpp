@@ -3,9 +3,11 @@
 #include <Space/area.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 class SpaceModel;
+class QGraphicsItem;
 
 // in the end, isn't an area the same thing as a domain???
 // Maps addresses / values to the parameter of an area
+class AreaPresenter;
 class AreaModel : public IdentifiedObject<AreaModel>
 {
         Q_OBJECT
@@ -38,6 +40,8 @@ class AreaModel : public IdentifiedObject<AreaModel>
 
         QString toString() const;
 
+        // Args : parent of the view, parent of the presenter
+        virtual AreaPresenter* makePresenter(QGraphicsItem* , QObject*) const;
     signals:
         void areaChanged();
 

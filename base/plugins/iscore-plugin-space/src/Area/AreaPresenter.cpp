@@ -4,12 +4,13 @@
 #include "src/Space/SpaceModel.hpp"
 
 #include <Space/square_renderer.hpp>
-AreaPresenter::AreaPresenter(const AreaModel& model,
-                             QGraphicsItem *parentview,
-                             QObject *parent):
+AreaPresenter::AreaPresenter(
+        AreaView* view,
+        const AreaModel& model,
+        QObject *parent):
     NamedObject{"AreaPresenter", parent},
     m_model{model},
-    m_view{new AreaView{parentview}}
+    m_view{view}
 {
     connect(&m_model, &AreaModel::areaChanged,
             this, &AreaPresenter::on_areaChanged);
