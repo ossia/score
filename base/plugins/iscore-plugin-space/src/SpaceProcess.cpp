@@ -14,35 +14,50 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
                 id_type<SpaceModel>(0),
                 this};
 
-    symbol xv("xv");
-    symbol yv("yv");
-    symbol x0("x0");
-    symbol y0("y0");
-    symbol r("r");
-    auto ar1 = new AreaModel(std::make_unique<spacelib::area>(
-                                 pow((xv - x0),2) + pow((yv - y0),2) <= pow(r,2),
-                                 std::vector<GiNaC::symbol>{xv, yv, x0, y0, r}),
-                             *m_space, id_type<AreaModel>(0), this);
+    const auto& space_vars = m_space->space().variables();
 
-    ar1->setSpaceMapping({{xv, m_space->space().variables()[0].symbol()},
-                          {yv, m_space->space().variables()[1].symbol()}});
-    ar1->mapValueToParameter("x0", iscore::Value::fromVariant(200));
-    ar1->mapValueToParameter("y0", iscore::Value::fromVariant(200));
-    ar1->mapValueToParameter("r", iscore::Value::fromVariant(100));
+    {
+        AreaParser circleParser("(xv-x0)^2 + (yv-y0)^2 <= r^2");
 
-    AreaParser parser("x + y >= 100 * c");
+        auto ar1 = new AreaModel(circleParser.result(),
+                                 *m_space, id_type<AreaModel>(0), this);
+        const auto& syms = ar1->area().symbols();
 
-    auto ar2 = new AreaModel(parser.result(), *m_space, id_type<AreaModel>(1), this);
+        ar1->setSpaceMapping({{syms[0], space_vars[0].symbol()},
+                              {syms[2], space_vars[1].symbol()}});
 
-    ar2->setSpaceMapping({{ar2->area().symbols()[0], m_space->space().variables()[0].symbol()},
-                          {ar2->area().symbols()[1], m_space->space().variables()[1].symbol()}});
+        iscore::FullAddressSettings x0, y0, r;
+        x0.value = iscore::Value::fromVariant(200);
+        y0.value = iscore::Value::fromVariant(200);
+        r.value = iscore::Value::fromVariant(100);
+        ar1->setParameterMapping({
+                        {syms[1].get_name().c_str(), {syms[1], x0}},
+                        {syms[3].get_name().c_str(), {syms[3], y0}},
+                        {syms[4].get_name().c_str(), {syms[4], r}},
+                    });
 
-    ar2->mapValueToParameter(
-                QString::fromStdString(ar2->area().symbols()[2].get_name()),
-            iscore::Value::fromVariant(5));
+        addArea(ar1);
+    }
 
-    addArea(ar1);
-    addArea(ar2);
+    {
+        AreaParser parser("xv + yv >= c");
+
+        auto ar2 = new AreaModel(parser.result(), *m_space, id_type<AreaModel>(1), this);
+        const auto& syms = ar2->area().symbols();
+
+        ar2->setSpaceMapping({{syms[0], space_vars[0].symbol()},
+                              {syms[1], space_vars[1].symbol()}});
+
+
+        iscore::FullAddressSettings c;
+        c.value = iscore::Value::fromVariant(300);
+
+        ar2->setParameterMapping({
+                        {syms[2].get_name().c_str(), {syms[2], c}}
+                    });
+
+        addArea(ar2);
+    }
 }
 
 Process *SpaceProcess::clone(const id_type<Process> &newId, QObject *newParent) const

@@ -14,7 +14,7 @@ class AddArea : public iscore::SerializableCommand
         AddArea(ModelPath<SpaceProcess>&& spacProcess,
             const QString& area,
                   const QMap<QString, QString>& dimMap,
-                  const QMap<QString, QPair<bool, iscore::FullAddressSettings>>& addrMap);
+                  const QMap<QString, iscore::FullAddressSettings>& addrMap);
 
         void undo() override;
         void redo() override;
@@ -30,5 +30,5 @@ class AddArea : public iscore::SerializableCommand
         QString m_areaFormula;
 
         QMap<QString, QString> m_varToDimensionMap;
-        QMap<QString, QPair<bool, iscore::FullAddressSettings>> m_symbolToAddressMap;
+        QMap<QString, iscore::FullAddressSettings> m_symbolToAddressMap;
 };

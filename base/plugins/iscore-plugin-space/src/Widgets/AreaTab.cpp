@@ -41,7 +41,7 @@ void AreaTab::updateDisplayedArea(int i)
 
 void AreaTab::newArea()
 {
-
+    m_areaWidget->setActiveArea(nullptr);
 }
 
 void AreaTab::rebuildList()

@@ -10,14 +10,14 @@ AreaModel::AreaModel(
     m_space{space},
     m_area{std::move(area)}
 {
+    /*
     for(const auto& sym : m_area->symbols())
     {
         m_parameterMap.insert(
                     sym.get_name().c_str(),
-                    {sym, {false, iscore::FullAddressSettings{}}});
+                    {sym, iscore::FullAddressSettings{}});
     }
-
-    // TODO we should have instead {default value, address} and default value is used if address is empty.
+    */
 }
 
 
@@ -39,32 +39,18 @@ spacelib::projected_area AreaModel::projectedArea() const
 spacelib::valued_area AreaModel::valuedArea() const
 {
     GiNaC::exmap mapping;
-    for(auto& elt : m_parameterMap)
+    for(const auto& elt : m_parameterMap)
     {
-        if(elt.second.first) // We use the value
+        if(elt.second.address.device.isEmpty()) // We use the value
         {
-            mapping[elt.first] = elt.second.second.value.val.toDouble();
+            mapping[elt.first] = elt.second.value.val.toDouble();
         }
         else // We fetch it from the device tree
         {
             ISCORE_TODO
-            // What do we do if the address is not there ? Mark the area as invalid ?
         }
     }
     return spacelib::valued_area(projectedArea(), mapping);
-}
-
-void AreaModel::mapAddressToParameter(const QString& str, const iscore::FullAddressSettings& addr)
-{
-    // TODO how to update when a value changes ??
-    // Maybe we should have a default value ?
-    m_parameterMap[str].second = {false, addr};
-}
-
-void AreaModel::mapValueToParameter(const QString& str, const iscore::Value&& val)
-{
-    m_parameterMap[str].second.first = true;
-    m_parameterMap[str].second.second.value = val;
 }
 
 QString AreaModel::toString() const
