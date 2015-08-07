@@ -7,7 +7,30 @@
 
 #include "src/Commands/AddArea.hpp"
 
+#include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+
+class ParameterWidget : public QWidget
+{
+    public:
+        ParameterWidget()
+        {
+            auto lay = new MarginLess<QHBoxLayout>;
+            this->setLayout(lay);
+
+            address = new QLineEdit;
+            defaultValue = new QDoubleSpinBox;
+            defaultValue->setMinimum(std::numeric_limits<float>::min());
+            defaultValue->setMaximum(std::numeric_limits<float>::max());
+            lay->addWidget(address);
+            lay->addWidget(defaultValue);
+
+        }
+
+        QLineEdit* address{};
+        QDoubleSpinBox* defaultValue{};
+};
+
 AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, QWidget *parent):
     QWidget{parent},
     m_dispatcher{stack},
@@ -52,12 +75,13 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
 void AreaWidget::setActiveArea(const AreaModel *area)
 {
     m_area = area;
-    m_lineEdit->setText(m_area->toString());
 
+    m_lineEdit->setText(m_area ? m_area->toString() : "");
     on_formulaChanged();
 
     if(m_area)
     {
+
         // Load all the data
         const auto& dim_map = area->spaceMapping();
         for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
@@ -67,14 +91,15 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             auto cb = static_cast<QComboBox*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::FieldRole)->widget());
             Q_ASSERT(cb);
 
-            auto dim_map_it = std::find_if(dim_map.begin(), dim_map.end(), [&] (const auto& exp) { return GiNaC::ex_to<GiNaC::symbol>(exp.first).get_name() == label->text().toStdString(); });
+            auto dim_map_it = std::find_if(dim_map.begin(), dim_map.end(),
+                                           [&] (const auto& exp) { return GiNaC::ex_to<GiNaC::symbol>(exp.second).get_name() == label->text().toStdString(); });
             if(dim_map_it == dim_map.end())
             {
                 // Error : the requested dimension does not seem to exist in our space.
                 continue;
             }
 
-            auto target_sym = GiNaC::ex_to<GiNaC::symbol>((*dim_map_it).second).get_name();
+            auto target_sym = GiNaC::ex_to<GiNaC::symbol>((*dim_map_it).first).get_name();
             // Find it in the combobox
 
             cb->setCurrentIndex(cb->findText(QString::fromStdString(target_sym)));
@@ -83,9 +108,6 @@ void AreaWidget::setActiveArea(const AreaModel *area)
 
 
         const auto& param_map = area->parameterMapping();
-        // debug
-        for(auto& elt : param_map.keys())
-            qDebug() << elt;
 
         for(int param_i = 0; param_i < m_paramMappingLayout->rowCount(); param_i++)
         {
@@ -99,9 +121,9 @@ void AreaWidget::setActiveArea(const AreaModel *area)
 
             auto label = qobject_cast<QLabel*>(widg);
             Q_ASSERT(label);
-            auto line_edit = static_cast<QLineEdit*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
-            Q_ASSERT(line_edit);
-            line_edit->setEnabled(false);
+            auto param_widg = static_cast<ParameterWidget*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
+            Q_ASSERT(param_widg);
+            param_widg->setEnabled(false);
 
             auto param_it = param_map.find(label->text());
             if(param_it == param_map.end())
@@ -110,19 +132,13 @@ void AreaWidget::setActiveArea(const AreaModel *area)
                 continue;
             }
 
-            if((*param_it).second.first)
-            {
-                // Storing a value
-                line_edit->setText((*param_it).second.second.value.val.toString());
-            }
-            else
-            {
-                // Storing an address
-                ISCORE_TODO;
-            }
+            // Storing a value
+            param_widg->defaultValue->setValue((*param_it).second.value.val.toDouble());
 
-            line_edit->setEnabled(true);
+            // Storing an address
+            param_widg->address->setText((*param_it).second.address.toString());
 
+            param_widg->setEnabled(true);
         }
 
     }
@@ -153,7 +169,7 @@ void AreaWidget::on_formulaChanged()
 
     for(const auto& sym: area->symbols())
     {
-        m_paramMappingLayout->addRow(QString::fromStdString(sym.get_name()), new QLineEdit);
+        m_paramMappingLayout->addRow(QString::fromStdString(sym.get_name()), new ParameterWidget);
     }
 }
 
@@ -206,7 +222,7 @@ void AreaWidget::validate()
     }
 
 
-    QMap<QString, QPair<bool, iscore::FullAddressSettings>> param_map;
+    QMap<QString, iscore::FullAddressSettings> param_map;
     for(int param_i = 0; param_i < m_paramMappingLayout->rowCount(); param_i++)
     {
         auto it = m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::LabelRole);
@@ -219,15 +235,17 @@ void AreaWidget::validate()
 
         auto label = qobject_cast<QLabel*>(widg);
         Q_ASSERT(label);
-        auto line_edit = static_cast<QLineEdit*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
-        Q_ASSERT(line_edit);
+        auto param_widg = static_cast<ParameterWidget*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
+        Q_ASSERT(param_widg);
 
-        if(!line_edit->isEnabled())
+        if(!param_widg->isEnabled())
             continue;
 
         iscore::FullAddressSettings addr;
-        addr.value = iscore::Value::fromVariant(line_edit->text().toDouble());
-        param_map.insert(label->text(), {true, addr});
+        // TODO validate
+        addr.address = iscore::Address::fromString(param_widg->address->text());
+        addr.value = iscore::Value::fromVariant(param_widg->defaultValue->value());
+        param_map.insert(label->text(), addr);
     }
 
 

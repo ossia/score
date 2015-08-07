@@ -8,17 +8,18 @@ class AreaPresenter : public NamedObject
 {
     public:
         AreaPresenter(
+                AreaView* view,
                 const AreaModel &model,
-                QGraphicsItem* parentview,
                 QObject* parent);
 
         const id_type<AreaModel>& id() const;
 
-        void update();
+        virtual void update();
+
+    protected:
+        virtual void on_areaChanged();
 
     private:
-        void on_areaChanged();
-
         const AreaModel& m_model;
         AreaView* m_view{};
 

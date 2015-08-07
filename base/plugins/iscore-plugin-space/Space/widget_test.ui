@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1163</width>
-    <height>833</height>
+    <width>1267</width>
+    <height>1100</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,109 +28,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Space mapping</string>
-     </property>
-     <widget class="QWidget" name="formLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>50</y>
-        <width>321</width>
-        <height>141</height>
-       </rect>
-      </property>
-      <layout class="QFormLayout" name="formLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="xLabel">
-         <property name="text">
-          <string>x</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="xComboBox">
-         <item>
-          <property name="text">
-           <string>xv</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>x0</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>yv</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>y0</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>r</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="yLabel">
-         <property name="text">
-          <string>y</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="yComboBox">
-         <property name="currentText">
-          <string>xv</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>xv</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>x0</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>yv</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>y0</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>r</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <zorder>formLayoutWidget</zorder>
-     <zorder>groupBox_2</zorder>
-    </widget>
-   </item>
-   <item row="3" column="2" rowspan="2">
+   <item row="4" column="2" rowspan="2">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -256,9 +154,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QListWidget" name="listWidget"/>
-   </item>
    <item row="2" column="0">
     <widget class="QPushButton" name="pushButton">
      <property name="text">
@@ -266,72 +161,181 @@
      </property>
     </widget>
    </item>
+   <item row="4" column="0">
+    <widget class="QListWidget" name="listWidget"/>
+   </item>
    <item row="4" column="1">
-    <widget class="QGroupBox" name="groupBox_2">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Parameter mapping</string>
-     </property>
-     <widget class="QWidget" name="formLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>50</y>
-        <width>321</width>
-        <height>181</height>
-       </rect>
-      </property>
-      <layout class="QFormLayout" name="formLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="x0Label">
-         <property name="text">
-          <string>x0</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="x0LineEdit">
-         <property name="text">
-          <string>23</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="y0Label">
-         <property name="text">
-          <string>y0</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="y0LineEdit">
-         <property name="text">
-          <string>10</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="rLabel">
-         <property name="text">
-          <string>r</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="rLineEdit">
-         <property name="text">
-          <string>dev:/some/value</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="title">
+        <string>Space mapping</string>
+       </property>
+       <widget class="QWidget" name="formLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>321</width>
+          <height>141</height>
+         </rect>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="xLabel">
+           <property name="text">
+            <string>x</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="xComboBox">
+           <item>
+            <property name="text">
+             <string>xv</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>x0</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>yv</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>y0</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>r</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="yLabel">
+           <property name="text">
+            <string>y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="yComboBox">
+           <property name="currentText">
+            <string>xv</string>
+           </property>
+           <item>
+            <property name="text">
+             <string>xv</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>x0</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>yv</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>y0</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>r</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <zorder>formLayoutWidget</zorder>
+       <zorder>groupBox_2</zorder>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="title">
+        <string>Parameter mapping</string>
+       </property>
+       <widget class="QWidget" name="formLayoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>361</width>
+          <height>271</height>
+         </rect>
+        </property>
+        <layout class="QFormLayout" name="formLayout_2">
+         <item row="0" column="0">
+          <widget class="QLabel" name="x0Label">
+           <property name="text">
+            <string>x0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="x0LineEdit">
+           <property name="text">
+            <string>23</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="y0Label">
+           <property name="text">
+            <string>y0</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="y0LineEdit">
+           <property name="text">
+            <string>10</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="rLabel">
+           <property name="text">
+            <string>r</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="rLineEdit">
+           <property name="text">
+            <string>dev:/some/value</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
