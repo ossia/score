@@ -10,7 +10,7 @@ void updateEventExtent(const id_type<EventModel> &id, ScenarioModel &s)
 {
     auto& ev = s.event(id);
     double min = std::numeric_limits<double>::max();
-    double max = std::numeric_limits<double>::min();
+    double max = std::numeric_limits<double>::lowest();
     for(const auto& state_id : ev.states())
     {
         const auto& st = s.state(state_id);
@@ -29,7 +29,7 @@ void updateTimeNodeExtent(const id_type<TimeNodeModel> &id, ScenarioModel &s)
 {
     auto& tn = s.timeNode(id);
     double min = std::numeric_limits<double>::max();
-    double max = std::numeric_limits<double>::min();
+    double max = std::numeric_limits<double>::lowest();
     for(const auto& ev_id : tn.events())
     {
         const auto& ev = s.event(ev_id);
