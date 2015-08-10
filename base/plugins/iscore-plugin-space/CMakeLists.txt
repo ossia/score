@@ -50,10 +50,13 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceTab.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaTab.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaSelectionWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/ParameterWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceGuiWindow.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddArea.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddCircle.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"

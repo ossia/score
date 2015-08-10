@@ -6,7 +6,9 @@ bool Address::validateString(const QString &str)
 {
     auto firstcolon = str.indexOf(":");
     auto firstslash = str.indexOf("/");
-    return firstcolon > 0 && firstslash > firstcolon;
+    return str == QString(str.toLatin1())
+            && (firstcolon > 0)
+            && (firstslash == (firstcolon + 1));
 }
 
 

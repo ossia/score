@@ -6,30 +6,10 @@
 #include "src/Area/AreaParser.hpp"
 
 #include "src/Commands/AddArea.hpp"
-
+#include "AreaSelectionWidget.hpp"
+#include "ParameterWidget.hpp"
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-
-class ParameterWidget : public QWidget
-{
-    public:
-        ParameterWidget()
-        {
-            auto lay = new MarginLess<QHBoxLayout>;
-            this->setLayout(lay);
-
-            address = new QLineEdit;
-            defaultValue = new QDoubleSpinBox;
-            defaultValue->setMinimum(std::numeric_limits<float>::min());
-            defaultValue->setMaximum(std::numeric_limits<float>::max());
-            lay->addWidget(address);
-            lay->addWidget(defaultValue);
-
-        }
-
-        QLineEdit* address{};
-        QDoubleSpinBox* defaultValue{};
-};
 
 AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, QWidget *parent):
     QWidget{parent},
@@ -39,9 +19,9 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
     auto lay = new QGridLayout;
     this->setLayout(lay);
 
-    m_lineEdit = new QLineEdit;
-    lay->addWidget(m_lineEdit);
-    connect(m_lineEdit, &QLineEdit::editingFinished, this, &AreaWidget::on_formulaChanged);
+    m_selectionWidget = new AreaSelectionWidget{this};
+    lay->addWidget(m_selectionWidget);
+    connect(m_selectionWidget, &AreaSelectionWidget::lineEditChanged, this, &AreaWidget::on_formulaChanged);
 
     // This contains a list of comboboxes mapping each dimension of the space we're in,
     // to a parameter of the area
@@ -72,16 +52,25 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
     connect(val, &QPushButton::pressed, this, &AreaWidget::validate);
 }
 
+#include "src/Area/Circle/CircleAreaModel.hpp"
 void AreaWidget::setActiveArea(const AreaModel *area)
 {
     m_area = area;
 
-    m_lineEdit->setText(m_area ? m_area->toString() : "");
+    if(m_area)
+    {
+        m_selectionWidget->lineEdit()->setText(m_area->toString());
+        m_selectionWidget->comboBox()->setCurrentIndex(
+                    m_selectionWidget->comboBox()->findData(m_area->type()));
+    }
+    else
+    {
+        m_selectionWidget->lineEdit()->clear();
+    }
     on_formulaChanged();
 
     if(m_area)
     {
-
         // Load all the data
         const auto& dim_map = area->spaceMapping();
         for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
@@ -133,10 +122,10 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             }
 
             // Storing a value
-            param_widg->defaultValue->setValue((*param_it).second.value.val.toDouble());
+            param_widg->defaultValue()->setValue((*param_it).second.value.val.toDouble());
 
             // Storing an address
-            param_widg->address->setText((*param_it).second.address.toString());
+            param_widg->address()->setText((*param_it).second.address.toString());
 
             param_widg->setEnabled(true);
         }
@@ -150,7 +139,7 @@ void AreaWidget::on_formulaChanged()
 {
     cleanup();
 
-    AreaParser parser{m_lineEdit->text()};
+    AreaParser parser{m_selectionWidget->lineEdit()->text()};
     if(!parser.check())
     {
         return;
@@ -203,7 +192,7 @@ void AreaWidget::on_dimensionMapped(int)
     }
 }
 
-
+#include "src/Commands/AddCircle.hpp"
 void AreaWidget::validate()
 {
     // Make the dimension map
@@ -243,8 +232,11 @@ void AreaWidget::validate()
 
         iscore::FullAddressSettings addr;
         // TODO validate
-        addr.address = iscore::Address::fromString(param_widg->address->text());
-        addr.value = iscore::Value::fromVariant(param_widg->defaultValue->value());
+        if(iscore::Address::validateString(param_widg->address()->text()))
+        {
+            addr.address = iscore::Address::fromString(param_widg->address()->text());
+        }
+        addr.value = iscore::Value::fromVariant(param_widg->defaultValue()->value());
         param_map.insert(label->text(), addr);
     }
 
@@ -255,7 +247,26 @@ void AreaWidget::validate()
     }
     else
     {
-        auto cmd = new AddArea(iscore::IDocument::safe_path(m_space), m_lineEdit->text(), dim_map, param_map);
+        iscore::SerializableCommand* cmd = nullptr;
+        switch(m_selectionWidget->comboBox()->currentData().toInt())
+        {
+            case AreaModel::static_type():
+                cmd = new AddArea{
+                          iscore::IDocument::safe_path(m_space),
+                          m_selectionWidget->lineEdit()->text(),
+                          dim_map,
+                          param_map};
+                break;
+            case CircleAreaModel::static_type():
+                cmd = new AddCircle{
+                          iscore::IDocument::safe_path(m_space),
+                          dim_map,
+                          param_map};
+                break;
+        }
+
+        Q_ASSERT(cmd);
+
         m_dispatcher.submitCommand(cmd);
     }
 }

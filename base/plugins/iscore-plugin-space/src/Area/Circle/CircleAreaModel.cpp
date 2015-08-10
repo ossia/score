@@ -5,9 +5,18 @@
 #include "src/Space/SpaceModel.hpp"
 
 
-CircleAreaModel::CircleAreaModel(const SpaceModel &space, const id_type<AreaModel> &id, QObject *parent):
-    AreaModel{AreaParser{"(xv-x0)^2 + (yv-y0)^2 <= r^2"}.result(), space, id, parent}
+QString CircleAreaModel::formula()
 {
+    return "(xv-x0)^2 + (yv-y0)^2 <= r^2";
+}
+
+CircleAreaModel::CircleAreaModel(
+        const SpaceModel &space,
+        const id_type<AreaModel> &id,
+        QObject *parent):
+    AreaModel{AreaParser{formula()}.result(), space, id, parent}
+{
+    /*
     const auto& space_vars = this->space().space().variables();
     const auto& syms = area().symbols();
     GiNaC::symbol xv, x0, yv, y0, r;
@@ -32,6 +41,7 @@ CircleAreaModel::CircleAreaModel(const SpaceModel &space, const id_type<AreaMode
                     {y0.get_name().c_str(), {y0, y0_val}},
                     {r.get_name().c_str(), {r, r_val}},
                 });
+                */
 }
 
 AreaPresenter *CircleAreaModel::makePresenter(QGraphicsItem * parentitem, QObject * obj) const

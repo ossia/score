@@ -15,6 +15,10 @@ class AreaModel : public IdentifiedObject<AreaModel>
         // The value is used as default value if the address is invalid.
         using ParameterMap = QMap<QString, QPair<GiNaC::symbol, iscore::FullAddressSettings>>;
 
+        static constexpr int static_type() { return 0; }
+        static QString pretty_name() { return tr("Generic"); }
+        virtual int type() const { return 0; }
+
         AreaModel(
                 std::unique_ptr<spacelib::area>&& area,
                 const SpaceModel& space,

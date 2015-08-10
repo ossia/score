@@ -4,6 +4,7 @@
 
 class AreaModel;
 class SpaceProcess;
+class AreaSelectionWidget;
 class AreaWidget : public QWidget
 {
     public:
@@ -23,7 +24,7 @@ class AreaWidget : public QWidget
         const SpaceProcess& m_space;
         const AreaModel* m_area{};
 
-        QLineEdit* m_lineEdit{};
+        AreaSelectionWidget* m_selectionWidget{};
         QFormLayout* m_spaceMappingLayout{};
         QFormLayout* m_paramMappingLayout{};
 };
