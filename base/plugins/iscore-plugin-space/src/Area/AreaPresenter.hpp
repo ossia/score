@@ -3,12 +3,12 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 class QGraphicsItem;
 class AreaModel;
-class AreaView;
+class GenericAreaView;
 class AreaPresenter : public NamedObject
 {
     public:
         using model_type = AreaModel;
-        using view_type = AreaView;
+        using view_type = GenericAreaView;
         AreaPresenter(
                 QGraphicsItem* view,
                 const AreaModel &model,
@@ -16,9 +16,8 @@ class AreaPresenter : public NamedObject
 
         const id_type<AreaModel>& id() const;
 
-        virtual void update();
-
-        virtual void on_areaChanged();
+        virtual void update() = 0;
+        virtual void on_areaChanged() = 0;
 
         // Useful for subclasses
         template<typename T>

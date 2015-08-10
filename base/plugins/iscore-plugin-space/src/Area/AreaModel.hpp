@@ -14,10 +14,9 @@ class AreaModel : public IdentifiedObject<AreaModel>
     public:
         // The value is used as default value if the address is invalid.
         using ParameterMap = QMap<QString, QPair<GiNaC::symbol, iscore::FullAddressSettings>>;
-
-        static constexpr int static_type() { return 0; }
-        static QString pretty_name() { return tr("Generic"); }
-        virtual int type() const { return 0; }
+        virtual QString factoryName() const = 0;
+        virtual QString prettyName() const = 0;
+        virtual int type() const = 0;
 
         AreaModel(
                 std::unique_ptr<spacelib::area>&& area,
@@ -44,8 +43,6 @@ class AreaModel : public IdentifiedObject<AreaModel>
 
         QString toString() const;
 
-        // Args : parent of the view, parent of the presenter
-        virtual AreaPresenter* makePresenter(QGraphicsItem* , QObject*) const;
     signals:
         void areaChanged();
 

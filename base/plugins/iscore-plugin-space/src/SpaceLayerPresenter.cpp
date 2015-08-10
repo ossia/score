@@ -68,13 +68,13 @@ void SpaceLayerPresenter::putBehind()
 
 void SpaceLayerPresenter::on_zoomRatioChanged(ZoomRatio)
 {
-    ISCORE_TODO;
+    //ISCORE_TODO;
     update();
 }
 
 void SpaceLayerPresenter::parentGeometryChanged()
 {
-    ISCORE_TODO;
+    //ISCORE_TODO;
     update();
 }
 
@@ -97,9 +97,18 @@ void SpaceLayerPresenter::update()
     }
 }
 
+#include "src/Area/AreaFactory.hpp"
+#include "src/Area/SingletonAreaFactoryList.hpp"
 void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
 {
-    auto pres = a.makePresenter(m_view, this);
+    auto fact = SingletonAreaFactoryList::instance().factory(a.factoryName());
+
+    auto v = fact->makeView(m_view);
+    // TODO call the factory list
+    auto pres = fact->makePresenter(v, a, this);
+
+    connect(&a, &AreaModel::areaChanged,
+            pres, &AreaPresenter::on_areaChanged);
     m_areas.insert(pres);
     pres->on_areaChanged();
     update();

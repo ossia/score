@@ -30,6 +30,7 @@ void AddArea::undo()
 
 void AddArea::redo()
 {
+    /*
     auto& proc = m_path.find();
 
     AreaParser parser{m_areaFormula};
@@ -61,6 +62,7 @@ void AddArea::redo()
     ar->setParameterMapping(addr_map);
 
     proc.addArea(ar);
+    */
 }
 
 void AddArea::serializeImpl(QDataStream &s) const

@@ -231,7 +231,6 @@ void AreaWidget::validate()
             continue;
 
         iscore::FullAddressSettings addr;
-        // TODO validate
         if(iscore::Address::validateString(param_widg->address()->text()))
         {
             addr.address = iscore::Address::fromString(param_widg->address()->text());
@@ -247,6 +246,7 @@ void AreaWidget::validate()
     }
     else
     {
+        /*
         iscore::SerializableCommand* cmd = nullptr;
         switch(m_selectionWidget->comboBox()->currentData().toInt())
         {
@@ -268,6 +268,7 @@ void AreaWidget::validate()
         Q_ASSERT(cmd);
 
         m_dispatcher.submitCommand(cmd);
+        */
     }
 }
 

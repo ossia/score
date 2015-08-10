@@ -40,8 +40,17 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactoryList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/SingletonAreaFactoryList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Circle/CircleAreaFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Circle/CircleAreaModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Circle/CircleAreaPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Circle/CircleAreaView.cpp"

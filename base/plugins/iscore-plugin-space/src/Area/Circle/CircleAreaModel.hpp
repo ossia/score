@@ -6,9 +6,12 @@ class CircleAreaModel : public AreaModel
 {
     public:
         static constexpr int static_type() { return 1; }
-        static QString pretty_name() { return tr("Circle"); }
+        int type() const override { return static_type(); }
+
+        QString factoryName() const override { return "Circle"; }
+        QString prettyName() const override { return tr("Circle"); }
         static QString formula();
-        virtual int type() const override { return 1; }
+
         CircleAreaModel(
                 const SpaceModel& space,
                 const id_type<AreaModel>&,

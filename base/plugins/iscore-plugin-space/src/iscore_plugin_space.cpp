@@ -2,6 +2,9 @@
 
 #include "SpaceProcessFactory.hpp"
 #include "SpaceControl.hpp"
+#include "Area/SingletonAreaFactoryList.hpp"
+
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 iscore_plugin_space::iscore_plugin_space() :
     QObject {}
 {
@@ -20,4 +23,12 @@ QVector<iscore::FactoryInterface*> iscore_plugin_space::factories(const QString&
     }
 
     return {};
+}
+
+
+QVector<iscore::FactoryFamily> iscore_plugin_space::factoryFamilies()
+{
+    return {{"Area",
+            [] (iscore::FactoryInterface* f)
+            { SingletonAreaFactoryList::instance().registerFactory(f); }}};
 }

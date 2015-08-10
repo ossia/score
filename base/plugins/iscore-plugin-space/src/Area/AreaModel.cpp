@@ -62,12 +62,3 @@ QString AreaModel::toString() const
     return QString::fromStdString(s.str());
 }
 
-
-AreaPresenter*AreaModel::makePresenter(QGraphicsItem* parentItem, QObject* parentObject) const
-{
-    auto pres = new AreaPresenter{new AreaView{parentItem}, *this, parentObject};
-    connect(this, &AreaModel::areaChanged,
-            pres, &AreaPresenter::on_areaChanged);
-    return pres;
-}
-

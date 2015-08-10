@@ -13,7 +13,6 @@ class CircleAreaPresenter : public AreaPresenter
                 QObject* parent);
 
         void update() override;
-
         void on_areaChanged() override;
 
 };
