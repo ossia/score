@@ -99,6 +99,8 @@ void SpaceLayerPresenter::update()
 
 void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
 {
-    m_areas.insert(a.makePresenter(m_view, this));
+    auto pres = a.makePresenter(m_view, this);
+    m_areas.insert(pres);
+    pres->on_areaChanged();
     update();
 }

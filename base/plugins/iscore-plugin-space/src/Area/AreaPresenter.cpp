@@ -5,18 +5,14 @@
 
 #include <Space/square_renderer.hpp>
 AreaPresenter::AreaPresenter(
-        AreaView* view,
+        QGraphicsItem* view,
         const AreaModel& model,
         QObject *parent):
     NamedObject{"AreaPresenter", parent},
     m_model{model},
     m_view{view}
 {
-    connect(&m_model, &AreaModel::areaChanged,
-            this, &AreaPresenter::on_areaChanged);
-
     m_view->setPos(0, 0);
-    on_areaChanged();
 }
 
 const id_type<AreaModel>& AreaPresenter::id() const
@@ -26,7 +22,7 @@ const id_type<AreaModel>& AreaPresenter::id() const
 
 void AreaPresenter::update()
 {
-    m_view->updateRect(m_view->parentItem()->boundingRect());
+    view(this).updateRect(m_view->parentItem()->boundingRect());
 }
 
 // Il vaut mieux faire comme dans les courbes ou le curvepresenter s'occupe des segments....
@@ -38,6 +34,6 @@ void AreaPresenter::on_areaChanged()
     // Convert our dynamic space to a static one for rendering
     renderer.render(m_model.valuedArea(), spacelib::toStaticSpace<2>(m_model.space().space()));
 
-    m_view->rects = renderer.render_device.rects;
-    m_view->update();
+    view(this).rects = renderer.render_device.rects;
+    view(this).update();
 }

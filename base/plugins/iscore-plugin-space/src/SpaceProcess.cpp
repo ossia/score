@@ -2,7 +2,7 @@
 #include "SpaceLayerModel.hpp"
 #include "Area/AreaParser.hpp"
 #include "Space/SpaceModel.hpp"
-
+#include "Area/Circle/CircleAreaModel.hpp"
 
 SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     Process{id, "SpaceProcessModel", parent}
@@ -15,7 +15,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
                 this};
 
     const auto& space_vars = m_space->space().variables();
-
+    /*
     {
         AreaParser circleParser("(xv-x0)^2 + (yv-y0)^2 <= r^2");
 
@@ -57,6 +57,10 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
                     });
 
         addArea(ar2);
+    }*/
+
+    {
+        addArea(new CircleAreaModel(*m_space,id_type<AreaModel>(2), this));
     }
 }
 

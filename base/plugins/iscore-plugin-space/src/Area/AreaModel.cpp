@@ -1,4 +1,6 @@
 #include "AreaModel.hpp"
+#include "AreaPresenter.hpp"
+#include "AreaView.hpp"
 
 #include <DeviceExplorer/Node/Node.hpp>
 AreaModel::AreaModel(
@@ -61,10 +63,11 @@ QString AreaModel::toString() const
 }
 
 
-#include "AreaPresenter.hpp"
-#include "AreaView.hpp"
 AreaPresenter*AreaModel::makePresenter(QGraphicsItem* parentItem, QObject* parentObject) const
 {
-    return new AreaPresenter{new AreaView{parentItem}, *this, parentObject};
+    auto pres = new AreaPresenter{new AreaView{parentItem}, *this, parentObject};
+    connect(this, &AreaModel::areaChanged,
+            pres, &AreaPresenter::on_areaChanged);
+    return pres;
 }
 

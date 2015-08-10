@@ -7,8 +7,10 @@ class AreaView;
 class AreaPresenter : public NamedObject
 {
     public:
+        using model_type = AreaModel;
+        using view_type = AreaView;
         AreaPresenter(
-                AreaView* view,
+                QGraphicsItem* view,
                 const AreaModel &model,
                 QObject* parent);
 
@@ -16,11 +18,18 @@ class AreaPresenter : public NamedObject
 
         virtual void update();
 
-    protected:
         virtual void on_areaChanged();
+
+        // Useful for subclasses
+        template<typename T>
+        auto& model(T*) const
+        { return static_cast<const typename T::model_type&>(m_model); }
+        template<typename T>
+        auto& view(T*) const
+        { return static_cast<typename T::view_type&>(*m_view); }
 
     private:
         const AreaModel& m_model;
-        AreaView* m_view{};
+        QGraphicsItem* m_view{};
 
 };
