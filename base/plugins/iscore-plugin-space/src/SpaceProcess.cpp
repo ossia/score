@@ -14,8 +14,8 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
                 id_type<SpaceModel>(0),
                 this};
 
-    const auto& space_vars = m_space->space().variables();
     /*
+    const auto& space_vars = m_space->space().variables();
     {
         AreaParser circleParser("(xv-x0)^2 + (yv-y0)^2 <= r^2");
 
@@ -57,11 +57,12 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
                     });
 
         addArea(ar2);
-    }*/
+    }
 
     {
         addArea(new CircleAreaModel(*m_space,id_type<AreaModel>(2), this));
     }
+    */
 }
 
 Process *SpaceProcess::clone(const id_type<Process> &newId, QObject *newParent) const

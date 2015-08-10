@@ -10,6 +10,8 @@ class AreaPresenter;
 class AreaFactory : public iscore::FactoryInterface
 {
     public:
+        static QString factoryName();
+
         // Pretty name, id
         virtual int type() const = 0;
         virtual QString name() const = 0;

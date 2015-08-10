@@ -5,7 +5,7 @@
 
 int GenericAreaFactory::type() const
 {
-    return 0;
+    return GenericAreaModel::static_type();
 }
 
 QString GenericAreaFactory::name() const

@@ -4,6 +4,7 @@
 
 class GenericAreaModel : public AreaModel
 {
+        Q_OBJECT
     public:
         static constexpr int static_type() { return 0; }
         int type() const override { return static_type(); }

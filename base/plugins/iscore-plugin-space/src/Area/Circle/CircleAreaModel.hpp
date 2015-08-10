@@ -4,6 +4,7 @@
 
 class CircleAreaModel : public AreaModel
 {
+        Q_OBJECT
     public:
         static constexpr int static_type() { return 1; }
         int type() const override { return static_type(); }

@@ -11,7 +11,8 @@ class AddArea : public iscore::SerializableCommand
     public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddArea)
 
-        AddArea(ModelPath<SpaceProcess>&& spacProcess,
+          AddArea(ModelPath<SpaceProcess>&& spacProcess,
+            int type,
             const QString& area,
                   const QMap<QString, QString>& dimMap,
                   const QMap<QString, iscore::FullAddressSettings>& addrMap);
@@ -27,6 +28,7 @@ class AddArea : public iscore::SerializableCommand
         ModelPath<SpaceProcess> m_path;
         id_type<AreaModel> m_createdAreaId;
 
+        int m_areaType{-1};
         QString m_areaFormula;
 
         QMap<QString, QString> m_varToDimensionMap;

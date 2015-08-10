@@ -5,7 +5,7 @@
 
 int CircleAreaFactory::type() const
 {
-    return 0;
+    return CircleAreaModel::static_type();
 }
 
 QString CircleAreaFactory::name() const

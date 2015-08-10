@@ -246,29 +246,14 @@ void AreaWidget::validate()
     }
     else
     {
-        /*
-        iscore::SerializableCommand* cmd = nullptr;
-        switch(m_selectionWidget->comboBox()->currentData().toInt())
-        {
-            case AreaModel::static_type():
-                cmd = new AddArea{
-                          iscore::IDocument::safe_path(m_space),
-                          m_selectionWidget->lineEdit()->text(),
-                          dim_map,
-                          param_map};
-                break;
-            case CircleAreaModel::static_type():
-                cmd = new AddCircle{
-                          iscore::IDocument::safe_path(m_space),
-                          dim_map,
-                          param_map};
-                break;
-        }
 
-        Q_ASSERT(cmd);
-
-        m_dispatcher.submitCommand(cmd);
-        */
+        m_dispatcher.submitCommand(
+                    new AddArea{
+                        iscore::IDocument::safe_path(m_space),
+                        m_selectionWidget->comboBox()->currentData().toInt(),
+                        m_selectionWidget->lineEdit()->text(),
+                        dim_map,
+                        param_map});
     }
 }
 

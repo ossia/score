@@ -4,17 +4,23 @@
 #include "src/Area/AreaParser.hpp"
 #include "src/Space/SpaceModel.hpp"
 
+#include "src/Area/AreaFactory.hpp"
+#include "src/Area/SingletonAreaFactoryList.hpp"
 
 #include "src/SpaceProcess.hpp"
+
+#include <boost/range/algorithm/find_if.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
 AddArea::AddArea(ModelPath<SpaceProcess> &&spacProcess,
+                 int areatype,
                  const QString &area,
                  const QMap<QString, QString> &dimMap,
                  const QMap<QString, iscore::FullAddressSettings> &addrMap):
     iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{std::move(spacProcess)},
+    m_areaType{areatype},
     m_areaFormula{area},
     m_varToDimensionMap{dimMap},
     m_symbolToAddressMap{addrMap}
@@ -30,11 +36,15 @@ void AddArea::undo()
 
 void AddArea::redo()
 {
-    /*
     auto& proc = m_path.find();
 
-    AreaParser parser{m_areaFormula};
-    auto ar = new AreaModel{parser.result(), proc.space(), m_createdAreaId, &proc};
+    auto facts = SingletonAreaFactoryList::instance().factories();
+    auto it = boost::range::find_if(facts,
+                                    [&] (const AreaFactory* f) { return f->type() == m_areaType; });
+
+    Q_ASSERT(it != facts.end());
+
+    auto ar = (*it)->makeModel(m_areaFormula, proc.space(), m_createdAreaId, &proc);
 
     GiNaC::exmap sym_map;
     const auto& syms = ar->area().symbols();
@@ -62,15 +72,14 @@ void AddArea::redo()
     ar->setParameterMapping(addr_map);
 
     proc.addArea(ar);
-    */
 }
 
 void AddArea::serializeImpl(QDataStream &s) const
 {
-    s << m_path << m_createdAreaId << m_areaFormula << m_varToDimensionMap << m_symbolToAddressMap;
+    s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_varToDimensionMap << m_symbolToAddressMap;
 }
 
 void AddArea::deserializeImpl(QDataStream &s)
 {
-    s >> m_path >> m_createdAreaId >> m_areaFormula >> m_varToDimensionMap >> m_symbolToAddressMap;
+    s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_varToDimensionMap >> m_symbolToAddressMap;
 }
