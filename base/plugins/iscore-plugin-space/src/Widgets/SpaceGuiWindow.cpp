@@ -2,6 +2,7 @@
 
 #include <iscore/widgets/MarginLess.hpp>
 
+#include "src/SpaceProcess.hpp"
 #include "AreaTab.hpp"
 #include "SpaceTab.hpp"
 #include "ComputationsTab.hpp"
@@ -16,7 +17,7 @@ SpaceGuiWindow::SpaceGuiWindow(iscore::CommandStack &stack, const SpaceProcess &
     this->setLayout(lay);
 
     tabs->addTab(new AreaTab{stack, space, this}, tr("Areas"));
-    tabs->addTab(new SpaceTab{this}, tr("Space"));
+    tabs->addTab(new SpaceTab{space.space(), this}, tr("Space"));
     tabs->addTab(new ComputationsTab{this}, tr("Computation"));
 
 }
