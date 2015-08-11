@@ -11,7 +11,7 @@ ParameterWidget::ParameterWidget()
 
     m_address = new QLineEdit;
     m_defaultValue = new QDoubleSpinBox;
-    m_defaultValue->setMinimum(std::numeric_limits<float>::min());
+    m_defaultValue->setMinimum(std::numeric_limits<float>::lowest());
     m_defaultValue->setMaximum(std::numeric_limits<float>::max());
     lay->addWidget(m_address);
     lay->addWidget(m_defaultValue);

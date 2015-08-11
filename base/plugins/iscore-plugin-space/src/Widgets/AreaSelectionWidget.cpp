@@ -36,13 +36,9 @@ AreaSelectionWidget::AreaSelectionWidget(QWidget* parent):
         }
         else
         {
-            m_lineEdit->setText(CircleAreaModel::formula());
+            m_lineEdit->setText(fact.factory(m_comboBox->currentData().toInt())->generic_formula());
             m_lineEdit->setEnabled(false);
             lineEditChanged();
         }
     });
 }
-
-
-
-

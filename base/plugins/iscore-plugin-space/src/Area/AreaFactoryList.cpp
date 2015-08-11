@@ -1,6 +1,18 @@
 #include "AreaFactoryList.hpp"
 #include "AreaFactory.hpp"
 #include <boost/range/algorithm/find_if.hpp>
+AreaFactory*AreaFactoryList::factory(int type) const
+{
+    auto it = boost::range::find_if(
+                  m_factories,
+                  [&type](AreaFactory * p)
+    {
+        return p->type() == type;
+    });
+
+    return it != m_factories.end() ? *it : nullptr;
+}
+
 AreaFactory* AreaFactoryList::factory(const QString& name) const
 {
     auto it = boost::range::find_if(
@@ -11,7 +23,6 @@ AreaFactory* AreaFactoryList::factory(const QString& name) const
     });
 
     return it != m_factories.end() ? *it : nullptr;
-
 }
 
 void AreaFactoryList::registerFactory(iscore::FactoryInterface* arg)

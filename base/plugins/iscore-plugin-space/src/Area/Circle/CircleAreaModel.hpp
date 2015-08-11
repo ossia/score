@@ -1,7 +1,6 @@
 #pragma once
 #include "src/Area/AreaModel.hpp"
 
-
 class CircleAreaModel : public AreaModel
 {
         Q_OBJECT

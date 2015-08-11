@@ -28,7 +28,7 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
     {
         QGroupBox* dimBox = new QGroupBox;
         lay->addWidget(dimBox);
-        m_spaceMappingLayout = new QFormLayout;
+        m_spaceMappingLayout = new MarginLess<QFormLayout>;
         dimBox->setLayout(m_spaceMappingLayout);
         for(const DimensionModel& dim : m_space.space().dimensions())
         {
@@ -42,7 +42,7 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
         // The remaining, non-space-mapped parameters are here.
         QGroupBox* paramBox = new QGroupBox;
         lay->addWidget(paramBox);
-        m_paramMappingLayout = new QFormLayout;
+        m_paramMappingLayout = new MarginLess<QFormLayout>;
         paramBox->setLayout(m_paramMappingLayout);
     }
 
@@ -52,7 +52,6 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
     connect(val, &QPushButton::pressed, this, &AreaWidget::validate);
 }
 
-#include "src/Area/Circle/CircleAreaModel.hpp"
 void AreaWidget::setActiveArea(const AreaModel *area)
 {
     m_area = area;

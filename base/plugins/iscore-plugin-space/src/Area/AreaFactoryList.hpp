@@ -17,6 +17,7 @@ class AreaFactoryList
         AreaFactoryList& operator=(const AreaFactoryList&) = delete;
         AreaFactoryList& operator=(AreaFactoryList&&) = delete;
 
+        AreaFactory* factory(int type) const;
         AreaFactory* factory(const QString&) const;
         void registerFactory(iscore::FactoryInterface*);
 
