@@ -10,9 +10,15 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     using namespace GiNaC;
     using namespace spacelib;
 
-    m_space = new SpaceModel{{DimensionModel("x"), DimensionModel("y")},
-                id_type<SpaceModel>(0),
-                this};
+    m_space = new SpaceModel{
+            id_type<SpaceModel>(0),
+            this};
+
+    auto x_dim = new DimensionModel("x", id_type<DimensionModel>(0),  this);
+    auto y_dim = new DimensionModel("y", id_type<DimensionModel>(1),  this);
+
+    m_space->addDimension(x_dim);
+    m_space->addDimension(y_dim);
 
     /*
     const auto& space_vars = m_space->space().variables();

@@ -85,8 +85,14 @@ class valued_area
 
         // a map of the space parameters (e.g. x, y) to values
         bool check(const GiNaC::exmap& map) const
+        try
         {
             return bool(GiNaC::ex_to<GiNaC::relational>(m_rel.subs(map)));
+        }
+        catch(const std::exception& e)
+        {
+            qDebug() << e.what();
+            return false;
         }
 };
 

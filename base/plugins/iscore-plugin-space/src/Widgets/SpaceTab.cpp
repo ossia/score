@@ -7,7 +7,16 @@
 class ViewportEditWidget : public QWidget
 {
     public:
-        using QWidget::QWidget;
+        ViewportEditWidget(const ViewportModel& vp, QWidget* parent):
+            QWidget{parent},
+            m_viewport{vp}
+        {
+            ISCORE_TODO;
+        }
+
+    private:
+
+        const ViewportModel& m_viewport;
 };
 
 class DimensionEditWidget : public QWidget
@@ -31,7 +40,7 @@ class DimensionEditWidget : public QWidget
             m_maxBound = new QDoubleSpinBox;
             m_maxBound->setMinimum(std::numeric_limits<float>::lowest());
             m_maxBound->setMaximum(std::numeric_limits<float>::max());
-            m_minBound->setValue(m_dim.sym().domain().max);
+            m_maxBound->setValue(m_dim.sym().domain().max);
             lay->addWidget(m_maxBound);
 
             m_remove = new QPushButton(tr("X"));
@@ -57,7 +66,7 @@ SpaceTab::SpaceTab(const SpaceModel& space, QWidget *parent):
 
     // Widgets relative to the space & dimension properties
     {
-        QGroupBox* dimBox = new QGroupBox;
+        auto dimBox = new QGroupBox{tr("Dimensions")};
         lay->addWidget(dimBox);
         m_dimensionLayout = new MarginLess<QVBoxLayout>;
 
@@ -68,35 +77,36 @@ SpaceTab::SpaceTab(const SpaceModel& space, QWidget *parent):
 
         m_addDim = new QPushButton{tr("+")};
         m_dimensionLayout->addWidget(m_addDim);
+        m_dimensionLayout->addStretch();
 
         dimBox->setLayout(m_dimensionLayout);
     }
 
     // Widgets relative to the viewports
     {
-        QGroupBox* viewportBox = new QGroupBox;
+        auto viewportBox = new QGroupBox{tr("Viewports")};
         lay->addWidget(viewportBox);
         m_viewportLayout = new MarginLess<QVBoxLayout>;
 
-        for(const auto& dim : m_space.dimensions())
+        for(const auto& vp : m_space.viewports())
         {
-            m_viewportLayout->addWidget(new ViewportEditWidget{this});
+            m_viewportLayout->addWidget(new ViewportEditWidget{vp, this});
         }
 
-        m_addDim = new QPushButton{tr("+")};
-        m_viewportLayout->addWidget(m_addDim);
+        m_addViewport = new QPushButton{tr("+")};
+        m_viewportLayout->addWidget(m_addViewport);
+        m_viewportLayout->addStretch();
 
         viewportBox->setLayout(m_viewportLayout);
     }
+
+    // In the inspector for the space, choose the default viewport for the process.
 
     // Set the number of dimensions
     // Name them
     // Set their bounds
     // Choose the mapping between our dimensions
     // and the viewport
-
-    // What about multiple viewports ???
-    // Make a "viewports" tab ? Woohooo
 
     // For each viewport :
     //  - Which space dimension maps to viewport dimension

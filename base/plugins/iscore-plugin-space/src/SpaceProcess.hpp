@@ -54,4 +54,6 @@ class SpaceProcess : public Process
         SpaceModel* m_space{};
         IdContainer<AreaModel> m_areas;
         IdContainer<ComputationModel> m_computations;
+
+        // Default viewport
 };

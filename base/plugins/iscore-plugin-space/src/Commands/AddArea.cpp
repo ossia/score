@@ -16,13 +16,13 @@
 AddArea::AddArea(ModelPath<SpaceProcess> &&spacProcess,
                  int areatype,
                  const QString &area,
-                 const QMap<QString, QString> &dimMap,
+                 const QMap<id_type<DimensionModel>, QString> &dimMap,
                  const QMap<QString, iscore::FullAddressSettings> &addrMap):
     iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{std::move(spacProcess)},
     m_areaType{areatype},
     m_areaFormula{area},
-    m_varToDimensionMap{dimMap},
+    m_dimensionToVarMap{dimMap},
     m_symbolToAddressMap{addrMap}
 {
     m_createdAreaId = getStrongId(m_path.find().areas());
@@ -48,13 +48,14 @@ void AddArea::redo()
 
     GiNaC::exmap sym_map;
     const auto& syms = ar->area().symbols();
-    for(const auto& elt : m_varToDimensionMap.keys())
+    for(const auto& dim : m_dimensionToVarMap.keys())
     {
         auto sym_it = std::find_if(syms.begin(), syms.end(),
-                                   [&] (const GiNaC::symbol& sym) { return sym.get_name() == m_varToDimensionMap[elt].toStdString(); });
+                                   [&] (const GiNaC::symbol& sym)
+            { return sym.get_name() == m_dimensionToVarMap[dim].toStdString(); });
         Q_ASSERT(sym_it != syms.end());
 
-        sym_map[*sym_it] = proc.space().dimension(elt).sym().symbol();
+        sym_map[*sym_it] = proc.space().dimension(dim).sym().symbol();
     }
 
 
@@ -76,10 +77,10 @@ void AddArea::redo()
 
 void AddArea::serializeImpl(QDataStream &s) const
 {
-    s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_varToDimensionMap << m_symbolToAddressMap;
+    s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_dimensionToVarMap << m_symbolToAddressMap;
 }
 
 void AddArea::deserializeImpl(QDataStream &s)
 {
-    s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_varToDimensionMap >> m_symbolToAddressMap;
+    s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_dimensionToVarMap >> m_symbolToAddressMap;
 }

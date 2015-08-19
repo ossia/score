@@ -5,44 +5,22 @@
 #include <Space/space.hpp>
 #include <Space/bounded_symbol.hpp>
 #include "DimensionModel.hpp"
-#include <QPointF>
-
-class ViewportModel : public IdentifiedObject<ViewportModel>
-{
-        Q_OBJECT
-    public:
-        ViewportModel(const id_type<ViewportModel>& id, QObject* parent):
-            IdentifiedObject{id, staticMetaObject.className(), parent}
-        {
-
-        }
-
-        double zoomLevel{};
-        // todo ? orientation;
-        QPointF pos{};
-
-        // Map from a dimension in space to a dimension in the GUI
-        QMap<QString, QString> dimensionsMap;
-
-        // Map form a dimension in space to a default value.
-        QMap<QString, double> defaultValuesMap;
-};
-
+#include "ViewportModel.hpp"
 // A space has a number of dimensions
 class SpaceModel : public IdentifiedObject<SpaceModel>
 {
         Q_OBJECT
     public:
         SpaceModel(
-                std::vector<DimensionModel>&& sp,
                 const id_type<SpaceModel>& id,
                 QObject* parent);
 
         const auto& space() const
         { return *m_space; }
 
-        void addDimension(const DimensionModel& dim);
+        void addDimension(DimensionModel* dim);
         void removeDimension(const QString& name);
+        const DimensionModel& dimension(const id_type<DimensionModel>& id) const;
         const DimensionModel& dimension(const QString& name) const;
 
         const auto& dimensions() const
@@ -54,12 +32,14 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
         { return m_viewports; }
 
     signals:
+        void dimensionAdded(const DimensionModel&);
+        void viewportAdded(const ViewportModel&);
         void spaceChanged();
 
     private:
         void rebuildSpace();
 
         std::unique_ptr<spacelib::euclidean_space> m_space;
-        std::vector<DimensionModel> m_dimensions;
+        IdContainer<DimensionModel> m_dimensions;
         IdContainer<ViewportModel> m_viewports;
 };

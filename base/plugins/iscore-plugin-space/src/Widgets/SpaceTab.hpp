@@ -13,5 +13,5 @@ class SpaceTab : public QWidget
         const SpaceModel& m_space;
         QVBoxLayout* m_dimensionLayout{};
         QVBoxLayout* m_viewportLayout{};
-        QPushButton* m_addDim{};
+        QPushButton* m_addDim{}, *m_addViewport{};
 };

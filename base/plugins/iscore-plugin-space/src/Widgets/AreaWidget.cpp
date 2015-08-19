@@ -26,7 +26,7 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
     // This contains a list of comboboxes mapping each dimension of the space we're in,
     // to a parameter of the area
     {
-        QGroupBox* dimBox = new QGroupBox;
+        auto dimBox = new QGroupBox{tr("Dimensions to area parameter")};
         lay->addWidget(dimBox);
         m_spaceMappingLayout = new MarginLess<QFormLayout>;
         dimBox->setLayout(m_spaceMappingLayout);
@@ -40,7 +40,7 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
 
     {
         // The remaining, non-space-mapped parameters are here.
-        QGroupBox* paramBox = new QGroupBox;
+        auto paramBox = new QGroupBox{tr("Valued parameters")};
         lay->addWidget(paramBox);
         m_paramMappingLayout = new MarginLess<QFormLayout>;
         paramBox->setLayout(m_paramMappingLayout);
@@ -191,11 +191,10 @@ void AreaWidget::on_dimensionMapped(int)
     }
 }
 
-#include "src/Commands/AddCircle.hpp"
 void AreaWidget::validate()
 {
     // Make the dimension map
-    QMap<QString, QString> dim_map;
+    QMap<id_type<DimensionModel>, QString> dim_map;
     for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
     {
         auto label = static_cast<QLabel*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::LabelRole)->widget());
@@ -205,7 +204,8 @@ void AreaWidget::validate()
 
         if(cb->currentText() != "")
         {
-            dim_map.insert(label->text(), cb->currentText());
+            // TODO find a way to save the dim id directly instead.
+            dim_map.insert(m_space.space().dimension(label->text()).id(), cb->currentText());
         }
     }
 

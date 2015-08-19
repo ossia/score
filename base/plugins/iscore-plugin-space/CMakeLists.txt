@@ -33,6 +33,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Computation/ComputationModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/DimensionModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Space/ViewportModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpacePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceView.cpp"
