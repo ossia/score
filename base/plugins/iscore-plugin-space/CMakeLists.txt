@@ -62,6 +62,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/AreaSelectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/ParameterWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/ViewportEditWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/DimensionEditWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceGuiWindow.cpp"
 
