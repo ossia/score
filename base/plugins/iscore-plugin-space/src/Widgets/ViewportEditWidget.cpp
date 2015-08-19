@@ -12,6 +12,8 @@ ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel
     m_name = new QLineEdit{m_viewport.name()};
     lay->addRow(tr("Name"), m_name);
 
+    lay->addItem(new QSpacerItem(0, 15));
+
     m_zoom = new QDoubleSpinBox;
     m_zoom->setMinimum(0.5);
     m_zoom->setMaximum(10);
@@ -27,6 +29,8 @@ ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel
     lay->addRow(tr("Top Left (X)"), m_topleftX);
     m_topleftY = new MaxRangeSpinBox<TemplatedSpinBox<double>>;
     lay->addRow(tr("Top Left (Y)"), m_topleftY);
+
+    lay->addItem(new QSpacerItem(0, 15));
 
     // Add all the dimensions in our current space.
     m_dimX = new QComboBox;
@@ -45,7 +49,11 @@ ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel
 
     // Default values for the remaining dimensions (gray the other out like in the area widget).
     ISCORE_TODO;
+    lay->addItem(new QSpacerItem(0, 15));
+
     m_remove = new QPushButton{tr("Remove")};
     lay->addRow(tr("Remove"), m_remove);
+
+    this->setLayout(lay);
 
 }
