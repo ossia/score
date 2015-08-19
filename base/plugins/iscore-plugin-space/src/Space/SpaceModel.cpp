@@ -40,12 +40,26 @@ void SpaceModel::removeDimension(const QString &name)
 void SpaceModel::addViewport(ViewportModel* v)
 {
     m_viewports.insert(v);
+    if(!m_defaultViewport)
+        m_defaultViewport = v->id();
     emit viewportAdded(*v);
 }
 
 void SpaceModel::removeViewport(const id_type<ViewportModel>& vm)
 {
     ISCORE_TODO;
+
+    if(m_defaultViewport == vm)
+    {
+        if(!m_viewports.empty())
+        {
+            m_defaultViewport = (*m_viewports.begin()).id();
+        }
+        else
+        {
+            m_defaultViewport = id_type<ViewportModel>{};
+        }
+    }
 }
 
 void SpaceModel::rebuildSpace()

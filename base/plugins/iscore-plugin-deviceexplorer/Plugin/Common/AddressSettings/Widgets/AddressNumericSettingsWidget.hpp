@@ -1,6 +1,6 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
-
+#include <iscore/widgets/SpinBoxes.hpp>
 #include <QComboBox>
 #include <QDebug>
 #include <QGridLayout>
@@ -9,10 +9,6 @@
 #include <QSpinBox>
 #include <QFormLayout>
 
-template<typename T> struct TemplatedSpinBox;
-template<> struct TemplatedSpinBox<int> { using type = QSpinBox; };
-template<> struct TemplatedSpinBox<char> { using type = QSpinBox; };
-template<> struct TemplatedSpinBox<float> { using type = QDoubleSpinBox; };
 
 template<typename T>
 class AddressNumericSettingsWidget : public AddressSettingsWidget
@@ -21,25 +17,16 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         AddressNumericSettingsWidget(QWidget* parent = nullptr)
             : AddressSettingsWidget(parent)
         {
-            m_valueSBox = new typename TemplatedSpinBox<T>::type(this);
-            m_minSBox = new typename TemplatedSpinBox<T>::type(this);
-            m_maxSBox = new typename TemplatedSpinBox<T>::type(this);
+            m_valueSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
+            m_minSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
+            m_maxSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
 
             m_layout->insertRow(0, tr("Value"), m_valueSBox);
             m_layout->insertRow(1, tr("Min"), m_minSBox);
             m_layout->insertRow(2, tr("Max"), m_maxSBox);
 
             m_valueSBox->setValue(0);
-            m_valueSBox->setMinimum(std::numeric_limits<T>::lowest());
-            qDebug() << "============== minimum" << m_valueSBox->minimum();
-            m_valueSBox->setMaximum(std::numeric_limits<T>::max());
-
-            m_minSBox->setMinimum(std::numeric_limits<T>::lowest());
-            m_minSBox->setMaximum(std::numeric_limits<T>::max());
             m_minSBox->setValue(0);
-
-            m_maxSBox->setMinimum(std::numeric_limits<T>::lowest());
-            m_maxSBox->setMaximum(std::numeric_limits<T>::max());
             m_maxSBox->setValue(100);
         }
 
@@ -67,9 +54,9 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         }
 
     private:
-        typename TemplatedSpinBox<T>::type* m_valueSBox;
-        typename TemplatedSpinBox<T>::type* m_minSBox;
-        typename TemplatedSpinBox<T>::type* m_maxSBox;
+        typename TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
+        typename TemplatedSpinBox<T>::spinbox_type* m_minSBox;
+        typename TemplatedSpinBox<T>::spinbox_type* m_maxSBox;
 
         QComboBox* m_unitCBox;
 };

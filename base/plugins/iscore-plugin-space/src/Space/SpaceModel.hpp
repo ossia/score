@@ -31,6 +31,10 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
         const auto& viewports() const
         { return m_viewports; }
 
+        // Might be false if there is no viewport.
+        const id_type<ViewportModel>& defaultViewport() const
+        { return m_defaultViewport; }
+
     signals:
         void dimensionAdded(const DimensionModel&);
         void viewportAdded(const ViewportModel&);
@@ -42,4 +46,6 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
         std::unique_ptr<spacelib::euclidean_space> m_space;
         IdContainer<DimensionModel> m_dimensions;
         IdContainer<ViewportModel> m_viewports;
+
+        id_type<ViewportModel> m_defaultViewport;
 };

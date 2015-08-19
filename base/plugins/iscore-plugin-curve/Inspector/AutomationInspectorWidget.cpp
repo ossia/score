@@ -15,6 +15,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
+#include <iscore/widgets/SpinBoxes.hpp>
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
@@ -67,12 +68,9 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
 
-    m_minsb = new QDoubleSpinBox;
-    m_minsb->setMinimum(std::numeric_limits<float>::lowest());
-    m_minsb->setMaximum(std::numeric_limits<float>::max());
+    m_minsb = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
+    m_maxsb = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
     m_maxsb = new QDoubleSpinBox;
-    m_maxsb->setMinimum(std::numeric_limits<float>::lowest());
-    m_maxsb->setMaximum(std::numeric_limits<float>::max());
     m_minsb->setValue(m_model->min());
     m_maxsb->setValue(m_model->max());
     minmaxlay->addRow(tr("Min"), m_minsb);

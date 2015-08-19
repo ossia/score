@@ -14,11 +14,14 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
             id_type<SpaceModel>(0),
             this};
 
-    auto x_dim = new DimensionModel("x", id_type<DimensionModel>(0),  this);
-    auto y_dim = new DimensionModel("y", id_type<DimensionModel>(1),  this);
+    auto x_dim = new DimensionModel{"x", id_type<DimensionModel>{0}, m_space};
+    auto y_dim = new DimensionModel{"y", id_type<DimensionModel>{1}, m_space};
 
     m_space->addDimension(x_dim);
     m_space->addDimension(y_dim);
+
+    auto vp = new ViewportModel{id_type<ViewportModel>{0}, m_space};
+    m_space->addViewport(vp);
 
     /*
     const auto& space_vars = m_space->space().variables();

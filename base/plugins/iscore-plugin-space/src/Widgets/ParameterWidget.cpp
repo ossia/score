@@ -3,6 +3,7 @@
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <iscore/widgets/MarginLess.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
 
 ParameterWidget::ParameterWidget()
 {
@@ -10,9 +11,7 @@ ParameterWidget::ParameterWidget()
     this->setLayout(lay);
 
     m_address = new QLineEdit;
-    m_defaultValue = new QDoubleSpinBox;
-    m_defaultValue->setMinimum(std::numeric_limits<float>::lowest());
-    m_defaultValue->setMaximum(std::numeric_limits<float>::max());
+    m_defaultValue = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
     lay->addWidget(m_address);
     lay->addWidget(m_defaultValue);
 
