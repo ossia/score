@@ -19,7 +19,8 @@
 #include <core/document/Document.hpp>
 
 
-#include <Commands/Add/AddDevice.hpp>
+#include "Commands/Add/AddDevice.hpp"
+#include "Commands/Add/LoadXML.hpp"
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Remove.hpp"
 
@@ -531,10 +532,17 @@ DeviceExplorerWidget::addDevice()
 
     if(code == QDialog::Accepted)
     {
+        Q_ASSERT(model());
         auto deviceSettings = m_deviceDialog->getSettings();
         auto path = m_deviceDialog->getPath();
-        Q_ASSERT(model());
-        m_cmdDispatcher->submitCommand(new AddDevice{iscore::IDocument::path(model()), deviceSettings, path});
+        if(path.isEmpty())
+        {
+            m_cmdDispatcher->submitCommand(new AddDevice{iscore::IDocument::path(model()), deviceSettings});
+        }
+        else
+        {
+            m_cmdDispatcher->submitCommand(new LoadXML{iscore::IDocument::path(model()), deviceSettings, path});
+        }
     }
 
     updateActions();

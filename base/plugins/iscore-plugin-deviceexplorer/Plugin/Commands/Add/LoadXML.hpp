@@ -1,15 +1,19 @@
 #pragma once
+
+#pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
-
-class AddDevice : public iscore::SerializableCommand
+#include <DeviceExplorer/Node/Node.hpp>
+class LoadXML: public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("AddDevice", "AddDevice")
+        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "AddDevice", "AddDevice")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddDevice, "DeviceExplorerControl")
-        AddDevice(ObjectPath&& device_tree,
-                  const iscore::DeviceSettings& parameters);
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(LoadXML)
+          LoadXML(
+            ObjectPath&& device_tree,
+            const iscore::DeviceSettings& parameters,
+            const QString& filePath);
 
 
         virtual void undo() override;
@@ -25,7 +29,7 @@ class AddDevice : public iscore::SerializableCommand
 
     private:
         ObjectPath m_deviceTree;
-        iscore::DeviceSettings m_parameters;
+        iscore::Node m_deviceNode;
 
         int m_row{-1};
 };

@@ -1,7 +1,7 @@
 #include "State.hpp"
 #include "Message.hpp"
 #include "iscore_compiler_detection.hpp"
-#include <iscore/tools/ObjectPath.hpp> // Todo put relaxed constexpr macro elsewhere
+#include <iscore/tools/ObjectPath.hpp>
 #include <algorithm>
 #include <type_traits>
 #include <QVariant>
