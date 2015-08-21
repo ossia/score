@@ -6,21 +6,26 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 {
+    insertDelimiter();
     m_stream << n.name
              << n.protocol;
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    Q_ASSERT(prot);
     prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
 
     insertDelimiter();
 }
+
 template<>
 void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
 {
+    checkDelimiter();
     m_stream >> n.name
              >> n.protocol;
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    Q_ASSERT(prot);
     n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
 
     checkDelimiter();
@@ -32,6 +37,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::DeviceSettings& n)
     m_obj["Protocol"] = n.protocol;
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    Q_ASSERT(prot);
     prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
 }
 
@@ -42,5 +48,6 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::DeviceSettings& n)
     n.protocol = m_obj["Protocol"].toString();
 
     auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    Q_ASSERT(prot);
     n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
 }

@@ -7,7 +7,7 @@
 #include <DeviceExplorer/Node/Node.hpp>
 class LoadXML: public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "AddDevice", "AddDevice")
+        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "LoadXML", "LoadXML")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(LoadXML)
           LoadXML(

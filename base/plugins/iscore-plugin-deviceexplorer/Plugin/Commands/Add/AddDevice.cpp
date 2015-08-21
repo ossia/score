@@ -37,22 +37,10 @@ void AddDevice::redo()
 
     Q_ASSERT(explorer.deviceModel());
 
-    try {
-        // Instantiate a real device.
-        auto proto = SingletonProtocolList::instance().protocol(m_parameters.protocol);
-        auto newdev = proto->makeDevice(m_parameters);
-        explorer.deviceModel()->list().addDevice(newdev);
-    }
-    catch(std::runtime_error e)
-    {
-        QMessageBox::warning(QApplication::activeWindow(),
-                             QObject::tr("Error loading device"),
-                             m_parameters.name + ": " + QString::fromLatin1(e.what()));
-    }
-
-
     // Put it in the tree.
-    m_row = explorer.addDevice(new Node(m_parameters, nullptr));
+    auto node = new Node(m_parameters, nullptr);
+    m_row = explorer.addDevice(node);
+    explorer.deviceModel()->createDeviceFromNode(*node);
 }
 
 int AddDevice::deviceRow() const

@@ -35,6 +35,15 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 
         // TODO make functions that take an address and call list().device(...).TheRelevantMethod
 
+        static void addNodeToDevice(DeviceInterface& dev, iscore::Node& node);
+        void createDeviceFromNode(const iscore::Node&);
+
+    signals:
+        void beforeAddNodes();
+        void afterAddNodes();
+        void beforeRemoveNodes();
+        void afterRemoveNodes();
+
     private:
         iscore::Node m_rootNode{InvisibleRootNodeTag{}};
         DeviceList m_list;

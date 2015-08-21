@@ -22,7 +22,7 @@ using namespace DeviceExplorer::Command;
 using namespace iscore;
 
 
-static QMap<DeviceExplorerModel::Column, QString> HEADERS{
+static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
     {DeviceExplorerModel::Column::Name, QObject::tr("Address")},
     {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
     {DeviceExplorerModel::Column::IOType, QObject::tr("I/O")},

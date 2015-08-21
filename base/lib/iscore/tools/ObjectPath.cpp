@@ -26,6 +26,8 @@ ObjectPath ObjectPath::pathBetweenObjects(
         if(current_obj->objectName().isEmpty())
         {
             qDebug() << "Names: " << debug_objectnames;
+
+            __asm__("int3");
             throw std::runtime_error("ObjectPath::pathFromObject : an object in the hierarchy does not have a name.");
         }
 
@@ -35,6 +37,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
 
         if(!current_obj)
         {
+            __asm__("int3");
             throw std::runtime_error("ObjectPath::pathFromObject : Could not find path to parent object");
         }
     }
@@ -87,6 +90,7 @@ typename Container::value_type findById_weak(const Container& c, int32_t id)
         return *it;
     }
 
+    __asm__("int3");
     throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toLatin1().constData());
 }
 
@@ -119,6 +123,7 @@ QObject* ObjectPath::find_impl() const
 
             if(!child)
             {
+                asm("int3");
                 throw std::runtime_error("ObjectPath::find  Error! Child not found");
             }
 

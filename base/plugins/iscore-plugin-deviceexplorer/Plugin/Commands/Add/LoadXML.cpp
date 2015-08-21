@@ -196,24 +196,9 @@ void LoadXML::redo()
 
     Q_ASSERT(explorer.deviceModel());
 
-    try {
-        // Instantiate a real device.
-        auto proto = SingletonProtocolList::instance().protocol(m_deviceNode.deviceSettings().protocol);
-        auto newdev = proto->makeDevice(m_deviceNode.deviceSettings());
-
-        explorer.deviceModel()->list().addDevice(newdev);
-
-        // TODO create all the "real" addresses
-    }
-    catch(std::runtime_error e)
-    {
-        QMessageBox::warning(QApplication::activeWindow(),
-                             QObject::tr("Error loading device"),
-                             m_deviceNode.deviceSettings().name + ": " + QString::fromLatin1(e.what()));
-    }
-
     // Put it in the tree.
     m_row = explorer.addDevice(new Node{m_deviceNode});
+    explorer.deviceModel()->createDeviceFromNode(m_deviceNode);
 }
 
 int LoadXML::deviceRow() const
