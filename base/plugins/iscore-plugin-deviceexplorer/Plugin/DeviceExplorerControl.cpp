@@ -41,7 +41,7 @@ void DeviceExplorerControl::setupCommands()
             LoadXML,
             Cut,
             EditData,
-            Insert,
+//            Insert,
             Move,
             Paste,
             Remove,

@@ -61,6 +61,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DeviceExplorerPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DocumentPlugin/DeviceDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/DocumentPlugin/NodeUpdateProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/DeviceExplorerFilterProxyModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/DeviceExplorerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/ExplorationWorker.cpp"

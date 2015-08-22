@@ -442,7 +442,7 @@ void DeviceExplorerWidget::refresh()
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
-        auto& dev = model()->deviceModel()->list().device(select->deviceSettings().name);
+        auto& dev = model()->deviceModel().list().device(select->deviceSettings().name);
         if(!dev.canRefresh())
             return;
 
@@ -502,7 +502,7 @@ void DeviceExplorerWidget::refreshValue()
 
         // Device checks
         auto addr = node->address();
-        auto& dev = model()->deviceModel()->list().device(addr.device);
+        auto& dev = model()->deviceModel().list().device(addr.device);
         if(!dev.canRefresh())
             return;
 
@@ -535,13 +535,15 @@ DeviceExplorerWidget::addDevice()
         Q_ASSERT(model());
         auto deviceSettings = m_deviceDialog->getSettings();
         auto path = m_deviceDialog->getPath();
+
+        auto devplug_path = iscore::IDocument::safe_path(model()->deviceModel());
         if(path.isEmpty())
         {
-            m_cmdDispatcher->submitCommand(new AddDevice{iscore::IDocument::path(model()), deviceSettings});
+            m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
         }
         else
         {
-            m_cmdDispatcher->submitCommand(new LoadXML{iscore::IDocument::path(model()), deviceSettings, path});
+            m_cmdDispatcher->submitCommand(new LoadXML{std::move(devplug_path), deviceSettings, path});
         }
     }
 
@@ -564,7 +566,7 @@ void DeviceExplorerWidget::removeNode()
 {
     iscore::Node* n = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if(! n->isDevice())
-        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()), *n});
+        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::safe_path(model()->deviceModel()), *n});
 }
 
 void
@@ -585,7 +587,7 @@ DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
         m_cmdDispatcher->submitCommand(
                     new DeviceExplorer::Command::AddAddress{
-                        iscore::IDocument::path(model()),
+                        iscore::IDocument::safe_path(model()->deviceModel()),
                         NodePath{index},
                         insert, addressSettings });
         updateActions();

@@ -27,7 +27,7 @@ class NodePath
         NodePath(QModelIndex index);
         NodePath(const iscore::Node& node);
 
-        iscore::Node* toNode(iscore::Node* iter);
+        iscore::Node* toNode(iscore::Node* iter) const;
 
         void append(int i);
         void prepend(int i);

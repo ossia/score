@@ -1,12 +1,12 @@
 #pragma once
+/*
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/Node/Node.hpp>
 #include "DeviceExplorer/NodePath.hpp"
-
 
 namespace DeviceExplorer
 {
@@ -15,15 +15,15 @@ namespace DeviceExplorer
         // TODO insert a vector.
         class Insert : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("Insert", "Insert")
+                ISCORE_COMMAND_DECL2("DeviceExplorerControl", "Insert", "Insert")
 
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Insert, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(Insert)
 
                 Insert(const NodePath& parentPath,
                        int row,
                        iscore::Node&& node,
-                       ObjectPath&& modelPath);
+                       ModelPath<DeviceDocumentPlugin>&& modelPath);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -33,10 +33,11 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             protected:
-                ObjectPath m_model;
+                ModelPath<DeviceDocumentPlugin> m_model;
                 iscore::Node m_node;
                 NodePath m_parentPath;
                 int m_row{};
         };
     }
 }
+*/

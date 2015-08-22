@@ -41,6 +41,11 @@ DeviceExplorerModel::DeviceExplorerModel(
       m_cmdQ{nullptr}
 {
     this->setObjectName("DeviceExplorerModel");
+    m_devicePlugin->updateProxy.m_deviceExplorer = this;
+
+    beginResetModel();
+    endResetModel();
+
 
     m_cmdCreator = new DeviceExplorerCommandCreator{this};
 }
@@ -54,9 +59,9 @@ DeviceExplorerModel::~DeviceExplorerModel()
     }
 }
 
-DeviceDocumentPlugin *DeviceExplorerModel::deviceModel() const
+DeviceDocumentPlugin& DeviceExplorerModel::deviceModel() const
 {
-    return m_devicePlugin;
+    return *m_devicePlugin;
 }
 
 QModelIndexList DeviceExplorerModel::selectedIndexes() const
@@ -153,6 +158,7 @@ void DeviceExplorerModel::removeNode(Node* node)
     beginRemoveRows(parentIndex, row, row);
     parent->removeChild(node);
     endRemoveRows();
+    delete node;
 }
 
 

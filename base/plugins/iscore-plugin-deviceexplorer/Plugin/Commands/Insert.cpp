@@ -1,82 +1,91 @@
+//#include "Insert.hpp"
+//#include "Add/AddDevice.hpp"
+//#include "Add/AddAddress.hpp"
 
-#include "Insert.hpp"
-#include "Add/AddDevice.hpp"
-#include "Add/AddAddress.hpp"
-using namespace DeviceExplorer::Command;
-using namespace iscore;
-Insert::Insert(const NodePath &parentPath,
-               int row,
-               Node &&data,
-               ObjectPath&& modelPath):
-    iscore::SerializableCommand{"DeviceExplorerControl",
-                                this->commandName(),
-                                this->description()},
-    m_model{std::move(modelPath)},
-    m_node{std::move(data)},
-    m_parentPath{parentPath},
-    m_row{row}
-{
+//using namespace DeviceExplorer::Command;
+//using namespace iscore;
+//Insert::Insert(
+//        const NodePath &parentPath,
+//        int row,
+//        Node &&data,
+//        ModelPath<DeviceDocumentPlugin>&& modelPath):
+//    iscore::SerializableCommand{factoryName(),
+//                                commandName(),
+//                                description()},
+//    m_model{std::move(modelPath)},
+//    m_node{std::move(data)},
+//    m_parentPath{parentPath},
+//    m_row{row}
+//{
 
-}
+//}
 
+//void
+//Insert::undo()
+//{
+//    auto& model = m_model.find();
 
-void
-Insert::undo()
-{
-    auto& model = m_model.find<DeviceExplorerModel>();
+//    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
-    QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
+//    const bool result = model.removeRows(m_row, 1, parentIndex);
 
-    const bool result = model.removeRows(m_row, 1, parentIndex);
+//    model.setCachedResult(result);
 
-    model.setCachedResult(result);
-}
+//}
 
-void recurse_addAddress(const ObjectPath& model, const Node& n, NodePath nodePath)
-{
-    AddAddress addr{
-        ObjectPath(model),
-                nodePath,
-                DeviceExplorerModel::Insert::AsChild,
-                n.addressSettings()};
-    addr.redo();
+//void recurse_addAddress(const ObjectPath& model, const Node& n, NodePath nodePath)
+//{
 
-    nodePath.append(addr.createdNodeIndex());
-    for(const auto& child : n.children())
-    {
-        recurse_addAddress(model, *child, nodePath);
-    }
-}
+//    AddAddress addr{
+//                model,
+//                nodePath,
+//                DeviceExplorerModel::Insert::AsChild,
+//                n.addressSettings()};
+//    addr.redo();
 
-void
-Insert::redo()
-{
-    if(m_node.isDevice())
-    {
-        AddDevice dev{ObjectPath{m_model}, m_node.deviceSettings()};
-        dev.redo();
+//    nodePath.append(addr.createdNodeIndex());
+//    for(const auto& child : n.children())
+//    {
+//        recurse_addAddress(model, *child, nodePath);
+//    }
 
-        NodePath p;
-        p.append(dev.deviceRow());
-        for(auto& child : m_node.children())
-        {
-            recurse_addAddress(m_model, *child, p);
-        }
-    }
-    else
-    {
-        recurse_addAddress(ObjectPath{m_model}, m_node, m_parentPath);
-    }
-}
+//}
 
-void
-Insert::serializeImpl(QDataStream& d) const
-{
-    d << m_model << m_node << m_parentPath << m_row;
-}
+//template<typename T>
+//auto copy(const T&t)
+//{
+//    return T(t);
+//}
 
-void
-Insert::deserializeImpl(QDataStream& d)
-{
-    d >> m_model >> m_node >> m_parentPath >> m_row;
-}
+//void
+//Insert::redo()
+//{
+//    if(m_node.isDevice())
+//    {
+//        AddDevice dev{copy(m_model), m_node.deviceSettings()};
+//        dev.redo();
+
+//        NodePath p;
+//        p.append(dev.deviceRow());
+//        for(auto& child : m_node.children())
+//        {
+//            recurse_addAddress(m_model, *child, p);
+//        }
+//    }
+//    else
+//    {
+//        recurse_addAddress(ObjectPath{m_model}, m_node, m_parentPath);
+//    }
+//}
+
+//void
+//Insert::serializeImpl(QDataStream& d) const
+//{
+//    d << m_model << m_node << m_parentPath << m_row;
+//}
+
+//void
+//Insert::deserializeImpl(QDataStream& d)
+//{
+//    d >> m_model >> m_node >> m_parentPath >> m_row;
+//}

@@ -24,7 +24,7 @@ namespace iscore
 
 
             template<typename T>
-            SerializableCommand() :
+            SerializableCommand(const T*) :
                 m_name {T::commandName()},
                 m_parentName {T::factoryName()},
                 m_text{T::description()}
@@ -34,7 +34,7 @@ namespace iscore
             ~SerializableCommand();
 
             const QString& name() const;
-            const QString& parentName() const;
+            const QString& parentName() const; // TODO rename in factory name ?
             const QString& text() const;
             void setText(const QString& t);
 

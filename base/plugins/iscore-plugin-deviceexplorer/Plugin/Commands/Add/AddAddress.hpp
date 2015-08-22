@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <DeviceExplorer/Node/Node.hpp>
-#include "DeviceExplorer/NodePath.hpp"
+#include <DeviceExplorer/NodePath.hpp>
 
 namespace DeviceExplorer
 {
@@ -13,10 +13,10 @@ namespace DeviceExplorer
     {
         class AddAddress : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND_DECL("AddAddress", "AddAddress")
+            ISCORE_COMMAND_DECL2("DeviceExplorerControl", "AddAddress", "AddAddress")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddAddress, "DeviceExplorerControl")
-                AddAddress(ObjectPath&& device_tree,
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddAddress)
+                AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
                            NodePath nodePath,
                            DeviceExplorerModel::Insert insert,
                            const iscore::AddressSettings& addressSettings);
@@ -31,7 +31,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_deviceTree;
+                ModelPath<DeviceDocumentPlugin> m_devicesModel;
                 NodePath m_parentNodePath;
                 iscore::AddressSettings m_addressSettings;
                 int m_createdNodeIndex;

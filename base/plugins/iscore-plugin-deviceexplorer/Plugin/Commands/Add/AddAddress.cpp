@@ -3,27 +3,27 @@
 
 using namespace DeviceExplorer::Command;
 
-AddAddress::AddAddress(ObjectPath &&device_tree,
+AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
                        NodePath nodePath,
                        DeviceExplorerModel::Insert insert,
                        const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()},
-    m_deviceTree{device_tree}
+    m_devicesModel{device_tree}
 {
     m_addressSettings = addressSettings;
 
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& devplug = m_devicesModel.find();
 
     iscore::Node* parentNode{};
     if (insert == DeviceExplorerModel::Insert::AsChild)
     {
-        parentNode = nodePath.toNode(&explorer.rootNode());
+        parentNode = nodePath.toNode(&devplug.rootNode());
     }
     else if (insert == DeviceExplorerModel::Insert::AsSibling)
     {
-        parentNode =  nodePath.toNode(&explorer.rootNode())->parent();
+        parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
     }
     m_parentNodePath = NodePath{*parentNode};
     // TODO prevent add sibling on device
@@ -31,61 +31,28 @@ AddAddress::AddAddress(ObjectPath &&device_tree,
 
 void AddAddress::undo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    iscore::Node* parentnode = m_parentNodePath.toNode(&explorer.rootNode());
-
-    auto addr = parentnode->address();
-    addr.path.append(m_addressSettings.name);
-
-    // Remove from the device implementation
-    auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
-    explorer.deviceModel()->list().device(
-                dev_node->deviceSettings().name)
-            .removeAddress(addr);
-
-    // Remove from the device explorer
-    explorer.removeNode(parentnode->childAt(m_createdNodeIndex));
+    auto& devplug = m_devicesModel.find();
+    devplug.updateProxy.removeAddress(m_parentNodePath,
+                                   m_addressSettings);
 }
 
 void AddAddress::redo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    auto parentnode = m_parentNodePath.toNode(&explorer.rootNode());
-
-    // Add in the device impl
-    // Get the device node :
-    auto dev_node = explorer.rootNode().childAt(m_parentNodePath.at(0));
-    Q_ASSERT(dev_node->isDevice());
-
-    // Make a full path
-    iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
-                                   m_addressSettings,
-                                   parentnode->address());
-
-    // Add in the device implementation
-    explorer.deviceModel()->list().device(
-                dev_node->deviceSettings().name)
-            .addAddress(full);
-
-    // Add in the device explorer
-    iscore::Node* newNode = explorer.addAddress(
-                                parentnode,
-                                m_addressSettings);
-
-    m_createdNodeIndex = parentnode->indexOfChild(newNode);
-}
-
-int AddAddress::createdNodeIndex() const
-{
-    return m_createdNodeIndex;
+    auto& devplug = m_devicesModel.find();
+    devplug.updateProxy.addAddress(m_parentNodePath,
+                                   m_addressSettings);
 }
 
 void AddAddress::serializeImpl(QDataStream &s) const
 {
-    s << m_deviceTree << m_parentNodePath << m_addressSettings << m_createdNodeIndex;
+    s << m_devicesModel
+      << m_parentNodePath
+      << m_addressSettings;
 }
 
 void AddAddress::deserializeImpl(QDataStream &s)
 {
-    s >> m_deviceTree >> m_parentNodePath >> m_addressSettings >> m_createdNodeIndex;
+    s >> m_devicesModel
+      >> m_parentNodePath
+      >> m_addressSettings;
 }

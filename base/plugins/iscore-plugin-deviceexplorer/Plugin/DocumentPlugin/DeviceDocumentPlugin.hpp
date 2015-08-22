@@ -4,16 +4,14 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
 #include <DeviceExplorer/Node/Node.hpp>
+#include "NodeUpdateProxy.hpp"
 namespace iscore
 {
     class Document;
 }
 
-// The DeviceDocumentPlugin is informed of new addresses by the plugin-provided models of the
-// devices, and propagates them.
-// Exploration should be a Command, which registers all the new addresses in its constructor
-// - via a thread and updateNamespace()-
-// and add them correctly in the explorer model.
+
+
 class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
@@ -38,11 +36,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         static void addNodeToDevice(DeviceInterface& dev, iscore::Node& node);
         void createDeviceFromNode(const iscore::Node&);
 
-    signals:
-        void beforeAddNodes();
-        void afterAddNodes();
-        void beforeRemoveNodes();
-        void afterRemoveNodes();
+        NodeUpdateProxy updateProxy{*this};
 
     private:
         iscore::Node m_rootNode{InvisibleRootNodeTag{}};

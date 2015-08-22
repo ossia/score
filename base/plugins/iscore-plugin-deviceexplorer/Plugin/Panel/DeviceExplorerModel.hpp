@@ -69,7 +69,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         // The class that does the link with the low-level implementation of the
         // devices. This is here so that commands don't need to save
         // at the same time a path to the device explorer, and the device doc plugin.
-        DeviceDocumentPlugin* deviceModel() const;
+        DeviceDocumentPlugin& deviceModel() const;
 
         QModelIndexList selectedIndexes() const;
 

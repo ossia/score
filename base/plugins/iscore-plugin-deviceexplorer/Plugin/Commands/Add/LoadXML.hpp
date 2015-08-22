@@ -1,17 +1,18 @@
 #pragma once
-
-#pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <DeviceExplorer/Node/Node.hpp>
+
+class DeviceDocumentPlugin;
+// Note : could also be used for loading from the library
 class LoadXML: public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL2("DeviceExplorerControl", "LoadXML", "LoadXML")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(LoadXML)
           LoadXML(
-            ObjectPath&& device_tree,
+            ModelPath<DeviceDocumentPlugin>&& device_tree,
             const iscore::DeviceSettings& parameters,
             const QString& filePath);
 
@@ -28,8 +29,6 @@ class LoadXML: public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ObjectPath m_deviceTree;
+        ModelPath<DeviceDocumentPlugin> m_devicesModel;
         iscore::Node m_deviceNode;
-
-        int m_row{-1};
 };

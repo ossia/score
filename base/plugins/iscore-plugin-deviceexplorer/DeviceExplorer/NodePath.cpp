@@ -34,7 +34,7 @@ NodePath::NodePath(const iscore::Node& node)
     m_path.prepend(iter->parent()->indexOfChild(iter));
 }
 
-Node* NodePath::toNode(Node *iter)
+Node* NodePath::toNode(Node *iter) const
 {
     const int pathSize = m_path.size();
 
