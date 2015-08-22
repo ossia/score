@@ -15,5 +15,5 @@ iscore::AddressSettings AddressTupleSettingsWidget::getSettings() const
 
 void AddressTupleSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
-
+    setCommonSettings(settings);
 }

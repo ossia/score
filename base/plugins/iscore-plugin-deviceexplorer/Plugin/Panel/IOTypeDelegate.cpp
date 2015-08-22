@@ -42,7 +42,6 @@ IOTypeDelegate::setModelData(QWidget* editor,
                              QAbstractItemModel* model,
                              const QModelIndex& index) const
 {
-    // TODO is this into the undo/redo framework ?
     QComboBox* comboBox = static_cast<QComboBox*>(editor);
     QString value = comboBox->currentText();
     model->setData(index, value, Qt::EditRole);

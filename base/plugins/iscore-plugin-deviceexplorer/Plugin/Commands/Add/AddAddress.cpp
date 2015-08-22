@@ -4,7 +4,7 @@
 using namespace DeviceExplorer::Command;
 
 AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
-                       NodePath nodePath,
+                       const NodePath& nodePath,
                        DeviceExplorerModel::Insert insert,
                        const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",

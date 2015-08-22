@@ -27,6 +27,8 @@
 #include "ExplorationWorker.hpp"
 #include "Commands/ReplaceDevice.hpp"
 #include "Commands/UpdateAddresses.hpp"
+#include "Commands/Update/UpdateAddressSettings.hpp"
+#include "Commands/Update/UpdateDeviceSettings.hpp"
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
 #include <QMessageBox>
@@ -396,10 +398,12 @@ DeviceExplorerWidget::proxyModel()
 
 void DeviceExplorerWidget::edit()
 {
-    // TODO there should be a command here
     iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if (select->isDevice())
     {
+        ISCORE_TODO;
+        return;
+        /*
         if(! m_deviceDialog)
         {
             m_deviceDialog = new DeviceEditDialog(this);
@@ -416,6 +420,7 @@ void DeviceExplorerWidget::edit()
         }
 
         updateActions();
+        */
     }
     else
     {
@@ -430,9 +435,14 @@ void DeviceExplorerWidget::edit()
 
         if(code == QDialog::Accepted)
         {
-            auto addressSettings = m_addressDialog->getSettings();
-            select->setAddressSettings(addressSettings);
+            auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
+                    iscore::IDocument::safe_path(model()->deviceModel()),
+                    NodePath(*select),
+                    m_addressDialog->getSettings()};
+
+            m_cmdDispatcher->submitCommand(cmd);
         }
+
         updateActions();
     }
 }

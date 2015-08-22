@@ -140,6 +140,20 @@ void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
     endInsertRows();
 }
 
+void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addressSettings)
+{
+    Q_ASSERT(node);
+    Q_ASSERT(node != &m_rootNode);
+
+    node->setAddressSettings(addressSettings);
+
+    QModelIndex nodeIndex = convertPathToIndex(NodePath(*node)); // TODO optimizeme
+
+    emit dataChanged(
+                createIndex(nodeIndex.row(), 0, node->parent()),
+                createIndex(nodeIndex.row(), HEADERS.count(), node->parent()));
+}
+
 void DeviceExplorerModel::removeNode(Node* node)
 {
     Q_ASSERT(node);
@@ -672,7 +686,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
 
     beginRemoveRows(index.parent(), row, row);
 
-    #ifndef QT_NO_DEBUG
+#ifndef QT_NO_DEBUG
     Node* child =
         #endif
             parent->takeChild(row);
@@ -905,7 +919,7 @@ DeviceExplorerModel::supportedDragActions() const
 QStringList
 DeviceExplorerModel::mimeTypes() const
 {
-    return {iscore::mime::device(), iscore::mime::address()}; //TODO: add an xml MimeType to support drop of namespace XML file ?
+    return {iscore::mime::device(), iscore::mime::address()};
 }
 
 #include <Singletons/DeviceExplorerInterface.hpp>

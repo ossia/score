@@ -43,6 +43,13 @@ void NodeUpdateProxy::loadDevice(const iscore::Node& node)
     }
 }
 
+void NodeUpdateProxy::updateDevice(
+        const QString &name,
+        const iscore::DeviceSettings &dev)
+{
+    ISCORE_TODO;
+}
+
 void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
 {
     m_devModel.list().removeDevice(dev.name);
@@ -93,8 +100,9 @@ void NodeUpdateProxy::addAddress(
                                    parentnode->address());
 
     // Add in the device implementation
-    m_devModel.list().device(
-                dev_node->deviceSettings().name)
+    m_devModel
+            .list()
+            .device(dev_node->deviceSettings().name)
             .addAddress(full);
 
     // Add in the device explorer
@@ -107,6 +115,36 @@ void NodeUpdateProxy::addAddress(
     else
     {
         parentnode->insertChild(parentnode->childCount(), new iscore::Node{settings});
+    }
+}
+
+void NodeUpdateProxy::updateAddress(
+        const NodePath &nodePath,
+        const iscore::AddressSettings &settings)
+{
+    auto node = nodePath.toNode(&m_devModel.rootNode());
+    const auto addr = node->address();
+    // Make a full path
+    iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(
+                                   settings,
+                                   node->address());
+
+    // Update in the device implementation
+    m_devModel
+            .list()
+            .device(addr.device)
+            .updateAddress(full);
+
+    // Update in the device explorer
+    if(m_deviceExplorer)
+    {
+        m_deviceExplorer->updateAddress(
+                    node,
+                    settings);
+    }
+    else
+    {
+        node->setAddressSettings(settings);
     }
 }
 

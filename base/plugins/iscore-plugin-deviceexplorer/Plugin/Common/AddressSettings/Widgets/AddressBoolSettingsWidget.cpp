@@ -23,5 +23,6 @@ iscore::AddressSettings AddressBoolSettingsWidget::getSettings() const
 
 void AddressBoolSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
+    setCommonSettings(settings);
     m_cb->setCurrentIndex(settings.value.val.value<bool>());
 }

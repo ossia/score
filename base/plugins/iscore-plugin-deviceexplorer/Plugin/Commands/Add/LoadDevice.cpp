@@ -1,7 +1,7 @@
 #include "LoadDevice.hpp"
 #include <Plugin/DeviceExplorerPlugin.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-// TODO rename file
+
 LoadDevice::LoadDevice(
         ModelPath<DeviceDocumentPlugin>&& device_tree,
         iscore::Node&& node):

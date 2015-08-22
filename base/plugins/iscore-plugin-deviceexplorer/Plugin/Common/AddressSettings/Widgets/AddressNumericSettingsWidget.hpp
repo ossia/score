@@ -41,6 +41,7 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
 
         virtual void setSettings(const iscore::AddressSettings& settings) override
         {
+            setCommonSettings(settings);
             if (settings.value.val.canConvert<T>())
             {
                 m_valueSBox->setValue(settings.value.val.value<T>());

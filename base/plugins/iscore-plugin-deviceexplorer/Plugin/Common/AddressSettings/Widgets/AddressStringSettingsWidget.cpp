@@ -25,6 +25,7 @@ iscore::AddressSettings AddressStringSettingsWidget::getSettings() const
 void
 AddressStringSettingsWidget::setSettings(const iscore::AddressSettings &settings)
 {
+    setCommonSettings(settings);
     m_valueEdit->setText(settings.value.val.value<QString>());
 }
 

@@ -12,4 +12,5 @@ iscore::AddressSettings AddressNoneSettingsWidget::getSettings() const
 
 void AddressNoneSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
+    setCommonSettings(settings);
 }
