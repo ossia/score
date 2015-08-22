@@ -31,8 +31,9 @@ void CurveCommandObjectBase::press()
         s.readFrom(segment);
     }
 
-    m_xmin = 0;
-    m_xmax = 1;
+    // To prevent behind locked at 0.000001 or 0.9999
+    m_xmin = -1;
+    m_xmax = 2;
 
     on_press();
 }
@@ -56,10 +57,10 @@ void CurveCommandObjectBase::handleLocking()
     if(m_presenter->lockBetweenPoints())
     {
         if(current_x <= m_xmin)
-            m_state->currentPoint.setX(m_xmin + 0.001);
+            m_state->currentPoint.setX(m_xmin + 0.000001);
 
         if(current_x >= m_xmax)
-            m_state->currentPoint.setX(m_xmax - 0.001);
+            m_state->currentPoint.setX(m_xmax - 0.000001);
     }
 }
 

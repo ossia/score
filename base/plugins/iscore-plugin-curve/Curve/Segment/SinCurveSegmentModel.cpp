@@ -57,6 +57,12 @@ void SinCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
+double SinCurveSegmentModel::valueAt(double x) const
+{
+    ISCORE_TODO;
+    return -1;
+}
+
 void SinCurveSegmentModel::setVerticalParameter(double p)
 {
     // From -1; 1 to 0;1

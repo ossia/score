@@ -23,6 +23,7 @@ class GammaCurveSegmentModel : public CurveSegmentModel
         void on_endChanged() override;
 
         void updateData(int numInterp) const override;
+        double valueAt(double x) const override;
 
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;

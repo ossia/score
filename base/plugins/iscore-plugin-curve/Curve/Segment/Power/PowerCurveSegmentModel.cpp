@@ -57,6 +57,12 @@ void PowerCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
+double PowerCurveSegmentModel::valueAt(double x) const
+{
+    ISCORE_TODO;
+    return -1;
+}
+
 void PowerCurveSegmentModel::setVerticalParameter(double p)
 {
     gamma = (p + 1) * 6.;

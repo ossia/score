@@ -55,6 +55,12 @@ void GammaCurveSegmentModel::updateData(int numInterp) const
     }
 }
 
+double GammaCurveSegmentModel::valueAt(double x) const
+{
+    ISCORE_TODO;
+    return -1;
+}
+
 void GammaCurveSegmentModel::setVerticalParameter(double p)
 {
     gamma = p;

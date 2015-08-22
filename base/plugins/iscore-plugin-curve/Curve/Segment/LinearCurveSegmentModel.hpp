@@ -23,4 +23,5 @@ class LinearCurveSegmentModel : public CurveSegmentModel
         void on_endChanged() override;
 
         void updateData(int numInterp) const override;
+        double valueAt(double x) const override;
 };
