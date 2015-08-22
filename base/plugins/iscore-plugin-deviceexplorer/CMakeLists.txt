@@ -37,10 +37,11 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/NodePath.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/XML/XMLDeviceLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/LoadXML.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/LoadDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Cut.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Move.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Paste.cpp"

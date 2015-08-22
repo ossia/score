@@ -1,10 +1,9 @@
-#include "LoadXML.hpp"
-#include <Plugin/DeviceExplorerPlugin.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include "XMLDeviceLoader.hpp"
 #include <QtXml/QtXml>
+#include <DeviceExplorer/Node/Node.hpp>
 
 using namespace iscore;
-static void convertFromDomElement(QDomElement dom_element, Node* parentNode)
+static void convertFromDomElement(QDomElement dom_element, Node *parentNode)
 {
     QDomElement dom_child = dom_element.firstChildElement("");
     QString name;
@@ -126,8 +125,7 @@ static void convertFromDomElement(QDomElement dom_element, Node* parentNode)
     return;
 }
 
-// Should be in the presenter instead ??
-static void loadDeviceFromXML(const QString& filePath, Node& node)
+void loadDeviceFromXML(const QString &filePath, Node &node)
 {
     // ouverture d'un xml
     QFile doc_xml(filePath);
@@ -155,43 +153,4 @@ static void loadDeviceFromXML(const QString& filePath, Node& node)
         convertFromDomElement(dom_node, &node);
         dom_node = dom_node.nextSiblingElement("");
     }
-}
-
-LoadXML::LoadXML(ModelPath<DeviceDocumentPlugin>&& device_tree,
-        const DeviceSettings& parameters,
-        const QString &filePath):
-    iscore::SerializableCommand{"DeviceExplorerControl",
-                                commandName(),
-                                description()},
-    m_devicesModel{device_tree},
-    m_deviceNode{parameters}
-{
-    // We load the node in the constructor,
-    //so that it can be sent via the network afterwards.
-
-    loadDeviceFromXML(filePath, m_deviceNode);
-}
-
-void LoadXML::undo()
-{
-    auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.removeDevice(m_deviceNode.deviceSettings());
-}
-
-void LoadXML::redo()
-{
-    auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.loadDevice(m_deviceNode);
-}
-
-void LoadXML::serializeImpl(QDataStream& d) const
-{
-    d << m_devicesModel;
-    d << m_deviceNode;
-}
-
-void LoadXML::deserializeImpl(QDataStream& d)
-{
-    d >> m_devicesModel;
-    d >> m_deviceNode;
 }

@@ -6,23 +6,18 @@
 
 class DeviceDocumentPlugin;
 // Note : could also be used for loading from the library
-class LoadXML: public iscore::SerializableCommand
+class LoadDevice: public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "LoadXML", "LoadXML")
+        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "LoadDevice", "LoadDevice")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(LoadXML)
-          LoadXML(
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(LoadDevice)
+          LoadDevice(
             ModelPath<DeviceDocumentPlugin>&& device_tree,
-            const iscore::DeviceSettings& parameters,
-            const QString& filePath);
+            iscore::Node&& node);
 
 
         virtual void undo() override;
         virtual void redo() override;
-
-        // After redo(), contains the row of the added device.
-        // TODO how to precompute this ?
-        int deviceRow() const;
 
     protected:
         virtual void serializeImpl(QDataStream&) const override;

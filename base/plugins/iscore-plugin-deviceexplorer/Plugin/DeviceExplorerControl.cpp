@@ -2,7 +2,7 @@
 
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Add/AddDevice.hpp"
-#include "Commands/Add/LoadXML.hpp"
+#include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/EditData.hpp"
 #include "Commands/Insert.hpp"
@@ -38,7 +38,7 @@ void DeviceExplorerControl::setupCommands()
             boost::mpl::list<
             AddAddress,
             AddDevice,
-            LoadXML,
+            LoadDevice,
             Cut,
             EditData,
 //            Insert,

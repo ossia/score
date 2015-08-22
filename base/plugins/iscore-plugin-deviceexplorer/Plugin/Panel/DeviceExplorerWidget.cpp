@@ -20,7 +20,7 @@
 
 
 #include "Commands/Add/AddDevice.hpp"
-#include "Commands/Add/LoadXML.hpp"
+#include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Remove.hpp"
 
@@ -28,6 +28,7 @@
 #include "Commands/ReplaceDevice.hpp"
 #include "Commands/UpdateAddresses.hpp"
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
 #include <QMessageBox>
 
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
@@ -543,7 +544,9 @@ DeviceExplorerWidget::addDevice()
         }
         else
         {
-            m_cmdDispatcher->submitCommand(new LoadXML{std::move(devplug_path), deviceSettings, path});
+            iscore::Node n{deviceSettings};
+            loadDeviceFromXML(path, n);
+            m_cmdDispatcher->submitCommand(new LoadDevice{std::move(devplug_path), std::move(n)});
         }
     }
 
