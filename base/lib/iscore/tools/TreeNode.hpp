@@ -144,7 +144,7 @@ class TreeNode : public DataType
         template<typename T>
         void Visitor<Reader<DataStream>>::readFrom(const TreeNode<T>& n)
         {
-            m_stream << static_cast<const T&>(n);
+            readFrom(static_cast<const T&>(n));
 
             m_stream << n.childCount();
             for(auto& child : n.children())
@@ -159,7 +159,7 @@ class TreeNode : public DataType
         template<typename T>
         void Visitor<Writer<DataStream>>::writeTo(TreeNode<T>& n)
         {
-            m_stream >> static_cast<T&>(n);
+            writeTo(static_cast<T&>(n));
 
             int childCount;
             m_stream >> childCount;
@@ -176,12 +176,14 @@ class TreeNode : public DataType
         template<typename T>
         void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)
         {
+            readFrom(static_cast<const T&>(n));
             m_obj["Children"] = toJsonArray(n.children());
         }
 
         template<typename T>
         void Visitor<Writer<JSONObject>>::writeTo(TreeNode<T>& n)
         {
+            writeTo(static_cast<T&>(n));
             for (const auto& val : m_obj["Children"].toArray())
             {
                 auto child = new TreeNode<T>;
