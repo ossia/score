@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#include <DeviceExplorer/Node/Node.hpp>
 // This class is used to correctly add and
 // remove elements to the node hierarchy.
 // If there is no device explorer model yet (e.g. while restoring from a crash),
@@ -13,7 +14,6 @@ class DeviceDocumentPlugin;
 class NodePath;
 namespace iscore
 {
-class Node;
 class DeviceSettings;
 class AddressSettings;
 }

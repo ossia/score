@@ -97,7 +97,7 @@ void NodeUpdateProxy::addAddress(
     // Make a full path
     iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
                                    settings,
-                                   parentnode->address());
+                                   iscore::address(*parentnode));
 
     // Add in the device implementation
     m_devModel
@@ -123,11 +123,11 @@ void NodeUpdateProxy::updateAddress(
         const iscore::AddressSettings &settings)
 {
     auto node = nodePath.toNode(&m_devModel.rootNode());
-    const auto addr = node->address();
+    const auto addr = iscore::address(*node);
     // Make a full path
     iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(
                                    settings,
-                                   node->address());
+                                   addr);
 
     // Update in the device implementation
     m_devModel
@@ -154,7 +154,7 @@ void NodeUpdateProxy::removeAddress(
 {
     iscore::Node* parentnode = parentPath.toNode(&m_devModel.rootNode());
 
-    auto addr = parentnode->address();
+    auto addr = iscore::address(*parentnode);
     addr.path.append(settings.name);
 
     // Remove from the device implementation

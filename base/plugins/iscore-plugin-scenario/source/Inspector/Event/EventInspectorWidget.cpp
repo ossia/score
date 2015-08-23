@@ -234,11 +234,14 @@ void EventInspectorWidget::updateDisplayedValues(
     {
         m_date->setText(QString::number(m_model->date().msec()));
 
+
         auto scenar = event->parentScenario();
+
         for(const auto& state : event->states())
         {
             addState(&scenar->state(state));
         }
+
 
         /*
         m_conditionLineEdit->setText(event->condition());
@@ -283,9 +286,9 @@ QVariant textToMessageValue(const QStringList& txt)
         return vl;
     }
 }
-
 using namespace iscore::IDocument;
 using namespace Scenario;
+/*
 void EventInspectorWidget::on_addAddressClicked()
 {
     auto txt = m_stateLineEdit->text();
@@ -306,7 +309,7 @@ void EventInspectorWidget::on_addAddressClicked()
         m_stateLineEdit->clear();
     }
 }
-
+*/
 void EventInspectorWidget::on_conditionChanged()
 {
     auto txt = m_conditionLineEdit->text();

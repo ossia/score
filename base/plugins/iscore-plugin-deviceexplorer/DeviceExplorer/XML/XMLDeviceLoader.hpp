@@ -1,9 +1,6 @@
 #pragma once
 #include <QString>
-namespace iscore
-{
-class Node;
-}
+#include <DeviceExplorer/Node/Node.hpp>
 
 // Will load a device in a Jamoma-format XML file into the node.
 // The node has to be the device node.

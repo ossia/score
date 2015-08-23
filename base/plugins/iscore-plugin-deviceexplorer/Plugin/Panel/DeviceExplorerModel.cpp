@@ -1131,7 +1131,7 @@ bool DeviceExplorerModel::insertNode(const QModelIndex& parent, int row, const N
     {
         beginInsertRows(parent, row, row);
 
-        parentNode->insertChild(row, node.clone());
+        parentNode->insertChild(row, new iscore::Node(node));
 
         endInsertRows();
 

@@ -30,7 +30,7 @@ class EventInspectorWidget : public InspectorWidgetBase
     public slots:
         void updateDisplayedValues(const EventModel* obj);
 
-        void on_addAddressClicked();
+        //void on_addAddressClicked();
         void on_conditionChanged();
         void on_triggerChanged();
 

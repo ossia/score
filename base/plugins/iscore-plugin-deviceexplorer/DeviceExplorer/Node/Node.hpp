@@ -8,51 +8,47 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-struct InvisibleRootNodeTag{};
+#include <iscore/tools/TreeNode.hpp>
 namespace iscore
 {
 
-class Node
+class DeviceExplorerNode
 {
-        ISCORE_SERIALIZE_FRIENDS(Node, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(Node, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, JSONObject)
 
     public:
             enum class Type { Device, Address, RootNode };
-        Node();
+        DeviceExplorerNode():
+            m_data{InvisibleRootNodeTag{}}
+        {
 
-        Node(InvisibleRootNodeTag);
-        bool isInvisibleRoot() const;
+        }
+
+        DeviceExplorerNode(InvisibleRootNodeTag t):
+            m_data{t}
+        {
+        }
+
+        bool isInvisibleRoot() const
+        {
+            return m_data.which() == (int)Type::RootNode;
+        }
 
         // Address
-        Node(const iscore::AddressSettings& settings,
-             Node* parent = nullptr);
+        DeviceExplorerNode(const iscore::AddressSettings& settings):
+            m_data{settings}
+        {
+        }
 
         // Device
-        Node(const DeviceSettings& settings,
-             Node* parent = nullptr);
+        DeviceExplorerNode(const DeviceSettings& settings) :
+            m_data{settings}
+        {
+        }
+
+
         bool isDevice() const;
-
-        // Clone
-        Node(const Node& source,
-             Node* parent = nullptr);
-        Node& operator=(const Node& source);
-
-        ~Node();
-
-        void setParent(Node* parent);
-        Node* parent() const;
-        Node* childAt(int index) const;  //return 0 if invalid index
-        int indexOfChild(const Node* child) const;  //return -1 if not found
-        int childCount() const;
-        bool hasChildren() const;
-        QList<Node*> children() const;
-
-        void insertChild(int index, Node* n);
-        void addChild(Node* n);
-        void swapChildren(int oldIndex, int newIndex);
-        Node* takeChild(int index);
-        void removeChild(Node* child);
 
         //- accessors
         QString displayName() const;
@@ -68,24 +64,22 @@ class Node
         const iscore::AddressSettings& addressSettings() const;
         iscore::AddressSettings& addressSettings();
 
-        Node* clone() const;
-
-        iscore::Address address() const;
-
-        Type type() const;
+        Type type() const
+        {
+            return Type(m_data.which());
+        }
 
     private:
-        Node* m_parent {};
-        QList<Node*> m_children;
-
-        union {
-        iscore::DeviceSettings m_deviceSettings;
-        iscore::AddressSettings m_addressSettings;
-        bool m_rootNode;
-        };
-
-        Type m_type;
+        eggs::variant<
+            iscore::DeviceSettings,
+            iscore::AddressSettings,
+            InvisibleRootNodeTag> m_data;
 };
+
+using Node = TreeNode<DeviceExplorerNode>;
+
+iscore::Address address(const Node& treeNode);
+
 
 Node* try_getNodeFromString(Node* n, QStringList&& str);
 Node* getNodeFromString(Node* n, QStringList&& str); // Fails if not present.

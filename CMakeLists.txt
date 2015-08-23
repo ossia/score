@@ -47,4 +47,5 @@ write_compiler_detection_header(
 )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/variant/include")
 add_subdirectory(base)

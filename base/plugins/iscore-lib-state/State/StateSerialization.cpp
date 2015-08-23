@@ -7,13 +7,16 @@ using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const State& state)
 {
+    /*
     m_stream << state.m_data;
+    */
     insertDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const State& state)
 {
+    /*
     m_obj["Type"] = int(state.data().userType());
     if(state.data().canConvert<State>())
     {
@@ -35,19 +38,22 @@ void Visitor<Reader<JSONObject>>::readFrom(const State& state)
     {
         ISCORE_TODO;
     }
+    */
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(State& state)
 {
+    /*
     m_stream >> state.m_data;
-
+    */
     checkDelimiter();
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(State& state)
 {
+    /*
     QString t = QVariant::typeToName(m_obj["Type"].toInt());
     if("iscore::State" == t)
     {
@@ -74,5 +80,6 @@ void Visitor<Writer<JSONObject>>::writeTo(State& state)
         qDebug() << "Type: " << t;
         ISCORE_TODO
     }
+    */
 }
 

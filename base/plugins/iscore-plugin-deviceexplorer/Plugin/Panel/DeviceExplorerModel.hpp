@@ -11,7 +11,6 @@
 namespace iscore
 {
     class CommandStack;
-    class Node;
 }
 namespace DeviceExplorer {
     namespace Command {

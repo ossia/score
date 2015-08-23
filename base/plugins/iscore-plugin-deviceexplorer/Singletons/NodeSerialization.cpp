@@ -9,6 +9,7 @@ using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Node& n)
 {
+    /*
     m_stream << (int)n.type();
     switch(n.type())
     {
@@ -29,11 +30,13 @@ void Visitor<Reader<DataStream>>::readFrom(const Node& n)
     }
 
     insertDelimiter();
+    */
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(Node& n)
 {
+    /*
     int type;
     int childCount;
 
@@ -67,11 +70,13 @@ void Visitor<Writer<DataStream>>::writeTo(Node& n)
     }
 
     checkDelimiter();
+    */
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
 {
+    /*
     switch(n.type())
     {
         case Node::Type::Address:
@@ -85,11 +90,13 @@ void Visitor<Reader<JSONObject>>::readFrom(const Node& n)
     }
 
     m_obj["Children"] = toJsonArray(n.children());
+    */
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(Node& n)
 {
+    /*
     if(m_obj.contains("AddressSettings"))
     {
         AddressSettings s;
@@ -111,4 +118,5 @@ void Visitor<Writer<JSONObject>>::writeTo(Node& n)
         nodeWriter.writeTo(*child);
         n.addChild(child);
     }
+    */
 }

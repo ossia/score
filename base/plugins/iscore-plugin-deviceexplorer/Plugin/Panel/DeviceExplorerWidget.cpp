@@ -512,7 +512,7 @@ void DeviceExplorerWidget::refreshValue()
             continue;
 
         // Device checks
-        auto addr = node->address();
+        auto addr = iscore::address(*node);
         auto& dev = model()->deviceModel().list().device(addr.device);
         if(!dev.canRefresh())
             return;

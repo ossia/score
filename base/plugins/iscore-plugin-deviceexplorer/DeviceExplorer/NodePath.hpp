@@ -1,11 +1,8 @@
 #pragma once
+#include <DeviceExplorer/Node/Node.hpp>
 
 #include <QList>
 
-namespace iscore
-{
-class Node;
-}
 class QModelIndex;
 template<typename T>
 using ref = T&;
