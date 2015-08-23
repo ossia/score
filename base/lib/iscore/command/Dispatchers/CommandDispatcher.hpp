@@ -12,7 +12,7 @@ class CommandDispatcher : public ICommandDispatcher
         {
         }
 
-        void submitCommand(iscore::SerializableCommand* cmd)
+        void submitCommand(iscore::SerializableCommand* cmd) const
         {
             SendStrategy::send(stack(), cmd);
         }

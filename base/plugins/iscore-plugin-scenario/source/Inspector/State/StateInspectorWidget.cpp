@@ -88,7 +88,7 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 
     for(const auto& data_state : state->states())
     {
-        auto widg = new StateWidget{data_state, this};
+        auto widg = new StateWidget{data_state, *commandDispatcher(), this};
         m_stateSection->addContent(widg);
 
         connect(widg, &StateWidget::removeMe,

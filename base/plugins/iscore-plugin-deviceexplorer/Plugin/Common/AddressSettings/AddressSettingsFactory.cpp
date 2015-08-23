@@ -55,7 +55,7 @@ AddressSettingsFactory::getAvailableValueTypes() const
 AddressSettingsWidget*
 AddressSettingsFactory::getValueTypeWidget(const QString& valueType) const
 {
-    AddressSettingsWidgetFactory::const_iterator it = m_addressSettingsWidgetFactory.find(valueType);
+    auto it = m_addressSettingsWidgetFactory.find(valueType);
 
     if(it != m_addressSettingsWidgetFactory.end())
     {
