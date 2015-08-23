@@ -21,13 +21,6 @@ QString DeviceExplorerNode::displayName() const
     }
 }
 
-/* *************************************************************
- * COLUMNS MODIFIERS
- * ************************************************************/
-
-
-// ******************************************************************
-
 bool DeviceExplorerNode::isSelectable() const
 {
     return true;
@@ -87,7 +80,7 @@ iscore::Node* try_getNodeFromString(iscore::Node* n, QStringList&& parts)
     if(parts.size() == 0)
         return n;
 
-    for(auto child : n->children())
+    for(const auto& child : n->children())
     {
         if(child->displayName() == parts[0])
         {

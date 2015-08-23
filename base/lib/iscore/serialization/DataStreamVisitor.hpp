@@ -19,6 +19,9 @@ class DataStream
         }
 };
 
+template<class>
+class TreeNode;
+
 template<>
 class Visitor<Reader<DataStream>> : public AbstractVisitor
 {
@@ -62,6 +65,9 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
 
         template<typename T>
         void readFrom(const T&);
+
+        template<typename T>
+        void readFrom(const TreeNode<T>&);
 
         void insertDelimiter()
         {
@@ -124,6 +130,10 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
         template<typename T>
         void writeTo(T&);
+
+        template<typename T>
+        void writeTo(TreeNode<T>&);
+
 
         void checkDelimiter()
         {

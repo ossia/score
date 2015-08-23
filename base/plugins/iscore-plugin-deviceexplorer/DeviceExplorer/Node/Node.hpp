@@ -5,8 +5,6 @@
 
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 
 #include <iscore/tools/TreeNode.hpp>
 namespace iscore

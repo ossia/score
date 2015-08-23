@@ -25,6 +25,9 @@ class JSONObject
         }
 };
 
+template<class>
+class TreeNode;
+
 template<>
 class Visitor<Reader<JSONObject>> : public AbstractVisitor
 {
@@ -38,6 +41,9 @@ class Visitor<Reader<JSONObject>> : public AbstractVisitor
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
         template<typename T>
         void readFrom(const T&);
+
+        template<typename T>
+        void readFrom(const TreeNode<T>&);
 
         template<typename T>
         void readFrom(const IdentifiedObject<T>& obj)
@@ -71,6 +77,9 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
 
         template<typename T>
         void writeTo(T&);
+
+        template<typename T>
+        void writeTo(TreeNode<T>&);
 
         template<typename T>
         T writeTo()
