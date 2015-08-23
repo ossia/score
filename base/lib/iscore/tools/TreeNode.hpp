@@ -1,5 +1,4 @@
 #pragma once
-#include <eggs/variant.hpp>
 #include <QList>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>

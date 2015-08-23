@@ -5,84 +5,66 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+// Move me
+using namespace iscore;
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNodeTag& n)
+{
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(InvisibleRootNodeTag& n)
+{
+    checkDelimiter();
+}
+// Move me
+using namespace iscore;
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNodeTag& n)
+{
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNodeTag& n)
+{
+}
+
+
+
 using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const DeviceExplorerNode& n)
 {
-    m_stream << (int)n.type();
-    switch(n.type())
-    {
-        case DeviceExplorerNode::Type::Address:
-            m_stream << n.get<AddressSettings>();
-            break;
-        case DeviceExplorerNode::Type::Device:
-            m_stream << n.get<DeviceSettings>();
-            break;
-        default:
-            break;
-    }
-
+    readFrom(n.m_data);
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(DeviceExplorerNode& n)
 {
-    int type;
-
-    m_stream >> type;
-    switch(DeviceExplorerNode::Type(type))
-    {
-        case DeviceExplorerNode::Type::Address:
-        {
-            AddressSettings s;
-            m_stream >> s;
-            n.set(s);
-            break;
-        }
-        case DeviceExplorerNode::Type::Device:
-        {
-            DeviceSettings s;
-            m_stream >> s;
-            n.set(s);
-            break;
-        }
-        default:
-            break;
-    }
-
+    writeTo(n.m_data);
     checkDelimiter();
 }
+
+
+template<> class TypeToName<iscore::DeviceSettings>
+{ public: static constexpr const char * name() { return "DeviceSettings"; } };
+
+template<> class TypeToName<iscore::AddressSettings>
+{ public: static constexpr const char * name() { return "AddressSettings"; } };
+
+template<> class TypeToName<InvisibleRootNodeTag>
+{ public: static constexpr const char * name() { return "RootNode"; } };
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const DeviceExplorerNode& n)
 {
-    switch(n.type())
-    {
-        case Node::Type::Address:
-            m_obj["AddressSettings"] = toJsonObject(n.get<AddressSettings>());
-            break;
-        case Node::Type::Device:
-            m_obj["DeviceSettings"] = toJsonObject(n.get<DeviceSettings>());
-            break;
-        default:
-            break;
-    }
+    readFrom(n.m_data);
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(DeviceExplorerNode& n)
 {
-    if(m_obj.contains("AddressSettings"))
-    {
-        AddressSettings s;
-        fromJsonObject(m_obj["AddressSettings"].toObject(), s);
-        n.set(s);
-    }
-    else if(m_obj.contains("DeviceSettings"))
-    {
-        DeviceSettings s;
-        fromJsonObject(m_obj["DeviceSettings"].toObject(), s);
-        n.set(s);
-    }
+    writeTo(n.m_data);
 }
