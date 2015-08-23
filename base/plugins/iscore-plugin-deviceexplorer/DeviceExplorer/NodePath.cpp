@@ -22,11 +22,11 @@ NodePath::NodePath(QModelIndex index)
 NodePath::NodePath(const iscore::Node& node)
 {
     // We have to take care of the root node.
-    if(node.isInvisibleRoot())
+    if(node.is<InvisibleRootNodeTag>())
         return;
 
     auto iter = &node;
-    while(! iter->isDevice())
+    while(! iter->is<DeviceSettings>())
     {
         m_path.prepend(iter->parent()->indexOfChild(iter));
         iter = iter->parent();

@@ -37,7 +37,7 @@ iscore::Node MinuitDevice::refresh()
         // Make a device explorer node from the current state of the device.
         // First make the node corresponding to the root node.
 
-        device_node.setDeviceSettings(settings());
+        device_node.set(settings());
         //device_node.setAddressSettings(ToAddressSettings(*m_dev.get()));
 
         // Recurse on the children
@@ -47,7 +47,7 @@ iscore::Node MinuitDevice::refresh()
         }
     }
 
-    device_node.deviceSettings().name = settings().name;
+    device_node.get<iscore::DeviceSettings>().name = settings().name;
 
     return device_node;
 }

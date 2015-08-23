@@ -61,7 +61,7 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
             auto index = m_deviceExplorer->index(row, 0, QModelIndex());
             auto node = static_cast<iscore::Node*>(index.internalPointer());
 
-            if(node->isDevice() && node->deviceSettings().name == dev.name)
+            if(node->is<iscore::DeviceSettings>() && node->get<iscore::DeviceSettings>().name == dev.name)
             {
                 m_deviceExplorer->removeRow(row);
                 break;
@@ -72,7 +72,7 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
     {
         for(const auto& child : m_devModel.rootNode().children())
         {
-            if(child->deviceSettings().name == dev.name)
+            if(child->get<iscore::DeviceSettings>().name == dev.name)
             {
                 m_devModel.rootNode().removeChild(child);
                 delete child;
@@ -92,7 +92,7 @@ void NodeUpdateProxy::addAddress(
     // Add in the device impl
     // Get the device node :
     auto dev_node = m_devModel.rootNode().childAt(parentPath.at(0));
-    Q_ASSERT(dev_node->isDevice());
+    Q_ASSERT(dev_node->is<iscore::DeviceSettings>());
 
     // Make a full path
     iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
@@ -102,7 +102,7 @@ void NodeUpdateProxy::addAddress(
     // Add in the device implementation
     m_devModel
             .list()
-            .device(dev_node->deviceSettings().name)
+            .device(dev_node->get<iscore::DeviceSettings>().name)
             .addAddress(full);
 
     // Add in the device explorer
@@ -144,7 +144,7 @@ void NodeUpdateProxy::updateAddress(
     }
     else
     {
-        node->setAddressSettings(settings);
+        node->set(settings);
     }
 }
 
@@ -160,14 +160,14 @@ void NodeUpdateProxy::removeAddress(
     // Remove from the device implementation
     auto dev_node = m_devModel.rootNode().childAt(parentPath.at(0));
     m_devModel.list().device(
-                dev_node->deviceSettings().name)
+                dev_node->get<iscore::DeviceSettings>().name)
             .removeAddress(addr);
 
     // Remove from the device explorer
 
     auto it = boost::range::find_if(
                   parentnode->children(),
-                  [&] (const iscore::Node* n) { return n->addressSettings().name == settings.name; });
+                  [&] (const iscore::Node* n) { return n->get<iscore::AddressSettings>().name == settings.name; });
     Q_ASSERT(it != parentnode->children().end());
     auto theNode = *it;
     if(m_deviceExplorer)

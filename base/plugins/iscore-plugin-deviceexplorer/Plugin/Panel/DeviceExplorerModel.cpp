@@ -145,7 +145,7 @@ void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addre
     Q_ASSERT(node);
     Q_ASSERT(node != &m_rootNode);
 
-    node->setAddressSettings(addressSettings);
+    node->set(addressSettings);
 
     QModelIndex nodeIndex = convertPathToIndex(NodePath(*node)); // TODO optimizeme
 
@@ -292,11 +292,11 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     {
         case Column::Name:
         {
-            if(node->isDevice())
+            if(node->is<DeviceSettings>())
             {
                 if(role == Qt::DisplayRole || role == Qt::EditRole)
                 {
-                    return node->deviceSettings().name;
+                    return node->get<DeviceSettings>().name;
                 }
             }
             else
@@ -307,7 +307,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 }
                 else if(role == Qt::FontRole)
                 {
-                    const IOType ioType = node->addressSettings().ioType;
+                    const IOType ioType = node->get<AddressSettings>().ioType;
 
                     if(ioType == IOType::In || ioType == IOType::Out)
                     {
@@ -318,7 +318,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
                 }
                 else if(role == Qt::ForegroundRole)
                 {
-                    const IOType ioType = node->addressSettings().ioType;
+                    const IOType ioType = node->get<AddressSettings>().ioType;
 
                     if(ioType == IOType::In || ioType == IOType::Out)
                     {
@@ -332,12 +332,12 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Value:
         {
-            if(node->isDevice())
+            if(node->is<DeviceSettings>())
                 return {};
 
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                const auto& val = node->addressSettings().value;
+                const auto& val = node->get<AddressSettings>().value;
                 if(val.val.canConvert<QVariantList>())
                 {
                     return val.val.toStringList().join(", ");
@@ -347,7 +347,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             }
             else if(role == Qt::ForegroundRole)
             {
-                const IOType ioType = node->addressSettings().ioType;
+                const IOType ioType = node->get<AddressSettings>().ioType;
 
                 if(ioType == IOType::In || ioType == IOType::Out)
                 {
@@ -359,12 +359,12 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::IOType:
         {
-            if(node->isDevice())
+            if(node->is<DeviceSettings>())
                 return {};
 
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                switch(node->addressSettings().ioType)
+                switch(node->get<AddressSettings>().ioType)
                 {
                     case IOType::In:
                         return QString("<-");
@@ -384,36 +384,36 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Min:
         {
-            if(node->isDevice())
+            if(node->is<DeviceSettings>())
                 return {};
 
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->addressSettings().domain.min.val;
+                return node->get<AddressSettings>().domain.min.val;
             }
         }
             break;
 
         case Column::Max:
         {
-            if(node->isDevice())
+            if(node->is<DeviceSettings>())
                 return {};
 
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->addressSettings().domain.max.val;
+                return node->get<AddressSettings>().domain.max.val;
             }
         }
             break;
 
         case Column::Priority:
         {
-            if(node->isDevice())
+            if(node->is<DeviceSettings>())
                 return {};
 
             if(role == Qt::DisplayRole || role == Qt::EditRole)
             {
-                return node->addressSettings().priority;
+                return node->get<AddressSettings>().priority;
             }
         }
             break;
@@ -501,7 +501,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         return false;
     }
 
-    if(n->isDevice())
+    if(n->is<DeviceSettings>())
     {
         return false;
     }
@@ -529,7 +529,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         else if(col == Column::Value)
         {
             QVariant copy = value;
-            auto res = copy.convert(n->addressSettings().value.val.type());
+            auto res = copy.convert(n->get<iscore::AddressSettings>().value.val.type());
             if(res)
             {
                 m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(this),
@@ -561,7 +561,7 @@ void DeviceExplorerModel::editData(const NodePath &path, DeviceExplorerModel::Co
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
 
-    if(node->isDevice())
+    if(node->is<DeviceSettings>())
         return;
 
     if(role == Qt::EditRole)
@@ -572,18 +572,18 @@ void DeviceExplorerModel::editData(const NodePath &path, DeviceExplorerModel::Co
 
             if(! s.isEmpty())
             {
-                node->addressSettings().name = s;
+                node->get<iscore::AddressSettings>().name = s;
             }
         }
 
         if(index.column() == (int)Column::IOType)
         {
-            node->addressSettings().ioType = IOTypeStringMap().key(value.toString());
+            node->get<iscore::AddressSettings>().ioType = IOTypeStringMap().key(value.toString());
         }
 
         if(index.column() == (int)Column::Value)
         {
-            node->addressSettings().value.val = value;
+            node->get<iscore::AddressSettings>().value.val = value;
         }
     }
 
@@ -637,7 +637,7 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
 
     Node* n = nodeFromModelIndex(index);
     Q_ASSERT(n);
-    return n->isDevice();
+    return n->is<DeviceSettings>();
 }
 
 bool
@@ -665,7 +665,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     Node* cutNode = nodeFromModelIndex(index);
     Q_ASSERT(cutNode);
 
-    const bool cutNodeIsDevice = cutNode->isDevice();
+    const bool cutNodeIsDevice = cutNode->is<DeviceSettings>();
 
 
     if(! m_cutNodes.isEmpty() && m_lastCutNodeIsCopied)
@@ -949,10 +949,10 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
             ser.readFrom(*n);
             QMimeData* mimeData = new QMimeData;
             mimeData->setData(
-                        n->isDevice() ? iscore::mime::device() : iscore::mime::address(),
+                        n->is<DeviceSettings>() ? iscore::mime::device() : iscore::mime::address(),
                         QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
-            if(!n->isDevice())
+            if(!n->is<DeviceSettings>())
             {
                 MessageList messages;
                 messages.push_back(DeviceExplorer::messageFromModelIndex(index));
@@ -971,7 +971,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
         MessageList messages;
         for(const auto& index : indexes)
         {
-            if(!nodeFromModelIndex(index)->isDevice())
+            if(!nodeFromModelIndex(index)->is<DeviceSettings>())
             {
                 messages.push_back(DeviceExplorer::messageFromModelIndex(index));
             }

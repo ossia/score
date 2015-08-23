@@ -399,7 +399,7 @@ DeviceExplorerWidget::proxyModel()
 void DeviceExplorerWidget::edit()
 {
     iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if (select->isDevice())
+    if (select->is<iscore::DeviceSettings>())
     {
         ISCORE_TODO;
         return;
@@ -408,7 +408,7 @@ void DeviceExplorerWidget::edit()
         {
             m_deviceDialog = new DeviceEditDialog(this);
         }
-        auto set = select->deviceSettings();
+        auto set = select->get<iscore::DeviceSettings>();
         m_deviceDialog->setSettings(set);
 
         QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
@@ -428,7 +428,7 @@ void DeviceExplorerWidget::edit()
         {
             m_addressDialog = new AddressEditDialog(this);
         }
-        auto settings = select->addressSettings();
+        auto settings = select->get<iscore::AddressSettings>();
         m_addressDialog->setSettings(settings);
 
         QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_addressDialog->exec());
@@ -453,7 +453,7 @@ void DeviceExplorerWidget::refresh()
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
-        auto& dev = model()->deviceModel().list().device(select->deviceSettings().name);
+        auto& dev = model()->deviceModel().list().device(select->get<iscore::DeviceSettings>().name);
         if(!dev.canRefresh())
             return;
 
@@ -488,7 +488,7 @@ void DeviceExplorerWidget::refresh()
                 [=] (const QString& error_txt) {
             QMessageBox::warning(this,
                                  tr("Unable to refresh the device"),
-                                 tr("Unable to refresh the device: ") + select->deviceSettings().name + tr(".\nCause: ") + error_txt);
+                                 tr("Unable to refresh the device: ") + select->get<iscore::DeviceSettings>().name + tr(".\nCause: ") + error_txt);
             thread->quit();
             worker->deleteLater();
         });
@@ -508,7 +508,7 @@ void DeviceExplorerWidget::refreshValue()
                               ? static_cast<iscore::Node*>(index.internalPointer())
                               : nullptr;
 
-        if(!node || node->isDevice())
+        if(!node || node->is<iscore::DeviceSettings>())
             continue;
 
         // Device checks
@@ -578,7 +578,7 @@ DeviceExplorerWidget::addSibling()
 void DeviceExplorerWidget::removeNode()
 {
     iscore::Node* n = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if(! n->isDevice())
+    if(! n->is<iscore::DeviceSettings>())
         m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::safe_path(model()->deviceModel()), *n});
 }
 

@@ -14,8 +14,8 @@ UpdateAddresses::UpdateAddresses(
 {
     for(const auto& elt : nodes)
     {
-        Q_ASSERT(!elt.first->isDevice());
-        m_data.append({*elt.first, {elt.first->addressSettings().value, elt.second}});
+        Q_ASSERT(!elt.first->is<DeviceSettings>());
+        m_data.append({*elt.first, {elt.first->get<AddressSettings>().value, elt.second}});
     }
 }
 

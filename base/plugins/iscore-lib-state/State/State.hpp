@@ -63,7 +63,9 @@ struct state_hash
         return hash_value(state);
     }
 };
-/*
+
+#include <iscore/tools/TreeNode.hpp>
+
 #include "Message.hpp"
 #include "ProcessState.hpp"
 class StateNode
@@ -71,50 +73,6 @@ class StateNode
     public:
         enum class Type { RootNode, Container, Messages, Dynamic  }; // Container only has child
 
-        StateNode();
-
-        StateNode(InvisibleRootStateNodeTag);
-        bool isInvisibleRoot() const;
-
-        // Address
-        StateNode(const iscore::AddressSettings& settings,
-             StateNode* parent = nullptr);
-
-        // Device
-        StateNode(const DeviceSettings& settings,
-             StateNode* parent = nullptr);
-        bool isDevice() const;
-
-        // Clone
-        StateNode(const StateNode& source,
-             StateNode* parent = nullptr);
-        StateNode& operator=(const StateNode& source);
-
-        ~StateNode();
-
-        void setParent(StateNode* parent);
-        StateNode* parent() const;
-        StateNode* childAt(int index) const;  //return 0 if invalid index
-        int indexOfChild(const StateNode* child) const;  //return -1 if not found
-        int childCount() const;
-        bool hasChildren() const;
-        QList<StateNode*> children() const;
-
-        void insertChild(int index, StateNode* n);
-        void addChild(StateNode* n);
-        void swapChildren(int oldIndex, int newIndex);
-        StateNode* takeChild(int index);
-        void removeChild(StateNode* child);
-
-        Type type() const { return m_type; }
     private:
-        union {
-                bool m_rootNode;
-                bool m_container;
-                iscore::MessageList m_messages;
-                ProcessState* m_dynState;
-        };
-
-        Type m_type{};
 };
-*/
+

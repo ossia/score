@@ -1,7 +1,7 @@
 #pragma once
 #include <QDataStream>
 #include <type_traits>
-#include "iscore/serialization/VisitorInterface.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
 class DataStream;
@@ -22,6 +22,12 @@ class DataStream
 template<class>
 class TreeNode;
 
+namespace eggs{
+namespace variants {
+template<class...>
+class variant;
+}
+}
 template<>
 class Visitor<Reader<DataStream>> : public AbstractVisitor
 {
@@ -68,6 +74,9 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
 
         template<typename T>
         void readFrom(const TreeNode<T>&);
+
+        template<typename... Args>
+        void readFrom(const eggs::variants::variant<Args...>&);
 
         void insertDelimiter()
         {
@@ -133,6 +142,10 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
         template<typename T>
         void writeTo(TreeNode<T>&);
+
+        template<typename... Args>
+        void writeTo(eggs::variants::variant<Args...>&);
+
 
 
         void checkDelimiter()

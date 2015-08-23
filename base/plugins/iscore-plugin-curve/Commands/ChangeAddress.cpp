@@ -23,8 +23,8 @@ ChangeAddress::ChangeAddress(ObjectPath &&path, const iscore::Address &newval):
     auto old_n = iscore::try_getNodeFromString(&deviceexplorer->rootNode(), std::move(oldpath));
     if(old_n)
     {
-        Q_ASSERT(!old_n->isDevice());
-        m_old = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(old_n->addressSettings(), autom.address());
+        Q_ASSERT(!old_n->is<iscore::DeviceSettings>());
+        m_old = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(old_n->get<iscore::AddressSettings>(), autom.address());
     }
     else
     {
@@ -39,8 +39,8 @@ ChangeAddress::ChangeAddress(ObjectPath &&path, const iscore::Address &newval):
     auto new_n = iscore::try_getNodeFromString(&deviceexplorer->rootNode(), std::move(newpath));
     if(new_n)
     {
-        Q_ASSERT(!new_n->isDevice());
-        m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->addressSettings(), newval);
+        Q_ASSERT(!new_n->is<iscore::DeviceSettings>());
+        m_new = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(new_n->get<iscore::AddressSettings>(), newval);
     }
     else
     {

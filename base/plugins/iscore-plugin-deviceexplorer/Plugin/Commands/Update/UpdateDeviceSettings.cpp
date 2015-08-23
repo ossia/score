@@ -18,11 +18,11 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     auto it = boost::range::find_if(
                   devplug.rootNode().children(),
                   [&] (const iscore::Node* n)
-    { return n->addressSettings().name == name; });
+    { return n->get<AddressSettings>().name == name; });
 
     Q_ASSERT(it != devplug.rootNode().children().end());
 
-    m_oldParameters = (*it)->deviceSettings();
+    m_oldParameters = (*it)->get<DeviceSettings>();
 }
 
 void UpdateDeviceSettings::undo()

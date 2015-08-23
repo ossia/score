@@ -18,7 +18,7 @@ UpdateAddressSettings::UpdateAddressSettings(
     auto n = m_node.toNode(&devplug.rootNode());
     Q_ASSERT(n);
 
-    m_oldParameters = n->addressSettings();
+    m_oldParameters = n->get<iscore::AddressSettings>();
 }
 
 void UpdateAddressSettings::undo()

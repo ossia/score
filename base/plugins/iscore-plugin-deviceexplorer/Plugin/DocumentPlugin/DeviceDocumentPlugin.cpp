@@ -39,8 +39,8 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
 {
     try {
         // Instantiate a real device.
-        auto proto = SingletonProtocolList::instance().protocol(node.deviceSettings().protocol);
-        auto newdev = proto->makeDevice(node.deviceSettings());
+        auto proto = SingletonProtocolList::instance().protocol(node.get<iscore::DeviceSettings>().protocol);
+        auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
         m_list.addDevice(newdev);
 
         for(const auto& child : node.children())
@@ -52,13 +52,13 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
     {
         QMessageBox::warning(QApplication::activeWindow(),
                              QObject::tr("Error loading device"),
-                             node.deviceSettings().name + ": " + QString::fromLatin1(e.what()));
+                             node.get<iscore::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
 }
 
 void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, iscore::Node &node)
 {
-    auto full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(node.addressSettings(), iscore::address(*node.parent()));
+    auto full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(node.get<iscore::AddressSettings>(), iscore::address(*node.parent()));
 
     // Add in the device implementation
     dev.addAddress(full);

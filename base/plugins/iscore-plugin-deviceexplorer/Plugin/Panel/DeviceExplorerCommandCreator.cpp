@@ -58,7 +58,7 @@ QModelIndex DeviceExplorerCommandCreator::copy(const QModelIndex &index)
     Q_ASSERT(n);
 
     iscore::Node* copiedNode = new iscore::Node(*n);
-    const bool isDevice = n->isDevice();
+    const bool isDevice = n->is<iscore::DeviceSettings>();
 
     if(! m_model->m_cutNodes.isEmpty() && m_model->m_lastCutNodeIsCopied)
     {

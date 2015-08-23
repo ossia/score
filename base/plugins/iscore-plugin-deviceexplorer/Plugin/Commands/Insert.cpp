@@ -40,7 +40,7 @@
 //                model,
 //                nodePath,
 //                DeviceExplorerModel::Insert::AsChild,
-//                n.addressSettings()};
+//                n.get<AddressSettings>()};
 //    addr.redo();
 
 //    nodePath.append(addr.createdNodeIndex());
@@ -60,9 +60,9 @@
 //void
 //Insert::redo()
 //{
-//    if(m_node.isDevice())
+//    if(m_node.is<DeviceSettings>())
 //    {
-//        AddDevice dev{copy(m_model), m_node.deviceSettings()};
+//        AddDevice dev{copy(m_model), m_node.get<DeviceSettings>()};
 //        dev.redo();
 
 //        NodePath p;

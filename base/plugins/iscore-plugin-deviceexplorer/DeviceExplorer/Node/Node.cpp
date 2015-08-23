@@ -7,10 +7,10 @@ QString DeviceExplorerNode::displayName() const
     switch(type())
     {
         case Type::Address:
-            return addressSettings().name;
+            return get<AddressSettings>().name;
             break;
         case Type::Device:
-            return deviceSettings().name;
+            return get<DeviceSettings>().name;
             break;
         case Type::RootNode:
             return "Invisible Root DeviceExplorerNode";
@@ -28,44 +28,9 @@ bool DeviceExplorerNode::isSelectable() const
 
 bool DeviceExplorerNode::isEditable() const
 {
-    return type() == Type::Address
-            && (addressSettings().ioType == IOType::InOut
-               ||  addressSettings().ioType == IOType::Invalid);
-}
-
-bool DeviceExplorerNode::isDevice() const
-{
-    return type() == Type::Device;
-}
-
-void DeviceExplorerNode::setDeviceSettings(const DeviceSettings &settings)
-{
-    m_data = settings;
-}
-
-const DeviceSettings& DeviceExplorerNode::deviceSettings() const
-{
-    return eggs::variants::get<DeviceSettings>(m_data);
-}
-
-DeviceSettings& DeviceExplorerNode::deviceSettings()
-{
-    return eggs::variants::get<DeviceSettings>(m_data);
-}
-
-void DeviceExplorerNode::setAddressSettings(const iscore::AddressSettings &settings)
-{
-    m_data = settings;
-}
-
-const iscore::AddressSettings &DeviceExplorerNode::addressSettings() const
-{
-    return eggs::variants::get<AddressSettings>(m_data);
-}
-
-iscore::AddressSettings &DeviceExplorerNode::addressSettings()
-{
-    return eggs::variants::get<AddressSettings>(m_data);
+    return is<AddressSettings>()
+            && (get<AddressSettings>().ioType == IOType::InOut
+               ||  get<AddressSettings>().ioType == IOType::Invalid);
 }
 
 iscore::Node* getNodeFromString(iscore::Node* n, QStringList&& parts)
@@ -96,14 +61,14 @@ Address address(const Node &treeNode)
 {
     Address addr;
     const Node* n = &treeNode;
-    while(n->parent() && !n->isDevice())
+    while(n->parent() && !n->is<DeviceSettings>())
     {
-        addr.path.prepend(n->addressSettings().name);
+        addr.path.prepend(n->get<AddressSettings>().name);
         n = n->parent();
     }
 
-    Q_ASSERT(n->isDevice());
-    addr.device = n->deviceSettings().name;
+    Q_ASSERT(n->is<DeviceSettings>());
+    addr.device = n->get<DeviceSettings>().name;
 
     return addr;
 }

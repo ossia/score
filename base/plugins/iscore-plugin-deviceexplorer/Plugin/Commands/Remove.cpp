@@ -9,21 +9,21 @@ Remove::Remove(
                             commandName(),
                             description()}
 {
-    if (!node.isDevice())
+    if (!node.is<iscore::DeviceSettings>())
     {
         m_device = false;
         m_cmd = new AddAddress{
                     std::move(device_tree),
                     NodePath{*node.parent()},
                     DeviceExplorerModel::Insert::AsChild,
-                    node.addressSettings()};
+                    node.get<iscore::AddressSettings>()};
     }
     else
     {
         m_device = true;
         m_cmd = new AddDevice{
                     std::move(device_tree),
-                    node.deviceSettings()};
+                    node.get<iscore::DeviceSettings>()};
     }
 }
 

@@ -9,14 +9,14 @@ LoadDevice::LoadDevice(
                                 commandName(),
                                 description()},
     m_devicesModel{std::move(device_tree)},
-    m_deviceNode{std::move(node)}
+    m_deviceNode(std::move(node))
 {
 }
 
 void LoadDevice::undo()
 {
     auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.removeDevice(m_deviceNode.deviceSettings());
+    devplug.updateProxy.removeDevice(m_deviceNode.get<iscore::DeviceSettings>());
 }
 
 void LoadDevice::redo()

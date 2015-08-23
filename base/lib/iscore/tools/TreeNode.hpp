@@ -6,6 +6,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 struct InvisibleRootNodeTag{};
+
 template<typename DataType>
 class TreeNode : public DataType
 {
@@ -38,7 +39,7 @@ class TreeNode : public DataType
         // Clone
         TreeNode(const TreeNode& source,
              TreeNode* parent = nullptr):
-            DataType{source},
+            DataType{static_cast<const DataType&>(source)},
             m_parent{parent}
         {
             for(const auto& child : source.children())

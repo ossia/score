@@ -14,7 +14,7 @@ ReplaceDevice::ReplaceDevice(ObjectPath&& device_tree,
     m_deviceNode{std::move(rootNode)}
 {
     auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
-    m_savedNode = Node{*explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex())), nullptr};
+    m_savedNode = *explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
 void ReplaceDevice::undo()

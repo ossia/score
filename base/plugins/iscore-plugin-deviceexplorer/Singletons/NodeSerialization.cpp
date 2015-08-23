@@ -13,10 +13,10 @@ void Visitor<Reader<DataStream>>::readFrom(const DeviceExplorerNode& n)
     switch(n.type())
     {
         case DeviceExplorerNode::Type::Address:
-            m_stream << n.addressSettings();
+            m_stream << n.get<AddressSettings>();
             break;
         case DeviceExplorerNode::Type::Device:
-            m_stream << n.deviceSettings();
+            m_stream << n.get<DeviceSettings>();
             break;
         default:
             break;
@@ -37,14 +37,14 @@ void Visitor<Writer<DataStream>>::writeTo(DeviceExplorerNode& n)
         {
             AddressSettings s;
             m_stream >> s;
-            n.setAddressSettings(s);
+            n.set(s);
             break;
         }
         case DeviceExplorerNode::Type::Device:
         {
             DeviceSettings s;
             m_stream >> s;
-            n.setDeviceSettings(s);
+            n.set(s);
             break;
         }
         default:
@@ -60,10 +60,10 @@ void Visitor<Reader<JSONObject>>::readFrom(const DeviceExplorerNode& n)
     switch(n.type())
     {
         case Node::Type::Address:
-            m_obj["AddressSettings"] = toJsonObject(n.addressSettings());
+            m_obj["AddressSettings"] = toJsonObject(n.get<AddressSettings>());
             break;
         case Node::Type::Device:
-            m_obj["DeviceSettings"] = toJsonObject(n.deviceSettings());
+            m_obj["DeviceSettings"] = toJsonObject(n.get<DeviceSettings>());
             break;
         default:
             break;
@@ -77,12 +77,12 @@ void Visitor<Writer<JSONObject>>::writeTo(DeviceExplorerNode& n)
     {
         AddressSettings s;
         fromJsonObject(m_obj["AddressSettings"].toObject(), s);
-        n.setAddressSettings(s);
+        n.set(s);
     }
     else if(m_obj.contains("DeviceSettings"))
     {
         DeviceSettings s;
         fromJsonObject(m_obj["DeviceSettings"].toObject(), s);
-        n.setDeviceSettings(s);
+        n.set(s);
     }
 }
