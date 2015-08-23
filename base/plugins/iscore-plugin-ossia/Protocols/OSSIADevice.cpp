@@ -54,7 +54,7 @@ void OSSIADevice::sendMessage(iscore::Message &mess)
 
 bool OSSIADevice::check(const QString &str)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     return false;
 }
 

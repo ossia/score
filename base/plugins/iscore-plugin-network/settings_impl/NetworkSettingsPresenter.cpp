@@ -100,7 +100,7 @@ void NetworkSettingsPresenter::updateClientName()
 // Partie vue -> commande
 void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cmd)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     if(!m_masterportCommand)
     {
@@ -115,7 +115,7 @@ void NetworkSettingsPresenter::setMasterPortCommand(MasterPortChangedCommand* cm
 }
 void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cmd)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     if(!m_clientportCommand)
     {
@@ -130,7 +130,7 @@ void NetworkSettingsPresenter::setClientPortCommand(ClientPortChangedCommand* cm
 }
 void NetworkSettingsPresenter::setClientNameCommand(ClientNameChangedCommand* cmd)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     if(!m_clientnameCommand)
     {

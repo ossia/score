@@ -31,7 +31,7 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
 void MergeTimeNodes::undo()
 {
 
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     auto& scenar = m_path.find<ScenarioModel>();
 
@@ -59,7 +59,7 @@ void MergeTimeNodes::undo()
 void MergeTimeNodes::redo()
 {
 
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     auto& scenar = m_path.find<ScenarioModel>();
 

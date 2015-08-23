@@ -35,7 +35,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(
         }
         else
         {
-            ISCORE_TODO
+            ISCORE_TODO;
         }
 
         map.append({lm_id, {cstrVM.type(), arr}});
@@ -71,7 +71,7 @@ void deserializeConstraintViewModels(
         }
         else
         {
-            ISCORE_TODO
+            ISCORE_TODO;
         }
     }
 }

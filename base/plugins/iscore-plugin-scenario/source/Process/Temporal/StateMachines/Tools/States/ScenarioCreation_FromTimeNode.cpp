@@ -72,7 +72,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         // MoveOnNothing -> MoveOnState.
         add_transition(move_nothing, move_state,
-                       [&] () { rollback(); ISCORE_TODO });
+                       [&] () { rollback(); ISCORE_TODO; });
 
         // MoveOnNothing -> MoveOnEvent.
         add_transition(move_nothing, move_event,
@@ -101,18 +101,18 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         /// MoveOnState -> ...
         // MoveOnState -> MoveOnNothing
         add_transition(move_state, move_nothing,
-                       [&] () { rollback(); ISCORE_TODO });
+                       [&] () { rollback(); ISCORE_TODO; });
 
         // MoveOnState -> MoveOnState
         // We don't do anything, the constraint should not move.
 
         // MoveOnState -> MoveOnEvent
         add_transition(move_state, move_event,
-                       [&] () { rollback(); ISCORE_TODO });
+                       [&] () { rollback(); ISCORE_TODO; });
 
         // MoveOnState -> MoveOnTimeNode
         add_transition(move_state, move_timenode,
-                       [&] () { rollback(); ISCORE_TODO });
+                       [&] () { rollback(); ISCORE_TODO; });
 
 
         /// MoveOnEvent -> ...
@@ -125,7 +125,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         // MoveOnEvent -> MoveOnState
         add_transition(move_event, move_state,
-                       [&] () { rollback(); ISCORE_TODO });
+                       [&] () { rollback(); ISCORE_TODO; });
 
         // MoveOnEvent -> MoveOnEvent
         make_transition<MoveOnEvent_Transition>(move_event, move_event, *this);
@@ -152,7 +152,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         // MoveOnTimeNode -> MoveOnState
         add_transition(move_timenode, move_state,
-                       [&] () { rollback(); ISCORE_TODO });
+                       [&] () { rollback(); ISCORE_TODO; });
 
         // MoveOnTimeNode -> MoveOnEvent
         add_transition(move_timenode, move_event,

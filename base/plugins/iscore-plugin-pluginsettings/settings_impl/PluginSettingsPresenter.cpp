@@ -56,7 +56,7 @@ PluginSettingsView* PluginSettingsPresenter::view()
 
 void PluginSettingsPresenter::setBlacklistCommand(BlacklistCommand* cmd)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     if(!m_blacklistCommand)
     {

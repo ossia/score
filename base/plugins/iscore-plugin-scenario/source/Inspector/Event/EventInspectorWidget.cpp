@@ -213,7 +213,7 @@ void EventInspectorWidget::addState(const StateModel* state)
 
 void EventInspectorWidget::focusState(const StateModel* state)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
 }
 
 #include <Inspector/InspectorWidgetList.hpp>

@@ -39,7 +39,7 @@ void SetTrigger::undo()
 
 void SetTrigger::redo()
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     auto& event = m_path.find<EventModel>();
     event.setTrigger(m_trigger);

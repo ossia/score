@@ -261,13 +261,13 @@ void ScenarioModel::setSelection(const Selection& s) const
 
 ProcessStateDataInterface* ScenarioModel::startState() const
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     return nullptr;
 }
 
 ProcessStateDataInterface* ScenarioModel::endState() const
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     return nullptr;
 }
 

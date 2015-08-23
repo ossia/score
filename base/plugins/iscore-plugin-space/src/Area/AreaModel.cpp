@@ -49,7 +49,7 @@ spacelib::valued_area AreaModel::valuedArea() const
         }
         else // We fetch it from the device tree
         {
-            ISCORE_TODO
+            ISCORE_TODO;
         }
     }
     return spacelib::valued_area(projectedArea(), mapping);

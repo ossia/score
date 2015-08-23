@@ -130,7 +130,7 @@ void SlotInspectorSection::on_layerModelCreated(
 void SlotInspectorSection::on_layerModelRemoved(
         const id_type<LayerModel>& lmId)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
 
     m_lmSection->removeAll();
     for (const auto& lm : m_model.layerModels())

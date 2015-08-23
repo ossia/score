@@ -142,7 +142,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
             if(val != int32_t (0xDEADBEEF))
             {
-                __asm__("int3");
+                ISCORE_BREAKPOINT;
                 throw std::runtime_error("Corrupt save file.");
             }
         }

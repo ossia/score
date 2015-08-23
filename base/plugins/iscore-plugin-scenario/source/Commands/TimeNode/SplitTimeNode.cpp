@@ -19,7 +19,7 @@ SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > ev
     m_path {std::move(path) },
     m_eventsInNewTimeNode {(eventsInNewTimeNode) }
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     auto& originalTN = m_path.find<TimeNodeModel>();
     m_originalTimeNodeId = originalTN.id();
@@ -31,7 +31,7 @@ SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > ev
 
 void SplitTimeNode::undo()
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     auto& scenar = static_cast<ScenarioModel&>(*m_path.find<TimeNodeModel>().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
@@ -50,7 +50,7 @@ void SplitTimeNode::undo()
 
 void SplitTimeNode::redo()
 {
-    ISCORE_TODO
+    ISCORE_TODO;
     /*
     auto& scenar = static_cast<ScenarioModel&>(*m_path.find<TimeNodeModel>().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);

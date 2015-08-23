@@ -67,7 +67,7 @@ void StateView::setSelected(bool arg)
 
 void StateView::changeColor(const QColor &)
 {
-    ISCORE_TODO
+    ISCORE_TODO;
 }
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)

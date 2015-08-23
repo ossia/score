@@ -52,6 +52,6 @@ StateWidget::StateWidget(
     }
     else if(state.data().canConvert<ProcessState>())
     {
-        ISCORE_TODO
+        ISCORE_TODO;
     }
 }
