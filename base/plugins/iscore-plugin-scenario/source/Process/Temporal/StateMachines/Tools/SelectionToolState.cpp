@@ -123,8 +123,6 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     resizeSlot->addTransition(resizeSlot,
                               SIGNAL(finished()),
                               m_state);
-
-    localSM().addState(resizeSlot);
 }
 
 

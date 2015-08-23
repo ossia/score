@@ -1,6 +1,7 @@
 #pragma once
 #include <QPushButton>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <State/Message.hpp>
 
 namespace iscore
 {
@@ -17,5 +18,5 @@ class MessageWidget : public QPushButton
     private:
         void on_clicked();
 
-        const iscore::Message& m_message;
+        iscore::Message m_message;
 };
