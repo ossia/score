@@ -55,13 +55,13 @@ class MessageEditDialog : public QDialog
     public:
         MessageEditDialog(const iscore::Message& mess, QWidget* parent):
             QDialog{parent},
-            m_message{mess}
+            m_message(mess)
         {
             m_lay = new QFormLayout;
             this->setLayout(m_lay);
 
             m_typeCombo = new QComboBox;
-            m_typeCombo->insertItems(0, {"None", "Int", "Float", "Char", "String", "Bool", "Tuple"});
+            m_typeCombo->insertItems(0, {tr("None"), tr("Int"), tr("Float"), tr("Char"), tr("String"), tr("Bool"), tr("Tuple")});
 
             m_val = new ValueWrapper{this};
             m_lay->addRow(tr("Address"), new QLabel{mess.address.toString()});

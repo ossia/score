@@ -1,3 +1,6 @@
 [submodule "API"]
 	path = API
 	url = https://github.com/OSSIA/API
+[submodule "3rdparty/variant"]
+	path = 3rdparty/variant
+	url = https://github.com/eggs-cpp/variant.git
