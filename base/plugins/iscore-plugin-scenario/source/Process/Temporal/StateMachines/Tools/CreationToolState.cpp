@@ -101,7 +101,11 @@ void CreationToolState::on_pressed()
     { localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
 
     // Press a Constraint
-    [&] (const id_type<ConstraintModel>& id)
+    [&] (const id_type<ConstraintModel>&)
+    { },
+
+    // Press a slot handle
+    [&] (const SlotModel&)
     { },
 
     // Click on the background

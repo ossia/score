@@ -29,10 +29,10 @@ class CreationToolState : public ScenarioTool
                  typename TimeNodeFun,
                  typename NothingFun>
         void mapWithCollision(
-                StateFun&& st_fun,
-                EventFun&& ev_fun,
-                TimeNodeFun&& tn_fun,
-                NothingFun&& nothing_fun,
+                StateFun st_fun,
+                EventFun ev_fun,
+                TimeNodeFun tn_fun,
+                NothingFun nothing_fun,
                 const QVector<id_type<StateModel>>& createdStates,
                 const QVector<id_type<EventModel>>& createdEvents,
                 const QVector<id_type<TimeNodeModel>>& createdTimeNodes)

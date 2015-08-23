@@ -34,6 +34,9 @@
 #include <QGraphicsScene>
 
 #include "States/ScenarioSelectionState.hpp"
+#include "MoveSlotToolState.hpp"
+#include "States/SlotStates.hpp"
+#include "Process/Temporal/StateMachines/Transitions/SlotTransitions.hpp"
 
 SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     ScenarioTool{sm, &sm}
@@ -103,6 +106,25 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
                                   SIGNAL(finished()),
                                   m_state);
     localSM().addState(m_moveTimeNode);
+
+
+
+    /// Slot resize
+    auto resizeSlot = new ResizeSlotState{
+            m_parentSM.commandStack(),
+            m_parentSM,
+            &localSM()};
+
+    make_transition<ClickOnSlotHandle_Transition>(
+                m_state,
+                resizeSlot,
+                *resizeSlot);
+
+    resizeSlot->addTransition(resizeSlot,
+                              SIGNAL(finished()),
+                              m_state);
+
+    localSM().addState(resizeSlot);
 }
 
 
@@ -127,8 +149,14 @@ void SelectionTool::on_pressed()
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
+        qDebug() << "Constraint clicked";
         localSM().postEvent(new ClickOnConstraint_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
+    },
+    [&] (const SlotModel& slot) // Slot handle
+    {
+        localSM().postEvent(new ClickOnSlotHandle_Event{iscore::IDocument::path(slot)});
+        m_nothingPressed = true;
     },
     [&] ()
     {
@@ -153,7 +181,10 @@ void SelectionTool::on_moved()
         [&] (const id_type<TimeNodeModel>& id)
         { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const id_type<ConstraintModel>& id)
-        { localSM().postEvent(new MoveOnConstraint_Event{id, m_parentSM.scenarioPoint}); },
+        {
+            qDebug() << "Constraint moved"; localSM().postEvent(new MoveOnConstraint_Event{id, m_parentSM.scenarioPoint}); },
+        [&] (const SlotModel& slot) // Slot handle
+        { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
         [&] ()
         { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint});});
     }
@@ -193,6 +224,7 @@ void SelectionTool::on_released()
     },
     [&] (const id_type<ConstraintModel>& id) // Constraint
     {
+        qDebug() << "Constraint released";
         const auto& elt = m_parentSM.presenter().constraints().at(id);
 
         m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
@@ -200,10 +232,15 @@ void SelectionTool::on_released()
                                                    m_state->multiSelection()));
         localSM().postEvent(new ReleaseOnConstraint_Event{id, m_parentSM.scenarioPoint});
     },
+    [&] (const SlotModel& slot) // Slot handle
+    { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
     [&] ()
     {
         if(m_nothingPressed)
+        {
             localSM().postEvent(new Release_Event); // select
+            m_nothingPressed = false;
+        }
         else
             localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); // end of move
     } );

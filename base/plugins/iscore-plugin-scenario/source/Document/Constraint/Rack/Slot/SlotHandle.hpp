@@ -8,6 +8,9 @@ class SlotHandle : public QGraphicsItem
         SlotHandle(const SlotView& slotView,
                    QGraphicsItem* parent);
 
+        int type() const override
+        { return QGraphicsItem::UserType + 5; }
+
         static constexpr double handleHeight()
         {
             return 3.;

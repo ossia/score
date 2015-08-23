@@ -4,7 +4,15 @@
 class TemporalConstraintHeader : public ConstraintHeader
 {
     public:
-        using ConstraintHeader::ConstraintHeader;
+        TemporalConstraintHeader():
+            ConstraintHeader{}
+        {
+            this->setAcceptedMouseButtons(0);
+        }
+
         QRectF boundingRect() const;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
+        int type() const override
+        { return QGraphicsItem::UserType + 6; }
 };

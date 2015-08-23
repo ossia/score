@@ -8,6 +8,7 @@ class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
 class StateModel;
+class SlotModel;
 
 namespace iscore
 {
@@ -50,30 +51,32 @@ class ScenarioTool : public ToolState
         id_type<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem*) const;
         id_type<ConstraintModel> itemToConstraintId(const QGraphicsItem*) const;
         id_type<StateModel> itemToStateId(const QGraphicsItem*) const;
+        const SlotModel* itemToSlotFromHandle(const QGraphicsItem *pressedItem) const;
 
         template<typename EventFun,
                  typename StateFun,
                  typename TimeNodeFun,
                  typename ConstraintFun,
+                 typename SlotHandleFun,
                  typename NothingFun>
         void mapTopItem(
                 const QGraphicsItem* item,
-                StateFun&& st_fun,
-                EventFun&& ev_fun,
-                TimeNodeFun&& tn_fun,
-                ConstraintFun&& cst_fun,
-                NothingFun&& nothing_fun) const
+                StateFun st_fun,
+                EventFun ev_fun,
+                TimeNodeFun tn_fun,
+                ConstraintFun cst_fun,
+                SlotHandleFun handle_fun,
+                NothingFun nothing_fun) const
         {
             if(!item)
             {
                 nothing_fun();
                 return;
             }
-            auto&& tryFun = [&] (auto&& fun, auto&& id)
-            { if(id)
-                fun(id);
-              else
-                nothing_fun();
+            auto tryFun = [=] (auto fun, const auto& id)
+            {
+                if(id) fun(id);
+                else   nothing_fun();
             };
 
             // Each time :
@@ -97,6 +100,25 @@ class ScenarioTool : public ToolState
                     tryFun (st_fun, itemToStateId(item));
                     break;
 
+                case QGraphicsItem::UserType + 5: // Slot handle
+                {
+                    auto slot = itemToSlotFromHandle(item);
+                    if(slot)
+                    {
+                        handle_fun(*slot);
+                    }
+                    else
+                    {
+                        nothing_fun();
+                    }
+                    break;
+                }
+
+                case QGraphicsItem::UserType + 6: // Constraint header
+                {
+                    tryFun(cst_fun, itemToConstraintId(item->parentItem()));
+                    break;
+                }
                 default:
                     nothing_fun();
                     break;

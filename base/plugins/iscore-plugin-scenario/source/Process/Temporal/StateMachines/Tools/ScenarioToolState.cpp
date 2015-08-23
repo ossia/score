@@ -15,6 +15,11 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
+#include "Document/Constraint/Rack/Slot/SlotHandle.hpp"
+#include "Document/Constraint/Rack/Slot/SlotView.hpp"
+#include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
+
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintView.hpp"
 #include "Document/Constraint/ViewModels/ConstraintPresenter.hpp"
@@ -57,4 +62,13 @@ id_type<StateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem
     return state.parentScenario() == &m_parentSM.model()
             ? state.id()
             : id_type<StateModel>{};
+}
+
+const SlotModel* ScenarioTool::itemToSlotFromHandle(const QGraphicsItem *pressedItem) const
+{
+    const auto& slot = static_cast<const SlotHandle*>(pressedItem)->slotView().presenter.model();
+
+    return slot.parentConstraint().parentScenario() == &m_parentSM.model()
+            ? &slot
+            : nullptr;
 }
