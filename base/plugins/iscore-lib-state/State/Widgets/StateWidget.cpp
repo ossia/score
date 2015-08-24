@@ -40,14 +40,14 @@ StateWidget::StateWidget(
     }
     else if(state.data().canConvert<Message>())
     {
-        lay->addWidget(new MessageWidget {state.data().value<Message>(), disp, this});
+        //lay->addWidget(new MessageWidget {state.data().value<Message>(), this});
     }
     else if(state.data().canConvert<MessageList>())
     {
         int i = 0;
         for(const Message& mess : state.data().value<MessageList>())
         {
-            lay->addWidget(new MessageWidget {mess, disp, this}, ++i, 0);
+            //lay->addWidget(new MessageWidget {mess, this}, ++i, 0);
         }
     }
     else if(state.data().canConvert<ProcessState>())

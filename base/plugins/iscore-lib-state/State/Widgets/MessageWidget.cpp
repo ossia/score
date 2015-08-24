@@ -9,6 +9,21 @@
 #include <iscore/widgets/MarginLess.hpp>
 
 #include "Values/NumericValueWidget.hpp"
+
+static void clearLayout(QLayout* layout)
+{
+    QLayoutItem *child{};
+    while ((child = layout->takeAt(0)) != 0)
+    {
+        if(child->layout() != 0)
+            clearLayout( child->layout() );
+        else if(child->widget() != 0)
+            delete child->widget();
+
+        delete child;
+    }
+}
+
 class ValueWrapper : public QWidget
 {
     public:
@@ -32,20 +47,6 @@ class ValueWrapper : public QWidget
         { return m_widget; }
 
     private:
-        void clearLayout(QLayout* layout)
-        {
-            QLayoutItem *child{};
-            while ((child = layout->takeAt(0)) != 0)
-            {
-                if(child->layout() != 0)
-                    clearLayout( child->layout() );
-                else if(child->widget() != 0)
-                    delete child->widget();
-
-                delete child;
-            }
-        }
-
         QGridLayout* m_lay{};
         ValueWidget* m_widget{};
 };
@@ -126,8 +127,7 @@ class MessageEditDialog : public QDialog
 };
 
 MessageWidget::MessageWidget(
-        const iscore::Message& mess,
-        const CommandDispatcher<>& disp,
+        iscore::Message& mess,
         QWidget* parent):
     QPushButton{mess.toString(), parent},
     m_message(mess)
@@ -145,12 +145,40 @@ void MessageWidget::on_clicked()
     if(res)
     {
         // Update message
-        qDebug() << dial.value();
-
+        // TODO update address too ?
+        // TODO address completer
+        m_message.value.val = dial.value();
     }
     else
     {
         // Do nothing
 
     }
+}
+
+MessageListEditor::MessageListEditor(
+        const iscore::MessageList& m,
+        QWidget* parent):
+    m_messages{m}
+{
+    auto lay = new QGridLayout;
+
+    auto messageListLayout = new QGridLayout;
+    lay->addLayout(messageListLayout, 0, 0);
+    int i = 0;
+    for(auto& mess : m_messages)
+    {
+        messageListLayout->addWidget(new MessageWidget(mess, parent), i, 0);
+        messageListLayout->addWidget(new QPushButton(tr("Remove")), i, 1);
+        i++;
+    }
+
+    auto addButton = new QPushButton(tr("Add message"));
+    lay->addWidget(addButton);
+    auto buttons = new QDialogButtonBox(QDialogButtonBox::StandardButton::Ok |
+                                        QDialogButtonBox::StandardButton::Cancel);
+    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    lay->addWidget(buttons);
 }
