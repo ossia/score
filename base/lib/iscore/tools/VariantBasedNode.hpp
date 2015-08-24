@@ -7,6 +7,8 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+#include <iscore/tools/InvisibleRootNode.hpp>
+
 template<typename... Args>
 class VariantBasedNode
 {
@@ -93,6 +95,7 @@ void Visitor<Writer<DataStream>>::writeTo(eggs::variant<Args...>& var)
 
 template<typename T>
 class TypeToName;
+
 template<typename... Args>
 void Visitor<Reader<JSONObject>>::readFrom(const eggs::variant<Args...>& var)
 {

@@ -37,7 +37,7 @@ file(GLOB_RECURSE HDRS
      "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp")
 
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
 
 set_property(TARGET ${PROJECT_NAME} APPEND
              PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -50,5 +50,5 @@ install(TARGETS ${PROJECT_NAME}
         COMPONENT DynamicRuntime)
 
 if(NOT DEPLOYMENT_BUILD)
-    add_subdirectory(Tests)
+#    add_subdirectory(Tests)
 endif()

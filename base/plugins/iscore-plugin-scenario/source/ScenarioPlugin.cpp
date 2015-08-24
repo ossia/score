@@ -26,9 +26,10 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     QMetaType::registerComparators<iscore::Value>();
     QMetaType::registerComparators<iscore::Message>();
     QMetaType::registerComparators<iscore::MessageList>();
+    /*
     qRegisterMetaTypeStreamOperators<iscore::State>();
     qRegisterMetaTypeStreamOperators<iscore::StateList>();
-    qRegisterMetaTypeStreamOperators<iscore::Message>();
+    */qRegisterMetaTypeStreamOperators<iscore::Message>();
     qRegisterMetaTypeStreamOperators<iscore::MessageList>();
     qRegisterMetaTypeStreamOperators<iscore::Address>();
     qRegisterMetaTypeStreamOperators<iscore::Value>();

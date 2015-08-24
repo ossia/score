@@ -4,15 +4,15 @@ namespace iscore
 {
 QString DeviceExplorerNode::displayName() const
 {
-    switch(type())
+    switch(m_data.which())
     {
-        case Type::Address:
-            return get<AddressSettings>().name;
-            break;
-        case Type::Device:
+        case 0:
             return get<DeviceSettings>().name;
             break;
-        case Type::RootNode:
+        case 1:
+            return get<AddressSettings>().name;
+            break;
+        case 2:
             return "Invisible Root DeviceExplorerNode";
             break;
         default:

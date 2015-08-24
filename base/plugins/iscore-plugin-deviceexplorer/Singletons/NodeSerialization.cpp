@@ -7,30 +7,6 @@
 
 // Move me
 using namespace iscore;
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNodeTag& n)
-{
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(InvisibleRootNodeTag& n)
-{
-    checkDelimiter();
-}
-// Move me
-using namespace iscore;
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNodeTag& n)
-{
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNodeTag& n)
-{
-}
-
-
 
 using namespace iscore;
 template<>
@@ -54,8 +30,6 @@ template<> class TypeToName<iscore::DeviceSettings>
 template<> class TypeToName<iscore::AddressSettings>
 { public: static constexpr const char * name() { return "AddressSettings"; } };
 
-template<> class TypeToName<InvisibleRootNodeTag>
-{ public: static constexpr const char * name() { return "RootNode"; } };
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const DeviceExplorerNode& n)

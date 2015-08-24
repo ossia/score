@@ -1,14 +1,37 @@
 #pragma once
 #include <QMetaType>
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
+
+// A wrapper for a dynamic state
 class ProcessState
 {
     public:
         ProcessState() = default;
-        ProcessState(const ProcessState&) = default;
+        ProcessState(const ProcessState& other):
+            m_data{other.m_data
+                    ? other.m_data->clone()
+                    : nullptr}
+        {
+
+        }
+
         ProcessState(ProcessState&&) = default;
-        ProcessState& operator=(const ProcessState&) = default;
-        ProcessState& operator=(ProcessState&&) = default;
+        ProcessState& operator=(const ProcessState& other)
+        {
+            delete m_data;
+            m_data = other.m_data
+                    ? other.m_data->clone()
+                    : nullptr;
+            return *this;
+        }
+
+        ProcessState& operator=(ProcessState&& other)
+        {
+            delete m_data;
+            m_data = other.m_data;
+            other.m_data = nullptr;
+            return *this;
+        }
 
         ProcessState(ProcessStateDataInterface* d):
             m_data{d}

@@ -12,6 +12,7 @@ class ProcessStateDataInterface : public QObject
         }
 
         virtual QString stateName() const = 0;
+        virtual ProcessStateDataInterface* clone() const = 0;
 
     signals:
         void stateChanged();

@@ -23,9 +23,6 @@ class DeviceExplorerNode : public VariantBasedNode<
 
     public:
             enum class Type { Device, Address, RootNode };
-        using device_type = DeviceSettings;
-        using address_type = AddressSettings;
-        using root_type = InvisibleRootNodeTag;
 
         DeviceExplorerNode(const DeviceExplorerNode& t) = default;
         DeviceExplorerNode(DeviceExplorerNode&& t) = default;
@@ -48,16 +45,11 @@ class DeviceExplorerNode : public VariantBasedNode<
 
         bool isSelectable() const;
         bool isEditable() const;
-
-        Type type() const
-        { return Type(m_data.which()); }
-
 };
 
 using Node = TreeNode<DeviceExplorerNode>;
 
 iscore::Address address(const Node& treeNode);
-
 
 Node* try_getNodeFromString(Node* n, QStringList&& str);
 Node* getNodeFromString(Node* n, QStringList&& str); // Fails if not present.

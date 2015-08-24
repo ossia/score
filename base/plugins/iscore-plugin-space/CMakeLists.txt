@@ -4,7 +4,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0042 NEW)
-
+return()
 find_package(GiNaC)
 if(NOT GINAC_FOUND)
     return()

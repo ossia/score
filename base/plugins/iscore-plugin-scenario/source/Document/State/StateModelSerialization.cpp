@@ -1,9 +1,10 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "source/Document/State/StateModel.hpp"
-
+// TODO TODO TODO TODO TODO
 template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
 {
+    /*
     readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
 
     readFrom(s.metadata);
@@ -14,12 +15,12 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
              << s.m_heightPercentage
 
              << s.m_states;
-
+*/
     insertDelimiter();
 }
 
 template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
-{
+{/*
     writeTo(s.metadata);
 
     m_stream >> s.m_eventId
@@ -28,12 +29,12 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
             >> s.m_heightPercentage
 
             >> s.m_states;
-
+*/
     checkDelimiter();
 }
 
 template<> void Visitor<Reader<JSONObject>>::readFrom(const StateModel& s)
-{
+{/*
     readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
     m_obj["Metadata"] = toJsonObject(s.metadata);
 
@@ -42,11 +43,11 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const StateModel& s)
     m_obj["NextConstraint"] = toJsonValue(s.m_nextConstraint);
     m_obj["HeightPercentage"] = s.m_heightPercentage;
 
-    m_obj["States"] = toJsonArray(s.m_states);
+    m_obj["States"] = toJsonArray(s.m_states);*/
 }
 
 template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
-{
+{/*
     s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
     s.m_eventId = fromJsonValue<id_type<EventModel>>(m_obj["Event"]);
@@ -54,5 +55,5 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
     s.m_nextConstraint = fromJsonValue<id_type<ConstraintModel>>(m_obj["NextConstraint"]);
     s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
-    fromJsonArray(m_obj["States"].toArray(), s.m_states);
+    fromJsonArray(m_obj["States"].toArray(), s.m_states);*/
 }

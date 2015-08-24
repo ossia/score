@@ -363,6 +363,7 @@ void TemporalScenarioPresenter::updateAllElements()
 
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
+    /* TODO
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::state()))
     {
@@ -392,4 +393,5 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         m.commit();
     }
+    */
 }

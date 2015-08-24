@@ -39,10 +39,10 @@ void AddStateToStateModel::redo()
 
 void AddStateToStateModel::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_state;
+    // TODO s << m_path << m_state;
 }
 
 void AddStateToStateModel::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_state;
+    // TODO s >> m_path >> m_state;
 }

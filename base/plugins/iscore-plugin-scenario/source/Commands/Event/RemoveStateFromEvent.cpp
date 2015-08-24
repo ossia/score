@@ -29,10 +29,10 @@ void RemoveStateFromStateModel::redo()
 
 void RemoveStateFromStateModel::serializeImpl(QDataStream& s) const
 {
-    s << m_path << m_state;
+    // TODO s << m_path << m_state;
 }
 
 void RemoveStateFromStateModel::deserializeImpl(QDataStream& s)
 {
-    s >> m_path >> m_state;
+    // TODO s >> m_path >> m_state;
 }

@@ -89,6 +89,7 @@ void EventPresenter::triggerSetted(QString trig)
 
 void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
 {
+    /* TODO
     // We don't want to create a new state in BaseScenario
     auto scenar = dynamic_cast<ScenarioModel*>(m_model.parentScenario());
     // todo Maybe the drop should be handled by the scenario presenter ?? or not
@@ -108,5 +109,6 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
                 std::move(s)};
         m_dispatcher.submitCommand(cmd);
     }
+    */
 }
 

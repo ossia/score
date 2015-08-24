@@ -36,3 +36,62 @@ void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
     auto valueType = QMetaType::Type(QMetaType::type(m_obj["Type"].toString().toLatin1()));
     mess.value = JsonToValue(m_obj["Value"], valueType);
 }
+
+
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const MessageList& mess)
+{
+    m_stream << mess;
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const MessageList& mess)
+{
+    m_obj["Data"] = toJsonArray(mess);
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(MessageList& mess)
+{
+    m_stream >> mess;
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(MessageList& mess)
+{
+    MessageList t;
+    fromJsonArray(m_obj["Data"].toArray(), t);
+    mess = t;
+}
+
+
+// TODO moveme
+#include "ProcessState.hpp"
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const ProcessState& mess)
+{
+    ISCORE_TODO;
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const ProcessState& mess)
+{
+    ISCORE_TODO;
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(ProcessState& mess)
+{
+    ISCORE_TODO;
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(ProcessState& mess)
+{
+    ISCORE_TODO;
+}

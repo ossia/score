@@ -15,6 +15,7 @@ class AutomationState : public ProcessStateDataInterface
         double point() const
         { return m_point; }
 
+        AutomationState* clone() const override;
     protected:
         const AutomationModel* model() const;
 

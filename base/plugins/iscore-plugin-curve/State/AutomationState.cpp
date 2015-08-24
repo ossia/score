@@ -32,6 +32,11 @@ iscore::Message AutomationState::message() const
     return m;
 }
 
+AutomationState *AutomationState::clone() const
+{
+    return new AutomationState{model(), m_point};
+}
+
 const AutomationModel* AutomationState::model() const
 {
     return static_cast<const AutomationModel*>(ProcessStateDataInterface::model());

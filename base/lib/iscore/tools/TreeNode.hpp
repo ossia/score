@@ -4,7 +4,6 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-struct InvisibleRootNodeTag{};
 
 template<typename DataType>
 class TreeNode : public DataType
@@ -29,15 +28,14 @@ class TreeNode : public DataType
             DataType{data},
             m_parent{parent}
         {
-            if(m_parent)
-            {
+            if(m_parent) {
                 m_parent->addChild(this);
             }
         }
 
         // Clone
         TreeNode(const TreeNode& source,
-             TreeNode* parent = nullptr):
+                 TreeNode* parent = nullptr):
             DataType{static_cast<const DataType&>(source)},
             m_parent{parent}
         {
@@ -141,55 +139,55 @@ class TreeNode : public DataType
 };
 
 
-        template<typename T>
-        void Visitor<Reader<DataStream>>::readFrom(const TreeNode<T>& n)
-        {
-            readFrom(static_cast<const T&>(n));
+template<typename T>
+void Visitor<Reader<DataStream>>::readFrom(const TreeNode<T>& n)
+{
+    readFrom(static_cast<const T&>(n));
 
-            m_stream << n.childCount();
-            for(auto& child : n.children())
-            {
-                if(child) readFrom(*child);
-            }
+    m_stream << n.childCount();
+    for(auto& child : n.children())
+    {
+        if(child) readFrom(*child);
+    }
 
-            insertDelimiter();
-        }
+    insertDelimiter();
+}
 
 
-        template<typename T>
-        void Visitor<Writer<DataStream>>::writeTo(TreeNode<T>& n)
-        {
-            writeTo(static_cast<T&>(n));
+template<typename T>
+void Visitor<Writer<DataStream>>::writeTo(TreeNode<T>& n)
+{
+    writeTo(static_cast<T&>(n));
 
-            int childCount;
-            m_stream >> childCount;
-            for (int i = 0; i < childCount; ++i)
-            {
-                auto child = new TreeNode<T>;
-                writeTo(*child);
-                n.addChild(child);
-            }
+    int childCount;
+    m_stream >> childCount;
+    for (int i = 0; i < childCount; ++i)
+    {
+        auto child = new TreeNode<T>;
+        writeTo(*child);
+        n.addChild(child);
+    }
 
-            checkDelimiter();
-        }
+    checkDelimiter();
+}
 
-        template<typename T>
-        void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)
-        {
-            readFrom(static_cast<const T&>(n));
-            m_obj["Children"] = toJsonArray(n.children());
-        }
+template<typename T>
+void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)
+{
+    readFrom(static_cast<const T&>(n));
+    m_obj["Children"] = toJsonArray(n.children());
+}
 
-        template<typename T>
-        void Visitor<Writer<JSONObject>>::writeTo(TreeNode<T>& n)
-        {
-            writeTo(static_cast<T&>(n));
-            for (const auto& val : m_obj["Children"].toArray())
-            {
-                auto child = new TreeNode<T>;
-                Deserializer<JSONObject> nodeWriter(val.toObject());
+template<typename T>
+void Visitor<Writer<JSONObject>>::writeTo(TreeNode<T>& n)
+{
+    writeTo(static_cast<T&>(n));
+    for (const auto& val : m_obj["Children"].toArray())
+    {
+        auto child = new TreeNode<T>;
+        Deserializer<JSONObject> nodeWriter(val.toObject());
 
-                nodeWriter.writeTo(*child);
-                n.addChild(child);
-            }
-        }
+        nodeWriter.writeTo(*child);
+        n.addChild(child);
+    }
+}

@@ -928,6 +928,9 @@ DeviceExplorerModel::mimeTypes() const
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
+    ISCORE_TODO;
+    return nullptr;
+    /*
     // Algorithm :
     // If there is a single node, we drag it and its children with the full node data
     // If there are multiple nodes, we only drag the messages (not recursively)
@@ -991,8 +994,9 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
             return mimeData;
         }
     }
-
     return nullptr;
+
+    */
 }
 
 

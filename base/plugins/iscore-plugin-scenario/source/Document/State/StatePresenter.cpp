@@ -74,6 +74,7 @@ bool StatePresenter::isSelected() const
 
 void StatePresenter::handleDrop(const QMimeData *mime)
 {
+    /* TODO
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::state()))
     {
@@ -87,6 +88,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
                 std::move(s)};
         m_dispatcher.submitCommand(cmd);
     }
+    */
 }
 
 void StatePresenter::updateStateView()

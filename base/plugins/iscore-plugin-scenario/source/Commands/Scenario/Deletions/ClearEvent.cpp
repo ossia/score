@@ -14,19 +14,23 @@ ClearState::ClearState(ObjectPath&& path) :
                          description()},
     m_path {std::move(path) }
 {
+    /* TODO
     const auto& state = m_path.find<StateModel>();
     QDataStream s(&m_serializedStates, QIODevice::WriteOnly);
     s << state.states();
+    */
 }
 
 void ClearState::undo()
 {
+    /* TODO
     auto& state = m_path.find<StateModel>();
     iscore::StateList states;
     QDataStream s(m_serializedStates);
     s >> states;
 
     state.replaceStates(states);
+    */
 }
 
 void ClearState::redo()

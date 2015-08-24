@@ -65,14 +65,41 @@ struct state_hash
 };
 
 #include <iscore/tools/TreeNode.hpp>
-
+#include <iscore/tools/VariantBasedNode.hpp>
 #include "Message.hpp"
 #include "ProcessState.hpp"
-class StateNode
+/*
+ class StateNode
 {
     public:
         enum class Type { RootNode, Container, Messages, Dynamic  }; // Container only has child
 
     private:
+};*/
+class StateData : public VariantBasedNode<
+        iscore::MessageList,
+        ProcessState,
+        InvisibleRootNodeTag>
+{
+        ISCORE_SERIALIZE_FRIENDS(StateData, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(StateData, JSONObject)
+
+    public:
+        StateData(const StateData& t) = default;
+        StateData(StateData&& t) = default;
+        StateData& operator=(const StateData& t) = default;
+        StateData():
+            VariantBasedNode{InvisibleRootNodeTag{}}
+        {
+
+        }
+
+        template<typename T>
+        StateData(const T& t):
+            VariantBasedNode{t}
+        {
+
+        }
 };
 
+using StateNode = TreeNode<StateData>;
