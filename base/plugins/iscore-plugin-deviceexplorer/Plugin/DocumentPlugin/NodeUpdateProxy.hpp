@@ -11,7 +11,7 @@
 // which would be laggy
 class DeviceExplorerModel;
 class DeviceDocumentPlugin;
-class NodePath;
+
 namespace iscore
 {
 class DeviceSettings;
@@ -35,14 +35,14 @@ class NodeUpdateProxy
         void removeDevice(const iscore::DeviceSettings& dev);
 
         void addAddress(
-                const NodePath& parentPath,
+                const iscore::NodePath& parentPath,
                 const iscore::AddressSettings& settings);
 
         void updateAddress(
-                const NodePath& nodePath,
+                const iscore::NodePath& nodePath,
                 const iscore::AddressSettings& settings);
 
         void removeAddress(
-                const NodePath& parentPath,
+                const iscore::NodePath& parentPath,
                 const iscore::AddressSettings& settings);
 };

@@ -4,7 +4,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
-#include "DeviceExplorer/NodePath.hpp"
+
 
 namespace DeviceExplorer
 {
@@ -16,7 +16,7 @@ namespace DeviceExplorer
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Cut, "DeviceExplorerControl")
 
-                Cut(const NodePath& parentPath,
+                Cut(const iscore::NodePath& parentPath,
                     int row,
                         const QString& text,
                         ObjectPath&& model);
@@ -34,7 +34,7 @@ namespace DeviceExplorer
             protected:
                 ObjectPath m_model{};
                 QByteArray m_data;
-                NodePath m_parentPath;
+                iscore::NodePath m_parentPath;
                 int m_row{};
         };
 

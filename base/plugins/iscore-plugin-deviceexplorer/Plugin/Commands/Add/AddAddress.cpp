@@ -4,7 +4,7 @@
 using namespace DeviceExplorer::Command;
 
 AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
-                       const NodePath& nodePath,
+                       const iscore::NodePath& nodePath,
                        DeviceExplorerModel::Insert insert,
                        const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
@@ -26,7 +26,7 @@ AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
     {
         parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
     }
-    m_parentNodePath = NodePath{*parentNode};
+    m_parentNodePath = iscore::NodePath{*parentNode};
 }
 
 void AddAddress::undo()

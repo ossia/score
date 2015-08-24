@@ -5,7 +5,7 @@
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <DeviceExplorer/Node/Node.hpp>
-#include <DeviceExplorer/NodePath.hpp>
+
 
 namespace DeviceExplorer
 {
@@ -17,7 +17,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddAddress)
                 AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
-                           const NodePath &nodePath,
+                           const iscore::NodePath &nodePath,
                            DeviceExplorerModel::Insert insert,
                            const iscore::AddressSettings& addressSettings);
 
@@ -32,7 +32,7 @@ namespace DeviceExplorer
 
             private:
                 ModelPath<DeviceDocumentPlugin> m_devicesModel;
-                NodePath m_parentNodePath;
+                iscore::NodePath m_parentNodePath;
                 iscore::AddressSettings m_addressSettings;
                 int m_createdNodeIndex;
 

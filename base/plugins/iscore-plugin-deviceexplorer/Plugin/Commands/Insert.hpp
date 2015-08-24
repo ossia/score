@@ -6,7 +6,7 @@
 
 #include "Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/Node/Node.hpp>
-#include "DeviceExplorer/NodePath.hpp"
+
 
 namespace DeviceExplorer
 {
@@ -20,7 +20,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(Insert)
 
-                Insert(const NodePath& parentPath,
+                Insert(const iscore::NodePath& parentPath,
                        int row,
                        iscore::Node&& node,
                        ModelPath<DeviceDocumentPlugin>&& modelPath);
@@ -35,7 +35,7 @@ namespace DeviceExplorer
             protected:
                 ModelPath<DeviceDocumentPlugin> m_model;
                 iscore::Node m_node;
-                NodePath m_parentPath;
+                iscore::NodePath m_parentPath;
                 int m_row{};
         };
     }

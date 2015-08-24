@@ -9,6 +9,7 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/VariantBasedNode.hpp>
 
+#include <iscore/tools/TreePath.hpp>
 namespace iscore
 {
 
@@ -48,9 +49,11 @@ class DeviceExplorerNode : public VariantBasedNode<
 };
 
 using Node = TreeNode<DeviceExplorerNode>;
+using NodePath = TreePath<iscore::Node>;
 
 iscore::Address address(const Node& treeNode);
 
 Node* try_getNodeFromString(Node* n, QStringList&& str);
 Node* getNodeFromString(Node* n, QStringList&& str); // Fails if not present.
 }
+

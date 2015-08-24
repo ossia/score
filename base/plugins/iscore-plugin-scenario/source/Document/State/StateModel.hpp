@@ -64,6 +64,7 @@ class StateModel : public IdentifiedObject<StateModel>
 
     signals:
         void statesReplaced();
+        // Faire un abstract item model de state
         void stateAdded(const iscore::State&);
         void stateRemoved(const iscore::State&);
         void heightPercentageChanged();

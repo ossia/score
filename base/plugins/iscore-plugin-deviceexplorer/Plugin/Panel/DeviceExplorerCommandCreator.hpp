@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <DeviceExplorer/NodePath.hpp>
+
 #include "DeviceExplorerModel.hpp"
 
 #include <QStack>

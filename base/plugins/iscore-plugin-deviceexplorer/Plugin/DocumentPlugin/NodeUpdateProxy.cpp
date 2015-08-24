@@ -1,7 +1,7 @@
 #include "NodeUpdateProxy.hpp"
 #include "DeviceDocumentPlugin.hpp"
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
-#include <DeviceExplorer/NodePath.hpp>
+
 #include <boost/range/algorithm/find_if.hpp>
 
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
@@ -84,7 +84,7 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
 }
 
 void NodeUpdateProxy::addAddress(
-        const NodePath& parentPath,
+        const iscore::NodePath& parentPath,
         const iscore::AddressSettings& settings)
 {
     auto parentnode = parentPath.toNode(&m_devModel.rootNode());
@@ -119,7 +119,7 @@ void NodeUpdateProxy::addAddress(
 }
 
 void NodeUpdateProxy::updateAddress(
-        const NodePath &nodePath,
+        const iscore::NodePath &nodePath,
         const iscore::AddressSettings &settings)
 {
     auto node = nodePath.toNode(&m_devModel.rootNode());
@@ -149,7 +149,7 @@ void NodeUpdateProxy::updateAddress(
 }
 
 void NodeUpdateProxy::removeAddress(
-        const NodePath& parentPath,
+        const iscore::NodePath& parentPath,
         const iscore::AddressSettings& settings)
 {
     iscore::Node* parentnode = parentPath.toNode(&m_devModel.rootNode());

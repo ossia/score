@@ -4,7 +4,7 @@ using namespace DeviceExplorer::Command;
 
 EditData::EditData(
         ObjectPath &&device_tree,
-        const NodePath& nodePath,
+        const iscore::NodePath& nodePath,
         DeviceExplorerModel::Column column,
         const QVariant& value,
         int role):

@@ -2,7 +2,9 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
-#include <DeviceExplorer/NodePath.hpp>
+
+#include <DeviceExplorer/Node/Node.hpp>
+
 
 class DeviceDocumentPlugin;
 
@@ -17,7 +19,7 @@ class UpdateAddressSettings : public iscore::SerializableCommand
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(UpdateAddressSettings)
           UpdateAddressSettings(
             ModelPath<DeviceDocumentPlugin>&& device_tree,
-            const NodePath &node,
+            const iscore::NodePath &node,
             const iscore::AddressSettings& parameters);
 
 
@@ -31,7 +33,7 @@ class UpdateAddressSettings : public iscore::SerializableCommand
     private:
         ModelPath<DeviceDocumentPlugin> m_devicesModel;
 
-        NodePath m_node;
+        iscore::NodePath m_node;
 
         iscore::AddressSettings m_oldParameters;
         iscore::AddressSettings m_newParameters;

@@ -4,7 +4,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
-#include "DeviceExplorer/NodePath.hpp"
+
 
 namespace DeviceExplorer
 {
@@ -16,8 +16,8 @@ namespace DeviceExplorer
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Move, "DeviceExplorerControl")
 
-                Move(const NodePath& srcParentPath, int srcRow, int count,
-                         const NodePath& dstParentPath, int dstRow,
+                Move(const iscore::NodePath& srcParentPath, int srcRow, int count,
+                         const iscore::NodePath& dstParentPath, int dstRow,
                          const QString& text,
                          ObjectPath&& tree_model);
 
@@ -31,8 +31,8 @@ namespace DeviceExplorer
 
             protected:
                 ObjectPath m_model{};
-                NodePath m_srcParentPath;
-                NodePath m_dstParentPath;
+                iscore::NodePath m_srcParentPath;
+                iscore::NodePath m_dstParentPath;
                 int m_srcRow{};
                 int m_dstRow{};
                 int m_count{};

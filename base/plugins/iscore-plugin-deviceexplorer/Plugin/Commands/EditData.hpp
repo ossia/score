@@ -3,7 +3,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
-#include "DeviceExplorer/NodePath.hpp"
+
 #include <DeviceExplorer/Node/Node.hpp>
 
 namespace DeviceExplorer
@@ -17,7 +17,7 @@ namespace DeviceExplorer
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
                 EditData(
                     ObjectPath&& device_tree,
-                    const NodePath& nodePath,
+                    const iscore::NodePath& nodePath,
                     DeviceExplorerModel::Column column,
                     const QVariant& value,
                     int role);
@@ -31,7 +31,7 @@ namespace DeviceExplorer
 
             private:
                 ObjectPath m_deviceTree;
-                NodePath m_nodePath;
+                iscore::NodePath m_nodePath;
                 DeviceExplorerModel::Column m_column;
                 QVariant m_oldValue;
                 QVariant m_newValue;

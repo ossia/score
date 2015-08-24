@@ -5,7 +5,7 @@
 
 #include "Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/Node/Node.hpp>
-#include "DeviceExplorer/NodePath.hpp"
+
 
 #include "Add/AddAddress.hpp"
 #include "Add/AddDevice.hpp"

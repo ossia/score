@@ -437,7 +437,7 @@ void DeviceExplorerWidget::edit()
         {
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     iscore::IDocument::safe_path(model()->deviceModel()),
-                    NodePath(*select),
+                    iscore::NodePath(*select),
                     m_addressDialog->getSettings()};
 
             m_cmdDispatcher->submitCommand(cmd);
@@ -601,7 +601,7 @@ DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
         m_cmdDispatcher->submitCommand(
                     new DeviceExplorer::Command::AddAddress{
                         iscore::IDocument::safe_path(model()->deviceModel()),
-                        NodePath{index},
+                        iscore::NodePath{index},
                         insert, addressSettings });
         updateActions();
     }

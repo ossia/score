@@ -5,7 +5,7 @@
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
 #include <DeviceExplorer/Node/Node.hpp>
-#include "DeviceExplorer/NodePath.hpp"
+
 
 namespace DeviceExplorer
 {
@@ -31,7 +31,7 @@ namespace DeviceExplorer
 
                 QList<
                     QPair<
-                        NodePath,
+                        iscore::NodePath,
                         QPair< // First is old, second is new
                             iscore::Value,
                             iscore::Value

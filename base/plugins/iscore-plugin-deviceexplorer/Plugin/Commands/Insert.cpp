@@ -5,7 +5,7 @@
 //using namespace DeviceExplorer::Command;
 //using namespace iscore;
 //Insert::Insert(
-//        const NodePath &parentPath,
+//        const iscore::NodePath &parentPath,
 //        int row,
 //        Node &&data,
 //        ModelPath<DeviceDocumentPlugin>&& modelPath):
@@ -33,7 +33,7 @@
 
 //}
 
-//void recurse_addAddress(const ObjectPath& model, const Node& n, NodePath nodePath)
+//void recurse_addAddress(const ObjectPath& model, const Node& n, iscore::NodePath nodePath)
 //{
 
 //    AddAddress addr{
@@ -65,7 +65,7 @@
 //        AddDevice dev{copy(m_model), m_node.get<DeviceSettings>()};
 //        dev.redo();
 
-//        NodePath p;
+//        iscore::NodePath p;
 //        p.append(dev.deviceRow());
 //        for(auto& child : m_node.children())
 //        {
