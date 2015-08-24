@@ -130,7 +130,7 @@ MessageWidget::MessageWidget(
         const CommandDispatcher<>& disp,
         QWidget* parent):
     QPushButton{mess.toString(), parent},
-    m_message{mess}
+    m_message(mess)
 {
     this->setFlat(true);
     connect(this, &QPushButton::clicked, this, &MessageWidget::on_clicked);

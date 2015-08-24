@@ -36,7 +36,7 @@ class bounded_symbol
         bounded_symbol(const Symbol& sym,
                        const Domain& dom):
             m_sym{sym},
-            m_dom{dom}
+            m_dom(dom)
         {
 
         }

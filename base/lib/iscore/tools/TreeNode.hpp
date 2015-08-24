@@ -9,8 +9,8 @@ struct InvisibleRootNodeTag{};
 template<typename DataType>
 class TreeNode : public DataType
 {
-        ISCORE_SERIALIZE_FRIENDS(TreeNode, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TreeNode, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(TreeNode<DataType>, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(TreeNode<DataType>, JSONObject)
 
     public:
         TreeNode():
