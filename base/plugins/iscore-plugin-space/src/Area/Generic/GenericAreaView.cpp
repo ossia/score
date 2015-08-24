@@ -1,5 +1,6 @@
 #include "GenericAreaView.hpp"
 #include <QDebug>
+#include <cmath>
 GenericAreaView::GenericAreaView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {
@@ -18,7 +19,7 @@ void GenericAreaView::updateRect(const QRectF& r)
 
 void GenericAreaView::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    QColor col = Qt::GlobalColor(std::abs(qrand() % 19));
+    QColor col = static_cast<Qt::GlobalColor>(std::abs((double)(qrand() % 19)));
     painter->setPen(col.darker());
     painter->setBrush(col);
 
