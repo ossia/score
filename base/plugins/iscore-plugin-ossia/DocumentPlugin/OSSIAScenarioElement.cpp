@@ -122,53 +122,31 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
 
 void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 {
-    ISCORE_TODO;
-    /*
     Q_ASSERT(m_ossia_timeevents.find(iscore_state.eventId()) != m_ossia_timeevents.end());
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
     // Create the mapping object
-    auto state_elt = new OSSIAStateElement{iscore_state, this};
-    for(auto& st_val : iscore_state.states())
-    {
-        auto ossia_st = iscore::convert::state(st_val, m_deviceList);
-        ossia_ev->event()->addState(ossia_st);
+    auto root_state = iscore::convert::state(iscore_state.states().rootNode(), m_deviceList);
+    auto state_elt = new OSSIAStateElement{
+            iscore_state,
+            root_state,
+            this};
 
-        state_elt->addState(st_val, ossia_st);
-    }
+    ossia_ev->event()->addState(root_state);
 
-    connect(&iscore_state, &StateModel::stateAdded, this,
-            [=] (const iscore::State& st_val) {
-        auto ossia_st = iscore::convert::state(st_val, m_deviceList);
-        ossia_ev->event()->addState(ossia_st);
 
-        state_elt->addState(st_val, ossia_st);
+    connect(&iscore_state, &StateModel::statesUpdated, this,
+            [=] () {
+        // TODO optimize me
+        state_elt->rootState()->stateElements().clear();
+        for(auto& elt : state_elt->iscoreState().states().rootNode().children())
+        {
+            state_elt->rootState()->stateElements().push_back(iscore::convert::state(*elt, m_deviceList));
+        }
 
     } );
-    connect(&iscore_state, &StateModel::stateRemoved, this,
-            [=] (const iscore::State& st_val) {
-        ossia_ev->event()->removeState(state_elt->states().at(st_val));
-        state_elt->removeState(st_val);
-    });
-    connect(&iscore_state, &StateModel::statesReplaced, this,
-            [=] () {
-        for(auto& states : state_elt->states())
-        {
-            ossia_ev->event()->removeState(states.second);
-            state_elt->removeState(states.first);
-        }
-
-        for(auto& st_val : state_elt->iscoreState().states())
-        {
-            auto ossia_st = iscore::convert::state(st_val, m_deviceList);
-            ossia_ev->event()->addState(ossia_st);
-
-            state_elt->addState(st_val, ossia_st);
-        }
-    });
 
     m_ossia_states.insert({iscore_state.id(), state_elt});
-    */
 }
 
 void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)

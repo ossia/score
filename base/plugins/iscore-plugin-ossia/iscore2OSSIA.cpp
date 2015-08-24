@@ -302,7 +302,7 @@ std::shared_ptr<OSSIA::Message> message(const iscore::Message &mess, const Devic
     return {};
 }
 
-std::shared_ptr<OSSIA::State> state(const iscore::State &iscore_state,  const DeviceList& deviceList)
+std::shared_ptr<OSSIA::State> state(const iscore::State &iscore_state, const DeviceList& deviceList)
 {
     auto ossia_state = OSSIA::State::create();
 
@@ -333,6 +333,33 @@ std::shared_ptr<OSSIA::State> state(const iscore::State &iscore_state,  const De
     else
     {
         ISCORE_TODO;
+    }
+
+    return ossia_state;
+}
+
+
+std::shared_ptr<OSSIA::State> state(const iscore::StateNode &iscore_state, const DeviceList& deviceList)
+{
+    auto ossia_state = OSSIA::State::create();
+
+    auto& elts = ossia_state->stateElements();
+
+    if(iscore_state.is<MessageList>())
+    {
+        for(const auto& mess : iscore_state.get<MessageList>())
+        {
+            elts.push_back(message(mess, deviceList));
+        }
+    }
+    else
+    {
+        ISCORE_TODO;
+    }
+
+    for(const auto& child : iscore_state.children())
+    {
+        elts.push_back(state(*child, deviceList));
     }
 
     return ossia_state;

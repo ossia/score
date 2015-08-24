@@ -2,35 +2,15 @@
 #include <iscore/tools/Todo.hpp>
 
 // TODO TODO TODO TODO TODO
-OSSIAStateElement::OSSIAStateElement(
-        const StateModel &element,
+OSSIAStateElement::OSSIAStateElement(const StateModel &element, std::shared_ptr<OSSIA::State> root,
         QObject *parent):
     QObject{parent},
-    m_iscore_state{element}
+    m_iscore_state{element},
+    m_ossia_rootState{root}
 {
 }
 
 const StateModel &OSSIAStateElement::iscoreState() const
 {
     return m_iscore_state;
-}
-
-const OSSIAStateElement::StateMap& OSSIAStateElement::states() const
-{
-    return m_states;
-}
-
-
-void OSSIAStateElement::addState(const iscore::State& is, std::shared_ptr<OSSIA::State> os)
-{
-//    m_states.insert({is, os});
-}
-
-void OSSIAStateElement::removeState(const iscore::State& s)
-{
-    /*
-    auto it = m_states.find(s);
-    if(it != m_states.end())
-        m_states.erase(it);
-        */
 }

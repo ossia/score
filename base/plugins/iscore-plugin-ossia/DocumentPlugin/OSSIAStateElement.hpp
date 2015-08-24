@@ -13,18 +13,16 @@ namespace OSSIA
 class OSSIAStateElement : public QObject
 {
     public:
-        using StateMap = std::unordered_map<iscore::State, std::shared_ptr<OSSIA::State>, state_hash>;
         OSSIAStateElement(
                 const StateModel& element,
+                std::shared_ptr<OSSIA::State> root,
                 QObject* parent);
 
         const StateModel& iscoreState() const;
-        const StateMap &states() const;
+        std::shared_ptr<OSSIA::State> rootState() const { return m_ossia_rootState; }
 
-        void addState(const iscore::State& is, std::shared_ptr<OSSIA::State>);
-        void removeState(const iscore::State &);
 
     private:
-        StateMap m_states;
         const StateModel& m_iscore_state;
+        std::shared_ptr<OSSIA::State> m_ossia_rootState;
 };

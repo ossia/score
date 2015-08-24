@@ -85,7 +85,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list59<
+            boost::mpl::list60<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -93,7 +93,7 @@ void ScenarioControl::setupCommands()
             AddLayerModelToSlot,
             AddStateToStateModel,
             AssignMessagesToState,
-            //AddStateWithData,
+            AddStateWithData,
 
             ChangeElementColor<ConstraintModel>,
             ChangeElementColor<EventModel>,

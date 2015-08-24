@@ -22,10 +22,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
 
             for(const auto& state : selectedElements(sm->states()))
             {
-                for(auto& ossia_state : s_plugin->states().at(state->id())->states())
-                {
-                    ossia_state.second->launch();
-                }
+                s_plugin->states().at(state->id())->rootState()->launch();
             }
         }
     });
