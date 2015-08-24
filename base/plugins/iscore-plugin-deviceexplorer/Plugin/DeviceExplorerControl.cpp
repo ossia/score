@@ -11,6 +11,8 @@
 #include "Commands/Remove.hpp"
 #include "Commands/ReplaceDevice.hpp"
 #include "Commands/UpdateAddresses.hpp"
+#include "Commands/Update/UpdateAddressSettings.hpp"
+#include "Commands/Update/UpdateDeviceSettings.hpp"
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
@@ -39,6 +41,8 @@ void DeviceExplorerControl::setupCommands()
             AddAddress,
             AddDevice,
             LoadDevice,
+            UpdateAddressSettings,
+            UpdateDeviceSettings,
             Cut,
             EditData,
 //            Insert,
