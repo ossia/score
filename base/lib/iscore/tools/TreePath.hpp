@@ -103,3 +103,29 @@ class TreePath
     private:
         QList<int> m_path;
 };
+
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+template<typename T>
+void Visitor<Reader<DataStream>>::readFrom(const TreePath<T>& path)
+{
+    m_stream << static_cast<const QList<int>&>(path);
+}
+
+template<typename T>
+void Visitor<Writer<DataStream>>::writeTo(TreePath<T>& path)
+{
+    m_stream >> static_cast<QList<int>&>(path);
+}
+
+template<typename T>
+void Visitor<Reader<JSONObject>>::readFrom(const TreePath<T>& path)
+{
+    m_obj["Path"] = toJsonArray(static_cast<const QList<int>&>(path));
+}
+
+template<typename T>
+void Visitor<Writer<JSONObject>>::writeTo(TreePath<T>& path)
+{
+    fromJsonArray(m_obj["Path"].toArray(), static_cast<QList<int>&>(path));
+}

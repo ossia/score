@@ -27,6 +27,8 @@ class JSONObject
 
 template<class>
 class TreeNode;
+template<class>
+class TreePath;
 
 namespace eggs{
 namespace variants {
@@ -51,6 +53,8 @@ class Visitor<Reader<JSONObject>> : public AbstractVisitor
 
         template<typename T>
         void readFrom(const TreeNode<T>&);
+        template<typename T>
+        void readFrom(const TreePath<T>&);
 
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
@@ -90,6 +94,8 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
 
         template<typename T>
         void writeTo(TreeNode<T>&);
+        template<typename T>
+        void writeTo(TreePath<T>&);
 
         template<typename... Args>
         void writeTo(eggs::variants::variant<Args...>&);
