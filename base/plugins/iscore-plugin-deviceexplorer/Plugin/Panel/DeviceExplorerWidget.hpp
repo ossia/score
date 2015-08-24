@@ -65,7 +65,7 @@ class DeviceExplorerWidget : public QWidget
         void installStyleSheet();
         void populateColumnCBox();
 
-        void addAddress(DeviceExplorerModel::Insert insertType);
+        void addAddress(InsertMode insertType);
 
         virtual void contextMenuEvent(QContextMenuEvent* event) override;
 

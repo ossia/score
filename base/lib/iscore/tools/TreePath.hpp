@@ -1,15 +1,18 @@
 #pragma once
 #include <QList>
 #include <QModelIndex>
-
+#include <iscore/tools/InvisibleRootNode.hpp>
 template<typename T>
 using ref = T&;
 template<typename T>
 using cref = const T&;
 
+
+enum class InsertMode { AsSibling, AsChild };
+
+
 // Sadly we can't have a non-const interface
 // because of QList<Node*> in Node::children...
-
 template<typename T>
 class TreePath
 {

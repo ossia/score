@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iscore/command/AggregateCommand.hpp>
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateState.hpp"
@@ -9,18 +10,19 @@ namespace Scenario
     {
         class AddStateWithData: public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("AddStateWithData", "AddStateWithData")
+                ISCORE_COMMAND_DECL2("ScenarioControl", "AddStateWithData", "AddStateWithData")
             public:
                 AddStateWithData():
-                      AggregateCommand{"ScenarioControl",
+                      AggregateCommand{factoryName(),
                                        commandName(),
                                        description()} { }
 
-                AddStateWithData(const ScenarioModel& scenario,
+                AddStateWithData(
+                         const ScenarioModel& scenario,
                          const id_type<EventModel>& ev,
                          double ypos,
-                         iscore::State&& stateData) :
-                    AggregateCommand {"ScenarioControl",
+                         iscore::MessageList&& stateData) :
+                    AggregateCommand {factoryName(),
                                       commandName(),
                                       description()}
                 {
@@ -29,9 +31,14 @@ namespace Scenario
                     // We create the path of the to-be state
                     auto vecpath = createStateCmd->scenarioPath().vec();
                     vecpath.append({"StateModel", createStateCmd->createdState()});
+                    ModelPath<StateModel> modelpath{ObjectPath(std::move(vecpath)), {}};
 
                     addCommand(createStateCmd);
-                    addCommand(new AddStateToStateModel(ObjectPath(std::move(vecpath)), std::move(stateData)));
+                    addCommand(new AddStateToStateModel{
+                                   std::move(modelpath),
+                                   iscore::StatePath{QList<int>{0}},
+                                   iscore::StateData{std::move(stateData), "NewState_other"},
+                                   -1});
                 }
         };
     }

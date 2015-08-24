@@ -234,9 +234,7 @@ void EventInspectorWidget::updateDisplayedValues(
     {
         m_date->setText(QString::number(m_model->date().msec()));
 
-
         auto scenar = event->parentScenario();
-
         for(const auto& state : event->states())
         {
             addState(&scenar->state(state));
@@ -288,28 +286,7 @@ QVariant textToMessageValue(const QStringList& txt)
 }
 using namespace iscore::IDocument;
 using namespace Scenario;
-/*
-void EventInspectorWidget::on_addAddressClicked()
-{
-    auto txt = m_stateLineEdit->text();
-    auto split = txt.split(" ");
 
-    // TODO Wrong : we should have a Message validator instead.
-    // Or better, open a dialog to craft the Message by hand with different fields.
-    if(iscore::Address::validateString(split.first()))
-    {
-        iscore::Message m;
-        m.address = iscore::Address::fromString(split.first());
-        split.removeFirst();
-        m.value.val = textToMessageValue(split);
-
-        auto cmd = new Scenario::Command::AddStateToStateModel{path(m_model), iscore::State(m)};
-
-        emit commandDispatcher()->submitCommand(cmd);
-        m_stateLineEdit->clear();
-    }
-}
-*/
 void EventInspectorWidget::on_conditionChanged()
 {
     auto txt = m_conditionLineEdit->text();

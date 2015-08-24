@@ -18,7 +18,7 @@ namespace DeviceExplorer
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddAddress)
                 AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
                            const iscore::NodePath &nodePath,
-                           DeviceExplorerModel::Insert insert,
+                           InsertMode insert,
                            const iscore::AddressSettings& addressSettings);
 
                 virtual void undo() override;

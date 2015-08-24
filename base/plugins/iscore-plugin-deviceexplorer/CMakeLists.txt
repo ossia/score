@@ -22,7 +22,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/NodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/SingletonProtocolList.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/NodePathSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/DeviceExplorerInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Node/Node.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceInterface.cpp"
@@ -36,7 +35,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/FullAddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/NodePath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/XML/XMLDeviceLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddAddress.cpp"

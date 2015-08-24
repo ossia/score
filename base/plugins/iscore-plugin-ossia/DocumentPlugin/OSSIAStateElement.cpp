@@ -1,5 +1,7 @@
 #include "OSSIAStateElement.hpp"
 #include <iscore/tools/Todo.hpp>
+
+// TODO TODO TODO TODO TODO
 OSSIAStateElement::OSSIAStateElement(
         const StateModel &element,
         QObject *parent):
@@ -21,12 +23,14 @@ const OSSIAStateElement::StateMap& OSSIAStateElement::states() const
 
 void OSSIAStateElement::addState(const iscore::State& is, std::shared_ptr<OSSIA::State> os)
 {
-    m_states.insert({is, os});
+//    m_states.insert({is, os});
 }
 
 void OSSIAStateElement::removeState(const iscore::State& s)
 {
+    /*
     auto it = m_states.find(s);
     if(it != m_states.end())
         m_states.erase(it);
+        */
 }

@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 
 AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
                        const iscore::NodePath& nodePath,
-                       DeviceExplorerModel::Insert insert,
+                       InsertMode insert,
                        const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
@@ -18,11 +18,11 @@ AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
 
     iscore::Node* parentNode{};
     // DeviceExplorerWidget prevents adding a sibling on a Device
-    if (insert == DeviceExplorerModel::Insert::AsChild)
+    if (insert == InsertMode::AsChild)
     {
         parentNode = nodePath.toNode(&devplug.rootNode());
     }
-    else if (insert == DeviceExplorerModel::Insert::AsSibling)
+    else if (insert == InsertMode::AsSibling)
     {
         parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
     }

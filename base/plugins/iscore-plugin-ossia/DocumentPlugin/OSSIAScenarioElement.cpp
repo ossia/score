@@ -122,6 +122,8 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
 
 void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 {
+    ISCORE_TODO;
+    /*
     Q_ASSERT(m_ossia_timeevents.find(iscore_state.eventId()) != m_ossia_timeevents.end());
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
@@ -166,6 +168,7 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
     });
 
     m_ossia_states.insert({iscore_state.id(), state_elt});
+    */
 }
 
 void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
@@ -274,6 +277,8 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
 
 void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
 {
+    ISCORE_TODO;
+    /*
     auto it = m_ossia_states.find(id);
     Q_ASSERT(it != m_ossia_states.end());
     auto state_elt = (*it).second;
@@ -288,6 +293,7 @@ void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
 
     m_ossia_states.erase(it);
     delete state_elt;
+    */
 }
 
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)

@@ -1,4 +1,5 @@
 #pragma once
+/*
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <State/State.hpp>
@@ -7,6 +8,7 @@ namespace Scenario
 {
     namespace Command
     {
+        // TODO rename file
         class RemoveStateFromStateModel : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL("RemoveStateFromStateModel", "RemoveStateFromStateModel")
@@ -27,3 +29,4 @@ namespace Scenario
 
     }
 }
+*/

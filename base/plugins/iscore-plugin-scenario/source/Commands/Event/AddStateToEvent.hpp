@@ -1,19 +1,25 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <State/State.hpp>
 
+class StateModel;
 namespace Scenario
 {
     namespace Command
     {
+        // TODO rename file
         class AddStateToStateModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("AddStateToStateModel", "AddStateToStateModel")
+                ISCORE_COMMAND_DECL2("ScenarioControl", "AddStateToStateModel", "AddStateToStateModel")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddStateToStateModel, "ScenarioControl")
-                AddStateToStateModel(ObjectPath&& path, const iscore::State& state);
-                AddStateToStateModel(ObjectPath&& path, iscore::State&& state);
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddStateToStateModel)
+                AddStateToStateModel(
+                    ModelPath<StateModel>&& path,
+                  const iscore::StatePath& parent_path,
+                        const iscore::StateNode& state,
+                        int posInParent);
+
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -22,8 +28,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
-                iscore::State m_state;
+                ModelPath<StateModel> m_path;
+
+                iscore::StatePath m_parentPath;
+                iscore::StateNode m_state;
+                int m_pos{};
         };
     }
 }

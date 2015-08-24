@@ -35,8 +35,10 @@ void ClearState::undo()
 
 void ClearState::redo()
 {
+    /*
     auto& state = m_path.find<StateModel>();
     state.replaceStates({});
+    */
 }
 
 void ClearState::serializeImpl(QDataStream& s) const

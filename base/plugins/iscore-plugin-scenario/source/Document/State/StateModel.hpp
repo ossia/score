@@ -10,6 +10,8 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
 
+#include <State/StateItemModel.hpp>
+
 #include "StateView.hpp"
 
 class ConstraintView;
@@ -17,6 +19,7 @@ class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
 
+// Model for the graphical state in a scenario.
 class StateModel : public IdentifiedObject<StateModel>
 {
         Q_OBJECT
@@ -28,14 +31,14 @@ class StateModel : public IdentifiedObject<StateModel>
         ModelMetadata metadata; // TODO : usefull ?
 
         StateModel(const id_type<StateModel>& id,
-                            const id_type<EventModel>& eventId,
-                            double yPos,
-                            QObject* parent);
+                   const id_type<EventModel>& eventId,
+                   double yPos,
+                   QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
-                            const id_type<StateModel>&,
-                            QObject* parent);
+                   const id_type<StateModel>&,
+                   QObject* parent);
 
         // Load
         template<typename DeserializerVisitor,
@@ -50,10 +53,8 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double heightPercentage() const;
 
-        const iscore::StateList& states() const;
-        void replaceStates(const iscore::StateList& newStates);
-        void addState(const iscore::State& s);
-        void removeState(const iscore::State& s);
+        const iscore::StateItemModel &states() const;
+        iscore::StateItemModel &states();
 
         const id_type<EventModel>& eventId() const;
 
@@ -63,10 +64,7 @@ class StateModel : public IdentifiedObject<StateModel>
         void setPreviousConstraint(const id_type<ConstraintModel>&);
 
     signals:
-        void statesReplaced();
-        // Faire un abstract item model de state
-        void stateAdded(const iscore::State&);
-        void stateRemoved(const iscore::State&);
+        void statesUpdated();
         void heightPercentageChanged();
 
     public slots:
@@ -81,8 +79,6 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double m_heightPercentage{0.5}; // In the whole scenario
 
-        iscore::StateList m_states;
+        iscore::StateItemModel m_itemModel;
 };
-
-using DisplayedStateList = QList<StateModel>;
 

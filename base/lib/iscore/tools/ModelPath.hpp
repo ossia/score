@@ -15,6 +15,7 @@ ModelPath<T> safe_path(const T& obj);
 }
 }
 
+// A typesafe path to a model object in a Document.
 template<typename Object>
 class ModelPath
 {
@@ -39,6 +40,12 @@ class ModelPath
         friend ModelPath<T> iscore::IDocument::safe_path(const T& obj);
 
     public:
+        // Use this if it is not possible to get a path
+        // (for instance because the object does not exist yet)
+        struct UnsafeDynamicCreation{};
+        ModelPath(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
+        ModelPath(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
+
         ModelPath() = default;
         ModelPath(const ModelPath&) = default;
         ModelPath(ModelPath&&) = default;

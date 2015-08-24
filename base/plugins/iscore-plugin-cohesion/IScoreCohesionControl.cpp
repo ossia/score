@@ -145,6 +145,8 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 #include <DeviceExplorer/Node/Node.hpp>
 void IScoreCohesionControl::interpolateStates()
 {
+    ISCORE_TODO;
+    /*
     using namespace std;
     // Fetch the selected constraints
     auto sel = currentDocument()->
@@ -229,11 +231,14 @@ void IScoreCohesionControl::interpolateStates()
     }
 
     macro.commit();
+    */
 }
 
 
 void IScoreCohesionControl::snapshotParametersInStates()
 {
+    ISCORE_TODO;
+    /*
     using namespace std;
     // Fetch the selected events
     auto sel = currentDocument()->
@@ -266,4 +271,5 @@ void IScoreCohesionControl::snapshotParametersInStates()
     }
 
     macro.commit();
+    */
 }

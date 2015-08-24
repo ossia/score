@@ -5,44 +5,45 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddStateToStateModel::AddStateToStateModel(ObjectPath&& statePath, const iscore::State &state) :
-    SerializableCommand {"ScenarioControl",
+AddStateToStateModel::AddStateToStateModel(
+        ModelPath<StateModel>&& path,
+        const iscore::StatePath& parent_path,
+        const iscore::StateNode& state,
+        int posInParent) :
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
-    m_path {std::move(statePath) },
-    m_state{state}
+    m_path{std::move(path)},
+    m_parentPath{parent_path},
+    m_state{state},
+    m_pos{posInParent}
 {
 
 }
 
-AddStateToStateModel::AddStateToStateModel(ObjectPath&& statePath, iscore::State &&state) :
-    SerializableCommand {"ScenarioControl",
-                         commandName(),
-                         description()},
-    m_path {std::move(statePath)},
-    m_state{std::move(state)}
-{
-
-}
 
 void AddStateToStateModel::undo()
 {
-    auto& state = m_path.find<StateModel>();
-    state.removeState(m_state);
+    auto& stateModel = m_path.find();
+    auto parent = m_parentPath.toNode(&stateModel.states().rootNode());
+    stateModel.states().removeState(parent->childAt(m_pos));
 }
 
 void AddStateToStateModel::redo()
 {
-    auto& state = m_path.find<StateModel>();
-    state.addState(m_state);
+    auto& stateModel = m_path.find();
+    auto parent = m_parentPath.toNode(&stateModel.states().rootNode());
+    stateModel.states().addState(parent,
+                                 new StateNode{m_state},
+                                 m_pos);
 }
 
 void AddStateToStateModel::serializeImpl(QDataStream& s) const
 {
-    // TODO s << m_path << m_state;
+    s << m_path << m_parentPath << m_state << m_pos;
 }
 
 void AddStateToStateModel::deserializeImpl(QDataStream& s)
 {
-    // TODO s >> m_path >> m_state;
+    s >> m_path >> m_parentPath >> m_state >> m_pos;
 }

@@ -1,4 +1,4 @@
-#include "RemoveStateFromEvent.hpp"
+/*#include "RemoveStateFromEvent.hpp"
 
 #include "Document/Event/EventModel.hpp"
 
@@ -17,14 +17,14 @@ RemoveStateFromStateModel::RemoveStateFromStateModel(ObjectPath &&statePath, con
 
 void RemoveStateFromStateModel::undo()
 {
-    auto& st = m_path.find<StateModel>();
-    st.addState(m_state);
+//    auto& st = m_path.find<StateModel>();
+//    st.addState(m_state);
 }
 
 void RemoveStateFromStateModel::redo()
 {
-    auto& st = m_path.find<StateModel>();
-    st.removeState(m_state);
+//    auto& st = m_path.find<StateModel>();
+//    st.removeState(m_state);
 }
 
 void RemoveStateFromStateModel::serializeImpl(QDataStream& s) const
@@ -36,3 +36,4 @@ void RemoveStateFromStateModel::deserializeImpl(QDataStream& s)
 {
     // TODO s >> m_path >> m_state;
 }
+*/

@@ -89,26 +89,24 @@ void EventPresenter::triggerSetted(QString trig)
 
 void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
 {
-    /* TODO
     // We don't want to create a new state in BaseScenario
     auto scenar = dynamic_cast<ScenarioModel*>(m_model.parentScenario());
     // todo Maybe the drop should be handled by the scenario presenter ?? or not
 
     // If the mime data has states in it we can handle it.
-    if(scenar && mime->formats().contains(iscore::mime::state()))
+    if(scenar && mime->formats().contains(iscore::mime::messagelist()))
     {
         Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::state())).object()};
-        iscore::State s;
-        deser.writeTo(s);
+            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
+        iscore::MessageList ml;
+        deser.writeTo(ml);
 
         auto cmd = new Scenario::Command::AddStateWithData{
                 *scenar,
                 m_model.id(),
                 pos.y() / m_view->parentItem()->boundingRect().size().height(),
-                std::move(s)};
+                std::move(ml)};
         m_dispatcher.submitCommand(cmd);
     }
-    */
 }
 

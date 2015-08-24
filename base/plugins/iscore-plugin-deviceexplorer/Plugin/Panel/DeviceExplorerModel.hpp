@@ -38,8 +38,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         friend class DeviceExplorerCommandCreator;
 
     public:
-
-        enum class Insert {AsSibling, AsChild};
         enum class Column : int
         {
             Name = 0,

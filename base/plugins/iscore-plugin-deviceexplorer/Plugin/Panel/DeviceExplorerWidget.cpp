@@ -566,13 +566,13 @@ DeviceExplorerWidget::addDevice()
 void
 DeviceExplorerWidget::addChild()
 {
-    addAddress(DeviceExplorerModel::Insert::AsChild);
+    addAddress(InsertMode::AsChild);
 }
 
 void
 DeviceExplorerWidget::addSibling()
 {
-    addAddress(DeviceExplorerModel::Insert::AsSibling);
+    addAddress(InsertMode::AsSibling);
 }
 
 void DeviceExplorerWidget::removeNode()
@@ -583,7 +583,7 @@ void DeviceExplorerWidget::removeNode()
 }
 
 void
-DeviceExplorerWidget::addAddress(DeviceExplorerModel::Insert insert)
+DeviceExplorerWidget::addAddress(InsertMode insert)
 {
     if(! m_addressDialog)
     {

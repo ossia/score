@@ -363,14 +363,13 @@ void TemporalScenarioPresenter::updateAllElements()
 
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
-    /* TODO
     // If the mime data has states in it we can handle it.
-    if(mime->formats().contains(iscore::mime::state()))
+    if(mime->formats().contains(iscore::mime::messagelist()))
     {
         Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::state())).object()};
-        iscore::State s;
-        deser.writeTo(s);
+            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
+        iscore::MessageList ml;
+        deser.writeTo(ml);
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
@@ -384,14 +383,16 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         auto vecpath = cmd->scenarioPath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
+        ModelPath<StateModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
         auto cmd2 = new Scenario::Command::AddStateToStateModel{
-                   ObjectPath(std::move(vecpath)),
-                   std::move(s)};
+                   std::move(state_path),
+                   iscore::StatePath{QList<int>{0}}, // Make it child of the root node
+                   iscore::StateData(std::move(ml), "NewState"),
+                   -1};
         m.submitCommand(cmd2);
 
 
         m.commit();
     }
-    */
 }

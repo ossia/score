@@ -17,6 +17,14 @@ StateModel::StateModel(
     m_eventId{eventId},
     m_heightPercentage{yPos}
 {
+    connect(&m_itemModel, &QAbstractItemModel::dataChanged,
+            this, [&] () { emit statesUpdated(); });
+    connect(&m_itemModel, &QAbstractItemModel::rowsInserted,
+            this, [&] () { emit statesUpdated(); });
+    connect(&m_itemModel, &QAbstractItemModel::rowsMoved,
+            this, [&] () { emit statesUpdated(); });
+    connect(&m_itemModel, &QAbstractItemModel::rowsRemoved,
+            this, [&] () { emit statesUpdated(); });
 }
 
 StateModel::StateModel(
@@ -25,7 +33,7 @@ StateModel::StateModel(
         QObject *parent):
     StateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
-    m_states = source.states();
+    m_itemModel = source.m_itemModel;
 }
 
 const ScenarioInterface* StateModel::parentScenario() const
@@ -72,26 +80,12 @@ void StateModel::setPreviousConstraint(const id_type<ConstraintModel> & id)
 }
 
 
-const iscore::StateList& StateModel::states() const
+const iscore::StateItemModel& StateModel::states() const
 {
-    return m_states;
+    return m_itemModel;
 }
 
-void StateModel::replaceStates(const iscore::StateList& newStates)
+iscore::StateItemModel& StateModel::states()
 {
-    m_states = newStates;
-    emit statesReplaced();
+    return m_itemModel;
 }
-
-void StateModel::addState(const iscore::State &s)
-{
-    m_states.append(s);
-    emit stateAdded(s);
-}
-
-void StateModel::removeState(const iscore::State &s)
-{
-    m_states.removeOne(s);
-    emit stateRemoved(s);
-}
-

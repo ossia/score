@@ -15,7 +15,7 @@ Remove::Remove(
         m_cmd = new AddAddress{
                     std::move(device_tree),
                     iscore::NodePath{*node.parent()},
-                    DeviceExplorerModel::Insert::AsChild,
+                    InsertMode::AsChild,
                     node.get<iscore::AddressSettings>()};
     }
     else

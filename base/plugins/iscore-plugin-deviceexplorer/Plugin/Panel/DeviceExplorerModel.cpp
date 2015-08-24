@@ -419,13 +419,13 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             break;
 
         default :
-            assert(false);
-            return QString();
+            Q_ASSERT(false);
+            return {};
     }
 
 
 
-    return QVariant();
+    return {};
 }
 
 QVariant
@@ -439,7 +439,7 @@ DeviceExplorerModel::headerData(int section, Qt::Orientation orientation, int ro
         }
     }
 
-    return QVariant();
+    return {};
 }
 
 Qt::ItemFlags
@@ -928,9 +928,6 @@ DeviceExplorerModel::mimeTypes() const
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
-    ISCORE_TODO;
-    return nullptr;
-    /*
     // Algorithm :
     // If there is a single node, we drag it and its children with the full node data
     // If there are multiple nodes, we only drag the messages (not recursively)
@@ -960,10 +957,9 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
                 MessageList messages;
                 messages.push_back(DeviceExplorer::messageFromModelIndex(index));
 
-                State s{messages};
                 ser.m_obj = {};
-                ser.readFrom(s);
-                mimeData->setData(iscore::mime::state(),
+                ser.readFrom(messages);
+                mimeData->setData(iscore::mime::messagelist(),
                                   QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
             }
             return mimeData;
@@ -983,20 +979,17 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
         if(!messages.empty())
         {
             QMimeData* mimeData = new QMimeData;
-            State s{messages};
 
             Serializer<JSONObject> ser;
-            ser.readFrom(s);
+            ser.readFrom(messages);
 
-            mimeData->setData(iscore::mime::state(),
+            mimeData->setData(iscore::mime::messagelist(),
                               QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
             return mimeData;
         }
     }
     return nullptr;
-
-    */
 }
 
 

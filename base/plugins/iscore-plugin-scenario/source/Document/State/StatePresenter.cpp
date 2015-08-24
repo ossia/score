@@ -28,9 +28,8 @@ StatePresenter::StatePresenter(
     connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,               &StateView::changeColor);
 
-    connect(&m_model, &StateModel::stateAdded, this, &StatePresenter::updateStateView);
-    connect(&m_model, &StateModel::stateRemoved, this, &StatePresenter::updateStateView);
-    connect(&m_model, &StateModel::statesReplaced, this, &StatePresenter::updateStateView);
+    connect(&m_model, &StateModel::statesUpdated,
+            this, &StatePresenter::updateStateView);
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
@@ -74,25 +73,27 @@ bool StatePresenter::isSelected() const
 
 void StatePresenter::handleDrop(const QMimeData *mime)
 {
-    /* TODO
     // If the mime data has states in it we can handle it.
-    if(mime->formats().contains(iscore::mime::state()))
+    if(mime->formats().contains(iscore::mime::messagelist()))
     {
         Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::state())).object()};
-        iscore::State s;
-        deser.writeTo(s);
+            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
+        iscore::MessageList ml;
+        deser.writeTo(ml);
 
         auto cmd = new Scenario::Command::AddStateToStateModel{
-                iscore::IDocument::path(m_model),
-                std::move(s)};
+                   iscore::IDocument::safe_path(m_model),
+                   iscore::StatePath{QList<int>{0}}, // Make it child of the root node
+                   iscore::StateData(std::move(ml), "NewState"),
+                   -1};
+
         m_dispatcher.submitCommand(cmd);
     }
-    */
+
 }
 
 void StatePresenter::updateStateView()
 {
-    m_view->setContainMessage(!m_model.states().empty());
+    m_view->setContainMessage(!m_model.states().hasChildren({}));
 }
 

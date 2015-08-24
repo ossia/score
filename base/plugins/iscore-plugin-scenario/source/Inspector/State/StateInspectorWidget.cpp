@@ -17,17 +17,7 @@ StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *pa
     setParent(parent);
 
     // Connections
-    connect(m_model, &StateModel::stateAdded,
-            this, [&] (const iscore::State&)
-        { updateDisplayedValues(m_model); });
-
-    connect(m_model, &StateModel::stateRemoved,
-            this, [&] (const iscore::State&)
-        { updateDisplayedValues(m_model); });
-
-    connect(m_model, &StateModel::statesReplaced,
-            this, [&] ()
-        { updateDisplayedValues(m_model); });
+    // TODO connections not necessary since we'll have a tree widget, right ?
 
     updateDisplayedValues(object);
 }
@@ -85,7 +75,8 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 
     // State setup
     m_stateSection = new InspectorSectionWidget{"States", this};
-
+    ISCORE_TODO;
+    /*
     for(const auto& data_state : state->states())
     {
         auto widg = new StateWidget{data_state, *commandDispatcher(), this};
@@ -99,6 +90,6 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     }
     m_properties.push_back(m_stateSection);
 
-
+*/
     updateAreaLayout(m_properties);
 }

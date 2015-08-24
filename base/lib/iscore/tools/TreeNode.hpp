@@ -24,6 +24,12 @@ class TreeNode : public DataType
 
         }
 
+        TreeNode(DataType&& data):
+            DataType{std::move(data)}
+        {
+
+        }
+
         TreeNode(const DataType& data, TreeNode* parent):
             DataType{data},
             m_parent{parent}
