@@ -36,7 +36,7 @@ namespace Scenario
                     addCommand(createStateCmd);
                     addCommand(new AddStateToStateModel{
                                    std::move(modelpath),
-                                   iscore::StatePath{QList<int>{0}},
+                                   iscore::StatePath{},
                                    iscore::StateData{std::move(stateData), "NewState_other"},
                                    -1});
                 }

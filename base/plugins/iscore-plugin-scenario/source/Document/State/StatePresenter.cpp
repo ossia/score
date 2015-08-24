@@ -83,7 +83,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
 
         auto cmd = new Scenario::Command::AddStateToStateModel{
                    iscore::IDocument::safe_path(m_model),
-                   iscore::StatePath{QList<int>{0}}, // Make it child of the root node
+                   iscore::StatePath{}, // Make it child of the root node
                    iscore::StateData(std::move(ml), "NewState"),
                    -1};
 

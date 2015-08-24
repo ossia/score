@@ -22,6 +22,7 @@ StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *pa
     updateDisplayedValues(object);
 }
 
+#include <QTreeView>
 void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 {
     // Cleanup
@@ -75,6 +76,11 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 
     // State setup
     m_stateSection = new InspectorSectionWidget{"States", this};
+
+    auto tv = new QTreeView;
+    tv->setModel(const_cast<iscore::StateItemModel*>(&m_model->states()));
+    m_stateSection->addContent(tv);
+    m_properties.push_back(m_stateSection);
     ISCORE_TODO;
     /*
     for(const auto& data_state : state->states())

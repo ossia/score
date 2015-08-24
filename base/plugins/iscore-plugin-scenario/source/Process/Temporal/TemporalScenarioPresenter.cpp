@@ -387,7 +387,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         auto cmd2 = new Scenario::Command::AddStateToStateModel{
                    std::move(state_path),
-                   iscore::StatePath{QList<int>{0}}, // Make it child of the root node
+                   iscore::StatePath{}, // Make it child of the root node
                    iscore::StateData(std::move(ml), "NewState"),
                    -1};
         m.submitCommand(cmd2);
