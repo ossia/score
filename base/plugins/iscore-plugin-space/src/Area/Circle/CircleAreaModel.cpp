@@ -27,7 +27,7 @@ CircleAreaModel::CircleAreaModel(
         else if(syms[i].get_name() == "x0") x0 = syms[i];
         else if(syms[i].get_name() == "y0") y0 = syms[i];
         else if(syms[i].get_name() == "r") r = syms[i];
-        else Q_ASSERT(false);
+        else ISCORE_ABORT;
     }
     setSpaceMapping({{xv, space_vars[0].symbol()}, // xv -> x
                      {yv, space_vars[1].symbol()}}); // yv -> y

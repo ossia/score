@@ -31,7 +31,7 @@ void Group::addClient(id_type<Client> clt)
 void Group::removeClient(id_type<Client> clt)
 {
     auto it = std::find(std::begin(m_executingClients), std::end(m_executingClients), clt);
-    Q_ASSERT(it != std::end(m_executingClients));
+    ISCORE_ASSERT(it != std::end(m_executingClients));
 
     m_executingClients.erase(it);
     emit clientRemoved(clt);

@@ -40,7 +40,7 @@ Cut::undo()
         {
             index = parentIndex;
         }
-        Q_ASSERT(index.isValid());
+        ISCORE_ASSERT(index.isValid());
         result = model.pasteAfter_aux(index);
     }
 

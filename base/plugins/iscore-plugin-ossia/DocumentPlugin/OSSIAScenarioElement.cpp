@@ -92,9 +92,9 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
 {
     auto& cst = const_cast<ConstraintModel&>(const_constraint);
     // TODO have a ConstraintPlayAspect
-    Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.startState()).eventId()) != m_ossia_timeevents.end());
+    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.startState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.startState()).eventId());
-    Q_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
+    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create([=,iscore_constraint=&cst](
@@ -122,7 +122,7 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
 
 void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 {
-    Q_ASSERT(m_ossia_timeevents.find(iscore_state.eventId()) != m_ossia_timeevents.end());
+    ISCORE_ASSERT(m_ossia_timeevents.find(iscore_state.eventId()) != m_ossia_timeevents.end());
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
     // Create the mapping object
@@ -153,7 +153,7 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
 {
     // TODO have a EventPlayAspect too
     auto& ev = const_cast<EventModel&>(const_ev);
-    Q_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
+    ISCORE_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
     auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(),
@@ -258,7 +258,7 @@ void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
     ISCORE_TODO;
     /*
     auto it = m_ossia_states.find(id);
-    Q_ASSERT(it != m_ossia_states.end());
+    ISCORE_ASSERT(it != m_ossia_states.end());
     auto state_elt = (*it).second;
 
     auto ev_it = m_ossia_timeevents.find(m_iscore_scenario->state(id).eventId());
@@ -277,7 +277,7 @@ void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)
 {
     auto ev_it = m_ossia_timeevents.find(id);
-    Q_ASSERT(ev_it != m_ossia_timeevents.end());
+    ISCORE_ASSERT(ev_it != m_ossia_timeevents.end());
     OSSIAEventElement* ev = (*ev_it).second;
 
     auto tn_it = m_ossia_timenodes.find(m_iscore_scenario->event(id).timeNode());

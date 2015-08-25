@@ -248,7 +248,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(
 
 #if defined(ISCORE_DEBUG)
     qDebug() << "ALERT: Command" << parent_name << "::" << name << "could not be instantiated.";
-    Q_ASSERT(false);
+    ISCORE_ABORT;
 #else
     throw MissingCommandException(parent_name, name);
 #endif

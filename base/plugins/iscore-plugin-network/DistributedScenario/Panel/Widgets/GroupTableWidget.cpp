@@ -102,7 +102,7 @@ GroupTableCheckbox* GroupTableWidget::findCheckbox(int i,  id_type<Client> theCl
         }
     }
 
-    Q_ASSERT(false);
+    ISCORE_ABORT;
     return nullptr;
 }
 

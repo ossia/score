@@ -20,7 +20,7 @@ const DimensionModel& SpaceModel::dimension(const QString& name) const
                            m_dimensions.end(),
                            [&] (const DimensionModel& dim) { return dim.name() == name; });
 
-    Q_ASSERT(it != m_dimensions.end());
+    ISCORE_ASSERT(it != m_dimensions.end());
 
     return *it;
 }

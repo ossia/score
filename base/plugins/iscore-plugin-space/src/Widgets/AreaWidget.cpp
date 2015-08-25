@@ -75,9 +75,9 @@ void AreaWidget::setActiveArea(const AreaModel *area)
         for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
         {
             auto label = static_cast<QLabel*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::LabelRole)->widget());
-            Q_ASSERT(label);
+            ISCORE_ASSERT(label);
             auto cb = static_cast<QComboBox*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::FieldRole)->widget());
-            Q_ASSERT(cb);
+            ISCORE_ASSERT(cb);
 
             auto dim_map_it = std::find_if(dim_map.begin(), dim_map.end(),
                                            [&] (const auto& exp) { return GiNaC::ex_to<GiNaC::symbol>(exp.second).get_name() == label->text().toStdString(); });
@@ -108,9 +108,9 @@ void AreaWidget::setActiveArea(const AreaModel *area)
                 continue;
 
             auto label = qobject_cast<QLabel*>(widg);
-            Q_ASSERT(label);
+            ISCORE_ASSERT(label);
             auto param_widg = static_cast<ParameterWidget*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
-            Q_ASSERT(param_widg);
+            ISCORE_ASSERT(param_widg);
             param_widg->setEnabled(false);
 
             auto param_it = param_map.find(label->text());
@@ -198,9 +198,9 @@ void AreaWidget::validate()
     for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
     {
         auto label = static_cast<QLabel*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::LabelRole)->widget());
-        Q_ASSERT(label);
+        ISCORE_ASSERT(label);
         auto cb = static_cast<QComboBox*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::FieldRole)->widget());
-        Q_ASSERT(cb);
+        ISCORE_ASSERT(cb);
 
         if(cb->currentText() != "")
         {
@@ -222,9 +222,9 @@ void AreaWidget::validate()
             continue;
 
         auto label = qobject_cast<QLabel*>(widg);
-        Q_ASSERT(label);
+        ISCORE_ASSERT(label);
         auto param_widg = static_cast<ParameterWidget*>(m_paramMappingLayout->itemAt(param_i, QFormLayout::ItemRole::FieldRole)->widget());
-        Q_ASSERT(param_widg);
+        ISCORE_ASSERT(param_widg);
 
         if(!param_widg->isEnabled())
             continue;

@@ -17,7 +17,7 @@ void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
         return;
     }
 
-    Q_ASSERT(false);
+    ISCORE_ABORT;
 }
 
 template<typename TheClass>
@@ -36,7 +36,7 @@ TheClass& deserialize_dyn(const VisitorVariant& vis, TheClass& s)
             break;
         }
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
     }
 
     return s;
@@ -60,7 +60,7 @@ TheClass deserialize_dyn(const VisitorVariant& vis)
             break;
         }
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
     }
     return s;
 }
@@ -81,7 +81,7 @@ auto deserialize_dyn(const VisitorVariant& vis, Functor&& fun)
             break;
         }
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
             throw;
     }
 }

@@ -59,10 +59,10 @@ class MapBase
             auto item = map.find(id);
             if(item == map.end())
             {
-                // If the stack trace is unreadable, put a breakpoint here before the Q_ASSERT.
+                // If the stack trace is unreadable, put a breakpoint here before the ISCORE_ASSERT.
                 qDebug() << model_type::staticMetaObject.className() << id << "could not be found. Aborting.";
             }
-            Q_ASSERT(item != map.end());
+            ISCORE_ASSERT(item != map.end());
             return **item;
         }
 #else

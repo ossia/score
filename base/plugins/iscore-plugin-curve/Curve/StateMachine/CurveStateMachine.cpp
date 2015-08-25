@@ -148,7 +148,7 @@ void CurveStateMachine::changeTool(int state)
             break;
             */
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
             break;
     }
 }

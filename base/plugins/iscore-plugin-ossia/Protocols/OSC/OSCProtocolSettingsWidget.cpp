@@ -95,7 +95,7 @@ void
 OSCProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
 {
 /*
-    Q_ASSERT(settings.size() == 5);
+    ISCORE_ASSERT(settings.size() == 5);
 
     m_namespaceFilePathEdit->setText(settings.at(4));
 */

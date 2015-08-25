@@ -20,7 +20,7 @@ UpdateDeviceSettings::UpdateDeviceSettings(
                   [&] (const iscore::Node* n)
     { return n->get<AddressSettings>().name == name; });
 
-    Q_ASSERT(it != devplug.rootNode().children().end());
+    ISCORE_ASSERT(it != devplug.rootNode().children().end());
 
     m_oldParameters = (*it)->get<DeviceSettings>();
 }

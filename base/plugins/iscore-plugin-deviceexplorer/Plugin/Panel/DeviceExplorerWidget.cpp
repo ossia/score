@@ -289,8 +289,8 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 void
 DeviceExplorerWidget::populateColumnCBox()
 {
-    Q_ASSERT(model());
-    Q_ASSERT(m_columnCBox);
+    ISCORE_ASSERT(model());
+    ISCORE_ASSERT(m_columnCBox);
 
     QStringList columns = model()->getColumns();
     m_columnCBox->addItems(columns);
@@ -299,14 +299,14 @@ DeviceExplorerWidget::populateColumnCBox()
 void
 DeviceExplorerWidget::updateActions()
 {
-    Q_ASSERT(model());
+    ISCORE_ASSERT(model());
 
     if(! model()->isEmpty())
     {
 
         //TODO: choice for multi selection
 
-        Q_ASSERT(m_ntView);
+        ISCORE_ASSERT(m_ntView);
 
         QModelIndexList selection = m_ntView->selectedIndexes();
 
@@ -543,7 +543,7 @@ DeviceExplorerWidget::addDevice()
 
     if(code == QDialog::Accepted)
     {
-        Q_ASSERT(model());
+        ISCORE_ASSERT(model());
         auto deviceSettings = m_deviceDialog->getSettings();
         auto path = m_deviceDialog->getPath();
 
@@ -596,7 +596,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
     if(code == QDialog::Accepted)
     {
         const iscore::AddressSettings addressSettings = m_addressDialog->getSettings();
-        Q_ASSERT(model());
+        ISCORE_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
         m_cmdDispatcher->submitCommand(
                     new DeviceExplorer::Command::AddAddress{
@@ -611,7 +611,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
 void
 DeviceExplorerWidget::copy()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->copy();
     m_pasteAction->setEnabled(m_ntView->hasCut());   //updateActions(); //TODO???
 }
@@ -619,7 +619,7 @@ DeviceExplorerWidget::copy()
 void
 DeviceExplorerWidget::cut()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->cut();
     m_pasteAction->setEnabled(m_ntView->hasCut());   //updateActions(); //TODO???
 }
@@ -627,7 +627,7 @@ DeviceExplorerWidget::cut()
 void
 DeviceExplorerWidget::paste()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->paste();
     m_pasteAction->setEnabled(m_ntView->hasCut());   //updateActions(); //TODO???
 }
@@ -637,36 +637,36 @@ DeviceExplorerWidget::paste()
 void
 DeviceExplorerWidget::moveUp()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->moveUp();
 }
 
 void
 DeviceExplorerWidget::moveDown()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->moveDown();
 }
 
 void
 DeviceExplorerWidget::promote()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->promote();
 }
 
 void
 DeviceExplorerWidget::demote()
 {
-    Q_ASSERT(m_ntView);
+    ISCORE_ASSERT(m_ntView);
     m_ntView->demote();
 }
 
 void
 DeviceExplorerWidget::filterChanged()
 {
-    Q_ASSERT(m_proxyModel);
-    Q_ASSERT(m_nameLEdit);
+    ISCORE_ASSERT(m_proxyModel);
+    ISCORE_ASSERT(m_nameLEdit);
 
     QString pattern = m_nameLEdit->text();
     Qt::CaseSensitivity cs = Qt::CaseSensitive;

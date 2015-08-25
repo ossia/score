@@ -34,8 +34,8 @@ Address DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
     }
 
     boost::range::reverse(a.path);
-    Q_ASSERT(node);
-    Q_ASSERT(node->is<DeviceSettings>());
+    ISCORE_ASSERT(node);
+    ISCORE_ASSERT(node->is<DeviceSettings>());
     a.device = node->get<DeviceSettings>().name;
 
     return a;
@@ -48,7 +48,7 @@ Message DeviceExplorer::messageFromModelIndex(const QModelIndex& m)
     mess.address = addressFromModelIndex(m);
 
     auto node = static_cast<Node*>(m.internalPointer());
-    Q_ASSERT(!node->is<DeviceSettings>());
+    ISCORE_ASSERT(!node->is<DeviceSettings>());
 
     mess.value = node->get<iscore::AddressSettings>().value;
 

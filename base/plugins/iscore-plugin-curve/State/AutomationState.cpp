@@ -7,7 +7,7 @@ AutomationState::AutomationState(const AutomationModel* model, double watchedPoi
     ProcessStateDataInterface{model},
     m_point{watchedPoint}
 {
-    Q_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
+    ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
     connect(model, &AutomationModel::curveChanged,
             this, &ProcessStateDataInterface::stateChanged);

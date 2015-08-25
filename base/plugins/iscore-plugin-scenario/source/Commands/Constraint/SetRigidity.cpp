@@ -18,7 +18,7 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     // Also, min/max are indicative if rigid, they can still be set but won't be used.
     {
         auto& constraint = m_path.find<ConstraintModel>();
-        Q_ASSERT(constraint.isRigid() != rigid);
+        ISCORE_ASSERT(constraint.isRigid() != rigid);
 
         m_oldMinDuration = constraint.minDuration();
         m_oldMaxDuration = constraint.maxDuration();

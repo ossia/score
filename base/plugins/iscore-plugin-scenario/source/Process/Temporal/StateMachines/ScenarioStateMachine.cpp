@@ -26,7 +26,7 @@ ScenarioStateMachine::ScenarioStateMachine(
         const auto& controls = iscore::Application::instance().presenter()->pluginControls();
         auto it = std::find_if(controls.begin(), controls.end(),
                             [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
-        Q_ASSERT(it != controls.end());
+        ISCORE_ASSERT(it != controls.end());
         return static_cast<ScenarioControl*>(*it)->expandMode();
     }()}
 {
@@ -154,7 +154,7 @@ void ScenarioStateMachine::changeTool(int state)
         break;
 
     default:
-        Q_ASSERT(false);
+        ISCORE_ABORT;
         break;
     }
 }

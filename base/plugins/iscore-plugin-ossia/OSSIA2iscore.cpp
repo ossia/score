@@ -15,7 +15,7 @@ iscore::IOType ToIOType(OSSIA::Address::AccessMode t)
         case OSSIA::Address::AccessMode::BI:
             return iscore::IOType::InOut;
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
             return iscore::IOType::Invalid;
     }
 }
@@ -38,7 +38,7 @@ iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
             return iscore::ClipMode::Wrap;
             break;
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
             return static_cast<iscore::ClipMode>(-1);
     }
 }

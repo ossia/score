@@ -157,7 +157,7 @@ class MessageEditDialog : public QDialog
                     ISCORE_TODO;
                     break;
                 default:
-                    Q_ASSERT(false);
+                    ISCORE_ABORT;
             }
         }
 

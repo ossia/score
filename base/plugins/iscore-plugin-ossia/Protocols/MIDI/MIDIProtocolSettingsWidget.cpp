@@ -43,8 +43,8 @@ MIDIProtocolSettingsWidget::buildGUI()
 
 iscore::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {
-    Q_ASSERT(m_deviceCBox);
-    Q_ASSERT(m_inButton);
+    ISCORE_ASSERT(m_deviceCBox);
+    ISCORE_ASSERT(m_inButton);
 
     iscore::DeviceSettings s;
     MIDISpecificSettings midi;
@@ -62,7 +62,7 @@ void
 MIDIProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings)
 {
     /*
-    Q_ASSERT(settings.size() == 2);
+    ISCORE_ASSERT(settings.size() == 2);
 
     if(settings.at(1) == "In")
     {

@@ -83,12 +83,12 @@ OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
         auto it = boost::range::find_if(children,
                       [&] (const auto& ossia_node)
                     { return ossia_node->getName() == path[i].toStdString(); });
-        Q_ASSERT(it != children.end());
+        ISCORE_ASSERT(it != children.end());
 
         node = it->get();
     }
 
-    Q_ASSERT(node);
+    ISCORE_ASSERT(node);
     return node;
 }
 
@@ -171,7 +171,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
         {
             QVariantList tuple = data.value<QVariantList>();
             const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
-            Q_ASSERT(tuple.size() == (int)vec.size());
+            ISCORE_ASSERT(tuple.size() == (int)vec.size());
             for(int i = 0; i < (int)vec.size(); i++)
             {
                 updateOSSIAValue(tuple[i], *vec[i]);
@@ -255,7 +255,7 @@ OSSIA::Value* toValue(
             ISCORE_TODO;
             QVariantList tuple = data.value<QVariantList>();
             const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
-            Q_ASSERT(tuple.size() == (int)vec.size());
+            ISCORE_ASSERT(tuple.size() == (int)vec.size());
             for(int i = 0; i < (int)vec.size(); i++)
             {
                 updateOSSIAValue(tuple[i], *vec[i]);
@@ -283,7 +283,7 @@ OSSIA::Value* toValue(
 
 
     ISCORE_BREAKPOINT;
-    Q_ASSERT(false);
+    ISCORE_ABORT;
     return nullptr;
 }
 

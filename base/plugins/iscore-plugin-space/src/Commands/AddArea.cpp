@@ -42,7 +42,7 @@ void AddArea::redo()
     auto it = boost::range::find_if(facts,
                                     [&] (const AreaFactory* f) { return f->type() == m_areaType; });
 
-    Q_ASSERT(it != facts.end());
+    ISCORE_ASSERT(it != facts.end());
 
     auto ar = (*it)->makeModel(m_areaFormula, proc.space(), m_createdAreaId, &proc);
 
@@ -53,7 +53,7 @@ void AddArea::redo()
         auto sym_it = std::find_if(syms.begin(), syms.end(),
                                    [&] (const GiNaC::symbol& sym)
             { return sym.get_name() == m_dimensionToVarMap[dim].toStdString(); });
-        Q_ASSERT(sym_it != syms.end());
+        ISCORE_ASSERT(sym_it != syms.end());
 
         sym_map[*sym_it] = proc.space().dimension(dim).sym().symbol();
     }
@@ -64,7 +64,7 @@ void AddArea::redo()
     {
         auto sym_it = std::find_if(syms.begin(), syms.end(),
                                    [&] (const GiNaC::symbol& sym) { return sym.get_name() == elt.toStdString(); });
-        Q_ASSERT(sym_it != syms.end());
+        ISCORE_ASSERT(sym_it != syms.end());
 
         addr_map[elt] = {*sym_it, m_symbolToAddressMap[elt]};
     }

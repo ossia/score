@@ -62,7 +62,7 @@ void ClearConstraint::undo()
     for(const auto& cvmid : m_rackMappings.keys())
     {
         auto it = std::find(bit, eit, cvmid);
-        Q_ASSERT(it != eit);
+        ISCORE_ASSERT(it != eit);
         (*it)->showRack(m_rackMappings.value(cvmid));
     }
 }

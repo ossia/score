@@ -85,7 +85,7 @@ void Document::bindPanelPresenter(PanelPresenter* pres)
     {
         return model->panelId() == pres->panelId();
     });
-    Q_ASSERT(localmodel != end(model()->panels()));
+    ISCORE_ASSERT(localmodel != end(model()->panels()));
 
     pres->setModel(*localmodel);
 }

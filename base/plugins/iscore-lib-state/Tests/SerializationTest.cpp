@@ -41,7 +41,7 @@ class SerializationTest: public QObject
             State s3;
             jd.writeTo(s3);
 
-            Q_ASSERT(s3.data().canConvert<Message>());
+            ISCORE_ASSERT(s3.data().canConvert<Message>());
         }
 };
 

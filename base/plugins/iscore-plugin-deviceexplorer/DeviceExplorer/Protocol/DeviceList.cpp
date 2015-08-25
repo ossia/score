@@ -20,7 +20,7 @@ bool DeviceList::hasDevice(const QString &name) const
 DeviceInterface &DeviceList::device(const QString &name) const
 {
     auto it = get_device_iterator_by_name(name, m_devices);
-    Q_ASSERT(it != m_devices.cend());
+    ISCORE_ASSERT(it != m_devices.cend());
 
     return **it;
 }
@@ -33,7 +33,7 @@ void DeviceList::addDevice(DeviceInterface *dev)
 void DeviceList::removeDevice(const QString &name)
 {
     auto it = get_device_iterator_by_name(name, m_devices);
-    Q_ASSERT(it != m_devices.end());
+    ISCORE_ASSERT(it != m_devices.end());
 
     delete *it;
     m_devices.erase(it);

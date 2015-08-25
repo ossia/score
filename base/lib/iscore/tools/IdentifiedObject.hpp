@@ -48,7 +48,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
 template<typename model>
 std::size_t hash_value(const id_type<model>& id)
 {
-    Q_ASSERT(bool(id));
+    ISCORE_ASSERT(bool(id));
 
     return *id.val();
 }

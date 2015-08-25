@@ -64,11 +64,11 @@ iscore::AddressSettings AddressSettingsWidget::getCommonSettings() const
 void AddressSettingsWidget::setCommonSettings(const iscore::AddressSettings & settings)
 {
     const int ioTypeIndex = m_ioTypeCBox->findData((int)settings.ioType);
-    Q_ASSERT(ioTypeIndex != -1);
+    ISCORE_ASSERT(ioTypeIndex != -1);
     m_ioTypeCBox->setCurrentIndex(ioTypeIndex);
 
     const int clipModeIndex = m_clipModeCBox->findData((int)settings.clipMode);
-    Q_ASSERT(clipModeIndex != -1);
+    ISCORE_ASSERT(clipModeIndex != -1);
     m_clipModeCBox->setCurrentIndex(clipModeIndex);
 
     m_tagsEdit->addItems(settings.tags);

@@ -59,7 +59,7 @@ namespace iscore
                 else
                 {
                     qDebug() << Q_FUNC_INFO << "Warning : command" << name << "received, but it could not be read. Aborting.";
-                    Q_ASSERT(false);
+                    ISCORE_ABORT;
 
                     return nullptr;
                 }

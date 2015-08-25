@@ -15,7 +15,7 @@ bool Address::validateString(const QString &str)
 Address Address::fromString(const QString &str)
 {
     QStringList path = str.split("/");
-    Q_ASSERT(path.size() > 0);
+    ISCORE_ASSERT(path.size() > 0);
 
     auto device = path.first().remove(":");
     path.removeFirst(); // Remove the device.

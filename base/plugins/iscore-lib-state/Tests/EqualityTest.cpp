@@ -21,10 +21,10 @@ class EqualityTest: public QObject
             qRegisterMetaTypeStreamOperators<iscore::Value>();
             Message m;
             m.address = {"dada", {"bilou", "yadaa", "zoo"}};
-            Q_ASSERT(m == m);
+            ISCORE_ASSERT(m == m);
 
             m.value.val = 5.5;
-            Q_ASSERT(m == m);
+            ISCORE_ASSERT(m == m);
 
             MessageList l1;
             l1.push_back(m);
@@ -32,24 +32,24 @@ class EqualityTest: public QObject
             MessageList l2;
             l2.push_back(m);
 
-            Q_ASSERT(l1 == l2);
+            ISCORE_ASSERT(l1 == l2);
 
-            Q_ASSERT(!(l1 != l2));
+            ISCORE_ASSERT(!(l1 != l2));
             State s1 (l1);
             State s2 (l2);
-            Q_ASSERT (s1 == s2);
-            Q_ASSERT (!(s1 != s2));
+            ISCORE_ASSERT (s1 == s2);
+            ISCORE_ASSERT (!(s1 != s2));
 
             Message m2;
             m.address = {"dodo", {"a", "baba"}};
             m.value.val = 3;
-            Q_ASSERT(m != m2);
+            ISCORE_ASSERT(m != m2);
             MessageList l3;
             l3.push_back(m2);
-            Q_ASSERT(l3 != l2);
+            ISCORE_ASSERT(l3 != l2);
 
             State s3(l3);
-            Q_ASSERT(s2 != s3);
+            ISCORE_ASSERT(s2 != s3);
         }
 };
 

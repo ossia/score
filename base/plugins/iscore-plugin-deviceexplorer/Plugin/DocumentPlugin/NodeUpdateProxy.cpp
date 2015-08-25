@@ -92,7 +92,7 @@ void NodeUpdateProxy::addAddress(
     // Add in the device impl
     // Get the device node :
     auto dev_node = m_devModel.rootNode().childAt(parentPath.at(0));
-    Q_ASSERT(dev_node->is<iscore::DeviceSettings>());
+    ISCORE_ASSERT(dev_node->is<iscore::DeviceSettings>());
 
     // Make a full path
     iscore::FullAddressSettings full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
@@ -168,7 +168,7 @@ void NodeUpdateProxy::removeAddress(
     auto it = boost::range::find_if(
                   parentnode->children(),
                   [&] (const iscore::Node* n) { return n->get<iscore::AddressSettings>().name == settings.name; });
-    Q_ASSERT(it != parentnode->children().end());
+    ISCORE_ASSERT(it != parentnode->children().end());
     auto theNode = *it;
     if(m_deviceExplorer)
     {

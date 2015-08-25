@@ -192,7 +192,7 @@ void RemoveSelection::undo()
                                        maybeTimenodes.end(),
                                        event->timeNode());
 
-            // TODO why do we need to check for this ? Q_ASSERT sometime fails...
+            // TODO why do we need to check for this ? ISCORE_ASSERT sometime fails...
             if(to_delete != maybeTimenodes.end())
             {
                 delete *to_delete;
@@ -211,7 +211,7 @@ void RemoveSelection::undo()
             auto removed_timenode_it = std::find(maybeTimenodes.begin(),
                                                  maybeTimenodes.end(),
                                                  event->timeNode());
-            Q_ASSERT(removed_timenode_it != maybeTimenodes.end());
+            ISCORE_ASSERT(removed_timenode_it != maybeTimenodes.end());
             TimeNodeModel* timeNode = *removed_timenode_it;
 
             maybeTimenodes.erase(removed_timenode_it);

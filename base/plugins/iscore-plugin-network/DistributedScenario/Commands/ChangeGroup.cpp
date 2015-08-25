@@ -10,7 +10,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
         auto& plugs = cstr->pluginModelList.list();
         auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
-        Q_ASSERT(plug_it != plugs.end());
+        ISCORE_ASSERT(plug_it != plugs.end());
 
         return static_cast<GroupMetadata*>(*plug_it);
     }
@@ -19,12 +19,12 @@ GroupMetadata* getGroupMetadata(QObject* obj)
         auto& plugs = ev->pluginModelList->list();
         auto plug_it = find_if(plugs, [] (iscore::ElementPluginModel* elt)
         { return elt->metaObject()->className() == QString{"GroupMetadata"}; });
-        Q_ASSERT(plug_it != plugs.end());
+        ISCORE_ASSERT(plug_it != plugs.end());
 
         return static_cast<GroupMetadata*>(*plug_it);
     }
 
-    Q_ASSERT(false);
+    ISCORE_ABORT;
     return nullptr;
 }
 

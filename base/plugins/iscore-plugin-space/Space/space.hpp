@@ -66,7 +66,7 @@ using euclidean_space = dynamic_space<minmax_symbol>;
 template<int N, typename DynamicSpace>
 auto toStaticSpace(const DynamicSpace& s)
 {
-    Q_ASSERT(s.variables().size() == N);
+    ISCORE_ASSERT(s.variables().size() == N);
 
     std::array<typename DynamicSpace::symbol_type, N> arr;
     std::copy(begin(s.variables()), end(s.variables()), begin(arr));

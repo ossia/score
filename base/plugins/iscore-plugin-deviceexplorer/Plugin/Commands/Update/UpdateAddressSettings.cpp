@@ -16,7 +16,7 @@ UpdateAddressSettings::UpdateAddressSettings(
 {
     auto& devplug = m_devicesModel.find();
     auto n = m_node.toNode(&devplug.rootNode());
-    Q_ASSERT(n);
+    ISCORE_ASSERT(n);
 
     m_oldParameters = n->get<iscore::AddressSettings>();
 }

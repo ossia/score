@@ -1,6 +1,7 @@
 #pragma once
 #include <QString>
 #include <QVariant>
+#include <iscore/tools/Todo.hpp>
 
 namespace iscore {
 struct DeviceSettings

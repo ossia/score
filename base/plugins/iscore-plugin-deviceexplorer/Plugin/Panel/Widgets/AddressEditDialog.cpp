@@ -56,7 +56,7 @@ AddressEditDialog::buildGUI()
 
     if(m_valueTypeCBox->count() > 0)
     {
-        Q_ASSERT(m_valueTypeCBox->currentIndex() == 0);
+        ISCORE_ASSERT(m_valueTypeCBox->currentIndex() == 0);
         updateNodeWidget();
     }
 
@@ -66,7 +66,7 @@ AddressEditDialog::buildGUI()
 void
 AddressEditDialog::initAvailableValueTypes()
 {
-    Q_ASSERT(m_valueTypeCBox);
+    ISCORE_ASSERT(m_valueTypeCBox);
 
     m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
 
@@ -84,12 +84,12 @@ AddressEditDialog::initAvailableValueTypes()
 void
 AddressEditDialog::updateNodeWidget()
 {
-    Q_ASSERT(m_valueTypeCBox);
+    ISCORE_ASSERT(m_valueTypeCBox);
 
     if(m_addressWidget)
     {
-        Q_ASSERT(m_index < m_valueTypeCBox->count());
-        Q_ASSERT(m_index < m_previousSettings.count());
+        ISCORE_ASSERT(m_index < m_valueTypeCBox->count());
+        ISCORE_ASSERT(m_index < m_previousSettings.count());
 
         m_previousSettings[m_index] = m_addressWidget->getSettings();
         delete m_addressWidget;
@@ -182,8 +182,8 @@ AddressEditDialog::setSettings(const iscore::AddressSettings& settings)
     }
 
     const int index = m_valueTypeCBox->findText(type);
-    Q_ASSERT(index != -1);
-    Q_ASSERT(index < m_valueTypeCBox->count());
+    ISCORE_ASSERT(index != -1);
+    ISCORE_ASSERT(index < m_valueTypeCBox->count());
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
 
     m_addressWidget->setSettings(settings);

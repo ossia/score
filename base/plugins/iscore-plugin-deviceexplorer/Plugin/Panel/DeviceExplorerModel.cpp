@@ -98,13 +98,13 @@ Node* DeviceExplorerModel::addAddress(
         Node* parentNode,
         const iscore::AddressSettings &addressSettings)
 {
-    Q_ASSERT(parentNode);
-    Q_ASSERT(parentNode != &m_rootNode);
+    ISCORE_ASSERT(parentNode);
+    ISCORE_ASSERT(parentNode != &m_rootNode);
 
     int row = parentNode->childCount(); //insert as last child
 
     Node* grandparent = parentNode->parent();
-    Q_ASSERT(grandparent);
+    ISCORE_ASSERT(grandparent);
     int rowParent = grandparent->indexOfChild(parentNode);
     QModelIndex parentIndex = createIndex(rowParent, 0, parentNode);
 
@@ -120,8 +120,8 @@ Node* DeviceExplorerModel::addAddress(
 
 void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
 {
-    Q_ASSERT(parentNode);
-    Q_ASSERT(parentNode != &m_rootNode);
+    ISCORE_ASSERT(parentNode);
+    ISCORE_ASSERT(parentNode != &m_rootNode);
 
     if (row == -1)
     {
@@ -129,7 +129,7 @@ void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
     }
 
     Node* grandparent = parentNode->parent();
-    Q_ASSERT(grandparent);
+    ISCORE_ASSERT(grandparent);
     int rowParent = grandparent->indexOfChild(parentNode);
     QModelIndex parentIndex = createIndex(rowParent, 0, parentNode);
 
@@ -142,8 +142,8 @@ void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
 
 void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addressSettings)
 {
-    Q_ASSERT(node);
-    Q_ASSERT(node != &m_rootNode);
+    ISCORE_ASSERT(node);
+    ISCORE_ASSERT(node != &m_rootNode);
 
     node->set(addressSettings);
 
@@ -156,14 +156,14 @@ void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addre
 
 void DeviceExplorerModel::removeNode(Node* node)
 {
-    Q_ASSERT(node);
-    Q_ASSERT(node != &m_rootNode);
+    ISCORE_ASSERT(node);
+    ISCORE_ASSERT(node != &m_rootNode);
 
     Node* parent = node->parent();
 
-    Q_ASSERT(parent != &m_rootNode);
+    ISCORE_ASSERT(parent != &m_rootNode);
     Node* grandparent = parent->parent();
-    Q_ASSERT(grandparent);
+    ISCORE_ASSERT(grandparent);
     int rowParent = grandparent->indexOfChild(parent);
     QModelIndex parentIndex = createIndex(rowParent, 0, parent);
 
@@ -419,7 +419,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
             break;
 
         default :
-            Q_ASSERT(false);
+            ISCORE_ABORT;
             return {};
     }
 
@@ -636,7 +636,7 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
     }
 
     Node* n = nodeFromModelIndex(index);
-    Q_ASSERT(n);
+    ISCORE_ASSERT(n);
     return n->is<DeviceSettings>();
 }
 
@@ -663,7 +663,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
 
 
     Node* cutNode = nodeFromModelIndex(index);
-    Q_ASSERT(cutNode);
+    ISCORE_ASSERT(cutNode);
 
     const bool cutNodeIsDevice = cutNode->is<DeviceSettings>();
 
@@ -679,10 +679,10 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     m_lastCutNodeIsCopied = false;
 
     Node* parent = cutNode->parent();
-    Q_ASSERT(parent);
+    ISCORE_ASSERT(parent);
 
     int row = parent->indexOfChild(cutNode);
-    Q_ASSERT(row == index.row());
+    ISCORE_ASSERT(row == index.row());
 
     beginRemoveRows(index.parent(), row, row);
 
@@ -692,7 +692,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
             parent->takeChild(row);
 
 #ifndef QT_NO_DEBUG
-    Q_ASSERT(child == cutNode);
+    ISCORE_ASSERT(child == cutNode);
 #endif
 
     endRemoveRows();
@@ -708,7 +708,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     if(parent != &m_rootNode)
     {
         Node* grandParent = parent->parent();
-        Q_ASSERT(grandParent);
+        ISCORE_ASSERT(grandParent);
         return createIndex(grandParent->indexOfChild(parent), 0, parent);
     }
 
@@ -758,10 +758,10 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
     if(index.isValid())
     {
         Node* n = nodeFromModelIndex(index);
-        Q_ASSERT(n);
+        ISCORE_ASSERT(n);
 
         parent = n->parent();
-        Q_ASSERT(parent);
+        ISCORE_ASSERT(parent);
 
         parentIndex = index.parent();
 
@@ -770,12 +770,12 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
             //we can only paste devices at the top-level
             while(parent != &m_rootNode)
             {
-                Q_ASSERT(parent);
+                ISCORE_ASSERT(parent);
                 n = parent;
                 parent = parent->parent();
             }
 
-            Q_ASSERT(parent->indexOfChild(n) != -1);
+            ISCORE_ASSERT(parent->indexOfChild(n) != -1);
 
             parentIndex = QModelIndex(); //invalid on purpose
 
@@ -786,15 +786,15 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
     }
     else
     {
-        Q_ASSERT(! index.isValid() && cutNodeIsDevice);
+        ISCORE_ASSERT(! index.isValid() && cutNodeIsDevice);
         parent = &m_rootNode;
         row = m_rootNode.childCount();
         parentIndex = QModelIndex(); //invalid on purpose
     }
 
-    Q_ASSERT(parent);
+    ISCORE_ASSERT(parent);
 
-    Q_ASSERT(cutNode);
+    ISCORE_ASSERT(cutNode);
 
     beginInsertRows(parentIndex, row, row);
 
@@ -834,7 +834,7 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
     }
 
     Node* srcParent = nodeFromModelIndex(srcParentIndex);
-    Q_ASSERT(srcParent);
+    ISCORE_ASSERT(srcParent);
 
     if(srcRow + count > srcParent->childCount())
     {
@@ -849,7 +849,7 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
         //move up or down inside the same parent
 
         Node* parent = srcParent;
-        Q_ASSERT(parent);
+        ISCORE_ASSERT(parent);
 
         if(srcRow > dstRow)
         {
@@ -861,7 +861,7 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
         }
         else
         {
-            Q_ASSERT(srcRow < dstRow);
+            ISCORE_ASSERT(srcRow < dstRow);
 
             for(int i = 0; i < count; ++i)
             {
@@ -876,8 +876,8 @@ DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int
         //different parents
 
         Node* dstParent = nodeFromModelIndex(dstParentIndex);
-        Q_ASSERT(dstParent);
-        Q_ASSERT(dstParent != srcParent);
+        ISCORE_ASSERT(dstParent);
+        ISCORE_ASSERT(dstParent != srcParent);
 
         for(int i = 0; i < count; ++i)
         {
@@ -1025,7 +1025,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     }
     else
     {
-        Q_ASSERT(mimeData->hasFormat(iscore::mime::device()));
+        ISCORE_ASSERT(mimeData->hasFormat(iscore::mime::device()));
 
         if(parentNode != &m_rootNode)
         {
@@ -1078,8 +1078,8 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     }
     else
     {
-        Q_ASSERT(mimeData->hasFormat(iscore::mime::device()));
-        Q_ASSERT(mimeType == iscore::mime::device());
+        ISCORE_ASSERT(mimeData->hasFormat(iscore::mime::device()));
+        ISCORE_ASSERT(mimeType == iscore::mime::device());
     }
 
     if(parentNode)

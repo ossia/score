@@ -51,9 +51,9 @@ MinuitProtocolSettingsWidget::buildGUI()
 void
 MinuitProtocolSettingsWidget::setDefaults()
 {
-    Q_ASSERT(m_deviceNameEdit);
-    Q_ASSERT(m_portOutputSBox);
-    Q_ASSERT(m_localHostEdit);
+    ISCORE_ASSERT(m_deviceNameEdit);
+    ISCORE_ASSERT(m_portOutputSBox);
+    ISCORE_ASSERT(m_localHostEdit);
 
     m_deviceNameEdit->setText("MinuitDevice");
     m_portInputSBox->setValue(9998);
@@ -64,7 +64,7 @@ MinuitProtocolSettingsWidget::setDefaults()
 #include "MinuitSpecificSettings.hpp"
 iscore::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 {
-    Q_ASSERT(m_deviceNameEdit);
+    ISCORE_ASSERT(m_deviceNameEdit);
 
     iscore::DeviceSettings s;
     s.name = m_deviceNameEdit->text();

@@ -54,8 +54,8 @@ const StateNode *StateItemModel::nodeFromModelIndex(const QModelIndex &index) co
 
 void StateItemModel::addState(StateNode *parent, StateNode *node, int row)
 {
-    Q_ASSERT(parent);
-    Q_ASSERT(node);
+    ISCORE_ASSERT(parent);
+    ISCORE_ASSERT(node);
 
     if (row == -1)
     {
@@ -66,7 +66,7 @@ void StateItemModel::addState(StateNode *parent, StateNode *node, int row)
     if(parent != &m_rootNode)
     {
         auto grandparent = parent->parent();
-        Q_ASSERT(grandparent);
+        ISCORE_ASSERT(grandparent);
 
         rowParent = grandparent->indexOfChild(parent);
     }
@@ -80,16 +80,16 @@ void StateItemModel::addState(StateNode *parent, StateNode *node, int row)
 
 void StateItemModel::removeState(StateNode *node)
 {
-    Q_ASSERT(node);
+    ISCORE_ASSERT(node);
 
     auto parent = node->parent();
-    Q_ASSERT(parent);
+    ISCORE_ASSERT(parent);
 
     int rowParent = 0;
     if(parent != &m_rootNode)
     {
         auto grandparent = parent->parent();
-        Q_ASSERT(grandparent);
+        ISCORE_ASSERT(grandparent);
         rowParent = grandparent->indexOfChild(parent);
     }
 
@@ -106,10 +106,10 @@ void StateItemModel::removeState(StateNode *node)
 
 void StateItemModel::setStateData(StateNode* node, const MessageList& messages)
 {
-    Q_ASSERT(node);
+    ISCORE_ASSERT(node);
 
     auto parent = node->parent();
-    Q_ASSERT(parent);
+    ISCORE_ASSERT(parent);
 
     QModelIndex nodeIndex = createIndex(parent->indexOfChild(node), (int)Column::Messages, node);
     node->set(messages);
@@ -290,7 +290,7 @@ Qt::ItemFlags StateItemModel::flags(const QModelIndex &index) const
     if(index.isValid())
     {
         auto n = nodeFromModelIndex(index);
-        Q_ASSERT(n);
+        ISCORE_ASSERT(n);
 
         f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
         if(index.column() == (int) Column::Name)

@@ -67,7 +67,7 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         return vm->model().id() == constraintModelId;
     });
 
-    Q_ASSERT(it != end(m_constraints));
+    ISCORE_ASSERT(it != end(m_constraints));
     return **it;
 }
 
@@ -89,7 +89,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
         }
         else
         {
-           Q_ASSERT_X(false, "createConstraintViewModels", "missing identifier.");
+           ISCORE_ABORT;
         }
     }
 }

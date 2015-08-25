@@ -85,13 +85,13 @@ StateModel& BaseScenario::endState() const
 
 ConstraintModel &BaseScenario::constraint(const id_type<ConstraintModel> &constraintId) const
 {
-    Q_ASSERT(constraintId == m_constraint->id());
+    ISCORE_ASSERT(constraintId == m_constraint->id());
     return *m_constraint;
 }
 
 EventModel &BaseScenario::event(const id_type<EventModel> &id) const
 {
-    Q_ASSERT(id == m_startEvent->id() || id == m_endEvent->id());
+    ISCORE_ASSERT(id == m_startEvent->id() || id == m_endEvent->id());
     return id == m_startEvent->id()
             ? *m_startEvent
             : *m_endEvent;
@@ -99,7 +99,7 @@ EventModel &BaseScenario::event(const id_type<EventModel> &id) const
 
 TimeNodeModel &BaseScenario::timeNode(const id_type<TimeNodeModel> &id) const
 {
-    Q_ASSERT(id == m_startNode->id() || id == m_endNode->id());
+    ISCORE_ASSERT(id == m_startNode->id() || id == m_endNode->id());
     return id == m_startNode->id()
             ? *m_startNode
             : *m_endNode;
@@ -107,7 +107,7 @@ TimeNodeModel &BaseScenario::timeNode(const id_type<TimeNodeModel> &id) const
 
 StateModel &BaseScenario::state(const id_type<StateModel> &id) const
 {
-    Q_ASSERT(id == m_startState->id() || id == m_endState->id());
+    ISCORE_ASSERT(id == m_startState->id() || id == m_endState->id());
     return id == m_startState->id()
             ? *m_startState
             : *m_endState;

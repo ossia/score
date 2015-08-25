@@ -77,7 +77,7 @@ DeviceExplorerView::~DeviceExplorerView() //void DeviceExplorerView::closeEvent(
 void
 DeviceExplorerView::setInitialColumnsSizes()
 {
-    Q_ASSERT(model());
+    ISCORE_ASSERT(model());
 
     header()->resizeSection((int)DeviceExplorerModel::Column::Name, 220);
     header()->resizeSection((int)DeviceExplorerModel::Column::IOType, 36);
@@ -222,7 +222,7 @@ DeviceExplorerView::model() const
 void
 DeviceExplorerView::initActions()
 {
-    Q_ASSERT(model());
+    ISCORE_ASSERT(model());
     const int n = model()->columnCount();
     m_actions.reserve(n);
 
@@ -243,9 +243,9 @@ void
 DeviceExplorerView::columnVisibilityChanged(bool shown)
 {
     QAction* a = qobject_cast<QAction*> (sender());
-    Q_ASSERT(a);
+    ISCORE_ASSERT(a);
     const int ind = m_actions.indexOf(a);
-    Q_ASSERT(ind != -1);
+    ISCORE_ASSERT(ind != -1);
     setColumnHidden(ind, !shown);
 }
 
@@ -331,7 +331,7 @@ DeviceExplorerView::selectedIndexes() const
 bool
 DeviceExplorerView::hasCut() const
 {
-    Q_ASSERT(const_cast<DeviceExplorerView*>(this)->model());
+    ISCORE_ASSERT(const_cast<DeviceExplorerView*>(this)->model());
     return const_cast<DeviceExplorerView*>(this)->model()->hasCut();
 }
 
@@ -368,21 +368,21 @@ DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
 void
 DeviceExplorerView::copy()
 {
-    Q_ASSERT(model());
+    ISCORE_ASSERT(model());
     setSelectedIndex(model()->cmdCreator()->copy(selectedIndex()));
 }
 
 void
 DeviceExplorerView::cut()
 {
-    Q_ASSERT(model());
+    ISCORE_ASSERT(model());
     setSelectedIndex(model()->cmdCreator()->cut(selectedIndex()));
 }
 
 void
 DeviceExplorerView::paste()
 {
-    Q_ASSERT(model());
+    ISCORE_ASSERT(model());
     setSelectedIndex(model()->cmdCreator()->paste(selectedIndex()));
 }
 

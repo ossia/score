@@ -1,5 +1,5 @@
 #include "DeviceExplorerFilterProxyModel.hpp"
-
+#include <iscore/tools/Todo.hpp>
 
 DeviceExplorerFilterProxyModel::DeviceExplorerFilterProxyModel(QObject* parent)
     : QSortFilterProxyModel(parent),
@@ -63,7 +63,7 @@ DeviceExplorerFilterProxyModel::hasAcceptedChildren(int srcRow, const QModelInde
         return false;
     }
 
-    Q_ASSERT(index.model());
+    ISCORE_ASSERT(index.model());
     const int childCount = index.model()->rowCount(index);
 
     if(childCount == 0)

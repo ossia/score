@@ -36,7 +36,7 @@ bool DeviceExplorerNode::isEditable() const
 iscore::Node* getNodeFromString(iscore::Node* n, QStringList&& parts)
 {
     auto theN = try_getNodeFromString(n, std::move(parts));
-    Q_ASSERT(theN);
+    ISCORE_ASSERT(theN);
     return theN;
 }
 
@@ -67,7 +67,7 @@ Address address(const Node &treeNode)
         n = n->parent();
     }
 
-    Q_ASSERT(n->is<DeviceSettings>());
+    ISCORE_ASSERT(n->is<DeviceSettings>());
     addr.device = n->get<DeviceSettings>().name;
 
     return addr;

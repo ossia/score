@@ -104,22 +104,22 @@ class TreeNode : public DataType
 
         void insertChild(int index, TreeNode* n)
         {
-            Q_ASSERT(n);
+            ISCORE_ASSERT(n);
             n->m_parent = this;
             m_children.insert(index, n);
         }
 
         void addChild(TreeNode* n)
         {
-            Q_ASSERT(n);
+            ISCORE_ASSERT(n);
             n->m_parent = this;
             m_children.append(n);
         }
 
         void swapChildren(int oldIndex, int newIndex)
         {
-            Q_ASSERT(oldIndex < m_children.count());
-            Q_ASSERT(newIndex < m_children.count());
+            ISCORE_ASSERT(oldIndex < m_children.count());
+            ISCORE_ASSERT(newIndex < m_children.count());
 
             m_children.swap(oldIndex, newIndex);
         }
@@ -127,7 +127,7 @@ class TreeNode : public DataType
         TreeNode* takeChild(int index)
         {
             TreeNode* n = m_children.takeAt(index);
-            Q_ASSERT(n);
+            ISCORE_ASSERT(n);
             n->m_parent = 0;
             return n;
         }

@@ -59,7 +59,7 @@ void EditionTool::changeMode(int state)
             emit setSetSegmentState();
             break;
         default:
-            Q_ASSERT(false);
+            ISCORE_ABORT;
             break;
     }
 }
