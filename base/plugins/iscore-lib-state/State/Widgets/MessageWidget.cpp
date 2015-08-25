@@ -121,6 +121,9 @@ class MessageEditDialog : public QDialog
         }
 
         const iscore::Message& m_message;
+
+        //AddressEditWidget* m_addr{};
+
         QFormLayout* m_lay{};
         QComboBox* m_typeCombo{};
         ValueWrapper* m_val{};
@@ -134,7 +137,6 @@ MessageWidget::MessageWidget(
 {
     this->setFlat(true);
     connect(this, &QPushButton::clicked, this, &MessageWidget::on_clicked);
-
 }
 
 void MessageWidget::on_clicked()

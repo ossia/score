@@ -6,6 +6,7 @@ struct Address;
 }
 class AutomationModel;
 class QDoubleSpinBox;
+class AddressEditWidget;
 class AutomationInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
@@ -23,7 +24,7 @@ class AutomationInspectorWidget : public InspectorWidgetBase
         void on_maxValueChanged();
 
     private:
-        QLineEdit* m_lineEdit{};
+        AddressEditWidget* m_lineEdit{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
         const AutomationModel* m_model {};
 };

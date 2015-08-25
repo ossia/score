@@ -8,6 +8,7 @@
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/AddressEditWidget.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 
 #include <State/Widgets/AddressLineEdit.hpp>
@@ -46,18 +47,18 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     vec.push_back(widg);
 
     // LineEdit
-    m_lineEdit = new AddressLineEdit{this};
-    m_lineEdit->setText(m_model->address().toString());
-    connect(m_model, &AutomationModel::addressChanged,
-            this, [&] (const iscore::Address& addr) {
-       m_lineEdit->setText(addr.toString());
-    });
+    // If there is a DeviceExplorer in the current document, use it
+    // to make a widget.
+    auto deviceexplorer = iscore::IDocument::documentFromObject(automationModel)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
-    connect(m_lineEdit, &QLineEdit::editingFinished,
-            [=]()
-    {
-        on_addressChange(iscore::Address::fromString(m_lineEdit->text()));
-    });
+    m_lineEdit = new AddressEditWidget{deviceexplorer, this};
+
+    m_lineEdit->setAddress(m_model->address());
+    connect(m_model, &AutomationModel::addressChanged,
+            m_lineEdit, &AddressEditWidget::setAddress);
+
+    connect(m_lineEdit, &AddressEditWidget::addressChanged,
+            this, &AutomationInspectorWidget::on_addressChange);
 
     vlay->addWidget(m_lineEdit);
 
@@ -82,25 +83,6 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     connect(m_minsb, SIGNAL(editingFinished()), this, SLOT(on_minValueChanged()));
     connect(m_maxsb, SIGNAL(editingFinished()), this, SLOT(on_maxValueChanged()));
 
-    // If there is a DeviceExplorer in the current document, use it
-    // to make a widget.
-    auto deviceexplorer = iscore::IDocument::documentFromObject(automationModel)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    if(deviceexplorer)
-    {
-        // LineEdit completion
-        auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_lineEdit->setCompleter(completer);
-
-        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
-        connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const iscore::Address& addr)
-        {
-            m_lineEdit->setText(addr.toString());
-            on_addressChange(addr);
-        });
-
-        hlay->addWidget(pb);
-    }
 
     // Add it to a new slot
     auto display = new QPushButton{"~"};
