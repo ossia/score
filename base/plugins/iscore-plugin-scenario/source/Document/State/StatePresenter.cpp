@@ -94,6 +94,6 @@ void StatePresenter::handleDrop(const QMimeData *mime)
 
 void StatePresenter::updateStateView()
 {
-    m_view->setContainMessage(!m_model.states().hasChildren({}));
+    m_view->setContainMessage(m_model.states().rootNode().hasChildren());
 }
 
