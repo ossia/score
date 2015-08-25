@@ -104,6 +104,19 @@ void StateItemModel::removeState(StateNode *node)
     delete node;
 }
 
+void StateItemModel::setStateData(StateNode* node, const MessageList& messages)
+{
+    Q_ASSERT(node);
+
+    auto parent = node->parent();
+    Q_ASSERT(parent);
+
+    QModelIndex nodeIndex = createIndex(parent->indexOfChild(node), (int)Column::Messages, node);
+    node->set(messages);
+
+    emit dataChanged(nodeIndex, nodeIndex);
+}
+
 QModelIndex StateItemModel::index(int row,
                                   int column,
                                   const QModelIndex &parent) const

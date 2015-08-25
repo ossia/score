@@ -30,15 +30,17 @@ void AssignMessagesToState::undo()
     auto& state = m_path.find();
     auto statenode = m_statepath.toNode(&state.states().rootNode());
 
-    statenode->set(m_oldMessages);
+    state.states().setStateData(
+                m_statepath.toNode(&state.states().rootNode()),
+                m_oldMessages);
 }
 
 void AssignMessagesToState::redo()
 {
     auto& state = m_path.find();
-    auto statenode = m_statepath.toNode(&state.states().rootNode());
-
-    statenode->set(m_newMessages);
+    state.states().setStateData(
+                m_statepath.toNode(&state.states().rootNode()),
+                m_newMessages);
 }
 
 void AssignMessagesToState::serializeImpl(QDataStream& s) const

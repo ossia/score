@@ -39,6 +39,8 @@ class StateItemModel : public QAbstractItemModel
 
         void removeState(StateNode* node);
 
+        void setStateData(StateNode* node, const iscore::MessageList& messages);
+
         // AbstractItemModel interface
         QModelIndex index(int row, int column, const QModelIndex &parent) const override;
         QModelIndex parent(const QModelIndex &index) const override;

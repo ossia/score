@@ -241,6 +241,8 @@ OSSIA::Value* toValue(
             return createOSSIAValue(val.value<int>());
         case QMetaType::Type::Float:
             return createOSSIAValue(val.value<float>());
+        case QMetaType::Type::Double:
+            return createOSSIAValue((float)val.value<double>());
         case QMetaType::Type::Char:
             return createOSSIAValue(val.value<char>());
         case QMetaType::Type::QString:
@@ -279,6 +281,8 @@ OSSIA::Value* toValue(
             break;
     }
 
+
+    ISCORE_BREAKPOINT;
     Q_ASSERT(false);
     return nullptr;
 }
