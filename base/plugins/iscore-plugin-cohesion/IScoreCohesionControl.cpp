@@ -12,6 +12,7 @@
 
 // TODO Refactor in order to use the Node data structure instead.
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
+#include <DeviceExplorer/Node/Node.hpp>
 
 #include "Commands/CreateStatesFromParametersInEvents.hpp"
 
@@ -24,6 +25,9 @@
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QKeySequence>
 #include <iscore/command/CommandGeneratorMap.hpp>
+
+#include <core/document/DocumentModel.hpp>
+#include <QToolBar>
 
 using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
@@ -70,7 +74,6 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
                                        m_interp);
 }
 
-#include <QToolBar>
 QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
@@ -104,7 +107,6 @@ SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString
     return PluginControlInterface::instantiateUndoCommand<IScoreionCohesionCommandFactory>(name, data);
 }
 
-#include <core/document/DocumentModel.hpp>
 void IScoreCohesionControl::createCurvesFromAddresses()
 {
     using namespace std;
@@ -142,7 +144,6 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     macro.commit();
 }
 
-#include <DeviceExplorer/Node/Node.hpp>
 void IScoreCohesionControl::interpolateStates()
 {
     ISCORE_TODO;
@@ -226,8 +227,6 @@ void IScoreCohesionControl::interpolateStates()
                 macro.submitCommand(cmd);
             }
         }
-
-
     }
 
     macro.commit();
@@ -237,8 +236,6 @@ void IScoreCohesionControl::interpolateStates()
 
 void IScoreCohesionControl::snapshotParametersInStates()
 {
-    ISCORE_TODO;
-    /*
     using namespace std;
     // Fetch the selected events
     auto sel = currentDocument()->
@@ -248,9 +245,9 @@ void IScoreCohesionControl::snapshotParametersInStates()
     QList<const StateModel*> selected_states;
     for(auto obj : sel)
     {
-        if(auto ev = dynamic_cast<const StateModel*>(obj))
-            if(ev->selection.get()) // TODO this should not be necessary?
-                selected_states.push_back(ev);
+        if(auto st = dynamic_cast<const StateModel*>(obj))
+            if(st->selection.get()) // TODO this should not be necessary?
+                selected_states.push_back(st);
     }
 
     // Fetch the selected DeviceExplorer elements
@@ -266,10 +263,12 @@ void IScoreCohesionControl::snapshotParametersInStates()
     for(auto& state : selected_states)
     {
         auto cmd = new Scenario::Command::AddStateToStateModel{
-                              iscore::IDocument::path(state), iscore::State(messages)};
+                   iscore::IDocument::safe_path(*state),
+                   iscore::StatePath{}, // Make it child of the root node
+                   iscore::StateData(std::move(messages), "NewState"),
+                   -1};
         macro.submitCommand(cmd);
     }
 
     macro.commit();
-    */
 }
