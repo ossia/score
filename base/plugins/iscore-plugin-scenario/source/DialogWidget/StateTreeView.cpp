@@ -1,6 +1,17 @@
 #include "StateTreeView.hpp"
 
-#include <State/Widgets/MessageWidget.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/MessageWidget.hpp>
+#include <State/StateItemModel.hpp>
+StateTreeView::StateTreeView(
+        iscore::StateItemModel* model,
+        DeviceExplorerModel* devexplorer,
+        QWidget* parent):
+    QTreeView{parent},
+    m_devExplorer{devexplorer}
+{
+    this->setModel(model);
+}
+
 void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 {
     QTreeView::mouseDoubleClickEvent(ev);
@@ -12,9 +23,8 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 
     if(node->is<iscore::MessageList>())
     {
-        MessageListEditor ed(node->get<iscore::MessageList>(), this);
+        MessageListEditor ed(node->get<iscore::MessageList>(), m_devExplorer, this);
         int ret = ed.exec();
-
     }
 
 }

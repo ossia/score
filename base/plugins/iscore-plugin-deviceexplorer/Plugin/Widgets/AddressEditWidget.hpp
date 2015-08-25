@@ -11,10 +11,14 @@ class AddressEditWidget : public QWidget
 
         void setAddress(const iscore::Address& addr);
 
+        const iscore::Address& address() const
+        { return m_address; }
+
     signals:
         void addressChanged(const iscore::Address&);
 
     private:
         AddressLineEdit* m_lineEdit{};
+        iscore::Address m_address;
 
 };

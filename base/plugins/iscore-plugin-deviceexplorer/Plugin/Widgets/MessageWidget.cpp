@@ -8,7 +8,8 @@
 #include <QDialogButtonBox>
 #include <iscore/widgets/MarginLess.hpp>
 
-#include "Values/NumericValueWidget.hpp"
+#include <State/Widgets/Values/NumericValueWidget.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/AddressEditWidget.hpp>
 
 static void clearLayout(QLayout* layout)
 {
@@ -54,34 +55,44 @@ class ValueWrapper : public QWidget
 class MessageEditDialog : public QDialog
 {
     public:
-        MessageEditDialog(const iscore::Message& mess, QWidget* parent):
+        MessageEditDialog(const iscore::Message& mess, DeviceExplorerModel* model, QWidget* parent):
             QDialog{parent},
             m_message(mess)
         {
             m_lay = new QFormLayout;
             this->setLayout(m_lay);
 
+            m_addr = new AddressEditWidget{model, this};
+            m_addr->setAddress(mess.address);
+            m_lay->addWidget(m_addr);
+
             m_typeCombo = new QComboBox;
-            m_typeCombo->insertItems(0, {tr("None"), tr("Int"), tr("Float"), tr("Char"), tr("String"), tr("Bool"), tr("Tuple")});
+            connect(m_typeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+                    this, &MessageEditDialog::on_typeChanged);
 
             m_val = new ValueWrapper{this};
-            m_lay->addRow(tr("Address"), new QLabel{mess.address.toString()});
+            m_lay->addItem(new QSpacerItem(10, 10));
             m_lay->addRow(tr("Type"), m_typeCombo);
             m_lay->addRow(tr("Value"), m_val);
 
-            connect(m_typeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-                    this, &MessageEditDialog::on_typeChanged);
+
+            initTypeCombo();
 
             auto buttons = new QDialogButtonBox(QDialogButtonBox::StandardButton::Ok |
                                                 QDialogButtonBox::StandardButton::Cancel);
             connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
             connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-
             m_lay->addWidget(buttons);
         }
 
-        QVariant value()
+
+        const iscore::Address& address() const
+        {
+            return m_addr->address();
+        }
+
+        QVariant value() const
         {
             if(m_val && m_val->valueWidget())
                 return m_val->valueWidget()->value();
@@ -90,6 +101,36 @@ class MessageEditDialog : public QDialog
         }
 
     private:
+        void initTypeCombo()
+        {
+            m_typeCombo->insertItems(0, {tr("None"), tr("Int"), tr("Float"), tr("Char"), tr("String"), tr("Bool"), tr("Tuple")});
+
+            switch(QMetaType::Type(m_message.value.val.type()))
+            {
+                case QMetaType::Int:
+                    m_typeCombo->setCurrentIndex(1);
+                    break;
+                case QMetaType::Float:
+                    m_typeCombo->setCurrentIndex(2);
+                    break;
+                case QMetaType::Char:
+                    m_typeCombo->setCurrentIndex(3);
+                    break;
+                case QMetaType::QString:
+                    m_typeCombo->setCurrentIndex(4);
+                    break;
+                case QMetaType::Bool:
+                    m_typeCombo->setCurrentIndex(5);
+                    break;
+                case QMetaType::QVariantList:
+                    m_typeCombo->setCurrentIndex(6);
+                    break;
+                default:
+                    m_typeCombo->setCurrentIndex(0);
+                    break;
+            }
+        }
+
         void on_typeChanged(int t)
         {
             switch(t)
@@ -122,7 +163,7 @@ class MessageEditDialog : public QDialog
 
         const iscore::Message& m_message;
 
-        //AddressEditWidget* m_addr{};
+        AddressEditWidget* m_addr{};
 
         QFormLayout* m_lay{};
         QComboBox* m_typeCombo{};
@@ -131,8 +172,10 @@ class MessageEditDialog : public QDialog
 
 MessageWidget::MessageWidget(
         iscore::Message& mess,
+        DeviceExplorerModel* model,
         QWidget* parent):
     QPushButton{mess.toString(), parent},
+    m_model{model},
     m_message(mess)
 {
     this->setFlat(true);
@@ -141,25 +184,22 @@ MessageWidget::MessageWidget(
 
 void MessageWidget::on_clicked()
 {
-    MessageEditDialog dial(m_message, this);
+    MessageEditDialog dial(m_message, m_model, this);
     int res = dial.exec();
 
     if(res)
     {
         // Update message
-        // TODO update address too ?
-        // TODO address completer
+        m_message.address = dial.address();
         m_message.value.val = dial.value();
-    }
-    else
-    {
-        // Do nothing
 
+        this->setText(m_message.toString());
     }
 }
 
 MessageListEditor::MessageListEditor(
         const iscore::MessageList& m,
+        DeviceExplorerModel* model,
         QWidget* parent):
     m_messages{m}
 {
@@ -170,8 +210,10 @@ MessageListEditor::MessageListEditor(
     int i = 0;
     for(auto& mess : m_messages)
     {
-        messageListLayout->addWidget(new MessageWidget(mess, parent), i, 0);
-        messageListLayout->addWidget(new QPushButton(tr("Remove")), i, 1);
+        messageListLayout->addWidget(new MessageWidget{mess, model, parent}, i, 0);
+
+        auto removeButton = new QPushButton(tr("Remove"));
+        messageListLayout->addWidget(removeButton, i, 1);
         i++;
     }
 

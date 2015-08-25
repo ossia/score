@@ -6,7 +6,7 @@
 #include <QGridLayout>
 #include <QToolButton>
 #include <QLabel>
-#include "MessageWidget.hpp"
+//#include "MessageWidget.hpp"
 
 using namespace iscore;
 StateWidget::StateWidget(

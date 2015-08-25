@@ -6,6 +6,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include "Commands/Event/RemoveStateFromEvent.hpp"
 #include "Inspector/SelectionButton.hpp"
+#include <core/document/Document.hpp>
+#include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
@@ -77,8 +79,11 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     // State setup
     m_stateSection = new InspectorSectionWidget{"States", this};
 
-    auto tv = new StateTreeView;
-    tv->setModel(const_cast<iscore::StateItemModel*>(&m_model->states()));
+    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    auto tv = new StateTreeView(const_cast<iscore::StateItemModel*>(&m_model->states()),
+                                deviceexplorer,
+                                m_stateSection);
+
     m_stateSection->addContent(tv);
     m_properties.push_back(m_stateSection);
     ISCORE_TODO;

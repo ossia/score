@@ -99,6 +99,8 @@ static QVariantList convertJSonValueList(const QJsonArray& v)
                 break;
             }
             default:
+                ISCORE_TODO;
+                // TODO invalid case;
                 break;
         }
     }
@@ -106,9 +108,11 @@ static QVariantList convertJSonValueList(const QJsonArray& v)
     return arr;
 }
 
+struct invalid_t {};
 
 static const auto QVariantToJSonValue(
-        boost::fusion::make_map<int,float,bool,QString, char, QVariantList>(
+        boost::fusion::make_map<invalid_t, int,float,bool,QString, char, QVariantList>(
+            [] (const QVariant& v) { return QJsonValue{}; },
             [] (const QVariant& v) { return v.toInt(); },
             [] (const QVariant& v) { return v.toFloat(); },
             [] (const QVariant& v) { return v.toBool(); },
@@ -119,7 +123,8 @@ static const auto QVariantToJSonValue(
 );
 
 static const auto JSonValueToQVariant(
-        boost::fusion::make_map<int,float,bool,QString, char, QVariantList>(
+        boost::fusion::make_map<invalid_t, int,float,bool,QString, char, QVariantList>(
+            [] (const QJsonValue& v) { return QVariant{}; },
             [] (const QJsonValue& v) { return v.toInt(); },
             [] (const QJsonValue& v) { return (float)v.toDouble(); },
             [] (const QJsonValue& v) { return v.toBool(); },
@@ -134,7 +139,8 @@ static const std::map<
     std::function<QJsonValue(const QVariant&)>>
         QMetaType_QVariantToQJSonValue
 {
-    {QMetaType::Int, boost::fusion::at_key<int>(QVariantToJSonValue)},
+{QMetaType::UnknownType, boost::fusion::at_key<invalid_t>(QVariantToJSonValue)},
+{QMetaType::Int, boost::fusion::at_key<int>(QVariantToJSonValue)},
 {QMetaType::Float, boost::fusion::at_key<float>(QVariantToJSonValue)},
 {QMetaType::Bool, boost::fusion::at_key<bool>(QVariantToJSonValue)},
 {QMetaType::QString, boost::fusion::at_key<QString>(QVariantToJSonValue)},
@@ -148,7 +154,8 @@ static const std::map<
     std::function<QVariant(const QJsonValue&)>>
         QMetaType_QJSonValueToQVariant
 {
-    {QMetaType::Int, boost::fusion::at_key<int>(JSonValueToQVariant)},
+{QMetaType::UnknownType, boost::fusion::at_key<invalid_t>(JSonValueToQVariant)},
+{QMetaType::Int, boost::fusion::at_key<int>(JSonValueToQVariant)},
 {QMetaType::Float, boost::fusion::at_key<float>(JSonValueToQVariant)},
 {QMetaType::Bool, boost::fusion::at_key<bool>(JSonValueToQVariant)},
 {QMetaType::QString, boost::fusion::at_key<QString>(JSonValueToQVariant)},

@@ -13,7 +13,8 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
 
     connect(m_lineEdit, &QLineEdit::editingFinished,
             [&]() {
-        emit addressChanged(iscore::Address::fromString(m_lineEdit->text()));
+        m_address = iscore::Address::fromString(m_lineEdit->text());
+        emit addressChanged(m_address);
     });
 
     lay->addWidget(m_lineEdit);
@@ -27,7 +28,7 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
         connect(pb, &DeviceExplorerMenuButton::addressChosen,
                 this, [&] (const iscore::Address& addr)
         {
-            m_lineEdit->setText(addr.toString());
+            setAddress(addr);
             emit addressChanged(addr);
         });
 
@@ -39,5 +40,6 @@ AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent
 
 void AddressEditWidget::setAddress(const iscore::Address& addr)
 {
-    m_lineEdit->setText(addr.toString());
+    m_address = addr;
+    m_lineEdit->setText(m_address.toString());
 }
