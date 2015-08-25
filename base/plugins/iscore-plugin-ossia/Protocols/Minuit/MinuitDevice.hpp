@@ -1,7 +1,7 @@
 #pragma once
 #include "Protocols/OSSIADevice.hpp"
 #include "MinuitSpecificSettings.hpp"
-#include <API/Headers/Network/Protocol.h>
+#include <API/Headers/Network/Protocol/Minuit.h>
 #include <QThread>
 namespace OSSIA
 {

@@ -50,7 +50,6 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
                                    [&process](const LayerModel& lm)
             { return lm.processModel().id() == process.id(); });
 
-            beg_it != end_it;
             if(it == end_it)
             {
                 available_models += QString::number(*process.id().val());

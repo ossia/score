@@ -28,7 +28,6 @@ AssignMessagesToState::AssignMessagesToState(
 void AssignMessagesToState::undo()
 {
     auto& state = m_path.find();
-    auto statenode = m_statepath.toNode(&state.states().rootNode());
 
     state.states().setStateData(
                 m_statepath.toNode(&state.states().rootNode()),

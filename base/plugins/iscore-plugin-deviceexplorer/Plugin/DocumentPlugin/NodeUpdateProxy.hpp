@@ -14,8 +14,8 @@ class DeviceDocumentPlugin;
 
 namespace iscore
 {
-class DeviceSettings;
-class AddressSettings;
+struct DeviceSettings;
+struct AddressSettings;
 }
 class NodeUpdateProxy
 {

@@ -22,7 +22,7 @@ class StateTreeView : public QTreeView
         CommandDispatcher<> m_dispatcher;
 };
 
-
+/*
 class StateTreeWidget : public QWidget
 {
     public:
@@ -36,3 +36,4 @@ class StateTreeWidget : public QWidget
         StateTreeView* m_view{};
 
 };
+*/

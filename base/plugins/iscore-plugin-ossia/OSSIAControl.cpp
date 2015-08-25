@@ -4,7 +4,7 @@
 
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Node.h>
-#include <API/Headers/Network/Protocol.h>
+#include <API/Headers/Network/Protocol/Local.h>
 
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeConstraint.h>
