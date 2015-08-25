@@ -13,8 +13,3 @@ int LibraryPanelModel::panelId() const
 {
     return LIBRARY_PANEL_ID;
 }
-
-void LibraryPanelModel::serialize(const VisitorVariant&) const
-{
-    ISCORE_TODO
-}

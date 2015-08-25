@@ -21,7 +21,7 @@ class DeviceEditDialog : public QDialog
         iscore::DeviceSettings getSettings() const;
         QString getPath() const;
 
-        void setSettings(iscore::DeviceSettings& settings);
+        void setSettings(const iscore::DeviceSettings& settings);
 
 
     protected slots:

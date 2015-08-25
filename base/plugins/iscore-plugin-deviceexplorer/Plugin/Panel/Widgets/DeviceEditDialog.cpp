@@ -120,7 +120,7 @@ QString DeviceEditDialog::getPath() const
 }
 
 void
-DeviceEditDialog::setSettings(iscore::DeviceSettings &settings)
+DeviceEditDialog::setSettings(const iscore::DeviceSettings &settings)
 {
 
     const QString protocol = settings.protocol;

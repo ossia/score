@@ -36,6 +36,10 @@ class ProtocolFactory : public iscore::FactoryInterface
             return QVariant::fromValue(deserialize_dyn<T>(vis));
         }
 
+
+        // Returns true if the two devicesettings can coexist at the same time.
+        virtual bool checkCompatibility(const iscore::DeviceSettings& a,
+                                        const iscore::DeviceSettings& b) = 0;
 };
 
 

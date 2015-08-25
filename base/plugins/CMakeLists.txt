@@ -11,7 +11,7 @@ add_subdirectory(iscore-lib-state)
 
 add_subdirectory(iscore-plugin-pluginsettings)
 add_subdirectory(iscore-plugin-inspector)
-#add_subdirectory(iscore-plugin-library)
+add_subdirectory(iscore-plugin-library)
 add_subdirectory(iscore-plugin-deviceexplorer)
 add_subdirectory(iscore-plugin-scenario)
 add_subdirectory(iscore-plugin-network)

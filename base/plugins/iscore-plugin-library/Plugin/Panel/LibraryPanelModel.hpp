@@ -11,6 +11,4 @@ class LibraryPanelModel : public iscore::PanelModel
     public:
         LibraryPanelModel(iscore::DocumentModel* parent);
         int panelId() const override;
-
-        void serialize(const VisitorVariant&) const override;
 };

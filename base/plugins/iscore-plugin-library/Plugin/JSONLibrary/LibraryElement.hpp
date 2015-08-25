@@ -6,7 +6,7 @@
 
 enum Category
 {
-    State, ScenarioData, Process, Device, Address
+    StateNode, MessageList, ScenarioData, Process, Device, Address
 };
 const QMap<Category, QString>& categoryPrettyName();
 

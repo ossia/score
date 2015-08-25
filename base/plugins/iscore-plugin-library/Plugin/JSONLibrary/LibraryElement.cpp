@@ -1,8 +1,9 @@
 #include "LibraryElement.hpp"
-
+#include <QObject>
 
 static const QMap<Category, QString> map{
-    {Category::State, QObject::tr("State")},
+    {Category::StateNode, QObject::tr("State")},
+    {Category::MessageList, QObject::tr("MessageList")},
     {Category::ScenarioData, QObject::tr("ScenarioData")},
     {Category::Process, QObject::tr("Process")},
     {Category::Device, QObject::tr("Device")},

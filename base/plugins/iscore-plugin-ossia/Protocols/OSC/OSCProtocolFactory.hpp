@@ -28,4 +28,11 @@ class OSCProtocolFactory : public ProtocolFactory
         {
             serializeProtocolSpecificSettings_T<OSCSpecificSettings>(data, visitor);
         }
+
+        bool checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b)
+        {
+            auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
+            auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
+            return a.name != b.name && a_p.inputPort != b_p.inputPort && a_p.outputPort != b_p.outputPort;
+        }
 };

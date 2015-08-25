@@ -175,6 +175,44 @@ void DeviceExplorerModel::removeNode(Node* node)
     delete node;
 }
 
+#include "Singletons/SingletonProtocolList.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+#include "Widgets/DeviceEditDialog.hpp"
+#include <QApplication>
+bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
+{
+    // Request from the protocol factory the protocol to see
+    // if it is compatible.
+    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    if(!prot)
+        return false;
+
+    // Look for other childs in the same protocol.
+    for(const auto& child : rootNode().children())
+    {
+        ISCORE_ASSERT(child->is<DeviceSettings>());
+        if(child->get<DeviceSettings>().protocol == n.protocol)
+        {
+            if(!prot->checkCompatibility(n, child->get<DeviceSettings>()))
+            {
+                // Open a device edit window
+                // it should take care of incompatibility with the other
+                // devices
+                DeviceEditDialog dial(QApplication::activeWindow());
+                dial.setSettings(n);
+                bool ret = dial.exec();
+                if(!ret)
+                    return false;
+
+                n = dial.getSettings();
+                return true;
+            }
+        }
+    }
+
+    return true;
+}
+
 
 QModelIndex
 DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
@@ -949,9 +987,12 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
             ser.readFrom(*n);
             QMimeData* mimeData = new QMimeData;
             mimeData->setData(
-                        n->is<DeviceSettings>() ? iscore::mime::device() : iscore::mime::address(),
+                        n->is<DeviceSettings>()
+                            ? iscore::mime::device()
+                            : iscore::mime::address(),
                         QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
+            // Additional data if necessary
             if(!n->is<DeviceSettings>())
             {
                 MessageList messages;
@@ -1036,7 +1077,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     return true;
 }
 
-
+#include "Commands/Add/LoadDevice.hpp"
 //method called when a drop occurs
 //return true if drop really handled, false otherwise.
 //
@@ -1087,7 +1128,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         // Note : when dropping a device,
         // if there is an existing device that would use the same ports, etc.
         // we have to open a dialog to change the device settings.
-        /*
+
         if(row == -1)
         {
             row = parentNode->childCount();
@@ -1097,24 +1138,24 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         Node n;
         deser.writeTo(n);
 
-        auto cmd = new DeviceExplorer::Command::Insert{
-                Path(parentNode),
-                row,
-                std::move(n),
-                iscore::IDocument::path(this)};
-
-        m_cmdQ->redoAndPush(cmd);
-
-        if(! m_cmdCreator->m_cachedResult)
+        if(mimeType == iscore::mime::device())
         {
-            delete m_cmdQ->command(0);
-            m_cmdCreator->m_cachedResult = true;
-            return false;
+            ISCORE_ASSERT(n.is<DeviceSettings>());
+
+            // Edit the device settings if necessary
+            bool deviceOK = checkDeviceInstantiatable(n.get<DeviceSettings>());
+            if(!deviceOK)
+                return false;
+
+            // Perform the loading
+            auto cmd = new LoadDevice{
+                    iscore::IDocument::safe_path(deviceModel()),
+                    std::move(n)};
+
+            m_cmdQ->redoAndPush(cmd);
         }
 
         return true;
-        */
-        return false;
     }
 
     return false;
