@@ -57,9 +57,6 @@ inline OSSIA::TimeValue time(const TimeValue& t)
 }
 
 std::shared_ptr<OSSIA::State> state(
-        const iscore::State& state,
-        const DeviceList&);
-std::shared_ptr<OSSIA::State> state(
         const iscore::StateNode &iscore_state,
         const DeviceList& deviceList);
 
