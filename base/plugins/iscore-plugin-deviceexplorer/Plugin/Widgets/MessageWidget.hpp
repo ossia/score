@@ -34,6 +34,15 @@ class MessageListEditor : public QDialog
 
         const auto& messages() const
         { return m_messages; }
+
     private:
+        void addMessage();
+        void removeMessage(int);
+
+        void updateLayout();
+
+        DeviceExplorerModel* m_model{};
+
+        QGridLayout* m_messageListLayout{};
         iscore::MessageList m_messages;
 };
