@@ -7,7 +7,8 @@ InspectorWidgetBase* StateInspectorFactory::makeWidget(
         const QObject* sourceElement,
         QWidget* parentWidget)
 {
-    return new StateInspectorWidget{static_cast<const StateModel*>(sourceElement),
+    return new StateInspectorWidget{
+        static_cast<const StateModel&>(*sourceElement),
                 parentWidget};
 }
 

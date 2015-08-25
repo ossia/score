@@ -1,21 +1,25 @@
 #pragma once
 #include <QTreeView>
-#include <State/StateItemModel.hpp>
-namespace iscore {
-class StateItemModel;
-}
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+
+class StateModel;
 class DeviceExplorerModel;
+
 class StateTreeView : public QTreeView
 {
     public:
         StateTreeView(
-                iscore::StateItemModel* model,
+                const StateModel& model,
                 DeviceExplorerModel* devexplorer,
                 QWidget* parent);
 
     protected:
         void mouseDoubleClickEvent(QMouseEvent* ev) override;
+
+        StateModel* m_model{};
         DeviceExplorerModel* m_devExplorer{};
+
+        CommandDispatcher<> m_dispatcher;
 };
 
 

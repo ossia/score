@@ -205,7 +205,7 @@ EventInspectorWidget::EventInspectorWidget(
 #include "Inspector/State/StateInspectorWidget.hpp"
 void EventInspectorWidget::addState(const StateModel* state)
 {
-    auto sw = new StateInspectorWidget{state, this};
+    auto sw = new StateInspectorWidget{*state, this};
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(sw);

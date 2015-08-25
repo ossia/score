@@ -11,8 +11,8 @@
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
-StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *parent):
-    InspectorWidgetBase {object, parent},
+StateInspectorWidget::StateInspectorWidget(const StateModel& object, QWidget *parent):
+    InspectorWidgetBase {&object, parent},
     m_model {object}
 {
     setObjectName("StateInspectorWidget");
@@ -21,7 +21,7 @@ StateInspectorWidget::StateInspectorWidget(const StateModel *object, QWidget *pa
     // Connections
     // TODO connections not necessary since we'll have a tree widget, right ?
 
-    updateDisplayedValues(object);
+    updateDisplayedValues(&object);
 }
 
 #include "DialogWidget/StateTreeView.hpp"
@@ -43,7 +43,7 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     lay->addRow("Id", new QLabel{QString::number(state->id().val().get())});
 
     auto scenar = state->parentScenario();
-    auto event = m_model->eventId();
+    auto event = m_model.eventId();
     if(event)
     {
         auto btn = SelectionButton::make(
@@ -80,27 +80,12 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     m_stateSection = new InspectorSectionWidget{"States", this};
 
     auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto tv = new StateTreeView(const_cast<iscore::StateItemModel*>(&m_model->states()),
+    auto tv = new StateTreeView{m_model,
                                 deviceexplorer,
-                                m_stateSection);
+                                m_stateSection};
 
     m_stateSection->addContent(tv);
     m_properties.push_back(m_stateSection);
-    ISCORE_TODO;
-    /*
-    for(const auto& data_state : state->states())
-    {
-        auto widg = new StateWidget{data_state, *commandDispatcher(), this};
-        m_stateSection->addContent(widg);
 
-        connect(widg, &StateWidget::removeMe,
-                this, [=] () { // note : here a copy of iscore::State is made.
-            auto cmd = new Scenario::Command::RemoveStateFromStateModel{iscore::IDocument::path(m_model), data_state};
-            emit commandDispatcher()->submitCommand(cmd);
-        });
-    }
-    m_properties.push_back(m_stateSection);
-
-*/
     updateAreaLayout(m_properties);
 }
