@@ -181,4 +181,6 @@ MessageListEditor::MessageListEditor(
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     lay->addWidget(buttons);
+
+    this->setLayout(lay);
 }

@@ -151,6 +151,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/ScenarioControl.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/AddProcessDialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/StateTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
