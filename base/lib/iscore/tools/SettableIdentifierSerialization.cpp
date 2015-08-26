@@ -7,7 +7,7 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
 {
-    m_stream << bool (obj);
+    m_stream << (bool) obj;
 
     if(obj)
     {
