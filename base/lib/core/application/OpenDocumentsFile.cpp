@@ -7,15 +7,13 @@ static const QString filePath = QStandardPaths::standardLocations(QStandardPaths
 
 namespace iscore
 {
-bool openDocumentsFileExists()
+bool OpenDocumentsFile::exists()
 {
     return QFile::exists(filePath);
 }
 
-
-QString openDocumentsFilePath()
+QString OpenDocumentsFile::path()
 {
     return filePath;
 }
 }
-

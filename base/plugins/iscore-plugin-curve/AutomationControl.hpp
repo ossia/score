@@ -5,7 +5,7 @@ class CurveSegmentList;
 class AutomationControl : public iscore::PluginControlInterface
 {
     public:
-        AutomationControl(iscore::Presenter* pres);
+        explicit AutomationControl(iscore::Presenter* pres);
         virtual ~AutomationControl() = default;
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,

@@ -28,6 +28,6 @@ namespace iscore
 
             virtual const DefaultPanelStatus& defaultPanelStatus() const = 0;
 
-            virtual const QString shortcut() const = 0; // { return tr(""); }
+            virtual const QString shortcut() const = 0; // TODO put me in defaultPanelStatus
     };
 }

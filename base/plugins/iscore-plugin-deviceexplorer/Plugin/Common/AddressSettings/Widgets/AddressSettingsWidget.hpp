@@ -16,7 +16,7 @@ class QFormLayout;
 class AddressSettingsWidget : public QWidget
 {
     public:
-        AddressSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressSettingsWidget(QWidget* parent = nullptr);
 
         virtual iscore::AddressSettings getSettings() const = 0;
         virtual void setSettings(const iscore::AddressSettings& settings) = 0;

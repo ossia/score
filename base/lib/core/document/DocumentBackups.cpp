@@ -8,7 +8,7 @@
 bool iscore::DocumentBackups::canRestoreDocuments()
 {
     // Try to reload if there was a crash
-    if(openDocumentsFileExists())
+    if(OpenDocumentsFile::exists())
     {
         if(QMessageBox::question(
                     qApp->activeWindow(),
@@ -27,31 +27,40 @@ bool iscore::DocumentBackups::canRestoreDocuments()
     return false;
 }
 
+template<typename T>
+static void loadRestorableDocumentData(
+        const QString& date_filename,
+        const QString& command_filename,
+        T& arr)
+{
+    QFile data_file{date_filename};
+    QFile command_file{command_filename};
+    if(data_file.exists() && command_file.exists())
+    {
+        data_file.open(QFile::ReadOnly);
+        command_file.open(QFile::ReadOnly);
+
+        arr.push_back({data_file.readAll(), command_file.readAll()});
+
+        data_file.close();
+        data_file.remove(); // TODO maybe we don't want to remove them that early?
+
+        command_file.close();
+        command_file.remove();
+    }
+}
+
 std::vector<std::pair<QByteArray, QByteArray> >
 iscore::DocumentBackups::restorableDocuments()
 {
     std::vector<std::pair<QByteArray, QByteArray>> arr;
-    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
+    QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
 
     auto existing_files = s.value("iscore/docs").toMap();
 
     for(const auto& element : existing_files.keys())
     {
-        QFile data_file{element};
-        QFile command_file(existing_files[element].toString());
-        if(data_file.exists() && command_file.exists())
-        {
-            data_file.open(QFile::ReadOnly);
-            command_file.open(QFile::ReadOnly);
-
-            arr.push_back({data_file.readAll(), command_file.readAll()});
-
-            data_file.close();
-            data_file.remove(); // TODO maybe we don't want to remove them that early?
-
-            command_file.close();
-            command_file.remove();
-        }
+        loadRestorableDocumentData(element, existing_files[element].toString(), arr);
     }
 
     s.setValue("iscore/docs", QMap<QString, QVariant>{});
@@ -62,22 +71,20 @@ iscore::DocumentBackups::restorableDocuments()
 
 void iscore::DocumentBackups::clear()
 {
-    if(openDocumentsFileExists())
+    if(OpenDocumentsFile::exists())
     {
         // Remove all the tmp files
+        QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
+
+        auto existing_files = s.value("iscore/docs").toMap();
+
+        for(const auto& element : existing_files.keys())
         {
-            QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
-
-            auto existing_files = s.value("iscore/docs").toMap();
-
-            for(const auto& element : existing_files.keys())
-            {
-                QFile(element).remove();
-                QFile(existing_files[element].toString()).remove();
-            }
+            QFile{element}.remove();
+            QFile{existing_files[element].toString()}.remove();
         }
 
         // Remove the file containing the map
-        QFile{openDocumentsFilePath()}.remove();
+        QFile{OpenDocumentsFile::path()}.remove();
     }
 }

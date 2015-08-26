@@ -232,7 +232,7 @@ ProcessFocusManager* ScenarioControl::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {
-        auto bem = dynamic_cast<BaseElementModel*>(doc->model()->modelDelegate());
+        auto bem = dynamic_cast<BaseElementModel*>(doc->model().modelDelegate());
         if(bem)
         {
             return &bem->focusManager();

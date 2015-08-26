@@ -10,9 +10,9 @@ class OSSIADocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
     public:
-        OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* parent);
+        OSSIADocumentPlugin(iscore::DocumentModel& doc, QObject* parent);
 
-        void reload(iscore::DocumentModel *doc);
+        void reload(iscore::DocumentModel& doc);
 
         OSSIABaseScenarioElement* baseScenario() const;
 

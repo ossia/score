@@ -12,7 +12,7 @@ class DeviceInterface : public QObject
         Q_OBJECT
 
     public:
-        DeviceInterface(const iscore::DeviceSettings& s);
+        explicit DeviceInterface(const iscore::DeviceSettings& s);
         const iscore::DeviceSettings& settings() const;
 
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.

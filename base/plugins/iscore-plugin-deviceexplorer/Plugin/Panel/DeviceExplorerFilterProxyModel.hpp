@@ -5,7 +5,7 @@
 class DeviceExplorerFilterProxyModel : public QSortFilterProxyModel
 {
     public:
-        DeviceExplorerFilterProxyModel(QObject* parent = nullptr);
+        explicit DeviceExplorerFilterProxyModel(QObject* parent = nullptr);
 
         void setColumn(int col);
 

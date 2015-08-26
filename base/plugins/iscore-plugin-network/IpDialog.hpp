@@ -5,7 +5,7 @@ class IpWidget;
 class IpDialog : public QDialog
 {
     public:
-        IpDialog(QWidget* parent);
+        explicit IpDialog(QWidget* parent);
 
         int port() const;
         const QString& ip() const;

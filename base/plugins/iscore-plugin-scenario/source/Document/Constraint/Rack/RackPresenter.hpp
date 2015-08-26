@@ -30,9 +30,9 @@ class RackPresenter : public NamedObject
 
         const RackView& view() const;
 
-        int height() const;
-        int width() const;
-        void setWidth(int);
+        qreal height() const;
+        qreal width() const;
+        void setWidth(qreal);
 
         const id_type<RackModel>& id() const;
         const IdContainer<SlotPresenter,SlotModel>& getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...

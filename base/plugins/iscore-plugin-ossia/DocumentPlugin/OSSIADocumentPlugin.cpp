@@ -14,15 +14,15 @@
 #include "../iscore-plugin-curve/Automation/AutomationModel.hpp"
 
 
-OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel* doc, QObject* parent):
+OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel &doc, QObject* parent):
     iscore::DocumentDelegatePluginModel{"OSSIADocumentPlugin", parent}
 {
     reload(doc);
 }
 
-void OSSIADocumentPlugin::reload(iscore::DocumentModel* doc)
+void OSSIADocumentPlugin::reload(iscore::DocumentModel &doc)
 {
-    auto baseElement = doc->findChild<BaseScenario*>("BaseScenario");
+    auto baseElement = doc.findChild<BaseScenario*>("BaseScenario");
     m_base = new OSSIABaseScenarioElement{baseElement, this};
 }
 

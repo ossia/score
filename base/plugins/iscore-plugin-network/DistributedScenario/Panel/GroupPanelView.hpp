@@ -12,7 +12,7 @@ class GroupPanelView : public iscore::PanelView
 {
     public:
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
-        GroupPanelView(QObject* v);
+        explicit GroupPanelView(QObject* v);
 
         QWidget* getWidget() override;
         const QString shortcut() const override

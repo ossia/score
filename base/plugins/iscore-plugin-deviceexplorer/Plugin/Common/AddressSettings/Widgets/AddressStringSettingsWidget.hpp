@@ -8,7 +8,7 @@ class QSpinBox;
 class AddressStringSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressStringSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressStringSettingsWidget(QWidget* parent = nullptr);
 
         virtual iscore::AddressSettings getSettings() const override;
         virtual void setSettings(const iscore::AddressSettings& settings) override;

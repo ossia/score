@@ -71,9 +71,9 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(RackModel& rack)
         list.push_back(id_type<SlotModel> {elt.toInt() });
     }
 
-    for(int i = 0; i < theSlots.size(); i++)
+    for(const auto& json_slot : theSlots)
     {
-        Deserializer<JSONObject> deserializer {theSlots[i].toObject() };
+        Deserializer<JSONObject> deserializer {json_slot.toObject()};
         auto slot = new SlotModel {deserializer, &rack};
         rack.addSlot(slot, list.indexOf(slot->id()));
     }

@@ -12,7 +12,7 @@ class InspectorWidgetFactory;
 class InspectorWidgetList : public NamedObject
 {
     public:
-        InspectorWidgetList(QObject* parent);
+        explicit InspectorWidgetList(QObject* parent);
 
         static InspectorWidgetBase* makeInspectorWidget(const QString& name,
                                                         const QObject* model,

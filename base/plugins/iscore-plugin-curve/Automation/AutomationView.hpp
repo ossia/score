@@ -5,7 +5,7 @@
 class AutomationView : public LayerView
 {
     public:
-        AutomationView(QGraphicsItem *parent);
+        explicit AutomationView(QGraphicsItem *parent);
         virtual void paint(QPainter* painter,
                            const QStyleOptionGraphicsItem* option,
                            QWidget* widget);

@@ -48,7 +48,7 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
              addNodeToDevice(*newdev, *child);
         }
     }
-    catch(std::runtime_error e)
+    catch(const std::runtime_error& e)
     {
         QMessageBox::warning(QApplication::activeWindow(),
                              QObject::tr("Error loading device"),

@@ -1,4 +1,5 @@
 #include "SelectionStack.hpp"
+#include <algorithm>
 using namespace iscore;
 
 SelectionStack::SelectionStack()
@@ -74,17 +75,18 @@ void SelectionStack::prune(QObject* p)
         sel.erase(p);
     }
 
-    std::remove_if(
-                m_unselectable.begin(),
-                m_unselectable.end(),
-                [] (const Selection& s )
-    { return s.empty(); });
+    m_unselectable.erase(std::remove_if(
+                             m_unselectable.begin(),
+                             m_unselectable.end(),
+                             [] (const Selection& s ) { return s.empty(); }),
+                         m_unselectable.end());
 
-    std::remove_if(
-                m_reselectable.begin(),
-                m_reselectable.end(),
-                [] (const Selection& s )
-    { return s.empty(); });
+    m_reselectable.erase(
+                std::remove_if(
+                    m_reselectable.begin(),
+                    m_reselectable.end(),
+                    [] (const Selection& s) { return s.empty(); }),
+                m_reselectable.end());
 
     if(m_unselectable.size() == 0)
         m_unselectable.push(Selection{});

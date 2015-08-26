@@ -6,10 +6,11 @@ class QGraphicsScene;
 class ToolState : public QState
 {
     public:
-        ToolState(const QGraphicsScene& scene, QState*);
         void start();
 
     protected:
+        ToolState(const QGraphicsScene& scene, QState*);
+
         virtual void on_pressed() = 0;
         virtual void on_moved() = 0;
         virtual void on_released() = 0;

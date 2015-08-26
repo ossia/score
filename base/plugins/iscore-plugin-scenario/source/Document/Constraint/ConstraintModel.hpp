@@ -1,4 +1,5 @@
 #pragma once
+#include <Document/Constraint/ConstraintDurations.hpp>
 #include <Document/Constraint/Rack/RackModel.hpp>
 #include <ProcessInterface/ProcessModel.hpp>
 
@@ -43,74 +44,18 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                    WRITE setHeightPercentage
                    NOTIFY heightPercentageChanged)
 
-        // These dates are relative to the beginning of the constraint.
-        Q_PROPERTY(TimeValue minDuration
-                   READ minDuration
-                   WRITE setMinDuration
-                   NOTIFY minDurationChanged)
-        Q_PROPERTY(TimeValue maxDuration
-                   READ maxDuration
-                   WRITE setMaxDuration
-                   NOTIFY maxDurationChanged)
-        Q_PROPERTY(TimeValue playDuration
-                   READ playDuration
-                   WRITE setPlayDuration
-                   NOTIFY playDurationChanged)
-
-        Q_PROPERTY(bool isRigid
-                   READ isRigid
-                   WRITE setRigid
-                   NOTIFY rigidityChanged)
 
     public:
-        class Algorithms
-        {
-            public:
-            static void setDurationInBounds(ConstraintModel& cstr, const TimeValue& time)
-            {
-                if(cstr.defaultDuration() != time)
-                {
-                    // Rigid
-                    if(cstr.isRigid())
-                    {
-                        cstr.setDefaultDuration(time);
-
-                        cstr.setMinDuration(time);
-                        cstr.setMaxDuration(time);
-                    }
-                    else // TODO The checking must be done elsewhere if(arg >= m_minDuration && arg <= m_maxDuration)
-                        // --> it should be in a command to be undoable
-                    {
-                        cstr.setDefaultDuration(time);
-                    }
-                }
-            }
-
-            static void changeAllDurations(ConstraintModel& cstr, const TimeValue& time)
-            {
-                if(cstr.defaultDuration() != time)
-                {
-                    // Note: the OSSIA implementation requires min <= dur <= max at all time
-                    // and will throw if not the case. Hence this order.
-                    auto delta = time - cstr.defaultDuration();
-                    cstr.setDefaultDuration(time);
-
-                    cstr.setMinDuration(cstr.minDuration() + delta);
-                    cstr.setMaxDuration(cstr.maxDuration() + delta);
-                }
-            }
-        };
-
-
         /** Properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
         ModelConsistency consistency;
+        ConstraintDurations duration{*this};
+
         iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName()
         { return QObject::tr("Constraint"); }
-
 
         /** The class **/
         ConstraintModel(const id_type<ConstraintModel>&,
@@ -184,9 +129,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         double heightPercentage() const;
 
-        const TimeValue& defaultDuration() const;
-        const TimeValue& minDuration() const;
-        const TimeValue& maxDuration() const;
 
         FullViewConstraintViewModel* fullView() const
         {
@@ -195,15 +137,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         void setFullView(FullViewConstraintViewModel* fv);
 
-        const TimeValue& playDuration() const
-        {
-            return m_playDuration;
-        }
-
-        bool isRigid() const
-        {
-            return m_rigidity;
-        }
 
         // Resets the execution display recursively
         void reset();
@@ -222,26 +155,10 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         void heightPercentageChanged(double arg);
 
-        void defaultDurationChanged(const TimeValue& arg);
-        void minDurationChanged(const TimeValue& arg);
-        void maxDurationChanged(const TimeValue& arg);
         void startDateChanged(const TimeValue& arg);
-
-        void playDurationChanged(const TimeValue& arg);
-
-        void rigidityChanged(bool arg);
 
     public slots:
         void setHeightPercentage(double arg);
-
-        void setDefaultDuration(const TimeValue& arg);
-        void setMinDuration(const TimeValue& arg);
-        void setMaxDuration(const TimeValue& arg);
-
-        void setPlayDuration(const TimeValue& arg);
-
-        // TODO make a class that manages all the durations + rigidity in a coherent manner
-        void setRigid(bool arg);
 
     private slots:
         void on_destroyedViewModel(QObject*);
@@ -262,15 +179,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         id_type<StateModel> m_startState;
         id_type<StateModel> m_endState;
 
-        TimeValue m_defaultDuration{std::chrono::milliseconds{200}};
-        TimeValue m_minDuration{m_defaultDuration};
-        TimeValue m_maxDuration{m_defaultDuration};
-
         TimeValue m_startDate; // origin
 
         double m_heightPercentage {0.5};
-
-
-        TimeValue m_playDuration;
-        bool m_rigidity{true};
 };

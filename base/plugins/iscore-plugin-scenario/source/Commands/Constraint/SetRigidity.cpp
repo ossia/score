@@ -18,44 +18,44 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     // Also, min/max are indicative if rigid, they can still be set but won't be used.
     {
         auto& constraint = m_path.find<ConstraintModel>();
-        ISCORE_ASSERT(constraint.isRigid() != rigid);
+        ISCORE_ASSERT(constraint.duration.isRigid() != rigid);
 
-        m_oldMinDuration = constraint.minDuration();
-        m_oldMaxDuration = constraint.maxDuration();
+        m_oldMinDuration = constraint.duration.minDuration();
+        m_oldMaxDuration = constraint.duration.maxDuration();
     }
 }
 
 void SetRigidity::undo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
-    constraint.setRigid(!m_rigidity);
+    constraint.duration.setRigid(!m_rigidity);
 
     if(m_rigidity)
     {
-        constraint.setMinDuration(m_oldMinDuration);
-        constraint.setMaxDuration(m_oldMaxDuration);
+        constraint.duration.setMinDuration(m_oldMinDuration);
+        constraint.duration.setMaxDuration(m_oldMaxDuration);
     }
     else
     {
-        constraint.setMinDuration(constraint.defaultDuration());
-        constraint.setMaxDuration(constraint.defaultDuration());
+        constraint.duration.setMinDuration(constraint.duration.defaultDuration());
+        constraint.duration.setMaxDuration(constraint.duration.defaultDuration());
     }
 }
 
 void SetRigidity::redo()
 {
     auto& constraint = m_path.find<ConstraintModel>();
-    constraint.setRigid(m_rigidity);
+    constraint.duration.setRigid(m_rigidity);
 
     if(m_rigidity)
     {
-        constraint.setMinDuration(constraint.defaultDuration());
-        constraint.setMaxDuration(constraint.defaultDuration());
+        constraint.duration.setMinDuration(constraint.duration.defaultDuration());
+        constraint.duration.setMaxDuration(constraint.duration.defaultDuration());
     }
     else
     {
-        constraint.setMinDuration(TimeValue(std::chrono::milliseconds(0)));
-        constraint.setMaxDuration(TimeValue(PositiveInfinity{}));
+        constraint.duration.setMinDuration(TimeValue(std::chrono::milliseconds(0)));
+        constraint.duration.setMaxDuration(TimeValue(PositiveInfinity{}));
     }
 
 }

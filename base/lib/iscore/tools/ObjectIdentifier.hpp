@@ -29,7 +29,7 @@ class ObjectIdentifier
         }
     public:
         ObjectIdentifier() = default;
-        ObjectIdentifier(const char* name) :
+        explicit ObjectIdentifier(const char* name) :
             m_objectName {name}
         { }
 

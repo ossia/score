@@ -13,7 +13,7 @@ namespace iscore
      */
     class SerializableCommand : public Command
     {
-        public:
+        protected:
             template<typename Str1, typename Str2, typename Str3>
             SerializableCommand(Str1&& parname, Str2&& cmdname, Str3&& text) :
                 m_name {cmdname},
@@ -31,6 +31,7 @@ namespace iscore
             {
             }
 
+        public:
             ~SerializableCommand();
 
             const QString& name() const;

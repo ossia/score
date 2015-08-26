@@ -10,7 +10,7 @@ namespace DeviceExplorer
             : ok(ok_), index(index_)
         {}
 
-        Result(const QModelIndex& index_)
+        explicit Result(const QModelIndex& index_)
             : ok(true), index(index_)
         {}
 

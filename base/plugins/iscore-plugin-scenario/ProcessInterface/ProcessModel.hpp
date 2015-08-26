@@ -12,6 +12,7 @@ class DataStream;
 class JSONObject;
 
 class LayerModel;
+// TODO rename file ?
 /**
  * @brief The ProcessModel class
  *

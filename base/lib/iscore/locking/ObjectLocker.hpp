@@ -8,7 +8,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            ObjectLocker(QObject* parent);
+            explicit ObjectLocker(QObject* parent);
 
         signals:
             // To the network

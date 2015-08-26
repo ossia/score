@@ -20,6 +20,7 @@
 #include <QFileDialog>
 #include <QSaveFile>
 #include <QMessageBox>
+#include <QToolBar>
 #include <QJsonDocument>
 
 using namespace iscore;
@@ -43,7 +44,6 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
             this,   &Presenter::closeDocument);
 }
 
-#include <QToolBar>
 void Presenter::registerPluginControl(PluginControlInterface* ctrl)
 {
     ctrl->setParent(this);
@@ -64,7 +64,7 @@ void Presenter::registerPanel(PanelFactory* factory)
     m_view->setupPanelView(view);
 
     for(auto doc : m_documents)
-        doc->setupNewPanel(pres, factory);
+        doc->setupNewPanel(factory);
 }
 
 void Presenter::registerDocumentDelegate(DocumentDelegateFactoryInterface* docpanel)
@@ -88,11 +88,11 @@ void Presenter::setupDocument(Document* doc)
     {
         for(auto& panel : m_panelPresenters)
         {
-            doc->setupNewPanel(panel.first, panel.second);
+            doc->setupNewPanel(panel.second);
         }
 
         m_documents.push_back(doc);
-        m_view->addDocumentView(doc->view());
+        m_view->addDocumentView(&doc->view());
         setCurrentDocument(doc);
     }
     else
@@ -109,19 +109,13 @@ Document *Presenter::currentDocument() const
 void Presenter::setCurrentDocument(Document* doc)
 {
     m_currentDocument = doc;
-    if(doc)
+
+    for(auto& pair : m_panelPresenters)
     {
-        for(auto& pair : m_panelPresenters)
-        {
+        if(doc)
             m_currentDocument->bindPanelPresenter(pair.first);
-        }
-    }
-    else
-    {
-        for(auto& pair : m_panelPresenters)
-        {
+        else
             pair.first->setModel(nullptr);
-        }
     }
 
     for(auto& ctrl : m_controls)
@@ -130,7 +124,6 @@ void Presenter::setCurrentDocument(Document* doc)
     }
 }
 
-#include <QMessageBox>
 bool Presenter::closeDocument(Document* doc)
 {
     // Warn the user if he might loose data
@@ -161,7 +154,7 @@ bool Presenter::closeDocument(Document* doc)
     }
 
     // Close operation
-    m_view->closeDocument(doc->view());
+    m_view->closeDocument(&doc->view());
     m_documents.removeOne(doc);
 
     setCurrentDocument(m_documents.size() > 0 ? m_documents.last() : nullptr);

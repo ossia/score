@@ -31,7 +31,13 @@ class CatchyApplication : public QApplication
     public:
         using QApplication::QApplication;
 #if !defined(ISCORE_DEBUG)
-        bool notify(QObject * receiver, QEvent * event)
+
+        void inform(const QString& str)
+        {
+            QMessageBox::information(
+                        QApplication::activeWindow(), "", str, QMessageBox::Ok);
+        }
+        bool notify(QObject * receiver, QEvent * event) override
         {
             try
             {
@@ -39,15 +45,15 @@ class CatchyApplication : public QApplication
             }
             catch(TTException& e)
             {
-                QMessageBox::information(0, "", QObject::tr("Internal error: ") + e.getReason(),QMessageBox::Ok);
+                inform(QObject::tr("Internal error: ") + e.getReason());
             }
             catch(std::exception& e)
             {
-                QMessageBox::information(0, "", QObject::tr("Internal error: ") + e.what(),QMessageBox::Ok);
+                inform(QObject::tr("Internal error: ") + e.what());
             }
             catch(...)
             {
-                QMessageBox::information(0, "", QObject::tr("Internal error.") ,QMessageBox::Ok);
+                inform(QObject::tr("Internal error."));
             }
 
             return false;
@@ -57,7 +63,10 @@ class CatchyApplication : public QApplication
 
 #ifdef ISCORE_DEBUG
 
-void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+static void myMessageOutput(
+        QtMsgType type,
+        const QMessageLogContext &context,
+        const QString &msg)
 {
     QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {

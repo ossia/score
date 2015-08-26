@@ -172,7 +172,7 @@ QMenuView::QMenuView(QWidget* parent) :
 //! Destroy the menu.
 QMenuView::~QMenuView()
 {
-    setModel(0);
+    setModel(nullptr);
 }
 
 /*!

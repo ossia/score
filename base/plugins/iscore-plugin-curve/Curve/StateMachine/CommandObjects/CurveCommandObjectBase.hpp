@@ -57,5 +57,6 @@ class CurveCommandObjectBase
         SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
         QVector<QByteArray> m_startSegments;
 
-        double m_xmin, m_xmax;
+        // To prevent behind locked at 0.000001 or 0.9999
+        double m_xmin{-1}, m_xmax{2};
 };

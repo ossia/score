@@ -2,7 +2,7 @@
 using namespace iscore;
 StateItemModel::StateItemModel():
     QAbstractItemModel{},
-    m_rootNode(QString{"i am root"})
+    m_rootNode(StateData{QString{"i am root"}})
 {
 
 }

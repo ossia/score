@@ -10,7 +10,7 @@ class EditionTool : public CurveTool
 {
         Q_OBJECT
     public:
-        EditionTool(CurveStateMachine& sm);
+        explicit EditionTool(CurveStateMachine& sm);
         enum class Mode { Create, Move, SetSegment };
 
         void changeMode(int state);
@@ -32,17 +32,17 @@ class EditionTool : public CurveTool
 class CreateTool : public EditionTool
 {
     public:
-        CreateTool(CurveStateMachine& sm);
+        explicit CreateTool(CurveStateMachine& sm);
 };
 class MoveTool : public EditionTool
 {
     public:
-        MoveTool(CurveStateMachine& sm);
+        explicit MoveTool(CurveStateMachine& sm);
 };
 class SetSegmentTool : public EditionTool
 {
     public:
-        SetSegmentTool(CurveStateMachine& sm);
+        explicit SetSegmentTool(CurveStateMachine& sm);
 };
 
 }

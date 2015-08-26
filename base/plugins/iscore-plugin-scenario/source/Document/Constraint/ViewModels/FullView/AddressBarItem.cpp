@@ -61,7 +61,7 @@ void AddressBarItem::on_elementClicked(ClickableLabelItem * clicked)
         auto vec = m_currentPath.vec();
         vec.resize(index + 1);
 
-        emit objectSelected(std::move(vec));
+        emit objectSelected(ObjectPath(std::move(vec)));
     }
 }
 double AddressBarItem::width() const

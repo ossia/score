@@ -16,9 +16,15 @@ struct NumberedEvent : public QEvent
 template<typename Element, int N>
 struct NumberedWithPath_Event : public NumberedEvent<N>
 {
-        NumberedWithPath_Event(const ObjectPath& p):
+        explicit NumberedWithPath_Event(const ObjectPath& p):
             NumberedEvent<N>{},
             path{p}
+        {
+        }
+
+        explicit NumberedWithPath_Event(ObjectPath&& p):
+            NumberedEvent<N>{},
+            path{std::move(p)}
         {
         }
 
@@ -57,7 +63,7 @@ template<typename State, typename T>
 class StateAwareTransition : public T
 {
     public:
-        StateAwareTransition(State& state):
+        explicit StateAwareTransition(State& state):
                     m_state{state} { }
 
         State& state() const { return m_state; }

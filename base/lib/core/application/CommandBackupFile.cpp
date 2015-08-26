@@ -11,55 +11,13 @@ CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject 
 
     // Set-up signals
     connect(&m_stack, &CommandStack::sig_push,
-            this, [&] () {
-        // A new command is added to m_undoable
-        // m_redoable should be cleared
-        auto cmd = stack.m_undoable.last();
-        m_savedUndo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
-
-        m_savedRedo.clear();
-
-        m_previousIndex = m_stack.currentIndex();
-        commit();
-    });
+            this, &CommandBackupFile::on_push);
     connect(&m_stack, &CommandStack::sig_undo,
-            this, [&] () {
-        // Pop from undoable to redoable
-        m_savedRedo.push(m_savedUndo.pop());
-
-        m_previousIndex = m_stack.currentIndex();
-        commit();
-    });
+            this, &CommandBackupFile::on_undo);
     connect(&m_stack, &CommandStack::sig_redo,
-            this, [&] () {
-        // Pop from redoable to undoable
-        m_savedUndo.push(m_savedRedo.pop());
-
-        m_previousIndex = m_stack.currentIndex();
-        commit();
-    });
+            this, &CommandBackupFile::on_redo);
     connect(&m_stack, &CommandStack::sig_indexChanged,
-            this, [&] () {
-        // Pop a lot
-        auto index = m_stack.currentIndex();
-        if(index > m_previousIndex)
-        {
-            for(int i = 0; i < index - m_previousIndex; i++)
-            {
-                m_savedUndo.push(m_savedRedo.pop());
-            }
-        }
-        else if(index < m_previousIndex)
-        {
-            for(int i = 0; i < m_previousIndex - index ; i++)
-            {
-                m_savedRedo.push(m_savedUndo.pop());
-            }
-        }
-
-        m_previousIndex = m_stack.currentIndex();
-        commit();
-    });
+            this, &CommandBackupFile::on_indexChanged);
 
     // Load initial state
     for(auto&& cmd : m_stack.m_undoable)
@@ -80,8 +38,64 @@ QString CommandBackupFile::fileName() const
     return m_file.fileName();
 }
 
+void CommandBackupFile::on_push()
+{
+    // A new command is added to m_undoable
+    // m_redoable should be cleared
+    auto cmd = m_stack.m_undoable.last();
+    m_savedUndo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+
+    m_savedRedo.clear();
+
+    m_previousIndex = m_stack.currentIndex();
+    commit();
+}
+
+void CommandBackupFile::on_undo()
+{
+    // Pop from undoable to redoable
+    m_savedRedo.push(m_savedUndo.pop());
+
+    m_previousIndex = m_stack.currentIndex();
+    commit();
+}
+
+void CommandBackupFile::on_redo()
+{
+    // Pop from redoable to undoable
+    m_savedUndo.push(m_savedRedo.pop());
+
+    m_previousIndex = m_stack.currentIndex();
+    commit();
+}
+
+void CommandBackupFile::on_indexChanged()
+{
+    // Pop a lot
+    auto index = m_stack.currentIndex();
+    if(index > m_previousIndex)
+    {
+        for(int i = 0; i < index - m_previousIndex; i++)
+        {
+            m_savedUndo.push(m_savedRedo.pop());
+        }
+    }
+    else if(index < m_previousIndex)
+    {
+        for(int i = 0; i < m_previousIndex - index ; i++)
+        {
+            m_savedRedo.push(m_savedUndo.pop());
+        }
+    }
+
+    m_previousIndex = m_stack.currentIndex();
+    commit();
+}
+
 void CommandBackupFile::commit()
 {
+    // OPTIMIZEME: right now all the data is flushed each time.
+    // It should be better to only incrementally modify the file.
     m_file.resize(0);
     m_file.reset();
 

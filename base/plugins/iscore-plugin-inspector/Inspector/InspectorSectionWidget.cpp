@@ -4,59 +4,47 @@
 #include <QLineEdit>
 #include <QToolButton>
 #include <QPushButton>
-
+#include <iscore/widgets/MarginLess.hpp>
 InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     QWidget(parent)
 {
     // HEADER : arrow button and name
-    QWidget* title = new QWidget;
-    QHBoxLayout* titleLayout = new QHBoxLayout;
-    titleLayout->setContentsMargins(0,0,0,0);
+    auto title = new QWidget;
+    auto titleLayout = new MarginLess<QHBoxLayout>;
 
-    _btn = new QToolButton;
-    _btn->setAutoRaise(true);
+    m_btn = new QToolButton;
+    m_btn->setAutoRaise(true);
 
-    _buttonTitle = new QPushButton;
-    _buttonTitle->setFlat(true);
-    _buttonTitle->setText("section name");
-    _buttonTitle->setStyleSheet("text-align: left;");
-    auto buttontitle_lay = new QVBoxLayout;
-    buttontitle_lay->setSpacing(0);
-    _buttonTitle->setLayout(buttontitle_lay);
-//	_buttonTitle->layout()->addWidget (_sectionTitle);
-//    _buttonTitle->layout()->setMargin(0);
-//	_sectionTitle->hide();
+    m_buttonTitle = new QPushButton;
+    m_buttonTitle->setFlat(true);
+    m_buttonTitle->setText("section name");
+    m_buttonTitle->setStyleSheet("text-align: left;");
+    auto buttontitle_lay = new MarginLess<QVBoxLayout>;
+    m_buttonTitle->setLayout(buttontitle_lay);
 
-    titleLayout->addWidget(_btn);
-    titleLayout->addWidget(_buttonTitle);
+    titleLayout->addWidget(m_btn);
+    titleLayout->addWidget(m_buttonTitle);
     title->setLayout(titleLayout);
-    titleLayout->setSpacing(0);
 
     // CONTENT
-    _container = new QWidget;
-    _container->setContentsMargins(0,0,0,0);
-    _containerLayout = new QVBoxLayout;
-    _containerLayout->setContentsMargins(5,0,0,0);
-    _containerLayout->addStretch();
-    _containerLayout->setSpacing(0);
-    _container->setLayout(_containerLayout);
+    m_container = new QWidget;
+    m_container->setContentsMargins(0,0,0,0);
+    m_containerLayout = new MarginLess<QVBoxLayout>;
+    m_containerLayout->addStretch();
+    m_container->setLayout(m_containerLayout);
 
     // GENERAL
-    QVBoxLayout* globalLayout = new QVBoxLayout;
+    auto globalLayout = new MarginLess<QVBoxLayout>;
     globalLayout->addWidget(title);
-    globalLayout->addWidget(_container);
-    globalLayout->setContentsMargins(0,0,0,0);
-    globalLayout->setSpacing(0);
+    globalLayout->addWidget(m_container);
     this->setContentsMargins(0,0,0,0);
 
-    connect(_btn, SIGNAL(released()), this, SLOT(expand()));
-    connect(_buttonTitle, SIGNAL(clicked()), this, SLOT(expand()));
-//	connect (_sectionTitle, SIGNAL (editingFinished() ), this, SLOT (nameEditDisable() ) );
-
+    connect(m_btn, SIGNAL(released()), this, SLOT(expand()));
+    connect(m_buttonTitle, SIGNAL(clicked()), this, SLOT(expand()));
 
     // INIT
-    _isUnfolded = true;
-    _btn->setArrowType(Qt::DownArrow);
+    m_isUnfolded = true;
+    m_btn->setArrowType(Qt::DownArrow);
     //   expend();
 
     setLayout(globalLayout);
@@ -78,39 +66,39 @@ InspectorSectionWidget::~InspectorSectionWidget()
 
 void InspectorSectionWidget::expand()
 {
-    _isUnfolded = !_isUnfolded;
-    _container->setVisible(_isUnfolded);
+    m_isUnfolded = !m_isUnfolded;
+    m_container->setVisible(m_isUnfolded);
 
-    if(_isUnfolded)
+    if(m_isUnfolded)
     {
-        _btn->setArrowType(Qt::DownArrow);
+        m_btn->setArrowType(Qt::DownArrow);
     }
     else
     {
-        _btn->setArrowType(Qt::RightArrow);
+        m_btn->setArrowType(Qt::RightArrow);
     }
 }
 
 void InspectorSectionWidget::renameSection(QString newName)
 {
 //	_sectionTitle->setText (newName);
-    _buttonTitle->setText(newName);
+    m_buttonTitle->setText(newName);
 }
 
 void InspectorSectionWidget::addContent(QWidget* newWidget)
 {
-    _containerLayout->addWidget(newWidget);
+    m_containerLayout->addWidget(newWidget);
 }
 
 void InspectorSectionWidget::removeContent(QWidget* toRemove)
 {
-    _containerLayout->removeWidget(toRemove);
+    m_containerLayout->removeWidget(toRemove);
     delete toRemove;
 }
 
 void InspectorSectionWidget::removeAll()
 {
-    while(QLayoutItem* item = _containerLayout->takeAt(0))
+    while(QLayoutItem* item = m_containerLayout->takeAt(0))
     {
         if(QWidget* wid = item->widget())
         {

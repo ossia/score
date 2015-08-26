@@ -7,11 +7,15 @@ namespace iscore
 using ElementPluginModelType = int;
 class ElementPluginModel : public QObject
 {
-    public:
-        // Note : subclasses should take an element as a parameter in order to be able to do useful things.
+    protected:
+        // Note : subclasses should take an element as a parameter
+        // in order to be able to do useful things.
         using QObject::QObject;
 
-        virtual ElementPluginModel* clone(const QObject* element, QObject* parent) const = 0;
+    public:
+        virtual ElementPluginModel* clone(
+                const QObject* element,
+                QObject* parent) const = 0;
 
         virtual ElementPluginModelType elementPluginId() const = 0;
 

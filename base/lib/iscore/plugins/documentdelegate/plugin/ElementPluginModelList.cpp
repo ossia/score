@@ -11,7 +11,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(
 {
     // We initialize the potential plug-ins of this document
     // with this object's metadata if necessary.
-    for(auto& plugin : doc->model()->pluginModels())
+    for(auto& plugin : doc->model().pluginModels())
     {
         for(const auto& plugid : plugin->elementPlugins())
         {
@@ -35,7 +35,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(
     iscore::Document* doc = iscore::IDocument::documentFromObject(m_parent);
     for(ElementPluginModel* elt : source.m_list)
     {
-        for(DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        for(DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
         {
             if(plugin->elementPlugins().contains(elt->elementPluginId()))
             {

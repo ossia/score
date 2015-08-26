@@ -44,13 +44,13 @@ class InspectorSectionWidget : public QWidget
         void removeAll();
 
     private:
-        QWidget* _container = nullptr;
-        QVBoxLayout* _containerLayout = nullptr; /*!< main layout */
+        QWidget* m_container = nullptr;
+        QVBoxLayout* m_containerLayout = nullptr; /*!< main layout */
 
         QLineEdit* _sectionTitle = nullptr; /*!< header label \todo editable ? */
-        QToolButton* _btn = nullptr; /*!< button for the fold/unfold action */
+        QToolButton* m_btn = nullptr; /*!< button for the fold/unfold action */
 
-        QPushButton* _buttonTitle;
+        QPushButton* m_buttonTitle;
 
-        bool _isUnfolded;
+        bool m_isUnfolded;
 };

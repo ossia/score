@@ -27,15 +27,15 @@ OSSIAConstraintElement::OSSIAConstraintElement(
 
     // Setup updates
     // todo : should be in OSSIAConstraintElement
-    connect(&iscore_cst, &ConstraintModel::defaultDurationChanged, this,
+    connect(&iscore_cst.duration, &ConstraintDurations::defaultDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDuration(iscore::convert::time(t));
     });
-    connect(&iscore_cst, &ConstraintModel::minDurationChanged, this,
+    connect(&iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDurationMin(iscore::convert::time(t));
     });
-    connect(&iscore_cst, &ConstraintModel::maxDurationChanged, this,
+    connect(&iscore_cst.duration, &ConstraintDurations::maxDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDurationMax(iscore::convert::time(t));
     });
