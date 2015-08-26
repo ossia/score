@@ -45,9 +45,9 @@ namespace StandardDisplacementPolicy
                 constraint.setStartDate(startDate);
             }
 
-            if(!(constraint.defaultDuration() - newDuration).isZero())
+            if(!(constraint.duration.defaultDuration() - newDuration).isZero())
             {
-                ConstraintModel::Algorithms::setDurationInBounds(constraint, newDuration);
+                ConstraintDurations::Algorithms::setDurationInBounds(constraint, newDuration);
                 for(auto& process : constraint.processes())
                 {
                     scaleMethod(process, newDuration);

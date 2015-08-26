@@ -7,7 +7,6 @@
 
 // Note : comment gérer le cas d'un process shared model qui ne sait se sérializer qu'en binaire, dans du json?
 // Faire passer l'info en base64 ?
-
 template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& constraint)
 {
     readFrom(static_cast<const IdentifiedObject<ConstraintModel>&>(constraint));
@@ -33,17 +32,12 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     readFrom(*constraint.m_fullViewModel);
 
     // Common data
-    m_stream << constraint.m_startState
+    m_stream << constraint.duration
+             << constraint.m_startState
              << constraint.m_endState
 
-             << constraint.m_defaultDuration
-             << constraint.m_minDuration
-             << constraint.m_maxDuration
-
              << constraint.m_startDate
-             << constraint.m_heightPercentage
-
-             << constraint.m_rigidity;
+             << constraint.m_heightPercentage;
 
     readFrom(constraint.pluginModelList);
 
@@ -79,17 +73,12 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
 
     // Common data
-    m_stream >> constraint.m_startState
+    m_stream >> constraint.duration
+             >> constraint.m_startState
              >> constraint.m_endState
 
-             >> constraint.m_defaultDuration
-             >> constraint.m_minDuration
-             >> constraint.m_maxDuration
-
              >> constraint.m_startDate
-             >> constraint.m_heightPercentage
-
-             >> constraint.m_rigidity;
+             >> constraint.m_heightPercentage;
 
 
     constraint.pluginModelList = iscore::ElementPluginModelList{*this, &constraint};
@@ -115,18 +104,15 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
 
 
     // Common data
+    // The fields will go in the same level as the
+    // rest of the constraint
+    readFrom(constraint.duration);
+
     m_obj["StartState"] = toJsonValue(constraint.m_startState);
     m_obj["EndState"] = toJsonValue(constraint.m_endState);
 
-    m_obj["DefaultDuration"] = toJsonValue(constraint.m_defaultDuration);
-    m_obj["MinDuration"] = toJsonValue(constraint.m_minDuration);
-    m_obj["MaxDuration"] = toJsonValue(constraint.m_maxDuration);
-
     m_obj["StartDate"] = toJsonValue(constraint.m_startDate);
     m_obj["HeightPercentage"] = constraint.m_heightPercentage;
-
-    m_obj["Rigidity"] = constraint.isRigid();
-
 
     m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
@@ -154,17 +140,13 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
                                constraint,
                                &constraint});
 
+    writeTo(constraint.duration);
     constraint.m_startState = fromJsonValue<id_type<StateModel>> (m_obj["StartState"]);
     constraint.m_endState = fromJsonValue<id_type<StateModel>> (m_obj["EndState"]);
-
-    constraint.m_defaultDuration = fromJsonValue<TimeValue> (m_obj["DefaultDuration"]);
-    constraint.m_minDuration = fromJsonValue<TimeValue> (m_obj["MinDuration"]);
-    constraint.m_maxDuration = fromJsonValue<TimeValue> (m_obj["MaxDuration"]);
 
     constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
     constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
-    constraint.m_rigidity = m_obj["Rigidity"].toBool();
 
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);

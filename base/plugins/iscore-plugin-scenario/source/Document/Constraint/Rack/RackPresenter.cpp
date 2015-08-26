@@ -22,7 +22,7 @@ RackPresenter::RackPresenter(const RackModel& model,
         on_slotCreated_impl(slotModel);
     }
 
-    m_duration = m_model.constraint().defaultDuration();
+    m_duration = m_model.constraint().duration.defaultDuration();
 
     on_askUpdate();
 

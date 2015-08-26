@@ -26,7 +26,7 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     auto main_start_event_it = main_start_node->emplace(main_start_node->timeEvents().begin(), statusCallback);
     auto main_end_event_it = main_end_node->emplace(main_end_node->timeEvents().begin(), statusCallback);
 
-    OSSIA::TimeValue main_duration(iscore::convert::time(element->baseConstraint().defaultDuration()));
+    OSSIA::TimeValue main_duration(iscore::convert::time(element->baseConstraint().duration.defaultDuration()));
     auto main_constraint = OSSIA::TimeConstraint::create(constraintCallback, *main_start_event_it, *main_end_event_it, main_duration);
 
     m_ossia_startTimeNode = new OSSIATimeNodeElement{main_start_node, element->startTimeNode(), this};

@@ -77,8 +77,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
     // Progress bar, time rules
     /*
-    m_mainTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
-    m_localTimeRuler->setDuration(model()->baseConstraint().defaultDuration());
+    m_mainTimeRuler->setDuration(model()->baseConstraint().duration.defaultDuration());
+    m_localTimeRuler->setDuration(model()->baseConstraint().duration.defaultDuration());
     */
 }
 
@@ -153,7 +153,7 @@ void BaseElementPresenter::on_newSelection(const Selection& sel)
     {
         if(auto cstr = dynamic_cast<const ConstraintModel*>(*sel.begin()) )
         {
-            m_localTimeRuler->setDuration(cstr->defaultDuration());
+            m_localTimeRuler->setDuration(cstr->duration.defaultDuration());
             m_localTimeRuler->setStartPoint(cstr->startDate());
 
             connect(cstr,               &ConstraintModel::defaultDurationChanged,
@@ -182,7 +182,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
                 16.,
                 std::max(
                     24.,
-                    20 + displayedConstraint().defaultDuration().msec() / view()->view()->width()
+                    20 + displayedConstraint().duration.defaultDuration().msec() / view()->view()->width()
                     )
                 );
     updateZoom(newMillisPerPix, QPointF(0,0));
@@ -200,7 +200,7 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
         // On veut que cette fonction retourne le facteur de
         // m_zoomRatio nécessaire pour que la contrainte affichée tienne à l'écran.
         double viewWidth = view()->view()->width();
-        double duration =  displayedConstraint().defaultDuration().msec();
+        double duration =  displayedConstraint().duration.defaultDuration().msec();
 
         return 5 + duration / viewWidth;
     };
