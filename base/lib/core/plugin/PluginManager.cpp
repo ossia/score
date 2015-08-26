@@ -9,6 +9,7 @@
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include <QDir>
@@ -45,7 +46,6 @@ void PluginManager::reloadPlugins()
 {
     clearPlugins();
     auto folders = pluginsDir();
-    auto blacklist = pluginsBlacklist();
 
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
@@ -59,45 +59,13 @@ void PluginManager::reloadPlugins()
         QDir pluginsDir(pluginsFolder);
         for(const QString& fileName : pluginsDir.entryList(QDir::Files))
         {
-            QPluginLoader loader {pluginsDir.absoluteFilePath(fileName) };
-
-            if(QObject* plugin = loader.instance())
-            {
-                // Check if the plugin is not already loaded
-                if(boost::range::find_if(m_availablePlugins,
-                   [&] (QObject* obj)
-                   { return obj->metaObject()->className() == plugin->metaObject()->className(); })
-                        != m_availablePlugins.end())
-                {
-                    qDebug() << "Warning: plugin"
-                             << plugin->metaObject()->className()
-                             << "was already loaded. Not reloading.";
-
-                    continue;
-                }
-
-                // Check if it is blacklisted
-                if(!blacklist.contains(fileName))
-                {
-                    m_availablePlugins += plugin;
-                    plugin->setParent(this);
-                }
-                else
-                {
-                    plugin->deleteLater();
-                }
-
-                m_pluginsOnSystem.push_back(fileName);
-            }
-            else
-            {
-                QString s = loader.errorString();
-                if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
-                    qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
-            }
+            loadPlugin(pluginsDir.absoluteFilePath(fileName));
         }
     }
 
+    // Here, it is important not to collapse all the for-loops
+    // because for instance a control from plugin B might require the factory
+    // from plugin A to be loaded prior.
     // Load all the factories.
     for(QObject* plugin : m_availablePlugins)
     {
@@ -105,7 +73,7 @@ void PluginManager::reloadPlugins()
     }
 
     // Load all the plug-in controls (because all controls need to be initialized for the
-    // factories to work, generally.
+    // factories to work, generally).
     for(QObject* plugin : m_availablePlugins)
     {
         loadControls(plugin);
@@ -121,6 +89,47 @@ void PluginManager::reloadPlugins()
 QStringList PluginManager::pluginsOnSystem() const
 {
     return m_pluginsOnSystem;
+}
+
+void PluginManager::loadPlugin(const QString &fileName)
+{
+    auto blacklist = pluginsBlacklist();
+    QPluginLoader loader {fileName};
+
+    if(QObject* plugin = loader.instance())
+    {
+        // Check if the plugin is not already loaded
+        if(boost::range::find_if(m_availablePlugins,
+           [&] (QObject* obj)
+           { return obj->metaObject()->className() == plugin->metaObject()->className(); })
+                != m_availablePlugins.end())
+        {
+            qDebug() << "Warning: plugin"
+                     << plugin->metaObject()->className()
+                     << "was already loaded. Not reloading.";
+
+            return;
+        }
+
+        // Check if it is blacklisted
+        if(!blacklist.contains(fileName))
+        {
+            m_availablePlugins += plugin;
+            plugin->setParent(this);
+        }
+        else
+        {
+            plugin->deleteLater();
+        }
+
+        m_pluginsOnSystem.push_back(fileName);
+    }
+    else
+    {
+        QString s = loader.errorString();
+        if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
+            qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
+    }
 }
 
 void PluginManager::loadControls(QObject* plugin)
@@ -192,7 +201,6 @@ void PluginManager::loadFactories(QObject* plugin)
     }
 }
 
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 void PluginManager::dispatch(QObject* plugin)
 {
     auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);

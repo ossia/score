@@ -20,6 +20,7 @@
 #include <QFileDialog>
 #include <QSaveFile>
 #include <QMessageBox>
+#include <QToolBar>
 #include <QJsonDocument>
 
 using namespace iscore;
@@ -43,7 +44,6 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
             this,   &Presenter::closeDocument);
 }
 
-#include <QToolBar>
 void Presenter::registerPluginControl(PluginControlInterface* ctrl)
 {
     ctrl->setParent(this);
@@ -109,19 +109,13 @@ Document *Presenter::currentDocument() const
 void Presenter::setCurrentDocument(Document* doc)
 {
     m_currentDocument = doc;
-    if(doc)
+
+    for(auto& pair : m_panelPresenters)
     {
-        for(auto& pair : m_panelPresenters)
-        {
+        if(doc)
             m_currentDocument->bindPanelPresenter(pair.first);
-        }
-    }
-    else
-    {
-        for(auto& pair : m_panelPresenters)
-        {
+        else
             pair.first->setModel(nullptr);
-        }
     }
 
     for(auto& ctrl : m_controls)
@@ -130,7 +124,6 @@ void Presenter::setCurrentDocument(Document* doc)
     }
 }
 
-#include <QMessageBox>
 bool Presenter::closeDocument(Document* doc)
 {
     // Warn the user if he might loose data
