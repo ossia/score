@@ -70,8 +70,7 @@ Document::~Document()
     delete m_view;
 }
 
-void Document::setupNewPanel(PanelPresenter* pres,
-                             PanelFactory* factory)
+void Document::setupNewPanel(PanelFactory* factory)
 {
     m_model->addPanel(factory->makeModel(m_model));
 }

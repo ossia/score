@@ -205,8 +205,8 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
         return 5 + duration / viewWidth;
     };
 
-    float zoomSpeed = 0.3;
-    float zoomratio = (view()->zoomSlider()->value() + zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
+    double zoomSpeed = 0.3;
+    double zoomratio = (view()->zoomSlider()->value() + zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
 
     if (zoomratio > 1.)
         zoomratio = 0.99;

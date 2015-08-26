@@ -98,7 +98,7 @@ typename Container::value_type findById_weak(const Container& c, int32_t id)
 QObject* ObjectPath::find_impl() const
 {
     auto parent_name = m_objectIdentifiers.at(0).objectName();
-    std::vector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
+    QVector<ObjectIdentifier> children(m_objectIdentifiers.size() - 1);
     std::copy(std::begin(m_objectIdentifiers) + 1,
               std::end(m_objectIdentifiers),
               std::begin(children));

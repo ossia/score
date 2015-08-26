@@ -32,6 +32,10 @@ void FullViewConstraintView::paint(QPainter* painter,
 {
     QColor c = qApp->palette("ScenarioPalette").base().color();
 
+    int min_w = static_cast<int>(minWidth());
+    int max_w = static_cast<int>(maxWidth());
+    int def_w = static_cast<int>(defaultWidth());
+
     if(isSelected())
     {
         c = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
@@ -44,46 +48,28 @@ void FullViewConstraintView::paint(QPainter* painter,
     m_solidPen.setColor(c);
     m_dashPen.setColor(c);
 
-    if(minWidth() == maxWidth())
+    if(min_w == max_w)
     {
         painter->setPen(m_solidPen);
-        painter->drawLine(0,
-                          0,
-                          defaultWidth(),
-                          0);
+        painter->drawLine(0, 0, def_w, 0);
     }
     else
     {
         // Firs the line going from 0 to the min
         painter->setPen(m_solidPen);
-        painter->drawLine(0,
-                          0,
-                          minWidth(),
-                          0);
+        painter->drawLine(0, 0, min_w, 0);
 
         // The little hat
-        painter->drawLine(minWidth(),
-                          -5,
-                          minWidth(),
-                          -15);
-        painter->drawLine(minWidth(),
-                          -15,
-                          maxWidth(),
-                          -15);
-        painter->drawLine(maxWidth(),
-                          -5,
-                          maxWidth(),
-                          -15);
+        painter->drawLine(min_w, -5, min_w, -15);
+        painter->drawLine(min_w, -15, max_w, -15);
+        painter->drawLine(max_w, -5, max_w, -15);
 
         // Finally the dashed line
         painter->setPen(m_dashPen);
-        painter->drawLine(minWidth(),
-                          0,
-                          maxWidth(),
-                          0);
+        painter->drawLine(min_w, 0, max_w, 0);
     }
 
-    QLinearGradient gradient {qreal(maxWidth()), 0, qreal(maxWidth() + 200), 0};
+    QLinearGradient gradient {qreal(max_w), 0, qreal(max_w + 200), 0};
     gradient.setColorAt(0, Qt::black);
     gradient.setColorAt(1, Qt::transparent);
 
@@ -91,5 +77,5 @@ void FullViewConstraintView::paint(QPainter* painter,
     painter->setBrush(brush);
     painter->setPen(QPen(brush, 4));
 
-    painter->drawLine(maxWidth(), 0, maxWidth() + 200, 0);
+    painter->drawLine(max_w, 0, max_w + 200, 0);
 }

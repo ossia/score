@@ -10,7 +10,7 @@ class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
 {
         Q_OBJECT
     public:
-        NetworkSettingsView(QObject* parent);
+        explicit NetworkSettingsView(QObject* parent);
 
         void setMasterPort(int val);
         void setClientPort(int val);

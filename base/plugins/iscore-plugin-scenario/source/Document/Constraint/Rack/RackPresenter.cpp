@@ -57,24 +57,24 @@ const RackView &RackPresenter::view() const
     return *m_view;
 }
 
-int RackPresenter::height() const
+qreal RackPresenter::height() const
 {
-    int totalHeight = 0; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
+    qreal totalHeight = 0; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 
     for(const auto& slot : m_slots)
     {
-        totalHeight += slot.height() + 5;
+        totalHeight += slot.height() + 5.;
     }
 
     return totalHeight;
 }
 
-int RackPresenter::width() const
+qreal RackPresenter::width() const
 {
     return m_view->boundingRect().width();
 }
 
-void RackPresenter::setWidth(int w)
+void RackPresenter::setWidth(qreal w)
 {
     m_view->setWidth(w);
 

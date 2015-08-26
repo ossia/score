@@ -35,6 +35,10 @@ void TemporalConstraintView::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
+    int min_w = static_cast<int>(minWidth());
+    int max_w = static_cast<int>(maxWidth());
+    int def_w = static_cast<int>(defaultWidth());
+
     // Draw the stuff present if there is a rack
     if(presenter().rack())
     {
@@ -57,35 +61,35 @@ void TemporalConstraintView::paint(
     // Paths
     if(infinite())
     {
-        if(minWidth() != 0)
+        if(min_w != 0)
         {
-            solidPath.lineTo(minWidth(), 0);
+            solidPath.lineTo(min_w, 0);
 
-            leftBrace.moveTo(minWidth(), -10);
-            leftBrace.arcTo(minWidth() - 10, -10, 20, 20, 90, 180);
+            leftBrace.moveTo(min_w, -10);
+            leftBrace.arcTo(min_w - 10, -10, 20, 20, 90, 180);
         }
 
         // TODO end state should be hidden
-        dashedPath.moveTo(minWidth(), 0);
-        dashedPath.lineTo(defaultWidth(), 0);
+        dashedPath.moveTo(min_w, 0);
+        dashedPath.lineTo(def_w, 0);
     }
-    else if(minWidth() == maxWidth()) // TODO rigid()
+    else if(min_w == max_w) // TODO rigid()
     {
-        solidPath.lineTo(defaultWidth(), 0);
+        solidPath.lineTo(def_w, 0);
     }
     else
     {
-        if(minWidth() != 0)
-            solidPath.lineTo(minWidth(), 0);
+        if(min_w != 0)
+            solidPath.lineTo(min_w, 0);
 
-        dashedPath.moveTo(minWidth(), 0);
-        dashedPath.lineTo(maxWidth(), 0);
+        dashedPath.moveTo(min_w, 0);
+        dashedPath.lineTo(max_w, 0);
 
-        leftBrace.moveTo(minWidth(), -10);
-        leftBrace.arcTo(minWidth() - 10, -10, 20, 20, 90, 180);
+        leftBrace.moveTo(min_w, -10);
+        leftBrace.arcTo(min_w - 10, -10, 20, 20, 90, 180);
 
-        rightBrace.moveTo(maxWidth(), 10);
-        rightBrace.arcTo(maxWidth() - 10, -10, 20, 20, 270, 180);
+        rightBrace.moveTo(max_w, 10);
+        rightBrace.arcTo(max_w - 10, -10, 20, 20, 270, 180);
     }
 
     QPainterPath playedPath;

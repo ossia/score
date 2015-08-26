@@ -64,7 +64,7 @@ void Presenter::registerPanel(PanelFactory* factory)
     m_view->setupPanelView(view);
 
     for(auto doc : m_documents)
-        doc->setupNewPanel(pres, factory);
+        doc->setupNewPanel(factory);
 }
 
 void Presenter::registerDocumentDelegate(DocumentDelegateFactoryInterface* docpanel)
@@ -88,7 +88,7 @@ void Presenter::setupDocument(Document* doc)
     {
         for(auto& panel : m_panelPresenters)
         {
-            doc->setupNewPanel(panel.first, panel.second);
+            doc->setupNewPanel(panel.second);
         }
 
         m_documents.push_back(doc);

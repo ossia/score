@@ -25,7 +25,8 @@ View::View(QObject* parent) :
 
     QDesktopWidget w;
     auto rect = w.availableGeometry();
-    this->resize(rect.width() * 0.75, rect.height() * 0.75);
+    this->resize(static_cast<int>(rect.width() * 0.75),
+                 static_cast<int>(rect.height() * 0.75));
 
     setCentralWidget(m_tabWidget);
     connect(m_tabWidget, &QTabWidget::currentChanged,

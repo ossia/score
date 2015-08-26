@@ -3,6 +3,12 @@
 class QGridLayout;
 class ValueWidget;
 
+/**
+ * @brief The ValueWrapper class
+ *
+ * This wrapper is used to easily wrap a ValueWidget
+ * so that the ValueWidget can be replaced without clearing all the layout.
+ */
 class ValueWrapper : public QWidget
 {
     public:

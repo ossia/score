@@ -58,7 +58,5 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         typename TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
         typename TemplatedSpinBox<T>::spinbox_type* m_minSBox;
         typename TemplatedSpinBox<T>::spinbox_type* m_maxSBox;
-
-        QComboBox* m_unitCBox;
 };
 

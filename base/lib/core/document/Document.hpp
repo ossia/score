@@ -45,8 +45,7 @@ namespace iscore
             DocumentView& view() const
             { return *m_view; }
 
-            void setupNewPanel(PanelPresenter* pres,
-                               PanelFactory* factory);
+            void setupNewPanel(PanelFactory* factory);
             void bindPanelPresenter(PanelPresenter*);
 
 

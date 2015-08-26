@@ -15,7 +15,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
 {
         Q_OBJECT
 
-        Q_PROPERTY(int height
+        Q_PROPERTY(qreal height
                    READ height
                    WRITE setHeight
                    NOTIFY heightChanged)
@@ -67,7 +67,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;
 
-        int height() const;
+        qreal height() const;
         bool focus() const;
 
     signals:
@@ -75,20 +75,20 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void layerModelRemoved(const id_type<LayerModel>& layerModelId);
         void layerModelPutToFront(const id_type<LayerModel>& layerModelId);
 
-        void heightChanged(int arg);
+        void heightChanged(qreal arg);
         void focusChanged(bool arg);
 
     public slots:
         void on_deleteSharedProcessModel(const id_type<Process>& sharedProcessId);
 
-        void setHeight(int arg);
+        void setHeight(qreal arg);
         void setFocus(bool arg);
 
     private:
         id_type<LayerModel> m_frontLayerModelId;
         IdContainer<LayerModel> m_layerModels;
 
-        int m_height {200};
+        qreal m_height {200};
         bool m_focus{false};
 };
 
