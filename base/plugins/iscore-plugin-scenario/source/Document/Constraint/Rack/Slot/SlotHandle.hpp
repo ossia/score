@@ -21,10 +21,10 @@ class SlotHandle : public QGraphicsItem
             return m_slotView;
         }
 
-        QRectF boundingRect() const;
+        QRectF boundingRect() const override;
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
-                   QWidget *widget);
+                   QWidget *widget) override;
 
         void setWidth(qreal width);
 

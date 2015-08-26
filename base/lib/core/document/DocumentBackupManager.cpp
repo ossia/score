@@ -4,8 +4,7 @@
 #include <core/application/OpenDocumentsFile.hpp>
 #include <QSettings>
 iscore::DocumentBackupManager::DocumentBackupManager(iscore::Document& doc):
-    QObject{&doc},
-    m_doc{doc}
+    QObject{&doc}
 {
     m_modelFile.open();
 

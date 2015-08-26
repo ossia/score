@@ -29,7 +29,9 @@ class MIDIProtocolFactory : public ProtocolFactory
             serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
         }
 
-        bool checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b)
+        bool checkCompatibility(
+                const iscore::DeviceSettings& a,
+                const iscore::DeviceSettings& b) const override
         {
             return a.name != b.name;
         }

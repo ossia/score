@@ -13,9 +13,9 @@ class LibraryPanelView : public iscore::PanelView
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
         LibraryPanelView(iscore::View* parent);
 
-        QWidget* getWidget();
-	const QString shortcut() const override
-	{ return tr("Ctrl+L"); }
+        QWidget* getWidget() override;
+        const QString shortcut() const override
+        { return tr("Ctrl+L"); }
 
     private:
         QTabWidget* m_widget{};

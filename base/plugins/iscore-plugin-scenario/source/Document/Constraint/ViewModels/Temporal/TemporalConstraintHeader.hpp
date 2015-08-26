@@ -10,8 +10,10 @@ class TemporalConstraintHeader : public ConstraintHeader
             this->setAcceptedMouseButtons(0);
         }
 
-        QRectF boundingRect() const;
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter *painter,
+                   const QStyleOptionGraphicsItem *option,
+                   QWidget *widget) override;
 
         int type() const override
         { return QGraphicsItem::UserType + 6; }

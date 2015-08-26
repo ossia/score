@@ -36,7 +36,6 @@ class DocumentBackupManager : public QObject
         QTemporaryFile& crashDataFile();
         CommandBackupFile& crashCommandFile();
 
-        Document& m_doc;
         QTemporaryFile m_modelFile;
         CommandBackupFile* m_commandFile{};
 };

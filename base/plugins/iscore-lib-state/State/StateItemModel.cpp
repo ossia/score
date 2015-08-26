@@ -289,9 +289,6 @@ Qt::ItemFlags StateItemModel::flags(const QModelIndex &index) const
     Qt::ItemFlags f = Qt::ItemIsEnabled;
     if(index.isValid())
     {
-        auto n = nodeFromModelIndex(index);
-        ISCORE_ASSERT(n);
-
         f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
         if(index.column() == (int) Column::Name)
             f |= Qt::ItemIsDropEnabled;
