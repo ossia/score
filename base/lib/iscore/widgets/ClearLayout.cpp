@@ -5,11 +5,11 @@
 void clearLayout(QLayout *layout)
 {
     QLayoutItem *child{};
-    while ((child = layout->takeAt(0)) != 0)
+    while ((child = layout->takeAt(0)) != nullptr)
     {
-        if(child->layout() != 0)
+        if(child->layout() != nullptr)
             clearLayout( child->layout() );
-        else if(child->widget() != 0)
+        else if(child->widget() != nullptr)
             delete child->widget();
 
         delete child;

@@ -263,7 +263,7 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
 void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewModel* vm)
 {
     // TODO mettre à jour l'inspecteur si la rack affichée change (i.e. via une commande réseau).
-    if (m_rackWidget == 0)
+    if (m_rackWidget == nullptr)
         return;
 
     if(rack == m_rackWidget->hiddenText)
