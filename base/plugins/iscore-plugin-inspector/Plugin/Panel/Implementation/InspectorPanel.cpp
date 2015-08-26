@@ -28,7 +28,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     // Delete items in current and not in objects
     Selection toCreate, toDelete;
 
-    // TODO OPTIMIZEME (set_difference won't work due to unordered_set)
+    // OPTIMIZEME (set_difference won't work due to unordered_set)
     for(auto& elt : objects)
     {
         auto it = std::find(m_currentSel.begin(), m_currentSel.end(), elt);
