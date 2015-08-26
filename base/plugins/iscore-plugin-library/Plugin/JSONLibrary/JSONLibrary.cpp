@@ -5,7 +5,7 @@
 #include <QMap>
 
 #include <State/StateMimeTypes.hpp>
-#include "Plugin/Panel/DeviceExplorerMimeTypes.hpp"
+#include <DeviceExplorer/../Plugin/Panel/DeviceExplorerMimeTypes.hpp>
 enum class LibraryColumns
 {
     Name, Category, Tags, Json
@@ -14,7 +14,7 @@ enum class LibraryColumns
 
 JSONModel::JSONModel()
 {
-    elements.append(LibraryElement{"dada", Category::State, {"da di do", "yada"}, {}});
+    elements.append(LibraryElement{"dada", Category::StateNode, {"da di do", "yada"}, {}});
 }
 
 QModelIndex JSONModel::index(int row, int column, const QModelIndex &parent) const
@@ -105,7 +105,6 @@ Qt::ItemFlags JSONModel::flags(const QModelIndex &index) const
 {
     if (index.isValid())
     {
-        qDebug() << "yeah";
         return Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
     }
     else
@@ -141,11 +140,12 @@ bool JSONModel::moveRows(
 static const QString MimeTypeScenarioData = "application/x-iscore-scenariodata";
 static const QString MimeTypeProcess = "application/x-iscore-processdata";
 static const QMap<Category, QString> mimeTypeMap{
-	{Category::State, iscore::mime::state()},
+    {Category::StateNode, iscore::mime::state()},
+    {Category::MessageList, iscore::mime::messagelist()},
     {Category::ScenarioData, MimeTypeScenarioData},
     {Category::Process, MimeTypeProcess},
-	{Category::Device, iscore::mime::device()},
-	{Category::Address, iscore::mime::address()}
+    {Category::Device, iscore::mime::device()},
+    {Category::Address, iscore::mime::address()}
 };
 
 static const QMap<Category, QString>& categoryMimeTypeMap()
@@ -156,11 +156,12 @@ static const QMap<Category, QString>& categoryMimeTypeMap()
 QStringList JSONModel::mimeTypes() const
 {
     return {
-		iscore::mime::state(),
+        iscore::mime::state(),
+        iscore::mime::messagelist(),
         MimeTypeScenarioData,
         MimeTypeProcess,
-		iscore::mime::device(),
-		iscore::mime::address()
+        iscore::mime::device(),
+        iscore::mime::address()
     };
 }
 
@@ -178,6 +179,7 @@ QMimeData *JSONModel::mimeData(const QModelIndexList &indexes) const
     mimeData->setData(categoryMimeTypeMap()[elt.category], text);
     return mimeData;
 }
+
 #include <iostream>
 bool JSONModel::canDropMimeData(
         const QMimeData *data,
@@ -204,15 +206,20 @@ bool JSONModel::dropMimeData(
         int column,
         const QModelIndex &parent)
 {
+    // TODO : How to handle the drops that have multiple values ? like messagelist + node...
+
+    auto doc = QJsonDocument::fromJson(data->data(data->formats().first()));
+
     beginInsertRows(parent, elements.size(), elements.size());
     elements.push_back(
                 LibraryElement
                     {"Name me!",
                      categoryMimeTypeMap().key(data->formats().first(), Category(-1)),
                      {"no tags"},
-                     QJsonObject{}});
+                     doc.object()});
     endInsertRows();
-    return false;
+
+    return true;
 }
 
 Qt::DropActions JSONModel::supportedDropActions() const

@@ -3,6 +3,6 @@
 class Separator : public QWidget
 {
     public:
-        Separator(QWidget* parent);
+        explicit Separator(QWidget* parent);
         ~Separator();
 };

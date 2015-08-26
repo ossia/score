@@ -4,7 +4,7 @@
 class AddressTupleSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressTupleSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressTupleSettingsWidget(QWidget* parent = nullptr);
 
         virtual iscore::AddressSettings getSettings() const override;
 

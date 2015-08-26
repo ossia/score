@@ -14,14 +14,13 @@ class DeviceEditDialog : public QDialog
         Q_OBJECT
 
     public:
-
-        DeviceEditDialog(QWidget* parent);
+        explicit DeviceEditDialog(QWidget* parent);
         ~DeviceEditDialog();
 
         iscore::DeviceSettings getSettings() const;
         QString getPath() const;
 
-        void setSettings(iscore::DeviceSettings& settings);
+        void setSettings(const iscore::DeviceSettings& settings);
 
 
     protected slots:

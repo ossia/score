@@ -56,7 +56,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 
     AddProcessToConstraint cmd1
     {
-        {
+        ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}}
@@ -114,14 +114,14 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 
     AddLayerModelToSlot cmd6
     {
-        {
+        ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},
             {"RackModel", rack.id() },
             {"SlotModel", slotId}
         },
-        {
+        ObjectPath{
             {"BaseElementModel", this->id()},
             {"BaseScenario", m_baseScenario->id()},
             {"BaseConstraintModel", {}},

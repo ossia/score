@@ -9,7 +9,7 @@ class SelectionState;
 class SelectionTool : public CurveTool
 {
     public:
-        SelectionTool(CurveStateMachine& sm);
+        explicit SelectionTool(CurveStateMachine& sm);
 
         void on_pressed() override;
         void on_moved() override;

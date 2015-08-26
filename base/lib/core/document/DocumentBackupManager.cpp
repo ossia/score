@@ -14,7 +14,7 @@ iscore::DocumentBackupManager::DocumentBackupManager(iscore::Document& doc):
 
 iscore::DocumentBackupManager::~DocumentBackupManager()
 {
-    QSettings s(openDocumentsFilePath(), QSettings::IniFormat);
+    QSettings s(OpenDocumentsFile::path(), QSettings::IniFormat);
     auto existing_files = s.value("iscore/docs").toStringList();
     existing_files.removeOne(crashDataFile().fileName());
     s.setValue("iscore/docs", existing_files);
@@ -40,7 +40,7 @@ iscore::CommandBackupFile& iscore::DocumentBackupManager::crashCommandFile()
 void iscore::DocumentBackupManager::updateBackupData()
 {
     // Save the initial state of the document
-    QSettings s{iscore::openDocumentsFilePath(), QSettings::IniFormat};
+    QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
 
     auto existing_files = s.value("iscore/docs").toMap();
     existing_files.insert(crashDataFile().fileName(),

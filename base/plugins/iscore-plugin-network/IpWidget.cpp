@@ -68,8 +68,8 @@ void IpWidget::slotTextChanged( QLineEdit* pEdit )
                 // auto-move to next item
                 if ( i+1 != QTUTL_IP_SIZE )
                 {
-                   lineEdits[i+1]->setFocus();
-                   lineEdits[i+1]->selectAll();
+                    lineEdits[i+1]->setFocus();
+                    lineEdits[i+1]->selectAll();
                 }
             }
         }
@@ -92,48 +92,48 @@ bool IpWidget::eventFilter(QObject *obj, QEvent *event)
                 {
                     switch ( pEvent->key() )
                     {
-                    case Qt::Key_Left:
-                        if ( pEdit->cursorPosition() == 0 )
-                        {
-                            // user wants to move to previous item
-                            MovePrevLineEdit(i);
-                        }
-                        break;
+                        case Qt::Key_Left:
+                            if ( pEdit->cursorPosition() == 0 )
+                            {
+                                // user wants to move to previous item
+                                MovePrevLineEdit(i);
+                            }
+                            break;
 
-                    case Qt::Key_Right:
-                        if ( pEdit->text().isEmpty() || (pEdit->text().size() == pEdit->cursorPosition()) )
-                        {
-                            // user wants to move to next item
+                        case Qt::Key_Right:
+                            if ( pEdit->text().isEmpty() || (pEdit->text().size() == pEdit->cursorPosition()) )
+                            {
+                                // user wants to move to next item
+                                MoveNextLineEdit(i);
+                            }
+                            break;
+
+                        case Qt::Key_0:
+                            if ( pEdit->text().isEmpty() || pEdit->text() == "0" )
+                            {
+                                pEdit->setText("0");
+                                // user wants to move to next item
+                                MoveNextLineEdit(i);
+                            }
+                            emit signalTextChanged( pEdit );
+                            break;
+
+                        case Qt::Key_Backspace:
+                            if ( pEdit->text().isEmpty() || pEdit->cursorPosition() == 0)
+                            {
+                                // user wants to move to previous item
+                                MovePrevLineEdit(i);
+                            }
+                            break;
+
+                        case Qt::Key_Comma:
+                        case Qt::Key_Period:
                             MoveNextLineEdit(i);
-                        }
-                        break;
+                            break;
 
-                    case Qt::Key_0:
-                        if ( pEdit->text().isEmpty() || pEdit->text() == "0" )
-                        {
-                            pEdit->setText("0");
-                            // user wants to move to next item
-                            MoveNextLineEdit(i);
-                        }
-                        emit signalTextChanged( pEdit );
-                        break;
-
-                    case Qt::Key_Backspace:
-                        if ( pEdit->text().isEmpty() || pEdit->cursorPosition() == 0)
-                        {
-                            // user wants to move to previous item
-                            MovePrevLineEdit(i);
-                        }
-                        break;
-
-                    case Qt::Key_Comma:
-                    case Qt::Key_Period:
-                        MoveNextLineEdit(i);
-                        break;
-
-                    default:
-                        emit signalTextChanged( pEdit );
-                        break;
+                        default:
+                            emit signalTextChanged( pEdit );
+                            break;
 
                     }
                 }

@@ -48,9 +48,14 @@ namespace iscore
             // Else we can't blacklist / unblacklist plug-ins.
             QStringList m_pluginsOnSystem;
 
+            void loadPlugin(const QString& filename);
+
             void loadControls(QObject* plugin);
             void loadFactories(QObject* plugin);
+
+            // Classify the plug-in element in the correct container.
             void dispatch(QObject* plugin);
+
             void clearPlugins();
 
             QStringList pluginsBlacklist();

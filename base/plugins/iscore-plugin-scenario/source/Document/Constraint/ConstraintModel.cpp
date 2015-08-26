@@ -30,14 +30,12 @@ ConstraintModel::ConstraintModel(
     pluginModelList{source.pluginModelList, this}
 {
     metadata = source.metadata;
-//    consistency = source.consistency; // TODO : no necessary because it should be compute
+    // It is not necessary to save modelconsistency because it should be recomputed
 
     m_startState = source.startState();
     m_endState = source.endState();
+    duration = source.duration;
 
-    m_defaultDuration = source.defaultDuration();
-    m_minDuration = source.minDuration();
-    m_maxDuration = source.maxDuration();
     m_startDate = source.m_startDate;
     m_heightPercentage = source.heightPercentage();
 
@@ -84,7 +82,6 @@ ScenarioInterface* ConstraintModel::parentScenario() const
 {
     return dynamic_cast<ScenarioInterface*>(parent());
 }
-
 
 
 
@@ -142,10 +139,10 @@ void ConstraintModel::removeProcess(const id_type<Process>& processId)
 
 void ConstraintModel::addRack(RackModel* rack)
 {
-    connect(this,	&ConstraintModel::processRemoved,
-            rack,	&RackModel::on_deleteSharedProcessModel);
-    connect(this,	&ConstraintModel::defaultDurationChanged,
-            rack,	&RackModel::on_durationChanged);
+    connect(this, &ConstraintModel::processRemoved,
+            rack, &RackModel::on_deleteSharedProcessModel);
+    connect(&duration, &ConstraintDurations::defaultDurationChanged,
+            rack, &RackModel::on_durationChanged);
 
     m_racks.insert(rack);
     emit rackCreated(rack->id());
@@ -218,7 +215,7 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 
 void ConstraintModel::reset()
 {
-    setPlayDuration(TimeValue::zero());
+    duration.setPlayDuration(TimeValue::zero());
 
     for(auto& proc : m_processes)
     {
@@ -233,74 +230,4 @@ void ConstraintModel::setHeightPercentage(double arg)
         m_heightPercentage = arg;
         emit heightPercentageChanged(arg);
     }
-}
-
-
-
-const TimeValue& ConstraintModel::defaultDuration() const
-{
-    return m_defaultDuration;
-}
-
-const TimeValue& ConstraintModel::minDuration() const
-{
-    return m_minDuration;
-}
-
-const TimeValue& ConstraintModel::maxDuration() const
-{
-    return m_maxDuration;
-}
-
-void ConstraintModel::setDefaultDuration(const TimeValue& arg)
-{
-    if(m_defaultDuration != arg)
-    {
-        m_defaultDuration = arg;
-        emit defaultDurationChanged(arg);
-        consistency.setValid(true);
-        consistency.setWarning(m_defaultDuration < m_minDuration || m_defaultDuration > m_maxDuration);
-    }
-    if(m_defaultDuration.msec() < 0)
-    {
-        consistency.setValid(false);
-    }
-}
-
-void ConstraintModel::setMinDuration(const TimeValue& arg)
-{
-    if(m_minDuration != arg)
-    {
-        m_minDuration = arg;
-        emit minDurationChanged(arg);
-        consistency.setWarning(m_defaultDuration < m_minDuration);
-    }
-}
-
-void ConstraintModel::setMaxDuration(const TimeValue& arg)
-{
-    if(m_maxDuration != arg)
-    {
-        m_maxDuration = arg;
-        emit maxDurationChanged(arg);
-        consistency.setWarning(m_defaultDuration > m_maxDuration && !m_maxDuration.isInfinite());
-    }
-}
-
-void ConstraintModel::setPlayDuration(const TimeValue &arg)
-{
-    if (m_playDuration == arg)
-        return;
-
-    m_playDuration = arg;
-    emit playDurationChanged(arg);
-}
-
-void ConstraintModel::setRigid(bool arg)
-{
-    if (m_rigidity == arg)
-        return;
-
-    m_rigidity = arg;
-    emit rigidityChanged(arg);
 }

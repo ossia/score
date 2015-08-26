@@ -14,7 +14,7 @@ template<typename T>
 class AddressNumericSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressNumericSettingsWidget(QWidget* parent = nullptr)
+        explicit AddressNumericSettingsWidget(QWidget* parent = nullptr)
             : AddressSettingsWidget(parent)
         {
             m_valueSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
@@ -58,7 +58,5 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         typename TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
         typename TemplatedSpinBox<T>::spinbox_type* m_minSBox;
         typename TemplatedSpinBox<T>::spinbox_type* m_maxSBox;
-
-        QComboBox* m_unitCBox;
 };
 

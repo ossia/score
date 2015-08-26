@@ -65,7 +65,7 @@ iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
 
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
-    doc->model()->addPluginModel(new DeviceDocumentPlugin(doc));
+    doc->model().addPluginModel(new DeviceDocumentPlugin(doc));
 }
 
 iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(

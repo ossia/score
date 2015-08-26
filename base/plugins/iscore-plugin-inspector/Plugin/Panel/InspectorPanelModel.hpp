@@ -14,7 +14,7 @@ class InspectorPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:
-        InspectorPanelModel(iscore::DocumentModel* parent);
+        explicit InspectorPanelModel(iscore::DocumentModel* parent);
         int panelId() const override;
 
     signals:

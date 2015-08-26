@@ -7,7 +7,7 @@ class GroupManager : public IdentifiedObject<GroupManager>
 {
         Q_OBJECT
     public:
-        GroupManager(QObject* parent);
+        explicit GroupManager(QObject* parent);
 
         template<typename Deserializer>
         GroupManager(Deserializer&& vis, QObject* parent) :

@@ -37,7 +37,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
 OSSIAConstraintElement &OSSIAControl::baseConstraint() const
 {
-    return *currentDocument()->model()->pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
+    return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
@@ -86,12 +86,12 @@ iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
 
 void OSSIAControl::on_newDocument(iscore::Document* doc)
 {
-    doc->model()->addPluginModel(new OSSIADocumentPlugin{doc->model(), doc->model()});
+    doc->model().addPluginModel(new OSSIADocumentPlugin{doc->model(), &doc->model()});
 }
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 {
-    if(auto plugmodel = doc->model()->pluginModel<OSSIADocumentPlugin>())
+    if(auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>())
     {
         plugmodel->reload(doc->model());
     }

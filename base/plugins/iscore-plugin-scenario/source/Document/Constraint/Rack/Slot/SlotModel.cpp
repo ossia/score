@@ -111,7 +111,7 @@ void SlotModel::on_deleteSharedProcessModel(
     }
 }
 
-void SlotModel::setHeight(int arg)
+void SlotModel::setHeight(qreal arg)
 {
     if(m_height != arg)
     {
@@ -134,7 +134,7 @@ ConstraintModel& SlotModel::parentConstraint() const
     return static_cast<ConstraintModel&>(*parent()->parent());
 }
 
-int SlotModel::height() const
+qreal SlotModel::height() const
 {
     return m_height;
 }

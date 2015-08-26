@@ -43,12 +43,12 @@ class ObjectPath
         ObjectPath() = default;
         QString toString() const;
 
-        ObjectPath(QVector<ObjectIdentifier>&& vec) :
+        explicit ObjectPath(QVector<ObjectIdentifier>&& vec) :
             m_objectIdentifiers {std::move(vec)}
         {
         }
 
-        ObjectPath(std::initializer_list<ObjectIdentifier> lst) :
+        explicit ObjectPath(std::initializer_list<ObjectIdentifier> lst) :
             m_objectIdentifiers(lst)
         {
         }

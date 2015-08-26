@@ -29,7 +29,7 @@ MoveBaseEvent::MoveBaseEvent(ObjectPath&& baseScenarioPath,
 {
     auto& scenar = m_path.find<BaseScenario>();
     const auto& constraint = scenar.baseConstraint();
-    m_oldDate = constraint.defaultDuration();
+    m_oldDate = constraint.duration.defaultDuration();
 
     // Save the constraint data
     QByteArray arr;
@@ -55,7 +55,7 @@ static void updateDuration(BaseScenario& scenar, const TimeValue& newDuration, S
     scenar.endEvent().setDate(timeNode.date());
 
     auto& constraint = scenar.baseConstraint();
-    ConstraintModel::Algorithms::setDurationInBounds(constraint, newDuration);
+    ConstraintDurations::Algorithms::setDurationInBounds(constraint, newDuration);
     for(auto& process : constraint.processes())
     {
         scaleMethod(process, newDuration);

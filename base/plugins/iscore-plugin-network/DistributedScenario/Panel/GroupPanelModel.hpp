@@ -7,7 +7,7 @@ class GroupPanelModel : public iscore::PanelModel
 {
         Q_OBJECT
     public:
-        GroupPanelModel(iscore::DocumentModel* model);
+        explicit GroupPanelModel(iscore::DocumentModel* model);
 
         int panelId() const override;
 

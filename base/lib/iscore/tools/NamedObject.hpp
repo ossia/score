@@ -43,6 +43,8 @@ inline void debug_parentHierarchy(QObject* obj)
 class IdentifiedObjectAbstract : public NamedObject
 {
     public:
-        using NamedObject::NamedObject;
         virtual int32_t id_val() const = 0;
+
+    protected:
+        using NamedObject::NamedObject;
 };

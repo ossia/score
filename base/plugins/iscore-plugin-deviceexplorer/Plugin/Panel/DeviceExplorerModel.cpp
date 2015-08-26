@@ -175,6 +175,44 @@ void DeviceExplorerModel::removeNode(Node* node)
     delete node;
 }
 
+#include "Singletons/SingletonProtocolList.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+#include "Widgets/DeviceEditDialog.hpp"
+#include <QApplication>
+bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
+{
+    // Request from the protocol factory the protocol to see
+    // if it is compatible.
+    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    if(!prot)
+        return false;
+
+    // Look for other childs in the same protocol.
+    for(const auto& child : rootNode().children())
+    {
+        ISCORE_ASSERT(child->is<DeviceSettings>());
+        if(child->get<DeviceSettings>().protocol == n.protocol)
+        {
+            if(!prot->checkCompatibility(n, child->get<DeviceSettings>()))
+            {
+                // Open a device edit window
+                // it should take care of incompatibility with the other
+                // devices
+                DeviceEditDialog dial(QApplication::activeWindow());
+                dial.setSettings(n);
+                bool ret = dial.exec();
+                if(!ret)
+                    return false;
+
+                n = dial.getSettings();
+                return true;
+            }
+        }
+    }
+
+    return true;
+}
+
 
 QModelIndex
 DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
@@ -267,13 +305,143 @@ QVariant DeviceExplorerModel::getData(iscore::NodePath node, Column column, int 
     return data(index, role);
 }
 
+static QVariant nameColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+    {
+        if(role == Qt::DisplayRole || role == Qt::EditRole)
+        {
+            return node.get<DeviceSettings>().name;
+        }
+    }
+    else
+    {
+        if(role == Qt::DisplayRole || role == Qt::EditRole)
+        {
+            return node.displayName();
+        }
+        else if(role == Qt::FontRole)
+        {
+            const IOType ioType = node.get<AddressSettings>().ioType;
+
+            if(ioType == IOType::In || ioType == IOType::Out)
+            {
+                QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
+                f.setItalic(true);
+                return f;
+            }
+        }
+        else if(role == Qt::ForegroundRole)
+        {
+            const IOType ioType = node.get<AddressSettings>().ioType;
+
+            if(ioType == IOType::In || ioType == IOType::Out)
+            {
+                return QBrush(Qt::black);
+            }
+        }
+    }
+
+    return {};
+}
+
+static QVariant valueColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        const auto& val = node.get<AddressSettings>().value;
+        if(val.val.canConvert<QVariantList>())
+        {
+            return val.val.toStringList().join(", ");
+        }
+
+        return val.val.toString();
+    }
+    else if(role == Qt::ForegroundRole)
+    {
+        const IOType ioType = node.get<AddressSettings>().ioType;
+
+        if(ioType == IOType::In || ioType == IOType::Out)
+        {
+            return QBrush(Qt::black);
+        }
+    }
+
+    return {};
+}
+
+static QVariant IOTypeColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        switch(node.get<AddressSettings>().ioType)
+        {
+            case IOType::In:
+                return QString("<-");
+
+            case IOType::Out:
+                return QString("->");
+
+            case IOType::InOut:
+                return QString("<->");
+
+            default:
+                return {};
+        }
+    }
+
+    return {};
+}
+
+static QVariant minColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.get<AddressSettings>().domain.min.val;
+    }
+
+    return {};
+}
+
+static QVariant maxColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.get<AddressSettings>().domain.max.val;
+    }
+
+    return {};
+}
+
+static QVariant priorityColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.get<AddressSettings>().priority;
+    }
+
+    return {};
+}
+
 // must return an invalid QVariant for cases not handled
 QVariant
 DeviceExplorerModel::data(const QModelIndex& index, int role) const
 {
-    //if (role != Qt::DisplayRole)
-    //return QVariant();
-
     const int col = index.column();
 
     if(col < 0 || col >= (int)Column::Count)
@@ -282,148 +450,36 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     }
 
     Node* node = nodeFromModelIndex(index);
-
     if(! node)
     {
         return QVariant();
     }
 
+    const auto& n = *node;
     switch((Column)col)
     {
         case Column::Name:
-        {
-            if(node->is<DeviceSettings>())
-            {
-                if(role == Qt::DisplayRole || role == Qt::EditRole)
-                {
-                    return node->get<DeviceSettings>().name;
-                }
-            }
-            else
-            {
-                if(role == Qt::DisplayRole || role == Qt::EditRole)
-                {
-                    return node->displayName();
-                }
-                else if(role == Qt::FontRole)
-                {
-                    const IOType ioType = node->get<AddressSettings>().ioType;
-
-                    if(ioType == IOType::In || ioType == IOType::Out)
-                    {
-                        QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
-                        f.setItalic(true);
-                        return f;
-                    }
-                }
-                else if(role == Qt::ForegroundRole)
-                {
-                    const IOType ioType = node->get<AddressSettings>().ioType;
-
-                    if(ioType == IOType::In || ioType == IOType::Out)
-                    {
-                        return QBrush(Qt::black);
-                    }
-                }
-            }
-
-        }
-            break;
+            return nameColumnData(n, role);
 
         case Column::Value:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                const auto& val = node->get<AddressSettings>().value;
-                if(val.val.canConvert<QVariantList>())
-                {
-                    return val.val.toStringList().join(", ");
-                }
-
-                return val.val.toString();
-            }
-            else if(role == Qt::ForegroundRole)
-            {
-                const IOType ioType = node->get<AddressSettings>().ioType;
-
-                if(ioType == IOType::In || ioType == IOType::Out)
-                {
-                    return QBrush(Qt::black);
-                }
-            }
-        }
-            break;
+            return valueColumnData(n, role);
 
         case Column::IOType:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                switch(node->get<AddressSettings>().ioType)
-                {
-                    case IOType::In:
-                        return QString("<-");
-
-                    case IOType::Out:
-                        return QString("->");
-
-                    case IOType::InOut:
-                        return QString("<->");
-
-                    default:
-                        return {};
-                }
-            }
-        }
-            break;
+            return IOTypeColumnData(n, role);
 
         case Column::Min:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                return node->get<AddressSettings>().domain.min.val;
-            }
-        }
-            break;
+            return minColumnData(n, role);
 
         case Column::Max:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                return node->get<AddressSettings>().domain.max.val;
-            }
-        }
-            break;
+            return maxColumnData(n, role);
 
         case Column::Priority:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                return node->get<AddressSettings>().priority;
-            }
-        }
-            break;
+            return priorityColumnData(n, role);
 
         default :
             ISCORE_ABORT;
             return {};
     }
-
-
 
     return {};
 }
@@ -467,8 +523,6 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
 
         if(n->isEditable())
         {
-            //std::cerr<<"DeviceExplorerModel::flags "<<n->name().toStdString()<<" ioType="<<(int)n->ioType()<<" Qt::ItemIsEditable\n";
-
             f |= Qt::ItemIsEditable;
         }
 
@@ -702,17 +756,17 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     if(row > 0)
     {
         --row;
-        return createIndex(row, 0, parent->childAt(row));
+        return DeviceExplorer::Result(createIndex(row, 0, parent->childAt(row)));
     }
 
     if(parent != &m_rootNode)
     {
         Node* grandParent = parent->parent();
         ISCORE_ASSERT(grandParent);
-        return createIndex(grandParent->indexOfChild(parent), 0, parent);
+        return DeviceExplorer::Result(createIndex(grandParent->indexOfChild(parent), 0, parent));
     }
 
-    return QModelIndex();
+    return DeviceExplorer::Result(QModelIndex());
 }
 
 
@@ -804,7 +858,7 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
 
     endInsertRows();
 
-    return createIndex(row, 0, child);
+    return DeviceExplorer::Result(createIndex(row, 0, child));
 }
 
 DeviceExplorer::Result
@@ -949,9 +1003,12 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
             ser.readFrom(*n);
             QMimeData* mimeData = new QMimeData;
             mimeData->setData(
-                        n->is<DeviceSettings>() ? iscore::mime::device() : iscore::mime::address(),
+                        n->is<DeviceSettings>()
+                            ? iscore::mime::device()
+                            : iscore::mime::address(),
                         QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
+            // Additional data if necessary
             if(!n->is<DeviceSettings>())
             {
                 MessageList messages;
@@ -1036,7 +1093,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     return true;
 }
 
-
+#include "Commands/Add/LoadDevice.hpp"
 //method called when a drop occurs
 //return true if drop really handled, false otherwise.
 //
@@ -1087,7 +1144,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         // Note : when dropping a device,
         // if there is an existing device that would use the same ports, etc.
         // we have to open a dialog to change the device settings.
-        /*
+
         if(row == -1)
         {
             row = parentNode->childCount();
@@ -1097,24 +1154,24 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         Node n;
         deser.writeTo(n);
 
-        auto cmd = new DeviceExplorer::Command::Insert{
-                Path(parentNode),
-                row,
-                std::move(n),
-                iscore::IDocument::path(this)};
-
-        m_cmdQ->redoAndPush(cmd);
-
-        if(! m_cmdCreator->m_cachedResult)
+        if(mimeType == iscore::mime::device())
         {
-            delete m_cmdQ->command(0);
-            m_cmdCreator->m_cachedResult = true;
-            return false;
+            ISCORE_ASSERT(n.is<DeviceSettings>());
+
+            // Edit the device settings if necessary
+            bool deviceOK = checkDeviceInstantiatable(n.get<DeviceSettings>());
+            if(!deviceOK)
+                return false;
+
+            // Perform the loading
+            auto cmd = new LoadDevice{
+                    iscore::IDocument::safe_path(deviceModel()),
+                    std::move(n)};
+
+            m_cmdQ->redoAndPush(cmd);
         }
 
         return true;
-        */
-        return false;
     }
 
     return false;

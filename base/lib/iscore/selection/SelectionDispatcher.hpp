@@ -8,7 +8,7 @@ namespace iscore
     class SelectionDispatcher
     {
         public:
-            SelectionDispatcher(SelectionStack& s):
+            explicit SelectionDispatcher(SelectionStack& s):
                 m_stack{s}
             {
             }

@@ -11,7 +11,8 @@ class DeviceExplorerPanelView : public iscore::PanelView
         friend class DeviceExplorerPanelPresenter;
     public:
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
-        DeviceExplorerPanelView(iscore::View* parent);
+        explicit DeviceExplorerPanelView(iscore::View* parent);
+
         QWidget* getWidget() override;
         const QString shortcut() const override
         { return tr("Ctrl+E"); }

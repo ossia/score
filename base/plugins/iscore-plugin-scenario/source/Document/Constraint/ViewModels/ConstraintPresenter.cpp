@@ -37,12 +37,14 @@ ConstraintPresenter::ConstraintPresenter(
     connect(&m_viewModel.model().selection, &Selectable::changed,
             m_view, &ConstraintView::setSelected);
 
-    connect(&m_viewModel.model(), &ConstraintModel::minDurationChanged,
+    connect(&m_viewModel.model().duration, &ConstraintDurations::minDurationChanged,
             this,                 &ConstraintPresenter::on_minDurationChanged);
-    connect(&m_viewModel.model(), &ConstraintModel::defaultDurationChanged,
+    connect(&m_viewModel.model().duration, &ConstraintDurations::defaultDurationChanged,
             this,                 &ConstraintPresenter::on_defaultDurationChanged);
-    connect(&m_viewModel.model(), &ConstraintModel::maxDurationChanged,
+    connect(&m_viewModel.model().duration, &ConstraintDurations::maxDurationChanged,
             this,                 &ConstraintPresenter::on_maxDurationChanged);
+    connect(&m_viewModel.model().duration, &ConstraintDurations::playDurationChanged,
+            this, &ConstraintPresenter::on_playDurationChanged, Qt::QueuedConnection);
 
     connect(&m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
             this, &ConstraintPresenter::heightPercentageChanged);
@@ -54,8 +56,6 @@ ConstraintPresenter::ConstraintPresenter(
     connect(&m_viewModel, &ConstraintViewModel::rackRemoved,
             this,         &ConstraintPresenter::on_rackRemoved);
 
-    connect(&m_viewModel.model(), &ConstraintModel::playDurationChanged,
-            this, &ConstraintPresenter::on_playDurationChanged, Qt::QueuedConnection);
 
     connect(&m_viewModel.model().consistency, &ModelConsistency::validChanged,
             m_view, &ConstraintView::setValid);
@@ -77,9 +77,9 @@ void ConstraintPresenter::updateScaling()
     const auto& cm = m_viewModel.model();
     // prendre en compte la distance du clic à chaque côté
 
-    on_defaultDurationChanged(cm.defaultDuration());
-    on_minDurationChanged(cm.minDuration());
-    on_maxDurationChanged(cm.maxDuration());
+    on_defaultDurationChanged(cm.duration.defaultDuration());
+    on_minDurationChanged(cm.duration.minDuration());
+    on_maxDurationChanged(cm.duration.maxDuration());
 
 
     updateHeight();

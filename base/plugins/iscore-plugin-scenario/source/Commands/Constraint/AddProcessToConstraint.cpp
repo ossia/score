@@ -79,7 +79,7 @@ void AddProcessToConstraint::redo()
     // Create process model
     auto proc = ProcessList::getFactory(m_processName)
             ->makeModel(
-                constraint.defaultDuration(),
+                constraint.duration.defaultDuration(),
                 m_createdProcessId,
                 &constraint);
 

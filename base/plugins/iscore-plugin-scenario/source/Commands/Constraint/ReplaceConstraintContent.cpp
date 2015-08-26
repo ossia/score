@@ -93,11 +93,11 @@ void ReplaceConstraintContent::redo()
         // Resize the processes according to the new constraint.
         if(m_mode == ExpandMode::Scale)
         {
-            newproc->setDurationAndScale(trg_constraint.defaultDuration());
+            newproc->setDurationAndScale(trg_constraint.duration.defaultDuration());
         }
         else if (m_mode == ExpandMode::Grow)
         {
-            newproc->setDurationAndGrow(trg_constraint.defaultDuration());
+            newproc->setDurationAndGrow(trg_constraint.duration.defaultDuration());
         }
     }
 

@@ -16,7 +16,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
     public:
-        DeviceDocumentPlugin(QObject* parent);
+        explicit DeviceDocumentPlugin(QObject* parent);
         DeviceDocumentPlugin(const VisitorVariant& loader,
                              QObject* parent);
 
@@ -39,7 +39,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         NodeUpdateProxy updateProxy{*this};
 
     private:
-        iscore::Node m_rootNode{InvisibleRootNodeTag{}};
+        iscore::Node m_rootNode;
         DeviceList m_list;
 };
 

@@ -72,7 +72,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
             m_parent,                       &BaseElementPresenter::on_askUpdate);
     connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
             this, [&] () { m_parent->updateRect({0, 0,
-                                       m.defaultDuration().toPixels(m_parent->zoomRatio()),
+                                       m.duration.defaultDuration().toPixels(m_parent->zoomRatio()),
                                        m_constraintPresenter->view()->height()});} );
 
     connect(m_constraintPresenter, &FullViewConstraintPresenter::pressed,
@@ -99,7 +99,7 @@ void DisplayedElementsPresenter::showConstraint()
 void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
     m_startStatePresenter->view()->setPos(0, 0);
-    m_endStatePresenter->view()->setPos({m_constraintPresenter->abstractConstraintViewModel().model().defaultDuration().toPixels(r), 0});
+    m_endStatePresenter->view()->setPos({m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(r), 0});
 
     m_constraintPresenter->on_zoomRatioChanged(r);
 }

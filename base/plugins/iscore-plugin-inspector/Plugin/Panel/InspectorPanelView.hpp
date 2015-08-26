@@ -13,7 +13,7 @@ class InspectorPanelView : public iscore::PanelView
         Q_OBJECT
     public:
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
-        InspectorPanelView(iscore::View* parent);
+        explicit InspectorPanelView(iscore::View* parent);
 
         QWidget* getWidget() override;
 

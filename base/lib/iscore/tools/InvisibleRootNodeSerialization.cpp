@@ -3,25 +3,24 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNodeTag& n)
+void Visitor<Reader<DataStream>>::readFrom(const InvisibleRootNodeTag&)
 {
     insertDelimiter();
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(InvisibleRootNodeTag& n)
+void Visitor<Writer<DataStream>>::writeTo(InvisibleRootNodeTag&)
 {
     checkDelimiter();
 }
 
-// Move me
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNodeTag& n)
+void Visitor<Reader<JSONObject>>::readFrom(const InvisibleRootNodeTag&)
 {
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNodeTag& n)
+void Visitor<Writer<JSONObject>>::writeTo(InvisibleRootNodeTag&)
 {
 }
 

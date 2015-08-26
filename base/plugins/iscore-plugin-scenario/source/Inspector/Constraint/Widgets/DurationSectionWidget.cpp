@@ -31,6 +31,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
     m_dispatcher{parent->commandDispatcher()->stack()}
 {
+    // TODO const&
     QWidget* widg{new QWidget{this}};
     m_grid = new QGridLayout{widg};
     m_grid->setContentsMargins(0, 0, 0 , 0);
@@ -50,16 +51,16 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 //    m_maxSpin->setHidden(m_model->isRigid());
     m_maxSpin->setEnabled(false);
 
-    m_maxSpin->setTime(m_model->maxDuration().toQTime());
-    m_minSpin->setTime(m_model->minDuration().toQTime());
-    m_valueSpin->setTime(m_model->defaultDuration().toQTime());
+    m_maxSpin->setTime(m_model->duration.maxDuration().toQTime());
+    m_minSpin->setTime(m_model->duration.minDuration().toQTime());
+    m_valueSpin->setTime(m_model->duration.defaultDuration().toQTime());
 
 
     // CHECKBOXES
     m_minNonNullBox = new QCheckBox{};
     m_maxFiniteBox = new QCheckBox{};
-    m_minNonNullBox->setChecked(!m_model->minDuration().isZero());
-    m_maxFiniteBox->setChecked(!m_model->maxDuration().isInfinite());
+    m_minNonNullBox->setChecked(!m_model->duration.minDuration().isZero());
+    m_maxFiniteBox->setChecked(!m_model->duration.maxDuration().isInfinite());
 
     connect(m_minNonNullBox, &QCheckBox::toggled,
             [=](bool val)
@@ -67,8 +68,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
         m_minSpin->setEnabled(val);
         TimeValue newTime = !val
                             ? TimeValue(std::chrono::milliseconds(0))
-                            : m_model->defaultDuration() * 0.5;
-        if(m_model->minDuration() == newTime)
+                            : m_model->duration.defaultDuration() * 0.5;
+        if(m_model->duration.minDuration() == newTime)
             return;
 
         auto cmd = new Scenario::Command::SetMinDuration(
@@ -83,8 +84,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
         m_maxSpin->setEnabled(val);
         TimeValue newTime = !val
                             ? TimeValue(PositiveInfinity{})
-                            : m_model->defaultDuration() * 1.5;
-        if(m_model->maxDuration() == newTime)
+                            : m_model->duration.defaultDuration() * 1.5;
+        if(m_model->duration.maxDuration() == newTime)
             return;
 
         auto cmd = new Scenario::Command::SetMaxDuration(
@@ -96,14 +97,14 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
     // CONNECTIONS FROM MODEL
     // TODO these need to be updated when the default duration changes
-    connect(m_model, &ConstraintModel::defaultDurationChanged,
-            this,	 &DurationSectionWidget::on_modelDefaultDurationChanged);
-    connect(m_model,    &ConstraintModel::minDurationChanged,
-            this,       &DurationSectionWidget::on_modelMinDurationChanged);
-    connect(m_model,    &ConstraintModel::maxDurationChanged,
-            this,       &DurationSectionWidget::on_modelMaxDurationChanged);
-    connect(m_model,    &ConstraintModel::rigidityChanged,
-            this,   &DurationSectionWidget::on_modelRigidityChanged);
+    connect(&m_model->duration, &ConstraintDurations::defaultDurationChanged,
+            this, &DurationSectionWidget::on_modelDefaultDurationChanged);
+    connect(&m_model->duration, &ConstraintDurations::minDurationChanged,
+            this, &DurationSectionWidget::on_modelMinDurationChanged);
+    connect(&m_model->duration, &ConstraintDurations::maxDurationChanged,
+            this, &DurationSectionWidget::on_modelMaxDurationChanged);
+    connect(&m_model->duration, &ConstraintDurations::rigidityChanged,
+            this, &DurationSectionWidget::on_modelRigidityChanged);
 
 
     // DISPLAY
@@ -122,7 +123,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_grid->addWidget(m_maxLab, 2, 1, 1,1);
     m_grid->addWidget(m_maxSpin, 2, 2, 1, 1);
 
-    on_modelRigidityChanged(m_model->isRigid());
+    on_modelRigidityChanged(m_model->duration.isRigid());
 
     connect(m_valueSpin,    &QTimeEdit::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
@@ -229,18 +230,18 @@ void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
 
 void DurationSectionWidget::on_durationsChanged()
 {
-    if (m_model->defaultDuration().toQTime() != m_valueSpin->time())
+    if (m_model->duration.defaultDuration().toQTime() != m_valueSpin->time())
     {
         defaultDurationSpinboxChanged(m_valueSpin->time().msecsSinceStartOfDay());
         m_dispatcher.commit();
     }
 
-    if (m_model->minDuration().toQTime() != m_minSpin->time())
+    if (m_model->duration.minDuration().toQTime() != m_minSpin->time())
     {
         minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
         m_dispatcher.commit();
 
-    }if (m_model->maxDuration().toQTime() != m_maxSpin->time())
+    }if (m_model->duration.maxDuration().toQTime() != m_maxSpin->time())
     {
         maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
         m_dispatcher.commit();

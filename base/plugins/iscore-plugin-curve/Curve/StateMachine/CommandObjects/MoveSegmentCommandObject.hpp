@@ -14,7 +14,7 @@
 class MoveSegmentCommandObject
 {
     public:
-        MoveSegmentCommandObject(iscore::CommandStack& stack);
+        explicit MoveSegmentCommandObject(iscore::CommandStack& stack);
 
         void press();
 

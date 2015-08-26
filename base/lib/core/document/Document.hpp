@@ -23,19 +23,9 @@ namespace iscore
     class Document : public NamedObject
     {
             Q_OBJECT
+            friend class DocumentBuilder;
         public:
-            Document(DocumentDelegateFactoryInterface* type,
-                     QWidget* parentview,
-                     QObject* parent);
-
-            // Load
-            Document(const QVariant& data,
-                     DocumentDelegateFactoryInterface* type,
-                     QWidget* parentview,
-                     QObject* parent);
-
             ~Document();
-
 
             CommandStack& commandStack()
             { return m_commandStack; }
@@ -46,23 +36,16 @@ namespace iscore
             ObjectLocker& locker()
             { return m_objectLocker; }
 
-            DocumentModel* model() const
-            {
-                return m_model;
-            }
+            DocumentModel& model() const
+            { return *m_model; }
 
-            DocumentPresenter* presenter() const
-            {
-                return m_presenter;
-            }
+            DocumentPresenter& presenter() const
+            { return *m_presenter; }
 
-            DocumentView* view() const
-            {
-                return m_view;
-            }
+            DocumentView& view() const
+            { return *m_view; }
 
-            void setupNewPanel(PanelPresenter* pres,
-                               PanelFactory* factory);
+            void setupNewPanel(PanelFactory* factory);
             void bindPanelPresenter(PanelPresenter*);
 
 
@@ -78,6 +61,16 @@ namespace iscore
             void setBackupMgr(DocumentBackupManager* backupMgr);
 
         private:
+            // These are to be constructed by DocumentBuilder.
+            Document(DocumentDelegateFactoryInterface* type,
+                     QWidget* parentview,
+                     QObject* parent);
+
+            Document(const QVariant& data,
+                     DocumentDelegateFactoryInterface* type,
+                     QWidget* parentview,
+                     QObject* parent);
+
             void init();
 
             CommandStack m_commandStack;

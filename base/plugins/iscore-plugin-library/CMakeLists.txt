@@ -14,7 +14,10 @@ file(GLOB_RECURSE PLUGIN_SRCS
 
 add_library(iscore_plugin_library ${PLUGIN_SRCS})
 
-target_link_libraries(iscore_plugin_library Qt5::Core Qt5::Widgets iscore_lib_base)
+target_link_libraries(
+  iscore_plugin_library
+  Qt5::Core Qt5::Widgets
+  iscore_lib_base iscore_lib_state iscore_plugin_deviceexplorer)
 
 if(ISCORE_COTIRE)
     if(ISCORE_COTIRE_ALL_HEADERS)

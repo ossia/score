@@ -70,8 +70,7 @@ Document::~Document()
     delete m_view;
 }
 
-void Document::setupNewPanel(PanelPresenter* pres,
-                             PanelFactory* factory)
+void Document::setupNewPanel(PanelFactory* factory)
 {
     m_model->addPanel(factory->makeModel(m_model));
 }
@@ -79,13 +78,13 @@ void Document::setupNewPanel(PanelPresenter* pres,
 void Document::bindPanelPresenter(PanelPresenter* pres)
 {
     using namespace std;
-    auto localmodel = std::find_if(begin(model()->panels()),
-                                   end(model()->panels()),
+    auto localmodel = std::find_if(begin(model().panels()),
+                                   end(model().panels()),
                                    [&] (PanelModel* model)
     {
         return model->panelId() == pres->panelId();
     });
-    ISCORE_ASSERT(localmodel != end(model()->panels()));
+    ISCORE_ASSERT(localmodel != end(model().panels()));
 
     pres->setModel(*localmodel);
 }

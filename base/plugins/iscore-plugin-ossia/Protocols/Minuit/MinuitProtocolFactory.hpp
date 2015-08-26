@@ -28,4 +28,11 @@ class MinuitProtocolFactory : public ProtocolFactory
         {
             serializeProtocolSpecificSettings_T<MinuitSpecificSettings>(data, visitor);
         }
+
+        bool checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b)
+        {
+            auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
+            auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();
+            return a.name != b.name && a_p.inPort != b_p.inPort && a_p.outPort != b_p.outPort;
+        }
 };

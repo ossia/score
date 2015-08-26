@@ -85,6 +85,11 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void removeNode(iscore::Node* node);
 
+        // Checks if the settings can be added; if not,
+        // trigger a dialog to edit them as wanted.
+        // Returns true if the device is to be added, false if
+        // it should not be added.
+        bool checkDeviceInstantiatable(iscore::DeviceSettings& n);
 
         int columnCount() const;
         QStringList getColumns() const;

@@ -18,7 +18,7 @@ class ProcessList : public NamedObject
 {
         Q_OBJECT
     public:
-        ProcessList(NamedObject* parent);
+        explicit ProcessList(NamedObject* parent);
 
         ProcessFactory* getProcess(const QString&);
         void registerProcess(iscore::FactoryInterface*);

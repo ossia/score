@@ -21,7 +21,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     OSSIAProcessElement{parent},
     m_parent_constraint{parentConstraint},
     m_iscore_scenario{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model()->pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
     this->setObjectName("OSSIAScenarioElement");
 
@@ -102,15 +102,15 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
                                                    const OSSIA::TimeValue& date,
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
-        iscore_constraint->setPlayDuration(currentTime);
+        iscore_constraint->duration.setPlayDuration(currentTime);
 
         state->launch();
     },
                 ossia_sev->event(),
                 ossia_eev->event(),
-                iscore::convert::time(cst.defaultDuration()),
-                iscore::convert::time(cst.minDuration()),
-                iscore::convert::time(cst.maxDuration()));
+                iscore::convert::time(cst.duration.defaultDuration()),
+                iscore::convert::time(cst.duration.minDuration()),
+                iscore::convert::time(cst.duration.maxDuration()));
 
 
     m_ossia_scenario->addTimeConstraint(ossia_cst);
@@ -183,7 +183,7 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
                     {
                         auto& cst = m_iscore_scenario->constraint(iscore_state.nextConstraint());
                         m_executingConstraints.insert(&cst);
-                        cst.setPlayDuration(TimeValue::zero());
+                        cst.duration.setPlayDuration(TimeValue::zero());
                     }
                     break;
                 }

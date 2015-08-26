@@ -5,7 +5,7 @@ class CurveView : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurveView(QGraphicsItem* parent);
+        explicit CurveView(QGraphicsItem* parent);
         virtual ~CurveView();
 
         void setRect(const QRectF& theRect);

@@ -30,8 +30,9 @@ class TreeNode : public DataType
 
         }
 
-        TreeNode(const DataType& data, TreeNode* parent):
-            DataType{data},
+        template<typename T>
+        TreeNode(const T& data, TreeNode* parent):
+            DataType(data),
             m_parent{parent}
         {
             if(m_parent) {
