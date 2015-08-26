@@ -305,13 +305,143 @@ QVariant DeviceExplorerModel::getData(iscore::NodePath node, Column column, int 
     return data(index, role);
 }
 
+static QVariant nameColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+    {
+        if(role == Qt::DisplayRole || role == Qt::EditRole)
+        {
+            return node.get<DeviceSettings>().name;
+        }
+    }
+    else
+    {
+        if(role == Qt::DisplayRole || role == Qt::EditRole)
+        {
+            return node.displayName();
+        }
+        else if(role == Qt::FontRole)
+        {
+            const IOType ioType = node.get<AddressSettings>().ioType;
+
+            if(ioType == IOType::In || ioType == IOType::Out)
+            {
+                QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
+                f.setItalic(true);
+                return f;
+            }
+        }
+        else if(role == Qt::ForegroundRole)
+        {
+            const IOType ioType = node.get<AddressSettings>().ioType;
+
+            if(ioType == IOType::In || ioType == IOType::Out)
+            {
+                return QBrush(Qt::black);
+            }
+        }
+    }
+
+    return {};
+}
+
+static QVariant valueColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        const auto& val = node.get<AddressSettings>().value;
+        if(val.val.canConvert<QVariantList>())
+        {
+            return val.val.toStringList().join(", ");
+        }
+
+        return val.val.toString();
+    }
+    else if(role == Qt::ForegroundRole)
+    {
+        const IOType ioType = node.get<AddressSettings>().ioType;
+
+        if(ioType == IOType::In || ioType == IOType::Out)
+        {
+            return QBrush(Qt::black);
+        }
+    }
+
+    return {};
+}
+
+static QVariant IOTypeColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        switch(node.get<AddressSettings>().ioType)
+        {
+            case IOType::In:
+                return QString("<-");
+
+            case IOType::Out:
+                return QString("->");
+
+            case IOType::InOut:
+                return QString("<->");
+
+            default:
+                return {};
+        }
+    }
+
+    return {};
+}
+
+static QVariant minColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.get<AddressSettings>().domain.min.val;
+    }
+
+    return {};
+}
+
+static QVariant maxColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.get<AddressSettings>().domain.max.val;
+    }
+
+    return {};
+}
+
+static QVariant priorityColumnData(const Node& node, int role)
+{
+    if(node.is<DeviceSettings>())
+        return {};
+
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.get<AddressSettings>().priority;
+    }
+
+    return {};
+}
+
 // must return an invalid QVariant for cases not handled
 QVariant
 DeviceExplorerModel::data(const QModelIndex& index, int role) const
 {
-    //if (role != Qt::DisplayRole)
-    //return QVariant();
-
     const int col = index.column();
 
     if(col < 0 || col >= (int)Column::Count)
@@ -320,148 +450,36 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     }
 
     Node* node = nodeFromModelIndex(index);
-
     if(! node)
     {
         return QVariant();
     }
 
+    const auto& n = *node;
     switch((Column)col)
     {
         case Column::Name:
-        {
-            if(node->is<DeviceSettings>())
-            {
-                if(role == Qt::DisplayRole || role == Qt::EditRole)
-                {
-                    return node->get<DeviceSettings>().name;
-                }
-            }
-            else
-            {
-                if(role == Qt::DisplayRole || role == Qt::EditRole)
-                {
-                    return node->displayName();
-                }
-                else if(role == Qt::FontRole)
-                {
-                    const IOType ioType = node->get<AddressSettings>().ioType;
-
-                    if(ioType == IOType::In || ioType == IOType::Out)
-                    {
-                        QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
-                        f.setItalic(true);
-                        return f;
-                    }
-                }
-                else if(role == Qt::ForegroundRole)
-                {
-                    const IOType ioType = node->get<AddressSettings>().ioType;
-
-                    if(ioType == IOType::In || ioType == IOType::Out)
-                    {
-                        return QBrush(Qt::black);
-                    }
-                }
-            }
-
-        }
-            break;
+            return nameColumnData(n, role);
 
         case Column::Value:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                const auto& val = node->get<AddressSettings>().value;
-                if(val.val.canConvert<QVariantList>())
-                {
-                    return val.val.toStringList().join(", ");
-                }
-
-                return val.val.toString();
-            }
-            else if(role == Qt::ForegroundRole)
-            {
-                const IOType ioType = node->get<AddressSettings>().ioType;
-
-                if(ioType == IOType::In || ioType == IOType::Out)
-                {
-                    return QBrush(Qt::black);
-                }
-            }
-        }
-            break;
+            return valueColumnData(n, role);
 
         case Column::IOType:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                switch(node->get<AddressSettings>().ioType)
-                {
-                    case IOType::In:
-                        return QString("<-");
-
-                    case IOType::Out:
-                        return QString("->");
-
-                    case IOType::InOut:
-                        return QString("<->");
-
-                    default:
-                        return {};
-                }
-            }
-        }
-            break;
+            return IOTypeColumnData(n, role);
 
         case Column::Min:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                return node->get<AddressSettings>().domain.min.val;
-            }
-        }
-            break;
+            return minColumnData(n, role);
 
         case Column::Max:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                return node->get<AddressSettings>().domain.max.val;
-            }
-        }
-            break;
+            return maxColumnData(n, role);
 
         case Column::Priority:
-        {
-            if(node->is<DeviceSettings>())
-                return {};
-
-            if(role == Qt::DisplayRole || role == Qt::EditRole)
-            {
-                return node->get<AddressSettings>().priority;
-            }
-        }
-            break;
+            return priorityColumnData(n, role);
 
         default :
             ISCORE_ABORT;
             return {};
     }
-
-
 
     return {};
 }
@@ -505,8 +523,6 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
 
         if(n->isEditable())
         {
-            //std::cerr<<"DeviceExplorerModel::flags "<<n->name().toStdString()<<" ioType="<<(int)n->ioType()<<" Qt::ItemIsEditable\n";
-
             f |= Qt::ItemIsEditable;
         }
 

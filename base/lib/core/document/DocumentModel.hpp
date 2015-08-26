@@ -68,6 +68,13 @@ namespace iscore
             void setNewSelection(const Selection&);
 
         private:
+            void loadDocumentAsJson(
+                    const QJsonObject&,
+                    DocumentDelegateFactoryInterface* fact);
+            void loadDocumentAsByteArray(
+                    const QByteArray&,
+                    DocumentDelegateFactoryInterface* fact);
+
             QList<PanelModel*> m_panelModels;
             QList<DocumentDelegatePluginModel*> m_pluginModels;
             DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
