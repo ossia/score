@@ -11,7 +11,7 @@ class FocusDispatcher : public QObject
 {
         Q_OBJECT
     public:
-        FocusDispatcher(iscore::Document& doc);
+        explicit FocusDispatcher(iscore::Document& doc);
 
     signals:
         void focus(LayerPresenter* obj);

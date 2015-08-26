@@ -18,6 +18,9 @@ class ProcessState
         ProcessState(ProcessState&&) = default;
         ProcessState& operator=(const ProcessState& other)
         {
+            if(&other == this)
+                return *this;
+
             delete m_data;
             m_data = other.m_data
                     ? other.m_data->clone()
@@ -27,13 +30,16 @@ class ProcessState
 
         ProcessState& operator=(ProcessState&& other)
         {
+            if(&other == this)
+                return *this;
+
             delete m_data;
             m_data = other.m_data;
             other.m_data = nullptr;
             return *this;
         }
 
-        ProcessState(ProcessStateDataInterface* d):
+        explicit ProcessState(ProcessStateDataInterface* d):
             m_data{d}
         {
 

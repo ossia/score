@@ -29,7 +29,7 @@ class DeviceExplorerCommandCreator : public QObject
     friend class DeviceExplorerModel;
 
     public:
-        DeviceExplorerCommandCreator(DeviceExplorerModel* model);
+        explicit DeviceExplorerCommandCreator(DeviceExplorerModel* model);
         ~DeviceExplorerCommandCreator();
 
         void setCommandQueue(iscore::CommandStack* q);

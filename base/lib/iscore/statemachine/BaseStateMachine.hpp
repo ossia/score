@@ -6,7 +6,7 @@ class QGraphicsScene;
 class BaseStateMachine : public QStateMachine
 {
     public:
-        BaseStateMachine(const QGraphicsScene& scene);
+        explicit BaseStateMachine(const QGraphicsScene& scene);
         virtual ~BaseStateMachine();
 
         QPointF scenePoint;

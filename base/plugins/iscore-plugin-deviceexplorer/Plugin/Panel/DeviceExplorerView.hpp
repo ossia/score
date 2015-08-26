@@ -10,8 +10,7 @@ class DeviceExplorerView : public QTreeView
         Q_OBJECT
 
     public:
-
-        DeviceExplorerView(QWidget* parent = 0);
+        explicit DeviceExplorerView(QWidget* parent = 0);
         ~DeviceExplorerView();
 
         void setModel(QAbstractItemModel* model) override;

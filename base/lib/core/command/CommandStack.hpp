@@ -22,7 +22,7 @@ namespace iscore
 
             friend class CommandBackupFile;
         public:
-            CommandStack(QObject* parent = nullptr);
+            explicit CommandStack(QObject* parent = nullptr);
             ~CommandStack();
 
             bool canUndo() const

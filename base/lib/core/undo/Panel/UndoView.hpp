@@ -11,7 +11,7 @@ class UndoView : public iscore::PanelView
     public:
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;
 
-        UndoView(QObject *v);
+        explicit UndoView(QObject *v);
 
         QWidget *getWidget() override;
         const QString shortcut() const override

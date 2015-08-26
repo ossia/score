@@ -13,7 +13,7 @@ class AddressEditDialog : public QDialog
         Q_OBJECT
 
     public:
-        AddressEditDialog(QWidget* parent);
+        explicit AddressEditDialog(QWidget* parent);
         ~AddressEditDialog();
 
         iscore::AddressSettings getSettings() const;

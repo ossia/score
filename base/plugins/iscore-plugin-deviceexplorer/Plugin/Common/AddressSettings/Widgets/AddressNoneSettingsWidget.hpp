@@ -4,7 +4,7 @@
 class AddressNoneSettingsWidget : public AddressSettingsWidget
 {
     public:
-        AddressNoneSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressNoneSettingsWidget(QWidget* parent = nullptr);
 
         virtual iscore::AddressSettings getSettings() const override;
 

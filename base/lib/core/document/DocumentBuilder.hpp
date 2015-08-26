@@ -21,7 +21,7 @@ class DocumentBackupManager;
 class DocumentBuilder
 {
     public:
-        DocumentBuilder(Presenter& pres);
+        explicit DocumentBuilder(Presenter& pres);
 
         Document* newDocument(
                 iscore::DocumentDelegateFactoryInterface* doctype);

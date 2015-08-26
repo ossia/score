@@ -756,17 +756,17 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     if(row > 0)
     {
         --row;
-        return createIndex(row, 0, parent->childAt(row));
+        return DeviceExplorer::Result(createIndex(row, 0, parent->childAt(row)));
     }
 
     if(parent != &m_rootNode)
     {
         Node* grandParent = parent->parent();
         ISCORE_ASSERT(grandParent);
-        return createIndex(grandParent->indexOfChild(parent), 0, parent);
+        return DeviceExplorer::Result(createIndex(grandParent->indexOfChild(parent), 0, parent));
     }
 
-    return QModelIndex();
+    return DeviceExplorer::Result(QModelIndex());
 }
 
 
@@ -858,7 +858,7 @@ DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
 
     endInsertRows();
 
-    return createIndex(row, 0, child);
+    return DeviceExplorer::Result(createIndex(row, 0, child));
 }
 
 DeviceExplorer::Result

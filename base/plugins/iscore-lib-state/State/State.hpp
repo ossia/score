@@ -30,7 +30,7 @@ class StateData : public VariantBasedNode<
 
         }
 
-        StateData(const QString& name):
+        explicit StateData(const QString& name):
             VariantBasedNode{InvisibleRootNodeTag{}},
             m_name(name)
         {

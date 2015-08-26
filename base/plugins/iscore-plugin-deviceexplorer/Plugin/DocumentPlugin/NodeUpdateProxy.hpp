@@ -23,7 +23,7 @@ class NodeUpdateProxy
         DeviceDocumentPlugin& m_devModel;
         DeviceExplorerModel* m_deviceExplorer{};
 
-        NodeUpdateProxy(DeviceDocumentPlugin& root);
+        explicit NodeUpdateProxy(DeviceDocumentPlugin& root);
 
         void addDevice(const iscore::DeviceSettings& dev);
         void loadDevice(const iscore::Node& node);

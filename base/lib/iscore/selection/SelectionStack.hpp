@@ -5,6 +5,14 @@
 
 namespace iscore
 {
+/**
+ * @brief The SelectionStack class
+ *
+ * A stack of selected elements.
+ * Each time a selection of objects is done in the software,
+ * it should be added to this stack using SelectionDispatcher.
+ * This way, the user will be able to browse through his previous selections.
+ */
     class SelectionStack : public QObject
     {
             Q_OBJECT

@@ -21,11 +21,11 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(TimeValue& tv)
 {
     bool inf;
-    double msec;
     m_stream >> inf;
 
     if(!inf)
     {
+        double msec;
         m_stream >> msec;
         tv.setMSecs(msec);
     }

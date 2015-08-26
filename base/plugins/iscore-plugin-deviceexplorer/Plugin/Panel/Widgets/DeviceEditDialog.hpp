@@ -14,8 +14,7 @@ class DeviceEditDialog : public QDialog
         Q_OBJECT
 
     public:
-
-        DeviceEditDialog(QWidget* parent);
+        explicit DeviceEditDialog(QWidget* parent);
         ~DeviceEditDialog();
 
         iscore::DeviceSettings getSettings() const;

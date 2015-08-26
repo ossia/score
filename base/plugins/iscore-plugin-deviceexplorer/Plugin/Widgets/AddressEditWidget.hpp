@@ -1,8 +1,17 @@
 #pragma once
-#include <QtWidgets>
+#include <QWidget>
+#include <State/Address.hpp>
+
 class AddressLineEdit;
 class DeviceExplorerModel;
-#include <State/Address.hpp>
+
+/**
+ * @brief The AddressEditWidget class
+ *
+ * Allows editing of an Address.
+ * A device explorer model is used for completion.
+ *
+ */
 class AddressEditWidget : public QWidget
 {
         Q_OBJECT
@@ -20,5 +29,4 @@ class AddressEditWidget : public QWidget
     private:
         AddressLineEdit* m_lineEdit{};
         iscore::Address m_address;
-
 };

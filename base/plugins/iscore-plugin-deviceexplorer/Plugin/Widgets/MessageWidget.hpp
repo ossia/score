@@ -1,5 +1,5 @@
 #pragma once
-#include <QtWidgets>
+#include <QPushButton>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <State/Message.hpp>
 
@@ -9,6 +9,12 @@ struct Message;
 }
 
 class DeviceExplorerModel;
+/**
+ * @brief The MessageWidget class
+ *
+ * A button with a message. When clicked, opens a MessageEditDialog
+ * that allows editing of the message.
+ */
 class MessageWidget : public QPushButton
 {
     public:
@@ -22,27 +28,4 @@ class MessageWidget : public QPushButton
 
         DeviceExplorerModel* m_model{};
         iscore::Message& m_message;
-};
-
-class MessageListEditor : public QDialog
-{
-    public:
-        MessageListEditor(
-                const iscore::MessageList& m,
-                DeviceExplorerModel* model,
-                QWidget* parent);
-
-        const auto& messages() const
-        { return m_messages; }
-
-    private:
-        void addMessage();
-        void removeMessage(int);
-
-        void updateLayout();
-
-        DeviceExplorerModel* m_model{};
-
-        QGridLayout* m_messageListLayout{};
-        iscore::MessageList m_messages;
 };

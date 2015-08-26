@@ -9,6 +9,8 @@ ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &o
     m_defaultDuration = other.m_defaultDuration;
     m_playDuration = other.m_playDuration;
     m_rigidity = other.m_rigidity;
+
+    return *this;
 }
 
 void ConstraintDurations::setDefaultDuration(const TimeValue& arg)

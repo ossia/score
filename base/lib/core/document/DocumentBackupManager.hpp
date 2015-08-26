@@ -24,7 +24,7 @@ class Document;
 class DocumentBackupManager : public QObject
 {
     public:
-        DocumentBackupManager(Document& doc);
+        explicit DocumentBackupManager(Document& doc);
 
         ~DocumentBackupManager();
 

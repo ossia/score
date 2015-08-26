@@ -1,6 +1,6 @@
 #include "StateTreeView.hpp"
 
-#include <DeviceExplorer/../Plugin/Widgets/MessageWidget.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/MessageListEditor.hpp>
 #include <State/StateItemModel.hpp>
 #include <Commands/Event/State/AssignMessagesToState.hpp>
 #include <iscore/document/DocumentInterface.hpp>

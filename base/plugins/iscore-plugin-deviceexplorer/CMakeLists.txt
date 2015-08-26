@@ -78,6 +78,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/DeviceExplorerMenuButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/DeviceCompleter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/MessageWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/MessageListEditor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/MessageEditDialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/ValueWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Widgets/AddressEditWidget.cpp"
 
 #"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/ModelTest/dynamictreemodel.cpp"

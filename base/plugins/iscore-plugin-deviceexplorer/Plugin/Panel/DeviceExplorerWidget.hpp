@@ -24,7 +24,7 @@ class DeviceExplorerWidget : public QWidget
         Q_OBJECT
 
     public:
-        DeviceExplorerWidget(QWidget* parent);
+        explicit DeviceExplorerWidget(QWidget* parent);
         ~DeviceExplorerWidget();
 
         void setModel(DeviceExplorerModel* model);
