@@ -23,7 +23,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
 {
     QByteArray arr;
     Serializer<DataStream> s{&arr};
-    s.readFrom(m_model->id());
+    s.readFrom(model().id());
     m_model->modelDelegate()->serialize(s.toVariant());
     return arr;
 }
@@ -31,7 +31,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
 QJsonObject Document::saveDocumentModelAsJson()
 {
     Serializer<JSONObject> s;
-    s.m_obj["DocumentId"] = toJsonValue(model()->id());
+    s.m_obj["DocumentId"] = toJsonValue(model().id());
     m_model->modelDelegate()->serialize(s.toVariant());
     return s.m_obj;
 }
@@ -41,7 +41,7 @@ QJsonObject Document::saveAsJson()
     using namespace std;
     QJsonObject complete, json_plugins;
 
-    for(const auto& plugin : model()->pluginModels())
+    for(const auto& plugin : model().pluginModels())
     {
         Serializer<JSONObject> s;
         plugin->serialize(s.toVariant());
@@ -67,8 +67,8 @@ QByteArray Document::saveAsByteArray()
 
     // Save the document plug-ins
     QVector<QPair<QString, QByteArray>> documentPluginModels;
-    std::transform(begin(model()->pluginModels()),
-                   end(model()->pluginModels()),
+    std::transform(begin(model().pluginModels()),
+                   end(model().pluginModels()),
                    std::back_inserter(documentPluginModels),
                    [] (DocumentDelegatePluginModel* plugin)
     {

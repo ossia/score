@@ -32,7 +32,7 @@ OSSIAAutomationElement::OSSIAAutomationElement(
     OSSIAProcessElement{parent},
     m_parent_constraint{parentConstraint},
     m_iscore_autom{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model()->pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
     using namespace iscore::convert;
 
@@ -69,7 +69,7 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
 
     // Get the device list to obtain the nodes.
     auto doc = iscore::IDocument::documentFromObject(m_iscore_autom);
-    auto plug = doc->model()->pluginModel<DeviceDocumentPlugin>();
+    auto plug = doc->model().pluginModel<DeviceDocumentPlugin>();
     const auto& devices = plug->list().devices();
 
     // Look for the real node in the device

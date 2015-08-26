@@ -41,8 +41,8 @@ void NetworkControl::populateMenus(MenubarManager* menu)
         clt->setName(tr("Master"));
         auto serv = new MasterSession(currentDocument(), clt, id_type<Session>(1234));
         auto policy = new MasterNetworkPolicy{serv, currentDocument()->commandStack(), currentDocument()->locker()};
-        auto realplug = new NetworkDocumentPlugin{policy, currentDocument()->model()};
-        currentDocument()->model()->addPluginModel(realplug);
+        auto realplug = new NetworkDocumentPlugin{policy, &currentDocument()->model()};
+        currentDocument()->model().addPluginModel(realplug);
     });
 
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -99,7 +99,7 @@ void NetworkControl::on_sessionBuilt(
         doc->commandStack().pushQuiet(cmd);
     }
 
-    auto np = static_cast<NetworkDocumentPlugin*>(doc->model()->pluginModel<NetworkDocumentPlugin>());
+    auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
     np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
     delete sessionBuilder;
     */

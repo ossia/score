@@ -138,7 +138,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     for(auto& plugdata : object->pluginModelList.list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc->model()->pluginModels())
+        for(iscore::DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)

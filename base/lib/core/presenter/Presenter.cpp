@@ -92,7 +92,7 @@ void Presenter::setupDocument(Document* doc)
         }
 
         m_documents.push_back(doc);
-        m_view->addDocumentView(doc->view());
+        m_view->addDocumentView(&doc->view());
         setCurrentDocument(doc);
     }
     else
@@ -154,7 +154,7 @@ bool Presenter::closeDocument(Document* doc)
     }
 
     // Close operation
-    m_view->closeDocument(doc->view());
+    m_view->closeDocument(&doc->view());
     m_documents.removeOne(doc);
 
     setCurrentDocument(m_documents.size() > 0 ? m_documents.last() : nullptr);

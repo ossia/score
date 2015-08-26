@@ -79,13 +79,13 @@ void Document::setupNewPanel(PanelPresenter* pres,
 void Document::bindPanelPresenter(PanelPresenter* pres)
 {
     using namespace std;
-    auto localmodel = std::find_if(begin(model()->panels()),
-                                   end(model()->panels()),
+    auto localmodel = std::find_if(begin(model().panels()),
+                                   end(model().panels()),
                                    [&] (PanelModel* model)
     {
         return model->panelId() == pres->panelId();
     });
-    ISCORE_ASSERT(localmodel != end(model()->panels()));
+    ISCORE_ASSERT(localmodel != end(model().panels()));
 
     pres->setModel(*localmodel);
 }

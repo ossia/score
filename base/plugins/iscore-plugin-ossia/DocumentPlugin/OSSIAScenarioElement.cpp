@@ -21,7 +21,7 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     OSSIAProcessElement{parent},
     m_parent_constraint{parentConstraint},
     m_iscore_scenario{element},
-    m_deviceList{iscore::IDocument::documentFromObject(element)->model()->pluginModel<DeviceDocumentPlugin>()->list()}
+    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
     this->setObjectName("OSSIAScenarioElement");
 

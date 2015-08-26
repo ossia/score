@@ -8,6 +8,16 @@ class Presenter;
 class Document;
 class DocumentDelegateFactoryInterface;
 class DocumentBackupManager;
+
+/**
+ * @brief The DocumentBuilder class
+ *
+ * Facility to construct a document according to different cases :
+ * - Creating a blank, new document.
+ * - Loading a document.
+ * - Restoring a document after a crash.
+ *
+ */
 class DocumentBuilder
 {
     public:
