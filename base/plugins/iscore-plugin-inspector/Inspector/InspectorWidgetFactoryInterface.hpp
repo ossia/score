@@ -6,6 +6,11 @@ class QObject;
 class QWidget;
 class InspectorWidgetBase;
 
+namespace iscore
+{
+class Document;
+}
+
 
 /**
      * @brief The InspectorWidgetFactoryInterface class
@@ -36,5 +41,6 @@ class InspectorWidgetFactory : public iscore::FactoryInterface
         */
         virtual InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
+                iscore::Document& doc,
                 QWidget* parent) = 0;
 };

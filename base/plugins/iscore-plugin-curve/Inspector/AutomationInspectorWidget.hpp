@@ -13,6 +13,7 @@ class AutomationInspectorWidget : public InspectorWidgetBase
     public:
         explicit AutomationInspectorWidget(
                 const AutomationModel& object,
+                iscore::Document& doc,
                 QWidget* parent);
 
     signals:

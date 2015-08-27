@@ -12,10 +12,9 @@ namespace Scenario
     namespace Command
     {
         /**
-        * @brief The RemoveEvent class
+        * @brief The RemoveSelection class
         *
-        * remove an event
-        *
+        * Tries to remove what is selected in a scenario.
         */
         class RemoveSelection : public iscore::SerializableCommand
         {

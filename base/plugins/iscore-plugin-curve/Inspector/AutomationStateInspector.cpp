@@ -5,8 +5,9 @@
 
 AutomationStateInspector::AutomationStateInspector(
         const AutomationState& object,
+        iscore::Document& doc,
         QWidget* parent):
-    InspectorWidgetBase{object, parent}, // NOTE: this will crash if trying to send commands
+    InspectorWidgetBase{object, doc, parent},
     m_state{object},
     m_label{new QLabel}
 {

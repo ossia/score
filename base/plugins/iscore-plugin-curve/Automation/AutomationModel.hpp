@@ -16,6 +16,7 @@
  *
  */
 class CurveModel;
+class AutomationState;
 class AutomationModel : public Process
 {
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
@@ -65,8 +66,8 @@ class AutomationModel : public Process
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        DynamicStateDataInterface* startState() const override;
-        DynamicStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startState() const override;
+        ProcessStateDataInterface* endState() const override;
 
         //// AutomationModel specifics ////
         iscore::Address address() const;
@@ -109,4 +110,7 @@ class AutomationModel : public Process
 
         double m_min{};
         double m_max{};
+
+        AutomationState* m_startState{};
+        AutomationState* m_endState{};
 };

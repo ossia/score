@@ -7,7 +7,11 @@ class AutomationState : public ProcessStateDataInterface
 {
     public:
         // watchedPoint : something between 0 and 1
-        AutomationState(const AutomationModel* model, double watchedPoint);
+        AutomationState(
+                const AutomationModel& model,
+                double watchedPoint,
+                QObject* parent);
+
         QString stateName() const override
         { return "AutomationState"; }
 
@@ -15,9 +19,9 @@ class AutomationState : public ProcessStateDataInterface
         double point() const
         { return m_point; }
 
-        AutomationState* clone() const override;
-    protected:
-        const AutomationModel* model() const;
+        AutomationState* clone(QObject* parent) const override;
+
+        const AutomationModel& model() const;
 
     private:
         double m_point{};

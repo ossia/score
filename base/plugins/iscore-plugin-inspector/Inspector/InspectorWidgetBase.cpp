@@ -11,11 +11,13 @@
 // via the inspector control's currentDocument ?
 InspectorWidgetBase::InspectorWidgetBase(
         const QObject& inspectedObj,
+        iscore::Document& doc,
         QWidget* parent) :
     QWidget(parent),
     m_inspectedObject {inspectedObj},
-    m_commandDispatcher(new CommandDispatcher<>{iscore::IDocument::commandStack(inspectedObj)}),
-    m_selectionDispatcher(new iscore::SelectionDispatcher{iscore::IDocument::selectionStack(inspectedObj)})
+    m_document{doc},
+    m_commandDispatcher(new CommandDispatcher<>{m_document.commandStack()}),
+    m_selectionDispatcher(new iscore::SelectionDispatcher{m_document.selectionStack()})
 
 {
     m_layout = new QVBoxLayout;

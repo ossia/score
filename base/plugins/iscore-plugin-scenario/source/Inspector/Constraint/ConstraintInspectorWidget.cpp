@@ -29,6 +29,7 @@
 
 #include "Inspector/Separator.hpp"
 #include "Inspector/SelectionButton.hpp"
+#include "ProcessInterface/State/ProcessStateDataInterface.hpp"
 #include <QFrame>
 #include <QLineEdit>
 #include <QLayout>
@@ -44,8 +45,9 @@ using namespace iscore::IDocument;
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ConstraintModel& object,
+        iscore::Document& doc,
         QWidget* parent) :
-    InspectorWidgetBase(object, parent),
+    InspectorWidgetBase{object, doc, parent},
     m_currentConstraint{object}
 {
     setObjectName("Constraint");
@@ -137,11 +139,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(m_rackWidget);
 
     // Plugins
-    iscore::Document* doc = iscore::IDocument::documentFromObject(object);
-
     for(auto& plugdata : m_currentConstraint.pluginModelList.list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
+        for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)

@@ -6,8 +6,11 @@
 
 InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
         const QObject& sourceElement,
+        iscore::Document& doc,
         QWidget* parent)
 {
-    return new AutomationInspectorWidget(static_cast<const AutomationModel&>(sourceElement), parent);
-
+    return new AutomationInspectorWidget{
+                static_cast<const AutomationModel&>(sourceElement),
+                doc,
+                parent};
 }

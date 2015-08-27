@@ -14,7 +14,7 @@ class DynamicState
         DynamicState() = default;
         DynamicState(const DynamicState& other):
             m_data{other.m_data
-                    ? other.m_data->clone()
+                    ? other.m_data->clone(other.m_data->parent())
                     : nullptr}
         {
 
@@ -28,7 +28,7 @@ class DynamicState
 
             delete m_data;
             m_data = other.m_data
-                    ? other.m_data->clone()
+                    ? other.m_data->clone(other.m_data->parent())
                     : nullptr;
             return *this;
         }

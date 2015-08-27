@@ -19,8 +19,8 @@ class SpaceProcess : public Process
 
         void reset();
 
-        DynamicStateDataInterface *startState() const;
-        DynamicStateDataInterface *endState() const;
+        ProcessStateDataInterface *startState() const;
+        ProcessStateDataInterface* endState() const;
 
         Selection selectableChildren() const;
         Selection selectedChildren() const;

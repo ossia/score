@@ -3,24 +3,27 @@
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
-AutomationState::AutomationState(const AutomationModel* model, double watchedPoint):
-    ProcessStateDataInterface{model},
+AutomationState::AutomationState(
+        const AutomationModel& model,
+        double watchedPoint,
+        QObject* parent):
+    ProcessStateDataInterface{model, parent},
     m_point{watchedPoint}
 {
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-    connect(model, &AutomationModel::curveChanged,
+    connect(&this->model(), &AutomationModel::curveChanged,
             this, &DynamicStateDataInterface::stateChanged);
 
-    connect(model, &AutomationModel::addressChanged,
+    connect(&this->model(), &AutomationModel::addressChanged,
             this, &DynamicStateDataInterface::stateChanged);
 }
 
 iscore::Message AutomationState::message() const
 {
     iscore::Message m;
-    m.address = model()->address();
-    for(const CurveSegmentModel& seg : model()->curve().segments())
+    m.address = model().address();
+    for(const CurveSegmentModel& seg : model().curve().segments())
     {
         if(seg.start().x() <= m_point && seg.end().x() >= m_point)
         {
@@ -32,12 +35,12 @@ iscore::Message AutomationState::message() const
     return m;
 }
 
-AutomationState *AutomationState::clone() const
+AutomationState *AutomationState::clone(QObject* parent) const
 {
-    return new AutomationState{model(), m_point};
+    return new AutomationState{model(), m_point, parent};
 }
 
-const AutomationModel* AutomationState::model() const
+const AutomationModel& AutomationState::model() const
 {
-    return static_cast<const AutomationModel*>(ProcessStateDataInterface::model());
+    return static_cast<const AutomationModel&>(ProcessStateDataInterface::model());
 }

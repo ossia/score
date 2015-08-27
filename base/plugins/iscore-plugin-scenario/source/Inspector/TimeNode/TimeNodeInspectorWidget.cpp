@@ -22,8 +22,9 @@ using namespace Scenario::Command;
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
         const TimeNodeModel& object,
+        iscore::Document& doc,
         QWidget* parent) :
-    InspectorWidgetBase {object, parent},
+    InspectorWidgetBase {object, doc, parent},
     m_model {object}
 {
     setObjectName("TimeNodeInspectorWidget");

@@ -14,7 +14,9 @@ AutomationModel::AutomationModel(
         const TimeValue& duration,
         const id_type<Process>& id,
         QObject* parent) :
-    Process {duration, id, processName(), parent}
+    Process {duration, id, processName(), parent},
+    m_startState{new AutomationState{*this, 0., this}},
+    m_endState{new AutomationState{*this, 1., this}}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
 
@@ -63,7 +65,9 @@ AutomationModel::AutomationModel(
     m_address(source.address()),
     m_curve{source.curve().clone(source.curve().id(), this)},
     m_min{source.min()},
-    m_max{source.max()}
+    m_max{source.max()},
+    m_startState{new AutomationState{*this, 0., this}},
+    m_endState{new AutomationState{*this, 1., this}}
 {
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 }
@@ -210,15 +214,14 @@ void AutomationModel::setCurve(CurveModel* newCurve)
 }
 
 
-// TODO fix memory leak
-DynamicStateDataInterface* AutomationModel::startState() const
+ProcessStateDataInterface* AutomationModel::startState() const
 {
-    return new AutomationState{this, 0.};
+    return m_startState;
 }
 
-DynamicStateDataInterface* AutomationModel::endState() const
+ProcessStateDataInterface* AutomationModel::endState() const
 {
-    return new AutomationState{this, 1.};
+    return m_endState;
 }
 
 iscore::Address AutomationModel::address() const

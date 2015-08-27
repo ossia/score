@@ -38,8 +38,9 @@
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
+        iscore::Document& doc,
         QWidget* parent) :
-    InspectorWidgetBase {object, parent},
+    InspectorWidgetBase {object, doc, parent},
     m_model {object}
 {
     setObjectName("EventInspectorWidget");
@@ -182,11 +183,10 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
-    iscore::Document* doc = iscore::IDocument::documentFromObject(object);
 
     for(auto& plugdata : m_model.pluginModelList->list())
     {
-        for(iscore::DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
+        for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
         {
             auto md = plugin->makeElementPluginWidget(plugdata, this);
             if(md)
@@ -206,7 +206,7 @@ EventInspectorWidget::EventInspectorWidget(
 
 void EventInspectorWidget::addState(const StateModel& state)
 {
-    auto sw = new StateInspectorWidget{state, this};
+    auto sw = new StateInspectorWidget{state, doc(), this};
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(sw);

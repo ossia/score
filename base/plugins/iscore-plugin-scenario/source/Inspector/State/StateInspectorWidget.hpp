@@ -10,6 +10,7 @@ class StateInspectorWidget : public InspectorWidgetBase
     public:
         explicit StateInspectorWidget(
                 const StateModel& object,
+                iscore::Document& doc,
                 QWidget* parent);
 
     public slots:

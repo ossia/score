@@ -104,13 +104,13 @@ void SpaceProcess::reset()
     ISCORE_TODO;
 }
 
-DynamicStateDataInterface *SpaceProcess::startState() const
+ProcessStateDataInterface* SpaceProcess::startState() const
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-DynamicStateDataInterface *SpaceProcess::endState() const
+ProcessStateDataInterface *SpaceProcess::endState() const
 {
     ISCORE_TODO;
     return nullptr;

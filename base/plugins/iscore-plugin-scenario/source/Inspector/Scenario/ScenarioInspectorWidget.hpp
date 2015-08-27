@@ -9,6 +9,7 @@ class ScenarioInspectorWidget : public InspectorWidgetBase
     public:
         explicit ScenarioInspectorWidget(
                 const ScenarioModel& object,
+                iscore::Document& doc,
                 QWidget* parent);
 
     signals:

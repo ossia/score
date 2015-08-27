@@ -74,8 +74,8 @@ class ScenarioModel : public Process, public ScenarioInterface
         QString processName() const override
         { return "Scenario"; }
 
-        DynamicStateDataInterface* startState() const override;
-        DynamicStateDataInterface* endState() const override;
+        ProcessStateDataInterface* startState() const override;
+        ProcessStateDataInterface* endState() const override;
 
         //// ScenarioModel specifics ////
         // Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)

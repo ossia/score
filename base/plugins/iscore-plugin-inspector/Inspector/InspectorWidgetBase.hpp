@@ -16,14 +16,16 @@ namespace iscore
 {
     class SerializableCommand;
     class SelectionDispatcher;
+
+    class Document;
 }
+
 /*!
  * \brief The InspectorWidgetBase class
  * Set the global structuration for an inspected element. Inherited by class that implement specific type
  *
  * Manage sections added by user.
  */
-
 class InspectorWidgetBase : public QWidget
 {
         Q_OBJECT
@@ -34,12 +36,16 @@ class InspectorWidgetBase : public QWidget
          * \param parent The parent Widget
          */
         explicit InspectorWidgetBase(
-                const QObject &inspectedObj,
+                const QObject&inspectedObj,
+                iscore::Document& doc,
                 QWidget* parent);
         ~InspectorWidgetBase();
 
         // By default returns the name of the object.
         virtual QString tabName();
+
+        iscore::Document& doc()
+        { return m_document; }
 
     public slots:
         void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
@@ -66,6 +72,7 @@ class InspectorWidgetBase : public QWidget
 
     private:
         const QObject& m_inspectedObject;
+        iscore::Document& m_document;
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* m_scrollAreaLayout {};

@@ -4,7 +4,11 @@
 
 InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
         const QObject& sourceElement,
+        iscore::Document& doc,
         QWidget* parent)
 {
-    return new AutomationStateInspector(static_cast<const AutomationState&>(sourceElement), parent);
+    return new AutomationStateInspector{
+                static_cast<const AutomationState&>(sourceElement),
+                doc,
+                parent};
 }

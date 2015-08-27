@@ -9,8 +9,9 @@
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
         const ScenarioModel& object,
+        iscore::Document& doc,
         QWidget* parent) :
-    InspectorWidgetBase {object, parent},
+    InspectorWidgetBase {object, doc, parent},
     m_model {object}
 {
     setObjectName("ScenarioInspectorWidget");

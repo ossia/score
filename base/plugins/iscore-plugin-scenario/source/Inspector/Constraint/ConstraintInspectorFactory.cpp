@@ -5,8 +5,9 @@
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,
+        iscore::Document& doc,
         QWidget* parent)
 {
     auto& constraint = static_cast<const ConstraintModel&>(sourceElement);
-    return new ConstraintInspectorWidget{constraint, parent};
+    return new ConstraintInspectorWidget{constraint, doc, parent};
 }

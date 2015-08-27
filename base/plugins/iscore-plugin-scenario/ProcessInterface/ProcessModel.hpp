@@ -1,6 +1,5 @@
 #pragma once
 #include <ProcessInterface/TimeValue.hpp>
-#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <ProcessInterface/ExpandMode.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -10,7 +9,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 class DataStream;
 class JSONObject;
-
+class ProcessStateDataInterface;
 class LayerModel;
 // TODO rename file ?
 /**
@@ -108,8 +107,8 @@ class Process: public IdentifiedObject<Process>
         virtual void reset() = 0;
 
         /// States
-        virtual DynamicStateDataInterface* startState() const = 0;
-        virtual DynamicStateDataInterface* endState() const = 0;
+        virtual ProcessStateDataInterface* startState() const = 0;
+        virtual ProcessStateDataInterface* endState() const = 0;
 
         /// Selection
         virtual Selection selectableChildren() const = 0;

@@ -27,6 +27,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
     public:
         explicit ConstraintInspectorWidget(
                 const ConstraintModel& object,
+                iscore::Document& doc,
                 QWidget* parent = 0);
 
         const ConstraintModel& model() const;

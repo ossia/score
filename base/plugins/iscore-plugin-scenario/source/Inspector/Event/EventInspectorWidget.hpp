@@ -19,6 +19,7 @@ class EventInspectorWidget : public InspectorWidgetBase
     public:
         explicit EventInspectorWidget(
                 const EventModel& object,
+                iscore::Document& doc,
                 QWidget* parent = 0);
 
         void addState(const StateModel& state);

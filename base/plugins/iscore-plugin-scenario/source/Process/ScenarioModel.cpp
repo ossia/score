@@ -259,13 +259,13 @@ void ScenarioModel::setSelection(const Selection& s) const
       elt.selection.set(s.find(&elt) != s.end());
 }
 
-DynamicStateDataInterface* ScenarioModel::startState() const
+ProcessStateDataInterface* ScenarioModel::startState() const
 {
     ISCORE_TODO;
     return nullptr;
 }
 
-DynamicStateDataInterface* ScenarioModel::endState() const
+ProcessStateDataInterface* ScenarioModel::endState() const
 {
     ISCORE_TODO;
     return nullptr;

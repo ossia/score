@@ -14,6 +14,7 @@ class EventInspectorFactory : public InspectorWidgetFactory
 
         virtual InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
+                iscore::Document& doc,
                 QWidget* parent) override;
 
         virtual QList<QString> correspondingObjectsNames() const override;

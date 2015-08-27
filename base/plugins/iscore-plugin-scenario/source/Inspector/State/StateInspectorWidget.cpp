@@ -10,8 +10,11 @@
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
-StateInspectorWidget::StateInspectorWidget(const StateModel& object, QWidget *parent):
-    InspectorWidgetBase {object, parent},
+StateInspectorWidget::StateInspectorWidget(
+        const StateModel& object,
+        iscore::Document& doc,
+        QWidget *parent):
+    InspectorWidgetBase {object, doc, parent},
     m_model {object}
 {
     setObjectName("StateInspectorWidget");

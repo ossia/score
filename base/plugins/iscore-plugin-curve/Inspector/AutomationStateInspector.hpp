@@ -7,8 +7,10 @@ class AutomationStateInspector : public InspectorWidgetBase
 {
         Q_OBJECT
     public:
-        explicit AutomationStateInspector(const AutomationState& object,
-                                          QWidget* parent = 0);
+        explicit AutomationStateInspector(
+                const AutomationState& object,
+                iscore::Document& doc,
+                QWidget* parent = 0);
 
         void on_stateChanged();
 
