@@ -1,13 +1,13 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <ProcessInterface/ExpandMode.hpp>
-class ConstraintModel;
-
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
+class ConstraintModel;
+class ScenarioModel;
 
 /*
  * Command for vertical move so it does'nt have to resize anything on time axis
@@ -24,12 +24,13 @@ namespace Scenario
             public:
                 MoveConstraint();
                 ~MoveConstraint();
-                MoveConstraint(ObjectPath&& scenarioPath,
+                MoveConstraint(
+                        ModelPath<ScenarioModel>&& scenarioPath,
                     const id_type<ConstraintModel>& id,
                     const TimeValue& date,
                     double y);
 
-                void update(const ObjectPath&,
+                void update(const ModelPath<ScenarioModel>&,
                             const id_type<ConstraintModel>& ,
                             const TimeValue& date,
                             double height);
@@ -42,7 +43,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ScenarioModel> m_path;
                 id_type<ConstraintModel> m_constraint;
                 double m_oldHeight{},
                        m_newHeight{};

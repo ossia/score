@@ -11,9 +11,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstraint,
-                                             ObjectPath&& targetConstraint,
-                                             ExpandMode mode) :
+ReplaceConstraintContent::ReplaceConstraintContent(
+        QJsonObject&& sourceConstraint,
+        ModelPath<ConstraintModel>&& targetConstraint,
+        ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -21,7 +22,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstrain
     m_target{targetConstraint},
     m_mode{mode}
 {
-    auto& trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent
@@ -58,7 +59,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstrain
 void ReplaceConstraintContent::undo()
 {
     // We just have to remove what we added
-    auto& trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find();
 
     for(const auto& proc_id : m_processIds)
     {
@@ -74,7 +75,7 @@ void ReplaceConstraintContent::undo()
 
 void ReplaceConstraintContent::redo()
 {
-    auto& trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent

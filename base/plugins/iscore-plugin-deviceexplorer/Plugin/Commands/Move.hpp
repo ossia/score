@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
 
@@ -19,7 +19,7 @@ namespace DeviceExplorer
                 Move(const iscore::NodePath& srcParentPath, int srcRow, int count,
                          const iscore::NodePath& dstParentPath, int dstRow,
                          const QString& text,
-                         ObjectPath&& tree_model);
+                         ModelPath<DeviceExplorerModel>&& tree_model);
 
 
                 virtual void undo() override;
@@ -30,7 +30,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             protected:
-                ObjectPath m_model{};
+                ModelPath<DeviceExplorerModel> m_model{};
                 iscore::NodePath m_srcParentPath;
                 iscore::NodePath m_dstParentPath;
                 int m_srcRow{};

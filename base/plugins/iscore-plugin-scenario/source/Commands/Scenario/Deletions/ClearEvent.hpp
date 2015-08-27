@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
-
+#include <iscore/tools/ModelPath.hpp>
+class StateModel;
 namespace Scenario
 {
     namespace Command
@@ -12,7 +12,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL2("ScenarioControl", "ClearState", "ClearState")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(ClearState)
-                ClearState(ObjectPath&& path);
+                ClearState(ModelPath<StateModel>&& path);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -21,7 +21,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<StateModel> m_path;
 
                 QByteArray m_serializedStates;
         };

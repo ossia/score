@@ -7,29 +7,29 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopySlot::CopySlot(ObjectPath&& slotToCopy,
-                   ObjectPath&& targetRackPath) :
+CopySlot::CopySlot(ModelPath<SlotModel>&& slotToCopy,
+                   ModelPath<RackModel>&& targetRackPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_slotPath {slotToCopy},
     m_targetRackPath {targetRackPath}
 {
-    auto& rack = m_targetRackPath.find<RackModel>();
+    auto& rack = m_targetRackPath.find();
     m_newSlotId = getStrongId(rack.getSlots());
 }
 
 void CopySlot::undo()
 {
-    auto& targetRack = m_targetRackPath.find<RackModel>();
+    auto& targetRack = m_targetRackPath.find();
     targetRack.removeSlot(m_newSlotId);
 }
 
 
 void CopySlot::redo()
 {
-    auto& sourceSlot = m_slotPath.find<SlotModel>();
-    auto& targetRack = m_targetRackPath.find<RackModel>();
+    const auto& sourceSlot = m_slotPath.find();
+    auto& targetRack = m_targetRackPath.find();
 
     targetRack.addSlot(new SlotModel {&SlotModel::copyViewModelsInSameConstraint,
                                       sourceSlot,

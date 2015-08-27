@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class ConstraintViewModel;
 class ConstraintModel;
@@ -22,7 +22,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(HideRackInViewModel, "ScenarioControl")
-                HideRackInViewModel(ObjectPath&& path);
+                HideRackInViewModel(ModelPath<ConstraintViewModel>&& path);
 
                 /**
                  * @brief HideRackInViewModel
@@ -41,7 +41,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_constraintViewModelPath;
+                ModelPath<ConstraintViewModel> m_constraintViewModelPath;
 
                 id_type<RackModel> m_constraintPreviousId {};
         };

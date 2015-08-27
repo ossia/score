@@ -53,12 +53,14 @@ class ObjectPath
         {
         }
 
+        /*
         template<template<class> typename ModelPath_T, typename T>
         ObjectPath(ModelPath_T<T>&& other):
             m_objectIdentifiers(other.m_impl.m_objectIdentifiers)
         {
 
         }
+        */
 
         ObjectPath(const ObjectPath& obj) = default;
         ObjectPath(ObjectPath&&) = default;

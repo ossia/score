@@ -10,11 +10,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
+RemoveSelection::RemoveSelection(ModelPath<ScenarioModel>&& scenarioPath, Selection sel):
     SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
 
     // Serialize all the events and constraints and timenodes and states.
     // For each removed event, we also add its states to the selection.
@@ -117,7 +117,7 @@ RemoveSelection::RemoveSelection(ObjectPath&& scenarioPath, Selection sel):
 
 void RemoveSelection::undo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     // First instantiate everything
 
     QList<StateModel*> states;
@@ -263,7 +263,7 @@ void RemoveSelection::undo()
 
 void RemoveSelection::redo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     // Remove the constraints
     for(auto& cstr : m_removedConstraints)
     {

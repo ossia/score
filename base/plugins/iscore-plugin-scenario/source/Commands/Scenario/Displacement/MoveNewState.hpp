@@ -2,10 +2,11 @@
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 
 class StateModel;
+class ScenarioModel;
 
 /*
  * Used on creation mode, when mouse is pressed and is moving.
@@ -21,22 +22,23 @@ namespace Scenario
             ISCORE_COMMAND_DECL("MoveNewState", "MoveNewState")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewState, "ScenarioControl")
-            MoveNewState(ObjectPath&& scenarioPath,
-                    id_type<StateModel> stateId,
-                    const double y);
+            MoveNewState(
+                ModelPath<ScenarioModel>&& scenarioPath,
+                const id_type<StateModel>& stateId,
+                const double y);
 
               virtual void undo() override;
               virtual void redo() override;
 
               void update(
-                      const ObjectPath& path,
-                      const id_type<StateModel>& id,
+                      const ModelPath<ScenarioModel>&,
+                      const id_type<StateModel>&,
                       const double y)
               {
                   m_y = y;
               }
 
-              const ObjectPath& path() const
+              const ModelPath<ScenarioModel>& path() const
               { return m_path; }
 
             protected:
@@ -44,7 +46,7 @@ namespace Scenario
               virtual void deserializeImpl(QDataStream&) override;
 
             private:
-              ObjectPath m_path;
+              ModelPath<ScenarioModel> m_path;
               id_type<StateModel> m_stateId;
               double m_y{}, m_oldy{};
         };

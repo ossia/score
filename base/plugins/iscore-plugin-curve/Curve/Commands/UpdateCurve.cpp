@@ -2,13 +2,15 @@
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModelSerialization.hpp"
 
-UpdateCurve::UpdateCurve(ObjectPath&& model, QVector<QByteArray> &&segments):
+UpdateCurve::UpdateCurve(
+        ModelPath<CurveModel>&& model,
+        QVector<QByteArray> &&segments):
     iscore::SerializableCommand{
         "AutomationControl", commandName(), description()},
     m_model{std::move(model)},
     m_newCurveData{std::move(segments)}
 {
-    const auto& curve = m_model.find<CurveModel>();
+    const auto& curve = m_model.find();
     for(const auto& segment : curve.segments())
     {
         QByteArray arr;
@@ -20,7 +22,7 @@ UpdateCurve::UpdateCurve(ObjectPath&& model, QVector<QByteArray> &&segments):
 
 void UpdateCurve::undo()
 {
-    auto& curve = m_model.find<CurveModel>();
+    auto& curve = m_model.find();
     curve.clear();
 
     for(const auto& elt : m_oldCurveData)
@@ -34,7 +36,7 @@ void UpdateCurve::undo()
 
 void UpdateCurve::redo()
 {
-    auto& curve = m_model.find<CurveModel>();
+    auto& curve = m_model.find();
     curve.clear();
 
     for(const auto& elt : m_newCurveData)
@@ -46,7 +48,7 @@ void UpdateCurve::redo()
     curve.changed();
 }
 
-void UpdateCurve::update(ObjectPath&& model, QVector<QByteArray> &&segments)
+void UpdateCurve::update(ModelPath<CurveModel>&& model, QVector<QByteArray> &&segments)
 {
     m_newCurveData = std::move(segments);
 }

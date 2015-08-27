@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 
 
@@ -11,6 +11,7 @@ class Process;
 class LayerModel;
 class RackModel;
 class SlotModel;
+class ConstraintModel;
 namespace Scenario
 {
     namespace Command
@@ -26,12 +27,14 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint, "ScenarioControl")
-                AddProcessToConstraint(ObjectPath&& constraintPath, QString process);
+                AddProcessToConstraint(
+                    ModelPath<ConstraintModel>&& constraintPath,
+                    QString process);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                const ObjectPath& constraintPath() const
+                const ModelPath<ConstraintModel>& constraintPath() const
                 { return m_path; }
                 id_type<Process> processId() const
                 {
@@ -43,7 +46,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ConstraintModel> m_path;
                 QString m_processName;
 
                 id_type<Process> m_createdProcessId {};

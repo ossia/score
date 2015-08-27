@@ -38,7 +38,7 @@ ResizeSlotState::ResizeSlotState(
     connect(press, &QAbstractState::entered, [=] ()
     {
         m_originalPoint = m_sm.scenePoint;
-        m_originalHeight = this->currentSlot.find<SlotModel>().height();
+        m_originalHeight = this->currentSlot.find().height();
     });
 
     connect(move, &QAbstractState::entered, [=] ( )
@@ -47,7 +47,7 @@ ResizeSlotState::ResizeSlotState(
                             m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
         m_ongoingDispatcher.submitCommand(
-                    ObjectPath{this->currentSlot},
+                    ModelPath<SlotModel>{this->currentSlot},
                     val);
         return;
     });
@@ -83,7 +83,7 @@ DragSlotState::DragSlotState(iscore::CommandStack& stack,
         auto overlay = dynamic_cast<SlotOverlay*>(m_scene.itemAt(m_sm.scenePoint, QTransform()));
         if(overlay)
         {
-            auto& baseSlot = this->currentSlot.find<SlotModel>();
+            auto& baseSlot = this->currentSlot.find();
             auto& releasedSlot = overlay->slotView().presenter.model();
             // If it is the same, we do nothing.
             // If it is another (in the same rack), we swap them
@@ -99,7 +99,7 @@ DragSlotState::DragSlotState(iscore::CommandStack& stack,
         else
         {
             // We throw it
-            auto cmd = new Scenario::Command::RemoveSlotFromRack(ObjectPath{this->currentSlot});
+            auto cmd = new Scenario::Command::RemoveSlotFromRack(ModelPath<SlotModel>{this->currentSlot});
             m_dispatcher.submitCommand(cmd);
             return;
         }

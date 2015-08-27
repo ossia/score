@@ -3,7 +3,7 @@
 using namespace DeviceExplorer::Command;
 
 EditData::EditData(
-        ObjectPath &&device_tree,
+        ModelPath<DeviceExplorerModel> &&device_tree,
         const iscore::NodePath& nodePath,
         DeviceExplorerModel::Column column,
         const QVariant& value,
@@ -17,19 +17,19 @@ EditData::EditData(
     m_newValue{value},
     m_role{role}
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
     m_oldValue = explorer.getData(m_nodePath, column, role);
 }
 
 void EditData::undo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
     explorer.editData(m_nodePath, m_column, m_oldValue, m_role);
 }
 
 void EditData::redo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
     explorer.editData(m_nodePath, m_column, m_newValue, m_role);
 }
 

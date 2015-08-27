@@ -32,7 +32,7 @@ namespace iscore
     {
         public:
             LockHelper(QObject& model, ObjectLocker& locker):
-                m_path{IDocument::safe_path(model)},
+                m_path{IDocument::unsafe_path(model)},
                 m_locker{locker}
             {
                 Serializer<DataStream> ser {&m_serializedPath};

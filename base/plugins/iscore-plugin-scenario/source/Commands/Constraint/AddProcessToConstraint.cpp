@@ -16,14 +16,16 @@
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 using namespace iscore;
 using namespace Scenario::Command;
-AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QString process) :
+AddProcessToConstraint::AddProcessToConstraint(
+        ModelPath<ConstraintModel>&& constraintPath,
+        QString process) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {std::move(constraintPath) },
     m_processName {process}
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     m_createdProcessId = getStrongId(constraint.processes());
     m_noRackes = (constraint.racks().empty() && constraint.objectName() != "BaseConstraintModel" );
     m_notBaseConstraint = (constraint.objectName() != "BaseConstraintModel");
@@ -54,7 +56,7 @@ AddProcessToConstraint::AddProcessToConstraint(ObjectPath&& constraintPath, QStr
 
 void AddProcessToConstraint::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     if(m_noRackes)
     {
         auto& rack = constraint.rack(m_createdRackId);
@@ -74,7 +76,7 @@ void AddProcessToConstraint::undo()
 
 void AddProcessToConstraint::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     // Create process model
     auto proc = ProcessList::getFactory(m_processName)

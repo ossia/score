@@ -3,7 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class EventModel;
 
@@ -21,7 +21,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("RemoveSelection", "RemoveSelection")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSelection, "ScenarioControl")
-                RemoveSelection(ObjectPath&& scenarioPath, Selection sel);
+                RemoveSelection(ModelPath<ScenarioModel>&& scenarioPath, Selection sel);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,7 +31,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ScenarioModel> m_path;
 
                 // For timenodes that may be removed when there is only a single event
                 QVector<QPair<id_type<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;

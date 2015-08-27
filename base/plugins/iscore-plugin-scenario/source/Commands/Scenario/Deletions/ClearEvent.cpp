@@ -10,20 +10,20 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearState::ClearState(ObjectPath&& path) :
+ClearState::ClearState(ModelPath<StateModel>&& path) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(path) }
 {
-    const auto& state = m_path.find<StateModel>();
+    const auto& state = m_path.find();
 
     m_serializedStates = marshall<DataStream>(state.states().rootNode());
 }
 
 void ClearState::undo()
 {
-    auto& state = m_path.find<StateModel>();
+    auto& state = m_path.find();
     iscore::StateNode states;
     QDataStream s(m_serializedStates);
     s >> states;
@@ -33,7 +33,7 @@ void ClearState::undo()
 
 void ClearState::redo()
 {
-    auto& state = m_path.find<StateModel>();
+    auto& state = m_path.find();
 
     state.states() = iscore::StateNode{};
 }

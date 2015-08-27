@@ -13,15 +13,16 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
-                                     id_type<Process> process) :
+AddLayerInNewSlot::AddLayerInNewSlot(
+        ModelPath<ConstraintModel>&& constraintPath,
+        id_type<Process> process) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {std::move(constraintPath) },
     m_sharedProcessModelId{process}
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     if(constraint.racks().empty())
     {
@@ -41,7 +42,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(ObjectPath&& constraintPath,
 
 void AddLayerInNewSlot::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     auto& rack = constraint.rack(m_createdRackId);
 
     // Removing the slot is enough
@@ -56,7 +57,7 @@ void AddLayerInNewSlot::undo()
 
 void AddLayerInNewSlot::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     // Rack
     if(!m_existingRack)

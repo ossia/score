@@ -1,7 +1,7 @@
 /*
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class LayerModel;

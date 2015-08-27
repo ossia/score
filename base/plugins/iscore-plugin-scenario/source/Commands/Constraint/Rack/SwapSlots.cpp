@@ -3,9 +3,10 @@
 using namespace Scenario::Command;
 
 
-SwapSlots::SwapSlots(ObjectPath&& rack,
-                     id_type<SlotModel> first,
-                     id_type<SlotModel> second):
+SwapSlots::SwapSlots(
+        ModelPath<RackModel>&& rack,
+        const id_type<SlotModel>& first,
+        const id_type<SlotModel>& second):
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -25,7 +26,7 @@ void SwapSlots::undo()
 
 void SwapSlots::redo()
 {
-    auto& rack = m_rackPath.find<RackModel>();
+    auto& rack = m_rackPath.find();
     rack.swapSlots(m_first, m_second);
 }
 

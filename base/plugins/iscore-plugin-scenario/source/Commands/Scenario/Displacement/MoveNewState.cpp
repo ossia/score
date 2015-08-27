@@ -2,23 +2,24 @@
 #include "Process/Algorithms/VerticalMovePolicy.hpp"
 #include "Process/ScenarioModel.hpp"
 
-Scenario::Command::MoveNewState::MoveNewState(ObjectPath &&scenarioPath,
-                                              id_type<StateModel> stateId,
-                                              const double y):
+Scenario::Command::MoveNewState::MoveNewState(
+        ModelPath<ScenarioModel>&& scenarioPath,
+        const id_type<StateModel>& stateId,
+        const double y):
     SerializableCommand {"ScenarioControl",
-             commandName(),
-             description()},
+                         commandName(),
+                         description()},
     m_path(std::move(scenarioPath)),
     m_stateId{stateId},
     m_y{y}
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     m_oldy = scenar.state(m_stateId).heightPercentage();
 }
 
 void Scenario::Command::MoveNewState::undo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     auto& state = scenar.state(m_stateId);
     state.setHeightPercentage(m_oldy);
 
@@ -27,7 +28,7 @@ void Scenario::Command::MoveNewState::undo()
 
 void Scenario::Command::MoveNewState::redo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     auto& state = scenar.state(m_stateId);
     state.setHeightPercentage(m_y);
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 
 class EventModel;

@@ -5,7 +5,9 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
+SetRigidity::SetRigidity(
+        ModelPath<ConstraintModel>&& constraintPath,
+        bool rigid) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -17,7 +19,7 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
     // TODO make a class that embodies the logic for the relationship between rigidity and min/max.
     // Also, min/max are indicative if rigid, they can still be set but won't be used.
     {
-        auto& constraint = m_path.find<ConstraintModel>();
+        auto& constraint = m_path.find();
         ISCORE_ASSERT(constraint.duration.isRigid() != rigid);
 
         m_oldMinDuration = constraint.duration.minDuration();
@@ -27,7 +29,7 @@ SetRigidity::SetRigidity(ObjectPath&& constraintPath, bool rigid) :
 
 void SetRigidity::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     constraint.duration.setRigid(!m_rigidity);
 
     if(m_rigidity)
@@ -44,7 +46,7 @@ void SetRigidity::undo()
 
 void SetRigidity::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     constraint.duration.setRigid(m_rigidity);
 
     if(m_rigidity)

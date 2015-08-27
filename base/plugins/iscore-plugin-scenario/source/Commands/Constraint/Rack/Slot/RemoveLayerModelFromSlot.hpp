@@ -1,8 +1,9 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class LayerModel;
+class SlotModel;
 namespace Scenario
 {
     namespace Command
@@ -18,7 +19,9 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveLayerModelFromSlot, "ScenarioControl")
 
-                RemoveLayerModelFromSlot(ObjectPath&& slotPath, id_type<LayerModel> layerId);
+                RemoveLayerModelFromSlot(
+                    ModelPath<SlotModel>&& slotPath,
+                    const id_type<LayerModel>& layerId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -28,7 +31,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<SlotModel> m_path;
                 id_type<LayerModel> m_layerId {};
 
                 QByteArray m_serializedLayerData;

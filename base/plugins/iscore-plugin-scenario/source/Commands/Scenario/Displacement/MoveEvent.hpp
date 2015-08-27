@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/ExpandMode.hpp>
 
@@ -10,6 +10,7 @@ class TimeNodeModel;
 class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
+class ScenarioModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 
@@ -27,23 +28,25 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
-                MoveEvent(ObjectPath&& scenarioPath,
-                  id_type<EventModel> eventId,
-                  const TimeValue& date,
-                  ExpandMode mode);
+                MoveEvent(
+                    ModelPath<ScenarioModel>&& scenarioPath,
+                    const id_type<EventModel>& eventId,
+                    const TimeValue& date,
+                    ExpandMode mode);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                void update(const ObjectPath&,
-                            const id_type<EventModel>& ,
-                            const TimeValue& date,
-                            ExpandMode)
+                void update(
+                        const ModelPath<ScenarioModel>&,
+                        const id_type<EventModel>& ,
+                        const TimeValue& date,
+                        ExpandMode)
                 {
                     m_newDate = date;
                 }
 
-                const ObjectPath& path() const
+                const ModelPath<ScenarioModel>& path() const
                 { return m_path; }
 
             protected:
@@ -51,7 +54,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ScenarioModel> m_path;
                 id_type<EventModel> m_eventId {};
 
                 TimeValue m_oldDate {};
@@ -65,7 +68,7 @@ namespace Scenario
                 QVector<
                     QPair<
                         QPair<
-                            ObjectPath,
+                            ModelPath<ConstraintModel>,
                             QByteArray
                         >, // The constraint data
                         QMap< // Mapping for the view models of this constraint

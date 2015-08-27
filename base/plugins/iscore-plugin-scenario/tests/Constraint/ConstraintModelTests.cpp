@@ -6,7 +6,7 @@
 
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Process/Algorithms/StandardCreationPolicy.hpp>
 

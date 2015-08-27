@@ -1,9 +1,9 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <QString>
-
+class SlotModel;
 namespace Scenario
 {
     namespace Command
@@ -18,13 +18,14 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("ResizeSlotVertically", "ResizeSlotVertically")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ResizeSlotVertically, "ScenarioControl")
-                ResizeSlotVertically(ObjectPath&& slotPath,
-                                     double newSize);
+                ResizeSlotVertically(
+                    ModelPath<SlotModel>&& slotPath,
+                    double newSize);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                void update(const ObjectPath&, double size)
+                void update(const ModelPath<SlotModel>&, double size)
                 {
                     m_newSize = size;
                 }
@@ -34,7 +35,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<SlotModel> m_path;
 
                 double m_originalSize {};
                 double m_newSize {};

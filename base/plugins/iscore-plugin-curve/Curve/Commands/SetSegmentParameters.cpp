@@ -3,14 +3,14 @@
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
 SetSegmentParameters::SetSegmentParameters(
-        ObjectPath&& model,
+        ModelPath<CurveModel>&& model,
         SegmentParameterMap&& parameters):
     iscore::SerializableCommand{
         "AutomationControl", commandName(), description()},
     m_model{std::move(model)},
     m_new{std::move(parameters)}
 {
-    const auto& curve = m_model.find<CurveModel>();
+    const auto& curve = m_model.find();
     for(const auto& elt : m_new.keys())
     {
         const auto& seg = curve.segments().at(elt);
@@ -20,7 +20,7 @@ SetSegmentParameters::SetSegmentParameters(
 
 void SetSegmentParameters::undo()
 {
-    auto& curve = m_model.find<CurveModel>();
+    auto& curve = m_model.find();
     for(const auto& elt : m_old.keys())
     {
         auto& seg = curve.segments().at(elt);
@@ -36,7 +36,7 @@ void SetSegmentParameters::undo()
 
 void SetSegmentParameters::redo()
 {
-    auto& curve = m_model.find<CurveModel>();
+    auto& curve = m_model.find();
     for(const auto& elt : m_new.keys())
     {
         auto& seg = curve.segments().at(elt);
@@ -48,7 +48,7 @@ void SetSegmentParameters::redo()
     curve.changed();
 }
 
-void SetSegmentParameters::update(ObjectPath&& model, SegmentParameterMap &&segments)
+void SetSegmentParameters::update(ModelPath<CurveModel>&& model, SegmentParameterMap &&segments)
 {
     m_new = std::move(segments);
 }

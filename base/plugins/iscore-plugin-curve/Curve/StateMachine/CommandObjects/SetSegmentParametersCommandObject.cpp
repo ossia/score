@@ -40,7 +40,7 @@ void SetSegmentParametersCommandObject::move()
 
     // TODO here we can clearly optimize ...
     m_dispatcher.submitCommand(
-        ObjectPath{},
+        ModelPath<CurveModel>{},
         SegmentParameterMap{{m_state->clickedSegmentId, {newVertical, newHorizontal
           }}});
 }

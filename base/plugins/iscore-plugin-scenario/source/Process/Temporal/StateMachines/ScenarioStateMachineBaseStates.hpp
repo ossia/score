@@ -14,6 +14,7 @@ class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
 class StateModel;
+class SlotModel;
 
 // TODO optimize this when we have all the tools
 class ScenarioStateBase : public QState
@@ -76,7 +77,7 @@ class SlotState : public QState
             QState{parent}
         { }
 
-        ObjectPath currentSlot;
+        ModelPath<SlotModel> currentSlot;
 
         QPointF m_originalPoint;
         double m_originalHeight{};

@@ -15,15 +15,16 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraintPath,
-        id_type<Process> processId) :
+RemoveProcessFromConstraint::RemoveProcessFromConstraint(
+        ModelPath<ConstraintModel>&& constraintPath,
+        const id_type<Process>& processId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {std::move(constraintPath) },
     m_processId {processId}
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     // Save the process
     Serializer<DataStream> s1{&m_serializedProcessData};
@@ -43,14 +44,14 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
 
 void RemoveProcessFromConstraint::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
     constraint.addProcess(createProcess(s, &constraint));
 
     // Restore the view models
     for(const auto& it : m_serializedViewModels)
     {
-        const auto& path = it.first.vec();
+        const auto& path = it.first.unsafePath().vec();
 
         auto& slot = constraint
                 .rack(id_type<RackModel>(path.at(path.size() - 3).id()))
@@ -66,7 +67,7 @@ void RemoveProcessFromConstraint::undo()
 
 void RemoveProcessFromConstraint::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     constraint.removeProcess(m_processId);
 
     // The view models will be deleted accordingly.

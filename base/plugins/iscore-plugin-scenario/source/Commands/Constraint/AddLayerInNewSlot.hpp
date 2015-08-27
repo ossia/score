@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <QString>
 
@@ -9,6 +9,7 @@ class Process;
 class RackModel;
 class SlotModel;
 class LayerModel;
+class ConstraintModel;
 
 namespace Scenario
 {
@@ -23,8 +24,9 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerInNewSlot, "ScenarioControl")
-                AddLayerInNewSlot(ObjectPath&& constraintPath,
-                                        id_type<Process> process);
+                AddLayerInNewSlot(
+                    ModelPath<ConstraintModel>&& constraintPath,
+                    id_type<Process> process);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -39,7 +41,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ConstraintModel> m_path;
 
                 bool m_existingRack {};
 

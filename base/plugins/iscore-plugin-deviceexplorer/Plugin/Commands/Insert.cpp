@@ -33,7 +33,7 @@
 
 //}
 
-//void recurse_addAddress(const ObjectPath& model, const Node& n, iscore::NodePath nodePath)
+//void recurse_addAddress(const ModelPath<DeviceExplorerModel>& model, const Node& n, iscore::NodePath nodePath)
 //{
 
 //    AddAddress addr{
@@ -74,7 +74,7 @@
 //    }
 //    else
 //    {
-//        recurse_addAddress(ObjectPath{m_model}, m_node, m_parentPath);
+//        recurse_addAddress(ModelPath<DeviceExplorerModel>{m_model}, m_node, m_parentPath);
 //    }
 //}
 

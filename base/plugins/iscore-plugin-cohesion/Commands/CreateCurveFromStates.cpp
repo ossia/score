@@ -20,7 +20,7 @@ CreateCurveFromStates::~CreateCurveFromStates()
 }
 
 CreateCurveFromStates::CreateCurveFromStates(
-        ObjectPath&& constraint,
+        ModelPath<ConstraintModel>&& constraint,
         const iscore::Address& address,
         double start,
         double end):
@@ -47,7 +47,7 @@ void CreateCurveFromStates::undo()
 void CreateCurveFromStates::redo()
 {
     m_addProcessCmd->redo();
-    auto& cstr = m_addProcessCmd->constraintPath().find<ConstraintModel>();
+    auto& cstr = m_addProcessCmd->constraintPath().find();
     auto& autom = static_cast<AutomationModel&>(cstr.process(m_addProcessCmd->processId()));
     autom.setAddress(m_address);
     autom.curve().clear();

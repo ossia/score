@@ -1,6 +1,6 @@
 #pragma once
 #include "ProcessInterface/LayerModel.hpp"
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class ScenarioModel;

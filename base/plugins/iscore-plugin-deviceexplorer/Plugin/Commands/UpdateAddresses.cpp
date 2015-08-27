@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 using namespace iscore;
 
 UpdateAddresses::UpdateAddresses(
-        ObjectPath&& device_tree,
+        ModelPath<DeviceExplorerModel>&& device_tree,
         const QList<QPair<const Node *, iscore::Value> > &nodes):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
@@ -21,14 +21,14 @@ UpdateAddresses::UpdateAddresses(
 
 void UpdateAddresses::undo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
     for(const auto& elt : m_data)
         explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.first.val, Qt::EditRole);
 }
 
 void UpdateAddresses::redo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
     for(const auto& elt : m_data)
         explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.second.val, Qt::EditRole);
 }

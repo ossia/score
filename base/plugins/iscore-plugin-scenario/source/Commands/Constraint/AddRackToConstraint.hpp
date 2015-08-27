@@ -1,9 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class RackModel;
+class ConstraintModel;
 namespace Scenario
 {
     namespace Command
@@ -20,7 +21,7 @@ namespace Scenario
 
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddRackToConstraint, "ScenarioControl")
-                AddRackToConstraint(ObjectPath&& constraintPath);
+                AddRackToConstraint(ModelPath<ConstraintModel>&& constraintPath);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -30,7 +31,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ConstraintModel> m_path;
 
                 id_type<RackModel> m_createdRackId {};
         };

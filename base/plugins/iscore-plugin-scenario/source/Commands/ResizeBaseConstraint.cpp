@@ -17,9 +17,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveBaseEvent::MoveBaseEvent(ObjectPath&& baseScenarioPath,
-                             const TimeValue& date,
-                             ExpandMode mode) :
+MoveBaseEvent::MoveBaseEvent(
+        ModelPath<BaseScenario>&& baseScenarioPath,
+        const TimeValue& date,
+        ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -27,7 +28,7 @@ MoveBaseEvent::MoveBaseEvent(ObjectPath&& baseScenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
-    auto& scenar = m_path.find<BaseScenario>();
+    auto& scenar = m_path.find();
     const auto& constraint = scenar.baseConstraint();
     m_oldDate = constraint.duration.defaultDuration();
 
@@ -64,7 +65,7 @@ static void updateDuration(BaseScenario& scenar, const TimeValue& newDuration, S
 
 void MoveBaseEvent::undo()
 {
-    auto& scenar = m_path.find<BaseScenario>();
+    auto& scenar = m_path.find();
 
     updateDuration(scenar,
               m_oldDate,
@@ -137,7 +138,7 @@ void MoveBaseEvent::undo()
 
 void MoveBaseEvent::redo()
 {
-    auto& scenar = m_path.find<BaseScenario>();
+    auto& scenar = m_path.find();
 
     updateDuration(scenar,
               m_newDate,

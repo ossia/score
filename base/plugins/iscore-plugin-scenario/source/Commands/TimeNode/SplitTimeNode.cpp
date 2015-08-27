@@ -12,7 +12,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
-SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > eventsInNewTimeNode):
+SplitTimeNode::SplitTimeNode(
+        ModelPath<TimeNodeModel>&& path,
+        QVector<id_type<EventModel> > eventsInNewTimeNode):
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
@@ -21,7 +23,7 @@ SplitTimeNode::SplitTimeNode(ObjectPath &&path, QVector<id_type<EventModel> > ev
 {
     ISCORE_TODO;
     /*
-    auto& originalTN = m_path.find<TimeNodeModel>();
+    auto& originalTN = m_path.find();
     m_originalTimeNodeId = originalTN.id();
 
     auto scenar = static_cast<ScenarioModel*>(originalTN.parent());
@@ -33,7 +35,7 @@ void SplitTimeNode::undo()
 {
     ISCORE_TODO;
     /*
-    auto& scenar = static_cast<ScenarioModel&>(*m_path.find<TimeNodeModel>().parent());
+    auto& scenar = static_cast<ScenarioModel&>(*m_path.find().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
     auto& newTN = scenar.timeNode(m_newTimeNodeId);
 
@@ -52,7 +54,7 @@ void SplitTimeNode::redo()
 {
     ISCORE_TODO;
     /*
-    auto& scenar = static_cast<ScenarioModel&>(*m_path.find<TimeNodeModel>().parent());
+    auto& scenar = static_cast<ScenarioModel&>(*m_path.find().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
 
     // TODO set the correct position here.

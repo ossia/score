@@ -21,29 +21,31 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("MoveNewEvent", "MoveNewEvent")
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewEvent, "ScenarioControl")
-                MoveNewEvent(ObjectPath&& scenarioPath,
-                             id_type<ConstraintModel> constraintId,
-                             id_type<EventModel> eventId,
-                             const TimeValue& date,
-                             const double y,
-                             bool yLocked);
+                MoveNewEvent(
+                  ModelPath<ScenarioModel>&& scenarioPath,
+                    const id_type<ConstraintModel>& constraintId,
+                    const id_type<EventModel>& eventId,
+                    const TimeValue& date,
+                    const double y,
+                    bool yLocked);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                void update(const ObjectPath& path,
-                            const id_type<ConstraintModel> ,
-                            const id_type<EventModel>& id,
-                            const TimeValue& date,
-                            const double y,
-                            bool yLocked)
+                void update(
+                        const ModelPath<ScenarioModel>& path,
+                        const id_type<ConstraintModel>&,
+                        const id_type<EventModel>& id,
+                        const TimeValue& date,
+                        const double y,
+                        bool yLocked)
                 {
                     m_cmd.update(path, id, date, ExpandMode::Fixed);
                     m_y = y;
                     m_yLocked = yLocked;
                 }
 
-                const ObjectPath& path() const
+                const ModelPath<ScenarioModel>& path() const
                 { return m_path; }
 
             protected:
@@ -51,7 +53,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ScenarioModel> m_path;
                 id_type<ConstraintModel> m_constraintId{};
 
                 MoveEvent m_cmd;

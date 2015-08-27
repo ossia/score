@@ -5,13 +5,14 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-HideRackInViewModel::HideRackInViewModel(ObjectPath&& path) :
+HideRackInViewModel::HideRackInViewModel(
+        ModelPath<ConstraintViewModel>&& path) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_constraintViewModelPath {std::move(path) }
+    m_constraintViewModelPath {std::move(path) }
 {
-    auto& constraint_vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& constraint_vm = m_constraintViewModelPath.find();
     m_constraintPreviousId = constraint_vm.shownRack();
 }
 
@@ -27,13 +28,13 @@ HideRackInViewModel::HideRackInViewModel(
 
 void HideRackInViewModel::undo()
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find();
     vm.showRack(m_constraintPreviousId);
 }
 
 void HideRackInViewModel::redo()
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find();
     vm.hideRack();
 }
 
@@ -46,5 +47,5 @@ void HideRackInViewModel::serializeImpl(QDataStream& s) const
 void HideRackInViewModel::deserializeImpl(QDataStream& s)
 {
     s >> m_constraintViewModelPath
-      >> m_constraintPreviousId;
+            >> m_constraintPreviousId;
 }

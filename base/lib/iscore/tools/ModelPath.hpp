@@ -70,6 +70,9 @@ class ModelPath
         const auto& unsafePath() const
         { return m_impl; }
 
+        auto&& moveUnsafePath()
+        { return std::move(m_impl); }
+
 
     private:
         ModelPath(ObjectPath&& path): m_impl{std::move(path)} { }

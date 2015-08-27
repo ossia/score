@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>

@@ -5,15 +5,16 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ShowRackInViewModel::ShowRackInViewModel(ObjectPath&& constraint_path,
-                                       id_type<RackModel> rackId) :
+ShowRackInViewModel::ShowRackInViewModel(
+        ModelPath<ConstraintViewModel>&& constraint_path,
+        id_type<RackModel> rackId) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
     m_constraintViewModelPath {std::move(constraint_path) },
     m_rackId {rackId}
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find();
     m_previousRackId = vm.shownRack();
 }
 
@@ -31,7 +32,7 @@ ShowRackInViewModel::ShowRackInViewModel(
 
 void ShowRackInViewModel::undo()
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find();
 
     if(m_previousRackId.val())
     {
@@ -45,7 +46,7 @@ void ShowRackInViewModel::undo()
 
 void ShowRackInViewModel::redo()
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewModelPath.find();
     vm.showRack(m_rackId);
 }
 

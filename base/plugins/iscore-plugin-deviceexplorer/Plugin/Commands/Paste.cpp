@@ -4,7 +4,7 @@ using namespace DeviceExplorer::Command;
 
 Paste::Paste(const iscore::NodePath &parentPath, int row,
                                 const QString& text,
-                                ObjectPath &&modelPath):
+                                ModelPath<DeviceExplorerModel> &&modelPath):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()}
@@ -19,7 +19,7 @@ Paste::Paste(const iscore::NodePath &parentPath, int row,
 void
 Paste::undo()
 {
-    auto& model = m_model.find<DeviceExplorerModel>();
+    auto& model = m_model.find();
 
     QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
@@ -32,7 +32,7 @@ Paste::undo()
 void
 Paste::redo()
 {
-    auto& model = m_model.find<DeviceExplorerModel>();
+    auto& model = m_model.find();
     QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);
 
     QModelIndex index = parentIndex.child(m_row, 0);

@@ -1,9 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Commands/Constraint/SetRigidity.hpp"
 
+class EventModel;
 namespace Scenario
 {
     namespace Command
@@ -13,7 +14,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("SetTrigger", "SetTrigger")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetTrigger, "ScenarioControl")
-                SetTrigger(ObjectPath&& eventPath, QString condition);
+                SetTrigger(ModelPath<EventModel>&& eventPath, QString condition);
                 ~SetTrigger();
 
                 virtual void undo() override;
@@ -24,7 +25,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<EventModel> m_path;
                 QString m_trigger;
                 QString m_previousTrigger;
 

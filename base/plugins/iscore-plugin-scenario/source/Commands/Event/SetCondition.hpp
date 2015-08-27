@@ -1,7 +1,8 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
+class EventModel;
 namespace Scenario
 {
     namespace Command
@@ -11,7 +12,9 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("SetCondition", "SetCondition")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetCondition, "ScenarioControl")
-                SetCondition(ObjectPath&& eventPath, QString condition);
+                SetCondition(
+                    ModelPath<EventModel>&& eventPath,
+                    QString condition);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -20,7 +23,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<EventModel> m_path;
                 QString m_condition;
                 QString m_previousCondition;
         };

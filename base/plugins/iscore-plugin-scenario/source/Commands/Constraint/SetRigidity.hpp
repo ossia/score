@@ -1,9 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+class ConstraintModel;
 namespace Scenario
 {
     namespace Command
@@ -20,7 +21,9 @@ namespace Scenario
 
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetRigidity, "ScenarioControl")
-                SetRigidity(ObjectPath&& constraintPath, bool rigid);
+                SetRigidity(
+                    ModelPath<ConstraintModel>&& constraintPath,
+                    bool rigid);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -30,7 +33,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ConstraintModel> m_path;
 
                 bool m_rigidity {};
 

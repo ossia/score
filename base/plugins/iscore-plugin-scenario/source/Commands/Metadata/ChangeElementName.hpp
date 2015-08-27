@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 namespace Scenario
 {
@@ -23,26 +23,26 @@ namespace Scenario
                 }
 
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementName, "ScenarioControl")
-                ChangeElementName(ObjectPath&& path, QString newName) :
+                ChangeElementName(ModelPath<T>&& path, QString newName) :
                     SerializableCommand{"ScenarioControl",
                                         commandName(),
                                         description()},
                     m_path {std::move(path) },
                     m_newName {newName}
                 {
-                    auto& obj = m_path.find<T>();
+                    auto& obj = m_path.find();
                     m_oldName = obj.metadata.name();
                 }
 
                 virtual void undo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setName(m_oldName);
                 }
 
                 virtual void redo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setName(m_newName);
                 }
 
@@ -58,7 +58,7 @@ namespace Scenario
                 }
 
             private:
-                ObjectPath m_path;
+                ModelPath<T> m_path;
                 QString m_newName;
                 QString m_oldName;
         };

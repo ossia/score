@@ -2,7 +2,7 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 PutLayerModelToFront::PutLayerModelToFront(
-        ObjectPath&& slotPath,
+        ModelPath<SlotModel>&& slotPath,
         const id_type<LayerModel>& pid):
     m_slotPath{std::move(slotPath)},
     m_pid{pid}
@@ -12,5 +12,5 @@ PutLayerModelToFront::PutLayerModelToFront(
 
 void PutLayerModelToFront::redo()
 {
-    m_slotPath.find<SlotModel>().putToFront(m_pid);
+    m_slotPath.find().putToFront(m_pid);
 }

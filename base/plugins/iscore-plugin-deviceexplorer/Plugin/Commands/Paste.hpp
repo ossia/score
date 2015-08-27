@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
 
@@ -19,7 +19,7 @@ namespace DeviceExplorer
 
                 Paste(const iscore::NodePath& parentPath, int row,
                          const QString& text,
-                         ObjectPath&& modelPath);
+                         ModelPath<DeviceExplorerModel>&& modelPath);
 
 
                 virtual void undo() override;
@@ -32,7 +32,7 @@ namespace DeviceExplorer
 
 
             protected:
-                ObjectPath m_model{};
+                ModelPath<DeviceExplorerModel> m_model{};
                 QByteArray m_data;
                 iscore::NodePath m_parentPath;
                 int m_row{};

@@ -23,22 +23,22 @@ namespace Scenario
                                        commandName(),
                                        description()} { }
 
-                MergeRackes(const ObjectPath& mergeSource,
-                           const ObjectPath& mergeTarget) :
+                MergeRackes(const ModelPath<RackModel>& mergeSource,
+                           const ModelPath<RackModel>& mergeTarget) :
                     AggregateCommand{"ScenarioControl",
                                      commandName(),
                                      description()}
                 {
-                    auto& sourcerack = mergeSource.find<RackModel>();
+                    const auto& sourcerack = mergeSource.find();
 
                     for(const auto& slot : sourcerack.getSlots())
                     {
                         addCommand(new MoveSlot{
                                        iscore::IDocument::safe_path(slot),
-                                       ObjectPath {mergeTarget}});
+                                       ModelPath<RackModel>{mergeTarget}});
                     }
 
-                    addCommand(new RemoveRackFromConstraint{ObjectPath{mergeSource}});
+                    addCommand(new RemoveRackFromConstraint{ModelPath<RackModel>{mergeSource}});
                 }
         };
     }

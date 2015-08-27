@@ -8,13 +8,13 @@ namespace iscore
     {
         public:
             using SerializableCommand::SerializableCommand;
-            template<typename... Args>
-            PropertyCommand(ObjectPath&& path,
+            template<typename ModelPath_T, typename... Args>
+            PropertyCommand(ModelPath_T&& path,
                             const QString& property,
                             const QVariant& newval,
                             Args&&... args):
                 SerializableCommand{std::forward<Args>(args)...},
-                m_path{std::move(path)},
+                m_path{std::move(std::move(path).moveUnsafePath())},
                 m_property{property},
                 m_new{newval}
             {
@@ -25,7 +25,8 @@ namespace iscore
             void undo() override;
             void redo() override;
 
-            void update(const ObjectPath&, const QVariant& newval)
+            template<typename ModelPath_T>
+            void update(const ModelPath_T&, const QVariant& newval)
             {
                 m_new = newval;
             }

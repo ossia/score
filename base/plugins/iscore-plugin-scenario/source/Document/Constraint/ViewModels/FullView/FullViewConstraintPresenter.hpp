@@ -7,7 +7,7 @@ class RackPresenter;
 class RackModel;
 class QGraphicsItem;
 #include <iscore/selection/SelectionDispatcher.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 namespace iscore
 {
