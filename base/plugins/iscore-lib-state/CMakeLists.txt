@@ -21,17 +21,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/State.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateItemModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/StateWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/NumericValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/StringValueWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/BoolValueWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/TupleValueWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/NoneValueWidget.cpp"
 )
 
 file(GLOB_RECURSE HDRS

@@ -2,12 +2,11 @@
 #include "Document/State/StateModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/ScenarioModel.hpp>
-#include <State/Widgets/StateWidget.hpp>
 #include <iscore/document/DocumentInterface.hpp>
-#include "Commands/Event/RemoveStateFromEvent.hpp"
 #include "Inspector/SelectionButton.hpp"
 #include <core/document/Document.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
+#include "DialogWidget/StateTreeView.hpp"
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
@@ -24,7 +23,6 @@ StateInspectorWidget::StateInspectorWidget(const StateModel& object, QWidget *pa
     updateDisplayedValues(&object);
 }
 
-#include "DialogWidget/StateTreeView.hpp"
 void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
 {
     // Cleanup

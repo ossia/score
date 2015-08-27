@@ -1,8 +1,8 @@
 #include "AreaPresenter.hpp"
 #include "AreaModel.hpp"
-#include "AreaView.hpp"
-#include <QGraphicsItem>
 #include "src/Space/SpaceModel.hpp"
+
+#include <QGraphicsItem>
 
 AreaPresenter::AreaPresenter(
         QGraphicsItem* view,

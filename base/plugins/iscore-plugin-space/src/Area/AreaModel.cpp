@@ -1,6 +1,5 @@
 #include "AreaModel.hpp"
 #include "AreaPresenter.hpp"
-#include "AreaView.hpp"
 #include <sstream>
 
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>

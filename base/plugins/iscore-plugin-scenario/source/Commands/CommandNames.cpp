@@ -21,7 +21,6 @@
 #include "Constraint/SetMinDuration.hpp"
 #include "Constraint/SetRigidity.hpp"
 #include "Event/AddStateToEvent.hpp"
-#include "Event/RemoveStateFromEvent.hpp"
 #include "Event/SetCondition.hpp"
 #include "Event/SetTrigger.hpp"
 #include "Event/State/AssignMessagesToState.hpp"

@@ -115,7 +115,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/AssignMessagesToState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/UnassignMessagesFromState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/AddStateToEvent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/RemoveStateFromEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetCondition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetTrigger.cpp"
 

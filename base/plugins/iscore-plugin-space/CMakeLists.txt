@@ -35,8 +35,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/DimensionModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/ViewportModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpacePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaModel.cpp"
@@ -44,7 +42,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactoryList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/SingletonAreaFactoryList.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaModel.cpp"
@@ -68,7 +65,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceGuiWindow.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddArea.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddCircle.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"

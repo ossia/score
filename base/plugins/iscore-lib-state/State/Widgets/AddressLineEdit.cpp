@@ -1,4 +1,5 @@
 #include "AddressLineEdit.hpp"
+
 AddressLineEdit::AddressLineEdit(QWidget* parent):
     QLineEdit{parent}
 {
