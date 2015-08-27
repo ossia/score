@@ -9,7 +9,7 @@ case "$TRAVIS_OS_NAME" in
         sudo add-apt-repository --yes ppa:boost-latest/ppa
 
         sudo apt-get update -qq
-        sudo apt-get install -qq qt55-meta-minimal libboost1.55-dev libavahi-compat-libdnssd-dev
+        sudo apt-get install -qq qt55-meta-full libboost1.55-dev libavahi-compat-libdnssd-dev
 
         wget https://www.dropbox.com/s/3xot58gakn6w898/cmake_3.2.3-3.2.3_amd64.deb?dl=1 -O cmake_3.2.3-3.2.3_amd64.deb
         sudo dpkg --force-overwrite -i cmake_3.2.3-3.2.3_amd64.deb
