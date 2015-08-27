@@ -6,13 +6,13 @@ QString DeviceExplorerNode::displayName() const
 {
     switch(m_data.which())
     {
-        case 0:
+        case (int)Type::Device:
             return get<DeviceSettings>().name;
             break;
-        case 1:
+        case (int)Type::Address:
             return get<AddressSettings>().name;
             break;
-        case 2:
+        case (int)Type::RootNode:
             return "Invisible Root DeviceExplorerNode";
             break;
         default:
