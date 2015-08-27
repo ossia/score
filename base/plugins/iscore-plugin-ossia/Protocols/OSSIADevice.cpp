@@ -48,7 +48,7 @@ void OSSIADevice::sendMessage(iscore::Message &mess)
     auto val = node->getAddress()->getValue()->clone();
 
     updateOSSIAValue(mess.value.val,*val);
-    node->getAddress()->sendValue(val);
+    node->getAddress()->pushValue(val);
 }
 
 

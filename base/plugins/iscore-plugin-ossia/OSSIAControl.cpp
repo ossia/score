@@ -23,7 +23,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
 {
     using namespace OSSIA;
-    Local localDevice;
+    auto localDevice = OSSIA::Local::create();
     m_localDevice = Device::create(localDevice, "i-score");
     // Two parts :
     // One that maintains the devices for each document
