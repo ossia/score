@@ -190,23 +190,23 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
     // Constraint interface
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::processCreated,
+                con(model(),	&ConstraintModel::processCreated,
                         this,		&ConstraintInspectorWidget::on_processCreated));
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::processRemoved,
+                con(model(),	&ConstraintModel::processRemoved,
                         this,		&ConstraintInspectorWidget::on_processRemoved));
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::rackCreated,
+                con(model(),	&ConstraintModel::rackCreated,
                         this,		&ConstraintInspectorWidget::on_rackCreated));
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::rackRemoved,
+                con(model(),	&ConstraintModel::rackRemoved,
                         this,		&ConstraintInspectorWidget::on_rackRemoved));
 
     m_connections.push_back(
-                connect(&model(), &ConstraintModel::viewModelCreated,
+                con(model(), &ConstraintModel::viewModelCreated,
                         this,    &ConstraintInspectorWidget::on_constraintViewModelCreated));
     m_connections.push_back(
-                connect(&model(), &ConstraintModel::viewModelRemoved,
+                con(model(), &ConstraintModel::viewModelRemoved,
                         this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes

@@ -26,7 +26,7 @@ GroupMetadataWidget::GroupMetadataWidget(
     this->setLayout(new QHBoxLayout);
     this->layout()->addWidget(new QLabel{tr("Groups: ")});
 
-    connect(&groupmetadata, &GroupMetadata::groupChanged,
+    con(groupmetadata, &GroupMetadata::groupChanged,
             this, [=] (const id_type<Group>& grp)
     {
         updateLabel(grp);

@@ -12,13 +12,13 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     m_model {model},
     m_view {new TimeNodeView{*this, parentview}}
 {
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);
 
-    connect(&m_model, &TimeNodeModel::newEvent,
+    con(m_model, &TimeNodeModel::newEvent,
             this,     &TimeNodePresenter::on_eventAdded);
 
-    connect(&(m_model.metadata), &ModelMetadata::colorChanged,
+    con((m_model.metadata), &ModelMetadata::colorChanged,
             m_view,               &TimeNodeView::changeColor);
 
     // TODO find a correct way to handle validity of model elements.

@@ -20,7 +20,7 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
     /////////////////////////////////////////////////////////////////////////////
     /// To the master
     /////////////////////////////////////////////////////////////////////////////
-    connect(&m_document->commandStack(), &iscore::CommandStack::localCommand,
+    con(m_document->commandStack(), &iscore::CommandStack::localCommand,
             this, [=] (iscore::SerializableCommand* cmd)
     {
         m_session->master()->sendMessage(
@@ -31,20 +31,20 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
     });
 
     // Undo-redo
-    connect(&m_document->commandStack(), &iscore::CommandStack::localUndo,
+    con(m_document->commandStack(), &iscore::CommandStack::localUndo,
             this, [&] ()
     { m_session->master()->sendMessage(m_session->makeMessage("/undo")); });
-    connect(&m_document->commandStack(), &iscore::CommandStack::localRedo,
+    con(m_document->commandStack(), &iscore::CommandStack::localRedo,
             this, [&] ()
     { m_session->master()->sendMessage(m_session->makeMessage("/redo")); });
 
     // TODO : messages : peut-être utiliser des tuples en tant que structures ?
     // Cela permettrait de spécifier les types proprement ?
     // Lock-unlock
-    connect(&m_document->locker(), &iscore::ObjectLocker::lock,
+    con(m_document->locker(), &iscore::ObjectLocker::lock,
             this, [&] (QByteArray arr)
     { qDebug() << "client send lock"; m_session->master()->sendMessage(m_session->makeMessage("/lock", arr)); });
-    connect(&m_document->locker(), &iscore::ObjectLocker::unlock,
+    con(m_document->locker(), &iscore::ObjectLocker::unlock,
             this, [&] (QByteArray arr)
     { qDebug() << "client send unlock"; m_session->master()->sendMessage(m_session->makeMessage("/unlock", arr)); });
 

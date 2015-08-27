@@ -141,7 +141,7 @@ void ConstraintModel::addRack(RackModel* rack)
 {
     connect(this, &ConstraintModel::processRemoved,
             rack, &RackModel::on_deleteSharedProcessModel);
-    connect(&duration, &ConstraintDurations::defaultDurationChanged,
+    con(duration, &ConstraintDurations::defaultDurationChanged,
             rack, &RackModel::on_durationChanged);
 
     m_racks.insert(rack);

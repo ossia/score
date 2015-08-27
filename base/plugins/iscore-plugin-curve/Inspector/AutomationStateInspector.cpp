@@ -15,7 +15,7 @@ AutomationStateInspector::AutomationStateInspector(
     vec.push_back(m_label);
 
 
-    connect(&m_state, &DynamicStateDataInterface::stateChanged,
+    con(m_state, &DynamicStateDataInterface::stateChanged,
             this,    &AutomationStateInspector::on_stateChanged);
 
     on_stateChanged();

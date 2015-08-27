@@ -17,7 +17,7 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     /////////////////////////////////////////////////////////////////////////////
     /// From the master to the clients
     /////////////////////////////////////////////////////////////////////////////
-    connect(&stack, &iscore::CommandStack::localCommand,
+    con(stack, &iscore::CommandStack::localCommand,
             this, [=] (iscore::SerializableCommand* cmd)
     {
         m_session->broadcast(
@@ -28,18 +28,18 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     });
 
     // Undo-redo
-    connect(&stack, &iscore::CommandStack::localUndo,
+    con(stack, &iscore::CommandStack::localUndo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/undo")); });
-    connect(&stack, &iscore::CommandStack::localRedo,
+    con(stack, &iscore::CommandStack::localRedo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/redo")); });
 
     // Lock - unlock
-    connect(&locker, &iscore::ObjectLocker::lock,
+    con(locker, &iscore::ObjectLocker::lock,
             this, [&] (QByteArray arr)
     { m_session->broadcast(m_session->makeMessage("/lock", arr)); });
-    connect(&locker, &iscore::ObjectLocker::unlock,
+    con(locker, &iscore::ObjectLocker::unlock,
             this, [&] (QByteArray arr)
     { m_session->broadcast(m_session->makeMessage("/unlock", arr)); });
 

@@ -55,7 +55,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     m_lineEdit = new AddressEditWidget{deviceexplorer, this};
 
     m_lineEdit->setAddress(m_model.address());
-    connect(&m_model, &AutomationModel::addressChanged,
+    con(m_model, &AutomationModel::addressChanged,
             m_lineEdit, &AddressEditWidget::setAddress);
 
     connect(m_lineEdit, &AddressEditWidget::addressChanged,
@@ -77,8 +77,8 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     minmaxlay->addRow(tr("Min"), m_minsb);
     minmaxlay->addRow(tr("Max"), m_maxsb);
 
-    connect(&m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
-    connect(&m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
+    con(m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
+    con(m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
 
     connect(m_minsb, SIGNAL(editingFinished()), this, SLOT(on_minValueChanged()));
     connect(m_maxsb, SIGNAL(editingFinished()), this, SLOT(on_maxValueChanged()));

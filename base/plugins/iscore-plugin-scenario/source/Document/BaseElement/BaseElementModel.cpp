@@ -43,9 +43,9 @@ BaseElementModel::BaseElementModel(QObject* parent) :
     connect(this, &BaseElementModel::setFocusedPresenter,
             &m_focusManager, &ProcessFocusManager::setFocusedPresenter);
 
-    connect(&m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
+    con(m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
             this, &BaseElementModel::on_viewModelDefocused);
-    connect(&m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
+    con(m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
             this, &BaseElementModel::on_viewModelFocused);
 }
 

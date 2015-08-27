@@ -59,7 +59,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     addHeader(m_metadata);
 
-    connect(&m_model, &TimeNodeModel::dateChanged,
+    con(m_model, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
 
     auto splitBtn = new QPushButton{this};

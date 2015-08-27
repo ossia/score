@@ -17,13 +17,13 @@ StateModel::StateModel(
     m_eventId{eventId},
     m_heightPercentage{yPos}
 {
-    connect(&m_itemModel, &QAbstractItemModel::dataChanged,
+    con(m_itemModel, &QAbstractItemModel::dataChanged,
             this, [&] () { emit statesUpdated(); });
-    connect(&m_itemModel, &QAbstractItemModel::rowsInserted,
+    con(m_itemModel, &QAbstractItemModel::rowsInserted,
             this, [&] () { emit statesUpdated(); });
-    connect(&m_itemModel, &QAbstractItemModel::rowsMoved,
+    con(m_itemModel, &QAbstractItemModel::rowsMoved,
             this, [&] () { emit statesUpdated(); });
-    connect(&m_itemModel, &QAbstractItemModel::rowsRemoved,
+    con(m_itemModel, &QAbstractItemModel::rowsRemoved,
             this, [&] () { emit statesUpdated(); });
 }
 

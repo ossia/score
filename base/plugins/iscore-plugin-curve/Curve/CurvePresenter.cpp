@@ -109,19 +109,19 @@ void CurvePresenter::setPos(CurveSegmentView& segment)
 
 void CurvePresenter::setupSignals()
 {
-    connect(&m_model, &CurveModel::segmentAdded, this,
+    con(m_model, &CurveModel::segmentAdded, this,
             [&] (const CurveSegmentModel& segment)
     {
         addSegment(new CurveSegmentView{segment, m_view});
     });
 
-    connect(&m_model, &CurveModel::pointAdded, this,
+    con(m_model, &CurveModel::pointAdded, this,
             [&] (const CurvePointModel& point)
     {
         addPoint(new CurvePointView{point, m_view});
     });
 
-    connect(&m_model, &CurveModel::pointRemoved, this,
+    con(m_model, &CurveModel::pointRemoved, this,
             [&] (const id_type<CurvePointModel>& m)
     {
         auto& map = m_points.get();
@@ -133,7 +133,7 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    connect(&m_model, &CurveModel::segmentRemoved, this,
+    con(m_model, &CurveModel::segmentRemoved, this,
             [&] (const id_type<CurveSegmentModel>& m)
     {
         auto& map = m_segments.get();
@@ -145,7 +145,7 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    connect(&m_model, &CurveModel::cleared, this,
+    con(m_model, &CurveModel::cleared, this,
             [&] ()
     {
         qDeleteAll(m_points.get());

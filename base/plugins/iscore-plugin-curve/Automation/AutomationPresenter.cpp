@@ -21,7 +21,7 @@ AutomationPresenter::AutomationPresenter(
     m_commandDispatcher{iscore::IDocument::commandStack(m_viewModel.processModel())},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.processModel())}
 {
-    connect(&m_viewModel.model(), &AutomationModel::curveChanged,
+    con(m_viewModel.model(), &AutomationModel::curveChanged,
             this, &AutomationPresenter::updateCurve);
 
     auto cv = new CurveView{m_view};

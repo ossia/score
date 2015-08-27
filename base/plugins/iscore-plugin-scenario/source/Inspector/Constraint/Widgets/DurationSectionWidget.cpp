@@ -97,13 +97,13 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
     // CONNECTIONS FROM MODEL
     // TODO these need to be updated when the default duration changes
-    connect(&m_model.duration, &ConstraintDurations::defaultDurationChanged,
+    con(m_model.duration, &ConstraintDurations::defaultDurationChanged,
             this, &DurationSectionWidget::on_modelDefaultDurationChanged);
-    connect(&m_model.duration, &ConstraintDurations::minDurationChanged,
+    con(m_model.duration, &ConstraintDurations::minDurationChanged,
             this, &DurationSectionWidget::on_modelMinDurationChanged);
-    connect(&m_model.duration, &ConstraintDurations::maxDurationChanged,
+    con(m_model.duration, &ConstraintDurations::maxDurationChanged,
             this, &DurationSectionWidget::on_modelMaxDurationChanged);
-    connect(&m_model.duration, &ConstraintDurations::rigidityChanged,
+    con(m_model.duration, &ConstraintDurations::rigidityChanged,
             this, &DurationSectionWidget::on_modelRigidityChanged);
 
 

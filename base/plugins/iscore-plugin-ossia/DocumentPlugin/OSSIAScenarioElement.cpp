@@ -135,7 +135,7 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
     ossia_ev->event()->addState(root_state);
 
 
-    connect(&iscore_state, &StateModel::statesUpdated, this,
+    con(iscore_state, &StateModel::statesUpdated, this,
             [=] () {
         // TODO optimize me
         state_elt->rootState()->stateElements().clear();
@@ -255,8 +255,6 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
 
 void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
 {
-    ISCORE_TODO;
-    /*
     auto it = m_ossia_states.find(id);
     ISCORE_ASSERT(it != m_ossia_states.end());
     auto state_elt = (*it).second;
@@ -265,13 +263,11 @@ void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
     if(ev_it != m_ossia_timeevents.end())
     {
         OSSIAEventElement* ev = (*ev_it).second;
-        for(auto& state : state_elt->states())
-            ev->event()->removeState(state.second);
+        ev->event()->removeState(state_elt->rootState());
     }
 
     m_ossia_states.erase(it);
     delete state_elt;
-    */
 }
 
 void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)

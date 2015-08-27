@@ -12,7 +12,7 @@ CurvePointView::CurvePointView(
     m_model{model}
 {
     this->setZValue(parent->zValue() + 2);
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
 }
 

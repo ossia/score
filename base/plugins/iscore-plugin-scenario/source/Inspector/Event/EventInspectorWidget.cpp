@@ -46,9 +46,9 @@ EventInspectorWidget::EventInspectorWidget(
     setObjectName("EventInspectorWidget");
     setParent(parent);
 
-    connect(&m_model, &EventModel::statesChanged,
+    con(m_model, &EventModel::statesChanged,
             this,    &EventInspectorWidget::updateDisplayedValues);
-    connect(&m_model, &EventModel::dateChanged,
+    con(m_model, &EventModel::dateChanged,
             this,   &EventInspectorWidget::modelDateChanged);
 
     ////// HEADER

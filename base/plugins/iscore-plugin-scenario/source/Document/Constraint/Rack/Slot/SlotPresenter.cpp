@@ -32,18 +32,18 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
         on_layerModelCreated_impl(proc_vm);
     }
 
-    connect(&m_model, &SlotModel::layerModelCreated,
+    con(m_model, &SlotModel::layerModelCreated,
             this,    &SlotPresenter::on_layerModelCreated);
-    connect(&m_model, &SlotModel::layerModelRemoved,
+    con(m_model, &SlotModel::layerModelRemoved,
             this,    &SlotPresenter::on_layerModelDeleted);
 
-    connect(&m_model, &SlotModel::layerModelPutToFront,
+    con(m_model, &SlotModel::layerModelPutToFront,
             this,    &SlotPresenter::on_layerModelPutToFront);
 
-    connect(&m_model, &SlotModel::heightChanged,
+    con(m_model, &SlotModel::heightChanged,
             this,    &SlotPresenter::on_heightChanged);
 
-    connect(&m_model, &SlotModel::focusChanged,
+    con(m_model, &SlotModel::focusChanged,
             m_view,  &SlotView::setFocus);
     m_view->setHeight(m_model.height());
 }

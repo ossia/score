@@ -13,9 +13,9 @@ CurveSegmentView::CurveSegmentView(
     this->setZValue(parent->zValue() + 1);
     this->setFlag(ItemIsFocusable, false);
 
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             this, &CurveSegmentView::setSelected);
-    connect(&m_model, &CurveSegmentModel::dataChanged,
+    con(m_model, &CurveSegmentModel::dataChanged,
             this, &CurveSegmentView::updatePoints);
 }
 

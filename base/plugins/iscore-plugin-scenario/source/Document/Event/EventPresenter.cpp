@@ -21,17 +21,17 @@ EventPresenter::EventPresenter(const EventModel& model,
     m_dispatcher{iscore::IDocument::commandStack(m_model)}
 {
     // The scenario catches this :
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             m_view, &EventView::setSelected);
 
-    connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
+    con((m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,                 &EventView::changeColor);
 
-    connect(&m_model, &EventModel::conditionChanged,
+    con(m_model, &EventModel::conditionChanged,
             m_view,  &EventView::setCondition);
-    connect(&m_model, &EventModel::statusChanged,
+    con(m_model, &EventModel::statusChanged,
             m_view,  &EventView::setStatus);
-    connect(&m_model, &EventModel::triggerChanged,
+    con(m_model, &EventModel::triggerChanged,
             this,   &EventPresenter::triggerSetted) ;
 
     connect(m_view, &EventView::eventHoverEnter,

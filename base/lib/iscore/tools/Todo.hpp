@@ -26,3 +26,11 @@
 #endif
 
 #define ISCORE_ABORT do { DEBUG_BREAK; std::terminate(); } while(0)
+
+#include <QObject>
+
+template<typename T, typename... Args>
+auto con(const T& t, Args&&... args)
+{
+    return QObject::connect(&t, std::forward<Args&&>(args)...);
+}

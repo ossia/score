@@ -69,24 +69,24 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
 
     /////// Connections
-    connect(&m_layer, &TemporalScenarioLayerModel::stateCreated,
+    con(m_layer, &TemporalScenarioLayerModel::stateCreated,
             this,		 &TemporalScenarioPresenter::on_stateCreated);
-    connect(&m_layer, &TemporalScenarioLayerModel::stateRemoved,
+    con(m_layer, &TemporalScenarioLayerModel::stateRemoved,
             this,		 &TemporalScenarioPresenter::on_stateRemoved);
 
-    connect(&m_layer, &TemporalScenarioLayerModel::eventCreated,
+    con(m_layer, &TemporalScenarioLayerModel::eventCreated,
             this,		 &TemporalScenarioPresenter::on_eventCreated);
-    connect(&m_layer, &TemporalScenarioLayerModel::eventRemoved,
+    con(m_layer, &TemporalScenarioLayerModel::eventRemoved,
             this,		 &TemporalScenarioPresenter::on_eventRemoved);
 
-    connect(&m_layer, &TemporalScenarioLayerModel::timeNodeCreated,
+    con(m_layer, &TemporalScenarioLayerModel::timeNodeCreated,
             this,        &TemporalScenarioPresenter::on_timeNodeCreated);
-    connect(&m_layer, &TemporalScenarioLayerModel::timeNodeRemoved,
+    con(m_layer, &TemporalScenarioLayerModel::timeNodeRemoved,
             this,        &TemporalScenarioPresenter::on_timeNodeRemoved);
 
-    connect(&m_layer, &TemporalScenarioLayerModel::constraintViewModelCreated,
+    con(m_layer, &TemporalScenarioLayerModel::constraintViewModelCreated,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelCreated);
-    connect(&m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
+    con(m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
             this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
     connect(m_view, &TemporalScenarioView::scenarioPressed,
@@ -105,9 +105,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     connect(m_view, &TemporalScenarioView::dropReceived,
             this,   &TemporalScenarioPresenter::handleDrop);
 
-    connect(&model(m_layer), &ScenarioModel::locked,
+    con(model(m_layer), &ScenarioModel::locked,
             m_view,             &TemporalScenarioView::lock);
-    connect(&model(m_layer), &ScenarioModel::unlocked,
+    con(model(m_layer), &ScenarioModel::unlocked,
             m_view,             &TemporalScenarioView::unlock);
 
     m_sm.start();
@@ -259,9 +259,9 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
 
     m_viewInterface->on_eventMoved(*ev_pres);
 
-    connect(&event_model, &EventModel::extentChanged,
+    con(event_model, &EventModel::extentChanged,
             this, [=] (const VerticalExtent&) { m_viewInterface->on_eventMoved(*ev_pres); });
-    connect(&event_model, &EventModel::dateChanged,
+    con(event_model, &EventModel::dateChanged,
             this, [=] (const TimeValue&) { m_viewInterface->on_eventMoved(*ev_pres); });
 
     connect(ev_pres, &EventPresenter::eventHoverEnter,
@@ -282,9 +282,9 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
 
     m_viewInterface->on_timeNodeMoved(*tn_pres);
 
-    connect(&timeNode_model, &TimeNodeModel::extentChanged,
+    con(timeNode_model, &TimeNodeModel::extentChanged,
             this, [=] (const VerticalExtent&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
-    connect(&timeNode_model, &TimeNodeModel::dateChanged,
+    con(timeNode_model, &TimeNodeModel::dateChanged,
             this, [=] (const TimeValue&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
 
     // For the state machine
@@ -300,7 +300,7 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
 
     m_viewInterface->on_stateMoved(*st_pres);
 
-    connect(&state, &StateModel::heightPercentageChanged,
+    con(state, &StateModel::heightPercentageChanged,
             this, [=] () { m_viewInterface->on_stateMoved(*st_pres); });
 
     // For the state machine
@@ -322,7 +322,7 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
             this, [=] () { m_viewInterface->on_constraintMoved(*cst_pres); });
-    connect(&constraint_view_model.model(), &ConstraintModel::startDateChanged,
+    con(constraint_view_model.model(), &ConstraintModel::startDateChanged,
             this, [=] (const TimeValue&) { m_viewInterface->on_constraintMoved(*cst_pres); });
     connect(cst_pres, &TemporalConstraintPresenter::askUpdate,
             this,     &TemporalScenarioPresenter::on_askUpdate);

@@ -22,13 +22,13 @@ StatePresenter::StatePresenter(
     m_dispatcher{iscore::IDocument::commandStack(m_model)}
 {
     // The scenario catches this :
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             m_view, &StateView::setSelected);
 
-    connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
+    con((m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,               &StateView::changeColor);
 
-    connect(&m_model, &StateModel::statesUpdated,
+    con(m_model, &StateModel::statesUpdated,
             this, &StatePresenter::updateStateView);
 
     connect(m_view, &StateView::dropReceived,

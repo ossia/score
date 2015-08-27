@@ -2,7 +2,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <core/command/CommandStack.hpp>
 using namespace iscore;
-
+#include <iscore/tools/Todo.hpp>
 CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject *parent):
     QObject{parent},
     m_stack{stack}
@@ -10,21 +10,21 @@ CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject 
     m_file.open();
 
     // Set-up signals
-    connect(&m_stack, &CommandStack::sig_push,
+    con(m_stack, &CommandStack::sig_push,
             this, &CommandBackupFile::on_push);
-    connect(&m_stack, &CommandStack::sig_undo,
+    con(m_stack, &CommandStack::sig_undo,
             this, &CommandBackupFile::on_undo);
-    connect(&m_stack, &CommandStack::sig_redo,
+    con(m_stack, &CommandStack::sig_redo,
             this, &CommandBackupFile::on_redo);
-    connect(&m_stack, &CommandStack::sig_indexChanged,
+    con(m_stack, &CommandStack::sig_indexChanged,
             this, &CommandBackupFile::on_indexChanged);
 
     // Load initial state
-    for(auto&& cmd : m_stack.m_undoable)
+    for(const auto& cmd : m_stack.m_undoable)
     {
         m_savedUndo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
     }
-    for(auto&& cmd : m_stack.m_redoable)
+    for(const auto& cmd : m_stack.m_redoable)
     {
         m_savedRedo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
     }

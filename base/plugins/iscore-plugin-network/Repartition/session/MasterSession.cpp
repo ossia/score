@@ -7,7 +7,7 @@ MasterSession::MasterSession(iscore::Document* doc, LocalClient* theclient, id_t
     Session{theclient, id, parent},
     m_document{doc}
 {
-    connect(&localClient(), SIGNAL(createNewClient(QTcpSocket*)),
+    con(localClient(), SIGNAL(createNewClient(QTcpSocket*)),
             this, SLOT(on_createNewClient(QTcpSocket*)));
 
 

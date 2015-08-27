@@ -26,14 +26,14 @@ RackPresenter::RackPresenter(const RackModel& model,
 
     on_askUpdate();
 
-    connect(&m_model, &RackModel::slotCreated,
+    con(m_model, &RackModel::slotCreated,
             this, &RackPresenter::on_slotCreated);
-    connect(&m_model,&RackModel::slotRemoved,
+    con(m_model,&RackModel::slotRemoved,
             this, &RackPresenter::on_slotRemoved);
-    connect(&m_model, &RackModel::slotPositionsChanged,
+    con(m_model, &RackModel::slotPositionsChanged,
             this, &RackPresenter::on_slotPositionsChanged);
 
-    connect(&m_model, &RackModel::on_durationChanged,
+    con(m_model, &RackModel::on_durationChanged,
             this, &RackPresenter::on_durationChanged);
 }
 
