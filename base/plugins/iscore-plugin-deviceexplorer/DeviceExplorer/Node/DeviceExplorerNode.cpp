@@ -1,4 +1,4 @@
-#include "Node.hpp"
+#include "DeviceExplorerNode.hpp"
 
 namespace iscore
 {

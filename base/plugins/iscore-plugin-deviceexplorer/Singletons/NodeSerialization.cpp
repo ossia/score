@@ -1,4 +1,4 @@
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include "DeviceExplorerPlugin.hpp"
 #include "DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp"
 

@@ -2,7 +2,12 @@
 #include <QMetaType>
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 
-// A wrapper for a dynamic state
+/**
+ * @brief The ProcessState class
+ *
+ * A wrapper for dynamic states defined in plug-ins. It is to be used
+ * as a data member in a StateNode.
+ */
 class ProcessState
 {
     public:

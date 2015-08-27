@@ -2,7 +2,7 @@
 
 #include <QAbstractItemModel>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 
 #include "Result.hpp"

@@ -27,8 +27,8 @@ class StateModel : public IdentifiedObject<StateModel>
         ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)
     public:
-        Selectable selection; // TODO state connections
-        ModelMetadata metadata; // TODO : usefull ?
+        Selectable selection;
+        ModelMetadata metadata;
 
         StateModel(const id_type<StateModel>& id,
                    const id_type<EventModel>& eventId,

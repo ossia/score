@@ -5,7 +5,7 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include "StandardCreationPolicy.hpp"
 
-void removeEventFromTimeNode(
+static void removeEventFromTimeNode(
         ScenarioModel& scenario,
         const id_type<EventModel>& eventId)
 {

@@ -6,7 +6,7 @@
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 #include <memory>
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 class DeviceInterface : public QObject
 {
         Q_OBJECT

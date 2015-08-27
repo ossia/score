@@ -1,6 +1,6 @@
 #include "DeviceCompleter.hpp"
 #include "../Plugin/Panel/DeviceExplorerModel.hpp"
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <QStringList>
 #include <QApplication>
 

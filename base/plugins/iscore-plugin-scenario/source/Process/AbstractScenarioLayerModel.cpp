@@ -3,23 +3,19 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
-// TODO removeme
-template<typename Container, typename id_T>
-typename Container::value_type findById(const Container& c, const id_T& id)
+ConstraintViewModel& AbstractScenarioLayerModel::constraint(
+        const id_type<ConstraintViewModel>& id) const
 {
-    auto it = std::find(std::begin(c), std::end(c), id);
-    if(it != std::end(c))
+    auto it = std::find(
+                std::begin(m_constraints),
+                std::end(m_constraints),
+                id);
+    if(it != std::end(m_constraints))
     {
-        return *it;
+        return **it;
     }
 
-    throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(*id.val()).arg(typeid(c).name()).toLatin1().constData());
-}
-
-ConstraintViewModel& AbstractScenarioLayerModel::constraint(
-        const id_type<ConstraintViewModel>& constraintViewModelid) const
-{
-    return *findById(m_constraints, constraintViewModelid);
+    ISCORE_ABORT;
 }
 
 QVector<ConstraintViewModel*> AbstractScenarioLayerModel::constraints() const

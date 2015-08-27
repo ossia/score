@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 class DeviceInterface;
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 /**
  * @brief The ExplorationWorker class

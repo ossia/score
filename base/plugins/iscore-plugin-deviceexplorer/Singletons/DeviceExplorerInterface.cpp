@@ -3,7 +3,7 @@
 #include "../Plugin/DeviceExplorerPanelFactory.hpp"
 #include "../Plugin/Panel/DeviceExplorerModel.hpp"
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <boost/range/algorithm.hpp>
 

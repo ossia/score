@@ -1,6 +1,6 @@
 #include "DeviceExplorerCommandCreator.hpp"
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <core/command/CommandStack.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>

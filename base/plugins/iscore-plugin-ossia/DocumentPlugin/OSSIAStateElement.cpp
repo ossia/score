@@ -1,8 +1,9 @@
 #include "OSSIAStateElement.hpp"
 #include <iscore/tools/Todo.hpp>
 
-// TODO TODO TODO TODO TODO
-OSSIAStateElement::OSSIAStateElement(const StateModel &element, std::shared_ptr<OSSIA::State> root,
+OSSIAStateElement::OSSIAStateElement(
+        const StateModel &element,
+        std::shared_ptr<OSSIA::State> root,
         QObject *parent):
     QObject{parent},
     m_iscore_state{element},

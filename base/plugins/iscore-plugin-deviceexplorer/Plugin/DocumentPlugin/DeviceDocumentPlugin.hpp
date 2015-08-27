@@ -3,7 +3,7 @@
 
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include "NodeUpdateProxy.hpp"
 namespace iscore
 {

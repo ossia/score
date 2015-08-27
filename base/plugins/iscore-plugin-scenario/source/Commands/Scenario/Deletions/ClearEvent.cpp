@@ -4,41 +4,38 @@
 
 #include "Process/ScenarioModel.hpp"
 
+#include <iscore/serialization/VisitorCommon.hpp>
+
 
 using namespace iscore;
 using namespace Scenario::Command;
 
 ClearState::ClearState(ObjectPath&& path) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(path) }
 {
-    /* TODO
     const auto& state = m_path.find<StateModel>();
-    QDataStream s(&m_serializedStates, QIODevice::WriteOnly);
-    s << state.states();
-    */
+
+    m_serializedStates = marshall<DataStream>(state.states().rootNode());
 }
 
 void ClearState::undo()
 {
-    /* TODO
     auto& state = m_path.find<StateModel>();
-    iscore::StateList states;
+    iscore::StateNode states;
     QDataStream s(m_serializedStates);
     s >> states;
 
-    state.replaceStates(states);
-    */
+    state.states() = states;
 }
 
 void ClearState::redo()
 {
-    /*
     auto& state = m_path.find<StateModel>();
-    state.replaceStates({});
-    */
+
+    state.states() = iscore::StateNode{};
 }
 
 void ClearState::serializeImpl(QDataStream& s) const

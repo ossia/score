@@ -4,7 +4,7 @@
 #include <QModelIndex>
 
 #include <State/Message.hpp>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 class QObject;
 class DeviceExplorerModel;

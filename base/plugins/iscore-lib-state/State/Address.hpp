@@ -4,8 +4,17 @@
 
 // For qRegisterDataStreamOperators...
 #include <iscore/serialization/DataStreamVisitor.hpp>
+
 namespace iscore
 {
+/**
+ * @brief The Address struct
+ *
+ * Represents an address in the style of Jamoma :
+ *
+ *  aDevice:/aNode/anotherNode
+ *
+ */
 struct Address
 {
         // Data

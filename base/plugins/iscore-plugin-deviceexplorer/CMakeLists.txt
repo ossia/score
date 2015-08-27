@@ -23,7 +23,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/SingletonProtocolList.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/DeviceExplorerInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Node/Node.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Node/DeviceExplorerNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/DeviceSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Protocol/ProtocolList.cpp"
