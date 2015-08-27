@@ -7,7 +7,6 @@
 #include <core/document/DocumentModel.hpp>
 #include <boost/range/algorithm.hpp>
 
-using namespace iscore;
 QString DeviceExplorer::panelName()
 {
     return "DeviceExplorerPanelModel";
@@ -18,16 +17,12 @@ QString DeviceExplorer::explorerName()
     return "DeviceExplorerModel";
 }
 
-Address DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
+iscore::Address DeviceExplorer::addressFromNode(const iscore::Node& m)
 {
-    if(!m.isValid())
-        return Address();
+    iscore::Address a;
+    auto node = &m;
 
-    QModelIndex index = m;
-    Address a;
-
-    auto node = static_cast<Node*>(index.internalPointer());
-    while(node && !node->is<DeviceSettings>())
+    while(node && !node->is<iscore::DeviceSettings>())
     {
         a.path.append(node->get<iscore::AddressSettings>().name);
         node = node->parent();
@@ -35,22 +30,40 @@ Address DeviceExplorer::addressFromModelIndex(const QModelIndex& m)
 
     boost::range::reverse(a.path);
     ISCORE_ASSERT(node);
-    ISCORE_ASSERT(node->is<DeviceSettings>());
-    a.device = node->get<DeviceSettings>().name;
+    ISCORE_ASSERT(node->is<iscore::DeviceSettings>());
+    a.device = node->get<iscore::DeviceSettings>().name;
 
     return a;
 }
 
 
-Message DeviceExplorer::messageFromModelIndex(const QModelIndex& m)
+iscore::Message DeviceExplorer::messageFromNode(const iscore::Node& node)
 {
-    Message mess;
-    mess.address = addressFromModelIndex(m);
+    iscore::Message mess;
+    mess.address = addressFromNode(node);
 
-    auto node = static_cast<Node*>(m.internalPointer());
-    ISCORE_ASSERT(!node->is<DeviceSettings>());
+    ISCORE_ASSERT(!node.is<iscore::DeviceSettings>());
 
-    mess.value = node->get<iscore::AddressSettings>().value;
+    mess.value = node.get<iscore::AddressSettings>().value;
 
     return mess;
+}
+
+
+
+iscore::Address DeviceExplorer::addressFromModelIndex(const QModelIndex& index)
+{
+    if(!index.isValid())
+        return {};
+
+    return addressFromNode(*static_cast<iscore::Node*>(index.internalPointer()));
+}
+
+
+iscore::Message DeviceExplorer::messageFromModelIndex(const QModelIndex& index)
+{
+    if(!index.isValid())
+        return {};
+
+    return messageFromNode(*static_cast<iscore::Node*>(index.internalPointer()));
 }
