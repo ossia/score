@@ -55,7 +55,7 @@ EventInspectorWidget::EventInspectorWidget(
     // metadata
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
     m_metadata->setType(EventModel::prettyName());
-    m_metadata->setupConnections(&m_model);
+    m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
 
@@ -291,7 +291,7 @@ void EventInspectorWidget::on_conditionChanged()
         return;
     }
 
-    auto cmd = new Scenario::Command::SetCondition{unsafe_path(m_model), txt};
+    auto cmd = new Scenario::Command::SetCondition{safe_path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -304,7 +304,7 @@ void EventInspectorWidget::on_triggerChanged()
         return;
     }
 
-    auto cmd = new Scenario::Command::SetTrigger{unsafe_path(m_model), txt};
+    auto cmd = new Scenario::Command::SetTrigger{safe_path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 

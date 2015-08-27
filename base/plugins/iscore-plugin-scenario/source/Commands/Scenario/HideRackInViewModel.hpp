@@ -26,12 +26,12 @@ namespace Scenario
 
                 /**
                  * @brief HideRackInViewModel
-                 * @param constraint A pointer to a valid constraint view model.
+                 * @param constraint A constraint view model.
                  *
                  * Note : this will search it and make a path from an object named "BaseConstraintModel"
                  * Hence this constructor has to be used in a Scenario.
                  */
-                HideRackInViewModel(ConstraintViewModel* constraint);
+                HideRackInViewModel(const ConstraintViewModel& constraint);
 
                 virtual void undo() override;
                 virtual void redo() override;

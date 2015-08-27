@@ -9,6 +9,7 @@ class ConstraintViewModel;
 class ConstraintModel;
 class LayerModel;
 class StateModel;
+class ScenarioModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 namespace Scenario
@@ -28,12 +29,12 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
                 CreateConstraint(
-                    ObjectPath&& scenarioPath,
+                    ModelPath<ScenarioModel>&& scenarioPath,
                     const id_type<StateModel>& startState,
                     const id_type<StateModel>& endState);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 
-                const ObjectPath& scenarioPath() const
+                const ModelPath<ScenarioModel>& scenarioPath() const
                 { return m_path; }
 
                 virtual void undo() override;
@@ -47,7 +48,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                ModelPath<ScenarioModel> m_path;
                 QString m_createdName;
 
                 id_type<ConstraintModel> m_createdConstraintId {};

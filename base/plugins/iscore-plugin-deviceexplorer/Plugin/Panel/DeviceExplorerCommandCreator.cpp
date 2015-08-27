@@ -81,8 +81,11 @@ QModelIndex DeviceExplorerCommandCreator::cut(const QModelIndex &index)
     }
 
     QString name = m_model->nodeFromModelIndex(index)->displayName();
-    Cut* cmd = new Cut(iscore::NodePath{index.parent()}, index.row(),
-             tr("Cut %1").arg(name), iscore::IDocument::unsafe_path(m_model));
+    Cut* cmd = new Cut{
+                iscore::NodePath{index.parent()},
+                index.row(),
+                tr("Cut %1").arg(name),
+                iscore::IDocument::safe_path(*m_model)};
 
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -111,8 +114,11 @@ QModelIndex DeviceExplorerCommandCreator::paste(const QModelIndex &index)
 
 
     QString name = (index.isValid() ? m_model->nodeFromModelIndex(index)->displayName() : "");
-    Paste* cmd = new Paste(iscore::NodePath{index.parent()}, index.row(),
-             tr("Paste %1").arg(name), iscore::IDocument::unsafe_path(m_model));
+    Paste* cmd = new Paste{
+            iscore::NodePath{index.parent()},
+            index.row(),
+            tr("Paste %1").arg(name),
+            iscore::IDocument::safe_path(*m_model)};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -142,9 +148,14 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     const int newRow = oldRow - 1;
 
     iscore::NodePath parentPath{*parent};
-    Move* cmd = new Move(parentPath, oldRow, 1,
-             parentPath, newRow,
-             tr("Move up %1").arg(n->displayName()) , iscore::IDocument::unsafe_path(m_model));
+    Move* cmd = new Move{
+                parentPath,
+                oldRow,
+                1,
+                parentPath,
+                newRow,
+                tr("Move up %1").arg(n->displayName()) ,
+                iscore::IDocument::safe_path(*m_model)};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -182,9 +193,14 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
     }
 
     iscore::NodePath parentPath{*parent};
-    Move* cmd = new Move(parentPath, oldRow, 1,
-             parentPath, newRow + 1,
-             tr("Move down %1").arg(n->displayName()) , iscore::IDocument::unsafe_path(m_model));
+    Move* cmd = new Move{
+            parentPath,
+            oldRow,
+            1,
+             parentPath,
+            newRow + 1,
+             tr("Move down %1").arg(n->displayName()) ,
+            iscore::IDocument::safe_path(*m_model)};
     //newRow+1 because moved before, cf doc.
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -229,9 +245,14 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     int row = parent->indexOfChild(n);
     int rowParent = grandParent->indexOfChild(parent);
     iscore::NodePath parentPath{*parent};
-    Move* cmd = new Move(parentPath, row, 1,
-             iscore::NodePath{*grandParent}, rowParent + 1,
-             tr("Promote %1").arg(n->displayName()) , iscore::IDocument::unsafe_path(m_model));
+    Move* cmd = new Move{
+                parentPath,
+                row,
+                1,
+                iscore::NodePath{*grandParent},
+                rowParent + 1,
+                tr("Promote %1").arg(n->displayName()) ,
+                iscore::IDocument::safe_path(*m_model)};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -274,9 +295,14 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
     ISCORE_ASSERT(sibling);
 
     iscore::NodePath newPath{*sibling};
-    Move* cmd = new Move(iscore::NodePath{*parent}, row, 1,
-             newPath , sibling->childCount(),
-             tr("Demote %1").arg(n->displayName()) , iscore::IDocument::unsafe_path(m_model));
+    Move* cmd = new Move{
+                iscore::NodePath{*parent},
+                row,
+                1,
+                newPath ,
+                sibling->childCount(),
+                tr("Demote %1").arg(n->displayName()) ,
+                iscore::IDocument::safe_path(*m_model)};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 

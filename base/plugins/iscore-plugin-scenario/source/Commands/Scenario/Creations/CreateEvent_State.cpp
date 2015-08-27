@@ -23,10 +23,10 @@ CreateEvent_State::CreateEvent_State(
 }
 
 CreateEvent_State::CreateEvent_State(
-        const ObjectPath &scenario,
+        const ModelPath<ScenarioModel>& scenario,
         const id_type<TimeNodeModel> &timeNode,
         double stateY):
-    CreateEvent_State{scenario.find<ScenarioModel>(),
+    CreateEvent_State{scenario.find(),
                       timeNode,
                       stateY}
 {
@@ -39,12 +39,12 @@ void CreateEvent_State::undo()
 
     ScenarioCreate<EventModel>::undo(
                 m_newEvent,
-                m_command.scenarioPath().find<ScenarioModel>());
+                m_command.scenarioPath().find());
 }
 
 void CreateEvent_State::redo()
 {
-    auto& scenar = m_command.scenarioPath().find<ScenarioModel>();
+    auto& scenar = m_command.scenarioPath().find();
 
     // Create the event
     ScenarioCreate<EventModel>::redo(

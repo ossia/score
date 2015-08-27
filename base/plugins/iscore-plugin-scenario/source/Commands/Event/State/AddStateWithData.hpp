@@ -29,7 +29,7 @@ namespace Scenario
                     auto createStateCmd =  new CreateState{scenario, ev, ypos};
 
                     // We create the path of the to-be state
-                    auto vecpath = createStateCmd->scenarioPath().vec();
+                    auto vecpath = createStateCmd->scenarioPath().unsafePath().vec();
                     vecpath.append({"StateModel", createStateCmd->createdState()});
                     ModelPath<StateModel> modelpath{ObjectPath(std::move(vecpath)), {}};
 

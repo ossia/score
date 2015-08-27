@@ -15,13 +15,14 @@ m_constraintViewModelPath {std::move(path) }
     m_constraintPreviousId = constraint_vm.shownRack();
 }
 
-HideRackInViewModel::HideRackInViewModel(ConstraintViewModel* constraint_vm) :
+HideRackInViewModel::HideRackInViewModel(
+        const ConstraintViewModel& constraint_vm) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_constraintViewModelPath {iscore::IDocument::unsafe_path(constraint_vm) }
+    m_constraintViewModelPath {iscore::IDocument::safe_path(constraint_vm) }
 {
-    m_constraintPreviousId = constraint_vm->shownRack();
+    m_constraintPreviousId = constraint_vm.shownRack();
 }
 
 void HideRackInViewModel::undo()

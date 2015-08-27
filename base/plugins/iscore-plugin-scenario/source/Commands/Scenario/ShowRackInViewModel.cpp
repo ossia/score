@@ -17,15 +17,16 @@ ShowRackInViewModel::ShowRackInViewModel(ObjectPath&& constraint_path,
     m_previousRackId = vm.shownRack();
 }
 
-ShowRackInViewModel::ShowRackInViewModel(const ConstraintViewModel *vm,
-                                       id_type<RackModel> rackId) :
+ShowRackInViewModel::ShowRackInViewModel(
+        const ConstraintViewModel& vm,
+        const id_type<RackModel>& rackId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_constraintViewModelPath {iscore::IDocument::unsafe_path(vm) },
+    m_constraintViewModelPath {iscore::IDocument::safe_path(vm)},
     m_rackId {rackId}
 {
-    m_previousRackId = vm->shownRack();
+    m_previousRackId = vm.shownRack();
 }
 
 void ShowRackInViewModel::undo()

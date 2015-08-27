@@ -224,7 +224,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
         {
             auto cmd = new Scenario::Command::ReplaceConstraintContent{
                        json_vref.toObject(),
-                       iscore::IDocument::unsafe_path(constraint),
+                       iscore::IDocument::safe_path(*constraint),
                        pres->stateMachine().expandMode()};
 
             CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
@@ -238,7 +238,7 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints());
     auto cmd = new Scenario::Command::AddProcessToConstraint
     {
-        iscore::IDocument::unsafe_path(*selectedConstraints.begin()),
+        iscore::IDocument::safe_path(**selectedConstraints.begin()),
         processName
     };
     CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};

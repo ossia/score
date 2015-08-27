@@ -9,7 +9,7 @@ using namespace Scenario::Command;
 void ScenarioCreationState::createToState_base(const id_type<StateModel> & originalState)
 {
     auto cmd = new CreateConstraint{
-            ObjectPath{m_scenarioPath},
+            ModelPath<ScenarioModel>{m_scenarioPath},
             originalState,
             hoveredState};
 
@@ -22,7 +22,7 @@ void ScenarioCreationState::createToState_base(const id_type<StateModel> & origi
 void ScenarioCreationState::createToEvent_base(const id_type<StateModel> & originalState)
 {
     auto cmd = new CreateConstraint_State{
-            ObjectPath{m_scenarioPath},
+            ModelPath<ScenarioModel>{m_scenarioPath},
             originalState,
             hoveredEvent,
             currentPoint.y};

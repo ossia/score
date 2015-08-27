@@ -6,7 +6,7 @@ class ScenarioCreation_FromNothing : public ScenarioCreationState
     public:
         ScenarioCreation_FromNothing(
                 const ScenarioStateMachine& stateMachine,
-                ObjectPath&& scenarioPath,
+                const ModelPath<ScenarioModel>& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
 

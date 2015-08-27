@@ -21,9 +21,9 @@ class ScenarioCreationState : public CreationState
         ScenarioCreationState(
                 const ScenarioStateMachine& sm,
                 iscore::CommandStack& stack,
-                ObjectPath&& scenarioPath,
+                const ModelPath<ScenarioModel>& scenarioPath,
                 QState* parent):
-            CreationState{std::forward<ObjectPath>(scenarioPath), parent},
+            CreationState{scenarioPath, parent},
             m_parentSM{sm},
             m_dispatcher{stack}
         {

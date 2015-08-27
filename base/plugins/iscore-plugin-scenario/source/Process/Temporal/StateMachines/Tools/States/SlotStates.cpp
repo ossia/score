@@ -3,6 +3,8 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
+#include "Document/Constraint/Rack/RackModel.hpp"
+
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotOverlay.hpp"
 #include "Document/Constraint/Rack/Slot/SlotView.hpp"
@@ -89,7 +91,7 @@ DragSlotState::DragSlotState(iscore::CommandStack& stack,
                     && releasedSlot.parent() == baseSlot.parent())
             {
                 auto cmd = new Scenario::Command::SwapSlots{
-                        iscore::IDocument::unsafe_path(releasedSlot.parent()), // Rack
+                        iscore::IDocument::safe_path(*safe_cast<RackModel*>(releasedSlot.parent())), // Rack
                         baseSlot.id(), releasedSlot.id()};
                 m_dispatcher.submitCommand(cmd);
             }

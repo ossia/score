@@ -90,6 +90,6 @@ void CurveCommandObjectBase::submit(const QVector<CurveSegmentModel*> segments)
 
     qDeleteAll(segments);
 
-    m_dispatcher.submitCommand(iscore::IDocument::unsafe_path(m_presenter->model()),
+    m_dispatcher.submitCommand(iscore::IDocument::safe_path(m_presenter->model()),
                                std::move(newSegments));
 }

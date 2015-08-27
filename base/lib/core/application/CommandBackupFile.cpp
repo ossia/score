@@ -1,8 +1,9 @@
 #include "CommandBackupFile.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <core/command/CommandStack.hpp>
-using namespace iscore;
 #include <iscore/tools/Todo.hpp>
+
+using namespace iscore;
 CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject *parent):
     QObject{parent},
     m_stack{stack}

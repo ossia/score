@@ -36,8 +36,20 @@ class ModelPath
             return stream;
         }
 
+        friend bool operator==(const ModelPath& lhs, const ModelPath& rhs)
+        {
+            return lhs.m_impl == rhs.m_impl;
+        }
+
+        friend uint qHash(const ModelPath& obj, uint seed)
+        {
+          return qHash(obj.m_impl, seed);
+        }
+
         template<typename T>
         friend ModelPath<T> iscore::IDocument::safe_path(const T& obj);
+
+        friend class ObjectPath;
 
     public:
         // Use this if it is not possible to get a path
@@ -54,6 +66,9 @@ class ModelPath
 
         Object& find() const
         { return m_impl.find<Object>(); }
+
+        const auto& unsafePath() const
+        { return m_impl; }
 
 
     private:

@@ -13,7 +13,7 @@ CreateConstraint_State::CreateConstraint_State(
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newState{getStrongId(scenario.states())},
-    m_command{iscore::IDocument::unsafe_path(scenario),
+    m_command{iscore::IDocument::safe_path(scenario),
                        startState,
                        m_newState},
     m_endEvent{endEvent},
@@ -23,11 +23,11 @@ CreateConstraint_State::CreateConstraint_State(
 }
 
 CreateConstraint_State::CreateConstraint_State(
-        const ObjectPath &scenario,
+        const ModelPath<ScenarioModel>& scenario,
         const id_type<StateModel> &startState,
         const id_type<EventModel> &endEvent,
         double endStateY):
-    CreateConstraint_State{scenario.find<ScenarioModel>(),
+    CreateConstraint_State{scenario.find(),
                            startState,
                            endEvent,
                            endStateY}
@@ -42,12 +42,12 @@ void CreateConstraint_State::undo()
 
     ScenarioCreate<StateModel>::undo(
                 m_newState,
-                m_command.scenarioPath().find<ScenarioModel>());
+                m_command.scenarioPath().find());
 }
 
 void CreateConstraint_State::redo()
 {
-    auto& scenar = m_command.scenarioPath().find<ScenarioModel>();
+    auto& scenar = m_command.scenarioPath().find();
 
     // Create the end state
     ScenarioCreate<StateModel>::redo(

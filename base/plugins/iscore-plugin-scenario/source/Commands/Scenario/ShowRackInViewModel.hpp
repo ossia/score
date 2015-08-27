@@ -21,10 +21,12 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("ShowRackInViewModel", "ShowRackInViewModel")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowRackInViewModel, "ScenarioControl")
-                ShowRackInViewModel(ObjectPath&& constraint_path,
-                                   id_type<RackModel> rackId);
-                ShowRackInViewModel(const ConstraintViewModel* constraint,
-                                   id_type<RackModel> rackId);
+                ShowRackInViewModel(
+                        ObjectPath&& constraint_path,
+                        id_type<RackModel> rackId);
+                ShowRackInViewModel(
+                        const ConstraintViewModel& vm,
+                        const id_type<RackModel>& rackId);
 
                 virtual void undo() override;
                 virtual void redo() override;

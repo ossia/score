@@ -11,6 +11,9 @@
 #include "Commands/Constraint/SetRigidity.hpp"
 
 #include "Process/ScenarioInterface.hpp"
+#include "Process/ScenarioModel.hpp"
+
+#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -73,7 +76,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
             return;
 
         auto cmd = new Scenario::Command::SetMinDuration(
-                        iscore::IDocument::unsafe_path(m_model),
+                        iscore::IDocument::safe_path(m_model),
                         newTime);
         m_parent->commandDispatcher()->submitCommand(cmd);
     });
@@ -89,7 +92,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
             return;
 
         auto cmd = new Scenario::Command::SetMaxDuration(
-                       iscore::IDocument::unsafe_path(m_model),
+                       iscore::IDocument::safe_path(m_model),
                        newTime);
 
         m_parent->commandDispatcher()->submitCommand(cmd);
@@ -141,14 +144,14 @@ using namespace Scenario::Command;
 void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
     emit m_dispatcher.submitCommand<SetMinDuration>(
-                iscore::IDocument::unsafe_path(m_model),
+                iscore::IDocument::safe_path(m_model),
                 TimeValue{std::chrono::milliseconds{val}});
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
     m_dispatcher.submitCommand<SetMaxDuration>(
-                iscore::IDocument::unsafe_path(m_model),
+                iscore::IDocument::safe_path(m_model),
                 TimeValue{std::chrono::milliseconds {val}});
 }
 
@@ -164,7 +167,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     if(m_model.objectName() != "BaseConstraintModel")
     {
         m_dispatcher.submitCommand<MoveEvent>(
-                iscore::IDocument::unsafe_path(m_model.parent()),
+                iscore::IDocument::safe_path(*safe_cast<ScenarioModel*>(m_model.parent())),
                 scenario->state(m_model.endState()).eventId(),
                 m_model.startDate() + TimeValue::fromMsecs(val),
                 expandmode); // todo Take mode from scenario control
@@ -172,7 +175,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     else
     {
         m_dispatcher.submitCommand<MoveBaseEvent>(
-                    iscore::IDocument::unsafe_path(m_model.parent()),
+                    iscore::IDocument::safe_path(*safe_cast<BaseScenario*>(m_model.parent())),
                     std::chrono::milliseconds {val},
                     expandmode);
     }

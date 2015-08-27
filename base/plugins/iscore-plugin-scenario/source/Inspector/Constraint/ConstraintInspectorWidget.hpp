@@ -58,7 +58,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
     private:
         QWidget* makeStatesWidget(ScenarioModel*);
-        const ConstraintModel& m_currentConstraint;
+        const ConstraintModel& m_model;
         QVector<QMetaObject::Connection> m_connections;
 
         InspectorSectionWidget* m_eventsSection {};

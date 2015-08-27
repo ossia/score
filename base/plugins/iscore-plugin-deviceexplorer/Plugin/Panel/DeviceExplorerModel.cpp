@@ -574,13 +574,13 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::unsafe_path(this), iscore::NodePath{index}, col, value, role});
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::safe_path(*this), iscore::NodePath{index}, col, value, role});
                 changed = true;
             }
         }
         else if(col == Column::IOType)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::unsafe_path(this), iscore::NodePath{index}, col, value, role});
+            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::safe_path(*this), iscore::NodePath{index}, col, value, role});
             changed = true;
         }
         else if(col == Column::Value)
@@ -589,7 +589,7 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
             auto res = copy.convert(n->get<iscore::AddressSettings>().value.val.type());
             if(res)
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::unsafe_path(this),
+                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::safe_path(*this),
                                                  iscore::NodePath{index},
                                                  col,
                                                  copy,

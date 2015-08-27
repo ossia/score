@@ -72,7 +72,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
             map[vm->id()] = vm->shownRack();
         }
 
-        m_savedConstraints.push_back({{iscore::IDocument::unsafe_path(constraint), arr}, map});
+        m_savedConstraints.push_back({{iscore::IDocument::safe_path(constraint), arr}, map});
     }
 }
 

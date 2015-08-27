@@ -54,7 +54,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveConstraint =
             new MoveConstraintState{
                   m_parentSM,
-                  iscore::IDocument::unsafe_path(m_parentSM.model()),
+                  iscore::IDocument::safe_path(m_parentSM.model()),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -72,7 +72,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveEvent =
             new MoveEventState{
                   m_parentSM,
-                  iscore::IDocument::unsafe_path(m_parentSM.model()),
+                  iscore::IDocument::safe_path(m_parentSM.model()),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -94,7 +94,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveTimeNode =
             new MoveTimeNodeState{
                   m_parentSM,
-                  iscore::IDocument::unsafe_path(m_parentSM.model()),
+                  iscore::IDocument::safe_path(m_parentSM.model()),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -152,7 +152,7 @@ void SelectionTool::on_pressed()
     },
     [&] (const SlotModel& slot) // Slot handle
     {
-        localSM().postEvent(new ClickOnSlotHandle_Event{iscore::IDocument::unsafe_path(slot)});
+        localSM().postEvent(new ClickOnSlotHandle_Event{iscore::IDocument::safe_path(slot)});
         m_nothingPressed = true; // Because we use the Move_Event and Release_Event.
     },
     [&] ()

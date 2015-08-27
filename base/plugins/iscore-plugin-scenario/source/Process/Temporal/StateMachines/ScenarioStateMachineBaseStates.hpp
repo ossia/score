@@ -1,7 +1,7 @@
 #pragma once
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include <QStateMachine>
@@ -9,6 +9,7 @@
 #include <QAbstractTransition>
 #include <QPointF>
 
+class ScenarioModel;
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
@@ -18,9 +19,9 @@ class StateModel;
 class ScenarioStateBase : public QState
 {
     public:
-        ScenarioStateBase(ObjectPath&& scenar, QState* parent):
+        ScenarioStateBase(const ModelPath<ScenarioModel>& scenar, QState* parent):
             QState{parent},
-            m_scenarioPath{std::move(scenar)}
+            m_scenarioPath{scenar}
         { }
 
         void clear()
@@ -46,7 +47,7 @@ class ScenarioStateBase : public QState
         ScenarioPoint currentPoint;
 
     protected:
-        ObjectPath m_scenarioPath;
+        ModelPath<ScenarioModel> m_scenarioPath;
 };
 
 class CreationState : public ScenarioStateBase

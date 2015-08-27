@@ -34,7 +34,7 @@ namespace Scenario
                     for(const auto& slot : sourcerack.getSlots())
                     {
                         addCommand(new MoveSlot{
-                                       iscore::IDocument::unsafe_path(slot),
+                                       iscore::IDocument::safe_path(slot),
                                        ObjectPath {mergeTarget}});
                     }
 

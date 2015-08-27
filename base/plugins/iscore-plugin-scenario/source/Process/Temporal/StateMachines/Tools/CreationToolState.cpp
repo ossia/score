@@ -28,12 +28,12 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
 
-    auto scenarioPath = iscore::IDocument::unsafe_path(m_parentSM.model());
+    auto scenarioPath = iscore::IDocument::safe_path(m_parentSM.model());
 
     //// Create from nothing ////
     m_createFromNothingState = new ScenarioCreation_FromNothing{
             m_parentSM,
-            ObjectPath{scenarioPath},
+            scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
     make_transition<ClickOnNothing_Transition>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
@@ -45,7 +45,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     //// Create from an event ////
     m_createFromEventState = new ScenarioCreation_FromEvent{
             m_parentSM,
-            ObjectPath{scenarioPath},
+            scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
     make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
@@ -57,7 +57,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     //// Create from a timenode ////
     m_createFromTimeNodeState = new ScenarioCreation_FromTimeNode{
             m_parentSM,
-            ObjectPath{scenarioPath},
+            scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
     make_transition<ClickOnTimeNode_Transition>(m_waitState,
@@ -71,7 +71,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     //// Create from a State ////
     m_createFromStateState = new ScenarioCreation_FromState{
             m_parentSM,
-            ObjectPath{scenarioPath},
+            scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
     make_transition<ClickOnState_Transition>(m_waitState,

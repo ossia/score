@@ -6,7 +6,7 @@ class ScenarioCreation_FromTimeNode : public ScenarioCreationState
     public:
         ScenarioCreation_FromTimeNode(
                 const ScenarioStateMachine& stateMachine,
-                ObjectPath&& scenarioPath,
+                const ModelPath<ScenarioModel>& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
 

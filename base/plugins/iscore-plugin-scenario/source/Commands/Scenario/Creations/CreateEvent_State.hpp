@@ -17,11 +17,11 @@ class CreateEvent_State : public iscore::SerializableCommand
             const id_type<TimeNodeModel>& timeNode,
             double stateY);
         CreateEvent_State(
-          const ObjectPath& scenario,
+          const ModelPath<ScenarioModel>& scenario,
           const id_type<TimeNodeModel>& timeNode,
           double stateY);
 
-        const ObjectPath& scenarioPath() const
+        const ModelPath<ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const id_type<StateModel>& createdState() const

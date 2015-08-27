@@ -55,7 +55,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
     m_metadata->setType(TimeNodeModel::prettyName());
 
-    m_metadata->setupConnections(&m_model);
+    m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
 
@@ -122,7 +122,7 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode(iscore::IDocument::unsafe_path(m_model),
+        auto cmd = new SplitTimeNode(iscore::IDocument::safe_path(m_model),
                                      eventGroup);
 
         commandDispatcher()->submitCommand(cmd);

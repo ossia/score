@@ -79,7 +79,7 @@ void MoveBaseEvent::undo()
     // during this command.
 
     // 1. Clear the constraint
-    ClearConstraint clearCmd{iscore::IDocument::unsafe_path(scenar.baseConstraint())};
+    ClearConstraint clearCmd{iscore::IDocument::safe_path(scenar.baseConstraint())};
     clearCmd.redo();
 
     auto& constraint = scenar.baseConstraint();

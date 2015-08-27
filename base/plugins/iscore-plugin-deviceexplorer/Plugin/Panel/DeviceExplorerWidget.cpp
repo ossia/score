@@ -474,7 +474,7 @@ void DeviceExplorerWidget::refresh()
         connect(worker, &ExplorationWorker::finished, this,
                 [=] () {
             auto cmd = new DeviceExplorer::Command::ReplaceDevice{
-                    iscore::IDocument::unsafe_path(model()),
+                    iscore::IDocument::safe_path(*model()),
                     m_ntView->selectedIndex().row(),
                     std::move(worker->node)};
 
@@ -526,7 +526,8 @@ void DeviceExplorerWidget::refreshValue()
 
     // Send the command
     auto cmd = new DeviceExplorer::Command::UpdateAddresses{
-                     iscore::IDocument::unsafe_path(model()), lst};
+            iscore::IDocument::safe_path(*model()),
+            lst};
 
     m_cmdDispatcher->submitCommand(cmd);
 }

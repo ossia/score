@@ -410,7 +410,7 @@ void CurvePresenter::removeSelection()
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::unsafe_path(m_model),
+                    iscore::IDocument::safe_path(m_model),
                     std::move(newSegments)
                 });
 }
@@ -448,7 +448,7 @@ void CurvePresenter::updateSegmentsType(const QString& segmentName)
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::unsafe_path(m_model),
+                    iscore::IDocument::safe_path(m_model),
                     std::move(newSegments)
                 });
 }

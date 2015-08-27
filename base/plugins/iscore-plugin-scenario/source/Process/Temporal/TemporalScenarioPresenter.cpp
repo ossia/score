@@ -381,7 +381,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
                        pos.y() / (m_view->boundingRect().size().height() + 150)); // TODO center it properly
         m.submitCommand(cmd);
 
-        auto vecpath = cmd->scenarioPath().vec();
+        auto vecpath = cmd->scenarioPath().unsafePath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
         ModelPath<StateModel> state_path{ObjectPath(std::move(vecpath)), {}};
 

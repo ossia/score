@@ -6,7 +6,7 @@ class ScenarioCreation_FromEvent : public ScenarioCreationState
     public:
         ScenarioCreation_FromEvent(
                 const ScenarioStateMachine& stateMachine,
-                ObjectPath&& scenarioPath,
+                const ModelPath<ScenarioModel>& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
 
