@@ -29,7 +29,9 @@ class MinuitProtocolFactory : public ProtocolFactory
             serializeProtocolSpecificSettings_T<MinuitSpecificSettings>(data, visitor);
         }
 
-        bool checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b)
+        bool checkCompatibility(
+                const iscore::DeviceSettings& a,
+                const iscore::DeviceSettings& b) const override
         {
             auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
             auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();

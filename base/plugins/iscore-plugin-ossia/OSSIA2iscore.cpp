@@ -103,7 +103,7 @@ iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 
     if(addr)
     {
-        addr->updateValue();
+        addr->pullValue();
         if(auto val = addr->getValue())
             s.value = ToValue(val);
 

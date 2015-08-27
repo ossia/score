@@ -141,9 +141,6 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     const int oldRow = index.row();
     const int newRow = oldRow - 1;
 
-    iscore::Node* grandparent = parent->parent();
-    ISCORE_ASSERT(grandparent);
-
     iscore::NodePath parentPath{*parent};
     Move* cmd = new Move(parentPath, oldRow, 1,
              parentPath, newRow,
@@ -183,9 +180,6 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
     {
         return index;
     }
-
-    iscore::Node* grandparent = parent->parent();
-    ISCORE_ASSERT(grandparent);
 
     iscore::NodePath parentPath{*parent};
     Move* cmd = new Move(parentPath, oldRow, 1,

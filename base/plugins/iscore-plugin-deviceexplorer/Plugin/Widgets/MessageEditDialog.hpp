@@ -3,8 +3,8 @@
 
 namespace iscore
 {
-class Address;
-class Message;
+struct Address;
+struct Message;
 }
 
 class DeviceExplorerModel;

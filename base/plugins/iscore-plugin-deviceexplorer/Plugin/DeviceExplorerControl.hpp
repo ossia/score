@@ -9,7 +9,7 @@ class DeviceExplorerControl : public iscore::PluginControlInterface
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::DocumentModel *parent);
+                iscore::DocumentModel *parent) override;
 
         iscore::SerializableCommand*
         instantiateUndoCommand(const QString & name,
