@@ -34,7 +34,7 @@ class DurationSectionWidget : public InspectorSectionWidget
 
 
     private:
-        const ConstraintModel* m_model {};
+        const ConstraintModel& m_model;
         ConstraintInspectorWidget* m_parent {};
 
         QGridLayout* m_grid{};

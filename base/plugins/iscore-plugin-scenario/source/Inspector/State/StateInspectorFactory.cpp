@@ -4,11 +4,11 @@
 #include <Document/State/StateModel.hpp>
 
 InspectorWidgetBase* StateInspectorFactory::makeWidget(
-        const QObject* sourceElement,
+        const QObject& sourceElement,
         QWidget* parentWidget)
 {
     return new StateInspectorWidget{
-        static_cast<const StateModel&>(*sourceElement),
+        static_cast<const StateModel&>(sourceElement),
                 parentWidget};
 }
 

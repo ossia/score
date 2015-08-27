@@ -52,7 +52,7 @@ void GroupPanelView::setView(const GroupManager* mgr,
 
     // Add group button
     auto button = new QPushButton{tr("Add group")};
-    ObjectPath mgrpath{iscore::IDocument::path(mgr)};
+    ObjectPath mgrpath{iscore::IDocument::unsafe_path(mgr)};
     connect(button, &QPushButton::pressed, this, [=] ( )
     {
         bool ok;
@@ -63,7 +63,7 @@ void GroupPanelView::setView(const GroupManager* mgr,
             auto cmd = new CreateGroup{ObjectPath{mgrpath}, text};
 
             CommandDispatcher<> dispatcher{
-                iscore::IDocument::documentFromObject(mgr)->commandStack()};
+                iscore::IDocument::commandStack(*mgr)};
             dispatcher.submitCommand(cmd);
         }
     });

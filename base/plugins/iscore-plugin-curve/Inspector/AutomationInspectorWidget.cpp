@@ -26,7 +26,7 @@
 #include <QApplication>
 
 AutomationInspectorWidget::AutomationInspectorWidget(
-        const AutomationModel* automationModel,
+        const AutomationModel& automationModel,
         QWidget* parent) :
     InspectorWidgetBase {automationModel, parent},
     m_model {automationModel}
@@ -49,12 +49,12 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    auto deviceexplorer = iscore::IDocument::documentFromObject(automationModel)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
     m_lineEdit = new AddressEditWidget{deviceexplorer, this};
 
-    m_lineEdit->setAddress(m_model->address());
-    connect(m_model, &AutomationModel::addressChanged,
+    m_lineEdit->setAddress(m_model.address());
+    connect(&m_model, &AutomationModel::addressChanged,
             m_lineEdit, &AddressEditWidget::setAddress);
 
     connect(m_lineEdit, &AddressEditWidget::addressChanged,
@@ -71,13 +71,13 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 
     m_minsb = new iscore::SpinBox<float>;
     m_maxsb = new iscore::SpinBox<float>;
-    m_minsb->setValue(m_model->min());
-    m_maxsb->setValue(m_model->max());
+    m_minsb->setValue(m_model.min());
+    m_maxsb->setValue(m_model.max());
     minmaxlay->addRow(tr("Min"), m_minsb);
     minmaxlay->addRow(tr("Max"), m_maxsb);
 
-    connect(m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
-    connect(m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
+    connect(&m_model, SIGNAL(minChanged(double)), m_minsb, SLOT(setValue(double)));
+    connect(&m_model, SIGNAL(maxChanged(double)), m_maxsb, SLOT(setValue(double)));
 
     connect(m_minsb, SIGNAL(editingFinished()), this, SLOT(on_minValueChanged()));
     connect(m_maxsb, SIGNAL(editingFinished()), this, SLOT(on_maxValueChanged()));
@@ -89,7 +89,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     connect(display,    &QPushButton::clicked,
             [ = ]()
     {
-        createViewInNewSlot(QString::number(m_model->id_val()));
+        createViewInNewSlot(QString::number(m_model.id_val()));
     });
 
     vlay->addLayout(hlay);
@@ -100,10 +100,10 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 
 void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
 {
-    if(newAddr != m_model->address())
+    if(newAddr != m_model.address())
     {
         auto cmd = new ChangeAddress{
-                    iscore::IDocument::path(m_model),
+                    iscore::IDocument::unsafe_path(m_model),
                     newAddr };
 
         commandDispatcher()->submitCommand(cmd);
@@ -113,10 +113,10 @@ void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
 void AutomationInspectorWidget::on_minValueChanged()
 {
     auto newVal = m_minsb->value();
-    if(newVal != m_model->min())
+    if(newVal != m_model.min())
     {
         auto cmd = new SetCurveMin{
-                    iscore::IDocument::path(m_model), newVal};
+                    iscore::IDocument::unsafe_path(m_model), newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }
@@ -125,10 +125,10 @@ void AutomationInspectorWidget::on_minValueChanged()
 void AutomationInspectorWidget::on_maxValueChanged()
 {
     auto newVal = m_maxsb->value();
-    if(newVal != m_model->max())
+    if(newVal != m_model.max())
     {
         auto cmd = new SetCurveMax{
-                    iscore::IDocument::path(m_model), newVal};
+                    iscore::IDocument::unsafe_path(m_model), newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }

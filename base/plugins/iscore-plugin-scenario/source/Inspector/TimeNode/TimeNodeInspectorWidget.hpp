@@ -16,13 +16,13 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit TimeNodeInspectorWidget(
-                const TimeNodeModel* object,
+                const TimeNodeModel& object,
                 QWidget* parent);
 
     signals:
 
     public slots:
-        void updateDisplayedValues(const TimeNodeModel* obj);
+        void updateDisplayedValues();
 
         void updateInspector();
 
@@ -32,7 +32,7 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         QVector<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
 
-        const TimeNodeModel* m_model {};
+        const TimeNodeModel& m_model;
 
         InspectorSectionWidget* m_eventList {};
         QLabel* m_date {};

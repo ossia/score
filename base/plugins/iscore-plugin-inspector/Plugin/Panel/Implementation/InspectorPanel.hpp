@@ -23,7 +23,7 @@ using InspectorWidgetMap = bmi::multi_index_container<
             bmi::const_mem_fun<
                 InspectorWidgetBase,
                 const QObject*,
-                &InspectorWidgetBase::inspectedObject
+                &InspectorWidgetBase::inspectedObject_addr
             >
         >
     >

@@ -22,7 +22,7 @@ ShowRackInViewModel::ShowRackInViewModel(const ConstraintViewModel *vm,
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_constraintViewModelPath {iscore::IDocument::path(vm) },
+    m_constraintViewModelPath {iscore::IDocument::unsafe_path(vm) },
     m_rackId {rackId}
 {
     m_previousRackId = vm->shownRack();

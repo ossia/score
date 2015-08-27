@@ -4,10 +4,10 @@
 #include <Document/Event/EventModel.hpp>
 
 InspectorWidgetBase* EventInspectorFactory::makeWidget(
-        const QObject* sourceElement,
+        const QObject& sourceElement,
         QWidget* parentWidget)
 {
-    return new EventInspectorWidget{static_cast<const EventModel*>(sourceElement),
+    return new EventInspectorWidget{static_cast<const EventModel&>(sourceElement),
                 parentWidget};
 }
 

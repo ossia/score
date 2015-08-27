@@ -20,8 +20,8 @@ CurvePresenter::CurvePresenter(const CurveModel& model, CurveView* view, QObject
     QObject{parent},
     m_model{model},
     m_view{view},
-    m_commandDispatcher{iscore::IDocument::documentFromObject(model)->commandStack()},
-    m_selectionDispatcher{iscore::IDocument::documentFromObject(model)->selectionStack()}
+    m_commandDispatcher{iscore::IDocument::commandStack(model)},
+    m_selectionDispatcher{iscore::IDocument::selectionStack(model)}
 {
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
@@ -410,7 +410,7 @@ void CurvePresenter::removeSelection()
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::path(m_model),
+                    iscore::IDocument::unsafe_path(m_model),
                     std::move(newSegments)
                 });
 }
@@ -448,7 +448,7 @@ void CurvePresenter::updateSegmentsType(const QString& segmentName)
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::path(m_model),
+                    iscore::IDocument::unsafe_path(m_model),
                     std::move(newSegments)
                 });
 }

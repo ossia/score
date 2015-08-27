@@ -12,7 +12,7 @@ class AutomationInspectorWidget : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit AutomationInspectorWidget(
-                const AutomationModel* object,
+                const AutomationModel& object,
                 QWidget* parent);
 
     signals:
@@ -26,5 +26,5 @@ class AutomationInspectorWidget : public InspectorWidgetBase
     private:
         AddressEditWidget* m_lineEdit{};
         QDoubleSpinBox* m_minsb{}, *m_maxsb{};
-        const AutomationModel* m_model {};
+        const AutomationModel& m_model;
 };

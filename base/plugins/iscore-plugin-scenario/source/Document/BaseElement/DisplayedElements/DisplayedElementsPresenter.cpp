@@ -91,7 +91,7 @@ void DisplayedElementsPresenter::showConstraint()
     if(m_constraintPresenter->rack() && !m_constraintPresenter->rack()->getSlots().empty())
     {
         const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
-        m_parent->model()->focusManager().setFocusedPresenter(
+        m_parent->model().focusManager().setFocusedPresenter(
                     slot.processes().front().first);
     }
 }

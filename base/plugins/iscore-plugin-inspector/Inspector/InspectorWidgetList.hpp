@@ -15,7 +15,7 @@ class InspectorWidgetList : public NamedObject
         explicit InspectorWidgetList(QObject* parent);
 
         static InspectorWidgetBase* makeInspectorWidget(const QString& name,
-                                                        const QObject* model,
+                                                        const QObject& model,
                                                         QWidget* parent);
         void registerFactory(iscore::FactoryInterface* e);
 

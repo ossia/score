@@ -55,7 +55,7 @@ void RackWidget::viewModelsChanged()
     auto lay = new QGridLayout;
     int i = 0;
 
-    for(auto vm : m_model->viewModels())
+    for(auto vm : m_model.viewModels())
     {
         QLabel* label;
         if(dynamic_cast<FullViewConstraintViewModel*>(vm))
@@ -83,7 +83,7 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
     combobox->clear();
     combobox->addItem(hiddenText);
 
-    for(const auto& rack : m_model->racks())
+    for(const auto& rack : m_model.racks())
     {
         auto id = *rack.id().val();
         combobox->addItem(QString::number(id));
@@ -116,10 +116,3 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
         }
     });
 }
-
-void RackWidget::setModel(const ConstraintModel* m)
-{
-    m_model = m;
-    viewModelsChanged();
-}
-

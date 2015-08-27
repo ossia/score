@@ -65,7 +65,7 @@ SlotInspectorSection::SlotInspectorSection(
     auto deleteButton = new QPushButton{"Delete"};
     connect(deleteButton, &QPushButton::pressed, this, [&] ()
     {
-        auto cmd = new RemoveSlotFromRack{iscore::IDocument::path(m_model)};
+        auto cmd = new RemoveSlotFromRack{iscore::IDocument::unsafe_path(m_model)};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
 
@@ -76,8 +76,8 @@ void SlotInspectorSection::createLayerModel(
         const id_type<Process>& sharedProcessModelId)
 {
     auto cmd = new AddLayerModelToSlot(
-                   iscore::IDocument::path(m_model),
-                   iscore::IDocument::path(m_model.parentConstraint().process(sharedProcessModelId)));
+                   iscore::IDocument::unsafe_path(m_model),
+                   iscore::IDocument::unsafe_path(m_model.parentConstraint().process(sharedProcessModelId)));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
@@ -102,7 +102,7 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
 
     connect(pb, &QPushButton::clicked,
             [=]() {
-        PutLayerModelToFront cmd(iscore::IDocument::path(m_model), lm_id);
+        PutLayerModelToFront cmd(iscore::IDocument::unsafe_path(m_model), lm_id);
         cmd.redo();
     });
     lay->addWidget(pb, 1, 0);
@@ -111,7 +111,7 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
     auto deleteButton = new QPushButton{{tr("Delete")}};
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
-        auto cmd = new RemoveLayerModelFromSlot{iscore::IDocument::path(m_model), lm_id};
+        auto cmd = new RemoveLayerModelFromSlot{iscore::IDocument::unsafe_path(m_model), lm_id};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
     lay->addWidget(deleteButton, 1, 1);

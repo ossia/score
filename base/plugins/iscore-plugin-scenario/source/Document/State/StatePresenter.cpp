@@ -19,7 +19,7 @@ StatePresenter::StatePresenter(
     NamedObject {"StatePresenter", parent},
     m_model {model},
     m_view {new StateView{*this, parentview}},
-    m_dispatcher{iscore::IDocument::documentFromObject(m_model)->commandStack()}
+    m_dispatcher{iscore::IDocument::commandStack(m_model)}
 {
     // The scenario catches this :
     connect(&m_model.selection, &Selectable::changed,

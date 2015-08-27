@@ -17,12 +17,15 @@
 #include <QGridLayout>
 
 #include "DistributedScenario/GroupManager.hpp"
-GroupTableWidget::GroupTableWidget(const GroupManager* mgr, const Session* session, QWidget* parent):
+GroupTableWidget::GroupTableWidget(
+        const GroupManager* mgr,
+        const Session* session,
+        QWidget* parent):
     QWidget{parent},
     m_mgr{mgr},
     m_session{session},
-    m_managerPath{iscore::IDocument::path(m_mgr)},
-    m_dispatcher{iscore::IDocument::documentFromObject(m_mgr)->commandStack()}
+    m_managerPath{iscore::IDocument::unsafe_path(m_mgr)},
+    m_dispatcher{iscore::IDocument::commandStack(*m_mgr)}
 {
     connect(m_mgr, &GroupManager::groupAdded, this, &GroupTableWidget::setup);
     connect(m_mgr, &GroupManager::groupRemoved, this, &GroupTableWidget::setup);

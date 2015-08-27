@@ -11,7 +11,7 @@ CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
-    m_path {iscore::IDocument::path(scenario)},
+    m_path {iscore::IDocument::unsafe_path(scenario)},
     m_newState{getStrongId(scenario.states())},
     m_event{event},
     m_stateY{stateY}

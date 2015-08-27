@@ -21,7 +21,7 @@ using namespace Scenario::Command;
 
 
 TimeNodeInspectorWidget::TimeNodeInspectorWidget(
-        const TimeNodeModel* object,
+        const TimeNodeModel& object,
         QWidget* parent) :
     InspectorWidgetBase {object, parent},
     m_model {object}
@@ -34,7 +34,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
     auto dateTitle = new QLabel{"Default date"};
-    m_date = new QLabel{QString::number(object->date().msec()) };
+    m_date = new QLabel{QString::number(m_model.date().msec()) };
 
     dateLay->addWidget(dateTitle);
     dateLay->addWidget(m_date);
@@ -48,17 +48,17 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     updateAreaLayout(m_properties);
 
     // display data
-    updateDisplayedValues(object);
+    updateDisplayedValues();
 
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
+    m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
     m_metadata->setType(TimeNodeModel::prettyName());
 
-    m_metadata->setupConnections(m_model);
+    m_metadata->setupConnections(&m_model);
 
     addHeader(m_metadata);
 
-    connect(object, &TimeNodeModel::dateChanged,
+    connect(&m_model, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
 
     auto splitBtn = new QPushButton{this};
@@ -71,7 +71,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 }
 
 
-void TimeNodeInspectorWidget::updateDisplayedValues(const TimeNodeModel* timeNode)
+void TimeNodeInspectorWidget::updateDisplayedValues()
 {
     // Cleanup
     for(auto& elt : m_events)
@@ -81,58 +81,51 @@ void TimeNodeInspectorWidget::updateDisplayedValues(const TimeNodeModel* timeNod
 
     m_events.clear();
 
-   if(timeNode)
+    m_date->setText(QString::number(m_model.date().msec()));
+
+    for(const auto& event : m_model.events())
     {
-        m_date->setText(QString::number(m_model->date().msec()));
+        auto scenar = m_model.parentScenario();
+        EventModel* evModel = &scenar->event(event);
 
-        for(const auto& event : timeNode->events())
+        auto eventWid = new EventShortCut(QString::number((*event.val())));
+
+        m_events.push_back(eventWid);
+        m_eventList->addContent(eventWid);
+
+        connect(eventWid, &EventShortCut::eventSelected,
+                [=]()
         {
-            auto scenar = timeNode->parentScenario();
-            EventModel* evModel = &scenar->event(event);
-
-            auto eventWid = new EventShortCut(QString::number((*event.val())));
-
-            m_events.push_back(eventWid);
-            m_eventList->addContent(eventWid);
-
-            connect(eventWid, &EventShortCut::eventSelected,
-                    [=]()
-            {
-                selectionDispatcher().setAndCommit(Selection{evModel});
-            });
-        }
+            selectionDispatcher().setAndCommit(Selection{evModel});
+        });
     }
 }
 
 
 void TimeNodeInspectorWidget::updateInspector()
 {
-    updateDisplayedValues(m_model);
+    updateDisplayedValues();
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 {
-    QString info = "create a timenode with ";
-
     QVector<id_type<EventModel> > eventGroup;
 
-    for(auto ev : m_events)
+    for(const auto& ev : m_events)
     {
         if(ev->isChecked())
         {
-            info += ev->eventName(); info += QString(" ") ;
             eventGroup.push_back( id_type<EventModel>(ev->eventName().toInt()));
         }
     }
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode(iscore::IDocument::path(m_model),
+        auto cmd = new SplitTimeNode(iscore::IDocument::unsafe_path(m_model),
                                      eventGroup);
 
         commandDispatcher()->submitCommand(cmd);
-
-        qDebug() << info;
     }
-    updateDisplayedValues(m_model);
+
+    updateDisplayedValues();
 }

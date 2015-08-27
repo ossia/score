@@ -22,14 +22,13 @@ class RackWidget : public QWidget
 
         void viewModelsChanged();
         void updateComboBox(LambdaFriendlyQComboBox*, ConstraintViewModel* vm);
-        void setModel(const ConstraintModel*);
 
         static const QString hiddenText;
 
 
     private:
         QWidget* m_comboBoxesWidget{};
-        const ConstraintModel* m_model {};
+        const ConstraintModel& m_model;
         ConstraintInspectorWidget* m_parent {};
 
 };

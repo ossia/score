@@ -75,12 +75,12 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
         if(auto overlay = dynamic_cast<SlotOverlay*>(item))
         {
             m_localSM.postEvent(new ClickOnSlotOverlay_Event{
-                                    iscore::IDocument::path(overlay->slotView().presenter.model())});
+                                    iscore::IDocument::unsafe_path(overlay->slotView().presenter.model())});
         }
         else if(auto handle = dynamic_cast<SlotHandle*>(item))
         {
             m_localSM.postEvent(new ClickOnSlotHandle_Event{
-                                    iscore::IDocument::path(handle->slotView().presenter.model())});
+                                    iscore::IDocument::unsafe_path(handle->slotView().presenter.model())});
         }
     });
 

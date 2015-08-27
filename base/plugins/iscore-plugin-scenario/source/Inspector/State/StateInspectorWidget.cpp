@@ -11,7 +11,7 @@
 #include <QFormLayout>
 #include <QLabel>
 StateInspectorWidget::StateInspectorWidget(const StateModel& object, QWidget *parent):
-    InspectorWidgetBase {&object, parent},
+    InspectorWidgetBase {object, parent},
     m_model {object}
 {
     setObjectName("StateInspectorWidget");
@@ -20,11 +20,12 @@ StateInspectorWidget::StateInspectorWidget(const StateModel& object, QWidget *pa
     // Connections
     // TODO connections not necessary since we'll have a tree widget, right ?
 
-    updateDisplayedValues(&object);
+    updateDisplayedValues();
 }
 
-void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
+void StateInspectorWidget::updateDisplayedValues()
 {
+    int state;
     // Cleanup
     qDeleteAll(m_stateWidgets);
     m_stateWidgets.clear();
@@ -38,9 +39,9 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     lay->setVerticalSpacing(0);
 
     // State id
-    lay->addRow("Id", new QLabel{QString::number(state->id().val().get())});
+    lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
-    auto scenar = state->parentScenario();
+    auto scenar = m_model.parentScenario();
     auto event = m_model.eventId();
     if(event)
     {
@@ -53,19 +54,19 @@ void StateInspectorWidget::updateDisplayedValues(const StateModel* state)
     }
 
     // Constraints setup
-    if(state->previousConstraint())
+    if(m_model.previousConstraint())
     {
         auto btn = SelectionButton::make(
-                &scenar->constraint(state->previousConstraint()),
+                &scenar->constraint(m_model.previousConstraint()),
                 selectionDispatcher(),
                 this);
 
         lay->addRow(tr("Previous constraint"), btn);
     }
-    if(state->nextConstraint())
+    if(m_model.nextConstraint())
     {
         auto btn = SelectionButton::make(
-                &scenar->constraint(state->nextConstraint()),
+                &scenar->constraint(m_model.nextConstraint()),
                 selectionDispatcher(),
                 this);
 

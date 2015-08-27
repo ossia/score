@@ -32,10 +32,12 @@
 #include "Inspector/Separator.hpp"
 #include "Inspector/SelectionButton.hpp"
 #include "core/document/DocumentModel.hpp"
+#include "Inspector/State/StateInspectorWidget.hpp"
+#include <Inspector/InspectorWidgetList.hpp>
 
 // TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(
-        const EventModel* object,
+        const EventModel& object,
         QWidget* parent) :
     InspectorWidgetBase {object, parent},
     m_model {object}
@@ -43,16 +45,16 @@ EventInspectorWidget::EventInspectorWidget(
     setObjectName("EventInspectorWidget");
     setParent(parent);
 
-    connect(m_model, &EventModel::statesChanged,
-            this,    &EventInspectorWidget::updateInspector);
-    connect (m_model, &EventModel::dateChanged,
-             this,   &EventInspectorWidget::modelDateChanged);
+    connect(&m_model, &EventModel::statesChanged,
+            this,    &EventInspectorWidget::updateDisplayedValues);
+    connect(&m_model, &EventModel::dateChanged,
+            this,   &EventInspectorWidget::modelDateChanged);
 
     ////// HEADER
     // metadata
-    m_metadata = new MetadataWidget{&object->metadata, commandDispatcher(), object, this};
+    m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
     m_metadata->setType(EventModel::prettyName());
-    m_metadata->setupConnections(m_model);
+    m_metadata->setupConnections(&m_model);
 
     addHeader(m_metadata);
 
@@ -63,14 +65,14 @@ EventInspectorWidget::EventInspectorWidget(
     infoWidg->setLayout(infoLay);
 
     // date
-    m_date = new QLabel{QString::number(object->date().msec())} ;
+    m_date = new QLabel{QString::number(m_model.date().msec())} ;
     infoLay->addRow(tr("Default date"), m_date);
 
     // timeNode
-    auto timeNode = m_model->timeNode();
+    auto timeNode = m_model.timeNode();
     if(timeNode)
     {
-        auto scenar = m_model->parentScenario();
+        auto scenar = m_model.parentScenario();
         auto tnBtn = SelectionButton::make(
                 &scenar->timeNode(timeNode),
                 selectionDispatcher(),
@@ -182,7 +184,7 @@ EventInspectorWidget::EventInspectorWidget(
     // Plugins (TODO factorize with ConstraintInspectorWidget)
     iscore::Document* doc = iscore::IDocument::documentFromObject(object);
 
-    for(auto& plugdata : object->pluginModelList->list())
+    for(auto& plugdata : m_model.pluginModelList->list())
     {
         for(iscore::DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
         {
@@ -195,17 +197,16 @@ EventInspectorWidget::EventInspectorWidget(
         }
     }
 
-    updateDisplayedValues(object);
+    updateDisplayedValues();
 
 
     // Display data
     updateAreaLayout(m_properties);
 }
 
-#include "Inspector/State/StateInspectorWidget.hpp"
-void EventInspectorWidget::addState(const StateModel* state)
+void EventInspectorWidget::addState(const StateModel& state)
 {
-    auto sw = new StateInspectorWidget{*state, this};
+    auto sw = new StateInspectorWidget{state, this};
 
     m_states.push_back(sw);
     m_statesWidget->layout()->addWidget(sw);
@@ -216,9 +217,7 @@ void EventInspectorWidget::focusState(const StateModel* state)
     ISCORE_TODO;
 }
 
-#include <Inspector/InspectorWidgetList.hpp>
-void EventInspectorWidget::updateDisplayedValues(
-        const EventModel* event)
+void EventInspectorWidget::updateDisplayedValues()
 {
     // Cleanup
     for(auto& elt : m_states)
@@ -229,23 +228,19 @@ void EventInspectorWidget::updateDisplayedValues(
     m_states.clear();
     m_date->clear();
 
-    // DEMO
-    if(event)
+    m_date->setText(QString::number(m_model.date().msec()));
+
+    const auto& scenar = m_model.parentScenario();
+    for(const auto& state : m_model.states())
     {
-        m_date->setText(QString::number(m_model->date().msec()));
-
-        auto scenar = event->parentScenario();
-        for(const auto& state : event->states())
-        {
-            addState(&scenar->state(state));
-        }
+        addState(scenar->state(state));
+    }
 
 
-        /*
+    /*
         m_conditionLineEdit->setText(event->condition());
         m_triggerLineEdit->setText(event->trigger());
         */
-    }
 }
 
 
@@ -291,12 +286,12 @@ void EventInspectorWidget::on_conditionChanged()
 {
     auto txt = m_conditionLineEdit->text();
 
-    if(txt == m_model->condition())
+    if(txt == m_model.condition())
     {
         return;
     }
 
-    auto cmd = new Scenario::Command::SetCondition{path(m_model), txt};
+    auto cmd = new Scenario::Command::SetCondition{unsafe_path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -304,21 +299,16 @@ void EventInspectorWidget::on_triggerChanged()
 {
     auto txt = m_triggerLineEdit->text();
 
-    if(txt == m_model->trigger())
+    if(txt == m_model.trigger())
     {
         return;
     }
 
-    auto cmd = new Scenario::Command::SetTrigger{path(m_model), txt};
+    auto cmd = new Scenario::Command::SetTrigger{unsafe_path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
-}
-
-void EventInspectorWidget::updateInspector()
-{
-    updateDisplayedValues(m_model);
 }
 
 void EventInspectorWidget::modelDateChanged()
 {
-    m_date->setText(QString::number(m_model->date().msec()));
+    m_date->setText(QString::number(m_model.date().msec()));
 }

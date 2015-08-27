@@ -373,7 +373,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
-                    iscore::IDocument::documentFromObject(m_layer.processModel())->commandStack());
+                    iscore::IDocument::commandStack(m_layer.processModel()));
 
         auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
                        static_cast<ScenarioModel&>(layerModel().processModel()),

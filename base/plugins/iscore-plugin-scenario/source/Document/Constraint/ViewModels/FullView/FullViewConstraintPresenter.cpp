@@ -29,7 +29,7 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
 
     // Update the address bar
     auto addressBar = static_cast<FullViewConstraintHeader*>(m_header)->bar();
-    addressBar->setTargetObject(iscore::IDocument::path(cstr_model.model()));
+    addressBar->setTargetObject(iscore::IDocument::unsafe_path(cstr_model.model()));
     connect(addressBar, &AddressBarItem::objectSelected,
             this, &FullViewConstraintPresenter::objectSelected);
 }

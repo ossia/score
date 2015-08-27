@@ -14,14 +14,8 @@ CurveStateMachine::CurveStateMachine(
         QObject* parent):
     BaseStateMachine{*pres.view().scene()},
     m_presenter{pres},
-    m_stack{
-        iscore::IDocument::documentFromObject(
-            m_presenter.model()) ->commandStack()
-        },
-    m_locker{
-        iscore::IDocument::documentFromObject(
-            m_presenter.model()) ->locker()
-        }
+    m_stack{iscore::IDocument::commandStack(m_presenter.model())},
+    m_locker{iscore::IDocument::locker(m_presenter.model())}
 {
     setupPostEvents();
     setupStates();

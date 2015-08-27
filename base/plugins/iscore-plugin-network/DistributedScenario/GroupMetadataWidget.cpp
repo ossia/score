@@ -32,8 +32,10 @@ GroupMetadataWidget::GroupMetadataWidget(
         updateLabel(grp);
     });
 
-    connect(m_groups, &GroupManager::groupAdded,   this, &GroupMetadataWidget::on_groupAdded);
-    connect(m_groups, &GroupManager::groupRemoved, this, &GroupMetadataWidget::on_groupRemoved);
+    connect(m_groups, &GroupManager::groupAdded,
+            this, &GroupMetadataWidget::on_groupAdded);
+    connect(m_groups, &GroupManager::groupRemoved,
+            this, &GroupMetadataWidget::on_groupRemoved);
 
     updateLabel(groupmetadata.group());
 }
@@ -54,11 +56,10 @@ void GroupMetadataWidget::on_indexChanged(int)
     auto data = m_combo->currentData().value<id_type<Group>>();
     if(m_object.group() != data)
     {
-        auto doc = iscore::IDocument::documentFromObject(m_groups);
-        CommandDispatcher<> dispatcher{doc->commandStack()};
+        CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_groups)};
         dispatcher.submitCommand(
                     new ChangeGroup{
-                        iscore::IDocument::path(m_object.element()),
+                        iscore::IDocument::unsafe_path(m_object.element()),
                                                 data});
     }
 }

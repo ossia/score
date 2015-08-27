@@ -58,7 +58,7 @@ RackInspectorSection::RackInspectorSection(
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
         auto cmd = new RemoveRackFromConstraint{
-                   iscore::IDocument::path(parentConstraint->model()),
+                   iscore::IDocument::unsafe_path(parentConstraint->model()),
                    m_model.id()};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
@@ -68,7 +68,7 @@ RackInspectorSection::RackInspectorSection(
 void RackInspectorSection::createSlot()
 {
     auto cmd = new AddSlotToRack(
-                   iscore::IDocument::path(m_model));
+                   iscore::IDocument::unsafe_path(m_model));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }

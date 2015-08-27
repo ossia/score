@@ -12,7 +12,7 @@ StateTreeView::StateTreeView(const StateModel& model,
     QTreeView{parent},
     m_model{const_cast<StateModel*>(&model)}, // sorry o lord for I have sinned
     m_devExplorer{devexplorer},
-    m_dispatcher{iscore::IDocument::documentFromObject(*m_model)->commandStack()}
+    m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     this->setModel(&m_model->states());
 }

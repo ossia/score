@@ -18,19 +18,18 @@ class EventInspectorWidget : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit EventInspectorWidget(
-                const EventModel* object,
+                const EventModel& object,
                 QWidget* parent = 0);
 
-        void addState(const StateModel* state);
+        void addState(const StateModel& state);
         void focusState(const StateModel* state);
 
     public slots:
-        void updateDisplayedValues(const EventModel* obj);
+        void updateDisplayedValues();
 
         void on_conditionChanged();
         void on_triggerChanged();
 
-        void updateInspector();
         void modelDateChanged();
 
     private:
@@ -43,7 +42,7 @@ class EventInspectorWidget : public InspectorWidgetBase
         QLineEdit* m_triggerLineEdit{};
         QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
-        const EventModel* m_model{};
+        const EventModel& m_model;
 
         MetadataWidget* m_metadata {};
 };

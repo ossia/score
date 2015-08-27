@@ -6,10 +6,10 @@
 //using namespace iscore;
 
 InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
-        const QObject* sourceElement,
+        const QObject& sourceElement,
         QWidget* parent)
 {
-    auto timeNode = static_cast<const TimeNodeModel*>(sourceElement);
+    auto& timeNode = static_cast<const TimeNodeModel&>(sourceElement);
     return new TimeNodeInspectorWidget{timeNode, parent};
 }
 

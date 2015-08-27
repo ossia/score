@@ -34,7 +34,7 @@ BaseScenarioStateMachine::BaseScenarioStateMachine(BaseElementPresenter* pres):
     // TODO cancel
 
     auto moveSlotState = new BaseMoveSlot(*m_presenter->view()->scene(),
-                                           iscore::IDocument::documentFromObject(m_presenter->model())->commandStack(),
+                                           iscore::IDocument::commandStack(m_presenter->model()),
                                            *this);
     setInitialState(moveSlotState);
     start();

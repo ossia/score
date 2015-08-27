@@ -12,6 +12,7 @@ namespace iscore
     class CommandStack;
     class SelectionStack;
     class PanelModel;
+    class ObjectLocker;
 
     namespace IDocument
     {
@@ -24,6 +25,10 @@ namespace iscore
         Document* documentFromObject(const QObject* obj);
         Document* documentFromObject(const QObject& obj);
 
+        iscore::CommandStack& commandStack(const QObject& obj);
+        iscore::SelectionStack& selectionStack(const QObject& obj);
+        iscore::ObjectLocker& locker(const QObject& obj);
+
 
         /**
         * @brief pathFromDocument
@@ -31,13 +36,13 @@ namespace iscore
         *
         * @return The path between a Document and this object.
         */
-        ObjectPath path(QObject const * const& obj);
-        ObjectPath path(const QObject& obj);
+        ObjectPath unsafe_path(QObject const * const& obj);
+        ObjectPath unsafe_path(const QObject& obj);
 
         template<typename T>
         ModelPath<T> safe_path(const T& obj)
         {
-            return path(static_cast<const QObject&>(obj));
+            return unsafe_path(static_cast<const QObject&>(obj));
         }
 
 

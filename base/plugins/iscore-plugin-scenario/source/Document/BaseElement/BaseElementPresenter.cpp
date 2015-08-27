@@ -24,9 +24,9 @@
 #include "BaseScenario/BaseScenarioStateMachine.hpp"
 using namespace iscore;
 
-BaseElementModel* BaseElementPresenter::model() const
+BaseElementModel& BaseElementPresenter::model() const
 {
-    return static_cast<BaseElementModel*>(m_model);
+    return static_cast<BaseElementModel&>(*m_model);
 }
 
 ZoomRatio BaseElementPresenter::zoomRatio() const
@@ -62,7 +62,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
             this,  &BaseElementPresenter::on_zoomOnWheelEvent);
     connect(view(), &BaseElementView::horizontalPositionChanged,
             this,   &BaseElementPresenter::on_horizontalPositionChanged);
-    connect(model(), &BaseElementModel::focusMe,
+    connect(&model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
 
@@ -70,21 +70,21 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     m_stateMachine = new BaseScenarioStateMachine{this};
 
     // Show our constraint
-    connect(model(), &BaseElementModel::displayedConstraintChanged,
+    connect(&model(), &BaseElementModel::displayedConstraintChanged,
             this, &BaseElementPresenter::on_displayedConstraintChanged);
 
-    model()->setDisplayedConstraint(&model()->baseConstraint());
+    model().setDisplayedConstraint(&model().baseConstraint());
 
     // Progress bar, time rules
     /*
-    m_mainTimeRuler->setDuration(model()->baseConstraint().duration.defaultDuration());
-    m_localTimeRuler->setDuration(model()->baseConstraint().duration.defaultDuration());
+    m_mainTimeRuler->setDuration(model().baseConstraint().duration.defaultDuration());
+    m_localTimeRuler->setDuration(model().baseConstraint().duration.defaultDuration());
     */
 }
 
 const ConstraintModel& BaseElementPresenter::displayedConstraint() const
 {
-    return model()->displayedElements.displayedConstraint();
+    return model().displayedElements.displayedConstraint();
 }
 
 void BaseElementPresenter::on_askUpdate()
@@ -94,7 +94,7 @@ void BaseElementPresenter::on_askUpdate()
 
 void BaseElementPresenter::selectAll()
 {
-    auto processmodel = model()->focusManager().focusedModel();
+    auto processmodel = model().focusManager().focusedModel();
     if(processmodel)
     {
         m_selectionDispatcher.setAndCommit(processmodel->selectableChildren());
@@ -110,7 +110,7 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().last().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
     {
-        model()->setDisplayedConstraint(&path.find<ConstraintModel>());
+        model().setDisplayedConstraint(&path.find<ConstraintModel>());
     }
 }
 

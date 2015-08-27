@@ -76,7 +76,7 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
     // Creation of all the constraint view models
     for(auto& viewModel : layers(scenario))
     {
-        auto lm_id = iscore::IDocument::path(viewModel);
+        auto lm_id = iscore::IDocument::unsafe_path(viewModel);
 
         if(idMap.contains(lm_id))
         {

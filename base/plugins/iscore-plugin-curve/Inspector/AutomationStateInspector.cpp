@@ -4,9 +4,9 @@
 #include <QHBoxLayout>
 
 AutomationStateInspector::AutomationStateInspector(
-        const AutomationState* object,
+        const AutomationState& object,
         QWidget* parent):
-    InspectorWidgetBase{nullptr, parent}, // NOTE: this will crash if trying to send commands
+    InspectorWidgetBase{object, parent}, // NOTE: this will crash if trying to send commands
     m_state{object},
     m_label{new QLabel}
 {
@@ -14,7 +14,7 @@ AutomationStateInspector::AutomationStateInspector(
     vec.push_back(m_label);
 
 
-    connect(m_state, &DynamicStateDataInterface::stateChanged,
+    connect(&m_state, &DynamicStateDataInterface::stateChanged,
             this,    &AutomationStateInspector::on_stateChanged);
 
     on_stateChanged();
@@ -24,5 +24,5 @@ AutomationStateInspector::AutomationStateInspector(
 
 void AutomationStateInspector::on_stateChanged()
 {
-    m_label->setText(m_state->message().toString());
+    m_label->setText(m_state.message().toString());
 }

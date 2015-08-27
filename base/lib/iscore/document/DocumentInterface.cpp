@@ -32,14 +32,14 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject& obj)
     return documentFromObject(&obj);
 }
 
-ObjectPath iscore::IDocument::path(QObject const * const&  obj)
+ObjectPath iscore::IDocument::unsafe_path(QObject const * const&  obj)
 {
     return ObjectPath::pathBetweenObjects(&documentFromObject(obj)->model(), obj);
 }
 
-ObjectPath iscore::IDocument::path(const QObject &obj)
+ObjectPath iscore::IDocument::unsafe_path(const QObject &obj)
 {
-    return path(&obj);
+    return unsafe_path(&obj);
 }
 
 iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate_generic(const iscore::Document& d)
@@ -59,3 +59,18 @@ const QList<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Docume
     return d->model().panels();
 }
 
+
+iscore::CommandStack &iscore::IDocument::commandStack(const QObject &obj)
+{
+    return documentFromObject(obj)->commandStack();
+}
+
+iscore::SelectionStack &iscore::IDocument::selectionStack(const QObject &obj)
+{
+    return documentFromObject(obj)->selectionStack();
+}
+
+iscore::ObjectLocker &iscore::IDocument::locker(const QObject &obj)
+{
+    return documentFromObject(obj)->locker();
+}

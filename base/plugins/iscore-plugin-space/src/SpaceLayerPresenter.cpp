@@ -15,7 +15,11 @@ SpaceLayerPresenter::SpaceLayerPresenter(const LayerModel& model, LayerView* vie
 {
     const SpaceProcess& procmodel = static_cast<SpaceProcess&>(m_model.processModel());
     m_spaceWindowView = new QMainWindow;
-    m_spaceWindowView->setCentralWidget(new SpaceGuiWindow{iscore::IDocument::documentFromObject(model)->commandStack(), procmodel, m_spaceWindowView});
+    m_spaceWindowView->setCentralWidget(
+                new SpaceGuiWindow{
+                    iscore::IDocument::commandStack(model),
+                    procmodel,
+                    m_spaceWindowView});
 
     connect(m_view, SIGNAL(guiRequested()), m_spaceWindowView, SLOT(show()));
     for(const auto& area : ::model(m_model).areas())

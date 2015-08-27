@@ -13,7 +13,7 @@ class AutomationInspectorFactory : public InspectorWidgetFactory
         }
 
         virtual InspectorWidgetBase* makeWidget(
-                const QObject* sourceElement,
+                const QObject& sourceElement,
                 QWidget* parent) override;
 
         virtual QList<QString> correspondingObjectsNames() const override

@@ -25,7 +25,7 @@ SerializedConstraintViewModels serializeConstraintViewModels(
     {
         const ConstraintViewModel& cstrVM = viewModel->constraint(constraint.id());
 
-        auto lm_id = iscore::IDocument::path(viewModel);
+        auto lm_id = iscore::IDocument::unsafe_path(viewModel);
         QByteArray arr;
 
         if(const auto& temporalCstrVM = dynamic_cast<const TemporalConstraintViewModel*>(&cstrVM))
@@ -54,7 +54,7 @@ void deserializeConstraintViewModels(
     {
         if(TemporalScenarioLayerModel* temporalSVM = dynamic_cast<TemporalScenarioLayerModel*>(viewModel))
         {
-            auto svm_id = iscore::IDocument::path(temporalSVM);
+            auto svm_id = iscore::IDocument::unsafe_path(temporalSVM);
 
             auto it = find_if(begin(vms), end(vms),
                           [&] (const auto& elt) { return elt.first == svm_id; });

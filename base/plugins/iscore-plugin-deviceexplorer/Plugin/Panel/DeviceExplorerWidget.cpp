@@ -274,7 +274,7 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 
 
         m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
-                iscore::IDocument::documentFromObject(model)->commandStack()};
+                iscore::IDocument::commandStack(*model)};
 
         populateColumnCBox();
 
@@ -474,7 +474,7 @@ void DeviceExplorerWidget::refresh()
         connect(worker, &ExplorationWorker::finished, this,
                 [=] () {
             auto cmd = new DeviceExplorer::Command::ReplaceDevice{
-                    iscore::IDocument::path(model()),
+                    iscore::IDocument::unsafe_path(model()),
                     m_ntView->selectedIndex().row(),
                     std::move(worker->node)};
 
@@ -526,7 +526,7 @@ void DeviceExplorerWidget::refreshValue()
 
     // Send the command
     auto cmd = new DeviceExplorer::Command::UpdateAddresses{
-                     iscore::IDocument::path(model()), lst};
+                     iscore::IDocument::unsafe_path(model()), lst};
 
     m_cmdDispatcher->submitCommand(cmd);
 }

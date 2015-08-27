@@ -10,16 +10,12 @@
 // TODO pass the commandStack & selectionStack in the ctor instead.
 // via the inspector control's currentDocument ?
 InspectorWidgetBase::InspectorWidgetBase(
-        const QObject* inspectedObj,
+        const QObject& inspectedObj,
         QWidget* parent) :
     QWidget(parent),
     m_inspectedObject {inspectedObj},
-    m_commandDispatcher(inspectedObj
-                          ? new CommandDispatcher<>{iscore::IDocument::documentFromObject(inspectedObj)->commandStack()}
-                          : nullptr),
-    m_selectionDispatcher(inspectedObj
-                           ? new iscore::SelectionDispatcher{iscore::IDocument::documentFromObject(inspectedObj)->selectionStack()}
-                           : nullptr)
+    m_commandDispatcher(new CommandDispatcher<>{iscore::IDocument::commandStack(inspectedObj)}),
+    m_selectionDispatcher(new iscore::SelectionDispatcher{iscore::IDocument::selectionStack(inspectedObj)})
 
 {
     m_layout = new QVBoxLayout;
@@ -50,7 +46,7 @@ InspectorWidgetBase::~InspectorWidgetBase()
 
 QString InspectorWidgetBase::tabName()
 {
-    return m_inspectedObject->objectName();
+    return m_inspectedObject.objectName();
 }
 
 void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
@@ -93,7 +89,7 @@ void InspectorWidgetBase::addHeader(QWidget* header)
     m_layout->insertWidget(0, header);
 }
 
-const QObject* InspectorWidgetBase::inspectedObject() const
+const QObject& InspectorWidgetBase::inspectedObject() const
 {
     return m_inspectedObject;
 }

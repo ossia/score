@@ -37,7 +37,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(ObjectPath&& constraint
         Serializer<DataStream> s{&vm_arr};
         s.readFrom(*layer);
 
-        m_serializedViewModels.append({iscore::IDocument::path(layer), vm_arr});
+        m_serializedViewModels.append({iscore::IDocument::unsafe_path(layer), vm_arr});
     }
 }
 

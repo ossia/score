@@ -137,7 +137,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
             l.push_back(DeviceExplorer::addressFromModelIndex(index));
         }
 
-        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(constraint), l};
+        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::unsafe_path(constraint), l};
         macro.submitCommand(cmd);
     }
 

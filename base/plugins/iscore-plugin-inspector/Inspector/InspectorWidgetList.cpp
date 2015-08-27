@@ -9,7 +9,7 @@ InspectorWidgetList::InspectorWidgetList(QObject* parent):
 }
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(const QString& name,
-                                                              const QObject* model,
+                                                              const QObject& model,
                                                               QWidget* parent)
 {
     auto iwl = qApp->findChild<InspectorWidgetList*>("InspectorWidgetList");

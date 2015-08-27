@@ -89,7 +89,7 @@ DragSlotState::DragSlotState(iscore::CommandStack& stack,
                     && releasedSlot.parent() == baseSlot.parent())
             {
                 auto cmd = new Scenario::Command::SwapSlots{
-                        iscore::IDocument::path(releasedSlot.parent()), // Rack
+                        iscore::IDocument::unsafe_path(releasedSlot.parent()), // Rack
                         baseSlot.id(), releasedSlot.id()};
                 m_dispatcher.submitCommand(cmd);
             }

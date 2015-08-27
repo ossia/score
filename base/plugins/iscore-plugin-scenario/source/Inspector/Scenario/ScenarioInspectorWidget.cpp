@@ -8,7 +8,7 @@
 #include <QPushButton>
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
-        const ScenarioModel* object,
+        const ScenarioModel& object,
         QWidget* parent) :
     InspectorWidgetBase {object, parent},
     m_model {object}
@@ -17,7 +17,7 @@ ScenarioInspectorWidget::ScenarioInspectorWidget(
     setParent(parent);
 
     QVector<QWidget*> vec;
-    vec.push_back(new QLabel{ QString::number(object->id_val())} );
+    vec.push_back(new QLabel{ QString::number(m_model.id_val())} );
 
     QPushButton* displayBtn = new QPushButton {tr("Display in new Slot"), this};
     vec.push_back(displayBtn);
@@ -25,7 +25,7 @@ ScenarioInspectorWidget::ScenarioInspectorWidget(
     connect(displayBtn, &QPushButton::clicked,
             [=] ()
     {
-        emit createViewInNewSlot(QString::number(m_model->id_val()));
+        emit createViewInNewSlot(QString::number(m_model.id_val()));
     });
 
     updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);

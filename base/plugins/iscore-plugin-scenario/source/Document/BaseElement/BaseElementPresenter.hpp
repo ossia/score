@@ -38,7 +38,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         virtual ~BaseElementPresenter() = default;
 
         const ConstraintModel& displayedConstraint() const;
-        BaseElementModel* model() const;
+        BaseElementModel& model() const;
         BaseElementView* view() const;
 
         // The height in pixels of the displayed constraint with its rack.

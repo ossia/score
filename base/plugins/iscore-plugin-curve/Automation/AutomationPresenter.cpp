@@ -18,7 +18,7 @@ AutomationPresenter::AutomationPresenter(
     LayerPresenter {"AutomationPresenter", parent},
     m_viewModel{static_cast<const AutomationLayerModel&>(model)},
     m_view{static_cast<AutomationView*>(view)},
-    m_commandDispatcher{iscore::IDocument::documentFromObject(m_viewModel.processModel())->commandStack()},
+    m_commandDispatcher{iscore::IDocument::commandStack(m_viewModel.processModel())},
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.processModel())}
 {
     connect(&m_viewModel.model(), &AutomationModel::curveChanged,

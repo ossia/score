@@ -55,9 +55,10 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
 
     for(const auto& object : toCreate)
     {
-        auto widget = InspectorWidgetList::makeInspectorWidget(object->objectName(),
-                                                               object,
-                                                               m_tabWidget);
+        auto widget = InspectorWidgetList::makeInspectorWidget(
+                    object->objectName(),
+                    *object,
+                    m_tabWidget);
         m_tabWidget->addTab(widget, widget->tabName());
         m_map.insert(widget);
     }
@@ -71,7 +72,7 @@ void InspectorPanel::on_tabClose(int index)
     // TODO need m_tabWidget.movable() = false !
 
     Selection sel = m_currentSel;
-    sel.erase(inspector_widget->inspectedObject());
+    sel.erase(inspector_widget->inspectedObject_addr());
 
     m_selectionDispatcher.setAndCommit(sel);
 }

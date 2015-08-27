@@ -13,7 +13,7 @@ class StateInspectorWidget : public InspectorWidgetBase
                 QWidget* parent);
 
     public slots:
-        void updateDisplayedValues(const StateModel* obj);
+        void updateDisplayedValues();
 
     private:
         QVector<QWidget*> m_properties;
