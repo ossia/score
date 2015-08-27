@@ -1,5 +1,12 @@
 #pragma once
 
+namespace iscore
+{
+/**
+ * @brief The MarginLess class
+ *
+ * A mixin that removes the margin of a layout.
+ */
 template<typename Layout>
 class MarginLess : public Layout
 {
@@ -10,3 +17,4 @@ class MarginLess : public Layout
             this->setSpacing(0);
         }
 };
+}

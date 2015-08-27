@@ -1,18 +1,18 @@
 #pragma once
 #include <QMetaType>
-#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
+#include <State/DynamicStateDataInterface.hpp>
 
 /**
- * @brief The ProcessState class
+ * @brief The DynamicState class
  *
  * A wrapper for dynamic states defined in plug-ins. It is to be used
  * as a data member in a StateNode.
  */
-class ProcessState
+class DynamicState
 {
     public:
-        ProcessState() = default;
-        ProcessState(const ProcessState& other):
+        DynamicState() = default;
+        DynamicState(const DynamicState& other):
             m_data{other.m_data
                     ? other.m_data->clone()
                     : nullptr}
@@ -20,8 +20,8 @@ class ProcessState
 
         }
 
-        ProcessState(ProcessState&&) = default;
-        ProcessState& operator=(const ProcessState& other)
+        DynamicState(DynamicState&&) = default;
+        DynamicState& operator=(const DynamicState& other)
         {
             if(&other == this)
                 return *this;
@@ -33,7 +33,7 @@ class ProcessState
             return *this;
         }
 
-        ProcessState& operator=(ProcessState&& other)
+        DynamicState& operator=(DynamicState&& other)
         {
             if(&other == this)
                 return *this;
@@ -44,24 +44,24 @@ class ProcessState
             return *this;
         }
 
-        explicit ProcessState(ProcessStateDataInterface* d):
+        explicit DynamicState(DynamicStateDataInterface* d):
             m_data{d}
         {
 
         }
 
-        bool operator==(const ProcessState& p) const
+        bool operator==(const DynamicState& p) const
         {
             return m_data == p.m_data;
         }
 
-        bool operator<(const ProcessState& p) const
+        bool operator<(const DynamicState& p) const
         {
             return false;
         }
 
     private:
-        ProcessStateDataInterface* m_data{};
+        DynamicStateDataInterface* m_data{};
 };
 
-Q_DECLARE_METATYPE(ProcessState)
+Q_DECLARE_METATYPE(DynamicState)

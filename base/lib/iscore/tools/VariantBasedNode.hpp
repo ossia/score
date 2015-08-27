@@ -9,6 +9,20 @@
 
 #include <iscore/tools/InvisibleRootNode.hpp>
 
+namespace iscore
+{
+
+/**
+ * @brief The VariantBasedNode class
+ *
+ * A node which can hold a single data element at the time.
+ * All the arguments passed to Args are potential data member.
+ *
+ * Additionally, a special tag InvisibleRootNodeTag is added to serve as root
+ * element, since this is necessary in the case of QAbstractItemModel.
+ *
+ * For instance, VariantBasedNode<int, QString> will have three possible data types.
+ */
 template<typename... Args>
 class VariantBasedNode
 {
@@ -16,6 +30,13 @@ class VariantBasedNode
         VariantBasedNode(const VariantBasedNode& t) = default;
         VariantBasedNode(VariantBasedNode&& t) = default;
         VariantBasedNode& operator=(const VariantBasedNode& t) = default;
+
+        VariantBasedNode():
+            m_data{InvisibleRootNodeTag{}}
+        {
+
+        }
+
         template<typename T>
         VariantBasedNode(const T& t):
             m_data{t}
@@ -23,6 +44,11 @@ class VariantBasedNode
 
         }
 
+        /**
+         * @brief is Checks the type of the node.
+         *
+         * @return true if T is the currently stored type.
+         */
         template<typename T>
         bool is() const { return m_data.template target<T>() != nullptr; }
 
@@ -39,8 +65,10 @@ class VariantBasedNode
         { return m_data.which(); }
 
     protected:
-        eggs::variant<Args...> m_data;
+        eggs::variant<InvisibleRootNodeTag, Args...> m_data;
 };
+}
+
 
 template<typename... Args>
 void Visitor<Reader<DataStream>>::readFrom(const eggs::variant<Args...>& var)
@@ -52,7 +80,7 @@ void Visitor<Reader<DataStream>>::readFrom(const eggs::variant<Args...>& var)
         // This trickery iterates over all the types in Args...
         // A single type should be serialized, even if we cannot break.
         bool done = false;
-        typedef boost::mpl::list<Args...> typelist;
+        using typelist = boost::mpl::list<Args...>;
         boost::mpl::for_each<typelist>([&] (auto&& elt) {
             if(done)
                 return;
@@ -79,7 +107,7 @@ void Visitor<Writer<DataStream>>::writeTo(eggs::variant<Args...>& var)
     {
         // Here we iterate until we are on the correct type, and we deserialize it.
         quint64 i = 0;
-        typedef boost::mpl::list<Args...> typelist;
+        using typelist = boost::mpl::list<Args...>;
         boost::mpl::for_each<typelist>([&] (auto&& elt) {
             if(i++ != which)
                 return;
@@ -102,7 +130,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const eggs::variant<Args...>& var)
     if((quint64)var.which() != (quint64)var.npos)
     {
         bool done = false;
-        typedef boost::mpl::list<Args...> typelist;
+        using typelist = boost::mpl::list<Args...>;
         boost::mpl::for_each<typelist>([&] (auto&& elt) {
             if(done)
                 return;
@@ -122,7 +150,7 @@ template<typename... Args>
 void Visitor<Writer<JSONObject>>::writeTo(eggs::variant<Args...>& var)
 {
     bool done = false;
-    typedef boost::mpl::list<Args...> typelist;
+    using typelist = boost::mpl::list<Args...>;
     boost::mpl::for_each<typelist>([&] (auto&& elt) {
         if(done)
             return;

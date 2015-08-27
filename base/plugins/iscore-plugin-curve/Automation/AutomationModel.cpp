@@ -211,12 +211,12 @@ void AutomationModel::setCurve(CurveModel* newCurve)
 
 
 // TODO fix memory leak
-ProcessStateDataInterface* AutomationModel::startState() const
+DynamicStateDataInterface* AutomationModel::startState() const
 {
     return new AutomationState{this, 0.};
 }
 
-ProcessStateDataInterface* AutomationModel::endState() const
+DynamicStateDataInterface* AutomationModel::endState() const
 {
     return new AutomationState{this, 1.};
 }

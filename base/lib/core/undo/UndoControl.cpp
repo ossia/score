@@ -46,7 +46,7 @@ void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
                                        m_redoAction);
 }
 
-QList<OrderedToolbar> iscore::UndoControl::makeToolbars()
+QList<iscore::OrderedToolbar> iscore::UndoControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addAction(m_undoAction);

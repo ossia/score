@@ -9,7 +9,7 @@
 SpaceGuiWindow::SpaceGuiWindow(iscore::CommandStack &stack, const SpaceProcess &space, QWidget* parent) :
     QWidget{parent}
 {
-    auto lay = new MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>;
 
     QTabWidget* tabs = new QTabWidget;
     lay->addWidget(tabs);

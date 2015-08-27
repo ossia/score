@@ -58,7 +58,7 @@ void MessageListEditor::removeMessage(int i)
 
 void MessageListEditor::updateLayout()
 {
-    clearLayout(m_messageListLayout);
+    iscore::clearLayout(m_messageListLayout);
     int i = 0;
     for(auto& mess : m_messages)
     {

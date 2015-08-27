@@ -11,14 +11,14 @@ SpaceTab::SpaceTab(const SpaceModel& space, QWidget *parent):
     QWidget{parent},
     m_space{space}
 {
-    auto lay = new MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>;
     this->setLayout(lay);
 
     // Widgets relative to the space & dimension properties
     {
         auto dimBox = new QGroupBox{tr("Dimensions")};
         lay->addWidget(dimBox);
-        m_dimensionLayout = new MarginLess<QVBoxLayout>;
+        m_dimensionLayout = new iscore::MarginLess<QVBoxLayout>;
 
         for(const auto& dim : m_space.dimensions())
         {
@@ -36,7 +36,7 @@ SpaceTab::SpaceTab(const SpaceModel& space, QWidget *parent):
     {
         auto viewportBox = new QGroupBox{tr("Viewports")};
         lay->addWidget(viewportBox);
-        m_viewportLayout = new MarginLess<QVBoxLayout>;
+        m_viewportLayout = new iscore::MarginLess<QVBoxLayout>;
 
         for(const auto& vp : m_space.viewports())
         {

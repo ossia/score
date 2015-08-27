@@ -65,8 +65,8 @@ class AutomationModel : public Process
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        DynamicStateDataInterface* startState() const override;
+        DynamicStateDataInterface* endState() const override;
 
         //// AutomationModel specifics ////
         iscore::Address address() const;

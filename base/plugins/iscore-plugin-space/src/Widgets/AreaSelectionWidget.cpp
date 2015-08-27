@@ -12,7 +12,7 @@
 AreaSelectionWidget::AreaSelectionWidget(QWidget* parent):
     QWidget{parent}
 {
-    auto lay = new MarginLess<QHBoxLayout>;
+    auto lay = new iscore::MarginLess<QHBoxLayout>;
     this->setLayout(lay);
 
     m_comboBox = new QComboBox;

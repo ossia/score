@@ -10,7 +10,7 @@ AreaTab::AreaTab(
     QWidget{parent},
     m_space{space}
 {
-    auto lay = new MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>;
     this->setLayout(lay);
 
     auto list_widg = new QWidget;

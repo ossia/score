@@ -67,31 +67,3 @@ void Visitor<Writer<JSONObject>>::writeTo(MessageList& mess)
     mess = t;
 }
 
-
-// TODO moveme
-#include "ProcessState.hpp"
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const ProcessState& mess)
-{
-    ISCORE_TODO;
-    insertDelimiter();
-}
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ProcessState& mess)
-{
-    ISCORE_TODO;
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(ProcessState& mess)
-{
-    ISCORE_TODO;
-    checkDelimiter();
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(ProcessState& mess)
-{
-    ISCORE_TODO;
-}

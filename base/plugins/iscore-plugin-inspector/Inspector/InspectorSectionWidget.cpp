@@ -10,7 +10,7 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
 {
     // HEADER : arrow button and name
     auto title = new QWidget;
-    auto titleLayout = new MarginLess<QHBoxLayout>;
+    auto titleLayout = new iscore::MarginLess<QHBoxLayout>;
 
     m_btn = new QToolButton;
     m_btn->setAutoRaise(true);
@@ -19,7 +19,7 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     m_buttonTitle->setFlat(true);
     m_buttonTitle->setText("section name");
     m_buttonTitle->setStyleSheet("text-align: left;");
-    auto buttontitle_lay = new MarginLess<QVBoxLayout>;
+    auto buttontitle_lay = new iscore::MarginLess<QVBoxLayout>;
     m_buttonTitle->setLayout(buttontitle_lay);
 
     titleLayout->addWidget(m_btn);
@@ -29,12 +29,12 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     // CONTENT
     m_container = new QWidget;
     m_container->setContentsMargins(0,0,0,0);
-    m_containerLayout = new MarginLess<QVBoxLayout>;
+    m_containerLayout = new iscore::MarginLess<QVBoxLayout>;
     m_containerLayout->addStretch();
     m_container->setLayout(m_containerLayout);
 
     // GENERAL
-    auto globalLayout = new MarginLess<QVBoxLayout>;
+    auto globalLayout = new iscore::MarginLess<QVBoxLayout>;
     globalLayout->addWidget(title);
     globalLayout->addWidget(m_container);
     this->setContentsMargins(0,0,0,0);

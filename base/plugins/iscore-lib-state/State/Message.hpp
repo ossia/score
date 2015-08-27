@@ -64,10 +64,10 @@ struct Message
 };
 
 using MessageList = QList<Message>;
-}
 inline bool operator<(const iscore::MessageList&, const iscore::MessageList&)
 {
     return false;
+}
 }
 
 Q_DECLARE_METATYPE(iscore::Message)

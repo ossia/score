@@ -3,7 +3,7 @@
 ComputationsTab::ComputationsTab(QWidget *parent):
     QWidget{parent}
 {
-    auto lay = new MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>;
     this->setLayout(lay);
 
 }

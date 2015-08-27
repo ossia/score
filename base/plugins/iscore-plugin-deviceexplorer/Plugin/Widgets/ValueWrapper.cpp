@@ -8,13 +8,13 @@
 ValueWrapper::ValueWrapper(QWidget *parent):
     QWidget{parent}
 {
-    m_lay = new MarginLess<QGridLayout>;
+    m_lay = new iscore::MarginLess<QGridLayout>;
     this->setLayout(m_lay);
 }
 
 void ValueWrapper::setWidget(ValueWidget *widg)
 {
-    clearLayout(m_lay);
+    iscore::clearLayout(m_lay);
     m_widget = widg;
 
     if(widg)

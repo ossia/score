@@ -12,7 +12,7 @@
 AddressEditWidget::AddressEditWidget(DeviceExplorerModel* model, QWidget* parent):
     QWidget{parent}
 {
-    auto lay = new MarginLess<QVBoxLayout>;
+    auto lay = new iscore::MarginLess<QVBoxLayout>;
 
     m_lineEdit = new AddressLineEdit{this};
 

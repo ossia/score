@@ -6,7 +6,7 @@
 StringValueWidget::StringValueWidget(const QString &value, QWidget *parent)
     : ValueWidget{parent}
 {
-    auto lay = new MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>;
     m_value = new QLineEdit;
     lay->addWidget(m_value);
     m_value->setText(value);

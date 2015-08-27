@@ -10,10 +10,10 @@ AutomationState::AutomationState(const AutomationModel* model, double watchedPoi
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
     connect(model, &AutomationModel::curveChanged,
-            this, &ProcessStateDataInterface::stateChanged);
+            this, &DynamicStateDataInterface::stateChanged);
 
     connect(model, &AutomationModel::addressChanged,
-            this, &ProcessStateDataInterface::stateChanged);
+            this, &DynamicStateDataInterface::stateChanged);
 }
 
 iscore::Message AutomationState::message() const

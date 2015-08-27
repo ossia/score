@@ -20,7 +20,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const StateData& state)
 template<> class TypeToName<iscore::MessageList>
 { public: static constexpr const char * name() { return "MessageList"; } };
 
-template<> class TypeToName<ProcessState>
+template<> class TypeToName<DynamicState>
 { public: static constexpr const char * name() { return "ProcessState"; } };
 
 template<>

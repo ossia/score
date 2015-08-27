@@ -108,8 +108,8 @@ class Process: public IdentifiedObject<Process>
         virtual void reset() = 0;
 
         /// States
-        virtual ProcessStateDataInterface* startState() const = 0;
-        virtual ProcessStateDataInterface* endState() const = 0;
+        virtual DynamicStateDataInterface* startState() const = 0;
+        virtual DynamicStateDataInterface* endState() const = 0;
 
         /// Selection
         virtual Selection selectableChildren() const = 0;

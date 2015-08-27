@@ -8,7 +8,7 @@
 BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
     : ValueWidget{parent}
 {
-    auto lay = new MarginLess<QGridLayout>;
+    auto lay = new iscore::MarginLess<QGridLayout>;
     m_value = new QComboBox;
     m_value->addItems({tr("False"), tr("True")});
 

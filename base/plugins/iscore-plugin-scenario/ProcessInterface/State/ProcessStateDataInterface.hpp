@@ -1,21 +1,18 @@
 #pragma once
 #include <QObject>
+#include <State/DynamicStateDataInterface.hpp>
+
 class Process;
-class ProcessStateDataInterface : public QObject
+
+class ProcessStateDataInterface : public DynamicStateDataInterface
 {
-        Q_OBJECT
     public:
         ProcessStateDataInterface(const Process* model):
+            DynamicStateDataInterface{},
             m_model{model}
         {
 
         }
-
-        virtual QString stateName() const = 0;
-        virtual ProcessStateDataInterface* clone() const = 0;
-
-    signals:
-        void stateChanged();
 
     protected:
         const Process* model() const

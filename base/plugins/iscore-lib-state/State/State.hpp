@@ -8,7 +8,7 @@
 #include <iscore/tools/TreePath.hpp>
 #include <iscore/tools/VariantBasedNode.hpp>
 #include <State/Message.hpp>
-#include <State/ProcessState.hpp>
+#include <State/DynamicState.hpp>
 
 namespace iscore
 {
@@ -29,8 +29,7 @@ namespace iscore
  */
 class StateData : public VariantBasedNode<
         iscore::MessageList,
-        ProcessState,
-        InvisibleRootNodeTag>
+        DynamicState>
 {
         ISCORE_SERIALIZE_FRIENDS(StateData, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateData, JSONObject)
@@ -39,14 +38,9 @@ class StateData : public VariantBasedNode<
         StateData(const StateData& t) = default;
         StateData(StateData&& t) = default;
         StateData& operator=(const StateData& t) = default;
-        StateData():
-            VariantBasedNode{InvisibleRootNodeTag{}}
-        {
-
-        }
-
+        StateData() = default;
         explicit StateData(const QString& name):
-            VariantBasedNode{InvisibleRootNodeTag{}},
+            VariantBasedNode{},
             m_name(name)
         {
 

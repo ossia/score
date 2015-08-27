@@ -14,8 +14,8 @@ class NumericValueWidget : public ValueWidget
                 QWidget* parent = nullptr)
             : ValueWidget{parent}
         {
-            auto lay = new MarginLess<QGridLayout>;
-            m_valueSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
+            auto lay = new iscore::MarginLess<QGridLayout>;
+            m_valueSBox = new iscore::SpinBox<T>(this);
             lay->addWidget(m_valueSBox);
             m_valueSBox->setValue(value);
             this->setLayout(lay);
@@ -27,5 +27,5 @@ class NumericValueWidget : public ValueWidget
         }
 
     private:
-        typename TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
+        typename iscore::TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
 };

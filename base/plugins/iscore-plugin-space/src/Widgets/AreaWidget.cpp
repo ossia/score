@@ -28,7 +28,7 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
     {
         auto dimBox = new QGroupBox{tr("Dimensions to area parameter")};
         lay->addWidget(dimBox);
-        m_spaceMappingLayout = new MarginLess<QFormLayout>;
+        m_spaceMappingLayout = new iscore::MarginLess<QFormLayout>;
         dimBox->setLayout(m_spaceMappingLayout);
         for(const DimensionModel& dim : m_space.space().dimensions())
         {
@@ -42,7 +42,7 @@ AreaWidget::AreaWidget(iscore::CommandStack& stack, const SpaceProcess& space, Q
         // The remaining, non-space-mapped parameters are here.
         auto paramBox = new QGroupBox{tr("Valued parameters")};
         lay->addWidget(paramBox);
-        m_paramMappingLayout = new MarginLess<QFormLayout>;
+        m_paramMappingLayout = new iscore::MarginLess<QFormLayout>;
         paramBox->setLayout(m_paramMappingLayout);
     }
 

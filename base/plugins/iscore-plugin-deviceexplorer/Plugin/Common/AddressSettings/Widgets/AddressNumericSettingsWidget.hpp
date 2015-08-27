@@ -17,9 +17,10 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         explicit AddressNumericSettingsWidget(QWidget* parent = nullptr)
             : AddressSettingsWidget(parent)
         {
-            m_valueSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
-            m_minSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
-            m_maxSBox = new MaxRangeSpinBox<TemplatedSpinBox<T>>(this);
+            using namespace iscore;
+            m_valueSBox = new SpinBox<T>(this);
+            m_minSBox = new SpinBox<T>(this);
+            m_maxSBox = new SpinBox<T>(this);
 
             m_layout->insertRow(0, tr("Value"), m_valueSBox);
             m_layout->insertRow(1, tr("Min"), m_minSBox);
@@ -55,8 +56,8 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         }
 
     private:
-        typename TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
-        typename TemplatedSpinBox<T>::spinbox_type* m_minSBox;
-        typename TemplatedSpinBox<T>::spinbox_type* m_maxSBox;
+        typename iscore::TemplatedSpinBox<T>::spinbox_type* m_valueSBox;
+        typename iscore::TemplatedSpinBox<T>::spinbox_type* m_minSBox;
+        typename iscore::TemplatedSpinBox<T>::spinbox_type* m_maxSBox;
 };
 

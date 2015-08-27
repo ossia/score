@@ -2,7 +2,7 @@
 #include <QLayout>
 #include <QWidget>
 
-void clearLayout(QLayout *layout)
+void iscore::clearLayout(QLayout *layout)
 {
     QLayoutItem *child{};
     while ((child = layout->takeAt(0)) != nullptr)

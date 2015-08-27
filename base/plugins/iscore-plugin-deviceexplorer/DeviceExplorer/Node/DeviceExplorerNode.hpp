@@ -14,24 +14,18 @@ namespace iscore
 {
 class DeviceExplorerNode : public VariantBasedNode<
         iscore::DeviceSettings,
-        iscore::AddressSettings,
-        InvisibleRootNodeTag>
+        iscore::AddressSettings>
 {
         ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, DataStream)
         ISCORE_SERIALIZE_FRIENDS(DeviceExplorerNode, JSONObject)
 
     public:
-            enum class Type { Device, Address, RootNode };
+            enum class Type { RootNode, Device, Address };
 
         DeviceExplorerNode(const DeviceExplorerNode& t) = default;
         DeviceExplorerNode(DeviceExplorerNode&& t) = default;
         DeviceExplorerNode& operator=(const DeviceExplorerNode& t) = default;
-        DeviceExplorerNode():
-            VariantBasedNode{InvisibleRootNodeTag{}}
-        {
-
-        }
-
+        DeviceExplorerNode() = default;
         template<typename T>
         DeviceExplorerNode(const T& t):
             VariantBasedNode{t}

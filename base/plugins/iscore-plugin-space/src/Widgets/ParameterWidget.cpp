@@ -7,11 +7,11 @@
 
 ParameterWidget::ParameterWidget()
 {
-    auto lay = new MarginLess<QHBoxLayout>;
+    auto lay = new iscore::MarginLess<QHBoxLayout>;
     this->setLayout(lay);
 
     m_address = new QLineEdit;
-    m_defaultValue = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
+    m_defaultValue = new iscore::SpinBox<float>;
     lay->addWidget(m_address);
     lay->addWidget(m_defaultValue);
 

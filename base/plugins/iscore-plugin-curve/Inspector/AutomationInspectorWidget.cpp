@@ -69,9 +69,8 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
 
-    m_minsb = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
-    m_maxsb = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
-    m_maxsb = new QDoubleSpinBox;
+    m_minsb = new iscore::SpinBox<float>;
+    m_maxsb = new iscore::SpinBox<float>;
     m_minsb->setValue(m_model->min());
     m_maxsb->setValue(m_model->max());
     minmaxlay->addRow(tr("Min"), m_minsb);

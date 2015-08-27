@@ -7,7 +7,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
     public:
         IScoreCohesionControl(iscore::Presenter* pres);
         void populateMenus(iscore::MenubarManager*) override;
-        QList<OrderedToolbar> makeToolbars() override;
+        QList<iscore::OrderedToolbar> makeToolbars() override;
 
         iscore::SerializableCommand* instantiateUndoCommand(
                 const QString& name,

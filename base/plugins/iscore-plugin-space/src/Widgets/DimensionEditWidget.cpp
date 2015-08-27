@@ -7,16 +7,16 @@ DimensionEditWidget::DimensionEditWidget(const DimensionModel& dim, QWidget* par
     QWidget{parent},
     m_dim{dim}
 {
-    auto lay = new MarginLess<QHBoxLayout>;
+    auto lay = new iscore::MarginLess<QHBoxLayout>;
 
     m_name = new QLineEdit{m_dim.name()};
     lay->addWidget(m_name);
 
-    m_minBound = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
+    m_minBound = new iscore::SpinBox<float>;
     m_minBound->setValue(m_dim.sym().domain().min);
     lay->addWidget(m_minBound);
 
-    m_maxBound = new MaxRangeSpinBox<TemplatedSpinBox<float>>;
+    m_maxBound = new iscore::SpinBox<float>;
     m_maxBound->setValue(m_dim.sym().domain().max);
     lay->addWidget(m_maxBound);
 

@@ -19,7 +19,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         ScenarioControl(iscore::Presenter* pres);
 
         virtual void populateMenus(iscore::MenubarManager*) override;
-        virtual QList<OrderedToolbar> makeToolbars() override;
+        virtual QList<iscore::OrderedToolbar> makeToolbars() override;
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(
                 const QString& name,

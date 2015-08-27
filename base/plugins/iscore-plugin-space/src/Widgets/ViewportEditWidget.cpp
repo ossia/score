@@ -7,7 +7,7 @@ ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel
     QWidget{parent},
     m_viewport{vp}
 {
-    auto lay = new MarginLess<QFormLayout>;
+    auto lay = new iscore::MarginLess<QFormLayout>;
 
     m_name = new QLineEdit{m_viewport.name()};
     lay->addRow(tr("Name"), m_name);
@@ -25,9 +25,9 @@ ViewportEditWidget::ViewportEditWidget(const SpaceModel& sp, const ViewportModel
     m_rotation->setWrapping(true);
     lay->addRow(tr("Rotation"), m_rotation);
 
-    m_topleftX = new MaxRangeSpinBox<TemplatedSpinBox<double>>;
+    m_topleftX = new iscore::SpinBox<double>;
     lay->addRow(tr("Top Left (X)"), m_topleftX);
-    m_topleftY = new MaxRangeSpinBox<TemplatedSpinBox<double>>;
+    m_topleftY = new iscore::SpinBox<double>;
     lay->addRow(tr("Top Left (Y)"), m_topleftY);
 
     lay->addItem(new QSpacerItem(0, 15));
