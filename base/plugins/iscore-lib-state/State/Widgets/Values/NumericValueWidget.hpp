@@ -9,7 +9,9 @@ template<typename T>
 class NumericValueWidget : public ValueWidget
 {
     public:
-        NumericValueWidget(T value, QWidget* parent = nullptr)
+        NumericValueWidget(
+                T value,
+                QWidget* parent = nullptr)
             : ValueWidget{parent}
         {
             auto lay = new MarginLess<QGridLayout>;
