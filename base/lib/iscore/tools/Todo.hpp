@@ -4,8 +4,9 @@
 #include <QDebug>
 #include <QObject>
 
-#ifdef _MSC_VER
-#define DEBUG_BREAK __debugbreak()
+#ifdef _WIN32
+#include <Windows.h>
+#define DEBUG_BREAK DebugBreak()
 #else
 #include <csignal>
 #define DEBUG_BREAK std::raise(SIGTRAP)
