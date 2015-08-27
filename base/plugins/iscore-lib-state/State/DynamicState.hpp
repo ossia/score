@@ -1,5 +1,6 @@
 #pragma once
 #include <QMetaType>
+#include <QPointer>
 #include <State/DynamicStateDataInterface.hpp>
 
 /**
@@ -61,7 +62,7 @@ class DynamicState
         }
 
     private:
-        DynamicStateDataInterface* m_data{};
+        QPointer<DynamicStateDataInterface> m_data;
 };
 
 Q_DECLARE_METATYPE(DynamicState)
