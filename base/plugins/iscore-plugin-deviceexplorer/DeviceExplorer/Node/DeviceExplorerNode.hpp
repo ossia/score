@@ -12,8 +12,6 @@
 #include <iscore/tools/TreePath.hpp>
 namespace iscore
 {
-
-// TODO rename the file
 class DeviceExplorerNode : public VariantBasedNode<
         iscore::DeviceSettings,
         iscore::AddressSettings,

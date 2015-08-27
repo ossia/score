@@ -5,6 +5,14 @@
 #include <State/Value.hpp>
 namespace iscore
 {
+/**
+ * @brief The Message struct
+ *
+ * A message is an Address associated with a value :
+ *
+ *  aDevice:/aNode/anotherNode 2345
+ *
+ */
 struct Message
 {
     friend QDataStream& operator<<(QDataStream& s, const Message& m)

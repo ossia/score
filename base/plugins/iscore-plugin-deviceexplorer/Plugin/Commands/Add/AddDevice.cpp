@@ -1,5 +1,5 @@
 #include "AddDevice.hpp"
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 

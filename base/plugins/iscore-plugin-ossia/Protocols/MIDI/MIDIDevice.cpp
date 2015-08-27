@@ -6,7 +6,7 @@ MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
 {
     using namespace OSSIA;
     auto stgs = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
-    MIDI parameters;
+    auto parameters = OSSIA::MIDI::create();
 
     m_dev = Device::create(parameters, settings.name.toStdString());
 }

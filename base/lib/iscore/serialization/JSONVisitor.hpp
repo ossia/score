@@ -48,6 +48,15 @@ class Visitor<Reader<JSONObject>> : public AbstractVisitor
         Visitor<Reader<JSONObject>>& operator=(const Visitor<Reader<JSONObject>>&) = delete;
 
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
+
+        template<typename T>
+        static auto serialize(const T& t)
+        {
+            Visitor<Reader<JSONObject>> reader;
+            reader.readFrom(t);
+            return reader.m_obj;
+        }
+
         template<typename T>
         void readFrom(const T&);
 

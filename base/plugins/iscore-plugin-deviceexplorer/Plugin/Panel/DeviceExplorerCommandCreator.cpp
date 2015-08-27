@@ -1,6 +1,6 @@
 #include "DeviceExplorerCommandCreator.hpp"
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <core/command/CommandStack.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -141,9 +141,6 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     const int oldRow = index.row();
     const int newRow = oldRow - 1;
 
-    iscore::Node* grandparent = parent->parent();
-    ISCORE_ASSERT(grandparent);
-
     iscore::NodePath parentPath{*parent};
     Move* cmd = new Move(parentPath, oldRow, 1,
              parentPath, newRow,
@@ -183,9 +180,6 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
     {
         return index;
     }
-
-    iscore::Node* grandparent = parent->parent();
-    ISCORE_ASSERT(grandparent);
 
     iscore::NodePath parentPath{*parent};
     Move* cmd = new Move(parentPath, oldRow, 1,

@@ -2,7 +2,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 class DeviceDocumentPlugin;
 // Note : could also be used for loading from the library

@@ -85,3 +85,10 @@ auto deserialize_dyn(const VisitorVariant& vis, Functor&& fun)
             throw;
     }
 }
+
+template<typename Type, typename Object>
+auto marshall(const Object& obj)
+{
+    Visitor<Reader<Type>> r;
+    return r.serialize(obj);
+}

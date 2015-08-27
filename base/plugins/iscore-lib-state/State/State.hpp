@@ -12,6 +12,21 @@
 
 namespace iscore
 {
+/**
+ * @brief The StateData class
+ *
+ * The data element that is meant to serve as the backbone of
+ * trees of states.
+ *
+ * The data can be of two sorts:
+ *  - A MessageList
+ *  - A ProcessState
+ *
+ * Note : maybe the class should not be a variant of these two
+ * but an aggregate instead ?
+ * Note : ProcessState -> ProcessStateList ?
+ *
+ */
 class StateData : public VariantBasedNode<
         iscore::MessageList,
         ProcessState,

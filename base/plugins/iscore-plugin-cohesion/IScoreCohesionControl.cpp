@@ -12,7 +12,7 @@
 
 // TODO Refactor in order to use the Node data structure instead.
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 #include "Commands/CreateStatesFromParametersInEvents.hpp"
 

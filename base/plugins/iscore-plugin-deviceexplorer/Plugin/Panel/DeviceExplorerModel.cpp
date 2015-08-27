@@ -1,22 +1,25 @@
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
-#include <DeviceExplorer/Node/Node.hpp>
 #include "DeviceExplorerCommandCreator.hpp"
-
-#include <iostream>
-
-#include <QMimeData>
 
 #include "Commands/Insert.hpp"
 #include "Commands/EditData.hpp"
+#include "Commands/Add/LoadDevice.hpp"
 
-#include <core/command/CommandStack.hpp>
+#include "DeviceExplorerMimeTypes.hpp"
+#include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include <QJsonDocument>
-#include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <core/command/CommandStack.hpp>
+
+#include <Singletons/DeviceExplorerInterface.hpp>
+#include <State/State.hpp>
 #include <State/StateMimeTypes.hpp>
-#include "DeviceExplorerMimeTypes.hpp"
+#include <QJsonDocument>
+#include <iostream>
+#include <QMimeData>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -976,8 +979,67 @@ DeviceExplorerModel::mimeTypes() const
     return {iscore::mime::device(), iscore::mime::address()};
 }
 
-#include <Singletons/DeviceExplorerInterface.hpp>
-#include <State/State.hpp>
+
+QMimeData*
+DeviceExplorerModel::nodeToMime(const iscore::Node& n) const
+{
+    //m_rootNode not displayed thus should not be draggable
+    if(n.is<InvisibleRootNodeTag>())
+        return nullptr;
+
+    Serializer<JSONObject> ser;
+    ser.readFrom(n);
+    QMimeData* mimeData = new QMimeData;
+    mimeData->setData(
+                n.is<DeviceSettings>()
+                    ? iscore::mime::device()
+                    : iscore::mime::address(),
+                QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+
+    // Additional data if necessary
+    if(!n.is<DeviceSettings>())
+    {
+        MessageList messages;
+        messages.push_back(DeviceExplorer::messageFromNode(n));
+
+        ser.m_obj = {};
+        ser.readFrom(messages);
+        mimeData->setData(iscore::mime::messagelist(),
+                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+    }
+
+    return mimeData;
+}
+
+
+QMimeData*
+DeviceExplorerModel::indexesToMime(const QModelIndexList& indexes) const
+{
+    MessageList messages;
+    for(const auto& index : indexes)
+    {
+        if(!nodeFromModelIndex(index)->is<DeviceSettings>())
+        {
+            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+        }
+    }
+
+    if(!messages.empty())
+    {
+        QMimeData* mimeData = new QMimeData;
+
+        Serializer<JSONObject> ser;
+        ser.readFrom(messages);
+
+        mimeData->setData(iscore::mime::messagelist(),
+                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+
+        return mimeData;
+    }
+
+    return nullptr;
+}
+
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
@@ -989,63 +1051,16 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     //we drag only one node (and its children recursively).
     if(indexes.count() == 1)
     {
-        const QModelIndex index = indexes.at(0);
-
-        Node* n = nodeFromModelIndex(index);
-
-        if(n)
+        if(Node* n = nodeFromModelIndex(indexes.at(0)))
         {
-            //m_rootNode not displayed thus should not be draggable
-            if(n == &m_rootNode)
-                return nullptr;
-
-            Serializer<JSONObject> ser;
-            ser.readFrom(*n);
-            QMimeData* mimeData = new QMimeData;
-            mimeData->setData(
-                        n->is<DeviceSettings>()
-                            ? iscore::mime::device()
-                            : iscore::mime::address(),
-                        QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
-            // Additional data if necessary
-            if(!n->is<DeviceSettings>())
-            {
-                MessageList messages;
-                messages.push_back(DeviceExplorer::messageFromModelIndex(index));
-
-                ser.m_obj = {};
-                ser.readFrom(messages);
-                mimeData->setData(iscore::mime::messagelist(),
-                                  QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-            }
-            return mimeData;
+            return nodeToMime(*n);
         }
     }
     else if(indexes.count() > 1)
     {
-        MessageList messages;
-        for(const auto& index : indexes)
-        {
-            if(!nodeFromModelIndex(index)->is<DeviceSettings>())
-            {
-                messages.push_back(DeviceExplorer::messageFromModelIndex(index));
-            }
-        }
-
-        if(!messages.empty())
-        {
-            QMimeData* mimeData = new QMimeData;
-
-            Serializer<JSONObject> ser;
-            ser.readFrom(messages);
-
-            mimeData->setData(iscore::mime::messagelist(),
-                              QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
-            return mimeData;
-        }
+        return indexesToMime(indexes);
     }
+
     return nullptr;
 }
 
@@ -1093,7 +1108,6 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     return true;
 }
 
-#include "Commands/Add/LoadDevice.hpp"
 //method called when a drop occurs
 //return true if drop really handled, false otherwise.
 //

@@ -12,9 +12,9 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings},
     m_minuitSettings{[&] () {
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-    return OSSIA::Minuit{stgs.host.toStdString(),
+    return OSSIA::Minuit::create(stgs.host.toStdString(),
         stgs.inPort,
-        stgs.outPort};
+        stgs.outPort);
     }()
     }
 {
@@ -56,6 +56,6 @@ iscore::Value MinuitDevice::refresh(const iscore::Address & address)
 {
     OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
     auto addr = node->getAddress();
-    addr->updateValue();
+    addr->pullValue();
     return ToValue(addr->getValue());
 }

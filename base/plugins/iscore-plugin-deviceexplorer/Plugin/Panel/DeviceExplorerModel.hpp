@@ -2,7 +2,7 @@
 
 #include <QAbstractItemModel>
 #include <iscore/serialization/VisitorInterface.hpp>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 
 #include "Result.hpp"
@@ -137,7 +137,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         void setCachedResult(DeviceExplorer::Result r);
 
     protected:
-
         DeviceExplorer::Result cut_aux(const QModelIndex& index);
         DeviceExplorer::Result paste_aux(const QModelIndex& index, bool after);
         DeviceExplorer::Result pasteBefore_aux(const QModelIndex& index);
@@ -150,6 +149,9 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool m_lastCutNodeIsCopied;
 
     private:
+        QMimeData *indexesToMime(const QModelIndexList &indexes) const;
+        QMimeData *nodeToMime(const iscore::Node &n) const;
+
         DeviceDocumentPlugin* m_devicePlugin{};
 
         QModelIndex bottomIndex(const QModelIndex& index) const;

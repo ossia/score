@@ -16,5 +16,5 @@ class MinuitDevice : public OSSIADevice
         iscore::Value refresh(const iscore::Address&) override;
 
     private:
-        OSSIA::Minuit m_minuitSettings;
+        std::shared_ptr<OSSIA::Minuit> m_minuitSettings;
 };

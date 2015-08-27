@@ -63,7 +63,7 @@ class TemporalScenarioView : public LayerView
         void keyPressEvent(QKeyEvent *event) override;
         void keyReleaseEvent(QKeyEvent *event) override;
 
-        void dropEvent(QGraphicsSceneDragDropEvent *event);
+        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     private:
         QRectF m_selectArea;
 

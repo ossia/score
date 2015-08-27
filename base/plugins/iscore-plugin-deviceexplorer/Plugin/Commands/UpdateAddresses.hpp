@@ -4,7 +4,7 @@
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 
 namespace DeviceExplorer

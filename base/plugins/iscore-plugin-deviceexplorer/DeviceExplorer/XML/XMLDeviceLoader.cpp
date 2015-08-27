@@ -1,6 +1,6 @@
 #include "XMLDeviceLoader.hpp"
 #include <QtXml/QtXml>
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 using namespace iscore;
 static void convertFromDomElement(QDomElement dom_element, Node *parentNode)

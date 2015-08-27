@@ -61,7 +61,7 @@ enum class RelType
 {
     Different, Equal, Inferior, InferiorEqual, Superior, SuperiorEqual
 };
-
+/*
 class area_parser
 {
         GiNaC::parser m_reader;
@@ -80,16 +80,17 @@ class area_parser
             area a(rel, {});
 
         }
-};
+};*/
 
+/*
 spacelib::area make_area(const std::string& r1)
 {
+
     using namespace GiNaC;
     parser reader;
     ex r = reader(r1);
     bool is_rel = GiNaC::is_a<GiNaC::relational>(r);
 
-    /*
 
     ex e1 = reader(r1); // Error handling ?
     ex e2 = reader(r2); // Error handling ? What happens if the same symbol is on both sides ?
@@ -101,10 +102,11 @@ spacelib::area make_area(const std::string& r1)
     }
 
     symtab table = reader.get_syms();
-    */
     // area a(e, {}, {});
 
+    return spacelib::area(relational{}, {});
 }
+    */
 
 void t3()
 {

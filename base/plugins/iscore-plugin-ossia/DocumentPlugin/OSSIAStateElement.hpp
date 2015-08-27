@@ -19,8 +19,8 @@ class OSSIAStateElement : public QObject
                 QObject* parent);
 
         const StateModel& iscoreState() const;
-        std::shared_ptr<OSSIA::State> rootState() const { return m_ossia_rootState; }
-
+        std::shared_ptr<OSSIA::State> rootState() const
+        { return m_ossia_rootState; }
 
     private:
         const StateModel& m_iscore_state;

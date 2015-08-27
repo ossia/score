@@ -1,5 +1,5 @@
 #include "ChangeAddress.hpp"
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include "Plugin/Panel/DeviceExplorerModel.hpp"

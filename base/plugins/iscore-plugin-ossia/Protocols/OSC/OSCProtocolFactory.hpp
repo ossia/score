@@ -29,7 +29,9 @@ class OSCProtocolFactory : public ProtocolFactory
             serializeProtocolSpecificSettings_T<OSCSpecificSettings>(data, visitor);
         }
 
-        bool checkCompatibility(const iscore::DeviceSettings& a, const iscore::DeviceSettings& b)
+        bool checkCompatibility(
+                const iscore::DeviceSettings& a,
+                const iscore::DeviceSettings& b) const override
         {
             auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
             auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();

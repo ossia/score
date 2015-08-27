@@ -1,14 +1,6 @@
 #pragma once
 #include <QString>
-#include <DeviceExplorer/Node/Node.hpp>
-// This class is used to correctly add and
-// remove elements to the node hierarchy.
-// If there is no device explorer model yet (e.g. while restoring from a crash),
-// we can simply add them where required
-// to the root node and they will be loaded afterwards.
-// But when there is a device explorer model, we have
-// to use its methods (that calls beginAddRows, etc.) to prevent a full refresh
-// which would be laggy
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 class DeviceExplorerModel;
 class DeviceDocumentPlugin;
 
@@ -17,6 +9,18 @@ namespace iscore
 struct DeviceSettings;
 struct AddressSettings;
 }
+/**
+ * @brief The NodeUpdateProxy class
+ *
+ * This class is used to correctly add and
+ * remove elements to the node hierarchy.
+ * If there is no device explorer model yet (e.g. while restoring from a crash),
+ * we can simply add them where required
+ * to the root node and they will be loaded afterwards.
+ * But when there is a device explorer model, we have
+ * to use its methods (that calls beginAddRows, etc.) to prevent a full refresh
+ * which would be laggy.
+ */
 class NodeUpdateProxy
 {
     public:

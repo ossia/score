@@ -3,7 +3,7 @@
 #include "AreaView.hpp"
 #include <sstream>
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 AreaModel::AreaModel(
         std::unique_ptr<spacelib::area>&& area,
         const SpaceModel& space,

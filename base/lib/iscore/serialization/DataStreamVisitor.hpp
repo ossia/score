@@ -54,6 +54,15 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
         }
 
         template<typename T>
+        static auto serialize(const T& t)
+        {
+            QByteArray arr;
+            Visitor<Reader<DataStream>> reader(&arr);
+            reader.readFrom(t);
+            return arr;
+        }
+
+        template<typename T>
         void readFrom(const id_type<T>& obj)
         {
             m_stream << bool (obj.val());
@@ -113,7 +122,6 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
                                      m_stream {dev}
         {
         }
-
 
         template<typename T>
         void writeTo(id_type<T>& obj)
@@ -192,7 +200,6 @@ QDataStream& operator>> (QDataStream& stream, T& obj)
 
     return stream;
 }
-
 
 
 Q_DECLARE_METATYPE(Visitor<Reader<DataStream>>*)

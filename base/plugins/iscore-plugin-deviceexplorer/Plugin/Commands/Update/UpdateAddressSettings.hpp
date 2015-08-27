@@ -3,7 +3,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 
 class DeviceDocumentPlugin;

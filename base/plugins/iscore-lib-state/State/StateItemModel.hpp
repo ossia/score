@@ -6,6 +6,13 @@
 
 namespace iscore
 {
+/**
+ * @brief The StateItemModel class
+ *
+ * Used as a wrapper with trees of iscore::StateNode, to represent them
+ * the Qt way.
+ *
+ */
 class StateItemModel : public QAbstractItemModel
 {
     private:

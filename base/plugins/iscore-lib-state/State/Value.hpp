@@ -3,6 +3,12 @@
 
 namespace iscore
 {
+/**
+ * @brief The Value struct
+ *
+ * A variant used to represent the data that can be in a message.
+ *
+ */
 struct Value
 {
         QVariant val;

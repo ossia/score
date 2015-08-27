@@ -4,7 +4,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
-#include <DeviceExplorer/Node/Node.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 
 #include "Add/AddAddress.hpp"

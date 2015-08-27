@@ -12,18 +12,18 @@ class OSSIAControl : public iscore::PluginControlInterface
     public:
         OSSIAControl(iscore::Presenter* pres);
 
-        void populateMenus(iscore::MenubarManager*);
+        void populateMenus(iscore::MenubarManager*) override;
 
         iscore::DocumentDelegatePluginModel*loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::DocumentModel* parent);
+                iscore::DocumentModel* parent) override;
 
         void on_newDocument(iscore::Document* doc) override;
         void on_loadedDocument(iscore::Document* doc) override;
 
     protected:
-        void on_documentChanged();
+        void on_documentChanged() override;
 
     private:
         OSSIAConstraintElement &baseConstraint() const;
