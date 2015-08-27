@@ -9,7 +9,7 @@ export CMAKE_COMMON_FLAGS="-DCMAKE_BUILD_TYPE=Release -DISCORE_STATIC_PLUGINS:Bo
 case "$TRAVIS_OS_NAME" in
     linux)
         source /opt/qt55/bin/qt55-env.sh
-		/usr/local/bin/cmake -DISCORE_COTIRE:Bool=True $CMAKE_COMMON_FLAGS ..
+		/usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
 
 #		make all_unity -j2
 		make package -j2
