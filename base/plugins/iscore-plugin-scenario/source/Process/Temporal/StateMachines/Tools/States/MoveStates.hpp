@@ -10,7 +10,7 @@ class MoveConstraintState : public ScenarioStateBase
 {
     public:
         MoveConstraintState(const ScenarioStateMachine& stateMachine,
-                            const ModelPath<ScenarioModel>& scenarioPath,
+                            const Path<ScenarioModel>& scenarioPath,
                             iscore::CommandStack& stack,
                             iscore::ObjectLocker& locker,
                             QState* parent);
@@ -26,7 +26,7 @@ class MoveEventState : public ScenarioStateBase
 {
     public:
         MoveEventState(const ScenarioStateMachine& stateMachine,
-                       const ModelPath<ScenarioModel>& scenarioPath,
+                       const Path<ScenarioModel>& scenarioPath,
                        iscore::CommandStack& stack,
                        iscore::ObjectLocker& locker,
                        QState* parent);
@@ -38,7 +38,7 @@ class MoveTimeNodeState : public ScenarioStateBase
 {
     public:
         MoveTimeNodeState(const ScenarioStateMachine& stateMachine,
-                          const ModelPath<ScenarioModel>& scenarioPath,
+                          const Path<ScenarioModel>& scenarioPath,
                           iscore::CommandStack& stack,
                           iscore::ObjectLocker& locker,
                           QState* parent);

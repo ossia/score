@@ -107,7 +107,7 @@ void update_min_max(const T& val, T& min, T& max)
     max = val > max ? val : max;
 }
 
-void ScenarioViewInterface::on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter)
+void ScenarioViewInterface::on_hoverOnConstraint(const Id<ConstraintModel>& constraintId, bool enter)
 {
     /*
     const auto& constraint = m_presenter->m_constraints.at(constraintId)->model();
@@ -118,7 +118,7 @@ void ScenarioViewInterface::on_hoverOnConstraint(const id_type<ConstraintModel>&
     */
 }
 
-void ScenarioViewInterface::on_hoverOnEvent(const id_type<EventModel>& eventId, bool enter)
+void ScenarioViewInterface::on_hoverOnEvent(const Id<EventModel>& eventId, bool enter)
 {
     /*
     const auto& event = m_presenter->m_events.at(eventId)->model();

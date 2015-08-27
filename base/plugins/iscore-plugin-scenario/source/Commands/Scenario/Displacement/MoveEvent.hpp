@@ -29,8 +29,8 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveEvent, "ScenarioControl")
                 MoveEvent(
-                    ModelPath<ScenarioModel>&& scenarioPath,
-                    const id_type<EventModel>& eventId,
+                    Path<ScenarioModel>&& scenarioPath,
+                    const Id<EventModel>& eventId,
                     const TimeValue& date,
                     ExpandMode mode);
 
@@ -38,15 +38,15 @@ namespace Scenario
                 virtual void redo() override;
 
                 void update(
-                        const ModelPath<ScenarioModel>&,
-                        const id_type<EventModel>& ,
+                        const Path<ScenarioModel>&,
+                        const Id<EventModel>& ,
                         const TimeValue& date,
                         ExpandMode)
                 {
                     m_newDate = date;
                 }
 
-                const ModelPath<ScenarioModel>& path() const
+                const Path<ScenarioModel>& path() const
                 { return m_path; }
 
             protected:
@@ -54,8 +54,8 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ScenarioModel> m_path;
-                id_type<EventModel> m_eventId {};
+                Path<ScenarioModel> m_path;
+                Id<EventModel> m_eventId {};
 
                 TimeValue m_oldDate {};
                 TimeValue m_newDate {};
@@ -63,17 +63,17 @@ namespace Scenario
                 ExpandMode m_mode{ExpandMode::Scale};
 
                 // Data to correctly restore the processes on undo
-                QVector<id_type<TimeNodeModel>> m_movableTimenodes;
+                QVector<Id<TimeNodeModel>> m_movableTimenodes;
 
                 QVector<
                     QPair<
                         QPair<
-                            ModelPath<ConstraintModel>,
+                            Path<ConstraintModel>,
                             QByteArray
                         >, // The constraint data
                         QMap< // Mapping for the view models of this constraint
-                            id_type<ConstraintViewModel>,
-                            id_type<RackModel>
+                            Id<ConstraintViewModel>,
+                            Id<RackModel>
                         >
                      >
                 > m_savedConstraints;

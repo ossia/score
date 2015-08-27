@@ -62,7 +62,7 @@ EventPresenter::~EventPresenter()
     }
 }
 
-const id_type<EventModel>& EventPresenter::id() const
+const Id<EventModel>& EventPresenter::id() const
 {
     return m_model.id();
 }

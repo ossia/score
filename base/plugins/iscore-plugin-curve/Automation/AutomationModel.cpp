@@ -12,7 +12,7 @@
 
 AutomationModel::AutomationModel(
         const TimeValue& duration,
-        const id_type<Process>& id,
+        const Id<Process>& id,
         QObject* parent) :
     Process {duration, id, processName(), parent},
     m_startState{new AutomationState{*this, 0., this}},
@@ -21,19 +21,19 @@ AutomationModel::AutomationModel(
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
 
     // Named shall be enough ?
-    m_curve = new CurveModel{id_type<CurveModel>(45345), this};
+    m_curve = new CurveModel{Id<CurveModel>(45345), this};
 
-    auto s1 = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(1), m_curve);
+    auto s1 = new LinearCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
 /*
-    auto s2 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(2), m_curve);
+    auto s2 = new GammaCurveSegmentModel(Id<CurveSegmentModel>(2), m_curve);
     s2->setStart({0.2, 0.9});
     s2->setEnd({0.4, 0.5});
     s2->setPrevious(s1->id());
     s1->setFollowing(s2->id());
 
-    auto s3 = new GammaCurveSegmentModel(id_type<CurveSegmentModel>(3), m_curve);
+    auto s3 = new GammaCurveSegmentModel(Id<CurveSegmentModel>(3), m_curve);
     s3->setStart({0.4, 0.5});
     s3->setEnd({0.6, 1.0});
     s3->setPrevious(s2->id());
@@ -41,7 +41,7 @@ AutomationModel::AutomationModel(
     s3->gamma = 10;
 
 
-    auto s4 = new SinCurveSegmentModel(id_type<CurveSegmentModel>(4), m_curve);
+    auto s4 = new SinCurveSegmentModel(Id<CurveSegmentModel>(4), m_curve);
     s4->setStart({0.7, 0.0});
     s4->setEnd({1.0, 1.});
 */
@@ -59,7 +59,7 @@ AutomationModel::AutomationModel(
 
 AutomationModel::AutomationModel(
         const AutomationModel& source,
-        const id_type<Process>& id,
+        const Id<Process>& id,
         QObject* parent):
     Process{source, id,  processName(), parent},
     m_address(source.address()),
@@ -73,7 +73,7 @@ AutomationModel::AutomationModel(
 }
 
 Process* AutomationModel::clone(
-        const id_type<Process>& newId,
+        const Id<Process>& newId,
         QObject* newParent) const
 {
     return new AutomationModel {*this, newId, newParent};
@@ -184,7 +184,7 @@ void AutomationModel::setSelection(const Selection & s) const
 }
 
 LayerModel* AutomationModel::makeLayer_impl(
-        const id_type<LayerModel>& viewModelId,
+        const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -193,7 +193,7 @@ LayerModel* AutomationModel::makeLayer_impl(
 }
 
 LayerModel* AutomationModel::cloneLayer_impl(
-        const id_type<LayerModel>& newId,
+        const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {

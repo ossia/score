@@ -13,7 +13,7 @@
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 #include "Commands/Scenario/Creations/CreateState.hpp"
 ScenarioModel::ScenarioModel(const TimeValue& duration,
-                             const id_type<Process>& id,
+                             const Id<Process>& id,
                              QObject* parent) :
     Process {duration, id, "ScenarioModel", parent},
     m_startTimeNodeId{0},
@@ -32,7 +32,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
-                             const id_type<Process>& id,
+                             const Id<Process>& id,
                              QObject* parent) :
     Process {source, id, "ScenarioModel", parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
@@ -64,7 +64,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 }
 
 ScenarioModel* ScenarioModel::clone(
-        const id_type<Process>& newId,
+        const Id<Process>& newId,
         QObject* newParent) const
 {
     return new ScenarioModel {*this, newId, newParent};
@@ -74,8 +74,8 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
 {
     // For all existing constraints we need to generate corresponding
     // view models ids. One day we may need to do this for events / time nodes too.
-    QMap<id_type<ConstraintModel>, id_type<ConstraintViewModel>> map;
-    QVector<id_type<ConstraintViewModel>> vec;
+    QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
+    QVector<Id<ConstraintViewModel>> vec;
     for(const auto& constraint : m_constraints)
     {
         auto id = getStrongId(vec);
@@ -90,11 +90,11 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
 }
 
 LayerModel* ScenarioModel::makeLayer_impl(
-        const id_type<LayerModel>& viewModelId,
+        const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
-    QMap<id_type<ConstraintModel>, id_type<ConstraintViewModel>> map;
+    QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
     QDataStream s{constructionData};
     s >> map;
 
@@ -105,7 +105,7 @@ LayerModel* ScenarioModel::makeLayer_impl(
 
 
 LayerModel* ScenarioModel::cloneLayer_impl(
-        const id_type<LayerModel>& newId,
+        const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {

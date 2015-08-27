@@ -5,8 +5,8 @@
 
 
 AddClientToGroup::AddClientToGroup(ObjectPath&& groupMgrPath,
-                                   id_type<Client> client,
-                                   id_type<Group> group):
+                                   Id<Client> client,
+                                   Id<Group> group):
     iscore::SerializableCommand{"NetworkControl", "AddClientToGroup", "AddClientToGroup_desc"},
     m_path{std::move(groupMgrPath)},
     m_client{client},

@@ -15,14 +15,14 @@ class GroupMetadataWidget : public QWidget
                             const GroupManager* mgr,
                             QWidget* widg);
 
-        void on_groupAdded(const id_type<Group>&);
-        void on_groupRemoved(const id_type<Group>&);
+        void on_groupAdded(const Id<Group>&);
+        void on_groupRemoved(const Id<Group>&);
 
     private slots:
         void on_indexChanged(int);
 
     private:
-        void updateLabel(const id_type<Group>& id);
+        void updateLabel(const Id<Group>& id);
 
         const GroupMetadata& m_object;
         const GroupManager* m_groups{};

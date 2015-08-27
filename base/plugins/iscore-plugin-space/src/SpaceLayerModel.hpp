@@ -8,7 +8,7 @@ class SpaceLayerModel : public LayerModel
     public:
         using model_type = SpaceProcess;
         SpaceLayerModel(
-                const id_type<LayerModel>&,
+                const Id<LayerModel>&,
                 SpaceProcess&,
                 QObject* parent);
 

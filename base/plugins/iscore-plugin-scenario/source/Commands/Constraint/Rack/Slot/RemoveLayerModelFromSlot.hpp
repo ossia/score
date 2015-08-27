@@ -20,8 +20,8 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveLayerModelFromSlot, "ScenarioControl")
 
                 RemoveLayerModelFromSlot(
-                    ModelPath<SlotModel>&& slotPath,
-                    const id_type<LayerModel>& layerId);
+                    Path<SlotModel>&& slotPath,
+                    const Id<LayerModel>& layerId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,8 +31,8 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<SlotModel> m_path;
-                id_type<LayerModel> m_layerId {};
+                Path<SlotModel> m_path;
+                Id<LayerModel> m_layerId {};
 
                 QByteArray m_serializedLayerData;
         };

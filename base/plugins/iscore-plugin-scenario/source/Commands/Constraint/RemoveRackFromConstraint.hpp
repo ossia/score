@@ -23,10 +23,10 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveRackFromConstraint, "ScenarioControl")
                 RemoveRackFromConstraint(
-                        ModelPath<RackModel>&& rackPath);
+                        Path<RackModel>&& rackPath);
                 RemoveRackFromConstraint(
-                        ModelPath<ConstraintModel>&& constraintPath,
-                        id_type<RackModel> rackId);
+                        Path<ConstraintModel>&& constraintPath,
+                        Id<RackModel> rackId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -36,12 +36,12 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
-                id_type<RackModel> m_rackId {};
+                Path<ConstraintModel> m_path;
+                Id<RackModel> m_rackId {};
 
                 QByteArray m_serializedRackData; // Should be done in the constructor
 
-                QMap<id_type<ConstraintViewModel>, bool> m_rackMappings;
+                QMap<Id<ConstraintViewModel>, bool> m_rackMappings;
         };
     }
 }

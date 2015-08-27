@@ -12,7 +12,7 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(CreateCurvesFromAddresses)
 
         CreateCurvesFromAddresses(
-          ModelPath<ConstraintModel>&& constraint,
+          Path<ConstraintModel>&& constraint,
             const QList<iscore::Address> &addresses);
 
         virtual void undo() override;
@@ -23,7 +23,7 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ModelPath<ConstraintModel> m_path;
+        Path<ConstraintModel> m_path;
         QList<iscore::Address> m_addresses;
 
         QVector<QByteArray> m_serializedCommands;

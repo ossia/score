@@ -8,9 +8,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 MoveNewEvent::MoveNewEvent(
-        ModelPath<ScenarioModel>&& scenarioPath,
-        const id_type<ConstraintModel>& constraintId,
-        const id_type<EventModel>& eventId,
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<ConstraintModel>& constraintId,
+        const Id<EventModel>& eventId,
         const TimeValue& date,
         const double y,
         bool yLocked) :

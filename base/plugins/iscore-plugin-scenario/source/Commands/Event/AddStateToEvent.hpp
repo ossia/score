@@ -15,7 +15,7 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddStateToStateModel)
                 AddStateToStateModel(
-                    ModelPath<StateModel>&& path,
+                    Path<StateModel>&& path,
                   const iscore::StatePath& parent_path,
                         const iscore::StateNode& state,
                         int posInParent);
@@ -28,7 +28,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<StateModel> m_path;
+                Path<StateModel> m_path;
 
                 iscore::StatePath m_parentPath;
                 iscore::StateNode m_state;

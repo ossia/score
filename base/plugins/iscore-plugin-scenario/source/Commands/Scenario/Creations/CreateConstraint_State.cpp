@@ -8,12 +8,12 @@
 using namespace Scenario::Command;
 CreateConstraint_State::CreateConstraint_State(
         const ScenarioModel& scenario,
-        const id_type<StateModel>& startState,
-        const id_type<EventModel>& endEvent,
+        const Id<StateModel>& startState,
+        const Id<EventModel>& endEvent,
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newState{getStrongId(scenario.states())},
-    m_command{iscore::IDocument::safe_path(scenario),
+    m_command{iscore::IDocument::path(scenario),
                        startState,
                        m_newState},
     m_endEvent{endEvent},
@@ -23,9 +23,9 @@ CreateConstraint_State::CreateConstraint_State(
 }
 
 CreateConstraint_State::CreateConstraint_State(
-        const ModelPath<ScenarioModel>& scenario,
-        const id_type<StateModel> &startState,
-        const id_type<EventModel> &endEvent,
+        const Path<ScenarioModel>& scenario,
+        const Id<StateModel> &startState,
+        const Id<EventModel> &endEvent,
         double endStateY):
     CreateConstraint_State{scenario.find(),
                            startState,

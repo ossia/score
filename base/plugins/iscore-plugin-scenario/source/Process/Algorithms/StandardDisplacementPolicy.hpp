@@ -12,14 +12,14 @@ namespace StandardDisplacementPolicy
     // pick out each timeNode that need to move when firstTimeNodeMovedId is moving
     void getRelatedTimeNodes(
             ScenarioModel& scenario,
-            const id_type<TimeNodeModel>& firstTimeNodeMovedId,
-            QVector<id_type<TimeNodeModel> >& translatedTimeNodes);
+            const Id<TimeNodeModel>& firstTimeNodeMovedId,
+            QVector<Id<TimeNodeModel> >& translatedTimeNodes);
 
 
     template<typename ProcessScaleMethod>
     void updatePositions(
             ScenarioModel& scenario,
-            const QVector<id_type<TimeNodeModel> >& translatedTimeNodes,
+            const QVector<Id<TimeNodeModel> >& translatedTimeNodes,
             const TimeValue& deltaTime,
             ProcessScaleMethod&& scaleMethod)
     {

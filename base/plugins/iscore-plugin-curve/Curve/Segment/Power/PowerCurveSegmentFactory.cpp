@@ -7,7 +7,7 @@ QString PowerCurveSegmentFactory::name() const
 }
 
 CurveSegmentModel* PowerCurveSegmentFactory::make(
-        const id_type<CurveSegmentModel>& id,
+        const Id<CurveSegmentModel>& id,
         QObject* parent)
 {
     return new PowerCurveSegmentModel{id, parent};

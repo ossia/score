@@ -67,7 +67,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     }
 
     // Full view
-    id_type<ConstraintModel> savedConstraintId;
+    Id<ConstraintModel> savedConstraintId;
     m_stream >> savedConstraintId; // Necessary because it is saved; however it is not required here.
     //(todo how to fix this ?)
     constraint.setFullView(new FullViewConstraintViewModel {*this, constraint, &constraint});
@@ -141,8 +141,8 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
                                &constraint});
 
     writeTo(constraint.duration);
-    constraint.m_startState = fromJsonValue<id_type<StateModel>> (m_obj["StartState"]);
-    constraint.m_endState = fromJsonValue<id_type<StateModel>> (m_obj["EndState"]);
+    constraint.m_startState = fromJsonValue<Id<StateModel>> (m_obj["StartState"]);
+    constraint.m_endState = fromJsonValue<Id<StateModel>> (m_obj["EndState"]);
 
     constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
     constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();

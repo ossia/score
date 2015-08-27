@@ -22,7 +22,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         CreateCurveFromStates();
         ~CreateCurveFromStates();
         CreateCurveFromStates(
-                ModelPath<ConstraintModel>&& constraint,
+                Path<ConstraintModel>&& constraint,
                 const iscore::Address &address,
                 double start,
                 double end);

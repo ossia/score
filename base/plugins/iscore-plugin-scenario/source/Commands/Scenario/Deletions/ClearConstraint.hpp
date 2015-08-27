@@ -21,7 +21,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("ClearConstraint", "ClearConstraint")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearConstraint, "ScenarioControl")
-                ClearConstraint(ModelPath<ConstraintModel>&& constraintPath);
+                ClearConstraint(Path<ConstraintModel>&& constraintPath);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -30,12 +30,12 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
+                Path<ConstraintModel> m_path;
 
                 QVector<QByteArray> m_serializedRackes;
                 QVector<QByteArray> m_serializedProcesses;
 
-                QMap<id_type<ConstraintViewModel>, id_type<RackModel>> m_rackMappings;
+                QMap<Id<ConstraintViewModel>, Id<RackModel>> m_rackMappings;
         };
     }
 }

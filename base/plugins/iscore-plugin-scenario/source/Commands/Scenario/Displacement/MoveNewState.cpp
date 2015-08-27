@@ -3,8 +3,8 @@
 #include "Process/ScenarioModel.hpp"
 
 Scenario::Command::MoveNewState::MoveNewState(
-        ModelPath<ScenarioModel>&& scenarioPath,
-        const id_type<StateModel>& stateId,
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<StateModel>& stateId,
         const double y):
     SerializableCommand {"ScenarioControl",
                          commandName(),

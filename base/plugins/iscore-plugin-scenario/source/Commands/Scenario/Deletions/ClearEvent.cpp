@@ -10,7 +10,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearState::ClearState(ModelPath<StateModel>&& path) :
+ClearState::ClearState(Path<StateModel>&& path) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},

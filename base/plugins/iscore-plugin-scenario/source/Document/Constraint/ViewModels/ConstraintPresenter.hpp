@@ -45,7 +45,7 @@ class ConstraintPresenter : public NamedObject
 
         void on_zoomRatioChanged(ZoomRatio val);
 
-        const id_type<ConstraintModel>& id() const;
+        const Id<ConstraintModel>& id() const;
 
     signals:
         void pressed(const QPointF&);
@@ -63,7 +63,7 @@ class ConstraintPresenter : public NamedObject
 
         void on_playDurationChanged(const TimeValue& t);
 
-        void on_rackShown(const id_type<RackModel>& rackId);
+        void on_rackShown(const Id<RackModel>& rackId);
         void on_rackHidden();
         void on_rackRemoved();
 

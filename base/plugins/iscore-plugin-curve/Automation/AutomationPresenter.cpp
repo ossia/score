@@ -93,7 +93,7 @@ const LayerModel& AutomationPresenter::layerModel() const
     return m_viewModel;
 }
 
-const id_type<Process>& AutomationPresenter::modelId() const
+const Id<Process>& AutomationPresenter::modelId() const
 {
     return m_viewModel.model().id();
 }

@@ -9,8 +9,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
-        ModelPath<SlotModel>&& rackPath,
-        const id_type<LayerModel>& layerId) :
+        Path<SlotModel>&& rackPath,
+        const Id<LayerModel>& layerId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

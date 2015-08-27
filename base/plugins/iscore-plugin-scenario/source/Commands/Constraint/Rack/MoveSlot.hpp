@@ -24,13 +24,13 @@ namespace Scenario
                                        commandName(),
                                        description()} { }
 
-                MoveSlot(const ModelPath<SlotModel>& slotToMove,
-                         ModelPath<RackModel>&& targetRack) :
+                MoveSlot(const Path<SlotModel>& slotToMove,
+                         Path<RackModel>&& targetRack) :
                     AggregateCommand {"ScenarioControl",
                                       commandName(),
                                       description(),
-                                      new CopySlot{ModelPath<SlotModel>{slotToMove}, std::move(targetRack) },
-                                      new RemoveSlotFromRack{ModelPath<SlotModel>{slotToMove}}}
+                                      new CopySlot{Path<SlotModel>{slotToMove}, std::move(targetRack) },
+                                      new RemoveSlotFromRack{Path<SlotModel>{slotToMove}}}
                 {
 
                 }

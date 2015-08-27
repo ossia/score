@@ -9,7 +9,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
-SetTrigger::SetTrigger(ModelPath<EventModel>&& eventPath, QString message) :
+SetTrigger::SetTrigger(Path<EventModel>&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

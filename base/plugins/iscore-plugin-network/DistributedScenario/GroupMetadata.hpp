@@ -15,7 +15,7 @@ class GroupMetadata : public iscore::ElementPluginModel
 
         GroupMetadata(
                 const QObject* element,
-                id_type<Group> id,
+                Id<Group> id,
                 QObject* parent);
 
         GroupMetadata* clone(const QObject* element, QObject* parent) const override;
@@ -43,12 +43,12 @@ class GroupMetadata : public iscore::ElementPluginModel
         { return m_element; }
 
     signals:
-        void groupChanged(id_type<Group>);
+        void groupChanged(Id<Group>);
 
     public slots:
-        void setGroup(const id_type<Group>& id);
+        void setGroup(const Id<Group>& id);
 
     private:
         const QObject* const m_element;
-        id_type<Group> m_id;
+        Id<Group> m_id;
 };

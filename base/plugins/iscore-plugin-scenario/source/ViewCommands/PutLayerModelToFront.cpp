@@ -2,8 +2,8 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 PutLayerModelToFront::PutLayerModelToFront(
-        ModelPath<SlotModel>&& slotPath,
-        const id_type<LayerModel>& pid):
+        Path<SlotModel>&& slotPath,
+        const Id<LayerModel>& pid):
     m_slotPath{std::move(slotPath)},
     m_pid{pid}
 {

@@ -7,7 +7,7 @@ QString SpaceProcessFactory::name() const
     return "Space";
 }
 
-Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const id_type<Process> &id, QObject *parent)
+Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const Id<Process> &id, QObject *parent)
 {
     return new SpaceProcess{id, parent};
 }

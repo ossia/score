@@ -194,7 +194,7 @@ void AreaWidget::on_dimensionMapped(int)
 void AreaWidget::validate()
 {
     // Make the dimension map
-    QMap<id_type<DimensionModel>, QString> dim_map;
+    QMap<Id<DimensionModel>, QString> dim_map;
     for(int symb_i = 0; symb_i < m_spaceMappingLayout->rowCount(); symb_i++)
     {
         auto label = static_cast<QLabel*>(m_spaceMappingLayout->itemAt(symb_i, QFormLayout::ItemRole::LabelRole)->widget());
@@ -248,7 +248,7 @@ void AreaWidget::validate()
 
         m_dispatcher.submitCommand(
                     new AddArea{
-                        iscore::IDocument::safe_path(m_space),
+                        iscore::IDocument::path(m_space),
                         m_selectionWidget->comboBox()->currentData().toInt(),
                         m_selectionWidget->lineEdit()->text(),
                         dim_map,

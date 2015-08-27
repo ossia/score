@@ -19,7 +19,7 @@ class EventPresenter : public NamedObject
                        QObject* parent);
         virtual ~EventPresenter();
 
-        const id_type<EventModel>& id() const;
+        const Id<EventModel>& id() const;
 
         EventView* view() const;
         const EventModel& model() const;

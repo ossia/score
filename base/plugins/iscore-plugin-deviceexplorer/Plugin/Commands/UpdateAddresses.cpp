@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 using namespace iscore;
 
 UpdateAddresses::UpdateAddresses(
-        ModelPath<DeviceExplorerModel>&& device_tree,
+        Path<DeviceExplorerModel>&& device_tree,
         const QList<QPair<const Node *, iscore::Value> > &nodes):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),

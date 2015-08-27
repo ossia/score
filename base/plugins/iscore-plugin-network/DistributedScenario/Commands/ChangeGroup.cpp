@@ -28,7 +28,7 @@ GroupMetadata* getGroupMetadata(QObject* obj)
     return nullptr;
 }
 
-ChangeGroup::ChangeGroup(ObjectPath &&path, id_type<Group> newGroup):
+ChangeGroup::ChangeGroup(ObjectPath &&path, Id<Group> newGroup):
     iscore::SerializableCommand{
         "NetworkControl",
         this->commandName(),

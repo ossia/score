@@ -27,7 +27,7 @@ namespace Scenario
             private:
                 ObjectPath m_rackPath;
 
-                id_type<RackModel> m_newRackId;
+                Id<RackModel> m_newRackId;
         };
     }
 }

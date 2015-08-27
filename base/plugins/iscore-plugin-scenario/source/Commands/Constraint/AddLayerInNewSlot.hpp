@@ -25,13 +25,13 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerInNewSlot, "ScenarioControl")
                 AddLayerInNewSlot(
-                    ModelPath<ConstraintModel>&& constraintPath,
-                    id_type<Process> process);
+                    Path<ConstraintModel>&& constraintPath,
+                    Id<Process> process);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                id_type<Process> processId() const
+                Id<Process> processId() const
                 {
                     return m_processId;
                 }
@@ -41,15 +41,15 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
+                Path<ConstraintModel> m_path;
 
                 bool m_existingRack {};
 
-                id_type<Process> m_processId {};
-                id_type<RackModel> m_createdRackId {};
-                id_type<SlotModel> m_createdSlotId {};
-                id_type<LayerModel> m_createdLayerId {};
-                id_type<Process> m_sharedProcessModelId {};
+                Id<Process> m_processId {};
+                Id<RackModel> m_createdRackId {};
+                Id<SlotModel> m_createdSlotId {};
+                Id<LayerModel> m_createdLayerId {};
+                Id<Process> m_sharedProcessModelId {};
 
                 QByteArray m_processData;
         };

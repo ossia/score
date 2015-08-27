@@ -21,7 +21,7 @@ class ScenarioCreationState : public CreationState
         ScenarioCreationState(
                 const ScenarioStateMachine& sm,
                 iscore::CommandStack& stack,
-                const ModelPath<ScenarioModel>& scenarioPath,
+                const Path<ScenarioModel>& scenarioPath,
                 QState* parent):
             CreationState{scenarioPath, parent},
             m_parentSM{sm},
@@ -31,13 +31,13 @@ class ScenarioCreationState : public CreationState
         }
 
     protected:
-        void createToState_base(const id_type<StateModel>&);
+        void createToState_base(const Id<StateModel>&);
 
-        void createToEvent_base(const id_type<StateModel> &);
+        void createToEvent_base(const Id<StateModel> &);
 
-        void createToTimeNode_base(const id_type<StateModel> &);
+        void createToTimeNode_base(const Id<StateModel> &);
 
-        void createToNothing_base(const id_type<StateModel> &);
+        void createToNothing_base(const Id<StateModel> &);
 
 
         template<typename DestinationState, typename Function>

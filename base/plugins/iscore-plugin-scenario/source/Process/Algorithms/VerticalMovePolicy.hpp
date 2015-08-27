@@ -6,16 +6,16 @@ class ScenarioModel;
 class ConstraintModel;
 
 void updateTimeNodeExtent(
-        const id_type<TimeNodeModel>& id,
+        const Id<TimeNodeModel>& id,
         ScenarioModel& s);
 
 // Will call updateTimeNodeExtent
 void updateEventExtent(
-        const id_type<EventModel>& id,
+        const Id<EventModel>& id,
         ScenarioModel& s);
 
 // Will call updateEventExtent
 void updateConstraintVerticalPos(
         double y,
-        const id_type<ConstraintModel>& id,
+        const Id<ConstraintModel>& id,
         ScenarioModel& s);

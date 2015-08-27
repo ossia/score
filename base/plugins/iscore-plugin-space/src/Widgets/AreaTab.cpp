@@ -36,7 +36,7 @@ AreaTab::AreaTab(
 
 void AreaTab::updateDisplayedArea(int i)
 {
-    m_areaWidget->setActiveArea(&m_space.areas().at(m_listWidget->item(i)->data(Qt::UserRole).value<id_type<AreaModel>>()));
+    m_areaWidget->setActiveArea(&m_space.areas().at(m_listWidget->item(i)->data(Qt::UserRole).value<Id<AreaModel>>()));
 }
 
 void AreaTab::newArea()

@@ -46,13 +46,13 @@ auto getStrongIdFromIdContainer(const Container& v)
 }
 
 template<typename T>
-auto getStrongId(const std::vector<id_type<T>>& v)
+auto getStrongId(const std::vector<Id<T>>& v)
 {
     return getStrongIdFromIdContainer(v);
 }
 
 template<typename T>
-auto getStrongId(const QVector<id_type<T>>& v)
+auto getStrongId(const QVector<Id<T>>& v)
 {
     return getStrongIdFromIdContainer(v);
 }
@@ -64,10 +64,10 @@ template<typename Container,
                     >::value
                   >* = nullptr>
 auto getStrongId(const Container& v)
-    -> id_type<typename std::remove_pointer<typename Container::value_type>::type>
+    -> Id<typename std::remove_pointer<typename Container::value_type>::type>
 {
     using namespace std;
-    using local_id_t = id_type<typename std::remove_pointer<typename Container::value_type>::type>;
+    using local_id_t = Id<typename std::remove_pointer<typename Container::value_type>::type>;
     vector<int> ids(v.size());   // Map reduce
 
     transform(v.begin(),
@@ -88,7 +88,7 @@ template<typename Container,
                     >::value
                   >* = nullptr>
 auto getStrongId(const Container& v) ->
-    id_type<typename Container::value_type>
+    Id<typename Container::value_type>
 {
     using namespace std;
     vector<int> ids(v.size());   // Map reduce
@@ -101,5 +101,5 @@ auto getStrongId(const Container& v) ->
         return * (elt.id().val());
     });
 
-    return id_type<typename Container::value_type>{getNextId(ids)};
+    return Id<typename Container::value_type>{getNextId(ids)};
 }

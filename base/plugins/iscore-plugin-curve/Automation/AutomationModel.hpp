@@ -30,9 +30,9 @@ class AutomationModel : public Process
 
     public:
         AutomationModel(const TimeValue& duration,
-                        const id_type<Process>& id,
+                        const Id<Process>& id,
                         QObject* parent);
-        Process* clone(const id_type<Process>& newId,
+        Process* clone(const Id<Process>& newId,
                                            QObject* newParent) const override;
 
         template<typename Impl>
@@ -46,7 +46,7 @@ class AutomationModel : public Process
         QString processName() const override;
 
         LayerModel* makeLayer_impl(
-                const id_type<LayerModel>& viewModelId,
+                const Id<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
         LayerModel* loadLayer_impl(
@@ -96,10 +96,10 @@ class AutomationModel : public Process
 
     protected:
         AutomationModel(const AutomationModel& source,
-                        const id_type<Process>& id,
+                        const Id<Process>& id,
                         QObject* parent);
         LayerModel* cloneLayer_impl(
-                const id_type<LayerModel>& newId,
+                const Id<LayerModel>& newId,
                 const LayerModel& source,
                 QObject* parent) override;
 

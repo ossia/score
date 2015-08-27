@@ -25,6 +25,6 @@ class RemoteClientBuilder : public QObject
         NetworkSocket* m_socket;
         RemoteClient* m_remoteClient{};
 
-        id_type<Client> m_clientId;
+        Id<Client> m_clientId;
         QString m_clientName;
 };

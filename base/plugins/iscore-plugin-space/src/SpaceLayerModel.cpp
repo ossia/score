@@ -2,7 +2,7 @@
 #include "SpaceProcess.hpp"
 
 SpaceLayerModel::SpaceLayerModel(
-        const id_type<LayerModel> & id,
+        const Id<LayerModel> & id,
         SpaceProcess & proc,
         QObject *parent):
     LayerModel{id, staticMetaObject.className(), proc, parent}

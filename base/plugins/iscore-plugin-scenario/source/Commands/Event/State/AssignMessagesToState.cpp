@@ -3,7 +3,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AssignMessagesToState::AssignMessagesToState(
-        ModelPath<StateModel>&& path,
+        Path<StateModel>&& path,
         StatePath&& statepath,
         const MessageList& messages):
     iscore::SerializableCommand{factoryName(), commandName(), description()},

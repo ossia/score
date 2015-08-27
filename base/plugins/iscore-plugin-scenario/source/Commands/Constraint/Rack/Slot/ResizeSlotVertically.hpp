@@ -19,13 +19,13 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ResizeSlotVertically, "ScenarioControl")
                 ResizeSlotVertically(
-                    ModelPath<SlotModel>&& slotPath,
+                    Path<SlotModel>&& slotPath,
                     double newSize);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                void update(const ModelPath<SlotModel>&, double size)
+                void update(const Path<SlotModel>&, double size)
                 {
                     m_newSize = size;
                 }
@@ -35,7 +35,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<SlotModel> m_path;
+                Path<SlotModel> m_path;
 
                 double m_originalSize {};
                 double m_newSize {};

@@ -3,7 +3,7 @@
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
 SetSegmentParameters::SetSegmentParameters(
-        ModelPath<CurveModel>&& model,
+        Path<CurveModel>&& model,
         SegmentParameterMap&& parameters):
     iscore::SerializableCommand{
         "AutomationControl", commandName(), description()},
@@ -48,7 +48,7 @@ void SetSegmentParameters::redo()
     curve.changed();
 }
 
-void SetSegmentParameters::update(ModelPath<CurveModel>&& model, SegmentParameterMap &&segments)
+void SetSegmentParameters::update(Path<CurveModel>&& model, SegmentParameterMap &&segments)
 {
     m_new = std::move(segments);
 }

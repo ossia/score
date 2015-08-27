@@ -9,16 +9,16 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
-        ModelPath<RackModel>&& rackPath) :
+        Path<RackModel>&& rackPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()}
 {
     auto constraintPath = rackPath.unsafePath().vec();
     auto lastId = constraintPath.takeLast();
-    m_path = ModelPath<ConstraintModel>{ObjectPath{std::move(constraintPath)},
-              ModelPath<ConstraintModel>::UnsafeDynamicCreation{}};
-    m_rackId = id_type<RackModel> (lastId.id());
+    m_path = Path<ConstraintModel>{ObjectPath{std::move(constraintPath)},
+              Path<ConstraintModel>::UnsafeDynamicCreation{}};
+    m_rackId = Id<RackModel> (lastId.id());
 
     auto& constraint = m_path.find();
     // Save the rack
@@ -35,8 +35,8 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
 }
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
-        ModelPath<ConstraintModel>&& constraintPath,
-        id_type<RackModel> rackId) :
+        Path<ConstraintModel>&& constraintPath,
+        Id<RackModel> rackId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

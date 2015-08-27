@@ -11,7 +11,7 @@
 
 // TODO a nice refactor is doable here between the three classes.
 MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
-                                         const ModelPath<ScenarioModel>& scenarioPath,
+                                         const Path<ScenarioModel>& scenarioPath,
                                          iscore::CommandStack& stack,
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
@@ -51,7 +51,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
         QObject::connect(moving, &QState::entered, [&] ()
         {
             m_dispatcher.submitCommand(
-                            ModelPath<ScenarioModel>{m_scenarioPath},
+                            Path<ScenarioModel>{m_scenarioPath},
                             clickedConstraint,
                             m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
                             currentPoint.y);
@@ -76,7 +76,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
 
 
 MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
-                               const ModelPath<ScenarioModel>& scenarioPath,
+                               const Path<ScenarioModel>& scenarioPath,
                                iscore::CommandStack& stack,
                                iscore::ObjectLocker& locker,
                                QState* parent):
@@ -108,7 +108,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
         // What happens in each state.
         QObject::connect(moving, &QState::entered, [&] ()
         {
-            id_type<EventModel> evId{clickedEvent};
+            Id<EventModel> evId{clickedEvent};
             if(!bool(evId) && bool(clickedState))
             {
                 auto& scenar = m_scenarioPath.find();
@@ -116,7 +116,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
             }
 
             m_dispatcher.submitCommand(
-                            ModelPath<ScenarioModel>{m_scenarioPath},
+                            Path<ScenarioModel>{m_scenarioPath},
                             evId,
                             currentPoint.date,
                             stateMachine.expandMode());
@@ -141,7 +141,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
 
 
 MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
-                                     const ModelPath<ScenarioModel>& scenarioPath,
+                                     const Path<ScenarioModel>& scenarioPath,
                                      iscore::CommandStack& stack,
                                      iscore::ObjectLocker& locker,
                                      QState* parent):
@@ -183,7 +183,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
                 date = tn.date();
 
             m_dispatcher.submitCommand(
-                            ModelPath<ScenarioModel>{m_scenarioPath},
+                            Path<ScenarioModel>{m_scenarioPath},
                             ev_id,
                             date,
                             stateMachine.expandMode());

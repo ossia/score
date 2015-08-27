@@ -4,7 +4,7 @@
 #include "DistributedScenario/GroupManager.hpp"
 
 
-RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, id_type<Client> client, id_type<Group> group):
+RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, Id<Client> client, Id<Group> group):
     iscore::SerializableCommand{"NetworkControl", "RemoveClientFromGroup", "RemoveClientFromGroup_desc"},
     m_path{std::move(groupMgrPath)},
     m_client{client},

@@ -3,7 +3,7 @@
 #include <Serialization/MessageMapper.hpp>
 #include <Serialization/MessageValidator.hpp>
 
-Session::Session(LocalClient* client, id_type<Session> id, QObject* parent):
+Session::Session(LocalClient* client, Id<Session> id, QObject* parent):
     IdentifiedObject<Session>{id, "Session", parent},
     m_client{client},
     m_mapper{new MessageMapper},

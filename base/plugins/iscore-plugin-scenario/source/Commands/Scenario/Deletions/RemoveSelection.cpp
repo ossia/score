@@ -10,7 +10,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveSelection::RemoveSelection(ModelPath<ScenarioModel>&& scenarioPath, Selection sel):
+RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel):
     SerializableCommand{"ScenarioControl", commandName(), description()},
     m_path {std::move(scenarioPath) }
 {

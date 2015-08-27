@@ -63,7 +63,7 @@ SlotPresenter::~SlotPresenter()
     }
 }
 
-const id_type<SlotModel>& SlotPresenter::id() const
+const Id<SlotModel>& SlotPresenter::id() const
 {
     return m_model.id();
 }
@@ -119,13 +119,13 @@ void SlotPresenter::disable()
 
 
 void SlotPresenter::on_layerModelCreated(
-        const id_type<LayerModel>& processId)
+        const Id<LayerModel>& processId)
 {
     on_layerModelCreated_impl(m_model.layerModel(processId));
 }
 
 void SlotPresenter::on_layerModelDeleted(
-        const id_type<LayerModel>& processId)
+        const Id<LayerModel>& processId)
 {
     vec_erase_remove_if(m_processes,
                         [&processId](ProcessPair& pair)
@@ -147,7 +147,7 @@ void SlotPresenter::on_layerModelDeleted(
 }
 
 void SlotPresenter::on_layerModelPutToFront(
-        const id_type<LayerModel>& processId)
+        const Id<LayerModel>& processId)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     // TODO optimize by saving the previous to front and just switching...

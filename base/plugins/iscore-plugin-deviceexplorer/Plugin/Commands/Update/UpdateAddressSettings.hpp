@@ -18,7 +18,7 @@ class UpdateAddressSettings : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(UpdateAddressSettings)
           UpdateAddressSettings(
-            ModelPath<DeviceDocumentPlugin>&& device_tree,
+            Path<DeviceDocumentPlugin>&& device_tree,
             const iscore::NodePath &node,
             const iscore::AddressSettings& parameters);
 
@@ -31,7 +31,7 @@ class UpdateAddressSettings : public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ModelPath<DeviceDocumentPlugin> m_devicesModel;
+        Path<DeviceDocumentPlugin> m_devicesModel;
 
         iscore::NodePath m_node;
 

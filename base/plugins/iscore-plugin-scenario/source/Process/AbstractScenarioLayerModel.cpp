@@ -4,7 +4,7 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
-        const id_type<ConstraintViewModel>& id) const
+        const Id<ConstraintViewModel>& id) const
 {
     auto it = std::find(
                 std::begin(m_constraints),
@@ -42,7 +42,7 @@ void removeById(Vector& c, const id_T& id)
 }
 
 void AbstractScenarioLayerModel::removeConstraintViewModel(
-        const id_type<ConstraintViewModel>& constraintViewModelId)
+        const Id<ConstraintViewModel>& constraintViewModelId)
 {
     // We have to emit before, because on removal,
     // some other stuff might use the now-removed model id
@@ -53,7 +53,7 @@ void AbstractScenarioLayerModel::removeConstraintViewModel(
 }
 
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
-        const id_type<ConstraintModel>& constraintModelId) const
+        const Id<ConstraintModel>& constraintModelId) const
 {
     using namespace std;
     auto it = find_if(begin(m_constraints),
@@ -70,13 +70,13 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
 #include "Process/ScenarioModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
-                                const id_type<ConstraintModel>& constraintId,
+                                const Id<ConstraintModel>& constraintId,
                                 const ScenarioModel& scenario)
 {
     // Creation of all the constraint view models
     for(auto& viewModel : layers(scenario))
     {
-        auto lm_id = iscore::IDocument::safe_path(*viewModel);
+        auto lm_id = iscore::IDocument::path(*viewModel);
 
         if(idMap.contains(lm_id))
         {

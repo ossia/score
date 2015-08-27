@@ -40,28 +40,28 @@ class MetadataWidget : public QWidget
                     [&](const QString& newName)
             {
                 if(newName != model.metadata.name())
-                    m_commandDispatcher->submitCommand(new ChangeElementName<T>{safe_path(model), newName});
+                    m_commandDispatcher->submitCommand(new ChangeElementName<T>{path(model), newName});
             });
 
             connect(this, &MetadataWidget::labelChanged,
                     [&](const QString& newLabel)
             {
                 if(newLabel != model.metadata.label())
-                    m_commandDispatcher->submitCommand(new ChangeElementLabel<T>{safe_path(model), newLabel});
+                    m_commandDispatcher->submitCommand(new ChangeElementLabel<T>{path(model), newLabel});
             });
 
             connect(this, &MetadataWidget::commentsChanged,
                     [&](const QString& newComments)
             {
                 if(newComments != model.metadata.comment())
-                    m_commandDispatcher->submitCommand(new ChangeElementComments<T>{safe_path(model), newComments});
+                    m_commandDispatcher->submitCommand(new ChangeElementComments<T>{path(model), newComments});
             });
 
             connect(this, &MetadataWidget::colorChanged,
                     [&](const QColor& newColor)
             {
                 if(newColor != model.metadata.color())
-                    m_commandDispatcher->submitCommand(new ChangeElementColor<T>{safe_path(model), newColor});
+                    m_commandDispatcher->submitCommand(new ChangeElementColor<T>{path(model), newColor});
             });
         }
 

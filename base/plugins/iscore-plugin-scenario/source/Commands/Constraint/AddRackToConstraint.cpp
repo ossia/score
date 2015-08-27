@@ -8,7 +8,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddRackToConstraint::AddRackToConstraint(ModelPath<ConstraintModel>&& constraintPath) :
+AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

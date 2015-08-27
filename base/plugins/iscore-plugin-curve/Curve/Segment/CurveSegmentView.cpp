@@ -19,7 +19,7 @@ CurveSegmentView::CurveSegmentView(
             this, &CurveSegmentView::updatePoints);
 }
 
-const id_type<CurveSegmentModel>& CurveSegmentView::id() const
+const Id<CurveSegmentModel>& CurveSegmentView::id() const
 {
     return m_model.id();
 }

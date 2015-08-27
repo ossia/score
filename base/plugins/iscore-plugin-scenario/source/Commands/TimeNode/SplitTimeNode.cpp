@@ -13,8 +13,8 @@ using namespace Scenario::Command;
 
 
 SplitTimeNode::SplitTimeNode(
-        ModelPath<TimeNodeModel>&& path,
-        QVector<id_type<EventModel> > eventsInNewTimeNode):
+        Path<TimeNodeModel>&& path,
+        QVector<Id<EventModel> > eventsInNewTimeNode):
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},

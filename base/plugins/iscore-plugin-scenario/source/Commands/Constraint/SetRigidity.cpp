@@ -6,7 +6,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 SetRigidity::SetRigidity(
-        ModelPath<ConstraintModel>&& constraintPath,
+        Path<ConstraintModel>&& constraintPath,
         bool rigid) :
     SerializableCommand {"ScenarioControl",
                          commandName(),

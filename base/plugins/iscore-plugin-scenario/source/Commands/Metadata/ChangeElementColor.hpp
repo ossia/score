@@ -24,7 +24,7 @@ namespace Scenario
                 }
 
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementColor, "ScenarioControl")
-                ChangeElementColor(ModelPath<T>&& path, QColor newLabel) :
+                ChangeElementColor(Path<T>&& path, QColor newLabel) :
                     SerializableCommand {"ScenarioControl",
                                          commandName(),
                                          description()},
@@ -59,7 +59,7 @@ namespace Scenario
                 }
 
             private:
-                ModelPath<T> m_path;
+                Path<T> m_path;
                 QColor m_newColor;
                 QColor m_oldColor;
         };

@@ -3,7 +3,7 @@
 #include <KF5/KDNSSD/DNSSD/PublicService>
 #endif
 
-MasterSession::MasterSession(iscore::Document* doc, LocalClient* theclient, id_type<Session> id, QObject* parent):
+MasterSession::MasterSession(iscore::Document* doc, LocalClient* theclient, Id<Session> id, QObject* parent):
     Session{theclient, id, parent},
     m_document{doc}
 {
@@ -25,7 +25,7 @@ void MasterSession::broadcast(NetworkMessage m)
         client->sendMessage(m);
 }
 
-void MasterSession::transmit(id_type<Client> sender, NetworkMessage m)
+void MasterSession::transmit(Id<Client> sender, NetworkMessage m)
 {
     for(const auto& client : remoteClients())
     {

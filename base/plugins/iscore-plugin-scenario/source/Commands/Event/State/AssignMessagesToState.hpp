@@ -14,7 +14,7 @@ class AssignMessagesToState : public iscore::SerializableCommand
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AssignMessagesToState)
 
           AssignMessagesToState(
-          ModelPath<StateModel>&& path,
+          Path<StateModel>&& path,
             iscore::StatePath&& statepath,
             const iscore::MessageList& messages);
 
@@ -27,7 +27,7 @@ class AssignMessagesToState : public iscore::SerializableCommand
 
     private:
 
-        ModelPath<StateModel> m_path;
+        Path<StateModel> m_path;
         iscore::StatePath m_statepath;
 
         iscore::MessageList m_oldMessages; // TODO variant instead ??

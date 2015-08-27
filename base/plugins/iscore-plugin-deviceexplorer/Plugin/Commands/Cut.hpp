@@ -19,7 +19,7 @@ namespace DeviceExplorer
                 Cut(const iscore::NodePath& parentPath,
                     int row,
                         const QString& text,
-                        ModelPath<DeviceExplorerModel>&& model);
+                        Path<DeviceExplorerModel>&& model);
 
 
                 virtual void undo() override;
@@ -32,7 +32,7 @@ namespace DeviceExplorer
 
 
             protected:
-                ModelPath<DeviceExplorerModel> m_model{};
+                Path<DeviceExplorerModel> m_model{};
                 QByteArray m_data;
                 iscore::NodePath m_parentPath;
                 int m_row{};

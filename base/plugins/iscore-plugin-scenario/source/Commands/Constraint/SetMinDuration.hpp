@@ -22,14 +22,14 @@ namespace Scenario
         public:
             ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetMinDuration, "ScenarioControl")
 
-            SetMinDuration(ModelPath<ConstraintModel>&& path, const TimeValue& newval):
+            SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
                 iscore::PropertyCommand{
                 std::move(path), "minDuration", QVariant::fromValue(newval), "ScenarioControl", commandName(), description()}
             {
 
             }
 
-            void update(const ModelPath<ConstraintModel> & p, const TimeValue &newval)
+            void update(const Path<ConstraintModel> & p, const TimeValue &newval)
             {
                 iscore::PropertyCommand::update(p, QVariant::fromValue(newval));
             }

@@ -16,19 +16,19 @@ struct NumberedEvent : public QEvent
 template<typename Element, int N>
 struct NumberedWithPath_Event : public NumberedEvent<N>
 {
-        explicit NumberedWithPath_Event(const ModelPath<Element>& p):
+        explicit NumberedWithPath_Event(const Path<Element>& p):
             NumberedEvent<N>{},
             path{p}
         {
         }
 
-        explicit NumberedWithPath_Event(ModelPath<Element>&& p):
+        explicit NumberedWithPath_Event(Path<Element>&& p):
             NumberedEvent<N>{},
             path{std::move(p)}
         {
         }
 
-        ModelPath<Element> path;
+        Path<Element> path;
 };
 
 template<typename PointType>

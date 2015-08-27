@@ -28,7 +28,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
 
-    auto scenarioPath = iscore::IDocument::safe_path(m_parentSM.model());
+    auto scenarioPath = iscore::IDocument::path(m_parentSM.model());
 
     //// Create from nothing ////
     m_createFromNothingState = new ScenarioCreation_FromNothing{
@@ -89,19 +89,19 @@ void CreationToolState::on_pressed()
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
 
     // Press a state
-    [&] (const id_type<StateModel>& id)
+    [&] (const Id<StateModel>& id)
     { localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint}); },
 
     // Press an event
-    [&] (const id_type<EventModel>& id)
+    [&] (const Id<EventModel>& id)
     { localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint}); },
 
     // Press a TimeNode
-    [&] (const id_type<TimeNodeModel>& id)
+    [&] (const Id<TimeNodeModel>& id)
     { localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
 
     // Press a Constraint
-    [&] (const id_type<ConstraintModel>&)
+    [&] (const Id<ConstraintModel>&)
     { },
 
     // Press a slot handle
@@ -118,11 +118,11 @@ void CreationToolState::on_moved()
     if(auto cs = currentState())
     {
         mapWithCollision(
-                    [&] (const id_type<StateModel>& id)
+                    [&] (const Id<StateModel>& id)
         { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<EventModel>& id)
+        [&] (const Id<EventModel>& id)
         { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<TimeNodeModel>& id)
+        [&] (const Id<TimeNodeModel>& id)
         { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
         [&] ()
         { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint}); },
@@ -138,11 +138,11 @@ void CreationToolState::on_released()
     if(auto cs = currentState())
     {
         mapWithCollision(
-                    [&] (const id_type<StateModel>& id)
+                    [&] (const Id<StateModel>& id)
         { localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<EventModel>& id)
+        [&] (const Id<EventModel>& id)
         { localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<TimeNodeModel>& id)
+        [&] (const Id<TimeNodeModel>& id)
         { localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
         [&] ()
         { localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); },
@@ -152,7 +152,7 @@ void CreationToolState::on_released()
     }
 }
 
-QList<id_type<StateModel> > CreationToolState::getCollidingStates(const QVector<id_type<StateModel> > &createdStates)
+QList<Id<StateModel> > CreationToolState::getCollidingStates(const QVector<Id<StateModel> > &createdStates)
 {
     return getCollidingModels(
                 m_parentSM.presenter().states(),
@@ -160,7 +160,7 @@ QList<id_type<StateModel> > CreationToolState::getCollidingStates(const QVector<
                 m_parentSM.scenePoint);
 }
 
-QList<id_type<EventModel>> CreationToolState::getCollidingEvents(const QVector<id_type<EventModel>>& createdEvents)
+QList<Id<EventModel>> CreationToolState::getCollidingEvents(const QVector<Id<EventModel>>& createdEvents)
 {
     return getCollidingModels(
                 m_parentSM.presenter().events(),
@@ -168,7 +168,7 @@ QList<id_type<EventModel>> CreationToolState::getCollidingEvents(const QVector<i
                 m_parentSM.scenePoint);
 }
 
-QList<id_type<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(const QVector<id_type<TimeNodeModel>>& createdTimeNodes)
+QList<Id<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(const QVector<Id<TimeNodeModel>>& createdTimeNodes)
 {
     return getCollidingModels(
                 m_parentSM.presenter().timeNodes(),

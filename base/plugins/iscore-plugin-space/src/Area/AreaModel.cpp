@@ -6,7 +6,7 @@
 AreaModel::AreaModel(
         std::unique_ptr<spacelib::area>&& area,
         const SpaceModel& space,
-        const id_type<AreaModel> & id,
+        const Id<AreaModel> & id,
         QObject *parent):
     IdentifiedObject{id, staticMetaObject.className(), parent},
     m_space{space},

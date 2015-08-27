@@ -26,7 +26,7 @@ class SpaceLayerPresenter : public LayerPresenter
         void parentGeometryChanged();
 
         const LayerModel &layerModel() const;
-        const id_type<Process> &modelId() const;
+        const Id<Process> &modelId() const;
 
         void update();
 

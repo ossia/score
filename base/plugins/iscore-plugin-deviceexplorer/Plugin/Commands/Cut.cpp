@@ -4,7 +4,7 @@ using namespace DeviceExplorer::Command;
 
 Cut::Cut(const iscore::NodePath &parentPath, int row,
                               const QString& text,
-                              ModelPath<DeviceExplorerModel> &&model):
+                              Path<DeviceExplorerModel> &&model):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()}

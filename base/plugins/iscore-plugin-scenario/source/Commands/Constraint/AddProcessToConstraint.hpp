@@ -28,15 +28,15 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint, "ScenarioControl")
                 AddProcessToConstraint(
-                    ModelPath<ConstraintModel>&& constraintPath,
+                    Path<ConstraintModel>&& constraintPath,
                     QString process);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                const ModelPath<ConstraintModel>& constraintPath() const
+                const Path<ConstraintModel>& constraintPath() const
                 { return m_path; }
-                id_type<Process> processId() const
+                Id<Process> processId() const
                 {
                     return m_createdProcessId;
                 }
@@ -46,13 +46,13 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
+                Path<ConstraintModel> m_path;
                 QString m_processName;
 
-                id_type<Process> m_createdProcessId {};
-                id_type<RackModel> m_createdRackId {};
-                id_type<SlotModel> m_createdSlotId {};
-                id_type<LayerModel> m_createdLayerId {};
+                Id<Process> m_createdProcessId {};
+                Id<RackModel> m_createdRackId {};
+                Id<SlotModel> m_createdSlotId {};
+                Id<LayerModel> m_createdLayerId {};
                 QByteArray m_layerConstructionData;
                 bool m_noRackes = false;
                 bool m_notBaseConstraint = false;

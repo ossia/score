@@ -27,7 +27,7 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
             QDataStream s(&idOffer.data, QIODevice::WriteOnly);
 
             int32_t id = getNextId();
-            m_clientId = id_type<Client>(id);
+            m_clientId = Id<Client>(id);
             s << id;
         }
 

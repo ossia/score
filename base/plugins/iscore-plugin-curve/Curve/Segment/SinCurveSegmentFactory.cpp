@@ -7,7 +7,7 @@ QString SinCurveSegmentFactory::name() const
 }
 
 CurveSegmentModel* SinCurveSegmentFactory::make(
-        const id_type<CurveSegmentModel>& id,
+        const Id<CurveSegmentModel>& id,
         QObject* parent)
 {
     return new SinCurveSegmentModel{id, parent};

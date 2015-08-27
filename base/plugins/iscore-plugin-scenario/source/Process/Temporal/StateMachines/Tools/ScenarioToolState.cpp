@@ -31,37 +31,37 @@ ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm, QState* parent) :
     m_parentSM{sm}
 {
 }
-id_type<EventModel> ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) const
+Id<EventModel> ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) const
 {
     const auto& event = static_cast<const EventView*>(pressedItem)->presenter().model();
     return event.parentScenario() == &m_parentSM.model()
             ? event.id()
-            : id_type<EventModel>{};
+            : Id<EventModel>{};
 }
 
-id_type<TimeNodeModel> ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
+Id<TimeNodeModel> ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
 {
     const auto& timenode = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
     return timenode.parentScenario() == &m_parentSM.model()
             ? timenode.id()
-            : id_type<TimeNodeModel>{};
+            : Id<TimeNodeModel>{};
 }
 
-id_type<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
+Id<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
 {
     const auto& constraint = static_cast<const ConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
     return constraint.parentScenario() == &m_parentSM.model()
             ? constraint.id()
-            : id_type<ConstraintModel>{};
+            : Id<ConstraintModel>{};
 }
 
-id_type<StateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem) const
+Id<StateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem) const
 {
     const auto& state = static_cast<const StateView*>(pressedItem)->presenter().model();
 
     return state.parentScenario() == &m_parentSM.model()
             ? state.id()
-            : id_type<StateModel>{};
+            : Id<StateModel>{};
 }
 
 const SlotModel* ScenarioTool::itemToSlotFromHandle(const QGraphicsItem *pressedItem) const

@@ -22,7 +22,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(HideRackInViewModel, "ScenarioControl")
-                HideRackInViewModel(ModelPath<ConstraintViewModel>&& path);
+                HideRackInViewModel(Path<ConstraintViewModel>&& path);
 
                 /**
                  * @brief HideRackInViewModel
@@ -41,9 +41,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintViewModel> m_constraintViewModelPath;
+                Path<ConstraintViewModel> m_constraintViewPath;
 
-                id_type<RackModel> m_constraintPreviousId {};
+                Id<RackModel> m_constraintPreviousId {};
         };
     }
 }

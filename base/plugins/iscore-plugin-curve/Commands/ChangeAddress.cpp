@@ -5,7 +5,7 @@
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 #include "Automation/AutomationModel.hpp"
 ChangeAddress::ChangeAddress(
-        ModelPath<AutomationModel> &&path,
+        Path<AutomationModel> &&path,
         const iscore::Address &newval):
     iscore::SerializableCommand{
         "AutomationControl", commandName(), description()},

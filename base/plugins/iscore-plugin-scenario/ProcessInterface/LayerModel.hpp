@@ -20,7 +20,7 @@ class LayerModel: public IdentifiedObject<LayerModel>
 
     protected:
         // TODO this argument order sucks
-        LayerModel(const id_type<LayerModel>& viewModelId,
+        LayerModel(const Id<LayerModel>& viewModelId,
                    const QString& name,
                    Process& sharedProcess,
                    QObject* parent);

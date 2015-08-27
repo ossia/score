@@ -71,7 +71,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
                         &ok);
 
             if(ok)
-                parentSlot->createLayerModel(id_type<Process> {process_name.toInt() });
+                parentSlot->createLayerModel(Id<Process> {process_name.toInt() });
         }
     });
 }

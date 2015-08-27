@@ -18,7 +18,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 MoveBaseEvent::MoveBaseEvent(
-        ModelPath<BaseScenario>&& baseScenarioPath,
+        Path<BaseScenario>&& baseScenarioPath,
         const TimeValue& date,
         ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
@@ -39,7 +39,7 @@ MoveBaseEvent::MoveBaseEvent(
 
     // Save for each view model of this constraint
     // the identifier of the rack that was displayed
-    QMap<id_type<ConstraintViewModel>, id_type<RackModel>> map;
+    QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
     for(const ConstraintViewModel* vm : constraint.viewModels())
     {
         map[vm->id()] = vm->shownRack();
@@ -80,7 +80,7 @@ void MoveBaseEvent::undo()
     // during this command.
 
     // 1. Clear the constraint
-    ClearConstraint clearCmd{iscore::IDocument::safe_path(scenar.baseConstraint())};
+    ClearConstraint clearCmd{iscore::IDocument::path(scenar.baseConstraint())};
     clearCmd.redo();
 
     auto& constraint = scenar.baseConstraint();

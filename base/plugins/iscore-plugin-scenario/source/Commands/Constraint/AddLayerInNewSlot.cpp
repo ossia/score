@@ -14,8 +14,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddLayerInNewSlot::AddLayerInNewSlot(
-        ModelPath<ConstraintModel>&& constraintPath,
-        id_type<Process> process) :
+        Path<ConstraintModel>&& constraintPath,
+        Id<Process> process) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -35,8 +35,8 @@ AddLayerInNewSlot::AddLayerInNewSlot(
         m_existingRack = true;
     }
 
-    m_createdSlotId = id_type<SlotModel> (getNextId());
-    m_createdLayerId = id_type<LayerModel> (getNextId());
+    m_createdSlotId = Id<SlotModel> (getNextId());
+    m_createdLayerId = Id<LayerModel> (getNextId());
     m_processData = constraint.process(m_sharedProcessModelId).makeViewModelConstructionData();
 }
 

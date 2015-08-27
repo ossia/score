@@ -22,11 +22,11 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowRackInViewModel, "ScenarioControl")
                 ShowRackInViewModel(
-                        ModelPath<ConstraintViewModel>&& constraint_path,
-                        id_type<RackModel> rackId);
+                        Path<ConstraintViewModel>&& constraint_path,
+                        Id<RackModel> rackId);
                 ShowRackInViewModel(
                         const ConstraintViewModel& vm,
-                        const id_type<RackModel>& rackId);
+                        const Id<RackModel>& rackId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -36,9 +36,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintViewModel> m_constraintViewModelPath;
-                id_type<RackModel> m_rackId {};
-                id_type<RackModel> m_previousRackId {};
+                Path<ConstraintViewModel> m_constraintViewPath;
+                Id<RackModel> m_rackId {};
+                Id<RackModel> m_previousRackId {};
 
         };
     }

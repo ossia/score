@@ -22,8 +22,8 @@ MoveConstraint::~MoveConstraint()
 }
 
 MoveConstraint::MoveConstraint(
-        ModelPath<ScenarioModel>&& scenarioPath,
-        const id_type<ConstraintModel>& id,
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<ConstraintModel>& id,
         const TimeValue& date,
         double height) :
     SerializableCommand{"ScenarioControl",
@@ -39,8 +39,8 @@ MoveConstraint::MoveConstraint(
     m_oldHeight = cst.heightPercentage();
 }
 
-void MoveConstraint::update(const ModelPath<ScenarioModel>& path,
-                            const id_type<ConstraintModel>&,
+void MoveConstraint::update(const Path<ScenarioModel>& path,
+                            const Id<ConstraintModel>&,
                             const TimeValue& date,
                             double height)
 {

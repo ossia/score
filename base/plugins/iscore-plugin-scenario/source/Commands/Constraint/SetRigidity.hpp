@@ -22,7 +22,7 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetRigidity, "ScenarioControl")
                 SetRigidity(
-                    ModelPath<ConstraintModel>&& constraintPath,
+                    Path<ConstraintModel>&& constraintPath,
                     bool rigid);
 
                 virtual void undo() override;
@@ -33,7 +33,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
+                Path<ConstraintModel> m_path;
 
                 bool m_rigidity {};
 

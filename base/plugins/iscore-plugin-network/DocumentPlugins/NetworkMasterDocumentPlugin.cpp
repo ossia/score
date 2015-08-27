@@ -57,19 +57,19 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
                     iscore::IPresenter::instantiateUndoCommand(parentName, name, data));
 
 
-        m_session->transmit(id_type<Client>(m.clientId), m);
+        m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     // Undo-redo
     s->mapper().addHandler("/undo", [&] (NetworkMessage m)
     {
         stack.undoQuiet();
-        m_session->transmit(id_type<Client>(m.clientId), m);
+        m_session->transmit(Id<Client>(m.clientId), m);
     });
     s->mapper().addHandler("/redo", [&] (NetworkMessage m)
     {
         stack.redoQuiet();
-        m_session->transmit(id_type<Client>(m.clientId), m);
+        m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     // Lock-unlock
@@ -79,7 +79,7 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         QByteArray data;
         s >> data;
         locker.on_lock(data);
-        m_session->transmit(id_type<Client>(m.clientId), m);
+        m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     s->mapper().addHandler("/unlock", [&] (NetworkMessage m)
@@ -88,7 +88,7 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         QByteArray data;
         s >> data;
         locker.on_unlock(data);
-        m_session->transmit(id_type<Client>(m.clientId), m);
+        m_session->transmit(Id<Client>(m.clientId), m);
     });
 }
 

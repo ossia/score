@@ -16,9 +16,9 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwapSlots, "ScenarioControl")
                 SwapSlots(
-                    ModelPath<RackModel>&& rack,
-                    const id_type<SlotModel>& first,
-                    const id_type<SlotModel>& second);
+                    Path<RackModel>&& rack,
+                    const Id<SlotModel>& first,
+                    const Id<SlotModel>& second);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -28,8 +28,8 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<RackModel> m_rackPath;
-                id_type<SlotModel> m_first, m_second;
+                Path<RackModel> m_rackPath;
+                Id<SlotModel> m_first, m_second;
         };
     }
 }

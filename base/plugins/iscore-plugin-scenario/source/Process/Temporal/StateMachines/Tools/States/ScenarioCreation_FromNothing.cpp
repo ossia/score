@@ -25,7 +25,7 @@
 using namespace Scenario::Command;
 ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
         const ScenarioStateMachine& stateMachine,
-        const ModelPath<ScenarioModel>& scenarioPath,
+        const Path<ScenarioModel>& scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
     ScenarioCreationState{stateMachine, stack, scenarioPath, parent}
@@ -146,7 +146,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
                 return;
 
             m_dispatcher.submitCommand<MoveNewEvent>(
-                        ModelPath<ScenarioModel>{m_scenarioPath},
+                        Path<ScenarioModel>{m_scenarioPath},
                         createdConstraints.last(),
                         createdEvents.last(),
                         currentPoint.date,
@@ -160,7 +160,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
                 return;
 
             m_dispatcher.submitCommand<MoveNewState>(
-                        ModelPath<ScenarioModel>{m_scenarioPath},
+                        Path<ScenarioModel>{m_scenarioPath},
                         createdStates.last(),
                         currentPoint.y);
         });
@@ -171,7 +171,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
                 return;
 
             m_dispatcher.submitCommand<MoveNewState>(
-                        ModelPath<ScenarioModel>{m_scenarioPath},
+                        Path<ScenarioModel>{m_scenarioPath},
                         createdStates.last(),
                         currentPoint.y);
         });

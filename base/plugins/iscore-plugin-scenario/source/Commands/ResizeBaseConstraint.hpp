@@ -28,7 +28,7 @@ class MoveBaseEvent : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveBaseEvent, "ScenarioControl")
           MoveBaseEvent(
-          ModelPath<BaseScenario>&& scenarioPath,
+          Path<BaseScenario>&& scenarioPath,
             const TimeValue& date,
                   ExpandMode mode);
 
@@ -36,14 +36,14 @@ class MoveBaseEvent : public iscore::SerializableCommand
         virtual void redo() override;
 
         void update(
-                const ModelPath<BaseScenario>&,
+                const Path<BaseScenario>&,
                 const TimeValue& date,
                 ExpandMode)
         {
             m_newDate = date;
         }
 
-        const ModelPath<BaseScenario>& path() const
+        const Path<BaseScenario>& path() const
         { return m_path; }
 
     protected:
@@ -51,7 +51,7 @@ class MoveBaseEvent : public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ModelPath<BaseScenario> m_path;
+        Path<BaseScenario> m_path;
 
         TimeValue m_oldDate {};
         TimeValue m_newDate {};
@@ -61,8 +61,8 @@ class MoveBaseEvent : public iscore::SerializableCommand
         QPair<
         QByteArray, // The constraint data
         QMap< // Mapping for the view models of this constraint
-        id_type<ConstraintViewModel>,
-        id_type<RackModel>
+        Id<ConstraintViewModel>,
+        Id<RackModel>
         >
         > m_savedConstraint;
 };

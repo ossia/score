@@ -20,7 +20,7 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceConstraintContent, "ScenarioControl")
                 ReplaceConstraintContent(
                     QJsonObject&& sourceConstraint,
-                    ModelPath<ConstraintModel>&&  targetConstraint,
+                    Path<ConstraintModel>&&  targetConstraint,
                     ExpandMode mode);
 
                 virtual void undo() override;
@@ -32,11 +32,11 @@ namespace Scenario
 
             private:
                 QJsonObject m_source;
-                ModelPath<ConstraintModel> m_target;
+                Path<ConstraintModel> m_target;
                 ExpandMode m_mode{ExpandMode::Grow};
 
-                QMap<id_type<RackModel>, id_type<RackModel>> m_rackIds;
-                QMap<id_type<Process>, id_type<Process>> m_processIds;
+                QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
+                QMap<Id<Process>, Id<Process>> m_processIds;
         };
     }
 }

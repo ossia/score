@@ -8,13 +8,13 @@ class AutomationLayerModel : public LayerModel
         Q_OBJECT
     public:
         AutomationLayerModel(AutomationModel& model,
-                            const id_type<LayerModel>& id,
+                            const Id<LayerModel>& id,
                             QObject* parent);
 
         // Copy
         AutomationLayerModel(const AutomationLayerModel& source,
                             AutomationModel& model,
-                            const id_type<LayerModel>& id,
+                            const Id<LayerModel>& id,
                             QObject* parent);
 
         // Load

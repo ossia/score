@@ -18,8 +18,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 MoveEvent::MoveEvent(
-        ModelPath<ScenarioModel>&& scenarioPath,
-        const id_type<EventModel>& eventId,
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<EventModel>& eventId,
         const TimeValue& date,
         ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
@@ -39,7 +39,7 @@ MoveEvent::MoveEvent(
                                                    m_movableTimenodes);
 
     // 1. Make a list of the constraints that need to be resized
-    QSet<id_type<ConstraintModel>> constraints;
+    QSet<Id<ConstraintModel>> constraints;
     for(const auto& tn_id : m_movableTimenodes)
     {
         const auto& tn = scenar.timeNode(tn_id);
@@ -67,13 +67,13 @@ MoveEvent::MoveEvent(
 
         // Save for each view model of this constraint
         // the identifier of the rack that was displayed
-        QMap<id_type<ConstraintViewModel>, id_type<RackModel>> map;
+        QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
         for(const ConstraintViewModel* vm : constraint.viewModels())
         {
             map[vm->id()] = vm->shownRack();
         }
 
-        m_savedConstraints.push_back({{iscore::IDocument::safe_path(constraint), arr}, map});
+        m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
     }
 }
 
@@ -97,7 +97,7 @@ void MoveEvent::undo()
     {
         // 1. Clear the constraint
         // TODO Don't use a command since it serializes a ton of unused stuff.
-        ClearConstraint clear_cmd{ModelPath<ConstraintModel>{obj.first.first}};
+        ClearConstraint clear_cmd{Path<ConstraintModel>{obj.first.first}};
         clear_cmd.redo();
 
         auto& constraint = obj.first.first.find();

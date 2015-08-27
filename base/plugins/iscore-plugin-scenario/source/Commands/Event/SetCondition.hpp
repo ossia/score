@@ -13,7 +13,7 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetCondition, "ScenarioControl")
                 SetCondition(
-                    ModelPath<EventModel>&& eventPath,
+                    Path<EventModel>&& eventPath,
                     QString condition);
                 virtual void undo() override;
                 virtual void redo() override;
@@ -23,7 +23,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<EventModel> m_path;
+                Path<EventModel> m_path;
                 QString m_condition;
                 QString m_previousCondition;
         };

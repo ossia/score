@@ -3,7 +3,7 @@
 
 GroupMetadata::GroupMetadata(
         const QObject* element,
-        id_type<Group> id,
+        Id<Group> id,
         QObject* parent):
     iscore::ElementPluginModel{parent},
     m_element{element},
@@ -28,7 +28,7 @@ void GroupMetadata::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, *this);
 }
 
-void GroupMetadata::setGroup(const id_type<Group>& id)
+void GroupMetadata::setGroup(const Id<Group>& id)
 {
     if(id != m_id)
     {

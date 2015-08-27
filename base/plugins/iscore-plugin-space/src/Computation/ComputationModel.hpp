@@ -13,7 +13,7 @@ class ComputationModel : public IdentifiedObject<ComputationModel>
         ComputationModel(
                 std::unique_ptr<spacelib::computation>&& computation,
                 const SpaceModel& space,
-                const id_type<ComputationModel>&,
+                const Id<ComputationModel>&,
                 QObject* parent);
 
         void setComputation(std::unique_ptr<spacelib::computation> &&ar);

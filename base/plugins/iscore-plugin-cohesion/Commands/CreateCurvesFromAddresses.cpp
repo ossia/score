@@ -6,7 +6,7 @@
 using namespace iscore;
 
 CreateCurvesFromAddresses::CreateCurvesFromAddresses(
-        ModelPath<ConstraintModel>&& constraint,
+        Path<ConstraintModel>&& constraint,
         const QList<Address>& addresses):
     SerializableCommand {"IScoreCohesionControl",
                          commandName(),
@@ -17,7 +17,7 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses(
     for(int i = 0; i < m_addresses.size(); ++i)
     {
         auto cmd = new Scenario::Command::AddProcessToConstraint{
-                   ModelPath<ConstraintModel>{m_path},
+                   Path<ConstraintModel>{m_path},
                    "Automation"};
         m_serializedCommands.push_back(cmd->serialize());
         delete cmd;

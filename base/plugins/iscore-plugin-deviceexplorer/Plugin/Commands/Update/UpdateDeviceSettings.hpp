@@ -15,7 +15,7 @@ class UpdateDeviceSettings : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(UpdateDeviceSettings)
         UpdateDeviceSettings(
-                  ModelPath<DeviceDocumentPlugin>&& device_tree,
+                  Path<DeviceDocumentPlugin>&& device_tree,
                   const QString& name,
                   const iscore::DeviceSettings& parameters);
 
@@ -28,7 +28,7 @@ class UpdateDeviceSettings : public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ModelPath<DeviceDocumentPlugin> m_devicesModel;
+        Path<DeviceDocumentPlugin> m_devicesModel;
         iscore::DeviceSettings m_oldParameters;
         iscore::DeviceSettings m_newParameters;
 };

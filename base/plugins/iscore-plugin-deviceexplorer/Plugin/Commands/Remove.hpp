@@ -20,7 +20,7 @@ class Remove : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(Remove)
 
-          Remove(ModelPath<DeviceDocumentPlugin>&& device_tree,
+          Remove(Path<DeviceDocumentPlugin>&& device_tree,
             const iscore::Node& node);
           ~Remove();
 

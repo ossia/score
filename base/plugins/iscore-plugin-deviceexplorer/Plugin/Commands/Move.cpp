@@ -6,7 +6,7 @@ using namespace DeviceExplorer::Command;
 Move::Move(const iscore::NodePath &srcParentPath, int srcRow, int count,
            const iscore::NodePath &dstParentPath, int dstRow,
            const QString& text,
-           ModelPath<DeviceExplorerModel> &&tree_model):
+           Path<DeviceExplorerModel> &&tree_model):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()}

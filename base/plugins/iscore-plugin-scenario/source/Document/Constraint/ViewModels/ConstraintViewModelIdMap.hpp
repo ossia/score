@@ -5,5 +5,5 @@
 
 class ConstraintViewModel;
 class AbstractScenarioLayerModel;
-using ConstraintViewModelIdMap = QHash<ModelPath<AbstractScenarioLayerModel>, id_type<ConstraintViewModel>>;
-using SerializedConstraintViewModels = QVector<QPair<ModelPath<AbstractScenarioLayerModel>, QPair<QString, QByteArray>>>;
+using ConstraintViewModelIdMap = QHash<Path<AbstractScenarioLayerModel>, Id<ConstraintViewModel>>;
+using SerializedConstraintViewModels = QVector<QPair<Path<AbstractScenarioLayerModel>, QPair<QString, QByteArray>>>;

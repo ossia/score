@@ -11,9 +11,9 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MergeTimeNodes::MergeTimeNodes( ModelPath<ScenarioModel> &&path,
-                                id_type<TimeNodeModel> aimedTimeNode,
-                                id_type<TimeNodeModel> movingTimeNode):
+MergeTimeNodes::MergeTimeNodes( Path<ScenarioModel> &&path,
+                                Id<TimeNodeModel> aimedTimeNode,
+                                Id<TimeNodeModel> movingTimeNode):
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

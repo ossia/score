@@ -16,7 +16,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
     public:
         Selectable selection;
         CurveSegmentModel(
-                const id_type<CurveSegmentModel>& id,
+                const Id<CurveSegmentModel>& id,
                 QObject* parent);
 
         template<typename Impl>
@@ -27,7 +27,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         }
 
         virtual CurveSegmentModel* clone(
-                const id_type<CurveSegmentModel>& id,
+                const Id<CurveSegmentModel>& id,
                 QObject* parent) const = 0;
 
         virtual ~CurveSegmentModel();
@@ -54,14 +54,14 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
             return m_end;
         }
 
-        void setPrevious(const id_type<CurveSegmentModel>& previous);
-        const id_type<CurveSegmentModel>& previous() const
+        void setPrevious(const Id<CurveSegmentModel>& previous);
+        const Id<CurveSegmentModel>& previous() const
         {
             return m_previous;
         }
 
-        void setFollowing(const id_type<CurveSegmentModel>& following);
-        const id_type<CurveSegmentModel>& following() const
+        void setFollowing(const Id<CurveSegmentModel>& following);
+        const Id<CurveSegmentModel>& following() const
         {
             return m_following;
         }
@@ -86,5 +86,5 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
     private:
         CurvePoint m_start, m_end;
-        id_type<CurveSegmentModel> m_previous, m_following;
+        Id<CurveSegmentModel> m_previous, m_following;
 };

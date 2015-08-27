@@ -26,7 +26,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
 {
-    id_type<LayerModel> editedProcessId;
+    Id<LayerModel> editedProcessId;
     m_stream >> editedProcessId;
 
     int lm_size;
@@ -87,6 +87,6 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
 
     slot.setHeight(m_obj["Height"].toInt());
     slot.putToFront(
-                fromJsonValue<id_type<LayerModel>>(
+                fromJsonValue<Id<LayerModel>>(
                     m_obj["EditedProcess"]));
 }

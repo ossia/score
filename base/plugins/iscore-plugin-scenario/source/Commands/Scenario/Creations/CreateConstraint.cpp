@@ -15,9 +15,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 CreateConstraint::CreateConstraint(
-        ModelPath<ScenarioModel>&& scenarioPath,
-        const id_type<StateModel>& startState,
-        const id_type<StateModel>& endState) :
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<StateModel>& startState,
+        const Id<StateModel>& endState) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
@@ -33,7 +33,7 @@ CreateConstraint::CreateConstraint(
     // we have to generate ConstraintViewModels, too
     for(const auto& viewModel : layers(scenar))
     {
-        m_createdConstraintViewModelIDs[iscore::IDocument::safe_path(*viewModel)] = getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[iscore::IDocument::path(*viewModel)] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view

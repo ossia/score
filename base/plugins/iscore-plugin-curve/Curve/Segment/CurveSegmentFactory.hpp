@@ -12,7 +12,7 @@ class CurveSegmentFactory : public iscore::FactoryInterface
         static QString factoryName();
         virtual QString name() const = 0;
         virtual CurveSegmentModel* make(
-                const id_type<CurveSegmentModel>&,
+                const Id<CurveSegmentModel>&,
                 QObject* parent) = 0;
 
         virtual CurveSegmentModel *load(

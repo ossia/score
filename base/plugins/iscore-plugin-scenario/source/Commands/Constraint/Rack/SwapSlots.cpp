@@ -4,9 +4,9 @@ using namespace Scenario::Command;
 
 
 SwapSlots::SwapSlots(
-        ModelPath<RackModel>&& rack,
-        const id_type<SlotModel>& first,
-        const id_type<SlotModel>& second):
+        Path<RackModel>&& rack,
+        const Id<SlotModel>& first,
+        const Id<SlotModel>& second):
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

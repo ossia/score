@@ -96,7 +96,7 @@ void ConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-const id_type<ConstraintModel>& ConstraintPresenter::id() const
+const Id<ConstraintModel>& ConstraintPresenter::id() const
 {
     return model().id();
 }
@@ -185,7 +185,7 @@ ConstraintView*ConstraintPresenter::view() const
     return m_view;
 }
 
-void ConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
+void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 {
     clearRackPresenter();
     createRackPresenter(m_viewModel.model().rack(rackId));

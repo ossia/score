@@ -18,9 +18,9 @@ class CreationToolState : public ScenarioTool
 
     private:
         // Return the colliding elements that were not created in the current commands
-        QList<id_type<StateModel>> getCollidingStates(const QVector<id_type<StateModel>>& createdStates);
-        QList<id_type<EventModel>> getCollidingEvents(const QVector<id_type<EventModel>>& createdEvents);
-        QList<id_type<TimeNodeModel>> getCollidingTimeNodes(const QVector<id_type<TimeNodeModel>>& createdTimeNodes);
+        QList<Id<StateModel>> getCollidingStates(const QVector<Id<StateModel>>& createdStates);
+        QList<Id<EventModel>> getCollidingEvents(const QVector<Id<EventModel>>& createdEvents);
+        QList<Id<TimeNodeModel>> getCollidingTimeNodes(const QVector<Id<TimeNodeModel>>& createdTimeNodes);
 
         CreationState* currentState() const;
 
@@ -33,9 +33,9 @@ class CreationToolState : public ScenarioTool
                 EventFun ev_fun,
                 TimeNodeFun tn_fun,
                 NothingFun nothing_fun,
-                const QVector<id_type<StateModel>>& createdStates,
-                const QVector<id_type<EventModel>>& createdEvents,
-                const QVector<id_type<TimeNodeModel>>& createdTimeNodes)
+                const QVector<Id<StateModel>>& createdStates,
+                const QVector<Id<EventModel>>& createdEvents,
+                const QVector<Id<TimeNodeModel>>& createdTimeNodes)
         {
             auto collidingStates = getCollidingStates(createdStates);
             if(!collidingStates.empty())

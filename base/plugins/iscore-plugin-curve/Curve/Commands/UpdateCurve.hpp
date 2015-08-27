@@ -11,20 +11,20 @@ class UpdateCurve : public iscore::SerializableCommand
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateCurve, "AutomationControl")
         UpdateCurve(
-          ModelPath<CurveModel>&& model,
+          Path<CurveModel>&& model,
           QVector<QByteArray>&& segments);
 
         void undo() override;
         void redo() override;
 
-        void update(ModelPath<CurveModel>&& model, QVector<QByteArray>&&  segments);
+        void update(Path<CurveModel>&& model, QVector<QByteArray>&&  segments);
 
     protected:
         void serializeImpl(QDataStream & s) const override;
         void deserializeImpl(QDataStream & s) override;
 
     private:
-        ModelPath<CurveModel> m_model;
+        Path<CurveModel> m_model;
         QVector<QByteArray> m_oldCurveData;
         QVector<QByteArray> m_newCurveData;
 };

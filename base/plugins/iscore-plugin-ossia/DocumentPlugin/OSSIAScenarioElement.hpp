@@ -47,18 +47,18 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void on_eventCreated(const EventModel& id);
         void on_timeNodeCreated(const TimeNodeModel& id);
 
-        void on_constraintRemoved(const id_type<ConstraintModel>& id);
-        void on_stateRemoved(const id_type<StateModel>& id);
-        void on_eventRemoved(const id_type<EventModel>& id);
-        void on_timeNodeRemoved(const id_type<TimeNodeModel>& id);
+        void on_constraintRemoved(const Id<ConstraintModel>& id);
+        void on_stateRemoved(const Id<StateModel>& id);
+        void on_eventRemoved(const Id<EventModel>& id);
+        void on_timeNodeRemoved(const Id<TimeNodeModel>& id);
 
 
         QPointer<OSSIAConstraintElement> m_parent_constraint;
 
-        std::map<id_type<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
-        std::map<id_type<StateModel>, OSSIAStateElement*> m_ossia_states;
-        std::map<id_type<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
-        std::map<id_type<EventModel>, OSSIAEventElement*> m_ossia_timeevents;
+        std::map<Id<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
+        std::map<Id<StateModel>, OSSIAStateElement*> m_ossia_states;
+        std::map<Id<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
+        std::map<Id<EventModel>, OSSIAEventElement*> m_ossia_timeevents;
         std::shared_ptr<OSSIA::Scenario> m_ossia_scenario;
         const ScenarioModel* m_iscore_scenario{};
 

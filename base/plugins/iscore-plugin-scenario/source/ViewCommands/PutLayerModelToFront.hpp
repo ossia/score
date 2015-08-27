@@ -8,12 +8,12 @@ class PutLayerModelToFront
 {
     public:
         PutLayerModelToFront(
-                ModelPath<SlotModel>&& slotPath,
-                const id_type<LayerModel>& pid);
+                Path<SlotModel>&& slotPath,
+                const Id<LayerModel>& pid);
 
         void redo();
 
     private:
-        ModelPath<SlotModel> m_slotPath;
-        const id_type<LayerModel>& m_pid;
+        Path<SlotModel> m_slotPath;
+        const Id<LayerModel>& m_pid;
 };

@@ -6,7 +6,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveSlotFromRack::RemoveSlotFromRack(ModelPath<SlotModel>&& slotPath) :
+RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath) :
     SerializableCommand {
         "ScenarioControl",
         commandName(),
@@ -14,10 +14,10 @@ RemoveSlotFromRack::RemoveSlotFromRack(ModelPath<SlotModel>&& slotPath) :
 {
     auto rackPath = slotPath.unsafePath().vec();
     auto lastId = rackPath.takeLast();
-    m_path = ModelPath<RackModel>{
+    m_path = Path<RackModel>{
             ObjectPath{std::move(rackPath)},
-            ModelPath<RackModel>::UnsafeDynamicCreation{}};
-    m_slotId = id_type<SlotModel> (lastId.id());
+            Path<RackModel>::UnsafeDynamicCreation{}};
+    m_slotId = Id<SlotModel> (lastId.id());
 
     auto& rack = m_path.find();
     m_position = rack.slotPosition(m_slotId);
@@ -27,8 +27,8 @@ RemoveSlotFromRack::RemoveSlotFromRack(ModelPath<SlotModel>&& slotPath) :
 }
 
 RemoveSlotFromRack::RemoveSlotFromRack(
-        ModelPath<RackModel>&& rackPath,
-        id_type<SlotModel> slotId) :
+        Path<RackModel>&& rackPath,
+        Id<SlotModel> slotId) :
     SerializableCommand {
         "ScenarioControl",
         commandName(),

@@ -8,8 +8,8 @@ namespace iscore
     {
         public:
             using SerializableCommand::SerializableCommand;
-            template<typename ModelPath_T, typename... Args>
-            PropertyCommand(ModelPath_T&& path,
+            template<typename Path_T, typename... Args>
+            PropertyCommand(Path_T&& path,
                             const QString& property,
                             const QVariant& newval,
                             Args&&... args):
@@ -25,8 +25,8 @@ namespace iscore
             void undo() override;
             void redo() override;
 
-            template<typename ModelPath_T>
-            void update(const ModelPath_T&, const QVariant& newval)
+            template<typename Path_T>
+            void update(const Path_T&, const QVariant& newval)
             {
                 m_new = newval;
             }

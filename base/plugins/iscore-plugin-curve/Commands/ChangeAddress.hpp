@@ -11,7 +11,7 @@ class ChangeAddress : public iscore::SerializableCommand
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeAddress, "AutomationControl")
         ChangeAddress(
-                ModelPath<AutomationModel>&& path,
+                Path<AutomationModel>&& path,
                 const iscore::Address& newval);
 
     public:
@@ -23,7 +23,7 @@ class ChangeAddress : public iscore::SerializableCommand
         void deserializeImpl(QDataStream &);
 
     private:
-        ModelPath<AutomationModel> m_path;
+        Path<AutomationModel> m_path;
         iscore::FullAddressSettings m_old, m_new;
 };
 

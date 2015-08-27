@@ -7,7 +7,7 @@ using namespace Scenario::Command;
 
 
 SetCondition::SetCondition(
-        ModelPath<EventModel>&& eventPath,
+        Path<EventModel>&& eventPath,
         QString message) :
     SerializableCommand {"ScenarioControl",
                          commandName(),

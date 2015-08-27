@@ -5,7 +5,7 @@
 #include "Process/ScenarioModel.hpp"
 
 TimeNodeModel::TimeNodeModel(
-        const id_type<TimeNodeModel>& id,
+        const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,
         const TimeValue& date,
         QObject* parent):
@@ -20,7 +20,7 @@ TimeNodeModel::TimeNodeModel(
 
 TimeNodeModel::TimeNodeModel(
         const TimeNodeModel &source,
-        const id_type<TimeNodeModel>& id,
+        const Id<TimeNodeModel>& id,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
     pluginModelList{source.pluginModelList, this},
@@ -37,7 +37,7 @@ ScenarioInterface* TimeNodeModel::parentScenario() const
     return dynamic_cast<ScenarioInterface*>(parent());
 }
 
-void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
+void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
 {
     m_events.push_back(eventId);
     emit newEvent(eventId);
@@ -46,7 +46,7 @@ void TimeNodeModel::addEvent(const id_type<EventModel>& eventId)
     theEvent.changeTimeNode(this->id());
 }
 
-bool TimeNodeModel::removeEvent(const id_type<EventModel>& eventId)
+bool TimeNodeModel::removeEvent(const Id<EventModel>& eventId)
 {
     if(m_events.indexOf(eventId) >= 0)
     {
@@ -68,12 +68,12 @@ void TimeNodeModel::setDate(const TimeValue& date)
     emit dateChanged(m_date);
 }
 
-const QVector<id_type<EventModel> >& TimeNodeModel::events() const
+const QVector<Id<EventModel> >& TimeNodeModel::events() const
 {
     return m_events;
 }
 
-void TimeNodeModel::setEvents(const QVector<id_type<EventModel>>& events)
+void TimeNodeModel::setEvents(const QVector<Id<EventModel>>& events)
 {
     m_events = events;
 }

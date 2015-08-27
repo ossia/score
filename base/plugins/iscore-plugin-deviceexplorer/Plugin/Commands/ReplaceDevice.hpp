@@ -17,7 +17,7 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL("ReplaceDevice", "ReplaceDevice")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceDevice, "DeviceExplorerControl")
-                ReplaceDevice(ModelPath<DeviceExplorerModel>&& device_tree,
+                ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                               int deviceIndex,
                               iscore::Node&& rootNode);
 
@@ -29,7 +29,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<DeviceExplorerModel> m_deviceTree;
+                Path<DeviceExplorerModel> m_deviceTree;
                 int m_deviceIndex{};
                 iscore::Node m_deviceNode;
                 iscore::Node m_savedNode;

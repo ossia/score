@@ -9,7 +9,7 @@
 using namespace Scenario::Command;
 CreateEvent_State::CreateEvent_State(
         const ScenarioModel& scenario,
-        const id_type<TimeNodeModel>& timeNode,
+        const Id<TimeNodeModel>& timeNode,
         double stateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newEvent{getStrongId(scenario.events())},
@@ -23,8 +23,8 @@ CreateEvent_State::CreateEvent_State(
 }
 
 CreateEvent_State::CreateEvent_State(
-        const ModelPath<ScenarioModel>& scenario,
-        const id_type<TimeNodeModel> &timeNode,
+        const Path<ScenarioModel>& scenario,
+        const Id<TimeNodeModel> &timeNode,
         double stateY):
     CreateEvent_State{scenario.find(),
                       timeNode,

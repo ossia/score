@@ -21,7 +21,7 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
 }
 
 CreateTimeNode_Event_State::CreateTimeNode_Event_State(
-        const ModelPath<ScenarioModel>&scenario,
+        const Path<ScenarioModel>&scenario,
         const TimeValue& date,
         double stateY):
     CreateTimeNode_Event_State{scenario.find(),

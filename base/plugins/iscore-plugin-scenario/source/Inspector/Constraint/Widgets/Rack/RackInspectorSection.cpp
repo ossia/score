@@ -58,7 +58,7 @@ RackInspectorSection::RackInspectorSection(
     connect(deleteButton, &QPushButton::pressed, this, [=] ()
     {
         auto cmd = new RemoveRackFromConstraint{
-                   iscore::IDocument::safe_path(parentConstraint->model()),
+                   iscore::IDocument::path(parentConstraint->model()),
                    m_model.id()};
         emit m_parent->commandDispatcher()->submitCommand(cmd);
     });
@@ -68,7 +68,7 @@ RackInspectorSection::RackInspectorSection(
 void RackInspectorSection::createSlot()
 {
     auto cmd = new AddSlotToRack(
-                   iscore::IDocument::safe_path(m_model));
+                   iscore::IDocument::path(m_model));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }
@@ -86,14 +86,14 @@ void RackInspectorSection::addSlotInspectorSection(const SlotModel& slot)
 }
 
 
-void RackInspectorSection::on_slotCreated(id_type<SlotModel> slotId)
+void RackInspectorSection::on_slotCreated(Id<SlotModel> slotId)
 {
     // TODO display them in the order of their position.
     // TODO issue : the rack should grow of 10 more pixels for each slot.
     addSlotInspectorSection(m_model.slot(slotId));
 }
 
-void RackInspectorSection::on_slotRemoved(id_type<SlotModel> slotId)
+void RackInspectorSection::on_slotRemoved(Id<SlotModel> slotId)
 {
     auto ptr = m_slotsSectionWidgets[slotId];
     m_slotsSectionWidgets.erase(slotId);

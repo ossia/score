@@ -7,11 +7,11 @@
 
 #include "Process/ScenarioModel.hpp"
 using namespace Scenario::Command;
-CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel> &event, double stateY) :
+CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &event, double stateY) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
-    m_path {iscore::IDocument::safe_path(scenario)},
+    m_path {iscore::IDocument::path(scenario)},
     m_newState{getStrongId(scenario.states())},
     m_event{event},
     m_stateY{stateY}
@@ -20,8 +20,8 @@ CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel
 }
 
 CreateState::CreateState(
-        const ModelPath<ScenarioModel> &scenarioPath,
-        const id_type<EventModel> &event,
+        const Path<ScenarioModel> &scenarioPath,
+        const Id<EventModel> &event,
         double stateY):
     CreateState{scenarioPath.find(), event, stateY}
 {

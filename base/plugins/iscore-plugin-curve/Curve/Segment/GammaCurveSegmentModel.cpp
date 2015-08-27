@@ -3,7 +3,7 @@
 #include <cmath>
 
 CurveSegmentModel*GammaCurveSegmentModel::clone(
-        const id_type<CurveSegmentModel>& id,
+        const Id<CurveSegmentModel>& id,
         QObject* parent) const
 {
     auto cs = new GammaCurveSegmentModel{id, parent};

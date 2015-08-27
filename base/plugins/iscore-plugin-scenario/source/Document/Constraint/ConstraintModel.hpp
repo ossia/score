@@ -58,15 +58,15 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         { return QObject::tr("Constraint"); }
 
         /** The class **/
-        ConstraintModel(const id_type<ConstraintModel>&,
-                        const id_type<ConstraintViewModel>& fullViewId,
+        ConstraintModel(const Id<ConstraintModel>&,
+                        const Id<ConstraintViewModel>& fullViewId,
                         double yPos,
                         QObject* parent);
 
 
         // Copy
         ConstraintModel(const ConstraintModel &source,
-                        const id_type<ConstraintModel>& id,
+                        const Id<ConstraintModel>& id,
                         QObject* parent);
 
         // Serialization
@@ -80,7 +80,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Factories for the view models.
         template<typename ViewModelType> // Arg might be an id or a datastream [
         ViewModelType* makeConstraintViewModel(
-                const id_type<ConstraintViewModel>& id,
+                const Id<ConstraintViewModel>& id,
                 QObject* parent)
         {
             auto viewmodel = new ViewModelType {id, *this, parent};
@@ -96,20 +96,20 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         // Sub-element creation
         void addProcess(Process*);
-        void removeProcess(const id_type<Process>& processId);
+        void removeProcess(const Id<Process>& processId);
 
         void addRack(RackModel*);
-        void removeRack(const id_type<RackModel>& rackId);
+        void removeRack(const Id<RackModel>& rackId);
 
-        const id_type<StateModel>& startState() const;
-        void setStartState(const id_type<StateModel>& eventId);
+        const Id<StateModel>& startState() const;
+        void setStartState(const Id<StateModel>& eventId);
 
-        const id_type<StateModel>& endState() const;
-        void setEndState(const id_type<StateModel> &endState);
+        const Id<StateModel>& endState() const;
+        void setEndState(const Id<StateModel> &endState);
 
-        RackModel& rack(const id_type<RackModel>& id) const;
+        RackModel& rack(const Id<RackModel>& id) const;
         Process& process(
-                const id_type<Process>& processId) const;
+                const Id<Process>& processId) const;
 
 
         const auto& racks() const
@@ -143,15 +143,15 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
     signals:
         void processCreated(const QString& processName,
-                            const id_type<Process>& processId);
-        void processRemoved(const id_type<Process>& processId);
+                            const Id<Process>& processId);
+        void processRemoved(const Id<Process>& processId);
         void processesChanged();
 
-        void rackCreated(const id_type<RackModel>& rackId);
-        void rackRemoved(const id_type<RackModel>& rackId);
+        void rackCreated(const Id<RackModel>& rackId);
+        void rackRemoved(const Id<RackModel>& rackId);
 
-        void viewModelCreated(const id_type<ConstraintViewModel>&);
-        void viewModelRemoved(const id_type<ConstraintViewModel>&);
+        void viewModelCreated(const Id<ConstraintViewModel>&);
+        void viewModelRemoved(const Id<ConstraintViewModel>&);
 
         void heightPercentageChanged(double arg);
 
@@ -176,8 +176,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Note : it is also present in m_constraintViewModels.
         FullViewConstraintViewModel* m_fullViewModel {};
 
-        id_type<StateModel> m_startState;
-        id_type<StateModel> m_endState;
+        Id<StateModel> m_startState;
+        Id<StateModel> m_endState;
 
         TimeValue m_startDate; // origin
 

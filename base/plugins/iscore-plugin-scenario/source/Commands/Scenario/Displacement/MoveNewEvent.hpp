@@ -22,9 +22,9 @@ namespace Scenario
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewEvent, "ScenarioControl")
                 MoveNewEvent(
-                  ModelPath<ScenarioModel>&& scenarioPath,
-                    const id_type<ConstraintModel>& constraintId,
-                    const id_type<EventModel>& eventId,
+                  Path<ScenarioModel>&& scenarioPath,
+                    const Id<ConstraintModel>& constraintId,
+                    const Id<EventModel>& eventId,
                     const TimeValue& date,
                     const double y,
                     bool yLocked);
@@ -33,9 +33,9 @@ namespace Scenario
                 virtual void redo() override;
 
                 void update(
-                        const ModelPath<ScenarioModel>& path,
-                        const id_type<ConstraintModel>&,
-                        const id_type<EventModel>& id,
+                        const Path<ScenarioModel>& path,
+                        const Id<ConstraintModel>&,
+                        const Id<EventModel>& id,
                         const TimeValue& date,
                         const double y,
                         bool yLocked)
@@ -45,7 +45,7 @@ namespace Scenario
                     m_yLocked = yLocked;
                 }
 
-                const ModelPath<ScenarioModel>& path() const
+                const Path<ScenarioModel>& path() const
                 { return m_path; }
 
             protected:
@@ -53,8 +53,8 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ScenarioModel> m_path;
-                id_type<ConstraintModel> m_constraintId{};
+                Path<ScenarioModel> m_path;
+                Id<ConstraintModel> m_constraintId{};
 
                 MoveEvent m_cmd;
                 double m_y;

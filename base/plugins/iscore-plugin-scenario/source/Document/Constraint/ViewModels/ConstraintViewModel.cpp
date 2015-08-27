@@ -5,7 +5,7 @@ bool ConstraintViewModel::isRackShown() const
     return bool (m_shownRack.val());
 }
 
-const id_type<RackModel>& ConstraintViewModel::shownRack() const
+const Id<RackModel>& ConstraintViewModel::shownRack() const
 {
     return m_shownRack;
 }
@@ -16,7 +16,7 @@ void ConstraintViewModel::hideRack()
     emit rackHidden();
 }
 
-void ConstraintViewModel::showRack(const id_type<RackModel>& rackId)
+void ConstraintViewModel::showRack(const Id<RackModel>& rackId)
 {
     if(rackId.val().is_initialized())
     {
@@ -30,7 +30,7 @@ void ConstraintViewModel::showRack(const id_type<RackModel>& rackId)
     }
 }
 
-void ConstraintViewModel::on_rackRemoved(const id_type<RackModel>& rackId)
+void ConstraintViewModel::on_rackRemoved(const Id<RackModel>& rackId)
 {
     if(shownRack() == rackId)
     {
@@ -41,7 +41,7 @@ void ConstraintViewModel::on_rackRemoved(const id_type<RackModel>& rackId)
 
 
 ConstraintViewModel::ConstraintViewModel(
-        const id_type<ConstraintViewModel>& id,
+        const Id<ConstraintViewModel>& id,
         const QString& name,
         const ConstraintModel& model,
         QObject* parent) :

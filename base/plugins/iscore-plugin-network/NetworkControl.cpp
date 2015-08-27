@@ -37,9 +37,9 @@ void NetworkControl::populateMenus(MenubarManager* menu)
     connect(makeServer, &QAction::triggered, this,
             [&] ()
     {
-        auto clt = new LocalClient(id_type<Client>(0));
+        auto clt = new LocalClient(Id<Client>(0));
         clt->setName(tr("Master"));
-        auto serv = new MasterSession(currentDocument(), clt, id_type<Session>(1234));
+        auto serv = new MasterSession(currentDocument(), clt, Id<Session>(1234));
         auto policy = new MasterNetworkPolicy{serv, currentDocument()->commandStack(), currentDocument()->locker()};
         auto realplug = new NetworkDocumentPlugin{policy, &currentDocument()->model()};
         currentDocument()->model().addPluginModel(realplug);

@@ -122,7 +122,7 @@ void CurvePresenter::setupSignals()
     });
 
     con(m_model, &CurveModel::pointRemoved, this,
-            [&] (const id_type<CurvePointModel>& m)
+            [&] (const Id<CurvePointModel>& m)
     {
         auto& map = m_points.get();
         auto it = map.find(m);
@@ -134,7 +134,7 @@ void CurvePresenter::setupSignals()
     });
 
     con(m_model, &CurveModel::segmentRemoved, this,
-            [&] (const id_type<CurveSegmentModel>& m)
+            [&] (const Id<CurveSegmentModel>& m)
     {
         auto& map = m_segments.get();
         auto it = map.find(m);
@@ -372,7 +372,7 @@ void CurvePresenter::removeSelection()
 {
     // We remove all that is selected,
     // And set the bounds correctly
-    QSet<id_type<CurveSegmentModel>> segmentsToDelete;
+    QSet<Id<CurveSegmentModel>> segmentsToDelete;
 
     for(const auto& elt : m_model.selectedChildren())
     {
@@ -410,7 +410,7 @@ void CurvePresenter::removeSelection()
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::safe_path(m_model),
+                    iscore::IDocument::path(m_model),
                     std::move(newSegments)
                 });
 }
@@ -448,7 +448,7 @@ void CurvePresenter::updateSegmentsType(const QString& segmentName)
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::safe_path(m_model),
+                    iscore::IDocument::path(m_model),
                     std::move(newSegments)
                 });
 }

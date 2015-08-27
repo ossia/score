@@ -25,13 +25,13 @@ namespace Scenario
                 MoveConstraint();
                 ~MoveConstraint();
                 MoveConstraint(
-                        ModelPath<ScenarioModel>&& scenarioPath,
-                    const id_type<ConstraintModel>& id,
+                        Path<ScenarioModel>&& scenarioPath,
+                    const Id<ConstraintModel>& id,
                     const TimeValue& date,
                     double y);
 
-                void update(const ModelPath<ScenarioModel>&,
-                            const id_type<ConstraintModel>& ,
+                void update(const Path<ScenarioModel>&,
+                            const Id<ConstraintModel>& ,
                             const TimeValue& date,
                             double height);
 
@@ -43,8 +43,8 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ScenarioModel> m_path;
-                id_type<ConstraintModel> m_constraint;
+                Path<ScenarioModel> m_path;
+                Id<ConstraintModel> m_constraint;
                 double m_oldHeight{},
                        m_newHeight{};
         };

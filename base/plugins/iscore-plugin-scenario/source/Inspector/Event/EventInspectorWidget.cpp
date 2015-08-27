@@ -291,7 +291,7 @@ void EventInspectorWidget::on_conditionChanged()
         return;
     }
 
-    auto cmd = new Scenario::Command::SetCondition{safe_path(m_model), txt};
+    auto cmd = new Scenario::Command::SetCondition{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -304,7 +304,7 @@ void EventInspectorWidget::on_triggerChanged()
         return;
     }
 
-    auto cmd = new Scenario::Command::SetTrigger{safe_path(m_model), txt};
+    auto cmd = new Scenario::Command::SetTrigger{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
 }
 

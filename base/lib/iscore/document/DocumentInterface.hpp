@@ -40,7 +40,7 @@ namespace iscore
         ObjectPath unsafe_path(const QObject& obj);
 
         template<typename T>
-        ModelPath<T> safe_path(const T& obj)
+        Path<T> path(const T& obj)
         {
             static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
             return unsafe_path(static_cast<const QObject&>(obj));

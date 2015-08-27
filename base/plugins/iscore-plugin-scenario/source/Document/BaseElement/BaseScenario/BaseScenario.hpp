@@ -19,7 +19,7 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
 
     public:
         iscore::ElementPluginModelList pluginModelList;
-        BaseScenario(const id_type<BaseScenario>&, QObject* parent);
+        BaseScenario(const Id<BaseScenario>&, QObject* parent);
 
         template<typename DeserializerVisitor,
                  enable_if_deserializer<DeserializerVisitor>* = nullptr>
@@ -29,10 +29,10 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
             vis.writeTo(*this);
         }
 
-        ConstraintModel &constraint(const id_type<ConstraintModel> &constraintId) const override;
-        EventModel &event(const id_type<EventModel> &eventId) const override;
-        TimeNodeModel &timeNode(const id_type<TimeNodeModel> &timeNodeId) const override;
-        StateModel &state(const id_type<StateModel> &stId) const override;
+        ConstraintModel &constraint(const Id<ConstraintModel> &constraintId) const override;
+        EventModel &event(const Id<EventModel> &eventId) const override;
+        TimeNodeModel &timeNode(const Id<TimeNodeModel> &timeNodeId) const override;
+        StateModel &state(const Id<StateModel> &stId) const override;
 
         ConstraintModel& baseConstraint() const;
 

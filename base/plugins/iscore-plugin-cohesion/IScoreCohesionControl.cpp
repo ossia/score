@@ -137,7 +137,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
             l.push_back(DeviceExplorer::addressFromModelIndex(index));
         }
 
-        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::safe_path(*constraint), l};
+        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(*constraint), l};
         macro.submitCommand(cmd);
     }
 
@@ -263,7 +263,7 @@ void IScoreCohesionControl::snapshotParametersInStates()
     for(auto& state : selected_states)
     {
         auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::safe_path(*state),
+                   iscore::IDocument::path(*state),
                    iscore::StatePath{}, // Make it child of the root node
                    iscore::StateData(std::move(messages), "NewState"),
                    -1};

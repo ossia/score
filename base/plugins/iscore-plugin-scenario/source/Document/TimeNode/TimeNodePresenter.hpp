@@ -20,7 +20,7 @@ class TimeNodePresenter :  public NamedObject
                           QObject* parent);
         ~TimeNodePresenter();
 
-        const id_type<TimeNodeModel>& id() const;
+        const Id<TimeNodeModel>& id() const;
         int32_t id_val() const
         {
             return *id().val();
@@ -29,15 +29,15 @@ class TimeNodePresenter :  public NamedObject
         const TimeNodeModel& model() const;
         TimeNodeView* view() const;
 
-        void on_eventAdded(const id_type<EventModel>& eventId);
+        void on_eventAdded(const Id<EventModel>& eventId);
 
     signals:
         void pressed(const QPointF&);
         void moved(const QPointF&);
         void released(const QPointF&);
 
-        void eventAdded(const id_type<EventModel>& eventId,
-                        const id_type<TimeNodeModel>& timeNodeId);
+        void eventAdded(const Id<EventModel>& eventId,
+                        const Id<TimeNodeModel>& timeNodeId);
 
     private:
         const TimeNodeModel& m_model;

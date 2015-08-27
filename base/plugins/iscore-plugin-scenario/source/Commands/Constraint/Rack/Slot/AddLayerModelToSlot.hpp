@@ -22,8 +22,8 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerModelToSlot, "ScenarioControl")
                 AddLayerModelToSlot(
-                    ModelPath<SlotModel>&& slot,
-                    ModelPath<Process>&& process);
+                    Path<SlotModel>&& slot,
+                    Path<Process>&& process);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -33,12 +33,12 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<SlotModel> m_slotPath;
-                ModelPath<Process> m_processPath;
+                Path<SlotModel> m_slotPath;
+                Path<Process> m_processPath;
 
                 QByteArray m_processData;
 
-                id_type<LayerModel> m_createdLayerId {};
+                Id<LayerModel> m_createdLayerId {};
         };
     }
 }

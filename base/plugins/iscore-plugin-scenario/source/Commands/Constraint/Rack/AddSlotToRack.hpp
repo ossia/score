@@ -20,7 +20,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddSlotToRack, "ScenarioControl")
-                AddSlotToRack(ModelPath<RackModel>&& rackPath);
+                AddSlotToRack(Path<RackModel>&& rackPath);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -30,9 +30,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<RackModel> m_path;
+                Path<RackModel> m_path;
 
-                id_type<SlotModel> m_createdSlotId {};
+                Id<SlotModel> m_createdSlotId {};
         };
     }
 }

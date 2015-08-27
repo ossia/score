@@ -13,7 +13,7 @@
 #include "Commands/ChangeGroup.hpp"
 
 
-Q_DECLARE_METATYPE(id_type<Group>)
+Q_DECLARE_METATYPE(Id<Group>)
 
 GroupMetadataWidget::GroupMetadataWidget(
         const GroupMetadata& groupmetadata,
@@ -27,7 +27,7 @@ GroupMetadataWidget::GroupMetadataWidget(
     this->layout()->addWidget(new QLabel{tr("Groups: ")});
 
     con(groupmetadata, &GroupMetadata::groupChanged,
-            this, [=] (const id_type<Group>& grp)
+            this, [=] (const Id<Group>& grp)
     {
         updateLabel(grp);
     });
@@ -40,12 +40,12 @@ GroupMetadataWidget::GroupMetadataWidget(
     updateLabel(groupmetadata.group());
 }
 
-void GroupMetadataWidget::on_groupAdded(const id_type<Group>& id)
+void GroupMetadataWidget::on_groupAdded(const Id<Group>& id)
 {
     m_combo->addItem(m_groups->group(id)->name(), QVariant::fromValue(id));
 }
 
-void GroupMetadataWidget::on_groupRemoved(const id_type<Group>& id)
+void GroupMetadataWidget::on_groupRemoved(const Id<Group>& id)
 {
     int index = m_combo->findData(QVariant::fromValue(id));
     m_combo->removeItem(index);
@@ -53,7 +53,7 @@ void GroupMetadataWidget::on_groupRemoved(const id_type<Group>& id)
 
 void GroupMetadataWidget::on_indexChanged(int)
 {
-    auto data = m_combo->currentData().value<id_type<Group>>();
+    auto data = m_combo->currentData().value<Id<Group>>();
     if(m_object.group() != data)
     {
         CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_groups)};
@@ -64,7 +64,7 @@ void GroupMetadataWidget::on_indexChanged(int)
     }
 }
 
-void GroupMetadataWidget::updateLabel(const id_type<Group>& currentGroup)
+void GroupMetadataWidget::updateLabel(const Id<Group>& currentGroup)
 {
     delete m_combo;
     m_combo = new QComboBox;

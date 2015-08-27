@@ -7,7 +7,7 @@ using namespace iscore;
 using namespace DeviceExplorer::Command;
 
 UpdateDeviceSettings::UpdateDeviceSettings(
-        ModelPath<DeviceDocumentPlugin>&& device_tree,
+        Path<DeviceDocumentPlugin>&& device_tree,
         const QString &name,
         const DeviceSettings& parameters):
     iscore::SerializableCommand(this),

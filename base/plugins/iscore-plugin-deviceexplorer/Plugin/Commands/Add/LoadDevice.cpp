@@ -3,7 +3,7 @@
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 LoadDevice::LoadDevice(
-        ModelPath<DeviceDocumentPlugin>&& device_tree,
+        Path<DeviceDocumentPlugin>&& device_tree,
         iscore::Node&& node):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),

@@ -7,8 +7,8 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-CopySlot::CopySlot(ModelPath<SlotModel>&& slotToCopy,
-                   ModelPath<RackModel>&& targetRackPath) :
+CopySlot::CopySlot(Path<SlotModel>&& slotToCopy,
+                   Path<RackModel>&& targetRackPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

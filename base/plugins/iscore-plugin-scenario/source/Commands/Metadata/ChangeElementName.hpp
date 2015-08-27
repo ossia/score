@@ -23,7 +23,7 @@ namespace Scenario
                 }
 
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementName, "ScenarioControl")
-                ChangeElementName(ModelPath<T>&& path, QString newName) :
+                ChangeElementName(Path<T>&& path, QString newName) :
                     SerializableCommand{"ScenarioControl",
                                         commandName(),
                                         description()},
@@ -58,7 +58,7 @@ namespace Scenario
                 }
 
             private:
-                ModelPath<T> m_path;
+                Path<T> m_path;
                 QString m_newName;
                 QString m_oldName;
         };

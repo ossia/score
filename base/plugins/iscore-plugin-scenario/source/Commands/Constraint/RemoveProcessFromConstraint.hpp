@@ -17,8 +17,8 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessFromConstraint, "ScenarioControl")
                 RemoveProcessFromConstraint(
-                    ModelPath<ConstraintModel>&& constraintPath,
-                    const id_type<Process>& processId);
+                    Path<ConstraintModel>&& constraintPath,
+                    const Id<Process>& processId);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -27,11 +27,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
-                id_type<Process> m_processId;
+                Path<ConstraintModel> m_path;
+                Id<Process> m_processId;
 
                 QByteArray m_serializedProcessData;
-                QVector<QPair<ModelPath<LayerModel>, QByteArray>> m_serializedViewModels;
+                QVector<QPair<Path<LayerModel>, QByteArray>> m_serializedViewModels;
         };
     }
 }

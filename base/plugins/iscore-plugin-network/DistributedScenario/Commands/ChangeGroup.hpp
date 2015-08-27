@@ -9,7 +9,7 @@ class ChangeGroup : public iscore::SerializableCommand
         ISCORE_COMMAND_DECL("ChangeGroup", "Change the group of an element")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeGroup, "NetworkControl")
-        ChangeGroup(ObjectPath&& path, id_type<Group> newGroup);
+        ChangeGroup(ObjectPath&& path, Id<Group> newGroup);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -19,5 +19,5 @@ class ChangeGroup : public iscore::SerializableCommand
 
     private:
         ObjectPath m_path;
-        id_type<Group> m_newGroup, m_oldGroup;
+        Id<Group> m_newGroup, m_oldGroup;
 };

@@ -7,7 +7,7 @@ class LinearCurveSegmentFactory : public CurveSegmentFactory
         QString name() const override;
 
         CurveSegmentModel *make(
-                const id_type<CurveSegmentModel>& id,
+                const Id<CurveSegmentModel>& id,
                 QObject* parent) override;
 
         CurveSegmentModel *load(

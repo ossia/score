@@ -11,7 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearConstraint::ClearConstraint(ModelPath<ConstraintModel>&& constraintPath) :
+ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

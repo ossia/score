@@ -6,10 +6,10 @@
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 
 using namespace Scenario::Command;
-void ScenarioCreationState::createToState_base(const id_type<StateModel> & originalState)
+void ScenarioCreationState::createToState_base(const Id<StateModel> & originalState)
 {
     auto cmd = new CreateConstraint{
-            ModelPath<ScenarioModel>{m_scenarioPath},
+            Path<ScenarioModel>{m_scenarioPath},
             originalState,
             hoveredState};
 
@@ -19,10 +19,10 @@ void ScenarioCreationState::createToState_base(const id_type<StateModel> & origi
 }
 
 
-void ScenarioCreationState::createToEvent_base(const id_type<StateModel> & originalState)
+void ScenarioCreationState::createToEvent_base(const Id<StateModel> & originalState)
 {
     auto cmd = new CreateConstraint_State{
-            ModelPath<ScenarioModel>{m_scenarioPath},
+            Path<ScenarioModel>{m_scenarioPath},
             originalState,
             hoveredEvent,
             currentPoint.y};
@@ -34,7 +34,7 @@ void ScenarioCreationState::createToEvent_base(const id_type<StateModel> & origi
 }
 
 
-void ScenarioCreationState::createToTimeNode_base(const id_type<StateModel> & originalState)
+void ScenarioCreationState::createToTimeNode_base(const Id<StateModel> & originalState)
 {
     auto cmd = new CreateConstraint_State_Event{
             m_scenarioPath,
@@ -50,7 +50,7 @@ void ScenarioCreationState::createToTimeNode_base(const id_type<StateModel> & or
 }
 
 
-void ScenarioCreationState::createToNothing_base(const id_type<StateModel> & originalState)
+void ScenarioCreationState::createToNothing_base(const Id<StateModel> & originalState)
 {
     auto cmd = new CreateConstraint_State_Event_TimeNode{
             m_scenarioPath,

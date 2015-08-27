@@ -21,7 +21,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("RemoveSelection", "RemoveSelection")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSelection, "ScenarioControl")
-                RemoveSelection(ModelPath<ScenarioModel>&& scenarioPath, Selection sel);
+                RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,18 +31,18 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ScenarioModel> m_path;
+                Path<ScenarioModel> m_path;
 
                 // For timenodes that may be removed when there is only a single event
-                QVector<QPair<id_type<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;
+                QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;
 
-                QVector<QPair<id_type<StateModel>, QByteArray>> m_removedStates;
-                QVector<QPair<id_type<EventModel>, QByteArray>> m_removedEvents;
-                QVector<QPair<id_type<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
+                QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
+                QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
+                QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
                 QVector<
                     QPair<
                         QPair<
-                            id_type<ConstraintModel>,
+                            Id<ConstraintModel>,
                             QByteArray
                         >, SerializedConstraintViewModels
                     >

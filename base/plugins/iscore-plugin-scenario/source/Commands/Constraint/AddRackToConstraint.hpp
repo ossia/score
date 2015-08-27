@@ -21,7 +21,7 @@ namespace Scenario
 
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddRackToConstraint, "ScenarioControl")
-                AddRackToConstraint(ModelPath<ConstraintModel>&& constraintPath);
+                AddRackToConstraint(Path<ConstraintModel>&& constraintPath);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -31,9 +31,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ConstraintModel> m_path;
+                Path<ConstraintModel> m_path;
 
-                id_type<RackModel> m_createdRackId {};
+                Id<RackModel> m_createdRackId {};
         };
     }
 }

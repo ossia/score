@@ -7,7 +7,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddSlotToRack::AddSlotToRack(ModelPath<RackModel>&& rackPath) :
+AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

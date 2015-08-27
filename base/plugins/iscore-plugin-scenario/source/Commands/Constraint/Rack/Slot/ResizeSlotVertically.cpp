@@ -6,7 +6,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ResizeSlotVertically::ResizeSlotVertically(
-        ModelPath<SlotModel>&& slotPath,
+        Path<SlotModel>&& slotPath,
         double newSize) :
     SerializableCommand {"ScenarioControl",
                          commandName(),

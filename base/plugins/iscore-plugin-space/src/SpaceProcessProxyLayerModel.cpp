@@ -3,7 +3,7 @@
 #include "SpaceProcessPanelProxy.hpp"
 
 SpaceProcessProxyLayerModel::SpaceProcessProxyLayerModel(
-        const id_type<LayerModel>& id,
+        const Id<LayerModel>& id,
         const SpaceLayerModel &model,
         QObject *parent):
     LayerModel{id, staticMetaObject.className(), model.processModel(), parent},

@@ -23,22 +23,22 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewState, "ScenarioControl")
             MoveNewState(
-                ModelPath<ScenarioModel>&& scenarioPath,
-                const id_type<StateModel>& stateId,
+                Path<ScenarioModel>&& scenarioPath,
+                const Id<StateModel>& stateId,
                 const double y);
 
               virtual void undo() override;
               virtual void redo() override;
 
               void update(
-                      const ModelPath<ScenarioModel>&,
-                      const id_type<StateModel>&,
+                      const Path<ScenarioModel>&,
+                      const Id<StateModel>&,
                       const double y)
               {
                   m_y = y;
               }
 
-              const ModelPath<ScenarioModel>& path() const
+              const Path<ScenarioModel>& path() const
               { return m_path; }
 
             protected:
@@ -46,8 +46,8 @@ namespace Scenario
               virtual void deserializeImpl(QDataStream&) override;
 
             private:
-              ModelPath<ScenarioModel> m_path;
-              id_type<StateModel> m_stateId;
+              Path<ScenarioModel> m_path;
+              Id<StateModel> m_stateId;
               double m_y{}, m_oldy{};
         };
     }

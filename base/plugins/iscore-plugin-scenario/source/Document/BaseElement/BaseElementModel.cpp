@@ -32,10 +32,10 @@ using namespace Scenario;
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
-        id_type<iscore::DocumentDelegateModelInterface>(getNextId()),
+        Id<iscore::DocumentDelegateModelInterface>(getNextId()),
         "BaseElementModel",
         parent},
-    m_baseScenario{new BaseScenario{id_type<BaseScenario>{0}, this}}
+    m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
     initializeNewDocument(m_baseScenario->baseConstraint().fullView());
 
@@ -55,40 +55,40 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     const auto& constraint_model = viewmodel->model();
 
     AddProcessToConstraint cmd1{
-        iscore::IDocument::safe_path(m_baseScenario->baseConstraint()),
+        iscore::IDocument::path(m_baseScenario->baseConstraint()),
         "Scenario"
     };
     cmd1.redo();
     auto scenarioId = (*constraint_model.processes().begin()).id();
 
     AddRackToConstraint cmd2 {
-        iscore::IDocument::safe_path(m_baseScenario->baseConstraint())
+        iscore::IDocument::path(m_baseScenario->baseConstraint())
     };
     cmd2.redo();
     auto& rack = *constraint_model.racks().begin();
 
     ShowRackInViewModel cmd3 {
-        iscore::IDocument::safe_path(static_cast<const ConstraintViewModel&>(*viewmodel)),
+        iscore::IDocument::path(static_cast<const ConstraintViewModel&>(*viewmodel)),
         rack.id() };
     cmd3.redo();
 
     AddSlotToRack cmd4 {
-        iscore::IDocument::safe_path(*m_baseScenario->baseConstraint().racks().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()),
     };
     cmd4.redo();
     auto slotId = (*rack.getSlots().begin()).id();
 
     ResizeSlotVertically cmd5
     {
-        iscore::IDocument::safe_path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
         1500
     };
     cmd5.redo();
 
     AddLayerModelToSlot cmd6
     {
-        iscore::IDocument::safe_path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
-        iscore::IDocument::safe_path(*m_baseScenario->baseConstraint().processes().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes().begin()),
     };
     cmd6.redo();
 }

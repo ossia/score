@@ -10,7 +10,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
     public:
         using model_type = model;
         template<typename... Args>
-        IdentifiedObject(const id_type<model>& id,
+        IdentifiedObject(const Id<model>& id,
                          Args&& ... args) :
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
             m_id {id}
@@ -25,7 +25,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             v.writeTo(*this);
         }
 
-        const id_type<model>& id() const
+        const Id<model>& id() const
         {
             return m_id;
         }
@@ -35,18 +35,18 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             return *m_id.val();
         }
 
-        void setId(id_type<model>&& id)
+        void setId(Id<model>&& id)
         {
             m_id = id;
         }
 
     private:
-        id_type<model> m_id {};
+        Id<model> m_id {};
 };
 
 
 template<typename model>
-std::size_t hash_value(const id_type<model>& id)
+std::size_t hash_value(const Id<model>& id)
 {
     ISCORE_ASSERT(bool(id));
 
@@ -54,13 +54,13 @@ std::size_t hash_value(const id_type<model>& id)
 }
 
 template<typename T, typename U>
-bool operator==(const T* obj, const id_type<U>& id)
+bool operator==(const T* obj, const Id<U>& id)
 {
     return obj->id() == id;
 }
 
 template<typename T, typename U,std::enable_if_t<! std::is_pointer<std::decay_t<T>>::value>* = nullptr>
-bool operator==(const T& obj, const id_type<U>& id)
+bool operator==(const T& obj, const Id<U>& id)
 {
     return obj.id() == id;
 }

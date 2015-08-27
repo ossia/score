@@ -20,7 +20,7 @@ GroupWidget::GroupWidget(Group* group, QWidget* parent):
     // TODO connect add/remove group
 }
 
-id_type<Group> GroupWidget::id() const
+Id<Group> GroupWidget::id() const
 {
     return m_group->id();
 }

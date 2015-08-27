@@ -1,7 +1,7 @@
 #include "Group.hpp"
 
 
-Group::Group(QString name, id_type<Group> id, QObject* parent):
+Group::Group(QString name, Id<Group> id, QObject* parent):
     IdentifiedObject<Group>{id, "Group", parent},
     m_name{name}
 {
@@ -22,13 +22,13 @@ void Group::setName(QString arg)
     emit nameChanged(arg);
 }
 
-void Group::addClient(id_type<Client> clt)
+void Group::addClient(Id<Client> clt)
 {
     m_executingClients.push_back(clt);
     emit clientAdded(clt);
 }
 
-void Group::removeClient(id_type<Client> clt)
+void Group::removeClient(Id<Client> clt)
 {
     auto it = std::find(std::begin(m_executingClients), std::end(m_executingClients), clt);
     ISCORE_ASSERT(it != std::end(m_executingClients));

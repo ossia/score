@@ -7,7 +7,7 @@
 
 static void removeEventFromTimeNode(
         ScenarioModel& scenario,
-        const id_type<EventModel>& eventId)
+        const Id<EventModel>& eventId)
 {
     // We have to make a copy else the iterator explodes.
     auto timenodes = scenario.timeNodes();
@@ -30,17 +30,17 @@ static void removeEventFromTimeNode(
 
 void StandardRemovalPolicy::removeConstraint(
         ScenarioModel& scenario,
-        const id_type<ConstraintModel>& constraintId)
+        const Id<ConstraintModel>& constraintId)
 {
     auto cstr_it = scenario.constraints().find(constraintId);
     if(cstr_it != scenario.constraints().end())
     {
         ConstraintModel& cstr =  *cstr_it;
         auto& sst = scenario.state(cstr.startState());
-        sst.setNextConstraint(id_type<ConstraintModel>{});
+        sst.setNextConstraint(Id<ConstraintModel>{});
 
         auto& est = scenario.state(cstr.endState());
-        est.setPreviousConstraint(id_type<ConstraintModel>{});
+        est.setPreviousConstraint(Id<ConstraintModel>{});
 
         scenario.removeConstraint(&cstr);
     }
@@ -53,7 +53,7 @@ void StandardRemovalPolicy::removeConstraint(
 
 void StandardRemovalPolicy::removeState(
         ScenarioModel& scenario,
-        const id_type<StateModel>& stateId)
+        const Id<StateModel>& stateId)
 {
     auto& state = scenario.state(stateId);
     if(state.previousConstraint())
@@ -71,7 +71,7 @@ void StandardRemovalPolicy::removeState(
 
 void StandardRemovalPolicy::removeEventStatesAndConstraints(
         ScenarioModel& scenario,
-        const id_type<EventModel>& eventId)
+        const Id<EventModel>& eventId)
 {
     auto& ev = scenario.event(eventId);
 

@@ -65,7 +65,7 @@ void OSSIAConstraintElement::stop()
 
 void OSSIAConstraintElement::on_processAdded(
         const QString& name,
-        const id_type<Process>& id)
+        const Id<Process>& id)
 {
     // The DocumentPlugin creates the elements in the processes.
     auto proc = &m_iscore_constraint.process(id);
@@ -110,7 +110,7 @@ void OSSIAConstraintElement::on_processAdded(
     }
 }
 
-void OSSIAConstraintElement::on_processRemoved(const id_type<Process>& process)
+void OSSIAConstraintElement::on_processRemoved(const Id<Process>& process)
 {
     auto it = m_processes.find(process);
     if(it != m_processes.end())

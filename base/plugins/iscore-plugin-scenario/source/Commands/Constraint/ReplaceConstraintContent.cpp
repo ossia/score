@@ -13,7 +13,7 @@ using namespace Scenario::Command;
 
 ReplaceConstraintContent::ReplaceConstraintContent(
         QJsonObject&& sourceConstraint,
-        ModelPath<ConstraintModel>&& targetConstraint,
+        Path<ConstraintModel>&& targetConstraint,
         ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
@@ -29,7 +29,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
 
     // For all rackes in source, generate new id's
     auto target_rackes = trg_constraint.racks();
-    QVector<id_type<RackModel>> target_rackes_ids;
+    QVector<Id<RackModel>> target_rackes_ids;
     std::transform(target_rackes.begin(), target_rackes.end(),
                    std::back_inserter(target_rackes_ids),
                    [] (const auto& rack) { return rack.id(); });
@@ -43,7 +43,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
 
     // Same for processes
     auto target_processes = trg_constraint.processes();
-    QVector<id_type<Process>> target_processes_ids;
+    QVector<Id<Process>> target_processes_ids;
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
                    [] (const auto& proc) { return proc.id(); });

@@ -56,15 +56,15 @@ class EventModel : public IdentifiedObject<EventModel>
         ScenarioInterface* parentScenario() const;
 
         /** The class **/
-        EventModel(const id_type<EventModel>&,
-                   const id_type<TimeNodeModel>& timenode,
+        EventModel(const Id<EventModel>&,
+                   const Id<TimeNodeModel>& timenode,
                    const VerticalExtent& extent,
                    const TimeValue& date,
                    QObject* parent);
 
         // Copy
         EventModel(const EventModel& source,
-                   const id_type<EventModel>&,
+                   const Id<EventModel>&,
                    QObject* parent);
 
         template<typename DeserializerVisitor>
@@ -75,13 +75,13 @@ class EventModel : public IdentifiedObject<EventModel>
         }
 
         // Timenode
-        void changeTimeNode(const id_type<TimeNodeModel>&);
-        const id_type<TimeNodeModel>& timeNode() const;
+        void changeTimeNode(const Id<TimeNodeModel>&);
+        const Id<TimeNodeModel>& timeNode() const;
 
         // States
-        void addState(const id_type<StateModel>& ds);
-        void removeState(const id_type<StateModel>& ds);
-        const QVector<id_type<StateModel>>& states() const;
+        void addState(const Id<StateModel>& ds);
+        void removeState(const Id<StateModel>& ds);
+        const QVector<Id<StateModel>>& states() const;
 
 
         // Other properties
@@ -118,9 +118,9 @@ class EventModel : public IdentifiedObject<EventModel>
         void statusChanged(EventStatus status);
 
     private:
-        id_type<TimeNodeModel> m_timeNode {};
+        Id<TimeNodeModel> m_timeNode {};
 
-        QVector<id_type<StateModel>> m_states;
+        QVector<Id<StateModel>> m_states;
 
         iscore::Condition m_condition;
         iscore::Trigger m_trigger; // TODO in timenode?

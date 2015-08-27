@@ -3,7 +3,7 @@
 using namespace DeviceExplorer::Command;
 
 Remove::Remove(
-        ModelPath<DeviceDocumentPlugin>&& device_tree,
+        Path<DeviceDocumentPlugin>&& device_tree,
         const iscore::Node& node):
     iscore::SerializableCommand{factoryName(),
                             commandName(),

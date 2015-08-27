@@ -41,7 +41,7 @@ TimeNodePresenter::~TimeNodePresenter()
     }
 }
 
-const id_type<TimeNodeModel>& TimeNodePresenter::id() const
+const Id<TimeNodeModel>& TimeNodePresenter::id() const
 {
     return m_model.id();
 }
@@ -56,7 +56,7 @@ TimeNodeView* TimeNodePresenter::view() const
     return m_view;
 }
 
-void TimeNodePresenter::on_eventAdded(const id_type<EventModel>& eventId)
+void TimeNodePresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
     emit eventAdded(eventId, m_model.id());
 }

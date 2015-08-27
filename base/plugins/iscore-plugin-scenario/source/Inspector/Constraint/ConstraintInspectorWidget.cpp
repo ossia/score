@@ -226,7 +226,7 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 {
     auto cmd = new AddProcessToConstraint
     {
-               iscore::IDocument::safe_path(model()),
+               iscore::IDocument::path(model()),
                processName
 };
     emit commandDispatcher()->submitCommand(cmd);
@@ -235,7 +235,7 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 void ConstraintInspectorWidget::createRack()
 {
     auto cmd = new AddRackToConstraint(
-                   iscore::IDocument::safe_path(model()));
+                   iscore::IDocument::path(model()));
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -244,8 +244,8 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
     auto cmd = new AddLayerInNewSlot(
-                   iscore::IDocument::safe_path(model()),
-                   id_type<Process>(processName.toInt()));
+                   iscore::IDocument::path(model()),
+                   Id<Process>(processName.toInt()));
 
     emit commandDispatcher()->submitCommand(cmd);
 }
@@ -267,7 +267,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     else
     {
         bool ok {};
-        auto id = id_type<RackModel> (rack.toInt(&ok));
+        auto id = Id<RackModel> (rack.toInt(&ok));
 
         if(ok)
         {
@@ -312,7 +312,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     auto deleteButton = new QPushButton{tr("Delete")};
     connect(deleteButton, &QPushButton::pressed, this, [=,id=process.id()] ()
     {
-        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::safe_path(model()), id};
+        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
         emit commandDispatcher()->submitCommand(cmd);
     });
     newProc->addContent(deleteButton);
@@ -366,24 +366,24 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
 
 void ConstraintInspectorWidget::on_processCreated(
         QString processName,
-        id_type<Process> processId)
+        Id<Process> processId)
 {
     updateDisplayedValues();
 }
 
-void ConstraintInspectorWidget::on_processRemoved(id_type<Process> processId)
+void ConstraintInspectorWidget::on_processRemoved(Id<Process> processId)
 {
     updateDisplayedValues();
 }
 
 
-void ConstraintInspectorWidget::on_rackCreated(id_type<RackModel> rackId)
+void ConstraintInspectorWidget::on_rackCreated(Id<RackModel> rackId)
 {
     setupRack(model().rack(rackId));
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
+void ConstraintInspectorWidget::on_rackRemoved(Id<RackModel> rackId)
 {
     auto ptr = m_rackesSectionWidgets[rackId];
     m_rackesSectionWidgets.erase(rackId);
@@ -396,12 +396,12 @@ void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<ConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelCreated(Id<ConstraintViewModel> cvmId)
 {
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelRemoved(Id<ConstraintViewModel> cvmId)
 {
     m_rackWidget->viewModelsChanged();
 }

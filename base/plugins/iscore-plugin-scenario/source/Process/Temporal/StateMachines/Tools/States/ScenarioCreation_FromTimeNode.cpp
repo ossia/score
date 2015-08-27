@@ -25,7 +25,7 @@ using namespace Scenario::Command;
 
 ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         const ScenarioStateMachine& stateMachine,
-        const ModelPath<ScenarioModel>& scenarioPath,
+        const Path<ScenarioModel>& scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
     ScenarioCreationState{stateMachine, stack, std::move(scenarioPath), parent}
@@ -182,7 +182,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         {
             // Move the timenode
             m_dispatcher.submitCommand<MoveNewEvent>(
-                        ModelPath<ScenarioModel>{m_scenarioPath},
+                        Path<ScenarioModel>{m_scenarioPath},
                         createdConstraints.last(), // TODO CheckMe
                         createdEvents.last(),// TODO CheckMe
                         currentPoint.date,
@@ -193,7 +193,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
         QObject::connect(move_timenode, &QState::entered, [&] ()
         {
             m_dispatcher.submitCommand<MoveEvent>(
-                        ModelPath<ScenarioModel>{m_scenarioPath},
+                        Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
                         m_scenarioPath.find().timeNode(hoveredTimeNode).date(),
                         stateMachine.expandMode());

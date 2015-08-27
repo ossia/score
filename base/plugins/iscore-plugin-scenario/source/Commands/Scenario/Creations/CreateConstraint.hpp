@@ -29,18 +29,18 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint, "ScenarioControl")
                 CreateConstraint(
-                    ModelPath<ScenarioModel>&& scenarioPath,
-                    const id_type<StateModel>& startState,
-                    const id_type<StateModel>& endState);
+                    Path<ScenarioModel>&& scenarioPath,
+                    const Id<StateModel>& startState,
+                    const Id<StateModel>& endState);
                 CreateConstraint& operator= (CreateConstraint &&) = default;
 
-                const ModelPath<ScenarioModel>& scenarioPath() const
+                const Path<ScenarioModel>& scenarioPath() const
                 { return m_path; }
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                const id_type<ConstraintModel>& createdConstraint() const
+                const Id<ConstraintModel>& createdConstraint() const
                 { return m_createdConstraintId; }
 
             protected:
@@ -48,16 +48,16 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<ScenarioModel> m_path;
+                Path<ScenarioModel> m_path;
                 QString m_createdName;
 
-                id_type<ConstraintModel> m_createdConstraintId {};
+                Id<ConstraintModel> m_createdConstraintId {};
 
-                id_type<StateModel> m_startStateId {};
-                id_type<StateModel> m_endStateId {};
+                Id<StateModel> m_startStateId {};
+                Id<StateModel> m_endStateId {};
 
                 ConstraintViewModelIdMap m_createdConstraintViewModelIDs;
-                id_type<ConstraintViewModel> m_createdConstraintFullViewId {};
+                Id<ConstraintViewModel> m_createdConstraintFullViewId {};
         };
     }
 }

@@ -54,7 +54,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveConstraint =
             new MoveConstraintState{
                   m_parentSM,
-                  iscore::IDocument::safe_path(m_parentSM.model()),
+                  iscore::IDocument::path(m_parentSM.model()),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -72,7 +72,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveEvent =
             new MoveEventState{
                   m_parentSM,
-                  iscore::IDocument::safe_path(m_parentSM.model()),
+                  iscore::IDocument::path(m_parentSM.model()),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -94,7 +94,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveTimeNode =
             new MoveTimeNodeState{
                   m_parentSM,
-                  iscore::IDocument::safe_path(m_parentSM.model()),
+                  iscore::IDocument::path(m_parentSM.model()),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -130,29 +130,29 @@ void SelectionTool::on_pressed()
 {
     using namespace std;
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-    [&] (const id_type<StateModel>& id) // State
+    [&] (const Id<StateModel>& id) // State
     {
         localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
-    [&] (const id_type<EventModel>& id) // Event
+    [&] (const Id<EventModel>& id) // Event
     {
         localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
-    [&] (const id_type<TimeNodeModel>& id) // TimeNode
+    [&] (const Id<TimeNodeModel>& id) // TimeNode
     {
         localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
-    [&] (const id_type<ConstraintModel>& id) // Constraint
+    [&] (const Id<ConstraintModel>& id) // Constraint
     {
         localSM().postEvent(new ClickOnConstraint_Event{id, m_parentSM.scenarioPoint});
         m_nothingPressed = false;
     },
     [&] (const SlotModel& slot) // Slot handle
     {
-        localSM().postEvent(new ClickOnSlotHandle_Event{iscore::IDocument::safe_path(slot)});
+        localSM().postEvent(new ClickOnSlotHandle_Event{iscore::IDocument::path(slot)});
         m_nothingPressed = true; // Because we use the Move_Event and Release_Event.
     },
     [&] ()
@@ -171,13 +171,13 @@ void SelectionTool::on_moved()
     else
     {
         mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-        [&] (const id_type<StateModel>& id)
+        [&] (const Id<StateModel>& id)
         { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<EventModel>& id)
+        [&] (const Id<EventModel>& id)
         { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<TimeNodeModel>& id)
+        [&] (const Id<TimeNodeModel>& id)
         { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
-        [&] (const id_type<ConstraintModel>& id)
+        [&] (const Id<ConstraintModel>& id)
         { localSM().postEvent(new MoveOnConstraint_Event{id, m_parentSM.scenarioPoint}); },
         [&] (const SlotModel& slot) // Slot handle
         { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
@@ -189,7 +189,7 @@ void SelectionTool::on_moved()
 void SelectionTool::on_released()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-    [&] (const id_type<StateModel>& id) // State
+    [&] (const Id<StateModel>& id) // State
     {
         const auto& elt = m_parentSM.presenter().states().at(id);
 
@@ -199,7 +199,7 @@ void SelectionTool::on_released()
 
         localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint});
     },
-    [&] (const id_type<EventModel>& id) // Event
+    [&] (const Id<EventModel>& id) // Event
     {
         const auto& elt = m_parentSM.presenter().events().at(id);
 
@@ -209,7 +209,7 @@ void SelectionTool::on_released()
 
         localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint});
     },
-    [&] (const id_type<TimeNodeModel>& id) // TimeNode
+    [&] (const Id<TimeNodeModel>& id) // TimeNode
     {
         const auto& elt = m_parentSM.presenter().timeNodes().at(id);
 
@@ -218,7 +218,7 @@ void SelectionTool::on_released()
                                                    m_state->multiSelection()));
         localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint});
     },
-    [&] (const id_type<ConstraintModel>& id) // Constraint
+    [&] (const Id<ConstraintModel>& id) // Constraint
     {
         const auto& elt = m_parentSM.presenter().constraints().at(id);
 

@@ -43,14 +43,14 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
         // Interface of Constraint
-        void on_processCreated(QString processName, id_type<Process> processId);
-        void on_processRemoved(id_type<Process> processId);
+        void on_processCreated(QString processName, Id<Process> processId);
+        void on_processRemoved(Id<Process> processId);
 
-        void on_rackCreated(id_type<RackModel> rackId);
-        void on_rackRemoved(id_type<RackModel> rackId);
+        void on_rackCreated(Id<RackModel> rackId);
+        void on_rackRemoved(Id<RackModel> rackId);
 
-        void on_constraintViewModelCreated(id_type<ConstraintViewModel> cvmId);
-        void on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId);
+        void on_constraintViewModelCreated(Id<ConstraintViewModel> cvmId);
+        void on_constraintViewModelRemoved(Id<ConstraintViewModel> cvmId);
 
         // These methods are used to display created things
         void displaySharedProcess(const Process&);
@@ -69,7 +69,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
         InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};
-        std::unordered_map<id_type<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
+        std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
 
         QVector<QWidget*> m_properties;
 

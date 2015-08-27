@@ -10,8 +10,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddLayerModelToSlot::AddLayerModelToSlot(
-        ModelPath<SlotModel>&& slotPath,
-        ModelPath<Process>&& processPath) :
+        Path<SlotModel>&& slotPath,
+        Path<Process>&& processPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},

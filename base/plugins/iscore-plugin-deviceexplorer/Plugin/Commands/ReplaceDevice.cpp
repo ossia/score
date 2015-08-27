@@ -3,7 +3,7 @@
 using namespace DeviceExplorer::Command;
 using namespace iscore;
 
-ReplaceDevice::ReplaceDevice(ModelPath<DeviceExplorerModel>&& device_tree,
+ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                              int deviceIndex,
                              Node&& rootNode):
     iscore::SerializableCommand{"DeviceExplorerControl",

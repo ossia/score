@@ -47,7 +47,7 @@ ResizeSlotState::ResizeSlotState(
                             m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
         m_ongoingDispatcher.submitCommand(
-                    ModelPath<SlotModel>{this->currentSlot},
+                    Path<SlotModel>{this->currentSlot},
                     val);
         return;
     });
@@ -91,7 +91,7 @@ DragSlotState::DragSlotState(iscore::CommandStack& stack,
                     && releasedSlot.parent() == baseSlot.parent())
             {
                 auto cmd = new Scenario::Command::SwapSlots{
-                        iscore::IDocument::safe_path(*safe_cast<RackModel*>(releasedSlot.parent())), // Rack
+                        iscore::IDocument::path(*safe_cast<RackModel*>(releasedSlot.parent())), // Rack
                         baseSlot.id(), releasedSlot.id()};
                 m_dispatcher.submitCommand(cmd);
             }
@@ -99,7 +99,7 @@ DragSlotState::DragSlotState(iscore::CommandStack& stack,
         else
         {
             // We throw it
-            auto cmd = new Scenario::Command::RemoveSlotFromRack(ModelPath<SlotModel>{this->currentSlot});
+            auto cmd = new Scenario::Command::RemoveSlotFromRack(Path<SlotModel>{this->currentSlot});
             m_dispatcher.submitCommand(cmd);
             return;
         }

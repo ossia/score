@@ -120,9 +120,9 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
         template<typename T>
         void writeTo(IdentifiedObject<T>& obj)
         {
-            typename id_type<T>::value_type id_impl;
+            typename Id<T>::value_type id_impl;
             writeTo(id_impl);
-            id_type<T> id;
+            Id<T> id;
             id.setVal(std::move(id_impl));
             obj.setId(std::move(id));
         }
@@ -202,7 +202,7 @@ QJsonArray toJsonArray(const Container& array)
 }
 
 template<template<typename U> class T, typename V>
-QJsonArray toJsonArray(const T<id_type<V>>& array)
+QJsonArray toJsonArray(const T<Id<V>>& array)
 {
     QJsonArray arr;
 

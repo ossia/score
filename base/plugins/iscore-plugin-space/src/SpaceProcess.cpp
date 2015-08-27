@@ -4,23 +4,23 @@
 #include "Space/SpaceModel.hpp"
 #include "Area/Circle/CircleAreaModel.hpp"
 
-SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
+SpaceProcess::SpaceProcess(const Id<Process> &id, QObject *parent):
     Process{id, "SpaceProcessModel", parent}
 {
     using namespace GiNaC;
     using namespace spacelib;
 
     m_space = new SpaceModel{
-            id_type<SpaceModel>(0),
+            Id<SpaceModel>(0),
             this};
 
-    auto x_dim = new DimensionModel{"x", id_type<DimensionModel>{0}, m_space};
-    auto y_dim = new DimensionModel{"y", id_type<DimensionModel>{1}, m_space};
+    auto x_dim = new DimensionModel{"x", Id<DimensionModel>{0}, m_space};
+    auto y_dim = new DimensionModel{"y", Id<DimensionModel>{1}, m_space};
 
     m_space->addDimension(x_dim);
     m_space->addDimension(y_dim);
 
-    auto vp = new ViewportModel{id_type<ViewportModel>{0}, m_space};
+    auto vp = new ViewportModel{Id<ViewportModel>{0}, m_space};
     m_space->addViewport(vp);
 
     /*
@@ -29,7 +29,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
         AreaParser circleParser("(xv-x0)^2 + (yv-y0)^2 <= r^2");
 
         auto ar1 = new AreaModel(circleParser.result(),
-                                 *m_space, id_type<AreaModel>(0), this);
+                                 *m_space, Id<AreaModel>(0), this);
         const auto& syms = ar1->area().symbols();
 
         ar1->setSpaceMapping({{syms[0], space_vars[0].symbol()},
@@ -51,7 +51,7 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     {
         AreaParser parser("xv + yv >= c");
 
-        auto ar2 = new AreaModel(parser.result(), *m_space, id_type<AreaModel>(1), this);
+        auto ar2 = new AreaModel(parser.result(), *m_space, Id<AreaModel>(1), this);
         const auto& syms = ar2->area().symbols();
 
         ar2->setSpaceMapping({{syms[0], space_vars[0].symbol()},
@@ -69,12 +69,12 @@ SpaceProcess::SpaceProcess(const id_type<Process> &id, QObject *parent):
     }
 
     {
-        addArea(new CircleAreaModel(*m_space,id_type<AreaModel>(2), this));
+        addArea(new CircleAreaModel(*m_space,Id<AreaModel>(2), this));
     }
     */
 }
 
-Process *SpaceProcess::clone(const id_type<Process> &newId, QObject *newParent) const
+Process *SpaceProcess::clone(const Id<Process> &newId, QObject *newParent) const
 {
     return new SpaceProcess{newId, newParent};
 }
@@ -145,13 +145,13 @@ void SpaceProcess::addArea(AreaModel* a)
     emit areaAdded(*a);
 }
 
-void SpaceProcess::removeArea(const id_type<AreaModel> &id)
+void SpaceProcess::removeArea(const Id<AreaModel> &id)
 {
     ISCORE_TODO;
 
 }
 
-LayerModel *SpaceProcess::makeLayer_impl(const id_type<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent)
+LayerModel *SpaceProcess::makeLayer_impl(const Id<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent)
 {
     return new SpaceLayerModel{viewModelId, *this, parent};
 }
@@ -162,7 +162,7 @@ LayerModel *SpaceProcess::loadLayer_impl(const VisitorVariant &, QObject *parent
     return nullptr;
 }
 
-LayerModel *SpaceProcess::cloneLayer_impl(const id_type<LayerModel> &newId, const LayerModel &source, QObject *parent)
+LayerModel *SpaceProcess::cloneLayer_impl(const Id<LayerModel> &newId, const LayerModel &source, QObject *parent)
 {
     ISCORE_TODO;
     return nullptr;

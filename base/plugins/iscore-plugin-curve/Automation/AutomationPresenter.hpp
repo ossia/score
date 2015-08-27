@@ -29,7 +29,7 @@ class AutomationPresenter : public LayerPresenter
         void parentGeometryChanged() override;
 
         const LayerModel& layerModel() const override;
-        const id_type<Process>& modelId() const override;
+        const Id<Process>& modelId() const override;
 
     public slots:
         // From model

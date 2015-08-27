@@ -21,7 +21,7 @@ const CurvePointModel& CurvePointView::model() const
     return m_model;
 }
 
-const id_type<CurvePointModel>& CurvePointView::id() const
+const Id<CurvePointModel>& CurvePointView::id() const
 {
     return m_model.id();
 }

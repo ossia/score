@@ -19,7 +19,7 @@ namespace DeviceExplorer
                 Move(const iscore::NodePath& srcParentPath, int srcRow, int count,
                          const iscore::NodePath& dstParentPath, int dstRow,
                          const QString& text,
-                         ModelPath<DeviceExplorerModel>&& tree_model);
+                         Path<DeviceExplorerModel>&& tree_model);
 
 
                 virtual void undo() override;
@@ -30,7 +30,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             protected:
-                ModelPath<DeviceExplorerModel> m_model{};
+                Path<DeviceExplorerModel> m_model{};
                 iscore::NodePath m_srcParentPath;
                 iscore::NodePath m_dstParentPath;
                 int m_srcRow{};

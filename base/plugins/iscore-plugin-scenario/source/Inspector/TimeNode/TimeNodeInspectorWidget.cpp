@@ -110,19 +110,19 @@ void TimeNodeInspectorWidget::updateInspector()
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 {
-    QVector<id_type<EventModel> > eventGroup;
+    QVector<Id<EventModel> > eventGroup;
 
     for(const auto& ev : m_events)
     {
         if(ev->isChecked())
         {
-            eventGroup.push_back( id_type<EventModel>(ev->eventName().toInt()));
+            eventGroup.push_back( Id<EventModel>(ev->eventName().toInt()));
         }
     }
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode(iscore::IDocument::safe_path(m_model),
+        auto cmd = new SplitTimeNode(iscore::IDocument::path(m_model),
                                      eventGroup);
 
         commandDispatcher()->submitCommand(cmd);

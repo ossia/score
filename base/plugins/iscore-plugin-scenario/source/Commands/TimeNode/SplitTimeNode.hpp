@@ -17,8 +17,8 @@ namespace Scenario
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitTimeNode, "ScenarioControl")
                 SplitTimeNode(
-                    ModelPath<TimeNodeModel>&& path,
-                    QVector<id_type<EventModel> > eventsInNewTimeNode);
+                    Path<TimeNodeModel>&& path,
+                    QVector<Id<EventModel> > eventsInNewTimeNode);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -27,11 +27,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<TimeNodeModel> m_path;
-                QVector<id_type<EventModel> > m_eventsInNewTimeNode;
+                Path<TimeNodeModel> m_path;
+                QVector<Id<EventModel> > m_eventsInNewTimeNode;
 
-                id_type<TimeNodeModel> m_originalTimeNodeId;
-                id_type<TimeNodeModel> m_newTimeNodeId;
+                Id<TimeNodeModel> m_originalTimeNodeId;
+                Id<TimeNodeModel> m_newTimeNodeId;
          };
     }
 }

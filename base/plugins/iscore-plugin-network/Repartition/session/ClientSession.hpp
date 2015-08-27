@@ -6,7 +6,7 @@ class ClientSession : public Session
     public:
         ClientSession(RemoteClient* master,
                       LocalClient* client,
-                      id_type<Session> id,
+                      Id<Session> id,
                       QObject* parent = nullptr);
 
         RemoteClient* master() const

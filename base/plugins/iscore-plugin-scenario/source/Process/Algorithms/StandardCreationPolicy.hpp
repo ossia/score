@@ -18,11 +18,11 @@ class ScenarioCreate<TimeNodeModel>
 {
     public:
         static void undo(
-                const id_type<TimeNodeModel>& id,
+                const Id<TimeNodeModel>& id,
                 ScenarioModel& s);
 
         static TimeNodeModel& redo(
-                const id_type<TimeNodeModel>& id,
+                const Id<TimeNodeModel>& id,
                 const VerticalExtent& extent,
                 const TimeValue& date,
                 ScenarioModel& s);
@@ -33,11 +33,11 @@ class ScenarioCreate<EventModel>
 {
     public:
         static void undo(
-                const id_type<EventModel>& id,
+                const Id<EventModel>& id,
                 ScenarioModel& s);
 
         static EventModel& redo(
-                const id_type<EventModel>& id,
+                const Id<EventModel>& id,
                 TimeNodeModel& timenode,
                 const VerticalExtent& extent,
                 ScenarioModel& s);
@@ -48,11 +48,11 @@ class ScenarioCreate<StateModel>
 {
     public:
         static void undo(
-                const id_type<StateModel>& id,
+                const Id<StateModel>& id,
                 ScenarioModel& s);
 
         static StateModel& redo(
-                const id_type<StateModel>& id,
+                const Id<StateModel>& id,
                 EventModel& ev,
                 double y,
                 ScenarioModel& s);
@@ -63,12 +63,12 @@ class ScenarioCreate<ConstraintModel>
 {
     public:
         static void undo(
-                const id_type<ConstraintModel>& id,
+                const Id<ConstraintModel>& id,
                 ScenarioModel& s);
 
         static ConstraintModel& redo(
-                const id_type<ConstraintModel>& id,
-                const id_type<ConstraintViewModel>& fullviewid,
+                const Id<ConstraintModel>& id,
+                const Id<ConstraintViewModel>& fullviewid,
                 StateModel& sst,
                 StateModel& est,
                 double ypos,

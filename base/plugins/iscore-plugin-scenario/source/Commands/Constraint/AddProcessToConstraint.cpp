@@ -17,7 +17,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(
-        ModelPath<ConstraintModel>&& constraintPath,
+        Path<ConstraintModel>&& constraintPath,
         QString process) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
@@ -33,8 +33,8 @@ AddProcessToConstraint::AddProcessToConstraint(
     if(m_noRackes)
     {
         m_createdRackId = getStrongId(constraint.racks());
-        m_createdSlotId = id_type<SlotModel> (getNextId());
-        m_createdLayerId = id_type<LayerModel> (getNextId());
+        m_createdSlotId = Id<SlotModel> (getNextId());
+        m_createdLayerId = Id<LayerModel> (getNextId());
         m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
     }
     else if (m_notBaseConstraint)

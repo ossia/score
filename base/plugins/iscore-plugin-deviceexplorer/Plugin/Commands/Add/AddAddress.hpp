@@ -16,7 +16,7 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL2("DeviceExplorerControl", "AddAddress", "AddAddress")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddAddress)
-                AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
+                AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
                            const iscore::NodePath &nodePath,
                            InsertMode insert,
                            const iscore::AddressSettings& addressSettings);
@@ -31,7 +31,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<DeviceDocumentPlugin> m_devicesModel;
+                Path<DeviceDocumentPlugin> m_devicesModel;
                 iscore::NodePath m_parentNodePath;
                 iscore::AddressSettings m_addressSettings;
                 int m_createdNodeIndex;

@@ -51,7 +51,7 @@ StatePresenter::~StatePresenter()
     }
 }
 
-const id_type<StateModel> &StatePresenter::id() const
+const Id<StateModel> &StatePresenter::id() const
 {
     return m_model.id();
 }
@@ -82,7 +82,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         deser.writeTo(ml);
 
         auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::safe_path(m_model),
+                   iscore::IDocument::path(m_model),
                    iscore::StatePath{}, // Make it child of the root node
                    iscore::StateData(std::move(ml), "NewState"),
                    -1};

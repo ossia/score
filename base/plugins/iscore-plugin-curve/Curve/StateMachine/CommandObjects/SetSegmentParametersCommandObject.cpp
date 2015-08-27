@@ -24,7 +24,7 @@ void SetSegmentParametersCommandObject::press()
     m_originalPress = m_state->currentPoint;
 
     m_dispatcher.submitCommand(
-                iscore::IDocument::safe_path(m_presenter->model()),
+                iscore::IDocument::path(m_presenter->model()),
     SegmentParameterMap{{m_state->clickedSegmentId, {m_verticalOrig.get_value_or(0), m_horizontalOrig.get_value_or(0)}}});
 
 }
@@ -40,7 +40,7 @@ void SetSegmentParametersCommandObject::move()
 
     // TODO here we can clearly optimize ...
     m_dispatcher.submitCommand(
-        ModelPath<CurveModel>{},
+        Path<CurveModel>{},
         SegmentParameterMap{{m_state->clickedSegmentId, {newVertical, newHorizontal
           }}});
 }

@@ -4,14 +4,14 @@
 #include "Slot/SlotModel.hpp"
 
 
-RackModel::RackModel(const id_type<RackModel>& id, QObject* parent) :
+RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     IdentifiedObject<RackModel> {id, "RackModel", parent}
 {
 
 }
 
 RackModel::RackModel(const RackModel& source,
-                   const id_type<RackModel>& id,
+                   const Id<RackModel>& id,
                    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
     IdentifiedObject<RackModel> {id, "RackModel", parent}
@@ -48,7 +48,7 @@ void RackModel::addSlot(SlotModel* m)
 }
 
 
-void RackModel::removeSlot(const id_type<SlotModel>& slotId)
+void RackModel::removeSlot(const Id<SlotModel>& slotId)
 {
     auto& removedSlot = slot(slotId);
 
@@ -61,14 +61,14 @@ void RackModel::removeSlot(const id_type<SlotModel>& slotId)
     delete &removedSlot;
 }
 
-void RackModel::swapSlots(const id_type<SlotModel>& firstslot,
-                         const id_type<SlotModel>& secondslot)
+void RackModel::swapSlots(const Id<SlotModel>& firstslot,
+                         const Id<SlotModel>& secondslot)
 {
     m_positions.swap(m_positions.indexOf(firstslot), m_positions.indexOf(secondslot));
     emit slotPositionsChanged();
 }
 
-SlotModel& RackModel::slot(const id_type<SlotModel>& slotId) const
+SlotModel& RackModel::slot(const Id<SlotModel>& slotId) const
 {
     return m_slots.at(slotId);
 }

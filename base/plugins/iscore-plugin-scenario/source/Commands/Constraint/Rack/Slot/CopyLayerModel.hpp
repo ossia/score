@@ -41,7 +41,7 @@ namespace Scenario
                 ObjectPath m_lmPath;
                 ObjectPath m_targetSlotPath;
 
-                id_type<LayerModel> m_newLayerModelId;
+                Id<LayerModel> m_newLayerModelId;
         };
     }
 }

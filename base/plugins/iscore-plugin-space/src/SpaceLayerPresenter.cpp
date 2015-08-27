@@ -87,7 +87,7 @@ const LayerModel &SpaceLayerPresenter::layerModel() const
     return m_model;
 }
 
-const id_type<Process> &SpaceLayerPresenter::modelId() const
+const Id<Process> &SpaceLayerPresenter::modelId() const
 {
     return m_model.processModel().id();
 }

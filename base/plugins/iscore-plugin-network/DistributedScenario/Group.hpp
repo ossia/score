@@ -19,7 +19,7 @@ class Group : public IdentifiedObject<Group>
         ISCORE_SERIALIZE_FRIENDS(Group, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Group, JSONObject)
     public:
-        Group(QString name, id_type<Group> id, QObject* parent);
+        Group(QString name, Id<Group> id, QObject* parent);
 
         template<typename Deserializer>
         Group(Deserializer&& vis, QObject* parent) :
@@ -32,19 +32,19 @@ class Group : public IdentifiedObject<Group>
         QString name() const;
         void setName(QString arg);
 
-        void addClient(id_type<Client> clt);
-        void removeClient(id_type<Client> clt);
-        const QVector<id_type<Client>>& clients() const
+        void addClient(Id<Client> clt);
+        void removeClient(Id<Client> clt);
+        const QVector<Id<Client>>& clients() const
         { return m_executingClients; }
 
     signals:
         void nameChanged(QString arg);
 
-        void clientAdded(id_type<Client>);
-        void clientRemoved(id_type<Client>);
+        void clientAdded(Id<Client>);
+        void clientRemoved(Id<Client>);
 
     private:
         QString m_name;
 
-        QVector<id_type<Client>> m_executingClients;
+        QVector<Id<Client>> m_executingClients;
 };

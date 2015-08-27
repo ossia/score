@@ -79,17 +79,17 @@ void GroupTableWidget::setup()
     for(unsigned int i = 0; i < m_mgr->groups().size(); i++)
     {
         connect(m_mgr->groups()[i], &Group::clientAdded,
-                m_table, [=] (id_type<Client> addedClient)
+                m_table, [=] (Id<Client> addedClient)
         { findCheckbox(i, addedClient)->setState(Qt::Checked); });
 
         connect(m_mgr->groups()[i], &Group::clientRemoved,
-                m_table, [=] (id_type<Client> removedClient)
+                m_table, [=] (Id<Client> removedClient)
         { findCheckbox(i, removedClient)->setState(Qt::Unchecked); });
     }
 
 }
 
-GroupTableCheckbox* GroupTableWidget::findCheckbox(int i,  id_type<Client> theClient) const
+GroupTableCheckbox* GroupTableWidget::findCheckbox(int i,  Id<Client> theClient) const
 {
     if(theClient == m_session->localClient().id())
     {

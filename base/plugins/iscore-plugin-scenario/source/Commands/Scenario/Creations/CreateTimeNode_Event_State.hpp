@@ -19,20 +19,20 @@ class CreateTimeNode_Event_State : public iscore::SerializableCommand
             double stateY);
 
         CreateTimeNode_Event_State(
-          const ModelPath<ScenarioModel>& scenario,
+          const Path<ScenarioModel>& scenario,
           const TimeValue& date,
           double stateY);
 
-        const ModelPath<ScenarioModel>& scenarioPath() const
+        const Path<ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
-        const id_type<StateModel>& createdState() const
+        const Id<StateModel>& createdState() const
         { return m_command.createdState(); }
 
-        const id_type<EventModel>& createdEvent() const
+        const Id<EventModel>& createdEvent() const
         { return m_command.createdEvent(); }
 
-        const id_type<TimeNodeModel>& createdTimeNode() const
+        const Id<TimeNodeModel>& createdTimeNode() const
         { return m_newTimeNode; }
 
         void undo() override;
@@ -43,7 +43,7 @@ class CreateTimeNode_Event_State : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        id_type<TimeNodeModel> m_newTimeNode;
+        Id<TimeNodeModel> m_newTimeNode;
         TimeValue m_date;
 
         CreateEvent_State m_command;

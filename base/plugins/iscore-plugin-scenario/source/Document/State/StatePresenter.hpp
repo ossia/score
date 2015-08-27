@@ -21,7 +21,7 @@ class StatePresenter : public NamedObject
 
         virtual ~StatePresenter();
 
-        const id_type<StateModel>& id() const;
+        const Id<StateModel>& id() const;
 
         StateView* view() const;
 

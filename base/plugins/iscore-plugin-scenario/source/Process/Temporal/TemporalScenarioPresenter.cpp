@@ -135,7 +135,7 @@ const LayerModel& TemporalScenarioPresenter::layerModel() const
     return m_layer;
 }
 
-const id_type<Process>& TemporalScenarioPresenter::modelId() const
+const Id<Process>& TemporalScenarioPresenter::modelId() const
 {
     return m_layer.processModel().id();
 }
@@ -200,26 +200,26 @@ void TemporalScenarioPresenter::removeElement(
 }
 
 void TemporalScenarioPresenter::on_stateRemoved(
-        const id_type<StateModel> &stateId)
+        const Id<StateModel> &stateId)
 {
     removeElement(m_displayedStates.get(), stateId);
 }
 
 
 void TemporalScenarioPresenter::on_eventRemoved(
-        const id_type<EventModel>& eventId)
+        const Id<EventModel>& eventId)
 {
     removeElement(m_events.get(), eventId);
 }
 
 void TemporalScenarioPresenter::on_timeNodeRemoved(
-        const id_type<TimeNodeModel>& timeNodeId)
+        const Id<TimeNodeModel>& timeNodeId)
 {
     removeElement(m_timeNodes.get(), timeNodeId);
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
-        const id_type<ConstraintViewModel>& constraintViewModelId)
+        const Id<ConstraintViewModel>& constraintViewModelId)
 {
     // Don't put a const auto& here, else deletion will crash.
     for(auto& pres : m_constraints)
@@ -383,7 +383,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         auto vecpath = cmd->scenarioPath().unsafePath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
-        ModelPath<StateModel> state_path{ObjectPath(std::move(vecpath)), {}};
+        Path<StateModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
         auto cmd2 = new Scenario::Command::AddStateToStateModel{
                    std::move(state_path),

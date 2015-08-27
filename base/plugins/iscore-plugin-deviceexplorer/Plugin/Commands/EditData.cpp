@@ -3,7 +3,7 @@
 using namespace DeviceExplorer::Command;
 
 EditData::EditData(
-        ModelPath<DeviceExplorerModel> &&device_tree,
+        Path<DeviceExplorerModel> &&device_tree,
         const iscore::NodePath& nodePath,
         DeviceExplorerModel::Column column,
         const QVariant& value,

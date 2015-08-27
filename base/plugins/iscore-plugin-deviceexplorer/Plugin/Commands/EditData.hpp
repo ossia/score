@@ -16,7 +16,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
                 EditData(
-                    ModelPath<DeviceExplorerModel>&& device_tree,
+                    Path<DeviceExplorerModel>&& device_tree,
                     const iscore::NodePath& nodePath,
                     DeviceExplorerModel::Column column,
                     const QVariant& value,
@@ -30,7 +30,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<DeviceExplorerModel> m_deviceTree;
+                Path<DeviceExplorerModel> m_deviceTree;
                 iscore::NodePath m_nodePath;
                 DeviceExplorerModel::Column m_column;
                 QVariant m_oldValue;

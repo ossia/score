@@ -4,12 +4,12 @@ using namespace DeviceExplorer::Command;
 
 Paste::Paste(const iscore::NodePath &parentPath, int row,
                                 const QString& text,
-                                ModelPath<DeviceExplorerModel> &&modelPath):
+                                Path<DeviceExplorerModel> &&Path):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()}
 {
-    m_model = modelPath;
+    m_model = Path;
     m_row = row;
     m_parentPath = parentPath;
     setText(text);

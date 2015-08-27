@@ -14,7 +14,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("SetTrigger", "SetTrigger")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetTrigger, "ScenarioControl")
-                SetTrigger(ModelPath<EventModel>&& eventPath, QString condition);
+                SetTrigger(Path<EventModel>&& eventPath, QString condition);
                 ~SetTrigger();
 
                 virtual void undo() override;
@@ -25,7 +25,7 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ModelPath<EventModel> m_path;
+                Path<EventModel> m_path;
                 QString m_trigger;
                 QString m_previousTrigger;
 

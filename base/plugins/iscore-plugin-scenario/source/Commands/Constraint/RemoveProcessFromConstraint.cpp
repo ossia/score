@@ -16,8 +16,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
-        ModelPath<ConstraintModel>&& constraintPath,
-        const id_type<Process>& processId) :
+        Path<ConstraintModel>&& constraintPath,
+        const Id<Process>& processId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -38,7 +38,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Serializer<DataStream> s{&vm_arr};
         s.readFrom(*layer);
 
-        m_serializedViewModels.append({iscore::IDocument::safe_path(*layer), vm_arr});
+        m_serializedViewModels.append({iscore::IDocument::path(*layer), vm_arr});
     }
 }
 
@@ -54,8 +54,8 @@ void RemoveProcessFromConstraint::undo()
         const auto& path = it.first.unsafePath().vec();
 
         auto& slot = constraint
-                .rack(id_type<RackModel>(path.at(path.size() - 3).id()))
-                .slot(id_type<SlotModel>(path.at(path.size() - 2).id()));
+                .rack(Id<RackModel>(path.at(path.size() - 3).id()))
+                .slot(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
         auto lm = createLayerModel(s,
