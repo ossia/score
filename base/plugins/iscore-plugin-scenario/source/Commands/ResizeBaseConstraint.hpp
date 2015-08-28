@@ -23,10 +23,10 @@ namespace Command
 {
 class MoveBaseEvent : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("MoveBaseEvent", "MoveBaseEvent")
+        ISCORE_COMMAND_DECL_OBSOLETE("MoveBaseEvent", "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveBaseEvent, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveBaseEvent, "ScenarioControl")
           MoveBaseEvent(
           Path<BaseScenario>&& scenarioPath,
             const TimeValue& date,

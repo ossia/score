@@ -18,10 +18,10 @@ namespace Scenario
          */
         class HideRackInViewModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("HideRackInViewModel", "HideRackInViewModel")
+                ISCORE_COMMAND_DECL_OBSOLETE("HideRackInViewModel", "HideRackInViewModel")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(HideRackInViewModel, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(HideRackInViewModel, "ScenarioControl")
                 HideRackInViewModel(Path<ConstraintViewModel>&& path);
 
                 /**

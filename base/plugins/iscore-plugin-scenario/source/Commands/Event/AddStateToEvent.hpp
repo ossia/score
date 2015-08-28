@@ -11,9 +11,9 @@ namespace Scenario
         // TODO rename file
         class AddStateToStateModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL2("ScenarioControl", "AddStateToStateModel", "AddStateToStateModel")
+                ISCORE_COMMAND_DECL("ScenarioControl", "AddStateToStateModel", "AddStateToStateModel")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddStateToStateModel)
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddStateToStateModel)
                 AddStateToStateModel(
                     Path<StateModel>&& path,
                   const iscore::StatePath& parent_path,

@@ -19,9 +19,9 @@ namespace Scenario
 
         class MoveNewState : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND_DECL("MoveNewState", "MoveNewState")
+            ISCORE_COMMAND_DECL_OBSOLETE("MoveNewState", "MoveNewState")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewState, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveNewState, "ScenarioControl")
             MoveNewState(
                 Path<ScenarioModel>&& scenarioPath,
                 const Id<StateModel>& stateId,

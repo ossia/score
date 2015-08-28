@@ -22,7 +22,7 @@ namespace Scenario
                     return QObject::tr("Change %1 label").arg(T::prettyName());
                 }
 
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementLabel, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ChangeElementLabel, "ScenarioControl")
                 ChangeElementLabel(Path<T>&& path, QString newLabel) :
                     SerializableCommand{"ScenarioControl",
                                         commandName(),

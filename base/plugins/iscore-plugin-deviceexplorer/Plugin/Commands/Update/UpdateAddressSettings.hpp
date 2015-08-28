@@ -14,9 +14,9 @@ namespace Command
 {
 class UpdateAddressSettings : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "UpdateAddressSettings", "UpdateAddressSettings")
+        ISCORE_COMMAND_DECL("DeviceExplorerControl", "UpdateAddressSettings", "UpdateAddressSettings")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(UpdateAddressSettings)
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateAddressSettings)
           UpdateAddressSettings(
             Path<DeviceDocumentPlugin>&& device_tree,
             const iscore::NodePath &node,

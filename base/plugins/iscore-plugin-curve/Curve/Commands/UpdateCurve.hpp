@@ -7,9 +7,9 @@ class CurveSegmentModel;
 // TODO due to AutomationControl this can't be put in a lib...
 class UpdateCurve : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("UpdateCurve", "UpdateCurve")
+        ISCORE_COMMAND_DECL_OBSOLETE("UpdateCurve", "UpdateCurve")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateCurve, "AutomationControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(UpdateCurve, "AutomationControl")
         UpdateCurve(
           Path<CurveModel>&& model,
           QVector<QByteArray>&& segments);

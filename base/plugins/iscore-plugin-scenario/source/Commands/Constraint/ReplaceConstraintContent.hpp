@@ -14,10 +14,10 @@ namespace Scenario
     {
         class ReplaceConstraintContent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ReplaceConstraintContent", "ReplaceConstraintContent")
+                ISCORE_COMMAND_DECL_OBSOLETE("ReplaceConstraintContent", "ReplaceConstraintContent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceConstraintContent, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ReplaceConstraintContent, "ScenarioControl")
                 ReplaceConstraintContent(
                     QJsonObject&& sourceConstraint,
                     Path<ConstraintModel>&&  targetConstraint,

@@ -3,7 +3,7 @@
 
 class CreateStatesFromParametersInEvents : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL("CreateStatesFromParametersInEvents", "CreateStatesFromParametersInEvents")
+        ISCORE_COMMAND_DECL_OBSOLETE("CreateStatesFromParametersInEvents", "CreateStatesFromParametersInEvents")
     public:
         CreateStatesFromParametersInEvents():
             AggregateCommand{"IScoreCohesionControl",

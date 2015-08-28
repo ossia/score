@@ -2,6 +2,8 @@
 #include <QList>
 #include <QModelIndex>
 #include <iscore/tools/InvisibleRootNode.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
 template<typename T>
 using ref = T&;
 template<typename T>
@@ -14,6 +16,15 @@ enum class InsertMode { AsSibling, AsChild };
 // Sadly we can't have a non-const interface
 // because of QList<Node*> in Node::children...
 template<typename T>
+/**
+ * @brief The TreePath class
+ *
+ * Represents a path in a tree made with TreeNode.
+ * This allows sending path in commands and over the network.
+ *
+ * TODO : it should be feasible to add the caching of a QModelIndex or
+ * something like this here.
+ */
 class TreePath
 {
     public:
@@ -107,8 +118,6 @@ class TreePath
         QList<int> m_path;
 };
 
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
 template<typename T>
 void Visitor<Reader<DataStream>>::readFrom(const TreePath<T>& path)
 {

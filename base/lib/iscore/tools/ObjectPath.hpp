@@ -16,6 +16,8 @@
  * @code
  *	ObjectPath p{ {"MyObject", {}}, {"SomeSubObjectInACollection", 27} };
  * @endcode
+ *
+ * Note : this class is mostly superseded by Path<T> which adds type-safety.
 */
 class ObjectPath
 {

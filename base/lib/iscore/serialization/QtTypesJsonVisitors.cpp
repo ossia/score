@@ -1,3 +1,4 @@
+#include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"
 #include <QPointF>
 
@@ -17,7 +18,6 @@ void Visitor<Writer<JSONValue>>::writeTo(QPointF& pt)
 }
 
 
-#include "DataStreamVisitor.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const boost::optional<double>& obj)

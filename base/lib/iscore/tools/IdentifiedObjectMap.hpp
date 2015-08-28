@@ -18,6 +18,11 @@ class IdContainer
 };
 
 template<typename Element, typename Model, typename Map>
+/**
+ * @brief The MapBase class
+ *
+ * A generic map type, which provides reference-like access to the stored pointers.
+ */
 class MapBase
 {
     public:

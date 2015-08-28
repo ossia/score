@@ -7,6 +7,13 @@ namespace iscore
 {
     class SelectionStack;
 }
+
+/**
+ * @brief The CommonSelectionState class
+ *
+ * A generic state to handle traditional rectangular selection in a
+ * QGraphicsScene.
+ */
 class CommonSelectionState : public QState
 {
     public:

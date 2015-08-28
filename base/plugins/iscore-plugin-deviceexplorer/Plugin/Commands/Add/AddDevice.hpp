@@ -6,9 +6,9 @@
 class DeviceDocumentPlugin;
 class AddDevice : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "AddDevice", "AddDevice")
+        ISCORE_COMMAND_DECL("DeviceExplorerControl", "AddDevice", "AddDevice")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AddDevice)
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddDevice)
         AddDevice(Path<DeviceDocumentPlugin>&& device_tree,
                   const iscore::DeviceSettings& parameters);
 

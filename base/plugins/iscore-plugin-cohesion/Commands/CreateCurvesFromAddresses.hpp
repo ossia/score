@@ -7,9 +7,9 @@ class ConstraintModel;
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
         //TODO now use this everywhere
-        ISCORE_COMMAND_DECL2("IScoreCohesionControl", "CreateCurvesFromAddresses", "CreateCurvesFromAddresses")
+        ISCORE_COMMAND_DECL("IScoreCohesionControl", "CreateCurvesFromAddresses", "CreateCurvesFromAddresses")
     public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(CreateCurvesFromAddresses)
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateCurvesFromAddresses)
 
         CreateCurvesFromAddresses(
           Path<ConstraintModel>&& constraint,

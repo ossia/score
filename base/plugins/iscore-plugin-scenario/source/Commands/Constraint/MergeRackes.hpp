@@ -15,7 +15,7 @@ namespace Scenario
          */
         class MergeRackes : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("MergeRackes", "MergeRackes")
+                ISCORE_COMMAND_DECL_OBSOLETE("MergeRackes", "MergeRackes")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MergeRackes():

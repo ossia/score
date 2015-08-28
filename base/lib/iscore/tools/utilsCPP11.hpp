@@ -1,5 +1,10 @@
 #pragma once
 #include <algorithm>
+
+/**
+ * TODO review use of these functions.
+ * Most cases should be converted to IdContainer.
+ */
 template <typename Vector, typename Functor>
 void vec_erase_remove_if(Vector& v, Functor&& f)
 {

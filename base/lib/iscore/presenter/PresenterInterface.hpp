@@ -8,6 +8,9 @@ namespace iscore
 
     class PanelFactory;
     class PluginControlInterface;
+    /**
+     * Utility namespace for access to the application presenter features.
+     */
     namespace IPresenter
     {
         /**

@@ -1,5 +1,10 @@
 #pragma once
 
+/**
+ * @brief The InvisibleRootNodeTag struct
+ *
+ * Used as a type to differentiate the root node in TreeNode-based trees.
+ */
 struct InvisibleRootNodeTag{};
 
 template<typename T>

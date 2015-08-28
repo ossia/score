@@ -16,11 +16,11 @@ namespace Scenario
          */
         class SetRigidity : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("SetRigidity", "SetRigidity")
+                ISCORE_COMMAND_DECL_OBSOLETE("SetRigidity", "SetRigidity")
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetRigidity, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SetRigidity, "ScenarioControl")
                 SetRigidity(
                     Path<ConstraintModel>&& constraintPath,
                     bool rigid);

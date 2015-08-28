@@ -9,9 +9,9 @@ namespace Command
 {
 class AssignMessagesToState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL2("ScenarioControl", "AssignMessagesToState", "AssignMessagesToState")
+        ISCORE_COMMAND_DECL("ScenarioControl", "AssignMessagesToState", "AssignMessagesToState")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(AssignMessagesToState)
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AssignMessagesToState)
 
           AssignMessagesToState(
           Path<StateModel>&& path,

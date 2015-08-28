@@ -20,10 +20,10 @@ namespace Scenario
         */
         class AddLayerInNewSlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("AddLayerInNewSlot", "AddLayerInNewSlot")
+                ISCORE_COMMAND_DECL_OBSOLETE("AddLayerInNewSlot", "AddLayerInNewSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerInNewSlot, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(AddLayerInNewSlot, "ScenarioControl")
                 AddLayerInNewSlot(
                     Path<ConstraintModel>&& constraintPath,
                     Id<Process> process);

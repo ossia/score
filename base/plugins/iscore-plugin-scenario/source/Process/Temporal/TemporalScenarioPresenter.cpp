@@ -41,7 +41,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
-    m_sm{*iscore::IDocument::documentFromObject(m_layer.processModel()), *this}, // TODO optimize
+    m_sm{*iscore::IDocument::documentFromObject(m_layer.processModel()), *this}, // OPTIMIZEME by passing document in parent
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.processModel())}
 {
     const ScenarioModel& scenario = model(m_layer);

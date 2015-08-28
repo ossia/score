@@ -20,7 +20,7 @@ namespace Scenario
     // TODO this does not work anymore since the properties have been moved in a sub-object
     class SetMaxDuration : public iscore::PropertyCommand
     {
-            ISCORE_COMMAND_DECL("SetMaxDuration", "Set constraint maximum")
+            ISCORE_COMMAND_DECL_OBSOLETE("SetMaxDuration", "Set constraint maximum")
         public:
             ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetMaxDuration, "ScenarioControl")
 

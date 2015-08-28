@@ -3,6 +3,11 @@
 #include <QString>
 namespace iscore
 {
+/**
+ * @brief The MissingCommandException class
+ *
+ * Is used when a command cannot be instantiated.
+ */
 class MissingCommandException : public std::runtime_error
 {
     public:

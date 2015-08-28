@@ -7,6 +7,11 @@
 #include <QVector>
 #include <QMap>
 
+/**
+ * This file contains facilities
+ * to serialize an object into a QJsonObject.
+ */
+
 template<typename T>
 T fromJsonObject(QJsonObject&& json);
 

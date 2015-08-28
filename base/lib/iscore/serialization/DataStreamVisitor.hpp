@@ -4,6 +4,14 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 
+/**
+ * This file contains facilities
+ * to serialize an object using QDataStream.
+ *
+ * Generally, it is used with QByteArrays, but it works with any QIODevice.
+ */
+
+
 class DataStream;
 template<> class Visitor<Reader<DataStream>>;
 template<> class Visitor<Writer<DataStream>>;
@@ -91,6 +99,11 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
 
+        /**
+         * @brief insertDelimiter
+         *
+         * Adds a delimiter that is to be checked by the reader.
+         */
         void insertDelimiter()
         {
             m_stream << int32_t (0xDEADBEEF);
@@ -162,6 +175,12 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
 
 
+        /**
+         * @brief checkDelimiter
+         *
+         * Checks if a delimiter is present at the current
+         * stream position, and fails if it isn't.
+         */
         void checkDelimiter()
         {
             int val{};

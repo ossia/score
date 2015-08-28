@@ -3,6 +3,11 @@
 #include <iscore/command/Dispatchers/SendStrategy.hpp>
 
 template<typename SendStrategy = SendStrategy::Simple>
+/**
+ * @brief The CommandDispatcher class
+ *
+ * Most basic dispatcher that will commit a command at once.
+ */
 class CommandDispatcher : public ICommandDispatcher
 {
     public:

@@ -18,10 +18,10 @@ namespace Scenario
          */
         class RemoveRackFromConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("RemoveRackFromConstraint", "RemoveRackFromConstraint")
+                ISCORE_COMMAND_DECL_OBSOLETE("RemoveRackFromConstraint", "RemoveRackFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveRackFromConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(RemoveRackFromConstraint, "ScenarioControl")
                 RemoveRackFromConstraint(
                         Path<RackModel>&& rackPath);
                 RemoveRackFromConstraint(

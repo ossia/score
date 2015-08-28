@@ -5,6 +5,15 @@
 
 // TODO ModelObject with path() and a pointer cache.
 template<typename model>
+/**
+ * @brief The IdentifiedObject class
+ *
+ * An object with an unique identifier. This identifier
+ * is used to find objects in a path.
+ *
+ * A class should only have a single child of the same type with a given identifier
+ * since QObject::findChild is used.
+ */
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
     public:

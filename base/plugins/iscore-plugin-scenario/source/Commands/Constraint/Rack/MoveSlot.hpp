@@ -16,7 +16,7 @@ namespace Scenario
          */
         class MoveSlot : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("MoveSlot", "MoveSlot")
+                ISCORE_COMMAND_DECL_OBSOLETE("MoveSlot", "MoveSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MoveSlot():

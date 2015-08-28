@@ -15,9 +15,9 @@ namespace Scenario
          */
         class ResizeSlotVertically : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ResizeSlotVertically", "ResizeSlotVertically")
+                ISCORE_COMMAND_DECL_OBSOLETE("ResizeSlotVertically", "ResizeSlotVertically")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ResizeSlotVertically, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ResizeSlotVertically, "ScenarioControl")
                 ResizeSlotVertically(
                     Path<SlotModel>&& slotPath,
                     double newSize);

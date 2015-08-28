@@ -50,7 +50,11 @@ T safe_cast(U&& other)
 #define safe_cast static_cast
 #endif
 
-
+/**
+ * @brief con A wrapper around Qt's connect
+ *
+ * Allows the first argument to be a reference
+ */
 template<typename T, typename... Args>
 auto con(const T& t, Args&&... args)
 {

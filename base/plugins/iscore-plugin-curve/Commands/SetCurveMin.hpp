@@ -3,7 +3,7 @@
 
 class SetCurveMin : public iscore::PropertyCommand
 {
-        ISCORE_COMMAND_DECL("SetCurveMin", "Set curve minimum")
+        ISCORE_COMMAND_DECL_OBSOLETE("SetCurveMin", "Set curve minimum")
     public:
         ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetCurveMin, "AutomationControl")
 

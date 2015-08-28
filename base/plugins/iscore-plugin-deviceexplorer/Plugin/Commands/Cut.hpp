@@ -12,9 +12,9 @@ namespace DeviceExplorer
     {
         class Cut : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("Cut", "Cut")
+                ISCORE_COMMAND_DECL_OBSOLETE("Cut", "Cut")
                 public:
-                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Cut, "DeviceExplorerControl")
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(Cut, "DeviceExplorerControl")
 
                 Cut(const iscore::NodePath& parentPath,
                     int row,

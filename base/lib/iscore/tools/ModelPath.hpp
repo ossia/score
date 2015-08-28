@@ -15,7 +15,9 @@ Path<T> path(const T& obj);
 }
 }
 
-// A typesafe path to a model object in a Document.
+/**
+ * @brief The Path class is a typesafe wrapper around ObjectPath.
+ */
 template<typename Object>
 class Path
 {

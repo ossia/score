@@ -9,7 +9,7 @@
 
 #include <iscore/Settings.hpp>
 
-#define ISCORE_COMMAND_DECL(name, desc) \
+#define ISCORE_COMMAND_DECL_OBSOLETE(name, desc) \
     public: \
         static constexpr const char* commandName() { return name; } \
         static QString description() { return QObject::tr(desc); }  \
@@ -21,8 +21,13 @@
     } \
     private:
 
-
-#define ISCORE_COMMAND_DECL2(facName, name, desc) \
+/**
+ * This macro is used to specify the common metadata of commands :
+ *  - factory name (e.g. "ScenarioControl")
+ *  - command name
+ *  - command description
+ */
+#define ISCORE_COMMAND_DECL(facName, name, desc) \
     public: \
         static constexpr const char* factoryName() { return facName; } \
         static constexpr const char* commandName() { return name; } \

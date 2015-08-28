@@ -14,7 +14,7 @@ namespace Scenario
     {
         class CreationMetaCommand : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("CreationMetaCommand", "CreationMetaCommand")
+                ISCORE_COMMAND_DECL_OBSOLETE("CreationMetaCommand", "CreationMetaCommand")
             public:
                 CreationMetaCommand():
                   AggregateCommand{"ScenarioControl",

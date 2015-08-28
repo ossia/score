@@ -3,6 +3,11 @@
 #include <QPointF>
 
 class QGraphicsScene;
+/**
+ * @brief The BaseStateMachine class
+ *
+ * Common class to build state machines that work in a QGraphicsScene.
+ */
 class BaseStateMachine : public QStateMachine
 {
     public:

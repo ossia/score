@@ -3,6 +3,13 @@
 #include <iscore/command/Dispatchers/SendStrategy.hpp>
 #include <iscore/command/AggregateCommand.hpp>
 
+/**
+ * @brief The MacroCommandDispatcher class
+ *
+ * Used to send multiple "one-shot" commands one after the other.
+ * An aggregate command is required : it will put them under the same "command"
+ * once in the stack.
+ */
 class MacroCommandDispatcher : public ICommandDispatcher
 {
     public:

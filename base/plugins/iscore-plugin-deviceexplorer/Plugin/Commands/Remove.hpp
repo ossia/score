@@ -16,9 +16,9 @@ namespace Command
 {
 class Remove : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL2("DeviceExplorerControl", "Remove", "Remove")
+        ISCORE_COMMAND_DECL("DeviceExplorerControl", "Remove", "Remove")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(Remove)
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Remove)
 
           Remove(Path<DeviceDocumentPlugin>&& device_tree,
             const iscore::Node& node);

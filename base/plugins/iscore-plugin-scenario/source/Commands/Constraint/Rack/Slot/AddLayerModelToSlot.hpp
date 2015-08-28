@@ -17,10 +17,10 @@ namespace Scenario
          */
         class AddLayerModelToSlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("AddLayerModelToSlot", "AddLayerModelToSlot")
+                ISCORE_COMMAND_DECL_OBSOLETE("AddLayerModelToSlot", "AddLayerModelToSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerModelToSlot, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(AddLayerModelToSlot, "ScenarioControl")
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
                     Path<Process>&& process);

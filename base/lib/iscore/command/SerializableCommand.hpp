@@ -1,7 +1,12 @@
 #pragma once
 #include <iscore/command/Command.hpp>
-#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::SerializableCommand{ ParentName , commandName(), description()} { }
-#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(THE_CLASS) THE_CLASS () : iscore::SerializableCommand{ factoryName() , commandName(), description() } { }
+#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(THE_CLASS, ParentName) THE_CLASS () : iscore::SerializableCommand{ ParentName , commandName(), description()} { }
+
+/**
+ * Creates a default constructor for serializable commands.
+ * Requires ISCORE_COMMAND_DECL presence.
+ */
+#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(THE_CLASS) THE_CLASS () : iscore::SerializableCommand{ factoryName() , commandName(), description() } { }
 
 namespace iscore
 {
@@ -9,7 +14,7 @@ namespace iscore
  * @brief The SerializableCommand class
  *
  * Adds serialization & deserialization capabilities to Command.
- *
+ * Most concrete commands shall inherit from this class.
  */
 class SerializableCommand : public Command
 {

@@ -1,8 +1,12 @@
 #pragma once
-
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
+/**
+ * This file contains usefule functions
+ * for simple serialization / deserializatoin of the common types
+ * used in i-score.
+ */
 template<typename TheClass>
 void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
 {
@@ -86,6 +90,14 @@ auto deserialize_dyn(const VisitorVariant& vis, Functor&& fun)
     }
 }
 
+/**
+ * @brief marshall Serializes a single object
+ * @param obj The object to serialize.
+ *
+ * This will create the relevant serialization datatype for Type.
+ * For instance, a QByteArray if it is DataStream
+ * and a QJSonObject if it is JSONObject
+ */
 template<typename Type, typename Object>
 auto marshall(const Object& obj)
 {

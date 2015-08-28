@@ -7,9 +7,9 @@
 class AutomationModel;
 class ChangeAddress : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ChangeAddress", "ChangeAddress")
+        ISCORE_COMMAND_DECL_OBSOLETE("ChangeAddress", "ChangeAddress")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeAddress, "AutomationControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ChangeAddress, "AutomationControl")
         ChangeAddress(
                 Path<AutomationModel>&& path,
                 const iscore::Address& newval);

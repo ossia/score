@@ -13,40 +13,40 @@ namespace iscore
  * it should be added to this stack using SelectionDispatcher.
  * This way, the user will be able to browse through his previous selections.
  */
-    class SelectionStack : public QObject
-    {
-            Q_OBJECT
-        public:
-            SelectionStack();
+class SelectionStack : public QObject
+{
+        Q_OBJECT
+    public:
+        SelectionStack();
 
-            bool canUnselect() const;
-            bool canReselect() const;
+        bool canUnselect() const;
+        bool canReselect() const;
 
 
-            // Go to the previous set of selections
-            void unselect();
+        // Go to the previous set of selections
+        void unselect();
 
-            // Go to the next set of selections
-            void reselect();
+        // Go to the next set of selections
+        void reselect();
 
-            // Push a new set of empty selection.
-            void deselect();
+        // Push a new set of empty selection.
+        void deselect();
 
-            Selection currentSelection() const;
+        Selection currentSelection() const;
 
-        signals:
-            void pushNewSelection(const Selection& s);
-            void currentSelectionChanged(const Selection&);
+    signals:
+        void pushNewSelection(const Selection& s);
+        void currentSelectionChanged(const Selection&);
 
-        private slots:
-            void prune(QObject* p);
+    private slots:
+        void prune(QObject* p);
 
-        private:
-            // Select new objects
-            void push(const Selection& s);
+    private:
+        // Select new objects
+        void push(const Selection& s);
 
-            // m_unselectable always contains the empty set at the beginning
-            QStack<Selection> m_unselectable;
-            QStack<Selection> m_reselectable;
-    };
+        // m_unselectable always contains the empty set at the beginning
+        QStack<Selection> m_unselectable;
+        QStack<Selection> m_reselectable;
+};
 }

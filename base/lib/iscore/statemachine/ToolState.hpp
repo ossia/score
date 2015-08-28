@@ -3,6 +3,11 @@
 class QGraphicsItem;
 class QGraphicsScene;
 
+/**
+ * @brief The ToolState class
+ *
+ * A generic state to implement an edition tool.
+ */
 class ToolState : public QState
 {
     public:

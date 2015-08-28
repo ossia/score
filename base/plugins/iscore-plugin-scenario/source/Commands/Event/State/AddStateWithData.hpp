@@ -10,7 +10,7 @@ namespace Scenario
     {
         class AddStateWithData: public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL2("ScenarioControl", "AddStateWithData", "AddStateWithData")
+                ISCORE_COMMAND_DECL("ScenarioControl", "AddStateWithData", "AddStateWithData")
             public:
                 AddStateWithData():
                       AggregateCommand{factoryName(),

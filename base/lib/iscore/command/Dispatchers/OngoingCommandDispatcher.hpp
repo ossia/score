@@ -4,6 +4,12 @@
 
 #include <core/command/CommandStack.hpp>
 
+/**
+ * @brief The OngoingCommandDispatcher class
+ *
+ * A basic, type-unsafe dispatcher for a commands
+ * that have continuous edition capabilities.
+ */
 class OngoingCommandDispatcher : public ICommandDispatcher
 {
     public:
@@ -31,6 +37,7 @@ class OngoingCommandDispatcher : public ICommandDispatcher
 
         void commit()
         {
+            // TODO : here we should not have "redoAndPush", just push.
             if(m_cmd)
                 SendStrategy::Simple::send(stack(), m_cmd.release());
         }

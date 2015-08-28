@@ -19,6 +19,16 @@ namespace RollbackStrategy
     };
 }
 
+/**
+ * @brief The MultiOngoingCommandDispatcher class
+ *
+ * Used for complex real-time editing.
+ * This dispatcher has an array of commands :
+ * as long as the commands sent through submitCommand
+ * are mergeable, they will be merged with the latest command on the array.
+ *
+ * When a new command is encoutered, it is put in a new place in the array.
+ */
 class MultiOngoingCommandDispatcher : public ICommandDispatcher
 {
     public:

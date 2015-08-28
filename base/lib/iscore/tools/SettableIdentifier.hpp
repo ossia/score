@@ -2,6 +2,11 @@
 #include <boost/optional.hpp>
 #include <QDebug>
 
+/**
+ * @brief The id_base_t class
+ *
+ * The base identifier type.
+ */
 template<typename tag, typename impl>
 class id_base_t
 {

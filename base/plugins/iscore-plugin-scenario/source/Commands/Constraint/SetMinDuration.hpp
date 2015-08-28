@@ -18,7 +18,7 @@ namespace Scenario
     // TODO this does not work anymore since the properties have been moved in a sub-object
     class SetMinDuration : public iscore::PropertyCommand
     {
-            ISCORE_COMMAND_DECL("SetMinDuration", "Set constraint minimum")
+            ISCORE_COMMAND_DECL_OBSOLETE("SetMinDuration", "Set constraint minimum")
         public:
             ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetMinDuration, "ScenarioControl")
 

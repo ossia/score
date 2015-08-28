@@ -4,8 +4,7 @@
 /**
  * @brief The Selectable class
  *
- * A component that allows a class to be selected (or not)
- *
+ * A component that allows a class to be selected (or not).
  */
 class Selectable : public QObject
 {

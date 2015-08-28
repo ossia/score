@@ -4,6 +4,13 @@
 
 #include <core/command/CommandStack.hpp>
 
+/**
+ * @brief The SingleOngoingCommandDispatcher class
+ *
+ * Similar to OngoingCommandDispatcher but the entire class
+ * is meant to be used with a single command and will fail at compile-time
+ * if an incorrect command is sent.
+ */
 template<typename TheCommand>
 class SingleOngoingCommandDispatcher : public ICommandDispatcher
 {
@@ -14,19 +21,13 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
 
         }
 
-        ~SingleOngoingCommandDispatcher()
-        {
-            delete m_cmd;
-        }
-
         template<typename... Args> // TODO split in two ?
         void submitCommand(Args&&... args)
         {
             if(!m_cmd)
             {
-                auto cmd = new TheCommand(std::forward<Args>(args)...);
-                cmd->redo();
-                m_cmd = cmd;
+                m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
+                m_cmd->redo();
             }
             else
             {
@@ -37,18 +38,17 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
 
         void commit()
         {
+            // TODO : here we should not have "redoAndPush", just push.
             if(m_cmd)
-                SendStrategy::Simple::send(stack(), m_cmd);
-            m_cmd = nullptr;
+                SendStrategy::Simple::send(stack(), m_cmd.release());
         }
 
         void rollback()
         {
             m_cmd->undo();
-            delete m_cmd;
-            m_cmd = nullptr;
+            m_cmd.reset();
         }
 
     private:
-        TheCommand* m_cmd{};
+        std::unique_ptr<TheCommand> m_cmd;
 };

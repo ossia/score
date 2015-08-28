@@ -5,6 +5,13 @@
 #include <QEvent>
 #include <QAbstractTransition>
 
+/**
+ * This file contains base types for the events and transitions of
+ * the state machines in i-score.
+ *
+ * See the documentation for explanation of the general pattern
+ */
+
 template<int N>
 struct NumberedEvent : public QEvent
 {

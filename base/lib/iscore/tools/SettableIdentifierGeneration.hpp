@@ -3,6 +3,11 @@
 #include <random>
 #include <boost/range/algorithm.hpp>
 
+/**
+ * @brief getNextId
+ * @return a random int32
+ */
+//TODO put me in an impl file, no ?
 inline int32_t getNextId()
 {
     using namespace std;
@@ -16,6 +21,12 @@ inline int32_t getNextId()
 }
 
 template<typename Vector>
+/**
+ * @brief getNextId
+ * @param ids A vector of ids
+ *
+ * @return A new id not in the vector.
+ */
 inline int getNextId(const Vector& ids)
 {
     using namespace boost::range;
@@ -29,6 +40,11 @@ inline int getNextId(const Vector& ids)
 
     return id;
 }
+
+/**
+ * The following functions all generate ids
+ * with type safety using different containers.
+ */
 
 template<typename Container>
 auto getStrongIdFromIdContainer(const Container& v)

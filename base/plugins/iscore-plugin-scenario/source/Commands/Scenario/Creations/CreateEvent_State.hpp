@@ -8,9 +8,9 @@ namespace Command
 {
 class CreateEvent_State : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("CreateEvent_State","CreateEvent_State")
+        ISCORE_COMMAND_DECL_OBSOLETE("CreateEvent_State","CreateEvent_State")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateEvent_State, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateEvent_State, "ScenarioControl")
 
           CreateEvent_State(
             const ScenarioModel& scenario,

@@ -3,7 +3,7 @@
 
 class CreateCurvesFromAddressesInConstraints : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL("CreateCurvesFromAddressesInConstraints", "CreateCurvesFromAddressesInConstraints")
+        ISCORE_COMMAND_DECL_OBSOLETE("CreateCurvesFromAddressesInConstraints", "CreateCurvesFromAddressesInConstraints")
     public:
         CreateCurvesFromAddressesInConstraints():
             AggregateCommand{"IScoreCohesionControl",
@@ -15,7 +15,7 @@ class CreateCurvesFromAddressesInConstraints : public iscore::AggregateCommand
 
 class InterpolateMacro : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL("InterpolateMacro", "InterpolateMacro")
+        ISCORE_COMMAND_DECL_OBSOLETE("InterpolateMacro", "InterpolateMacro")
     public:
         InterpolateMacro():
             AggregateCommand{"IScoreCohesionControl",

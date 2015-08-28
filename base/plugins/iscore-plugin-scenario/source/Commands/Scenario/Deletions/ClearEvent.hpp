@@ -9,9 +9,9 @@ namespace Scenario
     {
         class ClearState : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL2("ScenarioControl", "ClearState", "ClearState")
+                ISCORE_COMMAND_DECL("ScenarioControl", "ClearState", "ClearState")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(ClearState)
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearState)
                 ClearState(Path<StateModel>&& path);
                 virtual void undo() override;
                 virtual void redo() override;

@@ -23,10 +23,10 @@ namespace Scenario
         */
         class AddProcessToConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("AddProcessToConstraint", "AddProcessToConstraint")
+                ISCORE_COMMAND_DECL_OBSOLETE("AddProcessToConstraint", "AddProcessToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(AddProcessToConstraint, "ScenarioControl")
                 AddProcessToConstraint(
                     Path<ConstraintModel>&& constraintPath,
                     QString process);

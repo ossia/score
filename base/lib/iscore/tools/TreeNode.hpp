@@ -5,6 +5,12 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 
+/**
+ * @brief The TreeNode class
+ *
+ * This class adds a tree structure around a data type.
+ * It can then be used in abstract item models easily.
+ */
 template<typename DataType>
 class TreeNode : public DataType
 {

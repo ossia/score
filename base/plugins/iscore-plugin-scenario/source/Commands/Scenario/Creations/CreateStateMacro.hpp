@@ -7,7 +7,7 @@ namespace Scenario
     {
         class CreateStateMacro : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("CreateStateMacro", "CreateStateMacro")
+                ISCORE_COMMAND_DECL_OBSOLETE("CreateStateMacro", "CreateStateMacro")
             public:
                 CreateStateMacro():
                       AggregateCommand{"ScenarioControl",

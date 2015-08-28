@@ -4,6 +4,12 @@
 
 namespace iscore
 {
+/**
+ * @brief The UndoControl class
+ *
+ * Base class for the "fake" undo plugin,
+ * which provides a undo panel.
+ */
 class UndoControl : public iscore::PluginControlInterface
 {
     public:
