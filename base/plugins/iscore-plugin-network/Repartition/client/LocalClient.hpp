@@ -6,7 +6,7 @@ class LocalClient : public Client
 {
         Q_OBJECT
     public:
-        LocalClient(id_type<Client> id, QObject* parent = nullptr):
+        LocalClient(Id<Client> id, QObject* parent = nullptr):
             Client{id, parent},
             m_server{new NetworkServer{9090, this}}
         {

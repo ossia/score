@@ -5,8 +5,8 @@
 class CurveSegmentModel;
 struct CurvePointId
 {
-        id_type<CurveSegmentModel> previous;
-        id_type<CurveSegmentModel> following;
+        Id<CurveSegmentModel> previous;
+        Id<CurveSegmentModel> following;
 };
 
 class QGraphicsItem;
@@ -17,10 +17,10 @@ class StateBase : public QState
 {
     public:
         using QState::QState;
-        id_type<CurveSegmentModel> clickedSegmentId;
+        Id<CurveSegmentModel> clickedSegmentId;
         CurvePointId clickedPointId;
 
-        id_type<CurveSegmentModel> hoveredSegmentId;
+        Id<CurveSegmentModel> hoveredSegmentId;
         CurvePointId hoveredPointId;
 
         CurvePoint currentPoint;

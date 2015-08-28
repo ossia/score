@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 namespace Scenario
 {
@@ -23,26 +23,26 @@ namespace Scenario
                 }
 
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementComments, "ScenarioControl")
-                ChangeElementComments(ObjectPath&& path, QString newComments) :
+                ChangeElementComments(Path<T>&& path, QString newComments) :
                     SerializableCommand {"ScenarioControl",
                                          commandName(),
                                          description()},
                     m_path{std::move(path)},
                     m_newComments {newComments}
                 {
-                    auto& obj = m_path.find<T>();
+                    auto& obj = m_path.find();
                     m_oldComments = obj.metadata.comment();
                 }
 
                 virtual void undo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setComment(m_oldComments);
                 }
 
                 virtual void redo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setComment(m_newComments);
                 }
 
@@ -58,7 +58,7 @@ namespace Scenario
                 }
 
             private:
-                ObjectPath m_path;
+                Path<T> m_path;
                 QString m_oldComments;
                 QString m_newComments;
         };

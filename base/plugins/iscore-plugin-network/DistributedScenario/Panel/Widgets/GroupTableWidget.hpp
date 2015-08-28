@@ -16,7 +16,7 @@ class GroupTableWidget : public QWidget
         void setup();
 
     private:
-        GroupTableCheckbox* findCheckbox(int i, id_type<Client> theClient) const;
+        GroupTableCheckbox* findCheckbox(int i, Id<Client> theClient) const;
 
         void on_checkboxChanged(int i, int j, int state);
 

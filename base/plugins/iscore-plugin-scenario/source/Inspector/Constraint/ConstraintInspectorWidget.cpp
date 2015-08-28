@@ -48,20 +48,20 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase{object, doc, parent},
-    m_currentConstraint{object}
+    m_model{object}
 {
     setObjectName("Constraint");
 
     ////// HEADER
     // metadata
     m_metadata = new MetadataWidget{
-            &m_currentConstraint.metadata,
+            &m_model.metadata,
             commandDispatcher(),
-            &m_currentConstraint,
+            &m_model,
             this};
     m_metadata->setType(ConstraintModel::prettyName());
 
-    m_metadata->setupConnections(&m_currentConstraint);
+    m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
 
@@ -71,7 +71,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {
-        auto& base = get<BaseElementModel> (*documentFromObject(m_currentConstraint));
+        auto& base = get<BaseElementModel> (*documentFromObject(m_model));
 
         base.setDisplayedConstraint(&model());
     });
@@ -79,7 +79,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(setAsDisplayedConstraint);
 
     // Events
-    if(auto scenario = qobject_cast<ScenarioModel*>(m_currentConstraint.parent()))
+    if(auto scenario = qobject_cast<ScenarioModel*>(m_model.parent()))
     {
         m_properties.push_back(makeStatesWidget(scenario));
     }
@@ -139,7 +139,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(m_rackWidget);
 
     // Plugins
-    for(auto& plugdata : m_currentConstraint.pluginModelList.list())
+    for(auto& plugdata : m_model.pluginModelList.list())
     {
         for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())
         {
@@ -160,7 +160,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
 const ConstraintModel& ConstraintInspectorWidget::model() const
 {
-    return m_currentConstraint;
+    return m_model;
 }
 
 void ConstraintInspectorWidget::updateDisplayedValues()
@@ -190,23 +190,23 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
     // Constraint interface
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::processCreated,
+                con(model(),	&ConstraintModel::processCreated,
                         this,		&ConstraintInspectorWidget::on_processCreated));
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::processRemoved,
+                con(model(),	&ConstraintModel::processRemoved,
                         this,		&ConstraintInspectorWidget::on_processRemoved));
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::rackCreated,
+                con(model(),	&ConstraintModel::rackCreated,
                         this,		&ConstraintInspectorWidget::on_rackCreated));
     m_connections.push_back(
-                connect(&model(),	&ConstraintModel::rackRemoved,
+                con(model(),	&ConstraintModel::rackRemoved,
                         this,		&ConstraintInspectorWidget::on_rackRemoved));
 
     m_connections.push_back(
-                connect(&model(), &ConstraintModel::viewModelCreated,
+                con(model(), &ConstraintModel::viewModelCreated,
                         this,    &ConstraintInspectorWidget::on_constraintViewModelCreated));
     m_connections.push_back(
-                connect(&model(), &ConstraintModel::viewModelRemoved,
+                con(model(), &ConstraintModel::viewModelRemoved,
                         this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes
@@ -226,7 +226,7 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 {
     auto cmd = new AddProcessToConstraint
     {
-               iscore::IDocument::unsafe_path(model()),
+               iscore::IDocument::path(model()),
                processName
 };
     emit commandDispatcher()->submitCommand(cmd);
@@ -235,7 +235,7 @@ void ConstraintInspectorWidget::createProcess(QString processName)
 void ConstraintInspectorWidget::createRack()
 {
     auto cmd = new AddRackToConstraint(
-                   iscore::IDocument::unsafe_path(model()));
+                   iscore::IDocument::path(model()));
     emit commandDispatcher()->submitCommand(cmd);
 }
 
@@ -244,8 +244,8 @@ void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
     auto cmd = new AddLayerInNewSlot(
-                   iscore::IDocument::unsafe_path(model()),
-                   id_type<Process>(processName.toInt()));
+                   iscore::IDocument::path(model()),
+                   Id<Process>(processName.toInt()));
 
     emit commandDispatcher()->submitCommand(cmd);
 }
@@ -260,18 +260,18 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
     {
         if(vm->isRackShown())
         {
-            auto cmd = new HideRackInViewModel(vm);
+            auto cmd = new HideRackInViewModel(*vm);
             emit commandDispatcher()->submitCommand(cmd);
         }
     }
     else
     {
         bool ok {};
-        auto id = id_type<RackModel> (rack.toInt(&ok));
+        auto id = Id<RackModel> (rack.toInt(&ok));
 
         if(ok)
         {
-            auto cmd = new ShowRackInViewModel(vm, id);
+            auto cmd = new ShowRackInViewModel(*vm, id);
             emit commandDispatcher()->submitCommand(cmd);
         }
     }
@@ -312,7 +312,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     auto deleteButton = new QPushButton{tr("Delete")};
     connect(deleteButton, &QPushButton::pressed, this, [=,id=process.id()] ()
     {
-        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::unsafe_path(model()), id};
+        auto cmd = new RemoveProcessFromConstraint{iscore::IDocument::path(model()), id};
         emit commandDispatcher()->submitCommand(cmd);
     });
     newProc->addContent(deleteButton);
@@ -343,7 +343,7 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
     QFormLayout* eventLay = new QFormLayout {eventWid};
     eventLay->setVerticalSpacing(0);
 
-    if(auto sst = m_currentConstraint.startState())
+    if(auto sst = m_model.startState())
     {
         auto btn = SelectionButton::make(
                     &scenar->state(sst),
@@ -352,7 +352,7 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
         eventLay->addRow(tr("Start state"), btn);
     }
 
-    if(auto est = m_currentConstraint.endState())
+    if(auto est = m_model.endState())
     {
         auto btn = SelectionButton::make(
                     &scenar->state(est),
@@ -366,24 +366,24 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
 
 void ConstraintInspectorWidget::on_processCreated(
         QString processName,
-        id_type<Process> processId)
+        Id<Process> processId)
 {
     updateDisplayedValues();
 }
 
-void ConstraintInspectorWidget::on_processRemoved(id_type<Process> processId)
+void ConstraintInspectorWidget::on_processRemoved(Id<Process> processId)
 {
     updateDisplayedValues();
 }
 
 
-void ConstraintInspectorWidget::on_rackCreated(id_type<RackModel> rackId)
+void ConstraintInspectorWidget::on_rackCreated(Id<RackModel> rackId)
 {
     setupRack(model().rack(rackId));
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
+void ConstraintInspectorWidget::on_rackRemoved(Id<RackModel> rackId)
 {
     auto ptr = m_rackesSectionWidgets[rackId];
     m_rackesSectionWidgets.erase(rackId);
@@ -396,12 +396,12 @@ void ConstraintInspectorWidget::on_rackRemoved(id_type<RackModel> rackId)
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelCreated(id_type<ConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelCreated(Id<ConstraintViewModel> cvmId)
 {
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelRemoved(id_type<ConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelRemoved(Id<ConstraintViewModel> cvmId)
 {
     m_rackWidget->viewModelsChanged();
 }

@@ -7,7 +7,7 @@ QString GammaCurveSegmentFactory::name() const
 }
 
 CurveSegmentModel* GammaCurveSegmentFactory::make(
-        const id_type<CurveSegmentModel>& id,
+        const Id<CurveSegmentModel>& id,
         QObject* parent)
 {
     return new GammaCurveSegmentModel{id, parent};

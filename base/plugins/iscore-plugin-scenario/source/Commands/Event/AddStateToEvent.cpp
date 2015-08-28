@@ -6,7 +6,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddStateToStateModel::AddStateToStateModel(
-        ModelPath<StateModel>&& path,
+        Path<StateModel>&& path,
         const iscore::StatePath& parent_path,
         const iscore::StateNode& state,
         int posInParent) :

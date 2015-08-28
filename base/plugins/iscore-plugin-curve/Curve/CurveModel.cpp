@@ -5,13 +5,13 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
-CurveModel::CurveModel(const id_type<CurveModel>& id, QObject* parent):
+CurveModel::CurveModel(const Id<CurveModel>& id, QObject* parent):
     IdentifiedObject<CurveModel>(id, "CurveModel", parent)
 {
 }
 
 CurveModel* CurveModel::clone(
-        const id_type<CurveModel>& id,
+        const Id<CurveModel>& id,
         QObject* parent)
 {
     auto cm = new CurveModel{id, parent};
@@ -121,12 +121,12 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
     {
         if(pt->previous() == m->id())
         {
-            pt->setPrevious(id_type<CurveSegmentModel>{});
+            pt->setPrevious(Id<CurveSegmentModel>{});
         }
 
         if(pt->following() == m->id())
         {
-            pt->setFollowing(id_type<CurveSegmentModel>{});
+            pt->setFollowing(Id<CurveSegmentModel>{});
         }
 
         if(!pt->previous() && !pt->following())

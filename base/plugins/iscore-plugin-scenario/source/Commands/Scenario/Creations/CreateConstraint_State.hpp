@@ -14,26 +14,26 @@ class CreateConstraint_State : public iscore::SerializableCommand
 
           CreateConstraint_State(
             const ScenarioModel& scenario,
-            const id_type<StateModel>& startState,
-            const id_type<EventModel>& endEvent,
+            const Id<StateModel>& startState,
+            const Id<EventModel>& endEvent,
             double endStateY);
 
         CreateConstraint_State(
-          const ObjectPath& scenario,
-          const id_type<StateModel>& startState,
-          const id_type<EventModel>& endEvent,
+          const Path<ScenarioModel>& scenario,
+          const Id<StateModel>& startState,
+          const Id<EventModel>& endEvent,
           double endStateY);
 
-        const ObjectPath& scenarioPath() const
+        const Path<ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const
         { return m_stateY; }
 
-        const id_type<ConstraintModel>& createdConstraint() const
+        const Id<ConstraintModel>& createdConstraint() const
         { return m_command.createdConstraint(); }
 
-        const id_type<StateModel>& createdState() const
+        const Id<StateModel>& createdState() const
         { return m_newState; }
 
         void undo() override;
@@ -44,9 +44,9 @@ class CreateConstraint_State : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        id_type<StateModel> m_newState;
+        Id<StateModel> m_newState;
         CreateConstraint m_command;
-        id_type<EventModel> m_endEvent;
+        Id<EventModel> m_endEvent;
         double m_stateY{};
 };
 }

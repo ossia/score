@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <QState>
 #include <QEvent>
@@ -16,19 +16,19 @@ struct NumberedEvent : public QEvent
 template<typename Element, int N>
 struct NumberedWithPath_Event : public NumberedEvent<N>
 {
-        explicit NumberedWithPath_Event(const ObjectPath& p):
+        explicit NumberedWithPath_Event(const Path<Element>& p):
             NumberedEvent<N>{},
             path{p}
         {
         }
 
-        explicit NumberedWithPath_Event(ObjectPath&& p):
+        explicit NumberedWithPath_Event(Path<Element>&& p):
             NumberedEvent<N>{},
             path{std::move(p)}
         {
         }
 
-        ObjectPath path;
+        Path<Element> path;
 };
 
 template<typename PointType>

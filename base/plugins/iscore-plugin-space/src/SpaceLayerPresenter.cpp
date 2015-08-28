@@ -27,7 +27,7 @@ SpaceLayerPresenter::SpaceLayerPresenter(const LayerModel& model, LayerView* vie
         on_areaAdded(area);
     }
 
-    connect(&procmodel, &SpaceProcess::areaAdded, this, &SpaceLayerPresenter::on_areaAdded);
+    con(procmodel, &SpaceProcess::areaAdded, this, &SpaceLayerPresenter::on_areaAdded);
 }
 
 SpaceLayerPresenter::~SpaceLayerPresenter()
@@ -87,7 +87,7 @@ const LayerModel &SpaceLayerPresenter::layerModel() const
     return m_model;
 }
 
-const id_type<Process> &SpaceLayerPresenter::modelId() const
+const Id<Process> &SpaceLayerPresenter::modelId() const
 {
     return m_model.processModel().id();
 }
@@ -111,7 +111,7 @@ void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
     // TODO call the factory list
     auto pres = fact->makePresenter(v, a, this);
 
-    connect(&a, &AreaModel::areaChanged,
+    con(a, &AreaModel::areaChanged,
             pres, &AreaPresenter::on_areaChanged);
     m_areas.insert(pres);
     pres->on_areaChanged();

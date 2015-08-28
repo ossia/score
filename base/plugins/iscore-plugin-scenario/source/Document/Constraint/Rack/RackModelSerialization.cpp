@@ -23,7 +23,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
 template<> void Visitor<Writer<DataStream>>::writeTo(RackModel& rack)
 {
     int slots_size;
-    QList<id_type<SlotModel>> positions;
+    QList<Id<SlotModel>> positions;
     m_stream >> positions;
 
     m_stream >> slots_size;
@@ -64,11 +64,11 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(RackModel& rack)
 {
     QJsonArray theSlots = m_obj["Slots"].toArray();
     QJsonArray slotsPositions = m_obj["SlotsPositions"].toArray();
-    QList<id_type<SlotModel>> list;
+    QList<Id<SlotModel>> list;
 
     for(auto elt : slotsPositions)
     {
-        list.push_back(id_type<SlotModel> {elt.toInt() });
+        list.push_back(Id<SlotModel> {elt.toInt() });
     }
 
     for(const auto& json_slot : theSlots)

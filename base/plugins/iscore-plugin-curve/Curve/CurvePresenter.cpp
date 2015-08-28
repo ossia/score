@@ -109,20 +109,20 @@ void CurvePresenter::setPos(CurveSegmentView& segment)
 
 void CurvePresenter::setupSignals()
 {
-    connect(&m_model, &CurveModel::segmentAdded, this,
+    con(m_model, &CurveModel::segmentAdded, this,
             [&] (const CurveSegmentModel& segment)
     {
         addSegment(new CurveSegmentView{segment, m_view});
     });
 
-    connect(&m_model, &CurveModel::pointAdded, this,
+    con(m_model, &CurveModel::pointAdded, this,
             [&] (const CurvePointModel& point)
     {
         addPoint(new CurvePointView{point, m_view});
     });
 
-    connect(&m_model, &CurveModel::pointRemoved, this,
-            [&] (const id_type<CurvePointModel>& m)
+    con(m_model, &CurveModel::pointRemoved, this,
+            [&] (const Id<CurvePointModel>& m)
     {
         auto& map = m_points.get();
         auto it = map.find(m);
@@ -133,8 +133,8 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    connect(&m_model, &CurveModel::segmentRemoved, this,
-            [&] (const id_type<CurveSegmentModel>& m)
+    con(m_model, &CurveModel::segmentRemoved, this,
+            [&] (const Id<CurveSegmentModel>& m)
     {
         auto& map = m_segments.get();
         auto it = map.find(m);
@@ -145,7 +145,7 @@ void CurvePresenter::setupSignals()
         }
     });
 
-    connect(&m_model, &CurveModel::cleared, this,
+    con(m_model, &CurveModel::cleared, this,
             [&] ()
     {
         qDeleteAll(m_points.get());
@@ -372,7 +372,7 @@ void CurvePresenter::removeSelection()
 {
     // We remove all that is selected,
     // And set the bounds correctly
-    QSet<id_type<CurveSegmentModel>> segmentsToDelete;
+    QSet<Id<CurveSegmentModel>> segmentsToDelete;
 
     for(const auto& elt : m_model.selectedChildren())
     {
@@ -410,7 +410,7 @@ void CurvePresenter::removeSelection()
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::unsafe_path(m_model),
+                    iscore::IDocument::path(m_model),
                     std::move(newSegments)
                 });
 }
@@ -448,7 +448,7 @@ void CurvePresenter::updateSegmentsType(const QString& segmentName)
 
     m_commandDispatcher.submitCommand(
                 new UpdateCurve{
-                    iscore::IDocument::unsafe_path(m_model),
+                    iscore::IDocument::path(m_model),
                     std::move(newSegments)
                 });
 }

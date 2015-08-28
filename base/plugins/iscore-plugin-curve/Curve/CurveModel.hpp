@@ -14,7 +14,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
         ISCORE_SERIALIZE_FRIENDS(CurveModel, JSONObject)
         Q_OBJECT
     public:
-        CurveModel(const id_type<CurveModel>&, QObject* parent);
+        CurveModel(const Id<CurveModel>&, QObject* parent);
 
         template<typename Impl>
         CurveModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -23,7 +23,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
             vis.writeTo(*this);
         }
 
-        CurveModel* clone(const id_type<CurveModel>&, QObject* parent);
+        CurveModel* clone(const Id<CurveModel>&, QObject* parent);
         void addSegment(CurveSegmentModel* m);
 
         // Here we don't pass an id because it's more efficient
@@ -43,9 +43,9 @@ class CurveModel : public IdentifiedObject<CurveModel>
 
     signals:
         void segmentAdded(const CurveSegmentModel&);
-        void segmentRemoved(const id_type<CurveSegmentModel>&); // dangerous if async
+        void segmentRemoved(const Id<CurveSegmentModel>&); // dangerous if async
         void pointAdded(const CurvePointModel&);
-        void pointRemoved(const id_type<CurvePointModel>&); // dangerous if async
+        void pointRemoved(const Id<CurvePointModel>&); // dangerous if async
 
         void changed();
         void cleared();

@@ -26,13 +26,13 @@ class SlotModel : public IdentifiedObject<SlotModel>
                    NOTIFY focusChanged)
 
     public:
-        SlotModel(const id_type<SlotModel>& id,
+        SlotModel(const Id<SlotModel>& id,
                   RackModel* parent);
 
         // Copy
         SlotModel(std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                   const SlotModel& source,
-                  const id_type<SlotModel>& id,
+                  const Id<SlotModel>& id,
                   RackModel* parent);
 
         static void copyViewModelsInSameConstraint(const SlotModel&, SlotModel&);
@@ -49,20 +49,20 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void addLayerModel(
                 LayerModel*);
         void deleteLayerModel(
-                const id_type<LayerModel>& layerModelId);
+                const Id<LayerModel>& layerModelId);
 
 
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void putToFront(
-                const id_type<LayerModel>& layerId);
-        const id_type<LayerModel>& frontLayerModel() const;
+                const Id<LayerModel>& layerId);
+        const Id<LayerModel>& frontLayerModel() const;
 
         const auto& layerModels() const
         { return m_layerModels; }
 
         LayerModel& layerModel(
-                const id_type<LayerModel>& layerModelId) const;
+                const Id<LayerModel>& layerModelId) const;
 
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;
@@ -71,21 +71,21 @@ class SlotModel : public IdentifiedObject<SlotModel>
         bool focus() const;
 
     signals:
-        void layerModelCreated(const id_type<LayerModel>& layerModelId);
-        void layerModelRemoved(const id_type<LayerModel>& layerModelId);
-        void layerModelPutToFront(const id_type<LayerModel>& layerModelId);
+        void layerModelCreated(const Id<LayerModel>& layerModelId);
+        void layerModelRemoved(const Id<LayerModel>& layerModelId);
+        void layerModelPutToFront(const Id<LayerModel>& layerModelId);
 
         void heightChanged(qreal arg);
         void focusChanged(bool arg);
 
     public slots:
-        void on_deleteSharedProcessModel(const id_type<Process>& sharedProcessId);
+        void on_deleteSharedProcessModel(const Id<Process>& sharedProcessId);
 
         void setHeight(qreal arg);
         void setFocus(bool arg);
 
     private:
-        id_type<LayerModel> m_frontLayerModelId;
+        Id<LayerModel> m_frontLayerModelId;
         IdContainer<LayerModel> m_layerModels;
 
         qreal m_height {200};

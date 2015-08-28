@@ -31,7 +31,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
         /** The class **/
         TimeNodeModel(
-                const id_type<TimeNodeModel>& id,
+                const Id<TimeNodeModel>& id,
                 const VerticalExtent& extent,
                 const TimeValue& date,
                 QObject* parent);
@@ -45,7 +45,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
         TimeNodeModel(
                 const TimeNodeModel& source,
-                const id_type<TimeNodeModel>& id,
+                const Id<TimeNodeModel>& id,
                 QObject* parent);
 
 
@@ -59,22 +59,22 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         const TimeValue& date() const;
         void setDate(const TimeValue&);
 
-        void addEvent(const id_type<EventModel>&);
-        bool removeEvent(const id_type<EventModel>&);
-        const QVector<id_type<EventModel>>& events() const;
-        void setEvents(const QVector<id_type<EventModel>>& events);
+        void addEvent(const Id<EventModel>&);
+        bool removeEvent(const Id<EventModel>&);
+        const QVector<Id<EventModel>>& events() const;
+        void setEvents(const QVector<Id<EventModel>>& events);
 
     signals:
         void extentChanged(const VerticalExtent&);
         void dateChanged(const TimeValue&);
 
-        void newEvent(const id_type<EventModel>& eventId);
+        void newEvent(const Id<EventModel>& eventId);
         // TODO no eventRemoved ? eventsChanged ?
 
     private:
         VerticalExtent m_extent;
         TimeValue m_date{std::chrono::seconds{0}};
 
-        QVector<id_type<EventModel>> m_events;
+        QVector<Id<EventModel>> m_events;
 };
 

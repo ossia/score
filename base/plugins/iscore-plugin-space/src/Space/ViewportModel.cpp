@@ -1,31 +1,31 @@
 #include "ViewportModel.hpp"
 
-const id_type<DimensionModel>& ViewportModel::xDim() const
+const Id<DimensionModel>& ViewportModel::xDim() const
 {
     return m_xDim;
 }
 
-void ViewportModel::setXDim(const id_type<DimensionModel>& xDim)
+void ViewportModel::setXDim(const Id<DimensionModel>& xDim)
 {
     m_xDim = xDim;
 }
 
-const id_type<DimensionModel>& ViewportModel::yDim() const
+const Id<DimensionModel>& ViewportModel::yDim() const
 {
     return m_yDim;
 }
 
-void ViewportModel::setYDim(const id_type<DimensionModel>& yDim)
+void ViewportModel::setYDim(const Id<DimensionModel>& yDim)
 {
     m_yDim = yDim;
 }
 
-const QMap<id_type<DimensionModel>, double>& ViewportModel::defaultValuesMap() const
+const QMap<Id<DimensionModel>, double>& ViewportModel::defaultValuesMap() const
 {
     return m_defaultValuesMap;
 }
 
-void ViewportModel::setDefaultValuesMap(const QMap<id_type<DimensionModel>, double>& defaultValuesMap)
+void ViewportModel::setDefaultValuesMap(const QMap<Id<DimensionModel>, double>& defaultValuesMap)
 {
     m_defaultValuesMap = defaultValuesMap;
 }

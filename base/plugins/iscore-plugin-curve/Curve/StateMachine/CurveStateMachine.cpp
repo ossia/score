@@ -87,21 +87,21 @@ void CurveStateMachine::setupPostEvents()
         curvePoint = QPointFToCurvePoint(m_presenter.view().mapFromScene(point));
     };
 
-    connect(&m_presenter.view(), &CurveView::pressed,
+    con(m_presenter.view(), &CurveView::pressed,
             this, [=] (const QPointF& point)
     {
         updateData(point);
         postEvent(new Press_Event);
     });
 
-    connect(&m_presenter.view(), &CurveView::moved,
+    con(m_presenter.view(), &CurveView::moved,
             this, [=] (const QPointF& point)
     {
         updateData(point);
         postEvent(new Move_Event);
     });
 
-    connect(&m_presenter.view(), &CurveView::released,
+    con(m_presenter.view(), &CurveView::released,
             this, [=] (const QPointF& point)
     {
         updateData(point);
@@ -109,7 +109,7 @@ void CurveStateMachine::setupPostEvents()
     });
 
     // TODO generalize this.
-    connect(&m_presenter.view(), &CurveView::escPressed,
+    con(m_presenter.view(), &CurveView::escPressed,
             this, [&] ()
     {
         this->postEvent(new Cancel_Event);

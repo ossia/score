@@ -41,20 +41,20 @@ class MapBase
         { map.erase(t); }
 
         // TODO create one that passes an iterator.
-        void remove(const id_type<model_type>& id)
+        void remove(const Id<model_type>& id)
         { map.erase(id); }
 
         void clear()
         { map.clear(); }
 
-        auto find(const id_type<model_type>& id) const
+        auto find(const Id<model_type>& id) const
         { return boost::make_indirect_iterator(map.find(id)); }
 
         auto& get() { return map.template get<0>(); }
         const auto& get() const { return map.template get<0>(); }
 
 #ifdef ISCORE_DEBUG
-        auto& at(const id_type<model_type>& id) const
+        auto& at(const Id<model_type>& id) const
         {
             auto item = map.find(id);
             if(item == map.end())
@@ -66,7 +66,7 @@ class MapBase
             return **item;
         }
 #else
-        auto& at(const id_type<model_type>& id) const
+        auto& at(const Id<model_type>& id) const
         { return *find(id); }
 #endif
 
@@ -94,7 +94,7 @@ class IdContainer<Element, Model,
                     bmi::hashed_unique<
                         bmi::const_mem_fun<
                             IdentifiedObject<Model>,
-                            const id_type<Model>&,
+                            const Id<Model>&,
                             &IdentifiedObject<Model>::id
                         >
                     >
@@ -124,7 +124,7 @@ class IdContainer<Element, Model,
                     bmi::hashed_unique<
                         bmi::const_mem_fun<
                             Element,
-                            const id_type<Model>&,
+                            const Id<Model>&,
                             &Element::id
                         >
                     >

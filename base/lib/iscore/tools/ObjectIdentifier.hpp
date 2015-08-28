@@ -39,7 +39,7 @@ class ObjectIdentifier
         { }
 
         template<typename T>
-        ObjectIdentifier(QString name, id_type<T> id) :
+        ObjectIdentifier(QString name, Id<T> id) :
             m_objectName {std::move(name) }
         {
             if(id.val())

@@ -5,7 +5,7 @@ class ScenarioCreation_FromState : public ScenarioCreationState
     public:
         ScenarioCreation_FromState(
                 const ScenarioStateMachine& stateMachine,
-                ObjectPath&& scenarioPath,
+                const Path<ScenarioModel>& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
 

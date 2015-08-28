@@ -6,7 +6,7 @@
 using namespace iscore;
 using namespace DeviceExplorer::Command;
 UpdateAddressSettings::UpdateAddressSettings(
-        ModelPath<DeviceDocumentPlugin>&& device_tree,
+        Path<DeviceDocumentPlugin>&& device_tree,
         const iscore::NodePath& node,
         const iscore::AddressSettings& parameters):
     iscore::SerializableCommand(this),

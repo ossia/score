@@ -2,9 +2,9 @@
 
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
-
+class ScenarioModel;
 class EventModel;
 class TimeNodeModel;
 
@@ -17,7 +17,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("MergeTimeNodes", "MergeTimeNodes")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MergeTimeNodes, "ScenarioControl")
-                MergeTimeNodes(ObjectPath&& path, id_type<TimeNodeModel> aimedTimeNode, id_type<TimeNodeModel> movingTimeNode);
+                MergeTimeNodes(Path<ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -26,10 +26,10 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                Path<ScenarioModel> m_path;
 
-                id_type<TimeNodeModel> m_aimedTimeNodeId;
-                id_type<TimeNodeModel> m_movingTimeNodeId;
+                Id<TimeNodeModel> m_aimedTimeNodeId;
+                Id<TimeNodeModel> m_movingTimeNodeId;
 
                 QByteArray m_serializedTimeNode;
          };

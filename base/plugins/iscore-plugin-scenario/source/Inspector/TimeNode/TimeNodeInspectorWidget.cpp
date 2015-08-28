@@ -55,11 +55,11 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     m_metadata = new MetadataWidget{&m_model.metadata, commandDispatcher(), &m_model, this};
     m_metadata->setType(TimeNodeModel::prettyName());
 
-    m_metadata->setupConnections(&m_model);
+    m_metadata->setupConnections(m_model);
 
     addHeader(m_metadata);
 
-    connect(&m_model, &TimeNodeModel::dateChanged,
+    con(m_model, &TimeNodeModel::dateChanged,
             this,   &TimeNodeInspectorWidget::updateInspector);
 
     auto splitBtn = new QPushButton{this};
@@ -110,19 +110,19 @@ void TimeNodeInspectorWidget::updateInspector()
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 {
-    QVector<id_type<EventModel> > eventGroup;
+    QVector<Id<EventModel> > eventGroup;
 
     for(const auto& ev : m_events)
     {
         if(ev->isChecked())
         {
-            eventGroup.push_back( id_type<EventModel>(ev->eventName().toInt()));
+            eventGroup.push_back( Id<EventModel>(ev->eventName().toInt()));
         }
     }
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode(iscore::IDocument::unsafe_path(m_model),
+        auto cmd = new SplitTimeNode(iscore::IDocument::path(m_model),
                                      eventGroup);
 
         commandDispatcher()->submitCommand(cmd);

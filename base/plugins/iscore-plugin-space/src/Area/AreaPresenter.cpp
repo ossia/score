@@ -14,7 +14,7 @@ AreaPresenter::AreaPresenter(
 {
 }
 
-const id_type<AreaModel>& AreaPresenter::id() const
+const Id<AreaModel>& AreaPresenter::id() const
 {
     return m_model.id();
 }

@@ -25,12 +25,12 @@ void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel
     // 2. Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)
     {
-        cleaner.submitCommand(new ClearConstraint(unsafe_path(constraint)));
+        cleaner.submitCommand(new ClearConstraint(path(*constraint)));
     }
 
     for(auto& state : statesToRemove)
     {
-        cleaner.submitCommand(new ClearState(unsafe_path(state)));
+        cleaner.submitCommand(new ClearState(path(*state)));
     }
 
     cleaner.commit();
@@ -51,6 +51,6 @@ void ScenarioGlobalCommandManager::removeSelection(const ScenarioModel &scenario
     if(!sel.empty())
     {
         CommandDispatcher<> dispatcher(m_commandStack);
-        dispatcher.submitCommand(new RemoveSelection(unsafe_path(scenario), sel));
+        dispatcher.submitCommand(new RemoveSelection(path(scenario), sel));
     }
 }

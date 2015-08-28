@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class ConstraintViewModel;
 class ConstraintModel;
@@ -21,10 +21,12 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("ShowRackInViewModel", "ShowRackInViewModel")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowRackInViewModel, "ScenarioControl")
-                ShowRackInViewModel(ObjectPath&& constraint_path,
-                                   id_type<RackModel> rackId);
-                ShowRackInViewModel(const ConstraintViewModel* constraint,
-                                   id_type<RackModel> rackId);
+                ShowRackInViewModel(
+                        Path<ConstraintViewModel>&& constraint_path,
+                        Id<RackModel> rackId);
+                ShowRackInViewModel(
+                        const ConstraintViewModel& vm,
+                        const Id<RackModel>& rackId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -34,9 +36,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_constraintViewModelPath;
-                id_type<RackModel> m_rackId {};
-                id_type<RackModel> m_previousRackId {};
+                Path<ConstraintViewModel> m_constraintViewPath;
+                Id<RackModel> m_rackId {};
+                Id<RackModel> m_previousRackId {};
 
         };
     }

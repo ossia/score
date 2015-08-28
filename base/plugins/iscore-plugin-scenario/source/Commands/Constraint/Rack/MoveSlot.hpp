@@ -3,6 +3,7 @@
 #include "RemoveSlotFromRack.hpp"
 #include <iscore/command/AggregateCommand.hpp>
 
+class RackModel;
 namespace Scenario
 {
     namespace Command
@@ -23,13 +24,13 @@ namespace Scenario
                                        commandName(),
                                        description()} { }
 
-                MoveSlot(const ObjectPath& slotToMove,
-                         ObjectPath&& targetRack) :
+                MoveSlot(const Path<SlotModel>& slotToMove,
+                         Path<RackModel>&& targetRack) :
                     AggregateCommand {"ScenarioControl",
                                       commandName(),
                                       description(),
-                                      new CopySlot{ObjectPath{slotToMove}, std::move(targetRack) },
-                                      new RemoveSlotFromRack{ObjectPath{slotToMove}}}
+                                      new CopySlot{Path<SlotModel>{slotToMove}, std::move(targetRack) },
+                                      new RemoveSlotFromRack{Path<SlotModel>{slotToMove}}}
                 {
 
                 }

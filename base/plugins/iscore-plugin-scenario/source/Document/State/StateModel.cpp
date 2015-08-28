@@ -9,27 +9,27 @@
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 StateModel::StateModel(
-        const id_type<StateModel>& id,
-        const id_type<EventModel>& eventId,
+        const Id<StateModel>& id,
+        const Id<EventModel>& eventId,
         double yPos,
         QObject *parent):
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
     m_heightPercentage{yPos}
 {
-    connect(&m_itemModel, &QAbstractItemModel::dataChanged,
+    con(m_itemModel, &QAbstractItemModel::dataChanged,
             this, [&] () { emit statesUpdated(); });
-    connect(&m_itemModel, &QAbstractItemModel::rowsInserted,
+    con(m_itemModel, &QAbstractItemModel::rowsInserted,
             this, [&] () { emit statesUpdated(); });
-    connect(&m_itemModel, &QAbstractItemModel::rowsMoved,
+    con(m_itemModel, &QAbstractItemModel::rowsMoved,
             this, [&] () { emit statesUpdated(); });
-    connect(&m_itemModel, &QAbstractItemModel::rowsRemoved,
+    con(m_itemModel, &QAbstractItemModel::rowsRemoved,
             this, [&] () { emit statesUpdated(); });
 }
 
 StateModel::StateModel(
         const StateModel &source,
-        const id_type<StateModel> &id,
+        const Id<StateModel> &id,
         QObject *parent):
     StateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
@@ -54,27 +54,27 @@ void StateModel::setHeightPercentage(double y)
     emit heightPercentageChanged();
 }
 
-const id_type<EventModel> &StateModel::eventId() const
+const Id<EventModel> &StateModel::eventId() const
 {
     return m_eventId;
 }
 
-const id_type<ConstraintModel> &StateModel::previousConstraint() const
+const Id<ConstraintModel> &StateModel::previousConstraint() const
 {
     return m_previousConstraint;
 }
 
-const id_type<ConstraintModel> &StateModel::nextConstraint() const
+const Id<ConstraintModel> &StateModel::nextConstraint() const
 {
     return m_nextConstraint;
 }
 
-void StateModel::setNextConstraint(const id_type<ConstraintModel> & id)
+void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 {
     m_nextConstraint = id;
 }
 
-void StateModel::setPreviousConstraint(const id_type<ConstraintModel> & id)
+void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 {
     m_previousConstraint = id;
 }

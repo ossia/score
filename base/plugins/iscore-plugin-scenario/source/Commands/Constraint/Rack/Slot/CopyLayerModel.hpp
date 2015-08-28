@@ -1,7 +1,7 @@
 /*
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class LayerModel;
@@ -41,7 +41,7 @@ namespace Scenario
                 ObjectPath m_lmPath;
                 ObjectPath m_targetSlotPath;
 
-                id_type<LayerModel> m_newLayerModelId;
+                Id<LayerModel> m_newLayerModelId;
         };
     }
 }

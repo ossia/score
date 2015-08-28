@@ -2,7 +2,7 @@
 
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class EventModel;
 class TimeNodeModel;
@@ -16,7 +16,9 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("SplitTimeNode", "SplitTimeNode")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitTimeNode, "ScenarioControl")
-                SplitTimeNode(ObjectPath&& path, QVector<id_type<EventModel> > eventsInNewTimeNode);
+                SplitTimeNode(
+                    Path<TimeNodeModel>&& path,
+                    QVector<Id<EventModel> > eventsInNewTimeNode);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -25,11 +27,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
-                QVector<id_type<EventModel> > m_eventsInNewTimeNode;
+                Path<TimeNodeModel> m_path;
+                QVector<Id<EventModel> > m_eventsInNewTimeNode;
 
-                id_type<TimeNodeModel> m_originalTimeNodeId;
-                id_type<TimeNodeModel> m_newTimeNodeId;
+                Id<TimeNodeModel> m_originalTimeNodeId;
+                Id<TimeNodeModel> m_newTimeNodeId;
          };
     }
 }

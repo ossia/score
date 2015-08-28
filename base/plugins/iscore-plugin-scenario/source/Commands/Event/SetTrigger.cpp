@@ -9,14 +9,14 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
-SetTrigger::SetTrigger(ObjectPath&& eventPath, QString message) :
+SetTrigger::SetTrigger(Path<EventModel>&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
 m_path {std::move(eventPath) },
 m_trigger(message)
 {
-    auto& event = m_path.find<EventModel>();
+    auto& event = m_path.find();
     m_previousTrigger = event.trigger();
 }
 
@@ -27,7 +27,7 @@ SetTrigger::~SetTrigger()
 
 void SetTrigger::undo()
 {
-    auto& event = m_path.find<EventModel>();
+    auto& event = m_path.find();
     event.setTrigger(m_previousTrigger);
 
     for (auto cmd : m_cmds)
@@ -41,7 +41,7 @@ void SetTrigger::redo()
 {
     ISCORE_TODO;
     /*
-    auto& event = m_path.find<EventModel>();
+    auto& event = m_path.find();
     event.setTrigger(m_trigger);
 
     if(m_previousTrigger.isEmpty() != m_trigger.isEmpty())

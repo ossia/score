@@ -1,9 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class SlotModel;
+class RackModel;
 namespace Scenario
 {
     namespace Command
@@ -19,7 +20,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddSlotToRack, "ScenarioControl")
-                AddSlotToRack(ObjectPath&& rackPath);
+                AddSlotToRack(Path<RackModel>&& rackPath);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -29,9 +30,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                Path<RackModel> m_path;
 
-                id_type<SlotModel> m_createdSlotId {};
+                Id<SlotModel> m_createdSlotId {};
         };
     }
 }

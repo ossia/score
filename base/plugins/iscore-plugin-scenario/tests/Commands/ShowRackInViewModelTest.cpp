@@ -41,8 +41,8 @@ class ShowRackInViewModelTest: public QObject
             plist->registerProcess(new ScenarioFactory);
 
             // Setup
-            ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0},
-                                                                id_type<ConstraintViewModel>{0}, qApp
+            ConstraintModel* constraint  = new ConstraintModel {Id<ConstraintModel>{0},
+                                                                Id<ConstraintViewModel>{0}, qApp
                                                                };
 
             // Creation of a scenario with a constraint

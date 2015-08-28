@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 namespace Scenario
 {
@@ -24,26 +24,26 @@ namespace Scenario
                 }
 
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementColor, "ScenarioControl")
-                ChangeElementColor(ObjectPath&& path, QColor newLabel) :
+                ChangeElementColor(Path<T>&& path, QColor newLabel) :
                     SerializableCommand {"ScenarioControl",
                                          commandName(),
                                          description()},
                     m_path {std::move(path) },
                     m_newColor {newLabel}
                 {
-                    auto& obj = m_path.find<T>();
+                    auto& obj = m_path.find();
                     m_oldColor = obj.metadata.color();
                 }
 
                 virtual void undo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setColor(m_oldColor);
                 }
 
                 virtual void redo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setColor(m_newColor);
                 }
 
@@ -59,7 +59,7 @@ namespace Scenario
                 }
 
             private:
-                ObjectPath m_path;
+                Path<T> m_path;
                 QColor m_newColor;
                 QColor m_oldColor;
         };

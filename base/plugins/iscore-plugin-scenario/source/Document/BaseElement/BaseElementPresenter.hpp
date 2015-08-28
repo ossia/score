@@ -3,7 +3,7 @@
 #include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <ProcessInterface/TimeValue.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <QSize>
 #include <QRectF>
 #include "DisplayedElements/DisplayedElementsPresenter.hpp"

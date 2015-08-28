@@ -135,7 +135,7 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
     ossia_ev->event()->addState(root_state);
 
 
-    connect(&iscore_state, &StateModel::statesUpdated, this,
+    con(iscore_state, &StateModel::statesUpdated, this,
             [=] () {
         // TODO optimize me
         state_elt->rootState()->stateElements().clear();
@@ -227,7 +227,7 @@ void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
     m_ossia_timenodes.insert({tn.id(), elt});
 }
 
-void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& id)
+void OSSIAScenarioElement::on_constraintRemoved(const Id<ConstraintModel>& id)
 {
     auto it = m_ossia_constraints.find(id);
     auto cst = (*it).second;
@@ -253,10 +253,8 @@ void OSSIAScenarioElement::on_constraintRemoved(const id_type<ConstraintModel>& 
     delete cst;
 }
 
-void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
+void OSSIAScenarioElement::on_stateRemoved(const Id<StateModel> &id)
 {
-    ISCORE_TODO;
-    /*
     auto it = m_ossia_states.find(id);
     ISCORE_ASSERT(it != m_ossia_states.end());
     auto state_elt = (*it).second;
@@ -265,16 +263,14 @@ void OSSIAScenarioElement::on_stateRemoved(const id_type<StateModel> &id)
     if(ev_it != m_ossia_timeevents.end())
     {
         OSSIAEventElement* ev = (*ev_it).second;
-        for(auto& state : state_elt->states())
-            ev->event()->removeState(state.second);
+        ev->event()->removeState(state_elt->rootState());
     }
 
     m_ossia_states.erase(it);
     delete state_elt;
-    */
 }
 
-void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)
+void OSSIAScenarioElement::on_eventRemoved(const Id<EventModel>& id)
 {
     auto ev_it = m_ossia_timeevents.find(id);
     ISCORE_ASSERT(ev_it != m_ossia_timeevents.end());
@@ -294,7 +290,7 @@ void OSSIAScenarioElement::on_eventRemoved(const id_type<EventModel>& id)
     delete ev;
 }
 
-void OSSIAScenarioElement::on_timeNodeRemoved(const id_type<TimeNodeModel>& id)
+void OSSIAScenarioElement::on_timeNodeRemoved(const Id<TimeNodeModel>& id)
 {
     auto tn_it = m_ossia_timenodes.find(id);
     OSSIATimeNodeElement* tn = (*tn_it).second;

@@ -32,10 +32,10 @@ using namespace Scenario;
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
-        id_type<iscore::DocumentDelegateModelInterface>(getNextId()),
+        Id<iscore::DocumentDelegateModelInterface>(getNextId()),
         "BaseElementModel",
         parent},
-    m_baseScenario{new BaseScenario{id_type<BaseScenario>{0}, this}}
+    m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
     initializeNewDocument(m_baseScenario->baseConstraint().fullView());
 
@@ -43,9 +43,9 @@ BaseElementModel::BaseElementModel(QObject* parent) :
     connect(this, &BaseElementModel::setFocusedPresenter,
             &m_focusManager, &ProcessFocusManager::setFocusedPresenter);
 
-    connect(&m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
+    con(m_focusManager, &ProcessFocusManager::sig_defocusedViewModel,
             this, &BaseElementModel::on_viewModelDefocused);
-    connect(&m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
+    con(m_focusManager, &ProcessFocusManager::sig_focusedViewModel,
             this, &BaseElementModel::on_viewModelFocused);
 }
 
@@ -54,79 +54,41 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     using namespace Scenario::Command;
     const auto& constraint_model = viewmodel->model();
 
-    AddProcessToConstraint cmd1
-    {
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}}
-        },
+    AddProcessToConstraint cmd1{
+        iscore::IDocument::path(m_baseScenario->baseConstraint()),
         "Scenario"
     };
     cmd1.redo();
     auto scenarioId = (*constraint_model.processes().begin()).id();
 
-    AddRackToConstraint cmd2
-    {
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}}
-        }
+    AddRackToConstraint cmd2 {
+        iscore::IDocument::path(m_baseScenario->baseConstraint())
     };
     cmd2.redo();
     auto& rack = *constraint_model.racks().begin();
 
     ShowRackInViewModel cmd3 {
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}},
-            {"FullViewConstraintViewModel", viewmodel->id()}
-        },
+        iscore::IDocument::path(static_cast<const ConstraintViewModel&>(*viewmodel)),
         rack.id() };
     cmd3.redo();
 
-    AddSlotToRack cmd4
-    {
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}},
-            {"RackModel", rack.id() }
-        }
+    AddSlotToRack cmd4 {
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()),
     };
     cmd4.redo();
     auto slotId = (*rack.getSlots().begin()).id();
 
     ResizeSlotVertically cmd5
     {
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}},
-            {"RackModel", rack.id() },
-            {"SlotModel", slotId}
-        },
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
         1500
     };
     cmd5.redo();
 
     AddLayerModelToSlot cmd6
     {
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}},
-            {"RackModel", rack.id() },
-            {"SlotModel", slotId}
-        },
-        ObjectPath{
-            {"BaseElementModel", this->id()},
-            {"BaseScenario", m_baseScenario->id()},
-            {"BaseConstraintModel", {}},
-            {"ScenarioModel", scenarioId}
-        }
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes().begin()),
     };
     cmd6.redo();
 }

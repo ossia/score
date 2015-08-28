@@ -6,7 +6,7 @@ using namespace DeviceExplorer::Command;
 Move::Move(const iscore::NodePath &srcParentPath, int srcRow, int count,
            const iscore::NodePath &dstParentPath, int dstRow,
            const QString& text,
-           ObjectPath &&tree_model):
+           Path<DeviceExplorerModel> &&tree_model):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()}
@@ -25,7 +25,7 @@ Move::Move(const iscore::NodePath &srcParentPath, int srcRow, int count,
 void
 Move::undo()
 {
-    auto& model = m_model.find<DeviceExplorerModel>();
+    auto& model = m_model.find();
 
     QModelIndex srcParentIndex = model.convertPathToIndex(m_srcParentPath);
     QModelIndex dstParentIndex = model.convertPathToIndex(m_dstParentPath);
@@ -56,7 +56,7 @@ Move::undo()
 void
 Move::redo()
 {
-    auto& model = m_model.find<DeviceExplorerModel>();
+    auto& model = m_model.find();
 
     QModelIndex srcParentIndex = model.convertPathToIndex(m_srcParentPath);
     QModelIndex dstParentIndex = model.convertPathToIndex(m_dstParentPath);

@@ -2,8 +2,8 @@
 
 void StandardDisplacementPolicy::getRelatedTimeNodes(
         ScenarioModel& scenario,
-        const id_type<TimeNodeModel>& firstTimeNodeMovedId,
-        QVector<id_type<TimeNodeModel> >& translatedTimeNodes)
+        const Id<TimeNodeModel>& firstTimeNodeMovedId,
+        QVector<Id<TimeNodeModel> >& translatedTimeNodes)
 {
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;

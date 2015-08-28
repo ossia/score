@@ -5,8 +5,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 
 EventModel::EventModel(
-        const id_type<EventModel>& id,
-        const id_type<TimeNodeModel>& timenode,
+        const Id<EventModel>& id,
+        const Id<TimeNodeModel>& timenode,
         const VerticalExtent &extent,
         const TimeValue &date,
         QObject* parent):
@@ -20,7 +20,7 @@ EventModel::EventModel(
 }
 
 EventModel::EventModel(const EventModel& source,
-                       const id_type<EventModel>& id,
+                       const Id<EventModel>& id,
                        QObject* parent) :
     IdentifiedObject<EventModel> {id, "EventModel", parent},
     pluginModelList{new iscore::ElementPluginModelList{*source.pluginModelList, this}},
@@ -34,12 +34,12 @@ EventModel::EventModel(const EventModel& source,
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
-void EventModel::changeTimeNode(const id_type<TimeNodeModel>& newTimeNodeId)
+void EventModel::changeTimeNode(const Id<TimeNodeModel>& newTimeNodeId)
 {
     m_timeNode = newTimeNodeId;
 }
 
-const id_type<TimeNodeModel>& EventModel::timeNode() const
+const Id<TimeNodeModel>& EventModel::timeNode() const
 {
     return m_timeNode;
 }
@@ -107,19 +107,19 @@ ScenarioInterface* EventModel::parentScenario() const
     return dynamic_cast<ScenarioInterface*>(parent());
 }
 
-void EventModel::addState(const id_type<StateModel> &ds)
+void EventModel::addState(const Id<StateModel> &ds)
 {
     m_states.append(ds);
     emit statesChanged();
 }
 
-void EventModel::removeState(const id_type<StateModel> &ds)
+void EventModel::removeState(const Id<StateModel> &ds)
 {
     m_states.removeOne(ds);
     emit statesChanged();
 }
 
-const QVector<id_type<StateModel> > &EventModel::states() const
+const QVector<Id<StateModel> > &EventModel::states() const
 {
     return m_states;
 }

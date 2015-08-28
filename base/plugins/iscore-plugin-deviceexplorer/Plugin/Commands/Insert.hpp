@@ -23,7 +23,7 @@ namespace DeviceExplorer
                 Insert(const iscore::NodePath& parentPath,
                        int row,
                        iscore::Node&& node,
-                       ModelPath<DeviceDocumentPlugin>&& modelPath);
+                       Path<DeviceDocumentPlugin>&& Path);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -33,7 +33,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             protected:
-                ModelPath<DeviceDocumentPlugin> m_model;
+                Path<DeviceDocumentPlugin> m_model;
                 iscore::Node m_node;
                 iscore::NodePath m_parentPath;
                 int m_row{};

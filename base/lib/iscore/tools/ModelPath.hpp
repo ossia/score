@@ -4,23 +4,23 @@
 
 
 template<typename Object>
-class ModelPath;
+class Path;
 
 namespace iscore
 {
 namespace IDocument
 {
 template<typename T>
-ModelPath<T> safe_path(const T& obj);
+Path<T> path(const T& obj);
 }
 }
 
 // A typesafe path to a model object in a Document.
 template<typename Object>
-class ModelPath
+class Path
 {
         friend
-        QDataStream& operator<< (QDataStream& stream, const ModelPath<Object>& obj)
+        QDataStream& operator<< (QDataStream& stream, const Path<Object>& obj)
         {
             Visitor<Reader<DataStream>> reader(stream.device());
             reader.readFrom(obj.m_impl);
@@ -28,7 +28,7 @@ class ModelPath
         }
 
         friend
-        QDataStream& operator>> (QDataStream& stream, ModelPath<Object>& obj)
+        QDataStream& operator>> (QDataStream& stream, Path<Object>& obj)
         {
             Visitor<Writer<DataStream>> writer(stream.device());
             writer.writeTo(obj.m_impl);
@@ -36,28 +36,46 @@ class ModelPath
             return stream;
         }
 
+        friend bool operator==(const Path& lhs, const Path& rhs)
+        {
+            return lhs.m_impl == rhs.m_impl;
+        }
+
+        friend uint qHash(const Path& obj, uint seed)
+        {
+          return qHash(obj.m_impl, seed);
+        }
+
         template<typename T>
-        friend ModelPath<T> iscore::IDocument::safe_path(const T& obj);
+        friend Path<T> iscore::IDocument::path(const T& obj);
+
+        friend class ObjectPath;
 
     public:
         // Use this if it is not possible to get a path
         // (for instance because the object does not exist yet)
         struct UnsafeDynamicCreation{};
-        ModelPath(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
-        ModelPath(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
+        Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
+        Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
 
-        ModelPath() = default;
-        ModelPath(const ModelPath&) = default;
-        ModelPath(ModelPath&&) = default;
-        ModelPath& operator=(const ModelPath&) = default;
-        ModelPath& operator=(ModelPath&&) = default;
+        Path() = default;
+        Path(const Path&) = default;
+        Path(Path&&) = default;
+        Path& operator=(const Path&) = default;
+        Path& operator=(Path&&) = default;
 
         Object& find() const
         { return m_impl.find<Object>(); }
 
+        const auto& unsafePath() const
+        { return m_impl; }
+
+        auto&& moveUnsafePath()
+        { return std::move(m_impl); }
+
 
     private:
-        ModelPath(ObjectPath&& path): m_impl{std::move(path)} { }
+        Path(ObjectPath&& path): m_impl{std::move(path)} { }
         ObjectPath m_impl;
 };
 

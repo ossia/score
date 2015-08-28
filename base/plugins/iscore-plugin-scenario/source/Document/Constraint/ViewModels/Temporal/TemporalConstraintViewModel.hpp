@@ -21,12 +21,12 @@ class TemporalConstraintViewModel : public ConstraintViewModel
          * @param model Pointer to the corresponding model object
          * @param parent Parent object (most certainly ScenarioViewModel)
          */
-        TemporalConstraintViewModel(const id_type<ConstraintViewModel>& id,
+        TemporalConstraintViewModel(const Id<ConstraintViewModel>& id,
                                     const ConstraintModel& model,
                                     QObject* parent);
 
         virtual TemporalConstraintViewModel* clone(
-                const id_type<ConstraintViewModel>& id,
+                const Id<ConstraintViewModel>& id,
                 const ConstraintModel& cm,
                 QObject* parent) override;
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
@@ -16,7 +16,7 @@ namespace DeviceExplorer
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditData, "DeviceExplorerControl")
                 EditData(
-                    ObjectPath&& device_tree,
+                    Path<DeviceExplorerModel>&& device_tree,
                     const iscore::NodePath& nodePath,
                     DeviceExplorerModel::Column column,
                     const QVariant& value,
@@ -30,7 +30,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_deviceTree;
+                Path<DeviceExplorerModel> m_deviceTree;
                 iscore::NodePath m_nodePath;
                 DeviceExplorerModel::Column m_column;
                 QVariant m_oldValue;

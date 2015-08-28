@@ -20,5 +20,5 @@ class CreateGroup : public iscore::SerializableCommand
     private:
         ObjectPath m_path;
         QString m_name;
-        id_type<Group> m_newGroupId;
+        Id<Group> m_newGroupId;
 };

@@ -7,11 +7,11 @@
 
 #include "Process/ScenarioModel.hpp"
 using namespace Scenario::Command;
-CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel> &event, double stateY) :
+CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &event, double stateY) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
-    m_path {iscore::IDocument::unsafe_path(scenario)},
+    m_path {iscore::IDocument::path(scenario)},
     m_newState{getStrongId(scenario.states())},
     m_event{event},
     m_stateY{stateY}
@@ -20,17 +20,17 @@ CreateState::CreateState(const ScenarioModel &scenario, const id_type<EventModel
 }
 
 CreateState::CreateState(
-        const ObjectPath &scenarioPath,
-        const id_type<EventModel> &event,
+        const Path<ScenarioModel> &scenarioPath,
+        const Id<EventModel> &event,
         double stateY):
-    CreateState{scenarioPath.find<ScenarioModel>(), event, stateY}
+    CreateState{scenarioPath.find(), event, stateY}
 {
 
 }
 
 void CreateState::undo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
 
     ScenarioCreate<StateModel>::undo(
                 m_newState,
@@ -40,7 +40,7 @@ void CreateState::undo()
 
 void CreateState::redo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
 
     // Create the end state
     ScenarioCreate<StateModel>::redo(

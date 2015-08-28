@@ -1,12 +1,12 @@
 #include "CurvePointModel.hpp"
 
 
-const id_type<CurveSegmentModel>& CurvePointModel::following() const
+const Id<CurveSegmentModel>& CurvePointModel::following() const
 {
     return m_following;
 }
 
-void CurvePointModel::setFollowing(const id_type<CurveSegmentModel> &following)
+void CurvePointModel::setFollowing(const Id<CurveSegmentModel> &following)
 {
     m_following = following;
 }
@@ -22,12 +22,12 @@ void CurvePointModel::setPos(const CurvePoint &pos)
 }
 
 
-const id_type<CurveSegmentModel> &CurvePointModel::previous() const
+const Id<CurveSegmentModel> &CurvePointModel::previous() const
 {
     return m_previous;
 }
 
-void CurvePointModel::setPrevious(const id_type<CurveSegmentModel> &previous)
+void CurvePointModel::setPrevious(const Id<CurveSegmentModel> &previous)
 {
     m_previous = previous;
 }

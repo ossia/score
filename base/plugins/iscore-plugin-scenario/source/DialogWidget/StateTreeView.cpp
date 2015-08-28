@@ -34,7 +34,7 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
         if(ret)
         {
             auto cmd = new Scenario::Command::AssignMessagesToState{
-                       iscore::IDocument::safe_path(*m_model),
+                       iscore::IDocument::path(*m_model),
                        iscore::StatePath(*node),
                        ed.messages()};
 

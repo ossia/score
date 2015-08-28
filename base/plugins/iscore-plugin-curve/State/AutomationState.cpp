@@ -12,10 +12,10 @@ AutomationState::AutomationState(
 {
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-    connect(&this->model(), &AutomationModel::curveChanged,
+    con(this->model(), &AutomationModel::curveChanged,
             this, &DynamicStateDataInterface::stateChanged);
 
-    connect(&this->model(), &AutomationModel::addressChanged,
+    con(this->model(), &AutomationModel::addressChanged,
             this, &DynamicStateDataInterface::stateChanged);
 }
 

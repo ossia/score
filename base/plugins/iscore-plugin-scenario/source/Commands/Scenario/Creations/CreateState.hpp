@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
-
+#include <iscore/tools/ModelPath.hpp>
 class ScenarioModel;
 class EventModel;
 class StateModel;
@@ -16,22 +15,23 @@ class CreateState : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateState, "ScenarioControl")
 
-          CreateState(
+        CreateState(
             const ScenarioModel& scenario,
-            const id_type<EventModel>& event,
+            const Id<EventModel>& event,
             double stateY);
 
-        CreateState(const ObjectPath &scenarioPath,
-          const id_type<EventModel>& event,
-          double stateY);
+        CreateState(
+                const Path<ScenarioModel> &scenarioPath,
+                const Id<EventModel>& event,
+                double stateY);
 
-        const ObjectPath& scenarioPath() const
+        const Path<ScenarioModel>& scenarioPath() const
         { return m_path; }
 
         const double& endStateY() const
         { return m_stateY; }
 
-        const id_type<StateModel>& createdState() const
+        const Id<StateModel>& createdState() const
         { return m_newState; }
 
         void undo() override;
@@ -43,10 +43,10 @@ class CreateState : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        ObjectPath m_path;
+        Path<ScenarioModel> m_path;
 
-        id_type<StateModel> m_newState;
-        id_type<EventModel> m_event;
+        Id<StateModel> m_newState;
+        Id<EventModel> m_event;
         double m_stateY{};
 };
 }

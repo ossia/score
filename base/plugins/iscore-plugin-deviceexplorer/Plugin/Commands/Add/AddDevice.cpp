@@ -5,7 +5,7 @@
 
 using namespace iscore;
 AddDevice::AddDevice(
-        ModelPath<DeviceDocumentPlugin>&& device_tree,
+        Path<DeviceDocumentPlugin>&& device_tree,
         const DeviceSettings& parameters):
     iscore::SerializableCommand(this),
     m_devicesModel{device_tree},

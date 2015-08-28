@@ -1,9 +1,11 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class Process;
+class ConstraintModel;
+class LayerModel;
 namespace Scenario
 {
     namespace Command
@@ -14,7 +16,9 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessFromConstraint, "ScenarioControl")
-                RemoveProcessFromConstraint(ObjectPath&& constraintPath, id_type<Process> processId);
+                RemoveProcessFromConstraint(
+                    Path<ConstraintModel>&& constraintPath,
+                    const Id<Process>& processId);
                 virtual void undo() override;
                 virtual void redo() override;
 
@@ -23,11 +27,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
-                id_type<Process> m_processId;
+                Path<ConstraintModel> m_path;
+                Id<Process> m_processId;
 
                 QByteArray m_serializedProcessData;
-                QVector<QPair<ObjectPath, QByteArray>> m_serializedViewModels;
+                QVector<QPair<Path<LayerModel>, QByteArray>> m_serializedViewModels;
         };
     }
 }

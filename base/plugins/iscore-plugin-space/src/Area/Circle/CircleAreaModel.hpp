@@ -14,7 +14,7 @@ class CircleAreaModel : public AreaModel
 
         CircleAreaModel(
                 const SpaceModel& space,
-                const id_type<AreaModel>&,
+                const Id<AreaModel>&,
                 QObject* parent);
 
         AreaPresenter *makePresenter(QGraphicsItem *, QObject *) const;

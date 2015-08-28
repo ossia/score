@@ -7,7 +7,7 @@
 #include "ProcessInterface/LayerModel.hpp"
 
 SlotModel::SlotModel(
-        const id_type<SlotModel>& id,
+        const Id<SlotModel>& id,
         RackModel* parent) :
     IdentifiedObject<SlotModel> {id, "SlotModel", parent}
 {
@@ -16,7 +16,7 @@ SlotModel::SlotModel(
 SlotModel::SlotModel(
         std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
         const SlotModel& source,
-        const id_type<SlotModel>& id,
+        const Id<SlotModel>& id,
         RackModel *parent):
     IdentifiedObject<SlotModel> {id, "SlotModel", parent},
     m_frontLayerModelId {source.frontLayerModel() }, // Keep the same id.
@@ -50,7 +50,7 @@ void SlotModel::addLayerModel(LayerModel* viewmodel)
 }
 
 void SlotModel::deleteLayerModel(
-        const id_type<LayerModel>& layerId)
+        const Id<LayerModel>& layerId)
 {
     auto& lm = layerModel(layerId);
     m_layerModels.remove(layerId);
@@ -71,7 +71,7 @@ void SlotModel::deleteLayerModel(
 }
 
 void SlotModel::putToFront(
-        const id_type<LayerModel>& layerId)
+        const Id<LayerModel>& layerId)
 {
     if(!layerId.val())
         return;
@@ -83,19 +83,19 @@ void SlotModel::putToFront(
     }
 }
 
-const id_type<LayerModel>& SlotModel::frontLayerModel() const
+const Id<LayerModel>& SlotModel::frontLayerModel() const
 {
     return m_frontLayerModelId;
 }
 
 LayerModel& SlotModel::layerModel(
-        const id_type<LayerModel>& layerModelId) const
+        const Id<LayerModel>& layerModelId) const
 {
     return m_layerModels.at(layerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(
-        const id_type<Process>& sharedProcessId)
+        const Id<Process>& sharedProcessId)
 {
     using namespace std;
     auto it = find_if(begin(m_layerModels),

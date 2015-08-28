@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 namespace Scenario
 {
@@ -23,26 +23,26 @@ namespace Scenario
                 }
 
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementLabel, "ScenarioControl")
-                ChangeElementLabel(ObjectPath&& path, QString newLabel) :
+                ChangeElementLabel(Path<T>&& path, QString newLabel) :
                     SerializableCommand{"ScenarioControl",
                                         commandName(),
                                         description()},
                     m_path {std::move(path) },
                     m_newLabel {newLabel}
                 {
-                    auto& obj = m_path.find<T>();
+                    auto& obj = m_path.find();
                     m_oldLabel = obj.metadata.label();
                 }
 
                 virtual void undo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setLabel(m_oldLabel);
                 }
 
                 virtual void redo() override
                 {
-                    auto& obj = m_path.find<typename std::remove_const<T>::type>();
+                    auto& obj = m_path.find();
                     obj.metadata.setLabel(m_newLabel);
                 }
 
@@ -58,7 +58,7 @@ namespace Scenario
                 }
 
             private:
-                ObjectPath m_path;
+                Path<T> m_path;
                 QString m_newLabel;
                 QString m_oldLabel;
         };

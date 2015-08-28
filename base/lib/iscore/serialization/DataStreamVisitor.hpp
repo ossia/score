@@ -63,7 +63,7 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
         }
 
         template<typename T>
-        void readFrom(const id_type<T>& obj)
+        void readFrom(const Id<T>& obj)
         {
             m_stream << bool (obj.val());
 
@@ -124,7 +124,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         }
 
         template<typename T>
-        void writeTo(id_type<T>& obj)
+        void writeTo(Id<T>& obj)
         {
             bool init {};
             int32_t val {};
@@ -144,7 +144,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         template<typename T>
         void writeTo(IdentifiedObject<T>& obj)
         {
-            id_type<T> id;
+            Id<T> id;
             writeTo(id);
             obj.setId(std::move(id));
         }

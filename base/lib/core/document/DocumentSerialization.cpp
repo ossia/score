@@ -163,7 +163,7 @@ void DocumentModel::loadDocumentAsByteArray(
     }
 
     // Load the document model
-    id_type<DocumentModel> docid;
+    Id<DocumentModel> docid;
 
     DataStream::Deserializer doc_writer{doc};
     doc_writer.writeTo(docid);
@@ -175,7 +175,7 @@ void DocumentModel::loadDocumentAsJson(
         const QJsonObject& json,
         DocumentDelegateFactoryInterface* fact)
 {
-    this->setId(fromJsonValue<id_type<DocumentModel>>(json["DocumentId"]));
+    this->setId(fromJsonValue<Id<DocumentModel>>(json["DocumentId"]));
 
     // Load the plug-in models
     auto plugin_control = iscore::IPresenter::pluginControls();
@@ -201,7 +201,7 @@ void DocumentModel::loadDocumentAsJson(
 DocumentModel::DocumentModel(const QVariant& data,
                              DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
-    IdentifiedObject {id_type<DocumentModel>(getNextId()), "DocumentModel", parent}
+    IdentifiedObject {Id<DocumentModel>(getNextId()), "DocumentModel", parent}
 {
     using namespace std;
     if(data.canConvert(QMetaType::QByteArray))

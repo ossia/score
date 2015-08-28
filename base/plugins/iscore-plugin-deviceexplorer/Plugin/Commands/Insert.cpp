@@ -8,11 +8,11 @@
 //        const iscore::NodePath &parentPath,
 //        int row,
 //        Node &&data,
-//        ModelPath<DeviceDocumentPlugin>&& modelPath):
+//        Path<DeviceDocumentPlugin>&& Path):
 //    iscore::SerializableCommand{factoryName(),
 //                                commandName(),
 //                                description()},
-//    m_model{std::move(modelPath)},
+//    m_model{std::move(Path)},
 //    m_node{std::move(data)},
 //    m_parentPath{parentPath},
 //    m_row{row}
@@ -33,7 +33,7 @@
 
 //}
 
-//void recurse_addAddress(const ObjectPath& model, const Node& n, iscore::NodePath nodePath)
+//void recurse_addAddress(const Path<DeviceExplorerModel>& model, const Node& n, iscore::NodePath nodePath)
 //{
 
 //    AddAddress addr{
@@ -74,7 +74,7 @@
 //    }
 //    else
 //    {
-//        recurse_addAddress(ObjectPath{m_model}, m_node, m_parentPath);
+//        recurse_addAddress(Path<DeviceExplorerModel>{m_model}, m_node, m_parentPath);
 //    }
 //}
 

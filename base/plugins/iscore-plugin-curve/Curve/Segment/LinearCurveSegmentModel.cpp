@@ -3,7 +3,7 @@
 
 // TODO put in nice folders
 CurveSegmentModel*LinearCurveSegmentModel::clone(
-        const id_type<CurveSegmentModel>& id,
+        const Id<CurveSegmentModel>& id,
         QObject *parent) const
 {
     auto cs = new LinearCurveSegmentModel{id, parent};

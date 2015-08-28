@@ -59,7 +59,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
 {
     ev.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    ev.m_timeNode = fromJsonValue<id_type<TimeNodeModel>> (m_obj["TimeNode"]);
+    ev.m_timeNode = fromJsonValue<Id<TimeNodeModel>> (m_obj["TimeNode"]);
     fromJsonValueArray(m_obj["States"].toArray(), ev.m_states);
 
     ev.m_condition = m_obj["Condition"].toString();

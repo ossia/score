@@ -7,7 +7,7 @@ class SpaceProcessProxyLayerModel : public LayerModel
         Q_OBJECT
     public:
         SpaceProcessProxyLayerModel(
-                const id_type<LayerModel>&,
+                const Id<LayerModel>&,
                 const SpaceLayerModel& model,
                 QObject* parent);
 

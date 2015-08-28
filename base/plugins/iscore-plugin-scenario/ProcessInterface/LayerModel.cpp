@@ -5,7 +5,7 @@ Process& LayerModel::processModel() const
 
 
 LayerModel::LayerModel(
-        const id_type<LayerModel>& viewModelId,
+        const Id<LayerModel>& viewModelId,
         const QString& name,
         Process& sharedProcess,
         QObject* parent) :

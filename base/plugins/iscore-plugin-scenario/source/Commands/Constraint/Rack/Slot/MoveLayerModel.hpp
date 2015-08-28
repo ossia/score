@@ -32,7 +32,7 @@ namespace Scenario
         {
             auto cmd = new RemoveLayerModelFromSlot{
                     ObjectPath{lmToMove},
-                    id_type<LayerModel>(
+                    Id<LayerModel>(
                         ObjectIdentifierVector(lmToMove.vec()).takeLast().id())};
             addCommand(cmd);
 

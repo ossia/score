@@ -14,29 +14,29 @@ class CreateConstraint_State_Event : public iscore::SerializableCommand
 
           CreateConstraint_State_Event(
             const ScenarioModel& scenario,
-            const id_type<StateModel>& startState,
-            const id_type<TimeNodeModel>& endTimeNode,
+            const Id<StateModel>& startState,
+            const Id<TimeNodeModel>& endTimeNode,
             double endStateY);
 
         CreateConstraint_State_Event(
-          const ObjectPath& scenario,
-          const id_type<StateModel>& startState,
-          const id_type<TimeNodeModel>& endTimeNode,
+          const Path<ScenarioModel>& scenario,
+          const Id<StateModel>& startState,
+          const Id<TimeNodeModel>& endTimeNode,
           double endStateY);
 
-        const ObjectPath& scenarioPath() const
+        const Path<ScenarioModel>& scenarioPath() const
         { return m_command.scenarioPath(); }
 
         const double& endStateY() const
         { return m_command.endStateY(); }
 
-        const id_type<ConstraintModel>& createdConstraint() const
+        const Id<ConstraintModel>& createdConstraint() const
         { return m_command.createdConstraint(); }
 
-        const id_type<StateModel>& createdState() const
+        const Id<StateModel>& createdState() const
         { return m_command.createdState(); }
 
-        const id_type<EventModel>& createdEvent() const
+        const Id<EventModel>& createdEvent() const
         { return m_newEvent; }
 
         void undo() override;
@@ -47,12 +47,12 @@ class CreateConstraint_State_Event : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        id_type<EventModel> m_newEvent;
+        Id<EventModel> m_newEvent;
         QString m_createdName;
 
         CreateConstraint_State m_command;
 
-        id_type<TimeNodeModel> m_endTimeNode;
+        Id<TimeNodeModel> m_endTimeNode;
 };
 }
 }

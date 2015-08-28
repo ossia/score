@@ -20,7 +20,7 @@ CreateCurveFromStates::~CreateCurveFromStates()
 }
 
 CreateCurveFromStates::CreateCurveFromStates(
-        ObjectPath&& constraint,
+        Path<ConstraintModel>&& constraint,
         const iscore::Address& address,
         double start,
         double end):
@@ -47,7 +47,7 @@ void CreateCurveFromStates::undo()
 void CreateCurveFromStates::redo()
 {
     m_addProcessCmd->redo();
-    auto& cstr = m_addProcessCmd->constraintPath().find<ConstraintModel>();
+    auto& cstr = m_addProcessCmd->constraintPath().find();
     auto& autom = static_cast<AutomationModel&>(cstr.process(m_addProcessCmd->processId()));
     autom.setAddress(m_address);
     autom.curve().clear();
@@ -55,7 +55,7 @@ void CreateCurveFromStates::redo()
     autom.setMax(std::max(m_start, m_end));
 
     // Add a segment
-    auto segment = new LinearCurveSegmentModel(id_type<CurveSegmentModel>(0), &autom.curve());
+    auto segment = new LinearCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve());
     segment->setStart({0., qreal(m_start > m_end)}); // Biggest is 1
     segment->setEnd({1., qreal(m_end > m_start)});
 

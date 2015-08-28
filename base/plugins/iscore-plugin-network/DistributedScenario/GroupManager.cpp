@@ -2,7 +2,7 @@
 #include "Group.hpp"
 
 GroupManager::GroupManager(QObject* parent):
-    IdentifiedObject<GroupManager>{id_type<GroupManager>{0}, "GroupManager", parent}
+    IdentifiedObject<GroupManager>{Id<GroupManager>{0}, "GroupManager", parent}
 {
 
 }
@@ -13,7 +13,7 @@ void GroupManager::addGroup(Group* group)
     emit groupAdded(group->id());
 }
 
-void GroupManager::removeGroup(id_type<Group> group)
+void GroupManager::removeGroup(Id<Group> group)
 {
     using namespace std;
 
@@ -25,12 +25,12 @@ void GroupManager::removeGroup(id_type<Group> group)
     (*it)->deleteLater();
 }
 
-Group* GroupManager::group(const id_type<Group>& id) const
+Group* GroupManager::group(const Id<Group>& id) const
 {
     return *std::find(std::begin(m_groups), std::end(m_groups), id);
 }
 
-id_type<Group> GroupManager::defaultGroup() const
+Id<Group> GroupManager::defaultGroup() const
 {
     return m_groups[0]->id();
 }

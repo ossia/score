@@ -6,7 +6,7 @@
 
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Process/Algorithms/StandardCreationPolicy.hpp>
 
@@ -23,7 +23,7 @@ class ConstraintModelTests: public QObject
 
         void CreateSlotTest()
         {
-            ConstraintModel model {id_type<ConstraintModel>{0}, id_type<ConstraintViewModel>{0}, this};
+            ConstraintModel model {Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, this};
             auto content_id = getStrongId(model.rackes());
             model.createRack(content_id);
             auto rack = model.rack(content_id);
@@ -43,7 +43,7 @@ class ConstraintModelTests: public QObject
         {
             /////
             {
-                ConstraintModel model {id_type<ConstraintModel>{0}, id_type<ConstraintViewModel>{0}, this};
+                ConstraintModel model {Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, this};
                 auto content_id = getStrongId(model.rackes());
                 model.createRack(content_id);
                 auto rack = model.rack(content_id);
@@ -60,8 +60,8 @@ class ConstraintModelTests: public QObject
 
             //////
             {
-                ConstraintModel model {id_type<ConstraintModel>{0},
-                                       id_type<ConstraintViewModel>{0}, this
+                ConstraintModel model {Id<ConstraintModel>{0},
+                                       Id<ConstraintViewModel>{0}, this
                                       };
                 auto content_id = getStrongId(model.rackes());
                 model.createRack(content_id);
@@ -91,28 +91,28 @@ class ConstraintModelTests: public QObject
 
         void FindSubProcessTest()
         {
-            ConstraintModel i0 {id_type<ConstraintModel>{0},
-                                id_type<ConstraintViewModel>{0}, qApp
+            ConstraintModel i0 {Id<ConstraintModel>{0},
+                                Id<ConstraintViewModel>{0}, qApp
                                };
             i0.setObjectName("OriginalConstraint");
-            auto s0 = new ScenarioModel {std::chrono::seconds(15), id_type<ProcessModel>{0}, &i0};
+            auto s0 = new ScenarioModel {std::chrono::seconds(15), Id<ProcessModel>{0}, &i0};
 
             auto int_0_id = getStrongId(s0->constraints());
             auto ev_0_id = getStrongId(s0->events());
-            auto fv_0_id = id_type<ConstraintViewModel> {234};
+            auto fv_0_id = Id<ConstraintViewModel> {234};
             auto tb_0_id = getStrongId(s0->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
 
             auto int_2_id = getStrongId(s0->constraints());
-            auto fv_2_id = id_type<ConstraintViewModel> {454};
+            auto fv_2_id = Id<ConstraintViewModel> {454};
             auto ev_2_id = getStrongId(s0->events());
             auto tb_2_id = getStrongId(s0->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {46}, 10, int_2_id, fv_2_id, ev_2_id);
 
             auto i1 = s0->constraint(int_0_id);
-            auto s1 = new ScenarioModel {std::chrono::seconds(15), id_type<ProcessModel>{0}, i1};
+            auto s1 = new ScenarioModel {std::chrono::seconds(15), Id<ProcessModel>{0}, i1};
             (void) s1;
-            auto s2 = new ScenarioModel {std::chrono::seconds(15), id_type<ProcessModel>{1}, i1};
+            auto s2 = new ScenarioModel {std::chrono::seconds(15), Id<ProcessModel>{1}, i1};
 
             ObjectPath p
             {

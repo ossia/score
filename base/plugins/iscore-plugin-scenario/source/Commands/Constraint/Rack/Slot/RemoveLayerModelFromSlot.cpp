@@ -9,15 +9,15 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
-        ObjectPath&& rackPath,
-        id_type<LayerModel> layerId) :
+        Path<SlotModel>&& rackPath,
+        const Id<LayerModel>& layerId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {rackPath},
     m_layerId {layerId}
 {
-    auto& slot = m_path.find<SlotModel>();
+    auto& slot = m_path.find();
 
     Serializer<DataStream> s{&m_serializedLayerData};
     s.readFrom(slot.layerModel(m_layerId));
@@ -25,7 +25,7 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
 
 void RemoveLayerModelFromSlot::undo()
 {
-    auto& slot = m_path.find<SlotModel>();
+    auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
 
     auto lm = createLayerModel(s,
@@ -36,7 +36,7 @@ void RemoveLayerModelFromSlot::undo()
 
 void RemoveLayerModelFromSlot::redo()
 {
-    auto& slot = m_path.find<SlotModel>();
+    auto& slot = m_path.find();
     slot.deleteLayerModel(m_layerId);
 }
 

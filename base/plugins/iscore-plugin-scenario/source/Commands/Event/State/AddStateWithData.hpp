@@ -19,7 +19,7 @@ namespace Scenario
 
                 AddStateWithData(
                          const ScenarioModel& scenario,
-                         const id_type<EventModel>& ev,
+                         const Id<EventModel>& ev,
                          double ypos,
                          iscore::MessageList&& stateData) :
                     AggregateCommand {factoryName(),
@@ -29,13 +29,13 @@ namespace Scenario
                     auto createStateCmd =  new CreateState{scenario, ev, ypos};
 
                     // We create the path of the to-be state
-                    auto vecpath = createStateCmd->scenarioPath().vec();
+                    auto vecpath = createStateCmd->scenarioPath().unsafePath().vec();
                     vecpath.append({"StateModel", createStateCmd->createdState()});
-                    ModelPath<StateModel> modelpath{ObjectPath(std::move(vecpath)), {}};
+                    Path<StateModel> Path{ObjectPath(std::move(vecpath)), {}};
 
                     addCommand(createStateCmd);
                     addCommand(new AddStateToStateModel{
-                                   std::move(modelpath),
+                                   std::move(Path),
                                    iscore::StatePath{},
                                    iscore::StateData{std::move(stateData), "NewState_other"},
                                    -1});

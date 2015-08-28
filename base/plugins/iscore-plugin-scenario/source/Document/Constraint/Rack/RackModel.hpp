@@ -20,11 +20,11 @@ class RackModel : public IdentifiedObject<RackModel>
         Q_OBJECT
 
     public:
-        RackModel(const id_type<RackModel>& id, QObject* parent);
+        RackModel(const Id<RackModel>& id, QObject* parent);
 
         // Copy
         RackModel(const RackModel& source,
-                 const id_type<RackModel>& id,
+                 const Id<RackModel>& id,
                  std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                  QObject* parent);
 
@@ -41,12 +41,12 @@ class RackModel : public IdentifiedObject<RackModel>
         void addSlot(SlotModel* m, int position);
         void addSlot(SlotModel* m);  // No position : at the end
 
-        void removeSlot(const id_type<SlotModel>& slotId);
-        void swapSlots(const id_type<SlotModel>& firstslot,
-                       const id_type<SlotModel>& secondslot);
+        void removeSlot(const Id<SlotModel>& slotId);
+        void swapSlots(const Id<SlotModel>& firstslot,
+                       const Id<SlotModel>& secondslot);
 
-        SlotModel& slot(const id_type<SlotModel>& slotId) const;
-        int slotPosition(const id_type<SlotModel>& slotId) const
+        SlotModel& slot(const Id<SlotModel>& slotId) const;
+        int slotPosition(const Id<SlotModel>& slotId) const
         {
             return m_positions.indexOf(slotId);
         }
@@ -54,21 +54,21 @@ class RackModel : public IdentifiedObject<RackModel>
         const auto& getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
         { return m_slots; }
 
-        const QList<id_type<SlotModel>>& slotsPositions() const
+        const QList<Id<SlotModel>>& slotsPositions() const
         { return m_positions; }
 
     signals:
-        void slotCreated(const id_type<SlotModel>& id);
-        void slotRemoved(const id_type<SlotModel>& id);
+        void slotCreated(const Id<SlotModel>& id);
+        void slotRemoved(const Id<SlotModel>& id);
         void slotPositionsChanged();
 
-        void on_deleteSharedProcessModel(const id_type<Process>& processId);
+        void on_deleteSharedProcessModel(const Id<Process>& processId);
         void on_durationChanged(const TimeValue& dur);
 
     private:
         IdContainer<SlotModel> m_slots;
 
         // Positions of the slots. First is topmost.
-        QList<id_type<SlotModel>> m_positions;
+        QList<Id<SlotModel>> m_positions;
 };
 

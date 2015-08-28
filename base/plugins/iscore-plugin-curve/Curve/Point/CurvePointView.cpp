@@ -12,7 +12,7 @@ CurvePointView::CurvePointView(
     m_model{model}
 {
     this->setZValue(parent->zValue() + 2);
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
 }
 
@@ -21,7 +21,7 @@ const CurvePointModel& CurvePointView::model() const
     return m_model;
 }
 
-const id_type<CurvePointModel>& CurvePointView::id() const
+const Id<CurvePointModel>& CurvePointView::id() const
 {
     return m_model.id();
 }

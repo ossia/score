@@ -8,8 +8,8 @@ class StateModel;
 class ScenarioInterface
 {
     public:
-        virtual ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const = 0;
-        virtual EventModel& event(const id_type<EventModel>& eventId) const = 0;
-        virtual TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const = 0;
-        virtual StateModel& state(const id_type<StateModel>& stId) const = 0;
+        virtual ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const = 0;
+        virtual EventModel& event(const Id<EventModel>& eventId) const = 0;
+        virtual TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const = 0;
+        virtual StateModel& state(const Id<StateModel>& stId) const = 0;
 };

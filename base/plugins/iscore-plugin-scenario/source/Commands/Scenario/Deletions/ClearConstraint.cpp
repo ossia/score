@@ -11,13 +11,13 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ClearConstraint::ClearConstraint(ObjectPath&& constraintPath) :
+ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_path {std::move(constraintPath) }
+    m_path {std::move(constraintPath) }
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     for(const auto& rack : constraint.racks())
     {
@@ -44,7 +44,7 @@ m_path {std::move(constraintPath) }
 
 void ClearConstraint::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     for(auto& serializedProcess : m_serializedProcesses)
     {
@@ -69,7 +69,7 @@ void ClearConstraint::undo()
 
 void ClearConstraint::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     // We make copies since the iterators might change.
     auto processes = constraint.processes();

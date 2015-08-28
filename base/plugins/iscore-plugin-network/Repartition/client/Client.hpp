@@ -12,7 +12,7 @@ class Client : public IdentifiedObject<Client>
                    WRITE setName
                    NOTIFY nameChanged)
     public:
-        Client(id_type<Client> id, QObject* parent = nullptr):
+        Client(Id<Client> id, QObject* parent = nullptr):
             IdentifiedObject<Client>{id, "Client", parent}
         {
 

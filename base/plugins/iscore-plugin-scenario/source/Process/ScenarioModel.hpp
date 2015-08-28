@@ -43,21 +43,21 @@ class ScenarioModel : public Process, public ScenarioInterface
     public:
         using layer_type = AbstractScenarioLayerModel;
         ScenarioModel(const TimeValue& duration,
-                      const id_type<Process>& id,
+                      const Id<Process>& id,
                       QObject* parent);
         ScenarioModel* clone(
-                const id_type<Process>& newId,
+                const Id<Process>& newId,
                 QObject* newParent) const override;
 
         //// ProcessModel specifics ////
         QByteArray makeViewModelConstructionData() const override;
         LayerModel* makeLayer_impl(
-                const id_type<LayerModel>& viewModelId,
+                const Id<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) override;
 
         LayerModel* cloneLayer_impl(
-                const id_type<LayerModel>& newId,
+                const Id<LayerModel>& newId,
                 const LayerModel& source,
                 QObject* parent) override;
 
@@ -91,19 +91,19 @@ class ScenarioModel : public Process, public ScenarioInterface
         void removeState(StateModel* state);
 
         // Accessors
-        ConstraintModel& constraint(const id_type<ConstraintModel>& constraintId) const override
+        ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override
         {
             return m_constraints.at(constraintId);
         }
-        EventModel& event(const id_type<EventModel>& eventId) const override
+        EventModel& event(const Id<EventModel>& eventId) const override
         {
             return m_events.at(eventId);
         }
-        TimeNodeModel& timeNode(const id_type<TimeNodeModel>& timeNodeId) const override
+        TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const override
         {
             return m_timeNodes.at(timeNodeId);
         }
-        StateModel& state(const id_type<StateModel>& stId) const override
+        StateModel& state(const Id<StateModel>& stId) const override
         {
             return m_states.at(stId);
         }
@@ -155,11 +155,11 @@ class ScenarioModel : public Process, public ScenarioInterface
         void constraintCreated(const ConstraintModel& constraintId);
         void timeNodeCreated(const TimeNodeModel& timeNodeId);
 
-        void stateRemoved(const id_type<StateModel>& stateId);
-        void eventRemoved_before(const id_type<EventModel>& eventId);
-        void eventRemoved_after(const id_type<EventModel>& eventId);
-        void constraintRemoved(const id_type<ConstraintModel>& constraintId);
-        void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
+        void stateRemoved(const Id<StateModel>& stateId);
+        void eventRemoved_before(const Id<EventModel>& eventId);
+        void eventRemoved_after(const Id<EventModel>& eventId);
+        void constraintRemoved(const Id<ConstraintModel>& constraintId);
+        void timeNodeRemoved(const Id<TimeNodeModel>& timeNodeId);
 
         void stateMoved(const StateModel& stateId);
         void eventMoved(const EventModel& eventId);
@@ -200,7 +200,7 @@ class ScenarioModel : public Process, public ScenarioInterface
 
     private:
         ScenarioModel(const ScenarioModel& source,
-                      const id_type<Process>& id,
+                      const Id<Process>& id,
                       QObject* parent);
         void makeLayer_impl(AbstractScenarioLayerModel*);
 
@@ -209,11 +209,11 @@ class ScenarioModel : public Process, public ScenarioInterface
         IdContainer<TimeNodeModel> m_timeNodes;
         IdContainer<StateModel> m_states;
 
-        id_type<TimeNodeModel> m_startTimeNodeId {};
-        id_type<TimeNodeModel> m_endTimeNodeId {};
+        Id<TimeNodeModel> m_startTimeNodeId {};
+        Id<TimeNodeModel> m_endTimeNodeId {};
 
-        id_type<EventModel> m_startEventId {};
-        id_type<EventModel> m_endEventId {};
+        Id<EventModel> m_startEventId {};
+        Id<EventModel> m_endEventId {};
 
         // By default, creation in the void will make a constraint
         // that goes to the startEvent and add a new state

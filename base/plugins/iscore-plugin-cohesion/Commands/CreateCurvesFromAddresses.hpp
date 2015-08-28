@@ -1,8 +1,9 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
 
+class ConstraintModel;
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
         //TODO now use this everywhere
@@ -10,8 +11,9 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
     public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(CreateCurvesFromAddresses)
 
-        CreateCurvesFromAddresses(ObjectPath&& constraint,
-                                  const QList<iscore::Address> &addresses);
+        CreateCurvesFromAddresses(
+          Path<ConstraintModel>&& constraint,
+            const QList<iscore::Address> &addresses);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -21,7 +23,7 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ObjectPath m_path;
+        Path<ConstraintModel> m_path;
         QList<iscore::Address> m_addresses;
 
         QVector<QByteArray> m_serializedCommands;

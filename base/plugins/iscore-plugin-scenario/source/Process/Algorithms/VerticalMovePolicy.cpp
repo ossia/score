@@ -6,7 +6,7 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 
-void updateEventExtent(const id_type<EventModel> &id, ScenarioModel &s)
+void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
 {
     auto& ev = s.event(id);
     double min = std::numeric_limits<double>::max();
@@ -25,7 +25,7 @@ void updateEventExtent(const id_type<EventModel> &id, ScenarioModel &s)
 }
 
 
-void updateTimeNodeExtent(const id_type<TimeNodeModel> &id, ScenarioModel &s)
+void updateTimeNodeExtent(const Id<TimeNodeModel> &id, ScenarioModel &s)
 {
     auto& tn = s.timeNode(id);
     double min = std::numeric_limits<double>::max();
@@ -43,7 +43,7 @@ void updateTimeNodeExtent(const id_type<TimeNodeModel> &id, ScenarioModel &s)
     // TODO what happens if no event on timenode / no state on event??
 }
 
-void updateConstraintVerticalPos(double y, const id_type<ConstraintModel> &id, ScenarioModel &s)
+void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, ScenarioModel &s)
 {
     auto& cst = s.constraint(id);
 

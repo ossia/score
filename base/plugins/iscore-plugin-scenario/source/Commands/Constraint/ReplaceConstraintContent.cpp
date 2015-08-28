@@ -11,9 +11,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstraint,
-                                             ObjectPath&& targetConstraint,
-                                             ExpandMode mode) :
+ReplaceConstraintContent::ReplaceConstraintContent(
+        QJsonObject&& sourceConstraint,
+        Path<ConstraintModel>&& targetConstraint,
+        ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -21,14 +22,14 @@ ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstrain
     m_target{targetConstraint},
     m_mode{mode}
 {
-    auto& trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent
 
     // For all rackes in source, generate new id's
     auto target_rackes = trg_constraint.racks();
-    QVector<id_type<RackModel>> target_rackes_ids;
+    QVector<Id<RackModel>> target_rackes_ids;
     std::transform(target_rackes.begin(), target_rackes.end(),
                    std::back_inserter(target_rackes_ids),
                    [] (const auto& rack) { return rack.id(); });
@@ -42,7 +43,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstrain
 
     // Same for processes
     auto target_processes = trg_constraint.processes();
-    QVector<id_type<Process>> target_processes_ids;
+    QVector<Id<Process>> target_processes_ids;
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
                    [] (const auto& proc) { return proc.id(); });
@@ -58,7 +59,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(QJsonObject&& sourceConstrain
 void ReplaceConstraintContent::undo()
 {
     // We just have to remove what we added
-    auto& trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find();
 
     for(const auto& proc_id : m_processIds)
     {
@@ -74,7 +75,7 @@ void ReplaceConstraintContent::undo()
 
 void ReplaceConstraintContent::redo()
 {
-    auto& trg_constraint = m_target.find<ConstraintModel>();
+    auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
             Deserializer<JSONObject>{m_source},
             &trg_constraint}; // Temporary parent

@@ -37,7 +37,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const NetworkPluginPolicy& elt)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(PlaceholderNetworkPolicy& elt)
 {
-    id_type<Session> sessId;
+    Id<Session> sessId;
     m_stream >> sessId;
 
     elt.m_session = new Session{new LocalClient(*this, nullptr), sessId, &elt};
@@ -60,7 +60,7 @@ void Visitor<Writer<JSONObject>>::writeTo(PlaceholderNetworkPolicy& elt)
     Deserializer<JSONObject> localClientDeser(m_obj["LocalClient"].toObject());
     elt.m_session = new Session{
             new LocalClient(localClientDeser, nullptr),
-            fromJsonValue<id_type<Session>>(m_obj["SessionId"]),
+            fromJsonValue<Id<Session>>(m_obj["SessionId"]),
             &elt};
 
     for(const auto& json_vref : m_obj["RemoteClients"].toArray())

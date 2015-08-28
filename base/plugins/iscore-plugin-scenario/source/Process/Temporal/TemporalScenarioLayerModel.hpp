@@ -18,15 +18,15 @@ class TemporalScenarioLayerModel : public AbstractScenarioLayerModel
         using model_type = ScenarioModel;
         using constraint_layer_type = TemporalConstraintViewModel;
 
-        TemporalScenarioLayerModel(const id_type<LayerModel>& id,
-                              const QMap<id_type<ConstraintModel>,
-                              id_type<ConstraintViewModel>>& constraintIds,
+        TemporalScenarioLayerModel(const Id<LayerModel>& id,
+                              const QMap<Id<ConstraintModel>,
+                              Id<ConstraintViewModel>>& constraintIds,
                               ScenarioModel& model,
                               QObject* parent);
 
         // Copy
         TemporalScenarioLayerModel(const TemporalScenarioLayerModel& source,
-                              const id_type<LayerModel>& id,
+                              const Id<LayerModel>& id,
                               ScenarioModel& model,
                               QObject* parent);
 
@@ -47,8 +47,8 @@ class TemporalScenarioLayerModel : public AbstractScenarioLayerModel
         virtual void serialize(const VisitorVariant&) const override;
 
         virtual void makeConstraintViewModel(
-                const id_type<ConstraintModel>& constraintModelId,
-                const id_type<ConstraintViewModel>& constraintViewModelId) override;
+                const Id<ConstraintModel>& constraintModelId,
+                const Id<ConstraintViewModel>& constraintViewModelId) override;
 
         void addConstraintViewModel(constraint_layer_type* constraint_view_model);
 
@@ -56,6 +56,6 @@ class TemporalScenarioLayerModel : public AbstractScenarioLayerModel
         void constraintViewModelCreated(const TemporalConstraintViewModel& constraintViewModelid);
 
     public slots:
-        virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) override;
+        virtual void on_constraintRemoved(const Id<ConstraintModel>& constraintId) override;
 
 };

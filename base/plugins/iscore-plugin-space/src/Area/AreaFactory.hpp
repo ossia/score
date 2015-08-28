@@ -21,7 +21,7 @@ class AreaFactory : public iscore::FactoryInterface
         virtual AreaModel* makeModel(
                 const QString& generic_formula,
                 const SpaceModel& space,
-                const id_type<AreaModel>&,
+                const Id<AreaModel>&,
                 QObject* parent) const = 0;
 
         // Presenter

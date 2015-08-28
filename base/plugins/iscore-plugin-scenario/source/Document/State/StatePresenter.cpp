@@ -22,13 +22,13 @@ StatePresenter::StatePresenter(
     m_dispatcher{iscore::IDocument::commandStack(m_model)}
 {
     // The scenario catches this :
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             m_view, &StateView::setSelected);
 
-    connect(&(m_model.metadata),  &ModelMetadata::colorChanged,
+    con((m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,               &StateView::changeColor);
 
-    connect(&m_model, &StateModel::statesUpdated,
+    con(m_model, &StateModel::statesUpdated,
             this, &StatePresenter::updateStateView);
 
     connect(m_view, &StateView::dropReceived,
@@ -51,7 +51,7 @@ StatePresenter::~StatePresenter()
     }
 }
 
-const id_type<StateModel> &StatePresenter::id() const
+const Id<StateModel> &StatePresenter::id() const
 {
     return m_model.id();
 }
@@ -82,7 +82,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         deser.writeTo(ml);
 
         auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::safe_path(m_model),
+                   iscore::IDocument::path(m_model),
                    iscore::StatePath{}, // Make it child of the root node
                    iscore::StateData(std::move(ml), "NewState"),
                    -1};

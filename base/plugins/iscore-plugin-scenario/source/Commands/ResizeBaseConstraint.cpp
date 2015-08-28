@@ -17,9 +17,10 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveBaseEvent::MoveBaseEvent(ObjectPath&& baseScenarioPath,
-                             const TimeValue& date,
-                             ExpandMode mode) :
+MoveBaseEvent::MoveBaseEvent(
+        Path<BaseScenario>&& baseScenarioPath,
+        const TimeValue& date,
+        ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -27,7 +28,7 @@ MoveBaseEvent::MoveBaseEvent(ObjectPath&& baseScenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
-    auto& scenar = m_path.find<BaseScenario>();
+    auto& scenar = m_path.find();
     const auto& constraint = scenar.baseConstraint();
     m_oldDate = constraint.duration.defaultDuration();
 
@@ -38,7 +39,7 @@ MoveBaseEvent::MoveBaseEvent(ObjectPath&& baseScenarioPath,
 
     // Save for each view model of this constraint
     // the identifier of the rack that was displayed
-    QMap<id_type<ConstraintViewModel>, id_type<RackModel>> map;
+    QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
     for(const ConstraintViewModel* vm : constraint.viewModels())
     {
         map[vm->id()] = vm->shownRack();
@@ -64,7 +65,7 @@ static void updateDuration(BaseScenario& scenar, const TimeValue& newDuration, S
 
 void MoveBaseEvent::undo()
 {
-    auto& scenar = m_path.find<BaseScenario>();
+    auto& scenar = m_path.find();
 
     updateDuration(scenar,
               m_oldDate,
@@ -79,7 +80,7 @@ void MoveBaseEvent::undo()
     // during this command.
 
     // 1. Clear the constraint
-    ClearConstraint clearCmd{iscore::IDocument::unsafe_path(scenar.baseConstraint())};
+    ClearConstraint clearCmd{iscore::IDocument::path(scenar.baseConstraint())};
     clearCmd.redo();
 
     auto& constraint = scenar.baseConstraint();
@@ -137,7 +138,7 @@ void MoveBaseEvent::undo()
 
 void MoveBaseEvent::redo()
 {
-    auto& scenar = m_path.find<BaseScenario>();
+    auto& scenar = m_path.find();
 
     updateDuration(scenar,
               m_newDate,

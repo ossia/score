@@ -21,13 +21,13 @@ class SlotInspectorSection : public InspectorSectionWidget
 
         void displayLayerModel(const LayerModel&);
         void createLayerModel(
-                const id_type<Process>& sharedProcessId);
+                const Id<Process>& sharedProcessId);
 
         const SlotModel& model() const;
 
     public slots:
-        void on_layerModelCreated(const id_type<LayerModel>& id);
-        void on_layerModelRemoved(const id_type<LayerModel>& id);
+        void on_layerModelCreated(const Id<LayerModel>& id);
+        void on_layerModelRemoved(const Id<LayerModel>& id);
 
     private:
         const SlotModel& m_model;

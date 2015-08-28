@@ -19,7 +19,7 @@ class RemoveSlotFromRackTest: public QObject
     private slots:
         void test()
         {
-            ConstraintModel* constraint  = new ConstraintModel {id_type<ConstraintModel>{0}, id_type<ConstraintViewModel>{0}, qApp};
+            ConstraintModel* constraint  = new ConstraintModel {Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, qApp};
 
             AddRackToConstraint cmd
             {

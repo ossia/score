@@ -1,7 +1,7 @@
 #pragma once
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
 
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include <QStateMachine>
@@ -9,44 +9,46 @@
 #include <QAbstractTransition>
 #include <QPointF>
 
+class ScenarioModel;
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
 class StateModel;
+class SlotModel;
 
 // TODO optimize this when we have all the tools
 class ScenarioStateBase : public QState
 {
     public:
-        ScenarioStateBase(ObjectPath&& scenar, QState* parent):
+        ScenarioStateBase(const Path<ScenarioModel>& scenar, QState* parent):
             QState{parent},
-            m_scenarioPath{std::move(scenar)}
+            m_scenarioPath{scenar}
         { }
 
         void clear()
         {
-            clickedEvent = id_type<EventModel>{};
-            clickedTimeNode = id_type<TimeNodeModel>{};
-            clickedConstraint = id_type<ConstraintModel>{};
-            clickedState = id_type<StateModel>{};
+            clickedEvent = Id<EventModel>{};
+            clickedTimeNode = Id<TimeNodeModel>{};
+            clickedConstraint = Id<ConstraintModel>{};
+            clickedState = Id<StateModel>{};
 
             currentPoint = ScenarioPoint();
         }
 
-        id_type<StateModel> clickedState;
-        id_type<EventModel> clickedEvent;
-        id_type<TimeNodeModel> clickedTimeNode;
-        id_type<ConstraintModel> clickedConstraint;
+        Id<StateModel> clickedState;
+        Id<EventModel> clickedEvent;
+        Id<TimeNodeModel> clickedTimeNode;
+        Id<ConstraintModel> clickedConstraint;
 
-        id_type<StateModel> hoveredState;
-        id_type<EventModel> hoveredEvent;
-        id_type<TimeNodeModel> hoveredTimeNode;
-        id_type<ConstraintModel> hoveredConstraint;
+        Id<StateModel> hoveredState;
+        Id<EventModel> hoveredEvent;
+        Id<TimeNodeModel> hoveredTimeNode;
+        Id<ConstraintModel> hoveredConstraint;
 
         ScenarioPoint currentPoint;
 
     protected:
-        ObjectPath m_scenarioPath;
+        Path<ScenarioModel> m_scenarioPath;
 };
 
 class CreationState : public ScenarioStateBase
@@ -54,10 +56,10 @@ class CreationState : public ScenarioStateBase
     public:
         using ScenarioStateBase::ScenarioStateBase;
 
-        QVector<id_type<StateModel>> createdStates;
-        QVector<id_type<EventModel>> createdEvents;
-        QVector<id_type<TimeNodeModel>> createdTimeNodes;
-        QVector<id_type<ConstraintModel>> createdConstraints;
+        QVector<Id<StateModel>> createdStates;
+        QVector<Id<EventModel>> createdEvents;
+        QVector<Id<TimeNodeModel>> createdTimeNodes;
+        QVector<Id<ConstraintModel>> createdConstraints;
 
         void clearCreatedIds()
         {
@@ -75,7 +77,7 @@ class SlotState : public QState
             QState{parent}
         { }
 
-        ObjectPath currentSlot;
+        Path<SlotModel> currentSlot;
 
         QPointF m_originalPoint;
         double m_originalHeight{};

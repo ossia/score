@@ -20,14 +20,14 @@ GroupListWidget::GroupListWidget(const GroupManager* mgr, QWidget* parent):
     connect(m_mgr, &GroupManager::groupRemoved, this, &GroupListWidget::removeGroup);
 }
 
-void GroupListWidget::addGroup(const id_type<Group>& id)
+void GroupListWidget::addGroup(const Id<Group>& id)
 {
     auto widg = new GroupWidget{m_mgr->group(id), this};
     this->layout()->addWidget(widg);
     m_widgets.append(widg);
 }
 
-void GroupListWidget::removeGroup(const id_type<Group>& id)
+void GroupListWidget::removeGroup(const Id<Group>& id)
 {
     using namespace std;
     auto it = find_if(begin(m_widgets),

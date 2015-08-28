@@ -13,7 +13,7 @@ class CircleAreaFactory : public AreaFactory
         AreaModel* makeModel(
                 const QString& formula,
                 const SpaceModel& space,
-                const id_type<AreaModel>&,
+                const Id<AreaModel>&,
                 QObject* parent) const override;
 
         AreaPresenter* makePresenter(

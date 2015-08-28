@@ -11,9 +11,9 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
-                                id_type<TimeNodeModel> aimedTimeNode,
-                                id_type<TimeNodeModel> movingTimeNode):
+MergeTimeNodes::MergeTimeNodes( Path<ScenarioModel> &&path,
+                                Id<TimeNodeModel> aimedTimeNode,
+                                Id<TimeNodeModel> movingTimeNode):
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -21,7 +21,7 @@ MergeTimeNodes::MergeTimeNodes( ObjectPath &&path,
     m_aimedTimeNodeId{aimedTimeNode},
     m_movingTimeNodeId{movingTimeNode}
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     QByteArray arr;
     Serializer<DataStream> s{&arr};
     s.readFrom(scenar.timeNode(m_movingTimeNodeId));
@@ -33,7 +33,7 @@ void MergeTimeNodes::undo()
 
     ISCORE_TODO;
     /*
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
 
     auto& aimedTimeNode = scenar.timeNode(m_aimedTimeNodeId);
 
@@ -61,7 +61,7 @@ void MergeTimeNodes::redo()
 
     ISCORE_TODO;
     /*
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
 
     auto& aimedTimeNode = scenar.timeNode(m_aimedTimeNodeId);
     auto& movingTimeNode = scenar.timeNode(m_movingTimeNodeId);

@@ -4,12 +4,14 @@
 #include <core/document/Document.hpp>
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 #include "Automation/AutomationModel.hpp"
-ChangeAddress::ChangeAddress(ObjectPath &&path, const iscore::Address &newval):
+ChangeAddress::ChangeAddress(
+        Path<AutomationModel> &&path,
+        const iscore::Address &newval):
     iscore::SerializableCommand{
         "AutomationControl", commandName(), description()},
     m_path{path}
 {
-    auto& autom = m_path.find<AutomationModel>();
+    auto& autom = m_path.find();
     auto deviceexplorer = iscore::IDocument::documentFromObject(autom)
                           ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
 
@@ -53,7 +55,7 @@ ChangeAddress::ChangeAddress(ObjectPath &&path, const iscore::Address &newval):
 
 void ChangeAddress::undo()
 {
-    auto& autom = m_path.find<AutomationModel>();
+    auto& autom = m_path.find();
 
     autom.setMin(m_old.domain.min.val.toDouble());
     autom.setMax(m_old.domain.max.val.toDouble());
@@ -63,7 +65,7 @@ void ChangeAddress::undo()
 
 void ChangeAddress::redo()
 {
-    auto& autom = m_path.find<AutomationModel>();
+    auto& autom = m_path.find();
 
     autom.setMin(m_new.domain.min.val.toDouble());
     autom.setMax(m_new.domain.max.val.toDouble());

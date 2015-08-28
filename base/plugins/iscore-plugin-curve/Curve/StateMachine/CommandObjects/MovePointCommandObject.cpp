@@ -176,12 +176,12 @@ void MovePointCommandObject::handleSuppressOnOverlap(QVector<CurveSegmentModel *
                 else if(segment->following())
                 {
                     CurveSegmentModel* seg_foll = *std::find(segments.begin(), segments.end(), segment->following());
-                    seg_foll->setPrevious(id_type<CurveSegmentModel>{});
+                    seg_foll->setPrevious(Id<CurveSegmentModel>{});
                 }
                 else if(segment->previous())
                 {
                     CurveSegmentModel* seg_prev = *std::find(segments.begin(), segments.end(), segment->previous());
-                    seg_prev->setFollowing(id_type<CurveSegmentModel>{});
+                    seg_prev->setFollowing(Id<CurveSegmentModel>{});
                 }
 
                 // The segment is in front of us, we delete it
@@ -289,7 +289,7 @@ void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& 
                 {
                     // We set its following to null.
                     CurveSegmentModel* prev_prev_seg = *std::find(segments.begin(), segments.end(), prev_seg->previous());
-                    prev_prev_seg->setFollowing(id_type<CurveSegmentModel>{});
+                    prev_prev_seg->setFollowing(Id<CurveSegmentModel>{});
                 }
 
                 segments.removeOne(prev_seg);
@@ -428,7 +428,7 @@ void MovePointCommandObject::handleCrossOnOverlap(QVector<CurveSegmentModel *>& 
                 {
                     // We set its following to null.
                     CurveSegmentModel* foll_foll_seg = *std::find(segments.begin(), segments.end(), foll_seg->following());
-                    foll_foll_seg->setPrevious(id_type<CurveSegmentModel>{});
+                    foll_foll_seg->setPrevious(Id<CurveSegmentModel>{});
                 }
 
                 segments.removeOne(foll_seg);

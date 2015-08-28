@@ -1,10 +1,12 @@
 #include "SelectionStackWidget.hpp"
 #include <iscore/selection/SelectionStack.hpp>
+#include <iscore/tools/Todo.hpp>
 #include <QToolButton>
 #include <QHBoxLayout>
 
-SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack& s,
-                                           QWidget* parent):
+SelectionStackWidget::SelectionStackWidget(
+        iscore::SelectionStack& s,
+        QWidget* parent):
     QWidget{parent},
     m_stack{s}
 {
@@ -27,8 +29,8 @@ SelectionStackWidget::SelectionStackWidget(iscore::SelectionStack& s,
     connect(m_next, &QToolButton::pressed,
             [&] () { m_stack.reselect(); });
 
-    connect(&m_stack, &iscore::SelectionStack::currentSelectionChanged,
-            this,     &SelectionStackWidget::selectionChanged);
+    con(m_stack, &iscore::SelectionStack::currentSelectionChanged,
+        this,    &SelectionStackWidget::selectionChanged);
 }
 
 void SelectionStackWidget::selectionChanged(const Selection& s)

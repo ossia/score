@@ -12,13 +12,13 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     m_model {model},
     m_view {new TimeNodeView{*this, parentview}}
 {
-    connect(&m_model.selection, &Selectable::changed,
+    con(m_model.selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);
 
-    connect(&m_model, &TimeNodeModel::newEvent,
+    con(m_model, &TimeNodeModel::newEvent,
             this,     &TimeNodePresenter::on_eventAdded);
 
-    connect(&(m_model.metadata), &ModelMetadata::colorChanged,
+    con((m_model.metadata), &ModelMetadata::colorChanged,
             m_view,               &TimeNodeView::changeColor);
 
     // TODO find a correct way to handle validity of model elements.
@@ -41,7 +41,7 @@ TimeNodePresenter::~TimeNodePresenter()
     }
 }
 
-const id_type<TimeNodeModel>& TimeNodePresenter::id() const
+const Id<TimeNodeModel>& TimeNodePresenter::id() const
 {
     return m_model.id();
 }
@@ -56,7 +56,7 @@ TimeNodeView* TimeNodePresenter::view() const
     return m_view;
 }
 
-void TimeNodePresenter::on_eventAdded(const id_type<EventModel>& eventId)
+void TimeNodePresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
     emit eventAdded(eventId, m_model.id());
 }

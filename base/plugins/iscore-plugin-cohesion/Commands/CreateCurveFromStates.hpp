@@ -1,8 +1,10 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
+
+class ConstraintModel;
 namespace Scenario
 {
 namespace Command
@@ -19,10 +21,11 @@ class CreateCurveFromStates : public iscore::SerializableCommand
     public:
         CreateCurveFromStates();
         ~CreateCurveFromStates();
-        CreateCurveFromStates(ObjectPath&& constraint,
-                    const iscore::Address &address,
-                    double start,
-                    double end);
+        CreateCurveFromStates(
+                Path<ConstraintModel>&& constraint,
+                const iscore::Address &address,
+                double start,
+                double end);
 
         virtual void undo() override;
         virtual void redo() override;

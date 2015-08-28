@@ -21,7 +21,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
         AreaModel(
                 std::unique_ptr<spacelib::area>&& area,
                 const SpaceModel& space,
-                const id_type<AreaModel>&,
+                const Id<AreaModel>&,
                 QObject* parent);
 
 
@@ -56,4 +56,4 @@ class AreaModel : public IdentifiedObject<AreaModel>
         ParameterMap m_parameterMap;
 };
 
-Q_DECLARE_METATYPE(id_type<AreaModel>)
+Q_DECLARE_METATYPE(Id<AreaModel>)

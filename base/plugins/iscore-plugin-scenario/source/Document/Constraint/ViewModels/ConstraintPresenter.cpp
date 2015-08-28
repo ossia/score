@@ -34,32 +34,32 @@ ConstraintPresenter::ConstraintPresenter(
 {
     m_header->setParentItem(m_view);
 
-    connect(&m_viewModel.model().selection, &Selectable::changed,
+    con(m_viewModel.model().selection, &Selectable::changed,
             m_view, &ConstraintView::setSelected);
 
-    connect(&m_viewModel.model().duration, &ConstraintDurations::minDurationChanged,
+    con(m_viewModel.model().duration, &ConstraintDurations::minDurationChanged,
             this,                 &ConstraintPresenter::on_minDurationChanged);
-    connect(&m_viewModel.model().duration, &ConstraintDurations::defaultDurationChanged,
+    con(m_viewModel.model().duration, &ConstraintDurations::defaultDurationChanged,
             this,                 &ConstraintPresenter::on_defaultDurationChanged);
-    connect(&m_viewModel.model().duration, &ConstraintDurations::maxDurationChanged,
+    con(m_viewModel.model().duration, &ConstraintDurations::maxDurationChanged,
             this,                 &ConstraintPresenter::on_maxDurationChanged);
-    connect(&m_viewModel.model().duration, &ConstraintDurations::playDurationChanged,
+    con(m_viewModel.model().duration, &ConstraintDurations::playDurationChanged,
             this, &ConstraintPresenter::on_playDurationChanged, Qt::QueuedConnection);
 
-    connect(&m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
+    con(m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
             this, &ConstraintPresenter::heightPercentageChanged);
 
-    connect(&m_viewModel, &ConstraintViewModel::rackShown,
+    con(m_viewModel, &ConstraintViewModel::rackShown,
             this,         &ConstraintPresenter::on_rackShown);
-    connect(&m_viewModel, &ConstraintViewModel::rackHidden,
+    con(m_viewModel, &ConstraintViewModel::rackHidden,
             this,         &ConstraintPresenter::on_rackHidden);
-    connect(&m_viewModel, &ConstraintViewModel::rackRemoved,
+    con(m_viewModel, &ConstraintViewModel::rackRemoved,
             this,         &ConstraintPresenter::on_rackRemoved);
 
 
-    connect(&m_viewModel.model().consistency, &ModelConsistency::validChanged,
+    con(m_viewModel.model().consistency, &ModelConsistency::validChanged,
             m_view, &ConstraintView::setValid);
-    connect(&m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
+    con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
     if(m_viewModel.isRackShown())
@@ -96,7 +96,7 @@ void ConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
-const id_type<ConstraintModel>& ConstraintPresenter::id() const
+const Id<ConstraintModel>& ConstraintPresenter::id() const
 {
     return model().id();
 }
@@ -185,7 +185,7 @@ ConstraintView*ConstraintPresenter::view() const
     return m_view;
 }
 
-void ConstraintPresenter::on_rackShown(const id_type<RackModel>& rackId)
+void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 {
     clearRackPresenter();
     createRackPresenter(m_viewModel.model().rack(rackId));

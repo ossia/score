@@ -8,25 +8,25 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddRackToConstraint::AddRackToConstraint(ObjectPath&& constraintPath) :
+AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {constraintPath}
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     m_createdRackId = getStrongId(constraint.racks());
 }
 
 void AddRackToConstraint::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     constraint.removeRack(m_createdRackId);
 }
 
 void AddRackToConstraint::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     auto rack = new RackModel{m_createdRackId, &constraint};
 
     constraint.addRack(rack);

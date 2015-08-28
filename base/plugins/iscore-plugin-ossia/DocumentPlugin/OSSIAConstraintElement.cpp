@@ -20,22 +20,22 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     m_iscore_constraint{iscore_cst},
     m_ossia_constraint{ossia_cst}
 {
-    connect(&iscore_cst, &ConstraintModel::processCreated,
+    con(iscore_cst, &ConstraintModel::processCreated,
             this, &OSSIAConstraintElement::on_processAdded);
-    connect(&iscore_cst, &ConstraintModel::processRemoved,
+    con(iscore_cst, &ConstraintModel::processRemoved,
             this, &OSSIAConstraintElement::on_processRemoved);
 
     // Setup updates
     // todo : should be in OSSIAConstraintElement
-    connect(&iscore_cst.duration, &ConstraintDurations::defaultDurationChanged, this,
+    con(iscore_cst.duration, &ConstraintDurations::defaultDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDuration(iscore::convert::time(t));
     });
-    connect(&iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
+    con(iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDurationMin(iscore::convert::time(t));
     });
-    connect(&iscore_cst.duration, &ConstraintDurations::maxDurationChanged, this,
+    con(iscore_cst.duration, &ConstraintDurations::maxDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDurationMax(iscore::convert::time(t));
     });
@@ -65,7 +65,7 @@ void OSSIAConstraintElement::stop()
 
 void OSSIAConstraintElement::on_processAdded(
         const QString& name,
-        const id_type<Process>& id)
+        const Id<Process>& id)
 {
     // The DocumentPlugin creates the elements in the processes.
     auto proc = &m_iscore_constraint.process(id);
@@ -110,7 +110,7 @@ void OSSIAConstraintElement::on_processAdded(
     }
 }
 
-void OSSIAConstraintElement::on_processRemoved(const id_type<Process>& process)
+void OSSIAConstraintElement::on_processRemoved(const Id<Process>& process)
 {
     auto it = m_processes.find(process);
     if(it != m_processes.end())

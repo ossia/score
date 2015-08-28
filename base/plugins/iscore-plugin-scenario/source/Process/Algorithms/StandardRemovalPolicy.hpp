@@ -11,14 +11,14 @@ namespace StandardRemovalPolicy
 {
     void removeConstraint(
             ScenarioModel& scenario,
-            const id_type<ConstraintModel>& constraintId);
+            const Id<ConstraintModel>& constraintId);
 
     void removeState(
             ScenarioModel& scenario,
-            const id_type<StateModel>& stateId);
+            const Id<StateModel>& stateId);
 
 
     void removeEventStatesAndConstraints(
             ScenarioModel& scenario,
-            const id_type<EventModel>& eventId);
+            const Id<EventModel>& eventId);
 }

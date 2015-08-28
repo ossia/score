@@ -1,9 +1,10 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 
+class ConstraintModel;
 class ConstraintViewModel;
 class RackModel;
 namespace Scenario
@@ -21,8 +22,11 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveRackFromConstraint, "ScenarioControl")
-                RemoveRackFromConstraint(ObjectPath&& rackPath);
-                RemoveRackFromConstraint(ObjectPath&& constraintPath, id_type<RackModel> rackId);
+                RemoveRackFromConstraint(
+                        Path<RackModel>&& rackPath);
+                RemoveRackFromConstraint(
+                        Path<ConstraintModel>&& constraintPath,
+                        Id<RackModel> rackId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -32,12 +36,12 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
-                id_type<RackModel> m_rackId {};
+                Path<ConstraintModel> m_path;
+                Id<RackModel> m_rackId {};
 
                 QByteArray m_serializedRackData; // Should be done in the constructor
 
-                QMap<id_type<ConstraintViewModel>, bool> m_rackMappings;
+                QMap<Id<ConstraintViewModel>, bool> m_rackMappings;
         };
     }
 }

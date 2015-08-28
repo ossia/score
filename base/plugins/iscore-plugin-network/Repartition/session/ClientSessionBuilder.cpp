@@ -47,7 +47,7 @@ void ClientSessionBuilder::on_messageReceived(const NetworkMessage& m)
         QDataStream s(m.data);
         int32_t id;
         s >> id; // The offered client id
-        m_clientId = id_type<Client>(id);
+        m_clientId = Id<Client>(id);
 
         NetworkMessage join;
         join.address = "/session/join";

@@ -14,7 +14,7 @@ class AddSlotToRackTest: public QObject
     private slots:
         void CreateSlotTest()
         {
-            RackModel* rack  = new RackModel {id_type<RackModel>{0}, qApp};
+            RackModel* rack  = new RackModel {Id<RackModel>{0}, qApp};
 
             QCOMPARE((int) rack->getSlots().size(), 0);
             AddSlotToRack cmd(

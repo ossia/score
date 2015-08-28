@@ -20,12 +20,12 @@ class CreateEventTest: public QObject
 
         void CreateTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessModel> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
             EventData data {};
             // data.id = 0; unused here
             data.dDate.setMSecs(10);
             data.relativeY = 0.2;
-            data.endTimeNodeId = id_type<TimeNodeModel>(-1);
+            data.endTimeNodeId = Id<TimeNodeModel>(-1);
 
             CreateEvent cmd(
             {
@@ -42,8 +42,8 @@ class CreateEventTest: public QObject
 
             cmd.undo();
             QCOMPARE((int) scenar->events().size(), 2);
-            scenar->event(id_type<EventModel>(0));
-            scenar->event(id_type<EventModel>(1));
+            scenar->event(Id<EventModel>(0));
+            scenar->event(Id<EventModel>(1));
 
             cmd.redo();
             QCOMPARE((int) scenar->events().size(), 3);
@@ -56,11 +56,11 @@ class CreateEventTest: public QObject
         }
         void CreateOnTimeNodeTest()
         {
-            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), id_type<ProcessModel> {0}, qApp);
+            ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
             EventData data {};
             data.dDate.setMSecs(10);
             data.relativeY = 0.6;
-            data.endTimeNodeId = id_type<TimeNodeModel>(-1);
+            data.endTimeNodeId = Id<TimeNodeModel>(-1);
 
             CreateEvent cmd1(
             {

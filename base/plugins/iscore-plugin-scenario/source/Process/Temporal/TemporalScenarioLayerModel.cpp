@@ -11,8 +11,8 @@
 #include "TemporalScenarioPanelProxy.hpp"
 
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
-        const id_type<LayerModel>& viewModelId,
-        const QMap<id_type<ConstraintModel>, id_type<ConstraintViewModel> >& constraintIds,
+        const Id<LayerModel>& viewModelId,
+        const QMap<Id<ConstraintModel>, Id<ConstraintViewModel> >& constraintIds,
         ScenarioModel& model,
         QObject* parent) :
     AbstractScenarioLayerModel {viewModelId,
@@ -28,7 +28,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
 
 TemporalScenarioLayerModel::TemporalScenarioLayerModel(
         const TemporalScenarioLayerModel& source,
-        const id_type<LayerModel>& id,
+        const Id<LayerModel>& id,
         ScenarioModel& newScenario,
         QObject* parent) :
     AbstractScenarioLayerModel {source,
@@ -56,8 +56,8 @@ LayerModelPanelProxy* TemporalScenarioLayerModel::make_panelProxy(QObject* paren
 
 
 void TemporalScenarioLayerModel::makeConstraintViewModel(
-        const id_type<ConstraintModel>& constraintModelId,
-        const id_type<ConstraintViewModel>& constraintViewModelId)
+        const Id<ConstraintModel>& constraintModelId,
+        const Id<ConstraintViewModel>& constraintViewModelId)
 {
     auto& constraint_model = model(*this).constraint(constraintModelId);
 
@@ -76,7 +76,7 @@ void TemporalScenarioLayerModel::addConstraintViewModel(constraint_layer_type* c
     emit constraintViewModelCreated(*constraint_view_model);
 }
 
-void TemporalScenarioLayerModel::on_constraintRemoved(const id_type<ConstraintModel>& constraintSharedModelId)
+void TemporalScenarioLayerModel::on_constraintRemoved(const Id<ConstraintModel>& constraintSharedModelId)
 {
     for(auto& constraint_view_model : constraintsViewModels(*this))
     {

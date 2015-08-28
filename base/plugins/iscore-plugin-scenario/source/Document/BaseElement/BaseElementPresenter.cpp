@@ -52,7 +52,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}*/
 {
     // Setup the connections
-    connect(&(m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
+    con((m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
             this,                             &BaseElementPresenter::on_newSelection);
     connect(view(), &BaseElementView::horizontalZoomChanged,
             this,   &BaseElementPresenter::on_zoomSliderChanged);
@@ -62,7 +62,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
             this,  &BaseElementPresenter::on_zoomOnWheelEvent);
     connect(view(), &BaseElementView::horizontalPositionChanged,
             this,   &BaseElementPresenter::on_horizontalPositionChanged);
-    connect(&model(), &BaseElementModel::focusMe,
+    con(model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
 
@@ -70,7 +70,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     m_stateMachine = new BaseScenarioStateMachine{this};
 
     // Show our constraint
-    connect(&model(), &BaseElementModel::displayedConstraintChanged,
+    con(model(), &BaseElementModel::displayedConstraintChanged,
             this, &BaseElementPresenter::on_displayedConstraintChanged);
 
     model().setDisplayedConstraint(&model().baseConstraint());

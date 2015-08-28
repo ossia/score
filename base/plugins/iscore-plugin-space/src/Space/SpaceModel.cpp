@@ -1,7 +1,7 @@
 #include "SpaceModel.hpp"
 #include <algorithm>
 SpaceModel::SpaceModel(
-        const id_type<SpaceModel> &id,
+        const Id<SpaceModel> &id,
         QObject *parent):
     IdentifiedObject{id, staticMetaObject.className(), parent}
 {
@@ -25,7 +25,7 @@ const DimensionModel& SpaceModel::dimension(const QString& name) const
     return *it;
 }
 
-const DimensionModel& SpaceModel::dimension(const id_type<DimensionModel> &id) const
+const DimensionModel& SpaceModel::dimension(const Id<DimensionModel> &id) const
 {
     return m_dimensions.at(id);
 }
@@ -45,7 +45,7 @@ void SpaceModel::addViewport(ViewportModel* v)
     emit viewportAdded(*v);
 }
 
-void SpaceModel::removeViewport(const id_type<ViewportModel>& vm)
+void SpaceModel::removeViewport(const Id<ViewportModel>& vm)
 {
     ISCORE_TODO;
 
@@ -57,7 +57,7 @@ void SpaceModel::removeViewport(const id_type<ViewportModel>& vm)
         }
         else
         {
-            m_defaultViewport = id_type<ViewportModel>{};
+            m_defaultViewport = Id<ViewportModel>{};
         }
     }
 }

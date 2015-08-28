@@ -30,7 +30,7 @@ class Process: public IdentifiedObject<Process>
         using IdentifiedObject<Process>::IdentifiedObject;
         Process(
                 const TimeValue& duration,
-                const id_type<Process>& id,
+                const Id<Process>& id,
                 const QString& name,
                 QObject* parent);
 
@@ -42,7 +42,7 @@ class Process: public IdentifiedObject<Process>
         }
 
         virtual Process* clone(
-                const id_type<Process>& newId,
+                const Id<Process>& newId,
                 QObject* newParent) const = 0;
 
         virtual QString processName() const = 0; // Needed for serialization.
@@ -57,7 +57,7 @@ class Process: public IdentifiedObject<Process>
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).
         LayerModel* makeLayer(
-                const id_type<LayerModel>& viewModelId,
+                const Id<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent);
 
@@ -68,13 +68,13 @@ class Process: public IdentifiedObject<Process>
 
         // Clone
         LayerModel* cloneLayer(
-                const id_type<LayerModel>& newId,
+                const Id<LayerModel>& newId,
                 const LayerModel& source,
                 QObject* parent);
 
         // For use where the view model is ephemeral (e.g. process panel)
         LayerModel* makeTemporaryLayer(
-                const id_type<LayerModel>& newId,
+                const Id<LayerModel>& newId,
                 const LayerModel& source,
                 QObject* parent);
         // Do a copy.
@@ -122,19 +122,19 @@ class Process: public IdentifiedObject<Process>
         // Clone
         Process(
                 const Process& other,
-                const id_type<Process>& id,
+                const Id<Process>& id,
                 const QString& name,
                 QObject* parent);
 
         virtual LayerModel* makeLayer_impl(
-                const id_type<LayerModel>& viewModelId,
+                const Id<LayerModel>& viewModelId,
                 const QByteArray& constructionData,
                 QObject* parent) = 0;
         virtual LayerModel* loadLayer_impl(
                 const VisitorVariant&,
                 QObject* parent) = 0;
         virtual LayerModel* cloneLayer_impl(
-                const id_type<LayerModel>& newId,
+                const Id<LayerModel>& newId,
                 const LayerModel& source,
                 QObject* parent) = 0;
 

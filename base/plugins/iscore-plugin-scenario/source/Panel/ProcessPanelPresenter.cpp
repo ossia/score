@@ -46,7 +46,7 @@ void ProcessPanelPresenter::on_modelChanged()
     if(!bem)
         return;
 
-    connect(&bem->focusManager(),  &ProcessFocusManager::sig_focusedViewModel,
+    con(bem->focusManager(),  &ProcessFocusManager::sig_focusedViewModel,
             this, &ProcessPanelPresenter::on_focusedViewModelChanged);
 
     auto panelview = static_cast<ProcessPanelView*>(view());

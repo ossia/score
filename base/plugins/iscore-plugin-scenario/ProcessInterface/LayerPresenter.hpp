@@ -33,6 +33,6 @@ class LayerPresenter : public NamedObject
         virtual void parentGeometryChanged() = 0;
 
         virtual const LayerModel& layerModel() const = 0;
-        virtual const id_type<Process>& modelId() const = 0;
+        virtual const Id<Process>& modelId() const = 0;
 
 };

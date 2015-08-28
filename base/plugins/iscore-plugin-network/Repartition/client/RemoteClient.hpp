@@ -8,7 +8,7 @@ class RemoteClient : public Client
         Q_OBJECT
     public:
         RemoteClient(NetworkSocket* socket,
-                     id_type<Client> id,
+                     Id<Client> id,
                      QObject* parent = nullptr):
             Client(id, parent),
             m_socket{socket}

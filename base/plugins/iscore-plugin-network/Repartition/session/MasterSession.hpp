@@ -19,11 +19,11 @@ class MasterSession : public Session
     public:
         MasterSession(iscore::Document* doc,
                       LocalClient* theclient,
-                      id_type<Session> id,
+                      Id<Session> id,
                       QObject* parent = nullptr);
 
         void broadcast(NetworkMessage m);
-        void transmit(id_type<Client> sender, NetworkMessage m);
+        void transmit(Id<Client> sender, NetworkMessage m);
 
         iscore::Document* document() const
         { return m_document; }

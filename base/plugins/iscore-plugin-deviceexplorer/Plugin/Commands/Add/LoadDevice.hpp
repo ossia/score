@@ -12,7 +12,7 @@ class LoadDevice: public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(LoadDevice)
           LoadDevice(
-            ModelPath<DeviceDocumentPlugin>&& device_tree,
+            Path<DeviceDocumentPlugin>&& device_tree,
             iscore::Node&& node);
 
 
@@ -24,6 +24,6 @@ class LoadDevice: public iscore::SerializableCommand
         virtual void deserializeImpl(QDataStream&) override;
 
     private:
-        ModelPath<DeviceDocumentPlugin> m_devicesModel;
+        Path<DeviceDocumentPlugin> m_devicesModel;
         iscore::Node m_deviceNode;
 };

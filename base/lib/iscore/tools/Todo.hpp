@@ -1,9 +1,12 @@
 #pragma once
+#include "iscore_compiler_detection.hpp"
 #include <exception>
 #include <QDebug>
+#include <QObject>
 
-#ifdef _MSC_VER
-#define DEBUG_BREAK __debugbreak()
+#ifdef _WIN32
+#include <Windows.h>
+#define DEBUG_BREAK DebugBreak()
 #else
 #include <csignal>
 #define DEBUG_BREAK std::raise(SIGTRAP)
@@ -26,3 +29,30 @@
 #endif
 
 #define ISCORE_ABORT do { DEBUG_BREAK; std::terminate(); } while(0)
+
+
+#if ISCORE_COMPILER_CXX_RELAXED_CONSTEXPR
+#define ISCORE_RELAXED_CONSTEXPR constexpr
+#else
+#define ISCORE_RELAXED_CONSTEXPR
+#endif
+
+
+#ifdef ISCORE_DEBUG
+template<typename T, typename U>
+T safe_cast(U&& other)
+{
+    auto res = dynamic_cast<T>(other);
+    ISCORE_ASSERT(res);
+    return res;
+}
+#else
+#define safe_cast static_cast
+#endif
+
+
+template<typename T, typename... Args>
+auto con(const T& t, Args&&... args)
+{
+    return QObject::connect(&t, std::forward<Args&&>(args)...);
+}

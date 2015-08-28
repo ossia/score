@@ -1,17 +1,19 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 class LayerModel;
+class SlotModel;
 
 class PutLayerModelToFront
 {
     public:
-        PutLayerModelToFront(ObjectPath&& slotPath,
-                                   const id_type<LayerModel>& pid);
+        PutLayerModelToFront(
+                Path<SlotModel>&& slotPath,
+                const Id<LayerModel>& pid);
 
         void redo();
 
     private:
-        ObjectPath m_slotPath;
-        const id_type<LayerModel>& m_pid;
+        Path<SlotModel> m_slotPath;
+        const Id<LayerModel>& m_pid;
 };

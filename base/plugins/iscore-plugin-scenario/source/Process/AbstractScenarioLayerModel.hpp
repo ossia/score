@@ -1,6 +1,6 @@
 #pragma once
 #include "ProcessInterface/LayerModel.hpp"
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 class ScenarioModel;
@@ -18,41 +18,41 @@ class AbstractScenarioLayerModel : public LayerModel
         using model_type = ScenarioModel;
 
         virtual void makeConstraintViewModel(
-                const id_type<ConstraintModel>& constraintModelId,
-                const id_type<ConstraintViewModel>& constraintViewModelId) = 0;
+                const Id<ConstraintModel>& constraintModelId,
+                const Id<ConstraintViewModel>& constraintViewModelId) = 0;
 
         void removeConstraintViewModel(
-                const id_type<ConstraintViewModel>& constraintViewModelId);
+                const Id<ConstraintViewModel>& constraintViewModelId);
 
         // Access to elements
         // A given constraint can be represented only once in a given scenario VM, hence...
         ConstraintViewModel& constraint(
-                const id_type<ConstraintModel>& constraintModelid) const;
+                const Id<ConstraintModel>& constraintModelid) const;
         ConstraintViewModel& constraint(
-                const id_type<ConstraintViewModel>& constraintViewModelid) const;
+                const Id<ConstraintViewModel>& constraintViewModelid) const;
         QVector<ConstraintViewModel*> constraints() const;
 
     signals:
         // "created" signal is in the relevant subclasses
-        void constraintViewModelRemoved(const id_type<ConstraintViewModel>& constraintViewModelid);
+        void constraintViewModelRemoved(const Id<ConstraintViewModel>& constraintViewModelid);
 
         void stateCreated(const StateModel& eventId);
-        void stateRemoved(const id_type<StateModel>& eventId);
+        void stateRemoved(const Id<StateModel>& eventId);
 
         void eventCreated(const EventModel& eventId);
-        void eventRemoved(const id_type<EventModel>& eventId);
+        void eventRemoved(const Id<EventModel>& eventId);
 
         void timeNodeCreated(const TimeNodeModel& timeNodeId);
-        void timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
+        void timeNodeRemoved(const Id<TimeNodeModel>& timeNodeId);
 
         void eventMoved(const EventModel& eventId);
         void constraintMoved(const ConstraintModel& constraintId);
 
     public slots:
-        virtual void on_constraintRemoved(const id_type<ConstraintModel>& constraintId) = 0;
+        virtual void on_constraintRemoved(const Id<ConstraintModel>& constraintId) = 0;
 
     protected:
-        AbstractScenarioLayerModel(const id_type<LayerModel>& viewModelId,
+        AbstractScenarioLayerModel(const Id<LayerModel>& viewModelId,
                               const QString& name,
                               Process& sharedProcess,
                               QObject* parent) :
@@ -66,7 +66,7 @@ class AbstractScenarioLayerModel : public LayerModel
 
         // Copy
         AbstractScenarioLayerModel(const AbstractScenarioLayerModel& source,
-                              const id_type<LayerModel>& viewModelId,
+                              const Id<LayerModel>& viewModelId,
                               const QString& name,
                               Process& sharedProcess,
                               QObject* parent) :
@@ -95,7 +95,7 @@ class AbstractScenarioLayerModel : public LayerModel
 template<typename T>
 typename T::constraint_layer_type& constraintViewModel(
         const T& scenarioViewModel,
-        const id_type<ConstraintViewModel>& cvm_id)
+        const Id<ConstraintViewModel>& cvm_id)
 {
     return static_cast<typename T::constraint_layer_type&>(scenarioViewModel.constraint(cvm_id));
 }
@@ -116,5 +116,5 @@ QVector<typename T::constraint_layer_type*> constraintsViewModels(const T& scena
 
 #include "Document/Constraint/ViewModels/ConstraintViewModelIdMap.hpp"
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
-                                const id_type<ConstraintModel>& constraint,
+                                const Id<ConstraintModel>& constraint,
                                 const ScenarioModel& scenario);

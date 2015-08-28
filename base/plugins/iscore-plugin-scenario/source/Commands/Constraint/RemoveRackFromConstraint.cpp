@@ -8,17 +8,19 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-RemoveRackFromConstraint::RemoveRackFromConstraint(ObjectPath&& rackPath) :
+RemoveRackFromConstraint::RemoveRackFromConstraint(
+        Path<RackModel>&& rackPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()}
 {
-    auto constraintPath = rackPath.vec();
+    auto constraintPath = rackPath.unsafePath().vec();
     auto lastId = constraintPath.takeLast();
-    m_path = ObjectPath{std::move(constraintPath) };
-    m_rackId = id_type<RackModel> (lastId.id());
+    m_path = Path<ConstraintModel>{ObjectPath{std::move(constraintPath)},
+              Path<ConstraintModel>::UnsafeDynamicCreation{}};
+    m_rackId = Id<RackModel> (lastId.id());
 
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     // Save the rack
     Serializer<DataStream> s{&m_serializedRackData};
     s.readFrom(constraint.rack(m_rackId));
@@ -33,15 +35,15 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(ObjectPath&& rackPath) :
 }
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
-        ObjectPath&& constraintPath,
-        id_type<RackModel> rackId) :
+        Path<ConstraintModel>&& constraintPath,
+        Id<RackModel> rackId) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {constraintPath},
     m_rackId {rackId}
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
 
     Serializer<DataStream> s{&m_serializedRackData};
     s.readFrom(constraint.rack(m_rackId));
@@ -54,7 +56,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
 
 void RemoveRackFromConstraint::undo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedRackData};
     constraint.addRack(new RackModel {s, &constraint});
 
@@ -69,7 +71,7 @@ void RemoveRackFromConstraint::undo()
 
 void RemoveRackFromConstraint::redo()
 {
-    auto& constraint = m_path.find<ConstraintModel>();
+    auto& constraint = m_path.find();
     constraint.removeRack(m_rackId);
 }
 

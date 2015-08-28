@@ -9,8 +9,8 @@
 using namespace Scenario::Command;
 CreateConstraint_State_Event::CreateConstraint_State_Event(
         const ScenarioModel &scenario,
-        const id_type<StateModel>& startState,
-        const id_type<TimeNodeModel>& endTimeNode,
+        const Id<StateModel>& startState,
+        const Id<TimeNodeModel>& endTimeNode,
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newEvent{getStrongId(scenario.events())},
@@ -25,12 +25,12 @@ CreateConstraint_State_Event::CreateConstraint_State_Event(
 }
 
 CreateConstraint_State_Event::CreateConstraint_State_Event(
-        const ObjectPath &scenarioPath,
-        const id_type<StateModel> &startState,
-        const id_type<TimeNodeModel> &endTimeNode,
+        const Path<ScenarioModel> &scenarioPath,
+        const Id<StateModel> &startState,
+        const Id<TimeNodeModel> &endTimeNode,
         double endStateY):
     CreateConstraint_State_Event{
-        scenarioPath.find<ScenarioModel>(),
+        scenarioPath.find(),
         startState,
         endTimeNode,
         endStateY}
@@ -44,12 +44,12 @@ void CreateConstraint_State_Event::undo()
 
     ScenarioCreate<EventModel>::undo(
                 m_newEvent,
-                m_command.scenarioPath().find<ScenarioModel>());
+                m_command.scenarioPath().find());
 }
 
 void CreateConstraint_State_Event::redo()
 {
-    auto& scenar = m_command.scenarioPath().find<ScenarioModel>();
+    auto& scenar = m_command.scenarioPath().find();
 
     // Create the end event
     ScenarioCreate<EventModel>::redo(

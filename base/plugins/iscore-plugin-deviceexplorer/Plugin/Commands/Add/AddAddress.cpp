@@ -3,7 +3,7 @@
 
 using namespace DeviceExplorer::Command;
 
-AddAddress::AddAddress(ModelPath<DeviceDocumentPlugin>&& device_tree,
+AddAddress::AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
                        const iscore::NodePath& nodePath,
                        InsertMode insert,
                        const iscore::AddressSettings &addressSettings):

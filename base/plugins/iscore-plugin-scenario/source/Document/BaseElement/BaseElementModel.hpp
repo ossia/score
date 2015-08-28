@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 #include "ProcessFocusManager.hpp"
 #include "DisplayedElements/DisplayedElementsModel.hpp"

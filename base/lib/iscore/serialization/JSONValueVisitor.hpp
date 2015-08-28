@@ -40,7 +40,7 @@ class Visitor<Reader<JSONValue>> : public AbstractVisitor
         void readFrom(const T&);
 
         template<typename T>
-        void readFrom(const id_type<T>& obj)
+        void readFrom(const Id<T>& obj)
         {
             readFrom(obj.val());
         }
@@ -70,9 +70,9 @@ class Visitor<Writer<JSONValue>> : public AbstractVisitor
         void writeTo(T&);
 
         template<typename T>
-        void writeTo(id_type<T>& obj)
+        void writeTo(Id<T>& obj)
         {
-            typename id_type<T>::value_type id_impl;
+            typename Id<T>::value_type id_impl;
             writeTo(id_impl);
             obj.setVal(std::move(id_impl));
         }
@@ -147,10 +147,10 @@ T fromJsonValue(const QJsonValueRef& json)
 }
 
 template<template<typename U> class T, typename V>
-void fromJsonValueArray(const QJsonArray&& json_arr, T<id_type<V>>& arr)
+void fromJsonValueArray(const QJsonArray&& json_arr, T<Id<V>>& arr)
 {
     for(const auto& elt : json_arr)
     {
-        arr.push_back(fromJsonValue<id_type<V>>(elt));
+        arr.push_back(fromJsonValue<Id<V>>(elt));
     }
 }

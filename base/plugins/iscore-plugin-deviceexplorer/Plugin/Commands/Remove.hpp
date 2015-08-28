@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
@@ -20,7 +20,7 @@ class Remove : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR2(Remove)
 
-          Remove(ModelPath<DeviceDocumentPlugin>&& device_tree,
+          Remove(Path<DeviceDocumentPlugin>&& device_tree,
             const iscore::Node& node);
           ~Remove();
 

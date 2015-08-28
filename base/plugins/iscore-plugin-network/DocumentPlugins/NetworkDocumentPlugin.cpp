@@ -23,7 +23,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     using namespace std;
 
     // Base group set-up
-    auto baseGroup = new Group{"Default", id_type<Group>{0}, groupManager()};
+    auto baseGroup = new Group{"Default", Id<Group>{0}, groupManager()};
     baseGroup->addClient(m_policy->session()->localClient().id());
     groupManager()->addGroup(baseGroup);
 
@@ -87,7 +87,7 @@ QList<iscore::ElementPluginModelType> NetworkDocumentPlugin::elementPlugins() co
 void NetworkDocumentPlugin::setupGroupPlugin(GroupMetadata* plug)
 {
     connect(m_groups, &GroupManager::groupRemoved,
-            plug, [=] (const id_type<Group>& id)
+            plug, [=] (const Id<Group>& id)
     { if(plug->group() == id) plug->setGroup(m_groups->defaultGroup()); });
 }
 

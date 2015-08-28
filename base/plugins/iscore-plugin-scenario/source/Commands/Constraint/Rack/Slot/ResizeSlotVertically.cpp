@@ -5,27 +5,28 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ResizeSlotVertically::ResizeSlotVertically(ObjectPath&& slotPath,
-                                           double newSize) :
+ResizeSlotVertically::ResizeSlotVertically(
+        Path<SlotModel>&& slotPath,
+        double newSize) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {slotPath},
     m_newSize {newSize}
 {
-    auto& slot = m_path.find<SlotModel>();
+    auto& slot = m_path.find();
     m_originalSize = slot.height();
 }
 
 void ResizeSlotVertically::undo()
 {
-    auto& slot = m_path.find<SlotModel>();
+    auto& slot = m_path.find();
     slot.setHeight(m_originalSize);
 }
 
 void ResizeSlotVertically::redo()
 {
-    auto& slot = m_path.find<SlotModel>();
+    auto& slot = m_path.find();
     slot.setHeight(m_newSize);
 }
 

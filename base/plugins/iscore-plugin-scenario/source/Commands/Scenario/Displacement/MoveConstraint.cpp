@@ -21,10 +21,11 @@ MoveConstraint::~MoveConstraint()
 
 }
 
-MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
-                               const id_type<ConstraintModel>& id,
-                               const TimeValue& date,
-                               double height) :
+MoveConstraint::MoveConstraint(
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<ConstraintModel>& id,
+        const TimeValue& date,
+        double height) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
@@ -32,14 +33,14 @@ MoveConstraint::MoveConstraint(ObjectPath&& scenarioPath,
     m_constraint{id},
     m_newHeight{height}
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     auto& cst = scenar.constraint(m_constraint);
 
     m_oldHeight = cst.heightPercentage();
 }
 
-void MoveConstraint::update(const ObjectPath& path,
-                            const id_type<ConstraintModel>&,
+void MoveConstraint::update(const Path<ScenarioModel>& path,
+                            const Id<ConstraintModel>&,
                             const TimeValue& date,
                             double height)
 {
@@ -51,7 +52,7 @@ void MoveConstraint::undo()
     updateConstraintVerticalPos(
                 m_oldHeight,
                 m_constraint,
-                m_path.find<ScenarioModel>());
+                m_path.find());
 }
 
 void MoveConstraint::redo()
@@ -59,7 +60,7 @@ void MoveConstraint::redo()
     updateConstraintVerticalPos(
                 m_newHeight,
                 m_constraint,
-                m_path.find<ScenarioModel>());
+                m_path.find());
 }
 
 void MoveConstraint::serializeImpl(QDataStream& s) const

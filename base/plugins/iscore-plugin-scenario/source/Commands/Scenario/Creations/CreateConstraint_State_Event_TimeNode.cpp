@@ -9,7 +9,7 @@
 using namespace Scenario::Command;
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
         const ScenarioModel& scenario,
-        const id_type<StateModel>& startState,
+        const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
@@ -25,21 +25,15 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
 }
 
 CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
-        const ObjectPath &scenarioPath,
-        const id_type<StateModel> &startState,
+        const Path<ScenarioModel>& scenarioPath,
+        const Id<StateModel> &startState,
         const TimeValue &date,
         double endStateY):
-    CreateConstraint_State_Event_TimeNode{scenarioPath.find<ScenarioModel>(),
+    CreateConstraint_State_Event_TimeNode{scenarioPath.find(),
                                           startState, date, endStateY}
 {
 
 }
-
-const ObjectPath &CreateConstraint_State_Event_TimeNode::scenarioPath() const
-{
-    return m_command.scenarioPath();
-}
-
 
 void CreateConstraint_State_Event_TimeNode::undo()
 {
@@ -47,12 +41,12 @@ void CreateConstraint_State_Event_TimeNode::undo()
 
     ScenarioCreate<TimeNodeModel>::undo(
                 m_newTimeNode,
-                m_command.scenarioPath().find<ScenarioModel>());
+                m_command.scenarioPath().find());
 }
 
 void CreateConstraint_State_Event_TimeNode::redo()
 {
-    auto& scenar = m_command.scenarioPath().find<ScenarioModel>();
+    auto& scenar = m_command.scenarioPath().find();
 
     // Create the end timenode
     ScenarioCreate<TimeNodeModel>::redo(

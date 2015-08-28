@@ -134,10 +134,10 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
 
-    scenario.m_startTimeNodeId = fromJsonValue<id_type<TimeNodeModel>> (m_obj["StartTimeNodeId"]);
-    scenario.m_endTimeNodeId = fromJsonValue<id_type<TimeNodeModel>> (m_obj["EndTimeNodeId"]);
-    scenario.m_startEventId = fromJsonValue<id_type<EventModel>> (m_obj["StartEventId"]);
-    scenario.m_endEventId = fromJsonValue<id_type<EventModel>> (m_obj["EndEventId"]);
+    scenario.m_startTimeNodeId = fromJsonValue<Id<TimeNodeModel>> (m_obj["StartTimeNodeId"]);
+    scenario.m_endTimeNodeId = fromJsonValue<Id<TimeNodeModel>> (m_obj["EndTimeNodeId"]);
+    scenario.m_startEventId = fromJsonValue<Id<EventModel>> (m_obj["StartEventId"]);
+    scenario.m_endEventId = fromJsonValue<Id<EventModel>> (m_obj["EndEventId"]);
 
     for(const auto& json_vref : m_obj["TimeNodes"].toArray())
     {

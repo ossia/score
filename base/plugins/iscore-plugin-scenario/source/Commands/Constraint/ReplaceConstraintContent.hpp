@@ -1,12 +1,13 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include "ProcessInterface/ExpandMode.hpp"
 
 class Process;
 class RackModel;
+class ConstraintModel;
 namespace Scenario
 {
     namespace Command
@@ -17,9 +18,10 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceConstraintContent, "ScenarioControl")
-                ReplaceConstraintContent(QJsonObject&& sourceConstraint,
-                                      ObjectPath&&  targetConstraint,
-                                      ExpandMode mode);
+                ReplaceConstraintContent(
+                    QJsonObject&& sourceConstraint,
+                    Path<ConstraintModel>&&  targetConstraint,
+                    ExpandMode mode);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -30,11 +32,11 @@ namespace Scenario
 
             private:
                 QJsonObject m_source;
-                ObjectPath m_target;
+                Path<ConstraintModel> m_target;
                 ExpandMode m_mode{ExpandMode::Grow};
 
-                QMap<id_type<RackModel>, id_type<RackModel>> m_rackIds;
-                QMap<id_type<Process>, id_type<Process>> m_processIds;
+                QMap<Id<RackModel>, Id<RackModel>> m_rackIds;
+                QMap<Id<Process>, Id<Process>> m_processIds;
         };
     }
 }

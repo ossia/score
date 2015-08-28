@@ -9,13 +9,13 @@
 #include <QFinalState>
 #include "Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp"
 
-// TODO a nice refactor is doable here.
+// TODO a nice refactor is doable here between the three classes.
 MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
-                                         ObjectPath&& scenarioPath,
+                                         const Path<ScenarioModel>& scenarioPath,
                                          iscore::CommandStack& stack,
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
-    ScenarioStateBase{ObjectPath{scenarioPath}, parent},
+    ScenarioStateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     using namespace Scenario::Command ;
@@ -36,7 +36,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
                     pressed, moving , *this);
         connect(t_pressed, &QAbstractTransition::triggered, [&] ()
         {
-            auto& scenar = m_scenarioPath.find<ScenarioModel>();
+            auto& scenar = m_scenarioPath.find();
             m_constraintInitialStartDate= scenar.constraint(clickedConstraint).startDate();
             m_constraintInitialClickDate = currentPoint.date;
         });
@@ -51,7 +51,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
         QObject::connect(moving, &QState::entered, [&] ()
         {
             m_dispatcher.submitCommand(
-                            ObjectPath{m_scenarioPath},
+                            Path<ScenarioModel>{m_scenarioPath},
                             clickedConstraint,
                             m_constraintInitialStartDate + (currentPoint.date - m_constraintInitialClickDate),
                             currentPoint.y);
@@ -76,11 +76,11 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
 
 
 MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
-                               ObjectPath&& scenarioPath,
+                               const Path<ScenarioModel>& scenarioPath,
                                iscore::CommandStack& stack,
                                iscore::ObjectLocker& locker,
                                QState* parent):
-    ScenarioStateBase{ObjectPath{scenarioPath}, parent},
+    ScenarioStateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     using namespace Scenario::Command ;
@@ -108,15 +108,15 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
         // What happens in each state.
         QObject::connect(moving, &QState::entered, [&] ()
         {
-            id_type<EventModel> evId{clickedEvent};
+            Id<EventModel> evId{clickedEvent};
             if(!bool(evId) && bool(clickedState))
             {
-                auto& scenar = m_scenarioPath.find<ScenarioModel>();
+                auto& scenar = m_scenarioPath.find();
                 evId = scenar.state(clickedState).eventId();
             }
 
             m_dispatcher.submitCommand(
-                            ObjectPath{m_scenarioPath},
+                            Path<ScenarioModel>{m_scenarioPath},
                             evId,
                             currentPoint.date,
                             stateMachine.expandMode());
@@ -141,11 +141,11 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
 
 
 MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
-                                     ObjectPath&& scenarioPath,
+                                     const Path<ScenarioModel>& scenarioPath,
                                      iscore::CommandStack& stack,
                                      iscore::ObjectLocker& locker,
                                      QState* parent):
-    ScenarioStateBase{ObjectPath{scenarioPath}, parent},
+    ScenarioStateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     using namespace Scenario::Command ;
@@ -174,7 +174,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
         QObject::connect(moving, &QState::entered, [&] ()
         {
             // Get the 1st event on the timenode.
-            auto& scenar = m_scenarioPath.find<ScenarioModel>();
+            auto& scenar = m_scenarioPath.find();
             auto& tn = scenar.timeNode(clickedTimeNode);
             const auto& ev_id = tn.events().first();
             auto date = currentPoint.date;
@@ -183,7 +183,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
                 date = tn.date();
 
             m_dispatcher.submitCommand(
-                            ObjectPath{m_scenarioPath},
+                            Path<ScenarioModel>{m_scenarioPath},
                             ev_id,
                             date,
                             stateMachine.expandMode());

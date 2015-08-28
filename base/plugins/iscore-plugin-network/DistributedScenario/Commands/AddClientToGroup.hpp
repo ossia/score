@@ -11,8 +11,8 @@ class AddClientToGroup : public iscore::SerializableCommand
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddClientToGroup, "NetworkControl")
         AddClientToGroup(ObjectPath&& groupMgrPath,
-                         id_type<Client> client,
-                         id_type<Group> group);
+                         Id<Client> client,
+                         Id<Group> group);
 
         virtual void undo() override;
         virtual void redo() override;
@@ -22,6 +22,6 @@ class AddClientToGroup : public iscore::SerializableCommand
 
     private:
         ObjectPath m_path;
-        id_type<Client> m_client;
-        id_type<Group> m_group;
+        Id<Client> m_client;
+        Id<Group> m_group;
 };

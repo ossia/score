@@ -26,8 +26,8 @@ class ClientSessionBuilder : public QObject
 
     private:
         QString m_clientName{"A Client"};
-        id_type<Client> m_masterId, m_clientId;
-        id_type<Session> m_sessionId;
+        Id<Client> m_masterId, m_clientId;
+        Id<Session> m_sessionId;
         NetworkSocket* m_mastersocket{};
 
 

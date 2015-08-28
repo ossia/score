@@ -21,8 +21,8 @@ class RackInspectorSection : public InspectorSectionWidget
         void createSlot();
 
     public slots:
-        void on_slotCreated(id_type<SlotModel> slotId);
-        void on_slotRemoved(id_type<SlotModel> slotId);
+        void on_slotCreated(Id<SlotModel> slotId);
+        void on_slotRemoved(Id<SlotModel> slotId);
 
     private:
         const RackModel& m_model;
@@ -33,6 +33,6 @@ class RackInspectorSection : public InspectorSectionWidget
         ConstraintInspectorWidget* m_parent{};
     private:
 
-        std::unordered_map<id_type<SlotModel>, SlotInspectorSection*, id_hash<SlotModel>> m_slotsSectionWidgets;
+        std::unordered_map<Id<SlotModel>, SlotInspectorSection*, id_hash<SlotModel>> m_slotsSectionWidgets;
         //std::vector<SlotInspectorSection*> m_slotsSectionWidgets;
 };

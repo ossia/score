@@ -3,7 +3,7 @@
 #include <cmath>
 
 CurveSegmentModel*SinCurveSegmentModel::clone(
-        const id_type<CurveSegmentModel>& id,
+        const Id<CurveSegmentModel>& id,
         QObject* parent) const
 {
     auto cs = new SinCurveSegmentModel{id, parent};

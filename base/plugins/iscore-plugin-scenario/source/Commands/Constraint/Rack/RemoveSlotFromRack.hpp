@@ -1,8 +1,9 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class SlotModel;
+class RackModel;
 namespace Scenario
 {
     namespace Command
@@ -17,8 +18,8 @@ namespace Scenario
                 ISCORE_COMMAND_DECL("RemoveSlotFromRack", "RemoveSlotFromRack")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSlotFromRack, "ScenarioControl")
-                RemoveSlotFromRack(ObjectPath&& slotPath);
-                RemoveSlotFromRack(ObjectPath&& rackPath, id_type<SlotModel> slotId);
+                RemoveSlotFromRack(Path<SlotModel>&& slotPath);
+                RemoveSlotFromRack(Path<RackModel>&& rackPath, Id<SlotModel> slotId);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -28,8 +29,8 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
-                id_type<SlotModel> m_slotId {};
+                Path<RackModel> m_path;
+                Id<SlotModel> m_slotId {};
                 int m_position {};
 
                 QByteArray m_serializedSlotData; // Should be done in the constructor

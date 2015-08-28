@@ -3,7 +3,7 @@
 using namespace DeviceExplorer::Command;
 using namespace iscore;
 
-ReplaceDevice::ReplaceDevice(ObjectPath&& device_tree,
+ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                              int deviceIndex,
                              Node&& rootNode):
     iscore::SerializableCommand{"DeviceExplorerControl",
@@ -13,13 +13,13 @@ ReplaceDevice::ReplaceDevice(ObjectPath&& device_tree,
     m_deviceIndex(deviceIndex),
     m_deviceNode{std::move(rootNode)}
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
     m_savedNode = *explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
 void ReplaceDevice::undo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
 
     explorer.removeRow(m_deviceIndex);
     explorer.addDevice(new Node{m_savedNode, nullptr});
@@ -27,7 +27,7 @@ void ReplaceDevice::undo()
 
 void ReplaceDevice::redo()
 {
-    auto& explorer = m_deviceTree.find<DeviceExplorerModel>();
+    auto& explorer = m_deviceTree.find();
 
     explorer.removeRow(m_deviceIndex);
     explorer.addDevice(new Node{m_deviceNode, nullptr});

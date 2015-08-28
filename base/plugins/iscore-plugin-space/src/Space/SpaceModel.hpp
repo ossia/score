@@ -12,7 +12,7 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
         Q_OBJECT
     public:
         SpaceModel(
-                const id_type<SpaceModel>& id,
+                const Id<SpaceModel>& id,
                 QObject* parent);
 
         const auto& space() const
@@ -20,19 +20,19 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
 
         void addDimension(DimensionModel* dim);
         void removeDimension(const QString& name);
-        const DimensionModel& dimension(const id_type<DimensionModel>& id) const;
+        const DimensionModel& dimension(const Id<DimensionModel>& id) const;
         const DimensionModel& dimension(const QString& name) const;
 
         const auto& dimensions() const
         { return m_dimensions; }
 
         void addViewport(ViewportModel*);
-        void removeViewport(const id_type<ViewportModel>&);
+        void removeViewport(const Id<ViewportModel>&);
         const auto& viewports() const
         { return m_viewports; }
 
         // Might be false if there is no viewport.
-        const id_type<ViewportModel>& defaultViewport() const
+        const Id<ViewportModel>& defaultViewport() const
         { return m_defaultViewport; }
 
     signals:
@@ -47,5 +47,5 @@ class SpaceModel : public IdentifiedObject<SpaceModel>
         IdContainer<DimensionModel> m_dimensions;
         IdContainer<ViewportModel> m_viewports;
 
-        id_type<ViewportModel> m_defaultViewport;
+        Id<ViewportModel> m_defaultViewport;
 };

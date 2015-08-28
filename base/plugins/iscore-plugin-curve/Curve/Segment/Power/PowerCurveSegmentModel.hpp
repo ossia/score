@@ -14,7 +14,7 @@ class PowerCurveSegmentModel : public CurveSegmentModel
         }
 
         CurveSegmentModel* clone(
-                const id_type<CurveSegmentModel>& id,
+                const Id<CurveSegmentModel>& id,
                 QObject* parent) const override;
 
         QString name() const override;

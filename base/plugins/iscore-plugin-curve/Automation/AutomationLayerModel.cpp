@@ -3,7 +3,7 @@
 #include "AutomationPanelProxy.hpp"
 
 AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
-                                         const id_type<LayerModel>& id,
+                                         const Id<LayerModel>& id,
                                          QObject* parent) :
     LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
 {
@@ -12,7 +12,7 @@ AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
 
 AutomationLayerModel::AutomationLayerModel(const AutomationLayerModel& source,
                                          AutomationModel& model,
-                                         const id_type<LayerModel>& id,
+                                         const Id<LayerModel>& id,
                                          QObject* parent) :
     LayerModel {id, AutomationLayerModel::staticMetaObject.className(), model, parent}
 {

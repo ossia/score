@@ -22,11 +22,11 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 }
 
 template<typename PresenterContainer, typename IdToIgnore>
-QList<id_type<typename PresenterContainer::model_type>>
+QList<Id<typename PresenterContainer::model_type>>
     getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnore>& ids, const QPointF& scenePoint)
 {
     using namespace std;
-    QList<id_type<typename PresenterContainer::model_type>> colliding;
+    QList<Id<typename PresenterContainer::model_type>> colliding;
 
     for(const auto& elt : array)
     {
@@ -47,10 +47,10 @@ class ScenarioTool : public ToolState
         ScenarioTool(const ScenarioStateMachine& sm, QState* parent);
 
     protected:
-        id_type<EventModel> itemToEventId(const QGraphicsItem*) const;
-        id_type<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem*) const;
-        id_type<ConstraintModel> itemToConstraintId(const QGraphicsItem*) const;
-        id_type<StateModel> itemToStateId(const QGraphicsItem*) const;
+        Id<EventModel> itemToEventId(const QGraphicsItem*) const;
+        Id<TimeNodeModel> itemToTimeNodeId(const QGraphicsItem*) const;
+        Id<ConstraintModel> itemToConstraintId(const QGraphicsItem*) const;
+        Id<StateModel> itemToStateId(const QGraphicsItem*) const;
         const SlotModel* itemToSlotFromHandle(const QGraphicsItem *pressedItem) const;
 
         template<typename EventFun,

@@ -29,7 +29,7 @@ class ProcessFactory : public iscore::FactoryInterface
 
         virtual Process* makeModel(
                 const TimeValue& duration,
-                const id_type<Process>& id,
+                const Id<Process>& id,
                 QObject* parent) = 0;
 
         // The layers may need some specific static data to construct,

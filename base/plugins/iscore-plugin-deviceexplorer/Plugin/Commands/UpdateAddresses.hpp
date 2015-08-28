@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
@@ -16,7 +16,7 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL("UpdateAddresses", "UpdateAddresses")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateAddresses, "DeviceExplorerControl")
-                UpdateAddresses(ObjectPath&& device_tree,
+                UpdateAddresses(Path<DeviceExplorerModel>&& device_tree,
                               const QList<QPair<const iscore::Node*, iscore::Value>>& nodes);
 
                 virtual void undo() override;
@@ -27,7 +27,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_deviceTree;
+                Path<DeviceExplorerModel> m_deviceTree;
 
                 QList<
                     QPair<

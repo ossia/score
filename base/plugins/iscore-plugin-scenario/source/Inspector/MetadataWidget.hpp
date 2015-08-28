@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QWidget>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -32,36 +32,36 @@ class MetadataWidget : public QWidget
         QString scriptingName() const;
 
         template<typename T>
-        void setupConnections(T* model)
+        void setupConnections(const T& model)
         {
             using namespace Scenario::Command;
             using namespace iscore::IDocument;
             connect(this, &MetadataWidget::scriptingNameChanged,
-                    [=](QString newName)
+                    [&](const QString& newName)
             {
-                if(newName != model->metadata.name())
-                    m_commandDispatcher->submitCommand(new ChangeElementName<T>{unsafe_path(model), newName});
+                if(newName != model.metadata.name())
+                    m_commandDispatcher->submitCommand(new ChangeElementName<T>{path(model), newName});
             });
 
             connect(this, &MetadataWidget::labelChanged,
-                    [=](QString newLabel)
+                    [&](const QString& newLabel)
             {
-                if(newLabel != model->metadata.label())
-                    m_commandDispatcher->submitCommand(new ChangeElementLabel<T>{unsafe_path(model), newLabel});
+                if(newLabel != model.metadata.label())
+                    m_commandDispatcher->submitCommand(new ChangeElementLabel<T>{path(model), newLabel});
             });
 
             connect(this, &MetadataWidget::commentsChanged,
-                    [=](QString newComments)
+                    [&](const QString& newComments)
             {
-                if(newComments != model->metadata.comment())
-                    m_commandDispatcher->submitCommand(new ChangeElementComments<T>{unsafe_path(model), newComments});
+                if(newComments != model.metadata.comment())
+                    m_commandDispatcher->submitCommand(new ChangeElementComments<T>{path(model), newComments});
             });
 
             connect(this, &MetadataWidget::colorChanged,
-                    [=](QColor newColor)
+                    [&](const QColor& newColor)
             {
-                if(newColor != model->metadata.color())
-                    m_commandDispatcher->submitCommand(new ChangeElementColor<T>{unsafe_path(model), newColor});
+                if(newColor != model.metadata.color())
+                    m_commandDispatcher->submitCommand(new ChangeElementColor<T>{path(model), newColor});
             });
         }
 

@@ -10,7 +10,7 @@ class CurveSegmentView : public QGraphicsObject
                 const CurveSegmentModel& model,
                 QGraphicsItem* parent);
 
-        const id_type<CurveSegmentModel>& id() const;
+        const Id<CurveSegmentModel>& id() const;
         int type() const override;
         QRectF boundingRect() const override;
         QPainterPath shape() const override;

@@ -6,7 +6,7 @@
 
 Process* AutomationFactory::makeModel(
         const TimeValue& duration,
-        const id_type<Process>& id,
+        const Id<Process>& id,
         QObject* parent)
 {
     return new AutomationModel{duration, id, parent};

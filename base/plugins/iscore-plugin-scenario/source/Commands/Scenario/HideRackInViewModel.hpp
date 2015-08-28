@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class ConstraintViewModel;
 class ConstraintModel;
@@ -22,16 +22,16 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(HideRackInViewModel, "ScenarioControl")
-                HideRackInViewModel(ObjectPath&& path);
+                HideRackInViewModel(Path<ConstraintViewModel>&& path);
 
                 /**
                  * @brief HideRackInViewModel
-                 * @param constraint A pointer to a valid constraint view model.
+                 * @param constraint A constraint view model.
                  *
                  * Note : this will search it and make a path from an object named "BaseConstraintModel"
                  * Hence this constructor has to be used in a Scenario.
                  */
-                HideRackInViewModel(ConstraintViewModel* constraint);
+                HideRackInViewModel(const ConstraintViewModel& constraint);
 
                 virtual void undo() override;
                 virtual void redo() override;
@@ -41,9 +41,9 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_constraintViewModelPath;
+                Path<ConstraintViewModel> m_constraintViewPath;
 
-                id_type<RackModel> m_constraintPreviousId {};
+                Id<RackModel> m_constraintPreviousId {};
         };
     }
 }

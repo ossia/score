@@ -11,7 +11,7 @@ class AutomationFactory : public ProcessFactory
 
         Process* makeModel(
                 const TimeValue& duration,
-                const id_type<Process>& id,
+                const Id<Process>& id,
                 QObject* parent) override;
 
         Process* loadModel(

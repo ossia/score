@@ -17,15 +17,15 @@ class GroupManager : public IdentifiedObject<GroupManager>
         }
 
         void addGroup(Group* group);
-        void removeGroup(id_type<Group> group);
+        void removeGroup(Id<Group> group);
 
         const std::vector<Group*>& groups() const;
-        Group* group(const id_type<Group>& id) const;
-        id_type<Group> defaultGroup() const;
+        Group* group(const Id<Group>& id) const;
+        Id<Group> defaultGroup() const;
 
     signals:
-        void groupAdded(id_type<Group>);
-        void groupRemoved(id_type<Group>);
+        void groupAdded(Id<Group>);
+        void groupRemoved(Id<Group>);
 
     private:
         std::vector<Group*> m_groups;

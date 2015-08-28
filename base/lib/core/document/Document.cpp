@@ -42,7 +42,7 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
 
 void Document::init()
 {
-    connect(&m_selectionStack, &SelectionStack::currentSelectionChanged,
+    con(m_selectionStack, &SelectionStack::currentSelectionChanged,
             this, [&] (const Selection& s)
             {
                 for(auto& panel : m_model->panels())

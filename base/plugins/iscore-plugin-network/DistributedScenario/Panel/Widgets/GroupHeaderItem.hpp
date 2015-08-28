@@ -9,5 +9,5 @@ class GroupHeaderItem : public QTableWidgetItem
     public:
         explicit GroupHeaderItem(const Group& group);
 
-        const id_type<Group> group;
+        const Id<Group> group;
 };

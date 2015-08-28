@@ -51,9 +51,9 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
 {
     s.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    s.m_eventId = fromJsonValue<id_type<EventModel>>(m_obj["Event"]);
-    s.m_previousConstraint = fromJsonValue<id_type<ConstraintModel>>(m_obj["PreviousConstraint"]);
-    s.m_nextConstraint = fromJsonValue<id_type<ConstraintModel>>(m_obj["NextConstraint"]);
+    s.m_eventId = fromJsonValue<Id<EventModel>>(m_obj["Event"]);
+    s.m_previousConstraint = fromJsonValue<Id<ConstraintModel>>(m_obj["PreviousConstraint"]);
+    s.m_nextConstraint = fromJsonValue<Id<ConstraintModel>>(m_obj["NextConstraint"]);
     s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
     s.m_itemModel = fromJsonObject<iscore::StateNode>(m_obj["States"].toObject());

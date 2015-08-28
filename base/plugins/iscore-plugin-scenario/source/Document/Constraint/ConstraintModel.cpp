@@ -9,8 +9,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include "ProcessInterface/LayerModel.hpp"
 ConstraintModel::ConstraintModel(
-        const id_type<ConstraintModel>& id,
-        const id_type<ConstraintViewModel>& fullViewId,
+        const Id<ConstraintModel>& id,
+        const Id<ConstraintViewModel>& fullViewId,
         double yPos,
         QObject* parent) :
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
@@ -24,7 +24,7 @@ ConstraintModel::ConstraintModel(
 
 ConstraintModel::ConstraintModel(
         const ConstraintModel& source,
-        const id_type<ConstraintModel>& id,
+        const Id<ConstraintModel>& id,
         QObject* parent):
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
     pluginModelList{source.pluginModelList, this}
@@ -108,12 +108,12 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
         emit viewModelRemoved(cvm->id());
     }
 }
-const id_type<StateModel> &ConstraintModel::endState() const
+const Id<StateModel> &ConstraintModel::endState() const
 {
     return m_endState;
 }
 
-void ConstraintModel::setEndState(const id_type<StateModel> &endState)
+void ConstraintModel::setEndState(const Id<StateModel> &endState)
 {
     m_endState = endState;
 }
@@ -127,7 +127,7 @@ void ConstraintModel::addProcess(Process* model)
     emit processesChanged();
 }
 
-void ConstraintModel::removeProcess(const id_type<Process>& processId)
+void ConstraintModel::removeProcess(const Id<Process>& processId)
 {
     auto proc = &process(processId);
     m_processes.remove(processId);
@@ -141,7 +141,7 @@ void ConstraintModel::addRack(RackModel* rack)
 {
     connect(this, &ConstraintModel::processRemoved,
             rack, &RackModel::on_deleteSharedProcessModel);
-    connect(&duration, &ConstraintDurations::defaultDurationChanged,
+    con(duration, &ConstraintDurations::defaultDurationChanged,
             rack, &RackModel::on_durationChanged);
 
     m_racks.insert(rack);
@@ -149,7 +149,7 @@ void ConstraintModel::addRack(RackModel* rack)
 }
 
 
-void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
+void ConstraintModel::removeRack(const Id<RackModel>& rackId)
 {
     auto b = &rack(rackId);
     m_racks.remove(rackId);
@@ -158,24 +158,24 @@ void ConstraintModel::removeRack(const id_type<RackModel>& rackId)
     delete b;
 }
 
-const id_type<StateModel>& ConstraintModel::startState() const
+const Id<StateModel>& ConstraintModel::startState() const
 {
     return m_startState;
 }
 
-void ConstraintModel::setStartState(const id_type<StateModel>& e)
+void ConstraintModel::setStartState(const Id<StateModel>& e)
 {
     m_startState = e;
 }
 
 
-RackModel& ConstraintModel::rack(const id_type<RackModel>& id) const
+RackModel& ConstraintModel::rack(const Id<RackModel>& id) const
 {
     return m_racks.at(id);
 }
 
 Process& ConstraintModel::process(
-        const id_type<Process>& id) const
+        const Id<Process>& id) const
 {
     return m_processes.at(id);
 }

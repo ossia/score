@@ -56,7 +56,7 @@ class TemporalScenarioPresenter : public LayerPresenter
 
 
         const LayerModel& layerModel() const override;
-        const id_type<Process>& modelId() const override;
+        const Id<Process>& modelId() const override;
 
         void setWidth(int width) override;
         void setHeight(int height) override;
@@ -99,16 +99,16 @@ class TemporalScenarioPresenter : public LayerPresenter
     public slots:
         // Model -> view
         void on_stateCreated(const StateModel& state);
-        void on_stateRemoved(const id_type<StateModel>& eventId);
+        void on_stateRemoved(const Id<StateModel>& eventId);
 
         void on_eventCreated(const EventModel& event_model);
-        void on_eventRemoved(const id_type<EventModel>& eventId);
+        void on_eventRemoved(const Id<EventModel>& eventId);
 
         void on_timeNodeCreated(const TimeNodeModel& timeNode_model);
-        void on_timeNodeRemoved(const id_type<TimeNodeModel>& timeNodeId);
+        void on_timeNodeRemoved(const Id<TimeNodeModel>& timeNodeId);
 
         void on_constraintViewModelCreated(const TemporalConstraintViewModel& cstr);
-        void on_constraintViewModelRemoved(const id_type<ConstraintViewModel>& constraintId);
+        void on_constraintViewModelRemoved(const Id<ConstraintViewModel>& constraintId);
 
         void on_askUpdate();
 

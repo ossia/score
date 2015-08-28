@@ -11,8 +11,8 @@ class GroupListWidget : public QWidget
         GroupListWidget(const GroupManager* mgr, QWidget* parent);
 
     private:
-        void addGroup(const id_type<Group>& id);
-        void removeGroup(const id_type<Group>& id);
+        void addGroup(const Id<Group>& id);
+        void removeGroup(const Id<Group>& id);
 
         const GroupManager* m_mgr{};
         QList<GroupWidget*> m_widgets;

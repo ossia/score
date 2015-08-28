@@ -17,10 +17,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
-                     id_type<EventModel> eventId,
-                     const TimeValue& date,
-                     ExpandMode mode) :
+MoveEvent::MoveEvent(
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<EventModel>& eventId,
+        const TimeValue& date,
+        ExpandMode mode) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
@@ -29,7 +30,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
     m_newDate {date},
     m_mode{mode}
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     const auto& movedEvent = scenar.event(m_eventId);
     m_oldDate = movedEvent.date();
 
@@ -38,7 +39,7 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
                                                    m_movableTimenodes);
 
     // 1. Make a list of the constraints that need to be resized
-    QSet<id_type<ConstraintModel>> constraints;
+    QSet<Id<ConstraintModel>> constraints;
     for(const auto& tn_id : m_movableTimenodes)
     {
         const auto& tn = scenar.timeNode(tn_id);
@@ -66,19 +67,19 @@ MoveEvent::MoveEvent(ObjectPath&& scenarioPath,
 
         // Save for each view model of this constraint
         // the identifier of the rack that was displayed
-        QMap<id_type<ConstraintViewModel>, id_type<RackModel>> map;
+        QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
         for(const ConstraintViewModel* vm : constraint.viewModels())
         {
             map[vm->id()] = vm->shownRack();
         }
 
-        m_savedConstraints.push_back({{iscore::IDocument::unsafe_path(constraint), arr}, map});
+        m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
     }
 }
 
 void MoveEvent::undo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     auto& event = scenar.event(m_eventId);
 
     TimeValue deltaDate{};
@@ -96,10 +97,10 @@ void MoveEvent::undo()
     {
         // 1. Clear the constraint
         // TODO Don't use a command since it serializes a ton of unused stuff.
-        ClearConstraint clear_cmd{ObjectPath{obj.first.first}};
+        ClearConstraint clear_cmd{Path<ConstraintModel>{obj.first.first}};
         clear_cmd.redo();
 
-        auto& constraint = obj.first.first.find<ConstraintModel>();
+        auto& constraint = obj.first.first.find();
         // 2. Restore the rackes & processes.
 
         // TODO if possible refactor this with ReplaceConstraintContent and ConstraintModel::clone
@@ -158,7 +159,7 @@ void MoveEvent::undo()
 
 void MoveEvent::redo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     auto& event = scenar.event(m_eventId);
 
     TimeValue deltaDate{};

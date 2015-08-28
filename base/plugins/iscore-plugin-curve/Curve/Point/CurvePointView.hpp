@@ -10,7 +10,7 @@ class CurvePointView : public QGraphicsObject
                        QGraphicsItem* parent);
 
         const CurvePointModel& model() const;
-        const id_type<CurvePointModel>& id() const;
+        const Id<CurvePointModel>& id() const;
 
         int type() const override;
         QRectF boundingRect() const override;

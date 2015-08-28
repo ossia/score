@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include <QString>
 
@@ -9,6 +9,7 @@ class Process;
 class RackModel;
 class SlotModel;
 class LayerModel;
+class ConstraintModel;
 
 namespace Scenario
 {
@@ -23,13 +24,14 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerInNewSlot, "ScenarioControl")
-                AddLayerInNewSlot(ObjectPath&& constraintPath,
-                                        id_type<Process> process);
+                AddLayerInNewSlot(
+                    Path<ConstraintModel>&& constraintPath,
+                    Id<Process> process);
 
                 virtual void undo() override;
                 virtual void redo() override;
 
-                id_type<Process> processId() const
+                Id<Process> processId() const
                 {
                     return m_processId;
                 }
@@ -39,15 +41,15 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_path;
+                Path<ConstraintModel> m_path;
 
                 bool m_existingRack {};
 
-                id_type<Process> m_processId {};
-                id_type<RackModel> m_createdRackId {};
-                id_type<SlotModel> m_createdSlotId {};
-                id_type<LayerModel> m_createdLayerId {};
-                id_type<Process> m_sharedProcessModelId {};
+                Id<Process> m_processId {};
+                Id<RackModel> m_createdRackId {};
+                Id<SlotModel> m_createdSlotId {};
+                Id<LayerModel> m_createdLayerId {};
+                Id<Process> m_sharedProcessModelId {};
 
                 QByteArray m_processData;
         };

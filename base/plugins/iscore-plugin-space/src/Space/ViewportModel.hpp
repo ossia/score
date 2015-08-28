@@ -10,20 +10,20 @@ class ViewportModel : public IdentifiedObject<ViewportModel>
 {
         Q_OBJECT
     public:
-        ViewportModel(const id_type<ViewportModel>& id, QObject* parent):
+        ViewportModel(const Id<ViewportModel>& id, QObject* parent):
             IdentifiedObject{id, staticMetaObject.className(), parent}
         {
 
         }
 
-        const id_type<DimensionModel>& xDim() const;
-        void setXDim(const id_type<DimensionModel>& xDim);
+        const Id<DimensionModel>& xDim() const;
+        void setXDim(const Id<DimensionModel>& xDim);
 
-        const id_type<DimensionModel>& yDim() const;
-        void setYDim(const id_type<DimensionModel>& yDim);
+        const Id<DimensionModel>& yDim() const;
+        void setYDim(const Id<DimensionModel>& yDim);
 
-        const QMap<id_type<DimensionModel>, double>& defaultValuesMap() const;
-        void setDefaultValuesMap(const QMap<id_type<DimensionModel>, double>& defaultValuesMap);
+        const QMap<Id<DimensionModel>, double>& defaultValuesMap() const;
+        void setDefaultValuesMap(const QMap<Id<DimensionModel>, double>& defaultValuesMap);
 
         double zoomLevel() const;
         void setZoomLevel(double zoomLevel);
@@ -47,10 +47,10 @@ class ViewportModel : public IdentifiedObject<ViewportModel>
         QPointF m_pos; // Top left point
 
         // Map from a dimension in space to a dimension in the GUI
-        id_type<DimensionModel> m_xDim;
-        id_type<DimensionModel> m_yDim;
+        Id<DimensionModel> m_xDim;
+        Id<DimensionModel> m_yDim;
 
         // Map from a dimension in space to a default value.
         // e.g. : for (x, y, z), we set z = 0.
-        QMap<id_type<DimensionModel>, double> m_defaultValuesMap;
+        QMap<Id<DimensionModel>, double> m_defaultValuesMap;
 };

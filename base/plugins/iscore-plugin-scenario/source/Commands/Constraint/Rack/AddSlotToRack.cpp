@@ -7,25 +7,25 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-AddSlotToRack::AddSlotToRack(ObjectPath&& rackPath) :
+AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {rackPath}
 {
-    auto& rack = m_path.find<RackModel>();
+    auto& rack = m_path.find();
     m_createdSlotId = getStrongId(rack.getSlots());
 }
 
 void AddSlotToRack::undo()
 {
-    auto& rack = m_path.find<RackModel>();
+    auto& rack = m_path.find();
     rack.removeSlot(m_createdSlotId);
 }
 
 void AddSlotToRack::redo()
 {
-    auto& rack = m_path.find<RackModel>();
+    auto& rack = m_path.find();
     rack.addSlot(new SlotModel {m_createdSlotId,
                                &rack});
 }

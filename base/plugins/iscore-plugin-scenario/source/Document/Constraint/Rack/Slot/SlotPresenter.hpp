@@ -24,7 +24,7 @@ class SlotPresenter : public NamedObject
                       QObject* parent);
         virtual ~SlotPresenter();
 
-        const id_type<SlotModel>& id() const;
+        const Id<SlotModel>& id() const;
         const SlotModel& model() const;
         int height() const; // Return the height of the view
 
@@ -48,9 +48,9 @@ class SlotPresenter : public NamedObject
 
     public slots:
         // From Model
-        void on_layerModelCreated(const id_type<LayerModel>& processId);
-        void on_layerModelDeleted(const id_type<LayerModel>& processId);
-        void on_layerModelPutToFront(const id_type<LayerModel>& processId);
+        void on_layerModelCreated(const Id<LayerModel>& processId);
+        void on_layerModelDeleted(const Id<LayerModel>& processId);
+        void on_layerModelPutToFront(const Id<LayerModel>& processId);
         void on_heightChanged(double height);
         void on_parentGeometryChanged();
 

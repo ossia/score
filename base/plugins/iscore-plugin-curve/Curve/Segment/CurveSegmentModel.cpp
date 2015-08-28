@@ -1,7 +1,7 @@
 #include "CurveSegmentModel.hpp"
 
 
-CurveSegmentModel::CurveSegmentModel(const id_type<CurveSegmentModel>& id, QObject* parent):
+CurveSegmentModel::CurveSegmentModel(const Id<CurveSegmentModel>& id, QObject* parent):
     IdentifiedObject<CurveSegmentModel>{id, "CurveSegmentModel", parent}
 
 {
@@ -15,7 +15,7 @@ CurveSegmentModel::~CurveSegmentModel()
 
 
 
-void CurveSegmentModel::setPrevious(const id_type<CurveSegmentModel>& previous)
+void CurveSegmentModel::setPrevious(const Id<CurveSegmentModel>& previous)
 {
     if(previous != m_previous)
     {
@@ -29,7 +29,7 @@ void CurveSegmentModel::setVerticalParameter(double p)
 
 }
 
-void CurveSegmentModel::setFollowing(const id_type<CurveSegmentModel>& following)
+void CurveSegmentModel::setFollowing(const Id<CurveSegmentModel>& following)
 {
     if(following != m_following)
     {

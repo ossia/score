@@ -23,8 +23,8 @@ class ScenarioViewInterface : public QObject
         void on_stateMoved(const StatePresenter &state);
 
     public slots:
-        void on_hoverOnConstraint(const id_type<ConstraintModel>& constraintId, bool enter);
-        void on_hoverOnEvent(const id_type<EventModel>& eventId, bool enter);
+        void on_hoverOnConstraint(const Id<ConstraintModel>& constraintId, bool enter);
+        void on_hoverOnEvent(const Id<EventModel>& eventId, bool enter);
 
     private:
         TemporalScenarioPresenter* m_presenter;

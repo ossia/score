@@ -20,7 +20,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ConstraintViewModel& cvm)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ConstraintViewModel& cvm)
 {
-    id_type<RackModel> id;
+    Id<RackModel> id;
     m_stream >> id;
 
     if(id.val())
@@ -49,7 +49,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const ConstraintViewModel& cvm)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ConstraintViewModel& cvm)
 {
-    auto id = fromJsonValue<id_type<RackModel>>(m_obj["ShownRack"]);
+    auto id = fromJsonValue<Id<RackModel>>(m_obj["ShownRack"]);
 
     if(id.val())
     {

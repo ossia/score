@@ -12,7 +12,7 @@ class Session : public IdentifiedObject<Session>
         Q_OBJECT
     public:
         Session(LocalClient* client,
-                id_type<Session> id,
+                Id<Session> id,
                 QObject* parent = nullptr);
         ~Session();
 

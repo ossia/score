@@ -5,7 +5,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "ProcessInterface/TimeValue.hpp"
 
-#include "iscore/tools/ObjectPath.hpp"
+#include "iscore/tools/ModelPath.hpp"
 
 #include <chrono>
 
@@ -18,7 +18,7 @@ class TimeNodeModelTests : public QObject
     private slots:
             void AddEventTest()
             {
-                TimeNodeModel model {id_type<TimeNodeModel>(1), TimeValue{std::chrono::milliseconds (1)}, 0.5, this};
+                TimeNodeModel model {Id<TimeNodeModel>(1), TimeValue{std::chrono::milliseconds (1)}, 0.5, this};
             }
 
 };

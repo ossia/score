@@ -2,6 +2,8 @@
 #include<QHash>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+
 class ConstraintViewModel;
-using ConstraintViewModelIdMap = QHash<ObjectPath, id_type<ConstraintViewModel>>;
-using SerializedConstraintViewModels = QVector<QPair<ObjectPath, QPair<QString, QByteArray>>>;
+class AbstractScenarioLayerModel;
+using ConstraintViewModelIdMap = QHash<Path<AbstractScenarioLayerModel>, Id<ConstraintViewModel>>;
+using SerializedConstraintViewModels = QVector<QPair<Path<AbstractScenarioLayerModel>, QPair<QString, QByteArray>>>;

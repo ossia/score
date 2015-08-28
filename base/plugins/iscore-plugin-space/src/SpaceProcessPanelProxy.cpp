@@ -5,7 +5,7 @@ SpaceProcessPanelProxy::SpaceProcessPanelProxy(
         QObject *parent):
     LayerModelPanelProxy{parent}
 {
-    m_layer = new SpaceProcessProxyLayerModel(id_type<LayerModel>(), vm, this);
+    m_layer = new SpaceProcessProxyLayerModel(Id<LayerModel>(), vm, this);
 }
 
 const SpaceProcessProxyLayerModel& SpaceProcessPanelProxy::layer()

@@ -15,9 +15,9 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 CreateConstraint::CreateConstraint(
-        ObjectPath&& scenarioPath,
-        const id_type<StateModel>& startState,
-        const id_type<StateModel>& endState) :
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<StateModel>& startState,
+        const Id<StateModel>& endState) :
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
@@ -26,14 +26,14 @@ CreateConstraint::CreateConstraint(
     m_startStateId{startState},
     m_endStateId{endState}
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     m_createdConstraintId = getStrongId(scenar.constraints());
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
-    for(auto& viewModel : layers(scenar))
+    for(const auto& viewModel : layers(scenar))
     {
-        m_createdConstraintViewModelIDs[iscore::IDocument::unsafe_path(viewModel)] = getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[iscore::IDocument::path(*viewModel)] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view
@@ -42,14 +42,14 @@ CreateConstraint::CreateConstraint(
 
 void CreateConstraint::undo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
 
     ScenarioCreate<ConstraintModel>::undo(m_createdConstraintId, scenar);
 }
 
 void CreateConstraint::redo()
 {
-    auto& scenar = m_path.find<ScenarioModel>();
+    auto& scenar = m_path.find();
     auto& sst = scenar.state(m_startStateId);
     auto& est = scenar.state(m_endStateId);
 

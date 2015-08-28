@@ -30,14 +30,14 @@ class StateModel : public IdentifiedObject<StateModel>
         Selectable selection;
         ModelMetadata metadata;
 
-        StateModel(const id_type<StateModel>& id,
-                   const id_type<EventModel>& eventId,
+        StateModel(const Id<StateModel>& id,
+                   const Id<EventModel>& eventId,
                    double yPos,
                    QObject* parent);
 
         // Copy
         StateModel(const StateModel& source,
-                   const id_type<StateModel>&,
+                   const Id<StateModel>&,
                    QObject* parent);
 
         // Load
@@ -56,12 +56,12 @@ class StateModel : public IdentifiedObject<StateModel>
         const iscore::StateItemModel &states() const;
         iscore::StateItemModel &states();
 
-        const id_type<EventModel>& eventId() const;
+        const Id<EventModel>& eventId() const;
 
-        const id_type<ConstraintModel>& previousConstraint() const;
-        const id_type<ConstraintModel>& nextConstraint() const;
-        void setNextConstraint(const id_type<ConstraintModel>&);
-        void setPreviousConstraint(const id_type<ConstraintModel>&);
+        const Id<ConstraintModel>& previousConstraint() const;
+        const Id<ConstraintModel>& nextConstraint() const;
+        void setNextConstraint(const Id<ConstraintModel>&);
+        void setPreviousConstraint(const Id<ConstraintModel>&);
 
     signals:
         void statesUpdated();
@@ -71,11 +71,11 @@ class StateModel : public IdentifiedObject<StateModel>
         void setHeightPercentage(double y);
 
     private:
-        id_type<EventModel> m_eventId;  // TODO serialize
+        Id<EventModel> m_eventId;  // TODO serialize
 
-        // TODO When we shift to id_type = int, put this Optional
-        id_type<ConstraintModel> m_previousConstraint;
-        id_type<ConstraintModel> m_nextConstraint;
+        // TODO When we shift to Id = int, put this Optional
+        Id<ConstraintModel> m_previousConstraint;
+        Id<ConstraintModel> m_nextConstraint;
 
         double m_heightPercentage{0.5}; // In the whole scenario
 

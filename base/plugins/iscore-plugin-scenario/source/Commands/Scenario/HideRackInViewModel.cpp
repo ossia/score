@@ -5,45 +5,47 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-HideRackInViewModel::HideRackInViewModel(ObjectPath&& path) :
+HideRackInViewModel::HideRackInViewModel(
+        Path<ConstraintViewModel>&& path) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_constraintViewModelPath {std::move(path) }
+    m_constraintViewPath {std::move(path) }
 {
-    auto& constraint_vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& constraint_vm = m_constraintViewPath.find();
     m_constraintPreviousId = constraint_vm.shownRack();
 }
 
-HideRackInViewModel::HideRackInViewModel(ConstraintViewModel* constraint_vm) :
+HideRackInViewModel::HideRackInViewModel(
+        const ConstraintViewModel& constraint_vm) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_constraintViewModelPath {iscore::IDocument::unsafe_path(constraint_vm) }
+    m_constraintViewPath {iscore::IDocument::path(constraint_vm) }
 {
-    m_constraintPreviousId = constraint_vm->shownRack();
+    m_constraintPreviousId = constraint_vm.shownRack();
 }
 
 void HideRackInViewModel::undo()
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewPath.find();
     vm.showRack(m_constraintPreviousId);
 }
 
 void HideRackInViewModel::redo()
 {
-    auto& vm = m_constraintViewModelPath.find<ConstraintViewModel>();
+    auto& vm = m_constraintViewPath.find();
     vm.hideRack();
 }
 
 void HideRackInViewModel::serializeImpl(QDataStream& s) const
 {
-    s << m_constraintViewModelPath
+    s << m_constraintViewPath
       << m_constraintPreviousId;
 }
 
 void HideRackInViewModel::deserializeImpl(QDataStream& s)
 {
-    s >> m_constraintViewModelPath
-      >> m_constraintPreviousId;
+    s >> m_constraintViewPath
+            >> m_constraintPreviousId;
 }

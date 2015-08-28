@@ -27,14 +27,14 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
 
     ::view(this)->setLabel(cstr_model.model().metadata.label());
 
-    connect(&m_viewModel.model().metadata, &ModelMetadata::labelChanged,
+    con(m_viewModel.model().metadata, &ModelMetadata::labelChanged,
             ::view(this), &TemporalConstraintView::setLabel);
-    connect(&m_viewModel.model().metadata,   &ModelMetadata::colorChanged,
+    con(m_viewModel.model().metadata,   &ModelMetadata::colorChanged,
             ::view(this),   &TemporalConstraintView::setLabelColor);
 
 
     m_header->setText(m_viewModel.model().metadata.name());
-    connect(&m_viewModel.model().metadata, &ModelMetadata::nameChanged,
+    con(m_viewModel.model().metadata, &ModelMetadata::nameChanged,
             this, [&] (const QString& name) { m_header->setText(name); });
 }
 

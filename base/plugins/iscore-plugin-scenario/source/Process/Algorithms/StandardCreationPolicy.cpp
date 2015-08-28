@@ -5,14 +5,14 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
 void ScenarioCreate<TimeNodeModel>::undo(
-        const id_type<TimeNodeModel>& id,
+        const Id<TimeNodeModel>& id,
         ScenarioModel& s)
 {
     s.removeTimeNode(&s.timeNode(id));
 }
 
 TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
-        const id_type<TimeNodeModel>& id,
+        const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,
         const TimeValue& date,
         ScenarioModel& s)
@@ -24,7 +24,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
 }
 
 void ScenarioCreate<EventModel>::undo(
-        const id_type<EventModel>& id,
+        const Id<EventModel>& id,
         ScenarioModel& s)
 {
     auto& ev = s.event(id);
@@ -33,7 +33,7 @@ void ScenarioCreate<EventModel>::undo(
 }
 
 EventModel& ScenarioCreate<EventModel>::redo(
-        const id_type<EventModel>& id,
+        const Id<EventModel>& id,
         TimeNodeModel& timenode,
         const VerticalExtent& extent,
         ScenarioModel& s)
@@ -48,7 +48,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
 
 
 void ScenarioCreate<StateModel>::undo(
-        const id_type<StateModel> &id,
+        const Id<StateModel> &id,
         ScenarioModel &s)
 {
     auto& state = s.state(id);
@@ -60,7 +60,7 @@ void ScenarioCreate<StateModel>::undo(
 }
 
 StateModel &ScenarioCreate<StateModel>::redo(
-        const id_type<StateModel> &id,
+        const Id<StateModel> &id,
         EventModel &ev,
         double y,
         ScenarioModel &s)
@@ -79,7 +79,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
 }
 
 void ScenarioCreate<ConstraintModel>::undo(
-        const id_type<ConstraintModel>& id,
+        const Id<ConstraintModel>& id,
         ScenarioModel& s)
 {
     auto& cst = s.constraint(id);
@@ -87,15 +87,15 @@ void ScenarioCreate<ConstraintModel>::undo(
     auto& sev = s.state(cst.startState());
     auto& eev = s.state(cst.endState());
 
-    sev.setNextConstraint(id_type<ConstraintModel>{});
-    eev.setPreviousConstraint(id_type<ConstraintModel>{});
+    sev.setNextConstraint(Id<ConstraintModel>{});
+    eev.setPreviousConstraint(Id<ConstraintModel>{});
 
     s.removeConstraint(&cst);
 }
 
 ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
-        const id_type<ConstraintModel>& id,
-        const id_type<ConstraintViewModel>& fullviewid,
+        const Id<ConstraintModel>& id,
+        const Id<ConstraintViewModel>& fullviewid,
         StateModel& sst,
         StateModel& est,
         double ypos,

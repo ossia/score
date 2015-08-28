@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 
@@ -17,7 +17,7 @@ namespace DeviceExplorer
             ISCORE_COMMAND_DECL("ReplaceDevice", "ReplaceDevice")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceDevice, "DeviceExplorerControl")
-                ReplaceDevice(ObjectPath&& device_tree,
+                ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                               int deviceIndex,
                               iscore::Node&& rootNode);
 
@@ -29,7 +29,7 @@ namespace DeviceExplorer
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                ObjectPath m_deviceTree;
+                Path<DeviceExplorerModel> m_deviceTree;
                 int m_deviceIndex{};
                 iscore::Node m_deviceNode;
                 iscore::Node m_savedNode;

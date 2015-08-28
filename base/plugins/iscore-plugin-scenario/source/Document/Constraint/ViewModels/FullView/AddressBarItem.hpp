@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 #include <QList>
-#include <iscore/tools/ObjectPath.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 class ClickableLabelItem;
 class AddressBarItem : public QGraphicsObject

@@ -101,7 +101,7 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
             combobox, [=] () { combobox->setCurrentIndex(0); });
 
     connect(vm, &ConstraintViewModel::rackShown,
-            combobox, [=] (id_type<RackModel> id)
+            combobox, [=] (Id<RackModel> id)
     {
         using namespace std;
         auto elts = combobox->elements();

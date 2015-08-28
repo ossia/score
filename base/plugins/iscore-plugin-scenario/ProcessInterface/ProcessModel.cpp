@@ -4,7 +4,7 @@
 
 Process::Process(
         const TimeValue& duration,
-        const id_type<Process>& id,
+        const Id<Process>& id,
         const QString& name,
         QObject* parent):
     IdentifiedObject<Process>{id, name, parent},
@@ -15,7 +15,7 @@ Process::Process(
 
 Process::Process(
         const Process& source,
-        const id_type<Process>& id,
+        const Id<Process>& id,
         const QString& name,
         QObject* parent):
     IdentifiedObject<Process>{id, name, parent},
@@ -29,7 +29,7 @@ QByteArray Process::makeViewModelConstructionData() const { return {}; }
 
 
 LayerModel*Process::makeLayer(
-        const id_type<LayerModel>& viewModelId,
+        const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,
         QObject* parent)
 {
@@ -51,7 +51,7 @@ LayerModel*Process::loadLayer(
 }
 
 LayerModel*Process::cloneLayer(
-        const id_type<LayerModel>& newId,
+        const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {
@@ -63,7 +63,7 @@ LayerModel*Process::cloneLayer(
 
 
 LayerModel*Process::makeTemporaryLayer(
-        const id_type<LayerModel>& newId,
+        const Id<LayerModel>& newId,
         const LayerModel& source,
         QObject* parent)
 {

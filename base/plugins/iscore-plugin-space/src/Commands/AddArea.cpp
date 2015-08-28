@@ -13,10 +13,10 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
-AddArea::AddArea(ModelPath<SpaceProcess> &&spacProcess,
+AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
                  int areatype,
                  const QString &area,
-                 const QMap<id_type<DimensionModel>, QString> &dimMap,
+                 const QMap<Id<DimensionModel>, QString> &dimMap,
                  const QMap<QString, iscore::FullAddressSettings> &addrMap):
     iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{std::move(spacProcess)},

@@ -34,7 +34,7 @@ class RackPresenter : public NamedObject
         qreal width() const;
         void setWidth(qreal);
 
-        const id_type<RackModel>& id() const;
+        const Id<RackModel>& id() const;
         const IdContainer<SlotPresenter,SlotModel>& getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
         { return m_slots; }
 
@@ -52,8 +52,8 @@ class RackPresenter : public NamedObject
 
     public slots:
         void on_durationChanged(const TimeValue& duration);
-        void on_slotCreated(const id_type<SlotModel>& slotId);
-        void on_slotRemoved(const id_type<SlotModel>& slotId);
+        void on_slotCreated(const Id<SlotModel>& slotId);
+        void on_slotRemoved(const Id<SlotModel>& slotId);
 
         void on_askUpdate();
 
