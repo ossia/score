@@ -9,9 +9,10 @@ namespace iscore
     class DocumentDelegatePluginModel;
     class PanelModel;
     /**
-     * @brief The DocumentDelegateModelInterface class
+     * @brief The DocumentModel class
      *
      * Drawbridge between the application and a model given by a plugin.
+     * Contains all the "saveable" data.
      */
     class DocumentModel : public IdentifiedObject<DocumentModel>
     {

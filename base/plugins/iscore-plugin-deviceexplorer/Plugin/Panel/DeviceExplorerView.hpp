@@ -34,6 +34,8 @@ class DeviceExplorerView : public QTreeView
         QModelIndexList selectedIndexes() const override;
         QModelIndex selectedIndex() const;
 
+        bool hasProxy() const;
+
     signals:
         void selectionChanged();
 

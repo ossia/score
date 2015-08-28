@@ -15,6 +15,13 @@ public:
     }
 };
 
+/**
+ * @brief The SafeQApplication class
+ *
+ * Prevents an app crash in case of an internal error.
+ * Disabled for debugging, because it makes getting the stack
+ * trace harder.
+ */
 class SafeQApplication : public QApplication
 {
     public:

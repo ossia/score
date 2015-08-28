@@ -504,6 +504,9 @@ void DeviceExplorerWidget::refreshValue()
     for(auto& index : m_ntView->selectedIndexes())
     {
         // Model checks
+        if (m_ntView->hasProxy())
+            index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
+
         iscore::Node* node = index.isValid()
                               ? static_cast<iscore::Node*>(index.internalPointer())
                               : nullptr;

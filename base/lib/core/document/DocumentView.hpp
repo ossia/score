@@ -9,9 +9,10 @@ namespace iscore
     class Document;
 
     /**
-     * @brief The DocumentView class is the central view of i-score.
+     * @brief The DocumentView class shows a document.
      *
-     * It displays a @c{DocumentDelegateViewInterface}.
+     * It displays a @c{DocumentDelegateViewInterface}, in
+     * the central widget.
      */
     class DocumentView : public QWidget
     {

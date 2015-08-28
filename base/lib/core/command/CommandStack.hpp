@@ -146,8 +146,14 @@ namespace iscore
         private:
             void setSavedIndex(int index);
 
-            // c is of type void(void)
             template<typename Callable>
+            /**
+             * @brief updateStack Updates the undo / redo stack
+             * @param c A function object of prototype void(void)
+             *
+             * This function takes care of keeping everything synced
+             * in the GUI.
+             */
             void updateStack(Callable&& c)
             {
                 bool pre_canUndo{canUndo()},

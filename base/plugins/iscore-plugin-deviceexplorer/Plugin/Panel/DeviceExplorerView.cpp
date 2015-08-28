@@ -238,6 +238,11 @@ DeviceExplorerView::initActions()
     }
 
 }
+bool DeviceExplorerView::hasProxy() const
+{
+    return m_hasProxy;
+}
+
 
 void
 DeviceExplorerView::columnVisibilityChanged(bool shown)

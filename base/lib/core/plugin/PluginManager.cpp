@@ -19,7 +19,11 @@
 
 using namespace iscore;
 
-QStringList pluginsDir()
+/**
+ * @brief pluginsDir
+ * @return The folder where i-score should look for plug-ins, static for now.
+ */
+static QStringList pluginsDir()
 {
 #if defined(_WIN32)
     return {QCoreApplication::applicationDirPath() + "/plugins"};

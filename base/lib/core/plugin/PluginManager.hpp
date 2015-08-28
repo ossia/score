@@ -31,8 +31,20 @@ namespace iscore
             PluginManager(iscore::Application* app);
             ~PluginManager();
 
+            /**
+             * @brief reloadPlugins
+             *
+             * Reloads all the plug-ins.
+             * Note: for now this is unsafe after the first loading.
+             */
             void reloadPlugins();
 
+            /**
+             * @brief pluginsOnSystem
+             * @return All the plugins available on the system
+             *
+             * Even plug-ins that were not loaded will be returned.
+             */
             QStringList pluginsOnSystem() const;
 
             void addControl(PluginControlInterface* p)

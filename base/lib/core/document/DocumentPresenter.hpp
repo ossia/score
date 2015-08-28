@@ -11,10 +11,9 @@ namespace iscore
     class DocumentDelegateFactoryInterface;
 
     /**
-     * @brief The DocumentPresenter class holds the logic for the main document.
+     * @brief The DocumentPresenter class
      *
-     * Its main use is to manage the command queue, since we use the Command pattern,
-     * by taking the commands from the document view and applying them on the document model.
+     * A wrapper between the model and the view.
      */
     class DocumentPresenter : public NamedObject
     {

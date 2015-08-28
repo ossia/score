@@ -312,13 +312,16 @@ void Presenter::setupMenus()
 
     ////// About /////
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::AboutMenu,
-                                        AboutMenuElement::About, [] () { QMessageBox::about(nullptr, tr("About i-score"), tr("With love and sweat from the i-score team.")); });
+                                        AboutMenuElement::About, [] () {
+        QMessageBox::about(nullptr,
+                           tr("About i-score"),
+                           tr("With love and sweat from the i-score team.")); });
 }
+
 View* Presenter::view() const
 {
     return m_view;
 }
-
 
 const std::vector<iscore::PluginControlInterface*>& Presenter::controls() const
 {
