@@ -19,7 +19,7 @@ case "$TRAVIS_OS_NAME" in
 
 	;;
     osx)
-	brew update
+	brew update; brew update # work around a homebrew bug
         brew install wget
         wget https://www.dropbox.com/s/n3dsifakgzjbsnh/Jamoma-Darwin20150828.zip?dl=0 -O JamomaDarwin20150828.zip
         unzip JamomaDarwin20150828.zip
