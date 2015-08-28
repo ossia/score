@@ -32,6 +32,8 @@ class DurationSectionWidget : public InspectorSectionWidget
         void on_modelRigidityChanged(bool b);
         void on_durationsChanged();
 
+        void on_minNonNullToggled(bool val);
+        void on_maxFiniteToggled(bool val);
 
     private:
         const ConstraintModel& m_model;

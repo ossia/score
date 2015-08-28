@@ -12,9 +12,9 @@ int32_t getNextId();
  * @brief getNextId
  * @param ids A vector of ids
  *
- * @return A new id not in
-template<typename Vector>the vector.
+ * @return A new id not in the vector.
  */
+template<typename Vector>
 int getNextId(const Vector& ids)
 {
     using namespace boost::range;

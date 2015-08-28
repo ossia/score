@@ -34,8 +34,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
     m_dispatcher{parent->commandDispatcher()->stack()}
 {
-    // TODO const&
-    QWidget* widg{new QWidget{this}};
+    auto widg = new QWidget{this};
     m_grid = new QGridLayout{widg};
     m_grid->setContentsMargins(0, 0, 0 , 0);
     m_grid->setVerticalSpacing(0);
@@ -66,37 +65,10 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_maxFiniteBox->setChecked(!m_model.duration.maxDuration().isInfinite());
 
     connect(m_minNonNullBox, &QCheckBox::toggled,
-            [=](bool val)
-    {
-        m_minSpin->setEnabled(val);
-        TimeValue newTime = !val
-                            ? TimeValue(std::chrono::milliseconds(0))
-                            : m_model.duration.defaultDuration() * 0.5;
-        if(m_model.duration.minDuration() == newTime)
-            return;
-
-        auto cmd = new Scenario::Command::SetMinDuration(
-                        iscore::IDocument::path(m_model),
-                        newTime);
-        m_parent->commandDispatcher()->submitCommand(cmd);
-    });
+            this, &DurationSectionWidget::on_minNonNullToggled);
 
     connect(m_maxFiniteBox, &QCheckBox::toggled,
-            [=](bool val)
-    {
-        m_maxSpin->setEnabled(val);
-        TimeValue newTime = !val
-                            ? TimeValue(PositiveInfinity{})
-                            : m_model.duration.defaultDuration() * 1.5;
-        if(m_model.duration.maxDuration() == newTime)
-            return;
-
-        auto cmd = new Scenario::Command::SetMaxDuration(
-                       iscore::IDocument::path(m_model),
-                       newTime);
-
-        m_parent->commandDispatcher()->submitCommand(cmd);
-    });
+            this, &DurationSectionWidget::on_maxFiniteToggled);
 
     // CONNECTIONS FROM MODEL
     // TODO these need to be updated when the default duration changes
@@ -250,6 +222,37 @@ void DurationSectionWidget::on_durationsChanged()
         m_dispatcher.commit();
     }
 
+}
+
+void DurationSectionWidget::on_minNonNullToggled(bool val)
+{
+    m_minSpin->setEnabled(val);
+    TimeValue newTime = !val
+                        ? TimeValue(std::chrono::milliseconds(0))
+                        : m_model.duration.defaultDuration() * 0.5;
+    if(m_model.duration.minDuration() == newTime)
+        return;
+
+    auto cmd = new Scenario::Command::SetMinDuration(
+                   iscore::IDocument::path(m_model),
+                   newTime);
+    m_parent->commandDispatcher()->submitCommand(cmd);
+}
+
+void DurationSectionWidget::on_maxFiniteToggled(bool val)
+{
+    m_maxSpin->setEnabled(val);
+    TimeValue newTime = !val
+                        ? TimeValue(PositiveInfinity{})
+                        : m_model.duration.defaultDuration() * 1.5;
+    if(m_model.duration.maxDuration() == newTime)
+        return;
+
+    auto cmd = new Scenario::Command::SetMaxDuration(
+                   iscore::IDocument::path(m_model),
+                   newTime);
+
+    m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 DurationSectionWidget::~DurationSectionWidget()
