@@ -10,8 +10,6 @@
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 
-#include "Control/OldFormatConversion.hpp"
-
 #include "Menus/ObjectMenuActions.hpp"
 #include "Menus/ToolMenuActions.hpp"
 
@@ -38,28 +36,6 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
-    ///// File /////
-    // Export in old format
-    /*
-    auto toZeroTwo = new QAction("To i-score 0.2", this);
-    connect(toZeroTwo, &QAction::triggered,
-            [this]()
-    {
-        auto savename = QFileDialog::getSaveFileName(nullptr, tr("Save"));
-
-        if (!savename.isEmpty())
-        {
-            QFile f(savename);
-            f.open(QIODevice::WriteOnly);
-            f.write(JSONToZeroTwo(currentDocument()->saveAsJson()).toLatin1().constData());
-        }
-    });
-
-    menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                       FileMenuElement::Separator_Quit,
-                                       toZeroTwo);
-    */
-
     ///// Edit /////
     m_objectAction->fillMenuBar(menu);
 

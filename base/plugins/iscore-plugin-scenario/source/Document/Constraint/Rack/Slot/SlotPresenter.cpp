@@ -14,6 +14,7 @@
 
 #include "Document/Constraint/Rack/RackView.hpp"
 #include "SlotHandle.hpp"
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QGraphicsScene>
 
 using namespace Scenario;
@@ -50,17 +51,7 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
 
 SlotPresenter::~SlotPresenter()
 {
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 const Id<SlotModel>& SlotPresenter::id() const

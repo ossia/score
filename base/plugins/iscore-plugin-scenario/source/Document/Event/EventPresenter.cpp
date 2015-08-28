@@ -9,6 +9,7 @@
 #include <core/document/Document.hpp>
 #include <State/StateMimeTypes.hpp>
 
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QMimeData>
 #include <QJsonDocument>
 #include <QGraphicsScene>
@@ -49,17 +50,7 @@ EventPresenter::EventPresenter(const EventModel& model,
 
 EventPresenter::~EventPresenter()
 {
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 const Id<EventModel>& EventPresenter::id() const

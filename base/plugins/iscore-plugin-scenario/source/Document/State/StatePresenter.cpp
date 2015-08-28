@@ -7,6 +7,7 @@
 #include <State/StateMimeTypes.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <core/document/Document.hpp>
 #include <QGraphicsScene>
 #include <QMimeData>
@@ -37,18 +38,7 @@ StatePresenter::StatePresenter(
 
 StatePresenter::~StatePresenter()
 {
-    // TODO we really need to refactor this.
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 const Id<StateModel> &StatePresenter::id() const

@@ -4,6 +4,7 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include <QGraphicsScene>
 #include <QGraphicsObject>
+#include <iscore/widgets/GraphicsItem.hpp>
 
 TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QGraphicsObject *parentview,
@@ -23,22 +24,11 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
 
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.
-
 }
 
 TimeNodePresenter::~TimeNodePresenter()
 {
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 const Id<TimeNodeModel>& TimeNodePresenter::id() const

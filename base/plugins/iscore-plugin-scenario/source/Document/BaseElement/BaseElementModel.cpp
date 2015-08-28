@@ -123,7 +123,6 @@ void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
 
 void BaseElementModel::on_viewModelFocused(const LayerModel* process)
 {
-    // TODO why not presenter ?
     // Enable focus on the new viewmodel
     updateSlotFocus(process, true);
 }

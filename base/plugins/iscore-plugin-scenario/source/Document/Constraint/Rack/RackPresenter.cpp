@@ -8,6 +8,7 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QGraphicsScene>
 
 RackPresenter::RackPresenter(const RackModel& model,
@@ -39,17 +40,7 @@ RackPresenter::RackPresenter(const RackModel& model,
 
 RackPresenter::~RackPresenter()
 {
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 const RackView &RackPresenter::view() const

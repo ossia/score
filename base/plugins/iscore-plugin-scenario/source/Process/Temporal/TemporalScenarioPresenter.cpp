@@ -26,6 +26,7 @@
 
 #include <State/StateMimeTypes.hpp>
 #include <QMimeData>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <QJsonDocument>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <core/document/Document.hpp>
@@ -117,17 +118,7 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
     delete m_viewInterface;
 
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 const LayerModel& TemporalScenarioPresenter::layerModel() const

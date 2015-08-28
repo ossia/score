@@ -4,6 +4,7 @@
 #include "AutomationView.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
 #include <core/document/Document.hpp>
 
 #include <QGraphicsSceneMouseEvent>
@@ -40,17 +41,7 @@ AutomationPresenter::AutomationPresenter(
 
 AutomationPresenter::~AutomationPresenter()
 {
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 void AutomationPresenter::setWidth(int width)
