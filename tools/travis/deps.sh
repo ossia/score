@@ -20,8 +20,9 @@ case "$TRAVIS_OS_NAME" in
 	;;
 	osx)
         brew install wget
-        wget https://www.dropbox.com/s/513io412ztndxqe/Jamoma-darwin.zip?dl=1 -O Jamoma-darwin.zip
-        unzip Jamoma-darwin.zip
+        wget https://www.dropbox.com/s/n3dsifakgzjbsnh/Jamoma-Darwin20150828.zip?dl=0 -O JamomaDarwin20150828.zip
+        unzip JamomaDarwin20150828.zip
+        mv JamomaDarwin20150828 Jamoma
 		brew install cmake qt5 boost
 	;;
 esac
