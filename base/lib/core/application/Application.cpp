@@ -14,19 +14,6 @@ using namespace iscore;
 #include "SafeQApplication.hpp"
 static Application* application_instance = nullptr;
 
-class TTException {
-    const char*	reason;
-public:
-    TTException(const char* aReason)
-    : reason(aReason)
-    {}
-
-    const char* getReason()
-    {
-        return reason;
-    }
-};
-
 
 #ifdef ISCORE_DEBUG
 

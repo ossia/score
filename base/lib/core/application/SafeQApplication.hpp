@@ -2,6 +2,19 @@
 #include <QApplication>
 #include <QMessageBox>
 
+class TTException {
+    const char*	reason;
+public:
+    TTException(const char* aReason)
+    : reason(aReason)
+    {}
+
+    const char* getReason()
+    {
+        return reason;
+    }
+};
+
 class SafeQApplication : public QApplication
 {
     public:
