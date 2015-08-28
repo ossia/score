@@ -18,10 +18,15 @@ case "$TRAVIS_OS_NAME" in
         sudo dpkg --force-overwrite -i  gcc.deb
 
 	;;
-	osx)
+    osx)
+        # work around a homebrew bug
+        set +e
+	brew update; brew update 
         brew install wget
-        wget https://www.dropbox.com/s/513io412ztndxqe/Jamoma-darwin.zip?dl=1 -O Jamoma-darwin.zip
-        unzip Jamoma-darwin.zip
-		brew install cmake qt5 boost
+        wget https://www.dropbox.com/s/n3dsifakgzjbsnh/Jamoma-Darwin20150828.zip?dl=0 -O JamomaDarwin20150828.zip
+        unzip JamomaDarwin20150828.zip
+        mv JamomaDarwin20150828 Jamoma
+        brew install cmake qt5 boost
+	set -e
 	;;
 esac

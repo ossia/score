@@ -11,14 +11,11 @@ case "$TRAVIS_OS_NAME" in
         source /opt/qt55/bin/qt55-env.sh
         /usr/local/bin/cmake -DISCORE_COTIRE:Bool=True $CMAKE_COMMON_FLAGS ..
 
-#	make all_unity -j2
         make package -j2
-;;
+    ;;
     osx)
-        cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.4.2/lib/cmake;$(pwd)/../Jamoma/share/cmake" 
--DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
+        cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.0/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
-#	make all_unity -j2
         make install -j2
-	;;
+    ;;
 esac
