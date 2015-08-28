@@ -1,33 +1,21 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <random>
 #include <boost/range/algorithm.hpp>
 
 /**
  * @brief getNextId
  * @return a random int32
  */
-//TODO put me in an impl file, no ?
-inline int32_t getNextId()
-{
-    using namespace std;
-    static random_device rd;
-    static mt19937 gen(rd());
-    static uniform_int_distribution<int32_t>
-    dist(numeric_limits<int32_t>::min(),
-         numeric_limits<int32_t>::max());
+int32_t getNextId();
 
-    return dist(gen);
-}
-
-template<typename Vector>
 /**
  * @brief getNextId
  * @param ids A vector of ids
  *
- * @return A new id not in the vector.
+ * @return A new id not in
+template<typename Vector>the vector.
  */
-inline int getNextId(const Vector& ids)
+int getNextId(const Vector& ids)
 {
     using namespace boost::range;
     int id {};

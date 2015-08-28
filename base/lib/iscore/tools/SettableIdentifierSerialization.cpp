@@ -3,7 +3,6 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include "SettableIdentifier.hpp"
 
-
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
 {
