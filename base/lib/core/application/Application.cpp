@@ -11,6 +11,7 @@
 #include <core/document/DocumentBackups.hpp>
 using namespace iscore;
 #include <QMessageBox>
+#include "SafeQApplication.hpp"
 static Application* application_instance = nullptr;
 
 class TTException {
@@ -26,40 +27,6 @@ public:
     }
 };
 
-class CatchyApplication : public QApplication
-{
-    public:
-        using QApplication::QApplication;
-#if !defined(ISCORE_DEBUG)
-
-        void inform(const QString& str)
-        {
-            QMessageBox::information(
-                        QApplication::activeWindow(), "", str, QMessageBox::Ok);
-        }
-        bool notify(QObject * receiver, QEvent * event) override
-        {
-            try
-            {
-                return QApplication::notify(receiver, event);
-            }
-            catch(TTException& e)
-            {
-                inform(QObject::tr("Internal error: ") + e.getReason());
-            }
-            catch(std::exception& e)
-            {
-                inform(QObject::tr("Internal error: ") + e.what());
-            }
-            catch(...)
-            {
-                inform(QObject::tr("Internal error."));
-            }
-
-            return false;
-        }
-#endif
-};
 
 #ifdef ISCORE_DEBUG
 
@@ -99,7 +66,7 @@ Application::Application(int& argc, char** argv) :
 #endif
     // Application
     // Crashes if put in member initialization list... :(
-    m_app = new CatchyApplication{argc, argv};
+    m_app = new SafeQApplication{argc, argv};
     ::application_instance = this;
 
 #if !defined(ISCORE_DEBUG)
