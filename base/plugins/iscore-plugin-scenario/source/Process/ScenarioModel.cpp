@@ -10,8 +10,6 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-#include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateState.hpp"
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :
@@ -42,25 +40,14 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 {
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 
-    for(const auto& timenode : source.timeNodes)
-    {
-        timeNodes.add(new TimeNodeModel {timenode, timenode.id(), this});
-    }
-
-    for(const auto& event : source.events)
-    {
-        events.add(new EventModel {event, event.id(), this});
-    }
-
-    for(const auto& state : source.states)
-    {
-        states.add(new StateModel{state, state.id(), this});
-    }
-
-    for(const auto& constraint : source.constraints)
-    {
-        constraints.add(new ConstraintModel {constraint, constraint.id(), this});
-    }
+    // This almost terrifying piece of code will simply clone
+    // all the elements (constraint, etc...) from the source to this class
+    // without duplicating code too much.
+    apply([&] (const auto& m) {
+        using the_class = typename remove_qualifs_t<decltype(source.*m)>::value_type;
+        for(const auto& elt : source.*m)
+            (this->*m).add(new the_class{elt, elt.id(), this});
+    });
 }
 
 ScenarioModel* ScenarioModel::clone(
@@ -213,15 +200,10 @@ void ScenarioModel::reset()
 Selection ScenarioModel::selectableChildren() const
 {
     Selection objects;
-    for(const auto& elt : constraints)
-        objects.insert(&elt);
-    for(const auto& elt : events)
-        objects.insert(&elt);
-    for(const auto& elt : timeNodes)
-        objects.insert(&elt);
-    for(const auto& elt : states)
-        objects.insert(&elt);
-
+    apply([&] (const auto& m) {
+        for(auto& elt : this->*m)
+            objects.insert(&elt);
+    });
     return objects;
 }
 
@@ -238,25 +220,17 @@ static void copySelected(const InputVec& in, OutputVec& out)
 Selection ScenarioModel::selectedChildren() const
 {
     Selection objects;
-    copySelected(events, objects);
-    copySelected(timeNodes, objects);
-    copySelected(constraints, objects);
-    copySelected(states, objects);
-
+    apply([&] (const auto& m) { copySelected(this->*m, objects); });
     return objects;
 }
 
 void ScenarioModel::setSelection(const Selection& s) const
 {
     // TODO optimize if possible?
-    for(auto& elt : constraints)
-        elt.selection.set(s.find(&elt) != s.end());
-    for(auto& elt : events)
-        elt.selection.set(s.find(&elt) != s.end());
-    for(auto& elt : timeNodes)
-      elt.selection.set(s.find(&elt) != s.end());
-    for(auto& elt : states)
-      elt.selection.set(s.find(&elt) != s.end());
+    apply([&] (auto&& m) {
+        for(auto& elt : this->*m)
+            elt.selection.set(s.find(&elt) != s.end());
+    });
 }
 
 ProcessStateDataInterface* ScenarioModel::startState() const

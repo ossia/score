@@ -160,6 +160,13 @@ class ScenarioModel : public Process, public ScenarioInterface
         }
 
     private:
+        template<typename Fun>
+        void apply(Fun fun) const {
+            fun(&ScenarioModel::timeNodes);
+            fun(&ScenarioModel::events);
+            fun(&ScenarioModel::constraints);
+            fun(&ScenarioModel::states);
+        }
         ScenarioModel(const ScenarioModel& source,
                       const Id<Process>& id,
                       QObject* parent);
