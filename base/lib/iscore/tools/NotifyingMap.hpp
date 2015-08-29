@@ -257,8 +257,8 @@ class NotifyingMap : public QObject
 
 
 template<typename T>
-const QMetaObject NotifyingMap<T>::staticMetaObject;
+constexpr const QMetaObject NotifyingMap<T>::staticMetaObject;
 template<typename T>
-const uint NotifyingMap<T>::staticMetaData[];
+constexpr const uint NotifyingMap<T>::staticMetaData[];
 template<typename T>
-const typename NotifyingMap<T>::qt_meta_stringdata_NotifyingMap_t NotifyingMap<T>::staticStringData;
+constexpr const typename NotifyingMap<T>::qt_meta_stringdata_NotifyingMap_t NotifyingMap<T>::staticStringData;
