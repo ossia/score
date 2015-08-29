@@ -10,7 +10,7 @@ static void removeEventFromTimeNode(
         const Id<EventModel>& eventId)
 {
     // We have to make a copy else the iterator explodes.
-    auto timenodes = scenario.timeNodes();
+    auto timenodes = scenario.timeNodes.map();
     for(auto& timeNode : timenodes)
     {
         if(timeNode.removeEvent(eventId))
@@ -32,8 +32,8 @@ void StandardRemovalPolicy::removeConstraint(
         ScenarioModel& scenario,
         const Id<ConstraintModel>& constraintId)
 {
-    auto cstr_it = scenario.constraints().find(constraintId);
-    if(cstr_it != scenario.constraints().end())
+    auto cstr_it = scenario.constraints.find(constraintId);
+    if(cstr_it != scenario.constraints.end())
     {
         ConstraintModel& cstr =  *cstr_it;
         auto& sst = scenario.state(cstr.startState());
@@ -42,7 +42,7 @@ void StandardRemovalPolicy::removeConstraint(
         auto& est = scenario.state(cstr.endState());
         est.setPreviousConstraint(Id<ConstraintModel>{});
 
-        scenario.removeConstraint(&cstr);
+        scenario.constraints.remove(&cstr);
     }
     else
     {
@@ -65,7 +65,7 @@ void StandardRemovalPolicy::removeState(
         StandardRemovalPolicy::removeConstraint(scenario, state.nextConstraint());
     }
 
-    scenario.removeState(&state);
+    scenario.states.remove(&state);
 
 }
 
@@ -82,5 +82,5 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
 
     removeEventFromTimeNode(scenario, eventId);
 
-    scenario.removeEvent(&ev);
+    scenario.events.remove(&ev);
 }

@@ -34,6 +34,7 @@ class ScenarioInterface;
 class ConstraintModel : public IdentifiedObject<ConstraintModel>
 {
         Q_OBJECT
+        ISCORE_METADATA("ConstraintModel")
 
         ISCORE_SERIALIZE_FRIENDS(ConstraintModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(ConstraintModel, JSONObject)

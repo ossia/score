@@ -16,8 +16,8 @@ using namespace iscore::IDocument; // for ::path
 void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel &scenario)
 {
     // 1. Select items
-    auto constraintsToRemove = selectedElements(scenario.constraints());
-    auto statesToRemove = selectedElements(scenario.states());
+    auto constraintsToRemove = selectedElements(scenario.constraints);
+    auto statesToRemove = selectedElements(scenario.states);
 
     MacroCommandDispatcher cleaner(new ClearSelection,
                                    m_commandStack);

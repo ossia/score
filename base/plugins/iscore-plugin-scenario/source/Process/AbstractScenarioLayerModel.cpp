@@ -47,7 +47,17 @@ void AbstractScenarioLayerModel::removeConstraintViewModel(
     // We have to emit before, because on removal,
     // some other stuff might use the now-removed model id
     // to do the comparison in vec_erase_remove_if
-    emit constraintViewModelRemoved(constraintViewModelId);
+
+    using namespace std;
+    auto it = find_if(begin(m_constraints),
+                      end(m_constraints),
+                      [&] (ConstraintViewModel* vm)
+    {
+        return vm->id() == constraintViewModelId;
+    });
+    ISCORE_ASSERT(it != end(m_constraints));
+
+    emit constraintViewModelRemoved(**it);
     removeById(m_constraints, constraintViewModelId);
 
 }

@@ -15,6 +15,7 @@ class ScenarioInterface;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
+        ISCORE_METADATA("TimeNodeModel")
 
         ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(TimeNodeModel, JSONObject)
@@ -77,4 +78,3 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 
         QVector<Id<EventModel>> m_events;
 };
-

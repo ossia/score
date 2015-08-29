@@ -20,7 +20,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
         {
             auto s_plugin = sm->findChild<OSSIAScenarioElement*>(QString(), Qt::FindDirectChildrenOnly);
 
-            for(const auto& state : selectedElements(sm->states()))
+            for(const auto& state : selectedElements(sm->states))
             {
                 s_plugin->states().at(state->id())->rootState()->launch();
             }

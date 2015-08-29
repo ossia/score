@@ -4,6 +4,8 @@
 
 #include "Process/ScenarioModel.hpp"
 
+#include <iscore/tools/NotifyingMap.hpp>
+
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
         const VerticalExtent& extent,

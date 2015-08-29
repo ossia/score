@@ -175,10 +175,10 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 
     if (auto sm = m_parent->focusedScenarioModel())
     {
-        base["Constraints"] = arrayToJson(selectedElements(sm->constraints()));
-        base["Events"] = arrayToJson(selectedElements(sm->events()));
-        base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes()));
-        base["TimeNodes"] = arrayToJson(selectedElements(sm->states()));
+        base["Constraints"] = arrayToJson(selectedElements(sm->constraints));
+        base["Events"] = arrayToJson(selectedElements(sm->events));
+        base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes));
+        base["TimeNodes"] = arrayToJson(selectedElements(sm->states));
     }
     else
     {
@@ -217,7 +217,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 
     auto sm = m_parent->focusedScenarioModel();
 
-    auto selectedConstraints = selectedElements(sm->constraints());
+    auto selectedConstraints = selectedElements(sm->constraints);
     for(const auto& json_vref : obj["Constraints"].toArray())
     {
         for(const auto& constraint : selectedConstraints)
@@ -235,7 +235,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 
 void ObjectMenuActions::addProcessInConstraint(QString processName)
 {
-    auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints());
+    auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
     auto cmd = new Scenario::Command::AddProcessToConstraint
     {
         iscore::IDocument::path(**selectedConstraints.begin()),

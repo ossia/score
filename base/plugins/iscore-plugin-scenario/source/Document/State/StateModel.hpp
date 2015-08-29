@@ -23,6 +23,7 @@ class ConstraintModel;
 class StateModel : public IdentifiedObject<StateModel>
 {
         Q_OBJECT
+        ISCORE_METADATA("StateModel")
 
         ISCORE_SERIALIZE_FRIENDS(StateModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(StateModel, JSONObject)

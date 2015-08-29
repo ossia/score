@@ -12,7 +12,7 @@ CreateEvent_State::CreateEvent_State(
         const Id<TimeNodeModel>& timeNode,
         double stateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
-    m_newEvent{getStrongId(scenario.events())},
+    m_newEvent{getStrongId(scenario.events)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,
               m_newEvent,

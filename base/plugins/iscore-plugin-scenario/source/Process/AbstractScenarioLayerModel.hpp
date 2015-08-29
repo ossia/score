@@ -34,22 +34,22 @@ class AbstractScenarioLayerModel : public LayerModel
 
     signals:
         // "created" signal is in the relevant subclasses
-        void constraintViewModelRemoved(const Id<ConstraintViewModel>& constraintViewModelid);
+        void constraintViewModelRemoved(const ConstraintViewModel&);
 
-        void stateCreated(const StateModel& eventId);
-        void stateRemoved(const Id<StateModel>& eventId);
+        void stateCreated(const StateModel&);
+        void stateRemoved(const StateModel&);
 
-        void eventCreated(const EventModel& eventId);
-        void eventRemoved(const Id<EventModel>& eventId);
+        void eventCreated(const EventModel&);
+        void eventRemoved(const EventModel&);
 
-        void timeNodeCreated(const TimeNodeModel& timeNodeId);
-        void timeNodeRemoved(const Id<TimeNodeModel>& timeNodeId);
+        void timeNodeCreated(const TimeNodeModel&);
+        void timeNodeRemoved(const TimeNodeModel&);
 
-        void eventMoved(const EventModel& eventId);
-        void constraintMoved(const ConstraintModel& constraintId);
+        void eventMoved(const EventModel&);
+        void constraintMoved(const ConstraintModel&);
 
     public slots:
-        virtual void on_constraintRemoved(const Id<ConstraintModel>& constraintId) = 0;
+        virtual void on_constraintRemoved(const ConstraintModel&) = 0;
 
     protected:
         AbstractScenarioLayerModel(const Id<LayerModel>& viewModelId,

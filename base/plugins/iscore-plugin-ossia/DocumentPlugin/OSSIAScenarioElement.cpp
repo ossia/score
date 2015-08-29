@@ -29,38 +29,38 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     m_ossia_scenario = OSSIA::Scenario::create();
 
     // Link with i-score
-    connect(element, &ScenarioModel::constraintCreated,
+    con(element->constraints, &NotifyingMap<ConstraintModel>::added,
             this, &OSSIAScenarioElement::on_constraintCreated);
-    connect(element, &ScenarioModel::stateCreated,
+    con(element->states, &NotifyingMap<StateModel>::added,
             this, &OSSIAScenarioElement::on_stateCreated);
-    connect(element, &ScenarioModel::eventCreated,
+    con(element->events, &NotifyingMap<EventModel>::added,
             this, &OSSIAScenarioElement::on_eventCreated);
-    connect(element, &ScenarioModel::timeNodeCreated,
-            this, &OSSIAScenarioElement::on_timeNodeCreated);
+    con(element->timeNodes, &NotifyingMap<TimeNodeModel>::added,
+        this, &OSSIAScenarioElement::on_timeNodeCreated);
 
-    connect(element, &ScenarioModel::constraintRemoved,
+    con(element->constraints, &NotifyingMap<ConstraintModel>::removed,
             this, &OSSIAScenarioElement::on_constraintRemoved);
-    connect(element, &ScenarioModel::stateRemoved,
+    con(element->states, &NotifyingMap<StateModel>::removed,
             this, &OSSIAScenarioElement::on_stateRemoved);
-    connect(element, &ScenarioModel::eventRemoved_before,
+    con(element->events, &NotifyingMap<EventModel>::removed,
             this, &OSSIAScenarioElement::on_eventRemoved);
-    connect(element, &ScenarioModel::timeNodeRemoved,
-            this, &OSSIAScenarioElement::on_timeNodeRemoved);
+    con(element->timeNodes, &NotifyingMap<TimeNodeModel>::removed,
+        this, &OSSIAScenarioElement::on_timeNodeRemoved);
 
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
-    for(const auto& timenode : m_iscore_scenario->timeNodes())
+    for(const auto& timenode : m_iscore_scenario->timeNodes)
     {
         on_timeNodeCreated(timenode);
     }
-    for(const auto& event : m_iscore_scenario->events())
+    for(const auto& event : m_iscore_scenario->events)
     {
         on_eventCreated(event);
     }
-    for(const auto& state : m_iscore_scenario->states())
+    for(const auto& state : m_iscore_scenario->states)
     {
         on_stateCreated(state);
     }
-    for(const auto& constraint : m_iscore_scenario->constraints())
+    for(const auto& constraint : m_iscore_scenario->constraints)
     {
         on_constraintCreated(constraint);
     }
@@ -227,9 +227,9 @@ void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
     m_ossia_timenodes.insert({tn.id(), elt});
 }
 
-void OSSIAScenarioElement::on_constraintRemoved(const Id<ConstraintModel>& id)
+void OSSIAScenarioElement::on_constraintRemoved(const ConstraintModel& iscore_cstr)
 {
-    auto it = m_ossia_constraints.find(id);
+    auto it = m_ossia_constraints.find(iscore_cstr.id());
     auto cst = (*it).second;
 
     auto ref = cst->constraint();
@@ -253,13 +253,13 @@ void OSSIAScenarioElement::on_constraintRemoved(const Id<ConstraintModel>& id)
     delete cst;
 }
 
-void OSSIAScenarioElement::on_stateRemoved(const Id<StateModel> &id)
+void OSSIAScenarioElement::on_stateRemoved(const StateModel& iscore_state)
 {
-    auto it = m_ossia_states.find(id);
+    auto it = m_ossia_states.find(iscore_state.id());
     ISCORE_ASSERT(it != m_ossia_states.end());
     auto state_elt = (*it).second;
 
-    auto ev_it = m_ossia_timeevents.find(m_iscore_scenario->state(id).eventId());
+    auto ev_it = m_ossia_timeevents.find(iscore_state.eventId());
     if(ev_it != m_ossia_timeevents.end())
     {
         OSSIAEventElement* ev = (*ev_it).second;
@@ -270,13 +270,13 @@ void OSSIAScenarioElement::on_stateRemoved(const Id<StateModel> &id)
     delete state_elt;
 }
 
-void OSSIAScenarioElement::on_eventRemoved(const Id<EventModel>& id)
+void OSSIAScenarioElement::on_eventRemoved(const EventModel& iscore_ev)
 {
-    auto ev_it = m_ossia_timeevents.find(id);
+    auto ev_it = m_ossia_timeevents.find(iscore_ev.id());
     ISCORE_ASSERT(ev_it != m_ossia_timeevents.end());
     OSSIAEventElement* ev = (*ev_it).second;
 
-    auto tn_it = m_ossia_timenodes.find(m_iscore_scenario->event(id).timeNode());
+    auto tn_it = m_ossia_timenodes.find(iscore_ev.timeNode());
     if(tn_it != m_ossia_timenodes.end())
     {
         OSSIATimeNodeElement* tn = (*tn_it).second;
@@ -290,9 +290,9 @@ void OSSIAScenarioElement::on_eventRemoved(const Id<EventModel>& id)
     delete ev;
 }
 
-void OSSIAScenarioElement::on_timeNodeRemoved(const Id<TimeNodeModel>& id)
+void OSSIAScenarioElement::on_timeNodeRemoved(const TimeNodeModel& iscore_tn)
 {
-    auto tn_it = m_ossia_timenodes.find(id);
+    auto tn_it = m_ossia_timenodes.find(iscore_tn.id());
     OSSIATimeNodeElement* tn = (*tn_it).second;
 
     m_ossia_scenario->removeTimeNode(tn->timeNode());

@@ -42,15 +42,15 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void stop() override;
 
     private:
-        void on_constraintCreated(const ConstraintModel& id);
-        void on_stateCreated(const StateModel& id);
-        void on_eventCreated(const EventModel& id);
-        void on_timeNodeCreated(const TimeNodeModel& id);
+        void on_constraintCreated(const ConstraintModel&);
+        void on_stateCreated(const StateModel&);
+        void on_eventCreated(const EventModel&);
+        void on_timeNodeCreated(const TimeNodeModel&);
 
-        void on_constraintRemoved(const Id<ConstraintModel>& id);
-        void on_stateRemoved(const Id<StateModel>& id);
-        void on_eventRemoved(const Id<EventModel>& id);
-        void on_timeNodeRemoved(const Id<TimeNodeModel>& id);
+        void on_constraintRemoved(const ConstraintModel&);
+        void on_stateRemoved(const StateModel&);
+        void on_eventRemoved(const EventModel&);
+        void on_timeNodeRemoved(const TimeNodeModel&);
 
 
         QPointer<OSSIAConstraintElement> m_parent_constraint;

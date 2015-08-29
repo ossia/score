@@ -8,7 +8,7 @@ void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,
         ScenarioModel& s)
 {
-    s.removeTimeNode(&s.timeNode(id));
+    s.timeNodes.remove(id);
 }
 
 TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
@@ -18,7 +18,7 @@ TimeNodeModel& ScenarioCreate<TimeNodeModel>::redo(
         ScenarioModel& s)
 {
     auto timeNode = new TimeNodeModel{id, extent, date, &s};
-    s.addTimeNode(timeNode);
+    s.timeNodes.add(timeNode);
 
     return *timeNode;
 }
@@ -29,7 +29,7 @@ void ScenarioCreate<EventModel>::undo(
 {
     auto& ev = s.event(id);
     s.timeNode(ev.timeNode()).removeEvent(id);
-    s.removeEvent(&ev);
+    s.events.remove(&ev);
 }
 
 EventModel& ScenarioCreate<EventModel>::redo(
@@ -40,7 +40,7 @@ EventModel& ScenarioCreate<EventModel>::redo(
 {
     auto ev = new EventModel{id, timenode.id(), extent, timenode.date(), &s};
 
-    s.addEvent(ev);
+    s.events.add(ev);
     timenode.addEvent(id);
 
     return *ev;
@@ -56,7 +56,7 @@ void ScenarioCreate<StateModel>::undo(
 
     ev.removeState(id);
 
-    s.removeState(&state);
+    s.states.remove(&state);
 }
 
 StateModel &ScenarioCreate<StateModel>::redo(
@@ -73,7 +73,7 @@ StateModel &ScenarioCreate<StateModel>::redo(
 
     ev.addState(state->id());
 
-    s.addState(state);
+    s.states.add(state);
 
     return *state;
 }
@@ -90,7 +90,7 @@ void ScenarioCreate<ConstraintModel>::undo(
     sev.setNextConstraint(Id<ConstraintModel>{});
     eev.setPreviousConstraint(Id<ConstraintModel>{});
 
-    s.removeConstraint(&cst);
+    s.constraints.remove(&cst);
 }
 
 ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
@@ -110,7 +110,7 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
     constraint->setStartState(sst.id());
     constraint->setEndState(est.id());
 
-    s.addConstraint(constraint);
+    s.constraints.add(constraint);
 
     sst.setNextConstraint(id);
     est.setPreviousConstraint(id);

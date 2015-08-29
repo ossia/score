@@ -16,7 +16,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
              << scenario.m_endEventId;
 
     // Timenodes
-    const auto& timenodes = scenario.timeNodes();
+    const auto& timenodes = scenario.timeNodes;
     m_stream << (int) timenodes.size();
 
     for(const auto& timenode : timenodes)
@@ -25,7 +25,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     }
 
     // Events
-    const auto& events = scenario.events();
+    const auto& events = scenario.events;
     m_stream << (int) events.size();
 
     for(const auto& event : events)
@@ -34,7 +34,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     }
 
     // States
-    const auto& states = scenario.states();
+    const auto& states = scenario.states;
     m_stream << (int) states.size();
 
     for(const auto& state : states)
@@ -43,7 +43,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     }
 
     // Constraints
-    const auto& constraints = scenario.constraints();
+    const auto& constraints = scenario.constraints;
     m_stream << (int) constraints.size();
 
     for(const auto& constraint : constraints)
@@ -73,7 +73,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     for(; timenode_count -- > 0;)
     {
         auto tnmodel = new TimeNodeModel {*this, &scenario};
-        scenario.addTimeNode(tnmodel);
+        scenario.timeNodes.add(tnmodel);
     }
 
     // Events
@@ -83,7 +83,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     for(; event_count -- > 0;)
     {
         auto evmodel = new EventModel {*this, &scenario};
-        scenario.addEvent(evmodel);
+        scenario.events.add(evmodel);
     }
 
     // Events
@@ -93,7 +93,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     for(; state_count -- > 0;)
     {
         auto stmodel = new StateModel {*this, &scenario};
-        scenario.addState(stmodel);
+        scenario.states.add(stmodel);
     }
 
     // Constraints
@@ -103,7 +103,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     for(; constraint_count -- > 0;)
     {
         auto constraint = new ConstraintModel {*this, &scenario};
-        scenario.addConstraint(constraint);
+        scenario.constraints.add(constraint);
     }
 
     checkDelimiter();
@@ -122,10 +122,10 @@ void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
     m_obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
     m_obj["EndEventId"] = toJsonValue(scenario.m_endEventId);
 
-    m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes());
-    m_obj["Events"] = toJsonArray(scenario.events());
-    m_obj["States"] = toJsonArray(scenario.states());
-    m_obj["Constraints"] = toJsonArray(scenario.constraints());
+    m_obj["TimeNodes"] = toJsonArray(scenario.timeNodes);
+    m_obj["Events"] = toJsonArray(scenario.events);
+    m_obj["States"] = toJsonArray(scenario.states);
+    m_obj["Constraints"] = toJsonArray(scenario.constraints);
 }
 
 template<>
@@ -145,7 +145,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
                        Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
-        scenario.addTimeNode(tnmodel);
+        scenario.timeNodes.add(tnmodel);
     }
 
     for(const auto& json_vref : m_obj["Events"].toArray())
@@ -154,7 +154,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
                        Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
-        scenario.addEvent(evmodel);
+        scenario.events.add(evmodel);
     }
 
     for(const auto& json_vref : m_obj["States"].toArray())
@@ -163,7 +163,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
                        Deserializer<JSONObject>{json_vref.toObject() },
                        &scenario};
 
-        scenario.addState(stmodel);
+        scenario.states.add(stmodel);
     }
 
     for(const auto& json_vref : m_obj["Constraints"].toArray())
@@ -171,7 +171,7 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
         auto constraint = new ConstraintModel{
                 Deserializer<JSONObject>{json_vref.toObject() },
                 &scenario};
-        scenario.addConstraint(constraint);
+        scenario.constraints.add(constraint);
     }
 }
 

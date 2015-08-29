@@ -48,17 +48,17 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     const ScenarioModel& scenario = model(m_layer);
     /////// Setup of existing data
     // For each constraint & event, display' em
-    for(const auto& state_model : scenario.states())
+    for(const auto& state_model : scenario.states)
     {
         on_stateCreated(state_model);
     }
 
-    for(const auto& event_model : scenario.events())
+    for(const auto& event_model : scenario.events)
     {
         on_eventCreated(event_model);
     }
 
-    for(const auto& tn_model : scenario.timeNodes())
+    for(const auto& tn_model : scenario.timeNodes)
     {
         on_timeNodeCreated(tn_model);
     }
@@ -71,24 +71,24 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
     /////// Connections
     con(m_layer, &TemporalScenarioLayerModel::stateCreated,
-            this,		 &TemporalScenarioPresenter::on_stateCreated);
+        this, &TemporalScenarioPresenter::on_stateCreated);
     con(m_layer, &TemporalScenarioLayerModel::stateRemoved,
-            this,		 &TemporalScenarioPresenter::on_stateRemoved);
+        this, &TemporalScenarioPresenter::on_stateRemoved);
 
     con(m_layer, &TemporalScenarioLayerModel::eventCreated,
-            this,		 &TemporalScenarioPresenter::on_eventCreated);
+        this, &TemporalScenarioPresenter::on_eventCreated);
     con(m_layer, &TemporalScenarioLayerModel::eventRemoved,
-            this,		 &TemporalScenarioPresenter::on_eventRemoved);
+        this, &TemporalScenarioPresenter::on_eventRemoved);
 
     con(m_layer, &TemporalScenarioLayerModel::timeNodeCreated,
-            this,        &TemporalScenarioPresenter::on_timeNodeCreated);
+        this, &TemporalScenarioPresenter::on_timeNodeCreated);
     con(m_layer, &TemporalScenarioLayerModel::timeNodeRemoved,
-            this,        &TemporalScenarioPresenter::on_timeNodeRemoved);
+        this, &TemporalScenarioPresenter::on_timeNodeRemoved);
 
     con(m_layer, &TemporalScenarioLayerModel::constraintViewModelCreated,
-            this,		 &TemporalScenarioPresenter::on_constraintViewModelCreated);
+        this, &TemporalScenarioPresenter::on_constraintViewModelCreated);
     con(m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
-            this,		 &TemporalScenarioPresenter::on_constraintViewModelRemoved);
+        this, &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
     connect(m_view, &TemporalScenarioView::scenarioPressed,
             this, [&] (const QPointF&)
@@ -191,32 +191,32 @@ void TemporalScenarioPresenter::removeElement(
 }
 
 void TemporalScenarioPresenter::on_stateRemoved(
-        const Id<StateModel> &stateId)
+        const StateModel& state)
 {
-    removeElement(m_displayedStates.get(), stateId);
+    removeElement(m_displayedStates.get(), state.id());
 }
 
 
 void TemporalScenarioPresenter::on_eventRemoved(
-        const Id<EventModel>& eventId)
+        const EventModel& event)
 {
-    removeElement(m_events.get(), eventId);
+    removeElement(m_events.get(), event.id());
 }
 
 void TemporalScenarioPresenter::on_timeNodeRemoved(
-        const Id<TimeNodeModel>& timeNodeId)
+        const TimeNodeModel& timeNode)
 {
-    removeElement(m_timeNodes.get(), timeNodeId);
+    removeElement(m_timeNodes.get(), timeNode.id());
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelRemoved(
-        const Id<ConstraintViewModel>& constraintViewModelId)
+        const ConstraintViewModel& cvm)
 {
     // Don't put a const auto& here, else deletion will crash.
     for(auto& pres : m_constraints)
     {
         // TODO add an index in the map on viewmodel id ?
-        if(::viewModel(pres).id() == constraintViewModelId)
+        if(::viewModel(pres).id() == cvm.id())
         {
             auto cid = pres.id();
             auto it = m_constraints.find(cid);

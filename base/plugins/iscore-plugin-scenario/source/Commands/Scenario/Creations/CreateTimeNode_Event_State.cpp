@@ -11,7 +11,7 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
         const TimeValue& date,
         double stateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
-    m_newTimeNode{getStrongId(scenario.timeNodes())},
+    m_newTimeNode{getStrongId(scenario.timeNodes)},
     m_date{date},
     m_command{scenario,
               m_newTimeNode,

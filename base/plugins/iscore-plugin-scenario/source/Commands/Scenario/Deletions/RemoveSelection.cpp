@@ -172,7 +172,7 @@ void RemoveSelection::undo()
         {
             tn->removeEvent(event);
         }
-        scenar.addTimeNode(tn);
+        scenar.timeNodes.add(tn);
     }
 
     // Recreate first all the events / maybe removed timenodes
@@ -180,7 +180,7 @@ void RemoveSelection::undo()
     {
         // We have to make a copy at each iteration since each iteration
         // might add a timenode.
-        auto timenodes_in_scenar = scenar.timeNodes();
+        auto timenodes_in_scenar = scenar.timeNodes.map();
         auto scenar_timenode_it = std::find(timenodes_in_scenar.begin(),
                                      timenodes_in_scenar.end(),
                                      event->timeNode());
@@ -200,7 +200,7 @@ void RemoveSelection::undo()
             }
 
             // We can add our event to the scenario.
-            scenar.addEvent(event);
+            scenar.events.add(event);
 
             // Maybe this shall be done after everything has been added to prevent problems ?
             (*scenar_timenode_it).addEvent(event->id());
@@ -221,10 +221,10 @@ void RemoveSelection::undo()
             timeNode->removeEvent(event->id());
 
             // And we add the timenode
-            scenar.addTimeNode(timeNode);
+            scenar.timeNodes.add(timeNode);
 
             // We can re-add the event.
-            scenar.addEvent(event);
+            scenar.events.add(event);
             timeNode->addEvent(event->id());
         }
     }
@@ -232,7 +232,7 @@ void RemoveSelection::undo()
     // All the states
     for(const auto& state : states)
     {
-        scenar.addState(state);
+        scenar.states.add(state);
     }
 
     // And then all the constraints.
@@ -241,7 +241,7 @@ void RemoveSelection::undo()
         Deserializer<DataStream> s{constraintdata.first.second};
         auto cstr = new ConstraintModel{s, &scenar};
 
-        scenar.addConstraint(cstr);
+        scenar.constraints.add(cstr);
 
         // Set-up the start / end events correctly.
         auto& sst = scenar.state(cstr->startState());

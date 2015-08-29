@@ -42,24 +42,24 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
 {
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
 
-    for(const auto& timenode : source.m_timeNodes)
+    for(const auto& timenode : source.timeNodes)
     {
-        addTimeNode(new TimeNodeModel {timenode, timenode.id(), this});
+        timeNodes.add(new TimeNodeModel {timenode, timenode.id(), this});
     }
 
-    for(const auto& event : source.m_events)
+    for(const auto& event : source.events)
     {
-        addEvent(new EventModel {event, event.id(), this});
+        events.add(new EventModel {event, event.id(), this});
     }
 
-    for(const auto& state : source.m_states)
+    for(const auto& state : source.states)
     {
-        addState(new StateModel{state, state.id(), this});
+        states.add(new StateModel{state, state.id(), this});
     }
 
-    for(const auto& constraint : source.m_constraints)
+    for(const auto& constraint : source.constraints)
     {
-        addConstraint(new ConstraintModel {constraint, constraint.id(), this});
+        constraints.add(new ConstraintModel {constraint, constraint.id(), this});
     }
 }
 
@@ -76,7 +76,7 @@ QByteArray ScenarioModel::makeViewModelConstructionData() const
     // view models ids. One day we may need to do this for events / time nodes too.
     QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
     QVector<Id<ConstraintViewModel>> vec;
-    for(const auto& constraint : m_constraints)
+    for(const auto& constraint : constraints)
     {
         auto id = getStrongId(vec);
         vec.push_back(id);
@@ -122,20 +122,20 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 {
     double scale =  newDuration / duration();
 
-    for(auto& timenode : m_timeNodes)
+    for(auto& timenode : timeNodes)
     {
         timenode.setDate(timenode.date() * scale);
         // Since events will also move we do not need
         // to move the timenode.
     }
 
-    for(auto& event : m_events)
+    for(auto& event : events)
     {
         event.setDate(event.date() * scale);
         emit eventMoved(event);
     }
 
-    for(auto& constraint : m_constraints)
+    for(auto& constraint : constraints)
     {
         constraint.setStartDate(constraint.startDate() * scale);
         // Note : scale the min / max.
@@ -197,12 +197,12 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 
 void ScenarioModel::reset()
 {
-    for(auto& constraint : m_constraints)
+    for(auto& constraint : constraints)
     {
         constraint.reset();
     }
 
-    for(auto& event : m_events)
+    for(auto& event : events)
     {
         event.reset();
     }
@@ -213,13 +213,13 @@ void ScenarioModel::reset()
 Selection ScenarioModel::selectableChildren() const
 {
     Selection objects;
-    for(const auto& elt : m_constraints)
+    for(const auto& elt : constraints)
         objects.insert(&elt);
-    for(const auto& elt : m_events)
+    for(const auto& elt : events)
         objects.insert(&elt);
-    for(const auto& elt : m_timeNodes)
+    for(const auto& elt : timeNodes)
         objects.insert(&elt);
-    for(const auto& elt : m_states)
+    for(const auto& elt : states)
         objects.insert(&elt);
 
     return objects;
@@ -238,10 +238,10 @@ static void copySelected(const InputVec& in, OutputVec& out)
 Selection ScenarioModel::selectedChildren() const
 {
     Selection objects;
-    copySelected(m_events, objects);
-    copySelected(m_timeNodes, objects);
-    copySelected(m_constraints, objects);
-    copySelected(m_states, objects);
+    copySelected(events, objects);
+    copySelected(timeNodes, objects);
+    copySelected(constraints, objects);
+    copySelected(states, objects);
 
     return objects;
 }
@@ -249,13 +249,13 @@ Selection ScenarioModel::selectedChildren() const
 void ScenarioModel::setSelection(const Selection& s) const
 {
     // TODO optimize if possible?
-    for(auto& elt : m_constraints)
+    for(auto& elt : constraints)
         elt.selection.set(s.find(&elt) != s.end());
-    for(auto& elt : m_events)
+    for(auto& elt : events)
         elt.selection.set(s.find(&elt) != s.end());
-    for(auto& elt : m_timeNodes)
+    for(auto& elt : timeNodes)
       elt.selection.set(s.find(&elt) != s.end());
-    for(auto& elt : m_states)
+    for(auto& elt : states)
       elt.selection.set(s.find(&elt) != s.end());
 }
 
@@ -277,95 +277,27 @@ void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
     // There is no ConstraintCreated connection to the layer,
     // because the constraints view models are created
     // from the commands, since they require ids too.
-    connect(this, &ScenarioModel::constraintRemoved,
-            scen, &AbstractScenarioLayerModel::on_constraintRemoved);
+    con(constraints, &NotifyingMap<ConstraintModel>::removed,
+        scen, &AbstractScenarioLayerModel::on_constraintRemoved);
 
-    connect(this, &ScenarioModel::stateCreated,
-            scen, &AbstractScenarioLayerModel::stateCreated);
-    connect(this, &ScenarioModel::stateRemoved,
-            scen, &AbstractScenarioLayerModel::stateRemoved);
+    con(states, &NotifyingMap<StateModel>::added,
+        scen, &AbstractScenarioLayerModel::stateCreated);
+    con(states, &NotifyingMap<StateModel>::removed,
+        scen, &AbstractScenarioLayerModel::stateRemoved);
 
-    connect(this, &ScenarioModel::eventCreated,
-            scen, &AbstractScenarioLayerModel::eventCreated);
-    connect(this, &ScenarioModel::eventRemoved_after,
-            scen, &AbstractScenarioLayerModel::eventRemoved);
+    con(events, &NotifyingMap<EventModel>::added,
+        scen, &AbstractScenarioLayerModel::eventCreated);
+    con(events, &NotifyingMap<EventModel>::removed,
+        scen, &AbstractScenarioLayerModel::eventRemoved);
 
-    connect(this, &ScenarioModel::timeNodeCreated,
-            scen, &AbstractScenarioLayerModel::timeNodeCreated);
-    connect(this, &ScenarioModel::timeNodeRemoved,
-            scen, &AbstractScenarioLayerModel::timeNodeRemoved);
+    con(timeNodes, &NotifyingMap<TimeNodeModel>::added,
+        scen, &AbstractScenarioLayerModel::timeNodeCreated);
+    con(timeNodes, &NotifyingMap<TimeNodeModel>::removed,
+        scen, &AbstractScenarioLayerModel::timeNodeRemoved);
 
     connect(this, &ScenarioModel::eventMoved,
             scen, &AbstractScenarioLayerModel::eventMoved);
 
     connect(this, &ScenarioModel::constraintMoved,
             scen, &AbstractScenarioLayerModel::constraintMoved);
-}
-
-///////// ADDITION //////////
-void ScenarioModel::addConstraint(ConstraintModel* constraint)
-{
-    m_constraints.insert(constraint);
-
-    emit constraintCreated(*constraint);
-}
-
-void ScenarioModel::addEvent(EventModel* event)
-{
-    m_events.insert(event);
-
-    emit eventCreated(*event);
-}
-
-void ScenarioModel::addTimeNode(TimeNodeModel* timeNode)
-{
-    m_timeNodes.insert(timeNode);
-
-    emit timeNodeCreated(*timeNode);
-}
-
-void ScenarioModel::addState(StateModel *state)
-{
-    m_states.insert(state);
-
-    emit stateCreated(*state);
-}
-
-///////// DELETION //////////
-void ScenarioModel::removeConstraint(ConstraintModel* cstr)
-{
-    const auto& constraintId = cstr->id();
-    m_constraints.remove(constraintId);
-
-    emit constraintRemoved(constraintId);
-    delete cstr;
-}
-
-void ScenarioModel::removeEvent(EventModel* ev)
-{
-    auto eventId = ev->id(); // Copy because it gets deleted.
-    emit eventRemoved_before(eventId);
-
-    m_events.remove(eventId);
-
-    emit eventRemoved_after(eventId);
-    delete ev;
-}
-
-void ScenarioModel::removeTimeNode(TimeNodeModel* tn)
-{
-    const auto& timeNodeId = tn->id();
-    m_timeNodes.remove(timeNodeId);
-
-    emit timeNodeRemoved(timeNodeId);
-    delete tn;
-}
-
-void ScenarioModel::removeState(StateModel *state)
-{
-    const auto& id = state->id();
-    emit stateRemoved(id);
-
-    m_states.remove(id);
-    delete state;
 }

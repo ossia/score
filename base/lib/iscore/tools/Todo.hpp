@@ -50,6 +50,8 @@ T safe_cast(U&& other)
 #define safe_cast static_cast
 #endif
 
+#define ISCORE_METADATA(str) public: static constexpr const char className[]{ str }; private:
+
 /**
  * @brief con A wrapper around Qt's connect
  *

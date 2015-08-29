@@ -50,3 +50,7 @@ void TimeNodePresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
     emit eventAdded(eventId, m_model.id());
 }
+
+
+#include <iscore/tools/NotifyingMap.hpp>
+

@@ -13,6 +13,8 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include <Process/ScenarioInterface.hpp>
 
+#include <iscore/tools/NotifyingMap.hpp>
+
 #include <iterator>
 
 namespace OSSIA
@@ -78,34 +80,23 @@ class ScenarioModel : public Process, public ScenarioInterface
         ProcessStateDataInterface* endState() const override;
 
         //// ScenarioModel specifics ////
-        // Low-level operations (the caller has the responsibility to maintain the consistency of the scenario)
-        // The scenario takes ownership.
-        void addConstraint(ConstraintModel* constraint);
-        void addEvent(EventModel* event);
-        void addTimeNode(TimeNodeModel* timeNode);
-        void addState(StateModel* state);
-
-        void removeConstraint(ConstraintModel* constraint);
-        void removeEvent(EventModel* event);
-        void removeTimeNode(TimeNodeModel* timeNode);
-        void removeState(StateModel* state);
 
         // Accessors
         ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override
         {
-            return m_constraints.at(constraintId);
+            return constraints.at(constraintId);
         }
         EventModel& event(const Id<EventModel>& eventId) const override
         {
-            return m_events.at(eventId);
+            return events.at(eventId);
         }
         TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const override
         {
-            return m_timeNodes.at(timeNodeId);
+            return timeNodes.at(timeNodeId);
         }
         StateModel& state(const Id<StateModel>& stId) const override
         {
-            return m_states.at(stId);
+            return states.at(stId);
         }
 
         TimeNodeModel& startTimeNode() const
@@ -125,45 +116,15 @@ class ScenarioModel : public Process, public ScenarioInterface
             return event(m_endEventId);
         }
 
-        // Here, a copy is returned because it might be possible
-        // to call a method on the scenario (e.g. removeConstraint) that changes the vector
-        // while iterating, which would invalidate the iterators
-        // and lead to undefined behaviour
-        const auto& constraints() const
-        {
-            return m_constraints;
-        }
-
-        const auto& events() const
-        {
-            return m_events;
-        }
-
-        const auto& timeNodes() const
-        {
-            return m_timeNodes;
-        }
-
-        const auto& states() const
-        {
-            return m_states;
-        }
+        NotifyingMap<ConstraintModel> constraints;
+        NotifyingMap<EventModel> events;
+        NotifyingMap<TimeNodeModel> timeNodes;
+        NotifyingMap<StateModel> states;
 
     signals:
-        void stateCreated(const StateModel& stateId);
-        void eventCreated(const EventModel& eventId);
-        void constraintCreated(const ConstraintModel& constraintId);
-        void timeNodeCreated(const TimeNodeModel& timeNodeId);
-
-        void stateRemoved(const Id<StateModel>& stateId);
-        void eventRemoved_before(const Id<EventModel>& eventId);
-        void eventRemoved_after(const Id<EventModel>& eventId);
-        void constraintRemoved(const Id<ConstraintModel>& constraintId);
-        void timeNodeRemoved(const Id<TimeNodeModel>& timeNodeId);
-
-        void stateMoved(const StateModel& stateId);
-        void eventMoved(const EventModel& eventId);
-        void constraintMoved(const ConstraintModel& constraintId);
+        void stateMoved(const StateModel&);
+        void eventMoved(const EventModel&);
+        void constraintMoved(const ConstraintModel&);
 
         void locked();
         void unlocked();
@@ -204,11 +165,6 @@ class ScenarioModel : public Process, public ScenarioInterface
                       QObject* parent);
         void makeLayer_impl(AbstractScenarioLayerModel*);
 
-        IdContainer<ConstraintModel> m_constraints;
-        IdContainer<EventModel> m_events;
-        IdContainer<TimeNodeModel> m_timeNodes;
-        IdContainer<StateModel> m_states;
-
         Id<TimeNodeModel> m_startTimeNodeId {};
         Id<TimeNodeModel> m_endTimeNodeId {};
 
@@ -217,7 +173,6 @@ class ScenarioModel : public Process, public ScenarioInterface
 
         // By default, creation in the void will make a constraint
         // that goes to the startEvent and add a new state
-
 };
 
 #include <iterator>

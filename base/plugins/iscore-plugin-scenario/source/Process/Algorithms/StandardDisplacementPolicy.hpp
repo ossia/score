@@ -33,7 +33,7 @@ namespace StandardDisplacementPolicy
             }
         }
 
-        for(auto& constraint : scenario.constraints())
+        for(auto& constraint : scenario.constraints)
         {
             const auto& startDate = scenario.event(scenario.state(constraint.startState()).eventId()).date();
             const auto& endDate = scenario.event(scenario.state(constraint.endState()).eventId()).date();

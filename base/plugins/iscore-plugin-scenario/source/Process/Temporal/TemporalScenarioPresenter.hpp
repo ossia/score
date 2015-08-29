@@ -96,19 +96,19 @@ class TemporalScenarioPresenter : public LayerPresenter
 
         void contextMenuAsked(const QPoint&);
 
-    public slots:
+    public:
         // Model -> view
-        void on_stateCreated(const StateModel& state);
-        void on_stateRemoved(const Id<StateModel>& eventId);
+        void on_stateCreated(const StateModel&);
+        void on_stateRemoved(const StateModel&);
 
-        void on_eventCreated(const EventModel& event_model);
-        void on_eventRemoved(const Id<EventModel>& eventId);
+        void on_eventCreated(const EventModel&);
+        void on_eventRemoved(const EventModel&);
 
-        void on_timeNodeCreated(const TimeNodeModel& timeNode_model);
-        void on_timeNodeRemoved(const Id<TimeNodeModel>& timeNodeId);
+        void on_timeNodeCreated(const TimeNodeModel&);
+        void on_timeNodeRemoved(const TimeNodeModel&);
 
-        void on_constraintViewModelCreated(const TemporalConstraintViewModel& cstr);
-        void on_constraintViewModelRemoved(const Id<ConstraintViewModel>& constraintId);
+        void on_constraintViewModelCreated(const TemporalConstraintViewModel&);
+        void on_constraintViewModelRemoved(const ConstraintViewModel&);
 
         void on_askUpdate();
 

@@ -26,6 +26,7 @@ class ScenarioInterface;
 class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
+        ISCORE_METADATA("EventModel")
 
         Q_PROPERTY(iscore::Condition condition
                    READ condition
