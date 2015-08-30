@@ -108,7 +108,7 @@ struct strdata_wrapper
 
 
 template<typename T>
-const strdata_t<T> strdata_wrapper<T>::strdata;
+const strdata_t<T> strdata_wrapper<T>::strdata{};
 
 static const uint staticMetaData[31]{
  // content:
