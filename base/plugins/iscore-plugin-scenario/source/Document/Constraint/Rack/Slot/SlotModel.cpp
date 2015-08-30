@@ -13,10 +13,7 @@ SlotModel::SlotModel(
         RackModel* parent) :
     IdentifiedObject<SlotModel> {id, "SlotModel", parent}
 {
-    con(layers, &NotifyingMap<LayerModel>::added,
-        this, &SlotModel::on_addLayer);
-    con(layers, &NotifyingMap<LayerModel>::removed,
-        this, &SlotModel::on_removeLayer);
+    initConnections();
 }
 
 SlotModel::SlotModel(
@@ -28,6 +25,7 @@ SlotModel::SlotModel(
     m_frontLayerModelId {source.m_frontLayerModelId}, // Keep the same id.
     m_height {source.height() }
 {
+    initConnections();
     lmCopyMethod(source, *this);
 }
 
@@ -115,6 +113,14 @@ void SlotModel::setFocus(bool arg)
 
     m_focus = arg;
     emit focusChanged(arg);
+}
+
+void SlotModel::initConnections()
+{
+    con(layers, &NotifyingMap<LayerModel>::added,
+        this, &SlotModel::on_addLayer);
+    con(layers, &NotifyingMap<LayerModel>::removed,
+        this, &SlotModel::on_removeLayer);
 }
 
 ConstraintModel& SlotModel::parentConstraint() const

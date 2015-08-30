@@ -3,6 +3,7 @@
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -14,13 +15,13 @@ AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     m_path {rackPath}
 {
     auto& rack = m_path.find();
-    m_createdSlotId = getStrongId(rack.getSlots());
+    m_createdSlotId = getStrongId(rack.slotmodels);
 }
 
 void AddSlotToRack::undo()
 {
     auto& rack = m_path.find();
-    rack.removeSlot(m_createdSlotId);
+    rack.slotmodels.remove(m_createdSlotId);
 }
 
 void AddSlotToRack::redo()

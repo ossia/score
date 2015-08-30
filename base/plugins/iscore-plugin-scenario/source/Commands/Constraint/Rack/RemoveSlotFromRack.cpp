@@ -3,6 +3,7 @@
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
+#include <iscore/tools/NotifyingMap_impl.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -23,7 +24,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath) :
     m_position = rack.slotPosition(m_slotId);
 
     Serializer<DataStream> s{&m_serializedSlotData};
-    s.readFrom(rack.slot(m_slotId));
+    s.readFrom(rack.slotmodels.at(m_slotId));
 }
 
 RemoveSlotFromRack::RemoveSlotFromRack(
@@ -39,7 +40,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(
     auto& rack = m_path.find();
     Serializer<DataStream> s{&m_serializedSlotData};
 
-    s.readFrom(rack.slot(slotId));
+    s.readFrom(rack.slotmodels.at(slotId));
     m_position = rack.slotPosition(slotId);
 }
 
@@ -53,7 +54,7 @@ void RemoveSlotFromRack::undo()
 void RemoveSlotFromRack::redo()
 {
     auto& rack = m_path.find();
-    rack.removeSlot(m_slotId);
+    rack.slotmodels.remove(m_slotId);
 }
 
 void RemoveSlotFromRack::serializeImpl(QDataStream& s) const

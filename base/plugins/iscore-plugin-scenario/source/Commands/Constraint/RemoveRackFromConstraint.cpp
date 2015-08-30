@@ -4,6 +4,7 @@
 #include "Document/Constraint/Rack/RackModel.hpp"
 
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

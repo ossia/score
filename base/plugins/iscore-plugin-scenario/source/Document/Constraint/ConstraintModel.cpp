@@ -6,8 +6,11 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Event/EventModel.hpp"
 
+#include <ProcessInterface/LayerModel.hpp>
+
 #include <iscore/document/DocumentInterface.hpp>
-#include "ProcessInterface/LayerModel.hpp"
+#include <iscore/tools/NotifyingMap_impl.hpp>
+
 ConstraintModel::ConstraintModel(
         const Id<ConstraintModel>& id,
         const Id<ConstraintViewModel>& fullViewId,

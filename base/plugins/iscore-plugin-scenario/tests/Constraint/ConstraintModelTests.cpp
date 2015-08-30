@@ -54,7 +54,7 @@ class ConstraintModelTests: public QObject
                     slot_id,
                     rack
                 });
-                rack->removeSlot(slot_id);
+                rack->slotmodels.remove(slot_id);
                 model.removeRack(content_id);
             }
 

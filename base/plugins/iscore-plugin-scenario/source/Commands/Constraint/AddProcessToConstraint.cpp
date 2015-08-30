@@ -14,6 +14,7 @@
 #include "iscore/document/DocumentInterface.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include <iscore/tools/NotifyingMap_impl.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(
@@ -40,9 +41,9 @@ AddProcessToConstraint::AddProcessToConstraint(
     else if (m_notBaseConstraint)
     {
         const auto& firstRack = (*constraint.racks().begin());
-        if(!firstRack.getSlots().empty())
+        if(!firstRack.slotmodels.empty())
         {
-            const auto& firstSlotModel = *(*constraint.racks().begin()).getSlots().begin();
+            const auto& firstSlotModel = *(*constraint.racks().begin()).slotmodels.begin();
 
             m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
             m_createdLayerId = getStrongId(firstSlotModel.layers);
@@ -62,12 +63,15 @@ void AddProcessToConstraint::undo()
         auto& rack = constraint.rack(m_createdRackId);
 
         // Removing the slot will remove the layer
-        rack.removeSlot(m_createdSlotId);
+        rack.slotmodels.remove(m_createdSlotId);
         constraint.removeRack(m_createdRackId);
     }
     else if(m_notBaseConstraint)
     {
-        auto& slot = *(*constraint.racks().begin()).getSlots().begin();
+        ISCORE_ASSERT(!constraint.racks().empty());
+        ISCORE_ASSERT(!(*constraint.racks().begin()).slotmodels.empty());
+
+        auto& slot = *(*constraint.racks().begin()).slotmodels.begin();
         slot.layers.remove(m_createdLayerId);
     }
 
@@ -107,13 +111,16 @@ void AddProcessToConstraint::redo()
                                     rack});
 
         // Process View
-        auto& slot = rack->slot(m_createdSlotId);
+        auto& slot = rack->slotmodels.at(m_createdSlotId);
 
         slot.layers.add(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
     }
     else if(m_notBaseConstraint)
     {
-        auto& slot = *(*constraint.racks().begin()).getSlots().begin();
+        ISCORE_ASSERT(!constraint.racks().empty());
+        ISCORE_ASSERT(!(*constraint.racks().begin()).slotmodels.empty());
+
+        auto& slot = *(*constraint.racks().begin()).slotmodels.begin();
 
         slot.layers.add(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
     }

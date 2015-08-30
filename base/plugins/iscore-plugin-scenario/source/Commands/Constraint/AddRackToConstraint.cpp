@@ -5,6 +5,8 @@
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
+#include <iscore/tools/NotifyingMap_impl.hpp>
+
 using namespace iscore;
 using namespace Scenario::Command;
 

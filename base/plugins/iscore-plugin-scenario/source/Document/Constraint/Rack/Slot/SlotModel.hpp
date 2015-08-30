@@ -16,6 +16,7 @@ class LayerModel;
 class SlotModel : public IdentifiedObject<SlotModel>
 {
         Q_OBJECT
+        ISCORE_METADATA("SlotModel")
         ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
 
@@ -45,6 +46,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
         SlotModel(Deserializer<Impl>& vis, QObject* parent) :
             IdentifiedObject{vis, parent}
         {
+            initConnections();
             vis.writeTo(*this);
         }
 
@@ -77,6 +79,8 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void setFocus(bool arg);
 
     private:
+        void initConnections();
+
         void on_addLayer(const LayerModel& viewmodel);
         void on_removeLayer(const LayerModel&);
 

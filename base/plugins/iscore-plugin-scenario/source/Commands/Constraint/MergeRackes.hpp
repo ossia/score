@@ -31,7 +31,7 @@ namespace Scenario
                 {
                     const auto& sourcerack = mergeSource.find();
 
-                    for(const auto& slot : sourcerack.getSlots())
+                    for(const auto& slot : sourcerack.slotmodels)
                     {
                         addCommand(new MoveSlot{
                                        iscore::IDocument::path(slot),

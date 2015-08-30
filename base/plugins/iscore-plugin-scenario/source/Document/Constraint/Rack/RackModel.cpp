@@ -2,12 +2,13 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Slot/SlotModel.hpp"
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
     IdentifiedObject<RackModel> {id, "RackModel", parent}
 {
-
+    initConnections();
 }
 
 RackModel::RackModel(const RackModel& source,
@@ -16,7 +17,8 @@ RackModel::RackModel(const RackModel& source,
                    QObject *parent) :
     IdentifiedObject<RackModel> {id, "RackModel", parent}
 {
-    for(const auto& slot : source.m_slots)
+    initConnections();
+    for(const auto& slot : source.slotmodels)
     {
         addSlot(new SlotModel{lmCopyMethod, slot, slot.id(), this},
                 source.slotPosition(slot.id()));
@@ -27,7 +29,7 @@ RackModel::RackModel(const RackModel& source,
 
 ConstraintModel& RackModel::constraint() const
 {
-    return static_cast<ConstraintModel&>(*this->parent());
+    return safe_cast<ConstraintModel&>(*this->parent());
 }
 
 void RackModel::addSlot(SlotModel* slot, int position)
@@ -35,10 +37,10 @@ void RackModel::addSlot(SlotModel* slot, int position)
     // Connection
     connect(this, &RackModel::on_deleteSharedProcessModel,
             slot, &SlotModel::on_deleteSharedProcessModel);
-    m_slots.insert(slot);
-    m_positions.insert(position, slot->id());
 
-    emit slotCreated(slot->id());
+    m_positions.insert(position, slot->id());
+    slotmodels.add(slot);
+
     emit slotPositionsChanged();
 }
 
@@ -47,18 +49,12 @@ void RackModel::addSlot(SlotModel* m)
     addSlot(m, m_positions.size());
 }
 
-
-void RackModel::removeSlot(const Id<SlotModel>& slotId)
+void RackModel::on_slotRemoved(const SlotModel& slot)
 {
-    auto& removedSlot = slot(slotId);
-
     // Make the remaining slots decrease their position.
-    m_positions.removeAll(slotId);
-    m_slots.remove(slotId);
+    m_positions.removeAll(slot.id());
 
-    emit slotRemoved(slotId);
     emit slotPositionsChanged();
-    delete &removedSlot;
 }
 
 void RackModel::swapSlots(const Id<SlotModel>& firstslot,
@@ -68,7 +64,8 @@ void RackModel::swapSlots(const Id<SlotModel>& firstslot,
     emit slotPositionsChanged();
 }
 
-SlotModel& RackModel::slot(const Id<SlotModel>& slotId) const
+void RackModel::initConnections()
 {
-    return m_slots.at(slotId);
+    con(slotmodels, &NotifyingMap<SlotModel>::removed,
+        this, &RackModel::on_slotRemoved);
 }

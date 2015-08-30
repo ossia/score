@@ -7,6 +7,8 @@
 #include "Document/Constraint/Rack/Slot/SlotView.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QGraphicsScene>
@@ -18,7 +20,7 @@ RackPresenter::RackPresenter(const RackModel& model,
     m_model {model},
     m_view {view}
 {
-    for(const auto& slotModel : m_model.getSlots())
+    for(const auto& slotModel : m_model.slotmodels)
     {
         on_slotCreated_impl(slotModel);
     }
@@ -27,15 +29,15 @@ RackPresenter::RackPresenter(const RackModel& model,
 
     on_askUpdate();
 
-    con(m_model, &RackModel::slotCreated,
-            this, &RackPresenter::on_slotCreated);
-    con(m_model,&RackModel::slotRemoved,
-            this, &RackPresenter::on_slotRemoved);
+    con(m_model.slotmodels, &NotifyingMap<SlotModel>::added,
+        this, &RackPresenter::on_slotCreated);
+    con(m_model.slotmodels, &NotifyingMap<SlotModel>::removed,
+        this, &RackPresenter::on_slotRemoved);
     con(m_model, &RackModel::slotPositionsChanged,
-            this, &RackPresenter::on_slotPositionsChanged);
+        this, &RackPresenter::on_slotPositionsChanged);
 
     con(m_model, &RackModel::on_durationChanged,
-            this, &RackPresenter::on_durationChanged);
+        this, &RackPresenter::on_durationChanged);
 }
 
 RackPresenter::~RackPresenter()
@@ -52,7 +54,7 @@ qreal RackPresenter::height() const
 {
     qreal totalHeight = 0; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 
-    for(const auto& slot : m_slots)
+    for(const auto& slot : slotmodels)
     {
         totalHeight += slot.height() + 5.;
     }
@@ -69,7 +71,7 @@ void RackPresenter::setWidth(qreal w)
 {
     m_view->setWidth(w);
 
-    for(auto& slot : m_slots)
+    for(auto& slot : slotmodels)
     {
         slot.setWidth(m_view->boundingRect().width());
     }
@@ -82,7 +84,7 @@ const Id<RackModel>& RackPresenter::id() const
 
 void RackPresenter::setDisabledSlotState()
 {
-    for(auto& slot : m_slots)
+    for(auto& slot : slotmodels)
     {
         slot.disable();
     }
@@ -90,7 +92,7 @@ void RackPresenter::setDisabledSlotState()
 
 void RackPresenter::setEnabledSlotState()
 {
-    for(auto& slot : m_slots)
+    for(auto& slot : slotmodels)
     {
         slot.enable();
     }
@@ -102,19 +104,18 @@ void RackPresenter::on_durationChanged(const TimeValue& duration)
     on_askUpdate();
 }
 
-void RackPresenter::on_slotCreated(const Id<SlotModel>& slotId)
+void RackPresenter::on_slotCreated(const SlotModel& slot)
 {
-    on_slotCreated_impl(m_model.slot(slotId));
+    on_slotCreated_impl(slot);
     on_askUpdate();
 }
 
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
 void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 {
     auto slotPres = new SlotPresenter {slotModel,
                                        m_view,
                                        this};
-    m_slots.insert(slotPres);
+    slotmodels.insert(slotPres);
     slotPres->on_zoomRatioChanged(m_zoomRatio);
 
     connect(slotPres, &SlotPresenter::askUpdate,
@@ -136,12 +137,12 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
     }
 }
 
-void RackPresenter::on_slotRemoved(const Id<SlotModel>& slotId)
+void RackPresenter::on_slotRemoved(const SlotModel& slot_model)
 {
-    auto slot = &m_slots.at(slotId);
+    auto slot = &slotmodels.at(slot_model.id());
 
     delete slot;
-    m_slots.remove(slotId);
+    slotmodels.remove(slot_model.id());
 
     on_askUpdate();
 }
@@ -157,7 +158,7 @@ void RackPresenter::updateShape()
 
     for(const auto& slotId : m_model.slotsPositions())
     {
-        auto& slotPres = m_slots.at(slotId);
+        auto& slotPres = slotmodels.at(slotId);
         slotPres.setWidth(width());
         slotPres.setVerticalPosition(currentSlotY);
         currentSlotY += slotPres.height() + 5; // Separation between slots
@@ -166,7 +167,7 @@ void RackPresenter::updateShape()
     // Horizontal shape
     setWidth(m_duration.toPixels(m_zoomRatio));
 
-    for(auto& slot : m_slots)
+    for(auto& slot : slotmodels)
     {
         slot.on_parentGeometryChanged();
     }
@@ -187,7 +188,7 @@ void RackPresenter::on_zoomRatioChanged(ZoomRatio val)
     // We have to change the width of the slots aftewards
     // because their width depend on the rack width
     // TODO this smells.
-    for(auto& slot : m_slots)
+    for(auto& slot : slotmodels)
     {
         slot.on_zoomRatioChanged(m_zoomRatio);
     }

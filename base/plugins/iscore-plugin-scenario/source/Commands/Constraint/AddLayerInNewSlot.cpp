@@ -8,6 +8,7 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 
 using namespace iscore;
@@ -46,7 +47,7 @@ void AddLayerInNewSlot::undo()
     auto& rack = constraint.rack(m_createdRackId);
 
     // Removing the slot is enough
-    rack.removeSlot(m_createdSlotId);
+    rack.slotmodels.remove(m_createdSlotId);
 
     // Remove the rack
     if(!m_existingRack)
@@ -83,7 +84,7 @@ void AddLayerInNewSlot::redo()
                                 &rack});
 
     // Process View
-    auto& slot = rack.slot(m_createdSlotId);
+    auto& slot = rack.slotmodels.at(m_createdSlotId);
     auto& proc = constraint.process(m_sharedProcessModelId);
 
     slot.layers.add(proc.makeLayer(m_createdLayerId,

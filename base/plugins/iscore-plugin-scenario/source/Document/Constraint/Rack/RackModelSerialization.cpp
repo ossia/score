@@ -9,7 +9,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
 
     m_stream << rack.slotsPositions();
 
-    auto theSlots = rack.getSlots();
+    const auto& theSlots = rack.slotmodels;
     m_stream << (int) theSlots.size();
 
     for(const auto& slot : theSlots)
@@ -43,7 +43,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const RackModel& rack)
     readFrom(static_cast<const IdentifiedObject<RackModel>&>(rack));
 
     QJsonArray arr;
-    for(const auto& slot : rack.getSlots())
+    for(const auto& slot : rack.slotmodels)
     {
         arr.push_back(toJsonObject(slot));
     }

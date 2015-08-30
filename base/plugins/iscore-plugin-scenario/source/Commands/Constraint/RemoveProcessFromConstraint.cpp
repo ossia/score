@@ -11,6 +11,7 @@
 #include "source/ProcessInterfaceSerialization/LayerModelSerialization.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -55,7 +56,7 @@ void RemoveProcessFromConstraint::undo()
 
         auto& slot = constraint
                 .rack(Id<RackModel>(path.at(path.size() - 3).id()))
-                .slot(Id<SlotModel>(path.at(path.size() - 2).id()));
+                .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
         auto lm = createLayerModel(s,

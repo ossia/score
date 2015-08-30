@@ -36,7 +36,7 @@ class RackPresenter : public NamedObject
 
         const Id<RackModel>& id() const;
         const IdContainer<SlotPresenter,SlotModel>& getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
-        { return m_slots; }
+        { return slotmodels; }
 
         void setDisabledSlotState();
         void setEnabledSlotState();
@@ -51,16 +51,17 @@ class RackPresenter : public NamedObject
 
 
     public slots:
-        void on_durationChanged(const TimeValue& duration);
-        void on_slotCreated(const Id<SlotModel>& slotId);
-        void on_slotRemoved(const Id<SlotModel>& slotId);
+        void on_durationChanged(const TimeValue&);
 
         void on_askUpdate();
 
-        void on_zoomRatioChanged(ZoomRatio val);
+        void on_zoomRatioChanged(ZoomRatio);
         void on_slotPositionsChanged();
 
     private:
+        void on_slotCreated(const SlotModel&);
+        void on_slotRemoved(const SlotModel&);
+
         void on_slotCreated_impl(const SlotModel& m);
 
         // Updates the shape of the view
@@ -68,7 +69,7 @@ class RackPresenter : public NamedObject
 
         const RackModel& m_model;
         RackView* m_view;
-        IdContainer<SlotPresenter,SlotModel> m_slots;
+        IdContainer<SlotPresenter,SlotModel> slotmodels;
 
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};

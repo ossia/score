@@ -76,18 +76,17 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()),
     };
     cmd4.redo();
-    auto slotId = (*rack.getSlots().begin()).id();
 
     ResizeSlotVertically cmd5
     {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->slotmodels.begin()),
         1500
     };
     cmd5.redo();
 
     AddLayerModelToSlot cmd6
     {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->getSlots().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->slotmodels.begin()),
         iscore::IDocument::path(*m_baseScenario->baseConstraint().processes().begin()),
     };
     cmd6.redo();
