@@ -101,8 +101,14 @@ struct strdata_t
 };
 
 template<typename T>
-static const strdata_t<T> strdata;
+struct strdata_wrapper
+{
+    static const strdata_t<T> strdata;
+};
 
+
+template<typename T>
+const strdata_t<T> strdata_wrapper<T>::strdata;
 
 static const uint staticMetaData[31]{
  // content:
@@ -130,7 +136,7 @@ static const uint staticMetaData[31]{
 template<typename T>
 const QMetaObject NotifyingMap<T>::staticMetaObject{
     { &QObject::staticMetaObject,
-      strdata<T>.data,
+      strdata_wrapper<T>::strdata.data,
       staticMetaData,  qt_static_metacall, Q_NULLPTR, Q_NULLPTR }
 };
 
