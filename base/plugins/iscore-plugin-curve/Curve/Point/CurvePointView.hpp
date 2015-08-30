@@ -32,4 +32,9 @@ class CurvePointView : public QGraphicsObject
         const CurvePointModel& m_model;
         bool m_selected{};
         bool m_enabled{true};
+
+        // QGraphicsItem interface
+    protected:
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 };

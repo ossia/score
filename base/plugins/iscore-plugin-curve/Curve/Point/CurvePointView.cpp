@@ -4,6 +4,7 @@
 #include "CurvePointModel.hpp"
 
 #include <QGraphicsSceneContextMenuEvent>
+#include <QCursor>
 
 CurvePointView::CurvePointView(
         const CurvePointModel& model,
@@ -11,6 +12,7 @@ CurvePointView::CurvePointView(
     QGraphicsObject{parent},
     m_model{model}
 {
+    this->setAcceptHoverEvents(true);
     this->setZValue(parent->zValue() + 2);
     con(m_model.selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
@@ -75,4 +77,16 @@ void CurvePointView::disable()
 void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
     emit contextMenuRequested(ev->screenPos());
+}
+
+#include <QApplication>
+#include <QWidget>
+void CurvePointView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+    qApp->activeWindow()->setCursor(Qt::CrossCursor);
+}
+
+void CurvePointView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+    qApp->activeWindow()->setCursor(Qt::ArrowCursor);
 }

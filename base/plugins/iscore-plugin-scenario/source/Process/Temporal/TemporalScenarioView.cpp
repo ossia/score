@@ -11,7 +11,7 @@
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     LayerView {parent}
 {
-    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
+    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
     this->setCursor(Qt::ArrowCursor);
     setAcceptDrops(true);
 

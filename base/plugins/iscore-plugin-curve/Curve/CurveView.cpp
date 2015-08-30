@@ -3,11 +3,14 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QDebug>
+#include <QCursor>
 
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
+    this->setCursor(Qt::ArrowCursor);
     this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
+
     this->setZValue(parent->zValue() + 1);
 }
 

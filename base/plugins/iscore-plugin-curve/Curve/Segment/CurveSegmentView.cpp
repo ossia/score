@@ -2,7 +2,7 @@
 #include "CurveSegmentModel.hpp"
 #include <QGraphicsSceneContextMenuEvent>
 #include <QPainter>
-
+#include <QCursor>
 static QColor baseColor{QColor::fromRgb(3, 195, 221)};
 CurveSegmentView::CurveSegmentView(
         const CurveSegmentModel& model,
@@ -10,6 +10,7 @@ CurveSegmentView::CurveSegmentView(
     QGraphicsObject{parent},
     m_model{model}
 {
+    this->setCursor(Qt::ArrowCursor);
     this->setZValue(parent->zValue() + 1);
     this->setFlag(ItemIsFocusable, false);
 

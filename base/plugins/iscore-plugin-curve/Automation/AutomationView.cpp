@@ -7,7 +7,7 @@ AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}
 {
     setZValue(parent->zValue() + 1);
-    setFlags(ItemClipsChildrenToShape);
+    this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 }
 
 void AutomationView::paint(QPainter* painter,

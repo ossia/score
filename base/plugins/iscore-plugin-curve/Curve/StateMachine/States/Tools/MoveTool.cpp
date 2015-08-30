@@ -139,6 +139,8 @@ MoveTool::MoveTool(CurveStateMachine &sm):
     make_transition<ClickOnPoint_Transition>(waitState, state, *state);
     state->addTransition(state, SIGNAL(finished()), waitState);
 
+    localSM().setObjectName("MoveToolSM");
+
     localSM().setInitialState(waitState);
 
     localSM().start();

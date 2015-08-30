@@ -77,12 +77,16 @@ void CurvePresenter::setPos(CurvePointView& point)
     {
         const auto& curvemodel = m_model.segments().at(point.model().previous());
         point.setPos(myscale(curvemodel.end(), size));
+        return;
     }
     else if(point.model().following())
     {
         const auto& curvemodel = m_model.segments().at(point.model().following());
         point.setPos(myscale(curvemodel.start(), size));
+        return;
     }
+
+    ISCORE_ABORT;
 }
 
 void CurvePresenter::setPos(CurveSegmentView& segment)

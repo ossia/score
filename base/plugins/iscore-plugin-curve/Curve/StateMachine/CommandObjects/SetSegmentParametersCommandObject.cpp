@@ -38,7 +38,7 @@ void SetSegmentParametersCommandObject::move()
       ? clamp(*m_horizontalOrig + (m_state->currentPoint.x() - m_originalPress.x()) , -1., 1.)
       : 0;
 
-    // TODO here we can clearly optimize ...
+    // OPTIMIZEME
     m_dispatcher.submitCommand(
         Path<CurveModel>{},
         SegmentParameterMap{{m_state->clickedSegmentId, {newVertical, newHorizontal
