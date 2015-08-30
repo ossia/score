@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 #include <ProcessInterface/LayerModel.hpp>
 #include <ProcessInterface/LayerPresenter.hpp>
 #include <QPointer>

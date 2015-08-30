@@ -1,7 +1,7 @@
 #pragma once
 #include <Document/Constraint/ConstraintDurations.hpp>
 #include <Document/Constraint/Rack/RackModel.hpp>
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 
 #include <source/Document/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>

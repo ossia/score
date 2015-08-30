@@ -1,5 +1,5 @@
 #include "ProcessPanelGraphicsProxy.hpp"
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 #include "ProcessPanelPresenter.hpp"
 #include <QPainter>
 

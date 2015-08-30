@@ -1,5 +1,5 @@
 #include "LayerModelSerialization.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 

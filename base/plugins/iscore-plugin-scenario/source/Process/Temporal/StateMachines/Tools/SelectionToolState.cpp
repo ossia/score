@@ -35,7 +35,7 @@
 
 #include "States/ScenarioSelectionState.hpp"
 #include "MoveSlotToolState.hpp"
-#include "States/SlotStates.hpp"
+#include "Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp"
 #include "Process/Temporal/StateMachines/Transitions/SlotTransitions.hpp"
 
 SelectionTool::SelectionTool(ScenarioStateMachine& sm):

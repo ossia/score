@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <State/DynamicStateDataInterface.hpp>
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 
 class ProcessStateDataInterface : public DynamicStateDataInterface
 {

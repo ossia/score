@@ -1,25 +1,10 @@
 #pragma once
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-#include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
-#include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
 class BaseStateMachine;
 class QGraphicsScene;
-class ResizeSlotState : public SlotState
-{
-    public:
-        ResizeSlotState(
-                iscore::CommandStack& stack,
-                const BaseStateMachine& sm,
-                QState* parent);
 
-    private:
-        SingleOngoingCommandDispatcher<Scenario::Command::ResizeSlotVertically> m_ongoingDispatcher;
-        const BaseStateMachine& m_sm;
-};
-
-// TODO split file
 class DragSlotState : public SlotState
 {
     public:

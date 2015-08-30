@@ -5,7 +5,7 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 

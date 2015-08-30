@@ -12,7 +12,7 @@
 #include "Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
 
 #include "ProcessInterface/LayerModel.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 
 #include "Commands/Constraint/Rack/RemoveSlotFromRack.hpp"
 #include "Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp"

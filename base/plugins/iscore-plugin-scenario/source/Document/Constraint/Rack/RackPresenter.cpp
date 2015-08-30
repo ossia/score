@@ -131,7 +131,7 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
     if(!scenario)
         return;
 
-    if(scenario->stateMachine().tool() == Tool::MoveSlot)
+    if(scenario->stateMachine().tool() == ScenarioToolKind::MoveSlot)
     {
         slotPres->disable();
     }

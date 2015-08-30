@@ -183,7 +183,6 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Plugins (TODO factorize with ConstraintInspectorWidget)
-
     for(auto& plugdata : m_model.pluginModelList.list())
     {
         for(iscore::DocumentDelegatePluginModel* plugin : doc.model().pluginModels())

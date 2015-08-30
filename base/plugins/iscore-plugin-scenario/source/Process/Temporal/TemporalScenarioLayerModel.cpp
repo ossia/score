@@ -40,7 +40,7 @@ TemporalScenarioLayerModel::TemporalScenarioLayerModel(
 {
     for(TemporalConstraintViewModel* src_constraint : constraintsViewModels(source))
     {
-        // TODO some room for optimization here
+        // OPTMIZEME (inside addConstraintViewModel)
         addConstraintViewModel(
                     src_constraint->clone(
                         src_constraint->id(),

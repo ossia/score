@@ -84,6 +84,6 @@ class ConstraintDurations : public QObject
         TimeValue m_minDuration{m_defaultDuration};
         TimeValue m_maxDuration{m_defaultDuration};
 
-        TimeValue m_playDuration;
+        TimeValue m_playDuration; // TODO should be a play percentage instead.
         bool m_rigidity{true};
 };

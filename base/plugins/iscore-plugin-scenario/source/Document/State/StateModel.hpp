@@ -72,9 +72,9 @@ class StateModel : public IdentifiedObject<StateModel>
         void setHeightPercentage(double y);
 
     private:
-        Id<EventModel> m_eventId;  // TODO serialize
+        Id<EventModel> m_eventId;
 
-        // TODO When we shift to Id = int, put this Optional
+        // OPTIMIZEME if we shift to Id = int, put this Optional
         Id<ConstraintModel> m_previousConstraint;
         Id<ConstraintModel> m_nextConstraint;
 

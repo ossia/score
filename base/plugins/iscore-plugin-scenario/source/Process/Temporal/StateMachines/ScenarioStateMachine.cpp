@@ -120,16 +120,16 @@ const ScenarioModel& ScenarioStateMachine::model() const
     return static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel());
 }
 
-Tool ScenarioStateMachine::tool() const
+ScenarioToolKind ScenarioStateMachine::tool() const
 {
     if(createState->active())
-        return Tool::Create;
+        return ScenarioToolKind::Create;
     if(selectState->active())
-        return Tool::Select;
+        return ScenarioToolKind::Select;
     if(moveSlotState->active())
-        return Tool::MoveSlot;
+        return ScenarioToolKind::MoveSlot;
 
-    return Tool::Select;
+    return ScenarioToolKind::Select;
 }
 
 bool ScenarioStateMachine::isShiftPressed() const
@@ -143,13 +143,13 @@ void ScenarioStateMachine::changeTool(int state)
     emit exitState();
     switch(state)
     {
-    case static_cast<int>(Tool::Create):
+    case static_cast<int>(ScenarioToolKind::Create):
         emit setCreateState();
         break;
-    case static_cast<int>(Tool::MoveSlot):
+    case static_cast<int>(ScenarioToolKind::MoveSlot):
         emit setSlotMoveState();
         break;
-    case static_cast<int>(Tool::Select):
+    case static_cast<int>(ScenarioToolKind::Select):
         emit setSelectState();
         break;
 

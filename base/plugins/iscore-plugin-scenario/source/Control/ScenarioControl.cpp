@@ -4,7 +4,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 #include <ProcessInterface/LayerModel.hpp>
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
@@ -145,7 +145,7 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
     m_toolActions->setEnabled(false);
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
-        s_pres->stateMachine().changeTool((int)Tool::Select);
+        s_pres->stateMachine().changeTool((int)ScenarioToolKind::Select);
     }
 }
 

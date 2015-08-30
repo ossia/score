@@ -11,9 +11,8 @@ class DataStream;
 class JSONObject;
 class ProcessStateDataInterface;
 class LayerModel;
-// TODO rename file ?
 /**
- * @brief The ProcessModel class
+ * @brief The Process class
  *
  * Interface to implement to make a process.
  */
@@ -107,7 +106,7 @@ class Process: public IdentifiedObject<Process>
         /// Execution
         virtual void reset() = 0;
 
-        /// States
+        /// States. The process has ownership.
         virtual ProcessStateDataInterface* startState() const = 0;
         virtual ProcessStateDataInterface* endState() const = 0;
 

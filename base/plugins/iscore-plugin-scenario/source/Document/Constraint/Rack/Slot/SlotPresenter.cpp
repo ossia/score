@@ -10,7 +10,7 @@
 #include "ProcessInterface/LayerModel.hpp"
 #include "ProcessInterface/LayerView.hpp"
 #include "ProcessInterface/ProcessFactory.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 
 #include "Document/Constraint/Rack/RackView.hpp"
 #include "SlotHandle.hpp"
@@ -141,7 +141,7 @@ void SlotPresenter::on_layerModelPutToFront(
         const LayerModel& layer)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
-    // TODO optimize by saving the previous to front and just switching...
+    // OPTIMIZEME by saving the previous to front and just switching...
     for(auto& pair : m_processes)
     {
         if(pair.first->layerModel().id() == layer.id())

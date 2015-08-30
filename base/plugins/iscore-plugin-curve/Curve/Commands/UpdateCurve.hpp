@@ -4,7 +4,7 @@
 
 class CurveModel;
 class CurveSegmentModel;
-// TODO due to AutomationControl this can't be put in a lib...
+
 class UpdateCurve : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL_OBSOLETE("UpdateCurve", "UpdateCurve")
@@ -17,7 +17,7 @@ class UpdateCurve : public iscore::SerializableCommand
         void undo() override;
         void redo() override;
 
-        void update(Path<CurveModel>&& model, QVector<QByteArray>&&  segments);
+        void update(Path<CurveModel>&& model, QVector<QByteArray>&& segments);
 
     protected:
         void serializeImpl(QDataStream & s) const override;

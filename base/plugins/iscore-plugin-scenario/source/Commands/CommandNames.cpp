@@ -106,7 +106,6 @@ void ScenarioControl::setupCommands()
             ChangeElementName<ConstraintModel>,
             ChangeElementName<EventModel>,
             ChangeElementName<TimeNodeModel>,
-            // TODO StateModel
 
             ClearConstraint,
             ClearState,

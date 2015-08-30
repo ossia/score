@@ -22,7 +22,7 @@ class SerializableCommand : public Command
         ~SerializableCommand();
 
         const QString& name() const;
-        const QString& parentName() const; // TODO rename in factory name ?
+        const QString& parentName() const; // Note: factoryName() is the constexpr one.
         const QString& text() const;
         void setText(const QString& t);
 

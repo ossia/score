@@ -150,7 +150,8 @@ void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addre
 
     node->set(addressSettings);
 
-    QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*node)); // TODO optimizeme
+    // OPTIMIZEME
+    QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*node));
 
     emit dataChanged(
                 createIndex(nodeIndex.row(), 0, node->parent()),

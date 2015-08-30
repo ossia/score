@@ -1,7 +1,7 @@
 #include "AddLayerModelToSlot.hpp"
 
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 #include "ProcessInterfaceSerialization/LayerModelSerialization.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>

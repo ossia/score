@@ -24,8 +24,6 @@ CreateCurveFromStates::CreateCurveFromStates(
         const iscore::Address& address,
         double start,
         double end):
-    // TODO to prevent needless recopying, why not templating the ctor
-    // of SerializableCommand so that it takes T::commandName() and T::description() ?
     iscore::SerializableCommand{
         "IScoreCohesionControl",
         commandName(),

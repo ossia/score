@@ -7,7 +7,6 @@ namespace Scenario
 {
     namespace Command
     {
-        // TODO property command?
         template<class T>
         class ChangeElementColor : public iscore::SerializableCommand
         {

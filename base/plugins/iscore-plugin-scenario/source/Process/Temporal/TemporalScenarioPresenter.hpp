@@ -113,7 +113,6 @@ class TemporalScenarioPresenter : public LayerPresenter
         void on_askUpdate();
 
     protected:
-        // TODO faire passer l'abstract et utiliser des free functions de cast?
         IdContainer<StatePresenter, StateModel> m_displayedStates;
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;

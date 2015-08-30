@@ -1,5 +1,5 @@
 #include "Document/Constraint/ConstraintModel.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"

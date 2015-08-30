@@ -6,7 +6,7 @@
 #include <Document/BaseElement/BaseElementModel.hpp>
 
 #include <ProcessInterface/ProcessList.hpp>
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 #include <ProcessInterface/LayerModel.hpp>
 #include <ProcessInterface/LayerModelPanelProxy.hpp>
 #include <ProcessInterface/LayerPresenter.hpp>

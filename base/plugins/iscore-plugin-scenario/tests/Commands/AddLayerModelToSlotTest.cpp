@@ -4,7 +4,7 @@
 #include <Document/Constraint/Rack/RackModel.hpp>
 #include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <ProcessInterface/LayerModel.hpp>
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 
 #include "Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"

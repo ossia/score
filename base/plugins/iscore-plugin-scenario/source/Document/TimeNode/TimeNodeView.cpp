@@ -54,7 +54,6 @@ QRectF TimeNodeView::boundingRect() const
 void TimeNodeView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();
-    // TODO Set pos at the same time ?
     m_extent = extent;
     this->update();
 }
@@ -62,7 +61,6 @@ void TimeNodeView::setExtent(const VerticalExtent& extent)
 void TimeNodeView::setExtent(VerticalExtent &&extent)
 {
     prepareGeometryChange();
-    // TODO Set pos at the same time ?
     m_extent = std::move(extent);
     this->update();
 }

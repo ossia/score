@@ -5,7 +5,7 @@
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
 
 
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 #include "source/ProcessInterfaceSerialization/ProcessModelSerialization.hpp"
 #include "source/ProcessInterfaceSerialization/LayerModelSerialization.hpp"

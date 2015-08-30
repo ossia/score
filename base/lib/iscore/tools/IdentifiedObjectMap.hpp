@@ -45,7 +45,7 @@ class MapBase
         void remove(value_type* t)
         { map.erase(t); }
 
-        // TODO create one that passes an iterator.
+        // TODO create one that takes an iterator.
         void remove(const Id<model_type>& id)
         { map.erase(id); }
 

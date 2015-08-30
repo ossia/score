@@ -15,7 +15,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QApplication>

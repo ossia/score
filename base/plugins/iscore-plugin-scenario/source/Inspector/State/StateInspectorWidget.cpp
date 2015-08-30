@@ -20,9 +20,6 @@ StateInspectorWidget::StateInspectorWidget(
     setObjectName("StateInspectorWidget");
     setParent(parent);
 
-    // Connections
-    // TODO connections not necessary since we'll have a tree widget, right ?
-
     updateDisplayedValues();
 }
 

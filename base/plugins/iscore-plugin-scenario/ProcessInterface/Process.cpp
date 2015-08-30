@@ -1,4 +1,4 @@
-#include "ProcessModel.hpp"
+#include "Process.hpp"
 #include "LayerModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 

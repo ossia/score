@@ -25,7 +25,6 @@ class DeviceExplorerWidget : public QWidget
 
     public:
         explicit DeviceExplorerWidget(QWidget* parent);
-        ~DeviceExplorerWidget();
 
         void setModel(DeviceExplorerModel* model);
 
@@ -57,7 +56,6 @@ class DeviceExplorerWidget : public QWidget
         void updateActions();
 
     protected:
-
         DeviceExplorerModel* model();
         DeviceExplorerFilterProxyModel* proxyModel();
 
@@ -97,7 +95,7 @@ class DeviceExplorerWidget : public QWidget
         QComboBox* m_columnCBox;
         QLineEdit* m_nameLEdit;
 
-        CommandDispatcher<SendStrategy::Simple>* m_cmdDispatcher{};
+        std::unique_ptr<CommandDispatcher<>> m_cmdDispatcher;
 
         QThread m_explorationThread;
 

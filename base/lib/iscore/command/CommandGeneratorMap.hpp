@@ -18,7 +18,7 @@
  * For each command, a factory will be generated and stored in a map with
  * the command name, to allow fast instantiation upon command reception.
  *
- * TODO : right now the names are used, it should be nice to migrate towards uids.
+ * OPTIMIZEME: right now the names are used, it should be nice to migrate towards uids.
  */
 
 /**

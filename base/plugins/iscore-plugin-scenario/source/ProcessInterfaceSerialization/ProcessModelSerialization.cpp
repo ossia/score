@@ -2,7 +2,7 @@
 #include "ProcessInterface/ProcessFactory.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 
 
 template<>

@@ -128,7 +128,6 @@ void EventView::paint(QPainter* painter,
 void EventView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();
-    // TODO Set pos at the same time ?
     m_extent = extent;
     this->update();
 }
@@ -136,7 +135,6 @@ void EventView::setExtent(const VerticalExtent& extent)
 void EventView::setExtent(VerticalExtent &&extent)
 {
     prepareGeometryChange();
-    // TODO Set pos at the same time ?
     m_extent = std::move(extent);
     this->update();
 }

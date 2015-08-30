@@ -35,7 +35,8 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
         m_serializedProcesses.push_back(arr);
     }
 
-    // TODO save view model data instead
+    // TODO save view model data instead, since later it
+    // might be more than just the shown rack.
     for(const auto& viewmodel : constraint.viewModels())
     {
         m_rackMappings.insert(viewmodel->id(), viewmodel->shownRack());

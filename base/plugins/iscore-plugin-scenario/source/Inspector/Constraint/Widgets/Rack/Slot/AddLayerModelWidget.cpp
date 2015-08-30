@@ -3,7 +3,7 @@
 #include "SlotInspectorSection.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 
 #include <QtWidgets/QHBoxLayout>

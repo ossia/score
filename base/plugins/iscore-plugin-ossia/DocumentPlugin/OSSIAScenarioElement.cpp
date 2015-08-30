@@ -98,7 +98,7 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create([=,iscore_constraint=&cst](
-                                                   const OSSIA::TimeValue& position, // TODO should not be a timevalue but a double
+                                                   const OSSIA::TimeValue& position,
                                                    const OSSIA::TimeValue& date,
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
@@ -137,7 +137,7 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 
     con(iscore_state, &StateModel::statesUpdated, this,
             [=] () {
-        // TODO optimize me
+        // OPTIMIZEME
         state_elt->rootState()->stateElements().clear();
         for(auto& elt : state_elt->iscoreState().states().rootNode().children())
         {

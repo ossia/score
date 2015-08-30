@@ -5,8 +5,6 @@
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
 
-
-// TODO do the same for DocumentDelegateModel...
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModel& elt)
 {

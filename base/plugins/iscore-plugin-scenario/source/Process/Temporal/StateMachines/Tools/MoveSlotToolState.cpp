@@ -1,6 +1,7 @@
 #include "MoveSlotToolState.hpp"
-#include "States/SlotStates.hpp"
 
+#include "Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp"
+#include "Process/Temporal/StateMachines/Tools/States/DragSlotState.hpp"
 #include "Document/Constraint/Rack/RackPresenter.hpp"
 #include "Document/Constraint/Rack/Slot/SlotPresenter.hpp"
 #include "Document/Constraint/Rack/Slot/SlotModel.hpp"

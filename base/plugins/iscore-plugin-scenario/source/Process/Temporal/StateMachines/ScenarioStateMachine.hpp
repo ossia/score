@@ -38,7 +38,7 @@ class ScenarioStateMachine : public BaseStateMachine
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
-        Tool tool() const;
+        ScenarioToolKind tool() const;
         const ExpandMode& expandMode() const
         { return m_expandMode; }
         bool isShiftPressed() const;

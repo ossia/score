@@ -108,7 +108,7 @@ void updateOSSIAAddress(const iscore::FullAddressSettings &settings, const std::
             addr->setAccessMode(OSSIA::Address::AccessMode::BI);
             break;
         case IOType::Invalid:
-            // TODO There shouldn't be an address!!
+            ISCORE_ABORT;
             break;
     }
 }

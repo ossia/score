@@ -21,7 +21,7 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
 
         }
 
-        template<typename... Args> // TODO split in two ?
+        template<typename... Args>
         void submitCommand(Args&&... args)
         {
             if(!m_cmd)
@@ -38,9 +38,8 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
 
         void commit()
         {
-            // TODO : here we should not have "redoAndPush", just push.
             if(m_cmd)
-                SendStrategy::Simple::send(stack(), m_cmd.release());
+                SendStrategy::Quiet::send(stack(), m_cmd.release());
         }
 
         void rollback()

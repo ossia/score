@@ -150,7 +150,6 @@ void ConstraintPresenter::updateHeight()
     // TODO else if(rack but not shown)
     else
     {
-        // TODO faire vue appropriée plus tard
         m_view->setHeight(ConstraintHeader::headerHeight());
     }
 

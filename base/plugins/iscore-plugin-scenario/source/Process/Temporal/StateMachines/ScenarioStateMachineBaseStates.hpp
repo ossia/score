@@ -16,7 +16,7 @@ class ConstraintModel;
 class StateModel;
 class SlotModel;
 
-// TODO optimize this when we have all the tools
+// OPTIMIZEME this when we have all the tools
 class ScenarioStateBase : public QState
 {
     public:

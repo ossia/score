@@ -16,7 +16,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Commands/Scenario/ShowRackInViewModel.hpp"
 #include "Commands/Scenario/HideRackInViewModel.hpp"
-#include "ProcessInterface/ProcessModel.hpp"
+#include "ProcessInterface/Process.hpp"
 
 #include "Inspector/MetadataWidget.hpp"
 #include <Inspector/InspectorWidgetList.hpp>

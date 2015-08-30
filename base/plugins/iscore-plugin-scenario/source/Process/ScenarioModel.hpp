@@ -4,7 +4,7 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Document/State/StateModel.hpp>
 
-#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/Process.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>

@@ -262,8 +262,6 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 {
     delete m_proxyModel;    //? will also delete previous model ??
     m_proxyModel = nullptr;
-    delete m_cmdDispatcher;
-    m_cmdDispatcher = nullptr;
 
     if (model)
     {
@@ -273,8 +271,8 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         model->setView(m_ntView);
 
 
-        m_cmdDispatcher = new CommandDispatcher<SendStrategy::Simple>{
-                iscore::IDocument::commandStack(*model)};
+        m_cmdDispatcher = std::make_unique<CommandDispatcher<>>(
+                iscore::IDocument::commandStack(*model));
 
         populateColumnCBox();
 
@@ -682,9 +680,4 @@ DeviceExplorerWidget::filterChanged()
 
     m_proxyModel->setFilterRegExp(regExp);
 
-}
-
-DeviceExplorerWidget::~DeviceExplorerWidget()
-{
-    delete m_cmdDispatcher;
 }

@@ -7,8 +7,6 @@
 #include <QTextEdit>
 #include <QScrollArea>
 
-// TODO pass the commandStack & selectionStack in the ctor instead.
-// via the inspector control's currentDocument ?
 InspectorWidgetBase::InspectorWidgetBase(
         const QObject& inspectedObj,
         iscore::Document& doc,
