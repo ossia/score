@@ -190,24 +190,24 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
     // Constraint interface
     m_connections.push_back(
-                con(model(),	&ConstraintModel::processCreated,
-                        this,		&ConstraintInspectorWidget::on_processCreated));
+                con(model(), &ConstraintModel::processCreated,
+                        this, &ConstraintInspectorWidget::on_processCreated));
     m_connections.push_back(
-                con(model(),	&ConstraintModel::processRemoved,
-                        this,		&ConstraintInspectorWidget::on_processRemoved));
+                con(model(), &ConstraintModel::processRemoved,
+                        this, &ConstraintInspectorWidget::on_processRemoved));
     m_connections.push_back(
-                con(model(),	&ConstraintModel::rackCreated,
-                        this,		&ConstraintInspectorWidget::on_rackCreated));
+                con(model(), &ConstraintModel::rackCreated,
+                        this, &ConstraintInspectorWidget::on_rackCreated));
     m_connections.push_back(
-                con(model(),	&ConstraintModel::rackRemoved,
-                        this,		&ConstraintInspectorWidget::on_rackRemoved));
+                con(model(), &ConstraintModel::rackRemoved,
+                        this, &ConstraintInspectorWidget::on_rackRemoved));
 
     m_connections.push_back(
                 con(model(), &ConstraintModel::viewModelCreated,
-                        this,    &ConstraintInspectorWidget::on_constraintViewModelCreated));
+                        this, &ConstraintInspectorWidget::on_constraintViewModelCreated));
     m_connections.push_back(
                 con(model(), &ConstraintModel::viewModelRemoved,
-                        this,    &ConstraintInspectorWidget::on_constraintViewModelRemoved));
+                        this, &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes
     for(const auto& process : model().processes())
@@ -365,7 +365,6 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
 }
 
 void ConstraintInspectorWidget::on_processCreated(
-        QString processName,
         Id<Process> processId)
 {
     updateDisplayedValues();

@@ -4,6 +4,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
 {

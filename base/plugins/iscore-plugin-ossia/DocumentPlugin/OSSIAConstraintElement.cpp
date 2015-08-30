@@ -43,7 +43,7 @@ OSSIAConstraintElement::OSSIAConstraintElement(
 
     for(const auto& process : iscore_cst.processes())
     {
-        on_processAdded(process.processName(), process.id());
+        on_processAdded(process.id());
     }
 }
 
@@ -64,7 +64,6 @@ void OSSIAConstraintElement::stop()
 }
 
 void OSSIAConstraintElement::on_processAdded(
-        const QString& name,
         const Id<Process>& id)
 {
     // The DocumentPlugin creates the elements in the processes.

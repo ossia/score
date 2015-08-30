@@ -5,6 +5,7 @@
 #include "ProcessInterface/LayerModel.hpp"
 #include "ProcessInterfaceSerialization/LayerModelSerialization.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

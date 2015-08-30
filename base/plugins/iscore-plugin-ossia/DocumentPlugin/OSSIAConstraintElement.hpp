@@ -23,8 +23,7 @@ class OSSIAConstraintElement : public QObject
         void stop();
 
     private slots:
-        void on_processAdded(const QString& name,
-                             const Id<Process>& id);
+        void on_processAdded(const Id<Process>& id);
         void on_processRemoved(const Id<Process>& id);
 
     private:

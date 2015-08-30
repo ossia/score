@@ -43,20 +43,21 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void activeRackChanged(QString rack, ConstraintViewModel* vm);
 
         // Interface of Constraint
-        void on_processCreated(QString processName, Id<Process> processId);
-        void on_processRemoved(Id<Process> processId);
-
-        void on_rackCreated(Id<RackModel> rackId);
-        void on_rackRemoved(Id<RackModel> rackId);
-
-        void on_constraintViewModelCreated(Id<ConstraintViewModel> cvmId);
-        void on_constraintViewModelRemoved(Id<ConstraintViewModel> cvmId);
 
         // These methods are used to display created things
         void displaySharedProcess(const Process&);
         void setupRack(const RackModel&);
 
     private:
+        void on_processCreated(Id<Process>);
+        void on_processRemoved(Id<Process>);
+
+        void on_rackCreated(Id<RackModel>);
+        void on_rackRemoved(Id<RackModel>);
+
+        void on_constraintViewModelCreated(Id<ConstraintViewModel>);
+        void on_constraintViewModelRemoved(Id<ConstraintViewModel>);
+
         QWidget* makeStatesWidget(ScenarioModel*);
         const ConstraintModel& m_model;
         QVector<QMetaObject::Connection> m_connections;

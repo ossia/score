@@ -126,8 +126,7 @@ void ConstraintModel::setEndState(const Id<StateModel> &endState)
 void ConstraintModel::addProcess(Process* model)
 {
     m_processes.insert(model);
-    emit processCreated(model->processName(), model->id());
-    emit processesChanged();
+    emit processCreated(model->id());
 }
 
 void ConstraintModel::removeProcess(const Id<Process>& processId)
@@ -136,7 +135,6 @@ void ConstraintModel::removeProcess(const Id<Process>& processId)
     m_processes.remove(processId);
 
     emit processRemoved(processId);
-    emit processesChanged();
     delete proc;
 }
 
