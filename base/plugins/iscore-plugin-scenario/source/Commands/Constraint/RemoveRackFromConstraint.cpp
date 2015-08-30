@@ -4,7 +4,6 @@
 #include "Document/Constraint/Rack/RackModel.hpp"
 
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -24,7 +23,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
     auto& constraint = m_path.find();
     // Save the rack
     Serializer<DataStream> s{&m_serializedRackData};
-    s.readFrom(constraint.rack(m_rackId));
+    s.readFrom(constraint.racks.at(m_rackId));
 
     // Save for each view model of this constraint
     // a bool indicating if the rack being deleted
@@ -47,7 +46,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
     auto& constraint = m_path.find();
 
     Serializer<DataStream> s{&m_serializedRackData};
-    s.readFrom(constraint.rack(m_rackId));
+    s.readFrom(constraint.racks.at(m_rackId));
 
     for(const ConstraintViewModel* vm : constraint.viewModels())
     {
@@ -59,7 +58,7 @@ void RemoveRackFromConstraint::undo()
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedRackData};
-    constraint.addRack(new RackModel {s, &constraint});
+    constraint.racks.add(new RackModel {s, &constraint});
 
     for(ConstraintViewModel* vm : constraint.viewModels())
     {
@@ -73,7 +72,7 @@ void RemoveRackFromConstraint::undo()
 void RemoveRackFromConstraint::redo()
 {
     auto& constraint = m_path.find();
-    constraint.removeRack(m_rackId);
+    constraint.racks.remove(m_rackId);
 }
 
 void RemoveRackFromConstraint::serializeImpl(QDataStream& s) const

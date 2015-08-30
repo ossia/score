@@ -190,16 +190,16 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
     // Constraint interface
     m_connections.push_back(
-                con(model(), &ConstraintModel::processCreated,
+                con(model().processes, &NotifyingMap<Process>::added,
                     this, &ConstraintInspectorWidget::on_processCreated));
     m_connections.push_back(
-                con(model(), &ConstraintModel::processRemoved,
+                con(model().processes, &NotifyingMap<Process>::removed,
                     this, &ConstraintInspectorWidget::on_processRemoved));
     m_connections.push_back(
-                con(model(), &ConstraintModel::rackCreated,
+                con(model().racks, &NotifyingMap<RackModel>::added,
                     this, &ConstraintInspectorWidget::on_rackCreated));
     m_connections.push_back(
-                con(model(), &ConstraintModel::rackRemoved,
+                con(model().racks, &NotifyingMap<RackModel>::removed,
                     this, &ConstraintInspectorWidget::on_rackRemoved));
 
     m_connections.push_back(
@@ -210,13 +210,13 @@ void ConstraintInspectorWidget::updateDisplayedValues()
                     this, &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes
-    for(const auto& process : model().processes())
+    for(const auto& process : model().processes)
     {
         displaySharedProcess(process);
     }
 
     // Rack
-    for(const auto& rack : model().racks())
+    for(const auto& rack : model().racks)
     {
         setupRack(rack);
     }
@@ -405,7 +405,7 @@ void ConstraintInspectorWidget::on_constraintViewModelCreated(const ConstraintVi
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelRemoved(const ConstraintViewModel&)
+void ConstraintInspectorWidget::on_constraintViewModelRemoved(const QObject*)
 {
     // OPTIMIZEME
     m_rackWidget->viewModelsChanged();

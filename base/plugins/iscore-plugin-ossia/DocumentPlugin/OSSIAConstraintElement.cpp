@@ -20,9 +20,9 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     m_iscore_constraint{iscore_cst},
     m_ossia_constraint{ossia_cst}
 {
-    con(iscore_cst, &ConstraintModel::processCreated,
+    con(iscore_cst.processes, &NotifyingMap<Process>::added,
             this, &OSSIAConstraintElement::on_processAdded);
-    con(iscore_cst, &ConstraintModel::processRemoved,
+    con(iscore_cst.processes, &NotifyingMap<Process>::removed,
             this, &OSSIAConstraintElement::on_processRemoved);
 
     // Setup updates
@@ -33,15 +33,27 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     });
     con(iscore_cst.duration, &ConstraintDurations::minDurationChanged, this,
             [=] (const TimeValue& t) {
-        ossia_cst->setDurationMin(iscore::convert::time(t));
+        try {
+            ossia_cst->setDurationMin(iscore::convert::time(t));
+        }
+        catch(std::runtime_error& e)
+        {
+            qWarning() << e.what();
+        }
     });
     con(iscore_cst.duration, &ConstraintDurations::maxDurationChanged, this,
             [=] (const TimeValue& t) {
-        ossia_cst->setDurationMax(iscore::convert::time(t));
+        try {
+            ossia_cst->setDurationMax(iscore::convert::time(t));
+        }
+        catch(std::runtime_error& e)
+        {
+            qWarning() << e.what();
+        }
     });
 
 
-    for(const auto& process : iscore_cst.processes())
+    for(const auto& process : iscore_cst.processes)
     {
         on_processAdded(process);
     }

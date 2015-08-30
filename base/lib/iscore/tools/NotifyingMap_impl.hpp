@@ -243,3 +243,12 @@ void NotifyingMap<T>::remove(const Id<T>& id) {
     emit removed(*elt);
     delete elt;
 }
+
+template<typename T>
+static void NotifyingMapInstantiations_T()
+{
+    NotifyingMap<T> m;
+    m.add(nullptr);
+    m.remove(Id<T>{});
+    m.remove(nullptr);
+}

@@ -56,7 +56,7 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void on_rackRemoved(const RackModel&);
 
         void on_constraintViewModelCreated(const ConstraintViewModel&);
-        void on_constraintViewModelRemoved(const ConstraintViewModel&);
+        void on_constraintViewModelRemoved(const QObject*);
 
         QWidget* makeStatesWidget(ScenarioModel*);
         const ConstraintModel& m_model;

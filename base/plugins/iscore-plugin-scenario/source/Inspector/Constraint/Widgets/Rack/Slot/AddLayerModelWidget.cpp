@@ -35,16 +35,16 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
         QStringList available_models;
 
         // 1. List the processes in the model.
-        auto shared_process_list = parentSlot->model().parentConstraint().processes();
+        const auto& shared_process_list = parentSlot->model().parentConstraint().processes;
 
         // 2. List the processes that already have a view in this slot
         const auto& already_displayed_processes = parentSlot->model().layers;
 
         // 3. Compute the difference
-        for(auto& process : shared_process_list)
+        for(const auto& process : shared_process_list)
         {
-            auto beg_it = already_displayed_processes.begin();
-            auto end_it = already_displayed_processes.end();
+            auto beg_it = already_displayed_processes.cbegin();
+            auto end_it = already_displayed_processes.cend();
             auto it = std::find_if(beg_it,
                                    end_it,
                                    [&process](const LayerModel& lm)

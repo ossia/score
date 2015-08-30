@@ -19,7 +19,7 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
 {
     auto& constraint = m_path.find();
 
-    for(const auto& rack : constraint.racks())
+    for(const auto& rack : constraint.racks)
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};
@@ -27,7 +27,7 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
         m_serializedRackes.push_back(arr);
     }
 
-    for(const auto& process : constraint.processes())
+    for(const auto& process : constraint.processes)
     {
         QByteArray arr;
         Serializer<DataStream> s {&arr};
@@ -49,13 +49,13 @@ void ClearConstraint::undo()
     for(auto& serializedProcess : m_serializedProcesses)
     {
         Deserializer<DataStream> s {serializedProcess};
-        constraint.addProcess(createProcess(s, &constraint));
+        constraint.processes.add(createProcess(s, &constraint));
     }
 
     for(auto& serializedRack : m_serializedRackes)
     {
         Deserializer<DataStream> s {serializedRack};
-        constraint.addRack(new RackModel {s, &constraint});
+        constraint.racks.add(new RackModel {s, &constraint});
     }
 
     auto bit = constraint.viewModels().begin(), eit = constraint.viewModels().end();
@@ -72,16 +72,17 @@ void ClearConstraint::redo()
     auto& constraint = m_path.find();
 
     // We make copies since the iterators might change.
-    auto processes = constraint.processes();
+    // TODO check if this is still valid wrt boost::multi_index
+    auto processes = constraint.processes.map();
     for(const auto& process : processes)
     {
-        constraint.removeProcess(process.id());
+        constraint.processes.remove(process.id());
     }
 
-    auto rackes = constraint.racks();
+    auto rackes = constraint.racks.map();
     for(const auto& rack : rackes)
     {
-        constraint.removeRack(rack.id());
+        constraint.racks.remove(rack.id());
     }
 }
 

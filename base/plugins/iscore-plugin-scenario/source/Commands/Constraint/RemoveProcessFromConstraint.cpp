@@ -11,7 +11,6 @@
 #include "source/ProcessInterfaceSerialization/LayerModelSerialization.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -29,7 +28,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
 
     // Save the process
     Serializer<DataStream> s1{&m_serializedProcessData};
-    auto& proc = constraint.process(m_processId);
+    auto& proc = constraint.processes.at(m_processId);
     s1.readFrom(proc);
 
     // Save ALL the view models!
@@ -47,7 +46,7 @@ void RemoveProcessFromConstraint::undo()
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    constraint.addProcess(createProcess(s, &constraint));
+    constraint.processes.add(createProcess(s, &constraint));
 
     // Restore the view models
     for(const auto& it : m_serializedViewModels)
@@ -55,7 +54,7 @@ void RemoveProcessFromConstraint::undo()
         const auto& path = it.first.unsafePath().vec();
 
         auto& slot = constraint
-                .rack(Id<RackModel>(path.at(path.size() - 3).id()))
+                .racks.at(Id<RackModel>(path.at(path.size() - 3).id()))
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
         Deserializer<DataStream> s {it.second};
@@ -69,7 +68,7 @@ void RemoveProcessFromConstraint::undo()
 void RemoveProcessFromConstraint::redo()
 {
     auto& constraint = m_path.find();
-    constraint.removeProcess(m_processId);
+    constraint.processes.remove(m_processId);
 
     // The view models will be deleted accordingly.
 }

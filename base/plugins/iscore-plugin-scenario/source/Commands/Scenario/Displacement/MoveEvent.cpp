@@ -113,16 +113,16 @@ void MoveEvent::undo()
             std::map<const Process*, Process*> processPairs;
 
             // Clone the processes
-            for(const auto& sourceproc : src_constraint.processes())
+            for(const auto& sourceproc : src_constraint.processes)
             {
                 auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
                 processPairs.insert(std::make_pair(&sourceproc, newproc));
-                constraint.addProcess(newproc);
+                constraint.processes.add(newproc);
             }
 
             // Clone the rackes
-            for(const auto& sourcerack : src_constraint.racks())
+            for(const auto& sourcerack : src_constraint.racks)
             {
                 // A note about what happens here :
                 // Since we want to duplicate our process view models using
@@ -143,7 +143,7 @@ void MoveEvent::undo()
                             }
                         },
                         &constraint};
-                constraint.addRack(newrack);
+                constraint.racks.add(newrack);
             }
         }
 

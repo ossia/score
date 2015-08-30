@@ -28,13 +28,13 @@ ReplaceConstraintContent::ReplaceConstraintContent(
             &trg_constraint}; // Temporary parent
 
     // For all rackes in source, generate new id's
-    auto target_rackes = trg_constraint.racks();
+    const auto& target_rackes = trg_constraint.racks;
     QVector<Id<RackModel>> target_rackes_ids;
     std::transform(target_rackes.begin(), target_rackes.end(),
                    std::back_inserter(target_rackes_ids),
                    [] (const auto& rack) { return rack.id(); });
 
-    for(const auto& rack : src_constraint.racks())
+    for(const auto& rack : src_constraint.racks)
     {
         auto newId = getStrongId(target_rackes_ids);
         m_rackIds.insert(rack.id(), newId);
@@ -42,13 +42,13 @@ ReplaceConstraintContent::ReplaceConstraintContent(
     }
 
     // Same for processes
-    auto target_processes = trg_constraint.processes();
+    const auto& target_processes = trg_constraint.processes;
     QVector<Id<Process>> target_processes_ids;
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
                    [] (const auto& proc) { return proc.id(); });
 
-    for(const auto& proc : src_constraint.processes())
+    for(const auto& proc : src_constraint.processes)
     {
         auto newId = getStrongId(target_processes_ids);
         m_processIds.insert(proc.id(), newId);
@@ -63,12 +63,12 @@ void ReplaceConstraintContent::undo()
 
     for(const auto& proc_id : m_processIds)
     {
-        trg_constraint.removeProcess(proc_id);
+        trg_constraint.processes.remove(proc_id);
     }
 
     for(const auto& rack_id : m_rackIds)
     {
-        trg_constraint.removeRack(rack_id);
+        trg_constraint.racks.remove(rack_id);
     }
 }
 
@@ -83,13 +83,13 @@ void ReplaceConstraintContent::redo()
     std::map<const Process*, Process*> processPairs;
 
     // Clone the processes
-    auto src_procs = src_constraint.processes();
+    const auto& src_procs = src_constraint.processes;
     for(const auto& sourceproc : src_procs)
     {
         auto newproc = sourceproc.clone(m_processIds[sourceproc.id()], &trg_constraint);
 
         processPairs.insert(std::make_pair(&sourceproc, newproc));
-        trg_constraint.addProcess(newproc);
+        trg_constraint.processes.add(newproc);
 
         // Resize the processes according to the new constraint.
         if(m_mode == ExpandMode::Scale)
@@ -103,8 +103,8 @@ void ReplaceConstraintContent::redo()
     }
 
     // Clone the rackes
-    auto src_rackes = src_constraint.racks();
-    for(const auto& sourcerack: src_rackes)
+    const auto& src_racks = src_constraint.racks;
+    for(const auto& sourcerack: src_racks)
     {
         // A note about what happens here :
         // Since we want to duplicate our process view models using
@@ -125,7 +125,7 @@ void ReplaceConstraintContent::redo()
                     }
                 },
                 &trg_constraint};
-        trg_constraint.addRack(newrack);
+        trg_constraint.racks.add(newrack);
     }
 }
 

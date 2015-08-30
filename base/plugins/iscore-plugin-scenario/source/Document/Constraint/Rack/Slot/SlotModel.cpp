@@ -6,7 +6,7 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 
-#include <iscore/tools/NotifyingMap_impl.hpp>
+
 
 SlotModel::SlotModel(
         const Id<SlotModel>& id,

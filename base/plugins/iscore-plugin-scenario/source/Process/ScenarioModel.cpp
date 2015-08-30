@@ -1,6 +1,7 @@
 #include "ScenarioModel.hpp"
 
 #include "Algorithms/StandardCreationPolicy.hpp"
+#include "Algorithms/StandardDisplacementPolicy.hpp"
 #include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 
 #include "Document/Event/EventModel.hpp"
@@ -9,7 +10,6 @@
 
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 
 ScenarioModel::ScenarioModel(const TimeValue& duration,
@@ -132,7 +132,7 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
         ConstraintDurations::Algorithms::changeAllDurations(constraint,
                                                         constraint.duration.defaultDuration() * scale);
 
-        for(auto& process : constraint.processes())
+        for(auto& process : constraint.processes)
         {
             process.setDurationAndScale(constraint.duration.defaultDuration() * scale);
         }
@@ -143,7 +143,6 @@ void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
     this->setDuration(newDuration);
 }
 
-#include "Algorithms/StandardDisplacementPolicy.hpp"
 void ScenarioModel::setDurationAndGrow(const TimeValue& newDuration)
 {
     ///* Should work but does not ?

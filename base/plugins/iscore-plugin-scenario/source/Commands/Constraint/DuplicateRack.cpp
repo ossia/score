@@ -17,7 +17,7 @@ DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
     auto& rack = m_rackPath.find<RackModel>();
     const auto& constraint = rack.constraint();
 
-    m_newRackId = getStrongId(constraint.racks());
+    m_newRackId = getStrongId(constraint.racks);
 }
 
 void DuplicateRack::undo()
@@ -25,14 +25,14 @@ void DuplicateRack::undo()
     auto& rack = m_rackPath.find<RackModel>();
     auto& constraint = rack.constraint();
 
-    constraint.removeRack(m_newRackId);
+    constraint.racks.remove(m_newRackId);
 }
 
 void DuplicateRack::redo()
 {
     auto& rack = m_rackPath.find<RackModel>();
     auto& constraint = rack.constraint();
-    constraint.addRack(new RackModel {rack,
+    constraint.racks.add(new RackModel {rack,
                                     m_newRackId,
                                     &SlotModel::copyViewModelsInSameConstraint,
                                     &constraint});

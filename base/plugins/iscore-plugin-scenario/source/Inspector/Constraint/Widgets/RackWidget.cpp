@@ -83,7 +83,7 @@ void RackWidget::updateComboBox(LambdaFriendlyQComboBox* combobox, ConstraintVie
     combobox->clear();
     combobox->addItem(hiddenText);
 
-    for(const auto& rack : m_model.racks())
+    for(const auto& rack : m_model.racks)
     {
         auto id = *rack.id().val();
         combobox->addItem(QString::number(id));

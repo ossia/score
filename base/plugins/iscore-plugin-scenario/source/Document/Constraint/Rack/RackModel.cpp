@@ -2,7 +2,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Slot/SlotModel.hpp"
-#include <iscore/tools/NotifyingMap_impl.hpp>
+
 
 
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :

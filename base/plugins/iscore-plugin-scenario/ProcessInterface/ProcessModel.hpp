@@ -20,6 +20,7 @@ class LayerModel;
 class Process: public IdentifiedObject<Process>
 {
         Q_OBJECT
+        ISCORE_METADATA("Process")
 
         ISCORE_SERIALIZE_FRIENDS(Process, DataStream)
         ISCORE_SERIALIZE_FRIENDS(Process, JSONObject)

@@ -77,7 +77,7 @@ void SlotInspectorSection::createLayerModel(
 {
     auto cmd = new AddLayerModelToSlot(
                    iscore::IDocument::path(m_model),
-                   iscore::IDocument::path(m_model.parentConstraint().process(sharedProcessModelId)));
+                   iscore::IDocument::path(m_model.parentConstraint().processes.at(sharedProcessModelId)));
 
     emit m_parent->commandDispatcher()->submitCommand(cmd);
 }

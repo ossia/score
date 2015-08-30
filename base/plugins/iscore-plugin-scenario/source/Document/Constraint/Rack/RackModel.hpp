@@ -18,6 +18,7 @@ class Process;
 class RackModel : public IdentifiedObject<RackModel>
 {
         Q_OBJECT
+        ISCORE_METADATA("RackModel")
 
     public:
         RackModel(const Id<RackModel>& id, QObject* parent);

@@ -9,7 +9,7 @@
 #include <ProcessInterface/LayerModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
-#include <iscore/tools/NotifyingMap_impl.hpp>
+
 
 ConstraintModel::ConstraintModel(
         const Id<ConstraintModel>& id,
@@ -20,6 +20,7 @@ ConstraintModel::ConstraintModel(
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_fullViewModel{new FullViewConstraintViewModel{fullViewId, *this, this}}
 {
+    initConnections();
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
     setHeightPercentage(yPos);
@@ -32,6 +33,7 @@ ConstraintModel::ConstraintModel(
     IdentifiedObject<ConstraintModel> {id, "ConstraintModel", parent},
     pluginModelList{source.pluginModelList, this}
 {
+    initConnections();
     metadata = source.metadata;
     // It is not necessary to save modelconsistency because it should be recomputed
 
@@ -46,19 +48,19 @@ ConstraintModel::ConstraintModel(
     std::map<const Process*, Process*> processPairs;
 
     // Clone the processes
-    for(const auto& process : source.processes())
+    for(const auto& process : source.processes)
     {
         auto newproc = process.clone(process.id(), this);
 
         processPairs.insert(std::make_pair(&process, newproc));
-        addProcess(newproc);
+        processes.add(newproc);
 
         // We don't need to resize them since the new constraint will have the same duration.
     }
 
-    for(const auto& rack : source.racks())
+    for(const auto& rack : source.racks)
     {
-        addRack(new RackModel {
+        racks.add(new RackModel {
                    rack,
                    rack.id(),
         [&] (const SlotModel& source, SlotModel& target)
@@ -90,8 +92,8 @@ ScenarioInterface* ConstraintModel::parentScenario() const
 
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
-    connect(this, &ConstraintModel::rackRemoved,
-            viewmodel, &ConstraintViewModel::on_rackRemoved);
+    con(racks, &NotifyingMap<RackModel>::removed,
+        viewmodel, &ConstraintViewModel::on_rackRemoved);
 
     connect(viewmodel, &QObject::destroyed,
             this, &ConstraintModel::on_destroyedViewModel);
@@ -102,61 +104,33 @@ void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 
 void ConstraintModel::on_destroyedViewModel(QObject* obj)
 {
-    auto cvm = safe_cast<ConstraintViewModel*>(obj);
-    int index = m_constraintViewModels.indexOf(cvm);
+    // Note : don't change into a dynamic/safe cast
+    // because the ConstraintViewModel part already was deleted
+    // at this point.
+    // TODO : make ConstraintModel send a signal
+    // at the beginning of its destructor instead.
+    int index = m_constraintViewModels.indexOf(
+                    static_cast<ConstraintViewModel*>(obj));
 
     if(index != -1)
     {
         m_constraintViewModels.remove(index);
-        emit viewModelRemoved(*cvm);
+        emit viewModelRemoved(obj);
     }
 }
-const Id<StateModel> &ConstraintModel::endState() const
+
+void ConstraintModel::initConnections()
 {
-    return m_endState;
+    con(racks, &NotifyingMap<RackModel>::added,
+        this, &ConstraintModel::on_rackAdded);
 }
 
-void ConstraintModel::setEndState(const Id<StateModel> &endState)
+void ConstraintModel::on_rackAdded(const RackModel& rack)
 {
-    m_endState = endState;
-}
-
-
-//// Complex commands
-void ConstraintModel::addProcess(Process* model)
-{
-    m_processes.insert(model);
-    emit processCreated(*model);
-}
-
-void ConstraintModel::removeProcess(const Id<Process>& processId)
-{
-    auto proc = &process(processId);
-    m_processes.remove(processId);
-
-    emit processRemoved(*proc);
-    delete proc;
-}
-
-void ConstraintModel::addRack(RackModel* rack)
-{
-    connect(this, &ConstraintModel::processRemoved,
-            rack, &RackModel::on_deleteSharedProcessModel);
+    con(processes, &NotifyingMap<Process>::removed,
+        &rack, &RackModel::on_deleteSharedProcessModel);
     con(duration, &ConstraintDurations::defaultDurationChanged,
-            rack, &RackModel::on_durationChanged);
-
-    m_racks.insert(rack);
-    emit rackCreated(*rack);
-}
-
-
-void ConstraintModel::removeRack(const Id<RackModel>& rackId)
-{
-    auto b = &rack(rackId);
-    m_racks.remove(rackId);
-
-    emit rackRemoved(*b);
-    delete b;
+        &rack, &RackModel::on_durationChanged);
 }
 
 const Id<StateModel>& ConstraintModel::startState() const
@@ -169,20 +143,15 @@ void ConstraintModel::setStartState(const Id<StateModel>& e)
     m_startState = e;
 }
 
-
-RackModel& ConstraintModel::rack(const Id<RackModel>& id) const
+const Id<StateModel> &ConstraintModel::endState() const
 {
-    return m_racks.at(id);
+    return m_endState;
 }
 
-Process& ConstraintModel::process(
-        const Id<Process>& id) const
+void ConstraintModel::setEndState(const Id<StateModel> &endState)
 {
-    return m_processes.at(id);
+    m_endState = endState;
 }
-
-
-
 
 const TimeValue& ConstraintModel::startDate() const
 {
@@ -218,7 +187,7 @@ void ConstraintModel::reset()
 {
     duration.setPlayDuration(TimeValue::zero());
 
-    for(auto& proc : m_processes)
+    for(auto& proc : processes)
     {
         proc.reset();
     }

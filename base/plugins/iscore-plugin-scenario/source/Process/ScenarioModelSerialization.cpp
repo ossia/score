@@ -4,7 +4,6 @@
 #include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "ScenarioModel.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)

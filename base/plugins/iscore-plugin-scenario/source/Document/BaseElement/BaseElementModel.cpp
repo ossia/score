@@ -59,13 +59,12 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
         "Scenario"
     };
     cmd1.redo();
-    auto scenarioId = (*constraint_model.processes().begin()).id();
 
     AddRackToConstraint cmd2 {
         iscore::IDocument::path(m_baseScenario->baseConstraint())
     };
     cmd2.redo();
-    auto& rack = *constraint_model.racks().begin();
+    auto& rack = *constraint_model.racks.begin();
 
     ShowRackInViewModel cmd3 {
         iscore::IDocument::path(static_cast<const ConstraintViewModel&>(*viewmodel)),
@@ -73,21 +72,21 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     cmd3.redo();
 
     AddSlotToRack cmd4 {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()),
     };
     cmd4.redo();
 
     ResizeSlotVertically cmd5
     {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->slotmodels.begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()->slotmodels.begin()),
         1500
     };
     cmd5.redo();
 
     AddLayerModelToSlot cmd6
     {
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks().begin()->slotmodels.begin()),
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes().begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()->slotmodels.begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes.begin()),
     };
     cmd6.redo();
 }

@@ -5,8 +5,6 @@
 #include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-#include <iscore/tools/NotifyingMap_impl.hpp>
-
 using namespace iscore;
 using namespace Scenario::Command;
 
@@ -17,13 +15,13 @@ AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath)
     m_path {constraintPath}
 {
     auto& constraint = m_path.find();
-    m_createdRackId = getStrongId(constraint.racks());
+    m_createdRackId = getStrongId(constraint.racks);
 }
 
 void AddRackToConstraint::undo()
 {
     auto& constraint = m_path.find();
-    constraint.removeRack(m_createdRackId);
+    constraint.racks.remove(m_createdRackId);
 }
 
 void AddRackToConstraint::redo()
@@ -31,11 +29,11 @@ void AddRackToConstraint::redo()
     auto& constraint = m_path.find();
     auto rack = new RackModel{m_createdRackId, &constraint};
 
-    constraint.addRack(rack);
+    constraint.racks.add(rack);
 
     // If it is the first rack created,
     // it is also assigned to the full view of the constraint.
-    if(constraint.racks().size() == 1)
+    if(constraint.racks.size() == 1)
     {
         constraint.fullView()->showRack(m_createdRackId);
     }

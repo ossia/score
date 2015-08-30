@@ -4,7 +4,6 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include "StandardCreationPolicy.hpp"
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 static void removeEventFromTimeNode(
         ScenarioModel& scenario,

@@ -188,7 +188,7 @@ ConstraintView*ConstraintPresenter::view() const
 void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 {
     clearRackPresenter();
-    createRackPresenter(m_viewModel.model().rack(rackId));
+    createRackPresenter(m_viewModel.model().racks.at(rackId));
 
     m_header->show();
     updateHeight();

@@ -45,7 +45,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
                    WRITE setHeightPercentage
                    NOTIFY heightPercentageChanged)
 
-
     public:
         /** Properties of the class **/
         Selectable selection;
@@ -75,6 +74,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ConstraintModel(Deserializer&& vis, QObject* parent) :
             IdentifiedObject{vis, parent}
         {
+            initConnections();
             vis.writeTo(*this);
         }
 
@@ -95,29 +95,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Note : the Constraint does not have ownership (it's generally the Slot)
         void setupConstraintViewModel(ConstraintViewModel* viewmodel);
 
-        // Sub-element creation
-        void addProcess(Process*);
-        void removeProcess(const Id<Process>& processId);
-
-        void addRack(RackModel*);
-        void removeRack(const Id<RackModel>& rackId);
-
         const Id<StateModel>& startState() const;
         void setStartState(const Id<StateModel>& eventId);
 
         const Id<StateModel>& endState() const;
         void setEndState(const Id<StateModel> &endState);
-
-        RackModel& rack(const Id<RackModel>& id) const;
-        Process& process(
-                const Id<Process>& processId) const;
-
-
-        const auto& racks() const
-        { return m_racks; }
-
-        const auto& processes() const
-        { return m_processes; }
 
         // Here we won't remove / add things from the outside so it is safe to
         // return a reference
@@ -142,15 +124,12 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         // Resets the execution display recursively
         void reset();
 
+        NotifyingMap<RackModel> racks; // No content -> Phantom ?
+        NotifyingMap<Process> processes;
+
     signals:
-        void processCreated(const Process&);
-        void processRemoved(const Process&);
-
-        void rackCreated(const RackModel&);
-        void rackRemoved(const RackModel&);
-
         void viewModelCreated(const ConstraintViewModel&);
-        void viewModelRemoved(const ConstraintViewModel&);
+        void viewModelRemoved(const QObject*);
 
         void heightPercentageChanged(double);
 
@@ -163,8 +142,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void on_destroyedViewModel(QObject*);
 
     private:
-        IdContainer<RackModel> m_racks; // No content -> Phantom ?
-        IdContainer<Process> m_processes;
+        void initConnections();
+        void on_rackAdded(const RackModel& rack);
 
         // The small view constraint view models that show this constraint
         // The constraint does not have ownership of these: their parent (in the Qt sense) are

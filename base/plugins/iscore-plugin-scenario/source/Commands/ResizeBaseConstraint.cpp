@@ -49,7 +49,10 @@ MoveBaseEvent::MoveBaseEvent(
 }
 
 template<typename ScaleFun>
-static void updateDuration(BaseScenario& scenar, const TimeValue& newDuration, ScaleFun&& scaleMethod)
+static void updateDuration(
+        BaseScenario& scenar,
+        const TimeValue& newDuration,
+        ScaleFun&& scaleMethod)
 {
     auto& timeNode = scenar.endTimeNode();
     timeNode.setDate(newDuration);
@@ -57,7 +60,7 @@ static void updateDuration(BaseScenario& scenar, const TimeValue& newDuration, S
 
     auto& constraint = scenar.baseConstraint();
     ConstraintDurations::Algorithms::setDurationInBounds(constraint, newDuration);
-    for(auto& process : constraint.processes())
+    for(auto& process : constraint.processes)
     {
         scaleMethod(process, newDuration);
     }
@@ -95,16 +98,16 @@ void MoveBaseEvent::undo()
     std::map<const Process*, Process*> processPairs;
 
     // Clone the processes
-    for(const auto& sourceproc : src_constraint.processes())
+    for(const auto& sourceproc : src_constraint.processes)
     {
         auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
         processPairs.insert(std::make_pair(&sourceproc, newproc));
-        constraint.addProcess(newproc);
+        constraint.processes.add(newproc);
     }
 
     // Clone the rackes
-    for(const auto& sourcerack : src_constraint.racks())
+    for(const auto& sourcerack : src_constraint.racks)
     {
         // A note about what happens here :
         // Since we want to duplicate our process view models using
@@ -125,7 +128,7 @@ void MoveBaseEvent::undo()
             }
         },
         &constraint};
-        constraint.addRack(newrack);
+        constraint.racks.add(newrack);
     }
 
 

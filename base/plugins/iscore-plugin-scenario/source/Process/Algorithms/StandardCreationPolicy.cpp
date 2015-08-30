@@ -3,7 +3,6 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,

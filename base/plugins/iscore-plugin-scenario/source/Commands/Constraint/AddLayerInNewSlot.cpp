@@ -8,7 +8,6 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/tools/NotifyingMap_impl.hpp>
 
 
 using namespace iscore;
@@ -25,26 +24,26 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 {
     auto& constraint = m_path.find();
 
-    if(constraint.racks().empty())
+    if(constraint.racks.empty())
     {
-        m_createdRackId = getStrongId(constraint.racks());
+        m_createdRackId = getStrongId(constraint.racks);
         m_existingRack = false;
     }
     else
     {
-        m_createdRackId = (*constraint.racks().begin()).id();
+        m_createdRackId = (*constraint.racks.begin()).id();
         m_existingRack = true;
     }
 
     m_createdSlotId = Id<SlotModel> (getNextId());
     m_createdLayerId = Id<LayerModel> (getNextId());
-    m_processData = constraint.process(m_sharedProcessModelId).makeViewModelConstructionData();
+    m_processData = constraint.processes.at(m_sharedProcessModelId).makeViewModelConstructionData();
 }
 
 void AddLayerInNewSlot::undo()
 {
     auto& constraint = m_path.find();
-    auto& rack = constraint.rack(m_createdRackId);
+    auto& rack = constraint.racks.at(m_createdRackId);
 
     // Removing the slot is enough
     rack.slotmodels.remove(m_createdSlotId);
@@ -52,7 +51,7 @@ void AddLayerInNewSlot::undo()
     // Remove the rack
     if(!m_existingRack)
     {
-        constraint.removeRack(m_createdRackId);
+        constraint.racks.remove(m_createdRackId);
     }
 }
 
@@ -65,11 +64,11 @@ void AddLayerInNewSlot::redo()
     {
         // TODO refactor with AddRackToConstraint
         auto rack = new RackModel{m_createdRackId, &constraint};
-        constraint.addRack(rack);
+        constraint.racks.add(rack);
 
         // If it is the first rack created,
         // it is also assigned to all the views of the constraint.
-        if(constraint.racks().size() == 1)
+        if(constraint.racks.size() == 1)
         {
             for(const auto& vm : constraint.viewModels())
             {
@@ -79,13 +78,13 @@ void AddLayerInNewSlot::redo()
     }
 
     // Slot
-    auto& rack = constraint.rack(m_createdRackId);
+    auto& rack = constraint.racks.at(m_createdRackId);
     rack.addSlot(new SlotModel {m_createdSlotId,
                                 &rack});
 
     // Process View
     auto& slot = rack.slotmodels.at(m_createdSlotId);
-    auto& proc = constraint.process(m_sharedProcessModelId);
+    auto& proc = constraint.processes.at(m_sharedProcessModelId);
 
     slot.layers.add(proc.makeLayer(m_createdLayerId,
                                       m_processData,

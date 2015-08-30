@@ -28,7 +28,7 @@ LayerModel* createLayerModel(Deserializer<DataStream>& deserializer,
     Id<Process> sharedProcessId;
     deserializer.m_stream >> sharedProcessId;
 
-    auto& process = constraint.process(sharedProcessId);
+    auto& process = constraint.processes.at(sharedProcessId);
     auto viewmodel = process.loadLayer(deserializer.toVariant(),
                                        parent);
 
@@ -58,7 +58,7 @@ LayerModel* createLayerModel(
         const ConstraintModel& constraint,
         QObject* parent)
 {
-    auto& process = constraint.process(
+    auto& process = constraint.processes.at(
                 fromJsonValue<Id<Process>>(deserializer.m_obj["SharedProcessId"]));
     auto viewmodel = process.loadLayer(deserializer.toVariant(),
                                             parent);

@@ -2,9 +2,15 @@
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Document/BaseElement/BaseElementPresenter.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
+#include <ProcessInterface/ProcessModel.hpp>
+#include <ProcessInterface/LayerModel.hpp>
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/State/StateModel.hpp"
 #include "Process/ScenarioModel.hpp"
+#include "ScenarioCommandFactory.hpp"
 
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
@@ -20,6 +26,21 @@
 #include <QFileDialog>
 #include <QApplication>
 
+
+// This part is somewhat similar to what moc does
+// with moc_.. stuff generation.
+#include <iscore/tools/NotifyingMap_impl.hpp>
+void ignore_template_instantiations()
+{
+    NotifyingMapInstantiations_T<LayerModel>();
+    NotifyingMapInstantiations_T<SlotModel>();
+    NotifyingMapInstantiations_T<RackModel>();
+    NotifyingMapInstantiations_T<Process>();
+    NotifyingMapInstantiations_T<ConstraintModel>();
+    NotifyingMapInstantiations_T<EventModel>();
+    NotifyingMapInstantiations_T<TimeNodeModel>();
+    NotifyingMapInstantiations_T<StateModel>();
+}
 
 using namespace iscore;
 
@@ -84,8 +105,6 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
-
-#include "ScenarioCommandFactory.hpp"
 
 iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
         const QString& name,
