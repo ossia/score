@@ -38,13 +38,25 @@ ConstraintPresenter::ConstraintPresenter(
             m_view, &ConstraintView::setSelected);
 
     con(m_viewModel.model().duration, &ConstraintDurations::minDurationChanged,
-            this,                 &ConstraintPresenter::on_minDurationChanged);
+            this, [&] (const TimeValue& val)
+    {
+        on_minDurationChanged(val);
+        updateChildren();
+    });
     con(m_viewModel.model().duration, &ConstraintDurations::defaultDurationChanged,
-            this,                 &ConstraintPresenter::on_defaultDurationChanged);
+            this,[&] (const TimeValue& val)
+    {
+        on_defaultDurationChanged(val);
+        updateChildren();
+    });
     con(m_viewModel.model().duration, &ConstraintDurations::maxDurationChanged,
-            this,                 &ConstraintPresenter::on_maxDurationChanged);
-    con(m_viewModel.model().duration, &ConstraintDurations::playDurationChanged,
-            this, &ConstraintPresenter::on_playDurationChanged, Qt::QueuedConnection);
+            this, [&] (const TimeValue& val)
+    {
+        on_maxDurationChanged(val);
+        updateChildren();
+    });
+    con(m_viewModel.model().duration, &ConstraintDurations::playPercentageChanged,
+            this, &ConstraintPresenter::on_playPercentageChanged, Qt::QueuedConnection);
 
     con(m_viewModel.model(), &ConstraintModel::heightPercentageChanged,
             this, &ConstraintPresenter::heightPercentageChanged);
@@ -80,8 +92,9 @@ void ConstraintPresenter::updateScaling()
     on_defaultDurationChanged(cm.duration.defaultDuration());
     on_minDurationChanged(cm.duration.minDuration());
     on_maxDurationChanged(cm.duration.maxDuration());
+    on_playPercentageChanged(cm.duration.playPercentage());
 
-
+    updateChildren();
     updateHeight();
 }
 
@@ -111,34 +124,22 @@ void ConstraintPresenter::on_defaultDurationChanged(const TimeValue& val)
     {
         rack()->setWidth(m_view->defaultWidth() - 20);
     }
-
-    emit askUpdate();
-    m_view->update();
-    m_header->update();
 }
 
 void ConstraintPresenter::on_minDurationChanged(const TimeValue& min)
 {
     m_view->setMinWidth(min.toPixels(m_zoomRatio));
-
-    emit askUpdate();
-    m_view->update();
 }
 
 void ConstraintPresenter::on_maxDurationChanged(const TimeValue& max)
 {
     m_view->setMaxWidth(max.isInfinite(),
                         max.isInfinite()? -1 : max.toPixels(m_zoomRatio));
-
-    emit askUpdate();
-    m_view->update();
-    m_header->update();
 }
 
-void ConstraintPresenter::on_playDurationChanged(const TimeValue &t)
+void ConstraintPresenter::on_playPercentageChanged(double t)
 {
-    m_view->setPlayWidth(t.toPixels(m_zoomRatio));
-    m_header->update();
+    m_view->setPlayWidth(m_view->maxWidth() * t);
 }
 
 void ConstraintPresenter::updateHeight()
@@ -153,10 +154,15 @@ void ConstraintPresenter::updateHeight()
         m_view->setHeight(ConstraintHeader::headerHeight());
     }
 
+    updateChildren();
+    emit heightChanged();
+}
+
+void ConstraintPresenter::updateChildren()
+{
     emit askUpdate();
     m_view->update();
     m_header->update();
-    emit heightChanged();
 }
 
 bool ConstraintPresenter::isSelected() const

@@ -102,7 +102,7 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
                                                    const OSSIA::TimeValue& date,
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
-        iscore_constraint->duration.setPlayDuration(currentTime);
+        iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
 
         state->launch();
     },
@@ -164,7 +164,6 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
         for(auto& state : the_event->states())
         {
             auto& iscore_state = m_iscore_scenario->state(state);
-            // qDebug() << "AZEAZEAZE" << 1234124 << 2143 << "klm" << (int) newStatus;
 
             switch(newStatus)
             {
@@ -183,7 +182,7 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
                     {
                         auto& cst = m_iscore_scenario->constraint(iscore_state.nextConstraint());
                         m_executingConstraints.insert(&cst);
-                        cst.duration.setPlayDuration(TimeValue::zero());
+                        cst.duration.setPlayPercentage(0);
                     }
                     break;
                 }

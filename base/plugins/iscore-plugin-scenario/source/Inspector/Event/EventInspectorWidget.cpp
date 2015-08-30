@@ -35,7 +35,6 @@
 #include "Inspector/State/StateInspectorWidget.hpp"
 #include <Inspector/InspectorWidgetList.hpp>
 
-// TODO : pour cohérence avec les autres inspectors : Scenario ou Senario::Commands ?
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
         iscore::Document& doc,

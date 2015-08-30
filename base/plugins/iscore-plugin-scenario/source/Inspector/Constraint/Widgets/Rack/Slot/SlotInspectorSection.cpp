@@ -31,7 +31,7 @@ SlotInspectorSection::SlotInspectorSection(
         RackInspectorSection* parentRack) :
     InspectorSectionWidget {name, parentRack},
     m_model {slot},
-    m_parent{parentRack->m_parent}
+    m_parent{parentRack->constraintInspector()}
 {
     auto framewidg = new QFrame;
     auto lay = new QVBoxLayout;

@@ -107,7 +107,7 @@ void ConstraintModel::on_destroyedViewModel(QObject* obj)
     // Note : don't change into a dynamic/safe cast
     // because the ConstraintViewModel part already was deleted
     // at this point.
-    // TODO : make ConstraintModel send a signal
+    // TODO : make ConstraintViewModel send a signal
     // at the beginning of its destructor instead.
     int index = m_constraintViewModels.indexOf(
                     static_cast<ConstraintViewModel*>(obj));
@@ -185,7 +185,7 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
 
 void ConstraintModel::reset()
 {
-    duration.setPlayDuration(TimeValue::zero());
+    duration.setPlayPercentage(0);
 
     for(auto& proc : processes)
     {

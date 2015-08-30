@@ -16,10 +16,10 @@ class ConstraintDurations : public QObject
                    READ maxDuration
                    WRITE setMaxDuration
                    NOTIFY maxDurationChanged)
-        Q_PROPERTY(TimeValue playDuration
-                   READ playDuration
-                   WRITE setPlayDuration
-                   NOTIFY playDurationChanged)
+        Q_PROPERTY(double playPercentage
+                   READ playPercentage
+                   WRITE setPlayPercentage
+                   NOTIFY playPercentageChanged)
 
         Q_PROPERTY(bool isRigid
                    READ isRigid
@@ -45,8 +45,8 @@ class ConstraintDurations : public QObject
         { return m_minDuration; }
         const TimeValue& maxDuration() const
         { return m_maxDuration; }
-        const TimeValue& playDuration() const
-        { return m_playDuration; }
+        double playPercentage() const
+        { return m_playPercentage; }
 
         bool isRigid() const
         { return m_rigidity; }
@@ -64,7 +64,7 @@ class ConstraintDurations : public QObject
         void minDurationChanged(const TimeValue& arg);
         void maxDurationChanged(const TimeValue& arg);
 
-        void playDurationChanged(const TimeValue& arg);
+        void playPercentageChanged(double arg);
         void rigidityChanged(bool arg);
 
     public slots:
@@ -72,7 +72,7 @@ class ConstraintDurations : public QObject
         void setMinDuration(const TimeValue& arg);
         void setMaxDuration(const TimeValue& arg);
 
-        void setPlayDuration(const TimeValue& arg);
+        void setPlayPercentage(double arg);
 
         // TODO make a class that manages all the durations + rigidity in a coherent manner
         void setRigid(bool arg);
@@ -84,6 +84,6 @@ class ConstraintDurations : public QObject
         TimeValue m_minDuration{m_defaultDuration};
         TimeValue m_maxDuration{m_defaultDuration};
 
-        TimeValue m_playDuration; // TODO should be a play percentage instead.
+        double m_playPercentage{}; // Between 0 and 1.
         bool m_rigidity{true};
 };

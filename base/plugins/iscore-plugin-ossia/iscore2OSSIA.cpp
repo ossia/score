@@ -287,16 +287,21 @@ OSSIA::Value* toValue(
     return nullptr;
 }
 
-// TODO Handle the case where the message is not present.
-std::shared_ptr<OSSIA::Message> message(const iscore::Message &mess, const DeviceList& deviceList)
+std::shared_ptr<OSSIA::Message> message(const iscore::Message& mess, const DeviceList& deviceList)
 {
+    if(!deviceList.hasDevice(mess.address.device))
+        return {};
+
     const auto& dev = deviceList.device(mess.address.device);
 
     if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&dev))
     {
-        auto ossia_node = iscore::convert::getNodeFromPath(
+        auto ossia_node = iscore::convert::findNodeFromPath(
                     mess.address.path,
                     &casted_dev->impl());
+
+        if(!ossia_node)
+            return {};
 
         return OSSIA::Message::create(
                     ossia_node->getAddress(),

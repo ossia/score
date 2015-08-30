@@ -20,10 +20,12 @@ class RackInspectorSection : public InspectorSectionWidget
         void addSlotInspectorSection(const SlotModel&);
         void createSlot();
 
-
-        ConstraintInspectorWidget* m_parent{};//TODO Blehhhh
+        auto constraintInspector() const
+        { return m_parent; }
 
     private:
+        ConstraintInspectorWidget* m_parent{};
+
         void on_slotCreated(const SlotModel&);
         void on_slotRemoved(const SlotModel&);
         const RackModel& m_model;

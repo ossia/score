@@ -7,7 +7,7 @@ ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &o
     m_minDuration = other.m_minDuration;
     m_maxDuration = other.m_maxDuration;
     m_defaultDuration = other.m_defaultDuration;
-    m_playDuration = other.m_playDuration;
+    m_playPercentage = other.m_playPercentage;
     m_rigidity = other.m_rigidity;
 
     return *this;
@@ -48,13 +48,13 @@ void ConstraintDurations::setMaxDuration(const TimeValue& arg)
     }
 }
 
-void ConstraintDurations::setPlayDuration(const TimeValue &arg)
+void ConstraintDurations::setPlayPercentage(double arg)
 {
-    if (m_playDuration == arg)
+    if (m_playPercentage == arg)
         return;
 
-    m_playDuration = arg;
-    emit playDurationChanged(arg);
+    m_playPercentage = arg;
+    emit playPercentageChanged(arg);
 }
 
 void ConstraintDurations::setRigid(bool arg)

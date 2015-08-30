@@ -57,13 +57,13 @@ class ConstraintPresenter : public NamedObject
         void heightPercentageChanged(); // The vertical position
 
     public slots:
-        void on_defaultDurationChanged(const TimeValue& val);
-        void on_minDurationChanged(const TimeValue& min);
-        void on_maxDurationChanged(const TimeValue& max);
+        void on_defaultDurationChanged(const TimeValue&);
+        void on_minDurationChanged(const TimeValue&);
+        void on_maxDurationChanged(const TimeValue&);
 
-        void on_playDurationChanged(const TimeValue& t);
+        void on_playPercentageChanged(double t);
 
-        void on_rackShown(const Id<RackModel>& rackId);
+        void on_rackShown(const Id<RackModel>&);
         void on_rackHidden();
         void on_rackRemoved();
 
@@ -76,6 +76,7 @@ class ConstraintPresenter : public NamedObject
         ConstraintHeader* m_header{};
 
     private:
+        void updateChildren();
         void createRackPresenter(const RackModel&);
         void clearRackPresenter();
 
