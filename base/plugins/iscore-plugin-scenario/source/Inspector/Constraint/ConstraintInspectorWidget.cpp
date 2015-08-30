@@ -55,10 +55,10 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     ////// HEADER
     // metadata
     m_metadata = new MetadataWidget{
-            &m_model.metadata,
-            commandDispatcher(),
-            &m_model,
-            this};
+                 &m_model.metadata,
+                 commandDispatcher(),
+                 &m_model,
+                 this};
     m_metadata->setType(ConstraintModel::prettyName());
 
     m_metadata->setupConnections(m_model);
@@ -191,23 +191,23 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     // Constraint interface
     m_connections.push_back(
                 con(model(), &ConstraintModel::processCreated,
-                        this, &ConstraintInspectorWidget::on_processCreated));
+                    this, &ConstraintInspectorWidget::on_processCreated));
     m_connections.push_back(
                 con(model(), &ConstraintModel::processRemoved,
-                        this, &ConstraintInspectorWidget::on_processRemoved));
+                    this, &ConstraintInspectorWidget::on_processRemoved));
     m_connections.push_back(
                 con(model(), &ConstraintModel::rackCreated,
-                        this, &ConstraintInspectorWidget::on_rackCreated));
+                    this, &ConstraintInspectorWidget::on_rackCreated));
     m_connections.push_back(
                 con(model(), &ConstraintModel::rackRemoved,
-                        this, &ConstraintInspectorWidget::on_rackRemoved));
+                    this, &ConstraintInspectorWidget::on_rackRemoved));
 
     m_connections.push_back(
                 con(model(), &ConstraintModel::viewModelCreated,
-                        this, &ConstraintInspectorWidget::on_constraintViewModelCreated));
+                    this, &ConstraintInspectorWidget::on_constraintViewModelCreated));
     m_connections.push_back(
                 con(model(), &ConstraintModel::viewModelRemoved,
-                        this, &ConstraintInspectorWidget::on_constraintViewModelRemoved));
+                    this, &ConstraintInspectorWidget::on_constraintViewModelRemoved));
 
     // Processes
     for(const auto& process : model().processes())
@@ -283,7 +283,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 
     // Process
     auto processWidget = InspectorWidgetList::makeInspectorWidget(
-                process.processName(), process, newProc);
+                             process.processName(), process, newProc);
     newProc->addContent(processWidget);
 
     // Start & end state
@@ -296,14 +296,14 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     if(auto start = process.startState())
     {
         auto startWidg = InspectorWidgetList::makeInspectorWidget(
-                    start->stateName(), *start, newProc);
+                             start->stateName(), *start, newProc);
         stateLayout->addRow(tr("Start state"), startWidg);
     }
 
     if(auto end = process.endState())
     {
         auto endWidg = InspectorWidgetList::makeInspectorWidget(
-                    end->stateName(), *end, newProc);
+                           end->stateName(), *end, newProc);
         stateLayout->addRow(tr("End state"), endWidg);
     }
     newProc->addContent(stateWidget);
@@ -329,9 +329,9 @@ void ConstraintInspectorWidget::setupRack(const RackModel& rack)
 {
     // Display the widget
     RackInspectorSection* newRack = new RackInspectorSection {
-            QString{"Rack.%1"} .arg(*rack.id().val()),
-            rack,
-            this};
+                                    QString{"Rack.%1"} .arg(*rack.id().val()),
+                                    rack,
+                                    this};
 
     m_rackesSectionWidgets[rack.id()] = newRack;
     m_rackSection->addContent(newRack);
@@ -346,18 +346,18 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
     if(auto sst = m_model.startState())
     {
         auto btn = SelectionButton::make(
-                    &scenar->state(sst),
-                    selectionDispatcher(),
-                    this);
+                       &scenar->state(sst),
+                       selectionDispatcher(),
+                       this);
         eventLay->addRow(tr("Start state"), btn);
     }
 
     if(auto est = m_model.endState())
     {
         auto btn = SelectionButton::make(
-                    &scenar->state(est),
-                    selectionDispatcher(),
-                    this);
+                       &scenar->state(est),
+                       selectionDispatcher(),
+                       this);
         eventLay->addRow(tr("End state"), btn);
     }
 
@@ -365,27 +365,31 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
 }
 
 void ConstraintInspectorWidget::on_processCreated(
-        Id<Process> processId)
+        const Process&)
 {
+    // OPTIMIZEME
     updateDisplayedValues();
 }
 
-void ConstraintInspectorWidget::on_processRemoved(Id<Process> processId)
+void ConstraintInspectorWidget::on_processRemoved(
+        const Process&)
 {
+    // OPTIMIZEME
     updateDisplayedValues();
 }
 
 
-void ConstraintInspectorWidget::on_rackCreated(Id<RackModel> rackId)
+void ConstraintInspectorWidget::on_rackCreated(
+        const RackModel& rack)
 {
-    setupRack(model().rack(rackId));
+    setupRack(rack);
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_rackRemoved(Id<RackModel> rackId)
+void ConstraintInspectorWidget::on_rackRemoved(const RackModel& rack)
 {
-    auto ptr = m_rackesSectionWidgets[rackId];
-    m_rackesSectionWidgets.erase(rackId);
+    auto ptr = m_rackesSectionWidgets[rack.id()];
+    m_rackesSectionWidgets.erase(rack.id());
 
     if(ptr)
     {
@@ -395,12 +399,14 @@ void ConstraintInspectorWidget::on_rackRemoved(Id<RackModel> rackId)
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelCreated(Id<ConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelCreated(const ConstraintViewModel&)
 {
+    // OPTIMIZEME
     m_rackWidget->viewModelsChanged();
 }
 
-void ConstraintInspectorWidget::on_constraintViewModelRemoved(Id<ConstraintViewModel> cvmId)
+void ConstraintInspectorWidget::on_constraintViewModelRemoved(const ConstraintViewModel&)
 {
+    // OPTIMIZEME
     m_rackWidget->viewModelsChanged();
 }

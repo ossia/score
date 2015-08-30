@@ -73,7 +73,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void focusChanged(bool arg);
 
     public slots:
-        void on_deleteSharedProcessModel(const Id<Process>& sharedProcessId);
+        void on_deleteSharedProcessModel(const Process& sharedProcessId);
 
         void setHeight(qreal arg);
         void setFocus(bool arg);

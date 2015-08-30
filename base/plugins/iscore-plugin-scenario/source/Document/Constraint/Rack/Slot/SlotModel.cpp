@@ -81,14 +81,14 @@ const LayerModel& SlotModel::frontLayerModel() const
 }
 
 void SlotModel::on_deleteSharedProcessModel(
-        const Id<Process>& sharedProcessId)
+        const Process& proc)
 {
     using namespace std;
     auto it = find_if(begin(layers),
                       end(layers),
-                      [&sharedProcessId](const LayerModel& lm)
+                      [id = proc.id()](const LayerModel& lm)
     {
-        return lm.processModel().id() == sharedProcessId;
+        return lm.processModel().id() == id;
     });
 
     if(it != end(layers))

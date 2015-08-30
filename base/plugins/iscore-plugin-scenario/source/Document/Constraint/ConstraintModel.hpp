@@ -143,14 +143,14 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void reset();
 
     signals:
-        void processCreated(const Id<Process>&);
-        void processRemoved(const Id<Process>&);
+        void processCreated(const Process&);
+        void processRemoved(const Process&);
 
-        void rackCreated(const Id<RackModel>&);
-        void rackRemoved(const Id<RackModel>&);
+        void rackCreated(const RackModel&);
+        void rackRemoved(const RackModel&);
 
-        void viewModelCreated(const Id<ConstraintViewModel>&);
-        void viewModelRemoved(const Id<ConstraintViewModel>&);
+        void viewModelCreated(const ConstraintViewModel&);
+        void viewModelRemoved(const ConstraintViewModel&);
 
         void heightPercentageChanged(double);
 

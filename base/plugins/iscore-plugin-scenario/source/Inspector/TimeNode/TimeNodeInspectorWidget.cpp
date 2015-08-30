@@ -60,7 +60,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     addHeader(m_metadata);
 
     con(m_model, &TimeNodeModel::dateChanged,
-            this,   &TimeNodeInspectorWidget::updateInspector);
+        this,   &TimeNodeInspectorWidget::updateDisplayedValues);
 
     auto splitBtn = new QPushButton{this};
     splitBtn->setText("split timeNode");
@@ -75,6 +75,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 void TimeNodeInspectorWidget::updateDisplayedValues()
 {
     // Cleanup
+    // OPTIMIZEME
     for(auto& elt : m_events)
     {
         delete elt;
@@ -100,12 +101,6 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
             selectionDispatcher().setAndCommit(Selection{evModel});
         });
     }
-}
-
-
-void TimeNodeInspectorWidget::updateInspector()
-{
-    updateDisplayedValues();
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()

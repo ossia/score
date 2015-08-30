@@ -90,25 +90,25 @@ ScenarioInterface* ConstraintModel::parentScenario() const
 
 void ConstraintModel::setupConstraintViewModel(ConstraintViewModel* viewmodel)
 {
-    connect(this,		&ConstraintModel::rackRemoved,
-            viewmodel,	&ConstraintViewModel::on_rackRemoved);
+    connect(this, &ConstraintModel::rackRemoved,
+            viewmodel, &ConstraintViewModel::on_rackRemoved);
 
     connect(viewmodel, &QObject::destroyed,
-            this,	   &ConstraintModel::on_destroyedViewModel);
+            this, &ConstraintModel::on_destroyedViewModel);
 
     m_constraintViewModels.push_back(viewmodel);
-    emit viewModelCreated(viewmodel->id());
+    emit viewModelCreated(*viewmodel);
 }
 
 void ConstraintModel::on_destroyedViewModel(QObject* obj)
 {
-    auto cvm = static_cast<ConstraintViewModel*>(obj);
+    auto cvm = safe_cast<ConstraintViewModel*>(obj);
     int index = m_constraintViewModels.indexOf(cvm);
 
     if(index != -1)
     {
         m_constraintViewModels.remove(index);
-        emit viewModelRemoved(cvm->id());
+        emit viewModelRemoved(*cvm);
     }
 }
 const Id<StateModel> &ConstraintModel::endState() const
@@ -126,7 +126,7 @@ void ConstraintModel::setEndState(const Id<StateModel> &endState)
 void ConstraintModel::addProcess(Process* model)
 {
     m_processes.insert(model);
-    emit processCreated(model->id());
+    emit processCreated(*model);
 }
 
 void ConstraintModel::removeProcess(const Id<Process>& processId)
@@ -134,7 +134,7 @@ void ConstraintModel::removeProcess(const Id<Process>& processId)
     auto proc = &process(processId);
     m_processes.remove(processId);
 
-    emit processRemoved(processId);
+    emit processRemoved(*proc);
     delete proc;
 }
 
@@ -146,7 +146,7 @@ void ConstraintModel::addRack(RackModel* rack)
             rack, &RackModel::on_durationChanged);
 
     m_racks.insert(rack);
-    emit rackCreated(rack->id());
+    emit rackCreated(*rack);
 }
 
 
@@ -155,7 +155,7 @@ void ConstraintModel::removeRack(const Id<RackModel>& rackId)
     auto b = &rack(rackId);
     m_racks.remove(rackId);
 
-    emit rackRemoved(rackId);
+    emit rackRemoved(*b);
     delete b;
 }
 

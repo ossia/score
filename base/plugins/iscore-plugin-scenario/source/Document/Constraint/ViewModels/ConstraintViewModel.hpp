@@ -40,10 +40,10 @@ class ConstraintViewModel : public IdentifiedObject<ConstraintViewModel>
     signals:
         void rackRemoved();
         void rackHidden();
-        void rackShown(const Id<RackModel>& rackId);
+        void rackShown(const Id<RackModel>&);
 
     public slots:
-        virtual void on_rackRemoved(const Id<RackModel>& rackId);
+        virtual void on_rackRemoved(const RackModel&);
 
     private:
         // A view model cannot be constructed without a model

@@ -25,8 +25,6 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
     public slots:
         void updateDisplayedValues();
 
-        void updateInspector();
-
         void on_splitTimeNodeClicked();
 
     private:

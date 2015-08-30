@@ -212,6 +212,12 @@ void EventInspectorWidget::addState(const StateModel& state)
     m_statesWidget->layout()->addWidget(sw);
 }
 
+void EventInspectorWidget::removeState(const StateModel& state)
+{
+    // this is not connected
+    ISCORE_TODO;
+}
+
 void EventInspectorWidget::focusState(const StateModel* state)
 {
     ISCORE_TODO;

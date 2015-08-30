@@ -49,14 +49,14 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
         void setupRack(const RackModel&);
 
     private:
-        void on_processCreated(Id<Process>);
-        void on_processRemoved(Id<Process>);
+        void on_processCreated(const Process&);
+        void on_processRemoved(const Process&);
 
-        void on_rackCreated(Id<RackModel>);
-        void on_rackRemoved(Id<RackModel>);
+        void on_rackCreated(const RackModel&);
+        void on_rackRemoved(const RackModel&);
 
-        void on_constraintViewModelCreated(Id<ConstraintViewModel>);
-        void on_constraintViewModelRemoved(Id<ConstraintViewModel>);
+        void on_constraintViewModelCreated(const ConstraintViewModel&);
+        void on_constraintViewModelRemoved(const ConstraintViewModel&);
 
         QWidget* makeStatesWidget(ScenarioModel*);
         const ConstraintModel& m_model;

@@ -43,7 +43,7 @@ OSSIAConstraintElement::OSSIAConstraintElement(
 
     for(const auto& process : iscore_cst.processes())
     {
-        on_processAdded(process.id());
+        on_processAdded(process);
     }
 }
 
@@ -64,28 +64,28 @@ void OSSIAConstraintElement::stop()
 }
 
 void OSSIAConstraintElement::on_processAdded(
-        const Id<Process>& id)
+        const Process& iscore_proc)
 {
     // The DocumentPlugin creates the elements in the processes.
-    auto proc = &m_iscore_constraint.process(id);
+    auto proc = &iscore_proc;
     OSSIAProcessElement* plug{};
-    if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
+    if(auto scenar = dynamic_cast<const ScenarioModel*>(proc))
     {
-        plug = new OSSIAScenarioElement{this, scenar, proc};
+        plug = new OSSIAScenarioElement{this, scenar, const_cast<Process*>(proc)};
     }
-    else if(auto autom = dynamic_cast<AutomationModel*>(proc))
+    else if(auto autom = dynamic_cast<const AutomationModel*>(proc))
     {
-        plug = new OSSIAAutomationElement{this, autom, proc};
+        plug = new OSSIAAutomationElement{this, autom, const_cast<Process*>(proc)};
     }
 
     if(plug)
     {
-        m_processes.insert({id, plug});
+        m_processes.insert({iscore_proc.id(), plug});
 
         // i-score scenario has ownership, hence
         // we have to remove it from the array if deleted
         connect(plug, &QObject::destroyed, this,
-                [=] (QObject*) {
+                [&,id=iscore_proc.id()] (QObject*) {
             // The OSSIA::Process removal is in each process dtor
             m_processes.erase(id);
         }, Qt::DirectConnection);
@@ -109,9 +109,9 @@ void OSSIAConstraintElement::on_processAdded(
     }
 }
 
-void OSSIAConstraintElement::on_processRemoved(const Id<Process>& process)
+void OSSIAConstraintElement::on_processRemoved(const Process& process)
 {
-    auto it = m_processes.find(process);
+    auto it = m_processes.find(process.id());
     if(it != m_processes.end())
     {
         // It is possible for a process to be null

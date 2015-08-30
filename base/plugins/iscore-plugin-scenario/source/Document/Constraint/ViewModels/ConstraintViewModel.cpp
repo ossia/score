@@ -1,5 +1,5 @@
 #include "ConstraintViewModel.hpp"
-
+#include "Document/Constraint/Rack/RackModel.hpp"
 bool ConstraintViewModel::isRackShown() const
 {
     return bool (m_shownRack.val());
@@ -30,9 +30,9 @@ void ConstraintViewModel::showRack(const Id<RackModel>& rackId)
     }
 }
 
-void ConstraintViewModel::on_rackRemoved(const Id<RackModel>& rackId)
+void ConstraintViewModel::on_rackRemoved(const RackModel& rack)
 {
-    if(shownRack() == rackId)
+    if(shownRack() == rack.id())
     {
         hideRack();
         emit rackRemoved();

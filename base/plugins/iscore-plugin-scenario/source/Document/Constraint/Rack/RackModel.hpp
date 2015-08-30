@@ -57,7 +57,7 @@ class RackModel : public IdentifiedObject<RackModel>
     signals:
         void slotPositionsChanged();
 
-        void on_deleteSharedProcessModel(const Id<Process>&);
+        void on_deleteSharedProcessModel(const Process&);
         void on_durationChanged(const TimeValue&);
 
     private:

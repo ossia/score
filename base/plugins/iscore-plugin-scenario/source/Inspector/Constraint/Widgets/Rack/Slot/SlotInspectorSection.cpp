@@ -129,8 +129,7 @@ void SlotInspectorSection::on_layerModelCreated(
 
 void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
 {
-    ISCORE_TODO;
-
+    // OPTIMIZEME
     m_lmSection->removeAll();
     for (const auto& lm : m_model.layers)
     {

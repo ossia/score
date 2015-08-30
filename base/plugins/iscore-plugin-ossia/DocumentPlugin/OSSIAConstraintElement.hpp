@@ -23,8 +23,8 @@ class OSSIAConstraintElement : public QObject
         void stop();
 
     private slots:
-        void on_processAdded(const Id<Process>& id);
-        void on_processRemoved(const Id<Process>& id);
+        void on_processAdded(const Process& id);
+        void on_processRemoved(const Process& id);
 
     private:
         ConstraintModel& m_iscore_constraint;

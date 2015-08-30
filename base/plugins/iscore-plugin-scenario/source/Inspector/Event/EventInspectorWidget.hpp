@@ -23,6 +23,7 @@ class EventInspectorWidget : public InspectorWidgetBase
                 QWidget* parent = 0);
 
         void addState(const StateModel& state);
+        void removeState(const StateModel& state);
         void focusState(const StateModel* state);
 
     public slots:

@@ -29,6 +29,7 @@ StateInspectorWidget::StateInspectorWidget(
 void StateInspectorWidget::updateDisplayedValues()
 {
     // Cleanup
+    // OPTIMIZEME
     qDeleteAll(m_stateWidgets);
     m_stateWidgets.clear();
     qDeleteAll(m_properties);
