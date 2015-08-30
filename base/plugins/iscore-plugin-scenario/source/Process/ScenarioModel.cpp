@@ -9,6 +9,8 @@
 
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
+
 
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
@@ -19,6 +21,9 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     m_startEventId{0},
     m_endEventId{1}
 {
+
+    qDebug() << (void*)&constraints.staticMetaObject;
+
     auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(m_startTimeNodeId, {{0.2, 0.8}}, TimeValue::zero(), *this);
     auto& end_tn = ScenarioCreate<TimeNodeModel>::redo(m_endTimeNodeId, {{0.2, 0.8}}, duration, *this);
 

@@ -52,7 +52,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void on_eventRemoved(const EventModel&);
         void on_timeNodeRemoved(const TimeNodeModel&);
 
-
+    private:
         QPointer<OSSIAConstraintElement> m_parent_constraint;
 
         std::map<Id<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
@@ -65,4 +65,15 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         IdContainer<ConstraintModel> m_executingConstraints;
 
         const DeviceList& m_deviceList;
+};
+
+class NoHomo : public QObject
+{
+        Q_OBJECT
+
+    public:
+
+    signals:
+        void added(const TimeNodeModel&);
+        void removed(const TimeNodeModel&);
 };
