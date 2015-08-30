@@ -38,7 +38,7 @@ AddLayerModelWidget::AddLayerModelWidget(SlotInspectorSection* parentSlot) :
         auto shared_process_list = parentSlot->model().parentConstraint().processes();
 
         // 2. List the processes that already have a view in this slot
-        auto already_displayed_processes = parentSlot->model().layerModels();
+        const auto& already_displayed_processes = parentSlot->model().layers;
 
         // 3. Compute the difference
         for(auto& process : shared_process_list)

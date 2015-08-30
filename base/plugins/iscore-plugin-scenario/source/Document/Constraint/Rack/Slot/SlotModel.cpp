@@ -6,11 +6,17 @@
 #include "ProcessInterface/ProcessModel.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 
+#include <iscore/tools/NotifyingMap_impl.hpp>
+
 SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel* parent) :
     IdentifiedObject<SlotModel> {id, "SlotModel", parent}
 {
+    con(layers, &NotifyingMap<LayerModel>::added,
+        this, &SlotModel::on_addLayer);
+    con(layers, &NotifyingMap<LayerModel>::removed,
+        this, &SlotModel::on_removeLayer);
 }
 
 SlotModel::SlotModel(
@@ -19,7 +25,7 @@ SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel *parent):
     IdentifiedObject<SlotModel> {id, "SlotModel", parent},
-    m_frontLayerModelId {source.frontLayerModel() }, // Keep the same id.
+    m_frontLayerModelId {source.m_frontLayerModelId}, // Keep the same id.
     m_height {source.height() }
 {
     lmCopyMethod(source, *this);
@@ -29,85 +35,67 @@ void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)
 {
-    for(const auto& lm : source.layerModels())
+    for(const auto& lm : source.layers)
     {
         // We can safely reuse the same id since it's in a different slot.
         auto& proc = lm.processModel();
-        target.addLayerModel(
+        target.layers.add(
                     proc.cloneLayer(lm.id(),
                                     lm,
                                     &target));
     }
 }
 
-void SlotModel::addLayerModel(LayerModel* viewmodel)
+void SlotModel::on_addLayer(const LayerModel& viewmodel)
 {
-    m_layerModels.insert(viewmodel);
-
-    emit layerModelCreated(viewmodel->id());
-
-    putToFront(viewmodel->id());
+    putToFront(viewmodel.id());
 }
 
-void SlotModel::deleteLayerModel(
-        const Id<LayerModel>& layerId)
+void SlotModel::on_removeLayer(
+        const LayerModel&)
 {
-    auto& lm = layerModel(layerId);
-    m_layerModels.remove(layerId);
-
-    emit layerModelRemoved(layerId);
-
-
-    if(!m_layerModels.empty())
+    if(!layers.empty())
     {
-        putToFront((*m_layerModels.begin()).id());
+        putToFront((*layers.begin()).id());
     }
     else
     {
         m_frontLayerModelId.setVal({});
     }
-
-    delete &lm;
 }
 
 void SlotModel::putToFront(
-        const Id<LayerModel>& layerId)
+        const Id<LayerModel>& id)
 {
-    if(!layerId.val())
+    if(!id.val())
         return;
 
-    if(layerId != m_frontLayerModelId)
+    if(id != m_frontLayerModelId)
     {
-        m_frontLayerModelId = layerId;
-        emit layerModelPutToFront(layerId);
+        m_frontLayerModelId = id;
+        emit layerModelPutToFront(layers.at(id));
     }
 }
 
-const Id<LayerModel>& SlotModel::frontLayerModel() const
+const LayerModel& SlotModel::frontLayerModel() const
 {
-    return m_frontLayerModelId;
-}
-
-LayerModel& SlotModel::layerModel(
-        const Id<LayerModel>& layerModelId) const
-{
-    return m_layerModels.at(layerModelId);
+    return layers.at(m_frontLayerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(
         const Id<Process>& sharedProcessId)
 {
     using namespace std;
-    auto it = find_if(begin(m_layerModels),
-                      end(m_layerModels),
+    auto it = find_if(begin(layers),
+                      end(layers),
                       [&sharedProcessId](const LayerModel& lm)
     {
         return lm.processModel().id() == sharedProcessId;
     });
 
-    if(it != end(m_layerModels))
+    if(it != end(layers))
     {
-        deleteLayerModel((*it).id());
+        layers.remove((*it).id());
     }
 }
 

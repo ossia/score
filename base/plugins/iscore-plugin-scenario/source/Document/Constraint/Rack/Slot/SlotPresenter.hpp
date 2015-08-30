@@ -39,6 +39,11 @@ class SlotPresenter : public NamedObject
         using ProcessPair = QPair<LayerPresenter*, LayerView*>;
         const QVector<ProcessPair>& processes() const { return m_processes; }
 
+        void on_heightChanged(double);
+        void on_parentGeometryChanged();
+
+        void on_zoomRatioChanged(ZoomRatio);
+
     signals:
         void askUpdate();
 
@@ -46,17 +51,12 @@ class SlotPresenter : public NamedObject
         void moved(const QPointF&) const;
         void released(const QPointF&) const;
 
-    public slots:
-        // From Model
-        void on_layerModelCreated(const Id<LayerModel>& processId);
-        void on_layerModelDeleted(const Id<LayerModel>& processId);
-        void on_layerModelPutToFront(const Id<LayerModel>& processId);
-        void on_heightChanged(double height);
-        void on_parentGeometryChanged();
-
-        void on_zoomRatioChanged(ZoomRatio);
-
     private:
+        // From Model
+        void on_layerModelCreated(const LayerModel&);
+        void on_layerModelDeleted(const LayerModel&);
+        void on_layerModelPutToFront(const LayerModel&);
+
         void on_layerModelCreated_impl(const LayerModel&);
 
         void updateProcessesShape();

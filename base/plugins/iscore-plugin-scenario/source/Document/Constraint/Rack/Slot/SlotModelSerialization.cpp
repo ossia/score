@@ -9,9 +9,9 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
 {
     readFrom(static_cast<const IdentifiedObject<SlotModel>&>(slot));
 
-    m_stream << slot.frontLayerModel();
+    m_stream << slot.m_frontLayerModelId;
 
-    auto lms = slot.layerModels();
+    const auto& lms = slot.layers;
     m_stream << (int) lms.size();
 
     for(const auto& lm : lms)
@@ -37,10 +37,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
     for(int i = 0; i < lm_size; i++)
     {
         auto lm = createLayerModel(*this, cstr, &slot);
-        slot.addLayerModel(lm);
+        slot.layers.add(lm);
     }
 
-    int height;
+    qreal height;
     m_stream >> height;
     slot.setHeight(height);
 
@@ -57,12 +57,12 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const SlotModel& slot)
 {
     readFrom(static_cast<const IdentifiedObject<SlotModel>&>(slot));
 
-    m_obj["EditedProcess"] = toJsonValue(slot.frontLayerModel());
+    m_obj["EditedProcess"] = toJsonValue(slot.m_frontLayerModelId);
     m_obj["Height"] = slot.height();
 
     QJsonArray arr;
 
-    for(const auto& lm : slot.layerModels())
+    for(const auto& lm : slot.layers)
     {
         arr.push_back(toJsonObject(lm));
     }
@@ -82,10 +82,10 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(SlotModel& slot)
         auto lm = createLayerModel(deserializer,
                                           cstr,
                                           &slot);
-        slot.addLayerModel(lm);
+        slot.layers.add(lm);
     }
 
-    slot.setHeight(m_obj["Height"].toInt());
+    slot.setHeight(static_cast<qreal>(m_obj["Height"].toDouble()));
     slot.putToFront(
                 fromJsonValue<Id<LayerModel>>(
                     m_obj["EditedProcess"]));

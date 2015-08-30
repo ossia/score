@@ -45,13 +45,13 @@ SlotInspectorSection::SlotInspectorSection(
     m_lmSection = new InspectorSectionWidget{"Process View Models", this};
     m_lmSection->setObjectName("LayerModels");
 
-    con(m_model,	&SlotModel::layerModelCreated,
-            this,		&SlotInspectorSection::on_layerModelCreated);
+    con(m_model.layers, &NotifyingMap<LayerModel>::added,
+        this, &SlotInspectorSection::on_layerModelCreated);
 
-    con(m_model,	&SlotModel::layerModelRemoved,
-            this,		&SlotInspectorSection::on_layerModelRemoved);
+    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
+        this, &SlotInspectorSection::on_layerModelRemoved);
 
-    for(const auto& lm : m_model.layerModels())
+    for(const auto& lm : m_model.layers)
     {
         displayLayerModel(lm);
     }
@@ -122,20 +122,19 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
 
 
 void SlotInspectorSection::on_layerModelCreated(
-        const Id<LayerModel>& lmId)
+        const LayerModel& lm)
 {
-    displayLayerModel(m_model.layerModel(lmId));
+    displayLayerModel(lm);
 }
 
-void SlotInspectorSection::on_layerModelRemoved(
-        const Id<LayerModel>& lmId)
+void SlotInspectorSection::on_layerModelRemoved(const LayerModel& removed)
 {
     ISCORE_TODO;
 
     m_lmSection->removeAll();
-    for (const auto& lm : m_model.layerModels())
+    for (const auto& lm : m_model.layers)
     {
-        if (lm.id() != lmId)
+        if (lm.id() != removed.id())
         {
             displayLayerModel(lm);
         }

@@ -134,12 +134,12 @@ void MoveEvent::undo()
                         sourcerack.id(),
                         [&] (const SlotModel& source, SlotModel& target)
                         {
-                            for(const auto& lm : source.layerModels())
+                            for(const auto& lm : source.layers)
                             {
                                 // We can safely reuse the same id since it's in a different slot.
                                 Process* proc = processPairs[&lm.processModel()];
                                 // TODO harmonize the order of parameters (source first, then new id)
-                                target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
+                                target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
                             }
                         },
                         &constraint};

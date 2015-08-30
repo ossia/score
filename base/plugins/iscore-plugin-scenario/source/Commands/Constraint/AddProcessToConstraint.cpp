@@ -45,7 +45,7 @@ AddProcessToConstraint::AddProcessToConstraint(
             const auto& firstSlotModel = *(*constraint.racks().begin()).getSlots().begin();
 
             m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
-            m_createdLayerId = getStrongId(firstSlotModel.layerModels());
+            m_createdLayerId = getStrongId(firstSlotModel.layers);
         }
     }
     else
@@ -68,7 +68,7 @@ void AddProcessToConstraint::undo()
     else if(m_notBaseConstraint)
     {
         auto& slot = *(*constraint.racks().begin()).getSlots().begin();
-        slot.deleteLayerModel(m_createdLayerId);
+        slot.layers.remove(m_createdLayerId);
     }
 
     constraint.removeProcess(m_createdProcessId);
@@ -109,13 +109,13 @@ void AddProcessToConstraint::redo()
         // Process View
         auto& slot = rack->slot(m_createdSlotId);
 
-        slot.addLayerModel(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
+        slot.layers.add(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
     }
     else if(m_notBaseConstraint)
     {
         auto& slot = *(*constraint.racks().begin()).getSlots().begin();
 
-        slot.addLayerModel(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
+        slot.layers.add(proc->makeLayer(m_createdLayerId, m_layerConstructionData, &slot));
     }
 }
 

@@ -11,6 +11,7 @@ class LayerModelPanelProxy;
  */
 class LayerModel: public IdentifiedObject<LayerModel>
 {
+        ISCORE_METADATA("LayerModel")
     public:
         Process& processModel() const;
 

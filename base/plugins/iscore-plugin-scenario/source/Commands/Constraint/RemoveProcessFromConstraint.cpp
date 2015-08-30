@@ -61,7 +61,7 @@ void RemoveProcessFromConstraint::undo()
         auto lm = createLayerModel(s,
                                    slot.parentConstraint(),
                                    &slot);
-        slot.addLayerModel(lm);
+        slot.layers.add(lm);
     }
 }
 

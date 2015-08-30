@@ -19,14 +19,14 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processPath {processPath}
 {
     auto& slot = m_slotPath.find();
-    m_createdLayerId = getStrongId(slot.layerModels());
+    m_createdLayerId = getStrongId(slot.layers);
     m_processData = m_processPath.find().makeViewModelConstructionData();
 }
 
 void AddLayerModelToSlot::undo()
 {
     auto& slot = m_slotPath.find();
-    slot.deleteLayerModel(m_createdLayerId);
+    slot.layers.remove(m_createdLayerId);
 }
 
 void AddLayerModelToSlot::redo()
@@ -34,7 +34,7 @@ void AddLayerModelToSlot::redo()
     auto& slot = m_slotPath.find();
     auto& proc = m_processPath.find();
 
-    slot.addLayerModel(proc.makeLayer(m_createdLayerId, m_processData, &slot));
+    slot.layers.add(proc.makeLayer(m_createdLayerId, m_processData, &slot));
 }
 
 void AddLayerModelToSlot::serializeImpl(QDataStream& s) const

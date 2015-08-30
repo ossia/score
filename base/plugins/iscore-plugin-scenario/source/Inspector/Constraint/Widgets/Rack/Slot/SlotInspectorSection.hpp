@@ -25,11 +25,11 @@ class SlotInspectorSection : public InspectorSectionWidget
 
         const SlotModel& model() const;
 
-    public slots:
-        void on_layerModelCreated(const Id<LayerModel>& id);
-        void on_layerModelRemoved(const Id<LayerModel>& id);
 
     private:
+        void on_layerModelCreated(const LayerModel&);
+        void on_layerModelRemoved(const LayerModel&);
+
         const SlotModel& m_model;
 
         ConstraintInspectorWidget* m_parent{};

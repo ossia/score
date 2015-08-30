@@ -28,21 +28,21 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
 {
     m_view->setPos(0, 0);
 
-    for(const auto& proc_vm : m_model.layerModels())
+    for(const auto& proc_vm : m_model.layers)
     {
         on_layerModelCreated_impl(proc_vm);
     }
 
-    con(m_model, &SlotModel::layerModelCreated,
-            this,    &SlotPresenter::on_layerModelCreated);
-    con(m_model, &SlotModel::layerModelRemoved,
-            this,    &SlotPresenter::on_layerModelDeleted);
+    con(m_model.layers, &NotifyingMap<LayerModel>::added,
+            this, &SlotPresenter::on_layerModelCreated);
+    con(m_model.layers, &NotifyingMap<LayerModel>::removed,
+            this, &SlotPresenter::on_layerModelDeleted);
 
     con(m_model, &SlotModel::layerModelPutToFront,
-            this,    &SlotPresenter::on_layerModelPutToFront);
+            this, &SlotPresenter::on_layerModelPutToFront);
 
     con(m_model, &SlotModel::heightChanged,
-            this,    &SlotPresenter::on_heightChanged);
+            this, &SlotPresenter::on_heightChanged);
 
     con(m_model, &SlotModel::focusChanged,
             m_view,  &SlotView::setFocus);
@@ -110,18 +110,18 @@ void SlotPresenter::disable()
 
 
 void SlotPresenter::on_layerModelCreated(
-        const Id<LayerModel>& processId)
+        const LayerModel& layerModel)
 {
-    on_layerModelCreated_impl(m_model.layerModel(processId));
+    on_layerModelCreated_impl(layerModel);
 }
 
 void SlotPresenter::on_layerModelDeleted(
-        const Id<LayerModel>& processId)
+        const LayerModel& layerModel)
 {
     vec_erase_remove_if(m_processes,
-                        [&processId](ProcessPair& pair)
+                        [&](ProcessPair& pair)
     {
-        bool to_delete = pair.first->layerModel().id() == processId;
+        bool to_delete = pair.first->layerModel().id() == layerModel.id();
 
         if(to_delete)
         {
@@ -138,13 +138,13 @@ void SlotPresenter::on_layerModelDeleted(
 }
 
 void SlotPresenter::on_layerModelPutToFront(
-        const Id<LayerModel>& processId)
+        const LayerModel& layer)
 {
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics mode.
     // TODO optimize by saving the previous to front and just switching...
     for(auto& pair : m_processes)
     {
-        if(pair.first->layerModel().id() == processId)
+        if(pair.first->layerModel().id() == layer.id())
         {
             pair.first->putToFront();
         }
@@ -194,9 +194,9 @@ void SlotPresenter::on_layerModelCreated_impl(
         m_view->disable();
 
     m_processes.push_back({proc_pres, proc_view});
-    if(m_model.frontLayerModel() == proc_vm.id())
+    if(m_model.frontLayerModel().id() == proc_vm.id())
     {
-        on_layerModelPutToFront(proc_vm.id());
+        on_layerModelPutToFront(proc_vm);
     }
     updateProcessesShape();
 

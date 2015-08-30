@@ -20,7 +20,7 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
     auto& slot = m_path.find();
 
     Serializer<DataStream> s{&m_serializedLayerData};
-    s.readFrom(slot.layerModel(m_layerId));
+    s.readFrom(slot.layers.at(m_layerId));
 }
 
 void RemoveLayerModelFromSlot::undo()
@@ -29,15 +29,15 @@ void RemoveLayerModelFromSlot::undo()
     Deserializer<DataStream> s {m_serializedLayerData};
 
     auto lm = createLayerModel(s,
-                                      slot.parentConstraint(),
-                                      &slot);
-    slot.addLayerModel(lm);
+                               slot.parentConstraint(),
+                               &slot);
+    slot.layers.add(lm);
 }
 
 void RemoveLayerModelFromSlot::redo()
 {
     auto& slot = m_path.find();
-    slot.deleteLayerModel(m_layerId);
+    slot.layers.remove(m_layerId);
 }
 
 void RemoveLayerModelFromSlot::serializeImpl(QDataStream& s) const

@@ -1,7 +1,9 @@
 #pragma once
 #include <ProcessInterface/LayerModel.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
-
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/NotifyingMap.hpp>
 #include <vector>
 
 class RackModel;
@@ -14,6 +16,8 @@ class LayerModel;
 class SlotModel : public IdentifiedObject<SlotModel>
 {
         Q_OBJECT
+        ISCORE_SERIALIZE_FRIENDS(SlotModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(SlotModel, JSONObject)
 
         Q_PROPERTY(qreal height
                    READ height
@@ -46,23 +50,11 @@ class SlotModel : public IdentifiedObject<SlotModel>
 
         virtual ~SlotModel() = default;
 
-        void addLayerModel(
-                LayerModel*);
-        void deleteLayerModel(
-                const Id<LayerModel>& layerModelId);
-
-
          // A process is selected for edition when it is
          // the edited process when the interface is clicked.
         void putToFront(
                 const Id<LayerModel>& layerId);
-        const Id<LayerModel>& frontLayerModel() const;
-
-        const auto& layerModels() const
-        { return m_layerModels; }
-
-        LayerModel& layerModel(
-                const Id<LayerModel>& layerModelId) const;
+        const LayerModel& frontLayerModel() const;
 
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;
@@ -70,10 +62,10 @@ class SlotModel : public IdentifiedObject<SlotModel>
         qreal height() const;
         bool focus() const;
 
+        NotifyingMap<LayerModel> layers;
+
     signals:
-        void layerModelCreated(const Id<LayerModel>& layerModelId);
-        void layerModelRemoved(const Id<LayerModel>& layerModelId);
-        void layerModelPutToFront(const Id<LayerModel>& layerModelId);
+        void layerModelPutToFront(const LayerModel& layerModelId);
 
         void heightChanged(qreal arg);
         void focusChanged(bool arg);
@@ -85,8 +77,10 @@ class SlotModel : public IdentifiedObject<SlotModel>
         void setFocus(bool arg);
 
     private:
+        void on_addLayer(const LayerModel& viewmodel);
+        void on_removeLayer(const LayerModel&);
+
         Id<LayerModel> m_frontLayerModelId;
-        IdContainer<LayerModel> m_layerModels;
 
         qreal m_height {200};
         bool m_focus{false};

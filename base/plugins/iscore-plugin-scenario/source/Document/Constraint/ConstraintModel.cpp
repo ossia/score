@@ -60,12 +60,12 @@ ConstraintModel::ConstraintModel(
                    rack.id(),
         [&] (const SlotModel& source, SlotModel& target)
         {
-                   for(auto& lm : source.layerModels())
+                   for(auto& lm : source.layers)
                    {
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&lm.processModel()];
                        // TODO harmonize the order of parameters (source first, then new id)
-                       target.addLayerModel(proc->cloneLayer(lm.id(), lm, &target));
+                       target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
                    }
         }, this});
     }
