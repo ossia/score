@@ -144,7 +144,9 @@ const QMetaObject NotifyingMap<T>::staticMetaObject{
 template<typename T>
 const QMetaObject*NotifyingMap<T>::metaObject() const
 {
-    return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
+    return QObject::d_ptr->metaObject
+            ? QObject::d_ptr->dynamicMetaObject()
+            : &staticMetaObject;
 }
 
 template<typename T>

@@ -9,7 +9,7 @@
 
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/NotifyingMap_impl.hpp>
 
 
 ScenarioModel::ScenarioModel(const TimeValue& duration,
@@ -45,8 +45,8 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
-    apply([&source, this] (const auto& m) {
-        using the_class = typename remove_qualifs_t<decltype(source.*m)>::value_type;
+    apply([&] (const auto& m) {
+        using the_class = typename remove_qualifs_t<decltype(this->*m)>::value_type;
         for(const auto& elt : source.*m)
             (this->*m).add(new the_class{elt, elt.id(), this});
     });

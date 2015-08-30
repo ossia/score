@@ -6,7 +6,7 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Process/Temporal/TemporalScenarioLayerModel.hpp"
 #include "Process/Algorithms/StandardRemovalPolicy.hpp"
-
+#include <iscore/tools/NotifyingMap_impl.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 
