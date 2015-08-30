@@ -21,9 +21,6 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
     m_startEventId{0},
     m_endEventId{1}
 {
-
-    qDebug() << (void*)&constraints.staticMetaObject;
-
     auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(m_startTimeNodeId, {{0.2, 0.8}}, TimeValue::zero(), *this);
     auto& end_tn = ScenarioCreate<TimeNodeModel>::redo(m_endTimeNodeId, {{0.2, 0.8}}, duration, *this);
 
@@ -48,7 +45,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
     // This almost terrifying piece of code will simply clone
     // all the elements (constraint, etc...) from the source to this class
     // without duplicating code too much.
-    apply([&] (const auto& m) {
+    apply([&source, this] (const auto& m) {
         using the_class = typename remove_qualifs_t<decltype(source.*m)>::value_type;
         for(const auto& elt : source.*m)
             (this->*m).add(new the_class{elt, elt.id(), this});
