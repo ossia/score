@@ -1,6 +1,7 @@
 #pragma once
 #include "iscore_compiler_detection.hpp"
 #include <exception>
+#include <typeinfo>
 #include <QDebug>
 #include <QObject>
 
@@ -37,15 +38,33 @@
 #define ISCORE_RELAXED_CONSTEXPR
 #endif
 
+template<typename T>
+using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
 
 #ifdef ISCORE_DEBUG
-template<typename T, typename U>
-T safe_cast(U&& other)
+template<typename T,
+         typename U>
+T safe_cast(U* other)
 {
     auto res = dynamic_cast<T>(other);
     ISCORE_ASSERT(res);
     return res;
 }
+
+template<typename T,
+         typename U>
+T safe_cast(U&& other)
+try
+{
+        auto&& res = dynamic_cast<T>(other);
+        return res;
+}
+catch(std::bad_cast& e)
+{
+    qDebug() << e.what();
+    ISCORE_ABORT;
+}
+
 #else
 #define safe_cast static_cast
 #endif

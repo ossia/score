@@ -52,7 +52,7 @@ void CreateCurvesFromAddresses::redo()
         // Or do an overloaded command ?
         auto id = cmd->processId();
 
-        auto& curve = static_cast<AutomationModel&>(constraint.process(id));
+        auto& curve = safe_cast<AutomationModel&>(constraint.process(id));
         curve.setAddress(m_addresses[i]);
 
         delete cmd;

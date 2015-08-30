@@ -31,7 +31,7 @@ static QJsonArray convertQVariantList(const QVariantList& v)
     QJsonArray arr;
     for(const QVariant& elt : v)
     {
-        switch(QMetaType::Type(elt.type()))
+        switch(static_cast<QMetaType::Type>(elt.type()))
         {
             case QMetaType::Float:
             {
@@ -169,7 +169,7 @@ static const std::map<
 
 QJsonValue ValueToJson(const iscore::Value & value)
 {
-    return QMetaType_QVariantToQJSonValue.at(QMetaType::Type(value.val.type()))(value.val);
+    return QMetaType_QVariantToQJSonValue.at(static_cast<QMetaType::Type>(value.val.type()))(value.val);
 }
 iscore::Value JsonToValue(const QJsonValue &val, QMetaType::Type t)
 {

@@ -120,7 +120,7 @@ void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node
     std::shared_ptr<OSSIA::Address> addr;
 
     // Read the Qt docs on QVariant::type for the relationship with QMetaType::Type
-    QMetaType::Type t = QMetaType::Type(settings.value.val.type());
+    QMetaType::Type t = static_cast<QMetaType::Type>(settings.value.val.type());
 
     if(t == QMetaType::Float)
     { addr = node->createAddress(OSSIA::Value::Type::FLOAT); }
@@ -231,9 +231,9 @@ OSSIA::Value* toValue(
         const iscore::Value& value)
 {
     const QVariant& val = value.val;
-    switch(QMetaType::Type(val.type()))
+    switch(static_cast<QMetaType::Type>(val.type()))
     {
-        case QVariant::Type::Invalid:
+        case QMetaType::Type::UnknownType: // == QVariant::Invalid
             return new OSSIA::Impulse;
         case QMetaType::Type::Bool:
             return createOSSIAValue(val.value<bool>());

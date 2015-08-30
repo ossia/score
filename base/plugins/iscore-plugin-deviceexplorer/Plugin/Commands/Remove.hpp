@@ -34,7 +34,7 @@ class Remove : public iscore::SerializableCommand
     protected:
         bool m_device{};
 
-        iscore::SerializableCommand* m_cmd;
+        iscore::SerializableCommand* m_cmd{};
 
 };
 }

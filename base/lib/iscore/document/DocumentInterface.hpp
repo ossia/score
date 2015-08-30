@@ -2,8 +2,6 @@
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-template<typename T>
-using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
 namespace iscore
 {
 class Document;
@@ -54,7 +52,7 @@ template<typename T>
 Path<T> path(const T& obj)
 {
     static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    return unsafe_path(static_cast<const QObject&>(obj));
+    return unsafe_path(safe_cast<const QObject&>(obj));
 }
 
 
@@ -67,7 +65,7 @@ DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d)
 
 template<typename T> T& presenterDelegate(const Document& d)
 {
-    return static_cast<T&>(presenterDelegate_generic(d));
+    return safe_cast<T&>(presenterDelegate_generic(d));
 }
 
 template<typename T,
@@ -83,7 +81,7 @@ DocumentDelegateModelInterface& modelDelegate_generic(const Document& d);
 
 template<typename T> T& modelDelegate(const Document& d)
 {
-    return static_cast<T&>(modelDelegate_generic(d));
+    return safe_cast<T&>(modelDelegate_generic(d));
 }
 
 template<typename T,

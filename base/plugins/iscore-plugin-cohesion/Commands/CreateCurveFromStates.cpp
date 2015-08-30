@@ -48,7 +48,7 @@ void CreateCurveFromStates::redo()
 {
     m_addProcessCmd->redo();
     auto& cstr = m_addProcessCmd->constraintPath().find();
-    auto& autom = static_cast<AutomationModel&>(cstr.process(m_addProcessCmd->processId()));
+    auto& autom = safe_cast<AutomationModel&>(cstr.process(m_addProcessCmd->processId()));
     autom.setAddress(m_address);
     autom.curve().clear();
     autom.setMin(std::min(m_start, m_end));

@@ -64,8 +64,8 @@ class DeviceExplorerCommandCreator : public QObject
         DeviceExplorer::Result m_cachedResult;
 
     private:
-        DeviceExplorerModel* m_model;
-        iscore::CommandStack* m_cmdQ;
+        DeviceExplorerModel* m_model{};
+        iscore::CommandStack* m_cmdQ{};
 
 };
 

@@ -31,7 +31,7 @@ View::View(QObject* parent) :
     setCentralWidget(m_tabWidget);
     connect(m_tabWidget, &QTabWidget::currentChanged,
             [&] (int index) {
-           auto view = static_cast<DocumentView*>(m_tabWidget->widget(index));
+           auto view = dynamic_cast<DocumentView*>(m_tabWidget->widget(index));
            if(!view)
                return;
            emit activeDocumentChanged(view->document());
@@ -39,7 +39,7 @@ View::View(QObject* parent) :
 
     connect(m_tabWidget, &QTabWidget::tabCloseRequested, [&] (int index)
     {
-        emit closeRequested(static_cast<DocumentView*>(m_tabWidget->widget(index))->document());
+        emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))->document());
     });
 }
 

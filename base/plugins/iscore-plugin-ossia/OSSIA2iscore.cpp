@@ -52,24 +52,24 @@ iscore::Value ToValue(const OSSIA::Value *val)
         case OSSIA::Value::Type::IMPULSE:
             break;
         case OSSIA::Value::Type::BOOL:
-            v = dynamic_cast<const OSSIA::Bool*>(val)->value;
+            v = safe_cast<const OSSIA::Bool*>(val)->value;
             break;
         case OSSIA::Value::Type::INT:
-            v = dynamic_cast<const OSSIA::Int*>(val)->value;
+            v = safe_cast<const OSSIA::Int*>(val)->value;
             break;
         case OSSIA::Value::Type::FLOAT:
-            v= dynamic_cast<const OSSIA::Float*>(val)->value;
+            v= safe_cast<const OSSIA::Float*>(val)->value;
             break;
         case OSSIA::Value::Type::CHAR:
-            v = dynamic_cast<const OSSIA::Char*>(val)->value;
+            v = safe_cast<const OSSIA::Char*>(val)->value;
             break;
         case OSSIA::Value::Type::STRING:
-            v = QString::fromStdString(dynamic_cast<const OSSIA::String*>(val)->value);
+            v = QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value);
             break;
         case OSSIA::Value::Type::TUPLE:
         {
             QVariantList tuple;
-            for (const auto & e : dynamic_cast<const OSSIA::Tuple*>(val)->value)
+            for (const auto & e : safe_cast<const OSSIA::Tuple*>(val)->value)
             {
                 tuple.append(ToValue(e).val); // TODO REVIEW THIS
             }

@@ -94,12 +94,12 @@ class SelectionState : public CommonSelectionState
             switch(item->type())
             {
                 case QGraphicsItem::UserType + 10:
-                    sel = filterSelections(&static_cast<CurvePointView*>(item)->model(),
+                    sel = filterSelections(&safe_cast<CurvePointView*>(item)->model(),
                                            m_parentSM.model().selectedChildren(),
                                            multiSelection());
                     break;
                 case QGraphicsItem::UserType + 11:
-                    sel = filterSelections(&static_cast<CurveSegmentView*>(item)->model(),
+                    sel = filterSelections(&safe_cast<CurveSegmentView*>(item)->model(),
                                            m_parentSM.model().selectedChildren(),
                                            multiSelection());
                     break;
@@ -125,10 +125,10 @@ class SelectionState : public CommonSelectionState
                 switch(item->type())
                 {
                     case QGraphicsItem::UserType + 10:
-                        sel.insert(&static_cast<CurvePointView*>(item)->model());
+                        sel.insert(&safe_cast<CurvePointView*>(item)->model());
                         break;
                     case QGraphicsItem::UserType + 11:
-                        sel.insert(&static_cast<CurveSegmentView*>(item)->model());
+                        sel.insert(&safe_cast<CurveSegmentView*>(item)->model());
                         break;
                     default:
                         break;

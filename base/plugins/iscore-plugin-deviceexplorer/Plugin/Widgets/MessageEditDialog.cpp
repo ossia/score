@@ -61,7 +61,7 @@ void MessageEditDialog::initTypeCombo()
 {
     m_typeCombo->insertItems(0, {tr("None"), tr("Int"), tr("Float"), tr("Char"), tr("String"), tr("Bool"), tr("Tuple")});
 
-    switch(QMetaType::Type(m_message.value.val.type()))
+    switch(static_cast<QMetaType::Type>(m_message.value.val.type()))
     {
         case QMetaType::Int:
             m_typeCombo->setCurrentIndex(1);

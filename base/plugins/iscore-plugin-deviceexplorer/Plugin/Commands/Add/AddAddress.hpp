@@ -34,7 +34,6 @@ namespace DeviceExplorer
                 Path<DeviceDocumentPlugin> m_devicesModel;
                 iscore::NodePath m_parentNodePath;
                 iscore::AddressSettings m_addressSettings;
-                int m_createdNodeIndex;
 
         };
     }

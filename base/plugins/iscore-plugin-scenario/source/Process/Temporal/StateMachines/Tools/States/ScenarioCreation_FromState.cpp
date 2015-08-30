@@ -101,7 +101,10 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         add_transition(move_event, move_state,
                        [&] () {
             if(m_parentSM.model().state(clickedState).eventId() != m_parentSM.model().state(hoveredState).eventId())
-                rollback(); createToState();
+            {
+                rollback();
+                createToState();
+            }
         });
 
         // MoveOnEvent -> MoveOnEvent

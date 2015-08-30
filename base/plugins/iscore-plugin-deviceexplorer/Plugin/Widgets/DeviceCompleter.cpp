@@ -23,7 +23,8 @@ QString DeviceCompleter::pathFromIndex(const QModelIndex& index) const
 
     while(iter.isValid())
     {
-        if(static_cast<iscore::Node*>(iter.internalPointer())->is<iscore::DeviceSettings>())
+        auto node = static_cast<iscore::Node*>(iter.internalPointer());
+        if(node && node->is<iscore::DeviceSettings>())
         {
             path = QString {"%1:/"} .arg(iter.data(0).toString()) + path;
         }

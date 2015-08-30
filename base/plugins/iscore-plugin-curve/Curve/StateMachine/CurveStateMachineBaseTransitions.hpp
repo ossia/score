@@ -29,7 +29,7 @@ class PositionedCurveTransition : public MatchedCurveTransition<CurveEvent<Eleme
     protected:
         virtual void onTransition(QEvent * ev) override
         {
-            auto qev = static_cast<CurveEvent<Element_T, Modifier_T>*>(ev);
+            auto qev = safe_cast<CurveEvent<Element_T, Modifier_T>*>(ev);
             this->state().currentPoint = qev->point;
 
             impl(qev);
@@ -41,12 +41,12 @@ class PositionedCurveTransition : public MatchedCurveTransition<CurveEvent<Eleme
         }
         void impl(CurveEvent<Element::Point_tag, Modifier::Click_tag>* ev)
         {
-            auto& model = static_cast<const CurvePointView*>(ev->item)->model();
+            auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
             this->state().clickedPointId = {model.previous(), model.following()};
         }
         void impl(CurveEvent<Element::Segment_tag, Modifier::Click_tag>* ev)
         {
-            this->state().clickedSegmentId = static_cast<const CurveSegmentView*>(ev->item)->model().id();
+            this->state().clickedSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 
 
@@ -55,12 +55,12 @@ class PositionedCurveTransition : public MatchedCurveTransition<CurveEvent<Eleme
         }
         void impl(CurveEvent<Element::Point_tag, Modifier::Move_tag>* ev)
         {
-            auto& model = static_cast<const CurvePointView*>(ev->item)->model();
+            auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
             this->state().hoveredPointId = {model.previous(), model.following()};
         }
         void impl(CurveEvent<Element::Segment_tag, Modifier::Move_tag>* ev)
         {
-            this->state().hoveredSegmentId = static_cast<const CurveSegmentView*>(ev->item)->model().id();
+            this->state().hoveredSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 
 
@@ -69,12 +69,12 @@ class PositionedCurveTransition : public MatchedCurveTransition<CurveEvent<Eleme
         }
         void impl(CurveEvent<Element::Point_tag, Modifier::Release_tag>* ev)
         {
-            auto& model = static_cast<const CurvePointView*>(ev->item)->model();
+            auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
             this->state().hoveredPointId = {model.previous(), model.following()};
         }
         void impl(CurveEvent<Element::Segment_tag, Modifier::Release_tag>* ev)
         {
-            this->state().hoveredSegmentId = static_cast<const CurveSegmentView*>(ev->item)->model().id();
+            this->state().hoveredSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 };
 
@@ -109,7 +109,7 @@ class ClickOnAnything_Transition : public GenericCurveTransition<QAbstractTransi
 
         void onTransition(QEvent* e) override
         {
-            auto qev = static_cast<PositionedEvent<CurvePoint>*>(e);
+            auto qev = safe_cast<PositionedEvent<CurvePoint>*>(e);
 
             this->state().currentPoint = qev->point;
         }
@@ -133,7 +133,7 @@ class MoveOnAnything_Transition : public GenericCurveTransition<QAbstractTransit
 
         void onTransition(QEvent* e) override
         {
-            auto qev = static_cast<PositionedEvent<CurvePoint>*>(e);
+            auto qev = safe_cast<PositionedEvent<CurvePoint>*>(e);
 
             this->state().currentPoint = qev->point;
         }

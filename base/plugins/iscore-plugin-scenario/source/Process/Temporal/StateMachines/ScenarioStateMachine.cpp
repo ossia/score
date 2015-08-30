@@ -27,7 +27,7 @@ ScenarioStateMachine::ScenarioStateMachine(
         auto it = std::find_if(controls.begin(), controls.end(),
                             [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
         ISCORE_ASSERT(it != controls.end());
-        return static_cast<ScenarioControl*>(*it)->expandMode();
+        return safe_cast<ScenarioControl*>(*it)->expandMode();
     }()}
 {
     this->setChildMode(ChildMode::ParallelStates);

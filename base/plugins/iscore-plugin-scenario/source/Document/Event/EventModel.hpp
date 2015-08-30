@@ -50,7 +50,7 @@ class EventModel : public IdentifiedObject<EventModel>
         /** Public properties of the class **/
         Selectable selection;
         ModelMetadata metadata;
-        iscore::ElementPluginModelList* pluginModelList;
+        iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName();
 
@@ -128,5 +128,6 @@ class EventModel : public IdentifiedObject<EventModel>
 
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};
-        EventStatus m_status;
+
+        EventStatus m_status{EventStatus::Editing};
 };

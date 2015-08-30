@@ -57,8 +57,8 @@ namespace Scenario
                 Id<ConstraintModel> m_constraintId{};
 
                 MoveEvent m_cmd;
-                double m_y;
-                bool m_yLocked; // default is true and constraints are on the same y.
+                double m_y{};
+                bool m_yLocked{true}; // default is true and constraints are on the same y.
         };
     }
 }

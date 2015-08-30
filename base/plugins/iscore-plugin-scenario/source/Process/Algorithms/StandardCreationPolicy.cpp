@@ -72,9 +72,9 @@ StateModel &ScenarioCreate<StateModel>::redo(
             y,
             &s};
 
-    ev.addState(state->id());
-
     s.states.add(state);
+
+    ev.addState(state->id());
 
     return *state;
 }

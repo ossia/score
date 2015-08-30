@@ -96,7 +96,7 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     vlay->addLayout(hlay);
 
 
-    updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
+    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), vec);
 }
 
 void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)

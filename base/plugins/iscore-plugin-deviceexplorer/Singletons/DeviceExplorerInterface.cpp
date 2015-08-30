@@ -56,7 +56,9 @@ iscore::Address DeviceExplorer::addressFromModelIndex(const QModelIndex& index)
     if(!index.isValid())
         return {};
 
-    return addressFromNode(*static_cast<iscore::Node*>(index.internalPointer()));
+    auto node = static_cast<iscore::Node*>(index.internalPointer());
+    ISCORE_ASSERT(node);
+    return addressFromNode(*node);
 }
 
 
@@ -65,5 +67,7 @@ iscore::Message DeviceExplorer::messageFromModelIndex(const QModelIndex& index)
     if(!index.isValid())
         return {};
 
-    return messageFromNode(*static_cast<iscore::Node*>(index.internalPointer()));
+    auto node = static_cast<iscore::Node*>(index.internalPointer());
+    ISCORE_ASSERT(node);
+    return messageFromNode(*node);
 }

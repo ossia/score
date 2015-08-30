@@ -26,7 +26,7 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
                 ? static_cast<iscore::StateNode*>(index.internalPointer())
                 : nullptr;
 
-    if(node->is<iscore::MessageList>())
+    if(node && node->is<iscore::MessageList>())
     {
         MessageListEditor ed(node->get<iscore::MessageList>(), m_devExplorer, this);
         int ret = ed.exec();

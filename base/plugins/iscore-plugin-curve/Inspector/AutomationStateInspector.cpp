@@ -20,7 +20,7 @@ AutomationStateInspector::AutomationStateInspector(
 
     on_stateChanged();
 
-    updateSectionsView(static_cast<QVBoxLayout*>(layout()), vec);
+    updateSectionsView(safe_cast<QVBoxLayout*>(layout()), vec);
 }
 
 void AutomationStateInspector::on_stateChanged()

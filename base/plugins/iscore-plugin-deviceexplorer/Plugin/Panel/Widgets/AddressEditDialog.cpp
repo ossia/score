@@ -156,7 +156,7 @@ AddressEditDialog::setSettings(const iscore::AddressSettings& settings)
     m_nameEdit->setText(name);
 
     QString type;
-    switch(QMetaType::Type(settings.value.val.type()))
+    switch(static_cast<QMetaType::Type>(settings.value.val.type()))
     {
         case QMetaType::Int:
             type = "Int";

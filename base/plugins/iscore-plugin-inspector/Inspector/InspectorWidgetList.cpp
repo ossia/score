@@ -34,5 +34,5 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
 void InspectorWidgetList::registerFactory(iscore::FactoryInterface* e)
 {
     m_factories.push_back(
-                static_cast<InspectorWidgetFactory*>(e));
+                safe_cast<InspectorWidgetFactory*>(e));
 }

@@ -23,7 +23,7 @@ iscore::Document* iscore::IDocument::documentFromObject(const QObject* obj)
             .toStdString());
     }
 
-    return static_cast<Document*>(const_cast<QObject*>(obj));
+    return safe_cast<Document*>(const_cast<QObject*>(obj));
 }
 
 

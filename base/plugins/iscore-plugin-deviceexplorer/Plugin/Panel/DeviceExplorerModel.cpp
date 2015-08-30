@@ -238,7 +238,7 @@ Node*
 DeviceExplorerModel::nodeFromModelIndex(const QModelIndex& index) const
 {
     return index.isValid()
-            ? static_cast<Node*>(index.internalPointer())
+            ? static_cast<iscore::Node*>(index.internalPointer())
             : &m_rootNode;
 }
 

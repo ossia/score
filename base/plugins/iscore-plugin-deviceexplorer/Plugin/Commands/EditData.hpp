@@ -32,10 +32,13 @@ namespace DeviceExplorer
             private:
                 Path<DeviceExplorerModel> m_deviceTree;
                 iscore::NodePath m_nodePath;
-                DeviceExplorerModel::Column m_column;
+
+                DeviceExplorerModel::Column m_column{};
+
                 QVariant m_oldValue;
                 QVariant m_newValue;
-                int m_role;
+
+                int m_role{};
         };
     }
 }

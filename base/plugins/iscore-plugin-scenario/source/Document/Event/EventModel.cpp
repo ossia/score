@@ -11,7 +11,7 @@ EventModel::EventModel(
         const TimeValue &date,
         QObject* parent):
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    pluginModelList{new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this}},
+    pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_timeNode{timenode},
     m_extent{extent},
     m_date{date}
@@ -23,7 +23,7 @@ EventModel::EventModel(const EventModel& source,
                        const Id<EventModel>& id,
                        QObject* parent) :
     IdentifiedObject<EventModel> {id, "EventModel", parent},
-    pluginModelList{new iscore::ElementPluginModelList{*source.pluginModelList, this}},
+    pluginModelList{source.pluginModelList, this},
     m_timeNode{source.m_timeNode},
     m_states(source.m_states),
     m_condition{source.m_condition},

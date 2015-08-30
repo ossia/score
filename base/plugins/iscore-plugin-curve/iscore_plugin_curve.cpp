@@ -54,6 +54,6 @@ QVector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
 {
     return {{"CurveSegment",
              [&] (iscore::FactoryInterface* fact)
-             { SingletonCurveSegmentList::instance().registerFactory(static_cast<CurveSegmentFactory*>(fact)); }
+             { SingletonCurveSegmentList::instance().registerFactory(safe_cast<CurveSegmentFactory*>(fact)); }
            }};
 }

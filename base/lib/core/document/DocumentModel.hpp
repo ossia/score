@@ -43,7 +43,7 @@ namespace iscore
                                   [&](PanelModel * pm)
                 { return qobject_cast<T*>(pm); });
 
-                return it != end(m_panelModels) ? static_cast<T*>(*it) : nullptr;
+                return it != end(m_panelModels) ? safe_cast<T*>(*it) : nullptr;
             }
 
             // Plugin models
@@ -59,7 +59,7 @@ namespace iscore
                                   [&](DocumentDelegatePluginModel * pm)
                 { return qobject_cast<T*>(pm); });
 
-                return it != end(m_pluginModels) ? static_cast<T*>(*it) : nullptr;
+                return it != end(m_pluginModels) ? safe_cast<T*>(*it) : nullptr;
             }
 
         signals:

@@ -33,7 +33,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
 {
     mess.address = fromJsonObject<Address>(m_obj["Address"].toObject());
-    auto valueType = QMetaType::Type(QMetaType::type(m_obj["Type"].toString().toLatin1()));
+    auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toLatin1()));
     mess.value = JsonToValue(m_obj["Value"], valueType);
 }
 

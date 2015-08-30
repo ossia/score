@@ -61,7 +61,9 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
             auto index = m_deviceExplorer->index(row, 0, QModelIndex());
             auto node = static_cast<iscore::Node*>(index.internalPointer());
 
-            if(node->is<iscore::DeviceSettings>() && node->get<iscore::DeviceSettings>().name == dev.name)
+            if(node
+            && node->is<iscore::DeviceSettings>()
+            && node->get<iscore::DeviceSettings>().name == dev.name)
             {
                 m_deviceExplorer->removeRow(row);
                 break;

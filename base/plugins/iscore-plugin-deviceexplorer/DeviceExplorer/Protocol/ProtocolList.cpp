@@ -27,7 +27,7 @@ ProtocolFactory* ProtocolList::protocol(const QString& name) const
 
 void ProtocolList::registerFactory(iscore::FactoryInterface* arg)
 {
-    auto p = static_cast<ProtocolFactory*>(arg);
+    auto p = safe_cast<ProtocolFactory*>(arg);
     auto it = std::find_if(m_protocols.begin(),
                            m_protocols.end(),
                            [&p](ProtocolFactory * inner_p)

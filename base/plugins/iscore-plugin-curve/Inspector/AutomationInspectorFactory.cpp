@@ -10,7 +10,7 @@ InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
         QWidget* parent)
 {
     return new AutomationInspectorWidget{
-                static_cast<const AutomationModel&>(sourceElement),
+                safe_cast<const AutomationModel&>(sourceElement),
                 doc,
                 parent};
 }
