@@ -30,6 +30,34 @@
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
 #include <iscore/tools/NotifyingMap_impl.hpp>
+
+template void NotifyingMap<LayerModel>::add(LayerModel*);
+template void NotifyingMap<SlotModel>::add(SlotModel*);
+template void NotifyingMap<RackModel>::add(RackModel*);
+template void NotifyingMap<Process>::add(Process*);
+template void NotifyingMap<ConstraintModel>::add(ConstraintModel*);
+template void NotifyingMap<EventModel>::add(EventModel*);
+template void NotifyingMap<TimeNodeModel>::add(TimeNodeModel*);
+template void NotifyingMap<StateModel>::add(StateModel*);
+
+template void NotifyingMap<LayerModel>::remove(LayerModel*);
+template void NotifyingMap<SlotModel>::remove(SlotModel*);
+template void NotifyingMap<RackModel>::remove(RackModel*);
+template void NotifyingMap<Process>::remove(Process*);
+template void NotifyingMap<ConstraintModel>::remove(ConstraintModel*);
+template void NotifyingMap<EventModel>::remove(EventModel*);
+template void NotifyingMap<TimeNodeModel>::remove(TimeNodeModel*);
+template void NotifyingMap<StateModel>::remove(StateModel*);
+
+template void NotifyingMap<LayerModel>::remove(const Id<LayerModel>&);
+template void NotifyingMap<SlotModel>::remove(const Id<SlotModel>&);
+template void NotifyingMap<RackModel>::remove(const Id<RackModel>&);
+template void NotifyingMap<Process>::remove(const Id<Process>&);
+template void NotifyingMap<ConstraintModel>::remove(const Id<ConstraintModel>&);
+template void NotifyingMap<EventModel>::remove(const Id<EventModel>&);
+template void NotifyingMap<TimeNodeModel>::remove(const Id<TimeNodeModel>&);
+template void NotifyingMap<StateModel>::remove(const Id<StateModel>&);
+
 void ignore_template_instantiations()
 {
     NotifyingMapInstantiations_T<LayerModel>();
