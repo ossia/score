@@ -32,47 +32,45 @@ enum class BoolOperator {
     And, Or, Xor
 };
 
-struct Expression : public VariantBasedNode<Relation, BoolOperator>
+struct ExprData : public VariantBasedNode<Relation, BoolOperator>
 {
-        friend bool operator==(const Expression& lhs, const Expression& rhs)
+        friend bool operator==(const ExprData& lhs, const ExprData& rhs)
         {
             return lhs.m_data == rhs.m_data;
         }
 
 };
 
-using Condition = Expression;
-using Trigger = Expression;
 }
-using iscore::Expression;
+using iscore::ExprData;
 template<>
-class TreeNode<Expression> : public Expression
+class TreeNode<ExprData> : public ExprData
 {
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<Expression>, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<Expression>, JSONObject)
+        ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)
 
     public:
         TreeNode():
-            Expression{}
+            ExprData{}
         {
 
         }
 
-        TreeNode(const Expression& data):
-            Expression{data}
+        TreeNode(const ExprData& data):
+            ExprData{data}
         {
 
         }
 
-        TreeNode(Expression&& data):
-            Expression{std::move(data)}
+        TreeNode(ExprData&& data):
+            ExprData{std::move(data)}
         {
 
         }
 
         template<typename T>
-        TreeNode(const T& data, TreeNode<Expression> * parent):
-            Expression(data),
+        TreeNode(const T& data, TreeNode<ExprData> * parent):
+            ExprData(data),
             m_parent{parent}
         {
             if(m_parent) {
@@ -81,25 +79,25 @@ class TreeNode<Expression> : public Expression
         }
 
         // Clone
-        TreeNode(const TreeNode<Expression>& source,
-                 TreeNode<Expression>* parent = nullptr):
-            Expression{static_cast<const Expression&>(source)},
+        TreeNode(const TreeNode<ExprData>& source,
+                 TreeNode<ExprData>* parent = nullptr):
+            ExprData{static_cast<const ExprData&>(source)},
             m_parent{parent}
         {
             for(const auto& child : source.children())
             {
-                this->addChild(new TreeNode<Expression>{*child, this});
+                this->addChild(new TreeNode<ExprData>{*child, this});
             }
         }
 
-        TreeNode& operator=(const TreeNode<Expression>& source)
+        TreeNode& operator=(const TreeNode<ExprData>& source)
         {
-            static_cast<Expression&>(*this) = static_cast<const Expression&>(source);
+            static_cast<ExprData&>(*this) = static_cast<const ExprData&>(source);
 
             qDeleteAll(m_children);
             for(const auto& child : source.children())
             {
-                this->addChild(new TreeNode<Expression>{*child, this});
+                this->addChild(new TreeNode<ExprData>{*child, this});
             }
 
             return *this;
@@ -112,7 +110,7 @@ class TreeNode<Expression> : public Expression
             qDeleteAll(m_children);
         }
 
-        void setParent(TreeNode<Expression>* parent)
+        void setParent(TreeNode<ExprData>* parent)
         {
             ISCORE_ASSERT(!parent->is<iscore::Relation>());
             if(m_parent)
@@ -122,18 +120,18 @@ class TreeNode<Expression> : public Expression
             m_parent->addChild(this);
         }
 
-        TreeNode<Expression>* parent() const
+        TreeNode<ExprData>* parent() const
         {
             return m_parent;
         }
 
         // returns 0 if invalid index
-        TreeNode<Expression>* childAt(int index) const
+        TreeNode<ExprData>* childAt(int index) const
         { return m_children.value(index); }
 
         // returns -1 if not found
-        int indexOfChild(const TreeNode<Expression>* child) const
-        { return m_children.indexOf(const_cast<TreeNode<Expression>*>(child)); }
+        int indexOfChild(const TreeNode<ExprData>* child) const
+        { return m_children.indexOf(const_cast<TreeNode<ExprData>*>(child)); }
 
         int childCount() const
         { return m_children.count(); }
@@ -141,17 +139,17 @@ class TreeNode<Expression> : public Expression
         bool hasChildren() const
         { return ! m_children.empty(); }
 
-        QList<TreeNode<Expression>*> children() const
+        QList<TreeNode<ExprData>*> children() const
         { return m_children;  }
 
-        void insertChild(int index, TreeNode<Expression>* n)
+        void insertChild(int index, TreeNode<ExprData>* n)
         {
             ISCORE_ASSERT(n);
             n->m_parent = this;
             m_children.insert(index, n);
         }
 
-        void addChild(TreeNode<Expression>* n)
+        void addChild(TreeNode<ExprData>* n)
         {
             ISCORE_ASSERT(n);
 
@@ -168,7 +166,7 @@ class TreeNode<Expression> : public Expression
             m_children.swap(oldIndex, newIndex);
         }
 
-        TreeNode<Expression>* takeChild(int index)
+        TreeNode<ExprData>* takeChild(int index)
         {
             TreeNode* n = m_children.takeAt(index);
             ISCORE_ASSERT(n);
@@ -177,16 +175,24 @@ class TreeNode<Expression> : public Expression
         }
 
         // Won't delete the child!
-        void removeChild(TreeNode<Expression>* child)
+        void removeChild(TreeNode<ExprData>* child)
         {
             m_children.removeAll(child);
         }
 
 
     protected:
-        TreeNode<Expression>* m_parent {};
-        QList<TreeNode<Expression>*> m_children;
+        TreeNode<ExprData>* m_parent {};
+        QList<TreeNode<ExprData>*> m_children;
 
 };
 
-using ExprTree = TreeNode<Expression>;
+namespace iscore
+{
+using Expression = TreeNode<ExprData>;
+using Condition = ExprData;
+using Trigger = ExprData;
+
+iscore::Expression parse(const QString& str);
+bool validate(const Expression& expr);
+}
