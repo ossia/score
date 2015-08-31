@@ -8,5 +8,5 @@ OSCDevice::OSCDevice(const iscore::DeviceSettings &stngs):
 
     auto settings = stngs.deviceSpecificSettings.value<OSCSpecificSettings>();
     auto oscDeviceParameter = OSSIA::OSC::create(settings.host.toStdString(), settings.inputPort, settings.outputPort);
-    m_dev = OSSIA::Device::create(oscDeviceParameter);
+    m_dev = OSSIA::Device::create(oscDeviceParameter, stngs.name.toStdString());
 }
