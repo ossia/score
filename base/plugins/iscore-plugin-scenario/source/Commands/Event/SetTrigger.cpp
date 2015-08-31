@@ -9,6 +9,8 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 
+
+// TODO
 SetTrigger::SetTrigger(Path<EventModel>&& eventPath, QString message) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
@@ -16,17 +18,22 @@ SetTrigger::SetTrigger(Path<EventModel>&& eventPath, QString message) :
 m_path {std::move(eventPath) },
 m_trigger(message)
 {
+    /*
     auto& event = m_path.find();
     m_previousTrigger = event.trigger();
+    */
 }
 
 SetTrigger::~SetTrigger()
 {
+    /*
     qDeleteAll(m_cmds);
+    */
 }
 
 void SetTrigger::undo()
 {
+    /*
     auto& event = m_path.find();
     event.setTrigger(m_previousTrigger);
 
@@ -35,6 +42,7 @@ void SetTrigger::undo()
         cmd->undo();
         delete cmd;
     }
+    */
 }
 
 void SetTrigger::redo()
@@ -59,6 +67,7 @@ void SetTrigger::redo()
 
 void SetTrigger::serializeImpl(QDataStream& s) const
 {
+    /*
     s << m_path << m_trigger << m_previousTrigger;
     s << m_cmds.count();
 
@@ -66,10 +75,12 @@ void SetTrigger::serializeImpl(QDataStream& s) const
     {
         s << cmd->serialize();
     }
+    */
 }
 
 void SetTrigger::deserializeImpl(QDataStream& s)
 {
+    /*
     int n;
     s >> m_path >> m_trigger >> m_previousTrigger >> n;
 
@@ -80,5 +91,5 @@ void SetTrigger::deserializeImpl(QDataStream& s)
         auto cmd = new SetRigidity;
         cmd->deserialize(a);
         m_cmds.append(cmd);
-    }
+    }*/
 }

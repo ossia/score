@@ -288,6 +288,7 @@ using namespace Scenario;
 
 void EventInspectorWidget::on_conditionChanged()
 {
+    /* TODO
     auto txt = m_conditionLineEdit->text();
 
     if(txt == m_model.condition())
@@ -297,10 +298,12 @@ void EventInspectorWidget::on_conditionChanged()
 
     auto cmd = new Scenario::Command::SetCondition{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
+    */
 }
 
 void EventInspectorWidget::on_triggerChanged()
 {
+    /* TODO
     auto txt = m_triggerLineEdit->text();
 
     if(txt == m_model.trigger())
@@ -310,6 +313,7 @@ void EventInspectorWidget::on_triggerChanged()
 
     auto cmd = new Scenario::Command::SetTrigger{path(m_model), txt};
     emit commandDispatcher()->submitCommand(cmd);
+    */
 }
 
 void EventInspectorWidget::modelDateChanged()

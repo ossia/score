@@ -28,12 +28,8 @@ EventPresenter::EventPresenter(const EventModel& model,
     con((m_model.metadata),  &ModelMetadata::colorChanged,
             m_view,                 &EventView::changeColor);
 
-    con(m_model, &EventModel::conditionChanged,
-            m_view,  &EventView::setCondition);
     con(m_model, &EventModel::statusChanged,
             m_view,  &EventView::setStatus);
-    con(m_model, &EventModel::triggerChanged,
-            this,   &EventPresenter::triggerSetted) ;
 
     connect(m_view, &EventView::eventHoverEnter,
             this,   &EventPresenter::eventHoverEnter);
@@ -44,8 +40,16 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(m_view, &EventView::dropReceived,
             this, &EventPresenter::handleDrop);
 
-    m_view->setCondition(m_model.condition());
+    // TODO
+    /* m_view->setCondition(m_model.condition());
     m_view->setTrigger(m_model.trigger());
+
+    con(m_model, &EventModel::conditionChanged,
+            m_view,  &EventView::setCondition);
+    con(m_model, &EventModel::triggerChanged,
+            this,   &EventPresenter::triggerSetted) ;
+    */
+
 }
 
 EventPresenter::~EventPresenter()
