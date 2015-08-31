@@ -141,8 +141,8 @@ void RackPresenter::on_slotRemoved(const SlotModel& slot_model)
 {
     auto slot = &slotmodels.at(slot_model.id());
 
-    delete slot;
     slotmodels.remove(slot_model.id());
+    delete slot;
 
     on_askUpdate();
 }

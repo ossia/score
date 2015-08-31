@@ -11,7 +11,7 @@ namespace iscore
  */
 struct Value
 {
-        QVariant val;
+        QVariant val{};
 
 
         friend QDataStream& operator<<(QDataStream& s, const Value& m)
