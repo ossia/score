@@ -41,7 +41,7 @@ namespace iscore
                 auto it = find_if(begin(m_panelModels),
                                   end(m_panelModels),
                                   [&](PanelModel * pm)
-                { return qobject_cast<T*>(pm); });
+                { return dynamic_cast<T*>(pm); });
 
                 return it != end(m_panelModels) ? safe_cast<T*>(*it) : nullptr;
             }

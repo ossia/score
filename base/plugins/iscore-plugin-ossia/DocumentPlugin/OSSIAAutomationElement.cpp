@@ -58,6 +58,9 @@ const Process *OSSIAAutomationElement::iscoreProcess() const
 
 void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
 {
+    std::shared_ptr<OSSIA::Automation> new_autom;
+    std::shared_ptr<OSSIA::Address> address;
+    OSSIA::Node* node{};
     // The updating routine
     auto update = [&] (auto new_autom) {
         auto old_autom = m_ossia_autom;
@@ -79,32 +82,27 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
     });
 
     if(dev_it == devices.end())
-    {
-        update(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
-        return;
-    }
+        goto curve_cleanup_label;
 
-    auto node = iscore::convert::findNodeFromPath(addr.path, &static_cast<OSSIADevice&>(**dev_it).impl());
+    node = iscore::convert::findNodeFromPath(addr.path, &static_cast<OSSIADevice&>(**dev_it).impl());
     if(!node)
-    {
-        update(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
-        return;
-    }
+        goto curve_cleanup_label;
 
     // Add the real address
-    auto address = node->getAddress();
+    address = node->getAddress();
     if(!address)
-    {
-        update(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
-        return;
-    }
+        goto curve_cleanup_label;
+
     m_addressType = address->getValueType();
 
 
     using namespace OSSIA;
     on_curveChanged(); // If the type changes we need to rebuild the curve.
+    if(!m_ossia_curve)
+        goto curve_cleanup_label;
+
     // TODO on_min/max changed
-    auto new_autom = Automation::create(
+    new_autom = Automation::create(
                 address,
                 new Behavior(m_ossia_curve));
 
@@ -133,10 +131,14 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
     }
 
     update(new_autom);
+
+curve_cleanup_label:
+    update(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
+    return;
 }
 
 template<typename T>
-void OSSIAAutomationElement::on_curveChanged_impl()
+std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_impl()
 {
     using namespace OSSIA;
     auto curve = Curve<T>::create();
@@ -156,9 +158,10 @@ void OSSIAAutomationElement::on_curveChanged_impl()
 
     //curve->setInitialValue((*m_iscore_autom->curve().segments().begin()).start().y());
     m_ossia_curve = curve;
+    return m_ossia_curve;
 }
 
-void OSSIAAutomationElement::on_curveChanged()
+std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged()
 {
     switch(m_addressType)
     {
@@ -169,8 +172,10 @@ void OSSIAAutomationElement::on_curveChanged()
             on_curveChanged_impl<float>();
             break;
         default:
+            m_ossia_curve.reset();
             qDebug() << "Unsupported curve type: " << (int)m_addressType;
             ISCORE_TODO;
-            return;
     }
+
+    return m_ossia_curve;
 }

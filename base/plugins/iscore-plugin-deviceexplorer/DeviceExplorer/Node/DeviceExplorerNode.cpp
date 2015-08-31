@@ -1,4 +1,5 @@
 #include "DeviceExplorerNode.hpp"
+#include <boost/range/algorithm/find_if.hpp>
 
 namespace iscore
 {
@@ -39,6 +40,21 @@ iscore::Node* getNodeFromString(iscore::Node* n, QStringList&& parts)
     ISCORE_ASSERT(theN);
     return theN;
 }
+
+Node* try_getNodeFromAddress(const Node& root, const Address& addr)
+{
+    if(addr.device.isEmpty() || addr.path.isEmpty())
+        return nullptr;
+    using namespace boost::range;
+    auto dev = boost::range::find_if(root.children(), [&] (iscore::Node* n)
+    { return n->is<DeviceSettings>() && n->get<DeviceSettings>().name == addr.device; });
+
+    if(dev == root.children().end())
+        return nullptr;
+
+    return try_getNodeFromString(*dev, QStringList(addr.path));
+}
+
 
 iscore::Node* try_getNodeFromString(iscore::Node* n, QStringList&& parts)
 {

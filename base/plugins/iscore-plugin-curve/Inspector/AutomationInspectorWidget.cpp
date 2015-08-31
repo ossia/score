@@ -10,11 +10,13 @@
 #include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/AddressEditWidget.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
+#include <DeviceExplorer/../Plugin/PanelBase/DeviceExplorerPanelModel.hpp>
 
 #include <State/Widgets/AddressLineEdit.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 
 #include <iscore/widgets/SpinBoxes.hpp>
 #include <QVBoxLayout>
@@ -50,9 +52,8 @@ AutomationInspectorWidget::AutomationInspectorWidget(
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it
     // to make a widget.
-    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
-    m_lineEdit = new AddressEditWidget{deviceexplorer, this};
+    m_explorer = iscore::IDocument::documentFromObject(m_model)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
+    m_lineEdit = new AddressEditWidget{m_explorer, this};
 
     m_lineEdit->setAddress(m_model.address());
     con(m_model, &AutomationModel::addressChanged,
@@ -101,14 +102,18 @@ AutomationInspectorWidget::AutomationInspectorWidget(
 
 void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
 {
-    if(newAddr != m_model.address())
-    {
-        auto cmd = new ChangeAddress{
-                    iscore::IDocument::path(m_model),
-                    newAddr };
+    // Various checks
+    if(newAddr == m_model.address())
+        return;
 
-        commandDispatcher()->submitCommand(cmd);
-    }
+    if(newAddr.path.isEmpty())
+        return;
+
+    auto cmd = new ChangeAddress{
+            iscore::IDocument::path(m_model),
+            newAddr };
+
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void AutomationInspectorWidget::on_minValueChanged()

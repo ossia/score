@@ -27,13 +27,13 @@ class OSSIAAutomationElement : public OSSIAProcessElement
 
     public slots:
         void on_addressChanged(const iscore::Address&);
-        void on_curveChanged();
+        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged();
 
     private:
         OSSIA::Value::Type m_addressType{OSSIA::Value::Type(-1)};
 
         template<typename T>
-        void on_curveChanged_impl();
+        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
 
         QPointer<OSSIAConstraintElement> m_parent_constraint;
         std::shared_ptr<OSSIA::Automation> m_ossia_autom;
