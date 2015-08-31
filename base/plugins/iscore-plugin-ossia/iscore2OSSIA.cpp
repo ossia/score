@@ -7,6 +7,7 @@
 #include <boost/range/algorithm.hpp>
 
 #include "Protocols/OSSIADevice.hpp"
+#include <QMap>
 namespace iscore
 {
 namespace convert
@@ -20,8 +21,8 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
     {
         const auto& children = node->children();
         auto it = boost::range::find_if(
-                      children,
-                      [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
+                    children,
+                    [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
         if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
@@ -60,8 +61,8 @@ OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
     {
         const auto& children = node->children();
         auto it = boost::range::find_if(children,
-                      [&] (const auto& ossia_node)
-                    { return ossia_node->getName() == path[i].toStdString(); });
+                                        [&] (const auto& ossia_node)
+        { return ossia_node->getName() == path[i].toStdString(); });
         if(it != children.end())
             node = it->get();
         else
@@ -81,8 +82,8 @@ OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
     {
         const auto& children = node->children();
         auto it = boost::range::find_if(children,
-                      [&] (const auto& ossia_node)
-                    { return ossia_node->getName() == path[i].toStdString(); });
+                                        [&] (const auto& ossia_node)
+        { return ossia_node->getName() == path[i].toStdString(); });
         ISCORE_ASSERT(it != children.end());
 
         node = it->get();
@@ -113,37 +114,32 @@ void updateOSSIAAddress(const iscore::FullAddressSettings &settings, const std::
     }
 }
 
-
 void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node *node)
 {
+    if(settings.ioType == IOType::Invalid)
+        return;
+
     using namespace OSSIA;
     std::shared_ptr<OSSIA::Address> addr;
 
     // Read the Qt docs on QVariant::type for the relationship with QMetaType::Type
     QMetaType::Type t = static_cast<QMetaType::Type>(settings.value.val.type());
 
-    if(t == QMetaType::Float)
-    { addr = node->createAddress(OSSIA::Value::Type::FLOAT); }
+    static const QMap<QMetaType::Type, OSSIA::Value::Type> type_map{
+        {QMetaType::UnknownType, OSSIA::Value::Type::IMPULSE},
+        {QMetaType::Float, OSSIA::Value::Type::FLOAT},
+        {QMetaType::Int, OSSIA::Value::Type::INT},
+        {QMetaType::QString, OSSIA::Value::Type::STRING},
+        {QMetaType::Bool, OSSIA::Value::Type::BOOL},
+        {QMetaType::Char, OSSIA::Value::Type::CHAR},
+        {QMetaType::QVariantList, OSSIA::Value::Type::TUPLE},
+        {QMetaType::QByteArray, OSSIA::Value::Type::GENERIC}
+    };
 
-    else if(t == QMetaType::Int)
-    { addr = node->createAddress(OSSIA::Value::Type::INT); }
+    ISCORE_ASSERT(type_map.keys().contains(t));
 
-    else if(t == QMetaType::QString)
-    { addr = node->createAddress(OSSIA::Value::Type::STRING); }
+    updateOSSIAAddress(settings,  node->createAddress(type_map[t]));
 
-    else if(t == QMetaType::Bool)
-    { addr = node->createAddress(OSSIA::Value::Type::BOOL); }
-
-    else if(t == QMetaType::Char)
-    { addr = node->createAddress(OSSIA::Value::Type::CHAR); }
-
-    else if(t == QMetaType::QVariantList)
-    { addr = node->createAddress(OSSIA::Value::Type::TUPLE); }
-
-    else if(t == QMetaType::QByteArray)
-    { addr = node->createAddress(OSSIA::Value::Type::GENERIC); }
-
-    updateOSSIAAddress(settings, addr);
 }
 
 void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
