@@ -291,6 +291,7 @@ DeviceExplorerWidget::populateColumnCBox()
     ISCORE_ASSERT(m_columnCBox);
 
     QStringList columns = model()->getColumns();
+    m_columnCBox->clear();
     m_columnCBox->addItems(columns);
 }
 
