@@ -3,8 +3,10 @@
 #include <QWidget>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
+#include <QStackedLayout>
 #include <QThread>
 #include "DeviceExplorerModel.hpp"
+class QProgressIndicator;
 class DeviceExplorerView;
 class DeviceExplorerModel;
 class DeviceExplorerFilterProxyModel;
@@ -30,7 +32,8 @@ class DeviceExplorerWidget : public QWidget
 
 //        bool loadModel(const QString filename);
 
-    public slots:
+    private:
+        // User commands
         void edit();
         void refresh();
         void refreshValue();
@@ -44,18 +47,22 @@ class DeviceExplorerWidget : public QWidget
         void demote();
 
 
-    protected slots:
+        void addAddress(InsertMode insertType);
         void addDevice();
         void addChild();
         void addSibling();
 
         void removeNode();
 
+        // Answer to user interaction
         void filterChanged();
 
         void updateActions();
 
-    protected:
+        // Will bloc the GUI when refreshing.
+        void blockGUI(bool);
+
+        // Utilities
         DeviceExplorerModel* model();
         DeviceExplorerFilterProxyModel* proxyModel();
 
@@ -63,41 +70,36 @@ class DeviceExplorerWidget : public QWidget
         void installStyleSheet();
         void populateColumnCBox();
 
-        void addAddress(InsertMode insertType);
-
         virtual void contextMenuEvent(QContextMenuEvent* event) override;
 
-        DeviceExplorerView* m_ntView;
+        DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};
-        DeviceEditDialog* m_deviceDialog;
-        AddressEditDialog* m_addressDialog;
-        //iscore::CommandQueue *m_cmdQ;
-//  QAction *m_undoAction;
-//  QAction *m_redoAction;
+        DeviceEditDialog* m_deviceDialog{};
+        AddressEditDialog* m_addressDialog{};
 
-        QAction* m_editAction;
-        QAction* m_refreshAction;
-        QAction* m_refreshValueAction;
-        QAction* m_addDeviceAction;
-        QAction* m_addSiblingAction;
-        QAction* m_addChildAction;
+        QAction* m_editAction{};
+        QAction* m_refreshAction{};
+        QAction* m_refreshValueAction{};
+        QAction* m_addDeviceAction{};
+        QAction* m_addSiblingAction{};
+        QAction* m_addChildAction{};
 
-        QAction* m_copyAction;
-        QAction* m_cutAction;
-        QAction* m_pasteAction;
-        QAction* m_moveUpAction;
-        QAction* m_moveDownAction;
-        QAction* m_promoteAction;
-        QAction* m_demoteAction;
+        QAction* m_copyAction{};
+        QAction* m_cutAction{};
+        QAction* m_pasteAction{};
+        QAction* m_moveUpAction{};
+        QAction* m_moveDownAction{};
+        QAction* m_promoteAction{};
+        QAction* m_demoteAction{};
 
-        QAction* m_removeNodeAction;
+        QAction* m_removeNodeAction{};
 
-        QComboBox* m_columnCBox;
-        QLineEdit* m_nameLEdit;
+        QComboBox* m_columnCBox{};
+        QLineEdit* m_nameLEdit{};
 
         std::unique_ptr<CommandDispatcher<>> m_cmdDispatcher;
 
-        QThread m_explorationThread;
-
+        QProgressIndicator* m_refreshIndicator{};
+        QStackedLayout* m_lay{};
 };
 

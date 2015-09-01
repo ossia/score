@@ -33,6 +33,8 @@
 #include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
 #include <QMessageBox>
 
+#include <QProgressIndicator>
+
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
     : QWidget(parent),
       m_proxyModel(nullptr),
@@ -49,7 +51,8 @@ DeviceExplorerWidget::buildGUI()
 
     m_ntView->setItemDelegateForColumn((int)DeviceExplorerModel::Column::IOType, new IOTypeDelegate);
 
-    connect(m_ntView, SIGNAL(selectionChanged()), this, SLOT(updateActions()));
+    connect(m_ntView, static_cast<void (DeviceExplorerView::*)()>(&DeviceExplorerView::selectionChanged),
+            this, &DeviceExplorerWidget::updateActions);
 
 
     /*
@@ -110,28 +113,6 @@ DeviceExplorerWidget::buildGUI()
     connect(m_demoteAction, &QAction::triggered, this, &DeviceExplorerWidget::demote);
     connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNode);
 
-    /*
-    QPushButton *addDeviceButton = new QPushButton(this);
-    addDeviceButton->setIcon(QIcon(":/resources/images/addANode.png"));
-    addDeviceButton->setToolTip(tr("Add a device..."));
-    addDeviceButton->setMaximumSize(QSize(64, 64));
-    addDeviceButton->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-
-    QPushButton *addChildButton = new QPushButton(this);
-    addChildButton->setIcon(QIcon(":/resources/images/addChild.png"));
-    addChildButton->setToolTip(tr("Add as child..."));
-    addChildButton->setMaximumSize(QSize(64, 64));
-
-    QPushButton *addSiblingButton = new QPushButton(this);
-    addSiblingButton->setIcon(QIcon(":/resources/images/addSibling.png"));
-    addSiblingButton->setToolTip(tr("Add as sibling..."));
-    addSiblingButton->setMaximumSize(QSize(64, 64));
-
-    connect(addDeviceButton, SIGNAL(clicked(bool)), this, SLOT(addDevice()));
-    connect(addChildButton, SIGNAL(clicked(bool)), this, SLOT(addChild()));
-    connect(addSiblingButton, SIGNAL(clicked(bool)), this, SLOT(addSibling()));
-    */
-
     QPushButton* addButton = new QPushButton(this);
     addButton->setIcon(QIcon(":/resources/images/add.png"));
     addButton->setMaximumSize(QSize(32, 32));
@@ -142,9 +123,9 @@ DeviceExplorerWidget::buildGUI()
     m_addSiblingAction = new QAction(QIcon(":/resources/images/addSibling.png"), tr("Add sibling"), this);
     m_addChildAction = new QAction(QIcon(":/resources/images/addChild.png"), tr("Add child"), this);
 
-    connect(m_addDeviceAction, SIGNAL(triggered()), this, SLOT(addDevice()));
-    connect(m_addSiblingAction, SIGNAL(triggered()), this, SLOT(addSibling()));
-    connect(m_addChildAction, SIGNAL(triggered()), this, SLOT(addChild()));
+    connect(m_addDeviceAction, &QAction::triggered, this, &DeviceExplorerWidget::addDevice);
+    connect(m_addSiblingAction, &QAction::triggered, this, &DeviceExplorerWidget::addSibling);
+    connect(m_addChildAction, &QAction::triggered, this, &DeviceExplorerWidget::addChild);
 
     m_addSiblingAction->setEnabled(false);
     m_addChildAction->setEnabled(false);
@@ -185,8 +166,10 @@ DeviceExplorerWidget::buildGUI()
     m_columnCBox = new QComboBox(this);
     m_nameLEdit = new QLineEdit(this);
 
-    connect(m_columnCBox, SIGNAL(currentIndexChanged(int)), this, SLOT(filterChanged()));
-    connect(m_nameLEdit, SIGNAL(textEdited(const QString&)), this, SLOT(filterChanged()));
+    connect(m_columnCBox,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, &DeviceExplorerWidget::filterChanged);
+    connect(m_nameLEdit, &QLineEdit::textEdited,
+            this, &DeviceExplorerWidget::filterChanged);
 
     QHBoxLayout* filterHLayout = new QHBoxLayout;
     filterHLayout->setContentsMargins(0, 0, 0, 0);
@@ -203,14 +186,45 @@ DeviceExplorerWidget::buildGUI()
     hLayout->addLayout(filterHLayout);
     hLayout->setContentsMargins(0, 0, 0, 0);
 
+    QWidget* mainWidg = new QWidget;
+    mainWidg->setContentsMargins(0, 0, 0, 0);
     QVBoxLayout* vLayout = new QVBoxLayout;
     vLayout->addWidget(m_ntView);
     vLayout->addLayout(hLayout);
+    mainWidg->setLayout(vLayout);
 
-    setLayout(vLayout);
+    m_lay = new QStackedLayout;
+    m_lay->addWidget(mainWidg);
+
+    auto refreshParent = new QWidget;
+    auto refreshLay = new QGridLayout;
+    refreshParent->setLayout(refreshLay);
+    m_refreshIndicator = new QProgressIndicator{refreshParent};
+    m_refreshIndicator->setStyleSheet("background:transparent");
+    m_refreshIndicator->setAttribute(Qt::WA_TranslucentBackground);
+    refreshLay->addWidget(m_refreshIndicator);
+    m_lay->addWidget(refreshParent);
+    setLayout(m_lay);
 
 
     installStyleSheet();
+}
+
+void DeviceExplorerWidget::blockGUI(bool b)
+{
+    m_ntView->setDisabled(b);
+    if(b)
+    {
+        // m_ntView to front
+        m_lay->setCurrentIndex(1);
+        m_refreshIndicator->startAnimation();
+    }
+    else
+    {
+        // progreess widget to front
+        m_lay->setCurrentIndex(0);
+        m_refreshIndicator->stopAnimation();
+    }
 }
 
 void
@@ -382,7 +396,6 @@ DeviceExplorerWidget::updateActions()
     m_pasteAction->setEnabled(model()->hasCut());
 }
 
-
 DeviceExplorerModel*
 DeviceExplorerWidget::model()
 {
@@ -472,6 +485,7 @@ void DeviceExplorerWidget::refresh()
 
         connect(worker, &ExplorationWorker::finished, this,
                 [=] () {
+            this->blockGUI(false);
             auto cmd = new DeviceExplorer::Command::ReplaceDevice{
                     iscore::IDocument::path(*model()),
                     m_ntView->selectedIndex().row(),
@@ -485,12 +499,18 @@ void DeviceExplorerWidget::refresh()
 
         connect(worker, &ExplorationWorker::failed, this,
                 [=] (const QString& error_txt) {
+
             QMessageBox::warning(this,
                                  tr("Unable to refresh the device"),
                                  tr("Unable to refresh the device: ") + select->get<iscore::DeviceSettings>().name + tr(".\nCause: ") + error_txt);
+
+            this->blockGUI(false);
             thread->quit();
             worker->deleteLater();
         });
+
+
+        this->blockGUI(true);
 
         worker->moveToThread(thread);
         thread->start();

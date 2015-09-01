@@ -4,3 +4,6 @@
 [submodule "3rdparty/variant"]
 	path = 3rdparty/variant
 	url = https://github.com/eggs-cpp/variant.git
+[submodule "3rdparty/QProgressIndicator"]
+	path = 3rdparty/QProgressIndicator
+	url = https://github.com/mojocorp/QProgressIndicator

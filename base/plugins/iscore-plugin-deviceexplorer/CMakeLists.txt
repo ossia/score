@@ -96,7 +96,8 @@ add_library(iscore_plugin_deviceexplorer
 
 target_link_libraries(iscore_plugin_deviceexplorer
                       Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Test
-                      iscore_lib_base iscore_lib_state)
+                      iscore_lib_base iscore_lib_state
+                      QProgressIndicator)
 
 iscore_cotire(iscore_plugin_deviceexplorer)
 set_property(TARGET iscore_plugin_deviceexplorer APPEND
