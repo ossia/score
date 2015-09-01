@@ -39,11 +39,11 @@ iscore::Address DeviceExplorer::addressFromNode(const iscore::Node& m)
 
 iscore::Message DeviceExplorer::messageFromNode(const iscore::Node& node)
 {
+    if(!node.is<iscore::AddressSettings>())
+        return {};
+
     iscore::Message mess;
     mess.address = addressFromNode(node);
-
-    ISCORE_ASSERT(!node.is<iscore::DeviceSettings>());
-
     mess.value = node.get<iscore::AddressSettings>().value;
 
     return mess;

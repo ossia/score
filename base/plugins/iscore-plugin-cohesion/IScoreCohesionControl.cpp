@@ -255,7 +255,14 @@ void IScoreCohesionControl::snapshotParametersInStates()
 
     MessageList messages;
     for(auto& index : indexes)
-        messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+    {
+        auto m = DeviceExplorer::messageFromModelIndex(index);
+        if(m != iscore::Message{})
+            messages.push_back(m);
+    }
+
+    if(messages.empty())
+        return;
 
     MacroCommandDispatcher macro{new CreateStatesFromParametersInEvents,
                                  currentDocument()->commandStack()};

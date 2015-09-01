@@ -69,7 +69,26 @@ DeviceDocumentPlugin& DeviceExplorerModel::deviceModel() const
 
 QModelIndexList DeviceExplorerModel::selectedIndexes() const
 {
-    return m_view->selectedIndexes();
+    if(!m_view)
+    {
+        return {};
+    }
+    else
+    {
+        // We have to do this check if we have a proxy
+        if (m_view->hasProxy())
+        {
+            auto indexes = m_view->selectedIndexes();
+            for(auto& index : indexes)
+                index = static_cast<const QAbstractProxyModel *>(m_view->QTreeView::model())->mapToSource(index);
+            return indexes;
+        }
+        else
+        {
+             return m_view->selectedIndexes();
+        }
+
+    }
 }
 
 void

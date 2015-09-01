@@ -222,11 +222,8 @@ OSSIA::Value* createOSSIAValue(const T& val)
     return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
-
-OSSIA::Value* toValue(
-        const iscore::Value& value)
+static OSSIA::Value* toValue(const QVariant& val)
 {
-    const QVariant& val = value.val;
     switch(static_cast<QMetaType::Type>(val.type()))
     {
         case QMetaType::Type::UnknownType: // == QVariant::Invalid
@@ -243,24 +240,22 @@ OSSIA::Value* toValue(
             return createOSSIAValue(val.value<char>());
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
-            //TODO tuple & generic
-
-            /*
-        case OSSIA::Value::Type::Tuple:
+        case QMetaType::Type::QVariantList:
         {
-            ISCORE_TODO;
-            QVariantList tuple = data.value<QVariantList>();
-            const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
-            ISCORE_ASSERT(tuple.size() == (int)vec.size());
-            for(int i = 0; i < (int)vec.size(); i++)
+            QVariantList tuple = val.value<QVariantList>();
+            auto ossia_tuple = new OSSIA::Tuple;
+            for(const auto& val : tuple)
             {
-                updateOSSIAValue(tuple[i], *vec[i]);
+                ossia_tuple->value.push_back(toValue(val));
             }
+            return ossia_tuple;
             break;
         }
-        case OSSIA::Value::Type::GENERIC:
+        case QMetaType::Type::QByteArray:
         {
+            //return createOSSIAValue(val.value<QByteArray>());
             ISCORE_TODO;
+            /*
             const auto& array = data.value<QByteArray>();
             auto& generic = dynamic_cast<OSSIA::Generic&>(val);
 
@@ -270,9 +265,9 @@ OSSIA::Value* toValue(
             generic.start = new char[generic.size];
 
             boost::range::copy(array, generic.start);
+            */
             break;
         }
-            */
         default:
             break;
     }
@@ -281,6 +276,12 @@ OSSIA::Value* toValue(
     ISCORE_BREAKPOINT;
     ISCORE_ABORT;
     return nullptr;
+}
+
+OSSIA::Value* toValue(
+        const iscore::Value& value)
+{
+    return toValue(value.val);
 }
 
 std::shared_ptr<OSSIA::Message> message(const iscore::Message& mess, const DeviceList& deviceList)
