@@ -6,4 +6,4 @@
 	url = https://github.com/eggs-cpp/variant.git
 [submodule "3rdparty/QProgressIndicator"]
 	path = 3rdparty/QProgressIndicator
-	url = https://github.com/mojocorp/QProgressIndicator
+	url = https://github.com/jcelerier/QProgressIndicator
