@@ -378,7 +378,7 @@ static QVariant valueColumnData(const Node& node, int role)
         const auto& val = node.get<AddressSettings>().value;
         if(val.val.canConvert<QVariantList>())
         {
-            return val.val.toStringList().join(", ");
+            return "[ " + val.val.toStringList().join(", ") + " ]";
         }
 
         return val.val.toString();
