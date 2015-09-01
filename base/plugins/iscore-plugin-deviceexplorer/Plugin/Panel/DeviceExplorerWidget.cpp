@@ -54,14 +54,6 @@ DeviceExplorerWidget::buildGUI()
     connect(m_ntView, static_cast<void (DeviceExplorerView::*)()>(&DeviceExplorerView::selectionChanged),
             this, &DeviceExplorerWidget::updateActions);
 
-
-    /*
-    m_cmdQ = new iscore::CommandQueue(this);
-    m_undoAction = m_cmdQ->createUndoAction(this, tr("&Undo"));
-    m_undoAction->setShortcuts(QKeySequence::Undo);
-    m_redoAction = m_cmdQ->createRedoAction(this, tr("&Redo"));
-    m_redoAction->setShortcuts(QKeySequence::Redo);*/
-
     m_editAction = new QAction(tr("Edit"), this);
     m_editAction->setShortcut(QKeySequence(Qt::Key_Return));
 
@@ -130,6 +122,7 @@ DeviceExplorerWidget::buildGUI()
     m_addSiblingAction->setEnabled(false);
     m_addChildAction->setEnabled(false);
 
+    // Setup menus
 
     QMenu* addMenu = new QMenu(this);
     addMenu->addAction(m_addDeviceAction);
@@ -140,12 +133,6 @@ DeviceExplorerWidget::buildGUI()
 
     addButton->setMenu(addMenu);
 
-
-    QPushButton* editButton = new QPushButton(this);
-    editButton->setIcon(QIcon(":/resources/images/edit.png"));
-    editButton->setMaximumSize(QSize(32, 32));
-    editButton->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }");  //to hide the small triangle added to indicate a menu.
-
     QMenu* editMenu = new QMenu(this);
     editMenu->addAction(m_copyAction);
     editMenu->addAction(m_cutAction);
@@ -155,12 +142,35 @@ DeviceExplorerWidget::buildGUI()
     editMenu->addAction(m_moveDownAction);
     editMenu->addAction(m_promoteAction);
     editMenu->addAction(m_demoteAction);
-    editMenu->addSeparator();/*
-  editMenu->addAction(m_undoAction);
-  editMenu->addAction(m_redoAction);*/
+    editMenu->addSeparator();
+
+    QPushButton* editButton = new QPushButton(this);
+    editButton->setIcon(QIcon(":/resources/images/edit.png"));
+    editButton->setMaximumSize(QSize(32, 32));
+    editButton->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }");  //to hide the small triangle added to indicate a menu.
 
     editButton->setMenu(editMenu);
 
+    // Add actions to the current widget so that shortcuts work
+    {
+        this->addAction(m_addDeviceAction);
+        this->addAction(m_addSiblingAction);
+        this->addAction(m_addChildAction);
+
+        this->addAction(m_refreshAction);
+        this->addAction(m_refreshValueAction);
+
+        this->addAction(m_removeNodeAction);
+
+        this->addAction(m_copyAction);
+        this->addAction(m_cutAction);
+        this->addAction(m_pasteAction);
+
+        this->addAction(m_moveUpAction);
+        this->addAction(m_moveDownAction);
+        this->addAction(m_promoteAction);
+        this->addAction(m_demoteAction);
+    }
 
 
     m_columnCBox = new QComboBox(this);
@@ -461,6 +471,9 @@ void DeviceExplorerWidget::edit()
 
 void DeviceExplorerWidget::refresh()
 {
+    if(!model())
+        return;
+
     iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
