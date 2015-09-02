@@ -18,9 +18,11 @@ struct Relation
             Lower,
             GreaterEqual,
             LowerEqual
-        } op;
+        } ;
 
-        RelationMember lhs, rhs;
+        RelationMember lhs;
+        Operator op;
+        RelationMember rhs;
 
         friend bool operator==(const Relation& lhs, const Relation& rhs)
         {

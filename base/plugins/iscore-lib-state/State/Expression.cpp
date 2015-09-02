@@ -373,47 +373,6 @@ iscore::Expression iscore::parse(const QString& str)
     return {};
 }
 
-// Taken from boost doc
-
-namespace boost { namespace spirit { namespace traits
-{
-    // Make Qi recognize QString as a container
-    template <> struct is_container<QString> : mpl::true_ {};
-
-    // Expose the container's (QString's) value_type
-    template <> struct container_value<QString> : mpl::identity<QChar> {};
-
-    // Define how to insert a new element at the end of the container (QString)
-    template <>
-    struct push_back_container<QString, QChar>
-    {
-        static bool call(QString& c, QChar const& val)
-        {
-            c.append(val);
-            return true;
-        }
-    };
-
-    // Test if a QString is empty (required for debug)
-    template <>
-    struct is_empty_container<QString>
-    {
-        static bool call(QString const& c)
-        {
-            return c.isEmpty();
-        }
-    };
-
-    // Define how to stream a QString (required for debug)
-    template <typename Out, typename Enable>
-    struct print_attribute_debug<Out, QString, Enable>
-    {
-        static void call(Out& out, QString const& val)
-        {
-            out << val.toStdString();
-        }
-    };
-}}}
 
 ///////////////////////////////////////////////////////////////////////////////
 namespace client
@@ -447,87 +406,9 @@ namespace client
         double salary;
     };
 
-}using namespace boost::fusion;
-
-using string_type = QString;
-template<typename T> using vec_type = QList<T>;
-struct StdAddress
-{
-        string_type device;
-        vec_type<string_type> path;
-};
-
-BOOST_FUSION_ADAPT_STRUCT(
-    iscore::Address,
-            (string_type, device)
-    (QStringList, path)
-)
-using namespace boost::phoenix;
-using boost::spirit::qi::rule;
-template <typename Iterator>
-struct address_parser : qi::grammar<Iterator, iscore::Address()>
-{
-    address_parser() : address_parser::base_type(start)
-    {
-        using qi::alnum;
-
-        dev = +alnum;
-        member_elt = +alnum;
-        path %= (
-                    +("/" >> member_elt)
-                  | "/"
-                );
-        start %= dev >> ":" >> path;
-
-    }
-
-    qi::rule<Iterator, string_type()> dev;
-    qi::rule<Iterator, string_type()> member_elt;
-    qi::rule<Iterator, vec_type<string_type>()> path;
-    qi::rule<Iterator, iscore::Address()> start;
-};
-#include <boost/spirit/include/qi_real.hpp>
-
-BOOST_FUSION_ADAPT_STRUCT(
-    iscore::Value,
-            (QVariant, val)
-)
-        template <typename Iterator>
-        struct value_parser : qi::grammar<Iterator, iscore::Value()>
-        {
-            value_parser() : value_parser::base_type(start)
-            {
-                using qi::alnum;
-                using boost::spirit::qi::skip;
-                using boost::spirit::int_;
-                using boost::spirit::qi::real_parser;
-                using boost::spirit::qi::char_;
-
-                char_parser %= "'" >> (char_ - "'") >> "'";
-                str_parser %= '"' >> qi::lexeme [ +(char_ - '"') ] >> '"';
-
-                //tuple_parser %= "[" >> ("," % variant) >> "]";
-                tuple_parser %= skip(boost::spirit::ascii::space) [ "[" >> (variant % ",") >> "]" ];
-                variant %=  real_parser<float, boost::spirit::qi::strict_real_policies<float> >()
-                        | int_
-                        | char_parser
-                        | str_parser
-                        | tuple_parser;
-
-                start %= variant;
-
-            }
-
-            qi::rule<Iterator, QVariantList()> tuple_parser;
-            qi::rule<Iterator, QChar()> char_parser;
-            qi::rule<Iterator, string_type()> str_parser;
-            qi::rule<Iterator, QVariant()> variant;
-            qi::rule<Iterator, iscore::Value()> start;
-        };
-
-
-
-void lalala()
+}
+/*
+void test_parse_addr()
 {
     using namespace qi;
 
@@ -584,48 +465,59 @@ void test_parse_value()
     }
 }
 
-template <typename Iterator>
-struct relation_parser : qi::grammar<Iterator, iscore::Relation()>
-{
 
-};
-/*
-
-template <typename Iterator>
-struct rel_pareser : qi::grammar<Iterator, unsigned()>
+void test_parse_rel_member()
 {
-    rel_pareser() : rel_pareser::base_type(start)
+    std::vector<std::string> str_list{
+        "minuit:/device"
+        "1234"
+    };
+
+    for(const auto& str : str_list)
     {
-        using qi::eps;
-        using qi::lit;
-        using qi::_val;
-        using qi::_1;
-        using ascii::char_;
+        typedef std::string::const_iterator iterator_type;
+        using qi::parse;
 
+        RelationMember_parser<iterator_type> parser;
+        auto first = str.cbegin(), last = str.cend();
+        iscore::RelationMember val;
+        bool r = parse(first, last, parser, val);
 
-        start = eps             [_val = 0] >>
-            (
-                +lit('M')       [_val += 1000]
-                ||  hundreds    [_val += _1]
-                ||  tens        [_val += _1]
-                ||  ones        [_val += _1]
-            )
-        ;
-
+        qDebug() << str.c_str() << r << val.which();
     }
+}
 
-    qi::rule<Iterator, unsigned()> start;
-    qi::rule<std::string::iterator, qi::space> addr;
+void test_parse_rel()
+{
+    std::vector<std::string> str_list{
+        "minuit:/device<=1234",
+        "minuit:/device <= 1234"
+    };
 
-};
-*/
+    for(const auto& str : str_list)
+    {
+        typedef std::string::const_iterator iterator_type;
+        using qi::parse;
+
+        Relation_parser<iterator_type> parser;
+        auto first = str.cbegin(), last = str.cend();
+        iscore::Relation val;
+        bool r = parse(first, last, parser, val);
+
+        qDebug() << str.c_str() << r << val.lhs.target<iscore::Address>()->path << val.rhs.target<iscore::Value>()->val << "                    ";
+    }
+}
 void expr_parse_test()
 {
-    test_parse_value();
-    lalala();
+    //test_parse_addr();
+    //test_parse_value();
+
+    //test_parse_rel_member();
+    test_parse_rel();
     iscore::parse("minuit:/device/lol <= 123;");
     iscore::parse("minuit:/device/lol < 123;");
     iscore::parse("minuit:/device/lol != 123.45;");
     iscore::parse("minuit:/device/lol == 'h';");
     iscore::parse("minuit:/device/lol != \"dada dodo\";");
 }
+*/
