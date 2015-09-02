@@ -430,8 +430,38 @@ namespace client
 
         return r;
     }
-}
 
+    class Address
+    {
+            std::string device;
+            std::vector<std::string> path;
+    };
+
+
+    struct employee
+    {
+        int age;
+        std::string surname;
+        std::string forename;
+        double salary;
+    };
+
+}using namespace boost::fusion;
+#include <boost/fusion/adapted.hpp>
+
+using string_type = QString;
+template<typename T> using vec_type = QList<T>;
+struct StdAddress
+{
+        string_type device;
+        vec_type<string_type> path;
+};
+
+BOOST_FUSION_ADAPT_STRUCT(
+    iscore::Address,
+            (string_type, device)
+    (QStringList, path)
+)
 using namespace boost::phoenix;
 using boost::spirit::qi::rule;
 template <typename Iterator>
@@ -447,50 +477,19 @@ struct address_parser : qi::grammar<Iterator, iscore::Address()>
         using qi::ascii::char_;
         using boost::phoenix::ref;
 
-        iscore::Address addr;
-        auto toQString = phx::bind(
-                             [&] (std::string s) { addr.device = QString::fromStdString(s); },
-                qi::_1);
-
-
-        qi::rule<Iterator, std::string()> parser =
-            *(
-                qi::char_
-                [
-                    phx::bind(
-                        [] (char value) {
-                            std::cerr << value << std::endl;
-                        },
-                        qi::_1
-                    )
-                ]
-            );
-
-        dev = qi::lexeme[ +alnum ] [ phx::bind(
-                  [] (std::string value) {
-                      std::cerr << value << std::endl;
-                  },
-                  qi::_1
-              ) ];
-        member %= qi::lexeme[ +alnum ];
-        start = dev >> ":"
-                    >> (
-                           +("/" >> member)
-                         | "/"
-                       );
-/*
-        start = qi::lexeme[ +alnum ] [ dev_field = _1 ]
-             >> ":"
-             >> (
-                    +("/" >> qi::lexeme[ +alnum ] [ push_back(path_field, _1) ])
+        dev = +alnum;
+        member_elt = +alnum;
+        path %= (
+                    +("/" >> member_elt)
                   | "/"
                 );
-                */
+        start %= dev >> ":" >> path;
 
     }
 
-    qi::rule<Iterator, QString()> dev;
-    qi::rule<Iterator, std::string()> member;
+    qi::rule<Iterator, string_type()> dev;
+    qi::rule<Iterator, string_type()> member_elt;
+    qi::rule<Iterator, vec_type<string_type>()> path;
     qi::rule<Iterator, iscore::Address()> start;
 };
 
@@ -516,6 +515,9 @@ void lalala()
     bool r = parse(first, last, parser, addr);
 
     qDebug() << "parsed?" << r;
+    qDebug() << addr.device;
+    for(auto& elt : addr.path)
+        qDebug() << elt;
     //if (first!=last) std::cerr << "unparsed: '" << std::string(first, last) << "'\n";
 }
 
@@ -557,7 +559,6 @@ struct rel_pareser : qi::grammar<Iterator, unsigned()>
 */
 void expr_parse_test()
 {
-
     lalala();
     iscore::parse("minuit:/device/lol <= 123;");
     iscore::parse("minuit:/device/lol < 123;");
