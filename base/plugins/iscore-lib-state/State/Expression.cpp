@@ -486,31 +486,30 @@ struct address_parser : qi::grammar<Iterator, iscore::Address()>
     qi::rule<Iterator, vec_type<string_type>()> path;
     qi::rule<Iterator, iscore::Address()> start;
 };
-
+#include <boost/spirit/include/qi_real.hpp>
 
 BOOST_FUSION_ADAPT_STRUCT(
     iscore::Value,
             (QVariant, val)
 )
-
         template <typename Iterator>
         struct value_parser : qi::grammar<Iterator, iscore::Value()>
         {
             value_parser() : value_parser::base_type(start)
             {
                 using qi::alnum;
+                using boost::spirit::qi::skip;
                 using boost::spirit::int_;
-                using boost::spirit::float_;
+                using boost::spirit::qi::real_parser;
                 using boost::spirit::qi::char_;
-                QVariant thevar(QChar('c'));
-                qDebug( ) << thevar.typeName() << thevar.type() << thevar.value<QChar>() << thevar.value<int>();
-                return;
-                char_parser %= "'" >> (char_ - "'") >> "'";
-                str_parser %= '"' >> +(char_ - '"') >> '"';
 
-                tuple_parser %= '[' >> (',' % variant) >> ']';
-                variant %=  float_
-                        | float_
+                char_parser %= "'" >> (char_ - "'") >> "'";
+                str_parser %= '"' >> qi::lexeme [ +(char_ - '"') ] >> '"';
+
+                //tuple_parser %= "[" >> ("," % variant) >> "]";
+                tuple_parser %= skip(boost::spirit::ascii::space) [ "[" >> (variant % ",") >> "]" ];
+                variant %=  real_parser<float, boost::spirit::qi::strict_real_policies<float> >()
+                        | int_
                         | char_parser
                         | str_parser
                         | tuple_parser;
