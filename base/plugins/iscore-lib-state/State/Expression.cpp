@@ -29,6 +29,7 @@ bool iscore::validate(const iscore::Expression& expr)
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
+#include <boost/fusion/adapted.hpp>
 namespace {
 namespace qi    = boost::spirit::qi;
 namespace phx   = boost::phoenix;
@@ -219,7 +220,7 @@ static iscore::RelationMember toRelationMember(QString str, bool* ok)
         if(str.size() == 3 && str.at(0) == '\'' && str.at(2) ==  '\'')
         {
             // char ('a').
-            v.val = str.at(1).toLatin1();
+            v.val = str.at(1);
             return v;
         }
 
@@ -447,7 +448,6 @@ namespace client
     };
 
 }using namespace boost::fusion;
-#include <boost/fusion/adapted.hpp>
 
 using string_type = QString;
 template<typename T> using vec_type = QList<T>;
@@ -470,12 +470,6 @@ struct address_parser : qi::grammar<Iterator, iscore::Address()>
     address_parser() : address_parser::base_type(start)
     {
         using qi::alnum;
-        using qi::eps;
-        using qi::lit;
-        using qi::_val;
-        using qi::_1;
-        using qi::ascii::char_;
-        using boost::phoenix::ref;
 
         dev = +alnum;
         member_elt = +alnum;
@@ -492,6 +486,46 @@ struct address_parser : qi::grammar<Iterator, iscore::Address()>
     qi::rule<Iterator, vec_type<string_type>()> path;
     qi::rule<Iterator, iscore::Address()> start;
 };
+
+
+BOOST_FUSION_ADAPT_STRUCT(
+    iscore::Value,
+            (QVariant, val)
+)
+
+        template <typename Iterator>
+        struct value_parser : qi::grammar<Iterator, iscore::Value()>
+        {
+            value_parser() : value_parser::base_type(start)
+            {
+                using qi::alnum;
+                using boost::spirit::int_;
+                using boost::spirit::float_;
+                using boost::spirit::qi::char_;
+                QVariant thevar(QChar('c'));
+                qDebug( ) << thevar.typeName() << thevar.type() << thevar.value<QChar>() << thevar.value<int>();
+                return;
+                char_parser %= "'" >> (char_ - "'") >> "'";
+                str_parser %= '"' >> +(char_ - '"') >> '"';
+
+                tuple_parser %= '[' >> (',' % variant) >> ']';
+                variant %=  float_
+                        | float_
+                        | char_parser
+                        | str_parser
+                        | tuple_parser;
+
+                start %= variant;
+
+            }
+
+            qi::rule<Iterator, QVariantList()> tuple_parser;
+            qi::rule<Iterator, QChar()> char_parser;
+            qi::rule<Iterator, string_type()> str_parser;
+            qi::rule<Iterator, QVariant()> variant;
+            qi::rule<Iterator, iscore::Value()> start;
+        };
+
 
 
 void lalala()
@@ -521,6 +555,35 @@ void lalala()
     //if (first!=last) std::cerr << "unparsed: '" << std::string(first, last) << "'\n";
 }
 
+void test_parse_value()
+{
+    std::vector<std::string> str_list{
+        "[1,2,3]",
+        "[1]",
+        "[ 1 ]",
+        "[ 1, 2, 3 ]",
+        "[ 1, 2.3, 3, 'c' ]",
+        "1",
+        "1.23",
+        "'c'",
+        "\"lala\"",
+        "\"lala lala\""
+    };
+
+    for(const auto& str : str_list)
+    {
+
+        typedef std::string::const_iterator iterator_type;
+        using qi::parse;
+
+        value_parser<iterator_type> parser;
+        auto first = str.cbegin(), last = str.cend();
+        iscore::Value val;
+        bool r = parse(first, last, parser, val);
+
+        qDebug() << str.c_str() << r << val.val << "                    ";
+    }
+}
 
 template <typename Iterator>
 struct relation_parser : qi::grammar<Iterator, iscore::Relation()>
@@ -559,6 +622,7 @@ struct rel_pareser : qi::grammar<Iterator, unsigned()>
 */
 void expr_parse_test()
 {
+    test_parse_value();
     lalala();
     iscore::parse("minuit:/device/lol <= 123;");
     iscore::parse("minuit:/device/lol < 123;");

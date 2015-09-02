@@ -170,7 +170,7 @@ AddressEditDialog::setSettings(const iscore::AddressSettings& settings)
         case QMetaType::Bool:
             type = "Bool";
             break;
-        case QMetaType::Char:
+        case QMetaType::QChar:
             type = "Char";
             break;
         case QMetaType::QVariantList:

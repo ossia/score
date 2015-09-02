@@ -131,7 +131,7 @@ void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node
         {QMetaType::Int, OSSIA::Value::Type::INT},
         {QMetaType::QString, OSSIA::Value::Type::STRING},
         {QMetaType::Bool, OSSIA::Value::Type::BOOL},
-        {QMetaType::Char, OSSIA::Value::Type::CHAR},
+        {QMetaType::QChar, OSSIA::Value::Type::CHAR},
         {QMetaType::QVariantList, OSSIA::Value::Type::TUPLE},
         {QMetaType::QByteArray, OSSIA::Value::Type::GENERIC}
     };
@@ -158,7 +158,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
             dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
             break;
         case OSSIA::Value::Type::CHAR:
-            dynamic_cast<OSSIA::Char&>(val).value = data.value<char>();
+            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toLatin1();
             break;
         case OSSIA::Value::Type::STRING:
             dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
@@ -205,16 +205,6 @@ boost::mpl::pair<float, OSSIA::Float>,
 boost::mpl::pair<char, OSSIA::Char>,
 boost::mpl::pair<std::string, OSSIA::String>
 >;
-/*
-using OSSIATypeEnumToTypeMap =
-mpl::map<
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::BOOL>, bool>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::INT>, int>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::FLOAT>, float>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::CHAR>, char>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::STRING>, std::string>
->;
-*/
 
 template<typename T>
 OSSIA::Value* createOSSIAValue(const T& val)
@@ -236,8 +226,8 @@ static OSSIA::Value* toValue(const QVariant& val)
             return createOSSIAValue(val.value<float>());
         case QMetaType::Type::Double:
             return createOSSIAValue((float)val.value<double>());
-        case QMetaType::Type::Char:
-            return createOSSIAValue(val.value<char>());
+        case QMetaType::Type::QChar:
+            return createOSSIAValue(val.value<QChar>().toLatin1());
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
         case QMetaType::Type::QVariantList:
