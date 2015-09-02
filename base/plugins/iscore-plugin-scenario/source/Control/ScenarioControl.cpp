@@ -71,11 +71,13 @@ void ignore_template_instantiations()
 }
 
 using namespace iscore;
+#include <State/Expression.hpp>
 
 ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
 {
+    expr_parse_test();
     setupCommands();
 
     m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};

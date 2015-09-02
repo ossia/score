@@ -34,6 +34,14 @@ enum class BoolOperator {
 
 struct ExprData : public VariantBasedNode<Relation, BoolOperator>
 {
+        ExprData() = default;
+        template<typename T>
+        ExprData(const T& data):
+            VariantBasedNode{data}
+        {
+
+        }
+
         friend bool operator==(const ExprData& lhs, const ExprData& rhs)
         {
             return lhs.m_data == rhs.m_data;
@@ -196,3 +204,6 @@ using Trigger = ExprData;
 iscore::Expression parse(const QString& str);
 bool validate(const Expression& expr);
 }
+
+
+void expr_parse_test();
