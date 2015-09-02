@@ -6,6 +6,50 @@
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
 
+/*
+Here is the grammar used. The grammar itself is split in multiple classes where
+relevant.
+
+
+# Addresses
+alnum 			:= +[a-zA-Z0-9];
+device 			:= alnum;
+path_element 	:= alnum;
+path 			:= ('/', path_element)+ | '/';
+
+Address 		:= device, ‘:’, path;
+
+
+# Values
+char			:= '\'', [:ascii:] - '\'', '\'';
+str				:= '"', ([:ascii:] - '"')*, '"';
+tuple			:= '[', (value % ','), ']';
+bool			:= 'true' || 'false' ;
+int				:= [:int:];
+float			:= [:float:];
+variant			:= char || str || tuple || bool || int || float;
+
+Value 			:= variant;
+
+
+# Relations
+RelationMember	:= Value || Address;
+RelationOp		:= '<=' || '<' || '>=' || '>' || '==' || '!=';
+
+Relation		:= RelationMember, RelationOp, RelationMember;
+
+
+# Boolean operations
+
+Expr 			:= Or;
+Or				:= (Xor, 'or', Or) | Xor;
+Xor				:= (And, 'xor', Xor) | And;
+And				:= (Not, 'and', And) | Not;
+Not				:= ('not', Simple) | Simple;
+
+Simple			:= ('(', Expr, ')') | Relation;
+*/
+
 // Taken from boost doc, necessary to have support of QString
 namespace boost { namespace spirit { namespace traits
 {
@@ -60,9 +104,9 @@ BOOST_FUSION_ADAPT_STRUCT(
         (QStringList, path)
         )
 template <typename Iterator>
-struct address_parser : qi::grammar<Iterator, iscore::Address()>
+struct Address_parser : qi::grammar<Iterator, iscore::Address()>
 {
-    address_parser() : address_parser::base_type(start)
+    Address_parser() : Address_parser::base_type(start)
     {
         using qi::alnum;
 
@@ -88,10 +132,21 @@ BOOST_FUSION_ADAPT_STRUCT(
         iscore::Value,
         (QVariant, val)
         )
-template <typename Iterator>
-struct value_parser : qi::grammar<Iterator, iscore::Value()>
+
+
+struct BoolParse_map : qi::symbols<char, bool>
 {
-    value_parser() : value_parser::base_type(start)
+        BoolParse_map() {
+            add
+                    ("true", true)
+                    ("false", false)
+                    ;
+        }
+};
+template <typename Iterator>
+struct Value_parser : qi::grammar<Iterator, iscore::Value()>
+{
+    Value_parser() : Value_parser::base_type(start)
     {
         using qi::alnum;
         using boost::spirit::qi::skip;
@@ -100,18 +155,22 @@ struct value_parser : qi::grammar<Iterator, iscore::Value()>
         using boost::spirit::qi::char_;
 
         char_parser %= "'" >> (char_ - "'") >> "'";
-        str_parser %= '"' >> qi::lexeme [ +(char_ - '"') ] >> '"';
+        str_parser %= '"' >> qi::lexeme [ *(char_ - '"') ] >> '"';
 
+        bool_parser %=
         // TODO true/false (cf. bool_)
         tuple_parser %= skip(boost::spirit::ascii::space) [ "[" >> (variant % ",") >> "]" ];
         variant %=  real_parser<float, boost::spirit::qi::strict_real_policies<float> >()
                 | int_
+                | bool_parser
                 | char_parser
                 | str_parser
                 | tuple_parser;
 
         start %= variant;
     }
+
+    BoolParse_map bool_parser;
 
     qi::rule<Iterator, QVariantList()> tuple_parser;
     qi::rule<Iterator, QChar()> char_parser;
@@ -132,8 +191,8 @@ struct RelationMember_parser : qi::grammar<Iterator, iscore::RelationMember()>
         start %= addr | val;
     }
 
-    address_parser<Iterator> addr;
-    value_parser<Iterator> val;
+    Address_parser<Iterator> addr;
+    Value_parser<Iterator> val;
     qi::rule<Iterator, iscore::RelationMember()> start;
 };
 
@@ -146,9 +205,9 @@ BOOST_FUSION_ADAPT_STRUCT(
         (iscore::Relation::Operator, op)
         (iscore::RelationMember, rhs)
         )
-struct operations_map : qi::symbols<char, iscore::Relation::Operator>
+struct RelationOperation_map : qi::symbols<char, iscore::Relation::Operator>
 {
-        operations_map() {
+        RelationOperation_map() {
             add
                     ("<=", iscore::Relation::Operator::LowerEqual)
                     (">=", iscore::Relation::Operator::GreaterEqual)
@@ -173,13 +232,65 @@ struct Relation_parser : qi::grammar<Iterator, iscore::Relation()>
     }
 
     RelationMember_parser<Iterator> rm_parser;
-    operations_map op_map;
+    RelationOperation_map op_map;
     qi::rule<Iterator, iscore::Relation()> start;
 };
 
 
 
-void expr_parse_test()
-{
 
-}
+
+// 90% of the boolean expr. parsing was taken from the stackoverflow answer :
+// http://stackoverflow.com/a/8707598/1495627
+namespace qi    = boost::spirit::qi;
+namespace phx   = boost::phoenix;
+
+struct op_or  {};
+struct op_and {};
+struct op_xor {};
+struct op_not {};
+
+typedef std::string var;
+template <typename tag> struct binop;
+template <typename tag> struct unop;
+
+using expr = boost::variant<iscore::Relation,
+        boost::recursive_wrapper<unop <op_not> >,
+        boost::recursive_wrapper<binop<op_and> >,
+        boost::recursive_wrapper<binop<op_xor> >,
+        boost::recursive_wrapper<binop<op_or> >
+        >;
+
+template <typename tag> struct binop
+{
+    explicit binop(const expr& l, const expr& r) : oper1(l), oper2(r) { }
+    expr oper1, oper2;
+};
+
+template <typename tag> struct unop
+{
+    explicit unop(const expr& o) : oper1(o) { }
+    expr oper1;
+};
+
+template <typename It, typename Skipper = qi::space_type>
+    struct Expression_parser : qi::grammar<It, expr(), Skipper>
+{
+    Expression_parser() : Expression_parser::base_type(expr_)
+    {
+        using namespace qi;
+
+        expr_  = or_.alias();
+
+        or_  = (xor_ >> "or"  >> or_ ) [ _val = phx::construct<binop<op_or >>(_1, _2) ] | xor_   [ _val = _1 ];
+        xor_ = (and_ >> "xor" >> xor_) [ _val = phx::construct<binop<op_xor>>(_1, _2) ] | and_   [ _val = _1 ];
+        and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(_1, _2) ] | not_   [ _val = _1 ];
+        not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(_1)     ] | simple [ _val = _1 ];
+
+        simple = (('(' > expr_ > ')') | var_);
+    }
+
+  private:
+    Relation_parser<It> var_;
+    qi::rule<It, expr(), Skipper> not_, and_, xor_, or_, simple, expr_;
+};

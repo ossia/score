@@ -77,7 +77,6 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
 {
-    expr_parse_test();
     setupCommands();
 
     m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
