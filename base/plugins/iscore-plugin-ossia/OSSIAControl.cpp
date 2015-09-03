@@ -14,6 +14,10 @@
 #include <API/Headers/Editor/ExpressionAtom.h>
 #include <API/Headers/Editor/ExpressionComposition.h>
 #include <API/Headers/Editor/Value.h>
+#if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
+#include <TTFoundationAPI.h>
+#include <TTModular.h>
+#endif
 
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -22,6 +26,12 @@
 OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
 {
+// Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
+#if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
+    auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/Frameworks/jamoma/extensions";
+    TTFoundationInit(contents.toLatin1().constData(), true);
+    TTModularInit(contents.toLatin1().constData(), true);
+#endif
     using namespace OSSIA;
     auto localDevice = OSSIA::Local::create();
     m_localDevice = Device::create(localDevice, "i-score");
