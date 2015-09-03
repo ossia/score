@@ -20,7 +20,7 @@ class ExpressionValidator : public QValidator
             if(m_currentExp)
                 return State::Acceptable;
             else
-                return State::Invalid;
+                return State::Intermediate;
         }
 
         // Call only after a successful validate()

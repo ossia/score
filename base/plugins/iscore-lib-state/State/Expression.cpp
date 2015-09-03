@@ -459,18 +459,19 @@ QString TreeNode<ExprData>::toString() const
     }
     else if(m_children.count() == 1) // unop
     {
-        s = "(" + exprstr + m_children.at(0)->toString() + ")";
+        s = "(" + exprstr + " " + m_children.at(0)->toString() + ")";
     }
     else // binop
     {
+        ISCORE_ASSERT(m_children.count() == 2);
         int n = 0;
         int max_n = m_children.count() - 1;
         for(const auto& child : m_children)
         {
-            s += child->toString();
+            s += child->toString() + " ";
             if(n < max_n)
             {
-                s += exprstr;
+                s += exprstr + " ";
                 n++;
             }
         }
@@ -479,3 +480,83 @@ QString TreeNode<ExprData>::toString() const
     return s;
 }
 
+
+namespace
+{
+
+QString valueToString(const QVariant& val)
+{
+    switch(val.type())
+    {
+        case QMetaType::QVariantList:
+        {
+            QString s;
+            s += "[ ";
+            for(const auto& v : val.value<QVariantList>())
+            {
+                s += valueToString(v) + ", ";
+            }
+            s += " ]";
+            return s;
+        }
+        case QMetaType::QChar:
+        {
+            return "'" + val.toString() + "'";
+        }
+        case QMetaType::QString:
+        {
+            return "\"" + val.toString() + "\"";
+        }
+        default:
+        {
+            return val.toString();
+        }
+    }
+}
+}
+QString iscore::Relation::toString() const
+{
+    using namespace eggs::variants;
+    static const auto relMemberToString = [] (const auto& m) -> QString
+    {
+        switch(m.which())
+        {
+            case 0:
+                return get<iscore::Address>(m).toString();
+                break;
+            case 1:
+            {
+                return valueToString(get<iscore::Value>(m).val);
+                break;
+            }
+            default:
+                return "ERROR";
+        }
+    };
+
+    static const auto opToString = [] (const auto& op) -> QString
+    {
+        switch(op)
+        {
+            case iscore::Relation::Operator::Different:
+                return "!=";
+            case iscore::Relation::Operator::Equal:
+                return "==";
+            case iscore::Relation::Operator::Greater:
+                return ">";
+            case iscore::Relation::Operator::GreaterEqual:
+                return ">=";
+            case iscore::Relation::Operator::Lower:
+                return "<";
+            case iscore::Relation::Operator::LowerEqual:
+                return "<=";
+            default:
+                return "ERROR";
+        }
+    };
+
+    return QString("%1 %2 %3")
+            .arg(relMemberToString(lhs))
+            .arg(opToString(op))
+            .arg(relMemberToString(rhs));
+}

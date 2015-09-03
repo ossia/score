@@ -18,6 +18,6 @@ class AddressValidator : public QValidator
         {
             return iscore::Address::validateString(s)
                     ? State::Acceptable
-                    : State::Invalid;
+                    : State::Intermediate;
         }
 };

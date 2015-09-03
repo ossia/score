@@ -133,13 +133,11 @@ const iscore::Condition& EventModel::condition() const
 
 void EventModel::setCondition(const iscore::Condition& arg)
 {
-    if(m_condition == arg)
+    if(m_condition != arg)
     {
-        return;
+        m_condition = arg;
+        emit conditionChanged(arg);
     }
-
-    m_condition = arg;
-    emit conditionChanged(arg);
 }
 
 const iscore::Trigger& EventModel::trigger() const

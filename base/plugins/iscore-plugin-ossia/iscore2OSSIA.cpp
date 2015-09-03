@@ -434,12 +434,33 @@ std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
 }
 
 std::shared_ptr<OSSIA::Expression> expression(
-        const Expression& expr,
-        const DeviceList&)
+        const iscore::Expression& expr,
+        const DeviceList& devlist)
 {
-    auto exp = OSSIA::Expression::create();
-    return exp;
-    //exp.add;
+    if(expr.is<InvisibleRootNodeTag>())
+    {
+        // ??
+    }
+    else if(expr.is<iscore::Relation>())
+    {
+        return expressionAtom(expr.get<iscore::Relation>(), devlist);
+    }
+    else if(expr.is<iscore::BinaryOperator>())
+    {/*
+        auto lhs = ;
+        auto rhs = ;
+        return OSSIA::ExpressionComposition::create()
+        */
+    }
+    else if(expr.is<iscore::Relation>())
+    {
+
+    }
+    else
+    {
+        ISCORE_ABORT;
+        return {};
+    }
 }
 
 }

@@ -30,50 +30,7 @@ struct Relation
             return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.op == rhs.op;
         }
 
-        QString toString() const
-        {
-            using namespace eggs::variants;
-            static const auto relMemberToString = [] (const auto& m) -> QString
-            {
-                switch(m.which())
-                {
-                    case 0:
-                        return get<iscore::Address>(m).toString();
-                        break;
-                    case 1:
-                        return get<iscore::Value>(m).val.toString();
-                        break;
-                    default:
-                        return "ERROR";
-                }
-            };
-
-            static const auto opToString = [] (const auto& op) -> QString
-            {
-                switch(op)
-                {
-                    case iscore::Relation::Operator::Different:
-                        return "!=";
-                    case iscore::Relation::Operator::Equal:
-                        return "==";
-                    case iscore::Relation::Operator::Greater:
-                        return ">";
-                    case iscore::Relation::Operator::GreaterEqual:
-                        return ">=";
-                    case iscore::Relation::Operator::Lower:
-                        return "<";
-                    case iscore::Relation::Operator::LowerEqual:
-                        return "<=";
-                    default:
-                        return "ERROR";
-                }
-            };
-
-            return QString("%1 %2 %3")
-                    .arg(relMemberToString(lhs))
-                    .arg(opToString(op))
-                    .arg(relMemberToString(rhs));
-        }
+        QString toString() const;
 };
 
 enum class BinaryOperator {
