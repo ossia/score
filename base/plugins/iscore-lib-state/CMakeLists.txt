@@ -22,6 +22,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateItemModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"

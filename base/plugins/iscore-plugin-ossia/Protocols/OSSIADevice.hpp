@@ -20,6 +20,8 @@ class OSSIADevice : public DeviceInterface
         bool check(const QString& str) override;
 
         OSSIA::Device& impl() const;
+        std::shared_ptr<OSSIA::Device> impl_ptr() const
+        { return m_dev; }
 
     protected:
         std::shared_ptr<OSSIA::Device> m_dev;

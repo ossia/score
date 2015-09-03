@@ -12,6 +12,7 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include <State/State.hpp>
 #include <State/Message.hpp>
+#include <State/Expression.hpp>
 
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
 
@@ -26,6 +27,9 @@ namespace convert
 OSSIA::Node* findNodeFromPath(
         const QStringList& path,
         OSSIA::Device *dev);
+std::shared_ptr<OSSIA::Node> findNodeFromPath(
+        const QStringList& path,
+        std::shared_ptr<OSSIA::Device> dev);
 
 // OSSIA::Node* won't be null.
 OSSIA::Node* getNodeFromPath(
@@ -65,6 +69,9 @@ std::shared_ptr<OSSIA::Message> message(
         const iscore::Message& mess,
         const DeviceList&);
 
+std::shared_ptr<OSSIA::Expression> expression(
+        const iscore::Expression& expr,
+        const DeviceList&);
 }
 }
 

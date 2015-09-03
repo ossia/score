@@ -6,6 +6,12 @@
 #include <boost/mpl/at.hpp>
 #include <boost/range/algorithm.hpp>
 
+#include <Misc/CallbackContainer.h>
+#include <Editor/Expression.h>
+#include <Editor/ExpressionAtom.h>
+#include <Editor/ExpressionComposition.h>
+#include <Editor/ExpressionNot.h>
+
 #include "Protocols/OSSIADevice.hpp"
 #include <QMap>
 namespace iscore
@@ -70,7 +76,26 @@ OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
     }
 
     return node;
+}
 
+std::shared_ptr<OSSIA::Node> findNodeFromPath(const QStringList& path, std::shared_ptr<OSSIA::Device> dev)
+{
+    using namespace OSSIA;
+    // Find the relevant node to add in the device
+    std::shared_ptr<OSSIA::Node> node = dev;
+    for(int i = 0; i < path.size(); i++)
+    {
+        const auto& children = node->children();
+        auto it = boost::range::find_if(children,
+                                        [&] (const auto& ossia_node)
+        { return ossia_node->getName() == path[i].toStdString(); });
+        if(it != children.end())
+            node = *it;
+        else
+            return {};
+    }
+
+    return node;
 }
 
 OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
@@ -131,7 +156,7 @@ void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node
         {QMetaType::Int, OSSIA::Value::Type::INT},
         {QMetaType::QString, OSSIA::Value::Type::STRING},
         {QMetaType::Bool, OSSIA::Value::Type::BOOL},
-        {QMetaType::Char, OSSIA::Value::Type::CHAR},
+        {QMetaType::QChar, OSSIA::Value::Type::CHAR},
         {QMetaType::QVariantList, OSSIA::Value::Type::TUPLE},
         {QMetaType::QByteArray, OSSIA::Value::Type::GENERIC}
     };
@@ -158,7 +183,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
             dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
             break;
         case OSSIA::Value::Type::CHAR:
-            dynamic_cast<OSSIA::Char&>(val).value = data.value<char>();
+            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toLatin1();
             break;
         case OSSIA::Value::Type::STRING:
             dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
@@ -205,16 +230,6 @@ boost::mpl::pair<float, OSSIA::Float>,
 boost::mpl::pair<char, OSSIA::Char>,
 boost::mpl::pair<std::string, OSSIA::String>
 >;
-/*
-using OSSIATypeEnumToTypeMap =
-mpl::map<
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::BOOL>, bool>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::INT>, int>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::FLOAT>, float>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::CHAR>, char>,
-mpl::pair<mpl::int_<(int)OSSIA::Value::Type::STRING>, std::string>
->;
-*/
 
 template<typename T>
 OSSIA::Value* createOSSIAValue(const T& val)
@@ -236,8 +251,8 @@ static OSSIA::Value* toValue(const QVariant& val)
             return createOSSIAValue(val.value<float>());
         case QMetaType::Type::Double:
             return createOSSIAValue((float)val.value<double>());
-        case QMetaType::Type::Char:
-            return createOSSIAValue(val.value<char>());
+        case QMetaType::Type::QChar:
+            return createOSSIAValue(val.value<QChar>().toLatin1());
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
         case QMetaType::Type::QVariantList:
@@ -339,5 +354,93 @@ std::shared_ptr<OSSIA::State> state(
 
     return ossia_state;
 }
+
+OSSIA::Value* expressionOperand(
+        const iscore::RelationMember& relm,
+        const DeviceList& devlist)
+{
+    using namespace eggs::variants;
+    switch(relm.which())
+    {
+        case 0:
+        {
+            const auto& addr = get<iscore::Address>(relm);
+            if(!devlist.hasDevice(addr.device))
+                return nullptr;
+
+            auto& device = devlist.device(addr.device);
+
+            if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&device))
+            {
+                auto n = findNodeFromPath(addr.path, casted_dev->impl_ptr());
+                if(n)
+                {
+                    return new OSSIA::Destination(n);
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+            else
+            {
+                return nullptr;
+            }
+
+            break;
+        }
+        case 1:
+        {
+            return toValue( get<iscore::Value>(relm));
+            break;
+        }
+        default:
+            ISCORE_ABORT;
+    }
+}
+
+OSSIA::ExpressionAtom::Operator expressionOperator(iscore::Relation::Operator op)
+{
+    switch(op)
+    {
+        case iscore::Relation::Operator::Different:
+            return OSSIA::ExpressionAtom::Operator::DIFFERENT;
+        case iscore::Relation::Operator::Equal:
+            return OSSIA::ExpressionAtom::Operator::EQUAL;
+        case iscore::Relation::Operator::Greater:
+            return OSSIA::ExpressionAtom::Operator::GREATER_THAN;
+        case iscore::Relation::Operator::GreaterEqual:
+            return OSSIA::ExpressionAtom::Operator::GREATER_THAN_OR_EQUAL;
+        case iscore::Relation::Operator::Lower:
+            return OSSIA::ExpressionAtom::Operator::LOWER_THAN;
+        case iscore::Relation::Operator::LowerEqual:
+            return OSSIA::ExpressionAtom::Operator::LOWER_THAN_OR_EQUAL;
+        default:
+            ISCORE_ABORT;
+    }
+}
+
+// iscore::Relation -> OSSIA::ExpressionAtom
+std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
+        const iscore::Relation& rel,
+        const DeviceList& dev)
+{
+    using namespace eggs::variants;
+
+    return OSSIA::ExpressionAtom::create(
+                expressionOperand(rel.lhs, dev),
+                expressionOperator(rel.op),
+                expressionOperand(rel.rhs, dev));
+}
+
+std::shared_ptr<OSSIA::Expression> expression(
+        const Expression& expr,
+        const DeviceList&)
+{
+    auto exp = OSSIA::Expression::create();
+    return exp;
+    //exp.add;
+}
+
 }
 }

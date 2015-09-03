@@ -5,6 +5,7 @@
 #include <eggs/variant.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/VariantBasedNode.hpp>
+#include <boost/optional.hpp>
 namespace iscore
 {
 using RelationMember = eggs::variant<iscore::Address, iscore::Value>;
@@ -18,9 +19,11 @@ struct Relation
             Lower,
             GreaterEqual,
             LowerEqual
-        } op;
+        } ;
 
-        RelationMember lhs, rhs;
+        RelationMember lhs;
+        Operator op;
+        RelationMember rhs;
 
         friend bool operator==(const Relation& lhs, const Relation& rhs)
         {
@@ -28,17 +31,27 @@ struct Relation
         }
 };
 
-enum class BoolOperator {
+enum class BinaryOperator {
     And, Or, Xor
 };
+enum class UnaryOperator {
+    Not
+};
 
-struct ExprData : public VariantBasedNode<Relation, BoolOperator>
+struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
 {
+        ExprData() = default;
+        template<typename T>
+        ExprData(const T& data):
+            VariantBasedNode{data}
+        {
+
+        }
+
         friend bool operator==(const ExprData& lhs, const ExprData& rhs)
         {
             return lhs.m_data == rhs.m_data;
         }
-
 };
 
 }
@@ -193,6 +206,5 @@ using Expression = TreeNode<ExprData>;
 using Condition = ExprData;
 using Trigger = ExprData;
 
-iscore::Expression parse(const QString& str);
-bool validate(const Expression& expr);
+boost::optional<iscore::Expression> parse(const QString& str);
 }

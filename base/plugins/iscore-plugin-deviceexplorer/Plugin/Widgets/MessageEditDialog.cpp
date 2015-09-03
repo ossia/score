@@ -69,7 +69,7 @@ void MessageEditDialog::initTypeCombo()
         case QMetaType::Float:
             m_typeCombo->setCurrentIndex(2);
             break;
-        case QMetaType::Char:
+        case QMetaType::QChar:
             m_typeCombo->setCurrentIndex(3);
             break;
         case QMetaType::QString:

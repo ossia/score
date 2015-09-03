@@ -71,7 +71,9 @@ void ignore_template_instantiations()
 }
 
 using namespace iscore;
+#include <State/Expression.hpp>
 
+void test_parse_expr_full();
 ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
     m_processList{this}
