@@ -252,7 +252,7 @@ typedef std::string var;
 template <typename tag> struct binop;
 template <typename tag> struct unop;
 
-using expr = boost::variant<iscore::Relation,
+using expr_raw = boost::variant<iscore::Relation,
         boost::recursive_wrapper<unop <op_not> >,
         boost::recursive_wrapper<binop<op_and> >,
         boost::recursive_wrapper<binop<op_xor> >,
@@ -261,18 +261,18 @@ using expr = boost::variant<iscore::Relation,
 
 template <typename tag> struct binop
 {
-    explicit binop(const expr& l, const expr& r) : oper1(l), oper2(r) { }
-    expr oper1, oper2;
+    explicit binop(const expr_raw& l, const expr_raw& r) : oper1(l), oper2(r) { }
+    expr_raw oper1, oper2;
 };
 
 template <typename tag> struct unop
 {
-    explicit unop(const expr& o) : oper1(o) { }
-    expr oper1;
+    explicit unop(const expr_raw& o) : oper1(o) { }
+    expr_raw oper1;
 };
 
 template <typename It, typename Skipper = qi::space_type>
-    struct Expression_parser : qi::grammar<It, expr(), Skipper>
+    struct Expression_parser : qi::grammar<It, expr_raw(), Skipper>
 {
     Expression_parser() : Expression_parser::base_type(expr_)
     {
@@ -290,7 +290,7 @@ template <typename It, typename Skipper = qi::space_type>
 
   private:
     Relation_parser<It> var_;
-    qi::rule<It, expr(), Skipper> not_, and_, xor_, or_, simple, expr_;
+    qi::rule<It, expr_raw(), Skipper> not_, and_, xor_, or_, simple, expr_;
 };
 
 struct Expression_builder : boost::static_visitor<void>
@@ -319,7 +319,7 @@ struct Expression_builder : boost::static_visitor<void>
             print(new_expr, b.oper1, b.oper2);
         }
 
-        void print(iscore::Expression* new_expr, const expr& l, const expr& r)
+        void print(iscore::Expression* new_expr, const expr_raw& l, const expr_raw& r)
         {
             m_current->addChild(new_expr);
 
@@ -355,7 +355,7 @@ struct Expression_builder : boost::static_visitor<void>
         Expression_parser<decltype(f)> p;
         try
         {
-            expr result;
+            expr_raw result;
             bool ok = qi::phrase_parse(f,l,p > ';',qi::space,result);
 
             if (!ok)

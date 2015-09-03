@@ -47,7 +47,10 @@ write_compiler_detection_header(
   VERSION 3.1
 )
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_COMMIT_REFSPEC GIT_COMMIT_HASH)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp" "#define GIT_COMMIT ${GIT_COMMIT_HASH}\n")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/variant/include")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator")
 add_subdirectory(base)
