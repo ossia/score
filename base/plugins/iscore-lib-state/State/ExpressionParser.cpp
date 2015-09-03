@@ -91,6 +91,25 @@ struct print_attribute_debug<Out, QString, Enable>
 };
 }}}
 
+
+BOOST_FUSION_ADAPT_STRUCT(
+        iscore::Address,
+        (QString, device)
+        (QStringList, path)
+        )
+
+BOOST_FUSION_ADAPT_STRUCT(
+        iscore::Value,
+        (QVariant, val)
+        )
+
+BOOST_FUSION_ADAPT_STRUCT(
+        iscore::Relation,
+        (iscore::RelationMember, lhs)
+        (iscore::Relation::Operator, op)
+        (iscore::RelationMember, rhs)
+        )
+namespace {
 /// Address parsing.
 using namespace boost::fusion;
 namespace qi = boost::spirit::qi;
@@ -98,11 +117,6 @@ namespace qi = boost::spirit::qi;
 using namespace boost::phoenix;
 using boost::spirit::qi::rule;
 
-BOOST_FUSION_ADAPT_STRUCT(
-        iscore::Address,
-        (QString, device)
-        (QStringList, path)
-        )
 template <typename Iterator>
 struct Address_parser : qi::grammar<Iterator, iscore::Address()>
 {
@@ -128,12 +142,6 @@ struct Address_parser : qi::grammar<Iterator, iscore::Address()>
 
 
 /// Value parsing
-BOOST_FUSION_ADAPT_STRUCT(
-        iscore::Value,
-        (QVariant, val)
-        )
-
-
 struct BoolParse_map : qi::symbols<char, bool>
 {
         BoolParse_map() {
@@ -180,8 +188,6 @@ struct Value_parser : qi::grammar<Iterator, iscore::Value()>
 };
 
 
-
-
 //// RelMember parsing
 template <typename Iterator>
 struct RelationMember_parser : qi::grammar<Iterator, iscore::RelationMember()>
@@ -196,15 +202,7 @@ struct RelationMember_parser : qi::grammar<Iterator, iscore::RelationMember()>
     qi::rule<Iterator, iscore::RelationMember()> start;
 };
 
-
-
 /// Relation parsing
-BOOST_FUSION_ADAPT_STRUCT(
-        iscore::Relation,
-        (iscore::RelationMember, lhs)
-        (iscore::Relation::Operator, op)
-        (iscore::RelationMember, rhs)
-        )
 struct RelationOperation_map : qi::symbols<char, iscore::Relation::Operator>
 {
         RelationOperation_map() {
@@ -294,3 +292,93 @@ template <typename It, typename Skipper = qi::space_type>
     Relation_parser<It> var_;
     qi::rule<It, expr(), Skipper> not_, and_, xor_, or_, simple, expr_;
 };
+
+struct Expression_builder : boost::static_visitor<void>
+{
+            Expression_builder(iscore::Expression* e):m_current{e}{}
+        iscore::Expression* m_current{};
+
+        void operator()(const iscore::Relation& rel)
+        {
+            m_current->addChild(new iscore::Expression(rel));
+        }
+
+        void operator()(const binop<op_and>& b)
+        {
+            auto new_expr = new iscore::Expression(iscore::BinaryOperator::And);
+            print(new_expr, b.oper1, b.oper2);
+        }
+        void operator()(const binop<op_or >& b)
+        {
+            auto new_expr = new iscore::Expression(iscore::BinaryOperator::Or);
+            print(new_expr, b.oper1, b.oper2);
+        }
+        void operator()(const binop<op_xor>& b)
+        {
+            auto new_expr = new iscore::Expression(iscore::BinaryOperator::Xor);
+            print(new_expr, b.oper1, b.oper2);
+        }
+
+        void print(iscore::Expression* new_expr, const expr& l, const expr& r)
+        {
+            m_current->addChild(new_expr);
+
+            auto old_expr = m_current;
+            m_current = new_expr;
+
+            boost::apply_visitor(*this, l);
+            boost::apply_visitor(*this, r);
+
+            m_current = old_expr;
+        }
+
+        void operator()(const unop<op_not>& u)
+        {
+            auto new_expr = new iscore::Expression(iscore::UnaryOperator::Not);
+            m_current->addChild(new_expr);
+
+            auto old_expr = m_current;
+            m_current = new_expr;
+
+            boost::apply_visitor(*this, u.oper1);
+
+            m_current = old_expr;
+        }
+};
+}
+
+
+    boost::optional<iscore::Expression> iscore::parse(const QString& str)
+    {
+        auto input = str.toStdString();
+        auto f(std::begin(input)), l(std::end(input));
+        Expression_parser<decltype(f)> p;
+        try
+        {
+            expr result;
+            bool ok = qi::phrase_parse(f,l,p > ';',qi::space,result);
+
+            if (!ok)
+            {
+                return {};
+            }
+
+            iscore::Expression e;
+
+            Expression_builder bldr{&e};
+            boost::apply_visitor(bldr, result);
+
+            return e;
+
+        }
+        catch (const qi::expectation_failure<decltype(f)>& e)
+        {
+            return {};
+        }
+        catch(...)
+        {
+            return {};
+        }
+
+        return {};
+    }

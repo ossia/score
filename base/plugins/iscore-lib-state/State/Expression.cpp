@@ -1,5 +1,6 @@
 #include "Expression.hpp"
 #include <algorithm>
+/*
 bool checkLeaves(const iscore::Expression* e)
 {
     auto c = e->children(); // TODO see why this isn't a const ref return.
@@ -17,12 +18,12 @@ bool checkLeaves(const iscore::Expression* e)
     }
 }
 
-bool iscore::validate(const iscore::Expression& expr)
+bool validate(const iscore::Expression& expr)
 {
     // Check that all the leaves are relations.
     return checkLeaves(&expr);
 }
-
+*/
 /*
 void test_parse_addr()
 {
@@ -124,8 +125,8 @@ void test_parse_rel()
     }
 }
 
-/*
-                void test_parse_expr()
+
+void test_parse_expr()
 {
     for (auto& input : std::list<std::string> {
          "(dev:/minuit <= 5) and (a:/b == 1.34);",
@@ -164,5 +165,147 @@ void expr_parse_test()
     test_parse_rel();
     test_parse_expr();
 }
+
+QDebug operator<<(QDebug dbg, const iscore::Address& a)
+{
+    dbg << a.device << ":/" << a.path.join("/");
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::Value& v)
+{
+    dbg << v.val;
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::RelationMember& v)
+{
+    using namespace eggs::variants;
+    switch(v.which())
+    {
+        case 0:
+            dbg << get<iscore::Address>(v);
+            break;
+        case 1:
+            dbg << get<iscore::Value>(v);
+            break;
+    }
+
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::Relation::Operator& v)
+{
+    switch(v)
+    {
+        case iscore::Relation::Operator::Different:
+            dbg << "!="; break;
+        case iscore::Relation::Operator::Equal:
+            dbg << "=="; break;
+        case iscore::Relation::Operator::Greater:
+            dbg << ">"; break;
+        case iscore::Relation::Operator::GreaterEqual:
+            dbg << ">="; break;
+        case iscore::Relation::Operator::Lower:
+            dbg << "<"; break;
+        case iscore::Relation::Operator::LowerEqual:
+            dbg << "<="; break;
+    }
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::Relation& v)
+{
+    dbg << v.lhs << v.op << v.rhs;
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::BinaryOperator& v)
+{
+    switch(v)
+    {
+        case iscore::BinaryOperator::And:
+            dbg << "and"; break;
+        case iscore::BinaryOperator::Or:
+            dbg << "or"; break;
+        case iscore::BinaryOperator::Xor:
+            dbg << "xor"; break;
+    }
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::UnaryOperator& v)
+{
+    switch(v)
+    {
+        case iscore::UnaryOperator::Not:
+            dbg << "not"; break;
+    }
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::ExprData& v)
+{
+    if(v.is<iscore::Relation>())
+        dbg << v.get<iscore::Relation>();
+    else if(v.is<iscore::BinaryOperator>())
+        dbg << v.get<iscore::BinaryOperator>();
+    else if(v.is<iscore::UnaryOperator>())
+        dbg << v.get<iscore::UnaryOperator>();
+
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const iscore::Expression& v)
+{
+    dbg << "(";
+    dbg << static_cast<const iscore::ExprData&>(v);
+    for(auto& child : v.children())
+    {
+        dbg << *child;
+    }
+    dbg << ")";
+    return dbg;
+}
+
+
+void test_parse_expr_full()
+{
+    for (auto& input : std::list<std::string> {
+         "(dev:/minuit != [1, 2, 3.12, 'c']) and not (a:/b >= c:/d/e/f);"
+})
+    {
+        auto f(std::begin(input)), l(std::end(input));
+        Expression_parser<decltype(f)> p;
+
+        try
+        {
+            expr result;
+            bool ok = qi::phrase_parse(f,l,p > ';',qi::space,result);
+
+            if (!ok)
+            {
+                qDebug() << "invalid input\n";
+                return;
+            }
+
+            iscore::Expression e;
+
+            Expression_builder bldr{&e};
+            boost::apply_visitor(bldr, result);
+            qDebug() << e;
+
+        }
+        catch (const qi::expectation_failure<decltype(f)>& e)
+        {
+            //std::cerr << "expectation_failure at '" << std::string(e.first, e.last) << "'\n";
+        }
+
+        //if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
+    }
+
+    //return 0;
+}
+
 */
 
