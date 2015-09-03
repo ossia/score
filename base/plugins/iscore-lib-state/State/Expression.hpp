@@ -29,6 +29,51 @@ struct Relation
         {
             return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.op == rhs.op;
         }
+
+        QString toString() const
+        {
+            using namespace eggs::variants;
+            static const auto relMemberToString = [] (const auto& m) -> QString
+            {
+                switch(m.which())
+                {
+                    case 0:
+                        return get<iscore::Address>(m).toString();
+                        break;
+                    case 1:
+                        return get<iscore::Value>(m).val.toString();
+                        break;
+                    default:
+                        return "ERROR";
+                }
+            };
+
+            static const auto opToString = [] (const auto& op) -> QString
+            {
+                switch(op)
+                {
+                    case iscore::Relation::Operator::Different:
+                        return "!=";
+                    case iscore::Relation::Operator::Equal:
+                        return "==";
+                    case iscore::Relation::Operator::Greater:
+                        return ">";
+                    case iscore::Relation::Operator::GreaterEqual:
+                        return ">=";
+                    case iscore::Relation::Operator::Lower:
+                        return "<";
+                    case iscore::Relation::Operator::LowerEqual:
+                        return "<=";
+                    default:
+                        return "ERROR";
+                }
+            };
+
+            return QString("%1 %2 %3")
+                    .arg(relMemberToString(lhs))
+                    .arg(opToString(op))
+                    .arg(relMemberToString(rhs));
+        }
 };
 
 enum class BinaryOperator {
@@ -52,6 +97,8 @@ struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperato
         {
             return lhs.m_data == rhs.m_data;
         }
+
+        QString toString() const;
 };
 
 }
@@ -63,23 +110,9 @@ class TreeNode<ExprData> : public ExprData
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)
 
     public:
-        TreeNode():
-            ExprData{}
-        {
-
-        }
-
-        TreeNode(const ExprData& data):
-            ExprData{data}
-        {
-
-        }
-
-        TreeNode(ExprData&& data):
-            ExprData{std::move(data)}
-        {
-
-        }
+        TreeNode();
+        TreeNode(const ExprData& data);
+        TreeNode(ExprData&& data);
 
         template<typename T>
         TreeNode(const T& data, TreeNode<ExprData> * parent):
@@ -91,52 +124,17 @@ class TreeNode<ExprData> : public ExprData
             }
         }
 
+        QString toString() const;
+
         // Clone
         TreeNode(const TreeNode<ExprData>& source,
-                 TreeNode<ExprData>* parent = nullptr):
-            ExprData{static_cast<const ExprData&>(source)},
-            m_parent{parent}
-        {
-            for(const auto& child : source.children())
-            {
-                this->addChild(new TreeNode<ExprData>{*child, this});
-            }
-        }
+                 TreeNode<ExprData>* parent = nullptr);
 
-        TreeNode& operator=(const TreeNode<ExprData>& source)
-        {
-            static_cast<ExprData&>(*this) = static_cast<const ExprData&>(source);
+        TreeNode& operator=(const TreeNode<ExprData>& source);
+        ~TreeNode();
 
-            qDeleteAll(m_children);
-            for(const auto& child : source.children())
-            {
-                this->addChild(new TreeNode<ExprData>{*child, this});
-            }
-
-            return *this;
-        }
-
-
-
-        ~TreeNode()
-        {
-            qDeleteAll(m_children);
-        }
-
-        void setParent(TreeNode<ExprData>* parent)
-        {
-            ISCORE_ASSERT(!parent->is<iscore::Relation>());
-            if(m_parent)
-                m_parent->removeChild(this);
-
-            m_parent = parent;
-            m_parent->addChild(this);
-        }
-
-        TreeNode<ExprData>* parent() const
-        {
-            return m_parent;
-        }
+        void setParent(TreeNode<ExprData>* parent);
+        TreeNode<ExprData>* parent() const;
 
         // returns 0 if invalid index
         TreeNode<ExprData>* childAt(int index) const
@@ -155,56 +153,24 @@ class TreeNode<ExprData> : public ExprData
         QList<TreeNode<ExprData>*> children() const
         { return m_children;  }
 
-        void insertChild(int index, TreeNode<ExprData>* n)
-        {
-            ISCORE_ASSERT(n);
-            n->m_parent = this;
-            m_children.insert(index, n);
-        }
-
-        void addChild(TreeNode<ExprData>* n)
-        {
-            ISCORE_ASSERT(n);
-
-            ISCORE_ASSERT(!this->is<iscore::Relation>());
-            n->m_parent = this;
-            m_children.append(n);
-        }
-
-        void swapChildren(int oldIndex, int newIndex)
-        {
-            ISCORE_ASSERT(oldIndex < m_children.count());
-            ISCORE_ASSERT(newIndex < m_children.count());
-
-            m_children.swap(oldIndex, newIndex);
-        }
-
-        TreeNode<ExprData>* takeChild(int index)
-        {
-            TreeNode* n = m_children.takeAt(index);
-            ISCORE_ASSERT(n);
-            n->m_parent = 0;
-            return n;
-        }
+        void insertChild(int index, TreeNode<ExprData>* n);
+        void addChild(TreeNode<ExprData>* n);
+        void swapChildren(int oldIndex, int newIndex);
+        TreeNode<ExprData>* takeChild(int index);
 
         // Won't delete the child!
-        void removeChild(TreeNode<ExprData>* child)
-        {
-            m_children.removeAll(child);
-        }
-
+        void removeChild(TreeNode<ExprData>* child);
 
     protected:
         TreeNode<ExprData>* m_parent {};
         QList<TreeNode<ExprData>*> m_children;
-
 };
 
 namespace iscore
 {
 using Expression = TreeNode<ExprData>;
-using Condition = ExprData;
-using Trigger = ExprData;
+using Condition = Expression;
+using Trigger = Expression;
 
 boost::optional<iscore::Expression> parse(const QString& str);
 }

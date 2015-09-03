@@ -8,6 +8,28 @@ class StateModel;
 class MetadataWidget;
 struct Message;
 
+#include <QLineEdit>
+#include <QValidator>
+#include <State/Expression.hpp>
+class ExpressionValidator : public QValidator
+{
+    public:
+        State validate(QString& str, int&) const
+        {
+            m_currentExp = iscore::parse(str);
+            if(m_currentExp)
+                return State::Acceptable;
+            else
+                return State::Invalid;
+        }
+
+        // Call only after a successful validate()
+        iscore::Expression get() const
+        { return *m_currentExp; }
+
+    private:
+        mutable boost::optional<iscore::Expression> m_currentExp;
+};
 
 /*!
  * \brief The EventInspectorWidget class
@@ -47,4 +69,6 @@ class EventInspectorWidget : public InspectorWidgetBase
         const EventModel& m_model;
 
         MetadataWidget* m_metadata {};
+
+        ExpressionValidator m_validator;
 };

@@ -8,12 +8,12 @@ using namespace Scenario::Command;
 // TODO
 SetCondition::SetCondition(
         Path<EventModel>&& eventPath,
-        QString message) :
+        iscore::Condition&& cond) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
     m_path {std::move(eventPath) },
-    m_condition(message)
+    m_condition(std::move(cond))
 {
     /*
     auto& event = m_path.find();

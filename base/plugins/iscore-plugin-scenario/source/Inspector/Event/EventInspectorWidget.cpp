@@ -82,6 +82,24 @@ EventInspectorWidget::EventInspectorWidget(
     }
     m_properties.push_back(infoWidg);
 
+
+    // Separator
+    m_properties.push_back(new Separator {this});
+
+    /// Condition
+    m_conditionLineEdit = new QLineEdit{this};
+    m_conditionLineEdit->setValidator(&m_validator);
+
+    connect(m_conditionLineEdit, &QLineEdit::editingFinished,
+            this,			 &EventInspectorWidget::on_conditionChanged);
+    con(m_model, &EventModel::conditionChanged,
+        this, [this] (const iscore::Condition& c) {
+        m_conditionLineEdit->setText(c.toString());
+    });
+
+    m_properties.push_back(new QLabel{tr("Condition")});
+    m_properties.push_back(m_conditionLineEdit);
+
     /*
 
     // Completion - only available if there is a device explorer
@@ -240,11 +258,7 @@ void EventInspectorWidget::updateDisplayedValues()
         addState(scenar->state(state));
     }
 
-
-    /*
-        m_conditionLineEdit->setText(event->condition());
-        m_triggerLineEdit->setText(event->trigger());
-        */
+    m_conditionLineEdit->setText(m_model.condition().toString());
 }
 
 
@@ -288,17 +302,8 @@ using namespace Scenario;
 
 void EventInspectorWidget::on_conditionChanged()
 {
-    /* TODO
-    auto txt = m_conditionLineEdit->text();
-
-    if(txt == m_model.condition())
-    {
-        return;
-    }
-
-    auto cmd = new Scenario::Command::SetCondition{path(m_model), txt};
+    auto cmd = new Scenario::Command::SetCondition{path(m_model), m_validator.get()};
     emit commandDispatcher()->submitCommand(cmd);
-    */
 }
 
 void EventInspectorWidget::on_triggerChanged()
