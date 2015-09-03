@@ -356,7 +356,7 @@ struct Expression_builder : boost::static_visitor<void>
         try
         {
             expr_raw result;
-            bool ok = qi::phrase_parse(f,l,p > ';',qi::space,result);
+            bool ok = qi::phrase_parse(f, l , p, qi::space, result);
 
             if (!ok)
             {

@@ -331,7 +331,6 @@ TreeNode<ExprData>::TreeNode(iscore::ExprData&& data):
 
 }
 
-
 TreeNode<ExprData>::TreeNode(const TreeNode<iscore::ExprData>& source, TreeNode<iscore::ExprData>* parent):
     ExprData{static_cast<const ExprData&>(source)},
     m_parent{parent}
@@ -348,6 +347,8 @@ TreeNode<ExprData>&TreeNode<ExprData>::operator=(const TreeNode<iscore::ExprData
     static_cast<ExprData&>(*this) = static_cast<const ExprData&>(source);
 
     qDeleteAll(m_children);
+    m_children.clear();
+
     for(const auto& child : source.children())
     {
         this->addChild(new TreeNode<ExprData>{*child, this});
@@ -441,6 +442,8 @@ QString ExprData::toString() const
          return binopMap[(get<iscore::BinaryOperator>())];
     else if(is<iscore::UnaryOperator>())
         return unopMap[(get<iscore::UnaryOperator>())];
+    else if(is<InvisibleRootNodeTag>())
+        return "";
     else
         ISCORE_ABORT;
 }
@@ -475,3 +478,4 @@ QString TreeNode<ExprData>::toString() const
 
     return s;
 }
+

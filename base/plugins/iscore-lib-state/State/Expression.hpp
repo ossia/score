@@ -109,6 +109,29 @@ class TreeNode<ExprData> : public ExprData
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)
 
+        friend bool operator!=(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        friend bool operator==(const TreeNode<ExprData>& lhs, const TreeNode<ExprData>& rhs)
+        {
+            const auto& ltd = static_cast<const ExprData&>(lhs);
+            const auto& rtd = static_cast<const ExprData&>(rhs);
+
+            bool b = (ltd == rtd) && (lhs.m_children.count() == rhs.m_children.count());
+            if(!b)
+                return false;
+
+            for(int i = 0; i < lhs.m_children.count(); i++)
+            {
+                if(*lhs.m_children[i] != *rhs.m_children[i])
+                    return false;
+            }
+
+            return true;
+        }
+
     public:
         TreeNode();
         TreeNode(const ExprData& data);
