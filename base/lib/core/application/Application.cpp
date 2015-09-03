@@ -106,6 +106,9 @@ Application::Application(int& argc, char** argv) :
     // View
     m_view->show();
 
+#if !defined(ISCORE_DEBUG)
+    splash.finish(m_view);
+#endif
     // Try to reload if there was a crash
     if(DocumentBackups::canRestoreDocuments())
     {
@@ -116,10 +119,6 @@ Application::Application(int& argc, char** argv) :
         if(!m_pluginManager.m_documentPanelList.empty())
             m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
     }
-
-#if !defined(ISCORE_DEBUG)
-    splash.finish(m_view);
-#endif
 }
 
 Application::~Application()
