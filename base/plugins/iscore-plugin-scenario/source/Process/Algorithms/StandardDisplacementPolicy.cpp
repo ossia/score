@@ -34,7 +34,6 @@ void StandardDisplacementPolicy::getRelatedTimeNodes(
                 getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
             }
         }
-
     }
 }
 
@@ -57,10 +56,37 @@ GoodOldDisplacementPolicy::computeDisplacement(
     }else
     {
         const Id<TimeNodeModel>& firstTimeNodeMovedId = draggedElements.at(0);
-        QVector<Id<TimeNodeModel> > translatedTimeNodes;
+        QVector<Id<TimeNodeModel> > timeNodesToTranslate;
 
-        StandardDisplacementPolicy::getRelatedTimeNodes(scenario, firstTimeNodeMovedId, translatedTimeNodes);
+        StandardDisplacementPolicy::getRelatedTimeNodes(scenario, firstTimeNodeMovedId, timeNodesToTranslate);
 
+        // put each concerned timenode in modified elements
+        for(auto& curTimeNodeId : timeNodesToTranslate)
+        {
+            auto& curTimeNode = scenario.timeNode(curTimeNodeId);
+            TimenodeProperties curTimeNodeProperties;
+
+            curTimeNodeProperties.id = curTimeNode.id();
+            curTimeNodeProperties.oldDate = curTimeNode.date();
+            curTimeNodeProperties.oldDate = curTimeNode.date() + deltaTime;
+
+            elementsProperties.timenodes.push_back(curTimeNodeProperties);
+        }
+
+        // put every constraint in the scenario to be updated like old behavior
+        for(auto& curConstraint : scenario.constraints)
+        {
+            ConstraintProperties curConstraintProperties;
+
+            curConstraintProperties.id = curConstraint.id();
+            // TODO: when min and max comme again on the table
+//            curConstraintProperties.oldMin =
+//            curConstraintProperties.oldMax =
+//            curConstraintProperties.newMin =
+//            curConstraintProperties.newMax =
+
+            elementsProperties.constraints.push_back(curConstraintProperties);
+        }
 
     }
 }
