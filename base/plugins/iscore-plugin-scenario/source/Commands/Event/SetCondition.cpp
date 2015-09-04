@@ -5,7 +5,6 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-// TODO
 SetCondition::SetCondition(
         Path<EventModel>&& eventPath,
         iscore::Condition&& cond) :

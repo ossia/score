@@ -12,7 +12,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const EventModel& ev)
 
     m_stream << ev.m_timeNode
              << ev.m_states
-   //          << ev.m_condition
+             << ev.m_condition
    //          << ev.m_trigger
              << ev.m_extent
              << ev.m_date;
@@ -27,7 +27,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(EventModel& ev)
 
     m_stream >> ev.m_timeNode
              >> ev.m_states
-    //         >> ev.m_condition
+             >> ev.m_condition
     //         >> ev.m_trigger
              >> ev.m_extent
              >> ev.m_date;
@@ -47,7 +47,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const EventModel& ev)
     m_obj["States"] = toJsonArray(ev.m_states);
 
     // TODO
-    //m_obj["Condition"] = ev.m_condition;
+    m_obj["Condition"] = toJsonObject(ev.m_condition);
     //m_obj["Trigger"] = ev.m_trigger;
 
     m_obj["Extent"] = toJsonValue(ev.m_extent);
@@ -64,7 +64,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(EventModel& ev)
     fromJsonValueArray(m_obj["States"].toArray(), ev.m_states);
 
     // TODO
-    //ev.m_condition = m_obj["Condition"].toString();
+    fromJsonObject(m_obj["Condition"].toObject(), ev.m_condition);
     //ev.m_trigger = m_obj["Trigger"].toString();
 
     ev.m_extent = fromJsonValue<VerticalExtent>(m_obj["Extent"]);
