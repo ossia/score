@@ -58,28 +58,28 @@ template<> class TypeToName<iscore::UnaryOperator>
 
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const ExprData& state)
+void Visitor<Reader<DataStream>>::readFrom(const ExprData& expr)
 {
-    readFrom(state.m_data);
+    readFrom(expr.m_data);
     insertDelimiter();
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const ExprData& state)
+void Visitor<Reader<JSONObject>>::readFrom(const ExprData& expr)
 {
-    readFrom(state.m_data);
+    readFrom(expr.m_data);
 }
 
 template<>
-void Visitor<Writer<DataStream>>::writeTo(ExprData& state)
+void Visitor<Writer<DataStream>>::writeTo(ExprData& expr)
 {
-    writeTo(state.m_data);
+    writeTo(expr.m_data);
     checkDelimiter();
 }
 
 template<>
-void Visitor<Writer<JSONObject>>::writeTo(ExprData& state)
+void Visitor<Writer<JSONObject>>::writeTo(ExprData& expr)
 {
-    writeTo(state.m_data);
+    writeTo(expr.m_data);
 }
 

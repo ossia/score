@@ -201,7 +201,15 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
 
     connect(&ev, &EventModel::conditionChanged,
             this, [=] (const iscore::Condition& c) {
-        ossia_ev->setExpression(iscore::convert::expression(c, m_deviceList));
+        try {
+            auto expr = iscore::convert::expression(c, m_deviceList);
+
+            ossia_ev->setExpression(expr);
+        }
+        catch(std::exception& e)
+        {
+            qDebug() << e.what();
+        }
     });
 
     // Create the mapping object

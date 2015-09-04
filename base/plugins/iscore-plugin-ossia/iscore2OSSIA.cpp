@@ -14,6 +14,25 @@
 
 #include "Protocols/OSSIADevice.hpp"
 #include <QMap>
+
+
+class NodeNotFoundException : public std::exception
+{
+        const iscore::Address& m_addr;
+    public:
+        NodeNotFoundException(const iscore::Address& n):
+            m_addr{n}
+        {
+
+        }
+
+        const char* what() const noexcept override
+        {
+            return QString("Address: %1 not found in actual tree.")
+                    .arg(m_addr.toString()).toLatin1().constData();
+        }
+};
+
 namespace iscore
 {
 namespace convert
@@ -372,6 +391,8 @@ std::shared_ptr<OSSIA::State> state(
     return ossia_state;
 }
 
+
+
 OSSIA::Value* expressionOperand(
         const iscore::RelationMember& relm,
         const DeviceList& devlist)
@@ -383,7 +404,9 @@ OSSIA::Value* expressionOperand(
         {
             const auto& addr = get<iscore::Address>(relm);
             if(!devlist.hasDevice(addr.device))
-                return nullptr;
+            {
+                throw NodeNotFoundException(addr);
+            }
 
             auto& device = devlist.device(addr.device);
 
@@ -396,12 +419,12 @@ OSSIA::Value* expressionOperand(
                 }
                 else
                 {
-                    return nullptr;
+                    throw NodeNotFoundException(addr);
                 }
             }
             else
             {
-                return nullptr;
+                throw NodeNotFoundException(addr);
             }
 
             break;

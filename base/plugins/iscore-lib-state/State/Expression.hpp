@@ -35,7 +35,15 @@ struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperato
 
 }
 using iscore::ExprData;
+
 template<>
+/**
+ * @brief The TreeNode<ExprData> class
+ *
+ * This class is specialized from TreeNode<T>
+ * because we want to have an additional check :
+ * a node is a leaf iff a node is a iscore::Relation
+ */
 class TreeNode<ExprData> : public ExprData
 {
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)

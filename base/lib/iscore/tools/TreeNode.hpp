@@ -63,6 +63,7 @@ class TreeNode : public DataType
             static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
 
             qDeleteAll(m_children);
+            m_children.clear();
             for(const auto& child : source.children())
             {
                 this->addChild(new TreeNode{*child, this});
