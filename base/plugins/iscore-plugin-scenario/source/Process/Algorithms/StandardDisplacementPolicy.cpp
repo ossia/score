@@ -1,5 +1,6 @@
 #include "StandardDisplacementPolicy.hpp"
 
+
 void StandardDisplacementPolicy::getRelatedTimeNodes(
         ScenarioModel& scenario,
         const Id<TimeNodeModel>& firstTimeNodeMovedId,
@@ -33,5 +34,33 @@ void StandardDisplacementPolicy::getRelatedTimeNodes(
                 getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
             }
         }
+
+    }
+}
+
+//----------------------------------------------------------------------------------------------
+
+
+void
+GoodOldDisplacementPolicy::computeDisplacement(
+        ScenarioModel& scenario,
+        const QVector<Id<TimeNodeModel>>& draggedElements,
+        const TimeValue& deltaTime,
+        ElementsProperties& elementsProperties)
+{
+    // this old behavior supports only the move of one timenode
+    if(draggedElements.length() != 1)
+    {
+        //TODO: log something?
+        // move nothing, nothing to undo or redo
+        return;
+    }else
+    {
+        const Id<TimeNodeModel>& firstTimeNodeMovedId = draggedElements.at(0);
+        QVector<Id<TimeNodeModel> > translatedTimeNodes;
+
+        StandardDisplacementPolicy::getRelatedTimeNodes(scenario, firstTimeNodeMovedId, translatedTimeNodes);
+
+
     }
 }

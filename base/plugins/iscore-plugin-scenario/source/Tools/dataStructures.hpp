@@ -24,5 +24,5 @@ struct ConstraintProperties {
 
 struct ElementsProperties {
     QVector<TimenodeProperties> timenodes;
-    QVector<ConstraintProperties> contraints;
+    QVector<ConstraintProperties> constraints;
 };

@@ -7,6 +7,8 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
+#include "Tools/dataStructures.hpp"
+
 /**
  * @brief The displacementPolicy class
  * This class allows to implement multiple displacement behaviors.
@@ -19,36 +21,85 @@ class DisplacementPolicy
      * @param draggedElements
      * Elements of the scenario which were moved by the user
      * @param deltaTime
-     * @return
+     * the amount of time moved
+     * @param elementsProperties
      * the elements affected by the moving process and their old and new parameters (dates and durations)
-     * like so : < <tnode, <oldDate, newDate> >, <constraint, <oldMinDuration, newMinDuration>, <oldMaxDuration, newMaxDuration>> >
      */
-    virtual
-    std::tuple<
-        QVector<QPair<Id<TimeNodeModel>, QPair<TimeValue,TimeValue> > >,
-        QVector<std::tuple<Id<ConstraintModel>, QPair<TimeValue,TimeValue>, QPair<TimeValue,TimeValue> > >
-    >
-    computeDisplacement(
-            QVector<Id<TimeNodeModel>> draggedElements,
-            const TimeValue& deltaTime) = 0;
-
-    /**
-     * @brief updatePositions
-     * @param elementsToUpdate
-     */
-
     virtual
     void
-    updatePositions(std::tuple<
-                        QVector<QPair<Id<TimeNodeModel>, QPair<TimeValue,TimeValue> > >,
-                        QVector<std::tuple<Id<ConstraintModel>, QPair<TimeValue,TimeValue>, QPair<TimeValue,TimeValue> > >
-                    >
-                    elementsToUpdate);
+    computeDisplacement(
+            ScenarioModel& scenario,
+            const QVector<Id<TimeNodeModel>>& draggedElements,
+            const TimeValue& deltaTime,
+            ElementsProperties& elementsProperties) = 0;
+
+      /**
+     * @brief updatePositions
+     * @param elementsPropertiesToUpdate
+     * @param useNewValues
+     * if false, use old values of properties (undo)
+     */
+    template<typename ProcessScaleMethod>
+    //virtual
+    void
+    updatePositions(ScenarioModel& scenario, ProcessScaleMethod&& scaleMethod, ElementsProperties& elementsPropertiesToUpdate, bool useNewValues)
+    {
+        // update each affected timenodes
+        for(auto& curTimenodePropertiesToUpdate : elementsPropertiesToUpdate.timenodes)
+        {
+            auto& curTimenodeToUpdate = scenario.timeNode(curTimenodePropertiesToUpdate.id);
+            if(useNewValues)//redo
+            {
+               curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.newDate);
+            }else//undo
+            {
+               curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.oldDate);
+            }
+
+            // update related events
+            for (const auto& event : curTimenodeToUpdate.events())
+            {
+                scenario.event(event).setDate(curTimenodeToUpdate.date());
+            }
+        }
+
+        // update affected constraints
+        for(auto& curConstraintPropertiesToUpdate : elementsPropertiesToUpdate.constraints)
+        {
+            auto& curConstraintToUpdate = scenario.constraint(curConstraintPropertiesToUpdate.id);
+
+            const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
+            const auto& endDate = scenario.event(scenario.state(curConstraintToUpdate.endState()).eventId()).date();
+
+            TimeValue newDuration = endDate - startDate;
+
+            if (!(curConstraintToUpdate.startDate() - startDate).isZero())
+            {
+                curConstraintToUpdate.setStartDate(startDate);
+            }
+
+            if(!(curConstraintToUpdate.duration.defaultDuration() - newDuration).isZero())
+            {
+                ConstraintDurations::Algorithms::setDurationInBounds(curConstraintToUpdate, newDuration);
+                for(auto& process : curConstraintToUpdate.processes)
+                {
+                    scaleMethod(process, newDuration);
+                }
+            }
+
+            emit scenario.constraintMoved(curConstraintToUpdate);
+        }
+    }
 };
 
 class GoodOldDisplacementPolicy : DisplacementPolicy
 {
-
+    void
+    computeDisplacement(
+            ScenarioModel& scenario,
+            const QVector<Id<TimeNodeModel>>& draggedElements,
+            const TimeValue& deltaTime,
+            ElementsProperties& elementsProperties);
 };
 
 
