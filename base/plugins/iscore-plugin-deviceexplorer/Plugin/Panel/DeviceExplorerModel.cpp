@@ -20,6 +20,10 @@
 #include <QJsonDocument>
 #include <iostream>
 #include <QMimeData>
+#include "Singletons/SingletonProtocolList.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+#include "Widgets/DeviceEditDialog.hpp"
+#include <QApplication>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -198,10 +202,6 @@ void DeviceExplorerModel::removeNode(Node* node)
     delete node;
 }
 
-#include "Singletons/SingletonProtocolList.hpp"
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include "Widgets/DeviceEditDialog.hpp"
-#include <QApplication>
 bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
 {
     // Request from the protocol factory the protocol to see

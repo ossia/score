@@ -166,11 +166,11 @@ void NodeUpdateProxy::removeAddress(
             .removeAddress(addr);
 
     // Remove from the device explorer
-
     auto it = boost::range::find_if(
                   parentnode->children(),
                   [&] (const iscore::Node* n) { return n->get<iscore::AddressSettings>().name == settings.name; });
     ISCORE_ASSERT(it != parentnode->children().end());
+
     auto theNode = *it;
     if(m_deviceExplorer)
     {

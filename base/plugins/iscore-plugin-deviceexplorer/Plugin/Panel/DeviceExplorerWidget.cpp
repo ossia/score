@@ -20,6 +20,7 @@
 
 
 #include "Commands/Add/AddDevice.hpp"
+#include "Commands/RemoveNodes.hpp"
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Remove.hpp"
@@ -160,7 +161,7 @@ DeviceExplorerWidget::buildGUI()
         this->addAction(m_refreshAction);
         this->addAction(m_refreshValueAction);
 
-        this->addAction(m_removeNodeAction);
+        //this->addAction(m_removeNodeAction);
 
         this->addAction(m_copyAction);
         this->addAction(m_cutAction);
@@ -274,9 +275,7 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu->addAction(m_promoteAction);
     contextMenu->addAction(m_demoteAction);
     contextMenu->addSeparator();
-    contextMenu->addAction(m_removeNodeAction);/*
-  contextMenu->addAction(m_undoAction);
-  contextMenu->addAction(m_redoAction);*/
+    //contextMenu->addAction(m_removeNodeAction);
 
     contextMenu->exec(event->globalPos());
 }
@@ -368,7 +367,6 @@ DeviceExplorerWidget::updateActions()
                 m_addSiblingAction->setEnabled(true);
                 m_promoteAction->setEnabled(true);
                 m_demoteAction->setEnabled(true);
-                m_removeNodeAction->setEnabled(true);
                 m_moveUpAction->setEnabled(true);
                 m_moveDownAction->setEnabled(true);
             }
@@ -381,6 +379,7 @@ DeviceExplorerWidget::updateActions()
                 m_moveUpAction->setEnabled(false);
                 m_moveDownAction->setEnabled(false);
             }
+            m_removeNodeAction->setEnabled(true);
             m_editAction->setEnabled(true);
             m_addChildAction->setEnabled(true);
         }
@@ -533,7 +532,7 @@ void DeviceExplorerWidget::refresh()
 void DeviceExplorerWidget::refreshValue()
 {
     QList<QPair<const iscore::Node*, iscore::Value>> lst;
-    for(auto& index : m_ntView->selectedIndexes())
+    for(auto index : m_ntView->selectedIndexes())
     {
         // Model checks
         if (m_ntView->hasProxy())
@@ -613,9 +612,45 @@ DeviceExplorerWidget::addSibling()
 
 void DeviceExplorerWidget::removeNode()
 {
-    iscore::Node* n = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if(! n->is<iscore::DeviceSettings>())
-        m_cmdDispatcher->submitCommand(new DeviceExplorer::Command::Remove{iscore::IDocument::path(model()->deviceModel()), *n});
+    auto indexes = m_ntView->selectedIndexes();
+    // TODO here we will have crashes if
+    // we select a node and a child of it and remove both.
+
+    // Instead, we should filter our node list so that there is no children of a parent about to be deleted.
+
+
+    QList<iscore::Node*> nodes;
+
+    for(auto index : indexes)
+    {
+        // TODO refactor this.
+        if (m_ntView->hasProxy())
+            index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
+
+         nodes.append(model()->nodeFromModelIndex(index));
+    }
+
+    QList<iscore::Node*> curated_nodes;
+    for(auto child : nodes)
+    {
+        bool hasAncestors = std::any_of(nodes.begin(), nodes.end(), [&] (iscore::Node* parent)
+        {
+            return child != parent && iscore::isAncestor(*parent, child);
+        });
+        if(!hasAncestors)
+            curated_nodes.append(child);
+    }
+
+    auto cmd = new RemoveNodes;
+    auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
+    for(const auto& n : curated_nodes)
+    {
+        cmd->addCommand(new DeviceExplorer::Command::Remove{
+                            dev_model_path,
+                            *n});
+    }
+
+    m_cmdDispatcher->submitCommand(cmd);
 }
 
 void

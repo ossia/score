@@ -89,5 +89,16 @@ Address address(const Node &treeNode)
     return addr;
 }
 
+bool isAncestor(const Node& gramps, Node* node)
+{
+    if(node->is<InvisibleRootNodeTag>())
+        return false;
+
+    if(node == &gramps)
+        return true;
+
+    return isAncestor(gramps, node->parent());
+}
+
 }
 

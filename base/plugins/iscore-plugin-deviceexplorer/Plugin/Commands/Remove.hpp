@@ -20,8 +20,10 @@ class Remove : public iscore::SerializableCommand
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Remove)
 
-          Remove(Path<DeviceDocumentPlugin>&& device_tree,
+          Remove(
+            Path<DeviceDocumentPlugin> device_tree,
             const iscore::Node& node);
+
           ~Remove();
 
         virtual void undo() override;

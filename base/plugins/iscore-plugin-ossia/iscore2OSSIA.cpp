@@ -29,6 +29,7 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
         auto it = boost::range::find_if(
                     children,
                     [&] (const auto& ossia_node) { return ossia_node->getName() == path[i].toStdString(); });
+
         if(it == children.end())
         {
             // We have to start adding sub-nodes from here.
@@ -36,6 +37,15 @@ OSSIA::Node *createNodeFromPath(const QStringList &path, OSSIA::Device *dev)
             for(int k = i; k < path.size(); k++)
             {
                 auto newNodeIt = parentnode->emplace(parentnode->children().begin(), path[k].toStdString());
+                if(path[k].toStdString() != (*newNodeIt)->getName())
+                {
+                    qDebug() << path[k] << (*newNodeIt)->getName().c_str();
+                    for(const auto& node : parentnode->children())
+                    {
+                        qDebug() << node->getName().c_str();
+                    }
+                    ISCORE_ABORT;
+                }
                 if(k == path.size() - 1)
                 {
                     node = newNodeIt->get();
@@ -98,7 +108,9 @@ std::shared_ptr<OSSIA::Node> findNodeFromPath(const QStringList& path, std::shar
     return node;
 }
 
-OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
+OSSIA::Node* getNodeFromPath(
+        const QStringList &path,
+        OSSIA::Device *dev)
 {
     using namespace OSSIA;
     // Find the relevant node to add in the device
@@ -106,9 +118,13 @@ OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
+
         auto it = boost::range::find_if(children,
                                         [&] (const auto& ossia_node)
-        { return ossia_node->getName() == path[i].toStdString(); });
+        {
+            return ossia_node->getName() == path[i].toStdString();
+        });
+
         ISCORE_ASSERT(it != children.end());
 
         node = it->get();
@@ -119,7 +135,9 @@ OSSIA::Node* getNodeFromPath(const QStringList &path, OSSIA::Device *dev)
 }
 
 
-void updateOSSIAAddress(const iscore::FullAddressSettings &settings, const std::shared_ptr<OSSIA::Address> &addr)
+void updateOSSIAAddress(
+        const iscore::FullAddressSettings &settings,
+        const std::shared_ptr<OSSIA::Address> &addr)
 {
     using namespace OSSIA;
     switch(settings.ioType)
@@ -145,7 +163,6 @@ void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node
         return;
 
     using namespace OSSIA;
-    std::shared_ptr<OSSIA::Address> addr;
 
     // Read the Qt docs on QVariant::type for the relationship with QMetaType::Type
     QMetaType::Type t = static_cast<QMetaType::Type>(settings.value.val.type());

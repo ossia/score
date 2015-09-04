@@ -34,10 +34,12 @@ void OSSIADevice::removeAddress(const iscore::Address& address)
 
     OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
     auto& children = node->getParent()->children();
-    auto it = boost::range::find_if(children,
-                                    [&] (auto&& elt) { return elt.get() == node; });
+    auto it = std::find_if(children.begin(), children.end(),
+                           [&] (auto&& elt) { return elt.get() == node; });
     if(it != children.end())
+    {
         children.erase(it);
+    }
 }
 
 
