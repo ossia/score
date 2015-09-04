@@ -16,13 +16,17 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AddressSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/RelationSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/DynamicStateSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Value.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionParser.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateItemModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"

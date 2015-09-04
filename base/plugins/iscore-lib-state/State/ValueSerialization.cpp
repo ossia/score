@@ -177,3 +177,24 @@ iscore::Value JsonToValue(const QJsonValue &val, QMetaType::Type t)
 }
 
 
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const iscore::Value& val)
+{
+    auto type = val.val.typeName();
+    if(type)
+    {
+        m_obj["Type"] = QString::fromStdString(type);
+        m_obj["Value"] = ValueToJson(val);
+    }
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(iscore::Value& val)
+{
+    if(m_obj.contains("Type"))
+    {
+        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toLatin1()));
+        val = JsonToValue(m_obj["Value"], valueType);
+    }
+}
+

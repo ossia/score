@@ -12,7 +12,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
     m_stream << slot.m_frontLayerModelId;
 
     const auto& lms = slot.layers;
-    m_stream << (int) lms.size();
+    m_stream << (int32_t) lms.size();
 
     for(const auto& lm : lms)
     {
@@ -29,7 +29,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(SlotModel& slot)
     Id<LayerModel> editedProcessId;
     m_stream >> editedProcessId;
 
-    int lm_size;
+    int32_t lm_size;
     m_stream >> lm_size;
 
     const auto& cstr = slot.parentConstraint();

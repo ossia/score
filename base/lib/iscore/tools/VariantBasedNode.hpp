@@ -124,6 +124,31 @@ void Visitor<Writer<DataStream>>::writeTo(eggs::variant<Args...>& var)
 template<typename T>
 class TypeToName;
 
+// This part is required because it isn't as straightforward to save variant data
+// in JSON as it is to save it in a DataStream.
+// Basically, each variant member has an associated name that will be the
+// key in the JSON parent object. This name is defined by specializing
+// template<> class TypeToName<T>.
+// For instance:
+// template<> class TypeToName<iscore::Address>
+// { public: static constexpr const char * name() { return "Address"; } };
+
+// This allows easy store and retrieval under a familiar name
+
+
+
+// The _eggs_impl functions are because enum's don't need full-fledged objects in json.
+template<typename T, std::enable_if_t<!is_value_t<T>::value>* = nullptr>
+QJsonValue readFrom_eggs_impl(const T& res)
+{
+    return toJsonObject(res);
+}
+template<typename T, std::enable_if_t<is_value_t<T>::value>* = nullptr>
+QJsonValue readFrom_eggs_impl(const T& res)
+{
+    return toJsonValue(res);
+}
+
 template<typename... Args>
 void Visitor<Reader<JSONObject>>::readFrom(const eggs::variant<Args...>& var)
 {
@@ -139,11 +164,25 @@ void Visitor<Reader<JSONObject>>::readFrom(const eggs::variant<Args...>& var)
 
             if(auto res = var.template target<current_type>())
             {
-                this->m_obj[TypeToName<current_type>::name()] = toJsonObject(*res);
+                this->m_obj[TypeToName<current_type>::name()] = readFrom_eggs_impl(*res);
                 done = true;
             }
         });
     }
+}
+
+/**
+ * These two methods are because enum's don't need full-fledged objects.
+ */
+template<typename T, std::enable_if_t<!is_value_t<T>::value>* = nullptr>
+auto writeTo_eggs_impl(const QJsonValue& res)
+{
+    return fromJsonObject<T>(res.toObject());
+}
+template<typename T, std::enable_if_t<is_value_t<T>::value>* = nullptr>
+auto writeTo_eggs_impl(const QJsonValue& res)
+{
+    return fromJsonValue<T>(res);
 }
 
 template<typename... Args>
@@ -158,8 +197,8 @@ void Visitor<Writer<JSONObject>>::writeTo(eggs::variant<Args...>& var)
 
         if(m_obj.contains(TypeToName<current_type>::name()))
         {
-            typename std::remove_reference<decltype(elt)>::type data;
-            fromJsonObject(m_obj[TypeToName<current_type>::name()].toObject(), data);
+            current_type data = writeTo_eggs_impl<current_type>(m_obj[TypeToName<current_type>::name()]);
+
             var = data;
             done = true;
         }

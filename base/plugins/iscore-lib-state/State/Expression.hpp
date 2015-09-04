@@ -1,38 +1,10 @@
 #pragma once
-#include <QString>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
-#include <eggs/variant.hpp>
+#include <State/Relation.hpp>
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/VariantBasedNode.hpp>
 #include <boost/optional.hpp>
 namespace iscore
 {
-using RelationMember = eggs::variant<iscore::Address, iscore::Value>;
-
-struct Relation
-{
-        enum Operator {
-            Equal,
-            Different,
-            Greater,
-            Lower,
-            GreaterEqual,
-            LowerEqual
-        } ;
-
-        RelationMember lhs;
-        Operator op;
-        RelationMember rhs;
-
-        friend bool operator==(const Relation& lhs, const Relation& rhs)
-        {
-            return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.op == rhs.op;
-        }
-
-        QString toString() const;
-};
-
 enum class BinaryOperator {
     And, Or, Xor
 };
@@ -42,6 +14,9 @@ enum class UnaryOperator {
 
 struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperator>
 {
+        ISCORE_SERIALIZE_FRIENDS(ExprData, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ExprData, JSONObject)
+
         ExprData() = default;
         template<typename T>
         ExprData(const T& data):

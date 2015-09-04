@@ -9,7 +9,7 @@ void Visitor<Reader<DataStream>>::readFrom(const GroupManager& elt)
 {
     readFrom(static_cast<const IdentifiedObject<GroupManager>&>(elt));
     const auto& groups = elt.groups();
-    m_stream << (int) groups.size();
+    m_stream << (int32_t) groups.size();
     for(const auto& group : groups)
     {
         readFrom(*group);
@@ -21,9 +21,9 @@ void Visitor<Reader<DataStream>>::readFrom(const GroupManager& elt)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(GroupManager& elt)
 {
-    int size;
+    int32_t size;
     m_stream >> size;
-    for(int i = size; i --> 0; )
+    for(auto i = size; i --> 0; )
     {
         elt.addGroup(new Group{*this, &elt});
     }

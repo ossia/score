@@ -34,12 +34,10 @@ void SetCondition::redo()
 
 void SetCondition::serializeImpl(QDataStream& s) const
 {
-    ISCORE_TODO;
-   // s << m_path << m_condition << m_previousCondition;
+    s << m_path << m_condition << m_previousCondition;
 }
 
 void SetCondition::deserializeImpl(QDataStream& s)
 {
-    ISCORE_TODO;
-    //s >> m_path >> m_condition >> m_previousCondition;
+    s >> m_path >> m_condition >> m_previousCondition;
 }

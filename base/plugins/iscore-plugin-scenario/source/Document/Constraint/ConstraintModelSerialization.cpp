@@ -15,14 +15,14 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
     readFrom(constraint.metadata);
 
     // Processes
-    m_stream << (int) constraint.processes.size();
+    m_stream << (int32_t) constraint.processes.size();
     for(const auto& process : constraint.processes)
     {
         readFrom(process);
     }
 
     // Rackes
-    m_stream << (int) constraint.racks.size();
+    m_stream << (int32_t) constraint.racks.size();
     for(const auto& rack : constraint.racks)
     {
         readFrom(rack);
@@ -49,7 +49,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     writeTo(constraint.metadata);
 
     // Processes
-    int process_count;
+    int32_t process_count;
     m_stream >> process_count;
 
     for(; process_count -- > 0;)
@@ -58,7 +58,7 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     }
 
     // Rackes
-    int rack_count;
+    int32_t rack_count;
     m_stream >> rack_count;
 
     for(; rack_count -- > 0;)
