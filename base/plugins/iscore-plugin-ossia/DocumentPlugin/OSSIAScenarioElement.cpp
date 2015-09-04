@@ -199,6 +199,11 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
         }
     });
 
+    connect(&ev, &EventModel::conditionChanged,
+            this, [=] (const iscore::Condition& c) {
+        ossia_ev->setExpression(iscore::convert::expression(c, m_deviceList));
+    });
+
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, ev, this};
     m_ossia_timeevents.insert({ev.id(), elt});

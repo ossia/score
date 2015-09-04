@@ -306,20 +306,20 @@ struct Expression_builder : boost::static_visitor<void>
         void operator()(const binop<op_and>& b)
         {
             auto new_expr = new iscore::Expression(iscore::BinaryOperator::And);
-            print(new_expr, b.oper1, b.oper2);
+            rec_binop(new_expr, b.oper1, b.oper2);
         }
         void operator()(const binop<op_or >& b)
         {
             auto new_expr = new iscore::Expression(iscore::BinaryOperator::Or);
-            print(new_expr, b.oper1, b.oper2);
+            rec_binop(new_expr, b.oper1, b.oper2);
         }
         void operator()(const binop<op_xor>& b)
         {
             auto new_expr = new iscore::Expression(iscore::BinaryOperator::Xor);
-            print(new_expr, b.oper1, b.oper2);
+            rec_binop(new_expr, b.oper1, b.oper2);
         }
 
-        void print(iscore::Expression* new_expr, const expr_raw& l, const expr_raw& r)
+        void rec_binop(iscore::Expression* new_expr, const expr_raw& l, const expr_raw& r)
         {
             m_current->addChild(new_expr);
 

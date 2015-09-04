@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
-
+#include <State/Expression.hpp>
+#include <API/Headers/Editor/TimeEvent.h>
 #include <memory>
 class EventModel;
 namespace OSSIA
@@ -20,5 +21,6 @@ class OSSIAEventElement : public QObject
         bool event(QEvent* ev) override { return QObject::event(ev); }
 
     private:
+        const EventModel& m_iscore_event;
         std::shared_ptr<OSSIA::TimeEvent> m_event;
 };

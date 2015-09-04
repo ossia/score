@@ -433,28 +433,51 @@ std::shared_ptr<OSSIA::ExpressionAtom> expressionAtom(
                 expressionOperand(rel.rhs, dev));
 }
 
+static const QMap<iscore::BinaryOperator, OSSIA::ExpressionComposition::Operator> comp_map
+{
+    {iscore::BinaryOperator::And, OSSIA::ExpressionComposition::Operator::AND},
+    {iscore::BinaryOperator::Or, OSSIA::ExpressionComposition::Operator::OR},
+    {iscore::BinaryOperator::Xor, OSSIA::ExpressionComposition::Operator::XOR}
+};
+
 std::shared_ptr<OSSIA::Expression> expression(
         const iscore::Expression& expr,
         const DeviceList& devlist)
 {
     if(expr.is<InvisibleRootNodeTag>())
     {
-        // ??
+        if(expr.childCount() == 0)
+        {
+            // By default no expression == true
+            return OSSIA::Expression::create(true);
+        }
+        else if(expr.childCount() == 1)
+        {
+            return expression(*expr.childAt(0), devlist);
+        }
+        else
+        {
+            ISCORE_ABORT;
+        }
     }
     else if(expr.is<iscore::Relation>())
     {
         return expressionAtom(expr.get<iscore::Relation>(), devlist);
     }
     else if(expr.is<iscore::BinaryOperator>())
-    {/*
-        auto lhs = ;
-        auto rhs = ;
-        return OSSIA::ExpressionComposition::create()
-        */
-    }
-    else if(expr.is<iscore::Relation>())
     {
+        auto lhs = expr.childAt(0);
+        auto rhs = expr.childAt(1);
+        return OSSIA::ExpressionComposition::create(
+                    expression(*lhs, devlist),
+                    comp_map[expr.get<iscore::BinaryOperator>()],
+                    expression(*rhs, devlist)
+                    );
 
+    }
+    else if(expr.is<iscore::UnaryOperator>())
+    {
+        return OSSIA::ExpressionNot::create(expression(*expr.childAt(0), devlist));
     }
     else
     {
