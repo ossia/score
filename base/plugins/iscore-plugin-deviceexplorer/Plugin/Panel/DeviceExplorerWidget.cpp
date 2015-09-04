@@ -161,7 +161,7 @@ DeviceExplorerWidget::buildGUI()
         this->addAction(m_refreshAction);
         this->addAction(m_refreshValueAction);
 
-        //this->addAction(m_removeNodeAction);
+        this->addAction(m_removeNodeAction);
 
         this->addAction(m_copyAction);
         this->addAction(m_cutAction);
@@ -275,7 +275,7 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu->addAction(m_promoteAction);
     contextMenu->addAction(m_demoteAction);
     contextMenu->addSeparator();
-    //contextMenu->addAction(m_removeNodeAction);
+    contextMenu->addAction(m_removeNodeAction);
 
     contextMenu->exec(event->globalPos());
 }
