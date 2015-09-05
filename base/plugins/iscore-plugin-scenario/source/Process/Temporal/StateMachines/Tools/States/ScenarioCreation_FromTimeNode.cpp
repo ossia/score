@@ -159,6 +159,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                        [&] () {
             if(createdEvents.contains(hoveredEvent))
             {
+                rollback();
                 return;
             }
             rollback();
@@ -180,11 +181,16 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
         {
+            if(createdEvents.empty() || createdConstraints.empty())
+            {
+                rollback();
+                return;
+            }
             // Move the timenode
             m_dispatcher.submitCommand<MoveNewEvent>(
                         Path<ScenarioModel>{m_scenarioPath},
-                        createdConstraints.last(), // TODO CheckMe
-                        createdEvents.last(),// TODO CheckMe
+                        createdConstraints.last(),
+                        createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
                         !stateMachine.isShiftPressed());
@@ -192,6 +198,12 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
         {
+            if(createdEvents.empty())
+            {
+                rollback();
+                return;
+            }
+
             m_dispatcher.submitCommand<MoveEvent>(
                         Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
