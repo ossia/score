@@ -36,7 +36,7 @@ else()
     set(BUILD_SHARED_LIBS ON)
 endif()
 
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools DBus)
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools DBus)
 
 include(WriteCompilerDetectionHeader)
 write_compiler_detection_header(

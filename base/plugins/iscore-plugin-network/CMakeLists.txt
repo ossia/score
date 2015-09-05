@@ -7,7 +7,7 @@ if(ANDROID)
 endif()
 
 # Packages
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Network Xml Test)
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Network Xml Test)
 find_package(KF5DNSSD NO_MODULE)
 
 set(CMAKE_AUTOMOC ON)

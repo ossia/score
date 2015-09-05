@@ -14,7 +14,7 @@ if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
 endif()
 
 # Packages
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
 
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
