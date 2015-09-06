@@ -24,9 +24,9 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
 
     // Here we recreate the correct structures in term of devices,
     // given what's present in the node hierarchy
-    for(const auto& node : m_rootNode.children())
+    for(const auto& node : m_rootNode)
     {
-        createDeviceFromNode(*node);
+        createDeviceFromNode(node);
     }
 }
 
@@ -43,9 +43,9 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
         m_list.addDevice(newdev);
 
-        for(const auto& child : node.children())
+        for(auto& child : node)
         {
-             addNodeToDevice(*newdev, *child);
+             addNodeToDevice(*newdev, child);
         }
     }
     catch(const std::runtime_error& e)
@@ -56,16 +56,18 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
     }
 }
 
-void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, iscore::Node &node)
+void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, iscore::Node& node)
 {
-    auto full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(node.get<iscore::AddressSettings>(), iscore::address(*node.parent()));
+    using namespace iscore;
+    auto full = FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
+                    node.get<AddressSettings>(), address(*node.parent()));
 
     // Add in the device implementation
     dev.addAddress(full);
 
-    for(auto& child : node.children())
+    for(auto& child : node)
     {
-        addNodeToDevice(dev, *child);
+        addNodeToDevice(dev, child);
     }
 }
 

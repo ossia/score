@@ -39,8 +39,7 @@
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
     : QWidget(parent),
       m_proxyModel(nullptr),
-      m_deviceDialog(nullptr), m_addressDialog(nullptr)
-
+      m_deviceDialog(nullptr)
 {
     buildGUI();
 }
@@ -177,7 +176,7 @@ DeviceExplorerWidget::buildGUI()
     m_columnCBox = new QComboBox(this);
     m_nameLEdit = new QLineEdit(this);
 
-    connect(m_columnCBox,static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+    connect(m_columnCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, &DeviceExplorerWidget::filterChanged);
     connect(m_nameLEdit, &QLineEdit::textEdited,
             this, &DeviceExplorerWidget::filterChanged);
@@ -445,21 +444,16 @@ void DeviceExplorerWidget::edit()
     }
     else
     {
-        if (! m_addressDialog)
-        {
-            m_addressDialog = new AddressEditDialog(this);
-        }
-        auto settings = select->get<iscore::AddressSettings>();
-        m_addressDialog->setSettings(settings);
+        AddressEditDialog dial{select->get<iscore::AddressSettings>(), this};
 
-        QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_addressDialog->exec());
+        auto code = static_cast<QDialog::DialogCode>(dial.exec());
 
         if(code == QDialog::Accepted)
         {
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     iscore::IDocument::path(model()->deviceModel()),
                     iscore::NodePath(*select),
-                    m_addressDialog->getSettings()};
+                    dial.getSettings()};
 
             m_cmdDispatcher->submitCommand(cmd);
         }
@@ -656,27 +650,20 @@ void DeviceExplorerWidget::removeNode()
 void
 DeviceExplorerWidget::addAddress(InsertMode insert)
 {
-    if(! m_addressDialog)
-    {
-        m_addressDialog = new AddressEditDialog(this);
-    }
-    m_addressDialog->setSettings(AddressEditDialog::makeDefaultSettings());
-
-    QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_addressDialog->exec());
+    AddressEditDialog dial{this};
+    auto code = static_cast<QDialog::DialogCode>(dial.exec());
 
     if(code == QDialog::Accepted)
     {
-        const iscore::AddressSettings addressSettings = m_addressDialog->getSettings();
         ISCORE_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
         m_cmdDispatcher->submitCommand(
                     new DeviceExplorer::Command::AddAddress{
                         iscore::IDocument::path(model()->deviceModel()),
                         iscore::NodePath{index},
-                        insert, addressSettings });
+                        insert, dial.getSettings() });
         updateActions();
     }
-
 }
 
 void

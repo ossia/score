@@ -383,9 +383,9 @@ std::shared_ptr<OSSIA::State> state(
         ISCORE_TODO;
     }
 
-    for(const auto& child : iscore_state.children())
+    for(const auto& child : iscore_state)
     {
-        elts.push_back(state(*child, deviceList));
+        elts.push_back(state(child, deviceList));
     }
 
     return ossia_state;
@@ -524,6 +524,11 @@ std::shared_ptr<OSSIA::Expression> expression(
         ISCORE_ABORT;
         return {};
     }
+}
+
+void removeOSSIAAddress(OSSIA::Node* n)
+{
+    n->removeAddress();
 }
 
 }

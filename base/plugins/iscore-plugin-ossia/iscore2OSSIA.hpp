@@ -45,6 +45,8 @@ void createOSSIAAddress(
 void updateOSSIAAddress(
         const iscore::FullAddressSettings& settings,
         const std::shared_ptr<OSSIA::Address>& addr);
+void removeOSSIAAddress(
+        OSSIA::Node*); // Keeps the Node.
 void updateOSSIAValue(
         const QVariant& data,
         OSSIA::Value& val);

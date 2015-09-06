@@ -34,7 +34,7 @@ bool DeviceExplorerNode::isEditable() const
                ||  get<AddressSettings>().ioType == IOType::Invalid);
 }
 
-iscore::Node* getNodeFromString(iscore::Node* n, QStringList&& parts)
+iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& parts)
 {
     auto theN = try_getNodeFromString(n, std::move(parts));
     ISCORE_ASSERT(theN);
@@ -46,24 +46,24 @@ Node* try_getNodeFromAddress(const Node& root, const Address& addr)
     if(addr.device.isEmpty() || addr.path.isEmpty())
         return nullptr;
     using namespace boost::range;
-    auto dev = boost::range::find_if(root.children(), [&] (iscore::Node* n)
-    { return n->is<DeviceSettings>() && n->get<DeviceSettings>().name == addr.device; });
+    auto dev = std::find_if(root.begin(), root.end(), [&] (const iscore::Node& n)
+    { return n.is<DeviceSettings>() && n.get<DeviceSettings>().name == addr.device; });
 
-    if(dev == root.children().end())
+    if(dev == root.end())
         return nullptr;
 
     return try_getNodeFromString(*dev, QStringList(addr.path));
 }
 
 
-iscore::Node* try_getNodeFromString(iscore::Node* n, QStringList&& parts)
+iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& parts)
 {
     if(parts.size() == 0)
-        return n;
+        return &n;
 
-    for(const auto& child : n->children())
+    for(auto& child : n)
     {
-        if(child->displayName() == parts[0])
+        if(child.displayName() == parts[0])
         {
             parts.removeFirst();
             return try_getNodeFromString(child, std::move(parts));

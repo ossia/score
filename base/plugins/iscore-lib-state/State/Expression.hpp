@@ -124,6 +124,11 @@ class TreeNode<ExprData> : public ExprData
         // Won't delete the child!
         void removeChild(TreeNode<ExprData>* child);
 
+        auto begin() const { return boost::make_indirect_iterator(m_children.begin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(m_children.cbegin()); }
+        auto end() const { return boost::make_indirect_iterator(m_children.end()); }
+        auto cend() const { return boost::make_indirect_iterator(m_children.cend()); }
+
     protected:
         TreeNode<ExprData>* m_parent {};
         QList<TreeNode<ExprData>*> m_children;

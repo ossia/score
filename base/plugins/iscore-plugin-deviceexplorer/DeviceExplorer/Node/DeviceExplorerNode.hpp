@@ -46,8 +46,8 @@ using NodePath = TreePath<iscore::Node>;
 iscore::Address address(const Node& treeNode);
 
 iscore::Node* try_getNodeFromAddress(const Node& root, const iscore::Address&);
-iscore::Node* try_getNodeFromString(iscore::Node* n, QStringList&& str);
-iscore::Node* getNodeFromString(iscore::Node* n, QStringList&& str); // Fails if not present.
+iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& str);
+iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
 
 // True if gramps is a parent, grand-parent, etc. of node.
 bool isAncestor(const iscore::Node& gramps, iscore::Node* node);

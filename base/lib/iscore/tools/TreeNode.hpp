@@ -4,7 +4,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-
+#include <boost/iterator/indirect_iterator.hpp>
 /**
  * @brief The TreeNode class
  *
@@ -14,8 +14,10 @@
 template<typename DataType>
 class TreeNode : public DataType
 {
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<DataType>, DataStream)
-        ISCORE_SERIALIZE_FRIENDS(TreeNode<DataType>, JSONObject)
+        friend void Visitor<Reader< DataStream >>::readFrom< TreeNode > (const TreeNode &);/*
+        friend void Visitor<Writer< DataStream >>::writeTo< TreeNode<U> > (TreeNode<U> &);
+        friend void Visitor<Reader< JSONObject >>::readFrom< TreeNode<U> > (const TreeNode<U> &);
+        friend void Visitor<Writer< JSONObject >>::writeTo< TreeNode<U> > (TreeNode<U> &);*/
 
     public:
         TreeNode():
@@ -52,7 +54,7 @@ class TreeNode : public DataType
             DataType{static_cast<const DataType&>(source)},
             m_parent{parent}
         {
-            for(const auto& child : source.children())
+            for(const auto& child : source.m_children)
             {
                 this->addChild(new TreeNode{*child, this});
             }
@@ -64,7 +66,7 @@ class TreeNode : public DataType
 
             qDeleteAll(m_children);
             m_children.clear();
-            for(const auto& child : source.children())
+            for(const auto& child : source.m_children)
             {
                 this->addChild(new TreeNode{*child, this});
             }
@@ -146,8 +148,12 @@ class TreeNode : public DataType
             m_children.removeAll(child);
         }
 
+        auto begin() const { return boost::make_indirect_iterator(m_children.begin()); }
+        auto cbegin() const { return boost::make_indirect_iterator(m_children.cbegin()); }
+        auto end() const { return boost::make_indirect_iterator(m_children.end()); }
+        auto cend() const { return boost::make_indirect_iterator(m_children.cend()); }
 
-    protected:
+    private:
         TreeNode* m_parent {};
         QList<TreeNode*> m_children;
 };
@@ -159,9 +165,9 @@ void Visitor<Reader<DataStream>>::readFrom(const TreeNode<T>& n)
     readFrom(static_cast<const T&>(n));
 
     m_stream << n.childCount();
-    for(auto& child : n.children())
+    for(const auto& child : n)
     {
-        if(child) readFrom(*child);
+        readFrom(child);
     }
 
     insertDelimiter();
@@ -189,7 +195,7 @@ template<typename T>
 void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<T>& n)
 {
     readFrom(static_cast<const T&>(n));
-    m_obj["Children"] = toJsonArray(n.children());
+    m_obj["Children"] = toJsonArray(n);
 }
 
 template<typename T>

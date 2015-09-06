@@ -72,7 +72,8 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
     }
     else
     {
-        for(const auto& child : m_devModel.rootNode().children())
+        auto children_cpy = m_devModel.rootNode().children();
+        for(const auto& child : children_cpy)
         {
             if(child->get<iscore::DeviceSettings>().name == dev.name)
             {

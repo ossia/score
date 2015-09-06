@@ -15,14 +15,14 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     m_newParameters(parameters)
 {
     auto& devplug = m_devicesModel.find();
-    auto it = boost::range::find_if(
-                  devplug.rootNode().children(),
-                  [&] (const iscore::Node* n)
-    { return n->get<AddressSettings>().name == name; });
+    auto it = std::find_if(devplug.rootNode().begin(),
+                           devplug.rootNode().end(),
+                  [&] (const iscore::Node& n)
+    { return n.get<AddressSettings>().name == name; });
 
-    ISCORE_ASSERT(it != devplug.rootNode().children().end());
+    ISCORE_ASSERT(it != devplug.rootNode().end());
 
-    m_oldParameters = (*it)->get<DeviceSettings>();
+    m_oldParameters = (*it).get<DeviceSettings>();
 }
 
 void UpdateDeviceSettings::undo()

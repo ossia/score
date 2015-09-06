@@ -211,12 +211,12 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
         return false;
 
     // Look for other childs in the same protocol.
-    for(const auto& child : rootNode().children())
+    for(const auto& child : rootNode())
     {
-        ISCORE_ASSERT(child->is<DeviceSettings>());
-        if(child->get<DeviceSettings>().protocol == n.protocol)
+        ISCORE_ASSERT(child.is<DeviceSettings>());
+        if(child.get<DeviceSettings>().protocol == n.protocol)
         {
-            if(!prot->checkCompatibility(n, child->get<DeviceSettings>()))
+            if(!prot->checkCompatibility(n, child.get<DeviceSettings>()))
             {
                 // Open a device edit window
                 // it should take care of incompatibility with the other

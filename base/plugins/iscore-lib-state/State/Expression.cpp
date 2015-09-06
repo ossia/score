@@ -25,7 +25,7 @@ TreeNode<ExprData>::TreeNode(const TreeNode<iscore::ExprData>& source, TreeNode<
     ExprData{static_cast<const ExprData&>(source)},
     m_parent{parent}
 {
-    for(const auto& child : source.children())
+    for(const auto& child : source.m_children)
     {
         this->addChild(new TreeNode<ExprData>{*child, this});
     }
@@ -39,7 +39,7 @@ TreeNode<ExprData>&TreeNode<ExprData>::operator=(const TreeNode<iscore::ExprData
     qDeleteAll(m_children);
     m_children.clear();
 
-    for(const auto& child : source.children())
+    for(const auto& child : source.m_children)
     {
         this->addChild(new TreeNode<ExprData>{*child, this});
     }
