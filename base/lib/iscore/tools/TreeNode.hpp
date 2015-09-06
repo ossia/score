@@ -1,5 +1,5 @@
 #pragma once
-#include <QList>
+#include <boost/ptr_container/ptr_container.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
@@ -126,8 +126,8 @@ class TreeNode : public DataType
 
         void swapChildren(int oldIndex, int newIndex)
         {
-            ISCORE_ASSERT(oldIndex < m_children.count());
-            ISCORE_ASSERT(newIndex < m_children.count());
+            ISCORE_ASSERT(oldIndex < m_children.size());
+            ISCORE_ASSERT(newIndex < m_children.size());
 
             m_children.swap(oldIndex, newIndex);
         }
@@ -149,7 +149,7 @@ class TreeNode : public DataType
 
     protected:
         TreeNode* m_parent {};
-        QList<TreeNode*> m_children;
+        QList<TreeNode*> m_children; // TODO boost::ptr_container
 };
 
 

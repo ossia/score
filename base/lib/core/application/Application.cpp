@@ -70,7 +70,7 @@ Application::Application(int& argc, char** argv) :
     this->setObjectName("Application");
 
     QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("i-score.com");
+    QCoreApplication::setOrganizationDomain("i-score.org");
     QCoreApplication::setApplicationName("i-score");
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
