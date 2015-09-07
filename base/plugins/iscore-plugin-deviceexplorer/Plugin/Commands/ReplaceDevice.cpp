@@ -2,7 +2,8 @@
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
-
+// TODO fix this to use NodeUpdateProxy. Maybe it should be a Remove() followed by
+// a LoadDevice() ?
 ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                              int deviceIndex,
                              Node&& rootNode):

@@ -36,6 +36,106 @@
 
 #include <QProgressIndicator>
 
+
+#include <QApplication>
+
+/**
+ * Utility class to get a node from the DeviceExplorerWidget.
+ */
+template<typename OnSuccess>
+class ExplorationWorkerWrapper : public QObject
+{
+        QThread* thread = new QThread;
+        ExplorationWorker* worker{};
+        DeviceExplorerWidget& m_widget;
+
+        OnSuccess m_success;
+
+    public:
+        template<typename OnSuccess_t>
+        ExplorationWorkerWrapper(OnSuccess_t&& success,
+                                 DeviceExplorerWidget& widg,
+                                 DeviceInterface& dev):
+            worker{new ExplorationWorker{dev}},
+            m_widget{widg},
+            m_success{std::move(success)}
+        {
+            QObject::connect(thread, &QThread::started,
+                             worker, [&] () { on_start(); }, // so that it runs on thread.
+                             Qt::QueuedConnection);
+
+            QObject::connect(worker, &ExplorationWorker::finished,
+                             this, &ExplorationWorkerWrapper::on_finish,
+                             Qt::QueuedConnection);
+
+            QObject::connect(worker, &ExplorationWorker::failed,
+                             this, &ExplorationWorkerWrapper::on_fail,
+                             Qt::QueuedConnection);
+        }
+
+        void start()
+        {
+            m_widget.blockGUI(true);
+            worker->moveToThread(thread);
+            thread->start();
+        }
+
+    private:
+        void on_start()
+        {
+            try
+            {
+                worker->node = worker->dev.refresh();
+                worker->finished();
+            }
+            catch(std::runtime_error& e)
+            {
+                worker->failed(e.what());
+            }
+        }
+
+        void on_finish()
+        {
+            m_widget.blockGUI(false);
+            m_success(std::move(worker->node));
+
+            thread->quit();
+            worker->deleteLater();
+            this->deleteLater();
+        }
+
+        void on_fail(const QString& str)
+        {
+            QMessageBox::warning(
+                        QApplication::activeWindow(),
+                        QObject::tr("Unable to refresh the device"),
+                        QObject::tr("Unable to refresh the device: ")
+                        + worker->dev.settings().name
+                        + QObject::tr(".\nCause: ")
+                        + str
+            );
+
+            m_widget.blockGUI(false);
+
+            thread->quit();
+            worker->deleteLater();
+            this->deleteLater();
+        }
+};
+
+template<typename OnSuccess_t>
+static auto make_worker(OnSuccess_t&& success,
+                        DeviceExplorerWidget& widg,
+                        DeviceInterface& dev)
+{
+    return new ExplorationWorkerWrapper<OnSuccess_t>{
+        std::move(success),
+                widg,
+                dev};
+}// 147.210.129.97
+
+
+
 DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
     : QWidget(parent),
       m_proxyModel(nullptr),
@@ -475,51 +575,17 @@ void DeviceExplorerWidget::refresh()
         if(!dev.canRefresh())
             return;
 
-        auto thread = new QThread;
-        auto worker = new ExplorationWorker{dev};
-
-        connect(thread, &QThread::started, worker, [=] () {
-            try {
-                worker->node = worker->dev.refresh();
-                emit worker->finished();
-            }
-            catch(std::runtime_error& e)
-            {
-                emit worker->failed(e.what());
-            }
-        }, Qt::QueuedConnection);
-
-        connect(worker, &ExplorationWorker::finished, this,
-                [=] () {
-            this->blockGUI(false);
-            auto cmd = new DeviceExplorer::Command::ReplaceDevice{
+        auto wrkr = make_worker(
+            [=] (iscore::Node&& node) {
+                auto cmd = new DeviceExplorer::Command::ReplaceDevice{
                     iscore::IDocument::path(*model()),
                     m_ntView->selectedIndex().row(),
-                    std::move(worker->node)};
+                    std::move(node)};
 
-            m_cmdDispatcher->submitCommand(cmd);
+                m_cmdDispatcher->submitCommand(cmd);
+        }, *this, dev);
 
-            thread->quit();
-            worker->deleteLater();
-        }, Qt::QueuedConnection);
-
-        connect(worker, &ExplorationWorker::failed, this,
-                [=] (const QString& error_txt) {
-
-            QMessageBox::warning(this,
-                                 tr("Unable to refresh the device"),
-                                 tr("Unable to refresh the device: ") + select->get<iscore::DeviceSettings>().name + tr(".\nCause: ") + error_txt);
-
-            this->blockGUI(false);
-            thread->quit();
-            worker->deleteLater();
-        });
-
-
-        this->blockGUI(true);
-
-        worker->moveToThread(thread);
-        thread->start();
+        wrkr->start();
     }
 }
 
@@ -560,6 +626,9 @@ void DeviceExplorerWidget::refreshValue()
     m_cmdDispatcher->submitCommand(cmd);
 }
 
+#include "Singletons/SingletonProtocolList.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+
 void
 DeviceExplorerWidget::addDevice()
 {
@@ -579,7 +648,63 @@ DeviceExplorerWidget::addDevice()
         auto devplug_path = iscore::IDocument::path(model()->deviceModel());
         if(path.isEmpty())
         {
-            m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
+            // TODO find a cleaner way, by checking the protocol capabilities somewhere.
+            if(deviceSettings.protocol != "Minuit")
+            {
+                m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
+            }
+            else
+            {
+                /*
+                // REFACTORME
+                // We try refreshing the device.
+                try {
+                    // Instantiate a real device.
+                    auto proto = SingletonProtocolList::instance().protocol(deviceSettings.protocol);
+                    auto newdev = proto->makeDevice(deviceSettings);
+
+                    auto wrkr = make_worker(
+                        [=] (iscore::Node&& node) {
+                            delete newdev;
+                            auto cmd = new LoadDevice{
+                                iscore::IDocument::path(model()->deviceModel()),
+                                std::move(node)};
+
+                            m_cmdDispatcher->submitCommand(cmd);
+                    }, *this, *newdev);
+
+                    // TODO newdev is not removed on failure.
+
+                    wrkr->start();
+                }
+                catch(...)
+                {
+                }
+                */
+
+                m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
+
+                auto createdNode = std::find_if(
+                            model()->rootNode().begin(),
+                            model()->rootNode().end(),
+                            [&] (const iscore::Node& n) { return n.get<iscore::DeviceSettings>().name == deviceSettings.name; } );
+                ISCORE_ASSERT(createdNode != model()->rootNode().end());
+
+                auto& createdDev = model()->deviceModel().list().device(deviceSettings.name);
+
+                auto row = model()->rootNode().indexOfChild(&*createdNode);
+                auto wrkr = make_worker(
+                    [=] (iscore::Node&& node) {
+                        auto cmd = new DeviceExplorer::Command::ReplaceDevice{
+                            iscore::IDocument::path(*model()),
+                            row,
+                            std::move(node)};
+
+                        m_cmdDispatcher->submitCommand(cmd);
+                }, *this, createdDev);
+
+                wrkr->start();
+            }
         }
         else
         {

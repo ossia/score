@@ -62,7 +62,10 @@ void TemporalConstraintHeader::paint(QPainter *painter, const QStyleOptionGraphi
     painter->drawText(x,y,w,h, Qt::AlignLeft, m_text);
 
     if(m_width > 20)
+    {
+        painter->setPen(qRgba(0, 127, 229, 76));
         painter->drawLine(
-                    boundingRect().bottomLeft() + QPointF{10, -5},
-                    boundingRect().bottomRight() + QPointF{-10, -5});
+                    boundingRect().bottomLeft(),
+                    boundingRect().bottomRight());
+    }
 }
