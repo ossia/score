@@ -37,6 +37,8 @@ class DeviceInterface : public QObject
         void pathUpdated(const iscore::FullAddressSettings&);
         void pathRemoved(const QString&);
 
+        void valueUpdated(const iscore::Address&, const iscore::Value&);
+
         // In case the whole namespace changed?
         void namespaceUpdated();
 

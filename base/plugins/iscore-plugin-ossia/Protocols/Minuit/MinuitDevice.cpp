@@ -41,6 +41,34 @@ bool MinuitDevice::canRefresh() const
     return true;
 }
 
+#include <QDebug>
+iscore::Node* MinuitDevice::MinuitToDeviceExplorer(const OSSIA::Node &node)
+{
+    iscore::Node* n = new iscore::Node{ToAddressSettings(node)};
+
+    // 2. Recurse on the children
+    for(const auto& ossia_child : node.children())
+    {
+        auto newNode = MinuitToDeviceExplorer(*ossia_child.get());
+        n->addChild(newNode);
+
+        if(newNode->get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
+        {
+            if(auto ossia_addr = node.getAddress())
+            {
+                iscore::Address addr = iscore::address(*newNode);
+
+                ossia_addr->addCallback([addr,this] (const OSSIA::Value* val) {
+                    emit valueUpdated(addr, OSSIA::convert::ToValue(val));
+                });
+            }
+        }
+    }
+
+    return n;
+}
+
+
 iscore::Node MinuitDevice::refresh()
 {
     iscore::Node device_node;
@@ -55,7 +83,7 @@ iscore::Node MinuitDevice::refresh()
         // Recurse on the children
         for(const auto& node : m_dev->children())
         {
-            device_node.addChild(ToDeviceExplorer(*node.get()));
+            device_node.addChild(MinuitToDeviceExplorer(*node.get()));
         }
     }
 
