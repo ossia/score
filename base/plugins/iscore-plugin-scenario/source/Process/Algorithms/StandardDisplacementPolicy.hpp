@@ -13,7 +13,7 @@
  * @brief The displacementPolicy class
  * This class allows to implement multiple displacement behaviors.
  */
-class DisplacementPolicy
+class CommonDisplacementPolicy
 {
 public:
     /**
@@ -27,13 +27,14 @@ public:
      * the elements affected by the moving process and their old and new parameters (dates and durations) will be stored here.
      * IMPORTANT : elementsProperties may not be empty (in case of an update), in such case old datse of existing elements must be kept as is
      */
-    virtual
+    /*
+    static
     void
     computeDisplacement(
             ScenarioModel& scenario,
             const QVector<Id<TimeNodeModel>>& draggedElements,
             const TimeValue& deltaTime,
-            ElementsProperties& elementsProperties) = 0;
+            ElementsProperties& elementsProperties) = 0;*/
 
       /**
      * @brief updatePositions
@@ -42,7 +43,7 @@ public:
      * if false, use old values of properties (undo)
      */
     template<typename ProcessScaleMethod>
-    //virtual
+    static
     void
     updatePositions(ScenarioModel& scenario, ProcessScaleMethod&& scaleMethod, ElementsProperties& elementsPropertiesToUpdate, bool useNewValues)
     {
@@ -70,7 +71,7 @@ public:
         // update affected constraints
         for(auto& curConstraintPropertiesToUpdate_id : elementsPropertiesToUpdate.constraints.keys())
         {
-            auto& curConstraintToUpdate = scenario.constraints(curConstraintPropertiesToUpdate_id);
+            auto& curConstraintToUpdate = scenario.constraint(curConstraintPropertiesToUpdate_id);
             //auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
 
             const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
@@ -97,14 +98,24 @@ public:
     }
 };
 
-class GoodOldDisplacementPolicy : DisplacementPolicy
+class GoodOldDisplacementPolicy
 {
+public:
+    static
     void
     computeDisplacement(
             ScenarioModel& scenario,
             const QVector<Id<TimeNodeModel>>& draggedElements,
             const TimeValue& deltaTime,
             ElementsProperties& elementsProperties);
+
+    template<typename ProcessScaleMethod>
+    static
+    void
+    updatePositions(ScenarioModel& scenario, ProcessScaleMethod&& scaleMethod, ElementsProperties& elementsPropertiesToUpdate, bool useNewValues)
+    {
+        CommonDisplacementPolicy::updatePositions(scenario, scaleMethod, elementsPropertiesToUpdate, useNewValues);
+    }
 };
 
 

@@ -4,6 +4,7 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 class ScenarioStateMachine;
 
 class MoveConstraintState : public ScenarioStateBase

@@ -5,6 +5,9 @@
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/ExpandMode.hpp>
 #include "Tools/dataStructures.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 
 class EventModel;
 class TimeNodeModel;
@@ -39,96 +42,78 @@ namespace Scenario
                 m_mode{mode}
                 {
                        update(
-                                m_path,
-                                m_eventId,
+                                std::move(m_path), //TODO euh oui ptet faudrai voir avec janmi
+                                eventId,
                                 deltaDate,
                                 m_mode);
                 }
+        void
+        update(
+                Path<ScenarioModel>&& scenarioPath,
+                const Id<EventModel>& eventId,
+                const TimeValue& deltaDate,
+                ExpandMode mode)
+        {
+            auto& scenario = m_path.find();
+            ElementsProperties m_elementsProperties;
 
-                void update(
-                        Path<ScenarioModel>&& scenarioPath,
-                        const Id<EventModel>& eventId,
-                        const TimeValue& deltaDate,
-                        ExpandMode mode)
+            //NOTICE: multiple event displacement functionnality already available this is "retro" compatibility
+            QVector <Id<TimeNodeModel>> draggedElements;
+            draggedElements.push_back(scenario.event(eventId).timeNode());// retrieve corresponding timenode and store it in array
+
+            DisplacementPolicy::computeDisplacement(scenario, draggedElements, deltaDate, m_elementsProperties);
+
+            /*
+            // 1. Make a list of the constraints that need to be resized
+            QSet<Id<ConstraintModel>> constraints;
+            for(const auto& tn_id : m_movableTimenodes)
+            {
+                const auto& tn = scenario.timeNode(tn_id);
+                for(const auto& ev_id : tn.events())
                 {
-                    auto& scenario = m_path.find();
-                    ElementsProperties m_elementsProperties;
+                    const auto& ev = scenario.event(ev_id);
+                    for(const auto& st_id : ev.states())
+                    {
+                        const auto& st = scenario.state(st_id);
+                        if(st.previousConstraint())
+                            constraints += st.previousConstraint();
+                    }
+                }
+            }
 
-                    //NOTICE: multiple event displacement functionnality already available this is "retro" compatibility
-                    QVector <Id<TimeNodeModel>> draggedElements;
-                    draggedElements.push_back(scenario.event(eventId).timeNode());// retrieve corresponding timenode and store it in array
+            // 2. Save them
+            for(const auto& cst_id : constraints)
+            {
+                const auto& constraint = scenario.constraint(cst_id);
 
-                    m_displacementPolicy::computeDisplacement(scenario, draggedElements, deltaDate, m_elementsProperties);
+                // Save the constraint data
+                QByteArray arr;
+                Visitor<Reader<DataStream>> jr{&arr};
+                jr.readFrom(constraint);
 
+                // Save for each view model of this constraint
+                // the identifier of the rack that was displayed
+                QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
+                for(const ConstraintViewModel* vm : constraint.viewModels())
+                {
+                    map[vm->id()] = vm->shownRack();
+                }
+
+                m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
+            }
+            */
+        }
+                virtual
+                void
+                undo() override
+                {
+                    bool useNewValues{false};
+                    DisplacementPolicy::updatePositions(
+                                m_path.find(),
+                                [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
+                                m_savedElementsProperties,
+                                useNewValues);
                     /*
-                    // 1. Make a list of the constraints that need to be resized
-                    QSet<Id<ConstraintModel>> constraints;
-                    for(const auto& tn_id : m_movableTimenodes)
-                    {
-                        const auto& tn = scenario.timeNode(tn_id);
-                        for(const auto& ev_id : tn.events())
-                        {
-                            const auto& ev = scenario.event(ev_id);
-                            for(const auto& st_id : ev.states())
-                            {
-                                const auto& st = scenario.state(st_id);
-                                if(st.previousConstraint())
-                                    constraints += st.previousConstraint();
-                            }
-                        }
-                    }
-
-                    // 2. Save them
-                    for(const auto& cst_id : constraints)
-                    {
-                        const auto& constraint = scenario.constraint(cst_id);
-
-                        // Save the constraint data
-                        QByteArray arr;
-                        Visitor<Reader<DataStream>> jr{&arr};
-                        jr.readFrom(constraint);
-
-                        // Save for each view model of this constraint
-                        // the identifier of the rack that was displayed
-                        QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
-                        for(const ConstraintViewModel* vm : constraint.viewModels())
-                        {
-                            map[vm->id()] = vm->shownRack();
-                        }
-
-                        m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
-                    }
-                    */
-                }
-
-
-                void MoveEvent2::serializeImpl(QDataStream& s) const
-                {
-//                    s << m_path
-//                      << m_eventId
-//                      << m_oldDate
-//                      << m_newDate
-//                      << m_movableTimenodes
-//                      << (int)m_mode
-//                      << m_savedConstraints;
-                }
-
-                void MoveEvent2::deserializeImpl(QDataStream& s)
-                {
-//                    int mode;
-//                    s >> m_path
-//                      >> m_eventId
-//                      >> m_oldDate
-//                      >> m_newDate
-//                      >> m_movableTimenodes
-//                      >> mode
-//                      >> m_savedConstraints;
-
-//                    m_mode = static_cast<ExpandMode>(mode);
-                }
-
-                void MoveEvent2::undo()
-                {
                     auto& scenar = m_path.find();
                     auto& event = scenar.event(m_eventId);
 
@@ -203,12 +188,21 @@ namespace Scenario
                             viewmodel->showRack(obj.second[viewmodel->id()]);
                         }
                     }
+                    */
+                    //updateEventExtent(m_eventId, scenar);
 
-                    updateEventExtent(m_eventId, scenar);
                 }
-
-                void MoveEvent2::redo()
+                virtual
+                void
+                redo() override
                 {
+                    bool useNewValues{true};
+                    DisplacementPolicy::updatePositions(
+                                m_path.find(),
+                                [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
+                                m_savedElementsProperties,
+                                useNewValues);
+                    /*
                     auto& scenar = m_path.find();
                     auto& event = scenar.event(m_eventId);
 
@@ -221,8 +215,8 @@ namespace Scenario
                                 deltaDate,
                                 [&] (Process& p, const TimeValue& t)
                     { p.expandProcess(m_mode, t); });
-
-                    updateEventExtent(m_eventId, scenar);
+                    */
+                    //updateEventExtent(m_eventId, scenar);
                 }
 
 
@@ -231,9 +225,31 @@ namespace Scenario
                 { return m_path; }
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
 
+                virtual
+                void
+                serializeImpl(QDataStream& s) const override
+                {
+                    s << m_path
+                      << m_savedElementsProperties
+                      << (int)m_mode
+                      << m_savedConstraints;
+                }
+
+                virtual
+                void
+                deserializeImpl(QDataStream& s) override
+                {
+                    int mode;
+                    s >> m_path
+                      >> m_savedElementsProperties
+                      >> mode
+                      >> m_savedConstraints;
+
+//                    m_mode = static_cast<ExpandMode>(mode);
+                }
+
+                private:
             private:
                 DisplacementPolicy m_displacementPolicy;
                 ElementsProperties m_savedElementsProperties;

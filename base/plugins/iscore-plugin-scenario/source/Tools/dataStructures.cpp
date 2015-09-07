@@ -17,8 +17,8 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(TimenodeProperties& timenodeProperties)
 {
 
-    m_stream >> timenodeProperties.newDate
-             >> timenodeProperties.oldDate;
+    m_stream >> timenodeProperties.oldDate
+             >> timenodeProperties.newDate;
 
     checkDelimiter();
 }
@@ -40,10 +40,10 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(ConstraintProperties& constraintProperties)
 {
 
-    m_stream >> constraintProperties.newMax
-             >> constraintProperties.oldMax
+    m_stream >> constraintProperties.oldMin
              >> constraintProperties.newMin
-             >> constraintProperties.oldMin;
+             >> constraintProperties.oldMax
+             >> constraintProperties.newMax;
 
     checkDelimiter();
 }
@@ -52,7 +52,8 @@ void Visitor<Writer<DataStream>>::writeTo(ConstraintProperties& constraintProper
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ElementsProperties& elementsProperties)
 {
-    m_stream << elementsProperties.timenodes << elementsProperties.constraints;
+    m_stream << elementsProperties.timenodes
+             << elementsProperties.constraints;
 
     insertDelimiter();
 }
@@ -63,8 +64,8 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(ElementsProperties& elementsProperties)
 {
 
-    m_stream >> elementsProperties.constraints
-             >> elementsProperties.timenodes;
+    m_stream >> elementsProperties.timenodes
+             >> elementsProperties.constraints;
 
 
     checkDelimiter();

@@ -39,7 +39,6 @@ void StandardDisplacementPolicy::getRelatedTimeNodes(
 
 //----------------------------------------------------------------------------------------------
 
-
 void
 GoodOldDisplacementPolicy::computeDisplacement(
         ScenarioModel& scenario,
@@ -82,15 +81,20 @@ GoodOldDisplacementPolicy::computeDisplacement(
                 for(const auto& st_id : ev.states())
                 {
                     const auto& st = scenario.state(st_id);
-                    if(auto curConstraintId = st.previousConstraint())
+                    if(auto& curConstraintId = st.previousConstraint())
                     {
-                        //auto& curConstraint = scenario.constraints(curConstraintId);
+                        auto& curConstraint = scenario.constraint(curConstraintId);
 
-                        // if timenode NOT already in element properties, create new element properties and set the old date
+                        // if timenode NOT already in element properties, create new element properties and set old values
                         if(! elementsProperties.constraints.contains(curConstraintId))
                         {
                             elementsProperties.constraints[curConstraintId] = ConstraintProperties{};
+                            elementsProperties.constraints[curConstraintId].oldMin = curConstraint.duration.minDuration();
+                            elementsProperties.constraints[curConstraintId].oldMax = curConstraint.duration.maxDuration();
                         }
+
+                        elementsProperties.constraints[curConstraintId].newMin = curConstraint.duration.minDuration() + deltaTime;
+                        elementsProperties.constraints[curConstraintId].newMax = curConstraint.duration.maxDuration() + deltaTime;
 
                         // nothing to do for now
                     }
