@@ -131,9 +131,8 @@ QModelIndex StateItemModel::index(int row,
     else
         parentItem = static_cast<StateNode*>(parent.internalPointer());
 
-    StateNode* childItem = parentItem->childAt(row);
-    if (childItem)
-        return createIndex(row, column, childItem);
+    if (parentItem->hasChild(row))
+        return createIndex(row, column, &parentItem->childAt(row));
     else
         return QModelIndex();
 }

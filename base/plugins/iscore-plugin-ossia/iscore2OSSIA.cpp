@@ -493,7 +493,7 @@ std::shared_ptr<OSSIA::Expression> expression(
         }
         else if(expr.childCount() == 1)
         {
-            return expression(*expr.childAt(0), devlist);
+            return expression(expr.childAt(0), devlist);
         }
         else
         {
@@ -506,18 +506,18 @@ std::shared_ptr<OSSIA::Expression> expression(
     }
     else if(expr.is<iscore::BinaryOperator>())
     {
-        auto lhs = expr.childAt(0);
-        auto rhs = expr.childAt(1);
+        const auto& lhs = expr.childAt(0);
+        const auto& rhs = expr.childAt(1);
         return OSSIA::ExpressionComposition::create(
-                    expression(*lhs, devlist),
+                    expression(lhs, devlist),
                     comp_map[expr.get<iscore::BinaryOperator>()],
-                    expression(*rhs, devlist)
+                    expression(rhs, devlist)
                     );
 
     }
     else if(expr.is<iscore::UnaryOperator>())
     {
-        return OSSIA::ExpressionNot::create(expression(*expr.childAt(0), devlist));
+        return OSSIA::ExpressionNot::create(expression(expr.childAt(0), devlist));
     }
     else
     {

@@ -246,12 +246,13 @@ DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
     }
 
     Node* parentNode = nodeFromModelIndex(parent);
-    if(! parentNode) return {};
+    if(! parentNode)
+        return {};
 
-    Node* childNode = parentNode->childAt(row);  //value() return 0 if out of bounds
-    if(! childNode) return {};
+    if(!parentNode->hasChild(row))
+        return {};
 
-    return createIndex(row, column, childNode);
+    return createIndex(row, column, &parentNode->childAt(row));
 }
 
 Node*
@@ -687,7 +688,11 @@ DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
         return index;
     }
 
-    return bottomIndex(createIndex(node->childCount() - 1, index.column(), node->childAt(node->childCount() - 1)));
+    return bottomIndex(
+                createIndex(
+                    node->childCount() - 1,
+                    index.column(),
+                    &node->childAt(node->childCount() - 1)));
 }
 
 //this method is called (behind the scenes) when there is a drag and drop to delete the original dragged rows once they have been dropped (dropped rows are inserted using insertRows)
@@ -783,7 +788,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     if(row > 0)
     {
         --row;
-        return DeviceExplorer::Result(createIndex(row, 0, parent->childAt(row)));
+        return DeviceExplorer::Result(createIndex(row, 0, &parent->childAt(row)));
     }
 
     if(parent != &m_rootNode)

@@ -43,6 +43,8 @@ template<>
  * This class is specialized from TreeNode<T>
  * because we want to have an additional check :
  * a node is a leaf iff a node is a iscore::Relation
+ *
+ * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
 class TreeNode<ExprData> : public ExprData
 {
@@ -99,9 +101,14 @@ class TreeNode<ExprData> : public ExprData
         void setParent(TreeNode<ExprData>* parent);
         TreeNode<ExprData>* parent() const;
 
-        // returns 0 if invalid index
-        TreeNode<ExprData>* childAt(int index) const
-        { return m_children.value(index); }
+        bool hasChild(int index) const
+        { return m_children.size() > index; }
+
+        TreeNode<ExprData>& childAt(int index) const
+        {
+            ISCORE_ASSERT(hasChild(index));
+            return *m_children.value(index);
+        }
 
         // returns -1 if not found
         int indexOfChild(const TreeNode<ExprData>* child) const
@@ -113,7 +120,7 @@ class TreeNode<ExprData> : public ExprData
         bool hasChildren() const
         { return ! m_children.empty(); }
 
-        QList<TreeNode<ExprData>*> children() const
+        const QList<TreeNode<ExprData>*>& children() const
         { return m_children;  }
 
         void insertChild(int index, TreeNode<ExprData>* n);

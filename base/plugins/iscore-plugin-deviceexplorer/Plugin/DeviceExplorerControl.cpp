@@ -52,7 +52,7 @@ void DeviceExplorerControl::setupCommands()
             Remove,
             RemoveNodes,
             ReplaceDevice,
-            UpdateAddresses
+            UpdateAddressesValues
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());

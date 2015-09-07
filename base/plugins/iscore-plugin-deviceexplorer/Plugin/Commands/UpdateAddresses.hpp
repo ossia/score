@@ -13,9 +13,9 @@ namespace DeviceExplorer
     {
         class UpdateAddressesValues : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND_DECL_OBSOLETE("UpdateAddresses", "UpdateAddresses")
+            ISCORE_COMMAND_DECL_OBSOLETE("UpdateAddressesValues", "UpdateAddressesValues")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(UpdateAddresses, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(UpdateAddressesValues, "DeviceExplorerControl")
                 UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
                               const QList<QPair<const iscore::Node*, iscore::Value>>& nodes);
 

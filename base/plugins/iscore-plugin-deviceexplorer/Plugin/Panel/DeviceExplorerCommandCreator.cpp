@@ -291,16 +291,15 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
         return index;    // No preceding sibling to move this under
     }
 
-    iscore::Node* sibling = parent->childAt(row - 1);
-    ISCORE_ASSERT(sibling);
+    const auto& sibling = parent->childAt(row - 1);
 
-    iscore::NodePath newPath{*sibling};
+    iscore::NodePath newPath{sibling};
     Move* cmd = new Move{
                 iscore::NodePath{*parent},
                 row,
                 1,
                 newPath ,
-                sibling->childCount(),
+                sibling.childCount(),
                 tr("Demote %1").arg(n->displayName()) ,
                 iscore::IDocument::path(*m_model)};
     ISCORE_ASSERT(m_cmdQ);
@@ -313,7 +312,7 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
         return index;
     }
 
-    newPath.append(sibling->childCount()-1);
+    newPath.append(sibling.childCount() - 1);
 
     return m_model->convertPathToIndex(newPath);
 }

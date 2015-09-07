@@ -14,11 +14,6 @@
 template<typename DataType>
 class TreeNode : public DataType
 {
-        friend void Visitor<Reader< DataStream >>::readFrom< TreeNode > (const TreeNode &);/*
-        friend void Visitor<Writer< DataStream >>::writeTo< TreeNode<U> > (TreeNode<U> &);
-        friend void Visitor<Reader< JSONObject >>::readFrom< TreeNode<U> > (const TreeNode<U> &);
-        friend void Visitor<Writer< JSONObject >>::writeTo< TreeNode<U> > (TreeNode<U> &);*/
-
     public:
         TreeNode():
             DataType{}
@@ -95,9 +90,14 @@ class TreeNode : public DataType
             return m_parent;
         }
 
-        // returns 0 if invalid index
-        TreeNode* childAt(int index) const
-        { return m_children.value(index); }
+        bool hasChild(int index) const
+        { return m_children.size() > index; }
+
+        TreeNode& childAt(int index) const
+        {
+            ISCORE_ASSERT(hasChild(index));
+            return *m_children.value(index);
+        }
 
         // returns -1 if not found
         int indexOfChild(const TreeNode* child) const
@@ -109,7 +109,7 @@ class TreeNode : public DataType
         bool hasChildren() const
         { return ! m_children.empty(); }
 
-        QList<TreeNode*> children() const
+        const QList<TreeNode*>& children() const
         { return m_children;  }
 
         void insertChild(int index, TreeNode* n)
