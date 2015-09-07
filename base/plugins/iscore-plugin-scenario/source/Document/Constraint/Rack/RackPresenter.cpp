@@ -13,6 +13,8 @@
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QGraphicsScene>
 
+static const constexpr int slotSpacing = 0;
+
 RackPresenter::RackPresenter(const RackModel& model,
                            RackView* view,
                            QObject* parent):
@@ -56,7 +58,7 @@ qreal RackPresenter::height() const
 
     for(const auto& slot : slotmodels)
     {
-        totalHeight += slot.height() + 5.;
+        totalHeight += slot.height() + slotSpacing;
     }
 
     return totalHeight;
@@ -161,7 +163,7 @@ void RackPresenter::updateShape()
         auto& slotPres = slotmodels.at(slotId);
         slotPres.setWidth(width());
         slotPres.setVerticalPosition(currentSlotY);
-        currentSlotY += slotPres.height() + 5; // Separation between slots
+        currentSlotY += slotPres.height() + slotSpacing; // Separation between slots
     }
 
     // Horizontal shape
