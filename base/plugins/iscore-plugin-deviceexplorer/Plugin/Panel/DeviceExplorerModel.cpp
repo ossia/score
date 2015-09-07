@@ -628,7 +628,11 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
-void DeviceExplorerModel::editData(const iscore::NodePath &path, DeviceExplorerModel::Column column, const QVariant &value, int role)
+void DeviceExplorerModel::editData(
+        const iscore::NodePath &path,
+        DeviceExplorerModel::Column column,
+        const QVariant &value,
+        int role)
 {
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);

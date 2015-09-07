@@ -553,7 +553,7 @@ void DeviceExplorerWidget::refreshValue()
         return;
 
     // Send the command
-    auto cmd = new DeviceExplorer::Command::UpdateAddresses{
+    auto cmd = new DeviceExplorer::Command::UpdateAddressesValues{
             iscore::IDocument::path(*model()),
             lst};
 
