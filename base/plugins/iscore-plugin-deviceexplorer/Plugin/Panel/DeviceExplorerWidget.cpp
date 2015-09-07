@@ -421,9 +421,6 @@ void DeviceExplorerWidget::edit()
     iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if (select->is<iscore::DeviceSettings>())
     {
-        ISCORE_TODO;
-        return;
-        /*
         if(! m_deviceDialog)
         {
             m_deviceDialog = new DeviceEditDialog(this);
@@ -435,12 +432,15 @@ void DeviceExplorerWidget::edit()
 
         if(code == QDialog::Accepted)
         {
-            auto deviceSettings = m_deviceDialog->getSettings();
-            select->setDeviceSettings(deviceSettings);
+            auto cmd = new DeviceExplorer::Command::UpdateDeviceSettings{
+                    iscore::IDocument::path(model()->deviceModel()),
+                    set.name,
+                    m_deviceDialog->getSettings()};
+
+            m_cmdDispatcher->submitCommand(cmd);
         }
 
         updateActions();
-        */
     }
     else
     {

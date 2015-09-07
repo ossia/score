@@ -23,6 +23,19 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
     m_dev = Device::create(m_minuitSettings, settings.name.toStdString());
 }
 
+void MinuitDevice::updateSettings(const iscore::DeviceSettings& settings)
+{
+    m_settings = settings;
+    auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
+
+    // TODO m_dev->setName(m_settings.name.toStdString());
+
+    auto prot = dynamic_cast<OSSIA::Minuit*>(m_dev->getProtocol().get());
+    prot->setInPort(stgs.inPort);
+    prot->setOutPort(stgs.outPort);
+    prot->setIp(stgs.host.toStdString());
+}
+
 bool MinuitDevice::canRefresh() const
 {
     return true;
@@ -38,7 +51,6 @@ iscore::Node MinuitDevice::refresh()
         // First make the node corresponding to the root node.
 
         device_node.set(settings());
-        //device_node.setAddressSettings(ToAddressSettings(*m_dev.get()));
 
         // Recurse on the children
         for(const auto& node : m_dev->children())

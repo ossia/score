@@ -108,7 +108,8 @@ DeviceExplorerModel::getColumns() const
     return HEADERS.values();
 }
 
-int DeviceExplorerModel::addDevice(Node* deviceNode)
+int DeviceExplorerModel::addDevice(
+        Node* deviceNode)
 {
     int row = m_rootNode.childCount();
     QModelIndex parent; //invalid
@@ -118,6 +119,28 @@ int DeviceExplorerModel::addDevice(Node* deviceNode)
     endInsertRows();
 
     return row;
+}
+
+void DeviceExplorerModel::updateDevice(
+        const QString& name,
+        const DeviceSettings& dev)
+{
+    for(int i = 0; i < m_rootNode.childCount(); i++)
+    {
+        auto n = &m_rootNode.childAt(i);
+        if(n->get<iscore::DeviceSettings>().name == name)
+        {
+            QModelIndex index = createIndex(i, 0, n->parent());
+
+            QModelIndex changedTopLeft = index;
+            QModelIndex changedBottomRight = index;
+
+            n->set(dev);
+
+            emit dataChanged(changedTopLeft, changedBottomRight);
+            return;
+        }
+    }
 }
 
 Node* DeviceExplorerModel::addAddress(
@@ -144,7 +167,10 @@ Node* DeviceExplorerModel::addAddress(
     return node;
 }
 
-void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
+void DeviceExplorerModel::addAddress(
+        Node *parentNode,
+        Node *node,
+        int row)
 {
     ISCORE_ASSERT(parentNode);
     ISCORE_ASSERT(parentNode != &m_rootNode);
@@ -166,7 +192,9 @@ void DeviceExplorerModel::addAddress(Node *parentNode, Node *node, int row)
     endInsertRows();
 }
 
-void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addressSettings)
+void DeviceExplorerModel::updateAddress(
+        Node *node,
+        const AddressSettings &addressSettings)
 {
     ISCORE_ASSERT(node);
     ISCORE_ASSERT(node != &m_rootNode);
@@ -181,7 +209,8 @@ void DeviceExplorerModel::updateAddress(Node *node, const AddressSettings &addre
                 createIndex(nodeIndex.row(), HEADERS.count(), node->parent()));
 }
 
-void DeviceExplorerModel::removeNode(Node* node)
+void DeviceExplorerModel::removeNode(
+        Node* node)
 {
     ISCORE_ASSERT(node);
     ISCORE_ASSERT(node != &m_rootNode);
@@ -202,7 +231,8 @@ void DeviceExplorerModel::removeNode(Node* node)
     delete node;
 }
 
-bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
+bool DeviceExplorerModel::checkDeviceInstantiatable(
+        iscore::DeviceSettings& n)
 {
     // Request from the protocol factory the protocol to see
     // if it is compatible.

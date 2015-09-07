@@ -45,9 +45,22 @@ void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 
 void NodeUpdateProxy::updateDevice(
         const QString &name,
-        const iscore::DeviceSettings &dev)
+        const iscore::DeviceSettings& dev)
 {
-    ISCORE_TODO;
+    m_devModel.list().device(name).updateSettings(dev);
+
+    if(m_deviceExplorer)
+    {
+        m_deviceExplorer->updateDevice(name, dev);
+    }
+    else
+    {
+        auto it = std::find_if(m_devModel.rootNode().begin(), m_devModel.rootNode().end(),
+                               [&] (const iscore::Node& n) { return n.get<iscore::DeviceSettings>().name == name; });
+
+        ISCORE_ASSERT(it != m_devModel.rootNode().end());
+        it->set(dev);
+    }
 }
 
 void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)

@@ -1,11 +1,13 @@
 #include "OSSIADevice.hpp"
 #include <QDebug>
 #include <boost/range/algorithm.hpp>
+#include <Network/Node.h>
 
 #include "iscore2OSSIA.hpp"
 #include "OSSIA2iscore.hpp"
 using namespace iscore::convert;
 using namespace OSSIA::convert;
+
 
 void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
 {
@@ -24,6 +26,7 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
     using namespace OSSIA;
 
     OSSIA::Node* node = getNodeFromPath(settings.address.path, m_dev.get());
+    node->setName(settings.address.path.last().toStdString());
 
     if(settings.ioType == iscore::IOType::Invalid)
         removeOSSIAAddress(node);
