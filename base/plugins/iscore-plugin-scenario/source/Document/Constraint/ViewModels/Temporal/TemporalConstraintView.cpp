@@ -115,6 +115,11 @@ void TemporalConstraintView::paint(
     if(! isValid())
     {
         constraintColor = Qt::red;
+        this->setZValue(this->zValue()+ 1);
+    }
+    else
+    {
+        this->setZValue(parentObject()->zValue() + 3);
     }
 
     m_solidPen.setColor(constraintColor);
