@@ -64,29 +64,38 @@ GoodOldDisplacementPolicy::computeDisplacement(
         for(auto& curTimeNodeId : timeNodesToTranslate)
         {
             auto& curTimeNode = scenario.timeNode(curTimeNodeId);
-            TimenodeProperties curTimeNodeProperties;
 
-            curTimeNodeProperties.id = curTimeNode.id();
-            curTimeNodeProperties.oldDate = curTimeNode.date();
-            curTimeNodeProperties.oldDate = curTimeNode.date() + deltaTime;
+            // if timenode NOT already in element properties, create new element properties and set the old date
+            if(! elementsProperties.timenodes.contains(curTimeNodeId))
+            {
+                elementsProperties.timenodes[curTimeNodeId] = TimenodeProperties{};
+                elementsProperties.timenodes[curTimeNodeId].oldDate = curTimeNode.date();
+            }
 
-            elementsProperties.timenodes.push_back(curTimeNodeProperties);
+            // put the new date
+            elementsProperties.timenodes[curTimeNodeId].newDate = curTimeNode.date() + deltaTime;
+
+            // Make a list of the constraints that need to be resized
+            for(const auto& ev_id : curTimeNode.events())
+            {
+                const auto& ev = scenario.event(ev_id);
+                for(const auto& st_id : ev.states())
+                {
+                    const auto& st = scenario.state(st_id);
+                    if(auto curConstraintId = st.previousConstraint())
+                    {
+                        //auto& curConstraint = scenario.constraints(curConstraintId);
+
+                        // if timenode NOT already in element properties, create new element properties and set the old date
+                        if(! elementsProperties.constraints.contains(curConstraintId))
+                        {
+                            elementsProperties.constraints[curConstraintId] = ConstraintProperties{};
+                        }
+
+                        // nothing to do for now
+                    }
+                }
+            }
         }
-
-        // put every constraint in the scenario to be updated like old behavior
-        for(auto& curConstraint : scenario.constraints)
-        {
-            ConstraintProperties curConstraintProperties;
-
-            curConstraintProperties.id = curConstraint.id();
-            // TODO: when min and max comme again on the table
-//            curConstraintProperties.oldMin =
-//            curConstraintProperties.oldMax =
-//            curConstraintProperties.newMin =
-//            curConstraintProperties.newMax =
-
-            elementsProperties.constraints.push_back(curConstraintProperties);
-        }
-
     }
 }
