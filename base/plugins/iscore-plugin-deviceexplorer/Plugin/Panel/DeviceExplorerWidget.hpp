@@ -75,7 +75,6 @@ class DeviceExplorerWidget : public QWidget
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};
         DeviceEditDialog* m_deviceDialog{};
-        AddressEditDialog* m_addressDialog{};
 
         QAction* m_editAction{};
         QAction* m_refreshAction{};

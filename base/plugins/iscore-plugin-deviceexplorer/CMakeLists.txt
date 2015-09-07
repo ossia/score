@@ -4,7 +4,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 
 # Packages
-find_package(Qt5 5.4 REQUIRED COMPONENTS Core Widgets Test Xml)
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 set(DEVICEEXPLORER_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/" PARENT_SCOPE)
 # Files & main target

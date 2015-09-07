@@ -144,7 +144,10 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
         QObject::connect(move_nothing, &QState::entered, [&] ()
         {
             if(createdConstraints.empty() || createdEvents.empty())
+            {
+                rollback();
                 return;
+            }
 
             m_dispatcher.submitCommand<MoveNewEvent>(
                         Path<ScenarioModel>{m_scenarioPath},
@@ -158,7 +161,10 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
         QObject::connect(move_timenode , &QState::entered, [&] ()
         {
             if(createdStates.empty())
+            {
+                rollback();
                 return;
+            }
 
             m_dispatcher.submitCommand<MoveNewState>(
                         Path<ScenarioModel>{m_scenarioPath},
@@ -169,7 +175,10 @@ ScenarioCreation_FromEvent::ScenarioCreation_FromEvent(
         QObject::connect(move_event, &QState::entered, [&] ()
         {
             if(createdStates.empty())
+            {
+                rollback();
                 return;
+            }
 
             m_dispatcher.submitCommand<MoveNewState>(
                         Path<ScenarioModel>{m_scenarioPath},

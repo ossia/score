@@ -88,7 +88,7 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
             readFrom(obj.id());
         }
 
-        template<typename T>
+        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
         void readFrom(const T&);
 
         template<typename T>
@@ -98,6 +98,12 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
 
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
+
+        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        void readFrom(const T& elt)
+        {
+            m_stream << (int32_t) elt;
+        }
 
         /**
          * @brief insertDelimiter
@@ -162,7 +168,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
             obj.setId(std::move(id));
         }
 
-        template<typename T>
+        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
         void writeTo(T&);
 
         template<typename T>
@@ -173,7 +179,13 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         template<typename... Args>
         void writeTo(eggs::variants::variant<Args...>&);
 
-
+        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        void writeTo(T& elt)
+        {
+            int32_t e;
+            m_stream >> e;
+            elt = static_cast<T>(e);
+        }
 
         /**
          * @brief checkDelimiter

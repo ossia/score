@@ -9,6 +9,7 @@
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
 #include "Commands/Remove.hpp"
+#include "Commands/RemoveNodes.hpp"
 #include "Commands/ReplaceDevice.hpp"
 #include "Commands/UpdateAddresses.hpp"
 #include "Commands/Update/UpdateAddressSettings.hpp"
@@ -49,8 +50,9 @@ void DeviceExplorerControl::setupCommands()
             Move,
             Paste,
             Remove,
+            RemoveNodes,
             ReplaceDevice,
-            UpdateAddresses
+            UpdateAddressesValues
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());

@@ -132,6 +132,8 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
 
     update(new_autom);
 
+    return;
+
 curve_cleanup_label:
     update(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
     return;

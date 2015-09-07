@@ -3,9 +3,10 @@
 #include <QList>
 #include <QString>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
+#include "Widgets/ValueWrapper.hpp"
 
 class QComboBox;
-class QGridLayout;
+class QFormLayout;
 class QLineEdit;
 class AddressSettingsWidget;
 class AddressEditDialog : public QDialog
@@ -13,28 +14,29 @@ class AddressEditDialog : public QDialog
         Q_OBJECT
 
     public:
-        explicit AddressEditDialog(QWidget* parent);
+        // Creation of an address
+        explicit AddressEditDialog(
+                QWidget* parent);
+
+        // Edition of an address
+        explicit AddressEditDialog(
+                const iscore::AddressSettings& addr,
+                QWidget* parent);
         ~AddressEditDialog();
 
         iscore::AddressSettings getSettings() const;
         static iscore::AddressSettings makeDefaultSettings();
 
-        void setSettings(const iscore::AddressSettings& settings);
-
-    protected slots:
-        void updateNodeWidget();
-
     protected:
-        void buildGUI();
-        void initAvailableValueTypes();
+        void setNodeSettings();
+        void setValueSettings();
+        void updateType();
 
-    protected:
-        QLineEdit* m_nameEdit;
-        QComboBox* m_valueTypeCBox;
-        AddressSettingsWidget* m_addressWidget;
-        QGridLayout* m_gLayout;
-        QList<iscore::AddressSettings> m_previousSettings;
-        int m_index;
+        iscore::AddressSettings m_originalSettings;
+        QLineEdit* m_nameEdit{};
+        QComboBox* m_valueTypeCBox{};
+        WidgetWrapper<AddressSettingsWidget>* m_addressWidget{};
+        QFormLayout* m_layout{};
 };
 
 

@@ -10,8 +10,8 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::AddressSettingsCommon& 
 {
     m_stream << n.value
              << n.domain
-             << (int)n.ioType
-             << (int)n.clipMode
+             << n.ioType
+             << n.clipMode
              << n.unit
              << n.repetitionFilter
              << n.rate
@@ -25,8 +25,8 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::AddressSettingsCommon& n)
 {
     m_stream >> n.value
              >> n.domain
-             >> (int&)n.ioType
-             >> (int&)n.clipMode
+             >> n.ioType
+             >> n.clipMode
              >> n.unit
              >> n.repetitionFilter
              >> n.rate
@@ -89,11 +89,10 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
     m_obj["Tags"] = arr;
 
     // Value, domain and type
+    readFrom(n.value);
     auto type = n.value.val.typeName();
     if(type)
     {
-        m_obj["Type"] = QString::fromStdString(type);
-        m_obj["Value"] = ValueToJson(n.value);
         m_obj["Domain"] = DomainToJson(n.domain);
     }
 }
@@ -116,10 +115,11 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
     for(auto&& elt : arr)
         n.tags.append(elt.toString());
 
+    writeTo(n.value);
+    // TODO doesn't handle multi-type variants.
     if(m_obj.contains("Type"))
     {
         auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toLatin1()));
-        n.value = JsonToValue(m_obj["Value"], valueType);
         n.domain = JsonToDomain(m_obj["Domain"].toObject(), valueType);
     }
 }

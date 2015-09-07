@@ -6,6 +6,7 @@
 #include <QVector>
 #include <QMap>
 
+
 template<typename T>
 T fromJsonObject(QJsonValue&& json);
 
@@ -36,8 +37,14 @@ class Visitor<Reader<JSONValue>> : public AbstractVisitor
 
         VisitorVariant toVariant() { return {*this, JSONValue::type()}; }
 
-        template<typename T>
+        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
         void readFrom(const T&);
+
+        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        void readFrom(const T& elt)
+        {
+            val = (int32_t) elt;
+        }
 
         template<typename T>
         void readFrom(const Id<T>& obj)
@@ -66,8 +73,14 @@ class Visitor<Writer<JSONValue>> : public AbstractVisitor
         Visitor<Writer<JSONValue>> (QJsonValue&& obj) :
                                val{std::move(obj) }  {}
 
-        template<typename T>
+        template<typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
         void writeTo(T&);
+
+        template<typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+        void writeTo(T& elt)
+        {
+            elt = static_cast<T>(val.toInt());
+        }
 
         template<typename T>
         void writeTo(Id<T>& obj)

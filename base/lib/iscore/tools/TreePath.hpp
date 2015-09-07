@@ -68,7 +68,7 @@ class TreePath
             {
                 if (m_path.at(i) < iter->childCount())
                 {
-                    iter = iter->childAt(m_path.at(i));
+                    iter = &iter->childAt(m_path.at(i));
                 }
                 else
                 {

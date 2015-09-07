@@ -139,9 +139,9 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
             [=] () {
         // OPTIMIZEME
         state_elt->rootState()->stateElements().clear();
-        for(auto& elt : state_elt->iscoreState().states().rootNode().children())
+        for(const auto& elt : state_elt->iscoreState().states().rootNode())
         {
-            state_elt->rootState()->stateElements().push_back(iscore::convert::state(*elt, m_deviceList));
+            state_elt->rootState()->stateElements().push_back(iscore::convert::state(elt, m_deviceList));
         }
 
     } );
@@ -196,6 +196,19 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
                     ISCORE_TODO;
                     break;
             }
+        }
+    });
+
+    connect(&ev, &EventModel::conditionChanged,
+            this, [=] (const iscore::Condition& c) {
+        try {
+            auto expr = iscore::convert::expression(c, m_deviceList);
+
+            ossia_ev->setExpression(expr);
+        }
+        catch(std::exception& e)
+        {
+            qDebug() << e.what();
         }
     });
 

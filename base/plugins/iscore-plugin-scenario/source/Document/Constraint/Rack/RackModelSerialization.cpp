@@ -10,7 +10,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
     m_stream << rack.slotsPositions();
 
     const auto& theSlots = rack.slotmodels;
-    m_stream << (int) theSlots.size();
+    m_stream << (int32_t) theSlots.size();
 
     for(const auto& slot : theSlots)
     {
@@ -22,7 +22,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const RackModel& rack)
 
 template<> void Visitor<Writer<DataStream>>::writeTo(RackModel& rack)
 {
-    int slots_size;
+    int32_t slots_size;
     QList<Id<SlotModel>> positions;
     m_stream >> positions;
 

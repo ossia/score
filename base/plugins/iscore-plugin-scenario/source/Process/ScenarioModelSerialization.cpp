@@ -17,7 +17,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     // Timenodes
     const auto& timenodes = scenario.timeNodes;
-    m_stream << (int) timenodes.size();
+    m_stream << (int32_t) timenodes.size();
 
     for(const auto& timenode : timenodes)
     {
@@ -26,7 +26,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     // Events
     const auto& events = scenario.events;
-    m_stream << (int) events.size();
+    m_stream << (int32_t) events.size();
 
     for(const auto& event : events)
     {
@@ -35,7 +35,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     // States
     const auto& states = scenario.states;
-    m_stream << (int) states.size();
+    m_stream << (int32_t) states.size();
 
     for(const auto& state : states)
     {
@@ -44,7 +44,7 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 
     // Constraints
     const auto& constraints = scenario.constraints;
-    m_stream << (int) constraints.size();
+    m_stream << (int32_t) constraints.size();
 
     for(const auto& constraint : constraints)
     {
@@ -67,7 +67,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
              >> scenario.m_endEventId;
 
     // Timenodes
-    int timenode_count;
+    int32_t timenode_count;
     m_stream >> timenode_count;
 
     for(; timenode_count -- > 0;)
@@ -77,7 +77,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     }
 
     // Events
-    int event_count;
+    int32_t event_count;
     m_stream >> event_count;
 
     for(; event_count -- > 0;)
@@ -87,7 +87,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     }
 
     // Events
-    int state_count;
+    int32_t state_count;
     m_stream >> state_count;
 
     for(; state_count -- > 0;)
@@ -97,7 +97,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     }
 
     // Constraints
-    int constraint_count;
+    int32_t constraint_count;
     m_stream >> constraint_count;
 
     for(; constraint_count -- > 0;)

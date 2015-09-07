@@ -53,9 +53,9 @@ static QJsonArray convertQVariantList(const QVariantList& v)
                 arr.append(elt.toBool());
                 break;
             }
-            case QMetaType::Char:
+            case QMetaType::QChar:
             {
-                arr.append((char)elt.toInt());
+                arr.append(elt.toString()); // TODO here we loose the "char" information...
                 break;
             }
             case QMetaType::QVariantList:
@@ -85,7 +85,7 @@ static QVariantList convertJSonValueList(const QJsonArray& v)
             }
             case QJsonValue::String:
             {
-                arr.append(elt.toString());
+                arr.append(elt.toString()); // Here the string may be a char.
                 break;
             }
             case QJsonValue::Bool:
@@ -109,27 +109,27 @@ static QVariantList convertJSonValueList(const QJsonArray& v)
 }
 
 struct invalid_t {};
-
+// Note : chars aren't properly handled here.
 static const auto QVariantToJSonValue(
-        boost::fusion::make_map<invalid_t, int,float,bool,QString, char, QVariantList>(
+        boost::fusion::make_map<invalid_t, int,float,bool,QString, QChar, QVariantList>(
             [] (const QVariant& v) { return QJsonValue{}; },
             [] (const QVariant& v) { return v.toInt(); },
             [] (const QVariant& v) { return v.toFloat(); },
             [] (const QVariant& v) { return v.toBool(); },
             [] (const QVariant& v) { return v.toString(); },
-            [] (const QVariant& v) { return (char) v.toInt(); },
+            [] (const QVariant& v) { return v.toString(); },
             [] (const QVariant& v) { return convertQVariantList(v.toList()); }
      )
 );
 
 static const auto JSonValueToQVariant(
-        boost::fusion::make_map<invalid_t, int,float,bool,QString, char, QVariantList>(
+        boost::fusion::make_map<invalid_t, int,float,bool,QString, QChar, QVariantList>(
             [] (const QJsonValue& v) { return QVariant{}; },
             [] (const QJsonValue& v) { return v.toInt(); },
             [] (const QJsonValue& v) { return (float)v.toDouble(); },
             [] (const QJsonValue& v) { return v.toBool(); },
             [] (const QJsonValue& v) { return v.toString(); },
-            [] (const QJsonValue& v) { return (char) v.toInt(); },
+            [] (const QJsonValue& v) { return v.toString().at(0); },
             [] (const QJsonValue& v) { return convertJSonValueList(v.toArray()); }
      )
 );
@@ -144,7 +144,7 @@ static const std::map<
 {QMetaType::Float, boost::fusion::at_key<float>(QVariantToJSonValue)},
 {QMetaType::Bool, boost::fusion::at_key<bool>(QVariantToJSonValue)},
 {QMetaType::QString, boost::fusion::at_key<QString>(QVariantToJSonValue)},
-{QMetaType::Char, boost::fusion::at_key<char>(QVariantToJSonValue)},
+{QMetaType::QChar, boost::fusion::at_key<QChar>(QVariantToJSonValue)},
 {QMetaType::QVariantList, boost::fusion::at_key<QVariantList>(QVariantToJSonValue)}
 };
 
@@ -159,7 +159,7 @@ static const std::map<
 {QMetaType::Float, boost::fusion::at_key<float>(JSonValueToQVariant)},
 {QMetaType::Bool, boost::fusion::at_key<bool>(JSonValueToQVariant)},
 {QMetaType::QString, boost::fusion::at_key<QString>(JSonValueToQVariant)},
-{QMetaType::Char, boost::fusion::at_key<char>(JSonValueToQVariant)},
+{QMetaType::QChar, boost::fusion::at_key<QChar>(JSonValueToQVariant)},
 {QMetaType::QVariantList, boost::fusion::at_key<QVariantList>(JSonValueToQVariant)}
 };
 
@@ -176,4 +176,25 @@ iscore::Value JsonToValue(const QJsonValue &val, QMetaType::Type t)
     return iscore::Value::fromVariant(QMetaType_QJSonValueToQVariant.at(t)(val));
 }
 
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const iscore::Value& val)
+{
+    auto type = val.val.typeName();
+    if(type)
+    {
+        m_obj["Type"] = QString::fromStdString(type);
+        m_obj["Value"] = ValueToJson(val);
+    }
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(iscore::Value& val)
+{
+    if(m_obj.contains("Type"))
+    {
+        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toLatin1()));
+        val = JsonToValue(m_obj["Value"], valueType);
+    }
+}
 

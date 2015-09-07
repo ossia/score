@@ -247,7 +247,8 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(
 #endif
     return nullptr;
 }
-
+#define xstr(s) str(s)
+#define str(s) #s
 void Presenter::setupMenus()
 {
     ////// File //////
@@ -315,7 +316,8 @@ void Presenter::setupMenus()
                                         AboutMenuElement::About, [] () {
         QMessageBox::about(nullptr,
                            tr("About i-score"),
-                           tr("With love and sweat from the i-score team.")); });
+                           tr("With love and sweat from the i-score team. \nCommit: ")
+                           + QString(xstr(GIT_COMMIT))); });
 }
 
 View* Presenter::view() const

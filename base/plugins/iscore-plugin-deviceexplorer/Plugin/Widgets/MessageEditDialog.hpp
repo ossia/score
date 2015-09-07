@@ -1,5 +1,6 @@
 #pragma once
 #include <QDialog>
+#include "ValueWrapper.hpp"
 
 namespace iscore
 {
@@ -11,8 +12,7 @@ class DeviceExplorerModel;
 class AddressEditWidget;
 class QFormLayout;
 class QComboBox;
-class ValueWrapper;
-
+class ValueWidget;
 /**
  * @brief The MessageEditDialog class
  *
@@ -44,5 +44,5 @@ class MessageEditDialog : public QDialog
 
         QFormLayout* m_lay{};
         QComboBox* m_typeCombo{};
-        ValueWrapper* m_val{};
+        WidgetWrapper<ValueWidget>* m_val{};
 };

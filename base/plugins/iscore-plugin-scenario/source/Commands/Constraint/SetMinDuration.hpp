@@ -1,38 +1,67 @@
 #pragma once
-#include <iscore/command/PropertyCommand.hpp>
+#include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include "Document/Constraint/ConstraintModel.hpp"
 
 class ConstraintModel;
 namespace Scenario
 {
-    namespace Command
-    {
-    /**
-     * @brief The SetMinDuration class
-     *
-     * Sets the Min duration of a Constraint
-     */
-    // TODO this does not work anymore since the properties have been moved in a sub-object
-    class SetMinDuration : public iscore::PropertyCommand
-    {
-            ISCORE_COMMAND_DECL_OBSOLETE("SetMinDuration", "Set constraint minimum")
-        public:
-            ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetMinDuration, "ScenarioControl")
+namespace Command
+{
+/**
+ * @brief The SetMinDuration class
+ *
+ * Sets the Min duration of a Constraint
+ */
+class SetMinDuration : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL("ScenarioControl", "SetMinDuration", "Set constraint minimum")
+    public:
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetMinDuration)
 
-            SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
-                iscore::PropertyCommand{
-                std::move(path), "minDuration", QVariant::fromValue(newval), "ScenarioControl", commandName(), description()}
-            {
+        SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
+            iscore::SerializableCommand{
+                factoryName(), commandName(), description()},
+        m_path{std::move(path)},
+        m_oldVal{m_path.find().duration.minDuration()},
+        m_newVal{newval}
+        {
+        }
 
-            }
+        void update(const Path<ConstraintModel>&, const TimeValue &newval)
+        {
+            m_newVal = newval;
+        }
 
-            void update(const Path<ConstraintModel> & p, const TimeValue &newval)
-            {
-                iscore::PropertyCommand::update(p, QVariant::fromValue(newval));
-            }
-    };
-    }
+        virtual void undo() override
+        {
+            m_path.find().duration.setMinDuration(m_oldVal);
+        }
+
+        virtual void redo() override
+        {
+            m_path.find().duration.setMinDuration(m_newVal);
+        }
+
+    protected:
+        virtual void serializeImpl(QDataStream& s) const override
+        {
+            s << m_path << m_oldVal << m_newVal;
+        }
+        virtual void deserializeImpl(QDataStream& s) override
+        {
+            s >> m_path >> m_oldVal >> m_newVal;
+        }
+
+    private:
+        Path<ConstraintModel> m_path;
+
+        TimeValue m_oldVal;
+        TimeValue m_newVal;
+};
+
+}
 }

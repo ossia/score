@@ -14,7 +14,7 @@ void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
     // Create the node. It is added into the device.
     OSSIA::Node* node = createNodeFromPath(settings.address.path, m_dev.get());
 
-    // Populate the node with an address
+    // Populate the node with an address. Won't add one if IOType == Invalid.
     createOSSIAAddress(settings, node);
 }
 
@@ -24,7 +24,11 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
     using namespace OSSIA;
 
     OSSIA::Node* node = getNodeFromPath(settings.address.path, m_dev.get());
-    updateOSSIAAddress(settings, node->getAddress());
+
+    if(settings.ioType == iscore::IOType::Invalid)
+        removeOSSIAAddress(node);
+    else
+        updateOSSIAAddress(settings, node->getAddress());
 }
 
 
@@ -34,10 +38,12 @@ void OSSIADevice::removeAddress(const iscore::Address& address)
 
     OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
     auto& children = node->getParent()->children();
-    auto it = boost::range::find_if(children,
-                                    [&] (auto&& elt) { return elt.get() == node; });
+    auto it = std::find_if(children.begin(), children.end(),
+                           [&] (auto&& elt) { return elt.get() == node; });
     if(it != children.end())
+    {
         children.erase(it);
+    }
 }
 
 

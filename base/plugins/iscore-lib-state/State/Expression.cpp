@@ -1,308 +1,172 @@
 #include "Expression.hpp"
 #include <algorithm>
-bool checkLeaves(const iscore::Expression* e)
+
+TreeNode<ExprData>::TreeNode():
+    ExprData{}
 {
-    auto c = e->children(); // TODO see why this isn't a const ref return.
-    if(c.isEmpty())
+
+}
+
+
+TreeNode<ExprData>::TreeNode(const iscore::ExprData& data):
+    ExprData{data}
+{
+
+}
+
+
+TreeNode<ExprData>::TreeNode(iscore::ExprData&& data):
+    ExprData{std::move(data)}
+{
+
+}
+
+TreeNode<ExprData>::TreeNode(const TreeNode<iscore::ExprData>& source, TreeNode<iscore::ExprData>* parent):
+    ExprData{static_cast<const ExprData&>(source)},
+    m_parent{parent}
+{
+    for(const auto& child : source.m_children)
     {
-        return e->is<iscore::Relation>();
+        this->addChild(new TreeNode<ExprData>{*child, this});
     }
+}
+
+
+TreeNode<ExprData>&TreeNode<ExprData>::operator=(const TreeNode<iscore::ExprData>& source)
+{
+    static_cast<ExprData&>(*this) = static_cast<const ExprData&>(source);
+
+    qDeleteAll(m_children);
+    m_children.clear();
+
+    for(const auto& child : source.m_children)
+    {
+        this->addChild(new TreeNode<ExprData>{*child, this});
+    }
+
+    return *this;
+}
+
+
+TreeNode<ExprData>::~TreeNode()
+{
+    qDeleteAll(m_children);
+}
+
+
+void TreeNode<ExprData>::setParent(TreeNode<iscore::ExprData>* parent)
+{
+    ISCORE_ASSERT(!parent->is<iscore::Relation>());
+    if(m_parent)
+        m_parent->removeChild(this);
+
+    m_parent = parent;
+    m_parent->addChild(this);
+}
+
+
+TreeNode<iscore::ExprData>*TreeNode<ExprData>::parent() const
+{
+    return m_parent;
+}
+
+
+void TreeNode<ExprData>::insertChild(int index, TreeNode<iscore::ExprData>* n)
+{
+    ISCORE_ASSERT(n);
+    n->m_parent = this;
+    m_children.insert(index, n);
+}
+
+
+void TreeNode<ExprData>::addChild(TreeNode<iscore::ExprData>* n)
+{
+    ISCORE_ASSERT(n);
+
+    ISCORE_ASSERT(!this->is<iscore::Relation>());
+    n->m_parent = this;
+    m_children.append(n);
+}
+
+
+void TreeNode<ExprData>::swapChildren(int oldIndex, int newIndex)
+{
+    ISCORE_ASSERT(oldIndex < m_children.count());
+    ISCORE_ASSERT(newIndex < m_children.count());
+
+    m_children.swap(oldIndex, newIndex);
+}
+
+
+TreeNode<iscore::ExprData>*TreeNode<ExprData>::takeChild(int index)
+{
+    TreeNode* n = m_children.takeAt(index);
+    ISCORE_ASSERT(n);
+    n->m_parent = 0;
+    return n;
+}
+
+
+void TreeNode<ExprData>::removeChild(TreeNode<iscore::ExprData>* child)
+{
+    m_children.removeAll(child);
+}
+
+
+
+
+QString ExprData::toString() const
+{
+    static const QMap<iscore::BinaryOperator, QString> binopMap{
+      { iscore::BinaryOperator::And, "and" },
+      { iscore::BinaryOperator::Or, "or" },
+      { iscore::BinaryOperator::Xor, "xor" },
+    };
+    static const QMap<iscore::UnaryOperator, QString> unopMap{
+        { iscore::UnaryOperator::Not, "not" },
+    };
+
+    if(is<iscore::Relation>())
+        return get<iscore::Relation>().toString();
+    else if(is<iscore::BinaryOperator>())
+         return binopMap[(get<iscore::BinaryOperator>())];
+    else if(is<iscore::UnaryOperator>())
+        return unopMap[(get<iscore::UnaryOperator>())];
+    else if(is<InvisibleRootNodeTag>())
+        return "";
     else
-    {
-        return std::all_of(
-                    c.cbegin(), c.cend(),
-                    [] (auto e) {
-            return checkLeaves(e);
-        });
-    }
+        ISCORE_ABORT;
 }
 
-bool iscore::validate(const iscore::Expression& expr)
+QString TreeNode<ExprData>::toString() const
 {
-    // Check that all the leaves are relations.
-    return checkLeaves(&expr);
-}
+    QString s;
 
-// Inspired from stackoverflow answer :
-// http://stackoverflow.com/a/8707598/1495627
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/variant/recursive_wrapper.hpp>
-namespace {
-namespace qi    = boost::spirit::qi;
-namespace phx   = boost::phoenix;
-
-struct op_or  {};
-struct op_and {};
-struct op_xor {};
-struct op_not {};
-
-typedef std::string var;
-template <typename tag> struct binop;
-template <typename tag> struct unop;
-
-typedef boost::variant<var,
-boost::recursive_wrapper<unop <op_not> >,
-boost::recursive_wrapper<binop<op_and> >,
-boost::recursive_wrapper<binop<op_xor> >,
-boost::recursive_wrapper<binop<op_or> >
-> expr;
-
-template <typename tag> struct binop
-{
-        explicit binop(const expr& l, const expr& r) : oper1(l), oper2(r) { }
-        expr oper1, oper2;
-};
-
-template <typename tag> struct unop
-{
-        explicit unop(const expr& o) : oper1(o) { }
-        expr oper1;
-};
-
-struct printer : boost::static_visitor<void>
-{
-        printer(std::ostream& os) : _os(os) {}
-        std::ostream& _os;
-
-        //
-        void operator()(const var& v) const { _os << v; }
-
-        void operator()(const binop<op_and>& b) const { print(" & ", b.oper1, b.oper2); }
-        void operator()(const binop<op_or >& b) const { print(" | ", b.oper1, b.oper2); }
-        void operator()(const binop<op_xor>& b) const { print(" ^ ", b.oper1, b.oper2); }
-
-        void print(const std::string& op, const expr& l, const expr& r) const
-        {
-            _os << "(";
-            boost::apply_visitor(*this, l);
-            _os << op;
-            boost::apply_visitor(*this, r);
-            _os << ")";
-        }
-
-        void operator()(const unop<op_not>& u) const
-        {
-            _os << "(";
-            _os << "!";
-            boost::apply_visitor(*this, u.oper1);
-            _os << ")";
-        }
-};
-
-std::ostream& operator<<(std::ostream& os, const expr& e)
-{ boost::apply_visitor(printer(os), e); return os; }
-
-template <typename It, typename Skipper = qi::space_type>
-    struct parser : qi::grammar<It, expr(), Skipper>
-{
-    parser() : parser::base_type(expr_)
+    auto exprstr = static_cast<const iscore::ExprData&>(*this).toString();
+    if(m_children.count() == 0) // Relation
     {
-        using namespace qi;
-
-        expr_  = or_.alias();
-
-        or_  = (xor_ >> "or"  >> or_ ) [ _val = phx::construct<binop<op_or >>(_1, _2) ] | xor_   [ _val = _1 ];
-        xor_ = (and_ >> "xor" >> xor_) [ _val = phx::construct<binop<op_xor>>(_1, _2) ] | and_   [ _val = _1 ];
-        and_ = (not_ >> "and" >> and_) [ _val = phx::construct<binop<op_and>>(_1, _2) ] | not_   [ _val = _1 ];
-        not_ = ("not" > simple       ) [ _val = phx::construct<unop <op_not>>(_1)     ] | simple [ _val = _1 ];
-
-        simple = (('(' > expr_ > ')') | var_);
-        var_ = qi::lexeme[ +alpha ];
-
-        BOOST_SPIRIT_DEBUG_NODE(expr_);
-        BOOST_SPIRIT_DEBUG_NODE(or_);
-        BOOST_SPIRIT_DEBUG_NODE(xor_);
-        BOOST_SPIRIT_DEBUG_NODE(and_);
-        BOOST_SPIRIT_DEBUG_NODE(not_);
-        BOOST_SPIRIT_DEBUG_NODE(simple);
-        BOOST_SPIRIT_DEBUG_NODE(var_);
+        s = "(" + exprstr + ")";
     }
-
-  private:
-    qi::rule<It, var() , Skipper> var_;
-    qi::rule<It, expr(), Skipper> not_, and_, xor_, or_, simple, expr_;
-};
-
-int test()
-{
-    for (auto& input : std::list<std::string> {
-            // From the OP:
-            "(a and b) xor ((c and d) or (a and b));",
-            "a and b xor (c and d or a and b);",
-
-            /// Simpler tests:
-            "a and b;",
-            "a or b;",
-            "a xor b;",
-            "not a;",
-            "not a and b;",
-            "not (a and b);",
-            "a or b or c;",
-            })
+    else if(m_children.count() == 1) // unop
     {
-        auto f(std::begin(input)), l(std::end(input));
-        parser<decltype(f)> p;
-
-        try
-        {
-            expr result;
-            bool ok = qi::phrase_parse(f,l,p > ';',qi::space,result);
-
-            if (!ok)
-                std::cerr << "invalid input\n";
-            else
-                std::cout << "result: " << result << "\n";
-
-        } catch (const qi::expectation_failure<decltype(f)>& e)
-        {
-            std::cerr << "expectation_failure at '" << std::string(e.first, e.last) << "'\n";
-        }
-
-        if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
+        s = "(" + exprstr + " " + m_children.at(0)->toString() + ")";
     }
-
-    return 0;
-}
-
-}
-
-
-    // Maps to GiNaC::relational::operators
-    static const QStringList operator_map_rels{"==", "!=", ">", "<", ">=", "<="}; // In the order of iscore::Relation::Operator
-    static const QStringList ordered_rels{"==", "!=", "<=", ">=", "<", ">"}; // Else parsing fails due to < matching before <=
-
-    static iscore::Relation::Operator toOp(const QString& str)
+    else // binop
     {
-        return static_cast<iscore::Relation::Operator>(operator_map_rels.indexOf(str));
-    }
-
-    static iscore::RelationMember toRelationMember(QString str, bool* ok)
-    {
-        // If it's matching an address, the convert it to an address
-        if(iscore::Address::validateString(str))
+        ISCORE_ASSERT(m_children.count() == 2);
+        int n = 0;
+        int max_n = m_children.count() - 1;
+        for(const auto& child : m_children)
         {
-            return iscore::Address::fromString(str);
-        }
-        else
-        {
-            // Else try to convert it to a value.
-            bool local_ok = false;
-            iscore::Value v;
-            v.val = str.toInt(&local_ok);
-            if(local_ok)
+            s += child->toString() + " ";
+            if(n < max_n)
             {
-                return v;
+                s += exprstr + " ";
+                n++;
             }
-
-            v.val = str.toFloat(&local_ok);
-            if(local_ok)
-            {
-                return v;
-            }
-
-            if(str == "true")
-            {
-                v.val = true;
-                return v;
-            }
-
-            if(str == "false")
-            {
-                v.val = false;
-                return v;
-            }
-
-            if(str.size() == 3 && str.at(0) == '\'' && str.at(2) ==  '\'')
-            {
-                // char ('a').
-                v.val = str.at(1).toLatin1();
-                return v;
-            }
-
-            if(str.at(0) == '"' && str.at(str.size() - 1) == '"')
-            {
-                // string ("dada dodo")
-                str.remove(0, 1);
-                str.remove(str.size() - 1, 1);
-
-                v.val = str;
-                return v;
-            }
-
-            *ok = false;
-            return v;
-
-
         }
     }
 
-static iscore::Relation toRelation(const QString& str, bool* ok)
-{
-    qDebug() << str;
-
-    QString found_rel;
-    QStringList res;
-    for(const QString& rel : ordered_rels)
-    {
-        if(str.contains(rel))
-        {
-            res = str.split(rel);
-            found_rel = rel;
-            break;
-        }
-    }
-
-    if(res.size() != 2)
-    {
-        *ok = false;
-        return {};
-    }
-
-
-    iscore::Relation relation;
-
-    relation.op = toOp(found_rel);
-    relation.lhs = toRelationMember(res[0], ok);
-    relation.rhs = toRelationMember(res[1], ok);
-
-    return relation;
+    return s;
 }
 
-    struct expr_builder : boost::static_visitor<void>
-    {
-            iscore::Expression root;
-            iscore::Expression* current{};
-    //
-    void operator()(const var& v) const
-    {
-        auto str = QString::fromStdString(v);
-        // First check if it's a relation.
-    }
-
-    void operator()(const binop<op_and>& b) const { print(" & ", b.oper1, b.oper2); }
-    void operator()(const binop<op_or >& b) const { print(" | ", b.oper1, b.oper2); }
-    void operator()(const binop<op_xor>& b) const { print(" ^ ", b.oper1, b.oper2); }
-
-    void print(const std::string& op, const expr& l, const expr& r) const
-    {
-    //_os << "(";
-    boost::apply_visitor(*this, l);
-    //_os << op;
-    boost::apply_visitor(*this, r);
-    //_os << ")";
-}
-
-    void operator()(const unop<op_not>& u) const
-    {
-    //_os << "(";
-    //_os << "!";
-    boost::apply_visitor(*this, u.oper1);
-    //_os << ")";
-}
-};
-iscore::Expression iscore::parse(const QString& str)
-{
-
-}

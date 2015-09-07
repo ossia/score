@@ -2,19 +2,66 @@
 
 #include <QComboBox>
 #include <QDialogButtonBox>
-#include <QGridLayout>
+#include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
 
 #include "Common/AddressSettings/AddressSettingsFactory.hpp"
 #include "Common/AddressSettings/Widgets/AddressSettingsWidget.hpp"
-
-AddressEditDialog::AddressEditDialog(QWidget* parent)
-    : QDialog(parent),
-      m_addressWidget(nullptr), m_index(-1)
+AddressEditDialog::AddressEditDialog(
+        QWidget* parent):
+    AddressEditDialog{makeDefaultSettings(), parent}
 {
-    setModal(true);
-    buildGUI();
+    m_nameEdit->setEnabled(true);
+}
+
+AddressEditDialog::AddressEditDialog(
+        const iscore::AddressSettings& addr,
+        QWidget* parent)
+    : QDialog{parent},
+      m_originalSettings{addr}
+{
+    m_layout = new QFormLayout;
+    setLayout(m_layout);
+
+    // Name
+    m_nameEdit = new QLineEdit(this);
+    m_nameEdit->setEnabled(false); // TODO update when we can do it in the API
+    m_layout->addRow(tr("Name"), m_nameEdit);
+
+    setNodeSettings();
+
+
+    if(m_originalSettings.ioType != iscore::IOType::Invalid)
+    {
+        // Value type
+        m_valueTypeCBox = new QComboBox(this);
+        m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
+        connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+                this, &AddressEditDialog::updateType);
+
+        m_layout->addRow(tr("Value type"), m_valueTypeCBox);
+
+        // AddressWidget
+        m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
+        m_layout->addWidget(m_addressWidget);
+
+        setValueSettings();
+    }
+    else
+    {
+        // Make a way to add addresses when there are none.
+        // e. g. "Add address" and "Remove address" button.
+        ISCORE_TODO;
+    }
+
+    // Ok / Cancel
+    auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok
+            | QDialogButtonBox::Cancel, Qt::Horizontal, this};
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    m_layout->addWidget(buttonBox);
 }
 
 AddressEditDialog::~AddressEditDialog()
@@ -22,97 +69,11 @@ AddressEditDialog::~AddressEditDialog()
 
 }
 
-void
-AddressEditDialog::buildGUI()
+void AddressEditDialog::updateType()
 {
-    QLabel* nameLabel = new QLabel(tr("Name"), this);
-    m_nameEdit = new QLineEdit(this);
-
-    QLabel* valueTypeLabel = new QLabel(tr("Value type"), this);
-    m_valueTypeCBox = new QComboBox(this);
-
-    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
-            | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-
-
-    m_gLayout = new QGridLayout;
-    m_gLayout->addWidget(nameLabel, 0, 0, 1, 1);
-    m_gLayout->addWidget(m_nameEdit, 0, 1, 1, 1);
-
-    m_gLayout->addWidget(valueTypeLabel, 1, 0, 1, 1);
-    m_gLayout->addWidget(m_valueTypeCBox, 1, 1, 1, 1);
-
-    //keep one row for m_addressWidget
-
-    m_gLayout->addWidget(buttonBox, 3, 0, 1, 2);
-
-    setLayout(m_gLayout);
-
-    initAvailableValueTypes(); //populate m_valueTypeCBox
-
-    connect(m_valueTypeCBox, SIGNAL(currentIndexChanged(int)), this, SLOT(updateNodeWidget()));
-
-    if(m_valueTypeCBox->count() > 0)
-    {
-        ISCORE_ASSERT(m_valueTypeCBox->currentIndex() == 0);
-        updateNodeWidget();
-    }
-
-    m_nameEdit->setText("addr");
-}
-
-void
-AddressEditDialog::initAvailableValueTypes()
-{
-    ISCORE_ASSERT(m_valueTypeCBox);
-
-    m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
-
-    //initialize previous settings
-    m_previousSettings.clear();
-
-    for(int i = 0; i < m_valueTypeCBox->count(); ++i)
-    {
-        m_previousSettings.append(iscore::AddressSettings{});
-    }
-
-    m_index = m_valueTypeCBox->currentIndex();
-}
-
-void
-AddressEditDialog::updateNodeWidget()
-{
-    ISCORE_ASSERT(m_valueTypeCBox);
-
-    if(m_addressWidget)
-    {
-        ISCORE_ASSERT(m_index < m_valueTypeCBox->count());
-        ISCORE_ASSERT(m_index < m_previousSettings.count());
-
-        m_previousSettings[m_index] = m_addressWidget->getSettings();
-        delete m_addressWidget;
-    }
-
-    m_index = m_valueTypeCBox->currentIndex();
-
     const QString valueType = m_valueTypeCBox->currentText();
-    m_addressWidget = AddressSettingsFactory::instance().getValueTypeWidget(valueType);
-
-    if(m_addressWidget)
-    {
-/*
-        //set previous settings for this protocol if any
-        if(! m_previousSettings.at(m_index).name.isEmpty())
-        {
-            m_addressWidget->setSettings(m_previousSettings.at(m_index));
-        }
-//*/
-        m_gLayout->addWidget(m_addressWidget, 2, 0, 1, 2);
-        updateGeometry();
-    }
-
+    m_addressWidget->setWidget(AddressSettingsFactory::instance().getValueTypeWidget(valueType));
+    m_addressWidget->widget()->setSettings(m_originalSettings);
 }
 
 
@@ -120,9 +81,9 @@ iscore::AddressSettings AddressEditDialog::getSettings() const
 {
     iscore::AddressSettings settings;
 
-    if(m_addressWidget)
+    if(m_addressWidget && m_addressWidget->widget())
     {
-        settings = m_addressWidget->getSettings();
+        settings = m_addressWidget->widget()->getSettings();
     }
     else
     {
@@ -143,49 +104,40 @@ iscore::AddressSettings AddressEditDialog::makeDefaultSettings()
         s.value = iscore::Value::fromVariant(0);
         s.domain.min = iscore::Value::fromVariant(0);
         s.domain.max = iscore::Value::fromVariant(100);
+        s.ioType = iscore::IOType::InOut;
         return s;
     }();
 
     return defaultSettings;
 }
 
-void
-AddressEditDialog::setSettings(const iscore::AddressSettings& settings)
+void AddressEditDialog::setNodeSettings()
 {
-    const QString name = settings.name;
+    const QString name = m_originalSettings.name;
     m_nameEdit->setText(name);
+}
 
-    QString type;
-    switch(static_cast<QMetaType::Type>(settings.value.val.type()))
+void AddressEditDialog::setValueSettings()
+{
+    // TODO find a way to keep this in sync with
+    // AddressSettingsFactory::AddressSettingsFactory()
+    static const QMap<QMetaType::Type, QString> typeMap
     {
-        case QMetaType::Int:
-            type = "Int";
-            break;
-        case QMetaType::Float:
-            type = "Float";
-            break;
-        case QMetaType::QString:
-            type = "String";
-            break;
-        case QMetaType::Bool:
-            type = "Bool";
-            break;
-        case QMetaType::Char:
-            type = "Char";
-            break;
-        case QMetaType::QVariantList:
-            type = "Tuple";
-            break;
-        default:
-            type = "None";
-            break;
-    }
+        {QMetaType::Int, tr("Int")},
+        {QMetaType::Float, tr("Float")},
+        {QMetaType::QString, tr("String")},
+        {QMetaType::Bool, tr("Bool")},
+        {QMetaType::QChar, tr("Char")},
+        {QMetaType::QVariantList, tr("Tuple")},
+        {QMetaType::UnknownType, tr("Impulse")}
+    };
+
+    auto t = static_cast<QMetaType::Type>(m_originalSettings.value.val.type());
+    ISCORE_ASSERT(typeMap.contains(t));
+    QString type = typeMap[t];
 
     const int index = m_valueTypeCBox->findText(type);
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_valueTypeCBox->count());
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
-
-    m_addressWidget->setSettings(settings);
-
 }

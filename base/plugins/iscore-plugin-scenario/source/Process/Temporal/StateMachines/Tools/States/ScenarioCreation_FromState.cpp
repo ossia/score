@@ -142,44 +142,54 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
         {
-            if(!createdConstraints.empty() && !createdEvents.empty())
+            if(createdConstraints.empty() || createdEvents.empty())
             {
-                if(!m_parentSM.isShiftPressed())
-                {
-                    const auto&  st = m_parentSM.model().state(clickedState);
-                    currentPoint.y = st.heightPercentage();
-                }
-
-                m_dispatcher.submitCommand<MoveNewEvent>(
-                            Path<ScenarioModel>{m_scenarioPath},
-                            createdConstraints.last(), // TODO CheckMe
-                            createdEvents.last(),// TODO CheckMe
-                            currentPoint.date,
-                            currentPoint.y,
-                            !stateMachine.isShiftPressed());
+                rollback();
+                return;
             }
+
+            if(!m_parentSM.isShiftPressed())
+            {
+                const auto&  st = m_parentSM.model().state(clickedState);
+                currentPoint.y = st.heightPercentage();
+            }
+
+            m_dispatcher.submitCommand<MoveNewEvent>(
+                        Path<ScenarioModel>{m_scenarioPath},
+                        createdConstraints.last(),
+                        createdEvents.last(),
+                        currentPoint.date,
+                        currentPoint.y,
+                        !stateMachine.isShiftPressed());
+
         });
 
         QObject::connect(move_event, &QState::entered, [&] ()
         {
-            if(!createdStates.empty())
+            if(createdStates.empty())
             {
-                m_dispatcher.submitCommand<MoveNewState>(
-                            Path<ScenarioModel>{m_scenarioPath},
-                            createdStates.last(),
-                            currentPoint.y);
+                rollback();
+                return;
             }
+
+            m_dispatcher.submitCommand<MoveNewState>(
+                        Path<ScenarioModel>{m_scenarioPath},
+                        createdStates.last(),
+                        currentPoint.y);
         });
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
         {
-            if(!createdStates.empty())
+            if(createdStates.empty())
             {
-                m_dispatcher.submitCommand<MoveNewState>(
-                            Path<ScenarioModel>{m_scenarioPath},
-                            createdStates.last(),
-                            currentPoint.y);
+                rollback();
+                return;
             }
+
+            m_dispatcher.submitCommand<MoveNewState>(
+                        Path<ScenarioModel>{m_scenarioPath},
+                        createdStates.last(),
+                        currentPoint.y);
         });
 
         QObject::connect(released, &QState::entered, [&] ()

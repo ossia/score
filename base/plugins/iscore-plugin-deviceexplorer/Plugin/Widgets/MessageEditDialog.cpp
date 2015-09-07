@@ -2,7 +2,6 @@
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 #include "AddressEditWidget.hpp"
-#include "ValueWrapper.hpp"
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
 #include <State/Widgets/Values/BoolValueWidget.hpp>
@@ -28,7 +27,7 @@ MessageEditDialog::MessageEditDialog(const iscore::Message &mess, DeviceExplorer
     connect(m_typeCombo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, &MessageEditDialog::on_typeChanged);
 
-    m_val = new ValueWrapper{this};
+    m_val = new WidgetWrapper<ValueWidget>{this};
     m_lay->addItem(new QSpacerItem(10, 10));
     m_lay->addRow(tr("Type"), m_typeCombo);
     m_lay->addRow(tr("Value"), m_val);
@@ -51,8 +50,8 @@ const iscore::Address &MessageEditDialog::address() const
 
 QVariant MessageEditDialog::value() const
 {
-    if(m_val && m_val->valueWidget())
-        return m_val->valueWidget()->value();
+    if(m_val && m_val->widget())
+        return m_val->widget()->value();
     else
         return {};
 }
@@ -69,7 +68,7 @@ void MessageEditDialog::initTypeCombo()
         case QMetaType::Float:
             m_typeCombo->setCurrentIndex(2);
             break;
-        case QMetaType::Char:
+        case QMetaType::QChar:
             m_typeCombo->setCurrentIndex(3);
             break;
         case QMetaType::QString:

@@ -1,5 +1,6 @@
 #pragma once
 #include <QVariant>
+#include <iscore/serialization/VisitorInterface.hpp>
 
 namespace iscore
 {
@@ -54,6 +55,7 @@ struct Value
             return false;
         }
 
+        QString toString() const;
         /*
         template<typename Fun> auto map(Fun&& f)
         {

@@ -20,6 +20,10 @@
 #include <QJsonDocument>
 #include <iostream>
 #include <QMimeData>
+#include "Singletons/SingletonProtocolList.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+#include "Widgets/DeviceEditDialog.hpp"
+#include <QApplication>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -198,10 +202,6 @@ void DeviceExplorerModel::removeNode(Node* node)
     delete node;
 }
 
-#include "Singletons/SingletonProtocolList.hpp"
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include "Widgets/DeviceEditDialog.hpp"
-#include <QApplication>
 bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
 {
     // Request from the protocol factory the protocol to see
@@ -211,12 +211,12 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(iscore::DeviceSettings& n)
         return false;
 
     // Look for other childs in the same protocol.
-    for(const auto& child : rootNode().children())
+    for(const auto& child : rootNode())
     {
-        ISCORE_ASSERT(child->is<DeviceSettings>());
-        if(child->get<DeviceSettings>().protocol == n.protocol)
+        ISCORE_ASSERT(child.is<DeviceSettings>());
+        if(child.get<DeviceSettings>().protocol == n.protocol)
         {
-            if(!prot->checkCompatibility(n, child->get<DeviceSettings>()))
+            if(!prot->checkCompatibility(n, child.get<DeviceSettings>()))
             {
                 // Open a device edit window
                 // it should take care of incompatibility with the other
@@ -246,12 +246,13 @@ DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
     }
 
     Node* parentNode = nodeFromModelIndex(parent);
-    if(! parentNode) return {};
+    if(! parentNode)
+        return {};
 
-    Node* childNode = parentNode->childAt(row);  //value() return 0 if out of bounds
-    if(! childNode) return {};
+    if(!parentNode->hasChild(row))
+        return {};
 
-    return createIndex(row, column, childNode);
+    return createIndex(row, column, &parentNode->childAt(row));
 }
 
 Node*
@@ -628,7 +629,11 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
-void DeviceExplorerModel::editData(const iscore::NodePath &path, DeviceExplorerModel::Column column, const QVariant &value, int role)
+void DeviceExplorerModel::editData(
+        const iscore::NodePath &path,
+        DeviceExplorerModel::Column column,
+        const QVariant &value,
+        int role)
 {
     QModelIndex nodeIndex = convertPathToIndex(path);
     Node* node = nodeFromModelIndex(nodeIndex);
@@ -683,7 +688,11 @@ DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
         return index;
     }
 
-    return bottomIndex(createIndex(node->childCount() - 1, index.column(), node->childAt(node->childCount() - 1)));
+    return bottomIndex(
+                createIndex(
+                    node->childCount() - 1,
+                    index.column(),
+                    &node->childAt(node->childCount() - 1)));
 }
 
 //this method is called (behind the scenes) when there is a drag and drop to delete the original dragged rows once they have been dropped (dropped rows are inserted using insertRows)
@@ -779,7 +788,7 @@ DeviceExplorerModel::cut_aux(const QModelIndex& index)
     if(row > 0)
     {
         --row;
-        return DeviceExplorer::Result(createIndex(row, 0, parent->childAt(row)));
+        return DeviceExplorer::Result(createIndex(row, 0, &parent->childAt(row)));
     }
 
     if(parent != &m_rootNode)

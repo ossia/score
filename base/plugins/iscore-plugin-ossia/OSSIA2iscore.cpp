@@ -58,10 +58,10 @@ iscore::Value ToValue(const OSSIA::Value *val)
             v = safe_cast<const OSSIA::Int*>(val)->value;
             break;
         case OSSIA::Value::Type::FLOAT:
-            v= safe_cast<const OSSIA::Float*>(val)->value;
+            v = safe_cast<const OSSIA::Float*>(val)->value;
             break;
         case OSSIA::Value::Type::CHAR:
-            v = safe_cast<const OSSIA::Char*>(val)->value;
+            v = QChar::fromLatin1(safe_cast<const OSSIA::Char*>(val)->value);
             break;
         case OSSIA::Value::Type::STRING:
             v = QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value);
@@ -98,8 +98,9 @@ iscore::Value ToValue(const OSSIA::Value *val)
 iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 {
     iscore::AddressSettings s;
-    const auto& addr = node.getAddress();
     s.name = QString::fromStdString(node.getName());
+
+    const auto& addr = node.getAddress();
 
     if(addr)
     {

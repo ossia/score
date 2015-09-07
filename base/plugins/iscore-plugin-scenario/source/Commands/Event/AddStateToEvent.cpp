@@ -26,7 +26,7 @@ void AddStateToStateModel::undo()
 {
     auto& stateModel = m_path.find();
     auto parent = m_parentPath.toNode(&stateModel.states().rootNode());
-    stateModel.states().removeState(parent->childAt(m_pos));
+    stateModel.states().removeState(&parent->childAt(m_pos));
 }
 
 void AddStateToStateModel::redo()

@@ -22,7 +22,7 @@ ChangeAddress::ChangeAddress(
     // Get the current data.
     auto oldpath = autom.address().path;
     oldpath.prepend(autom.address().device);
-    auto old_n = iscore::try_getNodeFromString(&deviceexplorer->rootNode(), std::move(oldpath));
+    auto old_n = iscore::try_getNodeFromString(deviceexplorer->rootNode(), std::move(oldpath));
     if(old_n)
     {
         ISCORE_ASSERT(!old_n->is<iscore::DeviceSettings>());
@@ -38,7 +38,7 @@ ChangeAddress::ChangeAddress(
     // Get the new data.
     auto newpath = newval.path;
     newpath.prepend(newval.device);
-    auto new_n = iscore::try_getNodeFromString(&deviceexplorer->rootNode(), std::move(newpath));
+    auto new_n = iscore::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
     if(new_n)
     {
         ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());

@@ -6,27 +6,25 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const MIDISpecificSettings& n)
 {
-    m_stream << static_cast<int>(n.io) << n.endpoint;
+    m_stream << n.io << n.endpoint;
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(MIDISpecificSettings& n)
 {
-    int io;
-    m_stream >> io >> n.endpoint;
-    n.io = static_cast<MIDISpecificSettings::IO>(io);
+    m_stream >> n.io >> n.endpoint;
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const MIDISpecificSettings& n)
 {
-    m_obj["IO"] = static_cast<int>(n.io);
+    m_obj["IO"] = toJsonValue(n.io);
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(MIDISpecificSettings& n)
 {
-    n.io = static_cast<MIDISpecificSettings::IO>(m_obj["IO"].toInt());
+    fromJsonValue(m_obj["IO"], n.io);
 }

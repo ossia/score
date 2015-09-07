@@ -1,23 +1,22 @@
 #include "DoubleSlider.hpp"
 #include <QSlider>
 #include <numeric>
+#include <iscore/widgets/MarginLess.hpp>
 #include <QGridLayout>
 
-static const constexpr double max = std::numeric_limits<int>::max();
+static const constexpr double max = std::numeric_limits<int>::max() / 16384;
 
 DoubleSlider::DoubleSlider(QWidget* parent):
     QWidget{parent},
     m_slider{new QSlider{Qt::Horizontal}}
 {
-    m_slider->setContentsMargins(0, 0, 0, 0);
+    //m_slider->setContentsMargins(0, 0, 0, 0);
     m_slider->setMinimum(0);
-    m_slider->setMaximum(std::numeric_limits<int>::max());
+    m_slider->setMaximum(std::numeric_limits<int>::max() / 16384);
 
-    auto lay = new QGridLayout;
-    setLayout(lay);
+    auto lay = new iscore::MarginLess<QGridLayout>;
     lay->addWidget(m_slider);
-    lay->setContentsMargins(0, 0, 0, 0);
-    lay->setSpacing(0);
+    setLayout(lay);
 
     connect(m_slider, &QSlider::valueChanged,
             this, [&] (int val)
