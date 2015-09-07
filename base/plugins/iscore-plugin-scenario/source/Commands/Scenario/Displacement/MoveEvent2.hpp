@@ -42,14 +42,14 @@ namespace Scenario
                 m_mode{mode}
                 {
                        update(
-                                std::move(m_path), //TODO euh oui ptet faudrai voir avec janmi
+                                m_path,
                                 eventId,
                                 deltaDate,
                                 m_mode);
                 }
         void
         update(
-                Path<ScenarioModel>&& scenarioPath,
+                const Path<ScenarioModel>& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& deltaDate,
                 ExpandMode mode)
