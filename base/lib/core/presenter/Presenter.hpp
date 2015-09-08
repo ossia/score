@@ -71,6 +71,7 @@ namespace iscore
 
             // Methods to save and load
             bool saveDocument(Document*);
+            bool saveDocumentAs(Document*);
 
             void loadDocument();
 

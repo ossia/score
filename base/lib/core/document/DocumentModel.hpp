@@ -62,10 +62,13 @@ namespace iscore
                 return it != end(m_pluginModels) ? safe_cast<T*>(*it) : nullptr;
             }
 
-        signals:
+            QString docFileName() const;
+            void setDocFileName(const QString &docFileName);
+
+    signals:
             void pluginModelsChanged();
 
-        public slots:
+    public slots:
             void setNewSelection(const Selection&);
 
         private:
@@ -75,6 +78,8 @@ namespace iscore
             void loadDocumentAsByteArray(
                     const QByteArray&,
                     DocumentDelegateFactoryInterface* fact);
+
+            QString m_docFileName{tr("Untitled")};
 
             QList<PanelModel*> m_panelModels;
             QList<DocumentDelegatePluginModel*> m_pluginModels;

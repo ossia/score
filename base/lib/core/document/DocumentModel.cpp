@@ -35,3 +35,13 @@ void DocumentModel::setNewSelection(const Selection& s)
 {
     m_model->setNewSelection(s);
 }
+
+QString DocumentModel::docFileName() const
+{
+    return m_docFileName;
+}
+
+void DocumentModel::setDocFileName(const QString &docFileName)
+{
+    m_docFileName = docFileName;
+}
