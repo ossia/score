@@ -10,9 +10,9 @@
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
 
-static void constraintCallback(const OSSIA::TimeValue&, const OSSIA::TimeValue&, std::shared_ptr<OSSIA::StateElement>)
+static void constraintCallback(const OSSIA::TimeValue& position, const OSSIA::TimeValue& date, std::shared_ptr<OSSIA::StateElement> element)
 {
-
+    element->launch();
 }
 static void statusCallback(OSSIA::TimeEvent::Status newStatus)
 {
