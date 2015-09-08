@@ -87,6 +87,9 @@ class DeviceExplorerModel : public QAbstractItemModel
                 iscore::Node * node,
                 const iscore::AddressSettings& addressSettings);
 
+        void updateValue(iscore::Node* n,
+                const iscore::Value& v);
+
         void removeNode(iscore::Node* node);
 
         // Checks if the settings can be added; if not,

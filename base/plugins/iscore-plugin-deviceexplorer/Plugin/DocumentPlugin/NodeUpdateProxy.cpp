@@ -1,7 +1,7 @@
 #include "NodeUpdateProxy.hpp"
 #include "DeviceDocumentPlugin.hpp"
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
-
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
@@ -194,5 +194,25 @@ void NodeUpdateProxy::removeAddress(
     {
         parentnode->removeChild(theNode);
         delete theNode;
+    }
+}
+
+void NodeUpdateProxy::updateValue(
+        const iscore::Address& addr,
+        const iscore::Value& v)
+{
+    auto n = iscore::try_getNodeFromAddress(m_devModel.rootNode(), addr);
+    if(!n->is<iscore::AddressSettings>())
+    {
+        qDebug() << "Updating invalid node";
+        return;
+    }
+    if(m_deviceExplorer)
+    {
+        m_deviceExplorer->updateValue(n, v);
+    }
+    else
+    {
+        n->get<iscore::AddressSettings>().value = v;
     }
 }

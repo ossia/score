@@ -41,6 +41,9 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
         // Instantiate a real device.
         auto proto = SingletonProtocolList::instance().protocol(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
+        connect(newdev, &DeviceInterface::valueUpdated,
+                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateValue(addr, v); });
+
         m_list.addDevice(newdev);
 
         for(auto& child : node)
