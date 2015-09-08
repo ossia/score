@@ -27,41 +27,71 @@ namespace Scenario
         template<class DisplacementPolicy>
         class MoveEvent2 : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("MoveEvent2", "MoveEvent2")
+                // No ISCORE_COMMAND here since it's a template.
+
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
+                static const char * commandName()
+                {
+                    static QByteArray name = QString{"MoveEvent2_%1"}.arg(DisplacementPolicy::name()).toLatin1();
+                    return name.constData();
+                }
+                static QString description()
+                {
+                    return QObject::tr("Move Event 2 With %1").arg(DisplacementPolicy::name());
+                }
+                static auto static_uid()
+                {
+                    using namespace std;
+                    hash<string> fn;
+                    return fn(std::string(commandName()));
+                }
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveEvent2, "ScenarioControl")
+                /**
+                 * @brief MoveEvent2
+                 * @param scenarioPath
+                 * @param eventId
+                 * @param newDate
+                 * !!! in the future it would be better to give directly the delta time of the mouse displacement  !!!
+                 * @param mode
+                 */
                 MoveEvent2(
                     Path<ScenarioModel>&& scenarioPath,
                     const Id<EventModel>& eventId,
-                    const TimeValue& deltaDate,
+                    const TimeValue& newDate,
                     ExpandMode mode)
                 :
                 SerializableCommand {"ScenarioControl", commandName(), description()},
                 m_path {std::move(scenarioPath)},
                 m_mode{mode}
                 {
-                       update(
-                                m_path,
-                                eventId,
-                                deltaDate,
-                                m_mode);
+                    m_initialDate = newDate;
+                    m_oldDate = m_initialDate;
+
+                    update(
+                            m_path,
+                            eventId,
+                            newDate,
+                            m_mode);
+
                 }
         void
         update(
                 const Path<ScenarioModel>& scenarioPath,
                 const Id<EventModel>& eventId,
-                const TimeValue& deltaDate,
+                const TimeValue& newDate,
                 ExpandMode mode)
         {
+            TimeValue deltaDate = newDate - m_oldDate;
+            m_oldDate = newDate;
+
             auto& scenario = m_path.find();
-            ElementsProperties m_elementsProperties;
 
             //NOTICE: multiple event displacement functionnality already available this is "retro" compatibility
             QVector <Id<TimeNodeModel>> draggedElements;
             draggedElements.push_back(scenario.event(eventId).timeNode());// retrieve corresponding timenode and store it in array
 
-            DisplacementPolicy::computeDisplacement(scenario, draggedElements, deltaDate, m_elementsProperties);
+            DisplacementPolicy::computeDisplacement(scenario, draggedElements, deltaDate, m_savedElementsProperties);
 
             /*
             // 1. Make a list of the constraints that need to be resized
@@ -107,6 +137,8 @@ namespace Scenario
                 void
                 undo() override
                 {
+                    m_oldDate = m_initialDate;
+
                     bool useNewValues{false};
                     DisplacementPolicy::updatePositions(
                                 m_path.find(),
@@ -196,6 +228,8 @@ namespace Scenario
                 void
                 redo() override
                 {
+
+
                     bool useNewValues{true};
                     DisplacementPolicy::updatePositions(
                                 m_path.find(),
@@ -254,6 +288,9 @@ namespace Scenario
                 DisplacementPolicy m_displacementPolicy;
                 ElementsProperties m_savedElementsProperties;
                 Path<ScenarioModel> m_path;
+
+                TimeValue m_oldDate; //used to compute the deltaTime
+                TimeValue m_initialDate; //used to compute the deltaTime and respect undo behavior
 
                 ExpandMode m_mode{ExpandMode::Scale};
 

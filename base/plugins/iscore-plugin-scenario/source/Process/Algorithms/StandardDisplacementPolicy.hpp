@@ -109,6 +109,11 @@ public:
             const TimeValue& deltaTime,
             ElementsProperties& elementsProperties);
 
+    static QString name()
+    {
+        return QString{"Old way"};
+    }
+
     template<typename ProcessScaleMethod>
     static
     void

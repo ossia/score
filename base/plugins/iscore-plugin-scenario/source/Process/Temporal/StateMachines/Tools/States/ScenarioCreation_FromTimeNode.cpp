@@ -5,6 +5,7 @@
 #include <Process/ScenarioModel.hpp>
 
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEvent2.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
@@ -204,10 +205,10 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                 return;
             }
 
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveEvent2<GoodOldDisplacementPolicy>>(
                         Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
-                        m_scenarioPath.find().timeNode(hoveredTimeNode).date(),
+                        TimeValue::zero(),
                         stateMachine.expandMode());
         });
 

@@ -141,7 +141,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
         m_dispatcher.submitCommand<MoveEvent2<GoodOldDisplacementPolicy>>(
                 iscore::IDocument::path(*safe_cast<ScenarioModel*>(m_model.parent())),
                 scenario->state(m_model.endState()).eventId(),
-                TimeValue::fromMsecs(val),// send the delta
+                m_model.startDate() + TimeValue::fromMsecs(val),
                 expandmode); // todo Take mode from scenario control
     }
     else
