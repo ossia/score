@@ -13,33 +13,34 @@ NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
 void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 {
     auto node = new iscore::Node(dev, nullptr);
-    m_devModel.createDeviceFromNode(*node);
+    auto newNode = m_devModel.createDeviceFromNode(*node);
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(node);
-    }
-    else
-    {
-        m_devModel.rootNode().insertChild(
-                    m_devModel.rootNode().childCount(), node);
-    }
-}
-
-void NodeUpdateProxy::loadDevice(const iscore::Node& node)
-{
-    m_devModel.createDeviceFromNode(node);
-
-    if(m_deviceExplorer)
-    {
-        m_deviceExplorer->addDevice(
-                    new iscore::Node{node});
+        m_deviceExplorer->addDevice(new iscore::Node{newNode, &m_devModel.rootNode()});
     }
     else
     {
         m_devModel.rootNode().insertChild(
                     m_devModel.rootNode().childCount(),
-                    new iscore::Node{node});
+                    new iscore::Node{newNode});
+    }
+}
+
+void NodeUpdateProxy::loadDevice(const iscore::Node& node)
+{
+    auto newNode = m_devModel.createDeviceFromNode(node);
+
+    if(m_deviceExplorer)
+    {
+        m_deviceExplorer->addDevice(
+                    new iscore::Node{newNode});
+    }
+    else
+    {
+        m_devModel.rootNode().insertChild(
+                    m_devModel.rootNode().childCount(),
+                    new iscore::Node{newNode});
     }
 }
 

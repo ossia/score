@@ -644,67 +644,12 @@ DeviceExplorerWidget::addDevice()
         ISCORE_ASSERT(model());
         auto deviceSettings = m_deviceDialog->getSettings();
         auto path = m_deviceDialog->getPath();
+        blockGUI(true);
 
         auto devplug_path = iscore::IDocument::path(model()->deviceModel());
         if(path.isEmpty())
         {
-            // TODO find a cleaner way, by checking the protocol capabilities somewhere.
-            if(deviceSettings.protocol != "Minuit")
-            {
-                m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
-            }
-            else
-            {
-                /*
-                // REFACTORME
-                // We try refreshing the device.
-                try {
-                    // Instantiate a real device.
-                    auto proto = SingletonProtocolList::instance().protocol(deviceSettings.protocol);
-                    auto newdev = proto->makeDevice(deviceSettings);
-
-                    auto wrkr = make_worker(
-                        [=] (iscore::Node&& node) {
-                            delete newdev;
-                            auto cmd = new LoadDevice{
-                                iscore::IDocument::path(model()->deviceModel()),
-                                std::move(node)};
-
-                            m_cmdDispatcher->submitCommand(cmd);
-                    }, *this, *newdev);
-
-                    // TODO newdev is not removed on failure.
-
-                    wrkr->start();
-                }
-                catch(...)
-                {
-                }
-                */
-
-                m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
-
-                auto createdNode = std::find_if(
-                            model()->rootNode().begin(),
-                            model()->rootNode().end(),
-                            [&] (const iscore::Node& n) { return n.get<iscore::DeviceSettings>().name == deviceSettings.name; } );
-                ISCORE_ASSERT(createdNode != model()->rootNode().end());
-
-                auto& createdDev = model()->deviceModel().list().device(deviceSettings.name);
-
-                auto row = model()->rootNode().indexOfChild(&*createdNode);
-                auto wrkr = make_worker(
-                    [=] (iscore::Node&& node) {
-                        auto cmd = new DeviceExplorer::Command::ReplaceDevice{
-                            iscore::IDocument::path(*model()),
-                            row,
-                            std::move(node)};
-
-                        m_cmdDispatcher->submitCommand(cmd);
-                }, *this, createdDev);
-
-                wrkr->start();
-            }
+            m_cmdDispatcher->submitCommand(new AddDevice{std::move(devplug_path), deviceSettings});
         }
         else
         {
@@ -712,6 +657,8 @@ DeviceExplorerWidget::addDevice()
             loadDeviceFromXML(path, n);
             m_cmdDispatcher->submitCommand(new LoadDevice{std::move(devplug_path), std::move(n)});
         }
+
+        blockGUI(false);
     }
 
     updateActions();

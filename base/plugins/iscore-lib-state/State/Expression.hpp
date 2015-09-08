@@ -79,6 +79,12 @@ class TreeNode<ExprData> : public ExprData
         TreeNode(const ExprData& data);
         TreeNode(ExprData&& data);
 
+        TreeNode(TreeNode&& other):
+            TreeNode{other, other.parent()}
+        {
+
+        }
+
         template<typename T>
         TreeNode(const T& data, TreeNode<ExprData> * parent):
             ExprData(data),
@@ -92,7 +98,7 @@ class TreeNode<ExprData> : public ExprData
         QString toString() const;
 
         // Clone
-        TreeNode(const TreeNode<ExprData>& source,
+        explicit TreeNode(const TreeNode<ExprData>& source,
                  TreeNode<ExprData>* parent = nullptr);
 
         TreeNode& operator=(const TreeNode<ExprData>& source);

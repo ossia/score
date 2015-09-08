@@ -34,7 +34,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         // TODO make functions that take an address and call list().device(...).TheRelevantMethod
 
         static void addNodeToDevice(DeviceInterface& dev, iscore::Node& node);
-        void createDeviceFromNode(const iscore::Node&);
+        iscore::Node createDeviceFromNode(const iscore::Node&);
 
         NodeUpdateProxy updateProxy{*this};
 
