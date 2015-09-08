@@ -193,8 +193,8 @@ bool Presenter::saveDocument(Document * doc)
 bool Presenter::saveDocumentAs(Document * doc)
 {
     QFileDialog d{m_view, tr("Save Document As")};
-    auto binFilter{tr("Binary (*.scorebin)")};
-    auto jsonFilter{tr("JSON (*.scorejson)")};
+    QString binFilter{tr("Binary (*.scorebin)")};
+    QString jsonFilter{tr("JSON (*.scorejson)")};
     QStringList filters;
     filters << binFilter
             << jsonFilter;
@@ -206,18 +206,20 @@ bool Presenter::saveDocumentAs(Document * doc)
 
     if(d.exec())
     {
-        auto savename = d.selectedFiles().first();
+        QString savename = d.selectedFiles().first();
         auto suf = d.selectedNameFilter();
 
         if(!savename.isEmpty())
         {
             if(suf == binFilter)
             {
-                savename += ".scorebin";
+                if(!savename.contains(".scorebin"))
+                    savename += ".scorebin";
             }
             else
             {
-                savename += ".scorejson";
+                if(!savename.contains(".scorejson"))
+                    savename += ".scorejson";
             }
 
             QSaveFile f{savename};
