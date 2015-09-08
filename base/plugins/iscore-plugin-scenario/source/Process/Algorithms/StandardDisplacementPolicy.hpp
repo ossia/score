@@ -7,7 +7,20 @@
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 
+#include <iscore/document/DocumentInterface.hpp>
+#include "Commands/Scenario/Deletions/ClearConstraint.hpp"
+#include "Document/Constraint/Rack/RackModel.hpp"
+#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
+
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "Process/Algorithms/StandardCreationPolicy.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
+#include <ProcessInterface/LayerModel.hpp>
+
 #include "Tools/dataStructures.hpp"
+
+using namespace iscore;
+using namespace Scenario::Command;
 
 /**
  * @brief The displacementPolicy class
@@ -94,6 +107,74 @@ public:
             }
 
             emit scenario.constraintMoved(curConstraintToUpdate);
+
+            // IF UNDO THEN RESTORE THE STATE OF THE CONSTRAINTS
+            if(! useNewValues)
+            {
+                // Now we have to restore the state of each constraint that might have been modified
+                // during this command.
+                auto& savedConstraintData = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id].savedDisplay;
+
+                // 1. Clear the constraint
+                // TODO Don't use a command since it serializes a ton of unused stuff.
+                ClearConstraint clear_cmd{Path<ConstraintModel>{savedConstraintData.first.first}};
+                clear_cmd.redo();
+
+                auto& constraint = savedConstraintData.first.first.find();
+                // 2. Restore the rackes & processes.
+
+                // TODO if possible refactor this with ReplaceConstraintContent and ConstraintModel::clone
+                // Be careful however, the code differs in subtle ways
+                {
+                    ConstraintModel src_constraint{
+                            Deserializer<DataStream>{savedConstraintData.first.second},
+                            &constraint}; // Temporary parent
+
+                    std::map<const Process*, Process*> processPairs;
+
+                    // Clone the processes
+                    for(const auto& sourceproc : src_constraint.processes)
+                    {
+                        auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
+
+                        processPairs.insert(std::make_pair(&sourceproc, newproc));
+                        constraint.processes.add(newproc);
+                    }
+
+                    // Clone the rackes
+                    for(const auto& sourcerack : src_constraint.racks)
+                    {
+                        // A note about what happens here :
+                        // Since we want to duplicate our process view models using
+                        // the target constraint's cloned shared processes (they might setup some specific data),
+                        // we maintain a pair mapping each original process to their cloned counterpart.
+                        // We can then use the correct cloned process to clone the process view model.
+                        auto newrack = new RackModel{
+                                sourcerack,
+                                sourcerack.id(),
+                                [&] (const SlotModel& source, SlotModel& target)
+                                {
+                                    for(const auto& lm : source.layers)
+                                    {
+                                        // We can safely reuse the same id since it's in a different slot.
+                                        Process* proc = processPairs[&lm.processModel()];
+                                        // TODO harmonize the order of parameters (source first, then new id)
+                                        target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
+                                    }
+                                },
+                                &constraint};
+                        constraint.racks.add(newrack);
+                    }
+                }
+
+                // 3. Restore the correct rackes in the constraint view models
+                for(auto& viewmodel : constraint.viewModels())
+                {
+                    viewmodel->showRack(savedConstraintData.second[viewmodel->id()]);
+                }
+            }
+
+
         }
     }
 };

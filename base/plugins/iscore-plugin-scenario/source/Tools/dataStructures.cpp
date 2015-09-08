@@ -31,7 +31,8 @@ void Visitor<Reader<DataStream>>::readFrom(const ConstraintProperties& constrain
     m_stream << constraintProperties.oldMin
              << constraintProperties.newMin
              << constraintProperties.oldMax
-             << constraintProperties.newMax;
+             << constraintProperties.newMax
+             << constraintProperties.savedDisplay;
 
     insertDelimiter();
 }
@@ -43,7 +44,8 @@ void Visitor<Writer<DataStream>>::writeTo(ConstraintProperties& constraintProper
     m_stream >> constraintProperties.oldMin
              >> constraintProperties.newMin
              >> constraintProperties.oldMax
-             >> constraintProperties.newMax;
+             >> constraintProperties.newMax
+             >> constraintProperties.savedDisplay;
 
     checkDelimiter();
 }

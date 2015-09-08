@@ -93,45 +93,6 @@ namespace Scenario
 
             DisplacementPolicy::computeDisplacement(scenario, draggedElements, deltaDate, m_savedElementsProperties);
 
-            /*
-            // 1. Make a list of the constraints that need to be resized
-            QSet<Id<ConstraintModel>> constraints;
-            for(const auto& tn_id : m_movableTimenodes)
-            {
-                const auto& tn = scenario.timeNode(tn_id);
-                for(const auto& ev_id : tn.events())
-                {
-                    const auto& ev = scenario.event(ev_id);
-                    for(const auto& st_id : ev.states())
-                    {
-                        const auto& st = scenario.state(st_id);
-                        if(st.previousConstraint())
-                            constraints += st.previousConstraint();
-                    }
-                }
-            }
-
-            // 2. Save them
-            for(const auto& cst_id : constraints)
-            {
-                const auto& constraint = scenario.constraint(cst_id);
-
-                // Save the constraint data
-                QByteArray arr;
-                Visitor<Reader<DataStream>> jr{&arr};
-                jr.readFrom(constraint);
-
-                // Save for each view model of this constraint
-                // the identifier of the rack that was displayed
-                QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
-                for(const ConstraintViewModel* vm : constraint.viewModels())
-                {
-                    map[vm->id()] = vm->shownRack();
-                }
-
-                m_savedConstraints.push_back({{iscore::IDocument::path(constraint), arr}, map});
-            }
-            */
         }
                 virtual
                 void
