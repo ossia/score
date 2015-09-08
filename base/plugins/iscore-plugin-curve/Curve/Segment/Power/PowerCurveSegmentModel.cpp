@@ -59,7 +59,8 @@ void PowerCurveSegmentModel::updateData(int numInterp) const
 
 double PowerCurveSegmentModel::valueAt(double x) const
 {
-    ISCORE_TODO;
+    return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
+
     return -1;
 }
 

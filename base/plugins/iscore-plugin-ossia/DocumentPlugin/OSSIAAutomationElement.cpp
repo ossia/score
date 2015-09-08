@@ -16,6 +16,7 @@
 
 #include "../iscore-plugin-curve/Curve/CurveModel.hpp"
 #include "../iscore-plugin-curve/Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "../iscore-plugin-curve/Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
@@ -24,6 +25,7 @@
 #include "Protocols/OSSIADevice.hpp"
 #include <API/Headers/Editor/Curve.h>
 #include <API/Headers/Editor/CurveSegment/CurveSegmentLinear.h>
+#include <API/Headers/Editor/CurveSegment/CurveSegmentPower.h>
 
 OSSIAAutomationElement::OSSIAAutomationElement(
         OSSIAConstraintElement* parentConstraint,
@@ -153,9 +155,19 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
     // For now we will assume that every segment is dynamic
     for(const auto& iscore_segment : m_iscore_autom->curve().segments())
     {
-        auto linearSegment = CurveSegmentLinear<T>::create(curve);
-        curve->addPoint(iscore_segment.start().x(), scale(iscore_segment.start().y()), linearSegment);
-        curve->addPoint(iscore_segment.end().x(), scale(iscore_segment.end().y()), linearSegment);
+        if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
+        {
+            auto linearSegment = CurveSegmentLinear<T>::create(curve);
+            curve->addPoint(segt->start().x(), scale(segt->start().y()), linearSegment);
+            curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
+        }
+        else if(auto segt = dynamic_cast<const PowerCurveSegmentModel*>(&iscore_segment))
+        {
+            auto powSegment = CurveSegmentPower<T>::create(curve);
+            powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
+            curve->addPoint(segt->start().x(), scale(segt->start().y()), powSegment);
+            curve->addPoint(segt->end().x(), scale(segt->end().y()), powSegment);
+        }
     }
 
     //curve->setInitialValue((*m_iscore_autom->curve().segments().begin()).start().y());
