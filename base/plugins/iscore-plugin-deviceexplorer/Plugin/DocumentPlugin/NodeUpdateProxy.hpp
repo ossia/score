@@ -49,4 +49,8 @@ class NodeUpdateProxy
         void removeAddress(
                 const iscore::NodePath& parentPath,
                 const iscore::AddressSettings& settings);
+
+        void updateValue(
+                const iscore::Address&,
+                const iscore::Value&);
 };

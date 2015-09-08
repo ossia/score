@@ -20,5 +20,6 @@ class MinuitDevice : public OSSIADevice
 
     private:
         std::shared_ptr<OSSIA::Minuit> m_minuitSettings;
-        iscore::Node* MinuitToDeviceExplorer(const OSSIA::Node& node);
+        iscore::Node* MinuitToDeviceExplorer(const OSSIA::Node& node,
+                                             iscore::Address currentAddr);
 };

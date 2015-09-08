@@ -209,6 +209,17 @@ void DeviceExplorerModel::updateAddress(
                 createIndex(nodeIndex.row(), HEADERS.count(), node->parent()));
 }
 
+void DeviceExplorerModel::updateValue(iscore::Node* n, const iscore::Value& v)
+{
+    n->get<iscore::AddressSettings>().value = v;
+
+    // OPTIMIZEME
+    QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*n));
+
+    auto idx = createIndex(nodeIndex.row(), 1, n->parent());
+    emit dataChanged(idx, idx);
+}
+
 void DeviceExplorerModel::removeNode(
         Node* node)
 {

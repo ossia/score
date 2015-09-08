@@ -26,6 +26,7 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
 void MinuitDevice::updateSettings(const iscore::DeviceSettings& settings)
 {
     m_settings = settings;
+    m_dev->setName(m_settings.name.toStdString());
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
 
     // TODO m_dev->setName(m_settings.name.toStdString());
@@ -42,27 +43,30 @@ bool MinuitDevice::canRefresh() const
 }
 
 #include <QDebug>
-iscore::Node* MinuitDevice::MinuitToDeviceExplorer(const OSSIA::Node &node)
+iscore::Node* MinuitDevice::MinuitToDeviceExplorer(
+        const OSSIA::Node &node,
+        iscore::Address currentAddr)
 {
     iscore::Node* n = new iscore::Node{ToAddressSettings(node)};
 
-    // 2. Recurse on the children
+    currentAddr.path += n->get<iscore::AddressSettings>().name;
+
+    // 2. Add a callback
+    if(n->get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
+    {
+        if(auto ossia_addr = node.getAddress())
+        {
+            ossia_addr->addCallback([=] (const OSSIA::Value* val) {
+                emit valueUpdated(currentAddr, OSSIA::convert::ToValue(val));
+            });
+        }
+    }
+
+    // 3. Recurse on the children
     for(const auto& ossia_child : node.children())
     {
-        auto newNode = MinuitToDeviceExplorer(*ossia_child.get());
+        auto newNode = MinuitToDeviceExplorer(*ossia_child.get(), currentAddr);
         n->addChild(newNode);
-
-        if(newNode->get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
-        {
-            if(auto ossia_addr = node.getAddress())
-            {
-                iscore::Address addr = iscore::address(*newNode);
-
-                ossia_addr->addCallback([addr,this] (const OSSIA::Value* val) {
-                    emit valueUpdated(addr, OSSIA::convert::ToValue(val));
-                });
-            }
-        }
     }
 
     return n;
@@ -80,10 +84,13 @@ iscore::Node MinuitDevice::refresh()
 
         device_node.set(settings());
 
+        iscore::Address addr;
+        addr.device = settings().name;
+
         // Recurse on the children
         for(const auto& node : m_dev->children())
         {
-            device_node.addChild(MinuitToDeviceExplorer(*node.get()));
+            device_node.addChild(MinuitToDeviceExplorer(*node.get(), addr));
         }
     }
 

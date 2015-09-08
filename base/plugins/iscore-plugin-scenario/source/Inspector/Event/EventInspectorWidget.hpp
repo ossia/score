@@ -17,15 +17,19 @@ class ExpressionValidator : public QValidator
         State validate(QString& str, int&) const
         {
             m_currentExp = iscore::parse(str);
+
             if(m_currentExp)
+            {
                 return State::Acceptable;
+            }
             else
                 return State::Intermediate;
         }
 
-        // Call only after a successful validate()
-        iscore::Expression get() const
-        { return *m_currentExp; }
+        boost::optional<iscore::Expression> get() const
+        {
+            return m_currentExp;
+        }
 
     private:
         mutable boost::optional<iscore::Expression> m_currentExp;

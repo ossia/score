@@ -4,6 +4,8 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
+#include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 
 CurveModel::CurveModel(const Id<CurveModel>& id, QObject* parent):
     IdentifiedObject<CurveModel>(id, "CurveModel", parent)
@@ -163,15 +165,17 @@ void CurveModel::setSelection(const Selection &s)
         elt->selection.set(s.find(elt) != s.end());
 }
 
-
 void CurveModel::clear()
 {
     emit cleared();
 
-    qDeleteAll(m_segments.get());
+    auto segs = m_segments;
     m_segments.clear();
-    qDeleteAll(m_points);
+    qDeleteAll(segs.get());
+
+    auto pts = m_points;
     m_points.clear();
+    qDeleteAll(pts);
 }
 
 

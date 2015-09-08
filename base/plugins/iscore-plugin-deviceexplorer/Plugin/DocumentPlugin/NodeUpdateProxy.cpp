@@ -1,7 +1,7 @@
 #include "NodeUpdateProxy.hpp"
 #include "DeviceDocumentPlugin.hpp"
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
-
+#include <DeviceExplorer/Address/AddressSettings.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 
 NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
@@ -13,33 +13,34 @@ NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
 void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 {
     auto node = new iscore::Node(dev, nullptr);
-    m_devModel.createDeviceFromNode(*node);
+    auto newNode = m_devModel.createDeviceFromNode(*node);
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(node);
-    }
-    else
-    {
-        m_devModel.rootNode().insertChild(
-                    m_devModel.rootNode().childCount(), node);
-    }
-}
-
-void NodeUpdateProxy::loadDevice(const iscore::Node& node)
-{
-    m_devModel.createDeviceFromNode(node);
-
-    if(m_deviceExplorer)
-    {
-        m_deviceExplorer->addDevice(
-                    new iscore::Node{node});
+        m_deviceExplorer->addDevice(new iscore::Node{newNode, &m_devModel.rootNode()});
     }
     else
     {
         m_devModel.rootNode().insertChild(
                     m_devModel.rootNode().childCount(),
-                    new iscore::Node{node});
+                    new iscore::Node{newNode});
+    }
+}
+
+void NodeUpdateProxy::loadDevice(const iscore::Node& node)
+{
+    auto newNode = m_devModel.createDeviceFromNode(node);
+
+    if(m_deviceExplorer)
+    {
+        m_deviceExplorer->addDevice(
+                    new iscore::Node{newNode});
+    }
+    else
+    {
+        m_devModel.rootNode().insertChild(
+                    m_devModel.rootNode().childCount(),
+                    new iscore::Node{newNode});
     }
 }
 
@@ -194,5 +195,25 @@ void NodeUpdateProxy::removeAddress(
     {
         parentnode->removeChild(theNode);
         delete theNode;
+    }
+}
+
+void NodeUpdateProxy::updateValue(
+        const iscore::Address& addr,
+        const iscore::Value& v)
+{
+    auto n = iscore::try_getNodeFromAddress(m_devModel.rootNode(), addr);
+    if(!n->is<iscore::AddressSettings>())
+    {
+        qDebug() << "Updating invalid node";
+        return;
+    }
+    if(m_deviceExplorer)
+    {
+        m_deviceExplorer->updateValue(n, v);
+    }
+    else
+    {
+        n->get<iscore::AddressSettings>().value = v;
     }
 }

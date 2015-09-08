@@ -115,9 +115,11 @@ std::shared_ptr<OSSIA::Node> findNodeFromPath(const QStringList& path, std::shar
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = boost::range::find_if(children,
-                                        [&] (const auto& ossia_node)
-        { return ossia_node->getName() == path[i].toStdString(); });
+        auto it = std::find_if(children.begin(), children.end(),
+                               [&] (const auto& ossia_node)
+        {
+            return ossia_node->getName() == path[i].toStdString();
+        });
         if(it != children.end())
             node = *it;
         else

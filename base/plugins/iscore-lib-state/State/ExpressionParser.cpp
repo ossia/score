@@ -373,10 +373,12 @@ struct Expression_builder : boost::static_visitor<void>
         }
         catch (const qi::expectation_failure<decltype(f)>& e)
         {
+            //ISCORE_BREAKPOINT;
             return {};
         }
         catch(...)
         {
+            //ISCORE_BREAKPOINT;
             return {};
         }
 
