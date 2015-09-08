@@ -3,7 +3,7 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QPainter>
 #include <QCursor>
-static QColor baseColor{QColor::fromRgb(3, 195, 221)};
+static QColor baseColor{QColor::fromRgb(221, 195, 3)};
 CurveSegmentView::CurveSegmentView(
         const CurveSegmentModel& model,
         QGraphicsItem *parent):
@@ -113,7 +113,7 @@ void CurveSegmentView::updatePoints()
 void CurveSegmentView::updateStroke()
 {
     QPainterPathStroker stroker;
-    stroker.setWidth(m_enabled ? 2 : 1);
+    stroker.setWidth(m_enabled ? 0.5 : 0.2);
     m_shape = stroker.createStroke(m_unstrockedShape);
 }
 

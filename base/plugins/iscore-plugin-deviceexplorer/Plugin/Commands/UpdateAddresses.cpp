@@ -4,7 +4,8 @@
 using namespace DeviceExplorer::Command;
 using namespace iscore;
 
-UpdateAddresses::UpdateAddresses(
+// TODO fix this to use NodeUpdateProxy
+UpdateAddressesValues::UpdateAddressesValues(
         Path<DeviceExplorerModel>&& device_tree,
         const QList<QPair<const Node *, iscore::Value> > &nodes):
     iscore::SerializableCommand{"DeviceExplorerControl",
@@ -19,26 +20,26 @@ UpdateAddresses::UpdateAddresses(
     }
 }
 
-void UpdateAddresses::undo()
+void UpdateAddressesValues::undo()
 {
     auto& explorer = m_deviceTree.find();
     for(const auto& elt : m_data)
         explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.first.val, Qt::EditRole);
 }
 
-void UpdateAddresses::redo()
+void UpdateAddressesValues::redo()
 {
     auto& explorer = m_deviceTree.find();
     for(const auto& elt : m_data)
         explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.second.val, Qt::EditRole);
 }
 
-void UpdateAddresses::serializeImpl(QDataStream& d) const
+void UpdateAddressesValues::serializeImpl(QDataStream& d) const
 {
     d << m_deviceTree << m_data;
 }
 
-void UpdateAddresses::deserializeImpl(QDataStream& d)
+void UpdateAddressesValues::deserializeImpl(QDataStream& d)
 {
     d >> m_deviceTree >> m_data;
 }

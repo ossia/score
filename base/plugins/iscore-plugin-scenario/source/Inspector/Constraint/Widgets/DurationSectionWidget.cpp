@@ -28,7 +28,7 @@
 #include <QFormLayout>
 #include <QTimeEdit>
 using namespace iscore;
-DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) :
+DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
@@ -36,7 +36,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 {
     auto widg = new QWidget{this};
     m_grid = new QGridLayout{widg};
-    m_grid->setContentsMargins(0, 0, 0 , 0);
+    m_grid->setContentsMargins(0, 0, 0, 0);
     m_grid->setVerticalSpacing(0);
     widg->setLayout(m_grid);
 
@@ -83,7 +83,6 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
 
 
     // DISPLAY
-
     auto valLab = new QLabel("Default Duration");
     m_grid->addWidget(valLab, 0,1,1,1);
     m_grid->addWidget(m_valueSpin, 0, 2, 1, 1);
@@ -98,7 +97,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent) 
     m_grid->addWidget(m_maxLab, 2, 1, 1,1);
     m_grid->addWidget(m_maxSpin, 2, 2, 1, 1);
 
-    on_modelRigidityChanged(m_model.duration.isRigid());
+    //on_modelRigidityChanged(m_model.duration.isRigid());
 
     connect(m_valueSpin,    &QTimeEdit::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);

@@ -146,7 +146,7 @@ void ConstraintPresenter::updateHeight()
 {
     if(m_viewModel.isRackShown())
     {
-        m_view->setHeight(rack()->height() + 60);
+        m_view->setHeight(rack()->height() + 50);
     }
     // TODO else if(rack but not shown)
     else
@@ -195,7 +195,7 @@ void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
     clearRackPresenter();
     createRackPresenter(m_viewModel.model().racks.at(rackId));
 
-    m_header->show();
+    m_header->setState(ConstraintHeader::State::RackShown);
     updateHeight();
 }
 
@@ -203,6 +203,7 @@ void ConstraintPresenter::on_rackHidden()
 {
     clearRackPresenter();
 
+    m_header->setState(ConstraintHeader::State::RackHidden);
     updateHeight();
 }
 
@@ -211,6 +212,7 @@ void ConstraintPresenter::on_rackRemoved()
     m_header->hide();
     clearRackPresenter();
 
+    m_header->setState(ConstraintHeader::State::Hidden);
     updateHeight();
 }
 

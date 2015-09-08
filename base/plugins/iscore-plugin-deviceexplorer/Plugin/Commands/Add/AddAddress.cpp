@@ -16,7 +16,7 @@ AddAddress::AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
 
     auto& devplug = m_devicesModel.find();
 
-    iscore::Node* parentNode{};
+    const iscore::Node* parentNode{};
     // DeviceExplorerWidget prevents adding a sibling on a Device
     if (insert == InsertMode::AsChild)
     {

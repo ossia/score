@@ -139,9 +139,9 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
             [=] () {
         // OPTIMIZEME
         state_elt->rootState()->stateElements().clear();
-        for(auto& elt : state_elt->iscoreState().states().rootNode().children())
+        for(const auto& elt : state_elt->iscoreState().states().rootNode())
         {
-            state_elt->rootState()->stateElements().push_back(iscore::convert::state(*elt, m_deviceList));
+            state_elt->rootState()->stateElements().push_back(iscore::convert::state(elt, m_deviceList));
         }
 
     } );
