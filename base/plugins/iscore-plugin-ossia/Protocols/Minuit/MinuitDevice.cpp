@@ -26,6 +26,7 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
 void MinuitDevice::updateSettings(const iscore::DeviceSettings& settings)
 {
     m_settings = settings;
+    m_dev->setName(m_settings.name.toStdString());
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
 
     // TODO m_dev->setName(m_settings.name.toStdString());

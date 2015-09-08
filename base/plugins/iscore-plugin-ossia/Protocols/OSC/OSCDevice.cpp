@@ -18,6 +18,7 @@ OSCDevice::OSCDevice(const iscore::DeviceSettings &stngs):
 void OSCDevice::updateSettings(const iscore::DeviceSettings& settings)
 {
     m_settings = settings;
+    m_dev->setName(m_settings.name.toStdString());
     auto stgs = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
 
     m_dev->setName(m_settings.name.toStdString());
