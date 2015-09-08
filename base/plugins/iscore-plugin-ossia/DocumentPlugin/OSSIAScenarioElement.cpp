@@ -103,8 +103,6 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
         iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
-
-        state->launch();
     },
                 ossia_sev->event(),
                 ossia_eev->event(),

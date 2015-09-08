@@ -44,6 +44,13 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     // to the Scenario plug-in with the OSSIA API.
 }
 
+OSSIAControl::~OSSIAControl()
+{
+    // TODO check the deletion order.
+    // Maybe we should have a dependency graph of some kind ??
+    baseConstraint().stop();
+}
+
 
 OSSIAConstraintElement &OSSIAControl::baseConstraint() const
 {
