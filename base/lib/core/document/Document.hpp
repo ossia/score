@@ -60,7 +60,10 @@ namespace iscore
 
             void setBackupMgr(DocumentBackupManager* backupMgr);
 
-        private:
+            QString docFileName() const;
+            void setDocFileName(const QString &docFileName);
+
+    private:
             // These are to be constructed by DocumentBuilder.
             Document(DocumentDelegateFactoryInterface* type,
                      QWidget* parentview,
