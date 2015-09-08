@@ -8,9 +8,26 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
 
 set(SRCS "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
-
+if(APPLE)
+	set(ICON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/i-score.icns")
+endif()
 if(DEPLOYMENT_BUILD)
-    add_executable(${APPNAME} WIN32 MACOSX_BUNDLE ${SRCS})
+	add_executable(${APPNAME} WIN32 MACOSX_BUNDLE ${SRCS} ${ICON_SRC})
+	if (APPLE)
+		set_source_files_properties(${ICON_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+		set_target_properties(${APPNAME}
+				PROPERTIES
+					MACOSX_BUNDLE_INFO_STRING "i-score, an interactive sequencer for the intermedia arts"
+					MACOSX_BUNDLE_GUI_IDENTIFIER "org.i-score"
+					MACOSX_BUNDLE_LONG_VERSION_STRING "0.3"
+					MACOSX_BUNDLE_BUNDLE_NAME "i-score"
+					MACOSX_BUNDLE_SHORT_VERSION_STRING "0.3"
+					MACOSX_BUNDLE_BUNDLE_VERSION "0.3"
+					MACOSX_BUNDLE_COPYRIGHT "The i-score team"
+					MACOSX_BUNDLE_ICON_FILE "i-score.icns"
+					MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in")
+	endif ()
 else()
     add_executable(${APPNAME} WIN32  ${SRCS})
 endif()
