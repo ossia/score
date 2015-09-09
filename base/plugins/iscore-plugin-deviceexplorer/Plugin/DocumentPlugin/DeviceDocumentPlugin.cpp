@@ -35,17 +35,28 @@ void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
     serialize_dyn(vis, m_rootNode);
 }
 
-void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
+iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
 {
     try {
         // Instantiate a real device.
         auto proto = SingletonProtocolList::instance().protocol(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
+        connect(newdev, &DeviceInterface::valueUpdated,
+                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateValue(addr, v); });
+
         m_list.addDevice(newdev);
 
-        for(auto& child : node)
+        if(newdev->canRefresh())
         {
-             addNodeToDevice(*newdev, child);
+            return newdev->refresh();
+        }
+        else
+        {
+            for(auto& child : node)
+            {
+                addNodeToDevice(*newdev, child);
+            }
+            return node;
         }
     }
     catch(const std::runtime_error& e)
@@ -54,6 +65,8 @@ void DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
                              QObject::tr("Error loading device"),
                              node.get<iscore::DeviceSettings>().name + ": " + QString::fromLatin1(e.what()));
     }
+
+    return node;
 }
 
 void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, iscore::Node& node)

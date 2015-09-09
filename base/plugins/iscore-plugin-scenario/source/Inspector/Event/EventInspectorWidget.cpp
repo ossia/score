@@ -303,9 +303,10 @@ using namespace Scenario;
 void EventInspectorWidget::on_conditionChanged()
 {
     auto cond = m_validator.get();
-    if(cond != m_model.condition())
+
+    if(*cond != m_model.condition())
     {
-        auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(cond)};
+        auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(*cond)};
         emit commandDispatcher()->submitCommand(cmd);
     }
 }

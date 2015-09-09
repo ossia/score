@@ -6,5 +6,5 @@ class MIDIDevice : public OSSIADevice
     public:
         MIDIDevice(const iscore::DeviceSettings& settings);
 
-
+        void updateSettings(const iscore::DeviceSettings&) override;
 };

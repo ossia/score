@@ -15,6 +15,8 @@ class DeviceInterface : public QObject
         explicit DeviceInterface(const iscore::DeviceSettings& s);
         const iscore::DeviceSettings& settings() const;
 
+        virtual void updateSettings(const iscore::DeviceSettings&) = 0;
+
         // Asks, and returns all the new addresses if the device can refresh itself Minuit-like.
         // The addresses are not applied to the device, they have to be via a command!
         virtual bool canRefresh() const { return false; }
@@ -35,9 +37,11 @@ class DeviceInterface : public QObject
         void pathUpdated(const iscore::FullAddressSettings&);
         void pathRemoved(const QString&);
 
+        void valueUpdated(const iscore::Address&, const iscore::Value&);
+
         // In case the whole namespace changed?
         void namespaceUpdated();
 
-    private:
+    protected:
         iscore::DeviceSettings m_settings;
 };

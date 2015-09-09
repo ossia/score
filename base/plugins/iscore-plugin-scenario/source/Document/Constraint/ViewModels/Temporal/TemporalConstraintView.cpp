@@ -39,7 +39,7 @@ void TemporalConstraintView::paint(
     int max_w = static_cast<int>(maxWidth());
     int def_w = static_cast<int>(defaultWidth());
 
-    // Draw the stuff present if there is a rack
+    // Draw the stuff present if there is a rack *in the model* ?
     if(presenter().rack())
     {
         // Background
@@ -115,6 +115,11 @@ void TemporalConstraintView::paint(
     if(! isValid())
     {
         constraintColor = Qt::red;
+        this->setZValue(this->zValue()+ 1);
+    }
+    else
+    {
+        this->setZValue(parentObject()->zValue() + 3);
     }
 
     m_solidPen.setColor(constraintColor);

@@ -10,3 +10,9 @@ MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
 
     m_dev = Device::create(parameters, settings.name.toStdString());
 }
+
+
+void MIDIDevice::updateSettings(const iscore::DeviceSettings&)
+{
+    ISCORE_TODO;
+}

@@ -11,6 +11,7 @@ class OSSIAControl : public iscore::PluginControlInterface
 {
     public:
         OSSIAControl(iscore::Presenter* pres);
+        ~OSSIAControl();
 
         void populateMenus(iscore::MenubarManager*) override;
 

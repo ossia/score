@@ -2,7 +2,8 @@
 
 using namespace DeviceExplorer::Command;
 
-Remove::Remove(Path<DeviceDocumentPlugin> device_tree,
+Remove::Remove(
+        Path<DeviceDocumentPlugin> device_tree,
         const iscore::Node& node):
     iscore::SerializableCommand{factoryName(),
                             commandName(),
@@ -19,6 +20,7 @@ Remove::Remove(Path<DeviceDocumentPlugin> device_tree,
     }
     else
     {
+        // TODO the device data is not saved !
         m_device = true;
         m_cmd = new AddDevice{
                     std::move(device_tree),

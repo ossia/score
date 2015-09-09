@@ -72,6 +72,7 @@ Application::Application(int& argc, char** argv) :
     QCoreApplication::setOrganizationName("OSSIA");
     QCoreApplication::setOrganizationDomain("i-score.org");
     QCoreApplication::setApplicationName("i-score");
+    QCoreApplication::setApplicationVersion("0.3"); // TODO git-tag
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");

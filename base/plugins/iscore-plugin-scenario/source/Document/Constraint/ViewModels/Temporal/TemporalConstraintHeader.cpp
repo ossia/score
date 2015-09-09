@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QApplication>
 QRectF TemporalConstraintHeader::boundingRect() const
 {
     return {0, 0, m_width, ConstraintHeader::headerHeight()};
@@ -10,9 +11,22 @@ QRectF TemporalConstraintHeader::boundingRect() const
 
 void TemporalConstraintHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setPen(Qt::white);
+    if(m_state == State::RackHidden)
+    {
+        auto rect = boundingRect();
+        painter->fillRect(rect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+
+        // Fake timenode continuation
+        auto color = qApp->palette("ScenarioPalette").base().color();
+        QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+        painter->setPen(pen);
+        painter->drawLine(rect.topLeft(), rect.bottomLeft());
+        painter->drawLine(rect.topRight(), rect.bottomRight());
+        painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    }
     // Header
     painter->setFont(font);
+    painter->setPen(Qt::white);
 
     QFontMetrics fm(font);
     int textWidth = fm.width(m_text);
@@ -46,4 +60,12 @@ void TemporalConstraintHeader::paint(QPainter *painter, const QStyleOptionGraphi
     double w = m_width - x;
     double h = ConstraintHeader::headerHeight();
     painter->drawText(x,y,w,h, Qt::AlignLeft, m_text);
+
+    if(m_width > 20)
+    {
+        painter->setPen(qRgba(0, 127, 229, 76));
+        painter->drawLine(
+                    boundingRect().bottomLeft(),
+                    boundingRect().bottomRight());
+    }
 }

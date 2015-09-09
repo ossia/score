@@ -18,7 +18,7 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     auto it = std::find_if(devplug.rootNode().begin(),
                            devplug.rootNode().end(),
                   [&] (const iscore::Node& n)
-    { return n.get<AddressSettings>().name == name; });
+    { return n.get<DeviceSettings>().name == name; });
 
     ISCORE_ASSERT(it != devplug.rootNode().end());
 

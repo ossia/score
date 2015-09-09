@@ -30,7 +30,8 @@ class DeviceExplorerWidget : public QWidget
 
         void setModel(DeviceExplorerModel* model);
 
-//        bool loadModel(const QString filename);
+        // Will block the GUI when refreshing.
+        void blockGUI(bool);
 
     private:
         // User commands
@@ -59,8 +60,6 @@ class DeviceExplorerWidget : public QWidget
 
         void updateActions();
 
-        // Will bloc the GUI when refreshing.
-        void blockGUI(bool);
 
         // Utilities
         DeviceExplorerModel* model();

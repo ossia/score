@@ -2,6 +2,7 @@
 
 using namespace DeviceExplorer::Command;
 
+// TODO fix this to use NodeUpdateProxy
 EditData::EditData(
         Path<DeviceExplorerModel> &&device_tree,
         const iscore::NodePath& nodePath,

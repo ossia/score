@@ -75,6 +75,10 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         // Returns the row (useful for undo)
         int addDevice(iscore::Node* deviceNode);
+        void updateDevice(
+                const QString &name,
+                const iscore::DeviceSettings& dev);
+
         iscore::Node* addAddress(
                 iscore::Node * parentNode,
                 const iscore::AddressSettings& addressSettings);
@@ -82,6 +86,9 @@ class DeviceExplorerModel : public QAbstractItemModel
         void updateAddress(
                 iscore::Node * node,
                 const iscore::AddressSettings& addressSettings);
+
+        void updateValue(iscore::Node* n,
+                const iscore::Value& v);
 
         void removeNode(iscore::Node* node);
 

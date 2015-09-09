@@ -20,10 +20,27 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     // For each removed event, we also add its states to the selection.
     // For each removed state, we add the constraints.
 
-    // First we have to make a first round to remove all the events
+    // First we remove :
+    // The event if a State is selected and alone
+
+    // Then we have to make a round to remove all the events
     // of the selected time nodes.
 
-    for(const auto& obj : sel)
+    Selection cp = sel;
+    for(const auto& obj : cp)
+    {
+        if(auto state = dynamic_cast<const StateModel*>(obj))
+        {
+            auto& ev = scenar.event(state->eventId());
+            if(ev.states().size() == 1)
+            {
+                sel.insert(&ev);
+            }
+        }
+    }
+
+    cp = sel;
+    for(const auto& obj : cp)
     {
         if(auto tn = dynamic_cast<const TimeNodeModel*>(obj))
         {
@@ -36,7 +53,8 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
 
 
     QList<TimeNodeModel*> maybeRemovedTimenodes;
-    for(const auto& obj : (sel)) // Make a copy
+    cp = sel;
+    for(const auto& obj : cp) // Make a copy
     {
         if(auto event = dynamic_cast<const EventModel*>(obj))
         {
@@ -54,7 +72,8 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
         }
     }
 
-    for(const auto& obj : (sel))
+    cp = sel;
+    for(const auto& obj : cp)
     {
         if(auto state = dynamic_cast<const StateModel*>(obj))
         {
@@ -66,7 +85,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     }
 
     // Serialize ALL the things
-    for(auto& obj : sel)
+    for(const auto& obj : sel)
     {
         if(auto state = dynamic_cast<const StateModel*>(obj))
         {
@@ -106,6 +125,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     }
 
     // Plus the timenodes that we don't know if they will be removed (todo ugly fixme pls)
+    // TODO how does this even work ? what happens of the maybe removed events / states ?
     for(const auto& tn : maybeRemovedTimenodes)
     {
         QByteArray arr;
@@ -265,15 +285,24 @@ void RemoveSelection::redo()
 {
     auto& scenar = m_path.find();
     // Remove the constraints
-    for(auto& cstr : m_removedConstraints)
+    for(const auto& cstr : m_removedConstraints)
     {
         StandardRemovalPolicy::removeConstraint(scenar, cstr.first.first);
     }
 
     // The other things
-    for(auto& ev : m_removedEvents)
+    for(const auto& ev : m_removedEvents)
     {
         StandardRemovalPolicy::removeEventStatesAndConstraints(scenar, ev.first);
+    }
+
+    // Finally if there are remaining states
+    for(const auto& st : m_removedStates)
+    {
+        if(scenar.states.find(st.first) != scenar.states.end())
+        {
+            StandardRemovalPolicy::removeState(scenar, st.first);
+        }
     }
 }
 

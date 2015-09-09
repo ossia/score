@@ -55,7 +55,7 @@ MinuitProtocolSettingsWidget::setDefaults()
     ISCORE_ASSERT(m_portOutputSBox);
     ISCORE_ASSERT(m_localHostEdit);
 
-    m_deviceNameEdit->setText("MinuitDevice");
+    m_deviceNameEdit->setText("newDevice");
     m_portInputSBox->setValue(9998);
     m_portOutputSBox->setValue(13579);
     m_localHostEdit->setText("127.0.0.1");

@@ -52,6 +52,9 @@ void ScenarioSelectionState::on_moveAreaSelection()
 
 void ScenarioSelectionState::on_releaseAreaSelection()
 {
+    if(m_parentSM.scenePoint == m_initialPoint)
+        on_deselect();
+
     m_scenarioView.setSelectionArea(QRectF{});
 }
 

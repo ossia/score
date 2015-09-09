@@ -27,6 +27,12 @@ class TreeNode : public DataType
 
         }
 
+        TreeNode(TreeNode&& other):
+            TreeNode{other, other.parent()}
+        {
+
+        }
+
         TreeNode(DataType&& data):
             DataType{std::move(data)}
         {
@@ -44,7 +50,7 @@ class TreeNode : public DataType
         }
 
         // Clone
-        TreeNode(const TreeNode& source,
+        explicit TreeNode(const TreeNode& source,
                  TreeNode* parent = nullptr):
             DataType{static_cast<const DataType&>(source)},
             m_parent{parent}
@@ -55,6 +61,25 @@ class TreeNode : public DataType
             }
         }
 
+        // TODO do move operators.
+        // Only the top-level child need to have their parents changd, no need to do a recusion.
+/*      TreeNode& operator=(TreeNode&& source)
+        {
+            static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
+
+            qDeleteAll(m_children);
+            m_children.clear();
+            m_children.swap(source.m_children);
+            qDebug() << source.children().size();
+
+            for(auto& n : m_children)
+            {
+                n->setParent(this);
+            }
+
+            return *this;
+        }
+*/
         TreeNode& operator=(const TreeNode& source)
         {
             static_cast<DataType&>(*this) = static_cast<const DataType&>(source);

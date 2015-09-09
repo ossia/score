@@ -59,6 +59,16 @@ void Document::setBackupMgr(DocumentBackupManager* backupMgr)
     m_backupMgr = backupMgr;
 }
 
+QString Document::docFileName() const
+{
+    return model().docFileName();
+}
+
+void Document::setDocFileName(const QString &docFileName)
+{
+    m_model->setDocFileName(docFileName);
+}
+
 Document::~Document()
 {
     // We need a custom destructor because

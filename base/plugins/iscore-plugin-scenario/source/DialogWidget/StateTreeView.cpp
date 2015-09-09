@@ -20,7 +20,11 @@ StateTreeView::StateTreeView(const StateModel& model,
 void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 {
     QTreeView::mouseDoubleClickEvent(ev);
-    auto index = selectedIndexes().first();
+    auto sel = selectedIndexes();
+    if(sel.empty())
+        return;
+
+    auto index = sel.first();
 
     auto node = index.isValid()
                 ? static_cast<iscore::StateNode*>(index.internalPointer())

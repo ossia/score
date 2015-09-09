@@ -12,7 +12,6 @@ AddressEditDialog::AddressEditDialog(
         QWidget* parent):
     AddressEditDialog{makeDefaultSettings(), parent}
 {
-    m_nameEdit->setEnabled(true);
 }
 
 AddressEditDialog::AddressEditDialog(
@@ -26,7 +25,6 @@ AddressEditDialog::AddressEditDialog(
 
     // Name
     m_nameEdit = new QLineEdit(this);
-    m_nameEdit->setEnabled(false); // TODO update when we can do it in the API
     m_layout->addRow(tr("Name"), m_nameEdit);
 
     setNodeSettings();

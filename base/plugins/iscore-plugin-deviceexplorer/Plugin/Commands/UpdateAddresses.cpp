@@ -4,6 +4,7 @@
 using namespace DeviceExplorer::Command;
 using namespace iscore;
 
+// TODO fix this to use NodeUpdateProxy
 UpdateAddressesValues::UpdateAddressesValues(
         Path<DeviceExplorerModel>&& device_tree,
         const QList<QPair<const Node *, iscore::Value> > &nodes):

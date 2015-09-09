@@ -165,20 +165,66 @@ bool Presenter::closeDocument(Document* doc)
 
 bool Presenter::saveDocument(Document * doc)
 {
-    QFileDialog d{m_view, tr("Save")};
-    d.setNameFilter(tr("Binary (*.scorebin) ;; JSON (*.scorejson)"));
+    auto savename = doc->docFileName();
+
+    if(savename == tr("Untitled"))
+    {
+        saveDocumentAs(doc);
+    }
+    else if (savename.size() != 0)
+    {
+        QSaveFile f{savename};
+        f.open(QIODevice::WriteOnly);
+        if(savename.indexOf(".scorebin") != -1)
+            f.write(doc->saveAsByteArray());
+        else
+        {
+            QJsonDocument json_doc;
+            json_doc.setObject(doc->saveAsJson());
+
+            f.write(json_doc.toJson());
+        }
+        f.commit();
+    }
+
+    return true;
+}
+
+bool Presenter::saveDocumentAs(Document * doc)
+{
+    QFileDialog d{m_view, tr("Save Document As")};
+    QString binFilter{tr("Binary (*.scorebin)")};
+    QString jsonFilter{tr("JSON (*.scorejson)")};
+    QStringList filters;
+    filters << binFilter
+            << jsonFilter;
+
+    d.setNameFilters(filters);
     d.setConfirmOverwrite(true);
     d.setFileMode(QFileDialog::AnyFile);
     d.setAcceptMode(QFileDialog::AcceptSave);
 
     if(d.exec())
     {
-        auto savename = d.selectedFiles().first();
-        auto suf = d.nameFilters();
+        QString savename = d.selectedFiles().first();
+        auto suf = d.selectedNameFilter();
+
         if(!savename.isEmpty())
         {
+            if(suf == binFilter)
+            {
+                if(!savename.contains(".scorebin"))
+                    savename += ".scorebin";
+            }
+            else
+            {
+                if(!savename.contains(".scorejson"))
+                    savename += ".scorejson";
+            }
+
             QSaveFile f{savename};
             f.open(QIODevice::WriteOnly);
+            doc->setDocFileName(savename);
             if(savename.indexOf(".scorebin") != -1)
                 f.write(doc->saveAsByteArray());
             else
@@ -215,6 +261,7 @@ void Presenter::loadDocument()
             }
         }
     }
+    m_currentDocument->setDocFileName(loadname);
 }
 
 
@@ -263,7 +310,6 @@ void Presenter::setupMenus()
                                            FileMenuElement::Separator_Load);
 
     //// Save and load
-    // Binary
     auto openAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                                        FileMenuElement::Load,
                                                        [this]() { loadDocument(); });
@@ -273,6 +319,11 @@ void Presenter::setupMenus()
                                                        FileMenuElement::Save,
                                                        [this]() { saveDocument(currentDocument()); });
     saveAct->setShortcut(QKeySequence::Save);
+
+    auto saveAsAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
+                                                       FileMenuElement::SaveAs,
+                                                       [this]() { saveDocumentAs(currentDocument()); });
+    saveAsAct->setShortcut(QKeySequence::SaveAs);
 
 
     //	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
