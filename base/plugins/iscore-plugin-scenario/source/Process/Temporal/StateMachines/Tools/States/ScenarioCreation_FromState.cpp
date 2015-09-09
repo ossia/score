@@ -216,7 +216,7 @@ void ScenarioCreation_FromState::creationCheck(Fun&& fun)
     const auto& scenar = m_parentSM.model();
     if(m_parentSM.isShiftPressed())
     {
-        // Create new state
+        // Create new state at the beginning
         auto cmd = new Scenario::Command::CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};
         m_dispatcher.submitCommand(cmd);
 
@@ -233,6 +233,7 @@ void ScenarioCreation_FromState::creationCheck(Fun&& fun)
         }
         else
         {
+            ISCORE_TODO;
             // create a single state on the same event (deltaY > deltaX)
         }
     }
@@ -263,7 +264,17 @@ void ScenarioCreation_FromState::createToEvent()
 
 void ScenarioCreation_FromState::createToState()
 {
-    creationCheck([&] (const Id<StateModel>& id) { createToState_base(id); });
+    if(!m_parentSM.model().states.at(hoveredState).previousConstraint())
+    {
+        // No previous constraint -> we create a new constraint and link it to this state
+        creationCheck([&] (const Id<StateModel>& id) { createToState_base(id); });
+    }
+    else
+    {
+        // Previous constraint -> we add a new state to the event and link to it.
+        this->hoveredEvent = m_parentSM.model().states.at(hoveredState).eventId();
+        creationCheck([&] (const Id<StateModel>& id) { createToEvent_base(id); });
+    }
 }
 
 

@@ -97,6 +97,8 @@ void CommandBackupFile::commit()
 {
     // OPTIMIZEME: right now all the data is flushed each time.
     // It should be better to only incrementally modify the file.
+
+    // Another possibility would be to save the commands to a db ?
     m_file.resize(0);
     m_file.reset();
 
