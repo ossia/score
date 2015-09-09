@@ -117,6 +117,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/AddStateToEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetCondition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetTrigger.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SplitEvent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateEvent_State.cpp"
