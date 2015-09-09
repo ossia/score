@@ -18,6 +18,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
     ScenarioStateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
+    this->setObjectName("MoveConstraintState");
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
 
@@ -83,6 +84,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
     ScenarioStateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
+    this->setObjectName("MoveEventState");
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
 
@@ -148,6 +150,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
     ScenarioStateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
+    this->setObjectName("MoveTimeNodeState");
     using namespace Scenario::Command ;
     auto finalState = new QFinalState{this};
 

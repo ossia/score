@@ -54,7 +54,6 @@ struct PositionedWithId_ScenarioEvent : public PositionedScenarioEvent<N>
         Id<Element> id;
 };
 
-
 ////////////
 // Events
 enum ScenarioElement {
@@ -89,3 +88,51 @@ using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, Scenario
 
 using ReleaseOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Release_tag::value>;
 using ReleaseOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Release_tag::value>;
+
+template<int N>
+QString debug_StateMachineIDs()
+{
+    QString txt;
+
+    auto object = static_cast<ScenarioElement>(N % 10);
+    auto modifier = static_cast<Modifier_tagme>((N - object) % 1000 / 100);
+    switch(modifier)
+    {
+        case Modifier_tagme::Click:
+            txt += "Click on";
+            break;
+        case Modifier_tagme::Move:
+            txt += "Move on";
+            break;
+        case Modifier_tagme::Release:
+            txt += "Release on";
+            break;
+    }
+
+    switch(object)
+    {
+        case ScenarioElement::Nothing:
+            txt += "nothing";
+            break;
+        case ScenarioElement::TimeNode:
+            txt += "TimeNode";
+            break;
+        case ScenarioElement::Event:
+            txt += "Event";
+            break;
+        case ScenarioElement::Constraint:
+            txt += "Constraint";
+            break;
+        case ScenarioElement::State:
+            txt += "State";
+            break;
+        case ScenarioElement::SlotOverlay_e:
+            txt += "SlotOverlay_e";
+            break;
+        case ScenarioElement::SlotHandle_e:
+            txt += "SlotHandle_e";
+            break;
+    }
+
+    return txt;
+}

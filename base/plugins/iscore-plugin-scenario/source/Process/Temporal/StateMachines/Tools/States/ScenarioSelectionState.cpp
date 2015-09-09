@@ -22,7 +22,6 @@ ScenarioSelectionState::ScenarioSelectionState(
     m_parentSM{parentSM},
     m_scenarioView{scenarioview}
 {
-
 }
 
 

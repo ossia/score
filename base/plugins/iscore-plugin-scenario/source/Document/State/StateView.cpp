@@ -72,7 +72,8 @@ void StateView::changeColor(const QColor &)
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    emit m_presenter.pressed(event->scenePos());
+    if(event->button() == Qt::MouseButton::LeftButton)
+        emit m_presenter.pressed(event->scenePos());
 }
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent *event)

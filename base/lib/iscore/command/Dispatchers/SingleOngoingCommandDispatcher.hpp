@@ -44,7 +44,8 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
 
         void rollback()
         {
-            m_cmd->undo();
+            if(m_cmd)
+                m_cmd->undo();
             m_cmd.reset();
         }
 

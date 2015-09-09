@@ -41,6 +41,8 @@
 SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     ScenarioTool{sm, &sm}
 {
+    this->setObjectName("SelectionTool");
+
     m_state = new ScenarioSelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
             m_parentSM,
@@ -129,6 +131,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
 void SelectionTool::on_pressed()
 {
     using namespace std;
+
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const Id<StateModel>& id) // State
     {
@@ -224,6 +227,7 @@ void SelectionTool::on_released()
         m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
+
         localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint});
     },
     [&] (const Id<ConstraintModel>& id) // Constraint
@@ -233,6 +237,7 @@ void SelectionTool::on_released()
         m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
+
         localSM().postEvent(new ReleaseOnConstraint_Event{id, m_parentSM.scenarioPoint});
     },
     [&] (const SlotModel& slot) // Slot handle
