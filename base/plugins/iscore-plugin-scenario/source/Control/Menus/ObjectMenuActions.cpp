@@ -152,6 +152,19 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
     menu->addAction(m_pasteContent);
 }
 
+void ObjectMenuActions::makeToolBar(QToolBar *)
+{
+    // nothing to do
+}
+
+void ObjectMenuActions::setEnabled(bool b)
+{
+    for (auto& act : actions())
+    {
+        act->setEnabled(b);
+    }
+}
+
 template<typename Selected_T>
 auto arrayToJson(Selected_T &&selected)
 {
@@ -243,5 +256,18 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     };
     CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
     emit dispatcher.submitCommand(cmd);
+}
+
+QVector<QAction *> ObjectMenuActions::actions()
+{
+    return {
+            m_removeElements,
+            m_clearElements,
+            m_copyContent,
+            m_cutContent,
+            m_pasteContent,
+            m_elementsToJson,
+            m_addProcess
+        };
 }
 

@@ -10,12 +10,16 @@ class ObjectMenuActions : public AbstractMenuActions
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&) override;
+        void makeToolBar(QToolBar*) override;
+        void setEnabled(bool) override;
 
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
         void writeJsonToSelectedElements(const QJsonObject &obj);
         void addProcessInConstraint(QString);
+
+        QVector<QAction*> actions();
 
         QAction* m_removeElements;
         QAction *m_clearElements;

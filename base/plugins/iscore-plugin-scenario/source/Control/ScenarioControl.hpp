@@ -40,6 +40,10 @@ class ScenarioControl : public iscore::PluginControlInterface
         void setExpandMode(ExpandMode e)
         { m_expandMode = e; }
 
+    signals:
+        void keyPressed(int);
+        void keyReleased(int);
+
     public slots:
         void createContextMenu(const QPoint &);
 

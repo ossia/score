@@ -80,15 +80,15 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 {
     setupCommands();
 
-    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
-    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
+//    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
+//    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
 }
 
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
     ///// Edit /////
-    m_objectAction->fillMenuBar(menu);
+//    m_objectAction->fillMenuBar(menu);
 
     ///// View /////
     // TODO create ViewMenuActions
@@ -121,17 +121,22 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        ViewMenuElement::Windows,
                                        m_deselectAll);
 
-    ///// Tool /////
 
-    m_toolActions->fillMenuBar(menu);
+    for(AbstractMenuActions*& elt : m_pluginActions)
+    {
+        elt->fillMenuBar(menu);
+    }
 }
 
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
-    m_toolActions->makeToolBar(bar);
-    bar->addSeparator();
+    for(AbstractMenuActions*& elt : m_pluginActions)
+    {
+        elt->makeToolBar(bar);
+        bar->addSeparator();
+    }
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
@@ -160,7 +165,6 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
         {
             elt->fillContextMenu(&contextMenu, selected);
             contextMenu.addSeparator();
-
         }
     }
     contextMenu.exec(pos);
@@ -172,7 +176,12 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
-    m_toolActions->setEnabled(false);
+
+    for(AbstractMenuActions*& elt : m_pluginActions)
+    {
+        elt->setEnabled(false);
+    }
+
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
         s_pres->stateMachine().changeTool((int)ScenarioToolKind::Select);
@@ -184,7 +193,11 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
 {
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
-    m_toolActions->setEnabled(bool(s_pres));
+
+    for(AbstractMenuActions*& elt : m_pluginActions)
+    {
+        elt->setEnabled(bool(s_pres));
+    }
 
     if(auto currentlyFocused = focusedPresenter())
     {
@@ -194,23 +207,23 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::keyPressed,
-                m_toolActions,  &ToolMenuActions::keyPressed);
+                this,  &ScenarioControl::keyPressed);
 
         connect(s_pres, &TemporalScenarioPresenter::keyReleased,
-                m_toolActions,  &ToolMenuActions::keyReleased);
+                this,  &ScenarioControl::keyReleased);
 
         connect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
                 this, &ScenarioControl::createContextMenu);
 
         // Set the current state on the statemachine.
         // TODO put this in a pattern (MappedActionGroup?)
-        for (QAction *action : m_toolActions->toolActions())
+  /*      for (QAction *action : m_toolActions->toolActions())
         {
             if (action->isChecked())
             {
                 s_pres->stateMachine().changeTool(action->data().toInt());
             }
-        }
+        }*/
     }
 }
 

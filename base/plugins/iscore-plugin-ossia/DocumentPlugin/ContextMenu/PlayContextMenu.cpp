@@ -40,3 +40,13 @@ void PlayContextMenu::fillContextMenu(QMenu *menu, const Selection & s)
         menu->addAction(m_playStates);
     }
 }
+
+void PlayContextMenu::makeToolBar(QToolBar *)
+{
+    // nothing to do
+}
+
+void PlayContextMenu::setEnabled(bool b)
+{
+    m_playStates->setEnabled(b);
+}

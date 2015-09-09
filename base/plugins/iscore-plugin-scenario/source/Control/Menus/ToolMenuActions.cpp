@@ -4,6 +4,8 @@
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Control/ScenarioControl.hpp"
 
+#include <QKeyEvent>
+
 template<typename Data>
 QAction* makeToolbarAction(const QString& name,
                            QObject* parent,
@@ -120,6 +122,12 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
         m_parent->setExpandMode(ExpandMode::Fixed);
     });
 
+    connect(parent, &ScenarioControl::keyPressed,
+            this,   &ToolMenuActions::keyPressed);
+
+    connect(parent, &ScenarioControl::keyReleased,
+            this,   &ToolMenuActions::keyReleased);
+
 }
 
 void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
@@ -141,17 +149,15 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
 {
     auto tool = menu->addMenu("Tool");
-    tool->addActions(m_scenarioToolActionGroup->actions());
+    tool->addActions(toolActions());
     tool->addAction(m_shiftAction);
     auto resize_mode = menu->addMenu("Resize mode");
-    resize_mode->addActions(m_scenarioScaleModeActionGroup->actions());
+    resize_mode->addActions(modeActions());
+    m_scenarioToolActionGroup->setDisabled(false);
 }
 
 void ToolMenuActions::makeToolBar(QToolBar *bar)
 {
-    m_scenarioToolActionGroup->setDisabled(true);
-    m_shiftAction->setDisabled(true);
-
     bar->addActions(toolActions());
     bar->addAction(m_shiftAction);
     bar->addSeparator();

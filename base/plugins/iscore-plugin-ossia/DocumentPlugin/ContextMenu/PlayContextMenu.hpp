@@ -7,6 +7,8 @@ class PlayContextMenu : public AbstractMenuActions
         PlayContextMenu(ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&) override;
+        void makeToolBar(QToolBar*) override;
+        void setEnabled(bool) override;
 
     private:
         QAction* m_playStates{};
