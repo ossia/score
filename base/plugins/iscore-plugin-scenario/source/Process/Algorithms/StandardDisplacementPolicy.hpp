@@ -47,7 +47,7 @@ namespace StandardDisplacementPolicy
 
             if(!(constraint.duration.defaultDuration() - newDuration).isZero())
             {
-                ConstraintDurations::Algorithms::setDurationInBounds(constraint, newDuration);
+                ConstraintDurations::Algorithms::changeAllDurations(constraint, newDuration);
                 for(auto& process : constraint.processes)
                 {
                     scaleMethod(process, newDuration);

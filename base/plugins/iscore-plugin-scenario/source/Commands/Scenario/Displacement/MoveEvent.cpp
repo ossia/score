@@ -93,7 +93,7 @@ void MoveEvent::undo()
 
     // Now we have to restore the state of each constraint that might have been modified
     // during this command.
-    for(auto& obj : m_savedConstraints)
+    for(const auto& obj : m_savedConstraints)
     {
         // 1. Clear the constraint
         // TODO Don't use a command since it serializes a ton of unused stuff.
@@ -182,7 +182,7 @@ void MoveEvent::serializeImpl(QDataStream& s) const
       << m_oldDate
       << m_newDate
       << m_movableTimenodes
-      << (int)m_mode
+      << (int)m_mode // TODO may not be necessary anymore ?
       << m_savedConstraints;
 }
 
