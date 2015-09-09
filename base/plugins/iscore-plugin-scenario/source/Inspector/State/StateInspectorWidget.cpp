@@ -7,6 +7,7 @@
 #include <core/document/Document.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 #include "DialogWidget/StateTreeView.hpp"
+#include <iscore/widgets/MarginLess.hpp>
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
@@ -33,44 +34,44 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.clear();
 
     auto widget = new QWidget;
-    auto lay = new QFormLayout(widget);
-    lay->setContentsMargins(0, 0, 0, 0);
-    lay->setHorizontalSpacing(0);
-    lay->setVerticalSpacing(0);
-
+    auto lay = new iscore::MarginLess<QFormLayout>;
+    widget->setLayout(lay);
     // State id
-    lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
+    //lay->addRow("Id", new QLabel{QString::number(m_model.id().val().get())});
 
     auto scenar = m_model.parentScenario();
     auto event = m_model.eventId();
     if(event)
     {
         auto btn = SelectionButton::make(
+                    tr("Parent Event"),
                 &scenar->event(event),
                 selectionDispatcher(),
                 this);
 
-        lay->addRow(tr("Event"), btn);
+        lay->addWidget(btn);
     }
 
     // Constraints setup
     if(m_model.previousConstraint())
     {
         auto btn = SelectionButton::make(
+                    tr("Previous Constraint"),
                 &scenar->constraint(m_model.previousConstraint()),
                 selectionDispatcher(),
                 this);
 
-        lay->addRow(tr("Previous constraint"), btn);
+        lay->addWidget(btn);
     }
     if(m_model.nextConstraint())
     {
         auto btn = SelectionButton::make(
+                    tr("Next Constraint"),
                 &scenar->constraint(m_model.nextConstraint()),
                 selectionDispatcher(),
                 this);
 
-        lay->addRow(tr("Next constraint"), btn);
+        lay->addWidget(btn);
     }
     m_properties.push_back(widget);
 

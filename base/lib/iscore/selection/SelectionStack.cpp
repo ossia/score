@@ -20,6 +20,7 @@ bool SelectionStack::canReselect() const
 
 void SelectionStack::push(const Selection& s)
 {
+    // TODO don't push "empty" selections, just add a "deselected" mode.
     if(s != m_unselectable.top())
     {
         for(const QObject* obj : s)
