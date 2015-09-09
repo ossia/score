@@ -45,7 +45,6 @@ void DeviceExplorerControl::setupCommands()
             UpdateAddressSettings,
             UpdateDeviceSettings,
             Cut,
-            EditData,
 //            Insert,
             Move,
             Paste,

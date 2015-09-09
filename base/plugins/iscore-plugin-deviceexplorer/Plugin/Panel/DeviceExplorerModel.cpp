@@ -5,6 +5,7 @@
 #include "Commands/Insert.hpp"
 #include "Commands/EditData.hpp"
 #include "Commands/Add/LoadDevice.hpp"
+#include "Commands/Update/UpdateAddressSettings.hpp"
 
 #include "DeviceExplorerMimeTypes.hpp"
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
@@ -410,6 +411,7 @@ static QVariant nameColumnData(const Node& node, int role)
     return {};
 }
 
+// TODO rework this to use iscore::Value::toString();
 static QVariant valueColumnData(const Node& node, int role)
 {
     if(node.is<DeviceSettings>())
@@ -605,6 +607,10 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
 /*
   return false if no change was made.
   emit dataChanged() & return true if a change is made.
+
+  Note: this is the function that gets called when the user changes the value
+  in the tree.
+  It then sends a command that calls editData.
 */
 bool
 DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, int role)
@@ -625,25 +631,23 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
         return false;
     }
 
-    bool changed = false;
     auto col = DeviceExplorerModel::Column(index.column());
 
     if(role == Qt::EditRole)
     {
+        auto settings = n->get<iscore::AddressSettings>();
         if(col == Column::Name)
         {
             const QString s = value.toString();
-
             if(! s.isEmpty())
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(*this), iscore::NodePath{index}, col, value, role});
-                changed = true;
+                settings.name = s;
             }
         }
         else if(col == Column::IOType)
         {
-            m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(*this), iscore::NodePath{index}, col, value, role});
-            changed = true;
+            // Harmonize this with IOTypeDelegate to prevent the use of this map
+            settings.ioType = iscore::IOTypeStringMap().key(value.value<QString>());
         }
         else if(col == Column::Value)
         {
@@ -651,17 +655,22 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
             auto res = copy.convert(n->get<iscore::AddressSettings>().value.val.type());
             if(res)
             {
-                m_cmdQ->redoAndPush(new EditData{iscore::IDocument::path(*this),
-                                                 iscore::NodePath{index},
-                                                 col,
-                                                 copy,
-                                                 role});
-                changed = true;
+                settings.value.val = copy;
             }
+        }
+
+        if(settings != n->get<iscore::AddressSettings>())
+        {
+            // We changed
+            m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
+                                    iscore::IDocument::path(this->deviceModel()),
+                                    iscore::NodePath{*n},
+                                    settings});
+            return true;
         }
     }
 
-    return changed; //false;
+    return false;
 }
 
 bool
@@ -670,6 +679,12 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
     return false; //we prevent editing the (column) headers
 }
 
+/**
+ * @brief DeviceExplorerModel::editData
+ *
+ * This functions gets called by the command
+ * that edit the columns.
+ */
 void DeviceExplorerModel::editData(
         const iscore::NodePath &path,
         DeviceExplorerModel::Column column,
@@ -698,13 +713,11 @@ void DeviceExplorerModel::editData(
                 node->get<iscore::AddressSettings>().name = s;
             }
         }
-
-        if(index.column() == (int)Column::IOType)
+        else if(index.column() == (int)Column::IOType)
         {
             node->get<iscore::AddressSettings>().ioType = IOTypeStringMap().key(value.toString());
         }
-
-        if(index.column() == (int)Column::Value)
+        else if(index.column() == (int)Column::Value)
         {
             node->get<iscore::AddressSettings>().value.val = value;
         }

@@ -176,6 +176,11 @@ void updateOSSIAAddress(
             ISCORE_ABORT;
             break;
     }
+
+    auto val = addr->getValue()->clone();
+
+    updateOSSIAValue(settings.value.val,*val);
+    addr->pushValue(val);
 }
 
 void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node *node)
@@ -337,7 +342,9 @@ OSSIA::Value* toValue(
     return toValue(value.val);
 }
 
-std::shared_ptr<OSSIA::Message> message(const iscore::Message& mess, const DeviceList& deviceList)
+std::shared_ptr<OSSIA::Message> message(
+        const iscore::Message& mess,
+        const DeviceList& deviceList)
 {
     if(!deviceList.hasDevice(mess.address.device))
         return {};
