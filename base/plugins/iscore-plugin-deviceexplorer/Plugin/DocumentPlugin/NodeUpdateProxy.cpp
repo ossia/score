@@ -29,18 +29,18 @@ void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 
 void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 {
-    auto newNode = m_devModel.createDeviceFromNode(node);
+    m_devModel.createDeviceFromNode(node);
 
     if(m_deviceExplorer)
     {
         m_deviceExplorer->addDevice(
-                    new iscore::Node{newNode});
+                    new iscore::Node{node});
     }
     else
     {
         m_devModel.rootNode().insertChild(
                     m_devModel.rootNode().childCount(),
-                    new iscore::Node{newNode});
+                    new iscore::Node{node});
     }
 }
 
