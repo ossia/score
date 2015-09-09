@@ -25,6 +25,19 @@ namespace iscore
             explicit CommandStack(QObject* parent = nullptr);
             ~CommandStack();
 
+            // Allows blocking of undo and redo.
+            void enableActions()
+            {
+                canUndoChanged(canUndo());
+                canRedoChanged(canRedo());
+            }
+
+            void disableActions()
+            {
+                canUndoChanged(false);
+                canRedoChanged(false);
+            }
+
             bool canUndo() const
             {
                 return !m_undoable.empty();

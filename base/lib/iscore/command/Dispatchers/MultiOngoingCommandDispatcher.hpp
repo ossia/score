@@ -48,6 +48,7 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
 
         void submitCommand(iscore::SerializableCommand* cmd)
         {
+            stack().disableActions();
             cmd->redo();
             m_cmds.append(cmd);
         }
@@ -57,6 +58,7 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
         {
             if(m_cmds.empty())
             {
+                stack().disableActions();
                 auto cmd = new TheCommand(std::forward<Args>(args)...);
                 cmd->redo();
                 m_cmds.append(cmd);
@@ -92,6 +94,8 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
 
                 SendStrategy::Quiet::send(stack(), theCmd);
                 m_cmds.clear();
+
+                stack().enableActions();
             }
         }
 
@@ -102,6 +106,8 @@ class MultiOngoingCommandDispatcher : public ICommandDispatcher
 
             qDeleteAll(m_cmds);
             m_cmds.clear();
+
+            stack().enableActions();
         }
 
     private:
