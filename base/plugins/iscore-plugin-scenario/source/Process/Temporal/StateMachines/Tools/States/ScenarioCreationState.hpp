@@ -10,7 +10,53 @@ class StrongQState : public QState
 {
     public:
         static constexpr auto value() { return Value; }
-        using QState::QState;
+        StrongQState(QState* parent):
+            QState{parent}
+        {
+            QString txt;
+
+            auto object = static_cast<ScenarioElement>(Value % 10);
+            auto modifier = static_cast<Modifier_tagme>((Value - object) % 1000 / 100);
+            switch(modifier)
+            {
+                case Modifier_tagme::Click:
+                    txt += "Click on";
+                    break;
+                case Modifier_tagme::Move:
+                    txt += "Move on";
+                    break;
+                case Modifier_tagme::Release:
+                    txt += "Release on";
+                    break;
+            }
+
+            switch(object)
+            {
+                case ScenarioElement::Nothing:
+                    txt += "nothing";
+                    break;
+                case ScenarioElement::TimeNode:
+                    txt += "TimeNode";
+                    break;
+                case ScenarioElement::Event:
+                    txt += "Event";
+                    break;
+                case ScenarioElement::Constraint:
+                    txt += "Constraint";
+                    break;
+                case ScenarioElement::State:
+                    txt += "State";
+                    break;
+                case ScenarioElement::SlotOverlay_e:
+                    txt += "SlotOverlay_e";
+                    break;
+                case ScenarioElement::SlotHandle_e:
+                    txt += "SlotHandle_e";
+                    break;
+            }
+
+            this->setObjectName(txt);
+        }
 };
 class ScenarioStateMachine;
 

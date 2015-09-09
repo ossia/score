@@ -20,7 +20,6 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
     ConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
-    this->setFlags({});
 
     this->setZValue(parent->zValue() + 3);
 }

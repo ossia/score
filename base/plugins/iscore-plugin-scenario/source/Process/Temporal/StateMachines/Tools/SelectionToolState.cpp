@@ -188,6 +188,14 @@ void SelectionTool::on_moved()
 
 void SelectionTool::on_released()
 {
+    if(m_nothingPressed)
+    {
+        localSM().postEvent(new Release_Event); // select
+        m_nothingPressed = false;
+
+        return;
+    }
+
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const Id<StateModel>& id) // State
     {
@@ -234,15 +242,7 @@ void SelectionTool::on_released()
     },
     [&] ()
     {
-        if(m_nothingPressed)
-        {
-            localSM().postEvent(new Release_Event); // select
-            m_nothingPressed = false;
-        }
-        else
-        {
-            localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); // end of move
-        }
+        localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); // end of move
     } );
 
 }

@@ -79,7 +79,8 @@ void StateInspectorWidget::updateDisplayedValues()
     // State setup
     m_stateSection = new InspectorSectionWidget{"States", this};
 
-    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)
+            ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     auto tv = new StateTreeView{m_model,
                                 deviceexplorer,
                                 m_stateSection};

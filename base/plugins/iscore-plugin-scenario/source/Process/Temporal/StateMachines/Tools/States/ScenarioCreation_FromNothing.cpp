@@ -30,6 +30,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
         QState* parent):
     ScenarioCreationState{stateMachine, stack, scenarioPath, parent}
 {
+    this->setObjectName("ScenarioCreation_FromNothing");
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
     connect(finalState, &QState::entered, [&] ()
