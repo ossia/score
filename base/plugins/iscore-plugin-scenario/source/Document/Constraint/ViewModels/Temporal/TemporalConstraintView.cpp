@@ -20,6 +20,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
     ConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
+    this->setFlags({});
 
     this->setZValue(parent->zValue() + 3);
 }
@@ -45,6 +46,7 @@ void TemporalConstraintView::paint(
         // Background
         auto rect = boundingRect();
         rect.adjust(0,15,0,-10);
+        rect.setWidth(this->defaultWidth());
         painter->fillRect(rect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
 
         // Fake timenode continuation

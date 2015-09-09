@@ -42,14 +42,20 @@ QRectF CurveSegmentView::boundingRect() const
     return m_rect;
 }
 
-void CurveSegmentView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void CurveSegmentView::paint(
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
+    static const QColor base = QColor::fromRgb(0xC7, 0x2C, 0x1F);
+    static const QColor yellow = QColor::fromHsl(base.hue() / 2, base.saturation(), base.lightness());
+
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
     pen.setColor(m_enabled
                     ? (m_selected
-                        ? Qt::yellow
-                        : baseColor)
+                        ? yellow
+                        : base)
                     : Qt::gray);
 
     painter->setPen(pen);

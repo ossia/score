@@ -5,7 +5,7 @@
 
 #include <QGraphicsSceneContextMenuEvent>
 #include <QCursor>
-
+static const qreal radius = 2.;
 CurvePointView::CurvePointView(
         const CurvePointModel& model,
         QGraphicsItem* parent):
@@ -16,6 +16,7 @@ CurvePointView::CurvePointView(
     this->setZValue(parent->zValue() + 2);
     con(m_model.selection, &Selectable::changed,
             this, &CurvePointView::setSelected);
+    this->setCursor(Qt::CrossCursor);
 }
 
 const CurvePointModel& CurvePointView::model() const
@@ -35,7 +36,7 @@ int CurvePointView::type() const
 
 QRectF CurvePointView::boundingRect() const
 {
-    return {-2.5, -2.5, 5., 5.};
+    return {-radius, -radius, 2 * radius, 2 * radius};
 }
 
 void CurvePointView::paint(
@@ -43,17 +44,24 @@ void CurvePointView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
+    static const QColor base = QColor::fromRgb(0x80, 0xD7, 0x3E);
+    static const QColor yellow = QColor::fromHsl(base.hue() / 2, base.saturation(), base.lightness());
     if(!m_enabled)
         return;
 
     QPen pen;
-    QColor c = m_selected? Qt::yellow : Qt::green;
+    QColor c = m_selected? yellow : base;
     pen.setColor(c);
-    pen.setWidth(3);
+    pen.setWidth(1);
     painter->setPen(pen);
     painter->setBrush(c);
 
-    painter->drawEllipse(QPointF{0., 0.}, 3, 3);
+    pen.setCosmetic(true);
+    pen.setWidth(1);
+
+    painter->setPen(pen);
+    painter->drawEllipse(boundingRect());
+//    painter->drawRect(boundingRect());
 }
 
 void CurvePointView::setSelected(bool selected)
