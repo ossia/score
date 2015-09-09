@@ -14,15 +14,33 @@ class SelectionButton : public QWidget
                         QWidget* parent);
 
         template<typename Obj>
-        static SelectionButton* make(Obj&& obj,
-                              iscore::SelectionDispatcher& disp,
-                              QWidget* parent)
+        static SelectionButton* make(
+                Obj&& obj,
+                iscore::SelectionDispatcher& disp,
+                QWidget* parent)
         {
             return new SelectionButton{
-                        QString::number(*obj->id().val()),
-                        Selection{obj},
-                        disp,
-                        parent};
+                QString::number(*obj->id().val()) + " ↪",
+                Selection{obj},
+                disp,
+                parent};
+        }
+
+        template<typename Obj>
+        static SelectionButton* make(
+                const QString& text,
+                Obj&& obj,
+                iscore::SelectionDispatcher& disp,
+                QWidget* parent)
+        {
+            auto but = new SelectionButton{
+                text + " ↪",
+                Selection{obj},
+                disp,
+                parent};
+
+            but->setToolTip(QString::number(*obj->id().val()));
+            return but;
         }
 
     private:

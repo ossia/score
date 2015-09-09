@@ -34,6 +34,7 @@
 #include "core/document/DocumentModel.hpp"
 #include "Inspector/State/StateInspectorWidget.hpp"
 #include <Inspector/InspectorWidgetList.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
@@ -61,12 +62,8 @@ EventInspectorWidget::EventInspectorWidget(
     ////// BODY
     /// Information
     auto infoWidg = new QWidget;
-    auto infoLay = new QFormLayout;
+    auto infoLay = new iscore::MarginLess<QFormLayout>;
     infoWidg->setLayout(infoLay);
-
-    // date
-    m_date = new QLabel{QString::number(m_model.date().msec())} ;
-    infoLay->addRow(tr("Default date"), m_date);
 
     // timeNode
     auto timeNode = m_model.timeNode();
@@ -74,12 +71,24 @@ EventInspectorWidget::EventInspectorWidget(
     {
         auto scenar = m_model.parentScenario();
         auto tnBtn = SelectionButton::make(
-                &scenar->timeNode(timeNode),
-                selectionDispatcher(),
-                this);
+                    tr("Parent TimeNode"),
+                    &scenar->timeNode(timeNode),
+                    selectionDispatcher(),
+                    this);
 
-        infoLay->addRow(tr("TimeNode"), tnBtn);
+        infoLay->addWidget(tnBtn);
     }
+
+    // date
+    auto datewidg = new QWidget;
+    auto dateLay = new iscore::MarginLess<QHBoxLayout>;
+    datewidg->setLayout(dateLay);
+    m_date = new QLabel{QString::number(m_model.date().msec())};
+
+    dateLay->addWidget(new QLabel(tr("Default date")));
+    dateLay->addWidget(m_date);
+
+    infoLay->addWidget(datewidg);
     m_properties.push_back(infoWidg);
 
 
@@ -91,7 +100,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_conditionLineEdit->setValidator(&m_validator);
 
     connect(m_conditionLineEdit, &QLineEdit::editingFinished,
-            this,			 &EventInspectorWidget::on_conditionChanged);
+            this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,
         this, [this] (const iscore::Condition& c) {
         m_conditionLineEdit->setText(c.toString());
