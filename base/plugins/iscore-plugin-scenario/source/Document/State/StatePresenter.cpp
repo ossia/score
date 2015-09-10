@@ -34,6 +34,8 @@ StatePresenter::StatePresenter(
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
+
+    updateStateView();
 }
 
 StatePresenter::~StatePresenter()
