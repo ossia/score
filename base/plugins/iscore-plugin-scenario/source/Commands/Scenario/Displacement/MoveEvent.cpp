@@ -50,7 +50,12 @@ MoveEvent::MoveEvent(
             {
                 const auto& st = scenar.state(st_id);
                 if(st.previousConstraint())
-                    constraints += st.previousConstraint();
+                {
+                    const auto& cstr = scenar.constraint(st.previousConstraint());
+                    const auto& startTn = scenar.event(scenar.state(cstr.startState()).eventId()).timeNode();
+                    if(! m_movableTimenodes.contains(startTn))
+                        constraints += st.previousConstraint();
+                }
             }
         }
     }
@@ -110,47 +115,54 @@ void MoveEvent::undo()
                     Deserializer<DataStream>{obj.first.second},
                     &constraint}; // Temporary parent
 
-            std::map<const Process*, Process*> processPairs;
-
-            // Clone the processes
-            for(const auto& sourceproc : src_constraint.processes)
+            if(src_constraint.processes.size() != 0)
             {
-                auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
 
-                processPairs.insert(std::make_pair(&sourceproc, newproc));
-                constraint.processes.add(newproc);
-            }
+                std::map<const Process*, Process*> processPairs;
 
-            // Clone the rackes
-            for(const auto& sourcerack : src_constraint.racks)
-            {
-                // A note about what happens here :
-                // Since we want to duplicate our process view models using
-                // the target constraint's cloned shared processes (they might setup some specific data),
-                // we maintain a pair mapping each original process to their cloned counterpart.
-                // We can then use the correct cloned process to clone the process view model.
-                auto newrack = new RackModel{
-                        sourcerack,
-                        sourcerack.id(),
-                        [&] (const SlotModel& source, SlotModel& target)
-                        {
-                            for(const auto& lm : source.layers)
+                // Clone the processes
+                for(const auto& sourceproc : src_constraint.processes)
+                {
+                    auto newproc = sourceproc.clone(sourceproc.id(), &constraint);
+
+                    processPairs.insert(std::make_pair(&sourceproc, newproc));
+                    constraint.processes.add(newproc);
+                }
+
+                // Clone the rackes
+                for(const auto& sourcerack : src_constraint.racks)
+                {
+                    // A note about what happens here :
+                    // Since we want to duplicate our process view models using
+                    // the target constraint's cloned shared processes (they might setup some specific data),
+                    // we maintain a pair mapping each original process to their cloned counterpart.
+                    // We can then use the correct cloned process to clone the process view model.
+                    auto newrack = new RackModel{
+                            sourcerack,
+                            sourcerack.id(),
+                            [&] (const SlotModel& source, SlotModel& target)
                             {
-                                // We can safely reuse the same id since it's in a different slot.
-                                Process* proc = processPairs[&lm.processModel()];
-                                // TODO harmonize the order of parameters (source first, then new id)
-                                target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
-                            }
-                        },
-                        &constraint};
-                constraint.racks.add(newrack);
+                                for(const auto& lm : source.layers)
+                                {
+                                    // We can safely reuse the same id since it's in a different slot.
+                                    Process* proc = processPairs[&lm.processModel()];
+                                    // TODO harmonize the order of parameters (source first, then new id)
+                                    target.layers.add(proc->cloneLayer(lm.id(), lm, &target));
+                                }
+                            },
+                            &constraint};
+                    constraint.racks.add(newrack);
+                }
             }
         }
 
         // 3. Restore the correct rackes in the constraint view models
-        for(auto& viewmodel : constraint.viewModels())
+        if(constraint.processes.size() != 0)
         {
-            viewmodel->showRack(obj.second[viewmodel->id()]);
+            for(auto& viewmodel : constraint.viewModels())
+            {
+                viewmodel->showRack(obj.second[viewmodel->id()]);
+            }
         }
     }
 

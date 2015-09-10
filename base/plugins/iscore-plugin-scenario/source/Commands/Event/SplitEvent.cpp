@@ -8,6 +8,7 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Process/Algorithms/StandardCreationPolicy.hpp"
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 
 using namespace Scenario::Command;
 
@@ -39,6 +40,9 @@ void SplitEvent::undo()
     ScenarioCreate<EventModel>::undo(
                 m_newEvent,
                 m_scenarioPath.find());
+    updateEventExtent(m_newEvent, scenar);
+    updateEventExtent(m_originalEvent, scenar);
+
 }
 
 void SplitEvent::redo()
@@ -60,6 +64,8 @@ void SplitEvent::redo()
         newEvent.addState(st);
         scenar.state(st).setEventId(m_newEvent);
     }
+    updateEventExtent(m_newEvent, scenar);
+    updateEventExtent(m_originalEvent, scenar);
 }
 
 void SplitEvent::serializeImpl(QDataStream & s) const
