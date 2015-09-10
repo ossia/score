@@ -8,6 +8,7 @@
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 #include "DialogWidget/StateTreeView.hpp"
 #include <iscore/widgets/MarginLess.hpp>
+#include "Commands/Event/SplitEvent.hpp"
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
@@ -73,8 +74,14 @@ void StateInspectorWidget::updateDisplayedValues()
 
         lay->addWidget(btn);
     }
-    m_properties.push_back(widget);
 
+    auto newEvBtn = new QPushButton{"Split"};
+    lay->addWidget(newEvBtn);
+
+    connect(newEvBtn, &QPushButton::pressed,
+            this,   &StateInspectorWidget::splitEvent);
+
+    m_properties.push_back(widget);
 
     // State setup
     m_stateSection = new InspectorSectionWidget{"States", this};
@@ -89,4 +96,20 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.push_back(m_stateSection);
 
     updateAreaLayout(m_properties);
+}
+
+using namespace Scenario;
+
+void StateInspectorWidget::splitEvent()
+{
+    auto scenar = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
+    if (scenar)
+    {
+        auto cmd = new Command::SplitEvent(
+                    iscore::IDocument::path(*scenar),
+                    m_model.eventId(),
+                    {m_model.id()} );
+
+        emit commandDispatcher()->submitCommand(cmd);
+    }
 }

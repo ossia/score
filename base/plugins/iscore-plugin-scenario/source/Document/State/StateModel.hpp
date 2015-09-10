@@ -58,6 +58,7 @@ class StateModel : public IdentifiedObject<StateModel>
         iscore::StateItemModel &states();
 
         const Id<EventModel>& eventId() const;
+        void setEventId(const Id<EventModel>&);
 
         const Id<ConstraintModel>& previousConstraint() const;
         const Id<ConstraintModel>& nextConstraint() const;

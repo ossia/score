@@ -59,6 +59,11 @@ const Id<EventModel> &StateModel::eventId() const
     return m_eventId;
 }
 
+void StateModel::setEventId(const Id<EventModel> & id)
+{
+    m_eventId = id;
+}
+
 const Id<ConstraintModel> &StateModel::previousConstraint() const
 {
     return m_previousConstraint;

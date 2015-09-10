@@ -4,6 +4,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include "Process/Algorithms/VerticalMovePolicy.hpp"
 
 using namespace Scenario::Command;
 CreateConstraint_State::CreateConstraint_State(
@@ -43,6 +44,7 @@ void CreateConstraint_State::undo()
     ScenarioCreate<StateModel>::undo(
                 m_newState,
                 m_command.scenarioPath().find());
+    updateEventExtent(m_endEvent, m_command.scenarioPath().find());
 }
 
 void CreateConstraint_State::redo()
@@ -58,6 +60,7 @@ void CreateConstraint_State::redo()
 
     // The constraint between
     m_command.redo();
+    updateEventExtent(m_endEvent, scenar);
 }
 
 void CreateConstraint_State::serializeImpl(QDataStream& s) const

@@ -16,6 +16,9 @@ class StateInspectorWidget : public InspectorWidgetBase
     public slots:
         void updateDisplayedValues();
 
+    private slots:
+        void splitEvent();
+
     private:
         QVector<QWidget*> m_properties;
 
