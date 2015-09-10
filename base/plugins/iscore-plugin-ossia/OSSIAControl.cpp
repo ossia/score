@@ -48,7 +48,8 @@ OSSIAControl::~OSSIAControl()
 {
     // TODO check the deletion order.
     // Maybe we should have a dependency graph of some kind ??
-    baseConstraint().stop();
+    if(currentDocument())
+        baseConstraint().stop();
 }
 
 
