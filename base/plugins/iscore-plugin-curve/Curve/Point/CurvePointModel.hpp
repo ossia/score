@@ -9,11 +9,7 @@ class CurvePointModel : public IdentifiedObject<CurvePointModel>
 {
     public:
         Selectable selection;
-        CurvePointModel(const Id<CurvePointModel>& id, QObject* parent):
-            IdentifiedObject<CurvePointModel>{id, "CurvePointModel", parent}
-        {
-
-        }
+        CurvePointModel(const Id<CurvePointModel>& id, QObject* parent);
 
         const Id<CurveSegmentModel>& previous() const;
         void setPrevious(const Id<CurveSegmentModel> &previous);

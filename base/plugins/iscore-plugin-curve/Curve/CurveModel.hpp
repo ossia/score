@@ -25,6 +25,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
 
         CurveModel* clone(const Id<CurveModel>&, QObject* parent);
         void addSegment(CurveSegmentModel* m);
+        void addSegments(QVector<CurveSegmentModel*> m);
 
         // Here we don't pass an id because it's more efficient
         void removeSegment(CurveSegmentModel* m);
@@ -47,6 +48,8 @@ class CurveModel : public IdentifiedObject<CurveModel>
         void pointAdded(const CurvePointModel&);
         void pointRemoved(const Id<CurvePointModel>&); // dangerous if async
 
+        // This signal has to be emitted after big modifications.
+        // (it's an optimization to prevent updating the OSSIA API each time a segment moves).
         void changed();
         void cleared();
 

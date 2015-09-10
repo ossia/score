@@ -1,5 +1,10 @@
 #include "CurvePointModel.hpp"
 
+CurvePointModel::CurvePointModel(const Id<CurvePointModel>& id, QObject* parent):
+    IdentifiedObject<CurvePointModel>{id, "CurvePointModel", parent}
+{
+
+}
 
 const Id<CurveSegmentModel>& CurvePointModel::following() const
 {
@@ -20,6 +25,7 @@ void CurvePointModel::setPos(const CurvePoint &pos)
 {
     m_pos = pos;
 }
+
 
 
 const Id<CurveSegmentModel> &CurvePointModel::previous() const

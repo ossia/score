@@ -93,6 +93,7 @@ void AutomationPresenter::updateCurve()
 {
     // Compute the rect with the duration of the process.
     QRectF rect = m_view->boundingRect(); // for the height
+
     rect.setWidth(m_viewModel.model().duration().toPixels(m_zoomRatio));
 
     m_curvepresenter->setRect(rect);
