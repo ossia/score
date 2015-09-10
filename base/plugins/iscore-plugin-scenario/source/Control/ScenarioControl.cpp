@@ -235,7 +235,6 @@ void ScenarioControl::on_documentChanged()
 
     if(!currentDocument())
     {
-        m_toolActions->setEnabled(false);
         return;
     }
     else
