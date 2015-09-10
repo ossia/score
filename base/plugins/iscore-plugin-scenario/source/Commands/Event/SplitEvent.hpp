@@ -5,6 +5,8 @@
 
 class EventModel;
 class StateModel;
+class ScenarioModel;
+
 namespace Scenario
 {
     namespace Command
@@ -15,6 +17,10 @@ namespace Scenario
             public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitEvent)
 
+            SplitEvent(
+                const Path<ScenarioModel>& scenario,
+                const Id<EventModel>& event,
+                const QVector<Id<StateModel>>& movingstates);
 
             virtual void undo() override;
             virtual void redo() override;
@@ -24,10 +30,12 @@ namespace Scenario
             virtual void deserializeImpl(QDataStream&) override;
 
             private:
-            Path<EventModel> m_oldPath;
-            Path<EventModel> m_newPath;
+            Path<ScenarioModel> m_scenarioPath;
 
-    //       QVector<Path<StateModel> m_movingStates;
+            Id<EventModel> m_originalEvent;
+            Id<EventModel> m_newEvent;
+            QString m_createdName;
+            QVector<Id<StateModel>> m_movingStates;
         };
     }
 }
