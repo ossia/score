@@ -78,28 +78,41 @@ void NetworkControl::setupClientConnection(QString ip, int port)
 
     m_sessionBuilder->initiateConnection();
 }
-
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 void NetworkControl::on_sessionBuilt(
         ClientSessionBuilder* sessionBuilder,
         ClientSession* builtSession)
 {
-    // TODO Use RestoreDocument mechanism.
+    // The SessionBuilder should have a saved document and saved command list.
+    // However there is a difference with what happens when there is a crash :
+    // Here the document is sent as it is in its current state. The CommandList only serves
+    // in case somebody does undo, so that the computer who joined later can still
+    // undo, too.
     /*
     auto doc = presenter()->loadDocument(
                    m_sessionBuilder->documentData(),
                    presenter()->availableDocuments().front());
-    // TODO checkme
+
+    if(!doc)
+    {
+        qDebug() << "Invalid document received";
+    }
 
     // TODO use same mechanism than in presenter instead (CommandBackupFile).
+    auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
         auto cmd = presenter()->instantiateUndoCommand(elt.first.first,
                                                        elt.first.second,
                                                        elt.second);
+
+        // What should happen for the device explorer ? Should the other computers
+        // recreate it ?
         doc->commandStack().pushQuiet(cmd);
     }
 
-    auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
     np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
     delete sessionBuilder;
     */
