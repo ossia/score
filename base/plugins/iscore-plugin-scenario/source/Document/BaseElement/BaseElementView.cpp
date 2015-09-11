@@ -27,6 +27,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setSceneRect(0, -70, 800, 35);
     m_timeRulersView->setFixedHeight(40);
     m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
     m_timeRulersView->setBackgroundBrush(QBrush(qApp->palette("ScenarioPalette").background()));
     //*/
 
