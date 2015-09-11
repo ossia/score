@@ -17,6 +17,8 @@
 
 #include <core/document/DocumentBackups.hpp>
 
+#include "iscore_git_info.hpp"
+
 #include <QFileDialog>
 #include <QSaveFile>
 #include <QMessageBox>

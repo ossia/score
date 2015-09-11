@@ -90,6 +90,7 @@ void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
 {
     // We only need to change the duration.
     setDuration(newDuration);
+    m_curve->changed();
 }
 
 void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
