@@ -121,6 +121,23 @@ class ScenarioModel : public Process, public ScenarioInterface
         NotifyingMap<TimeNodeModel> timeNodes;
         NotifyingMap<StateModel> states;
 
+        IdContainer<ConstraintModel> getConstraints() const
+        {
+            return constraints;
+        }
+        IdContainer<EventModel> getEvents() const
+        {
+            return events;
+        }
+        IdContainer<TimeNodeModel>getTimeNodes() const
+        {
+            return timeNodes;
+        }
+        IdContainer<StateModel> getStates() const
+        {
+            return states;
+        }
+
     signals:
         void stateMoved(const StateModel&);
         void eventMoved(const EventModel&);

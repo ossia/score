@@ -6,6 +6,8 @@
 #include <source/Document/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>
 #include <source/Document/State/StateModel.hpp>
+#include <source/Document/TimeNode/TimeNodeModel.hpp>
+#include <source/Document/Event/EventModel.hpp>
 
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -51,6 +53,18 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ModelMetadata metadata;
         ModelConsistency consistency;
         ConstraintDurations duration{*this};
+
+        /**
+         * @brief fetchEndTimeNodeId
+         * @return the end timenode id
+         */
+        const Id<TimeNodeModel> fetchEndTimeNodeId() const;
+
+        /**
+         * @brief fetchStartTimeNodeId
+         * @return the start timenode id
+         */
+        const Id<TimeNodeModel> fetchStartTimeNodeId() const;
 
         iscore::ElementPluginModelList pluginModelList;
 

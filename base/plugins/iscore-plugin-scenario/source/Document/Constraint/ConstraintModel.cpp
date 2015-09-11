@@ -83,6 +83,24 @@ ConstraintModel::ConstraintModel(
     m_fullViewModel = source.fullView()->clone(source.fullView()->id(), *this, this);
 }
 
+const
+Id<TimeNodeModel>
+ConstraintModel::fetchEndTimeNodeId() const
+{
+    auto scenario = parentScenario();
+
+    return scenario->event(scenario->state(m_endState).eventId()).timeNode();
+}
+
+const
+Id<TimeNodeModel>
+ConstraintModel::fetchStartTimeNodeId() const
+{
+    auto scenario = parentScenario();
+
+    return scenario->event(scenario->state(m_startState).eventId()).timeNode();
+}
+
 ScenarioInterface* ConstraintModel::parentScenario() const
 {
     return dynamic_cast<ScenarioInterface*>(parent());
