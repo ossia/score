@@ -7,16 +7,37 @@
 #include "Process/ScenarioModel.hpp"
 void DisplayedElementsModel::setSelection(const Selection & s)
 {
-    m_startEvent->selection.set(s.find(m_startEvent) != s.end());
-    m_endEvent->selection.set(s.find(m_endEvent) != s.end());
+    bool startev{}, endev{}, starttn{}, endtn{}, startst{}, endst{}, cst{};
+    for(const auto& elt : s)
+    {
+        ISCORE_ASSERT(elt);
 
-    m_startState->selection.set(s.find(m_startState) != s.end());
-    m_endState->selection.set(s.find(m_endState) != s.end());
+        if(elt == m_startEvent)
+            startev = true;
+        else if(elt == m_endEvent)
+            endev = true;
+        else if(elt == m_startNode)
+            starttn = true;
+        else if(elt == m_endNode)
+            endtn = true;
+        else if(elt == m_startState)
+            startst = true;
+        else if(elt == m_endState)
+            endst = true;
+        else if(elt == m_constraint)
+            cst = true;
+    }
 
-    m_startNode->selection.set(s.find(m_startNode) != s.end());
-    m_endNode->selection.set(s.find(m_endNode) != s.end());
+    if(m_startEvent) m_startEvent->selection.set(startev);
+    if(m_endEvent) m_endEvent->selection.set(endev);
 
-    m_constraint->selection.set(s.find(m_constraint) != s.end());
+    if(m_startState) m_startState->selection.set(starttn);
+    if(m_endState) m_endState->selection.set(endtn);
+
+    if(m_startNode) m_startState->selection.set(startst);
+    if(m_endNode) m_endState->selection.set(endst);
+
+    if(m_constraint) m_endState->selection.set(cst);
  }
 
 void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel *constraint)

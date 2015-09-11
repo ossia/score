@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <QPointer>
 #include <iscore/selection/Selection.hpp>
 
 class ConstraintModel;
@@ -25,14 +26,14 @@ class DisplayedElementsModel
         const StateModel& endState() const;
 
     private:
-        const TimeNodeModel* m_startNode{};
-        const TimeNodeModel* m_endNode{};
+        QPointer<const TimeNodeModel> m_startNode{};
+        QPointer<const TimeNodeModel> m_endNode{};
 
-        const EventModel* m_startEvent{};
-        const EventModel* m_endEvent{};
+        QPointer<const EventModel> m_startEvent{};
+        QPointer<const EventModel> m_endEvent{};
 
-        const StateModel* m_startState{};
-        const StateModel* m_endState{};
+        QPointer<const StateModel> m_startState{};
+        QPointer<const StateModel> m_endState{};
 
-        const ConstraintModel* m_constraint{};
+        QPointer<const ConstraintModel> m_constraint{};
 };
