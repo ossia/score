@@ -50,7 +50,7 @@ void OSSIADevice::removeAddress(const iscore::Address& address)
 }
 
 
-void OSSIADevice::sendMessage(iscore::Message &mess)
+void OSSIADevice::sendMessage(iscore::Message mess)
 {
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 

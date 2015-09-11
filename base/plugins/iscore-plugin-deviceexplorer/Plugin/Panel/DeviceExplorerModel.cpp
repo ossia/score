@@ -635,38 +635,51 @@ DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, in
 
     if(role == Qt::EditRole)
     {
-        auto settings = n->get<iscore::AddressSettings>();
-        if(col == Column::Name)
+        if(col == Column::Value)
         {
-            const QString s = value.toString();
-            if(! s.isEmpty())
-            {
-                settings.name = s;
-            }
-        }
-        else if(col == Column::IOType)
-        {
-            // Harmonize this with IOTypeDelegate to prevent the use of this map
-            settings.ioType = iscore::IOTypeStringMap().key(value.value<QString>());
-        }
-        else if(col == Column::Value)
-        {
+            // In this case we don't make a command, but we directly push the
+            // new value.
             QVariant copy = value;
             auto res = copy.convert(n->get<iscore::AddressSettings>().value.val.type());
             if(res)
             {
-                settings.value.val = copy;
-            }
-        }
+                n->get<iscore::AddressSettings>().value.val = copy;
+                // Note : if we want to disable remote updating, we have to do it
+                // here (e.g. if this becomes a settings)
+                m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(*n), iscore::Value::fromVariant(copy));
 
-        if(settings != n->get<iscore::AddressSettings>())
+                return true;
+            }
+
+            return false;
+        }
+        else
         {
-            // We changed
-            m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
-                                    iscore::IDocument::path(this->deviceModel()),
-                                    iscore::NodePath{*n},
-                                    settings});
-            return true;
+            // Here we make a command because we change the structure of the tree.
+            auto settings = n->get<iscore::AddressSettings>();
+            if(col == Column::Name)
+            {
+                const QString s = value.toString();
+                if(! s.isEmpty())
+                {
+                    settings.name = s;
+                }
+            }
+            else if(col == Column::IOType)
+            {
+                // TODO Harmonize this with IOTypeDelegate to prevent the use of this map
+                settings.ioType = iscore::IOTypeStringMap().key(value.value<QString>());
+            }
+
+            if(settings != n->get<iscore::AddressSettings>())
+            {
+                // We changed
+                m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
+                                        iscore::IDocument::path(this->deviceModel()),
+                                        iscore::NodePath{*n},
+                                        settings});
+                return true;
+            }
         }
     }
 

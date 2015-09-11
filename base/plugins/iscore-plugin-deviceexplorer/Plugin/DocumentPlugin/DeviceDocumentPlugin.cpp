@@ -42,7 +42,7 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
         auto proto = SingletonProtocolList::instance().protocol(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
         connect(newdev, &DeviceInterface::valueUpdated,
-                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateValue(addr, v); });
+                this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
 
         m_list.addDevice(newdev);
 

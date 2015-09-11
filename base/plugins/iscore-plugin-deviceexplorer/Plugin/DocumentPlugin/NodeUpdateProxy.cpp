@@ -198,7 +198,7 @@ void NodeUpdateProxy::removeAddress(
     }
 }
 
-void NodeUpdateProxy::updateValue(
+void NodeUpdateProxy::updateLocalValue(
         const iscore::Address& addr,
         const iscore::Value& v)
 {
@@ -215,5 +215,18 @@ void NodeUpdateProxy::updateValue(
     else
     {
         n->get<iscore::AddressSettings>().value = v;
+    }
+}
+
+void NodeUpdateProxy::updateRemoteValue(const iscore::Address& addr, const iscore::Value& val)
+{
+    // TODO add these checks everywhere.
+    if(m_devModel.list().hasDevice(addr.device))
+    {
+        // Update in the device implementation
+        m_devModel
+                .list()
+                .device(addr.device)
+                .sendMessage({addr, val});
     }
 }
