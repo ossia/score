@@ -5,7 +5,8 @@ class QPushButton;
 namespace iscore {
 class SelectionDispatcher;
 }
-class SelectionButton : public QWidget
+class
+        SelectionButton : public QWidget
 {
     public:
         SelectionButton(const QString& text,
@@ -20,7 +21,7 @@ class SelectionButton : public QWidget
                 QWidget* parent)
         {
             return new SelectionButton{
-                QString::number(*obj->id().val()) + " ↪",
+                QString::number(*obj->id().val()),
                 Selection{obj},
                 disp,
                 parent};
@@ -34,7 +35,7 @@ class SelectionButton : public QWidget
                 QWidget* parent)
         {
             auto but = new SelectionButton{
-                text + " ↪",
+                text,
                 Selection{obj},
                 disp,
                 parent};
