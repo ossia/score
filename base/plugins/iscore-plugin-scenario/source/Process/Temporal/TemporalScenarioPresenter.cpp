@@ -139,8 +139,6 @@ void TemporalScenarioPresenter::setWidth(int width)
 void TemporalScenarioPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
-    updateAllElements();
-    m_view->update();
 }
 
 void TemporalScenarioPresenter::putToFront()
@@ -169,9 +167,6 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     {
         constraint.on_zoomRatioChanged(m_zoomRatio);
     }
-
-    updateAllElements();
-    m_view->update();
 }
 
 

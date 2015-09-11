@@ -29,9 +29,9 @@ void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
     QVector<CurveSegmentModel*> v;
     for(; size --> 0;)
     {
-        v.push_back(createCurveSegment(*this, &curve));
+        curve.addSegment(createCurveSegment(*this, &curve));
     }
-    curve.addSegments(v);
+
     curve.changed();
     checkDelimiter();
 }
@@ -47,14 +47,12 @@ void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(CurveModel& curve)
 {
-    QVector<CurveSegmentModel*> v;
     for(const auto& segment : m_obj["Segments"].toArray())
     {
         Deserializer<JSONObject> segment_deser{segment.toObject()};
-        v.push_back(createCurveSegment(segment_deser, &curve));
+        curve.addSegment(createCurveSegment(segment_deser, &curve));
     }
 
-    curve.addSegments(v);
     curve.changed();
 }
 
