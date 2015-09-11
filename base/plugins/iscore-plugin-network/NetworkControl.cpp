@@ -90,7 +90,7 @@ void NetworkControl::on_sessionBuilt(
     // Here the document is sent as it is in its current state. The CommandList only serves
     // in case somebody does undo, so that the computer who joined later can still
     // undo, too.
-    /*
+
     auto doc = presenter()->loadDocument(
                    m_sessionBuilder->documentData(),
                    presenter()->availableDocuments().front());
@@ -115,7 +115,6 @@ void NetworkControl::on_sessionBuilt(
 
     np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
     delete sessionBuilder;
-    */
 }
 
 

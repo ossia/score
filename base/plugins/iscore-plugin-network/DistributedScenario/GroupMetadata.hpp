@@ -17,6 +17,7 @@ class GroupMetadata : public iscore::ElementPluginModel
                 const QObject* element,
                 Id<Group> id,
                 QObject* parent);
+        ~GroupMetadata();
 
         GroupMetadata* clone(const QObject* element, QObject* parent) const override;
 

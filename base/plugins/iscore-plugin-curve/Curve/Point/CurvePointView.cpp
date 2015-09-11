@@ -1,6 +1,7 @@
 #include "CurvePointView.hpp"
 #include <QPainter>
 #include <iscore/selection/Selectable.hpp>
+#include <iscore/widgets/ClearLayout.hpp>
 #include "CurvePointModel.hpp"
 
 #include <QGraphicsSceneContextMenuEvent>
@@ -87,14 +88,12 @@ void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
     emit contextMenuRequested(ev->screenPos());
 }
 
-#include <QApplication>
-#include <QWidget>
 void CurvePointView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-    qApp->activeWindow()->setCursor(Qt::CrossCursor);
+    iscore::setCursor(Qt::CrossCursor);
 }
 
 void CurvePointView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-    qApp->activeWindow()->setCursor(Qt::ArrowCursor);
+    iscore::setCursor(Qt::ArrowCursor);
 }

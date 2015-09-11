@@ -41,7 +41,10 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
                         element,
                         deserializer.toVariant(),
                         parent);
-            break;
+            if(model)
+                break;
+            else
+                ISCORE_ABORT;
         }
     }
 
@@ -69,7 +72,11 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
                         element,
                         deserializer.toVariant(),
                         parent);
-            break;
+
+            if(model)
+                break;
+            else
+                ISCORE_ABORT;
         }
     }
 

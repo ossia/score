@@ -16,6 +16,8 @@ namespace iscore
             ElementPluginModelList(iscore::Document *doc, QObject* parent);
             ~ElementPluginModelList();
 
+            ElementPluginModelList& operator=(ElementPluginModelList&& other);
+
             QObject* parent();
 
             template<typename DeserializerType,

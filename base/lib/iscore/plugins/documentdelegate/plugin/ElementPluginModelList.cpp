@@ -50,6 +50,17 @@ iscore::ElementPluginModelList::~ElementPluginModelList()
     qDeleteAll(m_list);
 }
 
+iscore::ElementPluginModelList&iscore::ElementPluginModelList::operator=(iscore::ElementPluginModelList&& other)
+{
+    m_list.swap(other.m_list);
+    for(auto& e : m_list)
+    {
+        e->setParent(m_parent);
+    }
+
+    return *this;
+}
+
 QObject*iscore::ElementPluginModelList::parent()
 {
     return m_parent;

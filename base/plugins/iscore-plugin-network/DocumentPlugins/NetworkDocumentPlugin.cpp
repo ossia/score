@@ -138,6 +138,7 @@ NetworkDocumentPlugin::loadElementPlugin(
         return plug;
     }
 
+    ISCORE_ABORT;
     return nullptr;
 }
 

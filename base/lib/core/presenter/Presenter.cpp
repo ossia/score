@@ -84,7 +84,7 @@ const std::vector<DocumentDelegateFactoryInterface *>& Presenter::availableDocum
     return m_availableDocuments;
 }
 
-void Presenter::setupDocument(Document* doc)
+Document* Presenter::setupDocument(Document* doc)
 {
     if(doc)
     {
@@ -101,6 +101,8 @@ void Presenter::setupDocument(Document* doc)
     {
         setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
     }
+
+    return doc;
 }
 
 Document *Presenter::currentDocument() const
@@ -243,8 +245,9 @@ bool Presenter::saveDocumentAs(Document * doc)
     return false;
 }
 
-void Presenter::loadDocument()
+Document* Presenter::loadDocument()
 {
+    Document* doc{};
     QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
 
     if(!loadname.isEmpty())
@@ -254,16 +257,18 @@ void Presenter::loadDocument()
         {
             if (loadname.indexOf(".scorebin") != -1)
             {
-                loadDocument(f.readAll(), m_availableDocuments.front());
+                doc = loadDocument(f.readAll(), m_availableDocuments.front());
             }
             else if (loadname.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                loadDocument(json.object(), m_availableDocuments.front());
+                doc = loadDocument(json.object(), m_availableDocuments.front());
             }
         }
     }
     m_currentDocument->setDocFileName(loadname);
+
+    return doc;
 }
 
 
