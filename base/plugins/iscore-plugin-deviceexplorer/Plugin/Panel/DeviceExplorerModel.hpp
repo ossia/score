@@ -45,7 +45,6 @@ class DeviceExplorerModel : public QAbstractItemModel
             IOType,
             Min,
             Max,
-            Priority,
 
             Count //column count, always last
         };

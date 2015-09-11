@@ -35,8 +35,7 @@ static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
     {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
     {DeviceExplorerModel::Column::IOType, QObject::tr("I/O")},
     {DeviceExplorerModel::Column::Min, QObject::tr("Min")},
-    {DeviceExplorerModel::Column::Max, QObject::tr("Max")},
-    {DeviceExplorerModel::Column::Priority, QObject::tr("Priority")},
+    {DeviceExplorerModel::Column::Max, QObject::tr("Max")}
 };
 
 DeviceExplorerModel::DeviceExplorerModel(
@@ -492,19 +491,6 @@ static QVariant maxColumnData(const Node& node, int role)
     return {};
 }
 
-static QVariant priorityColumnData(const Node& node, int role)
-{
-    if(node.is<DeviceSettings>())
-        return {};
-
-    if(role == Qt::DisplayRole || role == Qt::EditRole)
-    {
-        return node.get<AddressSettings>().priority;
-    }
-
-    return {};
-}
-
 // must return an invalid QVariant for cases not handled
 QVariant
 DeviceExplorerModel::data(const QModelIndex& index, int role) const
@@ -539,9 +525,6 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
 
         case Column::Max:
             return maxColumnData(n, role);
-
-        case Column::Priority:
-            return priorityColumnData(n, role);
 
         default :
             ISCORE_ABORT;
