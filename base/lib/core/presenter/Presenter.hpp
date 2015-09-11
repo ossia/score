@@ -31,6 +31,7 @@ namespace iscore
             Q_OBJECT
         public:
             Presenter(iscore::View* view, QObject* parent);
+            ~Presenter();
 
             // Register data from plugins
             void registerPluginControl(PluginControlInterface*);
@@ -68,6 +69,10 @@ namespace iscore
 
             // Returns true if the document was closed.
             bool closeDocument(Document*);
+
+            // Exit i-score
+            bool exit();
+
 
             // Methods to save and load
             bool saveDocument(Document*);

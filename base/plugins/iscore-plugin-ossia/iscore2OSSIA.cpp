@@ -177,13 +177,19 @@ void updateOSSIAAddress(
             break;
     }
 
-    auto val = addr->getValue()->clone();
+    auto ossia_val = addr->getValue();
+    if(ossia_val)
+    {
+        auto val = addr->getValue()->clone();
 
-    updateOSSIAValue(settings.value.val,*val);
-    addr->pushValue(val);
+        updateOSSIAValue(settings.value.val,*val);
+        addr->pushValue(val);
+    }
 }
 
-void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node *node)
+void createOSSIAAddress(
+        const iscore::FullAddressSettings &settings,
+        OSSIA::Node *node)
 {
     if(settings.ioType == IOType::Invalid)
         return;

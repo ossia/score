@@ -45,6 +45,7 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
                 this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
 
         m_list.addDevice(newdev);
+        newdev->setParent(this);
 
         if(newdev->canRefresh())
         {

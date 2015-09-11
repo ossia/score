@@ -43,6 +43,11 @@ View::View(QObject* parent) :
     });
 }
 
+void View::setPresenter(Presenter* p)
+{
+    m_presenter = p;
+}
+
 void View::addDocumentView(DocumentView* doc)
 {
     doc->setParent(this);
@@ -110,5 +115,19 @@ void View::closeDocument(DocumentView *doc)
             m_tabWidget->removeTab(i);
             return;
         }
+    }
+}
+
+#include <QCloseEvent>
+#include <core/presenter/Presenter.hpp>
+void iscore::View::closeEvent(QCloseEvent* ev)
+{
+    if(m_presenter->exit())
+    {
+        ev->accept();
+    }
+    else
+    {
+        ev->ignore();
     }
 }
