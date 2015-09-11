@@ -70,6 +70,8 @@ AutomationModel::AutomationModel(
     m_endState{new AutomationState{*this, 1., this}}
 {
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
+    connect(m_curve, &CurveModel::changed,
+            this, &AutomationModel::curveChanged);
 }
 
 Process* AutomationModel::clone(
@@ -88,7 +90,6 @@ void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
 {
     // We only need to change the duration.
     setDuration(newDuration);
-    m_curve->changed();
 }
 
 void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
