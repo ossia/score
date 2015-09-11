@@ -170,10 +170,10 @@ void TemporalConstraintView::paint(
         painter->drawPath(playedPath);
 
 
-    int fontSize = 12;
+    static const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    QFont f("Ubuntu");
-    f.setPixelSize(fontSize);
+    static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
+
     painter->setFont(f);
     painter->setPen(m_labelColor);
     painter->drawText(labelRect, Qt::AlignCenter, m_label);

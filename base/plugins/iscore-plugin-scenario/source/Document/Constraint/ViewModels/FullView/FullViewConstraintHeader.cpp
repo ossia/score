@@ -22,7 +22,10 @@ QRectF FullViewConstraintHeader::boundingRect() const
 }
 
 
-void FullViewConstraintHeader::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void FullViewConstraintHeader::paint(
+        QPainter *painter,
+        const QStyleOptionGraphicsItem *option,
+        QWidget *widget)
 {
     double textWidth = m_bar->width();
 
@@ -34,27 +37,19 @@ void FullViewConstraintHeader::paint(QPainter *painter, const QStyleOptionGraphi
     // safely remove the call to mapToScene.
     double text_left = view->mapFromScene(mapToScene({m_width / 2. - textWidth / 2., 0})).x();
     double text_right = view->mapFromScene(mapToScene({m_width / 2. + textWidth / 2., 0})).x();
-    double x = 0;
+    double x = (m_width - textWidth) / 2.;
     double min_x = 10;
     double max_x = view->width() - 30;
 
-    if(text_left > min_x && text_right < max_x)
-    {
-        x = m_width / 2. - textWidth / 2.;
-    }
-    else if(text_left < min_x)
+    if(text_left <= min_x)
     {
         // Compute the pixels needed to add to have top-left at 0
-        x = (m_width - textWidth) / 2. - text_left + min_x;
+        x = x - text_left + min_x;
     }
-    else if(text_right > max_x)
+    else if(text_right >= max_x)
     {
         // Compute the pixels needed to add to have top-right at max
-        x = (m_width - textWidth) / 2. - text_right + max_x;
-    }
-    else
-    {
-        return;
+        x = x - text_right + max_x;
     }
 
     if(std::abs(m_bar->pos().x() - x) > 1)
