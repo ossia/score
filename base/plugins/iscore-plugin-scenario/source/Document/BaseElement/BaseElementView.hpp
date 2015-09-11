@@ -32,13 +32,12 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         SizeNotifyingGraphicsView* view()
             { return m_view;}
 
-        /*
         QGraphicsView* rulerView()
             { return m_timeRulersView;}
 
         TimeRulerView* timeRuler()
             { return m_timeRuler;}
-        LocalTimeRulerView* localTimeRuler()
+/*        LocalTimeRulerView* localTimeRuler()
             { return m_localTimeRuler;}
 
 */
@@ -59,8 +58,8 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         SizeNotifyingGraphicsView* m_view {};
         GraphicsProxyObject* m_baseObject {};
 
-        //QGraphicsView* m_timeRulersView {};
-        //TimeRulerView* m_timeRuler {};
+        QGraphicsView* m_timeRulersView {};
+        TimeRulerView* m_timeRuler {};
         //LocalTimeRulerView* m_localTimeRuler {};
 
         DoubleSlider* m_zoomSlider {};
