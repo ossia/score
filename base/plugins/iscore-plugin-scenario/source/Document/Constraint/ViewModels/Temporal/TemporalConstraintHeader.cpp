@@ -4,6 +4,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QApplication>
+#include <cmath>
 QRectF TemporalConstraintHeader::boundingRect() const
 {
     return {0, 0, m_width, ConstraintHeader::headerHeight()};

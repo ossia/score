@@ -4,6 +4,7 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <cmath>
 FullViewConstraintHeader::FullViewConstraintHeader(QGraphicsItem * parent):
     ConstraintHeader{parent},
     m_bar{new AddressBarItem(this)}
