@@ -12,7 +12,7 @@ class PlayContextMenu : public AbstractMenuActions
 
     private:
         QAction* m_playStates{};
-        // TODO QAction *m_playEvents{};
-        // TODO QAction *m_playConstraints{};
+        QAction *m_playEvents{};
+        QAction *m_playConstraints{};
 
 };

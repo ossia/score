@@ -46,6 +46,10 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
 OSSIAControl::~OSSIAControl()
 {
+    // TODO doesn't handle the case where
+    // two scenarios are playing in two ducments (we have to
+    // stop them both)
+
     // TODO check the deletion order.
     // Maybe we should have a dependency graph of some kind ??
     if(currentDocument())

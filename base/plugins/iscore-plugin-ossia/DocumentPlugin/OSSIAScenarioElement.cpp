@@ -91,7 +91,7 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_constraint)
 {
     auto& cst = const_cast<ConstraintModel&>(const_constraint);
-    // TODO have a ConstraintPlayAspect
+    // TODO have a ConstraintPlayAspect to prevent this const_cast.
     ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.startState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.startState()).eventId());
     ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
@@ -102,7 +102,11 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
                                                    const OSSIA::TimeValue& date,
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
-        iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
+        auto maxdur = iscore_constraint->duration.maxDuration();
+        if(!maxdur.isInfinite())
+            iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
+        else
+            iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.defaultDuration());
     },
                 ossia_sev->event(),
                 ossia_eev->event(),

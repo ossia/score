@@ -36,6 +36,12 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
         const auto& states() const
         { return m_ossia_states; }
+        const auto& constraints() const
+        { return m_ossia_constraints; }
+        const auto& events() const
+        { return m_ossia_timeevents; }
+        const auto& timeNodes() const
+        { return m_ossia_timenodes; }
 
         const Process* iscoreProcess() const override;
 
