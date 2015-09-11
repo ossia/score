@@ -15,8 +15,8 @@ QAction* makeToolbarAction(const QString& name,
     auto act = new QAction{name, parent};
     act->setCheckable(true);
     act->setData(QVariant::fromValue((int) data));
-    act->setShortcutContext(Qt::ApplicationShortcut);
     act->setShortcut(shortcut);
+    act->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     act->setToolTip(name+ " (" + shortcut + ")");
 
     return act;
