@@ -374,7 +374,13 @@ void Presenter::setupMenus()
                                         AboutMenuElement::About, [] () {
         QMessageBox::about(nullptr,
                            tr("About i-score"),
-                           tr("With love and sweat from the i-score team. \nCommit: ")
+                           tr("With love and sweat from the i-score team. \nVersion:\n")
+                           + QString("%1.%2.%3-%4")
+                           .arg(ISCORE_VERSION_MAJOR)
+                           .arg(ISCORE_VERSION_MINOR)
+                           .arg(ISCORE_VERSION_PATCH)
+                           .arg(ISCORE_VERSION_EXTRA)
+                           + tr("\n\nCommit: \n")
                            + QString(xstr(GIT_COMMIT))); });
 }
 

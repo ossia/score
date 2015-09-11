@@ -14,7 +14,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/core")
  
 add_library(iscore_app_android SHARED main.cpp)
-set_target_properties(iscore_app_android PROPERTIES VERSION 3)
+set_target_properties(iscore_app_android PROPERTIES VERSION ${ISCORE_VERSION})
  
 target_link_libraries(iscore_app_android iscore_lib)
 target_link_libraries(iscore_app_android Qt5::Core Qt5::Widgets)

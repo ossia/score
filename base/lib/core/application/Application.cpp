@@ -9,6 +9,7 @@
 #include <QSplashScreen>
 #include <QFontDatabase>
 #include <core/document/DocumentBackups.hpp>
+#include "iscore_git_info.hpp"
 using namespace iscore;
 #include <QMessageBox>
 #include <QFileInfo>
@@ -72,7 +73,13 @@ Application::Application(int& argc, char** argv) :
     QCoreApplication::setOrganizationName("OSSIA");
     QCoreApplication::setOrganizationDomain("i-score.org");
     QCoreApplication::setApplicationName("i-score");
-    QCoreApplication::setApplicationVersion("0.3"); // TODO git-tag
+    QCoreApplication::setApplicationVersion(
+                QString("%1.%2.%3-%4")
+                .arg(ISCORE_VERSION_MAJOR)
+                .arg(ISCORE_VERSION_MINOR)
+                .arg(ISCORE_VERSION_PATCH)
+                .arg(ISCORE_VERSION_EXTRA)
+                );
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");
