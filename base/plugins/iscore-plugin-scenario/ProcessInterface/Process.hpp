@@ -104,6 +104,8 @@ class Process: public IdentifiedObject<Process>
         const TimeValue& duration() const;
 
         /// Execution
+        virtual void startExecution() = 0;
+        virtual void stopExecution() = 0;
         virtual void reset() = 0;
 
         /// States. The process has ownership.

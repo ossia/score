@@ -183,11 +183,28 @@ void ConstraintModel::setFullView(FullViewConstraintViewModel* fv)
     setupConstraintViewModel(m_fullViewModel);
 }
 
+// Should go in an "execution" object.
+void ConstraintModel::startExecution()
+{
+    for(Process& proc : processes)
+    {
+        proc.startExecution(); // prevents editing
+    }
+
+}
+void ConstraintModel::stopExecution()
+{
+    for(Process& proc : processes)
+    {
+        proc.stopExecution();
+    }
+}
+
 void ConstraintModel::reset()
 {
     duration.setPlayPercentage(0);
 
-    for(auto& proc : processes)
+    for(Process& proc : processes)
     {
         proc.reset();
     }

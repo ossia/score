@@ -184,6 +184,16 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
     */
 }
 
+void ScenarioModel::startExecution()
+{
+    // TODO put state machine in exec state
+}
+
+void ScenarioModel::stopExecution()
+{
+    // TODO put state machine in edit state
+}
+
 void ScenarioModel::reset()
 {
     for(auto& constraint : constraints)

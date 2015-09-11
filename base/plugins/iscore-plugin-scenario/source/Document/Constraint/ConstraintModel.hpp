@@ -121,6 +121,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setFullView(FullViewConstraintViewModel* fv);
 
 
+
+        void startExecution();
+        void stopExecution();
         // Resets the execution display recursively
         void reset();
 
