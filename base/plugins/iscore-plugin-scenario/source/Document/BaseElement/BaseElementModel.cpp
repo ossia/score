@@ -140,7 +140,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
         }
 
         displayedElements.setSelection(Selection{});
-        m_focusManager.focusNothing();
+        // Note : once here was a call to defocus a presenter. Why ? See git blame.
     }
     else if(std::any_of(s.begin(),
                         s.end(),
