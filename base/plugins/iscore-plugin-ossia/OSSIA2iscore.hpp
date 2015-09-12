@@ -19,7 +19,7 @@ iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b);
 iscore::Domain ToDomain(OSSIA::Domain& domain);
 iscore::Value ToValue(const OSSIA::Value* val);
 iscore::AddressSettings ToAddressSettings(const OSSIA::Node& node);
-iscore::Node* ToDeviceExplorer(const OSSIA::Node& node);
+iscore::Node ToDeviceExplorer(const OSSIA::Node& node);
 
 
 inline ::TimeValue time(const OSSIA::TimeValue& t)

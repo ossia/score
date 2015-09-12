@@ -12,18 +12,16 @@ NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
 
 void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 {
-    auto node = new iscore::Node(dev, nullptr);
-    auto newNode = m_devModel.createDeviceFromNode(*node);
+    iscore::Node node(dev, nullptr);
+    auto newNode = m_devModel.createDeviceFromNode(node);
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(new iscore::Node{newNode, &m_devModel.rootNode()});
+        m_deviceExplorer->addDevice(std::move(newNode));
     }
     else
     {
-        m_devModel.rootNode().insertChild(
-                    m_devModel.rootNode().childCount(),
-                    new iscore::Node{newNode});
+        m_devModel.rootNode().push_back(std::move(newNode));
     }
 }
 
@@ -33,14 +31,11 @@ void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(
-                    new iscore::Node{node});
+        m_deviceExplorer->addDevice(node);
     }
     else
     {
-        m_devModel.rootNode().insertChild(
-                    m_devModel.rootNode().childCount(),
-                    new iscore::Node{node});
+        m_devModel.rootNode().push_back(node);
     }
 }
 
@@ -86,13 +81,12 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
     }
     else
     {
-        auto children_cpy = m_devModel.rootNode().children();
-        for(const auto& child : children_cpy)
+        // TODO erase_if ?
+        for(auto it = m_devModel.rootNode().begin(); it < m_devModel.rootNode().end(); ++it)
         {
-            if(child->get<iscore::DeviceSettings>().name == dev.name)
+            if(it->get<iscore::DeviceSettings>().name == dev.name)
             {
-                m_devModel.rootNode().removeChild(child);
-                delete child;
+                m_devModel.rootNode().removeChild(it);
                 break;
             }
         }
@@ -131,7 +125,7 @@ void NodeUpdateProxy::addAddress(
     }
     else
     {
-        parentnode->insertChild(parentnode->childCount(), new iscore::Node{settings});
+        parentnode->emplace_back(settings);
     }
 }
 
@@ -186,15 +180,13 @@ void NodeUpdateProxy::removeAddress(
                   [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == settings.name; });
     ISCORE_ASSERT(it != parentnode->end());
 
-    auto theNode = &*it;
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->removeNode(theNode);
+        m_deviceExplorer->removeNode(it);
     }
     else
     {
-        parentnode->removeChild(theNode);
-        delete theNode;
+        parentnode->removeChild(it);
     }
 }
 

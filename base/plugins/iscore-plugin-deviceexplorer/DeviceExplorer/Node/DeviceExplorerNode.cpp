@@ -41,10 +41,11 @@ iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& parts)
     return theN;
 }
 
-Node* try_getNodeFromAddress(const Node& root, const Address& addr)
+Node* try_getNodeFromAddress(iscore::Node& root, const Address& addr)
 {
     if(addr.device.isEmpty() || addr.path.isEmpty())
         return nullptr;
+
     using namespace boost::range;
     auto dev = std::find_if(root.begin(), root.end(), [&] (const iscore::Node& n)
     { return n.is<DeviceSettings>() && n.get<DeviceSettings>().name == addr.device; });

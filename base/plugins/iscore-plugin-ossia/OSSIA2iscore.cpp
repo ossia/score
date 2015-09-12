@@ -139,17 +139,17 @@ iscore::AddressSettings ToAddressSettings(const OSSIA::Node &node)
 }
 
 
-iscore::Node* ToDeviceExplorer(const OSSIA::Node &node)
+iscore::Node ToDeviceExplorer(const OSSIA::Node &ossia_node)
 {
-    iscore::Node* n = new iscore::Node{ToAddressSettings(node)};
+    iscore::Node iscore_node{ToAddressSettings(ossia_node)};
 
     // 2. Recurse on the children
-    for(const auto& ossia_child : node.children())
+    for(const auto& ossia_child : ossia_node.children())
     {
-        n->addChild(ToDeviceExplorer(*ossia_child.get()));
+        iscore_node.push_back(ToDeviceExplorer(*ossia_child.get()));
     }
 
-    return n;
+    return iscore_node;
 }
 
 

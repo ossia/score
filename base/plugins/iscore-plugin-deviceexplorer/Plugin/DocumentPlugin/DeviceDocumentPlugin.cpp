@@ -70,7 +70,7 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
     return node;
 }
 
-void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, iscore::Node& node)
+void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, const iscore::Node& node)
 {
     using namespace iscore;
     auto full = FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(

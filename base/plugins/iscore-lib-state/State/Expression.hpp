@@ -36,6 +36,19 @@ struct ExprData : public VariantBasedNode<Relation, BinaryOperator, UnaryOperato
 }
 using iscore::ExprData;
 
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const TreeNode<ExprData>& n);
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(TreeNode<ExprData>& n);
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<ExprData>& n);
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(TreeNode<ExprData>& n);
+
 template<>
 /**
  * @brief The TreeNode<ExprData> class
@@ -155,3 +168,4 @@ using Trigger = Expression;
 
 boost::optional<iscore::Expression> parse(const QString& str);
 }
+

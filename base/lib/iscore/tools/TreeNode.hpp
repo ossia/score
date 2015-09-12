@@ -1,9 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
-#include <boost/iterator/indirect_iterator.hpp>
-/**
+/*
  * @brief The TreeNode class
  *
  * This class adds a tree structure around a data type.
@@ -13,6 +11,18 @@ template<typename DataType>
 class TreeNode : public DataType
 {
     public:
+
+        using iterator = typename std::vector<TreeNode>::iterator;
+        using const_iterator = typename std::vector<TreeNode>::const_iterator;
+
+        auto begin() { return m_children.begin(); }
+        auto begin() const { return cbegin(); }
+        auto cbegin() const { return m_children.cbegin(); }
+
+        auto end() { return m_children.end(); }
+        auto end() const { return cend(); }
+        auto cend() const { return m_children.cend(); }
+
         TreeNode():
             DataType{}
         {
@@ -25,8 +35,15 @@ class TreeNode : public DataType
 
         }
 
+        // The parent has to be set afterwards.
+        TreeNode(const TreeNode& other):
+            TreeNode{other, nullptr}
+        {
+
+        }
+
         TreeNode(TreeNode&& other):
-            TreeNode{other, other.parent()}
+            TreeNode{other, nullptr} //OPTIMIZEME
         {
 
         }
@@ -42,21 +59,40 @@ class TreeNode : public DataType
             DataType(data),
             m_parent{parent}
         {
-            if(m_parent) {
-                m_parent->addChild(this);
-            }
         }
 
         // Clone
-        explicit TreeNode(const TreeNode& source,
-                 TreeNode* parent = nullptr):
+        explicit TreeNode(
+                const TreeNode& source,
+                 TreeNode* parent):
             DataType{static_cast<const DataType&>(source)},
             m_parent{parent}
         {
             for(const auto& child : source.m_children)
             {
-                this->addChild(new TreeNode{*child, this});
+                emplace_back(child, this);
             }
+        }
+
+        void push_back(const TreeNode& child)
+        {
+            emplace_back(child, this);
+        }
+        void push_back(TreeNode&& child)
+        {
+            emplace_back(std::move(child), this);
+        }
+
+        template<typename... Args>
+        void emplace_back(Args&&... args)
+        {
+            m_children.emplace_back(std::forward<Args>(args)...);
+        }
+
+        template<typename... Args>
+        void emplace(Args&&... args)
+        {
+            m_children.emplace(std::forward<Args>(args)...);
         }
 
         // TODO do move operators.
@@ -82,30 +118,13 @@ class TreeNode : public DataType
         {
             static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
 
-            qDeleteAll(m_children);
-            m_children.clear();
-            for(const auto& child : source.m_children)
+            m_children = source.m_children;
+            for(auto& child : m_children)
             {
-                this->addChild(new TreeNode{*child, this});
+                child.setParent(this);
             }
 
             return *this;
-        }
-
-
-
-        ~TreeNode()
-        {
-            qDeleteAll(m_children);
-        }
-
-        void setParent(TreeNode* parent)
-        {
-            if(m_parent)
-                m_parent->removeChild(this);
-
-            m_parent = parent;
-            m_parent->addChild(this);
         }
 
         TreeNode* parent() const
@@ -113,40 +132,55 @@ class TreeNode : public DataType
             return m_parent;
         }
 
-        bool hasChild(int index) const
+        bool hasChild(std::size_t index) const
         { return m_children.size() > index; }
 
-        TreeNode& childAt(int index) const
+        TreeNode& childAt(int index)
         {
             ISCORE_ASSERT(hasChild(index));
-            return *m_children.value(index);
+            return m_children.at(index);
+        }
+
+        const TreeNode& childAt(int index) const
+        {
+            ISCORE_ASSERT(hasChild(index));
+            return m_children.at(index);
         }
 
         // returns -1 if not found
         int indexOfChild(const TreeNode* child) const
-        { return m_children.indexOf(const_cast<TreeNode*>(child)); }
+        {
+            for(std::size_t i = 0U; i < m_children.size(); i++)
+                if(child == &m_children[i])
+                    return i;
+
+            return -1;
+        }
 
         int childCount() const
-        { return m_children.count(); }
+        { return m_children.size(); }
 
         bool hasChildren() const
         { return ! m_children.empty(); }
 
-        const QList<TreeNode*>& children() const
+        const auto& children() const
         { return m_children;  }
 
-        void insertChild(int index, TreeNode* n)
+        [[deprecated]]
+        const auto& insertChild(int index, const TreeNode& n)
         {
-            ISCORE_ASSERT(n);
-            n->m_parent = this;
-            m_children.insert(index, n);
+            auto it = m_children.insert(index, n);
+            it->m_parent = this;
+            return *it;
         }
 
-        void addChild(TreeNode* n)
+        [[deprecated]]
+        const auto& addChild(const TreeNode& n)
         {
-            ISCORE_ASSERT(n);
-            n->m_parent = this;
-            m_children.append(n);
+            m_children.push_back(n);
+            const auto& last = m_children.back();
+            last.m_parent = this;
+            return last;
         }
 
         void swapChildren(int oldIndex, int newIndex)
@@ -166,19 +200,21 @@ class TreeNode : public DataType
         }
 
         // Won't delete the child!
-        void removeChild(TreeNode* child)
+        void removeChild(const_iterator it)
         {
-            m_children.removeAll(child);
+            m_children.erase(it);
+            //m_children.removeAll(child);
         }
 
-        auto begin() const { return boost::make_indirect_iterator(m_children.begin()); }
-        auto cbegin() const { return boost::make_indirect_iterator(m_children.cbegin()); }
-        auto end() const { return boost::make_indirect_iterator(m_children.end()); }
-        auto cend() const { return boost::make_indirect_iterator(m_children.cend()); }
-
     private:
+        void setParent(TreeNode* parent)
+        {
+            m_parent = parent;
+        }
+
+
         TreeNode* m_parent {};
-        QList<TreeNode*> m_children; // TODO boost::ptr_container
+        std::vector<TreeNode> m_children; // TODO boost::ptr_container
 };
 
 
@@ -206,9 +242,9 @@ void Visitor<Writer<DataStream>>::writeTo(TreeNode<T>& n)
     m_stream >> childCount;
     for (int i = 0; i < childCount; ++i)
     {
-        auto child = new TreeNode<T>;
-        writeTo(*child);
-        n.addChild(child);
+        TreeNode<T> child;
+        writeTo(child);
+        n.push_back(std::move(child));
     }
 
     checkDelimiter();
@@ -227,10 +263,10 @@ void Visitor<Writer<JSONObject>>::writeTo(TreeNode<T>& n)
     writeTo(static_cast<T&>(n));
     for (const auto& val : m_obj["Children"].toArray())
     {
-        auto child = new TreeNode<T>;
+        TreeNode<T> child;
         Deserializer<JSONObject> nodeWriter(val.toObject());
 
-        nodeWriter.writeTo(*child);
-        n.addChild(child);
+        nodeWriter.writeTo(child);
+        n.push_back(std::move(child));
     }
 }

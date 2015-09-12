@@ -83,3 +83,56 @@ void Visitor<Writer<JSONObject>>::writeTo(ExprData& expr)
     writeTo(expr.m_data);
 }
 
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const TreeNode<ExprData>& n)
+{
+    readFrom(static_cast<const ExprData&>(n));
+
+    m_stream << n.childCount();
+    for(const auto& child : n)
+    {
+        readFrom(child);
+    }
+
+    insertDelimiter();
+}
+
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(TreeNode<ExprData>& n)
+{
+    writeTo(static_cast<ExprData&>(n));
+
+    int childCount;
+    m_stream >> childCount;
+    for (int i = 0; i < childCount; ++i)
+    {
+        TreeNode<ExprData>* child = new TreeNode<ExprData>;
+        writeTo(*child);
+        n.insertChild(n.childCount(), child);
+    }
+
+    checkDelimiter();
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const TreeNode<ExprData>& n)
+{
+    readFrom(static_cast<const ExprData&>(n));
+    m_obj["Children"] = toJsonArray(n);
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(TreeNode<ExprData>& n)
+{
+    writeTo(static_cast<ExprData&>(n));
+    for (const auto& val : m_obj["Children"].toArray())
+    {
+        TreeNode<ExprData>* child = new TreeNode<ExprData>;
+        Deserializer<JSONObject> nodeWriter(val.toObject());
+
+        nodeWriter.writeTo(*child);
+        n.insertChild(n.childCount(), child);
+    }
+}
+

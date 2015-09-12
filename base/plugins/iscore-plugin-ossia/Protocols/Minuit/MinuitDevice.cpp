@@ -43,16 +43,16 @@ bool MinuitDevice::canRefresh() const
 }
 
 #include <QDebug>
-iscore::Node* MinuitDevice::MinuitToDeviceExplorer(
+iscore::Node MinuitDevice::MinuitToDeviceExplorer(
         const OSSIA::Node &node,
         iscore::Address currentAddr)
 {
-    iscore::Node* n = new iscore::Node{ToAddressSettings(node)};
+    iscore::Node n{ToAddressSettings(node)};
 
-    currentAddr.path += n->get<iscore::AddressSettings>().name;
+    currentAddr.path += n.get<iscore::AddressSettings>().name;
 
     // 2. Add a callback
-    if(n->get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
+    if(n.get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
     {
         if(auto ossia_addr = node.getAddress())
         {
@@ -65,8 +65,7 @@ iscore::Node* MinuitDevice::MinuitToDeviceExplorer(
     // 3. Recurse on the children
     for(const auto& ossia_child : node.children())
     {
-        auto newNode = MinuitToDeviceExplorer(*ossia_child.get(), currentAddr);
-        n->addChild(newNode);
+        n.push_back(MinuitToDeviceExplorer(*ossia_child.get(), currentAddr));
     }
 
     return n;
@@ -90,7 +89,7 @@ iscore::Node MinuitDevice::refresh()
         // Recurse on the children
         for(const auto& node : m_dev->children())
         {
-            device_node.addChild(MinuitToDeviceExplorer(*node.get(), addr));
+            device_node.push_back(MinuitToDeviceExplorer(*node.get(), addr));
         }
     }
 
