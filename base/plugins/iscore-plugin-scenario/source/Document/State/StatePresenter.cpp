@@ -26,16 +26,23 @@ StatePresenter::StatePresenter(
     con(m_model.selection, &Selectable::changed,
             m_view, &StateView::setSelected);
 
-    con((m_model.metadata),  &ModelMetadata::colorChanged,
-            m_view,               &StateView::changeColor);
+    con(m_model.metadata,  &ModelMetadata::colorChanged,
+        m_view, &StateView::changeColor);
 
     con(m_model, &StateModel::statesUpdated,
             this, &StatePresenter::updateStateView);
+
+    con(m_model, &StateModel::statusChanged,
+        this, [&] (EventStatus e)
+    {
+        m_view->changeColor(eventStatusColorMap()[e]);
+    });
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
 
     updateStateView();
+    m_view->changeColor(eventStatusColorMap()[m_model.status()]);
 }
 
 StatePresenter::~StatePresenter()

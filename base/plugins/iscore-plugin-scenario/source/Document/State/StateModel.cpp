@@ -94,3 +94,13 @@ iscore::StateItemModel& StateModel::states()
 {
     return m_itemModel;
 }
+
+
+void StateModel::setStatus(EventStatus status)
+{
+    if (m_status == status)
+        return;
+
+    m_status = status;
+    emit statusChanged(status);
+}

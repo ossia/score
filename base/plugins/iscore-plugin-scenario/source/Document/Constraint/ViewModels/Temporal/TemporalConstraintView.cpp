@@ -151,7 +151,7 @@ void TemporalConstraintView::paint(
     painter->drawPath(rightBrace);
 
     static const QPen playedPen{
-        QBrush{Qt::green},
+        QBrush{QColor::fromRgb(34, 224, 0)},
         4,
         Qt::SolidLine,
                 Qt::RoundCap,

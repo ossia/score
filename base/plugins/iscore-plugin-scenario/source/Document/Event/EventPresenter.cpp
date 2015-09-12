@@ -29,7 +29,7 @@ EventPresenter::EventPresenter(const EventModel& model,
             m_view,                 &EventView::changeColor);
 
     con(m_model, &EventModel::statusChanged,
-            m_view,  &EventView::setStatus);
+        m_view,  &EventView::setStatus);
 
     connect(m_view, &EventView::eventHoverEnter,
             this,   &EventPresenter::eventHoverEnter);

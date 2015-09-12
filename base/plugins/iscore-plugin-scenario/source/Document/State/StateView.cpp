@@ -38,10 +38,11 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 {
     QPen statePen = QPen(Qt::white);
     statePen.setWidth(2);
+    QBrush stateBrush = m_baseColor;
     QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
     painter->setPen(statePen);
-    painter->setBrush(Qt::white);
+    painter->setBrush(stateBrush);
     if(m_selected)
         painter->setBrush(highlight);
 
@@ -65,9 +66,10 @@ void StateView::setSelected(bool arg)
     update();
 }
 
-void StateView::changeColor(const QColor &)
+void StateView::changeColor(const QColor & c)
 {
-    ISCORE_TODO;
+    m_baseColor = c;
+    update();
 }
 
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent *event)
