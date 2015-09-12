@@ -1,6 +1,4 @@
 #pragma once
-#include <boost/ptr_container/ptr_container.hpp>
-
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
