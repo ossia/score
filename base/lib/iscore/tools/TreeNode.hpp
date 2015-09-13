@@ -121,46 +121,15 @@ class TreeNode : public DataType
             return n;
         }
 
-        // TODO do move operators.
-        // Only the top-level child need to have their parents changd, no need to do a recusion.
-/*      TreeNode& operator=(TreeNode&& source)
-        {
-            static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
-
-            qDeleteAll(m_children);
-            m_children.clear();
-            m_children.swap(source.m_children);
-            qDebug() << source.children().size();
-
-            for(auto& n : m_children)
-            {
-                n->setParent(this);
-            }
-
-            return *this;
-        }
-*/
-        /*
-        TreeNode& operator=(const TreeNode& source)
-        {
-            static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
-
-            m_children = source.m_children;
-            for(auto& child : m_children)
-            {
-                child.setParent(this);
-            }
-
-            return *this;
-        }
-*/
         TreeNode* parent() const
         {
             return m_parent;
         }
 
         bool hasChild(std::size_t index) const
-        { return m_children.size() > index; }
+        {
+            return m_children.size() > index;
+        }
 
         TreeNode& childAt(int index)
         {
