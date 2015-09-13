@@ -100,7 +100,8 @@ void MessageEditDialog::on_typeChanged(int t)
             m_val->setWidget(new NumericValueWidget<float>(m_message.value.val.toFloat(), this));
             break;
         case 3:
-            m_val->setWidget(new NumericValueWidget<char>(m_message.value.val.toChar().toUtf8(), this));
+            // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
+            m_val->setWidget(new NumericValueWidget<char>(m_message.value.val.toChar().toLatin1(), this));
             break;
         case 4:
             m_val->setWidget(new StringValueWidget(m_message.value.val.toString(), this));

@@ -231,8 +231,8 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
         case OSSIA::Value::Type::FLOAT:
             dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
             break;
-        case OSSIA::Value::Type::CHAR:
-            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toUtf8();
+        case OSSIA::Value::Type::CHAR: // TODO See TODO in MessageEditDialog
+            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toLatin1();
             break;
         case OSSIA::Value::Type::STRING:
             dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
@@ -300,8 +300,8 @@ static OSSIA::Value* toValue(const QVariant& val)
             return createOSSIAValue(val.value<float>());
         case QMetaType::Type::Double:
             return createOSSIAValue((float)val.value<double>());
-        case QMetaType::Type::QChar:
-            return createOSSIAValue(val.value<QChar>().toUtf8());
+        case QMetaType::Type::QChar:// TODO See TODO in MessageEditDialog
+            return createOSSIAValue(val.value<QChar>().toLatin1());
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
         case QMetaType::Type::QVariantList:
