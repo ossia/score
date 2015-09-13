@@ -29,7 +29,7 @@ class NodeNotFoundException : public std::exception
         const char* what() const noexcept override
         {
             return QString("Address: %1 not found in actual tree.")
-                    .arg(m_addr.toString()).toLatin1().constData();
+                    .arg(m_addr.toString()).toUtf8().constData();
         }
 };
 
@@ -232,7 +232,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
             dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
             break;
         case OSSIA::Value::Type::CHAR:
-            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toLatin1();
+            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toUtf8();
             break;
         case OSSIA::Value::Type::STRING:
             dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
@@ -301,7 +301,7 @@ static OSSIA::Value* toValue(const QVariant& val)
         case QMetaType::Type::Double:
             return createOSSIAValue((float)val.value<double>());
         case QMetaType::Type::QChar:
-            return createOSSIAValue(val.value<QChar>().toLatin1());
+            return createOSSIAValue(val.value<QChar>().toUtf8());
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
         case QMetaType::Type::QVariantList:

@@ -24,7 +24,9 @@ static void myMessageOutput(
         const QMessageLogContext &context,
         const QString &msg)
 {
-    auto basename = QFileInfo(context.file).baseName().toLatin1().constData();
+    auto basename_arr = QFileInfo(context.file).baseName().toLatin1();
+    auto basename = basename_arr.constData();
+
     QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {
     case QtDebugMsg:

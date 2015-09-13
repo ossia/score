@@ -193,7 +193,7 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::Value& val)
 {
     if(m_obj.contains("Type"))
     {
-        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toLatin1()));
+        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toUtf8()));
         val = JsonToValue(m_obj["Value"], valueType);
     }
 }

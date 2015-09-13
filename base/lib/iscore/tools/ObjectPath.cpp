@@ -91,7 +91,7 @@ typename Container::value_type findById_weak(const Container& c, int32_t id)
     }
 
     ISCORE_BREAKPOINT;
-    throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toLatin1().constData());
+    throw std::runtime_error(QString("findById : id %1 not found in vector of %2").arg(id).arg(typeid(c).name()).toUtf8().constData());
 }
 
 
