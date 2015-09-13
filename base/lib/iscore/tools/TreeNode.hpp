@@ -33,6 +33,7 @@ class TreeNode : public DataType
             for(auto& child : m_children)
                 child.setParent(this);
         }
+
         TreeNode(TreeNode&& other):
             DataType{static_cast<DataType&&>(other)},
             m_parent{other.m_parent},
@@ -41,6 +42,7 @@ class TreeNode : public DataType
             for(auto& child : m_children)
                 child.setParent(this);
         }
+
         TreeNode& operator=(const TreeNode& source)
         {
             static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
@@ -54,6 +56,7 @@ class TreeNode : public DataType
 
             return *this;
         }
+
         TreeNode& operator=(TreeNode&& source)
         {
             static_cast<DataType&>(*this) = static_cast<DataType&&>(source);
@@ -76,15 +79,11 @@ class TreeNode : public DataType
 
         // Clone
         explicit TreeNode(
-                const TreeNode& source,
+                 const TreeNode& source,
                  TreeNode* parent):
-            DataType{static_cast<const DataType&>(source)},
-            m_parent{parent}
+            TreeNode{source}
         {
-            for(const auto& child : source.m_children)
-            {
-                emplace_back(child, this);
-            }
+            m_parent = parent;
         }
 
         void push_back(const TreeNode& child)
@@ -170,19 +169,10 @@ class TreeNode : public DataType
             m_children.swap(oldIndex, newIndex);
         }
 
-        TreeNode* takeChild(int index)
-        {
-            TreeNode* n = m_children.takeAt(index);
-            ISCORE_ASSERT(n);
-            n->m_parent = 0;
-            return n;
-        }
-
         // Won't delete the child!
         void removeChild(const_iterator it)
         {
             m_children.erase(it);
-            //m_children.removeAll(child);
         }
 
         void setParent(TreeNode* parent)

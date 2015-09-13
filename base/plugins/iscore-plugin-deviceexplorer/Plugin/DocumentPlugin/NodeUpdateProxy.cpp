@@ -27,15 +27,15 @@ void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 
 void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 {
-    m_devModel.createDeviceFromNode(node);
+    auto n = m_devModel.createDeviceFromNode(node);
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(node);
+        m_deviceExplorer->addDevice(std::move(node));
     }
     else
     {
-        m_devModel.rootNode().push_back(node);
+        m_devModel.rootNode().push_back(std::move(node));
     }
 }
 

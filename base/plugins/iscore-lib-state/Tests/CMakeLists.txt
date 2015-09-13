@@ -16,3 +16,5 @@ addStateTest(SerializationTest
 
 addStateTest(EqualityTest
              "${CMAKE_CURRENT_SOURCE_DIR}/EqualityTest.cpp")
+addStateTest(ExpressionTest
+             "${CMAKE_CURRENT_SOURCE_DIR}/ExpressionParsingTests.cpp")

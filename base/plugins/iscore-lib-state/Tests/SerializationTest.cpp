@@ -17,6 +17,7 @@ class SerializationTest: public QObject
 
         void serializationTest()
         {
+            using namespace iscore;
             QMetaType::registerComparators<Message>();
             qRegisterMetaTypeStreamOperators<Message>();
             qRegisterMetaTypeStreamOperators<MessageList>();
@@ -25,23 +26,23 @@ class SerializationTest: public QObject
             m.address = {"dada", {"bilou", "yadaa", "zoo"}};
             m.value.val = 5.5;
 
-            State s(m);
+            StateData s(iscore::MessageList{m}, "le state");
 
             Serializer<JSONObject> js;
             js.readFrom(s);
             qDebug() << js.m_obj;
 
-            State s2(s);
+            StateData s2(s);
             Serializer<JSONObject> js2;
             js2.readFrom(s2);
             qDebug() << js2.m_obj;
 
 
             Deserializer<JSONObject> jd(js.m_obj);
-            State s3;
+            StateData s3;
             jd.writeTo(s3);
 
-            ISCORE_ASSERT(s3.data().canConvert<Message>());
+            ISCORE_ASSERT(s3.is<MessageList>());
         }
 };
 
