@@ -138,7 +138,7 @@ static void convertFromDomElement(const QDomElement& dom_element, Node &parentNo
         addr.clipMode = read_rangeClipmode(dom_element);
     }
 
-    auto& childNode = parentNode.emplace_back(addr);
+    auto& childNode = parentNode.emplace_back(addr, &parentNode);
 
     while(!dom_child.isNull() && dom_element.hasChildNodes())
     {

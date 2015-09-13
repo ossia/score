@@ -271,7 +271,7 @@ void IScoreCohesionControl::snapshotParametersInStates()
         auto cmd = new Scenario::Command::AddStateToStateModel{
                    iscore::IDocument::path(*state),
                    iscore::StatePath{}, // Make it child of the root node
-                   iscore::StateData(std::move(messages), "NewState"),
+                   {iscore::StateData{std::move(messages), "NewState"}, nullptr},
                    -1};
         macro.submitCommand(cmd);
     }

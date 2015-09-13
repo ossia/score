@@ -47,7 +47,7 @@ iscore::Node MinuitDevice::MinuitToDeviceExplorer(
         const OSSIA::Node &node,
         iscore::Address currentAddr)
 {
-    iscore::Node n{ToAddressSettings(node)};
+    iscore::Node n{ToAddressSettings(node), nullptr};
 
     currentAddr.path += n.get<iscore::AddressSettings>().name;
 
@@ -65,7 +65,9 @@ iscore::Node MinuitDevice::MinuitToDeviceExplorer(
     // 3. Recurse on the children
     for(const auto& ossia_child : node.children())
     {
-        n.push_back(MinuitToDeviceExplorer(*ossia_child.get(), currentAddr));
+        auto child_n = MinuitToDeviceExplorer(*ossia_child.get(), currentAddr);
+        child_n.setParent(&n);
+        n.push_back(std::move(child_n));
     }
 
     return n;

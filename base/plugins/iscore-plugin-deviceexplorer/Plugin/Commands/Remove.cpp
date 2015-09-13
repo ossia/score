@@ -1,5 +1,7 @@
 #include "Remove.hpp"
 
+#include "Add/AddAddress.hpp"
+#include "Add/LoadDevice.hpp"
 using namespace DeviceExplorer::Command;
 
 Remove::Remove(
@@ -20,11 +22,10 @@ Remove::Remove(
     }
     else
     {
-        // TODO the device data is not saved !
         m_device = true;
-        m_cmd = new AddDevice{
+        m_cmd = new LoadDevice{
                     std::move(device_tree),
-                    node.get<iscore::DeviceSettings>()};
+                    iscore::Node{node}};
     }
 }
 
@@ -58,7 +59,7 @@ void Remove::deserializeImpl(QDataStream& d)
 
     if(m_device)
     {
-        m_cmd = new AddDevice;
+        m_cmd = new LoadDevice;
     }
     else
     {

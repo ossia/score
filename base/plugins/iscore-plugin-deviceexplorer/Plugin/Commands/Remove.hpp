@@ -6,10 +6,6 @@
 #include "Panel/DeviceExplorerModel.hpp"
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
-
-#include "Add/AddAddress.hpp"
-#include "Add/AddDevice.hpp"
-
 namespace DeviceExplorer
 {
 namespace Command

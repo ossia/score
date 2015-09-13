@@ -122,6 +122,8 @@ int DeviceExplorerModel::addDevice(const Node& deviceNode)
 
 int DeviceExplorerModel::addDevice(Node&& deviceNode)
 {
+    deviceNode.setParent(&rootNode());
+
     int row = m_rootNode.childCount();
     QModelIndex parent; //invalid
 
@@ -170,7 +172,7 @@ void DeviceExplorerModel::addAddress(
 
     beginInsertRows(parentIndex, row, row);
 
-    parentNode->emplace(parentNode->begin() + row, addressSettings);
+    parentNode->emplace(parentNode->begin() + row, addressSettings, parentNode);
 
     endInsertRows();
 }
@@ -208,19 +210,29 @@ void DeviceExplorerModel::removeNode(
 {
     ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
 
-    Node* parent = node->parent();
+    if(!node->is<DeviceSettings>())
+    {
+        Node* parent = node->parent();
+        ISCORE_ASSERT(parent != &m_rootNode);
+        Node* grandparent = parent->parent();
+        ISCORE_ASSERT(grandparent);
+        int rowParent = grandparent->indexOfChild(parent);
+        QModelIndex parentIndex = createIndex(rowParent, 0, parent);
 
-    ISCORE_ASSERT(parent != &m_rootNode);
-    Node* grandparent = parent->parent();
-    ISCORE_ASSERT(grandparent);
-    int rowParent = grandparent->indexOfChild(parent);
-    QModelIndex parentIndex = createIndex(rowParent, 0, parent);
+        int row = parent->indexOfChild(&*node);
 
-    int row = parent->indexOfChild(&*node);
+        beginRemoveRows(parentIndex, row, row);
+        parent->removeChild(node);
+        endRemoveRows();
+    }
+    else
+    {
+        int row = rootNode().indexOfChild(&*node);
 
-    beginRemoveRows(parentIndex, row, row);
-    parent->removeChild(node);
-    endRemoveRows();
+        beginRemoveRows(QModelIndex(), row, row);
+        m_rootNode.removeChild(node);
+        endRemoveRows();
+    }
 }
 
 bool DeviceExplorerModel::checkDeviceInstantiatable(

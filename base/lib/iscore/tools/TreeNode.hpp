@@ -22,39 +22,53 @@ class TreeNode : public DataType
         auto end() const { return cend(); }
         auto cend() const { return m_children.cend(); }
 
-        TreeNode():
-            DataType{}
-        {
+        TreeNode() = default;
 
-        }
-
-        TreeNode(const DataType& data):
-            DataType{data}
-        {
-
-        }
-/*
         // The parent has to be set afterwards.
         TreeNode(const TreeNode& other):
-            TreeNode{other, nullptr}
+            DataType{static_cast<const DataType&>(other)},
+            m_parent{other.m_parent},
+            m_children(other.m_children)
         {
-
+            for(auto& child : m_children)
+                child.setParent(this);
         }
-
         TreeNode(TreeNode&& other):
-            TreeNode{other, nullptr} //OPTIMIZEME
+            DataType{static_cast<DataType&&>(other)},
+            m_parent{other.m_parent},
+            m_children(std::move(other.m_children))
         {
-
+            for(auto& child : m_children)
+                child.setParent(this);
         }
-*/
-        TreeNode(DataType&& data):
-            DataType{std::move(data)}
+        TreeNode& operator=(const TreeNode& source)
         {
+            static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
+            m_parent = source.m_parent;
 
+            m_children = source.m_children;
+            for(auto& child : m_children)
+            {
+                child.setParent(this);
+            }
+
+            return *this;
+        }
+        TreeNode& operator=(TreeNode&& source)
+        {
+            static_cast<DataType&>(*this) = static_cast<DataType&&>(source);
+            m_parent = source.m_parent;
+
+            m_children = std::move(source.m_children);
+            for(auto& child : m_children)
+            {
+                child.setParent(this);
+            }
+
+            return *this;
         }
 
-        template<typename T>
-        TreeNode(const T& data, TreeNode* parent):
+        TreeNode(const DataType& data, TreeNode* parent):
             DataType(data),
             m_parent{parent}
         {
@@ -75,24 +89,36 @@ class TreeNode : public DataType
 
         void push_back(const TreeNode& child)
         {
-            emplace_back(child, this);
+            m_children.push_back(child);
+
+            auto& cld = m_children.back();
+            cld.setParent(this);
         }
+
         void push_back(TreeNode&& child)
         {
-            emplace_back(std::move(child), this);
+            m_children.push_back(std::move(child));
+
+            auto& cld = m_children.back();
+            cld.setParent(this);
         }
 
         template<typename... Args>
         auto& emplace_back(Args&&... args)
         {
             m_children.emplace_back(std::forward<Args>(args)...);
-            return m_children.back();
+
+            auto& cld = m_children.back();
+            cld.setParent(this);
+            return cld;
         }
 
         template<typename... Args>
         auto& emplace(Args&&... args)
         {
-            return *m_children.emplace(std::forward<Args>(args)...);
+            auto& n = *m_children.emplace(std::forward<Args>(args)...);
+            n.setParent(this);
+            return n;
         }
 
         // TODO do move operators.
@@ -190,15 +216,14 @@ class TreeNode : public DataType
             //m_children.removeAll(child);
         }
 
-    private:
         void setParent(TreeNode* parent)
         {
             m_parent = parent;
         }
 
-
+    private:
         TreeNode* m_parent {};
-        std::vector<TreeNode> m_children; // TODO boost::ptr_container
+        std::vector<TreeNode> m_children;
 };
 
 

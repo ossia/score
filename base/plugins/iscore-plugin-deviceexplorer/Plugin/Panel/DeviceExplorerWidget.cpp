@@ -655,7 +655,7 @@ DeviceExplorerWidget::addDevice()
         }
         else
         {
-            iscore::Node n{deviceSettings};
+            iscore::Node n{deviceSettings, nullptr};
             loadDeviceFromXML(path, n);
             m_cmdDispatcher->submitCommand(new LoadDevice{std::move(devplug_path), std::move(n)});
         }
