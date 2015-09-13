@@ -11,7 +11,6 @@ template<typename DataType>
 class TreeNode : public DataType
 {
     public:
-
         using iterator = typename std::vector<TreeNode>::iterator;
         using const_iterator = typename std::vector<TreeNode>::const_iterator;
 
@@ -34,7 +33,7 @@ class TreeNode : public DataType
         {
 
         }
-
+/*
         // The parent has to be set afterwards.
         TreeNode(const TreeNode& other):
             TreeNode{other, nullptr}
@@ -47,7 +46,7 @@ class TreeNode : public DataType
         {
 
         }
-
+*/
         TreeNode(DataType&& data):
             DataType{std::move(data)}
         {
@@ -84,15 +83,16 @@ class TreeNode : public DataType
         }
 
         template<typename... Args>
-        void emplace_back(Args&&... args)
+        auto& emplace_back(Args&&... args)
         {
             m_children.emplace_back(std::forward<Args>(args)...);
+            return m_children.back();
         }
 
         template<typename... Args>
-        void emplace(Args&&... args)
+        auto& emplace(Args&&... args)
         {
-            m_children.emplace(std::forward<Args>(args)...);
+            return *m_children.emplace(std::forward<Args>(args)...);
         }
 
         // TODO do move operators.
@@ -114,6 +114,7 @@ class TreeNode : public DataType
             return *this;
         }
 */
+        /*
         TreeNode& operator=(const TreeNode& source)
         {
             static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
@@ -126,7 +127,7 @@ class TreeNode : public DataType
 
             return *this;
         }
-
+*/
         TreeNode* parent() const
         {
             return m_parent;
@@ -165,23 +166,6 @@ class TreeNode : public DataType
 
         const auto& children() const
         { return m_children;  }
-
-        [[deprecated]]
-        const auto& insertChild(int index, const TreeNode& n)
-        {
-            auto it = m_children.insert(index, n);
-            it->m_parent = this;
-            return *it;
-        }
-
-        [[deprecated]]
-        const auto& addChild(const TreeNode& n)
-        {
-            m_children.push_back(n);
-            const auto& last = m_children.back();
-            last.m_parent = this;
-            return last;
-        }
 
         void swapChildren(int oldIndex, int newIndex)
         {

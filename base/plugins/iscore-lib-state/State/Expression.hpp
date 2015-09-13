@@ -3,6 +3,7 @@
 #include <iscore/tools/TreeNode.hpp>
 #include <iscore/tools/VariantBasedNode.hpp>
 #include <boost/optional.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
 namespace iscore
 {
 enum class BinaryOperator {
