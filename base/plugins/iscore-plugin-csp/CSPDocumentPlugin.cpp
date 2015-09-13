@@ -12,7 +12,7 @@ CSPDocumentPlugin::CSPDocumentPlugin(iscore::DocumentModel &doc, QObject* parent
 void CSPDocumentPlugin::reload(iscore::DocumentModel& document)
 {
     auto scenarioBase = document.findChild<BaseScenario*>("BaseScenario");
-    m_cspScenario = new CSPScenario{scenarioBase};
+    m_cspScenario = new CSPScenario(*scenarioBase);
 }
 
 CSPScenario* CSPDocumentPlugin::getScenario() const

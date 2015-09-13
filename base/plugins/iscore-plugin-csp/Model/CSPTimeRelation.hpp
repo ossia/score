@@ -11,9 +11,16 @@ class CSPTimeRelation
 
 public:
     CSPTimeRelation(CSPScenario& scenario, const ConstraintModel& constraint);
+
+    CSPTimeRelation() = default;
+
+    rhea::variable getMin() const;
+
+    rhea::variable getMax() const;
+
 private:
     rhea::variable m_min;
     rhea::variable m_max;
 
-    QVector<CSPScenario> m_subScenarios;
+    QVector<CSPScenario*> m_subScenarios;
 };

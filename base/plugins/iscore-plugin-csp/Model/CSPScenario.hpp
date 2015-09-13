@@ -19,10 +19,11 @@ class CSPScenario : public QObject
 {
     Q_OBJECT
 public:
-    using QObject::QObject;
+    //using QObject::QObject;
 
     CSPScenario(const ScenarioModel& scenario);
     CSPScenario(const BaseScenario& baseScenario);
+
 
     void on_constraintCreated(const ConstraintModel&);
     void on_stateCreated(const StateModel&);
@@ -34,12 +35,30 @@ public:
     void on_eventRemoved(const EventModel&);
     void on_timeNodeRemoved(const TimeNodeModel&);
 
-    QMap<Id<TimeNodeModel>,CSPTimeNode> m_Timenodes;
-    QMap<Id<ConstraintModel>,CSPTimeRelation> m_TimeRelations;
+
+    const
+    CSPTimeNode&
+    getTimenode(ScenarioInterface& scenario, TimeNodeModel& timeNodeModel);
 
     rhea::simplex_solver getSolver();
 
+    CSPTimeNode* getStartTimeNode() const;
+
+    CSPTimeNode* getEndTimeNode() const;
+
+    const ScenarioInterface* getScenario() const;
+
 private:
+
+    QMap<Id<TimeNodeModel>,CSPTimeNode> m_Timenodes;
+    QMap<Id<ConstraintModel>,CSPTimeRelation> m_TimeRelations;
+
+    const ScenarioInterface* m_scenario;
+
+    CSPTimeNode* m_startTimeNode;
+    CSPTimeNode* m_endTimeNode;
+
+    void insertTimenode(TimeNodeModel& timeNodeModel);
 
     void computeAllConstraints();
 

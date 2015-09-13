@@ -12,7 +12,12 @@ class TimeNodeModel;
 class CSPTimeNode
 {
 public:
-    CSPTimeNode(CSPScenario& cspScenario, const TimeNodeModel& constraint);
+    CSPTimeNode(CSPScenario& cspScenario, const TimeNodeModel& timeNodeModel);
+
+    CSPTimeNode() = default;
+
+    rhea::variable getDate() const;
+
 private:
     rhea::variable m_date;
 };
