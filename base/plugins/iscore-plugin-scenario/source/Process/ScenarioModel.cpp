@@ -186,12 +186,13 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 
 void ScenarioModel::startExecution()
 {
-    // TODO put state machine in exec state
+    emit execution(true);
 }
 
 void ScenarioModel::stopExecution()
 {
-    // TODO put state machine in edit state
+    qDebug() << Q_FUNC_INFO;
+    emit execution(false);
 }
 
 void ScenarioModel::reset()

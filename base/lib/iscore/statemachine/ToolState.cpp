@@ -32,3 +32,8 @@ void ToolState::start()
 {
     localSM().start();
 }
+
+void ToolState::stop()
+{
+    localSM().stop();
+}

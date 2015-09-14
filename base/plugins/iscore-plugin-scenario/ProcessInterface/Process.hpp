@@ -120,6 +120,10 @@ class Process: public IdentifiedObject<Process>
         // protected:
         virtual void serialize(const VisitorVariant& vis) const = 0;
 
+    signals:
+        // True if the execution is running.
+        void execution(bool);
+
     protected:
         // Clone
         Process(

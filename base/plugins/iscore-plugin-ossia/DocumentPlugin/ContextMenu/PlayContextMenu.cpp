@@ -38,7 +38,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
 
             for(const auto& constraint : selectedElements(sm->constraints))
             {
-                s_plugin->constraints().at(constraint->id())->constraint()->start();
+                s_plugin->constraints().at(constraint->id())->play();
             }
         }
     });

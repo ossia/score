@@ -178,13 +178,13 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
                     // Stop the previous constraints clocks,
                     // start the next constraints clocks
                     if(iscore_state.previousConstraint())
-                        m_executingConstraints.remove(iscore_state.previousConstraint());
+                    {
+                        stopConstraintExecution(iscore_state.previousConstraint());
+                    }
 
                     if(iscore_state.nextConstraint())
                     {
-                        auto& cst = m_iscore_scenario->constraint(iscore_state.nextConstraint());
-                        m_executingConstraints.insert(&cst);
-                        cst.duration.setPlayPercentage(0);
+                        startConstraintExecution(iscore_state.nextConstraint());
                     }
                     break;
                 }
@@ -314,4 +314,18 @@ void OSSIAScenarioElement::on_timeNodeRemoved(const TimeNodeModel& iscore_tn)
 
     m_ossia_timenodes.erase(tn_it);
     delete tn;
+}
+
+void OSSIAScenarioElement::startConstraintExecution(const Id<ConstraintModel>& id)
+{
+    auto& cst = m_iscore_scenario->constraint(id);
+    m_executingConstraints.insert(&cst);
+
+    m_ossia_constraints.at(id)->executionStarted();
+}
+
+void OSSIAScenarioElement::stopConstraintExecution(const Id<ConstraintModel>& id)
+{
+    m_executingConstraints.remove(id);
+    m_ossia_constraints.at(id)->executionStopped();
 }

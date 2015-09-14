@@ -67,7 +67,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* play = new QAction {tr("Play"), this};
     connect(play, &QAction::triggered,
             [&] ()
-    { baseConstraint().constraint()->start(); });
+    { baseConstraint().play(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        play);

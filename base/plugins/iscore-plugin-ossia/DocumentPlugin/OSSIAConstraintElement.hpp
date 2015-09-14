@@ -20,7 +20,12 @@ class OSSIAConstraintElement : public QObject
 
         std::shared_ptr<OSSIA::TimeConstraint> constraint() const;
 
+
+        void play();
         void stop();
+
+        void executionStarted();
+        void executionStopped();
 
     private slots:
         void on_processAdded(const Process& id);

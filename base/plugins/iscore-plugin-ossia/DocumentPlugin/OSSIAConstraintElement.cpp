@@ -64,6 +64,13 @@ std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() cons
     return m_ossia_constraint;
 }
 
+void OSSIAConstraintElement::play()
+{
+    m_iscore_constraint.duration.setPlayPercentage(0);
+    m_ossia_constraint->start();
+    executionStarted();
+}
+
 void OSSIAConstraintElement::stop()
 {
     m_ossia_constraint->stop();
@@ -73,6 +80,24 @@ void OSSIAConstraintElement::stop()
     }
 
     m_iscore_constraint.reset();
+    executionStopped();
+}
+
+void OSSIAConstraintElement::executionStarted()
+{
+    m_iscore_constraint.duration.setPlayPercentage(0);
+    for(Process& proc : m_iscore_constraint.processes)
+    {
+        proc.startExecution();
+    }
+}
+
+void OSSIAConstraintElement::executionStopped()
+{
+    for(Process& proc : m_iscore_constraint.processes)
+    {
+        proc.stopExecution();
+    }
 }
 
 void OSSIAConstraintElement::on_processAdded(

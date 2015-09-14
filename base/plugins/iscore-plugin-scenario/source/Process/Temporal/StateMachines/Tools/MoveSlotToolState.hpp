@@ -32,8 +32,11 @@ class MoveSlotToolState : public GenericStateBase
         void on_scenarioMoved();
         void on_scenarioReleased();
 
+        // TODO refactor this with ToolState
         void start()
         { m_localSM.start(); }
+        void stop()
+        { m_localSM.stop(); }
 
     private:
         QState* m_waitState{};

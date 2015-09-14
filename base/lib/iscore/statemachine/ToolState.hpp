@@ -12,6 +12,7 @@ class ToolState : public QState
 {
     public:
         void start();
+        void stop();
 
     protected:
         ToolState(const QGraphicsScene& scene, QState*);
