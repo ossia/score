@@ -2,6 +2,7 @@
 
 #include <rhea/simplex_solver.hpp>
 #include <QVector>
+#include <iscore/tools/SettableIdentifier.hpp>
 class CSPScenario;
 
 class ConstraintModel;
@@ -10,13 +11,13 @@ class CSPTimeRelation
 {
 
 public:
-    CSPTimeRelation(CSPScenario& scenario, const ConstraintModel& constraint);
+    CSPTimeRelation(CSPScenario& scenario, const Id<ConstraintModel>& constraintId);
 
     CSPTimeRelation() = default;
 
-    rhea::variable getMin() const;
+    const rhea::variable& getMin() const;
 
-    rhea::variable getMax() const;
+    const rhea::variable& getMax() const;
 
 private:
     rhea::variable m_min;

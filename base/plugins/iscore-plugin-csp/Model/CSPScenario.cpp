@@ -1,4 +1,3 @@
-#include <QDebug>
 #include "CSPScenario.hpp"
 #include "CSPTimeNode.hpp"
 #include "CSPTimeRelation.hpp"
@@ -9,15 +8,20 @@
 CSPScenario::CSPScenario(const ScenarioModel& scenario)
     :m_scenario(&scenario)
 {
+    // ensure that start then end timenode are stored first of all
+    m_startTimeNode = insertTimenode(scenario.startTimeNode().id());
+    m_endTimeNode = insertTimenode(scenario.endTimeNode().id());
+
+    // insert existing timenodes
     for(auto& timeNodeModel : scenario.timeNodes)
     {
-        insertTimenode(timeNodeModel);
+        on_timeNodeCreated(timeNodeModel);
     }
 
+    // insert existing constraints
     for(auto& constraintModel : scenario.constraints)
     {
-        // TODO: make insertconstraint function?
-        m_TimeRelations.insert(constraintModel.id(), CSPTimeRelation{*this, constraintModel});
+        on_constraintCreated(constraintModel);
     }
 
     // Link with i-score
@@ -45,6 +49,17 @@ CSPScenario::CSPScenario(const ScenarioModel& scenario)
 CSPScenario::CSPScenario(const BaseScenario& baseScenario)
     :m_scenario(&baseScenario)
 {
+    // ensure that start then end timenode are stored first of all
+    m_startTimeNode = insertTimenode(baseScenario.startTimeNode().id());
+    m_endTimeNode = insertTimenode(baseScenario.endTimeNode().id());
+
+    // insert existing timenodes
+    on_timeNodeCreated(baseScenario.startTimeNode());
+    on_timeNodeCreated(baseScenario.endTimeNode());
+
+    // insert existing constraints
+    auto& constraintModel = baseScenario.baseConstraint();
+    on_constraintCreated(constraintModel);
 }
 
 rhea::simplex_solver
@@ -58,7 +73,7 @@ CSPTimeNode *CSPScenario::getStartTimeNode() const
     return m_startTimeNode;
 }
 
-CSPTimeNode *CSPScenario::getEndTimeNode() const
+CSPTimeNode* CSPScenario::getEndTimeNode() const
 {
     return m_endTimeNode;
 }
@@ -68,14 +83,18 @@ const ScenarioInterface *CSPScenario::getScenario() const
     return m_scenario;
 }
 
-void CSPScenario::insertTimenode(TimeNodeModel &timeNodeModel)
+CSPTimeNode* CSPScenario::insertTimenode(const Id<TimeNodeModel> &timeNodeId)
 {
-    auto timeNodeId = timeNodeModel.id();
 
     // if timenode not already here, put ot in
     if(! m_Timenodes.contains(timeNodeId))
     {
-        m_Timenodes.insert(timeNodeId, CSPTimeNode{*this, timeNodeModel});
+        auto cspTimenode = new CSPTimeNode(*this, timeNodeId);
+        m_Timenodes.insert(timeNodeId, *cspTimenode);
+        return cspTimenode;
+    }else
+    {
+        return &m_Timenodes[timeNodeId];
     }
 }
 
@@ -86,10 +105,11 @@ CSPScenario::computeAllConstraints()
 }
 
 void
-CSPScenario::on_constraintCreated(const ConstraintModel& constraint)
+CSPScenario::on_constraintCreated(const ConstraintModel& constraintModel)
 {
     //create the corresponding time relation
-    qDebug("coucou?");
+    // TODO: make insertconstraint function?
+    m_TimeRelations.insert(constraintModel.id(), CSPTimeRelation{*this, constraintModel.id()});
 }
 
 void
@@ -116,8 +136,10 @@ CSPScenario::on_eventRemoved(const EventModel& event)
 
 
 void
-CSPScenario::on_timeNodeCreated(const TimeNodeModel& timeNode)
-{}
+CSPScenario::on_timeNodeCreated(const TimeNodeModel& timeNodeModel)
+{
+    insertTimenode(timeNodeModel.id());
+}
 
 void
 CSPScenario::on_timeNodeRemoved(const TimeNodeModel& timeNode)
@@ -125,9 +147,9 @@ CSPScenario::on_timeNodeRemoved(const TimeNodeModel& timeNode)
 
 const
 CSPTimeNode&
-CSPScenario::getTimenode(ScenarioInterface& scenario, TimeNodeModel& timeNodeModel)
+CSPScenario::getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId)
 {
-    insertTimenode(timeNodeModel);
+    insertTimenode(timeNodeId);
 
-    return m_Timenodes[timeNodeModel.id()];
+    return m_Timenodes[timeNodeId];
 }

@@ -38,7 +38,7 @@ public:
 
     const
     CSPTimeNode&
-    getTimenode(ScenarioInterface& scenario, TimeNodeModel& timeNodeModel);
+    getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
 
     rhea::simplex_solver getSolver();
 
@@ -47,6 +47,8 @@ public:
     CSPTimeNode* getEndTimeNode() const;
 
     const ScenarioInterface* getScenario() const;
+
+    CSPTimeNode* insertTimenode(const Id<TimeNodeModel>& timeNodeId);
 
 private:
 
@@ -58,9 +60,8 @@ private:
     CSPTimeNode* m_startTimeNode;
     CSPTimeNode* m_endTimeNode;
 
-    void insertTimenode(TimeNodeModel& timeNodeModel);
 
     void computeAllConstraints();
 
-    rhea::simplex_solver m_solver;
+    rhea::simplex_solver m_solver{};
 };
