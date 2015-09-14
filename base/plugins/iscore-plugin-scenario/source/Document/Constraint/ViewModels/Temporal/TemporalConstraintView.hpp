@@ -22,6 +22,20 @@ class TemporalConstraintView : public ConstraintView
         void setLabelColor(const QColor &labelColor);
         void setLabel(const QString &label);
 
+        void setFocused(bool b)
+        {
+            m_hasFocus = b;
+            m_bgColor.setAlpha(m_hasFocus ? 84 : 76);
+            update();
+        }
+
+        void setColor(QColor c)
+        {
+            m_bgColor = c;
+            m_bgColor.setAlpha(m_hasFocus ? 84 : 76);
+            update();
+        }
+
     signals:
         void constraintHoverEnter();
         void constraintHoverLeave();
@@ -34,7 +48,8 @@ class TemporalConstraintView : public ConstraintView
         QPointF m_clickedPoint {};
 
         bool m_shadow {false};
+        bool m_hasFocus{};
         QString m_label{};
         QColor m_labelColor{Qt::gray};
-
+        QColor m_bgColor{QColor::fromRgba(qRgba(0, 127, 229, 76))};
 };
