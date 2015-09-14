@@ -44,6 +44,20 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
 
     connect(m_view, &View::closeRequested,
             this,   &Presenter::closeDocument);
+
+    m_view->setPresenter(this);
+}
+
+Presenter::~Presenter()
+{
+    // The documents have to be deleted before the plug-in controls.
+    // This is because the Local device has to be deleted last in OSSIAControl.
+    for(auto document : m_documents)
+    {
+        delete document;
+    }
+
+    m_documents.clear();
 }
 
 void Presenter::registerPluginControl(PluginControlInterface* ctrl)
@@ -349,14 +363,7 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,
                                         [&] () {
-        while(!m_documents.empty())
-        {
-            bool b = closeDocument(m_documents.last());
-            if(!b)
-                return;
-        }
-
-        qApp->quit();
+        m_view->close();
     });
 
     ////// View //////
@@ -382,6 +389,18 @@ void Presenter::setupMenus()
                            .arg(ISCORE_VERSION_EXTRA)
                            + tr("\n\nCommit: \n")
                            + QString(xstr(GIT_COMMIT))); });
+}
+
+bool Presenter::exit()
+{
+    while(!m_documents.empty())
+    {
+        bool b = closeDocument(m_documents.last());
+        if(!b)
+            return false;
+    }
+
+    return true;
 }
 
 View* Presenter::view() const

@@ -84,7 +84,7 @@ class ConstraintView : public QGraphicsObject
         bool warning() const;
         void setWarning(bool warning);
 
-protected:
+    protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
         virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;

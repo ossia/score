@@ -52,6 +52,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ModelConsistency consistency;
         ConstraintDurations duration{*this};
 
+
         iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName()
@@ -137,6 +138,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void heightPercentageChanged(double);
 
         void startDateChanged(const TimeValue&);
+
+        void focusChanged(bool);
 
     public slots:
         void setHeightPercentage(double arg);

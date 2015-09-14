@@ -23,7 +23,7 @@ void ReplaceDevice::undo()
     auto& explorer = m_deviceTree.find();
 
     explorer.removeRow(m_deviceIndex);
-    explorer.addDevice(new Node{m_savedNode, nullptr});
+    explorer.addDevice(m_savedNode);
 }
 
 void ReplaceDevice::redo()
@@ -31,7 +31,7 @@ void ReplaceDevice::redo()
     auto& explorer = m_deviceTree.find();
 
     explorer.removeRow(m_deviceIndex);
-    explorer.addDevice(new Node{m_deviceNode, nullptr});
+    explorer.addDevice(m_deviceNode);
 }
 
 void ReplaceDevice::serializeImpl(QDataStream& d) const

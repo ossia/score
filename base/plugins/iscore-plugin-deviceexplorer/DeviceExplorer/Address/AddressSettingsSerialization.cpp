@@ -119,7 +119,7 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
     // TODO doesn't handle multi-type variants.
     if(m_obj.contains("Type"))
     {
-        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toLatin1()));
+        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toUtf8()));
         n.domain = JsonToDomain(m_obj["Domain"].toObject(), valueType);
     }
 }

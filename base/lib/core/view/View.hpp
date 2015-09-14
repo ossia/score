@@ -8,6 +8,7 @@
 namespace iscore
 {
     class PanelView;
+    class Presenter;
     class Document;
     class DocumentView;
     /**
@@ -21,10 +22,14 @@ namespace iscore
         public:
             View(QObject* parent);
 
+            void setPresenter(Presenter*);
+
             void addDocumentView(iscore::DocumentView*);
             void setupPanelView(PanelView* v);
 
             void closeDocument(iscore::DocumentView* doc);
+
+            void closeEvent(QCloseEvent*) override;
 
         signals:
             /**
@@ -43,6 +48,7 @@ namespace iscore
             QList<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
             QList<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
 
+            Presenter* m_presenter{};
             QTabWidget* m_tabWidget{};
     };
 }

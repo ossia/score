@@ -39,4 +39,6 @@ class StateView : public QGraphicsObject
         bool m_containMessage{false};
         bool m_selected{false};
 
+        QColor m_baseColor;
+
 };

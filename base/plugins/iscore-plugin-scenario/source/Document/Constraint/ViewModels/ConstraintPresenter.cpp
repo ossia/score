@@ -74,6 +74,7 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
+
     if(m_viewModel.isRackShown())
     {
         on_rackShown(m_viewModel.shownRack());

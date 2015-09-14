@@ -99,9 +99,7 @@ class ExplorationWorkerWrapper : public QObject
             m_widget.blockGUI(false);
             m_success(std::move(worker->node));
 
-            thread->quit();
-            worker->deleteLater();
-            this->deleteLater();
+            cleanup();
         }
 
         void on_fail(const QString& str)
@@ -116,7 +114,11 @@ class ExplorationWorkerWrapper : public QObject
             );
 
             m_widget.blockGUI(false);
+            cleanup();
+        }
 
+        void cleanup()
+        {
             thread->quit();
             worker->deleteLater();
             this->deleteLater();
@@ -653,7 +655,7 @@ DeviceExplorerWidget::addDevice()
         }
         else
         {
-            iscore::Node n{deviceSettings};
+            iscore::Node n{deviceSettings, nullptr};
             loadDeviceFromXML(path, n);
             m_cmdDispatcher->submitCommand(new LoadDevice{std::move(devplug_path), std::move(n)});
         }

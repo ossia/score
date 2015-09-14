@@ -13,6 +13,7 @@
 #include <State/StateItemModel.hpp>
 
 #include "StateView.hpp"
+#include "Document/Event/EventStatus.hpp"
 
 class ConstraintView;
 class ScenarioInterface;
@@ -65,9 +66,13 @@ class StateModel : public IdentifiedObject<StateModel>
         void setNextConstraint(const Id<ConstraintModel>&);
         void setPreviousConstraint(const Id<ConstraintModel>&);
 
+        void setStatus(EventStatus);
+        EventStatus status() const
+        { return m_status; }
     signals:
         void statesUpdated();
         void heightPercentageChanged();
+        void statusChanged(EventStatus);
 
     public slots:
         void setHeightPercentage(double y);
@@ -82,5 +87,6 @@ class StateModel : public IdentifiedObject<StateModel>
         double m_heightPercentage{0.5}; // In the whole scenario
 
         iscore::StateItemModel m_itemModel;
+        EventStatus m_status{EventStatus::Editing};
 };
 

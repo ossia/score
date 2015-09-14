@@ -33,11 +33,6 @@ class EventModel : public IdentifiedObject<EventModel>
                    WRITE setCondition
                    NOTIFY conditionChanged)
 
-        Q_PROPERTY(iscore::Trigger trigger
-                   READ trigger
-                   WRITE setTrigger
-                   NOTIFY triggerChanged)
-
         Q_PROPERTY(EventStatus status
                    READ status
                    WRITE setStatus
@@ -87,20 +82,17 @@ class EventModel : public IdentifiedObject<EventModel>
 
         // Other properties
         const iscore::Condition& condition() const;
-        const iscore::Trigger& trigger() const;
 
         VerticalExtent extent() const;
 
         const TimeValue& date() const;
         void translate(const TimeValue& deltaTime);
 
-
         EventStatus status() const;
         void reset();
 
     public slots:
         void setCondition(const iscore::Condition& arg);
-        void setTrigger(const iscore::Trigger& trigger);
 
         void setExtent(const VerticalExtent &extent);
         void setDate(const TimeValue& date);
@@ -112,7 +104,6 @@ class EventModel : public IdentifiedObject<EventModel>
         void dateChanged(const TimeValue&);
 
         void conditionChanged(const iscore::Condition&);
-        void triggerChanged(const iscore::Trigger&);
 
         void statesChanged();
 
@@ -124,7 +115,6 @@ class EventModel : public IdentifiedObject<EventModel>
         QVector<Id<StateModel>> m_states;
 
         iscore::Condition m_condition;
-        iscore::Trigger m_trigger; // TODO in timenode?
 
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};

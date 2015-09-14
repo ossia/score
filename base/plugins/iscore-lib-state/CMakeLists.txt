@@ -52,5 +52,5 @@ install(TARGETS ${PROJECT_NAME}
         COMPONENT DynamicRuntime)
 
 if(NOT DEPLOYMENT_BUILD)
-#    add_subdirectory(Tests)
+    add_subdirectory(Tests)
 endif()

@@ -88,7 +88,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         writeJsonToSelectedElements(
                     QJsonDocument::fromJson(
-                        QApplication::clipboard()->text().toLatin1()).object());
+                        QApplication::clipboard()->text().toUtf8()).object());
     });
 
     // DISPLAY JSON

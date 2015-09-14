@@ -300,31 +300,28 @@ struct Expression_builder : boost::static_visitor<void>
 
         void operator()(const iscore::Relation& rel)
         {
-            m_current->addChild(new iscore::Expression(rel));
+            m_current->emplace_back(rel, nullptr);
         }
 
         void operator()(const binop<op_and>& b)
         {
-            auto new_expr = new iscore::Expression(iscore::BinaryOperator::And);
-            rec_binop(new_expr, b.oper1, b.oper2);
+            rec_binop(iscore::BinaryOperator::And, b.oper1, b.oper2);
         }
         void operator()(const binop<op_or >& b)
         {
-            auto new_expr = new iscore::Expression(iscore::BinaryOperator::Or);
-            rec_binop(new_expr, b.oper1, b.oper2);
+            rec_binop(iscore::BinaryOperator::Or, b.oper1, b.oper2);
         }
         void operator()(const binop<op_xor>& b)
         {
-            auto new_expr = new iscore::Expression(iscore::BinaryOperator::Xor);
-            rec_binop(new_expr, b.oper1, b.oper2);
+            rec_binop(iscore::BinaryOperator::Xor, b.oper1, b.oper2);
         }
 
-        void rec_binop(iscore::Expression* new_expr, const expr_raw& l, const expr_raw& r)
+        void rec_binop(iscore::BinaryOperator binop, const expr_raw& l, const expr_raw& r)
         {
-            m_current->addChild(new_expr);
+            m_current->emplace_back(binop, nullptr);
 
             auto old_expr = m_current;
-            m_current = new_expr;
+            m_current = &old_expr->children().back();
 
             boost::apply_visitor(*this, l);
             boost::apply_visitor(*this, r);
@@ -334,11 +331,10 @@ struct Expression_builder : boost::static_visitor<void>
 
         void operator()(const unop<op_not>& u)
         {
-            auto new_expr = new iscore::Expression(iscore::UnaryOperator::Not);
-            m_current->addChild(new_expr);
+            m_current->emplace_back(iscore::UnaryOperator::Not, nullptr);
 
             auto old_expr = m_current;
-            m_current = new_expr;
+            m_current = &old_expr->children().back();
 
             boost::apply_visitor(*this, u.oper1);
 

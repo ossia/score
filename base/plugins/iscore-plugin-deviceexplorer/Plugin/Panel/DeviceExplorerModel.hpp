@@ -45,7 +45,6 @@ class DeviceExplorerModel : public QAbstractItemModel
             IOType,
             Min,
             Max,
-            Priority,
 
             Count //column count, always last
         };
@@ -74,15 +73,15 @@ class DeviceExplorerModel : public QAbstractItemModel
         void setCommandQueue(iscore::CommandStack* q);
 
         // Returns the row (useful for undo)
-        int addDevice(iscore::Node* deviceNode);
+        int addDevice(iscore::Node&& deviceNode);
+        int addDevice(const iscore::Node& deviceNode);
         void updateDevice(
                 const QString &name,
                 const iscore::DeviceSettings& dev);
 
-        iscore::Node* addAddress(
+        void addAddress(
                 iscore::Node * parentNode,
                 const iscore::AddressSettings& addressSettings);
-        void addAddress(iscore::Node* parentNode, iscore::Node* node, int row = -1);
         void updateAddress(
                 iscore::Node * node,
                 const iscore::AddressSettings& addressSettings);
@@ -90,7 +89,7 @@ class DeviceExplorerModel : public QAbstractItemModel
         void updateValue(iscore::Node* n,
                 const iscore::Value& v);
 
-        void removeNode(iscore::Node* node);
+        void removeNode(iscore::Node::const_iterator node);
 
         // Checks if the settings can be added; if not,
         // trigger a dialog to edit them as wanted.
@@ -105,9 +104,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool hasCut() const;
 
         void debug_printIndexes(const QModelIndexList& indexes);
-
-        bool insertNode(const QModelIndex& parent, int row, const iscore::Node& node);
-
 
         QModelIndex index(int row, int column, const QModelIndex& parent) const override;
         QModelIndex parent(const QModelIndex& child) const override;
@@ -128,8 +124,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
 
 
-        //virtual bool insertRows(int row, int count, const QModelIndex &parent) override;
-        virtual bool removeRows(int row, int count, const QModelIndex& parent) override;
         virtual Qt::DropActions supportedDropActions() const override;
         virtual Qt::DropActions supportedDragActions() const override;
         virtual QStringList mimeTypes() const override;

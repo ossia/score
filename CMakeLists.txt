@@ -1,6 +1,7 @@
 project(iscore)
 cmake_minimum_required(VERSION 3.1)
 
+
 set(APPNAME "i-score")
 set(ISCORE_VERSION_MAJOR 1)
 set(ISCORE_VERSION_MINOR 0)

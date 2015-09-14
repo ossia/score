@@ -84,8 +84,6 @@ DeviceExplorerView::setInitialColumnsSizes()
     header()->resizeSection((int)DeviceExplorerModel::Column::Value, 50);
     header()->resizeSection((int)DeviceExplorerModel::Column::Min, 50);
     header()->resizeSection((int)DeviceExplorerModel::Column::Max, 50);
-    header()->resizeSection((int)DeviceExplorerModel::Column::Priority, 70);
-
 }
 
 

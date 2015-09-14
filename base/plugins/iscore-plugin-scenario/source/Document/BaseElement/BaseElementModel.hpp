@@ -6,6 +6,7 @@
 #include "DisplayedElements/DisplayedElementsModel.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <QPointer>
 class BaseScenario;
 class BaseElementPresenter;
 class FullViewConstraintViewModel;
@@ -56,6 +57,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         void initializeNewDocument(const FullViewConstraintViewModel* viewmodel);
 
         ProcessFocusManager m_focusManager;
+        QPointer<ConstraintModel> m_focusedConstraint{};
         BaseScenario* m_baseScenario{};
 
         QMetaObject::Connection m_constraintConnection;

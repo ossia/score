@@ -29,7 +29,7 @@ EventPresenter::EventPresenter(const EventModel& model,
             m_view,                 &EventView::changeColor);
 
     con(m_model, &EventModel::statusChanged,
-            m_view,  &EventView::setStatus);
+        m_view,  &EventView::setStatus);
 
     connect(m_view, &EventView::eventHoverEnter,
             this,   &EventPresenter::eventHoverEnter);
@@ -40,15 +40,14 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(m_view, &EventView::dropReceived,
             this, &EventPresenter::handleDrop);
 
-    // TODO
-    /* m_view->setCondition(m_model.condition());
-    m_view->setTrigger(m_model.trigger());
+    // TODO Conditions in EventPresenter
+    /*
+    m_view->setCondition(m_model.condition().toString());
 
     con(m_model, &EventModel::conditionChanged,
-            m_view,  &EventView::setCondition);
-    con(m_model, &EventModel::triggerChanged,
-            this,   &EventPresenter::triggerSetted) ;
-    */
+        this, [&] (const iscore::Condition& c) { m_view->setCondition(c.toString()); });
+        */
+
 
 }
 

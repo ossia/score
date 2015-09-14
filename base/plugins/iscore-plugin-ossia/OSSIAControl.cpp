@@ -29,8 +29,8 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
     auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/Frameworks/jamoma/extensions";
-    TTFoundationInit(contents.toLatin1().constData(), true);
-    TTModularInit(contents.toLatin1().constData(), true);
+    TTFoundationInit(contents.toUtf8().constData(), true);
+    TTModularInit(contents.toUtf8().constData(), true);
 #endif
     using namespace OSSIA;
     auto localDevice = OSSIA::Local::create();

@@ -46,7 +46,7 @@ void TemporalConstraintView::paint(
         auto rect = boundingRect();
         rect.adjust(0,15,0,-10);
         rect.setWidth(this->defaultWidth());
-        painter->fillRect(rect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+        painter->fillRect(rect, m_bgColor);
 
         // Fake timenode continuation
         auto color = qApp->palette("ScenarioPalette").base().color();
@@ -151,7 +151,7 @@ void TemporalConstraintView::paint(
     painter->drawPath(rightBrace);
 
     static const QPen playedPen{
-        QBrush{Qt::green},
+        QBrush{QColor::fromRgb(34, 224, 0)},
         4,
         Qt::SolidLine,
                 Qt::RoundCap,

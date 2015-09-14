@@ -33,9 +33,7 @@ void AddStateToStateModel::redo()
 {
     auto& stateModel = m_path.find();
     auto parent = m_parentPath.toNode(&stateModel.states().rootNode());
-    stateModel.states().addState(parent,
-                                 new StateNode{m_state},
-                                 m_pos);
+    stateModel.states().emplaceState(parent, m_pos, m_state);
 }
 
 void AddStateToStateModel::serializeImpl(QDataStream& s) const

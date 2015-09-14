@@ -12,35 +12,30 @@ NodeUpdateProxy::NodeUpdateProxy(DeviceDocumentPlugin& root):
 
 void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 {
-    auto node = new iscore::Node(dev, nullptr);
-    auto newNode = m_devModel.createDeviceFromNode(*node);
+    iscore::Node node(dev, nullptr);
+    auto newNode = m_devModel.createDeviceFromNode(node);
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(new iscore::Node{newNode, &m_devModel.rootNode()});
+        m_deviceExplorer->addDevice(std::move(newNode));
     }
     else
     {
-        m_devModel.rootNode().insertChild(
-                    m_devModel.rootNode().childCount(),
-                    new iscore::Node{newNode});
+        m_devModel.rootNode().push_back(std::move(newNode));
     }
 }
 
 void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 {
-    m_devModel.createDeviceFromNode(node);
+    auto n = m_devModel.createDeviceFromNode(node);
 
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->addDevice(
-                    new iscore::Node{node});
+        m_deviceExplorer->addDevice(std::move(node));
     }
     else
     {
-        m_devModel.rootNode().insertChild(
-                    m_devModel.rootNode().childCount(),
-                    new iscore::Node{node});
+        m_devModel.rootNode().push_back(std::move(node));
     }
 }
 
@@ -68,35 +63,19 @@ void NodeUpdateProxy::removeDevice(const iscore::DeviceSettings& dev)
 {
     m_devModel.list().removeDevice(dev.name);
 
-    if(m_deviceExplorer)
+    for(auto it = m_devModel.rootNode().begin(); it < m_devModel.rootNode().end(); ++it)
     {
-        for(int row = 0; row < m_deviceExplorer->rootNode().childCount(); row++)
+        if(it->is<iscore::DeviceSettings>() && it->get<iscore::DeviceSettings>().name == dev.name)
         {
-            auto index = m_deviceExplorer->index(row, 0, QModelIndex());
-            auto node = static_cast<iscore::Node*>(index.internalPointer());
-
-            if(node
-            && node->is<iscore::DeviceSettings>()
-            && node->get<iscore::DeviceSettings>().name == dev.name)
+            if(m_deviceExplorer)
             {
-                m_deviceExplorer->removeRow(row);
-                break;
+                m_deviceExplorer->removeNode(it);
+            }
+            else
+            {
+                m_devModel.rootNode().removeChild(it);
             }
         }
-    }
-    else
-    {
-        auto children_cpy = m_devModel.rootNode().children();
-        for(const auto& child : children_cpy)
-        {
-            if(child->get<iscore::DeviceSettings>().name == dev.name)
-            {
-                m_devModel.rootNode().removeChild(child);
-                delete child;
-                break;
-            }
-        }
-
     }
 }
 
@@ -131,7 +110,7 @@ void NodeUpdateProxy::addAddress(
     }
     else
     {
-        parentnode->insertChild(parentnode->childCount(), new iscore::Node{settings});
+        parentnode->emplace_back(settings, parentnode);
     }
 }
 
@@ -186,15 +165,13 @@ void NodeUpdateProxy::removeAddress(
                   [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == settings.name; });
     ISCORE_ASSERT(it != parentnode->end());
 
-    auto theNode = &*it;
     if(m_deviceExplorer)
     {
-        m_deviceExplorer->removeNode(theNode);
+        m_deviceExplorer->removeNode(it);
     }
     else
     {
-        parentnode->removeChild(theNode);
-        delete theNode;
+        parentnode->removeChild(it);
     }
 }
 

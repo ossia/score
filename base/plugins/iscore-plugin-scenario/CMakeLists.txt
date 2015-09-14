@@ -198,6 +198,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventStatus.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelConsistency.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModel.cpp"

@@ -13,7 +13,7 @@ class DimensionModel : public IdentifiedObject<DimensionModel>
         DimensionModel(const QString& name, const Id<DimensionModel>& id, QObject* parent):
             IdentifiedObject{id, staticMetaObject.className(), parent},
             m_name{name},
-            m_sym{GiNaC::symbol(name.toLatin1().constData()), spacelib::MinMaxDomain{}}
+            m_sym{GiNaC::symbol(name.toUtf8().constData()), spacelib::MinMaxDomain{}}
         {
         }
 
