@@ -19,11 +19,11 @@ class OSSIAAutomationElement : public OSSIAProcessElement
     public:
         OSSIAAutomationElement(
                 OSSIAConstraintElement* parentConstraint,
-                const AutomationModel* element,
+                AutomationModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
-        const Process* iscoreProcess() const override;
+        Process& iscoreProcess() const override;
 
     public slots:
         void on_addressChanged(const iscore::Address&);
@@ -38,7 +38,8 @@ class OSSIAAutomationElement : public OSSIAProcessElement
         QPointer<OSSIAConstraintElement> m_parent_constraint;
         std::shared_ptr<OSSIA::Automation> m_ossia_autom;
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
-        const AutomationModel* m_iscore_autom{};
+
+        AutomationModel& m_iscore_autom;
 
         const DeviceList& m_deviceList;
 };

@@ -163,13 +163,12 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
 
 void AutomationModel::startExecution()
 {
-    // TODO put state machine in exec state
+    emit execution(true);
 }
 
 void AutomationModel::stopExecution()
 {
-    // TODO put state machine in edit state
-
+    emit execution(false);
 }
 
 void AutomationModel::reset()

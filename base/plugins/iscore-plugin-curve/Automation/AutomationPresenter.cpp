@@ -12,6 +12,7 @@
 #include "Curve/CurveModel.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveView.hpp"
+#include "Curve/StateMachine/CurveStateMachine.hpp"
 
 AutomationPresenter::AutomationPresenter(
         const LayerModel& model,
@@ -35,6 +36,14 @@ AutomationPresenter::AutomationPresenter(
         m_focusDispatcher.focus(this);
     });
 
+    con(m_viewModel.model(), &Process::execution,
+        this, [&] (bool b) {
+        qDebug() << b;
+        if(b)
+            m_curvepresenter->stateMachine().stop();
+        else
+            m_curvepresenter->stateMachine().start();
+    });
     parentGeometryChanged();
 }
 

@@ -207,6 +207,7 @@ void ConstraintModel::reset()
     for(Process& proc : processes)
     {
         proc.reset();
+        proc.stopExecution();
     }
 }
 

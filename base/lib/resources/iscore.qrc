@@ -2,6 +2,5 @@
     <qresource prefix="/">
         <file>Ubuntu-R.ttf</file>
         <file>iscore.png</file>
-        <file>forward.svg</file>
     </qresource>
 </RCC>

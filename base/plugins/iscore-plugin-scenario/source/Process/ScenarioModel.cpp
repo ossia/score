@@ -187,11 +187,14 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
 void ScenarioModel::startExecution()
 {
     emit execution(true);
+    for(auto& constraint : constraints)
+    {
+        constraint.startExecution();
+    }
 }
 
 void ScenarioModel::stopExecution()
 {
-    qDebug() << Q_FUNC_INFO;
     emit execution(false);
 }
 

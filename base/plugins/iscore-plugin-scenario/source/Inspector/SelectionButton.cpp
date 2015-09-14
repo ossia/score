@@ -14,9 +14,14 @@ SelectionButton::SelectionButton(
 {
     auto lay = new iscore::MarginLess<QHBoxLayout>;
 
-    m_button = new QPushButton{tr("None")}; // TODO clickable label instead
-    m_button->setIcon(QIcon(":/forward.svg"));
-    m_button->setStyleSheet ("margin: 5px; margin-left: 10px; text-align: left; text-decoration: underline");
+    m_button = new QPushButton{tr("None")};
+    m_button->setIcon(QIcon(":/images/forward.svg"));
+    m_button->setStyleSheet (
+                "margin: 5px;"
+                "margin-left: 10px;"
+                "text-align: left;"
+                "text-decoration: underline"
+    );
     m_button->setFlat(true);
 
     m_button->setText(text);

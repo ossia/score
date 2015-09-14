@@ -63,6 +63,9 @@ class CurvePresenter : public QObject
         void enable();
         void disable();
 
+        auto& stateMachine()
+        { return *m_sm; }
+
 
     private:
         // Context menu actions
