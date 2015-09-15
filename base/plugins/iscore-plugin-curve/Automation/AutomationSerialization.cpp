@@ -11,10 +11,11 @@ void Visitor<Reader<DataStream>>::readFrom(const AutomationModel& autom)
 {
     readFrom(*autom.pluginModelList);
 
+    readFrom(autom.curve());
+
     m_stream << autom.address();
     m_stream << autom.min();
     m_stream << autom.max();
-    readFrom(autom.curve());
 
     insertDelimiter();
 }
@@ -24,6 +25,8 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
 {
     autom.pluginModelList = new iscore::ElementPluginModelList{*this, &autom};
 
+    autom.setCurve(new CurveModel{*this, &autom});
+
     iscore::Address address;
     double min, max;
 
@@ -32,8 +35,6 @@ void Visitor<Writer<DataStream>>::writeTo(AutomationModel& autom)
     autom.setAddress(address);
     autom.setMin(min);
     autom.setMax(max);
-
-    autom.setCurve(new CurveModel{*this, &autom});
 
     checkDelimiter();
 }
@@ -46,10 +47,10 @@ void Visitor<Reader<JSONObject>>::readFrom(const AutomationModel& autom)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*autom.pluginModelList);
 
+    m_obj["Curve"] = toJsonObject(autom.curve());
     m_obj["Address"] = toJsonObject(autom.address());
     m_obj["Min"] = autom.min();
     m_obj["Max"] = autom.max();
-    m_obj["Curve"] = toJsonObject(autom.curve());
 }
 
 template<>
@@ -58,13 +59,12 @@ void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     autom.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &autom};
 
-    autom.setAddress(fromJsonObject<iscore::Address>(m_obj["Address"].toObject()));
-    autom.setMin(m_obj["Min"].toDouble());
-    autom.setMax(m_obj["Max"].toDouble());
-
     Deserializer<JSONObject> curve_deser{m_obj["Curve"].toObject()};
     autom.setCurve(new CurveModel{curve_deser, &autom});
 
+    autom.setAddress(fromJsonObject<iscore::Address>(m_obj["Address"].toObject()));
+    autom.setMin(m_obj["Min"].toDouble());
+    autom.setMax(m_obj["Max"].toDouble());
 }
 
 

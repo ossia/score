@@ -176,6 +176,8 @@ void SlotPresenter::on_zoomRatioChanged(ZoomRatio val)
     {
         pair.first->on_zoomRatioChanged(m_zoomRatio);
     }
+
+    updateProcessesShape();
 }
 
 void SlotPresenter::on_layerModelCreated_impl(
@@ -198,9 +200,10 @@ void SlotPresenter::on_layerModelCreated_impl(
     {
         on_layerModelPutToFront(proc_vm);
     }
-    updateProcessesShape();
 
     proc_pres->on_zoomRatioChanged(m_zoomRatio);
+
+    updateProcessesShape();
 }
 
 void SlotPresenter::updateProcessesShape()

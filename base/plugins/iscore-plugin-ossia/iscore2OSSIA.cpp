@@ -29,7 +29,7 @@ class NodeNotFoundException : public std::exception
         const char* what() const noexcept override
         {
             return QString("Address: %1 not found in actual tree.")
-                    .arg(m_addr.toString()).toLatin1().constData();
+                    .arg(m_addr.toString()).toUtf8().constData();
         }
 };
 
@@ -176,9 +176,20 @@ void updateOSSIAAddress(
             ISCORE_ABORT;
             break;
     }
+
+    auto ossia_val = addr->getValue();
+    if(ossia_val)
+    {
+        auto val = addr->getValue()->clone();
+
+        updateOSSIAValue(settings.value.val,*val);
+        addr->pushValue(val);
+    }
 }
 
-void createOSSIAAddress(const iscore::FullAddressSettings &settings, OSSIA::Node *node)
+void createOSSIAAddress(
+        const iscore::FullAddressSettings &settings,
+        OSSIA::Node *node)
 {
     if(settings.ioType == IOType::Invalid)
         return;
@@ -220,7 +231,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
         case OSSIA::Value::Type::FLOAT:
             dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
             break;
-        case OSSIA::Value::Type::CHAR:
+        case OSSIA::Value::Type::CHAR: // TODO See TODO in MessageEditDialog
             dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toLatin1();
             break;
         case OSSIA::Value::Type::STRING:
@@ -289,7 +300,7 @@ static OSSIA::Value* toValue(const QVariant& val)
             return createOSSIAValue(val.value<float>());
         case QMetaType::Type::Double:
             return createOSSIAValue((float)val.value<double>());
-        case QMetaType::Type::QChar:
+        case QMetaType::Type::QChar:// TODO See TODO in MessageEditDialog
             return createOSSIAValue(val.value<QChar>().toLatin1());
         case QMetaType::Type::QString:
             return createOSSIAValue(val.value<QString>().toStdString());
@@ -337,7 +348,9 @@ OSSIA::Value* toValue(
     return toValue(value.val);
 }
 
-std::shared_ptr<OSSIA::Message> message(const iscore::Message& mess, const DeviceList& deviceList)
+std::shared_ptr<OSSIA::Message> message(
+        const iscore::Message& mess,
+        const DeviceList& deviceList)
 {
     if(!deviceList.hasDevice(mess.address.device))
         return {};

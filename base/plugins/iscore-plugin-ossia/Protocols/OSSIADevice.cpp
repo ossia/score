@@ -50,14 +50,14 @@ void OSSIADevice::removeAddress(const iscore::Address& address)
 }
 
 
-void OSSIADevice::sendMessage(iscore::Message &mess)
+void OSSIADevice::sendMessage(iscore::Message mess)
 {
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 
-    auto val = node->getAddress()->getValue()->clone();
-
-    updateOSSIAValue(mess.value.val,*val);
-    node->getAddress()->pushValue(val);
+    auto addr = node->getAddress();
+    auto val = addr->getValue()->clone();
+    updateOSSIAValue(mess.value.val, *val);
+    addr->pushValue(val);
 }
 
 

@@ -17,4 +17,7 @@ class TemporalConstraintHeader : public ConstraintHeader
 
         int type() const override
         { return QGraphicsItem::UserType + 6; }
+
+    private:
+        int m_previous_x{};
 };

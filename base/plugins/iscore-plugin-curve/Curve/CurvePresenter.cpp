@@ -17,6 +17,11 @@
 #include <QKeyEvent>
 #include <QMenu>
 
+static QPointF myscale(QPointF first, QSizeF second)
+{
+    return {first.x() * second.width(), (1. - first.y()) * second.height()};
+}
+
 CurvePresenter::CurvePresenter(const CurveModel& model, CurveView* view, QObject* parent):
     QObject{parent},
     m_model{model},
@@ -46,11 +51,6 @@ const CurveModel& CurvePresenter::model() const
 CurveView& CurvePresenter::view() const
 {
     return *m_view;
-}
-
-QPointF myscale(const QPointF& first, const QSizeF& second)
-{
-    return {first.x() * second.width(), (1. - first.y()) * second.height()};
 }
 
 void CurvePresenter::setRect(const QRectF& rect)

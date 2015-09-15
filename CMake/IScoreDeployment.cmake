@@ -5,13 +5,14 @@ endif()
 set(JAMOMA_LIBS "Score;Modular;Foundation;DSP")
 set(JAMOMA_PLUGINS "Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
 
-# TODO use git tags
 set(CPACK_PACKAGE_NAME "i-score")
 set(CPACK_PACKAGE_VENDOR "i-score")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An intermedia sequencer for the precise and flexible scripting of interactive scenarios.")
-set(CPACK_PACKAGE_VERSION "0.3.0")
-set(CPACK_PACKAGE_VERSION_MAJOR "0")
-set(CPACK_PACKAGE_VERSION_MINOR "3")
+set(CPACK_PACKAGE_VERSION "${ISCORE_VERSION}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${ISCORE_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${ISCORE_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${ISCORE_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION_EXTRA "${ISCORE_VERSION_EXTRA}")
 set(CPACK_SOURCE_GENERATOR TGZ)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "i-score")
 

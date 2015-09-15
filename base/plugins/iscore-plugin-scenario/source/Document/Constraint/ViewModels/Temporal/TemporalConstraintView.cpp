@@ -20,7 +20,6 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
     ConstraintView {presenter, parent}
 {
     this->setParentItem(parent);
-    this->setFlags({});
 
     this->setZValue(parent->zValue() + 3);
 }
@@ -47,7 +46,7 @@ void TemporalConstraintView::paint(
         auto rect = boundingRect();
         rect.adjust(0,15,0,-10);
         rect.setWidth(this->defaultWidth());
-        painter->fillRect(rect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+        painter->fillRect(rect, m_bgColor);
 
         // Fake timenode continuation
         auto color = qApp->palette("ScenarioPalette").base().color();
@@ -152,7 +151,7 @@ void TemporalConstraintView::paint(
     painter->drawPath(rightBrace);
 
     static const QPen playedPen{
-        QBrush{Qt::green},
+        QBrush{QColor::fromRgb(34, 224, 0)},
         4,
         Qt::SolidLine,
                 Qt::RoundCap,
@@ -171,10 +170,10 @@ void TemporalConstraintView::paint(
         painter->drawPath(playedPath);
 
 
-    int fontSize = 12;
+    static const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    QFont f("Ubuntu");
-    f.setPixelSize(fontSize);
+    static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
+
     painter->setFont(f);
     painter->setPen(m_labelColor);
     painter->drawText(labelRect, Qt::AlignCenter, m_label);

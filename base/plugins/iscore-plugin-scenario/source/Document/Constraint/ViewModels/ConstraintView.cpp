@@ -65,7 +65,8 @@ void ConstraintView::setValid(bool val)
 
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.pressed(event->scenePos());
+    if(event->button() == Qt::MouseButton::LeftButton)
+        emit m_presenter.pressed(event->scenePos());
 }
 
 void ConstraintView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)

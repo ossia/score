@@ -40,9 +40,32 @@ class StateItemModel : public QAbstractItemModel
         StateNode* nodeFromModelIndex(const QModelIndex& index);
         const StateNode* nodeFromModelIndex(const QModelIndex& index) const;
 
-        void addState(StateNode* parent,
-                      StateNode* node,
-                      int row);
+        template<typename... Args>
+        void emplaceState(StateNode *parent, int row, Args&&... args)
+        {
+            ISCORE_ASSERT(parent);
+
+            if (row == -1)
+            {
+                row = parent->childCount(); //insert as last child
+            }
+
+            int rowParent = 0;
+            if(parent != &m_rootNode)
+            {
+                auto grandparent = parent->parent();
+                ISCORE_ASSERT(grandparent);
+
+                rowParent = grandparent->indexOfChild(parent);
+            }
+
+            QModelIndex parentIndex = createIndex(rowParent, 0, parent);
+
+            beginInsertRows(parentIndex, row, row);
+            parent->emplace(parent->begin() + row, std::forward<Args>(args)...);
+            endInsertRows();
+        }
+
 
         void removeState(StateNode* node);
 

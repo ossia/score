@@ -137,6 +137,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void setFullView(FullViewConstraintViewModel* fv);
 
 
+
+        void startExecution();
+        void stopExecution();
         // Resets the execution display recursively
         void reset();
 
@@ -150,6 +153,8 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void heightPercentageChanged(double);
 
         void startDateChanged(const TimeValue&);
+
+        void focusChanged(bool);
 
     public slots:
         void setHeightPercentage(double arg);

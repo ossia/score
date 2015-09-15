@@ -184,6 +184,20 @@ void ScenarioModel::setDurationAndShrink(const TimeValue& newDuration)
     */
 }
 
+void ScenarioModel::startExecution()
+{
+    emit execution(true);
+    for(auto& constraint : constraints)
+    {
+        constraint.startExecution();
+    }
+}
+
+void ScenarioModel::stopExecution()
+{
+    emit execution(false);
+}
+
 void ScenarioModel::reset()
 {
     for(auto& constraint : constraints)

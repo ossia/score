@@ -2,7 +2,7 @@
 using namespace iscore;
 StateItemModel::StateItemModel():
     QAbstractItemModel{},
-    m_rootNode(StateData{QString{"i am root"}})
+    m_rootNode{StateData{QString{"i am root"}}, nullptr}
 {
 
 }
@@ -52,32 +52,6 @@ const StateNode *StateItemModel::nodeFromModelIndex(const QModelIndex &index) co
             : &m_rootNode;
 }
 
-void StateItemModel::addState(StateNode *parent, StateNode *node, int row)
-{
-    ISCORE_ASSERT(parent);
-    ISCORE_ASSERT(node);
-
-    if (row == -1)
-    {
-        row = parent->childCount(); //insert as last child
-    }
-
-    int rowParent = 0;
-    if(parent != &m_rootNode)
-    {
-        auto grandparent = parent->parent();
-        ISCORE_ASSERT(grandparent);
-
-        rowParent = grandparent->indexOfChild(parent);
-    }
-
-    QModelIndex parentIndex = createIndex(rowParent, 0, parent);
-
-    beginInsertRows(parentIndex, row, row);
-    parent->insertChild(row, node);
-    endInsertRows();
-}
-
 void StateItemModel::removeState(StateNode *node)
 {
     ISCORE_ASSERT(node);
@@ -98,10 +72,8 @@ void StateItemModel::removeState(StateNode *node)
     int row = parent->indexOfChild(node);
 
     beginRemoveRows(parentIndex, row, row);
-    parent->removeChild(node);
+    parent->removeChild(parent->cbegin() + row);
     endRemoveRows();
-
-    delete node;
 }
 
 void StateItemModel::setStateData(StateNode* node, const MessageList& messages)
@@ -132,7 +104,7 @@ QModelIndex StateItemModel::index(int row,
         parentItem = static_cast<StateNode*>(parent.internalPointer());
 
     if (parentItem->hasChild(row))
-        return createIndex(row, column, &parentItem->childAt(row));
+        return createIndex(row, column, const_cast<StateNode*>(&parentItem->childAt(row)));
     else
         return QModelIndex();
 }

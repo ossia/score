@@ -26,6 +26,7 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
         {
             if(!m_cmd)
             {
+                stack().disableActions();
                 m_cmd = std::make_unique<TheCommand>(std::forward<Args>(args)...);
                 m_cmd->redo();
             }
@@ -39,12 +40,19 @@ class SingleOngoingCommandDispatcher : public ICommandDispatcher
         void commit()
         {
             if(m_cmd)
+            {
                 SendStrategy::Quiet::send(stack(), m_cmd.release());
+                stack().enableActions();
+            }
         }
 
         void rollback()
         {
-            m_cmd->undo();
+            if(m_cmd)
+            {
+                m_cmd->undo();
+                stack().enableActions();
+            }
             m_cmd.reset();
         }
 

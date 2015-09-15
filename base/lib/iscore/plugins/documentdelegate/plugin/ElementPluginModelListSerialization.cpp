@@ -20,8 +20,11 @@ template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelL
 
     for(; plugin_count -- > 0;)
     {
-        auto pm = deserializeElementPluginModel(*this, elts.parent(), elts.parent());
-        elts.add(pm);
+        auto elt = deserializeElementPluginModel(*this, elts.parent(), elts.parent());
+        if(elt)
+            elts.add(elt);
+        else
+            ISCORE_ABORT;
     }
 
     checkDelimiter();
@@ -40,7 +43,11 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(iscore::ElementPluginModelL
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
 
-        elts.add(deserializeElementPluginModel(deserializer, elts.parent(), elts.parent()));
+        auto elt = deserializeElementPluginModel(deserializer, elts.parent(), elts.parent());
+        if(elt)
+            elts.add(elt);
+        else
+            ISCORE_ABORT;
     }
 }
 
@@ -58,6 +65,10 @@ template<> void Visitor<Writer<JSONValue>>::writeTo(iscore::ElementPluginModelLi
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
 
-        elts.add(deserializeElementPluginModel(deserializer, elts.parent(), elts.parent()));
+        auto elt = deserializeElementPluginModel(deserializer, elts.parent(), elts.parent());
+        if(elt)
+            elts.add(elt);
+        else
+            ISCORE_ABORT;
     }
 }

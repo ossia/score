@@ -10,7 +10,11 @@ class StrongQState : public QState
 {
     public:
         static constexpr auto value() { return Value; }
-        using QState::QState;
+        StrongQState(QState* parent):
+            QState{parent}
+        {
+            this->setObjectName(debug_StateMachineIDs<Value>());
+        }
 };
 class ScenarioStateMachine;
 

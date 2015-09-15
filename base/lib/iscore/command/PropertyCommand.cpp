@@ -2,12 +2,12 @@
 
 void iscore::PropertyCommand::undo()
 {
-    m_path.find<QObject>().setProperty(m_property.toLatin1().constData(), m_old);
+    m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_old);
 }
 
 void iscore::PropertyCommand::redo()
 {
-    m_path.find<QObject>().setProperty(m_property.toLatin1().constData(), m_new);
+    m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_new);
 }
 
 void iscore::PropertyCommand::serializeImpl(QDataStream & s) const

@@ -52,6 +52,7 @@ class ScenarioStateMachine : public BaseStateMachine
         void setSelectState();
         void setMoveState();
         void setSlotMoveState();
+        void setPlayState();
         void exitState();
 
         void shiftPressed();
@@ -68,7 +69,9 @@ class ScenarioStateMachine : public BaseStateMachine
         MoveToolState* moveState{};
         SelectionTool* selectState{};
         MoveSlotToolState* moveSlotState{};
+        QState* playState{};
         QState* transitionState{};
+
 
         QState* scaleState{};
         QState* growState{};

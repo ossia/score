@@ -31,9 +31,8 @@ class AutomationPresenter : public LayerPresenter
         const LayerModel& layerModel() const override;
         const Id<Process>& modelId() const override;
 
-    public slots:
+   // public slots:
         // From model
-        void updateCurve();
 
     private:
         const AutomationLayerModel& m_viewModel;

@@ -123,6 +123,22 @@ void BaseElementModel::on_viewModelFocused(const LayerModel* process)
 {
     // Enable focus on the new viewmodel
     updateSlotFocus(process, true);
+
+    // If the parent of the layer is a constraint, we set the focus on the constraint too.
+    auto slot = process->parent();
+    if(!slot) return;
+    auto rack = slot->parent();
+    if(!rack) return;
+    auto cm = rack->parent();
+    if(auto constraint = dynamic_cast<ConstraintModel*>(cm))
+    {
+        if(m_focusedConstraint)
+            m_focusedConstraint->focusChanged(false);
+
+        m_focusedConstraint = constraint;
+        m_focusedConstraint->focusChanged(true);
+    }
+
 }
 
 // TODO candidate for ProcessSelectionManager.
@@ -140,7 +156,7 @@ void BaseElementModel::setNewSelection(const Selection& s)
         }
 
         displayedElements.setSelection(Selection{});
-        m_focusManager.focusNothing();
+        // Note : once here was a call to defocus a presenter. Why ? See git blame.
     }
     else if(std::any_of(s.begin(),
                         s.end(),

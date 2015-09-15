@@ -37,7 +37,7 @@ namespace Scenario
                     addCommand(new AddStateToStateModel{
                                    std::move(Path),
                                    iscore::StatePath{},
-                                   iscore::StateData{std::move(stateData), "NewState_other"},
+                                   {iscore::StateData{std::move(stateData), "NewState_other"}, nullptr},
                                    -1});
                 }
         };

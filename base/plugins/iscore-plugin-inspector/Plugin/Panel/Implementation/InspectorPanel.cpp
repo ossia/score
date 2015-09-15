@@ -13,9 +13,7 @@ InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :
     m_tabWidget->setTabsClosable(true);
     m_layout->setContentsMargins(0, 0, 0, 0);
     setMinimumWidth(300);
-    setMaximumWidth(300);
     m_layout->addWidget(m_tabWidget);
-
 
     connect(m_tabWidget,    &QTabWidget::tabCloseRequested,
             this, &InspectorPanel::on_tabClose);

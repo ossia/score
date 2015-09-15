@@ -108,7 +108,7 @@ static auto read_rangeClipmode(const QDomElement& dom_element)
 }
 
 using namespace iscore;
-static void convertFromDomElement(const QDomElement& dom_element, Node *parentNode)
+static void convertFromDomElement(const QDomElement& dom_element, Node &parentNode)
 {
     QDomElement dom_child = dom_element.firstChildElement("");
     QString name;
@@ -138,7 +138,8 @@ static void convertFromDomElement(const QDomElement& dom_element, Node *parentNo
         addr.clipMode = read_rangeClipmode(dom_element);
     }
 
-    auto childNode = new Node{addr, parentNode};
+    auto& childNode = parentNode.emplace_back(addr, &parentNode);
+
     while(!dom_child.isNull() && dom_element.hasChildNodes())
     {
         convertFromDomElement(dom_child, childNode);
@@ -173,7 +174,7 @@ void loadDeviceFromXML(const QString &filePath, Node &node)
 
     while(!dom_node.isNull())
     {
-        convertFromDomElement(dom_node, &node);
+        convertFromDomElement(dom_node, node);
         dom_node = dom_node.nextSiblingElement("");
     }
 }

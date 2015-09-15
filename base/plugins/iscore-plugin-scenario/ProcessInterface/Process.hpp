@@ -104,6 +104,8 @@ class Process: public IdentifiedObject<Process>
         const TimeValue& duration() const;
 
         /// Execution
+        virtual void startExecution() = 0;
+        virtual void stopExecution() = 0;
         virtual void reset() = 0;
 
         /// States. The process has ownership.
@@ -117,6 +119,10 @@ class Process: public IdentifiedObject<Process>
 
         // protected:
         virtual void serialize(const VisitorVariant& vis) const = 0;
+
+    signals:
+        // True if the execution is running.
+        void execution(bool);
 
     protected:
         // Clone

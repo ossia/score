@@ -46,9 +46,9 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     {
         for(const auto& plugid : elementPlugins())
         {
-            if(event->pluginModelList->canAdd(plugid))
+            if(event->pluginModelList.canAdd(plugid))
             {
-                event->pluginModelList->add(
+                event->pluginModelList.add(
                             makeElementPlugin(event,
                                               plugid,
                                               event));
@@ -138,6 +138,7 @@ NetworkDocumentPlugin::loadElementPlugin(
         return plug;
     }
 
+    ISCORE_ABORT;
     return nullptr;
 }
 

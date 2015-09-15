@@ -34,6 +34,7 @@
 #include "core/document/DocumentModel.hpp"
 #include "Inspector/State/StateInspectorWidget.hpp"
 #include <Inspector/InspectorWidgetList.hpp>
+#include <iscore/widgets/MarginLess.hpp>
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
@@ -61,12 +62,8 @@ EventInspectorWidget::EventInspectorWidget(
     ////// BODY
     /// Information
     auto infoWidg = new QWidget;
-    auto infoLay = new QFormLayout;
+    auto infoLay = new iscore::MarginLess<QFormLayout>;
     infoWidg->setLayout(infoLay);
-
-    // date
-    m_date = new QLabel{QString::number(m_model.date().msec())} ;
-    infoLay->addRow(tr("Default date"), m_date);
 
     // timeNode
     auto timeNode = m_model.timeNode();
@@ -74,12 +71,24 @@ EventInspectorWidget::EventInspectorWidget(
     {
         auto scenar = m_model.parentScenario();
         auto tnBtn = SelectionButton::make(
-                &scenar->timeNode(timeNode),
-                selectionDispatcher(),
-                this);
+                    tr("Parent TimeNode"),
+                    &scenar->timeNode(timeNode),
+                    selectionDispatcher(),
+                    this);
 
-        infoLay->addRow(tr("TimeNode"), tnBtn);
+        infoLay->addWidget(tnBtn);
     }
+
+    // date
+    auto datewidg = new QWidget;
+    auto dateLay = new iscore::MarginLess<QHBoxLayout>;
+    datewidg->setLayout(dateLay);
+    m_date = new QLabel{QString::number(m_model.date().msec())};
+
+    dateLay->addWidget(new QLabel(tr("Default date")));
+    dateLay->addWidget(m_date);
+
+    infoLay->addWidget(datewidg);
     m_properties.push_back(infoWidg);
 
 
@@ -91,7 +100,7 @@ EventInspectorWidget::EventInspectorWidget(
     m_conditionLineEdit->setValidator(&m_validator);
 
     connect(m_conditionLineEdit, &QLineEdit::editingFinished,
-            this,			 &EventInspectorWidget::on_conditionChanged);
+            this, &EventInspectorWidget::on_conditionChanged);
     con(m_model, &EventModel::conditionChanged,
         this, [this] (const iscore::Condition& c) {
         m_conditionLineEdit->setText(c.toString());
@@ -100,102 +109,15 @@ EventInspectorWidget::EventInspectorWidget(
     m_properties.push_back(new QLabel{tr("Condition")});
     m_properties.push_back(m_conditionLineEdit);
 
-    /*
-
-    // Completion - only available if there is a device explorer
-    auto deviceexplorer =
-            iscore::IDocument::documentFromObject(m_model)
-                ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
-    // Separator
-    m_properties.push_back(new Separator {this});
-
-    /// Condition
-    m_conditionLineEdit = new QLineEdit{this};
-    connect(m_conditionLineEdit, SIGNAL(editingFinished()),
-            this,			 SLOT(on_conditionChanged()));
-
-    m_properties.push_back(new QLabel{tr("Condition")});
-    m_properties.push_back(m_conditionLineEdit);
-    m_conditionLineEdit->hide();
-
-    if(deviceexplorer)
-    {
-        auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_conditionLineEdit->setCompleter(completer);
-
-        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
-        connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const iscore::Address& addr)
-        {
-            m_conditionLineEdit->setText(addr.toString());
-        });
-        m_properties.push_back(pb);
-    }
-
-    /// Trigger
-    m_triggerLineEdit = new QLineEdit{this};
-    connect(m_triggerLineEdit, SIGNAL(editingFinished()),
-            this,			 SLOT(on_triggerChanged()));
-
-    m_properties.push_back(new QLabel{tr("Trigger")});
-    m_properties.push_back(m_triggerLineEdit);
-    m_triggerLineEdit->hide();
-
-    if(deviceexplorer)
-    {
-        auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_triggerLineEdit->setCompleter(completer);
-
-        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
-        connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const iscore::Address& addr)
-        {
-            m_triggerLineEdit->setText(addr.toString());
-        });
-        m_properties.push_back(pb);
-    }
-
-    // Separator
-    m_properties.push_back(new Separator {this});
-*/
     // State
+    m_properties.push_back(new Separator {this});
     m_statesWidget = new QWidget{this};
     auto dispLayout = new QVBoxLayout{m_statesWidget};
     m_statesWidget->setLayout(dispLayout);
-/*
-    QWidget* addAddressWidget = new QWidget{this};
-    auto addLayout = new QGridLayout{addAddressWidget};
 
-    m_stateLineEdit = new QLineEdit{addAddressWidget};
-
-
-
-    auto ok_button = new QPushButton{"Add", addAddressWidget};
-    connect(ok_button, &QPushButton::clicked,
-            this,	   &EventInspectorWidget::on_addAddressClicked);
-    addLayout->addWidget(m_stateLineEdit, 0, 0);
-    addLayout->addWidget(ok_button, 0, 1);
-*/
     m_properties.push_back(new QLabel{"States"});
     m_properties.push_back(m_statesWidget);
-    /*
-    m_properties.push_back(addAddressWidget);
 
-    if(deviceexplorer)
-    {
-        auto completer = new DeviceCompleter {deviceexplorer, this};
-        m_stateLineEdit->setCompleter(completer);
-
-        auto pb = new DeviceExplorerMenuButton{deviceexplorer};
-        connect(pb, &DeviceExplorerMenuButton::addressChosen,
-                this, [&] (const iscore::Address& addr)
-        {
-            m_stateLineEdit->setText(addr.toString());
-        });
-        addLayout->addWidget(pb, 1, 0, 1, 2);
-    }
-*/
     // Separator
     m_properties.push_back(new Separator {this});
 
@@ -309,21 +231,6 @@ void EventInspectorWidget::on_conditionChanged()
         auto cmd = new Scenario::Command::SetCondition{path(m_model), std::move(*cond)};
         emit commandDispatcher()->submitCommand(cmd);
     }
-}
-
-void EventInspectorWidget::on_triggerChanged()
-{
-    /* TODO
-    auto txt = m_triggerLineEdit->text();
-
-    if(txt == m_model.trigger())
-    {
-        return;
-    }
-
-    auto cmd = new Scenario::Command::SetTrigger{path(m_model), txt};
-    emit commandDispatcher()->submitCommand(cmd);
-    */
 }
 
 void EventInspectorWidget::modelDateChanged()

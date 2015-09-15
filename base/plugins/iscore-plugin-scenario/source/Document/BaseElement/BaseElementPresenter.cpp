@@ -47,8 +47,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_model,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
-    m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()}/*,
-    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}},
+    m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
+    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}}/*,
     m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}*/
 {
     // Setup the connections
@@ -76,8 +76,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     model().setDisplayedConstraint(&model().baseConstraint());
 
     // Progress bar, time rules
-    /*
+
     m_mainTimeRuler->setDuration(model().baseConstraint().duration.defaultDuration());
+    /*
     m_localTimeRuler->setDuration(model().baseConstraint().duration.defaultDuration());
     */
 }
@@ -127,8 +128,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 void BaseElementPresenter::setMillisPerPixel(ZoomRatio newRatio)
 {
     m_zoomRatio = newRatio;
-    /*
+
     m_mainTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
+    /*
     m_localTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
     */
     m_scenarioPresenter->on_zoomRatioChanged(m_zoomRatio);
@@ -228,8 +230,8 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
-    /*
     m_mainTimeRuler->scroll(dx);
+    /*
     m_localTimeRuler->scroll(dx);
     */
 }
@@ -254,13 +256,13 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     QRect viewport_rect = view()->view()->viewport()->rect() ;
     QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 
-
     qreal center = (focus.isNull() ?
-                  visible_scene_rect.center().x() * m_zoomRatio :
-                  focus.x() * m_zoomRatio);
+                  visible_scene_rect.center().x() :
+                  focus.x());
 
-    auto leftT = visible_scene_rect.left() * m_zoomRatio;
-    auto deltaX = (center - leftT) / m_zoomRatio;
+    qreal centerT = center * m_zoomRatio; // here's the old zoom
+
+    auto deltaX = center - visible_scene_rect.left();
 
     auto y = visible_scene_rect.top();
 
@@ -268,7 +270,9 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
         setMillisPerPixel(newZoom);
 
     qreal x;
-        x = center/m_zoomRatio - deltaX;
+        x = (visible_scene_rect.x() < 5 ?
+                0 :
+                centerT/m_zoomRatio - deltaX); // here's the new zoom
 
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 

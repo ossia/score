@@ -50,7 +50,10 @@ class NodeUpdateProxy
                 const iscore::NodePath& parentPath,
                 const iscore::AddressSettings& settings);
 
-        void updateValue(
+        void updateLocalValue(
+                const iscore::Address&,
+                const iscore::Value&);
+        void updateRemoteValue(
                 const iscore::Address&,
                 const iscore::Value&);
 };

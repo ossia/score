@@ -79,24 +79,10 @@ void EventView::paint(QPainter* painter,
                       QWidget* widget)
 {
     QPen eventPen;
-    switch(m_status)
-    {
-        case EventStatus::Waiting:
-            eventPen = QPen(Qt::lightGray);
-            break;
-        case EventStatus::Pending:
-            eventPen = QPen(Qt::yellow);
-            break;
-        case EventStatus::Happened:
-            eventPen = QPen(Qt::green);
-            break;
-        case EventStatus::Disposed:
-            eventPen = QPen(Qt::red);
-            break;
-        case EventStatus::Editing:
-            eventPen = QPen(m_color);
-            break;
-    }
+    if(m_status == EventStatus::Editing)
+        eventPen = QPen(m_color);
+    else
+        eventPen = QPen(eventStatusColorMap()[m_status]);
 
     QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
 
@@ -176,7 +162,8 @@ void EventView::setShadow(bool arg)
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.pressed(event->scenePos());
+    if(event->button() == Qt::MouseButton::LeftButton)
+        emit m_presenter.pressed(event->scenePos());
 }
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)

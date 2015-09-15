@@ -12,6 +12,8 @@
 #include "Curve/CurveModel.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveView.hpp"
+#include "Curve/StateMachine/CurveStateMachine.hpp"
+
 AutomationPresenter::AutomationPresenter(
         const LayerModel& model,
         LayerView* view,
@@ -23,11 +25,10 @@ AutomationPresenter::AutomationPresenter(
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_viewModel.processModel())}
 {
     con(m_viewModel.model(), &AutomationModel::curveChanged,
-            this, &AutomationPresenter::updateCurve);
+        this, &AutomationPresenter::parentGeometryChanged);
 
     auto cv = new CurveView{m_view};
     m_curvepresenter = new CurvePresenter{m_viewModel.model().curve(), cv, this};
-
 
     connect(cv, &CurveView::pressed,
             this, [&] (const QPointF&)
@@ -35,9 +36,19 @@ AutomationPresenter::AutomationPresenter(
         m_focusDispatcher.focus(this);
     });
 
+    con(m_viewModel.model(), &Process::execution,
+        this, [&] (bool b) {
+        qDebug() << b;
+        if(b)
+            m_curvepresenter->stateMachine().stop();
+        else
+            m_curvepresenter->stateMachine().start();
+    });
     parentGeometryChanged();
-    updateCurve();
 }
+
+// TODO there are WAY too much calls to updateCurve() here.
+// This should be reviewed.
 
 AutomationPresenter::~AutomationPresenter()
 {
@@ -47,13 +58,11 @@ AutomationPresenter::~AutomationPresenter()
 void AutomationPresenter::setWidth(int width)
 {
     m_view->setWidth(width);
-    updateCurve();
 }
 
 void AutomationPresenter::setHeight(int height)
 {
     m_view->setHeight(height);
-    updateCurve();
 }
 
 void AutomationPresenter::putToFront()
@@ -71,12 +80,16 @@ void AutomationPresenter::putBehind()
 void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
     m_zoomRatio = val;
-    updateCurve();
 }
 
 void AutomationPresenter::parentGeometryChanged()
 {
-    updateCurve();
+    // Compute the rect with the duration of the process.
+    QRectF rect = m_view->boundingRect(); // for the height
+
+    rect.setWidth(m_viewModel.model().duration().toPixels(m_zoomRatio));
+
+    m_curvepresenter->setRect(rect);
 }
 
 const LayerModel& AutomationPresenter::layerModel() const
@@ -87,15 +100,6 @@ const LayerModel& AutomationPresenter::layerModel() const
 const Id<Process>& AutomationPresenter::modelId() const
 {
     return m_viewModel.model().id();
-}
-
-void AutomationPresenter::updateCurve()
-{
-    // Compute the rect with the duration of the process.
-    QRectF rect = m_view->boundingRect(); // for the height
-    rect.setWidth(m_viewModel.model().duration().toPixels(m_zoomRatio));
-
-    m_curvepresenter->setRect(rect);
 }
 
 void AutomationPresenter::on_focusChanged()

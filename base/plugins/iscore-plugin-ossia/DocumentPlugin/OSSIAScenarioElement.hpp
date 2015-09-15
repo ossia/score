@@ -28,7 +28,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
     public:
         OSSIAScenarioElement(
                 OSSIAConstraintElement* parentConstraint,
-                const ScenarioModel* element,
+                ScenarioModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> process() const override;
@@ -36,8 +36,14 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
         const auto& states() const
         { return m_ossia_states; }
+        const auto& constraints() const
+        { return m_ossia_constraints; }
+        const auto& events() const
+        { return m_ossia_timeevents; }
+        const auto& timeNodes() const
+        { return m_ossia_timenodes; }
 
-        const Process* iscoreProcess() const override;
+        Process& iscoreProcess() const override;
 
         void stop() override;
 
@@ -52,6 +58,9 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void on_eventRemoved(const EventModel&);
         void on_timeNodeRemoved(const TimeNodeModel&);
 
+        void startConstraintExecution(const Id<ConstraintModel>&);
+        void stopConstraintExecution(const Id<ConstraintModel>&);
+
     private:
         QPointer<OSSIAConstraintElement> m_parent_constraint;
 
@@ -60,20 +69,9 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         std::map<Id<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
         std::map<Id<EventModel>, OSSIAEventElement*> m_ossia_timeevents;
         std::shared_ptr<OSSIA::Scenario> m_ossia_scenario;
-        const ScenarioModel* m_iscore_scenario{};
+        ScenarioModel& m_iscore_scenario;
 
         IdContainer<ConstraintModel> m_executingConstraints;
 
         const DeviceList& m_deviceList;
-};
-
-class NoHomo : public QObject
-{
-        Q_OBJECT
-
-    public:
-
-    signals:
-        void added(const TimeNodeModel&);
-        void removed(const TimeNodeModel&);
 };

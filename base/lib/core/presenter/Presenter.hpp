@@ -31,6 +31,7 @@ namespace iscore
             Q_OBJECT
         public:
             Presenter(iscore::View* view, QObject* parent);
+            ~Presenter();
 
             // Register data from plugins
             void registerPluginControl(PluginControlInterface*);
@@ -42,7 +43,7 @@ namespace iscore
             const std::vector<DocumentDelegateFactoryInterface *> &availableDocuments() const;
 
             // Document management
-            void setupDocument(iscore::Document* doc);
+            Document* setupDocument(iscore::Document* doc);
 
             template<typename... Args>
             void newDocument(Args&&... args)
@@ -50,9 +51,9 @@ namespace iscore
                 setupDocument(m_builder.newDocument(std::forward<Args>(args)...));
             }
             template<typename... Args>
-            void loadDocument(Args&&... args)
+            Document* loadDocument(Args&&... args)
             {
-                setupDocument(m_builder.loadDocument(std::forward<Args>(args)...));
+                return setupDocument(m_builder.loadDocument(std::forward<Args>(args)...));
             }
             template<typename... Args>
             void restoreDocument(Args&&... args)
@@ -69,11 +70,15 @@ namespace iscore
             // Returns true if the document was closed.
             bool closeDocument(Document*);
 
+            // Exit i-score
+            bool exit();
+
+
             // Methods to save and load
             bool saveDocument(Document*);
             bool saveDocumentAs(Document*);
 
-            void loadDocument();
+            Document* loadDocument();
 
             // Toolbars
             QList<OrderedToolbar>& toolbars()

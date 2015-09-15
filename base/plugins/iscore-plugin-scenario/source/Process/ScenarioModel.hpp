@@ -67,6 +67,8 @@ class ScenarioModel : public Process, public ScenarioInterface
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;
 
+        void startExecution() override;
+        void stopExecution() override;
         void reset() override;
 
         Selection selectableChildren() const override;

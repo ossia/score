@@ -86,7 +86,8 @@ void TimeNodeView::changeColor(QColor newColor)
 
 void TimeNodeView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit m_presenter.pressed(event->scenePos());
+    if(event->button() == Qt::MouseButton::LeftButton)
+        emit m_presenter.pressed(event->scenePos());
 }
 
 void TimeNodeView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)

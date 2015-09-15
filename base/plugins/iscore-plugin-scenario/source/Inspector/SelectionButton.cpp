@@ -2,7 +2,8 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <iscore/selection/SelectionDispatcher.hpp>
-
+#include <iscore/widgets/MarginLess.hpp>
+#include <QIcon>
 SelectionButton::SelectionButton(
         const QString &text,
         Selection target,
@@ -11,10 +12,16 @@ SelectionButton::SelectionButton(
     QWidget{parent},
     m_dispatcher{disp}
 {
-    auto lay = new QHBoxLayout{this};
+    auto lay = new iscore::MarginLess<QHBoxLayout>;
 
     m_button = new QPushButton{tr("None")};
-    m_button->setStyleSheet ("text-align: left");
+    m_button->setIcon(QIcon(":/images/forward.svg"));
+    m_button->setStyleSheet (
+                "margin: 5px;"
+                "margin-left: 10px;"
+                "text-align: left;"
+                "text-decoration: underline"
+    );
     m_button->setFlat(true);
 
     m_button->setText(text);
@@ -24,4 +31,5 @@ SelectionButton::SelectionButton(
     });
 
     lay->addWidget(m_button);
+    this->setLayout(lay);
 }

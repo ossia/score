@@ -19,7 +19,10 @@ CurveModel* CurveModel::clone(
     auto cm = new CurveModel{id, parent};
     for(const auto& segment : m_segments)
     {
-        cm->addSegment(segment.clone(segment.id(), cm));
+        auto seg = segment.clone(segment.id(), cm);
+        seg->setPrevious(segment.previous());
+        seg->setFollowing(segment.following());
+        cm->addSegment(seg);
     }
     return cm;
 }
@@ -33,6 +36,21 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 
     // Add points if necessary
     // If there is an existing previous segment, its end point also exists
+    auto createStartPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setFollowing(m->id());
+        pt->setPos(m->start());
+        addPoint(pt);
+        return pt;
+    };
+    auto createEndPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setPrevious(m->id());
+        pt->setPos(m->end());
+        addPoint(pt);
+        return pt;
+    };
+
     if(m->previous())
     {
         auto previousSegment = std::find_if(m_segments.begin(), m_segments.end(),
@@ -44,32 +62,26 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 
             if(thePt != m_points.end())
             {
+                // The previous segments and points both exist
                 (*thePt)->setFollowing(m->id());
             }
             else
             {
-                auto pt = new CurvePointModel{getStrongId(m_points), this};
-                pt->setFollowing(m->id());
-                pt->setPos(m->start());
-                addPoint(pt);
+                // The previous segment exists but not the end point.
+                auto pt = createStartPoint();
+                pt->setPrevious((*previousSegment).id());
             }
         }
-        else
+        else // The previous segment has not yet been added.
         {
-            auto pt = new CurvePointModel{getStrongId(m_points), this};
-            pt->setFollowing(m->id());
-            pt->setPos(m->start());
-            addPoint(pt);
+            createStartPoint();
         }
     }
     else if(std::none_of(m_points.begin(), m_points.end(),
                     [&] (CurvePointModel* pt)
                     { return pt->following() == m->id(); }))
     {
-        auto pt = new CurvePointModel{getStrongId(m_points), this};
-        pt->setFollowing(m->id());
-        pt->setPos(m->start());
-        addPoint(pt);
+        createStartPoint();
     }
 
     if(m->following())
@@ -87,28 +99,50 @@ void CurveModel::addSegment(CurveSegmentModel* m)
             }
             else
             {
-                auto pt = new CurvePointModel{getStrongId(m_points), this};
-                pt->setPrevious(m->id());
-                pt->setPos(m->end());
-                addPoint(pt);
+                auto pt = createEndPoint();
+                pt->setFollowing((*followingSegment).id());
             }
         }
         else
         {
-            auto pt = new CurvePointModel{getStrongId(m_points), this};
-            pt->setPrevious(m->id());
-            pt->setPos(m->end());
-            addPoint(pt);
+            createEndPoint();
         }
     }
     else if(std::none_of(m_points.begin(), m_points.end(),
                     [&] (CurvePointModel* pt)
                     { return pt->previous() == m->id(); }))
     {
-        auto pt = new CurvePointModel{getStrongId(m_points), this};
-        pt->setPrevious(m->id());
-        pt->setPos(m->end());
-        addPoint(pt);
+        // Note : if one day a buggy case happens here, check that set following/previous
+        // are correctly set after cloning the segment.
+        createEndPoint();
+    }
+}
+
+#include <numeric>
+void CurveModel::addSegments(QVector<CurveSegmentModel*> segts)
+{
+    // Sort them by previous - following.
+    QVector<CurveSegmentModel*> sorted;
+
+    auto min_segt = [] (const CurveSegmentModel* lhs, const CurveSegmentModel* rhs)
+    {
+        return lhs->start().x() < rhs->start().x();
+    };
+
+    // Sort them
+    while(segts.size() != 0)
+    {
+        auto it = std::min_element(segts.begin(), segts.end(), min_segt);
+        ISCORE_ASSERT(it != segts.end());
+
+        sorted.push_back(*it);
+        segts.removeAll(*it);
+    }
+
+
+    for(const auto& segment : sorted)
+    {
+        addSegment(segment);
     }
 }
 

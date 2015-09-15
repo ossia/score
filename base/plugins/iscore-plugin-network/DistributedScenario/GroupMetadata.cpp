@@ -12,6 +12,11 @@ GroupMetadata::GroupMetadata(
 
 }
 
+GroupMetadata::~GroupMetadata()
+{
+
+}
+
 GroupMetadata* GroupMetadata::clone(const QObject *element, QObject *parent) const
 {
     auto grp = new GroupMetadata{element, this->group(), parent};

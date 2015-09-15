@@ -17,6 +17,8 @@
 
 #include <core/document/DocumentBackups.hpp>
 
+#include "iscore_git_info.hpp"
+
 #include <QFileDialog>
 #include <QSaveFile>
 #include <QMessageBox>
@@ -42,6 +44,20 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
 
     connect(m_view, &View::closeRequested,
             this,   &Presenter::closeDocument);
+
+    m_view->setPresenter(this);
+}
+
+Presenter::~Presenter()
+{
+    // The documents have to be deleted before the plug-in controls.
+    // This is because the Local device has to be deleted last in OSSIAControl.
+    for(auto document : m_documents)
+    {
+        delete document;
+    }
+
+    m_documents.clear();
 }
 
 void Presenter::registerPluginControl(PluginControlInterface* ctrl)
@@ -82,7 +98,7 @@ const std::vector<DocumentDelegateFactoryInterface *>& Presenter::availableDocum
     return m_availableDocuments;
 }
 
-void Presenter::setupDocument(Document* doc)
+Document* Presenter::setupDocument(Document* doc)
 {
     if(doc)
     {
@@ -99,6 +115,8 @@ void Presenter::setupDocument(Document* doc)
     {
         setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
     }
+
+    return doc;
 }
 
 Document *Presenter::currentDocument() const
@@ -241,8 +259,9 @@ bool Presenter::saveDocumentAs(Document * doc)
     return false;
 }
 
-void Presenter::loadDocument()
+Document* Presenter::loadDocument()
 {
+    Document* doc{};
     QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
 
     if(!loadname.isEmpty())
@@ -252,16 +271,18 @@ void Presenter::loadDocument()
         {
             if (loadname.indexOf(".scorebin") != -1)
             {
-                loadDocument(f.readAll(), m_availableDocuments.front());
+                doc = loadDocument(f.readAll(), m_availableDocuments.front());
             }
             else if (loadname.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                loadDocument(json.object(), m_availableDocuments.front());
+                doc = loadDocument(json.object(), m_availableDocuments.front());
             }
         }
     }
     m_currentDocument->setDocFileName(loadname);
+
+    return doc;
 }
 
 
@@ -342,14 +363,7 @@ void Presenter::setupMenus()
     m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                         FileMenuElement::Quit,
                                         [&] () {
-        while(!m_documents.empty())
-        {
-            bool b = closeDocument(m_documents.last());
-            if(!b)
-                return;
-        }
-
-        qApp->quit();
+        m_view->close();
     });
 
     ////// View //////
@@ -367,8 +381,26 @@ void Presenter::setupMenus()
                                         AboutMenuElement::About, [] () {
         QMessageBox::about(nullptr,
                            tr("About i-score"),
-                           tr("With love and sweat from the i-score team. \nCommit: ")
+                           tr("With love and sweat from the i-score team. \nVersion:\n")
+                           + QString("%1.%2.%3-%4")
+                           .arg(ISCORE_VERSION_MAJOR)
+                           .arg(ISCORE_VERSION_MINOR)
+                           .arg(ISCORE_VERSION_PATCH)
+                           .arg(ISCORE_VERSION_EXTRA)
+                           + tr("\n\nCommit: \n")
                            + QString(xstr(GIT_COMMIT))); });
+}
+
+bool Presenter::exit()
+{
+    while(!m_documents.empty())
+    {
+        bool b = closeDocument(m_documents.last());
+        if(!b)
+            return false;
+    }
+
+    return true;
 }
 
 View* Presenter::view() const

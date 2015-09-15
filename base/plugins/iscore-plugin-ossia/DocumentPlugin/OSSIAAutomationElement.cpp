@@ -29,7 +29,7 @@
 
 OSSIAAutomationElement::OSSIAAutomationElement(
         OSSIAConstraintElement* parentConstraint,
-        const AutomationModel *element,
+        AutomationModel& element,
         QObject *parent):
     OSSIAProcessElement{parent},
     m_parent_constraint{parentConstraint},
@@ -38,14 +38,14 @@ OSSIAAutomationElement::OSSIAAutomationElement(
 {
     using namespace iscore::convert;
 
-    connect(element, &AutomationModel::addressChanged,
-            this, &OSSIAAutomationElement::on_addressChanged);
-    connect(element, &AutomationModel::curveChanged,
-            this, [&] () {
-        on_addressChanged(m_iscore_autom->address());
+    con(element, &AutomationModel::addressChanged,
+        this, &OSSIAAutomationElement::on_addressChanged);
+    con(element, &AutomationModel::curveChanged,
+        this, [&] () {
+        on_addressChanged(m_iscore_autom.address());
     }); // We have to recreate the automation in all cases
 
-    on_addressChanged(element->address());
+    on_addressChanged(m_iscore_autom.address());
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::process() const
@@ -53,7 +53,7 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::process() const
     return m_ossia_autom;
 }
 
-const Process *OSSIAAutomationElement::iscoreProcess() const
+Process& OSSIAAutomationElement::iscoreProcess() const
 {
     return m_iscore_autom;
 }
@@ -147,13 +147,13 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
     using namespace OSSIA;
     auto curve = Curve<T>::create();
 
-    const double min = m_iscore_autom->min();
-    const double max = m_iscore_autom->max();
+    const double min = m_iscore_autom.min();
+    const double max = m_iscore_autom.max();
 
     auto scale = [=] (double val) -> T { return val * (max - min) + min; };
 
     // For now we will assume that every segment is dynamic
-    for(const auto& iscore_segment : m_iscore_autom->curve().segments())
+    for(const auto& iscore_segment : m_iscore_autom.curve().segments())
     {
         if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
         {

@@ -16,14 +16,17 @@ class ExpressionValidator : public QValidator
     public:
         State validate(QString& str, int&) const
         {
-            m_currentExp = iscore::parse(str);
-
-            if(m_currentExp)
+            if(str.isEmpty())
             {
+                // Remove the condition
+                m_currentExp = iscore::Condition{};
                 return State::Acceptable;
             }
             else
-                return State::Intermediate;
+            {
+                m_currentExp = iscore::parse(str);
+                return m_currentExp ? State::Acceptable : State::Intermediate;
+            }
         }
 
         boost::optional<iscore::Expression> get() const
@@ -56,7 +59,6 @@ class EventInspectorWidget : public InspectorWidgetBase
         void updateDisplayedValues();
 
         void on_conditionChanged();
-        void on_triggerChanged();
 
         void modelDateChanged();
 

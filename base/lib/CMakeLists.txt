@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(iscore_lib_base)
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets )
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Svg)
 
 if(NOT Boost_FOUND)
         message("i-score requires boost to build")
@@ -81,7 +81,7 @@ set(SRCS
 )
 
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
-target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets)
+target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets Qt5::Svg)
 
 iscore_cotire(iscore_lib_base)
 

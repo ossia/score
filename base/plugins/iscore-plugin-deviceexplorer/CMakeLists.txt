@@ -107,3 +107,6 @@ install(TARGETS iscore_plugin_deviceexplorer
         LIBRARY DESTINATION plugins/
         ARCHIVE DESTINATION static_plugins/
         COMPONENT DynamicRuntime)
+
+
+add_subdirectory(Tests)

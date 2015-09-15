@@ -49,4 +49,26 @@ struct FullAddressSettings : public iscore::AddressSettingsCommon
         // Specializations are in FullAddressSettings.cpp
 };
 
+inline bool operator==(
+        const iscore::AddressSettings& lhs,
+        const iscore::AddressSettings& rhs)
+{
+    return
+            lhs.value == rhs.value
+            && lhs.domain == rhs.domain
+            && lhs.ioType == rhs.ioType
+            && lhs.clipMode == rhs.clipMode
+            && lhs.unit == rhs.unit
+            && lhs.repetitionFilter == rhs.repetitionFilter
+            && lhs.rate == rhs.rate
+            && lhs.priority == rhs.priority
+            && lhs.tags == rhs.tags;
+}
+
+inline bool operator!=(
+        const iscore::AddressSettings& lhs,
+        const iscore::AddressSettings& rhs)
+{
+    return !(lhs == rhs);
+}
 }

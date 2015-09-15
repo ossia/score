@@ -30,8 +30,15 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     con(m_viewModel.model().metadata, &ModelMetadata::labelChanged,
             ::view(this), &TemporalConstraintView::setLabel);
     con(m_viewModel.model().metadata,   &ModelMetadata::colorChanged,
-            ::view(this),   &TemporalConstraintView::setLabelColor);
+            ::view(this), [&] (const QColor& c) {
+        ::view(this)->setLabelColor(c);
+        ::view(this)->setColor(c);
+    });
 
+    con(m_viewModel.model().selection, &Selectable::changed,
+        ::view(this), &TemporalConstraintView::setFocused);
+    con(m_viewModel.model(), &ConstraintModel::focusChanged,
+        ::view(this), &TemporalConstraintView::setFocused);
 
     m_header->setText(m_viewModel.model().metadata.name());
     con(m_viewModel.model().metadata, &ModelMetadata::nameChanged,

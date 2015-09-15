@@ -16,7 +16,7 @@
 
 OSSIAScenarioElement::OSSIAScenarioElement(
         OSSIAConstraintElement *parentConstraint,
-        const ScenarioModel* element,
+        ScenarioModel& element,
         QObject* parent):
     OSSIAProcessElement{parent},
     m_parent_constraint{parentConstraint},
@@ -29,38 +29,38 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     m_ossia_scenario = OSSIA::Scenario::create();
 
     // Link with i-score
-    con(element->constraints, &NotifyingMap<ConstraintModel>::added,
+    con(element.constraints, &NotifyingMap<ConstraintModel>::added,
             this, &OSSIAScenarioElement::on_constraintCreated);
-    con(element->states, &NotifyingMap<StateModel>::added,
+    con(element.states, &NotifyingMap<StateModel>::added,
             this, &OSSIAScenarioElement::on_stateCreated);
-    con(element->events, &NotifyingMap<EventModel>::added,
+    con(element.events, &NotifyingMap<EventModel>::added,
             this, &OSSIAScenarioElement::on_eventCreated);
-    con(element->timeNodes, &NotifyingMap<TimeNodeModel>::added,
+    con(element.timeNodes, &NotifyingMap<TimeNodeModel>::added,
         this, &OSSIAScenarioElement::on_timeNodeCreated);
 
-    con(element->constraints, &NotifyingMap<ConstraintModel>::removed,
+    con(element.constraints, &NotifyingMap<ConstraintModel>::removed,
             this, &OSSIAScenarioElement::on_constraintRemoved);
-    con(element->states, &NotifyingMap<StateModel>::removed,
+    con(element.states, &NotifyingMap<StateModel>::removed,
             this, &OSSIAScenarioElement::on_stateRemoved);
-    con(element->events, &NotifyingMap<EventModel>::removed,
+    con(element.events, &NotifyingMap<EventModel>::removed,
             this, &OSSIAScenarioElement::on_eventRemoved);
-    con(element->timeNodes, &NotifyingMap<TimeNodeModel>::removed,
+    con(element.timeNodes, &NotifyingMap<TimeNodeModel>::removed,
         this, &OSSIAScenarioElement::on_timeNodeRemoved);
 
     // Create elements for the existing stuff. (e.g. start/ end timenode / event)
-    for(const auto& timenode : m_iscore_scenario->timeNodes)
+    for(const auto& timenode : m_iscore_scenario.timeNodes)
     {
         on_timeNodeCreated(timenode);
     }
-    for(const auto& event : m_iscore_scenario->events)
+    for(const auto& event : m_iscore_scenario.events)
     {
         on_eventCreated(event);
     }
-    for(const auto& state : m_iscore_scenario->states)
+    for(const auto& state : m_iscore_scenario.states)
     {
         on_stateCreated(state);
     }
-    for(const auto& constraint : m_iscore_scenario->constraints)
+    for(const auto& constraint : m_iscore_scenario.constraints)
     {
         on_constraintCreated(constraint);
     }
@@ -72,7 +72,7 @@ std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
     return m_ossia_scenario;
 }
 
-const Process *OSSIAScenarioElement::iscoreProcess() const
+Process& OSSIAScenarioElement::iscoreProcess() const
 {
     return m_iscore_scenario;
 }
@@ -91,18 +91,22 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_constraint)
 {
     auto& cst = const_cast<ConstraintModel&>(const_constraint);
-    // TODO have a ConstraintPlayAspect
-    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.startState()).eventId()) != m_ossia_timeevents.end());
-    auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.startState()).eventId());
-    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario->state(cst.endState()).eventId()) != m_ossia_timeevents.end());
-    auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario->state(cst.endState()).eventId());
+    // TODO have a ConstraintPlayAspect to prevent this const_cast.
+    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario.state(cst.startState()).eventId()) != m_ossia_timeevents.end());
+    auto& ossia_sev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.startState()).eventId());
+    ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario.state(cst.endState()).eventId()) != m_ossia_timeevents.end());
+    auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create([=,iscore_constraint=&cst](
                                                    const OSSIA::TimeValue& position,
                                                    const OSSIA::TimeValue& date,
                                                    std::shared_ptr<OSSIA::StateElement> state) {
         auto currentTime = OSSIA::convert::time(date);
-        iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
+        auto maxdur = iscore_constraint->duration.maxDuration();
+        if(!maxdur.isInfinite())
+            iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
+        else
+            iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.defaultDuration());
     },
                 ossia_sev->event(),
                 ossia_eev->event(),
@@ -161,7 +165,7 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
 
         for(auto& state : the_event->states())
         {
-            auto& iscore_state = m_iscore_scenario->state(state);
+            auto& iscore_state = m_iscore_scenario.state(state);
 
             switch(newStatus)
             {
@@ -174,13 +178,13 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
                     // Stop the previous constraints clocks,
                     // start the next constraints clocks
                     if(iscore_state.previousConstraint())
-                        m_executingConstraints.remove(iscore_state.previousConstraint());
+                    {
+                        stopConstraintExecution(iscore_state.previousConstraint());
+                    }
 
                     if(iscore_state.nextConstraint())
                     {
-                        auto& cst = m_iscore_scenario->constraint(iscore_state.nextConstraint());
-                        m_executingConstraints.insert(&cst);
-                        cst.duration.setPlayPercentage(0);
+                        startConstraintExecution(iscore_state.nextConstraint());
                     }
                     break;
                 }
@@ -218,11 +222,11 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
 void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
 {
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
-    if(&tn == &m_iscore_scenario->startTimeNode())
+    if(&tn == &m_iscore_scenario.startTimeNode())
     {
         ossia_tn = m_ossia_scenario->getStartNode();
     }
-    else if(&tn == &m_iscore_scenario->endTimeNode())
+    else if(&tn == &m_iscore_scenario.endTimeNode())
     {
         ossia_tn = m_ossia_scenario->getEndNode();
     }
@@ -310,4 +314,18 @@ void OSSIAScenarioElement::on_timeNodeRemoved(const TimeNodeModel& iscore_tn)
 
     m_ossia_timenodes.erase(tn_it);
     delete tn;
+}
+
+void OSSIAScenarioElement::startConstraintExecution(const Id<ConstraintModel>& id)
+{
+    auto& cst = m_iscore_scenario.constraint(id);
+    m_executingConstraints.insert(&cst);
+
+    m_ossia_constraints.at(id)->executionStarted();
+}
+
+void OSSIAScenarioElement::stopConstraintExecution(const Id<ConstraintModel>& id)
+{
+    m_executingConstraints.remove(id);
+    m_ossia_constraints.at(id)->executionStopped();
 }

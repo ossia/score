@@ -27,7 +27,6 @@ EventModel::EventModel(const EventModel& source,
     m_timeNode{source.m_timeNode},
     m_states(source.m_states),
     m_condition{source.m_condition},
-    m_trigger{source.m_trigger},
     m_extent{source.m_extent},
     m_date{source.m_date}
 {
@@ -80,6 +79,12 @@ void EventModel::setStatus(EventStatus status)
 
     m_status = status;
     emit statusChanged(status);
+
+    auto scenar = parentScenario();
+    for(auto& state : m_states)
+    {
+        scenar->state(state).setStatus(status);
+    }
 }
 
 void EventModel::translate(const TimeValue& deltaTime)
@@ -138,18 +143,4 @@ void EventModel::setCondition(const iscore::Condition& arg)
         m_condition = arg;
         emit conditionChanged(arg);
     }
-}
-
-const iscore::Trigger& EventModel::trigger() const
-{
-    return m_trigger;
-}
-
-void EventModel::setTrigger(const iscore::Trigger& trigger)
-{
-    if (m_trigger == trigger)
-        return;
-
-    m_trigger = trigger;
-    emit triggerChanged(trigger);
 }

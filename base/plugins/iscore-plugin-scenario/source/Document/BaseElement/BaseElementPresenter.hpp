@@ -85,7 +85,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         BaseScenarioStateMachine* m_stateMachine{};
 
         // Various widgets
-        //TimeRulerPresenter* m_mainTimeRuler{};
+        TimeRulerPresenter* m_mainTimeRuler{};
         //LocalTimeRulerPresenter* m_localTimeRuler {};
 
         // 30s displayed by default on average

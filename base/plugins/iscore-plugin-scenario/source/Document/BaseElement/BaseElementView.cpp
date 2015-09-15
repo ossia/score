@@ -13,11 +13,11 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
     m_view {new SizeNotifyingGraphicsView{m_scene}},
-    m_baseObject {new GraphicsProxyObject}/*,
-    m_timeRuler {new TimeRulerView},
+    m_baseObject {new GraphicsProxyObject},
+    m_timeRuler {new TimeRulerView}/*,
     m_localTimeRuler {new LocalTimeRulerView}*/
 {
-    /*
+   //*
     // Configuration
     m_timeRulersView = new QGraphicsView{m_scene};
     m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
@@ -26,8 +26,11 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
     m_timeRulersView->setSceneRect(0, -70, 800, 35);
     m_timeRulersView->setFixedHeight(40);
+    m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+
     m_timeRulersView->setBackgroundBrush(QBrush(qApp->palette("ScenarioPalette").background()));
-    */
+    //*/
 
     // Transport
     auto transportWidget = new QWidget{m_widget};
@@ -48,13 +51,13 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     // view layout
     //m_scene->addItem(m_localTimeRuler);
-    //m_scene->addItem(m_timeRuler);
+    m_scene->addItem(m_timeRuler);
     m_scene->addItem(m_baseObject);
 
     auto lay = new QVBoxLayout;
     m_widget->setLayout(lay);
 
-    //lay->addWidget(m_timeRulersView);
+    lay->addWidget(m_timeRulersView);
     lay->addWidget(m_view);
     lay->addWidget(transportWidget);
 

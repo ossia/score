@@ -9,6 +9,7 @@
 #include <QSplashScreen>
 #include <QFontDatabase>
 #include <core/document/DocumentBackups.hpp>
+#include "iscore_git_info.hpp"
 using namespace iscore;
 #include <QMessageBox>
 #include <QFileInfo>
@@ -23,7 +24,9 @@ static void myMessageOutput(
         const QMessageLogContext &context,
         const QString &msg)
 {
-    auto basename = QFileInfo(context.file).baseName().toLatin1().constData();
+    auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
+    auto basename = basename_arr.constData();
+
     QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {
     case QtDebugMsg:
@@ -51,7 +54,7 @@ Application::Application(int& argc, char** argv) :
     NamedObject {"Application", nullptr}
 {
 #ifdef ISCORE_DEBUG
-    qInstallMessageHandler(myMessageOutput);
+    //qInstallMessageHandler(myMessageOutput);
 #endif
     // Application
     // Crashes if put in member initialization list... :(
@@ -72,7 +75,13 @@ Application::Application(int& argc, char** argv) :
     QCoreApplication::setOrganizationName("OSSIA");
     QCoreApplication::setOrganizationDomain("i-score.org");
     QCoreApplication::setApplicationName("i-score");
-    QCoreApplication::setApplicationVersion("0.3"); // TODO git-tag
+    QCoreApplication::setApplicationVersion(
+                QString("%1.%2.%3-%4")
+                .arg(ISCORE_VERSION_MAJOR)
+                .arg(ISCORE_VERSION_MINOR)
+                .arg(ISCORE_VERSION_PATCH)
+                .arg(ISCORE_VERSION_EXTRA)
+                );
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");

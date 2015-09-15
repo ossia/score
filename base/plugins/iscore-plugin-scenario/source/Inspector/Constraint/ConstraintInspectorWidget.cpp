@@ -346,19 +346,21 @@ QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)
     if(auto sst = m_model.startState())
     {
         auto btn = SelectionButton::make(
+                       tr("Start State"),
                        &scenar->state(sst),
                        selectionDispatcher(),
                        this);
-        eventLay->addRow(tr("Start state"), btn);
+        eventLay->addWidget(btn);
     }
 
     if(auto est = m_model.endState())
     {
         auto btn = SelectionButton::make(
+                    tr("End State"),
                        &scenar->state(est),
                        selectionDispatcher(),
                        this);
-        eventLay->addRow(tr("End state"), btn);
+        eventLay->addWidget(btn);
     }
 
     return eventWid;

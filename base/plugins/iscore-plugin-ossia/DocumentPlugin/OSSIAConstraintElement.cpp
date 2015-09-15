@@ -64,6 +64,13 @@ std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() cons
     return m_ossia_constraint;
 }
 
+void OSSIAConstraintElement::play()
+{
+    m_iscore_constraint.duration.setPlayPercentage(0);
+    m_ossia_constraint->start();
+    executionStarted();
+}
+
 void OSSIAConstraintElement::stop()
 {
     m_ossia_constraint->stop();
@@ -73,21 +80,39 @@ void OSSIAConstraintElement::stop()
     }
 
     m_iscore_constraint.reset();
+    executionStopped();
+}
+
+void OSSIAConstraintElement::executionStarted()
+{
+    m_iscore_constraint.duration.setPlayPercentage(0);
+    for(Process& proc : m_iscore_constraint.processes)
+    {
+        proc.startExecution();
+    }
+}
+
+void OSSIAConstraintElement::executionStopped()
+{
+    for(Process& proc : m_iscore_constraint.processes)
+    {
+        proc.stopExecution();
+    }
 }
 
 void OSSIAConstraintElement::on_processAdded(
-        const Process& iscore_proc)
+        const Process& iscore_proc) // TODO REMOVE CONST
 {
     // The DocumentPlugin creates the elements in the processes.
-    auto proc = &iscore_proc;
+    auto proc = const_cast<Process*>(&iscore_proc);
     OSSIAProcessElement* plug{};
-    if(auto scenar = dynamic_cast<const ScenarioModel*>(proc))
+    if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
     {
-        plug = new OSSIAScenarioElement{this, scenar, const_cast<Process*>(proc)};
+        plug = new OSSIAScenarioElement{this, *scenar, proc};
     }
-    else if(auto autom = dynamic_cast<const AutomationModel*>(proc))
+    else if(auto autom = dynamic_cast<AutomationModel*>(proc))
     {
-        plug = new OSSIAAutomationElement{this, autom, const_cast<Process*>(proc)};
+        plug = new OSSIAAutomationElement{this, *autom, proc};
     }
 
     if(plug)

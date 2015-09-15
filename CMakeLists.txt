@@ -1,7 +1,13 @@
 project(iscore)
 cmake_minimum_required(VERSION 3.1)
 
+
 set(APPNAME "i-score")
+set(ISCORE_VERSION_MAJOR 1)
+set(ISCORE_VERSION_MINOR 0)
+set(ISCORE_VERSION_PATCH 0)
+set(ISCORE_VERSION_EXTRA a1)
+set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VERSION_PATCH}-${ISCORE_VERSION_EXTRA}")
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
@@ -38,18 +44,6 @@ endif()
 
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools DBus)
 
-include(WriteCompilerDetectionHeader)
-write_compiler_detection_header(
-  FILE iscore_compiler_detection.hpp
-  PREFIX ISCORE
-  COMPILERS GNU Clang AppleClang MSVC
-  FEATURES cxx_relaxed_constexpr
-  VERSION 3.1
-)
-
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_COMMIT_REFSPEC GIT_COMMIT_HASH)
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp" "#define GIT_COMMIT ${GIT_COMMIT_HASH}\n")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/variant/include")
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")

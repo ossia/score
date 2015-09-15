@@ -85,4 +85,26 @@ endif()
 #	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -Wno-c++98-compat -Wno-exit-time-destructors -Wno-padded")
 #endif()
 
+# Useful header files
+include(WriteCompilerDetectionHeader)
+write_compiler_detection_header(
+  FILE iscore_compiler_detection.hpp
+  PREFIX ISCORE
+  COMPILERS GNU Clang AppleClang MSVC
+  FEATURES cxx_relaxed_constexpr
+  VERSION 3.1
+)
+
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_COMMIT_REFSPEC GIT_COMMIT_HASH)
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp" "
+#pragma once
+#define GIT_COMMIT ${GIT_COMMIT_HASH}
+#define ISCORE_VERSION_MAJOR ${ISCORE_VERSION_MAJOR}
+#define ISCORE_VERSION_MINOR ${ISCORE_VERSION_MINOR}
+#define ISCORE_VERSION_PATCH ${ISCORE_VERSION_PATCH}
+#define ISCORE_VERSION_EXTRA \"${ISCORE_VERSION_EXTRA}\"
+")
+
 include(cotire)

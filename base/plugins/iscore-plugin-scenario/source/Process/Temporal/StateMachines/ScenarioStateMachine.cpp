@@ -43,6 +43,29 @@ ScenarioStateMachine::ScenarioStateMachine(
         moveSlotState = new MoveSlotToolState{*this};
         moveSlotState->setParent(toolState);
 
+        playState = new QState;
+        playState->setParent(toolState);
+        connect(&model(), &Process::execution,
+                this, [&] (bool b) {
+            if(b)
+            {
+                setPlayState();
+
+                createState->stop();
+                selectState->stop();
+                moveSlotState->stop();
+            }
+            else
+            {
+                createState->start();
+                selectState->start();
+                moveSlotState->start();
+                exitState();
+            }
+
+        });
+
+
         transitionState = new QState{this};
         transitionState->setParent(toolState);
 
@@ -84,6 +107,8 @@ ScenarioStateMachine::ScenarioStateMachine(
         t_exit_moveSlot->setTargetState(transitionState);
         auto t_exit_create = new QSignalTransition(this, SIGNAL(exitState()), createState);
         t_exit_create->setTargetState(transitionState);
+        auto t_exit_play = new QSignalTransition(this, SIGNAL(exitState()), playState);
+        t_exit_play->setTargetState(transitionState);
 
         auto t_enter_select = new QSignalTransition(this, SIGNAL(setSelectState()), transitionState);
         t_enter_select->setTargetState(selectState);
@@ -91,6 +116,8 @@ ScenarioStateMachine::ScenarioStateMachine(
         t_enter_moveSlot->setTargetState(moveSlotState);
         auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
         t_enter_create->setTargetState(createState);
+        auto t_enter_play= new QSignalTransition(this, SIGNAL(setPlayState()), transitionState);
+        t_enter_play->setTargetState(playState);
 
         createState->start();
         selectState->start();
@@ -128,6 +155,8 @@ ScenarioToolKind ScenarioStateMachine::tool() const
         return ScenarioToolKind::Select;
     if(moveSlotState->active())
         return ScenarioToolKind::MoveSlot;
+    if(playState->active())
+        return ScenarioToolKind::Play;
 
     return ScenarioToolKind::Select;
 }

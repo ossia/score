@@ -29,8 +29,8 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
     auto contents = QFileInfo(qApp->applicationDirPath()).dir().path() + "/Frameworks/jamoma/extensions";
-    TTFoundationInit(contents.toLatin1().constData(), true);
-    TTModularInit(contents.toLatin1().constData(), true);
+    TTFoundationInit(contents.toUtf8().constData(), true);
+    TTModularInit(contents.toUtf8().constData(), true);
 #endif
     using namespace OSSIA;
     auto localDevice = OSSIA::Local::create();
@@ -46,9 +46,14 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
 OSSIAControl::~OSSIAControl()
 {
+    // TODO doesn't handle the case where
+    // two scenarios are playing in two ducments (we have to
+    // stop them both)
+
     // TODO check the deletion order.
     // Maybe we should have a dependency graph of some kind ??
-    baseConstraint().stop();
+    if(currentDocument())
+        baseConstraint().stop();
 }
 
 
@@ -62,7 +67,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
     QAction* play = new QAction {tr("Play"), this};
     connect(play, &QAction::triggered,
             [&] ()
-    { baseConstraint().constraint()->start(); });
+    { baseConstraint().play(); });
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
                                        play);

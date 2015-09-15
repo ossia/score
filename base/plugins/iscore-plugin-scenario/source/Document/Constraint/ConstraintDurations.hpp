@@ -51,6 +51,8 @@ class ConstraintDurations : public QObject
         bool isRigid() const
         { return m_rigidity; }
 
+        void checkConsistency();
+
         // Modification algorithms that keep everything consistent
         class Algorithms
         {
