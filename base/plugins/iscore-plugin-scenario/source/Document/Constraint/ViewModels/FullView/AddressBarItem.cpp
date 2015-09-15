@@ -3,6 +3,11 @@
 
 #include <QGraphicsLayout>
 #include <QPainter>
+
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Process/ScenarioInterface.hpp"
+
 AddressBarItem::AddressBarItem(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
@@ -18,18 +23,31 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
 
     double currentWidth = 0;
     int i = -1;
+
+    auto& constraint = m_currentPath.find<ConstraintModel>();
+    auto cstr = &constraint;
+    QMap<int, QString> name;
+
+    for(int j = m_currentPath.vec().size() - 1 ; j > -1 ; j--)
+    {
+        if (! m_currentPath.vec().at(j).objectName().contains("ConstraintModel") )
+          continue;
+
+        name[j] = (cstr->metadata.name());
+
+        auto scenar = dynamic_cast<ScenarioModel*>(cstr->parentScenario());
+        if(scenar != 0)
+        cstr = dynamic_cast<ConstraintModel*>(scenar->parent());
+    }
+
+
     for(auto& identifier : m_currentPath)
     {
         i++;
         if(!identifier.objectName().contains("ConstraintModel"))
             continue;
 
-        // Todo find the path and use the constraint name.
-        QString txt = QString{"%1%2"}
-                .arg(identifier.objectName())
-                .arg(identifier.id()
-                     ? "." + QString::number(*identifier.id())
-                     : "");
+        QString txt = name.value(i);
 
         auto lab = new ClickableLabelItem{
                 [&] (ClickableLabelItem* item) { on_elementClicked(item); },
