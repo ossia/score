@@ -4,6 +4,7 @@
 #include <Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Process/ScenarioModel.hpp>
 #include <Process/ScenarioInterface.hpp>
+#include <kiwi/kiwi.h>
 
 CSPScenario::CSPScenario(const ScenarioModel& scenario)
     :m_scenario(&scenario)
@@ -62,7 +63,7 @@ CSPScenario::CSPScenario(const BaseScenario& baseScenario)
     on_constraintCreated(constraintModel);
 }
 
-rhea::simplex_solver
+kiwi::Solver&
 CSPScenario::getSolver()
 {
     return m_solver;
@@ -114,7 +115,9 @@ CSPScenario::on_constraintCreated(const ConstraintModel& constraintModel)
 
 void
 CSPScenario::on_constraintRemoved(const ConstraintModel& constraint)
-{}
+{
+
+}
 
 
 void
@@ -143,7 +146,9 @@ CSPScenario::on_timeNodeCreated(const TimeNodeModel& timeNodeModel)
 
 void
 CSPScenario::on_timeNodeRemoved(const TimeNodeModel& timeNode)
-{}
+{
+
+}
 
 const
 CSPTimeNode&

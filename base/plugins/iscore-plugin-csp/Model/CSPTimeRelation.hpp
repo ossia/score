@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rhea/simplex_solver.hpp>
+#include <kiwi/kiwi.h>
 #include <QVector>
 #include <iscore/tools/SettableIdentifier.hpp>
 class CSPScenario;
@@ -15,13 +15,13 @@ public:
 
     CSPTimeRelation() = default;
 
-    const rhea::variable& getMin() const;
+    const kiwi::Variable& getMin() const;
 
-    const rhea::variable& getMax() const;
+    const kiwi::Variable& getMax() const;
 
 private:
-    rhea::variable m_min;
-    rhea::variable m_max;
+    kiwi::Variable m_min{"min"};
+    kiwi::Variable m_max{"max"};
 
     QVector<CSPScenario*> m_subScenarios;
 };

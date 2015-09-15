@@ -2,9 +2,9 @@
 
 #include <QVector>
 
-#include <rhea/simplex_solver.hpp>
-
 #include <iscore/tools/SettableIdentifier.hpp>
+
+#include <kiwi/kiwi.h>
 
 #include "CSPTimeNode.hpp"
 #include "CSPTimeRelation.hpp"
@@ -40,7 +40,7 @@ public:
     CSPTimeNode&
     getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
 
-    rhea::simplex_solver getSolver();
+    kiwi::Solver& getSolver();
 
     CSPTimeNode* getStartTimeNode() const;
 
@@ -63,5 +63,5 @@ private:
 
     void computeAllConstraints();
 
-    rhea::simplex_solver m_solver{};
+    kiwi::Solver m_solver{};
 };

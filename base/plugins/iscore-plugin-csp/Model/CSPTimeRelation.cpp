@@ -3,11 +3,13 @@
 #include <Process/ScenarioInterface.hpp>
 #include <Process/ScenarioModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
+#include <kiwi/kiwi.h>
 
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
-    :m_min(cspScenario.getScenario()->constraint(constraintId).duration.minDuration().msec()),
-      m_max(cspScenario.getScenario()->constraint(constraintId).duration.maxDuration().msec())
 {
+    m_min.setValue(cspScenario.getScenario()->constraint(constraintId).duration.minDuration().msec());
+    m_max.setValue(cspScenario.getScenario()->constraint(constraintId).duration.maxDuration().msec());
+
     auto scenario = cspScenario.getScenario();
     auto& constraint = scenario->constraint(constraintId);
 
@@ -21,14 +23,10 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     //Note: min & max can be negative no problemo muchacho
     // 1 - min inferior to max
     // 2 - date of end timenode inside min and max
-    auto cstrnts = rhea::constraint_list{
-        m_min <= m_max,
-        nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min),
-        nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max)
+    cspScenario.getSolver().addConstraint(m_min <= m_max);
 
-    };
-    cspScenario.getSolver().add_constraints(cstrnts
-    );
+    cspScenario.getSolver().addConstraint(nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min));
+    cspScenario.getSolver().addConstraint(nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max));
 
     // if there are sub scenarios, store them
     for(auto& process : constraint.processes)
@@ -40,12 +38,12 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     }
 }
 
-const rhea::variable& CSPTimeRelation::getMin() const
+const kiwi::Variable& CSPTimeRelation::getMin() const
 {
     return m_min;
 }
 
-const rhea::variable& CSPTimeRelation::getMax() const
+const kiwi::Variable& CSPTimeRelation::getMax() const
 {
     return m_max;
 }

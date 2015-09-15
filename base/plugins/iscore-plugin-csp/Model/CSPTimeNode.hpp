@@ -4,7 +4,7 @@
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
-#include <rhea/simplex_solver.hpp>
+#include <kiwi/kiwi.h>
 
 class CSPScenario;
 class TimeNodeModel;
@@ -16,8 +16,8 @@ public:
 
     CSPTimeNode() = default;
 
-    const rhea::variable& getDate() const;
+    const kiwi::Variable& getDate() const;
 
 private:
-    rhea::variable m_date;
+    kiwi::Variable m_date{"date"};
 };

@@ -10,3 +10,6 @@
 [submodule "3rdparty/rhea"]
 	path = 3rdparty/rhea
 	url = https://github.com/Nocte-/rhea.git
+[submodule "3rdparty/kiwi"]
+	path = 3rdparty/kiwi
+	url = https://github.com/nucleic/kiwi.git
