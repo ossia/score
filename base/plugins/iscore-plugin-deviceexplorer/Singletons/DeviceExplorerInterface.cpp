@@ -54,7 +54,7 @@ iscore::Message DeviceExplorer::messageFromNode(const iscore::Node& node)
 iscore::Address DeviceExplorer::addressFromModelIndex(const QModelIndex& index)
 {
     if(!index.isValid())
-        return {};
+        return {"", {""}};
 
     auto node = static_cast<iscore::Node*>(index.internalPointer());
     ISCORE_ASSERT(node);

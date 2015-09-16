@@ -30,8 +30,7 @@ struct Address
         static Address fromString(const QString& str);
 
         // Utility
-        QString toString() const
-        { return device + ":/" + path.join("/"); }
+        QString toString() const;
 
         bool operator==(const Address& a) const
         {
