@@ -40,6 +40,9 @@ class ScenarioControl : public iscore::PluginControlInterface
         void setExpandMode(ExpandMode e)
         { m_expandMode = e; }
 
+        void focused();
+        void on_defocused();
+
     signals:
         void keyPressed(int);
         void keyReleased(int);

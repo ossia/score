@@ -82,6 +82,9 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 
 //    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
 //    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
+
+    connect(this, &ScenarioControl::defocused,
+            this, &ScenarioControl::on_defocused);
 }
 
 
@@ -263,6 +266,13 @@ const ScenarioModel* ScenarioControl::focusedScenarioModel() const
 TemporalScenarioPresenter* ScenarioControl::focusedPresenter() const
 {
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
+}
+
+
+void ScenarioControl::on_defocused()
+{
+    emit keyReleased(Qt::Key_Control);
+    emit keyReleased(Qt::Key_Shift);
 }
 
 ProcessFocusManager* ScenarioControl::processFocusManager() const
