@@ -5,7 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QCursor>
 #include <QDebug>
-static const qreal radiusFull = 10.;
+static const qreal radiusFull = 7.;
 static const qreal radiusVoid = 3.;
 
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :

@@ -15,6 +15,7 @@ void AddProcessDialog::launchWindow()
 {
     bool ok = false;
     auto process_list = ProcessList::getProcessesName();
+    process_list.sort();
     auto process_name = QInputDialog::getItem(qApp->activeWindow(),
         tr("Choose a process"),
         tr("Choose a process"),
