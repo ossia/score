@@ -85,7 +85,7 @@ public:
         for(auto& curConstraintPropertiesToUpdate_id : elementsPropertiesToUpdate.constraints.keys())
         {
             auto& curConstraintToUpdate = scenario.constraint(curConstraintPropertiesToUpdate_id);
-            //auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
+            auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
 
             const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
             const auto& endDate = scenario.event(scenario.state(curConstraintToUpdate.endState()).eventId()).date();
@@ -168,9 +168,12 @@ public:
                 }
 
                 // 3. Restore the correct rackes in the constraint view models
-                for(auto& viewmodel : constraint.viewModels())
+                if(constraint.processes.size() != 0)
                 {
-                    viewmodel->showRack(savedConstraintData.second[viewmodel->id()]);
+                    for(auto& viewmodel : constraint.viewModels())
+                    {
+                        viewmodel->showRack(curConstraintPropertiesToUpdate.savedDisplay.second[viewmodel->id()]);
+                    }
                 }
             }
 
