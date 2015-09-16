@@ -45,6 +45,7 @@ endif()
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools DBus)
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/variant/include")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator")
 add_subdirectory(base)
