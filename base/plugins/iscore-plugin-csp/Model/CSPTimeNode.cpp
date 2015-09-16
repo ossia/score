@@ -8,7 +8,8 @@
 CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)
     :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
-    setParent(&cspScenario);
+    this->setParent(&cspScenario);
+    this->setObjectName("CSPTimeNode");
 
     auto& timeNodeModel = cspScenario.getScenario()->timeNode(timeNodeId);
 

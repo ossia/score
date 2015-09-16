@@ -9,7 +9,8 @@
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
     :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
-    setParent(&cspScenario);
+    this->setParent(&cspScenario);
+    this->setObjectName("CSPTimeRelation");
 
     m_min.setValue(cspScenario.getScenario()->constraint(constraintId).duration.minDuration().msec());
     m_max.setValue(cspScenario.getScenario()->constraint(constraintId).duration.maxDuration().msec());
