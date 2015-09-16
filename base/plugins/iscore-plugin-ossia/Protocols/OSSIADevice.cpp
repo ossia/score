@@ -49,6 +49,39 @@ void OSSIADevice::removeAddress(const iscore::Address& address)
     }
 }
 
+iscore::Node OSSIADevice::refresh()
+{
+    iscore::Node device_node;
+
+    if(m_dev->updateNamespace())
+    {
+        // Make a device explorer node from the current state of the device.
+        // First make the node corresponding to the root node.
+
+        device_node.set(settings());
+
+        iscore::Address addr;
+        addr.device = settings().name;
+
+        // Recurse on the children
+        for(const auto& node : m_dev->children())
+        {
+            device_node.push_back(OSSIAToDeviceExplorer(*node.get(), addr));
+        }
+    }
+
+    device_node.get<iscore::DeviceSettings>().name = settings().name;
+
+    return device_node;
+}
+
+iscore::Value OSSIADevice::refresh(const iscore::Address& address)
+{
+    OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
+
+    return ToValue(node->getAddress()->pullValue());
+}
+
 
 void OSSIADevice::sendMessage(iscore::Message mess)
 {
@@ -70,5 +103,33 @@ bool OSSIADevice::check(const QString &str)
 OSSIA::Device& OSSIADevice::impl() const
 {
     return *m_dev;
+}
+
+iscore::Node OSSIADevice::OSSIAToDeviceExplorer(const OSSIA::Node& node, iscore::Address currentAddr)
+{
+    iscore::Node n{ToAddressSettings(node), nullptr};
+
+    currentAddr.path += n.get<iscore::AddressSettings>().name;
+
+    // 2. Add a callback
+    if(n.get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
+    {
+        if(auto ossia_addr = node.getAddress())
+        {
+            ossia_addr->addCallback([=] (const OSSIA::Value* val) {
+                emit valueUpdated(currentAddr, OSSIA::convert::ToValue(val));
+            });
+        }
+    }
+
+    // 3. Recurse on the children
+    for(const auto& ossia_child : node.children())
+    {
+        auto child_n = OSSIAToDeviceExplorer(*ossia_child.get(), currentAddr);
+        child_n.setParent(&n);
+        n.push_back(std::move(child_n));
+    }
+
+    return n;
 }
 
