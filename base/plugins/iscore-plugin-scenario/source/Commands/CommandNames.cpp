@@ -43,7 +43,6 @@
 #include "Scenario/Deletions/ClearEvent.hpp"
 #include "Scenario/Deletions/RemoveSelection.hpp"
 #include "Scenario/Displacement/MoveConstraint.hpp"
-#include "Scenario/Displacement/MoveEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
 #include "Scenario/HideRackInViewModel.hpp"
@@ -84,7 +83,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list61<
+            boost::mpl::list60<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -133,8 +132,7 @@ void ScenarioControl::setupCommands()
             MoveConstraint,
             MoveSlot,
             SwapSlots,
-            MoveEvent,
-            MoveEvent2<GoodOldDisplacementPolicy>,
+            MoveEvent<GoodOldDisplacementPolicy>,
             MoveNewEvent,
             MoveNewState,
 
