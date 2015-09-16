@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QVector>
+#include <QHash>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -52,8 +52,8 @@ public:
 
 private:
 
-    QMap<Id<TimeNodeModel>,CSPTimeNode> m_Timenodes;
-    QMap<Id<ConstraintModel>,CSPTimeRelation> m_TimeRelations;
+    QHash<Id<TimeNodeModel>,CSPTimeNode*> m_Timenodes;
+    QHash<Id<ConstraintModel>,CSPTimeRelation*> m_TimeRelations;
 
     const ScenarioInterface* m_scenario;
 

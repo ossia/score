@@ -91,11 +91,11 @@ CSPTimeNode* CSPScenario::insertTimenode(const Id<TimeNodeModel> &timeNodeId)
     if(! m_Timenodes.contains(timeNodeId))
     {
         auto cspTimenode = new CSPTimeNode(*this, timeNodeId);
-        m_Timenodes.insert(timeNodeId, *cspTimenode);
+        m_Timenodes.insert(timeNodeId, cspTimenode);
         return cspTimenode;
     }else
     {
-        return &m_Timenodes[timeNodeId];
+        return m_Timenodes[timeNodeId];
     }
 }
 
@@ -110,7 +110,7 @@ CSPScenario::on_constraintCreated(const ConstraintModel& constraintModel)
 {
     //create the corresponding time relation
     // TODO: make insertconstraint function?
-    m_TimeRelations.insert(constraintModel.id(), CSPTimeRelation{*this, constraintModel.id()});
+    m_TimeRelations.insert(constraintModel.id(), new CSPTimeRelation{*this, constraintModel.id()});
 }
 
 void
@@ -156,5 +156,5 @@ CSPScenario::getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& t
 {
     insertTimenode(timeNodeId);
 
-    return m_Timenodes[timeNodeId];
+    return *m_Timenodes[timeNodeId];
 }

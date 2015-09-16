@@ -9,7 +9,7 @@
 class CSPScenario;
 class TimeNodeModel;
 
-class CSPTimeNode
+class CSPTimeNode : public QObject
 {
 public:
     CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId);
@@ -20,4 +20,6 @@ public:
 
 private:
     kiwi::Variable m_date{"date"};
+
+    void onDateChanged(const TimeValue& date);
 };

@@ -36,6 +36,11 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
             m_subScenarios.push_back(new CSPScenario(*scenario));
         }
     }
+
+    // watch over durations edits
+    con(constraint.duration, &ConstraintDurations::minDurationChanged, this, &CSPTimeRelation::onMinDurationChanged);
+    con(constraint.duration, &ConstraintDurations::maxDurationChanged, this, &CSPTimeRelation::onMaxDurationChanged);
+
 }
 
 const kiwi::Variable& CSPTimeRelation::getMin() const
@@ -46,4 +51,12 @@ const kiwi::Variable& CSPTimeRelation::getMin() const
 const kiwi::Variable& CSPTimeRelation::getMax() const
 {
     return m_max;
+}
+
+void CSPTimeRelation::onMinDurationChanged(const TimeValue& min)
+{
+}
+
+void CSPTimeRelation::onMaxDurationChanged(const TimeValue& max)
+{
 }
