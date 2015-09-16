@@ -47,6 +47,9 @@ iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
 iscore::Value ToValue(const OSSIA::Value *val)
 {
     QVariant v;
+    if(!val)
+        return iscore::Value::fromVariant(v);
+
     switch(val->getType())
     {
         case OSSIA::Value::Type::IMPULSE:
