@@ -14,6 +14,7 @@ void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
     for(const auto& state_id : ev.states())
     {
         const auto& st = s.state(state_id);
+
         if(st.heightPercentage() < min)
             min = st.heightPercentage();
         if(st.heightPercentage() > max)
