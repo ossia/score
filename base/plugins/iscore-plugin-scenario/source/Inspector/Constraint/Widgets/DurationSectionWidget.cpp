@@ -22,12 +22,13 @@
 #include "Control/ScenarioControl.hpp"
 
 #include <QCheckBox>
-#include <QSpinBox>
 #include <QToolButton>
 #include <QLabel>
 #include <QFormLayout>
 #include <QTimeEdit>
+
 using namespace iscore;
+
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
@@ -41,9 +42,9 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     widg->setLayout(m_grid);
 
     // SPINBOXES
-    m_minSpin = new QTimeEdit{};
-    m_maxSpin = new QTimeEdit{};
-    m_valueSpin = new QTimeEdit{};
+    m_minSpin = new TimeSpinBox{this};
+    m_maxSpin = new TimeSpinBox{this};
+    m_valueSpin = new TimeSpinBox{this};
 
     m_valueSpin->setDisplayFormat(QString("mm.ss.zzz"));
     m_minSpin->setDisplayFormat(QString("mm.ss.zzz"));
@@ -97,11 +98,11 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 
     //on_modelRigidityChanged(m_model.duration.isRigid());
 
-    connect(m_valueSpin,    &QTimeEdit::editingFinished,
+    connect(m_valueSpin,    &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-    connect(m_minSpin,  &QTimeEdit::editingFinished,
+    connect(m_minSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-    connect(m_maxSpin,  &QTimeEdit::editingFinished,
+    connect(m_maxSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
 
 

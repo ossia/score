@@ -2,11 +2,11 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include "iscore/widgets/SpinBoxes.hpp"
 
 class QLabel;
 class ConstraintModel;
 class ConstraintInspectorWidget;
-class QTimeEdit;
 class QCheckBox;
 class QGridLayout;
 class QHBoxLayout;
@@ -44,9 +44,9 @@ class DurationSectionWidget : public InspectorSectionWidget
         QLabel* m_maxLab{};
         QLabel* m_minLab{};
 
-        QTimeEdit* m_minSpin{};
-        QTimeEdit* m_valueSpin{};
-        QTimeEdit* m_maxSpin{};
+        iscore::TimeSpinBox* m_minSpin{};
+        iscore::TimeSpinBox* m_valueSpin{};
+        iscore::TimeSpinBox* m_maxSpin{};
 
         QCheckBox* m_minNonNullBox{};
         QCheckBox* m_maxFiniteBox{};
