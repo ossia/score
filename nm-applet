@@ -1,0 +1,40 @@
+NM-CONNECTION-EDITOR(1)                    General Commands Manual                    NM-CONNECTION-EDITOR(1)
+
+
+
+NNAAMMEE
+       nm-connection-editor - network connection editor for NetworkManager
+
+SSYYNNOOPPSSIISS
+       nnmm--ccoonnnneeccttiioonn--eeddiittoorr  [ _O_P_T_I_O_N_S ]
+
+
+DDEESSCCRRIIPPTTIIOONN
+       nnmm--ccoonnnneeccttiioonn--eeddiittoorr  is a GTK‐based application to add, remove, and modify network connections stored
+       by NetworkManager.  NetworkManager must be running for any network connections to be  added,  removed,
+       or modified.
+
+
+OOPPTTIIOONNSS
+       --tt,, ----ttyyppee==<<ttyyppee>>
+              Type  of connection to create or show.  Values are NetworkManager setting names, eg "802-3-eth‐
+              ernet", "802-11-wireless", "bridge", "bond", "wimax", "infiniband", "vlan", etc.  Does  nothing
+              if --create or --show is not given.
+
+       --ss,, ----sshhooww
+              Expand or collapse the network list to highlight the network connection type given by --type.
+
+       --cc,, ----ccrreeaattee
+              Create  a  new  connection  of the type given by --type and allow the user to modify connection
+              details.
+
+       --ee,, ----eeddiitt==<<uuuuiidd>>
+              Show the network connection edit window for the connection of the given UUID.
+
+
+SSEEEE AALLSSOO
+       nnmmccllii((11)),, NNeettwwoorrkkMMaannaaggeerr((88)),, nnmm--aapppplleett((11))..
+
+
+
+                                               15 February 2013                       NM-CONNECTION-EDITOR(1)

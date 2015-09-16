@@ -56,7 +56,7 @@ namespace Scenario
                 Path<ScenarioModel> m_path;
                 Id<ConstraintModel> m_constraintId{};
 
-                MoveEvent m_cmd;
+                MoveEvent<GoodOldDisplacementPolicy> m_cmd;
                 double m_y{};
                 bool m_yLocked{true}; // default is true and constraints are on the same y.
         };

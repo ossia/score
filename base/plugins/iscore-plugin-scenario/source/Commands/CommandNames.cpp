@@ -43,7 +43,6 @@
 #include "Scenario/Deletions/ClearEvent.hpp"
 #include "Scenario/Deletions/RemoveSelection.hpp"
 #include "Scenario/Displacement/MoveConstraint.hpp"
-#include "Scenario/Displacement/MoveEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
 #include "Scenario/HideRackInViewModel.hpp"
@@ -133,7 +132,7 @@ void ScenarioControl::setupCommands()
             MoveConstraint,
             MoveSlot,
             SwapSlots,
-            MoveEvent,
+            MoveEvent<GoodOldDisplacementPolicy>,
             MoveNewEvent,
             MoveNewState,
 
