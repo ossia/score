@@ -33,6 +33,17 @@ class MapBase
         auto end() const { return boost::make_indirect_iterator(map.end()); }
         auto cend() const { return boost::make_indirect_iterator(map.cend()); }
 
+        MapBase() = default;
+
+        template<typename T>
+        MapBase(const T& container)
+        {
+            for(auto& element : container)
+            {
+                insert(&element);
+            }
+        }
+
         void insert(value_type* t)
         { map.insert(t); }
 
@@ -102,7 +113,22 @@ class IdContainer<Element, Model,
             >
         >
 {
-
+   using MapBase<
+    Element,
+    Model,
+    bmi::multi_index_container<
+        Element*,
+        bmi::indexed_by<
+            bmi::hashed_unique<
+                bmi::const_mem_fun<
+                    IdentifiedObject<Model>,
+                    const Id<Model>&,
+                    &IdentifiedObject<Model>::id
+                >
+            >
+        >
+    >
+>::MapBase;
 };
 
 
@@ -132,4 +158,20 @@ class IdContainer<Element, Model,
             >
         >
 {
+    using MapBase<
+    Element,
+    Model,
+    bmi::multi_index_container<
+        Element*,
+        bmi::indexed_by<
+            bmi::hashed_unique<
+                bmi::const_mem_fun<
+                    Element,
+                    const Id<Model>&,
+                    &Element::id
+                >
+            >
+        >
+    >
+>::MapBase;
 };

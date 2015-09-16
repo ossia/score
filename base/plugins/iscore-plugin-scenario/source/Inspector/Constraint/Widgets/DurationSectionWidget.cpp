@@ -136,7 +136,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 
     if(m_model.objectName() != "BaseConstraintModel")
     {
-        m_dispatcher.submitCommand<MoveEvent>(
+        m_dispatcher.submitCommand<MoveEvent<GoodOldDisplacementPolicy>>(
                 iscore::IDocument::path(*safe_cast<ScenarioModel*>(m_model.parent())),
                 scenario->state(m_model.endState()).eventId(),
                 m_model.startDate() + TimeValue::fromMsecs(val),

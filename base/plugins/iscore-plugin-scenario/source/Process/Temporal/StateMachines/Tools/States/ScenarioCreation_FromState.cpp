@@ -5,7 +5,6 @@
 
 
 #include "Commands/Scenario/Creations/CreateState.hpp"
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
 

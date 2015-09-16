@@ -1,5 +1,5 @@
 #pragma once
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 #include <source/Document/VerticalExtent.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>

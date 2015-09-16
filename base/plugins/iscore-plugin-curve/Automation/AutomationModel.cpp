@@ -55,6 +55,7 @@ AutomationModel::AutomationModel(
     m_curve->addSegment(s3);
     m_curve->addSegment(s4);
     */
+    metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
 AutomationModel::AutomationModel(
@@ -72,6 +73,7 @@ AutomationModel::AutomationModel(
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
     connect(m_curve, &CurveModel::changed,
             this, &AutomationModel::curveChanged);
+    metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 
 Process* AutomationModel::clone(

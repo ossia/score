@@ -7,6 +7,8 @@
 #include <iscore/selection/Selection.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include "ModelMetadata.hpp"
+
 class DataStream;
 class JSONObject;
 class ProcessStateDataInterface;
@@ -26,6 +28,7 @@ class Process: public IdentifiedObject<Process>
 
     public:
         iscore::ElementPluginModelList* pluginModelList{}; // Note: has to be initialized by the sub-classes.
+        ModelMetadata metadata;
 
         using IdentifiedObject<Process>::IdentifiedObject;
         Process(
