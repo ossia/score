@@ -7,5 +7,11 @@ CSPDisplacementPolicy::computeDisplacement(
         const TimeValue& deltaTime,
         ElementsProperties& elementsProperties)
 {
-    
+    // get the corresponding CSP elements
+
+    // change their values
+
+    // solve system
+
+    // send computed values
 }

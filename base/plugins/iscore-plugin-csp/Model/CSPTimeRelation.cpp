@@ -7,6 +7,7 @@
 #include <kiwi/kiwi.h>
 
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
+    :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
     setParent(&cspScenario);
 
@@ -43,7 +44,7 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     {
         if(auto scenario = dynamic_cast<ScenarioModel*>(&process))
         {
-            m_subScenarios.push_back(new CSPScenario(*scenario));
+            m_subScenarios.push_back(new CSPScenario(*scenario, this));
         }
     }
 

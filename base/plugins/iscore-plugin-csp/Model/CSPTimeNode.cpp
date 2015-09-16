@@ -6,6 +6,7 @@
 
 
 CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)
+    :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
     setParent(&cspScenario);
 

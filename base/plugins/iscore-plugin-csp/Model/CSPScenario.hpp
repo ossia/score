@@ -23,8 +23,8 @@ class CSPScenario : public QObject
 public:
     //using QObject::QObject;
 
-    CSPScenario(const ScenarioModel& scenario);
-    CSPScenario(const BaseScenario& baseScenario);
+    CSPScenario(const ScenarioModel& scenario, QObject *parent);
+    CSPScenario(const BaseScenario& baseScenario, QObject *parent);
 
     ~CSPScenario();
 

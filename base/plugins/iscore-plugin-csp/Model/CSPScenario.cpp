@@ -7,8 +7,8 @@
 #include <kiwi/kiwi.h>
 #include <QtAlgorithms>
 
-CSPScenario::CSPScenario(const ScenarioModel& scenario)
-    :m_scenario(&scenario)
+CSPScenario::CSPScenario(const ScenarioModel& scenario, QObject *parent)
+    :QObject::QObject(parent), m_scenario(&scenario)
 {
     // ensure that start then end timenode are stored first of all
     m_startTimeNode = insertTimenode(scenario.startTimeNode().id());
@@ -48,8 +48,8 @@ CSPScenario::CSPScenario(const ScenarioModel& scenario)
         this, &CSPScenario::on_timeNodeRemoved);
 }
 
-CSPScenario::CSPScenario(const BaseScenario& baseScenario)
-    :m_scenario(&baseScenario)
+CSPScenario::CSPScenario(const BaseScenario& baseScenario, QObject *parent)
+    :QObject::QObject(parent), m_scenario(&baseScenario)
 {
     // ensure that start then end timenode are stored first of all
     m_startTimeNode = insertTimenode(baseScenario.startTimeNode().id());

@@ -8,7 +8,8 @@
 class CSPConstraintHolder : public QObject
 {
 public:
-    CSPConstraintHolder() = default;
+
+    using QObject::QObject;
 
     ~CSPConstraintHolder()
     {
