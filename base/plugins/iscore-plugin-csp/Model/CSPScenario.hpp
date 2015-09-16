@@ -6,13 +6,15 @@
 
 #include <kiwi/kiwi.h>
 
-#include "CSPTimeNode.hpp"
-#include "CSPTimeRelation.hpp"
+class CSPTimeNode;
+class CSPTimeRelation;
 
 class ConstraintModel;
 class TimeNodeModel;
+class EventModel;
 class StateModel;
 class ScenarioModel;
+class ScenarioInterface;
 class BaseScenario;
 
 class CSPScenario : public QObject
@@ -24,6 +26,7 @@ public:
     CSPScenario(const ScenarioModel& scenario);
     CSPScenario(const BaseScenario& baseScenario);
 
+    ~CSPScenario();
 
     void on_constraintCreated(const ConstraintModel&);
     void on_stateCreated(const StateModel&);
@@ -36,9 +39,7 @@ public:
     void on_timeNodeRemoved(const TimeNodeModel&);
 
 
-    const
-    CSPTimeNode&
-    getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
+    const CSPTimeNode& getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
 
     kiwi::Solver& getSolver();
 

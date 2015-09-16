@@ -7,6 +7,8 @@
 
 CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)
 {
+    setParent(&cspScenario);
+
     auto& timeNodeModel = cspScenario.getScenario()->timeNode(timeNodeId);
 
     m_date.setValue(timeNodeModel.date().msec());
@@ -17,7 +19,11 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
     // except for start timenode
     if(timeNodeId.val() != 0)
     {
-        cspScenario.getSolver().addConstraint(m_date >= cspScenario.getStartTimeNode()->getDate());
+        kiwi::Constraint* constraintNodeAfterStart = new kiwi::Constraint(m_date >= cspScenario.getStartTimeNode()->getDate());
+
+        cspScenario.getSolver().addConstraint(*constraintNodeAfterStart);
+
+        m_constraints.push_back(constraintNodeAfterStart);
     }
 
     // watch over date edits

@@ -1,10 +1,11 @@
-#include "CSPScenario.hpp"
-#include "CSPTimeNode.hpp"
-#include "CSPTimeRelation.hpp"
+#include <Model/CSPScenario.hpp>
+#include <Model/CSPTimeNode.hpp>
+#include <Model/CSPTimeRelation.hpp>
 #include <Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Process/ScenarioModel.hpp>
 #include <Process/ScenarioInterface.hpp>
 #include <kiwi/kiwi.h>
+#include <QtAlgorithms>
 
 CSPScenario::CSPScenario(const ScenarioModel& scenario)
     :m_scenario(&scenario)
@@ -61,6 +62,12 @@ CSPScenario::CSPScenario(const BaseScenario& baseScenario)
     // insert existing constraints
     auto& constraintModel = baseScenario.baseConstraint();
     on_constraintCreated(constraintModel);
+}
+
+CSPScenario::~CSPScenario()
+{
+    qDeleteAll(m_Timenodes);
+    qDeleteAll(m_TimeRelations);
 }
 
 kiwi::Solver&

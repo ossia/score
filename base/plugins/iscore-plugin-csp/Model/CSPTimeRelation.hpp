@@ -4,19 +4,21 @@
 #include <QVector>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/TimeValue.hpp>
+#include <Model/tools/CSPConstraintHolder.hpp>
 
-
-class CSPScenario;
+#include <Model/CSPScenario.hpp>
 
 class ConstraintModel;
 
-class CSPTimeRelation : public QObject
+class CSPTimeRelation : public CSPConstraintHolder
 {
 
 public:
     CSPTimeRelation(CSPScenario& scenario, const Id<ConstraintModel>& constraintId);
 
     CSPTimeRelation() = default;
+
+    ~CSPTimeRelation() = default;
 
     const kiwi::Variable& getMin() const;
 
