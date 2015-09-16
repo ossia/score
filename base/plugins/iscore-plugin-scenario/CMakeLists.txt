@@ -37,6 +37,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ModelMetadata.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ModelMetadataSerialization.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
@@ -80,8 +82,6 @@ set(SRCS
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/LayerModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadataSerialization.cpp"
-
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/Slot/SlotModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/RackModelSerialization.cpp"
@@ -200,7 +200,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventStatus.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelConsistency.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeView.cpp"

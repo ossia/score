@@ -10,7 +10,7 @@ Process::Process(
     IdentifiedObject<Process>{id, name, parent},
     m_duration{duration}
 {
-
+    metadata.setName(QString("Process.%1").arg(*this->id().val()));
 }
 
 Process::Process(
@@ -21,7 +21,7 @@ Process::Process(
     IdentifiedObject<Process>{id, name, parent},
     m_duration{source.duration()}
 {
-
+    metadata.setName(QString("Process.%1").arg(*this->id().val()));
 }
 
 

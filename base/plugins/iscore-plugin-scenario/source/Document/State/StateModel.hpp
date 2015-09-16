@@ -1,6 +1,6 @@
 #pragma once
 
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 
 #include <State/State.hpp>
 

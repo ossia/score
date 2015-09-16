@@ -2,7 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <source/Document/VerticalExtent.hpp>
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
