@@ -39,7 +39,7 @@ public:
     void on_timeNodeRemoved(const TimeNodeModel&);
 
 
-    const CSPTimeNode& getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
+    const CSPTimeNode& getInsertTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId);
 
     kiwi::Solver& getSolver();
 
@@ -51,10 +51,12 @@ public:
 
     CSPTimeNode* insertTimenode(const Id<TimeNodeModel>& timeNodeId);
 
-private:
+    CSPTimeRelation* getTimeRelation(const Id<ConstraintModel>& ConstraintId);
 
-    QHash<Id<TimeNodeModel>,CSPTimeNode*> m_Timenodes;
+    QHash<Id<TimeNodeModel>,CSPTimeNode*> timenodes;
     QHash<Id<ConstraintModel>,CSPTimeRelation*> m_TimeRelations;
+
+private:
 
     const ScenarioInterface* m_scenario;
 

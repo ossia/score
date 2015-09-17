@@ -90,7 +90,6 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         add_transition(move_state, move_timenode,
                        [&] () { rollback(); createToTimeNode(); });
 
-
         /// MoveOnEvent -> ...
         // MoveOnEvent -> MoveOnNothing
         add_transition(move_event, move_nothing,

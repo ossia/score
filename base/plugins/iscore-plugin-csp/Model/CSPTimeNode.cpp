@@ -13,7 +13,11 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
 
     auto& timeNodeModel = cspScenario.getScenario()->timeNode(timeNodeId);
 
-    m_date.setValue(timeNodeModel.date().msec());
+    m_iscoreDate = &timeNodeModel.date();
+
+    m_date.setValue(m_iscoreDate->msec());
+
+    cspScenario.getSolver().addEditVariable(m_date, kiwi::strength::strong);
 
     // apply model constraints
 
@@ -32,9 +36,14 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
     con(timeNodeModel, &TimeNodeModel::dateChanged, this, &CSPTimeNode::onDateChanged);
 }
 
-const kiwi::Variable& CSPTimeNode::getDate() const
+kiwi::Variable& CSPTimeNode::getDate()
 {
     return m_date;
+}
+
+bool CSPTimeNode::dateChanged() const
+{
+    return m_date.value() != m_iscoreDate->msec();
 }
 
 void CSPTimeNode::onDateChanged(const TimeValue& date)

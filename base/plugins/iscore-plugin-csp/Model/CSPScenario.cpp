@@ -70,7 +70,7 @@ CSPScenario::CSPScenario(const BaseScenario& baseScenario, QObject *parent)
 
 CSPScenario::~CSPScenario()
 {
-    qDeleteAll(m_Timenodes);
+    qDeleteAll(timenodes);
     qDeleteAll(m_TimeRelations);
 }
 
@@ -99,15 +99,20 @@ CSPTimeNode* CSPScenario::insertTimenode(const Id<TimeNodeModel> &timeNodeId)
 {
 
     // if timenode not already here, put ot in
-    if(! m_Timenodes.contains(timeNodeId))
+    if(! timenodes.contains(timeNodeId))
     {
         auto cspTimenode = new CSPTimeNode(*this, timeNodeId);
-        m_Timenodes.insert(timeNodeId, cspTimenode);
+        timenodes.insert(timeNodeId, cspTimenode);
         return cspTimenode;
     }else
     {
-        return m_Timenodes[timeNodeId];
+        return timenodes[timeNodeId];
     }
+}
+
+CSPTimeRelation *CSPScenario::getTimeRelation(const Id<ConstraintModel> &ConstraintId)
+{
+    return m_TimeRelations[ConstraintId];
 }
 
 void
@@ -163,9 +168,9 @@ CSPScenario::on_timeNodeRemoved(const TimeNodeModel& timeNode)
 
 const
 CSPTimeNode&
-CSPScenario::getTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId)
+CSPScenario::getInsertTimenode(ScenarioInterface& scenario, const Id<TimeNodeModel>& timeNodeId)
 {
     insertTimenode(timeNodeId);
 
-    return *m_Timenodes[timeNodeId];
+    return *timenodes[timeNodeId];
 }

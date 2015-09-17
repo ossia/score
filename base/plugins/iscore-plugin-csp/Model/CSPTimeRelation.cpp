@@ -9,11 +9,16 @@
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
     :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
+    auto& solver = cspScenario.getSolver();
+
     this->setParent(&cspScenario);
     this->setObjectName("CSPTimeRelation");
 
-    m_min.setValue(cspScenario.getScenario()->constraint(constraintId).duration.minDuration().msec());
-    m_max.setValue(cspScenario.getScenario()->constraint(constraintId).duration.maxDuration().msec());
+    m_iscoreMin = &cspScenario.getScenario()->constraint(constraintId).duration.minDuration();
+    m_iscoreMax = &cspScenario.getScenario()->constraint(constraintId).duration.maxDuration();
+
+    m_min.setValue(m_iscoreMin->msec());
+    m_max.setValue(m_iscoreMax->msec());
 
     auto scenario = cspScenario.getScenario();
     auto& constraint = scenario->constraint(constraintId);
@@ -29,15 +34,15 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // 1 - min inferior to max
     // 2 - date of end timenode inside min and max
     kiwi::Constraint* constraintMinInferiorToMax = new kiwi::Constraint(m_min <= m_max);
-    cspScenario.getSolver().addConstraint(*constraintMinInferiorToMax);
+    solver.addConstraint(*constraintMinInferiorToMax);
     m_constraints.push_back(constraintMinInferiorToMax);
 
     kiwi::Constraint* constraintDateOverMin = new kiwi::Constraint(nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min));
-    cspScenario.getSolver().addConstraint(*constraintDateOverMin);
+    solver.addConstraint(*constraintDateOverMin);
     m_constraints.push_back(constraintDateOverMin);
 
     kiwi::Constraint* constraintDateUnderMax = new kiwi::Constraint(nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max));
-    cspScenario.getSolver().addConstraint(*constraintDateUnderMax);
+    solver.addConstraint(*constraintDateUnderMax);
     m_constraints.push_back(constraintDateUnderMax);
 
     // if there are sub scenarios, store them
@@ -55,14 +60,24 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
 
 }
 
-const kiwi::Variable& CSPTimeRelation::getMin() const
+kiwi::Variable& CSPTimeRelation::getMin()
 {
     return m_min;
 }
 
-const kiwi::Variable& CSPTimeRelation::getMax() const
+kiwi::Variable& CSPTimeRelation::getMax()
 {
     return m_max;
+}
+
+bool CSPTimeRelation::minChanged() const
+{
+    return m_min.value() != m_iscoreMin->msec();
+}
+
+bool CSPTimeRelation::maxChanged() const
+{
+    return m_max.value() != m_iscoreMax->msec();
 }
 
 void CSPTimeRelation::onMinDurationChanged(const TimeValue& min)

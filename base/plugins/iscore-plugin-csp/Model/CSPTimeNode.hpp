@@ -10,10 +10,13 @@
 
 #include "CSPScenario.hpp"
 
+class CSPDisplacementPolicy;
+
 class TimeNodeModel;
 
 class CSPTimeNode : public CSPConstraintHolder
 {
+    friend class CSPDisplacementPolicy;
 public:
     CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId);
 
@@ -21,10 +24,18 @@ public:
 
     ~CSPTimeNode() = default;
 
-    const kiwi::Variable& getDate() const;
+    kiwi::Variable& getDate();
+
+    /**
+     * @brief dateChanged
+     * call this function to check if csp date differ from iscore date
+     * @return
+     */
+    bool dateChanged() const;
 
 private:
     kiwi::Variable m_date{"date"};
+    const TimeValue* m_iscoreDate;
 
     void onDateChanged(const TimeValue& date);
 };

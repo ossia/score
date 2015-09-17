@@ -22,6 +22,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
 include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../") # API
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-csp/")# TODO remove
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
