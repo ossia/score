@@ -123,8 +123,20 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     m_scenarioPresenter->on_displayedConstraintChanged(displayedConstraint());
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
+
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
-    on_zoomSliderChanged(0);
+
+    auto newZoom = displayedConstraint().fullView()->zoom();
+
+    double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
+                              newZoom,
+                              displayedConstraint().duration.defaultDuration().msec(),
+                              view()->view()->width()
+                              );
+    view()->zoomSlider()->setValue(newSliderPos);
+
+    updateZoom(newZoom, displayedConstraint().fullView()->center());
+
     on_askUpdate();
 }
 
@@ -173,7 +185,6 @@ void BaseElementPresenter::on_zoomSliderChanged(double sliderPos)
 {
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
                                sliderPos,
-                               16.,
                                displayedConstraint().duration.defaultDuration().msec(),
                                view()->view()->width()
                                );
@@ -198,7 +209,6 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
                                zoomratio,
-                               16.,
                                displayedConstraint().duration.defaultDuration().msec(),
                                view()->view()->width()
                                );
@@ -261,6 +271,11 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
     view()->view()->ensureVisible(newView,0,0);
+
+    QRectF new_visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+
+    displayedConstraint().fullView()->setZoom(m_zoomRatio);
+    displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
 }
 
 
