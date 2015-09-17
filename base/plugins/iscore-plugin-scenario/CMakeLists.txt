@@ -161,6 +161,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ProcessFocusManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ZoomPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ScenarioDocument.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/ProgressBar.cpp"

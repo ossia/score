@@ -37,9 +37,10 @@ void SizeNotifyingGraphicsView::scrollContentsBy(int dx, int dy)
 
 void SizeNotifyingGraphicsView::wheelEvent(QWheelEvent *event)
 {
+    QPoint delta = event->angleDelta() / 8;
     if (m_zoomModifier)
     {
-        emit zoom(mapToScene(event->pos()), event->pixelDelta());
+        emit zoom(delta, mapToScene(event->pos()));
         return;
     }
 

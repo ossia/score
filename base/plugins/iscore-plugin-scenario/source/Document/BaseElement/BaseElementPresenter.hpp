@@ -67,7 +67,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
     private slots:
         void on_displayedConstraintChanged();
         void on_zoomSliderChanged(double);
-        void on_zoomOnWheelEvent(QPointF, QPoint);
+        void on_zoomOnWheelEvent(QPoint, QPointF);
         void on_viewSizeChanged(const QSize& s);
         void on_horizontalPositionChanged(int dx);
 
