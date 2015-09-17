@@ -51,14 +51,12 @@ void OSSIADevice::removeAddress(const iscore::Address& address)
 
 iscore::Node OSSIADevice::refresh()
 {
-    iscore::Node device_node;
+    iscore::Node device_node{settings(), nullptr};
 
-    if(m_dev->updateNamespace())
+    if(m_dev && m_dev->updateNamespace())
     {
         // Make a device explorer node from the current state of the device.
         // First make the node corresponding to the root node.
-
-        device_node.set(settings());
 
         iscore::Address addr;
         addr.device = settings().name;
