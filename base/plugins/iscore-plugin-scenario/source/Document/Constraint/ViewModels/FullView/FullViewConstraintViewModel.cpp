@@ -28,3 +28,23 @@ QString FullViewConstraintViewModel::type() const
 {
     return "FullView";
 }
+
+ZoomRatio FullViewConstraintViewModel::zoom() const
+{
+    return m_zoom;
+}
+
+void FullViewConstraintViewModel::setZoom(const ZoomRatio& zoom)
+{
+    m_zoom = zoom;
+}
+
+QPointF FullViewConstraintViewModel::center() const
+{
+    return m_center;
+}
+
+void FullViewConstraintViewModel::setCenter(const QPointF& value)
+{
+    m_center = value;
+}

@@ -20,7 +20,7 @@ class SizeNotifyingGraphicsView : public QGraphicsView
     signals:
         void sizeChanged(const QSize&);
         void scrolled(int);
-        void zoom(QPointF pos, QPoint pixDelta);
+        void zoom(QPoint pixDelta, QPointF pos);
 
     protected:
         virtual void resizeEvent(QResizeEvent* ev) override;
