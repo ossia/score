@@ -135,7 +135,10 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                               );
     view()->zoomSlider()->setValue(newSliderPos);
 
-    updateZoom(newZoom, displayedConstraint().fullView()->center());
+    auto center = displayedConstraint().fullView()->center();
+
+    setMillisPerPixel(newZoom);
+    view()->view()->centerOn(center);
 
     on_askUpdate();
 }
@@ -224,7 +227,10 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
-    m_mainTimeRuler->scroll(dx);
+    QRect viewport_rect = view()->view()->viewport()->rect() ;
+    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+
+    m_mainTimeRuler->scroll(visible_scene_rect.left());
     /*
     m_localTimeRuler->scroll(dx);
     */
@@ -250,9 +256,15 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     QRect viewport_rect = view()->view()->viewport()->rect() ;
     QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 
-    qreal center = (focus.isNull() ?
-                  visible_scene_rect.center().x() :
-                  focus.x());
+    qreal center = focus.x();
+    if (focus.isNull())
+        center = visible_scene_rect.center().x();
+    else if (focus.x() - visible_scene_rect.left() < 40)
+        center = visible_scene_rect.left();
+    else if (visible_scene_rect.right() - focus.x() < 40)
+        center = visible_scene_rect.right();
+
+
 
     qreal centerT = center * m_zoomRatio; // here's the old zoom
 
@@ -263,10 +275,8 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     if(newZoom != m_zoomRatio)
         setMillisPerPixel(newZoom);
 
-    qreal x;
-        x = (visible_scene_rect.x() < 5) ?
-                0 :
-                centerT/m_zoomRatio - deltaX; // here's the new zoom
+
+    qreal x = centerT/m_zoomRatio - deltaX;; // here's the new zoom
 
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
