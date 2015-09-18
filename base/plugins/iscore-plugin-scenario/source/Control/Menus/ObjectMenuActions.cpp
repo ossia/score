@@ -37,7 +37,7 @@ ObjectMenuActions::ObjectMenuActions(
 {
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
-    m_removeElements->setShortcut(QKeySequence::Delete);
+    m_removeElements->setShortcut(Qt::Key_Backspace);
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
@@ -49,7 +49,7 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     m_clearElements = new QAction{tr("Clear selected elements"), this};
-    m_clearElements->setShortcut(Qt::Key_Backspace);
+    m_clearElements->setShortcut(QKeySequence::Delete);
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
