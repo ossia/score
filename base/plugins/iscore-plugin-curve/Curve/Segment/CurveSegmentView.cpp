@@ -47,8 +47,8 @@ void CurveSegmentView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    static const QColor base = QColor::fromRgb(0xC7, 0x2C, 0x1F);
-    static const QColor yellow = QColor::fromHsl(base.hue() / 2, base.saturation(), base.lightness());
+    static const QColor base = QColor::fromRgb(0xC7, 0x1F, 0x2C);
+    static const QColor yellow = QColor::fromRgb(0xD8, 0xB2, 0x18);
 
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
