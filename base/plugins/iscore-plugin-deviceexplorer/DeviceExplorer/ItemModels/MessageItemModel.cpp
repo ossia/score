@@ -262,7 +262,7 @@ void MessageItemModel::editData(
         const QVariant& val)
 {
     Node* node = path.toNode(&rootNode());
-    ISCORE_ASSERT(node->parent());
+    ISCORE_ASSERT(node && node->parent());
 
     QModelIndex index = createIndex(
                             node->parent()->indexOfChild(node),

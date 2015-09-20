@@ -11,7 +11,7 @@ class MessageItemModel;
 // On drop
 class AddMessagesToModel : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "AddMessagesToModel", "AddMessagesToModel")
+        ISCORE_COMMAND_DECL("DeviceExplorerControl", "AddMessagesToModel", "AddMessagesToModel")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddMessagesToModel)
         AddMessagesToModel(

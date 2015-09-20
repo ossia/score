@@ -19,13 +19,13 @@ StateModel::StateModel(
     m_messageItemModel{new iscore::MessageItemModel{this}}
 {
     con(m_messageItemModel, &QAbstractItemModel::dataChanged,
-            this, [&] () { emit statesUpdated(); });
+            this, [&] () { qDebug("1"); emit statesUpdated(); });
     con(m_messageItemModel, &QAbstractItemModel::rowsInserted,
-            this, [&] () { emit statesUpdated(); });
+            this, [&] () { qDebug("2"); emit statesUpdated(); });
     con(m_messageItemModel, &QAbstractItemModel::rowsMoved,
-            this, [&] () { emit statesUpdated(); });
+            this, [&] () { qDebug("3"); emit statesUpdated(); });
     con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
-            this, [&] () { emit statesUpdated(); });
+            this, [&] () { qDebug("4"); emit statesUpdated(); });
 }
 
 StateModel::StateModel(

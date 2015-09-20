@@ -25,6 +25,7 @@ namespace DeviceExplorer {
 class DeviceExplorerView;
 class DeviceExplorerCommandCreator;
 class DeviceDocumentPlugin;
+class DeviceEditDialog;
 namespace iscore {
 struct AddressSettings;
 }
@@ -97,6 +98,8 @@ class DeviceExplorerModel : public NodeBasedItemModel
         // Returns true if the device is to be added, false if
         // it should not be added.
         bool checkDeviceInstantiatable(iscore::DeviceSettings& n);
+        bool tryDeviceInstantiation(iscore::DeviceSettings&,
+                                    DeviceEditDialog&);
 
         int columnCount() const;
         QStringList getColumns() const;

@@ -251,28 +251,38 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
         return false;
 
     // Look for other childs in the same protocol.
-    for(const auto& child : rootNode())
-    {
-        ISCORE_ASSERT(child.is<DeviceSettings>());
-        if(child.get<DeviceSettings>().protocol == n.protocol)
-        {
-            if(!prot->checkCompatibility(n, child.get<DeviceSettings>()))
-            {
-                // Open a device edit window
-                // it should take care of incompatibility with the other
-                // devices
-                DeviceEditDialog dial(QApplication::activeWindow());
-                dial.setSettings(n);
-                bool ret = dial.exec();
-                if(!ret)
-                    return false;
+    return std::none_of(rootNode().begin(), rootNode().end(),
+                       [&] (const iscore::Node& child) {
 
-                n = dial.getSettings();
-                return true;
-            }
+        ISCORE_ASSERT(child.is<DeviceSettings>());
+        const auto& set = child.get<DeviceSettings>();
+        return (set.name == n.name)
+                || (set.protocol == n.protocol
+                    && !prot->checkCompatibility(n, child.get<DeviceSettings>()));
+
+    });
+}
+
+bool DeviceExplorerModel::tryDeviceInstantiation(
+        DeviceSettings& set,
+        DeviceEditDialog& dial)
+{
+    while(!checkDeviceInstantiatable(set))
+    {
+        dial.setSettings(set);
+        dial.setEditingInvalidState(true);
+
+        bool ret = dial.exec();
+        if(!ret)
+        {
+            dial.setEditingInvalidState(false);
+            return false;
         }
+
+        set = dial.getSettings();
     }
 
+    dial.setEditingInvalidState(true);
     return true;
 }
 
@@ -1052,10 +1062,14 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         {
             ISCORE_ASSERT(n.is<DeviceSettings>());
 
-            // Edit the device settings if necessary
             bool deviceOK = checkDeviceInstantiatable(n.get<DeviceSettings>());
             if(!deviceOK)
-                return false;
+            {
+                // We ask the user to fix the incompatibilities by himself.
+                DeviceEditDialog dial(QApplication::activeWindow());
+                if(!tryDeviceInstantiation(n.get<DeviceSettings>(), dial))
+                    return false;
+            }
 
             // Perform the loading
             auto cmd = new LoadDevice{

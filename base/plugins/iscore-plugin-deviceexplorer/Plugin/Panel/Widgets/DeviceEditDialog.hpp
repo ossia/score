@@ -22,6 +22,10 @@ class DeviceEditDialog : public QDialog
 
         void setSettings(const iscore::DeviceSettings& settings);
 
+        // This mode will display a warning to
+        // the user if he has to edit the device again.
+        void setEditingInvalidState(bool);
+
 
     protected slots:
 
@@ -40,5 +44,7 @@ class DeviceEditDialog : public QDialog
         QGridLayout* m_gLayout;
         QList<iscore::DeviceSettings> m_previousSettings;
         int m_index;
+
+        bool m_invalidState{false};
 };
 

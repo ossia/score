@@ -645,6 +645,16 @@ DeviceExplorerWidget::addDevice()
     {
         ISCORE_ASSERT(model());
         auto deviceSettings = m_deviceDialog->getSettings();
+        if(!model()->checkDeviceInstantiatable(deviceSettings))
+        {
+            if(!model()->tryDeviceInstantiation(deviceSettings, *m_deviceDialog))
+            {
+                delete m_deviceDialog;
+                m_deviceDialog = nullptr;
+                return;
+            }
+        }
+
         auto path = m_deviceDialog->getPath();
         blockGUI(true);
 
@@ -664,6 +674,8 @@ DeviceExplorerWidget::addDevice()
     }
 
     updateActions();
+    delete m_deviceDialog;
+    m_deviceDialog = nullptr;
 }
 
 void
