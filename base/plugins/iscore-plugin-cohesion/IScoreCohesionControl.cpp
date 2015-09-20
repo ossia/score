@@ -24,6 +24,7 @@
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QKeySequence>
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include "Plugin/Commands/AddMessagesToModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
 #include <QToolBar>
@@ -145,7 +146,6 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 
 void IScoreCohesionControl::interpolateStates()
 {
-    ISCORE_TODO;
     /*
     using namespace std;
     // Fetch the selected constraints
@@ -268,11 +268,9 @@ void IScoreCohesionControl::snapshotParametersInStates()
                                  currentDocument()->commandStack()};
     for(auto& state : selected_states)
     {
-        auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::path(*state),
-                   iscore::StatePath{}, // Make it child of the root node
-                   {iscore::StateData{std::move(messages), "NewState"}, nullptr},
-                   -1};
+        auto cmd = new AddMessagesToModel{
+                   iscore::IDocument::path(state->messages()),
+                   messages};
         macro.submitCommand(cmd);
     }
 

@@ -4,6 +4,7 @@
 
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/State/AddStateWithData.hpp"
+#include "Plugin/Commands/AddMessagesToModel.hpp"
 #include <State/StateMimeTypes.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -80,11 +81,9 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         iscore::MessageList ml;
         deser.writeTo(ml);
 
-        auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::path(m_model),
-                   iscore::StatePath{}, // Make it child of the root node
-                   {iscore::StateData{std::move(ml), "NewState"}, nullptr},
-                   -1};
+        auto cmd = new AddMessagesToModel{
+                   iscore::IDocument::path(m_model.messages()),
+                   ml};
 
         m_dispatcher.submitCommand(cmd);
     }
@@ -93,6 +92,6 @@ void StatePresenter::handleDrop(const QMimeData *mime)
 
 void StatePresenter::updateStateView()
 {
-    m_view->setContainMessage(m_model.states().rootNode().hasChildren());
+    m_view->setContainMessage(m_model.messages().rootNode().hasChildren());
 }
 

@@ -12,6 +12,8 @@
 
 #include <State/StateItemModel.hpp>
 
+#include <DeviceExplorer/ItemModels/MessageItemModel.hpp>
+
 #include "StateView.hpp"
 #include "Document/Event/EventStatus.hpp"
 
@@ -55,8 +57,8 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double heightPercentage() const;
 
-        const iscore::StateItemModel &states() const;
-        iscore::StateItemModel &states();
+        const iscore::MessageItemModel &messages() const;
+        iscore::MessageItemModel &messages();
 
         const Id<EventModel>& eventId() const;
         void setEventId(const Id<EventModel>&);
@@ -69,6 +71,7 @@ class StateModel : public IdentifiedObject<StateModel>
         void setStatus(EventStatus);
         EventStatus status() const
         { return m_status; }
+
     signals:
         void statesUpdated();
         void heightPercentageChanged();
@@ -86,7 +89,7 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double m_heightPercentage{0.5}; // In the whole scenario
 
-        iscore::StateItemModel m_itemModel;
+        ptr<iscore::MessageItemModel> m_messageItemModel;
         EventStatus m_status{EventStatus::Editing};
 };
 

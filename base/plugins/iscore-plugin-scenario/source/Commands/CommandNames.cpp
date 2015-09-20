@@ -76,6 +76,7 @@ namespace boost { namespace mpl {
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
+#include "Plugin/Commands/AddMessagesToModel.hpp"
 
 CommandGeneratorMap ScenarioCommandFactory::map;
 
@@ -83,14 +84,14 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list60<
+            boost::mpl::list58<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
-            AddStateToStateModel,
-            AssignMessagesToState,
+//            AddStateToStateModel,
+//            AssignMessagesToState,
             AddStateWithData,
 
             ChangeElementColor<ConstraintModel>,

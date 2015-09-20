@@ -31,6 +31,11 @@ namespace iscore
         return {device, path};
     }
 
+    Address Address::rootAddress()
+    {
+        return {};
+    }
+
     QString Address::toString() const
     {
         QString ad =  device + ":/" + path.join("/");

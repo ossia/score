@@ -15,15 +15,16 @@ StateModel::StateModel(
         QObject *parent):
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
-    m_heightPercentage{yPos}
+    m_heightPercentage{yPos},
+    m_messageItemModel{new iscore::MessageItemModel{this}}
 {
-    con(m_itemModel, &QAbstractItemModel::dataChanged,
+    con(m_messageItemModel, &QAbstractItemModel::dataChanged,
             this, [&] () { emit statesUpdated(); });
-    con(m_itemModel, &QAbstractItemModel::rowsInserted,
+    con(m_messageItemModel, &QAbstractItemModel::rowsInserted,
             this, [&] () { emit statesUpdated(); });
-    con(m_itemModel, &QAbstractItemModel::rowsMoved,
+    con(m_messageItemModel, &QAbstractItemModel::rowsMoved,
             this, [&] () { emit statesUpdated(); });
-    con(m_itemModel, &QAbstractItemModel::rowsRemoved,
+    con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
             this, [&] () { emit statesUpdated(); });
 }
 
@@ -33,7 +34,7 @@ StateModel::StateModel(
         QObject *parent):
     StateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
-    m_itemModel = source.m_itemModel;
+    messages() = source.messages();
 }
 
 const ScenarioInterface* StateModel::parentScenario() const
@@ -85,14 +86,14 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 }
 
 
-const iscore::StateItemModel& StateModel::states() const
+const iscore::MessageItemModel& StateModel::messages() const
 {
-    return m_itemModel;
+    return *m_messageItemModel;
 }
 
-iscore::StateItemModel& StateModel::states()
+iscore::MessageItemModel& StateModel::messages()
 {
-    return m_itemModel;
+    return *m_messageItemModel;
 }
 
 

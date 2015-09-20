@@ -7,6 +7,7 @@ namespace Scenario
 {
 namespace Command
 {
+/*
 class AssignMessagesToState : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("ScenarioControl", "AssignMessagesToState", "AssignMessagesToState")
@@ -33,6 +34,6 @@ class AssignMessagesToState : public iscore::SerializableCommand
         iscore::MessageList m_oldMessages; // TODO variant instead ??
         iscore::MessageList m_newMessages;
 };
-
+*/
 }
 }

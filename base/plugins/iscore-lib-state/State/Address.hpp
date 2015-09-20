@@ -18,7 +18,7 @@ namespace iscore
 struct Address
 {
         // Data
-        QString device;
+        QString device; // No device means that this is the root node.
         QStringList path; // Note : path is empty if address is root: "device:/"
 
 
@@ -28,6 +28,7 @@ struct Address
 
         // Make an address from a valid address string
         static Address fromString(const QString& str);
+        static Address rootAddress();
 
         // Utility
         QString toString() const;

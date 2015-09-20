@@ -160,6 +160,8 @@ class TreeNode : public DataType
 
         const auto& children() const
         { return m_children;  }
+        auto& children()
+        { return m_children;  }
 
         void swapChildren(int oldIndex, int newIndex)
         {

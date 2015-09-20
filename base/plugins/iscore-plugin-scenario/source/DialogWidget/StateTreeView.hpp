@@ -4,7 +4,7 @@
 
 class StateModel;
 class DeviceExplorerModel;
-
+/*
 class StateTreeView : public QTreeView
 {
     public:
@@ -21,6 +21,25 @@ class StateTreeView : public QTreeView
 
         CommandDispatcher<> m_dispatcher;
 };
+*/
+// TODO MOVEME
+class MessageTreeView : public QTreeView
+{
+    public:
+        MessageTreeView(
+                const StateModel& model,
+                DeviceExplorerModel* devexplorer,
+                QWidget* parent);
+
+    protected:
+        //void mouseDoubleClickEvent(QMouseEvent* ev) override;
+
+        StateModel* m_model{};
+        DeviceExplorerModel* m_devExplorer{};
+
+        CommandDispatcher<> m_dispatcher;
+};
+
 
 /*
 class StateTreeWidget : public QWidget

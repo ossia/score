@@ -30,6 +30,7 @@
 #include <QJsonDocument>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <core/document/Document.hpp>
+#include "Plugin/Commands/AddMessagesToModel.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateStateMacro.hpp"
@@ -369,13 +370,14 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         auto vecpath = cmd->scenarioPath().unsafePath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
-        Path<StateModel> state_path{ObjectPath(std::move(vecpath)), {}};
+        vecpath.append({"MessageItemModel", {}});
+        Path<iscore::MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
-        auto cmd2 = new Scenario::Command::AddStateToStateModel{
+
+        auto cmd2 = new AddMessagesToModel{
                    std::move(state_path),
-                   iscore::StatePath{}, // Make it child of the root node
-                   {iscore::StateData{std::move(ml), "NewState"}, nullptr},
-                   -1};
+                   ml};
+
         m.submitCommand(cmd2);
 
 

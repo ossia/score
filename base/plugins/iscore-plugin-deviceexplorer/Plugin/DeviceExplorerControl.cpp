@@ -3,6 +3,7 @@
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Add/AddDevice.hpp"
 #include "Commands/Add/LoadDevice.hpp"
+#include "Commands/AddMessagesToModel.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/EditData.hpp"
 #include "Commands/Insert.hpp"
@@ -44,6 +45,7 @@ void DeviceExplorerControl::setupCommands()
             LoadDevice,
             UpdateAddressSettings,
             UpdateDeviceSettings,
+            AddMessagesToModel,
             Cut,
 //            Insert,
             Move,

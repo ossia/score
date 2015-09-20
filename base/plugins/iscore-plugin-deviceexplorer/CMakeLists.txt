@@ -34,6 +34,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/ClipMode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/FullAddressSettings.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeDisplayMethods.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/MessageItemModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/MessageData.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/XML/XMLDeviceLoader.cpp"
 
@@ -42,6 +46,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/LoadDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Update/UpdateAddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Update/UpdateDeviceSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/AddMessagesToModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Cut.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Move.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Paste.cpp"
