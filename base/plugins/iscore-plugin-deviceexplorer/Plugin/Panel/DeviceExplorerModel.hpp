@@ -150,9 +150,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         bool m_lastCutNodeIsCopied;
 
     private:
-        QMimeData *indexesToMime(const QModelIndexList &indexes) const;
-        QMimeData *nodeToMime(const iscore::Node &n) const;
-
         DeviceDocumentPlugin* m_devicePlugin{};
 
         QModelIndex bottomIndex(const QModelIndex& index) const;

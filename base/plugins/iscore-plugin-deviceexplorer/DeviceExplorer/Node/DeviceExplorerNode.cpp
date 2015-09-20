@@ -84,6 +84,7 @@ Address address(const Node &treeNode)
         n = n->parent();
     }
 
+    ISCORE_ASSERT(n);
     ISCORE_ASSERT(n->is<DeviceSettings>());
     addr.device = n->get<DeviceSettings>().name;
 
@@ -92,6 +93,7 @@ Address address(const Node &treeNode)
 
 bool isAncestor(const Node& gramps, Node* node)
 {
+    // TODO why ??
     if(node->is<InvisibleRootNodeTag>())
         return false;
 
@@ -99,6 +101,40 @@ bool isAncestor(const Node& gramps, Node* node)
         return true;
 
     return isAncestor(gramps, node->parent());
+}
+
+void messageList(const Node& n,
+                 MessageList& ml)
+{
+    if(n.is<AddressSettings>())
+    {
+        const auto& stgs = n.get<AddressSettings>();
+
+        // Note : this is an arbitrary choice. Discuss with
+        // the users and see repercussions in MessageItemModel.
+        if(stgs.ioType == IOType::InOut || stgs.ioType == IOType::Out)
+        {
+            ml.push_back(message(n));
+        }
+    }
+
+    for(const auto& child : n.children())
+    {
+        messageList(child, ml);
+    }
+
+}
+
+Message message(const Node& node)
+{
+    if(!node.is<iscore::AddressSettings>())
+        return {};
+
+    iscore::Message mess;
+    mess.address = address(node);
+    mess.value = node.get<iscore::AddressSettings>().value;
+
+    return mess;
 }
 
 }

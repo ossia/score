@@ -3,6 +3,8 @@
 #include <QList>
 #include <QJsonObject>
 
+#include <State/Message.hpp>
+
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 
@@ -43,7 +45,15 @@ class DeviceExplorerNode : public VariantBasedNode<
 using Node = TreeNode<DeviceExplorerNode>;
 using NodePath = TreePath<iscore::Node>;
 
+// TODO add specifications & tests to these functions
 iscore::Address address(const Node& treeNode);
+
+iscore::Message message(const iscore::Node& node);
+
+// Note : this one takes an output reference as an optimization
+// because of its use in DeviceExplorerModel::indexesToMime
+void messageList(const Node& treeNode,
+                 MessageList& ml);
 
 iscore::Node* try_getNodeFromAddress(iscore::Node& root, const iscore::Address&);
 iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& str);

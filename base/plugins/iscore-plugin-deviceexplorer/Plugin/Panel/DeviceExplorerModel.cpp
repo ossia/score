@@ -921,88 +921,106 @@ DeviceExplorerModel::mimeTypes() const
 }
 
 
-QMimeData*
-DeviceExplorerModel::nodeToMime(const iscore::Node& n) const
+/**
+ * @brief filterUniqueParents
+ * @param nodes A list of nodes
+ * @return Another list of nodes
+ *
+ * This function filters a list of node
+ * by only keeping the nodes that had no ancestor.
+ *
+ * e.g. given the tree :
+ *
+ * a -> b -> d
+ *        -> e
+ *   -> c
+ * f -> g
+ *
+ * If the input consists of b, d, the output will be b.
+ * If the input consists of a, b, d, f, the output will be a, f.
+ * If the input consists of d, e, the output will be d, e.
+ *
+ * TESTME
+ */
+static QList<iscore::Node*> filterUniqueParents(const QList<iscore::Node*>& nodes)
 {
-    //m_rootNode not displayed thus should not be draggable
-    if(n.is<InvisibleRootNodeTag>())
-        return nullptr;
+    // TODO optimizeme this horrible lazy algorithm.
+    auto nodes_cpy = nodes;
+    QList<iscore::Node*> cleaned_nodes;
 
-    Serializer<JSONObject> ser;
-    ser.readFrom(n);
-    QMimeData* mimeData = new QMimeData;
-    mimeData->setData(
-                n.is<DeviceSettings>()
-                    ? iscore::mime::device()
-                    : iscore::mime::address(),
-                QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
-    // Additional data if necessary
-    if(!n.is<DeviceSettings>())
+    // Only copy the index if it none of its parents
+    // except the invisible root are in the list.
+    for(auto n : nodes)
     {
-        MessageList messages;
-        messages.push_back(DeviceExplorer::messageFromNode(n));
-
-        ser.m_obj = {};
-        ser.readFrom(messages);
-        mimeData->setData(iscore::mime::messagelist(),
-                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-    }
-
-    return mimeData;
-}
-
-
-QMimeData*
-DeviceExplorerModel::indexesToMime(const QModelIndexList& indexes) const
-{
-    MessageList messages;
-    for(const auto& index : indexes)
-    {
-        if(!nodeFromModelIndex(index)->is<DeviceSettings>())
+        if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
+                       [&] (iscore::Node* other)
         {
-            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
+            if(other == n)
+                return false;
+
+            return isAncestor(*other, n);
+           }))
+        {
+            nodes_cpy.removeOne(n);
+        }
+        else
+        {
+            cleaned_nodes.append(n);
         }
     }
 
-    if(!messages.empty())
-    {
-        QMimeData* mimeData = new QMimeData;
-
-        Serializer<JSONObject> ser;
-        ser.readFrom(messages);
-
-        mimeData->setData(iscore::mime::messagelist(),
-                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
-        return mimeData;
-    }
-
-    return nullptr;
+    return cleaned_nodes;
 }
+
 
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
-    // Algorithm :
-    // If there is a single node, we drag it and its children with the full node data
-    // If there are multiple nodes, we only drag the messages (not recursively)
+    QList<iscore::Node*> nodes;
+    std::transform(indexes.begin(), indexes.end(), std::back_inserter(nodes),
+                   [&] (const QModelIndex& idx) {
+        return nodeFromModelIndex(idx);
+    });
 
-    //we drag only one node (and its children recursively).
-    if(indexes.count() == 1)
+    nodes.removeAll(&m_rootNode);
+
+    auto uniqueNodes = filterUniqueParents(nodes);
+
+    QMimeData* mimeData = new QMimeData;
+
+    // The "Nodes" part.
+    mimeData->setData(
+                iscore::mime::nodes(),
+                QJsonDocument(toJsonArray(nodes)).toJson(QJsonDocument::Indented));
+
+    // The "MessagesList" part.
+    MessageList messages;
+    for(const auto& node : uniqueNodes)
     {
-        if(Node* n = nodeFromModelIndex(indexes.at(0)))
-        {
-            return nodeToMime(*n);
-        }
+        messageList(*node, messages);
     }
-    else if(indexes.count() > 1)
+    if(!messages.empty())
     {
-        return indexesToMime(indexes);
+
+        Serializer<JSONObject> ser;
+        ser.readFrom(messages);
+
+        // TODO add a nodes() mime type which contains an array of nodes.
+        // The mime data should also transmit the root address for
+        // each node in this case.
+        mimeData->setData(iscore::mime::messagelist(),
+                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+
     }
 
-    return nullptr;
+    if(messages.empty() && nodes.empty())
+    {
+        delete mimeData;
+        return nullptr;
+    }
+
+    return mimeData;
 }
 
 
