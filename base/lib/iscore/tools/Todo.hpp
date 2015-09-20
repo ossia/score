@@ -103,6 +103,12 @@ struct ptr
             ISCORE_ASSERT(impl);
             return impl;
         }
+
+        void free()
+        {
+            delete impl;
+            impl = nullptr;
+        }
 };
 
 /**

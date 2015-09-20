@@ -64,6 +64,18 @@ MessageTreeView::MessageTreeView(
     m_devExplorer{devexplorer},
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
+    setAllColumnsShowFocus(true);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
+    setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::AnyKeyPressed);
+
+    setDragEnabled(true);
+    setAcceptDrops(true);
+    setDragDropMode(QAbstractItemView::DragDrop);
+    setDropIndicatorShown(true);
+    setDefaultDropAction(Qt::CopyAction);
+    setDragDropOverwriteMode(false);
+
     this->setModel(&m_model->messages());
 }
 

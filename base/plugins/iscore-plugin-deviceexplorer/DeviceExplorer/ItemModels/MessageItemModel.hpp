@@ -26,7 +26,9 @@ class MessageItemModel : public NodeBasedItemModel
             Count
         };
 
-        MessageItemModel(QObject* parent);
+        MessageItemModel(
+                iscore::CommandStack& stack,
+                QObject* parent);
         MessageItemModel& operator=(const MessageItemModel&);
         MessageItemModel& operator=(const iscore::Node&);
         MessageItemModel& operator=(iscore::Node&&);
@@ -35,8 +37,6 @@ class MessageItemModel : public NodeBasedItemModel
         { return m_rootNode; }
         iscore::Node& rootNode() override
         { return m_rootNode; }
-
-        void setCommandStack(ptr<iscore::CommandStack> stk);
 
         // AbstractItemModel interface
         int columnCount(const QModelIndex &parent) const override;
@@ -60,6 +60,6 @@ class MessageItemModel : public NodeBasedItemModel
 
     private:
         iscore::Node m_rootNode;
-        ptr<iscore::CommandStack> m_stack;
+        iscore::CommandStack& m_stack;
 };
 }

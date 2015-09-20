@@ -31,7 +31,7 @@ bool DeviceExplorerNode::isEditable() const
 {
     return is<AddressSettings>()
             && (get<AddressSettings>().ioType == IOType::InOut
-               ||  get<AddressSettings>().ioType == IOType::Invalid);
+               ||  get<AddressSettings>().ioType == IOType::Out);
 }
 
 iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& parts)

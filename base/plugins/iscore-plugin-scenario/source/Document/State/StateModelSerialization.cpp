@@ -1,7 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "source/Document/State/StateModel.hpp"
-
+#include <iscore/document/DocumentInterface.hpp>
 template<> void Visitor<Reader<DataStream>>::readFrom(const StateModel& s)
 {
     readFrom(static_cast<const IdentifiedObject<StateModel>&>(s));
@@ -29,7 +29,9 @@ template<> void Visitor<Writer<DataStream>>::writeTo(StateModel& s)
 
     iscore::Node n2;
     m_stream >> n2;
-    s.m_messageItemModel = new iscore::MessageItemModel{&s};
+    s.m_messageItemModel = new iscore::MessageItemModel{
+                           iscore::IDocument::commandStack(s),
+                           &s};
     s.messages() = n2;
 
     checkDelimiter();
@@ -57,6 +59,8 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(StateModel& s)
     s.m_nextConstraint = fromJsonValue<Id<ConstraintModel>>(m_obj["NextConstraint"]);
     s.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
 
-    s.m_messageItemModel = new iscore::MessageItemModel{&s};
+    s.m_messageItemModel = new iscore::MessageItemModel{
+                           iscore::IDocument::commandStack(s),
+                           &s};
     s.messages() = fromJsonObject<iscore::Node>(m_obj["Messages"].toObject());
 }

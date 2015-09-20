@@ -72,6 +72,15 @@ static iscore::Node merge(
             else
             {
                 node = &*it;
+
+                if(i == path.size() - 1)
+                {
+                    // We replace the value by the one in the message
+                    if(node->is<iscore::AddressSettings>())
+                    {
+                        node->get<iscore::AddressSettings>().value = message.value;
+                    }
+                }
             }
         }
     }

@@ -8,6 +8,8 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
@@ -16,7 +18,9 @@ StateModel::StateModel(
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
     m_heightPercentage{yPos},
-    m_messageItemModel{new iscore::MessageItemModel{this}}
+    m_messageItemModel{new iscore::MessageItemModel{
+                            iscore::IDocument::commandStack(*this),
+                            this}}
 {
     con(m_messageItemModel, &QAbstractItemModel::dataChanged,
             this, [&] () { qDebug("1"); emit statesUpdated(); });

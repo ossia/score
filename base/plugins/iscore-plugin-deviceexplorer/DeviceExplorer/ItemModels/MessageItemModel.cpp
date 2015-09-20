@@ -5,9 +5,12 @@
 #include <iscore/document/DocumentInterface.hpp>
 
 using namespace iscore;
-MessageItemModel::MessageItemModel(QObject* parent):
+MessageItemModel::MessageItemModel(
+        CommandStack& stack,
+        QObject* parent):
     NodeBasedItemModel{parent},
-    m_rootNode{}
+    m_rootNode{},
+    m_stack{stack}
 {
     this->setObjectName("MessageItemModel");
 }
@@ -34,11 +37,6 @@ MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
     m_rootNode = std::move(n);
     endResetModel();
     return *this;
-}
-
-void MessageItemModel::setCommandStack(ptr<CommandStack> stk)
-{
-    m_stack = stk;
 }
 
 int MessageItemModel::columnCount(const QModelIndex &parent) const
@@ -170,7 +168,7 @@ bool MessageItemModel::dropMimeData(
                iscore::IDocument::path(*this),
                ml};
 
-    CommandDispatcher<> disp(*m_stack);
+    CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
 
     return true;
@@ -192,9 +190,7 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
     Qt::ItemFlags f = Qt::ItemIsEnabled;
     if(index.isValid())
     {
-        f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
-        if(index.column() == (int) Column::Name)
-            f |= Qt::ItemIsDropEnabled;
+        f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 
         Node* n = nodeFromModelIndex(index);
         if(n->isEditable())
@@ -245,7 +241,7 @@ bool MessageItemModel::setData(
                                          iscore::NodePath(*n),
                                          copy);
 
-                CommandDispatcher<> disp(*m_stack);
+                CommandDispatcher<> disp(m_stack);
                 disp.submitCommand(cmd);
                 return true;
             }
