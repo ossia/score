@@ -21,10 +21,11 @@ class NodeBasedItemModel : public QAbstractItemModel
                           int column,
                           const QModelIndex &parent) const override;
 
+        void removeNode(iscore::Node::const_iterator node);
+
         int rowCount(const QModelIndex &parent) const override;
         bool hasChildren(const QModelIndex &parent) const;
 
         // TODO references.
         iscore::Node* nodeFromModelIndex(const QModelIndex &index) const;
-
 };

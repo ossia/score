@@ -64,6 +64,8 @@ static iscore::Node merge(
                         newNode = &parentnode->emplace_back(std::move(addr), nullptr);
                     }
 
+                    // TODO do similar simplification on other similar algorithms
+                    // cf in ossia stuff
                     parentnode = newNode;
                 }
 

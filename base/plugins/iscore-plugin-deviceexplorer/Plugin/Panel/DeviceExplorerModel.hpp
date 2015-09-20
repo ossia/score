@@ -91,8 +91,6 @@ class DeviceExplorerModel : public NodeBasedItemModel
         void updateValue(iscore::Node* n,
                 const iscore::Value& v);
 
-        void removeNode(iscore::Node::const_iterator node);
-
         // Checks if the settings can be added; if not,
         // trigger a dialog to edit them as wanted.
         // Returns true if the device is to be added, false if

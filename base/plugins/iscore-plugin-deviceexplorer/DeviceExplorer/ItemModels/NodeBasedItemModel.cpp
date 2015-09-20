@@ -3,10 +3,6 @@
 QModelIndex NodeBasedItemModel::parent(const QModelIndex& index) const
 {
     auto node = nodeFromModelIndex(index);
-
-    if(!node)
-        return QModelIndex();
-
     auto parentNode = node->parent();
 
     if(!parentNode)
@@ -30,18 +26,43 @@ QModelIndex NodeBasedItemModel::index(
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
-    const iscore::Node* parentItem{};
-
-    if (!parent.isValid())
-        parentItem = &rootNode(); // todo why ?
-    else
-        parentItem = static_cast<iscore::Node*>(parent.internalPointer());
+    const iscore::Node* parentItem = nodeFromModelIndex(parent);
 
     if (parentItem->hasChild(row))
         return createIndex(row, column, const_cast<iscore::Node*>(&parentItem->childAt(row)));
     else
         return QModelIndex();
 }
+
+void NodeBasedItemModel::removeNode(TreeNode::const_iterator node)
+{
+    ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
+
+    if(node->is<iscore::AddressSettings>())
+    {
+        iscore::Node* parent = node->parent();
+        ISCORE_ASSERT(parent != &m_rootNode);
+        iscore::Node* grandparent = parent->parent();
+        ISCORE_ASSERT(grandparent);
+        int rowParent = grandparent->indexOfChild(parent);
+        QModelIndex parentIndex = createIndex(rowParent, 0, parent);
+
+        int row = parent->indexOfChild(&*node);
+
+        beginRemoveRows(parentIndex, row, row);
+        parent->removeChild(node);
+        endRemoveRows();
+    }
+    else if(node->is<DeviceSettings>())
+    {
+        int row = rootNode().indexOfChild(&*node);
+
+        beginRemoveRows(QModelIndex(), row, row);
+        m_rootNode.removeChild(node);
+        endRemoveRows();
+    }
+}
+
 
 int NodeBasedItemModel::rowCount(
         const QModelIndex& parent) const
@@ -50,10 +71,6 @@ int NodeBasedItemModel::rowCount(
         return 0;
 
     auto parentNode = nodeFromModelIndex(parent);
-
-    if(!parentNode)
-        return 0;
-
     return parentNode->childCount();
 }
 

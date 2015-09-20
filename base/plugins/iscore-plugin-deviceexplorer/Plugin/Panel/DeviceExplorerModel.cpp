@@ -211,36 +211,6 @@ void DeviceExplorerModel::updateValue(iscore::Node* n, const iscore::Value& v)
     emit dataChanged(idx, idx);
 }
 
-void DeviceExplorerModel::removeNode(
-        iscore::Node::const_iterator node)
-{
-    ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
-
-    if(!node->is<DeviceSettings>())
-    {
-        Node* parent = node->parent();
-        ISCORE_ASSERT(parent != &m_rootNode);
-        Node* grandparent = parent->parent();
-        ISCORE_ASSERT(grandparent);
-        int rowParent = grandparent->indexOfChild(parent);
-        QModelIndex parentIndex = createIndex(rowParent, 0, parent);
-
-        int row = parent->indexOfChild(&*node);
-
-        beginRemoveRows(parentIndex, row, row);
-        parent->removeChild(node);
-        endRemoveRows();
-    }
-    else
-    {
-        int row = rootNode().indexOfChild(&*node);
-
-        beginRemoveRows(QModelIndex(), row, row);
-        m_rootNode.removeChild(node);
-        endRemoveRows();
-    }
-}
-
 bool DeviceExplorerModel::checkDeviceInstantiatable(
         iscore::DeviceSettings& n)
 {
@@ -317,10 +287,6 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     }
 
     Node* node = nodeFromModelIndex(index);
-    if(! node)
-    {
-        return QVariant();
-    }
 
     const auto& n = *node;
     switch((Column)col)
@@ -417,8 +383,6 @@ bool DeviceExplorerModel::setData(
         return false;
 
     auto n = nodeFromModelIndex(index);
-    if(! n)
-        return false;
 
     if(!n->is<AddressSettings>())
         return false;
@@ -538,11 +502,6 @@ DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
 {
     Node* node = nodeFromModelIndex(index);
 
-    if(! node)
-    {
-        return index;
-    }
-
     if(! node->hasChildren())
     {
         return index;
@@ -564,7 +523,6 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
     }
 
     Node* n = nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     return n->is<DeviceSettings>();
 }
 
@@ -1133,27 +1091,20 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
         {
             std::cerr << " index.row=" << index.row() << " col=" << index.column() << " ";
             Node* n = nodeFromModelIndex(index);
+            std::cerr << " n=" << n << " ";
+            Node* parent = n->parent();
 
-            if(n)
+            if(n == &m_rootNode)
             {
-                std::cerr << " n=" << n << " ";
-                Node* parent = n->parent();
-
-                if(n == &m_rootNode)
-                {
-                    std::cerr << " rootNode parent=" << parent << "\n";
-                }
-                else
-                {
-                    std::cerr << " n->name=" << n->displayName().toStdString();
-                    std::cerr << " parent=" << parent;
-                    std::cerr << " parent->name=" << parent->displayName().toStdString() << "\n";
-                }
+                std::cerr << " rootNode parent=" << parent << "\n";
             }
             else
             {
-                std::cerr << " invalid node\n";
+                std::cerr << " n->name=" << n->displayName().toStdString();
+                std::cerr << " parent=" << parent;
+                std::cerr << " parent->name=" << parent->displayName().toStdString() << "\n";
             }
+
         }
         else
         {

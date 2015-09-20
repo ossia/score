@@ -53,9 +53,6 @@ QVariant MessageItemModel::data(const QModelIndex &index, int role) const
 
     auto node = nodeFromModelIndex(index);
 
-    if(! node)
-        return {};
-
     switch((Column)col)
     {
         case Column::Name:
@@ -214,9 +211,6 @@ bool MessageItemModel::setData(
         return false;
 
     auto n = nodeFromModelIndex(index);
-    // TODO assert that this doesn't return nullptr.
-    if(! n)
-        return false;
 
     if(!n->is<AddressSettings>())
         return false;
