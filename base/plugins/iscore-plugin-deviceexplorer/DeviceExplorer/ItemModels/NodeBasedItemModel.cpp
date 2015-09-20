@@ -34,14 +34,14 @@ QModelIndex NodeBasedItemModel::index(
         return QModelIndex();
 }
 
-void NodeBasedItemModel::removeNode(TreeNode::const_iterator node)
+void NodeBasedItemModel::removeNode(iscore::Node::const_iterator node)
 {
     ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
 
     if(node->is<iscore::AddressSettings>())
     {
         iscore::Node* parent = node->parent();
-        ISCORE_ASSERT(parent != &m_rootNode);
+        ISCORE_ASSERT(parent != &rootNode());
         iscore::Node* grandparent = parent->parent();
         ISCORE_ASSERT(grandparent);
         int rowParent = grandparent->indexOfChild(parent);
@@ -53,12 +53,12 @@ void NodeBasedItemModel::removeNode(TreeNode::const_iterator node)
         parent->removeChild(node);
         endRemoveRows();
     }
-    else if(node->is<DeviceSettings>())
+    else if(node->is<iscore::DeviceSettings>())
     {
         int row = rootNode().indexOfChild(&*node);
 
         beginRemoveRows(QModelIndex(), row, row);
-        m_rootNode.removeChild(node);
+        rootNode().removeChild(node);
         endRemoveRows();
     }
 }

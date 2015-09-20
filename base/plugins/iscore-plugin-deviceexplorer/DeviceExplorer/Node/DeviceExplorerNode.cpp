@@ -137,5 +137,35 @@ Message message(const Node& node)
     return mess;
 }
 
+QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
+{
+    // TODO optimizeme this horrible lazy algorithm.
+    auto nodes_cpy = nodes;
+    QList<iscore::Node*> cleaned_nodes;
+
+    // Only copy the index if it none of its parents
+    // except the invisible root are in the list.
+    for(auto n : nodes)
+    {
+        if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
+                       [&] (iscore::Node* other)
+        {
+                       if(other == n)
+                       return false;
+
+                       return isAncestor(*other, n);
+    }))
+        {
+            nodes_cpy.removeOne(n);
+        }
+        else
+        {
+            cleaned_nodes.append(n);
+        }
+    }
+
+    return cleaned_nodes;
+}
+
 }
 

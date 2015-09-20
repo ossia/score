@@ -815,57 +815,6 @@ DeviceExplorerModel::mimeTypes() const
 }
 
 
-/**
- * @brief filterUniqueParents
- * @param nodes A list of nodes
- * @return Another list of nodes
- *
- * This function filters a list of node
- * by only keeping the nodes that had no ancestor.
- *
- * e.g. given the tree :
- *
- * a -> b -> d
- *        -> e
- *   -> c
- * f -> g
- *
- * If the input consists of b, d, the output will be b.
- * If the input consists of a, b, d, f, the output will be a, f.
- * If the input consists of d, e, the output will be d, e.
- *
- * TESTME
- */
-static QList<iscore::Node*> filterUniqueParents(const QList<iscore::Node*>& nodes)
-{
-    // TODO optimizeme this horrible lazy algorithm.
-    auto nodes_cpy = nodes;
-    QList<iscore::Node*> cleaned_nodes;
-
-    // Only copy the index if it none of its parents
-    // except the invisible root are in the list.
-    for(auto n : nodes)
-    {
-        if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
-                       [&] (iscore::Node* other)
-        {
-            if(other == n)
-                return false;
-
-            return isAncestor(*other, n);
-           }))
-        {
-            nodes_cpy.removeOne(n);
-        }
-        else
-        {
-            cleaned_nodes.append(n);
-        }
-    }
-
-    return cleaned_nodes;
-}
-
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const

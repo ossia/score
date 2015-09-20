@@ -693,37 +693,22 @@ DeviceExplorerWidget::addSibling()
 void DeviceExplorerWidget::removeNode()
 {
     auto indexes = m_ntView->selectedIndexes();
-    // TODO here we will have crashes if
-    // we select a node and a child of it and remove both.
-
-    // Instead, we should filter our node list so that there is no children of a parent about to be deleted.
-
 
     QList<iscore::Node*> nodes;
-
     for(auto index : indexes)
     {
-        // TODO refactor this.
+        // TODO refactor this since it is used everywhere.
         if (m_ntView->hasProxy())
             index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
 
-         nodes.append(model()->nodeFromModelIndex(index));
-    }
-
-    QList<iscore::Node*> curated_nodes;
-    for(auto child : nodes)
-    {
-        bool hasAncestors = std::any_of(nodes.begin(), nodes.end(), [&] (iscore::Node* parent)
-        {
-            return child != parent && iscore::isAncestor(*parent, child);
-        });
-        if(!hasAncestors)
-            curated_nodes.append(child);
+        auto n = model()->nodeFromModelIndex(index);
+        if(!n->is<InvisibleRootNodeTag>())
+            nodes.append(n);
     }
 
     auto cmd = new RemoveNodes;
     auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
-    for(const auto& n : curated_nodes)
+    for(const auto& n : iscore::filterUniqueParents(nodes))
     {
         cmd->addCommand(new DeviceExplorer::Command::Remove{
                             dev_model_path,

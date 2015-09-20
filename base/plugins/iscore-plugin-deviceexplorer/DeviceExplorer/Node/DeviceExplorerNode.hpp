@@ -64,5 +64,29 @@ iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if
 // True if gramps is a parent, grand-parent, etc. of node.
 bool isAncestor(const iscore::Node& gramps, iscore::Node* node);
 
+
+/**
+ * @brief filterUniqueParents
+ * @param nodes A list of nodes
+ * @return Another list of nodes
+ *
+ * This function filters a list of node
+ * by only keeping the nodes that had no ancestor.
+ *
+ * e.g. given the tree :
+ *
+ * a -> b -> d
+ *        -> e
+ *   -> c
+ * f -> g
+ *
+ * If the input consists of b, d, the output will be b.
+ * If the input consists of a, b, d, f, the output will be a, f.
+ * If the input consists of d, e, the output will be d, e.
+ *
+ * TESTME
+ */
+QList<iscore::Node*> filterUniqueParents(const QList<iscore::Node*>& nodes);
+
 }
 
