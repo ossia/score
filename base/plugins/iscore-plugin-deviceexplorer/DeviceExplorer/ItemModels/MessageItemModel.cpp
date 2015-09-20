@@ -41,46 +41,6 @@ void MessageItemModel::setCommandStack(ptr<CommandStack> stk)
     m_stack = stk;
 }
 
-void MessageItemModel::removeMessage(iscore::Node *node)
-{
-    ISCORE_ASSERT(node);
-
-    auto parent = node->parent();
-    ISCORE_ASSERT(parent);
-
-    int rowParent = 0;
-    if(parent != &m_rootNode)
-    {
-        auto grandparent = parent->parent();
-        ISCORE_ASSERT(grandparent);
-        rowParent = grandparent->indexOfChild(parent);
-    }
-
-    QModelIndex parentIndex = createIndex(rowParent, 0, parent);
-
-    int row = parent->indexOfChild(node);
-
-    beginRemoveRows(parentIndex, row, row);
-    parent->removeChild(parent->cbegin() + row);
-    endRemoveRows();
-}
-
-void MessageItemModel::mergeMessages(
-        const MessageList& messages)
-{
-    //ISCORE_ASSERT(node);
-
-    // For all the messages, search the ones with same addresses
-    // Insert the ones with other addresses
-    //auto parent = node->parent();
-    //ISCORE_ASSERT(parent);
-
-    //QModelIndex nodeIndex = createIndex(parent->indexOfChild(node), (int)Column::Name, node);
-    //node->set(messages);
-
-    //emit dataChanged(nodeIndex, nodeIndex);
-}
-
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;
@@ -115,14 +75,6 @@ QVariant MessageItemModel::data(const QModelIndex &index, int role) const
     }
 
     return {};
-}
-
-bool MessageItemModel::setData(
-        const QModelIndex &index,
-        const QVariant &value,
-        int role)
-{
-    return false;
 }
 
 QVariant MessageItemModel::headerData(
@@ -243,10 +195,87 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
         f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
         if(index.column() == (int) Column::Name)
             f |= Qt::ItemIsDropEnabled;
+
+        Node* n = nodeFromModelIndex(index);
+        if(n->isEditable())
+            f |= Qt::ItemIsEditable;
     }
     else
     {
         f |= Qt::ItemIsDropEnabled;
     }
     return f;
+}
+
+
+#include "Plugin/Commands/EditData.hpp"
+bool MessageItemModel::setData(
+        const QModelIndex& index,
+        const QVariant& value,
+        int role)
+{
+    if(! index.isValid())
+        return false;
+
+    auto n = nodeFromModelIndex(index);
+    // TODO assert that this doesn't return nullptr.
+    if(! n)
+        return false;
+
+    if(!n->is<AddressSettings>())
+        return false;
+
+    const auto& addr = n->get<iscore::AddressSettings>();
+    if(addr.ioType != IOType::InOut && addr.ioType != IOType::Out)
+        return false;
+
+    auto col = Column(index.column());
+
+    if(role == Qt::EditRole)
+    {
+        if(col == Column::Value)
+        {
+            // In this case we don't make a command, but we directly push the
+            // new value.
+            QVariant copy = value;
+            auto res = copy.convert(addr.value.val.type());
+            if(res)
+            {
+                auto cmd = new EditValue(iscore::IDocument::path(*this),
+                                         iscore::NodePath(*n),
+                                         copy);
+
+                CommandDispatcher<> disp(*m_stack);
+                disp.submitCommand(cmd);
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    return false;
+}
+
+void MessageItemModel::editData(
+        const NodePath& path,
+        const QVariant& val)
+{
+    Node* node = path.toNode(&rootNode());
+    ISCORE_ASSERT(node->parent());
+
+    QModelIndex index = createIndex(
+                            node->parent()->indexOfChild(node),
+                            (int)Column::Value,
+                            node->parent());
+
+    QModelIndex changedTopLeft = index;
+    QModelIndex changedBottomRight = index;
+
+    if(!node->is<AddressSettings>())
+        return;
+
+    node->get<iscore::AddressSettings>().value.val = val;
+
+    emit dataChanged(changedTopLeft, changedBottomRight);
 }

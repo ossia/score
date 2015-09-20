@@ -361,7 +361,6 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
     if(index.isValid())
     {
         Node* n = nodeFromModelIndex(index);
-        assert(n);
 
         if(n->isSelectable())
         {
@@ -399,24 +398,20 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
   in the tree.
   It then sends a command that calls editData.
 */
-bool
-DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool DeviceExplorerModel::setData(
+        const QModelIndex& index,
+        const QVariant& value,
+        int role)
 {
     if(! index.isValid())
-    {
         return false;
-    }
 
     auto n = nodeFromModelIndex(index);
     if(! n)
-    {
         return false;
-    }
 
-    if(n->is<DeviceSettings>())
-    {
+    if(!n->is<AddressSettings>())
         return false;
-    }
 
     auto col = DeviceExplorerModel::Column(index.column());
 
@@ -491,10 +486,10 @@ void DeviceExplorerModel::editData(
         const QVariant &value,
         int role)
 {
-    QModelIndex nodeIndex = convertPathToIndex(path);
-    Node* node = nodeFromModelIndex(nodeIndex);
+    Node* node = path.toNode(&rootNode());
+    ISCORE_ASSERT(node->parent());
 
-    QModelIndex index = createIndex(nodeIndex.row(), (int)column, node->parent());
+    QModelIndex index = createIndex(node->parent()->indexOfChild(node), (int)column, node->parent());
 
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
@@ -521,6 +516,7 @@ void DeviceExplorerModel::editData(
         {
             node->get<iscore::AddressSettings>().value.val = value;
         }
+        // TODO min/max/tags editing
     }
 
     emit dataChanged(changedTopLeft, changedBottomRight);

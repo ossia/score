@@ -60,16 +60,17 @@ MessageTreeView::MessageTreeView(
         DeviceExplorerModel* devexplorer,
         QWidget* parent):
     QTreeView{parent},
-    m_model{const_cast<StateModel*>(&model)}, // sorry o lord for I have sinned
+    m_model{const_cast<StateModel*>(&model)}, // TODO sorry o lord for I have sinned
     m_devExplorer{devexplorer},
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     this->setModel(&m_model->messages());
 }
 
-/*
-void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
+
+void MessageTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 {
+    /*
     QTreeView::mouseDoubleClickEvent(ev);
     auto sel = selectedIndexes();
     if(sel.empty())
@@ -81,8 +82,9 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
                 ? static_cast<iscore::StateNode*>(index.internalPointer())
                 : nullptr;
 
-    if(node && node->is<iscore::MessageList>())
+    if(node && node->is<iscore::AddressSettings>())
     {
+        const auto& addr = node->get<iscore::AddressSettings>();
         MessageListEditor ed(node->get<iscore::MessageList>(), m_devExplorer, this);
         int ret = ed.exec();
 
@@ -100,4 +102,5 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
     {
         ISCORE_TODO;
     }
-}*/
+    */
+}

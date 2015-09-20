@@ -38,42 +38,12 @@ class MessageItemModel : public NodeBasedItemModel
 
         void setCommandStack(ptr<iscore::CommandStack> stk);
 
-        template<typename... Args>
-        void emplaceMessage(iscore::Node *parent, int row, Args&&... args)
-        {
-            ISCORE_ASSERT(parent);
-
-            if (row == -1)
-            {
-                row = parent->childCount(); //insert as last child
-            }
-
-            int rowParent = 0;
-            if(parent != &m_rootNode)
-            {
-                auto grandparent = parent->parent();
-                ISCORE_ASSERT(grandparent);
-
-                rowParent = grandparent->indexOfChild(parent);
-            }
-
-            QModelIndex parentIndex = createIndex(rowParent, 0, parent);
-
-            beginInsertRows(parentIndex, row, row);
-            parent->emplace(parent->begin() + row, std::forward<Args>(args)...);
-            endInsertRows();
-        }
-
-
-        void removeMessage(iscore::Node* node);
-
-        void mergeMessages(const iscore::MessageList& messages);
-
         // AbstractItemModel interface
         int columnCount(const QModelIndex &parent) const override;
 
         QVariant data(const QModelIndex &index, int role) const override;
         bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+        void editData(const iscore::NodePath& path, const QVariant& val);
 
         QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
         bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role) override;

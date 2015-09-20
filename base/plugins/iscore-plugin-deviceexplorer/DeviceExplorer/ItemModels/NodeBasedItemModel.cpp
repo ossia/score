@@ -64,11 +64,15 @@ bool NodeBasedItemModel::hasChildren(const QModelIndex& parent) const
 }
 
 // TODO candidate for inlining
+// TODO return ptr<> ?
 iscore::Node* NodeBasedItemModel::nodeFromModelIndex(
         const QModelIndex& index) const
 {
-    return index.isValid()
-            ? static_cast<iscore::Node*>(index.internalPointer())
-            : const_cast<iscore::Node*>(&rootNode()); // TODO bleh.
+    auto n =  index.isValid()
+              ? static_cast<iscore::Node*>(index.internalPointer())
+              : const_cast<iscore::Node*>(&rootNode()); // TODO bleh.
+
+    ISCORE_ASSERT(n);
+    return n;
 }
 

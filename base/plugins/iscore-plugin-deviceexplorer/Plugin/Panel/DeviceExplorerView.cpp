@@ -106,6 +106,7 @@ DeviceExplorerView::restoreSettings()
 void
 DeviceExplorerView::installStyleSheet()
 {
+    // TODO put me in an external CSS file.
     setStyleSheet(
         "QTreeView {"
         "show-decoration-selected: 1;"

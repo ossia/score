@@ -32,7 +32,7 @@ class MessageTreeView : public QTreeView
                 QWidget* parent);
 
     protected:
-        //void mouseDoubleClickEvent(QMouseEvent* ev) override;
+        void mouseDoubleClickEvent(QMouseEvent* ev) override;
 
         StateModel* m_model{};
         DeviceExplorerModel* m_devExplorer{};
