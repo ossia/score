@@ -45,6 +45,8 @@ class DeviceExplorerNode : public VariantBasedNode<
 using Node = TreeNode<DeviceExplorerNode>;
 using NodePath = TreePath<iscore::Node>;
 
+using NodeList = QList<iscore::Node*>;
+
 // TODO add specifications & tests to these functions
 iscore::Address address(const Node& treeNode);
 

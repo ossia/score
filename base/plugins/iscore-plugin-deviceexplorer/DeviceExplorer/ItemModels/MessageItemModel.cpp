@@ -1,6 +1,7 @@
 #include "MessageItemModel.hpp"
 #include "NodeDisplayMethods.hpp"
 #include "Commands/AddMessagesToModel.hpp"
+#include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
 using namespace iscore;
@@ -281,16 +282,16 @@ bool MessageItemModel::dropMimeData(
         return false;
     }
 
-    Deserializer<JSONObject> deser{
-        QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).object()};
     iscore::MessageList ml;
-    deser.writeTo(ml);
+    fromJsonArray(
+                QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
+                ml);
 
     auto cmd = new AddMessagesToModel{
                iscore::IDocument::path(*this),
                ml};
 
-    CommandDispatcher<> disp{*m_stack};
+    CommandDispatcher<> disp(*m_stack);
     disp.submitCommand(cmd);
 
     return true;

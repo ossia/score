@@ -7,25 +7,30 @@
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Update/UpdateAddressSettings.hpp"
 
+#include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
+
+#include <Singletons/SingletonProtocolList.hpp>
+#include <Singletons/DeviceExplorerInterface.hpp>
+
+#include <DeviceExplorer/Node/DeviceExplorerNodeSerialization.hpp>
 #include "DeviceExplorerMimeTypes.hpp"
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <DeviceExplorer/ItemModels/NodeDisplayMethods.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
 
-#include <Singletons/DeviceExplorerInterface.hpp>
 #include <State/State.hpp>
 #include <State/StateMimeTypes.hpp>
+#include <State/MessageListSerialization.hpp>
+
+#include <QApplication>
 #include <QJsonDocument>
 #include <iostream>
-#include <QMimeData>
-#include "Singletons/SingletonProtocolList.hpp"
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include "Widgets/DeviceEditDialog.hpp"
-#include <DeviceExplorer/ItemModels/NodeDisplayMethods.hpp>
-#include <QApplication>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -972,7 +977,6 @@ static QList<iscore::Node*> filterUniqueParents(const QList<iscore::Node*>& node
     return cleaned_nodes;
 }
 
-
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
@@ -990,9 +994,12 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     QMimeData* mimeData = new QMimeData;
 
     // The "Nodes" part.
-    mimeData->setData(
-                iscore::mime::nodes(),
-                QJsonDocument(toJsonArray(nodes)).toJson(QJsonDocument::Indented));
+    // TODO The mime data should also transmit the root address for
+    // each node in this case. For now it's useless.
+    {
+        Mime<iscore::NodeList>::Serializer s{*mimeData};
+        s.serialize(nodes);
+    }
 
     // The "MessagesList" part.
     MessageList messages;
@@ -1002,16 +1009,8 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     }
     if(!messages.empty())
     {
-
-        Serializer<JSONObject> ser;
-        ser.readFrom(messages);
-
-        // TODO add a nodes() mime type which contains an array of nodes.
-        // The mime data should also transmit the root address for
-        // each node in this case.
-        mimeData->setData(iscore::mime::messagelist(),
-                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
+        Mime<iscore::MessageList>::Serializer s{*mimeData};
+        s.serialize(messages);
     }
 
     if(messages.empty() && nodes.empty())
@@ -1027,7 +1026,8 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 bool
 DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
                                      Qt::DropAction action,
-                                     int /*row*/, int /*column*/, const QModelIndex& parent) const
+                                     int /*row*/, int /*column*/,
+                                     const QModelIndex& parent) const
 {
     if(action == Qt::IgnoreAction)
     {

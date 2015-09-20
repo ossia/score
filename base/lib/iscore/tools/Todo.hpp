@@ -92,13 +92,13 @@ struct ptr
             impl = other;
         }
 
-        auto&& operator*() const
+        auto operator*() const -> decltype(auto)
         {
             ISCORE_ASSERT(impl);
             return *impl;
         }
 
-        auto operator->() const
+        T* operator->() const
         {
             ISCORE_ASSERT(impl);
             return impl;

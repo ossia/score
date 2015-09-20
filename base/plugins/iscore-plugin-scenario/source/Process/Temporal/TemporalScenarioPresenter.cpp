@@ -25,6 +25,7 @@
 #include <QGraphicsScene>
 
 #include <State/StateMimeTypes.hpp>
+#include <State/MessageListSerialization.hpp>
 #include <QMimeData>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QJsonDocument>
@@ -353,10 +354,8 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {
-        Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
-        iscore::MessageList ml;
-        deser.writeTo(ml);
+        Mime<iscore::MessageList>::Deserializer des{*mime};
+        iscore::MessageList ml = des.deserialize();
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,

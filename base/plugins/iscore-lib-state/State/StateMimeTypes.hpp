@@ -7,6 +7,5 @@ namespace iscore
     namespace mime
     {
         inline constexpr const char * state() { return "application/x-iscore-state"; }
-        inline constexpr const char * messagelist() { return "application/x-iscore-messagelist"; }
     }
 }
