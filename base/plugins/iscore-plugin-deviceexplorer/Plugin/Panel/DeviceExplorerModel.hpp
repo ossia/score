@@ -3,6 +3,7 @@
 #include <QAbstractItemModel>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <DeviceExplorer/ItemModels/NodeBasedItemModel.hpp>
 
 
 #include "Result.hpp"
@@ -28,7 +29,7 @@ namespace iscore {
 struct AddressSettings;
 }
 
-class DeviceExplorerModel : public QAbstractItemModel
+class DeviceExplorerModel : public NodeBasedItemModel
 {
         Q_OBJECT
 
@@ -53,10 +54,11 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         ~DeviceExplorerModel();
 
-        iscore::Node& rootNode() const
-        {
-            return m_rootNode;
-        }
+        iscore::Node& rootNode() override
+        { return m_rootNode; }
+
+        const iscore::Node& rootNode() const override
+        { return m_rootNode; }
 
         void setView(DeviceExplorerView* v)
         {
@@ -67,7 +69,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         // devices. This is here so that commands don't need to save
         // at the same time a path to the device explorer, and the device doc plugin.
         DeviceDocumentPlugin& deviceModel() const;
-
         QModelIndexList selectedIndexes() const;
 
         void setCommandQueue(iscore::CommandStack* q);
@@ -105,9 +106,6 @@ class DeviceExplorerModel : public QAbstractItemModel
 
         void debug_printIndexes(const QModelIndexList& indexes);
 
-        QModelIndex index(int row, int column, const QModelIndex& parent) const override;
-        QModelIndex parent(const QModelIndex& child) const override;
-        int rowCount(const QModelIndex& parent) const override;
         int columnCount(const QModelIndex& parent) const override;
 
         QVariant getData(iscore::NodePath node, Column column, int role);
@@ -131,7 +129,6 @@ class DeviceExplorerModel : public QAbstractItemModel
         virtual bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
         virtual bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
 
-        iscore::Node* nodeFromModelIndex(const QModelIndex& index) const;
         QModelIndex convertPathToIndex(const iscore::NodePath& path);
 
         DeviceExplorerCommandCreator* cmdCreator();

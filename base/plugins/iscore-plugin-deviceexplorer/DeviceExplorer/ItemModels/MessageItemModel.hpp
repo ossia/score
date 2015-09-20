@@ -4,7 +4,7 @@
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <QAbstractItemModel>
+#include <DeviceExplorer/ItemModels/NodeBasedItemModel.hpp>
 #include <QModelIndex>
 
 namespace iscore
@@ -16,7 +16,7 @@ namespace iscore
  * the Qt way.
  *
  */
-class MessageItemModel : public QAbstractItemModel
+class MessageItemModel : public NodeBasedItemModel
 {
     public:
         enum class Column : int
@@ -31,15 +31,12 @@ class MessageItemModel : public QAbstractItemModel
         MessageItemModel& operator=(const iscore::Node&);
         MessageItemModel& operator=(iscore::Node&&);
 
-        const iscore::Node& rootNode() const
+        const iscore::Node& rootNode() const override
         { return m_rootNode; }
-        iscore::Node& rootNode()
+        iscore::Node& rootNode() override
         { return m_rootNode; }
 
         void setCommandStack(ptr<iscore::CommandStack> stk);
-
-        iscore::Node* nodeFromModelIndex(const QModelIndex& index);
-        const iscore::Node* nodeFromModelIndex(const QModelIndex& index) const;
 
         template<typename... Args>
         void emplaceMessage(iscore::Node *parent, int row, Args&&... args)
@@ -73,12 +70,7 @@ class MessageItemModel : public QAbstractItemModel
         void mergeMessages(const iscore::MessageList& messages);
 
         // AbstractItemModel interface
-        QModelIndex index(int row, int column, const QModelIndex &parent) const override;
-        QModelIndex parent(const QModelIndex &index) const override;
-
-        int rowCount(const QModelIndex &parent) const override;
         int columnCount(const QModelIndex &parent) const override;
-        bool hasChildren(const QModelIndex &parent) const override;
 
         QVariant data(const QModelIndex &index, int role) const override;
         bool setData(const QModelIndex &index, const QVariant &value, int role) override;

@@ -6,7 +6,7 @@
 
 using namespace iscore;
 MessageItemModel::MessageItemModel(QObject* parent):
-    QAbstractItemModel{parent},
+    NodeBasedItemModel{parent},
     m_rootNode{}
 {
     this->setObjectName("MessageItemModel");
@@ -39,20 +39,6 @@ MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
 void MessageItemModel::setCommandStack(ptr<CommandStack> stk)
 {
     m_stack = stk;
-}
-
-iscore::Node *MessageItemModel::nodeFromModelIndex(const QModelIndex &index)
-{
-    return index.isValid()
-            ? static_cast<iscore::Node*>(index.internalPointer())
-            : &m_rootNode;
-}
-
-const iscore::Node *MessageItemModel::nodeFromModelIndex(const QModelIndex &index) const
-{
-    return index.isValid()
-            ? static_cast<const iscore::Node*>(index.internalPointer())
-            : &m_rootNode;
 }
 
 void MessageItemModel::removeMessage(iscore::Node *node)
@@ -95,68 +81,9 @@ void MessageItemModel::mergeMessages(
     //emit dataChanged(nodeIndex, nodeIndex);
 }
 
-QModelIndex MessageItemModel::index(int row,
-                                  int column,
-                                  const QModelIndex &parent) const
-{
-    if (!hasIndex(row, column, parent))
-        return QModelIndex();
-
-    const iscore::Node* parentItem{};
-
-    if (!parent.isValid())
-        parentItem = &m_rootNode; // todo why ?
-    else
-        parentItem = static_cast<iscore::Node*>(parent.internalPointer());
-
-    if (parentItem->hasChild(row))
-        return createIndex(row, column, const_cast<iscore::Node*>(&parentItem->childAt(row)));
-    else
-        return QModelIndex();
-}
-
-QModelIndex MessageItemModel::parent(const QModelIndex &index) const
-{
-    if (!index.isValid())
-        return QModelIndex();
-
-    auto childNode = static_cast<iscore::Node*>(index.internalPointer());
-    auto parentNode = childNode->parent();
-
-    if (!parentNode || parentNode == &m_rootNode)
-        return QModelIndex();
-
-    auto grandParentNode = parentNode->parent();
-    if (!grandParentNode || grandParentNode == &m_rootNode)
-        return QModelIndex();
-
-    const int rowParent = grandParentNode->indexOfChild(parentNode);
-    assert(rowParent != -1);
-    return createIndex(rowParent, 0, parentNode);
-}
-
-int MessageItemModel::rowCount(const QModelIndex &parent) const
-{
-    if(parent.column() > 0)
-        return 0;
-
-    auto parentNode = nodeFromModelIndex(parent);
-
-    if(!parentNode)
-        return 0;
-
-    return parentNode->childCount();
-}
-
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;
-}
-
-bool MessageItemModel::hasChildren(const QModelIndex &parent) const
-{
-    auto parentNode = nodeFromModelIndex(parent);
-    return parentNode->childCount() > 0;
 }
 
 QVariant MessageItemModel::data(const QModelIndex &index, int role) const

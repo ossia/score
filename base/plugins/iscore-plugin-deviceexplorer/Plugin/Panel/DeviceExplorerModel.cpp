@@ -47,7 +47,7 @@ static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
 DeviceExplorerModel::DeviceExplorerModel(
         DeviceDocumentPlugin* plug,
         QObject* parent)
-    : QAbstractItemModel{parent},
+    : NodeBasedItemModel{parent},
       m_lastCutNodeIsCopied{false},
       m_devicePlugin{plug},
       m_rootNode{plug->rootNode()},
@@ -275,81 +275,6 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
 
     return true;
 }
-
-
-QModelIndex
-DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
-{
-    if(row < 0 || column < 0 || column >= (int)Column::Count)
-    {
-        return {};
-    }
-
-    Node* parentNode = nodeFromModelIndex(parent);
-    if(! parentNode)
-        return {};
-
-    if(!parentNode->hasChild(row))
-        return {};
-
-    return createIndex(row, column, &parentNode->childAt(row));
-}
-
-Node*
-DeviceExplorerModel::nodeFromModelIndex(const QModelIndex& index) const
-{
-    return index.isValid()
-            ? static_cast<iscore::Node*>(index.internalPointer())
-            : &m_rootNode;
-}
-
-QModelIndex
-DeviceExplorerModel::parent(const QModelIndex& child) const
-{
-    Node* node = nodeFromModelIndex(child);
-
-    if(! node)
-    {
-        return QModelIndex();
-    }
-
-    Node* parentNode = node->parent();
-
-    if(! parentNode)
-    {
-        return QModelIndex();
-    }
-
-    Node* grandparentNode = parentNode->parent();
-
-    if(! grandparentNode)
-    {
-        return QModelIndex();
-    }
-
-    const int rowParent = grandparentNode->indexOfChild(parentNode);  //(return -1 if not found)
-    assert(rowParent != -1);
-    return createIndex(rowParent, 0, parentNode);
-}
-
-int
-DeviceExplorerModel::rowCount(const QModelIndex& parent) const
-{
-    if(parent.column() > 0)
-    {
-        return 0;
-    }
-
-    Node* parentNode = nodeFromModelIndex(parent);
-
-    if(! parentNode)
-    {
-        return 0;
-    }
-
-    return parentNode->childCount();
-}
-
 
 int
 DeviceExplorerModel::columnCount() const

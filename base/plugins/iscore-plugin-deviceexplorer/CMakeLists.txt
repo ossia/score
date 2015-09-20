@@ -35,6 +35,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/FullAddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeDisplayMethods.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeBasedItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/MessageItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/MessageData.cpp"
 
