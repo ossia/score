@@ -22,10 +22,11 @@ class DeviceInterface : public QObject
         virtual bool canRefresh() const { return false; }
         virtual iscore::Node refresh() { return {}; }
         virtual iscore::Value refresh(const iscore::Address&) { return {}; }
+        virtual void setListening(const iscore::Address&, bool) { }
 
-        virtual void addAddress(const iscore::FullAddressSettings& address) = 0;
-        virtual void updateAddress(const iscore::FullAddressSettings& address) = 0;
-        virtual void removeNode(const iscore::Address& path) = 0;
+        virtual void addAddress(const iscore::FullAddressSettings&) = 0;
+        virtual void updateAddress(const iscore::FullAddressSettings&) = 0;
+        virtual void removeNode(const iscore::Address&) = 0;
 
         // Execution API... Maybe we don't need it here.
         virtual void sendMessage(iscore::Message mess) = 0;

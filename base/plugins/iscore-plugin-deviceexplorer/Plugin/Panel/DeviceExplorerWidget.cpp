@@ -41,6 +41,7 @@
 
 /**
  * Utility class to get a node from the DeviceExplorerWidget.
+ * TODO moveme
  */
 template<typename OnSuccess>
 class ExplorationWorkerWrapper : public QObject
@@ -134,7 +135,7 @@ static auto make_worker(OnSuccess_t&& success,
         std::move(success),
                 widg,
                 dev};
-}// 147.210.129.97
+}
 
 
 
@@ -144,6 +145,12 @@ DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
       m_deviceDialog(nullptr)
 {
     buildGUI();
+
+    // Set the expansion signals
+    connect(m_ntView, &QTreeView::expanded,
+            this, [&] (const QModelIndex& idx) { setListening(idx, true); });
+    connect(m_ntView, &QTreeView::collapsed,
+            this,[&] (const QModelIndex& idx) { setListening(idx, false); });
 }
 
 void
@@ -350,6 +357,13 @@ void DeviceExplorerWidget::blockGUI(bool b)
     }
 }
 
+QModelIndex DeviceExplorerWidget::sourceIndex(QModelIndex index)
+{
+    if (m_ntView->hasProxy())
+        index = static_cast<const QAbstractProxyModel*>(m_ntView->QTreeView::model())->mapToSource(index);
+    return index;
+}
+
 void
 DeviceExplorerWidget::installStyleSheet()
 {
@@ -514,6 +528,65 @@ DeviceExplorerWidget::updateActions()
     m_pasteAction->setEnabled(model()->hasCut());
 }
 
+void DeviceExplorerWidget::setListening_rec(const iscore::Node& node, bool b)
+{
+    if(node.is<iscore::AddressSettings>())
+    {
+        auto addr = iscore::address(node);
+        auto& dev = model()->deviceModel().list().device(addr.device);
+        dev.setListening(addr, b);
+    }
+
+    for(const auto& child : node)
+    {
+        setListening_rec(child, b);
+    }
+}
+
+void DeviceExplorerWidget::setListening_rec2(const QModelIndex& index, bool b)
+{
+    auto node = model()->nodeFromModelIndex(sourceIndex(index));
+
+    int i = 0;
+    for(const auto& child : *node)
+    {
+        if(child.is<iscore::AddressSettings>())
+        {
+            auto addr = iscore::address(child);
+            auto& dev = model()->deviceModel().list().device(addr.device);
+            dev.setListening(addr, b);
+        }
+
+        // TODO check this
+        auto childIndex = index.child(i, 0);
+
+        if(m_ntView->isExpanded(childIndex))
+        {
+            setListening_rec2(childIndex, b);
+        }
+        i++;
+    }
+}
+
+
+void DeviceExplorerWidget::setListening(const QModelIndex& idx, bool b)
+{
+    // TODO optimize with the knowledge that a child
+    // will have the same device as its parent
+    if(b)
+    {
+        setListening_rec2(idx, b);
+    }
+    else
+    {
+        auto node = model()->nodeFromModelIndex(sourceIndex(idx));
+        for(const auto& child : *node)
+        {
+            setListening_rec(child, false);
+        }
+    }
+}
+
 DeviceExplorerModel*
 DeviceExplorerWidget::model()
 {
@@ -605,9 +678,7 @@ void DeviceExplorerWidget::refreshValue()
     for(auto index : m_ntView->selectedIndexes())
     {
         // Model checks
-        if (m_ntView->hasProxy())
-            index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
-
+        index = sourceIndex(index);
         iscore::Node* node = index.isValid()
                               ? static_cast<iscore::Node*>(index.internalPointer())
                               : nullptr;
@@ -705,11 +776,7 @@ void DeviceExplorerWidget::removeNodes()
     QList<iscore::Node*> nodes;
     for(auto index : indexes)
     {
-        // TODO refactor this since it is used everywhere.
-        if (m_ntView->hasProxy())
-            index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
-
-        auto n = model()->nodeFromModelIndex(index);
+        auto n = model()->nodeFromModelIndex(sourceIndex(index));
         if(!n->is<InvisibleRootNodeTag>())
             nodes.append(n);
     }

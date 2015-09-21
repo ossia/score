@@ -1,6 +1,7 @@
 #pragma once
 #include <DeviceExplorer/Protocol/DeviceInterface.hpp>
-
+#include <Network/Address.h>
+#include <unordered_map>
 namespace OSSIA
 {
     class Device;
@@ -20,6 +21,7 @@ class OSSIADevice : public DeviceInterface
         iscore::Node refresh() override;
         // throws std::runtime_error
         iscore::Value refresh(const iscore::Address&) override;
+        void setListening(const iscore::Address&, bool) override;
 
         void sendMessage(iscore::Message mess) override;
         bool check(const QString& str) override;
@@ -35,4 +37,6 @@ class OSSIADevice : public DeviceInterface
                                            iscore::Address currentAddr);
 
         std::shared_ptr<OSSIA::Device> m_dev;
+
+        std::unordered_map<iscore::Address, OSSIA::CallbackContainer<OSSIA::ValueCallback>::iterator> m_callbacks;
 };

@@ -44,4 +44,26 @@ struct Address
         }
 };
 }
+
+namespace std {
+
+  template <>
+  struct hash<iscore::Address>
+  {
+    std::size_t operator()(const iscore::Address& k) const
+    {
+      using std::size_t;
+      using std::hash;
+      using std::string;
+
+      // Compute individual hash values for first,
+      // second and third and combine them using XOR
+      // and bit shifting:
+
+      return ((qHash(k.device)
+               ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
+    }
+  };
+
+}
 Q_DECLARE_METATYPE(iscore::Address)

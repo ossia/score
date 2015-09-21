@@ -80,6 +80,33 @@ iscore::Value OSSIADevice::refresh(const iscore::Address& address)
     return ToValue(node->getAddress()->pullValue());
 }
 
+void OSSIADevice::setListening(const iscore::Address& addr, bool b)
+{
+    auto n = getNodeFromPath(addr.path, m_dev.get());
+
+    auto ossia_addr = n->getAddress();
+    if(!ossia_addr)
+        return;
+
+    auto cb_it = m_callbacks.find(addr);
+    if(b && (cb_it == m_callbacks.end()))
+    {
+        m_callbacks.insert({
+                    addr,
+                    ossia_addr->addCallback([=] (const OSSIA::Value* val) {
+            emit valueUpdated(addr, OSSIA::convert::ToValue(val));
+        })});
+    }
+    else
+    {
+        if(cb_it != m_callbacks.end())
+        {
+            ossia_addr->removeCallback(cb_it->second);
+            m_callbacks.erase(cb_it);
+        }
+    }
+}
+
 
 void OSSIADevice::sendMessage(iscore::Message mess)
 {
@@ -109,16 +136,20 @@ iscore::Node OSSIADevice::OSSIAToDeviceExplorer(const OSSIA::Node& node, iscore:
 
     currentAddr.path += n.get<iscore::AddressSettings>().name;
 
+    /*
     // 2. Add a callback
     if(n.get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
     {
         if(auto ossia_addr = node.getAddress())
         {
-            ossia_addr->addCallback([=] (const OSSIA::Value* val) {
+            m_callbacks.insert({
+                        currentAddr,
+                        ossia_addr->addCallback([=] (const OSSIA::Value* val) {
                 emit valueUpdated(currentAddr, OSSIA::convert::ToValue(val));
-            });
+            })});
         }
     }
+    */
 
     // 3. Recurse on the children
     for(const auto& ossia_child : node.children())
