@@ -26,7 +26,7 @@ RackWidget::RackWidget(ConstraintInspectorWidget* parent) :
 
     QGridLayout* lay = new QGridLayout{mainWidg};
     lay->setContentsMargins(1, 1, 0, 0);
-    this->setLayout(lay);
+    mainWidg->setLayout(lay);
 
     // Button
     QToolButton* addButton = new QToolButton{this};
