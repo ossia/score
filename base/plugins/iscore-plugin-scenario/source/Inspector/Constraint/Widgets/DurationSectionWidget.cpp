@@ -14,6 +14,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -107,6 +108,11 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 
 
     addContent(widg);
+
+    if(m_model.fullView()->isActive() && m_model.id().val() != 0)
+    {
+        m_valueSpin->setEnabled(false);
+    }
 }
 
 using namespace Scenario::Command;
