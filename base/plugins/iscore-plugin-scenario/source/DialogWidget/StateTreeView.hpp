@@ -23,7 +23,11 @@ class StateTreeView : public QTreeView
 };
 */
 // TODO MOVEME
-class MessageTreeView : public QTreeView
+namespace iscore
+{
+class MessageItemModel;
+}
+class MessageTreeView :  public QTreeView
 {
     public:
         MessageTreeView(
@@ -31,9 +35,15 @@ class MessageTreeView : public QTreeView
                 DeviceExplorerModel* devexplorer,
                 QWidget* parent);
 
-    protected:
-        void mouseDoubleClickEvent(QMouseEvent* ev) override;
+        iscore::MessageItemModel& model() const;
 
+        void removeNodes();
+
+    private:
+        //void mouseDoubleClickEvent(QMouseEvent* ev) override;
+        void contextMenuEvent(QContextMenuEvent*) override;
+
+        QAction* m_removeNodesAction{};
         StateModel* m_model{};
         DeviceExplorerModel* m_devExplorer{};
 

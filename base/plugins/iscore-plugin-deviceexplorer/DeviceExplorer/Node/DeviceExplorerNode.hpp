@@ -45,6 +45,7 @@ class DeviceExplorerNode : public VariantBasedNode<
 using Node = TreeNode<DeviceExplorerNode>;
 using NodePath = TreePath<iscore::Node>;
 
+// TODO reflist may be a better name.
 using NodeList = QList<iscore::Node*>;
 
 // TODO add specifications & tests to these functions
@@ -57,12 +58,20 @@ iscore::Message message(const iscore::Node& node);
 void messageList(const Node& treeNode,
                  MessageList& ml);
 
+iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
 iscore::Node* try_getNodeFromAddress(iscore::Node& root, const iscore::Address&);
 iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& str);
 iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
 
 // True if gramps is a parent, grand-parent, etc. of node.
 bool isAncestor(const iscore::Node& gramps, iscore::Node* node);
+
+
+/**
+ * @brief dumpTree An utility to print trees
+ * of iscore::Nodes
+ */
+void dumpTree(const iscore::Node& node, QString rec);
 
 
 /**

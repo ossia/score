@@ -34,17 +34,30 @@ bool DeviceExplorerNode::isEditable() const
                ||  get<AddressSettings>().ioType == IOType::Out);
 }
 
-iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& parts)
+iscore::Node* getNodeFromString(
+        iscore::Node& n,
+        QStringList&& parts)
 {
     auto theN = try_getNodeFromString(n, std::move(parts));
     ISCORE_ASSERT(theN);
     return theN;
 }
 
-Node* try_getNodeFromAddress(iscore::Node& root, const Address& addr)
+iscore::Node& getNodeFromAddress(
+        iscore::Node& n,
+        const iscore::Address& addr)
 {
-    if(addr.device.isEmpty() || addr.path.isEmpty())
-        return nullptr;
+    auto theN = try_getNodeFromAddress(n, addr);
+    ISCORE_ASSERT(theN);
+    return *theN;
+}
+
+iscore::Node* try_getNodeFromAddress(
+        iscore::Node& root,
+        const Address& addr)
+{
+    if(addr.device.isEmpty())
+        return &root;
 
     using namespace boost::range;
     auto dev = std::find_if(root.begin(), root.end(), [&] (const iscore::Node& n)
@@ -57,7 +70,9 @@ Node* try_getNodeFromAddress(iscore::Node& root, const Address& addr)
 }
 
 
-iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& parts)
+iscore::Node* try_getNodeFromString(
+        iscore::Node& n,
+        QStringList&& parts)
 {
     if(parts.size() == 0)
         return &n;
@@ -140,12 +155,13 @@ Message message(const Node& node)
 QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
 {
     // TODO optimizeme this horrible lazy algorithm.
-    auto nodes_cpy = nodes;
+    auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
+
     QList<iscore::Node*> cleaned_nodes;
 
     // Only copy the index if it none of its parents
     // except the invisible root are in the list.
-    for(auto n : nodes)
+    for(auto n : nodes_cpy)
     {
         if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
                        [&] (iscore::Node* other)
@@ -165,6 +181,16 @@ QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
     }
 
     return cleaned_nodes;
+}
+
+void dumpTree(const Node& node, QString rec)
+{
+    qDebug() << qUtf8Printable(rec) << qUtf8Printable(node.displayName());
+    rec += " ";
+    for(const auto& child : node)
+    {
+        dumpTree(child, rec);
+    }
 }
 
 }

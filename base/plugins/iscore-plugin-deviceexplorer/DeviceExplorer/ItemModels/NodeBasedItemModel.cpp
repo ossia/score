@@ -1,6 +1,21 @@
 #include "NodeBasedItemModel.hpp"
 
-QModelIndex NodeBasedItemModel::parent(const QModelIndex& index) const
+void NodeBasedItemModel::insertNode(
+        iscore::Node& parentNode,
+        const iscore::Node& other,
+        int row)
+{
+    QModelIndex parentIndex = modelIndexFromNode(parentNode);
+
+    beginInsertRows(parentIndex, row, row);
+
+    parentNode.emplace(parentNode.begin() + row, other, &parentNode);
+
+    endInsertRows();
+}
+
+QModelIndex NodeBasedItemModel::parent(
+        const QModelIndex& index) const
 {
     auto node = nodeFromModelIndex(index);
     auto parentNode = node->parent();
@@ -26,10 +41,10 @@ QModelIndex NodeBasedItemModel::index(
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
-    const iscore::Node* parentItem = nodeFromModelIndex(parent);
+    auto parentItem = nodeFromModelIndex(parent);
 
     if (parentItem->hasChild(row))
-        return createIndex(row, column, const_cast<iscore::Node*>(&parentItem->childAt(row)));
+        return createIndex(row, column, &parentItem->childAt(row));
     else
         return QModelIndex();
 }
@@ -91,5 +106,33 @@ iscore::Node* NodeBasedItemModel::nodeFromModelIndex(
 
     ISCORE_ASSERT(n);
     return n;
+}
+
+QModelIndex NodeBasedItemModel::modelIndexFromNode(
+        iscore::Node& n) const
+{
+    QModelIndex m;
+    if(n.is<InvisibleRootNodeTag>())
+    {
+        return QModelIndex();
+    }
+    else if(n.is<iscore::DeviceSettings>())
+    {
+        ISCORE_ASSERT(n.parent());
+        return index(n.parent()->indexOfChild(&n), 0, QModelIndex());
+    }
+    else
+    {
+        iscore::Node* parent = n.parent();
+        ISCORE_ASSERT(parent);
+        ISCORE_ASSERT(parent != &rootNode());
+
+        iscore::Node* grandparent = parent->parent();
+        ISCORE_ASSERT(grandparent);
+
+        int rowParent = grandparent->indexOfChild(parent);
+        QModelIndex parentIndex = createIndex(rowParent, 0, parent);
+        return index(n.parent()->indexOfChild(&n), 0, parentIndex);
+    }
 }
 

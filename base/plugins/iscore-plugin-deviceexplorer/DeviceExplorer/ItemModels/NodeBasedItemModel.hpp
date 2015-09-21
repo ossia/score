@@ -15,17 +15,22 @@ class NodeBasedItemModel : public QAbstractItemModel
         virtual iscore::Node& rootNode() = 0;
         virtual const iscore::Node& rootNode() const = 0;
 
+        void insertNode(iscore::Node& parentNode,
+                        const iscore::Node& other,
+                        int row);
+        void removeNode(iscore::Node::const_iterator node);
+
         QModelIndex parent(const QModelIndex &index) const override;
 
         QModelIndex index(int row,
                           int column,
                           const QModelIndex &parent) const override;
 
-        void removeNode(iscore::Node::const_iterator node);
 
         int rowCount(const QModelIndex &parent) const override;
         bool hasChildren(const QModelIndex &parent) const override;
 
         // TODO references.
         iscore::Node* nodeFromModelIndex(const QModelIndex &index) const;
+        QModelIndex modelIndexFromNode(iscore::Node& n) const;
 };

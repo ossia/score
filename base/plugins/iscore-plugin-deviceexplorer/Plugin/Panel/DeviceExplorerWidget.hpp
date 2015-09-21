@@ -53,7 +53,7 @@ class DeviceExplorerWidget : public QWidget
         void addChild();
         void addSibling();
 
-        void removeNode();
+        void removeNodes();
 
         // Answer to user interaction
         void filterChanged();

@@ -14,6 +14,8 @@ Remove::Remove(
     if (!node.is<iscore::DeviceSettings>())
     {
         m_device = false;
+        // FIXME this removes a full node tree
+        // and only adds back a single address
         m_cmd = new AddAddress{
                     std::move(device_tree),
                     iscore::NodePath{*node.parent()},

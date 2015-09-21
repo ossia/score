@@ -55,6 +55,7 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 
 */
 
+#include <QAction>
 MessageTreeView::MessageTreeView(
         const StateModel& model,
         DeviceExplorerModel* devexplorer,
@@ -77,12 +78,56 @@ MessageTreeView::MessageTreeView(
     setDragDropOverwriteMode(false);
 
     this->setModel(&m_model->messages());
+
+    m_removeNodesAction = new QAction(tr("Remove Nodes"), this);
+    m_removeNodesAction->setShortcut(QKeySequence::Delete);
+    m_removeNodesAction->setShortcutContext(Qt::WidgetShortcut);
+    m_removeNodesAction->setEnabled(true);
+    connect(m_removeNodesAction, &QAction::triggered,
+            this, &MessageTreeView::removeNodes);
 }
 
+#include "Plugin/Commands/EditData.hpp"
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+iscore::MessageItemModel&MessageTreeView::model() const
+{
+    return *static_cast<iscore::MessageItemModel*>(QTreeView::model());
+}
 
+void MessageTreeView::removeNodes()
+{
+    qDebug(Q_FUNC_INFO);
+    auto indexes = selectedIndexes();
+
+    QList<iscore::Node*> nodes;
+    for(auto index : indexes)
+    {
+        auto n = model().nodeFromModelIndex(index);
+        if(!n->is<InvisibleRootNodeTag>())
+            nodes.append(n);
+    }
+
+    auto cmd = new RemoveMessageNodes(
+                      iscore::IDocument::path(model()),
+                      iscore::filterUniqueParents(nodes));
+
+    CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_model)};
+    dispatcher.submitCommand(cmd);
+}
+
+#include <QContextMenuEvent>
+#include <QMenu>
+void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
+{
+    QMenu contextMenu{this};
+
+    contextMenu.addAction(m_removeNodesAction);
+    contextMenu.exec(event->globalPos());
+}
+
+/*
 void MessageTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 {
-    /*
     QTreeView::mouseDoubleClickEvent(ev);
     auto sel = selectedIndexes();
     if(sel.empty())
@@ -114,5 +159,5 @@ void MessageTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
     {
         ISCORE_TODO;
     }
-    */
 }
+*/

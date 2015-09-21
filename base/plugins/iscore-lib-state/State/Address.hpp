@@ -18,9 +18,10 @@ namespace iscore
 struct Address
 {
         // Data
-        QString device; // No device means that this is the root node.
-        QStringList path; // Note : path is empty if address is root: "device:/"
+        QString device; // No device means that this is the invisible root node.
 
+        QStringList path; // Note : path is empty if address is root: "device:/"
+        // In terms of iscore::Node, this means that the node is the device node.
 
         // Check that the given string is a valid address
         // Note: a "maybe" concept would help here.

@@ -154,6 +154,8 @@ void NodeUpdateProxy::removeAddress(
     addr.path.append(settings.name);
 
     // Remove from the device implementation
+    // FIXME this removes only the address while the whole sub-hierarchy
+    // is removed in iscore::Node / DeviceExplorerModel
     const auto& dev_node = m_devModel.rootNode().childAt(parentPath.at(0));
     m_devModel.list().device(
                 dev_node.get<iscore::DeviceSettings>().name)

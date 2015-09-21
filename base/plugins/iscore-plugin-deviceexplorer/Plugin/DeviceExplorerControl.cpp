@@ -46,6 +46,7 @@ void DeviceExplorerControl::setupCommands()
             UpdateAddressSettings,
             UpdateDeviceSettings,
             AddMessagesToModel,
+            RemoveMessageNodes,
             Cut,
 //            Insert,
             Move,

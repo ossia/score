@@ -152,6 +152,17 @@ class TreeNode : public DataType
             return -1;
         }
 
+        auto iterOfChild(const TreeNode* child)
+        {
+            auto end = m_children.end();
+            for(auto it = m_children.begin(); it != end; ++it)
+            {
+                if(&*it == child)
+                    return it;
+            }
+            return end;
+        }
+
         int childCount() const
         { return m_children.size(); }
 

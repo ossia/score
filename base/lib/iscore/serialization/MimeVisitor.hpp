@@ -3,7 +3,7 @@
 #include <QMimeData>
 
 template<typename T>
-class Mime;
+struct Mime;
 
 template<typename T>
 class Visitor<Reader<Mime<T>>>;

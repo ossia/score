@@ -73,6 +73,8 @@ class DeviceExplorerModel : public NodeBasedItemModel
         QModelIndexList selectedIndexes() const;
 
         void setCommandQueue(iscore::CommandStack* q);
+        iscore::CommandStack& commandStack() const
+        { return *m_cmdQ; }
 
         // Returns the row (useful for undo)
         int addDevice(iscore::Node&& deviceNode);

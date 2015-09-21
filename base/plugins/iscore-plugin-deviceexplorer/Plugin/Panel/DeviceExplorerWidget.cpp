@@ -194,6 +194,17 @@ DeviceExplorerWidget::buildGUI()
     m_promoteAction->setEnabled(false);
     m_demoteAction->setEnabled(false);
 
+    m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_refreshValueAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_removeNodeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_copyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_cutAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_pasteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_moveUpAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_moveDownAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_promoteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_demoteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
     connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
@@ -205,7 +216,7 @@ DeviceExplorerWidget::buildGUI()
     connect(m_moveDownAction, &QAction::triggered, this, &DeviceExplorerWidget::moveDown);
     connect(m_promoteAction, &QAction::triggered, this, &DeviceExplorerWidget::promote);
     connect(m_demoteAction, &QAction::triggered, this, &DeviceExplorerWidget::demote);
-    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNode);
+    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
 
     QPushButton* addButton = new QPushButton(this);
     addButton->setIcon(QIcon(":/resources/images/add.png"));
@@ -355,30 +366,28 @@ void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     updateActions();
-    QMenu* contextMenu = new QMenu(this);
+    QMenu contextMenu{this};
 
-    connect(contextMenu, &QMenu::triggered,
-            [=] () { contextMenu->deleteLater(); });
-    contextMenu->addAction(m_editAction);
-    contextMenu->addAction(m_refreshAction);
-    contextMenu->addAction(m_refreshValueAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_addDeviceAction);
-    contextMenu->addAction(m_addSiblingAction);
-    contextMenu->addAction(m_addChildAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_copyAction);
-    contextMenu->addAction(m_cutAction);
-    contextMenu->addAction(m_pasteAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_moveUpAction);
-    contextMenu->addAction(m_moveDownAction);
-    contextMenu->addAction(m_promoteAction);
-    contextMenu->addAction(m_demoteAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_removeNodeAction);
+    contextMenu.addAction(m_editAction);
+    contextMenu.addAction(m_refreshAction);
+    contextMenu.addAction(m_refreshValueAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_addDeviceAction);
+    contextMenu.addAction(m_addSiblingAction);
+    contextMenu.addAction(m_addChildAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_copyAction);
+    contextMenu.addAction(m_cutAction);
+    contextMenu.addAction(m_pasteAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_moveUpAction);
+    contextMenu.addAction(m_moveDownAction);
+    contextMenu.addAction(m_promoteAction);
+    contextMenu.addAction(m_demoteAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_removeNodeAction);
 
-    contextMenu->exec(event->globalPos());
+    contextMenu.exec(event->globalPos());
 }
 
 void
@@ -394,9 +403,8 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         m_ntView->setModel(m_proxyModel);
         model->setView(m_ntView);
 
-
         m_cmdDispatcher = std::make_unique<CommandDispatcher<>>(
-                iscore::IDocument::commandStack(*model));
+                model->commandStack());
 
         populateColumnCBox();
 
@@ -690,7 +698,7 @@ DeviceExplorerWidget::addSibling()
     addAddress(InsertMode::AsSibling);
 }
 
-void DeviceExplorerWidget::removeNode()
+void DeviceExplorerWidget::removeNodes()
 {
     auto indexes = m_ntView->selectedIndexes();
 
