@@ -7,9 +7,9 @@ class MoveEventCSPFactory : public MoveEventFactoryInterface
 {
     // MoveEventFactory interface
 public:
-    iscore::SerializableCommand* make(Path<ScenarioModel> &&scenarioPath, const Id<EventModel> &eventId, const TimeValue &newDate, ExpandMode mode);
+    SerializableMoveEvent* make(Path<ScenarioModel> &&scenarioPath, const Id<EventModel> &eventId, const TimeValue &newDate, ExpandMode mode);
 
-    iscore::SerializableCommand* make();
+    SerializableMoveEvent* make();
 
     virtual int priority()
     {

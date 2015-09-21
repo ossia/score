@@ -6,7 +6,7 @@ MoveEventMeta::MoveEventMeta(
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
         ExpandMode mode)
-    :iscore::SerializableCommand{factoryName(), commandName(), description()}
+    :SerializableMoveEvent{}
 {
 }
 
@@ -34,4 +34,12 @@ void MoveEventMeta::deserializeImpl(QDataStream& qDataStream)
     m_moveEventImplementation = MoveEventList::getFactory()->make();
 
     m_moveEventImplementation->deserialize(cmdData);
+}
+
+void MoveEventMeta::update(const Path<ScenarioModel>& scenarioPath,
+                           const Id<EventModel>& eventId,
+                           const TimeValue& newDate,
+                           ExpandMode mode)
+{
+    m_moveEventImplementation->update(scenarioPath, eventId, newDate, mode);
 }

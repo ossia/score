@@ -2,7 +2,7 @@
 #include <Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Commands/Scenario/Displacement/MoveEvent.hpp>
 
-iscore::SerializableCommand* MoveEventClassicFactory::make(
+SerializableMoveEvent* MoveEventClassicFactory::make(
         Path<ScenarioModel>&& scenarioPath,
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
@@ -11,7 +11,7 @@ iscore::SerializableCommand* MoveEventClassicFactory::make(
     return new MoveEvent<GoodOldDisplacementPolicy>(std::move(scenarioPath), eventId, newDate, mode);
 }
 
-SerializableCommand*MoveEventClassicFactory::make()
+SerializableMoveEvent* MoveEventClassicFactory::make()
 {
     return new MoveEvent<GoodOldDisplacementPolicy>();
 }

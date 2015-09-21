@@ -1,5 +1,6 @@
 #pragma once
-#include <iscore/command/SerializableCommand.hpp>
+
+#include <Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <ProcessInterface/TimeValue.hpp>
@@ -28,7 +29,7 @@ namespace Command
     * This class use the new Displacement policy class
     */
 template<class DisplacementPolicy>
-class MoveEvent : public iscore::SerializableCommand
+class MoveEvent : public SerializableMoveEvent
 {
     // No ISCORE_COMMAND here since it's a template.
 
@@ -49,7 +50,11 @@ public:
         hash<string> fn;
         return fn(std::string(commandName()));
     }
-    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveEvent, "ScenarioControl")
+
+    MoveEvent()
+        :SerializableMoveEvent{}
+    {}
+
     /**
                  * @brief MoveEvent2
                  * @param scenarioPath
@@ -64,7 +69,7 @@ public:
             const TimeValue& newDate,
             ExpandMode mode)
         :
-          SerializableCommand {"ScenarioControl", commandName(), description()},
+          SerializableMoveEvent{},
           m_path {std::move(scenarioPath)},
           m_mode{mode}
     {

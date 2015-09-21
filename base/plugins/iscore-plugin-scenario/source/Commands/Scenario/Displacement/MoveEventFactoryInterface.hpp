@@ -1,7 +1,8 @@
 #pragma once
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/command/SerializableCommand.hpp>
+//#include <iscore/command/SerializableCommand.hpp>
+#include <Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -14,13 +15,13 @@ class EventModel;
 class MoveEventFactoryInterface : public iscore::FactoryInterface
 {
 public:
-    virtual iscore::SerializableCommand* make(
+    virtual SerializableMoveEvent* make(
             Path<ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode) = 0;
 
-    virtual iscore::SerializableCommand* make() = 0;
+    virtual SerializableMoveEvent* make() = 0;
 
     virtual ~MoveEventFactoryInterface() = default;
 
