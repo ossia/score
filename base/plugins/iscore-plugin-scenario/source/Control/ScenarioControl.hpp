@@ -3,6 +3,7 @@
 #include "ProcessInterface/ProcessList.hpp"
 #include "Menus/Plugin/ScenarioContextMenuPluginList.hpp"
 #include "Document/BaseElement/ProcessFocusManager.hpp"
+#include <Commands/Scenario/Displacement/MoveEventList.hpp>
 
 class QActionGroup;
 class ScenarioModel;
@@ -27,6 +28,9 @@ class ScenarioControl : public iscore::PluginControlInterface
 
         ProcessList* processList()
         { return &m_processList; }
+
+        MoveEventList* moveEventList()
+        { return &m_moveEventList; }
 
         QVector<AbstractMenuActions*>& pluginActions()
         { return m_pluginActions; }
@@ -53,6 +57,7 @@ class ScenarioControl : public iscore::PluginControlInterface
     private:
         ExpandMode m_expandMode{ExpandMode::Scale};
         ProcessList m_processList;
+        MoveEventList m_moveEventList;
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 

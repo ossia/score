@@ -3,7 +3,7 @@
 #include <iscore/locking/ObjectLocker.hpp>
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Commands/Scenario/Displacement/MoveConstraint.hpp"
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEventMeta.hpp"
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 class ScenarioStateMachine;
 
@@ -32,7 +32,7 @@ class MoveEventState : public ScenarioStateBase
                        iscore::ObjectLocker& locker,
                        QState* parent);
 
-        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent<GoodOldDisplacementPolicy>> m_dispatcher;
+        SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
 };
 
 class MoveTimeNodeState : public ScenarioStateBase
@@ -44,5 +44,5 @@ class MoveTimeNodeState : public ScenarioStateBase
                           iscore::ObjectLocker& locker,
                           QState* parent);
 
-        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent<GoodOldDisplacementPolicy>> m_dispatcher;
+        SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
 };

@@ -76,7 +76,8 @@ using namespace iscore;
 void test_parse_expr_full();
 ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
-    m_processList{this}
+    m_processList{this},
+    m_moveEventList{this}
 {
     setupCommands();
 

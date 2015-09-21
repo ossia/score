@@ -4,7 +4,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEventMeta.hpp"
 #include "Commands/Constraint/SetMinDuration.hpp"
 #include "Commands/Constraint/SetMaxDuration.hpp"
 #include "Commands/ResizeBaseConstraint.hpp"
@@ -135,7 +135,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 
     if(m_model.objectName() != "BaseConstraintModel")
     {
-        m_dispatcher.submitCommand<MoveEvent<GoodOldDisplacementPolicy>>(
+        m_dispatcher.submitCommand<MoveEventMeta>(
                 iscore::IDocument::path(*safe_cast<ScenarioModel*>(m_model.parent())),
                 scenario->state(m_model.endState()).eventId(),
                 m_model.startDate() + TimeValue::fromMsecs(val),

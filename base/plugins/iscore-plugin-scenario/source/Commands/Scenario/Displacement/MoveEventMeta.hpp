@@ -1,13 +1,16 @@
 #pragma once
 
-//#include <iscore/command/SerializableCommand.hpp>
 #include <Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Commands/Scenario/Displacement/MoveEvent.hpp>
 
-class MoveEventMeta : SerializableMoveEvent
+class MoveEventMeta : public SerializableMoveEvent
 {
     // Command interface
 public:
+    MoveEventMeta()
+        :SerializableMoveEvent{}
+    {}
+
     MoveEventMeta(
             Path<ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
@@ -16,6 +19,8 @@ public:
 
     void undo();
     void redo();
+
+    const Path<ScenarioModel>& path() const;
 
     // SerializableCommand interface
 protected:

@@ -20,4 +20,9 @@ public:
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
             ExpandMode mode) = 0;
+
+    virtual
+    const
+    Path<ScenarioModel>&
+    path() const = 0;
 };

@@ -3,6 +3,11 @@
 MoveEventFactoryInterface*
 MoveEventList::getMoveEventFactory()
 {
+    if(m_moveEventFactories.empty())
+    {
+        throw std::runtime_error("No moveEvent factories loaded");
+    }
+
     return m_moveEventFactories.last();
 }
 

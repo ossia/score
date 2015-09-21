@@ -8,6 +8,9 @@
 #include <State/Message.hpp>
 #include "Control/Menus/ScenarioCommonContextMenuFactory.hpp"
 
+#include <Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
+#include <Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
+
 #if defined(ISCORE_INSPECTOR_LIB)
 #include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Inspector/Event/EventInspectorFactory.hpp>
@@ -67,6 +70,10 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
              [&] (iscore::FactoryInterface* fact)
              { m_control->processList()->registerProcess(fact); }
             },
+            {MoveEventFactoryInterface::factoryName(),
+             [&] (iscore::FactoryInterface* fact)
+             { m_control->moveEventList()->registerMoveEventFactory(fact); }
+            },
             {ScenarioContextMenuFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
              {
@@ -90,6 +97,11 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
     if(factoryName == ScenarioContextMenuFactory::factoryName())
     {
         return {new ScenarioCommonContextMenuFactory};
+    }
+
+    if(factoryName == MoveEventClassicFactory::factoryName())
+    {
+        return {new MoveEventClassicFactory};
     }
 
 #if defined(ISCORE_INSPECTOR_LIB)

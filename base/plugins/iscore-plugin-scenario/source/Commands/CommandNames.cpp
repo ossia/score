@@ -83,7 +83,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list61<
+            boost::mpl::list60<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -132,8 +132,7 @@ void ScenarioControl::setupCommands()
             MoveConstraint,
             MoveSlot,
             SwapSlots,
-            MoveEvent<GoodOldDisplacementPolicy>,
-            MoveEvent<GoodOldDisplacementPolicy>,
+            MoveEventMeta,
             MoveNewEvent,
             MoveNewState,
 

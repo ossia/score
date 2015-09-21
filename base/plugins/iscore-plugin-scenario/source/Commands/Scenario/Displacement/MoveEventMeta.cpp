@@ -6,7 +6,8 @@ MoveEventMeta::MoveEventMeta(
         const Id<EventModel>& eventId,
         const TimeValue& newDate,
         ExpandMode mode)
-    :SerializableMoveEvent{}
+    :SerializableMoveEvent{},
+     m_moveEventImplementation(MoveEventList::getFactory()->make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
 
@@ -17,7 +18,13 @@ void MoveEventMeta::undo()
 
 void MoveEventMeta::redo()
 {
+
     m_moveEventImplementation->redo();
+}
+
+const Path<ScenarioModel>&MoveEventMeta::path() const
+{
+    return m_moveEventImplementation->path();
 }
 
 void MoveEventMeta::serializeImpl(QDataStream& qDataStream) const
