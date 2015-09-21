@@ -22,14 +22,16 @@ StateModel::StateModel(
                             iscore::IDocument::commandStack(*this),
                             this}}
 {
+    con(m_messageItemModel, &QAbstractItemModel::modelReset,
+        this, &StateModel::statesUpdated);
     con(m_messageItemModel, &QAbstractItemModel::dataChanged,
-            this, [&] () { qDebug("1"); emit statesUpdated(); });
+        this, &StateModel::statesUpdated);
     con(m_messageItemModel, &QAbstractItemModel::rowsInserted,
-            this, [&] () { qDebug("2"); emit statesUpdated(); });
+        this, &StateModel::statesUpdated);
     con(m_messageItemModel, &QAbstractItemModel::rowsMoved,
-            this, [&] () { qDebug("3"); emit statesUpdated(); });
+        this, &StateModel::statesUpdated);
     con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
-            this, [&] () { qDebug("4"); emit statesUpdated(); });
+        this, &StateModel::statesUpdated);
 }
 
 StateModel::StateModel(

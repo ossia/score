@@ -197,7 +197,7 @@ bool MessageItemModel::dropMimeData(
 
 Qt::DropActions MessageItemModel::supportedDropActions() const
 {
-    return Qt::IgnoreAction;
+    return Qt::IgnoreAction | Qt::MoveAction | Qt::CopyAction;
 }
 
 Qt::DropActions MessageItemModel::supportedDragActions() const
