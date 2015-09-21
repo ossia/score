@@ -138,6 +138,8 @@ class DeviceExplorerModel : public NodeBasedItemModel
         DeviceExplorerCommandCreator* cmdCreator();
         void setCachedResult(DeviceExplorer::Result r);
 
+        void beginReset() { beginResetModel(); }
+        void endReset() { endResetModel(); }
     protected:
         DeviceExplorer::Result cut_aux(const QModelIndex& index);
         DeviceExplorer::Result paste_aux(const QModelIndex& index, bool after);

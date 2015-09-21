@@ -693,7 +693,9 @@ void DeviceExplorerWidget::refreshValue()
             return;
 
         // Getting the new values
-        lst.append({node, dev.refresh(addr)});
+        auto val = dev.refresh(addr);
+        if(val)
+            lst.append({node, *val});
     }
 
     if(lst.empty())

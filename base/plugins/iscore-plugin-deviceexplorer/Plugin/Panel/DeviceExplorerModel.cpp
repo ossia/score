@@ -206,6 +206,7 @@ void DeviceExplorerModel::updateValue(iscore::Node* n, const iscore::Value& v)
     // OPTIMIZEME
     QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*n));
 
+    // TODO this index *may* be invalid. Check it.
     auto idx = createIndex(nodeIndex.row(), 1, n->parent());
     emit dataChanged(idx, idx);
 }
@@ -813,7 +814,7 @@ DeviceExplorerModel::mimeTypes() const
     return {iscore::mime::device(), iscore::mime::address()};
 }
 
-
+#include <thread>
 //method called when a drag is initiated
 QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
@@ -827,6 +828,9 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     nodes.removeAll(&m_rootNode);
 
     auto uniqueNodes = filterUniqueParents(nodes);
+
+    // Now we request an update to the device explorer.
+    m_devicePlugin->updateProxy.updateRemoteValues(uniqueNodes);
 
     QMimeData* mimeData = new QMimeData;
 

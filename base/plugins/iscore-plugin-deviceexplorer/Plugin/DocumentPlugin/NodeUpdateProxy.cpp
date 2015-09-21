@@ -238,3 +238,45 @@ void NodeUpdateProxy::updateRemoteValue(
                 .sendMessage({addr, val});
     }
 }
+
+void rec_updateRemoteValues(iscore::Node& n, DeviceInterface& dev)
+{
+    // OPTIMIZEME
+    auto val = dev.refresh(iscore::address(n));
+    if(val)
+        n.get<iscore::AddressSettings>().value = *val;
+
+    for(auto& child : n)
+    {
+        rec_updateRemoteValues(child, dev);
+    }
+}
+
+void NodeUpdateProxy::updateRemoteValues(const iscore::NodeList& nodes)
+{
+    // For each node, get its device.
+    for(auto n : nodes)
+    {
+        if(n->is<iscore::DeviceSettings>())
+        {
+            auto dev_name = n->get<iscore::DeviceSettings>().name;
+            auto& dev = m_devModel.list().device(dev_name);
+            if(!dev.canRefresh())
+                continue;
+
+            for(auto& child : *n)
+            {
+                rec_updateRemoteValues(child, dev);
+            }
+        }
+        else
+        {
+            auto addr = iscore::address(*n);
+            auto& dev = m_devModel.list().device(addr.device);
+            if(!dev.canRefresh())
+                continue;
+
+            rec_updateRemoteValues(*n, dev);
+        }
+    }
+}

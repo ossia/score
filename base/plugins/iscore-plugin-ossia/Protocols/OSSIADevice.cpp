@@ -73,11 +73,15 @@ iscore::Node OSSIADevice::refresh()
     return device_node;
 }
 
-iscore::Value OSSIADevice::refresh(const iscore::Address& address)
+boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& address)
 {
     OSSIA::Node* node = getNodeFromPath(address.path, m_dev.get());
+    ISCORE_ASSERT(node);
 
-    return ToValue(node->getAddress()->pullValue());
+    if(auto addr = node->getAddress())
+        return ToValue(addr->pullValue());
+
+    return {};
 }
 
 void OSSIADevice::setListening(const iscore::Address& addr, bool b)

@@ -16,11 +16,11 @@ class OSSIADevice : public DeviceInterface
         void updateAddress(const iscore::FullAddressSettings& address) override;
         void removeNode(const iscore::Address& path) override;
 
-        // Note : canRefresh is false by default and has to be set
-        // to true explicitely in subclasses that do support refreshing.
         iscore::Node refresh() override;
+
         // throws std::runtime_error
-        iscore::Value refresh(const iscore::Address&) override;
+        boost::optional<iscore::Value> refresh(const iscore::Address&) override;
+
         void setListening(const iscore::Address&, bool) override;
 
         void sendMessage(iscore::Message mess) override;

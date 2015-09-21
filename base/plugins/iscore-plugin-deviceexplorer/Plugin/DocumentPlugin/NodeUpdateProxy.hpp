@@ -74,6 +74,8 @@ class NodeUpdateProxy
         void updateRemoteValue(
                 const iscore::Address&,
                 const iscore::Value&);
+        void updateRemoteValues(
+                const iscore::NodeList&);
 
     private:
         void rec_addNode(
