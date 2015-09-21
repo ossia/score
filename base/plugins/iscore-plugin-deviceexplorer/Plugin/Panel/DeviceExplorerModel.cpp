@@ -256,6 +256,18 @@ bool DeviceExplorerModel::tryDeviceInstantiation(
     return true;
 }
 
+bool DeviceExplorerModel::checkAddressInstantiatable(
+        Node& parent,
+        const AddressSettings& addr)
+{
+    ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+
+    return std::none_of(parent.begin(),
+                        parent.end(),
+                        [&] (const iscore::Node& n) {
+        return n.get<iscore::AddressSettings>().name == addr.name; });
+}
+
 int
 DeviceExplorerModel::columnCount() const
 {

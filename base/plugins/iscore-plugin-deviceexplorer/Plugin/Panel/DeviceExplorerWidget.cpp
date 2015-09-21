@@ -633,6 +633,11 @@ void DeviceExplorerWidget::edit()
 
         if(code == QDialog::Accepted)
         {
+            auto stgs = dial.getSettings();
+            // TODO do like for DeviceSettings
+            if(!model()->checkAddressInstantiatable(*select->parent(), stgs))
+                return;
+
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     iscore::IDocument::path(model()->deviceModel()),
                     iscore::NodePath(*select),
@@ -805,11 +810,33 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
     {
         ISCORE_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
+
+        // If the node is added in sibling mode, we check that no sibling have
+        // the same name
+        // Else we check that no child of the index has the same name.
+        auto node = model()->nodeFromModelIndex(index);
+
+        // TODO not very elegant.
+        if(insert == InsertMode::AsSibling && node->is<iscore::DeviceSettings>())
+        {
+            return;
+        }
+
+        iscore::Node* parent =
+              (insert == InsertMode::AsChild)
+                ? node
+                : node->parent();
+
+        auto stgs = dial.getSettings();
+        if(!model()->checkAddressInstantiatable(*parent, stgs))
+            return;
+
         m_cmdDispatcher->submitCommand(
-                    new DeviceExplorer::Command::AddAddress{
-                        iscore::IDocument::path(model()->deviceModel()),
-                        iscore::NodePath{index},
-                        insert, dial.getSettings() });
+                        new DeviceExplorer::Command::AddAddress{
+                            iscore::IDocument::path(model()->deviceModel()),
+                            iscore::NodePath{index},
+                            insert,
+                            stgs});
         updateActions();
     }
 }

@@ -98,9 +98,15 @@ class DeviceExplorerModel : public NodeBasedItemModel
         // trigger a dialog to edit them as wanted.
         // Returns true if the device is to be added, false if
         // it should not be added.
-        bool checkDeviceInstantiatable(iscore::DeviceSettings& n);
-        bool tryDeviceInstantiation(iscore::DeviceSettings&,
-                                    DeviceEditDialog&);
+        bool checkDeviceInstantiatable(
+                iscore::DeviceSettings& n);
+        bool tryDeviceInstantiation(
+                iscore::DeviceSettings&,
+                DeviceEditDialog&);
+
+        bool checkAddressInstantiatable(
+                iscore::Node& parent,
+                const iscore::AddressSettings& addr);
 
         int columnCount() const;
         QStringList getColumns() const;
