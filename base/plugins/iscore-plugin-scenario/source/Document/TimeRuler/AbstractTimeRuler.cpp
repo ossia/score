@@ -36,6 +36,7 @@ void AbstractTimeRuler::setDuration(TimeValue dur)
         m_duration = dur;
         m_view->setWidth(m_duration.msec() * m_pixelPerMillis);
     }
+//    computeGraduationSpacing();
 }
 
 void AbstractTimeRuler::setStartPoint(TimeValue dur)

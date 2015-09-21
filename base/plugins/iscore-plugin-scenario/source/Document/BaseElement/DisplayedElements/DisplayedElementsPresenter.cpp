@@ -43,6 +43,9 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     {
         m_startStatePresenter = new StatePresenter(bs->startState(), m_parent->view()->baseItem(), this);
         m_endStatePresenter = new StatePresenter(bs->endState(), m_parent->view()->baseItem(), this);
+
+        con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
+            this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged);
     }
     else if(auto sm = dynamic_cast<ScenarioModel*>(m.parent()))
     {
@@ -102,4 +105,9 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
     m_endStatePresenter->view()->setPos({m_constraintPresenter->abstractConstraintViewModel().model().duration.defaultDuration().toPixels(r), 0});
 
     m_constraintPresenter->on_zoomRatioChanged(r);
+}
+
+void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(TimeValue t)
+{
+    m_endStatePresenter->view()->setPos({t.toPixels(m_constraintPresenter->model().fullView()->zoom()), 0});
 }

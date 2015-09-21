@@ -19,9 +19,9 @@ class AbstractTimeRuler : public QObject
 
         QVector<QPair<double, TimeValue> > graduationsSpacing() const;
 
-signals:
+    signals:
 
-public slots:
+    public slots:
         void setDuration(TimeValue dur);
         virtual void setStartPoint(TimeValue dur);
         void setPixelPerMillis(double factor);

@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include "ProcessInterface/ZoomHelper.hpp"
+#include "ProcessInterface/TimeValue.hpp"
 
 class ConstraintModel;
 class FullViewConstraintPresenter;
@@ -22,6 +23,9 @@ class DisplayedElementsPresenter : public QObject
 
         FullViewConstraintPresenter* constraintPresenter() const
         { return m_constraintPresenter; }
+
+    public slots:
+        void on_displayedConstraintDurationChanged(TimeValue);
     private:
         BaseElementPresenter* m_parent{};
 
