@@ -134,6 +134,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/RemoveSelection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveConstraint.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEventClassicFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
