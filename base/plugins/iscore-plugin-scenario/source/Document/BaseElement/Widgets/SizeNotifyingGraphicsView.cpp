@@ -66,3 +66,11 @@ void SizeNotifyingGraphicsView::keyReleaseEvent(QKeyEvent *event)
     QGraphicsView::keyReleaseEvent(event);
 }
 
+void SizeNotifyingGraphicsView::focusOutEvent(QFocusEvent* event)
+{
+    m_zoomModifier = false;
+    event->ignore();
+
+    QGraphicsView::focusOutEvent(event);
+}
+

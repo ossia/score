@@ -9,7 +9,7 @@
 #include <QDebug>
 #include "SceneGraduations.hpp"
 
-class SizeNotifyingGraphicsView : public QGraphicsView
+class SizeNotifyingGraphicsView : public QGraphicsView // TODO rename this class
 {
         Q_OBJECT
     public:
@@ -28,6 +28,7 @@ class SizeNotifyingGraphicsView : public QGraphicsView
         virtual void wheelEvent(QWheelEvent* event) override;
         virtual void keyPressEvent(QKeyEvent* event) override;
         virtual void keyReleaseEvent(QKeyEvent* event) override;
+        virtual void focusOutEvent(QFocusEvent* event) override;
 
     private:
         QBrush m_bg;
