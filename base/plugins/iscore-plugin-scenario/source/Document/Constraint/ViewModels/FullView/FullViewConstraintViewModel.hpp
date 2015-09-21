@@ -51,6 +51,8 @@ class FullViewConstraintViewModel : public ConstraintViewModel
         QPointF center() const;
         void setCenter(const QPointF& value);
 
+        bool isActive();
+
 private:
         ZoomRatio m_zoom{0.};
         QPointF m_center{0,0};
