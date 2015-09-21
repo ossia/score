@@ -13,7 +13,7 @@ class AbstractTimeRuler : public QObject
         virtual ~AbstractTimeRuler() = default;
 
         AbstractTimeRulerView* view() { return m_view; }
-        void scroll(qreal x);    //TODO : boarf boarf
+        void scroll(qreal x);
         int totalScroll() {return m_totalScroll;}
         TimeValue startPoint() const {return m_startPoint;}
 
