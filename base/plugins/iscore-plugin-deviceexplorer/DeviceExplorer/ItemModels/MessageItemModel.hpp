@@ -33,6 +33,8 @@ class MessageItemModel : public NodeBasedItemModel
         MessageItemModel& operator=(const iscore::Node&);
         MessageItemModel& operator=(iscore::Node&&);
 
+        // Returns a flattened list of all the messages in the tree.
+        iscore::MessageList flatten() const;
         const iscore::Node& rootNode() const override
         { return m_rootNode; }
         iscore::Node& rootNode() override

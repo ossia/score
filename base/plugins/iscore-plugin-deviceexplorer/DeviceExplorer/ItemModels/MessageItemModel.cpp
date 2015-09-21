@@ -39,6 +39,30 @@ MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
     return *this;
 }
 
+static void flatten_rec(iscore::MessageList& ml, const iscore::Node& node)
+{
+    if(node.is<iscore::AddressSettings>())
+    {
+        const auto& set = node.get<iscore::AddressSettings>();
+        if(hasOutput(set.ioType))
+        {
+            ml.append(iscore::message(node));
+        }
+    }
+
+    for(const auto& child : node)
+    {
+        flatten_rec(ml, child);
+    }
+}
+
+MessageList MessageItemModel::flatten() const
+{
+    iscore::MessageList ml;
+    flatten_rec(ml, m_rootNode);
+    return ml;
+}
+
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;
@@ -216,7 +240,7 @@ bool MessageItemModel::setData(
         return false;
 
     const auto& addr = n->get<iscore::AddressSettings>();
-    if(addr.ioType != IOType::InOut && addr.ioType != IOType::Out)
+    if(!hasOutput(addr.ioType))
         return false;
 
     auto col = Column(index.column());

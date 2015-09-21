@@ -29,11 +29,17 @@ class MacroCommandDispatcher : public ICommandDispatcher
         {
             if(m_aggregateCommand)
             {
-                SendStrategy::Simple::send(stack(), m_aggregateCommand);
-                m_aggregateCommand = nullptr;
+                if(m_aggregateCommand->count() != 0)
+                {
+                    SendStrategy::Simple::send(stack(), m_aggregateCommand.release());
+                }
+                else
+                {
+                    m_aggregateCommand.reset();
+                }
             }
         }
 
     protected:
-        iscore::AggregateCommand* m_aggregateCommand {};
+        std::unique_ptr<iscore::AggregateCommand> m_aggregateCommand;
 };

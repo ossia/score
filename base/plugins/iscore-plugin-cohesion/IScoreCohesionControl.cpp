@@ -9,7 +9,7 @@
 #include "base/plugins/iscore-plugin-scenario/source/Process/ScenarioModel.hpp"
 #include "base/plugins/iscore-plugin-scenario/source/Commands/Event/AddStateToEvent.hpp"
 #include "Singletons/DeviceExplorerInterface.hpp"
-
+#include "Automation/AutomationModel.hpp"
 // TODO Refactor in order to use the Node data structure instead.
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
@@ -137,6 +137,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
             l.push_back(DeviceExplorer::addressFromModelIndex(index));
         }
 
+        // TODO skip the ones that can't send messages or aren't int / double / float
         auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(*constraint), l};
         macro.submitCommand(cmd);
     }
@@ -146,7 +147,6 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 
 void IScoreCohesionControl::interpolateStates()
 {
-    /*
     using namespace std;
     // Fetch the selected constraints
     auto sel = currentDocument()->
@@ -177,49 +177,49 @@ void IScoreCohesionControl::interpolateStates()
             ? nullptr
             : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
 
+    auto checkType = [] (const QVariant& var) {
+        QMetaType::Type t = static_cast<QMetaType::Type>(var.type());
+        return t == QMetaType::Int
+            || t == QMetaType::Float
+            || t == QMetaType::Double;
+    };
     for(auto& constraint : selected_constraints)
     {
-        // TODO state collapsing if twice the same message ?
-        // Check the states similar between its start and end event
         const auto& startState = scenar->state(constraint->startState());
         const auto& endState = scenar->state(constraint->endState());
 
-        QList<Message> startMessages;
-        for(const auto& state : startState.states())
-        {
-            if(state.data().canConvert<Message>())
-            {
-                startMessages.push_back(state.data().value<Message>());
-            }
-            else if(state.data().canConvert<MessageList>())
-            {
-                startMessages += state.data().value<MessageList>();
-            }
-        }
-
-        QList<Message> endMessages;
-        for(auto& state : endState.states())
-        {
-            if(state.data().canConvert<Message>())
-            {
-                endMessages.push_back(state.data().value<Message>());
-            }
-            else if(state.data().canConvert<MessageList>())
-            {
-                endMessages += state.data().value<MessageList>();
-            }
-        }
+        iscore::MessageList startMessages = startState.messages().flatten();
+        iscore::MessageList endMessages = endState.messages().flatten();
 
         for(auto& message : startMessages)
         {
+            if(!checkType(message.value.val))
+                continue;
+
             auto it = std::find_if(begin(endMessages),
                                    end(endMessages),
                          [&] (const Message& arg) { return message.address == arg.address; });
 
             if(it != end(endMessages))
             {
+                if(!checkType((*it).value.val))
+                    continue;
+
+                auto has_existing_curve = std::find_if(
+                            constraint->processes.begin(),
+                            constraint->processes.end(),
+                            [&] (const Process& proc) {
+                   auto ptr = dynamic_cast<const AutomationModel*>(&proc);
+                   if(ptr && ptr->address() == message.address)
+                       return true;
+                   return false;
+                });
+
+                if(has_existing_curve != constraint->processes.end())
+                    continue;
+
                 auto cmd = new CreateCurveFromStates{
-                           iscore::IDocument::path(constraint),
+                           iscore::IDocument::path(*constraint),
                            message.address,
                            message.value.val.toDouble(),
                            (*it).value.val.toDouble()};
@@ -229,7 +229,6 @@ void IScoreCohesionControl::interpolateStates()
     }
 
     macro.commit();
-    */
 }
 
 

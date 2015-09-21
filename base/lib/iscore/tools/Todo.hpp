@@ -92,6 +92,12 @@ struct ptr
             impl = other;
         }
 
+        operator bool() const
+        { return impl; }
+
+        operator T*() const
+        { return impl; }
+
         auto operator*() const -> decltype(auto)
         {
             ISCORE_ASSERT(impl);
@@ -106,7 +112,7 @@ struct ptr
 
         void free()
         {
-            delete impl;
+            ::delete impl;
             impl = nullptr;
         }
 };

@@ -29,9 +29,7 @@ bool DeviceExplorerNode::isSelectable() const
 
 bool DeviceExplorerNode::isEditable() const
 {
-    return is<AddressSettings>()
-            && (get<AddressSettings>().ioType == IOType::InOut
-               ||  get<AddressSettings>().ioType == IOType::Out);
+    return is<AddressSettings>() && hasOutput(get<AddressSettings>().ioType);
 }
 
 iscore::Node* getNodeFromString(
@@ -127,7 +125,7 @@ void messageList(const Node& n,
 
         // Note : this is an arbitrary choice. Discuss with
         // the users and see repercussions in MessageItemModel.
-        if(stgs.ioType == IOType::InOut || stgs.ioType == IOType::Out)
+        if(hasOutput(stgs.ioType))
         {
             ml.push_back(message(n));
         }
