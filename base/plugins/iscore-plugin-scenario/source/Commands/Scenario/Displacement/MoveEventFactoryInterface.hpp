@@ -20,6 +20,8 @@ public:
             const TimeValue& newDate,
             ExpandMode mode) = 0;
 
+    virtual iscore::SerializableCommand* make() = 0;
+
     virtual ~MoveEventFactoryInterface() = default;
 
     /**

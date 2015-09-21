@@ -10,3 +10,8 @@ iscore::SerializableCommand* MoveEventClassicFactory::make(
 {
     return new MoveEvent<GoodOldDisplacementPolicy>(std::move(scenarioPath), eventId, newDate, mode);
 }
+
+SerializableCommand*MoveEventClassicFactory::make()
+{
+    return new MoveEvent<GoodOldDisplacementPolicy>();
+}

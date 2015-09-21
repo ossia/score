@@ -12,6 +12,8 @@ public:
             const TimeValue& newDate,
             ExpandMode mode);
 
+    iscore::SerializableCommand* make();
+
     virtual int priority()
     {
         // we set a low priority here to let plugins easily take over

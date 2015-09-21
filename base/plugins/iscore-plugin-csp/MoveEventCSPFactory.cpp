@@ -6,3 +6,8 @@ iscore::SerializableCommand* MoveEventCSPFactory::make(Path<ScenarioModel> &&sce
 {
     return new MoveEvent<CSPDisplacementPolicy>(std::move(scenarioPath), eventId, newDate, mode);
 }
+
+SerializableCommand*MoveEventCSPFactory::make()
+{
+    return new MoveEvent<CSPDisplacementPolicy>();
+}
