@@ -35,7 +35,7 @@ void OSSIADevice::updateAddress(const iscore::FullAddressSettings &settings)
 }
 
 
-void OSSIADevice::removeAddress(const iscore::Address& address)
+void OSSIADevice::removeNode(const iscore::Address& address)
 {
     using namespace OSSIA;
 

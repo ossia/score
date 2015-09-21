@@ -9,6 +9,7 @@
 #include "Commands/Insert.hpp"
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
+#include "Commands/Remove/RemoveAddress.hpp"
 #include "Commands/Remove.hpp"
 #include "Commands/RemoveNodes.hpp"
 #include "Commands/ReplaceDevice.hpp"
@@ -52,6 +53,7 @@ void DeviceExplorerControl::setupCommands()
             Move,
             Paste,
             Remove,
+            RemoveAddress,
             RemoveNodes,
             ReplaceDevice,
             UpdateAddressesValues

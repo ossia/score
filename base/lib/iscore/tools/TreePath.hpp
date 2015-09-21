@@ -25,12 +25,15 @@ template<typename T>
  * TODO : it should be feasible to add the caching of a QModelIndex or
  * something like this here.
  */
-class TreePath
+class TreePath : public QList<int>
 {
+    private:
+        using impl_type = QList<int>;
+
     public:
         TreePath() = default;
-        TreePath(const QList<int>& other):
-            m_path(other)
+        TreePath(const impl_type& other):
+            impl_type(other)
         {
 
         }
@@ -41,7 +44,7 @@ class TreePath
 
             while(iter.isValid())
             {
-                m_path.prepend(iter.row());
+                prepend(iter.row());
                 iter = iter.parent();
             }
         }
@@ -55,20 +58,20 @@ class TreePath
             auto iter = &node;
             while(iter && !iter->template is<InvisibleRootNodeTag>())
             {
-                m_path.prepend(iter->parent()->indexOfChild(iter));
+                prepend(iter->parent()->indexOfChild(iter));
                 iter = iter->parent();
             }
         }
 
         T* toNode(T* iter) const
         {
-            const int pathSize = m_path.size();
+            const int pathSize = size();
 
             for (int i = 0; i < pathSize; ++i)
             {
-                if (m_path.at(i) < iter->childCount())
+                if (at(i) < iter->childCount())
                 {
-                    iter = &iter->childAt(m_path.at(i));
+                    iter = &iter->childAt(at(i));
                 }
                 else
                 {
@@ -78,44 +81,6 @@ class TreePath
 
             return iter;
         }
-
-        void append(int i)
-        { m_path.append(i); }
-
-        void prepend(int i)
-        { m_path.prepend(i); }
-
-        const int& at(int i) const
-        { return m_path.at(i); }
-
-        int &back()
-        { return m_path.back(); }
-
-        int size() const
-        { return m_path.size(); }
-        bool empty() const
-        { return m_path.empty(); }
-
-        void removeLast()
-        { m_path.removeLast(); }
-
-        void clear()
-        { m_path.clear(); }
-
-        void reserve(int size)
-        { m_path.reserve(size); }
-
-        const QList<int>& toList() const
-        { return m_path; }
-
-        operator ref<QList<int>>()
-        { return m_path; }
-
-        operator cref<QList<int>>() const
-        { return m_path; }
-
-    private:
-        QList<int> m_path;
 };
 
 template<typename T>

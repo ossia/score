@@ -164,12 +164,11 @@ void DeviceExplorerModel::updateDevice(
 
 void DeviceExplorerModel::addAddress(
         Node* parentNode,
-        const iscore::AddressSettings &addressSettings)
+        const iscore::AddressSettings& addressSettings,
+        int row)
 {
     ISCORE_ASSERT(parentNode);
     ISCORE_ASSERT(parentNode != &m_rootNode);
-
-    int row = parentNode->childCount(); //insert as last child
 
     Node* grandparent = parentNode->parent();
     ISCORE_ASSERT(grandparent);

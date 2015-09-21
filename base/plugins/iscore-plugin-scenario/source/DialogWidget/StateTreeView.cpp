@@ -62,7 +62,7 @@ MessageTreeView::MessageTreeView(
         QWidget* parent):
     QTreeView{parent},
     m_model{const_cast<StateModel*>(&model)}, // TODO sorry o lord for I have sinned
-    m_devExplorer{devexplorer},
+    //m_devExplorer{devexplorer},
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     setAllColumnsShowFocus(true);

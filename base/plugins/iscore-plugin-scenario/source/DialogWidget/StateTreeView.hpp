@@ -45,7 +45,7 @@ class MessageTreeView :  public QTreeView
 
         QAction* m_removeNodesAction{};
         StateModel* m_model{};
-        DeviceExplorerModel* m_devExplorer{};
+        //DeviceExplorerModel* m_devExplorer{};
 
         CommandDispatcher<> m_dispatcher;
 };

@@ -51,7 +51,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
     ObjectPath path{std::move(v)};
     path.m_cache = const_cast<QObject*>(target_object);
 
-    return std::move(path);
+    return path;
 }
 
 QString ObjectPath::toString() const

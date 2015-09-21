@@ -13,7 +13,7 @@ class OSSIADevice : public DeviceInterface
     public:
         void addAddress(const iscore::FullAddressSettings& settings) override;
         void updateAddress(const iscore::FullAddressSettings& address) override;
-        void removeAddress(const iscore::Address& path) override;
+        void removeNode(const iscore::Address& path) override;
 
         // Note : canRefresh is false by default and has to be set
         // to true explicitely in subclasses that do support refreshing.

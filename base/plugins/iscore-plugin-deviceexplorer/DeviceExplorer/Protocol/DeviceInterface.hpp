@@ -25,7 +25,7 @@ class DeviceInterface : public QObject
 
         virtual void addAddress(const iscore::FullAddressSettings& address) = 0;
         virtual void updateAddress(const iscore::FullAddressSettings& address) = 0;
-        virtual void removeAddress(const iscore::Address& path) = 0;
+        virtual void removeNode(const iscore::Address& path) = 0;
 
         // Execution API... Maybe we don't need it here.
         virtual void sendMessage(iscore::Message mess) = 0;

@@ -45,6 +45,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/LoadDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove/RemoveAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Update/UpdateAddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Update/UpdateDeviceSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/AddMessagesToModel.cpp"

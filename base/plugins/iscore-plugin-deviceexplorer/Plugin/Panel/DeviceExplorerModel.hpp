@@ -85,7 +85,8 @@ class DeviceExplorerModel : public NodeBasedItemModel
 
         void addAddress(
                 iscore::Node * parentNode,
-                const iscore::AddressSettings& addressSettings);
+                const iscore::AddressSettings& addressSettings,
+                int row);
         void updateAddress(
                 iscore::Node * node,
                 const iscore::AddressSettings& addressSettings);

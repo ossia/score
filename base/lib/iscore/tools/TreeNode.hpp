@@ -193,6 +193,17 @@ class TreeNode : public DataType
             m_parent = parent;
         }
 
+        template<typename Fun>
+        void visit(Fun f)
+        {
+            f(*this);
+
+            for(const auto& child : m_children)
+            {
+                child.visit(f);
+            }
+        }
+
     private:
         TreeNode* m_parent {};
         std::vector<TreeNode> m_children;
