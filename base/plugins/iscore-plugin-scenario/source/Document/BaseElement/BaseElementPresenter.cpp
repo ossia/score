@@ -68,6 +68,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
+    con(model().baseConstraint().duration, &ConstraintDurations::defaultDurationChanged,
+            m_mainTimeRuler, &TimeRulerPresenter::setDuration);
 
     // Setup of the state machine.
     m_stateMachine = new BaseScenarioStateMachine{this};
