@@ -50,6 +50,8 @@ iscore::Value ToValue(const OSSIA::Value *val)
     if(!val)
         return iscore::Value::fromVariant(v);
 
+    // TODO this should be a dynamic_cast every time
+    // for safety ?
     switch(val->getType())
     {
         case OSSIA::Value::Type::IMPULSE:

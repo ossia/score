@@ -86,28 +86,77 @@ boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& addre
 
 void OSSIADevice::setListening(const iscore::Address& addr, bool b)
 {
-    auto n = getNodeFromPath(addr.path, m_dev.get());
-
-    auto ossia_addr = n->getAddress();
-    if(!ossia_addr)
-        return;
-
+    // First check if the address is already listening
+    // so that we don't have to go through the tree.
     auto cb_it = m_callbacks.find(addr);
-    if(b && (cb_it == m_callbacks.end()))
+
+    std::shared_ptr<OSSIA::Address> ossia_addr;
+    if(cb_it == m_callbacks.end())
     {
-        m_callbacks.insert({
-                    addr,
-                    ossia_addr->addCallback([=] (const OSSIA::Value* val) {
-            emit valueUpdated(addr, OSSIA::convert::ToValue(val));
-        })});
+        auto n = getNodeFromPath(addr.path, m_dev.get());
+        ossia_addr = n->getAddress();
+        if(!ossia_addr)
+            return;
     }
     else
     {
+        ossia_addr = cb_it->second.first;
+    }
+
+    // If we want to enable listening
+    // and the address wasn't already listening
+    if(b)
+    {
+        if(cb_it == m_callbacks.end())
+        {
+            m_callbacks.insert(
+            {
+                addr,
+                {
+                     ossia_addr,
+                     ossia_addr->addCallback([=] (const OSSIA::Value* val)
+                      { emit valueUpdated(addr, OSSIA::convert::ToValue(val)); })
+                }
+            });
+        }
+    }
+    else
+    {
+        // If we can disable listening
         if(cb_it != m_callbacks.end())
         {
-            ossia_addr->removeCallback(cb_it->second);
+            ossia_addr->removeCallback(cb_it->second.second);
             m_callbacks.erase(cb_it);
         }
+    }
+}
+
+std::vector<iscore::Address> OSSIADevice::listening() const
+{
+    std::vector<iscore::Address> addrs;
+    addrs.reserve(m_callbacks.size());
+
+    for(const auto& elt : m_callbacks)
+    {
+        addrs.push_back(elt.first);
+    }
+
+    return addrs;
+}
+
+void OSSIADevice::replaceListening(const std::vector<iscore::Address>& addresses)
+{
+    for(const auto& elt : m_callbacks)
+    {
+        // addr -> removeCallback( callback );
+        elt.second.first->removeCallback(elt.second.second);
+    }
+    m_callbacks.clear();
+
+    for(const auto& addr : addresses)
+    {
+        ISCORE_ASSERT(addr.device == this->settings().name);
+        setListening(addr, true);
     }
 }
 

@@ -24,8 +24,13 @@ class CurveModel : public IdentifiedObject<CurveModel>
         }
 
         CurveModel* clone(const Id<CurveModel>&, QObject* parent);
+
+        // These two will create points
         void addSegment(CurveSegmentModel* m);
         void addSegments(QVector<CurveSegmentModel*> m);
+
+        // Won't create points, plain insertion.
+        void insertSegment(CurveSegmentModel*);
 
         // Here we don't pass an id because it's more efficient
         void removeSegment(CurveSegmentModel* m);

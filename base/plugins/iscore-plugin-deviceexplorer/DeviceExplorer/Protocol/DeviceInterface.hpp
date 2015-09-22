@@ -23,6 +23,8 @@ class DeviceInterface : public QObject
         virtual iscore::Node refresh() { return {}; }
         virtual boost::optional<iscore::Value> refresh(const iscore::Address&) { return {}; }
         virtual void setListening(const iscore::Address&, bool) { }
+        virtual void replaceListening(const std::vector<iscore::Address>&) { }
+        virtual std::vector<iscore::Address> listening() const { return {}; }
 
         virtual void addAddress(const iscore::FullAddressSettings&) = 0;
         virtual void updateAddress(const iscore::FullAddressSettings&) = 0;
