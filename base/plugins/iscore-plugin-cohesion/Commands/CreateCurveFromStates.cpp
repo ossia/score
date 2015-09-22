@@ -4,7 +4,7 @@
 #include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Automation/AutomationModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Curve/CurveModel.hpp"
-#include "base/plugins/iscore-plugin-curve/Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 CreateCurveFromStates::CreateCurveFromStates():
     iscore::SerializableCommand{
         "IScoreCohesionControl",

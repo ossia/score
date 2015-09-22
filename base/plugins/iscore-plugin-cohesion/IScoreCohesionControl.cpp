@@ -241,7 +241,7 @@ void IScoreCohesionControl::interpolateStates()
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 // TODO moveme
 class Record : public iscore::AggregateCommand
 {

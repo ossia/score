@@ -1,5 +1,5 @@
 #pragma once
-#include "CurveSegmentModel.hpp"
+#include "Curve/Segment/CurveSegmentModel.hpp"
 
 class GammaCurveSegmentModel : public CurveSegmentModel
 {

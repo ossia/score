@@ -11,9 +11,9 @@
 
 
 #include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "Curve/Segment/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/SinCurveSegmentModel.hpp"
-#include "Curve/Segment/GammaCurveSegmentModel.hpp"
+#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Sin/SinCurveSegmentModel.hpp"
+#include "Curve/Segment/Gamma/GammaCurveSegmentModel.hpp"
 
 DEFINE_CURVE_FACTORY(LinearCurveSegmentFactory, "Linear", LinearCurveSegmentModel)
 DEFINE_CURVE_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmentModel)

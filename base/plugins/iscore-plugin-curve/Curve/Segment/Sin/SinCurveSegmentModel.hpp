@@ -1,13 +1,13 @@
 #pragma once
-#include "CurveSegmentModel.hpp"
-// ALl between zero and one.
-class LinearCurveSegmentModel : public CurveSegmentModel
+#include "Curve/Segment/CurveSegmentModel.hpp"
+
+class SinCurveSegmentModel : public CurveSegmentModel
 {
     public:
         using CurveSegmentModel::CurveSegmentModel;
 
         template<typename Impl>
-        LinearCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
+        SinCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveSegmentModel {vis, parent}
         {
             vis.writeTo(*this);
@@ -24,4 +24,13 @@ class LinearCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) const override;
         double valueAt(double x) const override;
+
+        boost::optional<double> verticalParameter() const override;
+        boost::optional<double> horizontalParameter() const override;
+        void setVerticalParameter(double p) override;
+        void setHorizontalParameter(double p) override;
+
+        double freq = 5;
+        double ampl = 0.6;
+
 };

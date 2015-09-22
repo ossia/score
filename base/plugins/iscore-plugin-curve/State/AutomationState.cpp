@@ -3,7 +3,7 @@
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
-#include "Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 AutomationState::AutomationState(
         const AutomationModel& model,
