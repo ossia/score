@@ -11,9 +11,9 @@ public:
 
     SerializableMoveEvent* make();
 
-    virtual int priority()
+    virtual int priority()//TODO make higher priority to use it when it will be working
     {
-         return 10;
+         return -1;
     }
 
     QString name() const override

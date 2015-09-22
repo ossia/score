@@ -11,46 +11,56 @@ CSPDisplacementPolicy::computeDisplacement(
         ElementsProperties& elementsProperties)
 {
     // get the csp scenario
-    CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly);
 
-    auto& solver = cspScenario->getSolver();
-
-    // get the corresponding CSP elements
-    for(auto curDraggedTimeNodeId : draggedElements)
+    if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
-        auto curDraggedCspTimeNode = cspScenario->timenodes[curDraggedTimeNodeId];
 
-        // suggest their new values
-        auto newDate = curDraggedCspTimeNode->getDate().value() + deltaTime.msec();
-        solver.suggestValue(curDraggedCspTimeNode->getDate(), newDate);
-    }
 
-    // solve system
-    solver.updateVariables();
 
-    // look for changes // TODO find a more efficient way of doing that
+        auto& solver = cspScenario->getSolver();
 
-    // - in timenodes :
-    QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario->timenodes);
-    while (timeNodeIterator.hasNext())
-    {
-        auto curTimeNodeId = timeNodeIterator.key();
-        auto curCspTimenode = timeNodeIterator.value();
-
-        // if update
-        if(curCspTimenode->dateChanged())
+        // get the corresponding CSP elements
+        for(auto curDraggedTimeNodeId : draggedElements)
         {
-            // if timenode NOT already in element properties, create new element properties and set the old date
-            if(! elementsProperties.timenodes.contains(curTimeNodeId))
-            {
-                elementsProperties.timenodes[curTimeNodeId] = TimenodeProperties{};
-                elementsProperties.timenodes[curTimeNodeId].oldDate = *(curCspTimenode->m_iscoreDate);
-            }
+            auto curDraggedCspTimeNode = cspScenario->timenodes[curDraggedTimeNodeId];
 
-            // put the new date
-            elementsProperties.timenodes[curTimeNodeId].newDate = TimeValue::fromMsecs(curCspTimenode->m_date.value()) + deltaTime;
+            // suggest their new values
+            auto newDate = curDraggedCspTimeNode->getDate().value() + deltaTime.msec();
+            solver.suggestValue(curDraggedCspTimeNode->getDate(), newDate);
         }
-    }
 
-    // - in time relations :
+        // solve system
+        solver.updateVariables();
+
+        // look for changes // TODO find a more efficient way of doing that
+
+        // - in timenodes :
+        QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario->timenodes);
+        while (timeNodeIterator.hasNext())
+        {
+            timeNodeIterator.next();
+
+            auto curTimeNodeId = timeNodeIterator.key();
+            auto curCspTimenode = timeNodeIterator.value();
+
+            // if update
+            if(curCspTimenode->dateChanged())
+            {
+                // if timenode NOT already in element properties, create new element properties and set the old date
+                if(! elementsProperties.timenodes.contains(curTimeNodeId))
+                {
+                    elementsProperties.timenodes[curTimeNodeId] = TimenodeProperties{};
+                    elementsProperties.timenodes[curTimeNodeId].oldDate = *(curCspTimenode->m_iscoreDate);
+                }
+
+                // put the new date
+                elementsProperties.timenodes[curTimeNodeId].newDate = TimeValue::fromMsecs(curCspTimenode->m_date.value()) + deltaTime;
+            }
+        }
+
+        // - in time relations :
+    }else
+    {
+        std::runtime_error("No CSP scenario found for this model");
+    }
 }

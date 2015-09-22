@@ -64,8 +64,7 @@ CSPScenario::CSPScenario(const BaseScenario& baseScenario, QObject *parent)
     on_timeNodeCreated(baseScenario.endTimeNode());
 
     // insert existing constraints
-    auto& constraintModel = baseScenario.baseConstraint();
-    on_constraintCreated(constraintModel);
+    on_constraintCreated(baseScenario.baseConstraint());
 }
 
 CSPScenario::~CSPScenario()
@@ -98,7 +97,7 @@ const ScenarioInterface *CSPScenario::getScenario() const
 CSPTimeNode* CSPScenario::insertTimenode(const Id<TimeNodeModel> &timeNodeId)
 {
 
-    // if timenode not already here, put ot in
+    // if timenode not already here, put it in
     if(! timenodes.contains(timeNodeId))
     {
         auto cspTimenode = new CSPTimeNode(*this, timeNodeId);

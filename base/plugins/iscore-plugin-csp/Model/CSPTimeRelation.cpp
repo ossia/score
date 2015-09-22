@@ -50,7 +50,7 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     {
         if(auto scenario = dynamic_cast<ScenarioModel*>(&process))
         {
-            m_subScenarios.push_back(new CSPScenario(*scenario, this));
+            m_subScenarios.push_back(new CSPScenario(*scenario, scenario));
         }
     }
 
