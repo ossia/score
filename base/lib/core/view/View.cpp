@@ -29,6 +29,7 @@ View::View(QObject* parent) :
                  static_cast<int>(rect.height() * 0.75));
 
     setCentralWidget(m_tabWidget);
+    m_tabWidget->tabBar()->setDocumentMode(true);
     connect(m_tabWidget, &QTabWidget::currentChanged,
             [&] (int index) {
            auto view = dynamic_cast<DocumentView*>(m_tabWidget->widget(index));

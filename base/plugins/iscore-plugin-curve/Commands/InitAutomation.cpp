@@ -13,7 +13,7 @@ InitAutomation::InitAutomation(
     iscore::SerializableCommand{
         factoryName(), commandName(), description()},
     m_path{path},
-    m_addr{newaddr},
+    m_addr(newaddr),
     m_newMin{newmin},
     m_newMax{newmax},
     m_segments{segments}
