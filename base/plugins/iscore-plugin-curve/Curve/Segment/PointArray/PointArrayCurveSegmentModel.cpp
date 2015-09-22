@@ -1,7 +1,6 @@
 #include "PointArrayCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 
-// TODO put in nice folders
 CurveSegmentModel*PointArrayCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject *parent) const
@@ -46,7 +45,6 @@ void PointArrayCurveSegmentModel::updateData(int numInterp) const
         // Scale all the points between 0 / 1 in <->
         // and the local min / max in vertical
 
-        // m_points must be sorted!!
         for(const auto& elt : m_points)
         {
             m_data.push_back(
@@ -58,7 +56,8 @@ void PointArrayCurveSegmentModel::updateData(int numInterp) const
 
 double PointArrayCurveSegmentModel::valueAt(double x) const
 {
-    return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
+    ISCORE_TODO;
+    return 0;
 }
 
 void PointArrayCurveSegmentModel::addPoint(double x, double y)
@@ -97,30 +96,22 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
 
     m_valid = false;
     emit dataChanged();
-    /*
+}
 
+std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentModel::piecewise() const
+{
+    const auto& pts = data();
+    std::vector<std::unique_ptr<LinearCurveSegmentModel> > vec;
+    vec.reserve(pts.size() - 1);
 
-    if(y < 0)
+    updateData(0);
+
+    for(int i = 0; i < pts.size() - 1; i++)
     {
-       auto oldmin = min;
-       // All points will be scaled up a bit.
-       // Note : this has to edit all the other curve segments, too.
-       for(auto& pt : m_points)
-       {
-
-       }
-
-       y = 0;
+        auto cmd = std::make_unique<LinearCurveSegmentModel>(Id<CurveSegmentModel>(i), nullptr);
+        cmd->setStart(pts[i]);
+        cmd->setEnd(pts[i+1]);
     }
 
-    if(y > 1)
-    {
-        auto oldmax = max;
-        // All points will be down up a bit.
-
-        y = 1;
-    }
-
-    m_points.insert(x, y);
-    */
+    return vec;
 }
