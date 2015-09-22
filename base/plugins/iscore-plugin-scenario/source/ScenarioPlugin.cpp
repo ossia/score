@@ -65,10 +65,10 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
              [&] (iscore::FactoryInterface* fact)
              { ScenarioControl::instance()->processList()->registerProcess(fact); }
             },
-            {ScenarioContextMenuFactory::factoryName(),
+            {ScenarioActionsFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
              {
-                auto context_menu_fact = static_cast<ScenarioContextMenuFactory*>(fact);
+                auto context_menu_fact = static_cast<ScenarioActionsFactory*>(fact);
                 for(auto& act : context_menu_fact->make(ScenarioControl::instance()))
                 {
                     ScenarioControl::instance()->pluginActions().push_back(act);
@@ -85,9 +85,11 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
         return {new ScenarioFactory};
     }
 
-    if(factoryName == ScenarioContextMenuFactory::factoryName())
+    if(factoryName == ScenarioActionsFactory::factoryName())
     {
-        return {new ScenarioCommonContextMenuFactory};
+        // new ScenarioCommonActionsFactory is instantiated in Control
+        // because other plug ins need it.
+        return {};
     }
 
 #if defined(ISCORE_INSPECTOR_LIB)

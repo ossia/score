@@ -76,7 +76,7 @@ void RecordManager::stopRecording()
         for(const auto& segment : data)
         {
             Serializer<DataStream> s(&newSegments[i++]);
-            s.readFrom(*segment);
+            s.readFrom(*static_cast<CurveSegmentModel*>(segment.get()));
         }
 
         // Add a point with the last state.
@@ -95,14 +95,9 @@ void RecordManager::stopRecording()
     }
 
     // Commit
-    commit();
+    m_dispatcher->commit();
 
     m_explorer->deviceModel().resumeListening(m_savedListening);
-}
-
-void RecordManager::commit()
-{
-    m_dispatcher->commit();
 }
 
 void RecordManager::initRecording(ScenarioModel& scenar, ScenarioPoint pt)
@@ -152,9 +147,7 @@ void RecordManager::initRecording(ScenarioModel& scenar, ScenarioPoint pt)
 
     // Get the clicked point in scenario and create a state + constraint + state there
     // Create an automation + a rack + a slot + process views for all automations.
-    qDebug() << "Creating at" << pt.date << pt.y;
-    pt.date = TimeValue::fromMsecs(10000);
-    auto default_end_date = pt.date + TimeValue::fromMsecs(1000);
+    auto default_end_date = pt.date;
     auto cmd_start = new CreateTimeNode_Event_State{
             scenar,
             pt.date,

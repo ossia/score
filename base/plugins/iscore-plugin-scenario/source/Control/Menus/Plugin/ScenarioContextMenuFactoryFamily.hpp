@@ -2,11 +2,12 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 
 class ScenarioControl;
-class AbstractMenuActions;
-class ScenarioContextMenuFactory : public iscore::FactoryInterface
+class ScenarioActions;
+// TODO rename me
+class ScenarioActionsFactory : public iscore::FactoryInterface
 {
     public:
         static QString factoryName() { return "ScenarioContextMenu"; }
-        virtual QList<AbstractMenuActions*> make(ScenarioControl*) = 0;
+        virtual QList<ScenarioActions*> make(ScenarioControl*) = 0;
 };
 

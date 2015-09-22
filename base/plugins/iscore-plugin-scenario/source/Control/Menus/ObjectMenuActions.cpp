@@ -33,7 +33,7 @@
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioControl* parent) :
-    AbstractMenuActions(menuElt, parent)
+    ScenarioActions(menuElt, parent)
 {
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
@@ -134,7 +134,7 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 }
 
-void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&)
+void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
 {
     if(sel.empty())
         return;
@@ -263,7 +263,7 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     emit dispatcher.submitCommand(cmd);
 }
 
-QVector<QAction *> ObjectMenuActions::actions()
+QList<QAction*> ObjectMenuActions::actions()
 {
     return {
             m_removeElements,

@@ -100,17 +100,25 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
 
 std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentModel::piecewise() const
 {
+    m_valid = false;
+    updateData(0);
     const auto& pts = data();
     std::vector<std::unique_ptr<LinearCurveSegmentModel> > vec;
     vec.reserve(pts.size() - 1);
 
-    updateData(0);
 
     for(int i = 0; i < pts.size() - 1; i++)
     {
         auto cmd = std::make_unique<LinearCurveSegmentModel>(Id<CurveSegmentModel>(i), nullptr);
         cmd->setStart(pts[i]);
         cmd->setEnd(pts[i+1]);
+        if(i > 0)
+        {
+            cmd->setPrevious(Id<CurveSegmentModel>(i-1));
+            vec.back()->setFollowing(Id<CurveSegmentModel>(i));
+        }
+        vec.push_back(std::move(cmd));
+
     }
 
     return vec;

@@ -47,12 +47,12 @@ void InitAutomation::redo()
     curve.changed();
 }
 
-void InitAutomation::serializeImpl(QDataStream&) const
+void InitAutomation::serializeImpl(QDataStream& s) const
 {
-    ISCORE_TODO;
+    s << m_path << m_addr << m_newMin << m_newMax << m_segments;
 }
 
-void InitAutomation::deserializeImpl(QDataStream&)
+void InitAutomation::deserializeImpl(QDataStream& s)
 {
-    ISCORE_TODO;
+    s << m_path << m_addr << m_newMin << m_newMax << m_segments;
 }

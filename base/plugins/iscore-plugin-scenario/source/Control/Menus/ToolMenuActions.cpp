@@ -24,7 +24,7 @@ QAction* makeToolbarAction(const QString& name,
 
 
 ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent) :
-    AbstractMenuActions{menuElt, parent}
+    ScenarioActions{menuElt, parent}
 {
     m_scenarioToolActionGroup = new QActionGroup{this};
     m_scenarioToolActionGroup->setDisabled(true);
@@ -146,7 +146,7 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     }
 }
 
-void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&)
+void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
 {
     auto tool = menu->addMenu("Tool");
     tool->addActions(toolActions());

@@ -49,11 +49,19 @@ IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     connect(scen, &ScenarioControl::stopRecording,
             this, &IScoreCohesionControl::stopRecord);
 
-    auto stop = new QAction{"stop", this};
-    stop->setShortcut(QKeySequence("Ctrl+Alt+I"));
-    stop->setShortcutContext(Qt::ApplicationShortcut);
-    connect(stop, &QAction::triggered, this, &IScoreCohesionControl::stopRecord );
 
+
+    auto acts = scen->actions();
+    for(const auto& act : acts)
+    {
+        if(act->objectName() == "Stop")
+        {
+            connect(act, &QAction::triggered,
+                    this, [&] {
+                stopRecord();
+            });
+        }
+    }
 
     setupCommands();
 
@@ -104,12 +112,12 @@ QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
 }
 
 
-struct IScoreionCohesionCommandFactory
+struct IScoreCohesionCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
-CommandGeneratorMap IScoreionCohesionCommandFactory::map;
+CommandGeneratorMap IScoreCohesionCommandFactory::map;
 
 void IScoreCohesionControl::setupCommands()
 {
@@ -118,15 +126,16 @@ void IScoreCohesionControl::setupCommands()
             CreateCurvesFromAddresses,
             CreateCurvesFromAddressesInConstraints,
             InterpolateMacro,
+            Record,
             CreateStatesFromParametersInEvents
             >,
             boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter<IScoreionCohesionCommandFactory>());
+            >(CommandGeneratorMapInserter<IScoreCohesionCommandFactory>());
 }
 
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
-    return PluginControlInterface::instantiateUndoCommand<IScoreionCohesionCommandFactory>(name, data);
+    return PluginControlInterface::instantiateUndoCommand<IScoreCohesionCommandFactory>(name, data);
 }
 
 void IScoreCohesionControl::createCurvesFromAddresses()
@@ -262,8 +271,11 @@ void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
 
 void IScoreCohesionControl::stopRecord()
 {
-    m_recManager->stopRecording();
-    m_recManager->commit();
+    if(m_recManager)
+    {
+        m_recManager->stopRecording();
+        m_recManager.release();
+    }
 }
 
 

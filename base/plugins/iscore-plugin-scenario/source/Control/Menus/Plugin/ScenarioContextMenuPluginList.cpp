@@ -1,7 +1,7 @@
 #include "ScenarioContextMenuPluginList.hpp"
 #include "ScenarioContextMenuFactoryFamily.hpp"
 
-const std::vector<ScenarioContextMenuFactory *> &ScenarioContextMenuPluginList::contextMenus() const
+const std::vector<ScenarioActionsFactory *> &ScenarioContextMenuPluginList::contextMenus() const
 {
     return m_factories;
 }
@@ -9,5 +9,5 @@ const std::vector<ScenarioContextMenuFactory *> &ScenarioContextMenuPluginList::
 void ScenarioContextMenuPluginList::registerContextMenu(
         iscore::FactoryInterface *f)
 {
-    m_factories.push_back(static_cast<ScenarioContextMenuFactory*>(f));
+    m_factories.push_back(static_cast<ScenarioActionsFactory*>(f));
 }

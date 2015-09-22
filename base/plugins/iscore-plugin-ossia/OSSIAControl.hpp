@@ -29,4 +29,6 @@ class OSSIAControl : public iscore::PluginControlInterface
     private:
         OSSIAConstraintElement &baseConstraint() const;
         std::shared_ptr<OSSIA::Device> m_localDevice;
+
+        bool m_playing{false};
 };

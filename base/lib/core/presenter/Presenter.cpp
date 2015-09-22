@@ -140,6 +140,8 @@ void Presenter::setCurrentDocument(Document* doc)
     {
         emit ctrl->documentChanged();
     }
+
+    emit currentDocumentChanged(doc);
 }
 
 bool Presenter::closeDocument(Document* doc)

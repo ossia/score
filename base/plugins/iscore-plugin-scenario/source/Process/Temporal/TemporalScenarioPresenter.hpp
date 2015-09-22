@@ -94,7 +94,7 @@ class TemporalScenarioPresenter : public LayerPresenter
         void keyPressed(int);
         void keyReleased(int);
 
-        void contextMenuAsked(const QPoint&);
+        void contextMenuAsked(const QPoint&, const QPointF&);
 
     public:
         // Model -> view

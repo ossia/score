@@ -4,22 +4,22 @@
 
 #include "DialogWidget/AddProcessDialog.hpp"
 
-class ObjectMenuActions : public AbstractMenuActions
+class ObjectMenuActions : public ScenarioActions
 {
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
-        void fillContextMenu(QMenu* menu, const Selection&, LayerPresenter* pres, const QPoint&) override;
+        void fillContextMenu(QMenu* menu, const Selection&, LayerPresenter* pres, const QPoint&, const QPointF&) override;
         void makeToolBar(QToolBar*) override;
         void setEnabled(bool) override;
 
+        QList<QAction*> actions();
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
         void writeJsonToSelectedElements(const QJsonObject &obj);
         void addProcessInConstraint(QString);
 
-        QVector<QAction*> actions();
 
         QAction* m_removeElements;
         QAction *m_clearElements;
