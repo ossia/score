@@ -20,9 +20,13 @@ RackWidget::RackWidget(ConstraintInspectorWidget* parent) :
         m_model {parent->model() },
         m_parent {parent}
 {
-    QGridLayout* lay = new QGridLayout{this};
+    QVBoxLayout* mainLay = new QVBoxLayout{this};
+    QWidget* mainWidg = new QWidget;
+    mainLay->addWidget(mainWidg);
+
+    QGridLayout* lay = new QGridLayout{mainWidg};
     lay->setContentsMargins(1, 1, 0, 0);
-    this->setLayout(lay);
+    mainWidg->setLayout(lay);
 
     // Button
     QToolButton* addButton = new QToolButton{this};
@@ -54,6 +58,10 @@ void RackWidget::viewModelsChanged()
     m_comboBoxesWidget = new QWidget{this};
     auto lay = new QGridLayout;
     int i = 0;
+
+    lay->addWidget(new QLabel{"View Model"}, i, 0);
+    lay->addWidget(new QLabel{"Displayed Rack"}, i, 1);
+    i++;
 
     for(auto vm : m_model.viewModels())
     {

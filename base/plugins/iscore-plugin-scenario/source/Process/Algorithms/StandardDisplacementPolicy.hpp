@@ -99,7 +99,7 @@ public:
 
             if(!(curConstraintToUpdate.duration.defaultDuration() - newDuration).isZero())
             {
-                ConstraintDurations::Algorithms::setDurationInBounds(curConstraintToUpdate, newDuration);
+                ConstraintDurations::Algorithms::changeAllDurations(curConstraintToUpdate, newDuration);
                 for(auto& process : curConstraintToUpdate.processes)
                 {
                     scaleMethod(process, newDuration);

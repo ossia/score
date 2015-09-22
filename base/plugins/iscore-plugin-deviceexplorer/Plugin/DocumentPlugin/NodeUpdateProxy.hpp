@@ -38,15 +38,33 @@ class NodeUpdateProxy
 
         void removeDevice(const iscore::DeviceSettings& dev);
 
+        /**
+         * @brief addAddress Adds a single address in the tree
+         * @param parentPath Path to the parent
+         * @param settings Informations of the address
+         *
+         * Used to add a new address (after input from user for instance)
+         */
         void addAddress(
                 const iscore::NodePath& parentPath,
-                const iscore::AddressSettings& settings);
+                const iscore::AddressSettings& settings,
+                int row);
+
+        /**
+         * @brief addNode Adds a node hierarchy in the tree
+         * @param parentPath Path to the parent
+         * @param node The node to insert.
+         */
+        void addNode(
+                const iscore::NodePath& parentPath,
+                const iscore::Node& node,
+                int row);
 
         void updateAddress(
                 const iscore::NodePath& nodePath,
                 const iscore::AddressSettings& settings);
 
-        void removeAddress(
+        void removeNode(
                 const iscore::NodePath& parentPath,
                 const iscore::AddressSettings& settings);
 
@@ -56,4 +74,12 @@ class NodeUpdateProxy
         void updateRemoteValue(
                 const iscore::Address&,
                 const iscore::Value&);
+        void updateRemoteValues(
+                const iscore::NodeList&);
+
+    private:
+        void rec_addNode(
+                iscore::NodePath parentPath,
+                const iscore::Node& node,
+                int row);
 };

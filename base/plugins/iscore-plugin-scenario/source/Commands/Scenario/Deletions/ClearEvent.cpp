@@ -18,24 +18,24 @@ ClearState::ClearState(Path<StateModel>&& path) :
 {
     const auto& state = m_path.find();
 
-    m_serializedStates = marshall<DataStream>(state.states().rootNode());
+    m_serializedStates = marshall<DataStream>(state.messages().rootNode());
 }
 
 void ClearState::undo()
 {
     auto& state = m_path.find();
-    iscore::StateNode states;
+    iscore::Node states;
     QDataStream s(m_serializedStates);
     s >> states;
 
-    state.states() = states;
+    state.messages() = states;
 }
 
 void ClearState::redo()
 {
     auto& state = m_path.find();
 
-    state.states() = iscore::StateNode{};
+    state.messages() = iscore::Node{};
 }
 
 void ClearState::serializeImpl(QDataStream& s) const

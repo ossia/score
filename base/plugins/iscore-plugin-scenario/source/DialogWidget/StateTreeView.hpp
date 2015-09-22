@@ -4,7 +4,7 @@
 
 class StateModel;
 class DeviceExplorerModel;
-
+/*
 class StateTreeView : public QTreeView
 {
     public:
@@ -21,6 +21,35 @@ class StateTreeView : public QTreeView
 
         CommandDispatcher<> m_dispatcher;
 };
+*/
+// TODO MOVEME
+namespace iscore
+{
+class MessageItemModel;
+}
+class MessageTreeView :  public QTreeView
+{
+    public:
+        MessageTreeView(
+                const StateModel& model,
+                DeviceExplorerModel* devexplorer,
+                QWidget* parent);
+
+        iscore::MessageItemModel& model() const;
+
+        void removeNodes();
+
+    private:
+        //void mouseDoubleClickEvent(QMouseEvent* ev) override;
+        void contextMenuEvent(QContextMenuEvent*) override;
+
+        QAction* m_removeNodesAction{};
+        StateModel* m_model{};
+        //DeviceExplorerModel* m_devExplorer{};
+
+        CommandDispatcher<> m_dispatcher;
+};
+
 
 /*
 class StateTreeWidget : public QWidget

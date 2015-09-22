@@ -5,7 +5,7 @@
 #include "Curve/Point/CurvePointModel.hpp"
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
-#include "Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 CreatePointCommandObject::CreatePointCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
     CurveCommandObjectBase{presenter, stack}

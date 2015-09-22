@@ -19,3 +19,29 @@ class CurveSegmentFactory : public iscore::FactoryInterface
                 const VisitorVariant& data,
                 QObject* parent) = 0;
 };
+
+template<typename T>
+class CurveSegmentFactory_T : public CurveSegmentFactory
+{
+    public:
+        CurveSegmentModel *make(
+                const Id<CurveSegmentModel>& id,
+                QObject* parent) override
+        {
+            return new T{id, parent};
+        }
+
+        CurveSegmentModel *load(
+                const VisitorVariant& vis,
+                QObject* parent) override
+        {
+            return deserialize_dyn(vis, [&] (auto&& deserializer)
+            { return new T{deserializer, parent};});
+        }
+};
+
+#define DEFINE_CURVE_FACTORY(Name, DynName, Model) \
+    class Name : public CurveSegmentFactory_T<Model> \
+{ \
+    QString name() const override { return DynName; } \
+};

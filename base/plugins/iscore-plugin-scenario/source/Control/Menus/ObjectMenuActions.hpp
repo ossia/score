@@ -9,7 +9,7 @@ class ObjectMenuActions : public AbstractMenuActions
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
-        void fillContextMenu(QMenu* menu, const Selection&) override;
+        void fillContextMenu(QMenu* menu, const Selection&, LayerPresenter* pres, const QPoint&) override;
         void makeToolBar(QToolBar*) override;
         void setEnabled(bool) override;
 

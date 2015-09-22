@@ -1,13 +1,14 @@
 #pragma once
-#include "CurveSegmentModel.hpp"
-// ALl between zero and one.
-class LinearCurveSegmentModel : public CurveSegmentModel
+#include "Curve/Segment/CurveSegmentModel.hpp"
+
+class PointArrayCurveSegmentModel : public CurveSegmentModel
 {
+        Q_OBJECT
     public:
         using CurveSegmentModel::CurveSegmentModel;
 
         template<typename Impl>
-        LinearCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
+        PointArrayCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveSegmentModel {vis, parent}
         {
             vis.writeTo(*this);
@@ -24,4 +25,17 @@ class LinearCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) const override;
         double valueAt(double x) const override;
+
+        void addPoint(double, double);
+
+        double min_x{}, max_x{};
+        double min_y{}, max_y{};
+        // Coordinates in {x, y}.
+
+    signals:
+        void minChanged(double);
+        void maxChanged(double);
+
+    private:
+        std::map<double, double> m_points;
 };

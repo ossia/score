@@ -11,6 +11,7 @@ namespace DeviceExplorer
 {
     namespace Command
     {
+    // TODO Moveme
         class UpdateAddressesValues : public iscore::SerializableCommand
         {
             ISCORE_COMMAND_DECL_OBSOLETE("UpdateAddressesValues", "UpdateAddressesValues")

@@ -6,6 +6,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
@@ -14,7 +15,7 @@
 
 #include <QDir>
 #include <QSettings>
-
+#include "PluginDependencyGraph.hpp"
 #include <boost/range/algorithm.hpp>
 
 using namespace iscore;
@@ -46,49 +47,6 @@ PluginManager::~PluginManager()
     clearPlugins();
 }
 
-void PluginManager::reloadPlugins()
-{
-    clearPlugins();
-    auto folders = pluginsDir();
-
-    // Load static plug-ins
-    for(QObject* plugin : QPluginLoader::staticInstances())
-    {
-        m_availablePlugins += plugin;
-    }
-
-    // Load dynamic plug-ins
-    for(const QString& pluginsFolder : folders)
-    {
-        QDir pluginsDir(pluginsFolder);
-        for(const QString& fileName : pluginsDir.entryList(QDir::Files))
-        {
-            loadPlugin(pluginsDir.absoluteFilePath(fileName));
-        }
-    }
-
-    // Here, it is important not to collapse all the for-loops
-    // because for instance a control from plugin B might require the factory
-    // from plugin A to be loaded prior.
-    // Load all the factories.
-    for(QObject* plugin : m_availablePlugins)
-    {
-        loadFactories(plugin);
-    }
-
-    // Load all the plug-in controls (because all controls need to be initialized for the
-    // factories to work, generally).
-    for(QObject* plugin : m_availablePlugins)
-    {
-        loadControls(plugin);
-    }
-
-    // Load what the plug-ins have to offer.
-    for(QObject* plugin : m_availablePlugins)
-    {
-        dispatch(plugin);
-    }
-}
 
 QStringList PluginManager::pluginsOnSystem() const
 {
@@ -145,6 +103,55 @@ void PluginManager::loadControls(QObject* plugin)
     }
 }
 
+void PluginManager::reloadPlugins()
+{
+    clearPlugins();
+    auto folders = pluginsDir();
+
+    // Load static plug-ins
+    for(QObject* plugin : QPluginLoader::staticInstances())
+    {
+        m_availablePlugins += plugin;
+    }
+
+    // Load dynamic plug-ins
+    for(const QString& pluginsFolder : folders)
+    {
+        QDir pluginsDir(pluginsFolder);
+        for(const QString& fileName : pluginsDir.entryList(QDir::Files))
+        {
+            loadPlugin(pluginsDir.absoluteFilePath(fileName));
+        }
+    }
+
+    // Here, it is important not to collapse all the for-loops
+    // because for instance a control from plugin B might require the factory
+    // from plugin A to be loaded prior.
+    // Load all the factories.
+    for(QObject* plugin : m_availablePlugins)
+    {
+        loadFactories(plugin);
+    }
+
+    // Load all the plug-in controls (because all controls need to be initialized for the
+    // factories to work, generally).
+    // We have to order them according to their dependencies
+    PluginDependencyGraph graph;
+    for(QObject* plugin : m_availablePlugins)
+    {
+        graph.addNode(plugin);
+    }
+
+    graph.visit([&] (QObject* plugin) {
+        loadControls(plugin);
+    });
+
+    // Load what the plug-ins have to offer.
+    for(QObject* plugin : m_availablePlugins)
+    {
+        dispatch(plugin);
+    }
+}
 
 
 void PluginManager::clearPlugins()

@@ -128,7 +128,11 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
     // Create the mapping object
-    auto root_state = iscore::convert::state(iscore_state.states().rootNode(), m_deviceList);
+    auto root_state = iscore::convert::state(
+                          OSSIA::State::create(),
+                          iscore_state.messages().rootNode(),
+                          m_deviceList);
+
     auto state_elt = new OSSIAStateElement{
             iscore_state,
             root_state,
@@ -139,13 +143,11 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 
     con(iscore_state, &StateModel::statesUpdated, this,
             [=] () {
-        // OPTIMIZEME
         state_elt->rootState()->stateElements().clear();
-        for(const auto& elt : state_elt->iscoreState().states().rootNode())
-        {
-            state_elt->rootState()->stateElements().push_back(iscore::convert::state(elt, m_deviceList));
-        }
-
+        iscore::convert::state(
+                    state_elt->rootState(),
+                    state_elt->iscoreState().messages().rootNode(),
+                    m_deviceList);
     } );
 
     m_ossia_states.insert({iscore_state.id(), state_elt});

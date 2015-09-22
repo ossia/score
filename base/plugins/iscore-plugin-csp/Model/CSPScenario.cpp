@@ -124,7 +124,6 @@ void
 CSPScenario::on_constraintCreated(const ConstraintModel& constraintModel)
 {
     //create the corresponding time relation
-    // TODO: make insertconstraint function?
     m_TimeRelations.insert(constraintModel.id(), new CSPTimeRelation{*this, constraintModel.id()});
 }
 

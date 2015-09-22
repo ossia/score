@@ -152,6 +152,17 @@ class TreeNode : public DataType
             return -1;
         }
 
+        auto iterOfChild(const TreeNode* child)
+        {
+            auto end = m_children.end();
+            for(auto it = m_children.begin(); it != end; ++it)
+            {
+                if(&*it == child)
+                    return it;
+            }
+            return end;
+        }
+
         int childCount() const
         { return m_children.size(); }
 
@@ -159,6 +170,8 @@ class TreeNode : public DataType
         { return ! m_children.empty(); }
 
         const auto& children() const
+        { return m_children;  }
+        auto& children()
         { return m_children;  }
 
         void swapChildren(int oldIndex, int newIndex)
@@ -178,6 +191,17 @@ class TreeNode : public DataType
         void setParent(TreeNode* parent)
         {
             m_parent = parent;
+        }
+
+        template<typename Fun>
+        void visit(Fun f)
+        {
+            f(*this);
+
+            for(const auto& child : m_children)
+            {
+                child.visit(f);
+            }
         }
 
     private:

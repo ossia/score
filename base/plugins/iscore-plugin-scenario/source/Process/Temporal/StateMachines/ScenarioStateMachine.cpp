@@ -70,10 +70,12 @@ ScenarioStateMachine::ScenarioStateMachine(
         transitionState->setParent(toolState);
 
 
-        auto QPointFToScenarioPoint = [&] (const QPointF& point) -> ScenarioPoint
+        auto QPointFToScenarioPoint = [&] (QPointF point) -> ScenarioPoint
         {
-            return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()),
-                    point.y() / m_presenter.view().boundingRect().height()};
+            return ConvertToScenarioPoint(
+                        point,
+                        m_presenter.zoomRatio(),
+                        m_presenter.view().boundingRect().height());
         };
 
         connect(m_presenter.m_view, &TemporalScenarioView::scenarioPressed,

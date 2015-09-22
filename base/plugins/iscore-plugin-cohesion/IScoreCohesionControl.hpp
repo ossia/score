@@ -1,7 +1,10 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include <QTemporaryFile>
+#include <QTimer>
+#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
 
+class ScenarioModel;
 class IScoreCohesionControl : public iscore::PluginControlInterface
 {
     public:
@@ -17,6 +20,9 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void createCurvesFromAddresses();
         void snapshotParametersInStates();
         void interpolateStates();
+
+        void record(ScenarioModel&, ScenarioPoint pt);
+        void stopRecord();
 
     private:
         void setupCommands();

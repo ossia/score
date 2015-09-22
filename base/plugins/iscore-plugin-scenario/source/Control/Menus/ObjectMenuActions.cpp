@@ -37,7 +37,8 @@ ObjectMenuActions::ObjectMenuActions(
 {
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
-    m_removeElements->setShortcut(QKeySequence::Delete);
+    m_removeElements->setShortcut(Qt::Key_Backspace);
+    m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
@@ -49,7 +50,8 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     m_clearElements = new QAction{tr("Clear selected elements"), this};
-    m_clearElements->setShortcut(Qt::Key_Backspace);
+    m_clearElements->setShortcut(QKeySequence::Delete);
+    m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
@@ -63,6 +65,7 @@ ObjectMenuActions::ObjectMenuActions(
     // COPY/CUT
     m_copyContent = new QAction{tr("Copy"), this};
     m_copyContent->setShortcut(QKeySequence::Copy);
+    m_copyContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
@@ -73,6 +76,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_cutContent = new QAction{tr("Cut"), this};
     m_cutContent->setShortcut(QKeySequence::Cut);
+    m_cutContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_cutContent, &QAction::triggered,
             [this]()
     {
@@ -83,6 +87,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_pasteContent = new QAction{tr("Paste"), this};
     m_pasteContent->setShortcut(QKeySequence::Paste);
+    m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_pasteContent, &QAction::triggered,
             [this]()
     {
@@ -129,7 +134,7 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 }
 
-void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
+void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&)
 {
     if(sel.empty())
         return;

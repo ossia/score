@@ -1,13 +1,13 @@
 #pragma once
-#include "CurveSegmentModel.hpp"
+#include "Curve/Segment/CurveSegmentModel.hpp"
 
-class SinCurveSegmentModel : public CurveSegmentModel
+class GammaCurveSegmentModel : public CurveSegmentModel
 {
     public:
         using CurveSegmentModel::CurveSegmentModel;
 
         template<typename Impl>
-        SinCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
+        GammaCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
             CurveSegmentModel {vis, parent}
         {
             vis.writeTo(*this);
@@ -26,11 +26,8 @@ class SinCurveSegmentModel : public CurveSegmentModel
         double valueAt(double x) const override;
 
         boost::optional<double> verticalParameter() const override;
-        boost::optional<double> horizontalParameter() const override;
         void setVerticalParameter(double p) override;
-        void setHorizontalParameter(double p) override;
 
-        double freq = 5;
-        double ampl = 0.6;
+        double gamma = 0.5;
 
 };

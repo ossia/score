@@ -36,8 +36,8 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
 
         ConstraintModel& baseConstraint() const;
 
-        TimeNodeModel& startTimeNode() const;
-        TimeNodeModel& endTimeNode() const;
+        TimeNodeModel& startTimeNode() const override;
+        TimeNodeModel& endTimeNode() const override;
 
         EventModel& startEvent() const;
         EventModel& endEvent() const;

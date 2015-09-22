@@ -86,3 +86,27 @@ void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, const iscore::N
 }
 
 
+
+
+ListeningState DeviceDocumentPlugin::pauseListening()
+{
+    ListeningState l;
+    for(auto device : m_list.devices())
+    {
+        l.listened.push_back(device->listening());
+    }
+
+    return l;
+}
+
+void DeviceDocumentPlugin::resumeListening(const ListeningState& st)
+{
+    for(const auto& vec : st.listened)
+    {
+        if(vec.empty())
+            continue;
+
+        auto& dev = m_list.device(vec.front().device);
+        dev.replaceListening(vec);
+    }
+}

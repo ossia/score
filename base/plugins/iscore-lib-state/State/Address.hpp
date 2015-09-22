@@ -18,9 +18,10 @@ namespace iscore
 struct Address
 {
         // Data
-        QString device;
-        QStringList path; // Note : path is empty if address is root: "device:/"
+        QString device; // No device means that this is the invisible root node.
 
+        QStringList path; // Note : path is empty if address is root: "device:/"
+        // In terms of iscore::Node, this means that the node is the device node.
 
         // Check that the given string is a valid address
         // Note: a "maybe" concept would help here.
@@ -28,10 +29,10 @@ struct Address
 
         // Make an address from a valid address string
         static Address fromString(const QString& str);
+        static Address rootAddress();
 
         // Utility
-        QString toString() const
-        { return device + ":/" + path.join("/"); }
+        QString toString() const;
 
         bool operator==(const Address& a) const
         {
@@ -42,5 +43,27 @@ struct Address
             return !(*this == a);
         }
 };
+}
+
+namespace std {
+
+  template <>
+  struct hash<iscore::Address>
+  {
+    std::size_t operator()(const iscore::Address& k) const
+    {
+      using std::size_t;
+      using std::hash;
+      using std::string;
+
+      // Compute individual hash values for first,
+      // second and third and combine them using XOR
+      // and bit shifting:
+
+      return ((qHash(k.device)
+               ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
+    }
+  };
+
 }
 Q_DECLARE_METATYPE(iscore::Address)

@@ -279,8 +279,8 @@ Document* Presenter::loadDocument()
                 doc = loadDocument(json.object(), m_availableDocuments.front());
             }
         }
+        m_currentDocument->setDocFileName(loadname);
     }
-    m_currentDocument->setDocFileName(loadname);
 
     return doc;
 }

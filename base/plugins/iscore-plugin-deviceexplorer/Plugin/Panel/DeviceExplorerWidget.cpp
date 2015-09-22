@@ -41,6 +41,7 @@
 
 /**
  * Utility class to get a node from the DeviceExplorerWidget.
+ * TODO moveme
  */
 template<typename OnSuccess>
 class ExplorationWorkerWrapper : public QObject
@@ -134,7 +135,7 @@ static auto make_worker(OnSuccess_t&& success,
         std::move(success),
                 widg,
                 dev};
-}// 147.210.129.97
+}
 
 
 
@@ -144,6 +145,12 @@ DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
       m_deviceDialog(nullptr)
 {
     buildGUI();
+
+    // Set the expansion signals
+    connect(m_ntView, &QTreeView::expanded,
+            this, [&] (const QModelIndex& idx) { setListening(idx, true); });
+    connect(m_ntView, &QTreeView::collapsed,
+            this,[&] (const QModelIndex& idx) { setListening(idx, false); });
 }
 
 void
@@ -194,6 +201,17 @@ DeviceExplorerWidget::buildGUI()
     m_promoteAction->setEnabled(false);
     m_demoteAction->setEnabled(false);
 
+    m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_refreshValueAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_removeNodeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_copyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_cutAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_pasteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_moveUpAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_moveDownAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_promoteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_demoteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
     connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
@@ -205,7 +223,7 @@ DeviceExplorerWidget::buildGUI()
     connect(m_moveDownAction, &QAction::triggered, this, &DeviceExplorerWidget::moveDown);
     connect(m_promoteAction, &QAction::triggered, this, &DeviceExplorerWidget::promote);
     connect(m_demoteAction, &QAction::triggered, this, &DeviceExplorerWidget::demote);
-    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNode);
+    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
 
     QPushButton* addButton = new QPushButton(this);
     addButton->setIcon(QIcon(":/resources/images/add.png"));
@@ -339,6 +357,13 @@ void DeviceExplorerWidget::blockGUI(bool b)
     }
 }
 
+QModelIndex DeviceExplorerWidget::sourceIndex(QModelIndex index)
+{
+    if (m_ntView->hasProxy())
+        index = static_cast<const QAbstractProxyModel*>(m_ntView->QTreeView::model())->mapToSource(index);
+    return index;
+}
+
 void
 DeviceExplorerWidget::installStyleSheet()
 {
@@ -355,30 +380,28 @@ void
 DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
     updateActions();
-    QMenu* contextMenu = new QMenu(this);
+    QMenu contextMenu{this};
 
-    connect(contextMenu, &QMenu::triggered,
-            [=] () { contextMenu->deleteLater(); });
-    contextMenu->addAction(m_editAction);
-    contextMenu->addAction(m_refreshAction);
-    contextMenu->addAction(m_refreshValueAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_addDeviceAction);
-    contextMenu->addAction(m_addSiblingAction);
-    contextMenu->addAction(m_addChildAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_copyAction);
-    contextMenu->addAction(m_cutAction);
-    contextMenu->addAction(m_pasteAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_moveUpAction);
-    contextMenu->addAction(m_moveDownAction);
-    contextMenu->addAction(m_promoteAction);
-    contextMenu->addAction(m_demoteAction);
-    contextMenu->addSeparator();
-    contextMenu->addAction(m_removeNodeAction);
+    contextMenu.addAction(m_editAction);
+    contextMenu.addAction(m_refreshAction);
+    contextMenu.addAction(m_refreshValueAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_addDeviceAction);
+    contextMenu.addAction(m_addSiblingAction);
+    contextMenu.addAction(m_addChildAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_copyAction);
+    contextMenu.addAction(m_cutAction);
+    contextMenu.addAction(m_pasteAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_moveUpAction);
+    contextMenu.addAction(m_moveDownAction);
+    contextMenu.addAction(m_promoteAction);
+    contextMenu.addAction(m_demoteAction);
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_removeNodeAction);
 
-    contextMenu->exec(event->globalPos());
+    contextMenu.exec(event->globalPos());
 }
 
 void
@@ -394,9 +417,8 @@ DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
         m_ntView->setModel(m_proxyModel);
         model->setView(m_ntView);
 
-
         m_cmdDispatcher = std::make_unique<CommandDispatcher<>>(
-                iscore::IDocument::commandStack(*model));
+                model->commandStack());
 
         populateColumnCBox();
 
@@ -506,6 +528,65 @@ DeviceExplorerWidget::updateActions()
     m_pasteAction->setEnabled(model()->hasCut());
 }
 
+void DeviceExplorerWidget::setListening_rec(const iscore::Node& node, bool b)
+{
+    if(node.is<iscore::AddressSettings>())
+    {
+        auto addr = iscore::address(node);
+        auto& dev = model()->deviceModel().list().device(addr.device);
+        dev.setListening(addr, b);
+    }
+
+    for(const auto& child : node)
+    {
+        setListening_rec(child, b);
+    }
+}
+
+void DeviceExplorerWidget::setListening_rec2(const QModelIndex& index, bool b)
+{
+    auto node = model()->nodeFromModelIndex(sourceIndex(index));
+
+    int i = 0;
+    for(const auto& child : *node)
+    {
+        if(child.is<iscore::AddressSettings>())
+        {
+            auto addr = iscore::address(child);
+            auto& dev = model()->deviceModel().list().device(addr.device);
+            dev.setListening(addr, b);
+        }
+
+        // TODO check this
+        auto childIndex = index.child(i, 0);
+
+        if(m_ntView->isExpanded(childIndex))
+        {
+            setListening_rec2(childIndex, b);
+        }
+        i++;
+    }
+}
+
+
+void DeviceExplorerWidget::setListening(const QModelIndex& idx, bool b)
+{
+    // TODO optimize with the knowledge that a child
+    // will have the same device as its parent
+    if(b)
+    {
+        setListening_rec2(idx, b);
+    }
+    else
+    {
+        auto node = model()->nodeFromModelIndex(sourceIndex(idx));
+        for(const auto& child : *node)
+        {
+            setListening_rec(child, false);
+        }
+    }
+}
+
 DeviceExplorerModel*
 DeviceExplorerWidget::model()
 {
@@ -552,6 +633,11 @@ void DeviceExplorerWidget::edit()
 
         if(code == QDialog::Accepted)
         {
+            auto stgs = dial.getSettings();
+            // TODO do like for DeviceSettings
+            if(!model()->checkAddressInstantiatable(*select->parent(), stgs))
+                return;
+
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     iscore::IDocument::path(model()->deviceModel()),
                     iscore::NodePath(*select),
@@ -597,9 +683,7 @@ void DeviceExplorerWidget::refreshValue()
     for(auto index : m_ntView->selectedIndexes())
     {
         // Model checks
-        if (m_ntView->hasProxy())
-            index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
-
+        index = sourceIndex(index);
         iscore::Node* node = index.isValid()
                               ? static_cast<iscore::Node*>(index.internalPointer())
                               : nullptr;
@@ -614,7 +698,9 @@ void DeviceExplorerWidget::refreshValue()
             return;
 
         // Getting the new values
-        lst.append({node, dev.refresh(addr)});
+        auto val = dev.refresh(addr);
+        if(val)
+            lst.append({node, *val});
     }
 
     if(lst.empty())
@@ -645,6 +731,16 @@ DeviceExplorerWidget::addDevice()
     {
         ISCORE_ASSERT(model());
         auto deviceSettings = m_deviceDialog->getSettings();
+        if(!model()->checkDeviceInstantiatable(deviceSettings))
+        {
+            if(!model()->tryDeviceInstantiation(deviceSettings, *m_deviceDialog))
+            {
+                delete m_deviceDialog;
+                m_deviceDialog = nullptr;
+                return;
+            }
+        }
+
         auto path = m_deviceDialog->getPath();
         blockGUI(true);
 
@@ -664,6 +760,8 @@ DeviceExplorerWidget::addDevice()
     }
 
     updateActions();
+    delete m_deviceDialog;
+    m_deviceDialog = nullptr;
 }
 
 void
@@ -678,40 +776,21 @@ DeviceExplorerWidget::addSibling()
     addAddress(InsertMode::AsSibling);
 }
 
-void DeviceExplorerWidget::removeNode()
+void DeviceExplorerWidget::removeNodes()
 {
     auto indexes = m_ntView->selectedIndexes();
-    // TODO here we will have crashes if
-    // we select a node and a child of it and remove both.
-
-    // Instead, we should filter our node list so that there is no children of a parent about to be deleted.
-
 
     QList<iscore::Node*> nodes;
-
     for(auto index : indexes)
     {
-        // TODO refactor this.
-        if (m_ntView->hasProxy())
-            index = static_cast<const QAbstractProxyModel *>(m_ntView->QTreeView::model())->mapToSource(index);
-
-         nodes.append(model()->nodeFromModelIndex(index));
-    }
-
-    QList<iscore::Node*> curated_nodes;
-    for(auto child : nodes)
-    {
-        bool hasAncestors = std::any_of(nodes.begin(), nodes.end(), [&] (iscore::Node* parent)
-        {
-            return child != parent && iscore::isAncestor(*parent, child);
-        });
-        if(!hasAncestors)
-            curated_nodes.append(child);
+        auto n = model()->nodeFromModelIndex(sourceIndex(index));
+        if(!n->is<InvisibleRootNodeTag>())
+            nodes.append(n);
     }
 
     auto cmd = new RemoveNodes;
     auto dev_model_path = iscore::IDocument::path(model()->deviceModel());
-    for(const auto& n : curated_nodes)
+    for(const auto& n : iscore::filterUniqueParents(nodes))
     {
         cmd->addCommand(new DeviceExplorer::Command::Remove{
                             dev_model_path,
@@ -731,11 +810,33 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
     {
         ISCORE_ASSERT(model());
         QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
+
+        // If the node is added in sibling mode, we check that no sibling have
+        // the same name
+        // Else we check that no child of the index has the same name.
+        auto node = model()->nodeFromModelIndex(index);
+
+        // TODO not very elegant.
+        if(insert == InsertMode::AsSibling && node->is<iscore::DeviceSettings>())
+        {
+            return;
+        }
+
+        iscore::Node* parent =
+              (insert == InsertMode::AsChild)
+                ? node
+                : node->parent();
+
+        auto stgs = dial.getSettings();
+        if(!model()->checkAddressInstantiatable(*parent, stgs))
+            return;
+
         m_cmdDispatcher->submitCommand(
-                    new DeviceExplorer::Command::AddAddress{
-                        iscore::IDocument::path(model()->deviceModel()),
-                        iscore::NodePath{index},
-                        insert, dial.getSettings() });
+                        new DeviceExplorer::Command::AddAddress{
+                            iscore::IDocument::path(model()->deviceModel()),
+                            iscore::NodePath{index},
+                            insert,
+                            stgs});
         updateActions();
     }
 }

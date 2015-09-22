@@ -15,7 +15,7 @@
 #include "OSSIAConstraintElement.hpp"
 
 #include "../iscore-plugin-curve/Curve/CurveModel.hpp"
-#include "../iscore-plugin-curve/Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "../iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "../iscore-plugin-curve/Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>

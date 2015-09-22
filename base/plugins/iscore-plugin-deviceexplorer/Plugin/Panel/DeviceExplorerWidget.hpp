@@ -34,6 +34,7 @@ class DeviceExplorerWidget : public QWidget
         void blockGUI(bool);
 
     private:
+        QModelIndex sourceIndex(QModelIndex);
         // User commands
         void edit();
         void refresh();
@@ -53,12 +54,26 @@ class DeviceExplorerWidget : public QWidget
         void addChild();
         void addSibling();
 
-        void removeNode();
+        void removeNodes();
 
         // Answer to user interaction
         void filterChanged();
 
         void updateActions();
+
+        void setListening(const QModelIndex&, bool);
+
+        /**
+         * @brief setListening_rec Simple recursion to enable / disable listening
+         * on all child nodes.
+         */
+        void setListening_rec(const iscore::Node& node, bool b);
+
+        /**
+         * @brief setListening_rec2 Recursion that checks the "expanded" state
+         * of nodes.
+         */
+        void setListening_rec2(const QModelIndex& index, bool b);
 
 
         // Utilities

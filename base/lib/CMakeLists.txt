@@ -64,6 +64,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/Document.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginDependencyGraph.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp"

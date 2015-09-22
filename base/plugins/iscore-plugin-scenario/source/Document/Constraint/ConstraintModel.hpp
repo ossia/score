@@ -3,7 +3,7 @@
 #include <Document/Constraint/Rack/RackModel.hpp>
 #include <ProcessInterface/Process.hpp>
 
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>
 #include <source/Document/State/StateModel.hpp>
 #include <source/Document/TimeNode/TimeNodeModel.hpp>

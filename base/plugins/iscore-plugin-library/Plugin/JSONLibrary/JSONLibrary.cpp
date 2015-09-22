@@ -4,6 +4,7 @@
 #include <QMimeData>
 #include <QMap>
 
+#include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerMimeTypes.hpp>
 enum class LibraryColumns

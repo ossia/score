@@ -63,7 +63,7 @@ class CurvePresenter : public QObject
         void enable();
         void disable();
 
-        auto& stateMachine()
+        CurveStateMachine& stateMachine()
         { return *m_sm; }
 
 

@@ -234,12 +234,22 @@ QMimeData *StateItemModel::mimeData(const QModelIndexList &indexes) const
     return nullptr;
 }
 
-bool StateItemModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
+bool StateItemModel::canDropMimeData(
+        const QMimeData *data,
+        Qt::DropAction action,
+        int row,
+        int column,
+        const QModelIndex &parent) const
 {
     return false;
 }
 
-bool StateItemModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+bool StateItemModel::dropMimeData(
+        const QMimeData *data,
+        Qt::DropAction action,
+        int row,
+        int column,
+        const QModelIndex &parent)
 {
     return false;
 }

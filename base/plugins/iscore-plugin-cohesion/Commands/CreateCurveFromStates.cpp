@@ -4,7 +4,7 @@
 #include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Automation/AutomationModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Curve/CurveModel.hpp"
-#include "base/plugins/iscore-plugin-curve/Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 CreateCurveFromStates::CreateCurveFromStates():
     iscore::SerializableCommand{
         "IScoreCohesionControl",
@@ -49,13 +49,25 @@ void CreateCurveFromStates::redo()
     auto& autom = safe_cast<AutomationModel&>(cstr.processes.at(m_addProcessCmd->processId()));
     autom.setAddress(m_address);
     autom.curve().clear();
-    autom.setMin(std::min(m_start, m_end));
-    autom.setMax(std::max(m_start, m_end));
 
     // Add a segment
     auto segment = new LinearCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve());
-    segment->setStart({0., qreal(m_start > m_end)}); // Biggest is 1
-    segment->setEnd({1., qreal(m_end > m_start)});
+
+    qDebug() << m_start << m_end;
+    if(m_start != m_end)
+    {
+        segment->setStart({0., qreal(m_start > m_end)}); // Biggest is 1
+        segment->setEnd({1., qreal(m_end > m_start)});
+        autom.setMin(std::min(m_start, m_end));
+        autom.setMax(std::max(m_start, m_end));
+    }
+    else
+    {
+        segment->setStart({0., m_start});
+        segment->setStart({0., m_start});
+        autom.setMin(m_start);
+        autom.setMax(m_start);
+    }
 
     autom.curve().addSegment(segment);
 }

@@ -3,28 +3,34 @@
 #include "DeviceExplorerCommandCreator.hpp"
 
 #include "Commands/Insert.hpp"
-#include "Commands/EditData.hpp"
+#include "Commands/RemoveMessageNodes.hpp"
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Update/UpdateAddressSettings.hpp"
 
+#include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
+
+#include <Singletons/SingletonProtocolList.hpp>
+#include <Singletons/DeviceExplorerInterface.hpp>
+
+#include <DeviceExplorer/Node/DeviceExplorerNodeSerialization.hpp>
 #include "DeviceExplorerMimeTypes.hpp"
 #include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <DeviceExplorer/ItemModels/NodeDisplayMethods.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
 
-#include <Singletons/DeviceExplorerInterface.hpp>
 #include <State/State.hpp>
 #include <State/StateMimeTypes.hpp>
+#include <State/MessageListSerialization.hpp>
+
+#include <QApplication>
 #include <QJsonDocument>
 #include <iostream>
-#include <QMimeData>
-#include "Singletons/SingletonProtocolList.hpp"
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include "Widgets/DeviceEditDialog.hpp"
-#include <QApplication>
 
 using namespace DeviceExplorer::Command;
 using namespace iscore;
@@ -41,7 +47,7 @@ static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
 DeviceExplorerModel::DeviceExplorerModel(
         DeviceDocumentPlugin* plug,
         QObject* parent)
-    : QAbstractItemModel{parent},
+    : NodeBasedItemModel{parent},
       m_lastCutNodeIsCopied{false},
       m_devicePlugin{plug},
       m_rootNode{plug->rootNode()},
@@ -158,12 +164,11 @@ void DeviceExplorerModel::updateDevice(
 
 void DeviceExplorerModel::addAddress(
         Node* parentNode,
-        const iscore::AddressSettings &addressSettings)
+        const iscore::AddressSettings& addressSettings,
+        int row)
 {
     ISCORE_ASSERT(parentNode);
     ISCORE_ASSERT(parentNode != &m_rootNode);
-
-    int row = parentNode->childCount(); //insert as last child
 
     Node* grandparent = parentNode->parent();
     ISCORE_ASSERT(grandparent);
@@ -201,38 +206,9 @@ void DeviceExplorerModel::updateValue(iscore::Node* n, const iscore::Value& v)
     // OPTIMIZEME
     QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*n));
 
+    // TODO this index *may* be invalid. Check it.
     auto idx = createIndex(nodeIndex.row(), 1, n->parent());
     emit dataChanged(idx, idx);
-}
-
-void DeviceExplorerModel::removeNode(
-        iscore::Node::const_iterator node)
-{
-    ISCORE_ASSERT(!node->is<InvisibleRootNodeTag>());
-
-    if(!node->is<DeviceSettings>())
-    {
-        Node* parent = node->parent();
-        ISCORE_ASSERT(parent != &m_rootNode);
-        Node* grandparent = parent->parent();
-        ISCORE_ASSERT(grandparent);
-        int rowParent = grandparent->indexOfChild(parent);
-        QModelIndex parentIndex = createIndex(rowParent, 0, parent);
-
-        int row = parent->indexOfChild(&*node);
-
-        beginRemoveRows(parentIndex, row, row);
-        parent->removeChild(node);
-        endRemoveRows();
-    }
-    else
-    {
-        int row = rootNode().indexOfChild(&*node);
-
-        beginRemoveRows(QModelIndex(), row, row);
-        m_rootNode.removeChild(node);
-        endRemoveRows();
-    }
 }
 
 bool DeviceExplorerModel::checkDeviceInstantiatable(
@@ -245,105 +221,52 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
         return false;
 
     // Look for other childs in the same protocol.
-    for(const auto& child : rootNode())
-    {
-        ISCORE_ASSERT(child.is<DeviceSettings>());
-        if(child.get<DeviceSettings>().protocol == n.protocol)
-        {
-            if(!prot->checkCompatibility(n, child.get<DeviceSettings>()))
-            {
-                // Open a device edit window
-                // it should take care of incompatibility with the other
-                // devices
-                DeviceEditDialog dial(QApplication::activeWindow());
-                dial.setSettings(n);
-                bool ret = dial.exec();
-                if(!ret)
-                    return false;
+    return std::none_of(rootNode().begin(), rootNode().end(),
+                       [&] (const iscore::Node& child) {
 
-                n = dial.getSettings();
-                return true;
-            }
+        ISCORE_ASSERT(child.is<DeviceSettings>());
+        const auto& set = child.get<DeviceSettings>();
+        return (set.name == n.name)
+                || (set.protocol == n.protocol
+                    && !prot->checkCompatibility(n, child.get<DeviceSettings>()));
+
+    });
+}
+
+bool DeviceExplorerModel::tryDeviceInstantiation(
+        DeviceSettings& set,
+        DeviceEditDialog& dial)
+{
+    while(!checkDeviceInstantiatable(set))
+    {
+        dial.setSettings(set);
+        dial.setEditingInvalidState(true);
+
+        bool ret = dial.exec();
+        if(!ret)
+        {
+            dial.setEditingInvalidState(false);
+            return false;
         }
+
+        set = dial.getSettings();
     }
 
+    dial.setEditingInvalidState(true);
     return true;
 }
 
-
-QModelIndex
-DeviceExplorerModel::index(int row, int column, const QModelIndex& parent) const
+bool DeviceExplorerModel::checkAddressInstantiatable(
+        Node& parent,
+        const AddressSettings& addr)
 {
-    if(row < 0 || column < 0 || column >= (int)Column::Count)
-    {
-        return {};
-    }
+    ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
 
-    Node* parentNode = nodeFromModelIndex(parent);
-    if(! parentNode)
-        return {};
-
-    if(!parentNode->hasChild(row))
-        return {};
-
-    return createIndex(row, column, &parentNode->childAt(row));
+    return std::none_of(parent.begin(),
+                        parent.end(),
+                        [&] (const iscore::Node& n) {
+        return n.get<iscore::AddressSettings>().name == addr.name; });
 }
-
-Node*
-DeviceExplorerModel::nodeFromModelIndex(const QModelIndex& index) const
-{
-    return index.isValid()
-            ? static_cast<iscore::Node*>(index.internalPointer())
-            : &m_rootNode;
-}
-
-QModelIndex
-DeviceExplorerModel::parent(const QModelIndex& child) const
-{
-    Node* node = nodeFromModelIndex(child);
-
-    if(! node)
-    {
-        return QModelIndex();
-    }
-
-    Node* parentNode = node->parent();
-
-    if(! parentNode)
-    {
-        return QModelIndex();
-    }
-
-    Node* grandparentNode = parentNode->parent();
-
-    if(! grandparentNode)
-    {
-        return QModelIndex();
-    }
-
-    const int rowParent = grandparentNode->indexOfChild(parentNode);  //(return -1 if not found)
-    assert(rowParent != -1);
-    return createIndex(rowParent, 0, parentNode);
-}
-
-int
-DeviceExplorerModel::rowCount(const QModelIndex& parent) const
-{
-    if(parent.column() > 0)
-    {
-        return 0;
-    }
-
-    Node* parentNode = nodeFromModelIndex(parent);
-
-    if(! parentNode)
-    {
-        return 0;
-    }
-
-    return parentNode->childCount();
-}
-
 
 int
 DeviceExplorerModel::columnCount() const
@@ -363,126 +286,6 @@ QVariant DeviceExplorerModel::getData(iscore::NodePath node, Column column, int 
     return data(index, role);
 }
 
-static QVariant nameColumnData(const Node& node, int role)
-{
-    if(node.is<DeviceSettings>())
-    {
-        if(role == Qt::DisplayRole || role == Qt::EditRole)
-        {
-            return node.get<DeviceSettings>().name;
-        }
-    }
-    else
-    {
-        if(role == Qt::DisplayRole || role == Qt::EditRole)
-        {
-            return node.displayName();
-        }
-        else if(role == Qt::FontRole)
-        {
-            const IOType ioType = node.get<AddressSettings>().ioType;
-
-            if(ioType == IOType::In || ioType == IOType::Out)
-            {
-                QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
-                f.setItalic(true);
-                return f;
-            }
-        }
-        else if(role == Qt::ForegroundRole)
-        {
-            const IOType ioType = node.get<AddressSettings>().ioType;
-
-            if(ioType == IOType::In || ioType == IOType::Out)
-            {
-                return QBrush(Qt::black);
-            }
-        }
-    }
-
-    return {};
-}
-
-// TODO rework this to use iscore::Value::toString();
-static QVariant valueColumnData(const Node& node, int role)
-{
-    if(node.is<DeviceSettings>())
-        return {};
-
-    if(role == Qt::DisplayRole || role == Qt::EditRole)
-    {
-        const auto& val = node.get<AddressSettings>().value;
-        if(val.val.canConvert<QVariantList>())
-        {
-            return "[ " + val.val.toStringList().join(", ") + " ]";
-        }
-
-        return val.val.toString();
-    }
-    else if(role == Qt::ForegroundRole)
-    {
-        const IOType ioType = node.get<AddressSettings>().ioType;
-
-        if(ioType == IOType::In || ioType == IOType::Out)
-        {
-            return QBrush(Qt::black);
-        }
-    }
-
-    return {};
-}
-
-static QVariant IOTypeColumnData(const Node& node, int role)
-{
-    if(node.is<DeviceSettings>())
-        return {};
-
-    if(role == Qt::DisplayRole || role == Qt::EditRole)
-    {
-        switch(node.get<AddressSettings>().ioType)
-        {
-            case IOType::In:
-                return QString("<-");
-
-            case IOType::Out:
-                return QString("->");
-
-            case IOType::InOut:
-                return QString("<->");
-
-            default:
-                return {};
-        }
-    }
-
-    return {};
-}
-
-static QVariant minColumnData(const Node& node, int role)
-{
-    if(node.is<DeviceSettings>())
-        return {};
-
-    if(role == Qt::DisplayRole || role == Qt::EditRole)
-    {
-        return node.get<AddressSettings>().domain.min.val;
-    }
-
-    return {};
-}
-
-static QVariant maxColumnData(const Node& node, int role)
-{
-    if(node.is<DeviceSettings>())
-        return {};
-
-    if(role == Qt::DisplayRole || role == Qt::EditRole)
-    {
-        return node.get<AddressSettings>().domain.max.val;
-    }
-
-    return {};
-}
 
 // must return an invalid QVariant for cases not handled
 QVariant
@@ -496,10 +299,6 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     }
 
     Node* node = nodeFromModelIndex(index);
-    if(! node)
-    {
-        return QVariant();
-    }
 
     const auto& n = *node;
     switch((Column)col)
@@ -550,7 +349,6 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
     if(index.isValid())
     {
         Node* n = nodeFromModelIndex(index);
-        assert(n);
 
         if(n->isSelectable())
         {
@@ -588,24 +386,18 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
   in the tree.
   It then sends a command that calls editData.
 */
-bool
-DeviceExplorerModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool DeviceExplorerModel::setData(
+        const QModelIndex& index,
+        const QVariant& value,
+        int role)
 {
     if(! index.isValid())
-    {
         return false;
-    }
 
     auto n = nodeFromModelIndex(index);
-    if(! n)
-    {
-        return false;
-    }
 
-    if(n->is<DeviceSettings>())
-    {
+    if(!n->is<AddressSettings>())
         return false;
-    }
 
     auto col = DeviceExplorerModel::Column(index.column());
 
@@ -680,10 +472,10 @@ void DeviceExplorerModel::editData(
         const QVariant &value,
         int role)
 {
-    QModelIndex nodeIndex = convertPathToIndex(path);
-    Node* node = nodeFromModelIndex(nodeIndex);
+    Node* node = path.toNode(&rootNode());
+    ISCORE_ASSERT(node->parent());
 
-    QModelIndex index = createIndex(nodeIndex.row(), (int)column, node->parent());
+    QModelIndex index = createIndex(node->parent()->indexOfChild(node), (int)column, node->parent());
 
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
@@ -710,6 +502,7 @@ void DeviceExplorerModel::editData(
         {
             node->get<iscore::AddressSettings>().value.val = value;
         }
+        // TODO min/max/tags editing
     }
 
     emit dataChanged(changedTopLeft, changedBottomRight);
@@ -720,11 +513,6 @@ QModelIndex
 DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
 {
     Node* node = nodeFromModelIndex(index);
-
-    if(! node)
-    {
-        return index;
-    }
 
     if(! node->hasChildren())
     {
@@ -747,7 +535,6 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
     }
 
     Node* n = nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     return n->is<DeviceSettings>();
 }
 
@@ -1039,96 +826,61 @@ DeviceExplorerModel::mimeTypes() const
     return {iscore::mime::device(), iscore::mime::address()};
 }
 
-
+#include <thread>
+//method called when a drag is initiated
 QMimeData*
-DeviceExplorerModel::nodeToMime(const iscore::Node& n) const
+DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
-    //m_rootNode not displayed thus should not be draggable
-    if(n.is<InvisibleRootNodeTag>())
-        return nullptr;
+    QList<iscore::Node*> nodes;
+    std::transform(indexes.begin(), indexes.end(), std::back_inserter(nodes),
+                   [&] (const QModelIndex& idx) {
+        return nodeFromModelIndex(idx);
+    });
 
-    Serializer<JSONObject> ser;
-    ser.readFrom(n);
+    nodes.removeAll(&m_rootNode);
+
+    auto uniqueNodes = filterUniqueParents(nodes);
+
+    // Now we request an update to the device explorer.
+    m_devicePlugin->updateProxy.updateRemoteValues(uniqueNodes);
+
     QMimeData* mimeData = new QMimeData;
-    mimeData->setData(
-                n.is<DeviceSettings>()
-                    ? iscore::mime::device()
-                    : iscore::mime::address(),
-                QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
 
-    // Additional data if necessary
-    if(!n.is<DeviceSettings>())
+    // The "Nodes" part.
+    // TODO The mime data should also transmit the root address for
+    // each node in this case. For now it's useless.
     {
-        MessageList messages;
-        messages.push_back(DeviceExplorer::messageFromNode(n));
+        Mime<iscore::NodeList>::Serializer s{*mimeData};
+        s.serialize(nodes);
+    }
 
-        ser.m_obj = {};
-        ser.readFrom(messages);
-        mimeData->setData(iscore::mime::messagelist(),
-                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
+    // The "MessagesList" part.
+    MessageList messages;
+    for(const auto& node : uniqueNodes)
+    {
+        messageList(*node, messages);
+    }
+    if(!messages.empty())
+    {
+        Mime<iscore::MessageList>::Serializer s{*mimeData};
+        s.serialize(messages);
+    }
+
+    if(messages.empty() && nodes.empty())
+    {
+        delete mimeData;
+        return nullptr;
     }
 
     return mimeData;
 }
 
 
-QMimeData*
-DeviceExplorerModel::indexesToMime(const QModelIndexList& indexes) const
-{
-    MessageList messages;
-    for(const auto& index : indexes)
-    {
-        if(!nodeFromModelIndex(index)->is<DeviceSettings>())
-        {
-            messages.push_back(DeviceExplorer::messageFromModelIndex(index));
-        }
-    }
-
-    if(!messages.empty())
-    {
-        QMimeData* mimeData = new QMimeData;
-
-        Serializer<JSONObject> ser;
-        ser.readFrom(messages);
-
-        mimeData->setData(iscore::mime::messagelist(),
-                          QJsonDocument(ser.m_obj).toJson(QJsonDocument::Indented));
-
-        return mimeData;
-    }
-
-    return nullptr;
-}
-
-//method called when a drag is initiated
-QMimeData*
-DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
-{
-    // Algorithm :
-    // If there is a single node, we drag it and its children with the full node data
-    // If there are multiple nodes, we only drag the messages (not recursively)
-
-    //we drag only one node (and its children recursively).
-    if(indexes.count() == 1)
-    {
-        if(Node* n = nodeFromModelIndex(indexes.at(0)))
-        {
-            return nodeToMime(*n);
-        }
-    }
-    else if(indexes.count() > 1)
-    {
-        return indexesToMime(indexes);
-    }
-
-    return nullptr;
-}
-
-
 bool
 DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
                                      Qt::DropAction action,
-                                     int /*row*/, int /*column*/, const QModelIndex& parent) const
+                                     int /*row*/, int /*column*/,
+                                     const QModelIndex& parent) const
 {
     if(action == Qt::IgnoreAction)
     {
@@ -1232,10 +984,14 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         {
             ISCORE_ASSERT(n.is<DeviceSettings>());
 
-            // Edit the device settings if necessary
             bool deviceOK = checkDeviceInstantiatable(n.get<DeviceSettings>());
             if(!deviceOK)
-                return false;
+            {
+                // We ask the user to fix the incompatibilities by himself.
+                DeviceEditDialog dial(QApplication::activeWindow());
+                if(!tryDeviceInstantiation(n.get<DeviceSettings>(), dial))
+                    return false;
+            }
 
             // Perform the loading
             auto cmd = new LoadDevice{
@@ -1299,27 +1055,20 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
         {
             std::cerr << " index.row=" << index.row() << " col=" << index.column() << " ";
             Node* n = nodeFromModelIndex(index);
+            std::cerr << " n=" << n << " ";
+            Node* parent = n->parent();
 
-            if(n)
+            if(n == &m_rootNode)
             {
-                std::cerr << " n=" << n << " ";
-                Node* parent = n->parent();
-
-                if(n == &m_rootNode)
-                {
-                    std::cerr << " rootNode parent=" << parent << "\n";
-                }
-                else
-                {
-                    std::cerr << " n->name=" << n->displayName().toStdString();
-                    std::cerr << " parent=" << parent;
-                    std::cerr << " parent->name=" << parent->displayName().toStdString() << "\n";
-                }
+                std::cerr << " rootNode parent=" << parent << "\n";
             }
             else
             {
-                std::cerr << " invalid node\n";
+                std::cerr << " n->name=" << n->displayName().toStdString();
+                std::cerr << " parent=" << parent;
+                std::cerr << " parent->name=" << parent->displayName().toStdString() << "\n";
             }
+
         }
         else
         {

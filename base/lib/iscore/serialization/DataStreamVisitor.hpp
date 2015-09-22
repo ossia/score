@@ -62,7 +62,7 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
         }
 
         template<typename T>
-        static auto serialize(const T& t)
+        static auto marshall(const T& t)
         {
             QByteArray arr;
             Visitor<Reader<DataStream>> reader(&arr);

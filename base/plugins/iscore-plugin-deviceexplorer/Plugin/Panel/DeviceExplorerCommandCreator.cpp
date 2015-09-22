@@ -9,7 +9,7 @@
 #include "Commands/Insert.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/Paste.hpp"
-#include "Commands/EditData.hpp"
+#include "Commands/RemoveMessageNodes.hpp"
 
 
 using namespace DeviceExplorer::Command;
@@ -55,7 +55,6 @@ QModelIndex DeviceExplorerCommandCreator::copy(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
 
     iscore::Node* copiedNode = new iscore::Node(*n);
     const bool isDevice = n->is<iscore::DeviceSettings>();
@@ -140,7 +139,6 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -179,7 +177,6 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -225,7 +222,6 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -275,7 +271,6 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 

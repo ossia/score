@@ -119,3 +119,14 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
 
     return {};
 }
+
+
+QStringList iscore_plugin_scenario::required() const
+{
+    return {};
+}
+
+QStringList iscore_plugin_scenario::offered() const
+{
+    return {"Scenario"};
+}

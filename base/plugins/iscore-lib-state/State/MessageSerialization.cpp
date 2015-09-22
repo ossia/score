@@ -66,4 +66,3 @@ void Visitor<Writer<JSONObject>>::writeTo(MessageList& mess)
     fromJsonArray(m_obj["Data"].toArray(), t);
     mess = t;
 }
-
