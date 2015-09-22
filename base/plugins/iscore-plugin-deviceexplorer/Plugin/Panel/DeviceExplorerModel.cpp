@@ -3,7 +3,7 @@
 #include "DeviceExplorerCommandCreator.hpp"
 
 #include "Commands/Insert.hpp"
-#include "Commands/EditData.hpp"
+#include "Commands/RemoveMessageNodes.hpp"
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Update/UpdateAddressSettings.hpp"
 
