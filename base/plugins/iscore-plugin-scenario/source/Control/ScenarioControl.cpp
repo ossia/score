@@ -88,6 +88,12 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 }
 
 
+ScenarioControl* ScenarioControl::instance(Presenter* pres)
+{
+    static auto ctrl = new ScenarioControl(pres);
+    return ctrl;
+}
+
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
     ///// Edit /////

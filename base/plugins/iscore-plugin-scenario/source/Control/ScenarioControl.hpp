@@ -27,7 +27,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 {
         Q_OBJECT
     public:
-        ScenarioControl(iscore::Presenter* pres);
+        static ScenarioControl* instance(iscore::Presenter* = nullptr);
 
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual QList<iscore::OrderedToolbar> makeToolbars() override;
@@ -67,6 +67,8 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual void on_documentChanged() override;
 
     private:
+        ScenarioControl(iscore::Presenter* pres);
+
         ExpandMode m_expandMode{ExpandMode::Scale};
         ProcessList m_processList;
 

@@ -48,9 +48,7 @@ QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documen
 
 iscore::PluginControlInterface* iscore_plugin_scenario::make_control(iscore::Presenter* pres)
 {
-    delete m_control;
-    m_control = new ScenarioControl{pres};
-    return m_control;
+    return ScenarioControl::instance(pres);
 }
 
 QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
@@ -65,15 +63,15 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
     return {
             {ProcessFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
-             { m_control->processList()->registerProcess(fact); }
+             { ScenarioControl::instance()->processList()->registerProcess(fact); }
             },
             {ScenarioContextMenuFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
              {
                 auto context_menu_fact = static_cast<ScenarioContextMenuFactory*>(fact);
-                for(auto& act : context_menu_fact->make(m_control))
+                for(auto& act : context_menu_fact->make(ScenarioControl::instance()))
                 {
-                    m_control->pluginActions().push_back(act);
+                    ScenarioControl::instance()->pluginActions().push_back(act);
                 }
              }
             }

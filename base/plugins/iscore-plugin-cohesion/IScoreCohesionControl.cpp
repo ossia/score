@@ -25,6 +25,7 @@
 #include <QKeySequence>
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include "Plugin/Commands/AddMessagesToModel.hpp"
+#include "Control/ScenarioControl.hpp"
 
 #include <core/document/DocumentModel.hpp>
 #include <QToolBar>
@@ -33,6 +34,13 @@ using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
+    // Since we have declared the dependency, we can assume
+    // that ScenarioControl is instantiated already.
+    auto scen = ScenarioControl::instance();
+    connect(scen, &ScenarioControl::startRecording,
+            this, &IScoreCohesionControl::record);
+
+
     setupCommands();
 
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
@@ -238,6 +246,7 @@ void IScoreCohesionControl::interpolateStates()
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
@@ -338,6 +347,9 @@ class RecordManager : public QObject
 
             // Get the clicked point in scenario and create a state + constraint + state there
             // Create an automation + a rack + a slot + process views for all automations.
+            qDebug() << "Creating at" << pt.date << pt.y;
+            pt.date = TimeValue::fromMsecs(10000);
+            auto default_end_date = pt.date + TimeValue::fromMsecs(1000);
             auto cmd_start = new CreateTimeNode_Event_State{
                     scenar,
                     pt.date,
@@ -349,20 +361,29 @@ class RecordManager : public QObject
             auto cmd_end = new CreateConstraint_State_Event_TimeNode{
                     scenar,
                     cmd_start->createdState(),
-                    pt.date + TimeValue::fromMsecs(1000),
+                    default_end_date,
                     pt.y};
             cmd_end->redo();
             m_dispatcher->submitCommand(cmd_end);
 
-            //// Creation of the curves ////
+            auto& cstr = scenar.constraints.at(cmd_end->createdConstraint());
+            auto cstr_path = iscore::IDocument::path(cstr);
 
+            auto cmd_move = new Scenario::Command::MoveNewEvent(
+                        iscore::IDocument::path(scenar),
+                        cstr.id(),
+                        cmd_end->createdEvent(),
+                        default_end_date,
+                        0,
+                        true);
+
+            //// Creation of the curves ////
             for(const auto& vec : addresses_vec)
             {
                 for(const auto& addr : vec)
                 {
-                    auto& cstr = scenar.constraint(cmd_end->createdConstraint());
                     auto cmd_proc = new AddProcessToConstraint{
-                            iscore::IDocument::path(cstr),
+                            Path<ConstraintModel>(cstr_path),
                             "Automation"};
                     cmd_proc->redo();
 
@@ -370,10 +391,11 @@ class RecordManager : public QObject
                     auto& autom = static_cast<AutomationModel&>(proc);
                     autom.curve().clear();
 
+
                     // Don't forget to put them all in the dispatcher at the end
                     // TODO fetch min / max from AddressSettings
                     // TODO fetch current value from AddressSettings
-                    proc_cmds.insert({addr, {cmd_proc, autom.curve(), -1., 1., 0.}});
+                    proc_cmds.insert(std::make_pair(addr, RecordData{cmd_proc, autom.curve(), -1., 1., 0.}));
                 }
             }
 
@@ -400,11 +422,20 @@ class RecordManager : public QObject
             auto start_time_pt = std::chrono::steady_clock::now();
             auto current_time_pt = std::make_shared<std::chrono::steady_clock::time_point>();
             connect(&m_recordTimer, &QTimer::timeout,
-                    this, [&] () {
+                    this, [=] () {
                 *current_time_pt = std::chrono::steady_clock::now();
 
                 // Move end event by the current duration.
-                qDebug() << "yo dawg" << std::chrono::duration_cast<std::chrono::milliseconds>(*current_time_pt - start_time_pt).count();
+                int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(*current_time_pt - start_time_pt).count();
+                cmd_move->update(
+                            Path<ScenarioModel>{},
+                            Id<ConstraintModel>{},
+                            cmd_end->createdEvent(),
+                            TimeValue::fromMsecs(msecs),
+                            0,
+                            true);
+
+                cmd_move->redo();
 
             });
 
@@ -434,6 +465,9 @@ class RecordManager : public QObject
 
 void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
 {
+    qDebug() << Q_FUNC_INFO;
+    RecordManager* mgr = new RecordManager;
+    mgr->initRecording(scenar, pt);
 /*
 
     // Time keeping
