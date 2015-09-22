@@ -154,7 +154,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        !stateMachine.isShiftPressed());
+                        stateMachine.isShiftPressed());
         });
 
         QObject::connect(move_timenode , &QState::entered, [&] ()

@@ -28,6 +28,12 @@
 #include "Plugin/Commands/AddMessagesToModel.hpp"
 #include "Control/ScenarioControl.hpp"
 
+#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
+#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include "Curve/CurveModel.hpp"
+
 #include <core/document/DocumentModel.hpp>
 #include <QToolBar>
 
@@ -246,12 +252,6 @@ void IScoreCohesionControl::interpolateStates()
 
     macro.commit();
 }
-#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
-#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
-
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include "Curve/CurveModel.hpp"
-
 
 void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
 {

@@ -17,6 +17,13 @@ class AbstractMenuActions;
 // TODO Moveme
 struct ScenarioRecordInitData
 {
+        ScenarioRecordInitData() {}
+        ScenarioRecordInitData(LayerPresenter* lp, QPoint p):
+            presenter{lp},
+            point{p}
+        {
+        }
+
         LayerPresenter* presenter{};
         QPoint point;
 };
