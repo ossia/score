@@ -1,6 +1,6 @@
 #include "CurveSegmentList.hpp"
 
-CurveSegmentFactory*CurveSegmentList::get(const QString& name) const
+CurveSegmentFactory* CurveSegmentList::get(const QString& name) const
 {
     return *std::find_if(factories.begin(), factories.end(),
                          [&] (auto&& p) { return p->name() == name; });

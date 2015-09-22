@@ -4,15 +4,22 @@
 #include "AutomationControl.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
 
-#include "Curve/Segment/LinearCurveSegmentFactory.hpp"
-#include "Curve/Segment/GammaCurveSegmentFactory.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentFactory.hpp"
-#include "Curve/Segment/SinCurveSegmentFactory.hpp"
-
 #if defined(ISCORE_INSPECTOR_LIB)
 #include "Inspector/AutomationInspectorFactory.hpp"
 #include "Inspector/AutomationStateInspectorFactory.hpp"
 #endif
+
+
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Sin/SinCurveSegmentModel.hpp"
+#include "Curve/Segment/Gamma/GammaCurveSegmentModel.hpp"
+
+DEFINE_CURVE_FACTORY(LinearCurveSegmentFactory, "Linear", LinearCurveSegmentModel)
+DEFINE_CURVE_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmentModel)
+DEFINE_CURVE_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
+DEFINE_CURVE_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
+
 
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}

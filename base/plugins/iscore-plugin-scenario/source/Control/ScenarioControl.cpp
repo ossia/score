@@ -151,7 +151,6 @@ iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
     return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
 }
 
-
 void ScenarioControl::createContextMenu(const QPoint& pos)
 {
     QMenu contextMenu;
@@ -166,7 +165,7 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
 
         for(AbstractMenuActions*& elt : m_pluginActions)
         {
-            elt->fillContextMenu(&contextMenu, selected);
+            elt->fillContextMenu(&contextMenu, selected, focusedPresenter(), pos);
             contextMenu.addSeparator();
         }
     }

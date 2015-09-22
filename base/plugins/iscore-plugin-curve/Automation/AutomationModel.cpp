@@ -3,13 +3,12 @@
 #include "State/AutomationState.hpp"
 
 #include "Curve/CurveModel.hpp"
-#include "Curve/Segment/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/GammaCurveSegmentModel.hpp"
-#include "Curve/Segment/SinCurveSegmentModel.hpp"
+#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 
+#include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
 AutomationModel::AutomationModel(
         const TimeValue& duration,
         const Id<Process>& id,
@@ -23,38 +22,28 @@ AutomationModel::AutomationModel(
     // Named shall be enough ?
     m_curve = new CurveModel{Id<CurveModel>(45345), this};
 
+    auto s1 = new PointArrayCurveSegmentModel{Id<CurveSegmentModel>(1), m_curve};
+    s1->setStart({0, -1});
+    s1->setEnd({1, -1});
+
+
+    s1->addPoint(0.3, 0.3);
+    s1->addPoint(0.4, 0.2);
+    s1->addPoint(0.5, 0.7);
+    s1->addPoint(0.6, 0.5);
+    s1->addPoint(0.45, 2);
+    s1->addPoint(0.8, -1);
+
+    /*
     auto s1 = new LinearCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
-/*
-    auto s2 = new GammaCurveSegmentModel(Id<CurveSegmentModel>(2), m_curve);
-    s2->setStart({0.2, 0.9});
-    s2->setEnd({0.4, 0.5});
-    s2->setPrevious(s1->id());
-    s1->setFollowing(s2->id());
+    */
 
-    auto s3 = new GammaCurveSegmentModel(Id<CurveSegmentModel>(3), m_curve);
-    s3->setStart({0.4, 0.5});
-    s3->setEnd({0.6, 1.0});
-    s3->setPrevious(s2->id());
-    s2->setFollowing(s3->id());
-    s3->gamma = 10;
-
-
-    auto s4 = new SinCurveSegmentModel(Id<CurveSegmentModel>(4), m_curve);
-    s4->setStart({0.7, 0.0});
-    s4->setEnd({1.0, 1.});
-*/
     m_curve->addSegment(s1);
     connect(m_curve, &CurveModel::changed,
             this, &AutomationModel::curveChanged);
 
-
-    /*
-    m_curve->addSegment(s2);
-    m_curve->addSegment(s3);
-    m_curve->addSegment(s4);
-    */
     metadata.setName(QString("Automation.%1").arg(*this->id().val()));
 }
 

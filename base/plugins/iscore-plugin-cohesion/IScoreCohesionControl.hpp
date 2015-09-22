@@ -22,6 +22,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void interpolateStates();
 
         void record(ScenarioModel&, ScenarioPoint pt);
+        void stopRecord();
 
     private:
         void setupCommands();
@@ -29,6 +30,4 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         QAction* m_snapshot{};
         QAction* m_curves{};
         QAction* m_interp{};
-
-        QTimer m_recordTimer;
 };

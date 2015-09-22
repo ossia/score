@@ -3,23 +3,20 @@
 
 namespace iscore
 {
-    // If a plug-in requires or offer specific capabilities
-    // They can be queried here.
-    // The plug-ins will always be loaded in this order.
 
+    // Used to declare which plug-ins require to
+    // have their Control loaded prior to this one.
     class PluginRequirementslInterface_QtInterface
     {
         public:
-            enum class LoadingOrder { BeforeDocument, AfterDocument };
-            virtual ~PluginControlInterface_QtInterface() = default;
+            virtual ~PluginRequirementslInterface_QtInterface() = default;
 
-            virtual QStringList required() = 0;
-            virtual QStringList offered() = 0;
-            virtual LoadingOrder order() = 0;
+            virtual QStringList required() const { return {}; }
+            virtual QStringList offered() const { return {}; }
     };
 }
 
 
-#define PluginControlInterface_QtInterface_iid "org.ossia.i-score.plugins.PluginRequirementslInterface_QtInterface"
+#define PluginRequirementsInterface_QtInterface_iid "org.ossia.i-score.plugins.PluginRequirementslInterface_QtInterface"
 
-Q_DECLARE_INTERFACE(iscore::PluginRequirementslInterface_QtInterface, PluginRequirementslInterface_QtInterface_iid)
+Q_DECLARE_INTERFACE(iscore::PluginRequirementslInterface_QtInterface, PluginRequirementsInterface_QtInterface_iid)
