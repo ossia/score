@@ -55,7 +55,7 @@ class Visitor<Reader<JSONObject>> : public AbstractVisitor
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
         template<typename T>
-        static auto serialize(const T& t)
+        static auto marshall(const T& t)
         {
             Visitor<Reader<JSONObject>> reader;
             reader.readFrom(t);

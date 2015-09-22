@@ -14,6 +14,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -22,12 +23,13 @@
 #include "Control/ScenarioControl.hpp"
 
 #include <QCheckBox>
-#include <QSpinBox>
 #include <QToolButton>
 #include <QLabel>
 #include <QFormLayout>
 #include <QTimeEdit>
+
 using namespace iscore;
+
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
@@ -41,9 +43,9 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     widg->setLayout(m_grid);
 
     // SPINBOXES
-    m_minSpin = new QTimeEdit{};
-    m_maxSpin = new QTimeEdit{};
-    m_valueSpin = new QTimeEdit{};
+    m_minSpin = new TimeSpinBox{this};
+    m_maxSpin = new TimeSpinBox{this};
+    m_valueSpin = new TimeSpinBox{this};
 
     m_valueSpin->setDisplayFormat(QString("mm.ss.zzz"));
     m_minSpin->setDisplayFormat(QString("mm.ss.zzz"));
@@ -97,15 +99,20 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 
     //on_modelRigidityChanged(m_model.duration.isRigid());
 
-    connect(m_valueSpin,    &QTimeEdit::editingFinished,
+    connect(m_valueSpin,    &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-    connect(m_minSpin,  &QTimeEdit::editingFinished,
+    connect(m_minSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-    connect(m_maxSpin,  &QTimeEdit::editingFinished,
+    connect(m_maxSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
 
 
     addContent(widg);
+
+    if(m_model.fullView()->isActive() && m_model.id().val() != 0)
+    {
+        m_valueSpin->setEnabled(false);
+    }
 }
 
 using namespace Scenario::Command;
@@ -135,7 +142,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 
     if(m_model.objectName() != "BaseConstraintModel")
     {
-        m_dispatcher.submitCommand<MoveEvent>(
+        m_dispatcher.submitCommand<MoveEvent<GoodOldDisplacementPolicy>>(
                 iscore::IDocument::path(*safe_cast<ScenarioModel*>(m_model.parent())),
                 scenario->state(m_model.endState()).eventId(),
                 m_model.startDate() + TimeValue::fromMsecs(val),

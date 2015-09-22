@@ -1,6 +1,6 @@
 #include "Remove.hpp"
 
-#include "Add/AddAddress.hpp"
+#include "Remove/RemoveAddress.hpp"
 #include "Add/LoadDevice.hpp"
 using namespace DeviceExplorer::Command;
 
@@ -11,14 +11,14 @@ Remove::Remove(
                             commandName(),
                             description()}
 {
-    if (!node.is<iscore::DeviceSettings>())
+    ISCORE_ASSERT(!node.is<InvisibleRootNodeTag>());
+
+    if (node.is<iscore::AddressSettings>())
     {
         m_device = false;
-        m_cmd = new AddAddress{
+        m_cmd = new RemoveAddress{
                     std::move(device_tree),
-                    iscore::NodePath{*node.parent()},
-                    InsertMode::AsChild,
-                    node.get<iscore::AddressSettings>()};
+                    iscore::NodePath{node}};
     }
     else
     {
@@ -36,13 +36,12 @@ Remove::~Remove()
 
 void Remove::undo()
 {
-    m_cmd->redo();
-
+    m_device ? m_cmd->redo() : m_cmd->undo();
 }
 
 void Remove::redo()
 {
-    m_cmd->undo();
+    m_device ? m_cmd->undo() : m_cmd->redo();
 }
 
 void Remove::serializeImpl(QDataStream& d) const
@@ -63,7 +62,7 @@ void Remove::deserializeImpl(QDataStream& d)
     }
     else
     {
-        m_cmd = new AddAddress;
+        m_cmd = new RemoveAddress;
     }
 
     m_cmd->deserialize(cmd_data);

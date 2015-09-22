@@ -65,6 +65,9 @@ void StandardRemovalPolicy::removeState(
         StandardRemovalPolicy::removeConstraint(scenario, state.nextConstraint());
     }
 
+    auto& ev = scenario.events.at(state.eventId());
+    ev.removeState(stateId);
+
     scenario.states.remove(&state);
 }
 

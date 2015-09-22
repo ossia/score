@@ -25,11 +25,13 @@
 #include <QGraphicsScene>
 
 #include <State/StateMimeTypes.hpp>
+#include <State/MessageListSerialization.hpp>
 #include <QMimeData>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QJsonDocument>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <core/document/Document.hpp>
+#include "Plugin/Commands/AddMessagesToModel.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateStateMacro.hpp"
@@ -352,10 +354,8 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {
-        Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
-        iscore::MessageList ml;
-        deser.writeTo(ml);
+        Mime<iscore::MessageList>::Deserializer des{*mime};
+        iscore::MessageList ml = des.deserialize();
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
@@ -369,13 +369,14 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         auto vecpath = cmd->scenarioPath().unsafePath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
-        Path<StateModel> state_path{ObjectPath(std::move(vecpath)), {}};
+        vecpath.append({"MessageItemModel", {}});
+        Path<iscore::MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
-        auto cmd2 = new Scenario::Command::AddStateToStateModel{
+
+        auto cmd2 = new AddMessagesToModel{
                    std::move(state_path),
-                   iscore::StatePath{}, // Make it child of the root node
-                   {iscore::StateData{std::move(ml), "NewState"}, nullptr},
-                   -1};
+                   ml};
+
         m.submitCommand(cmd2);
 
 

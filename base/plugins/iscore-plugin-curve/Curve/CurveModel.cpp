@@ -29,10 +29,7 @@ CurveModel* CurveModel::clone(
 
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
-    m->setParent(this);
-    m_segments.insert(m);
-
-    emit segmentAdded(*m);
+    insertSegment(m);
 
     // Add points if necessary
     // If there is an existing previous segment, its end point also exists
@@ -144,6 +141,14 @@ void CurveModel::addSegments(QVector<CurveSegmentModel*> segts)
     {
         addSegment(segment);
     }
+}
+
+void CurveModel::insertSegment(CurveSegmentModel* m)
+{
+    m->setParent(this);
+    m_segments.insert(m);
+
+    emit segmentAdded(*m);
 }
 
 

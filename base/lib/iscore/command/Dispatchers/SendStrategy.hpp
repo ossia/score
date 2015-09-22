@@ -21,3 +21,21 @@ namespace SendStrategy
         }
     };
 }
+namespace RedoStrategy
+{
+    struct Redo
+    {
+        static void redo(iscore::SerializableCommand& cmd)
+        {
+            cmd.redo();
+        }
+    };
+
+    struct Quiet
+    {
+        static void redo(iscore::SerializableCommand& cmd)
+        {
+        }
+    };
+}
+

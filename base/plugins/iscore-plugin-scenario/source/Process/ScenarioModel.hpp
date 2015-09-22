@@ -101,11 +101,11 @@ class ScenarioModel : public Process, public ScenarioInterface
             return states.at(stId);
         }
 
-        TimeNodeModel& startTimeNode() const
+        TimeNodeModel& startTimeNode() const override
         {
             return timeNode(m_startTimeNodeId);
         }
-        TimeNodeModel& endTimeNode() const
+        TimeNodeModel& endTimeNode() const override
         {
             return timeNode(m_endTimeNodeId);
         }
@@ -122,6 +122,23 @@ class ScenarioModel : public Process, public ScenarioInterface
         NotifyingMap<EventModel> events;
         NotifyingMap<TimeNodeModel> timeNodes;
         NotifyingMap<StateModel> states;
+
+        IdContainer<ConstraintModel> getConstraints() const
+        {
+            return constraints;
+        }
+        IdContainer<EventModel> getEvents() const
+        {
+            return events;
+        }
+        IdContainer<TimeNodeModel>getTimeNodes() const
+        {
+            return timeNodes;
+        }
+        IdContainer<StateModel> getStates() const
+        {
+            return states;
+        }
 
     signals:
         void stateMoved(const StateModel&);

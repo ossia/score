@@ -33,6 +33,9 @@ namespace iscore
                 m_cmds.push_back(cmd);
             }
 
+            int count() const
+            { return m_cmds.size(); }
+
         protected:
             virtual void serializeImpl(QDataStream&) const override;
             virtual void deserializeImpl(QDataStream&) override;

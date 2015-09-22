@@ -2,14 +2,16 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <State/State.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 class StateModel;
 namespace Scenario
 {
     namespace Command
     {
+    /*
         // TODO rename file
-        class AddStateToStateModel : public iscore::SerializableCommand
+        class [[deprecated]] AddStateToStateModel : public iscore::SerializableCommand
         {
                 ISCORE_COMMAND_DECL("ScenarioControl", "AddStateToStateModel", "AddStateToStateModel")
             public:
@@ -34,5 +36,6 @@ namespace Scenario
                 iscore::StateNode m_state;
                 int m_pos{};
         };
+        */
     }
 }

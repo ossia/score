@@ -8,6 +8,8 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
+#include <iscore/document/DocumentInterface.hpp>
+
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
@@ -15,16 +17,21 @@ StateModel::StateModel(
         QObject *parent):
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
-    m_heightPercentage{yPos}
+    m_heightPercentage{yPos},
+    m_messageItemModel{new iscore::MessageItemModel{
+                            iscore::IDocument::commandStack(*this),
+                            this}}
 {
-    con(m_itemModel, &QAbstractItemModel::dataChanged,
-            this, [&] () { emit statesUpdated(); });
-    con(m_itemModel, &QAbstractItemModel::rowsInserted,
-            this, [&] () { emit statesUpdated(); });
-    con(m_itemModel, &QAbstractItemModel::rowsMoved,
-            this, [&] () { emit statesUpdated(); });
-    con(m_itemModel, &QAbstractItemModel::rowsRemoved,
-            this, [&] () { emit statesUpdated(); });
+    con(m_messageItemModel, &QAbstractItemModel::modelReset,
+        this, &StateModel::statesUpdated);
+    con(m_messageItemModel, &QAbstractItemModel::dataChanged,
+        this, &StateModel::statesUpdated);
+    con(m_messageItemModel, &QAbstractItemModel::rowsInserted,
+        this, &StateModel::statesUpdated);
+    con(m_messageItemModel, &QAbstractItemModel::rowsMoved,
+        this, &StateModel::statesUpdated);
+    con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
+        this, &StateModel::statesUpdated);
 }
 
 StateModel::StateModel(
@@ -33,7 +40,7 @@ StateModel::StateModel(
         QObject *parent):
     StateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
-    m_itemModel = source.m_itemModel;
+    messages() = source.messages();
 }
 
 const ScenarioInterface* StateModel::parentScenario() const
@@ -85,14 +92,14 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 }
 
 
-const iscore::StateItemModel& StateModel::states() const
+const iscore::MessageItemModel& StateModel::messages() const
 {
-    return m_itemModel;
+    return *m_messageItemModel;
 }
 
-iscore::StateItemModel& StateModel::states()
+iscore::MessageItemModel& StateModel::messages()
 {
-    return m_itemModel;
+    return *m_messageItemModel;
 }
 
 

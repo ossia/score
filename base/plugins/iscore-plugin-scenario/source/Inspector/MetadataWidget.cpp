@@ -1,6 +1,6 @@
 #include "MetadataWidget.hpp"
 
-#include "Document/ModelMetadata.hpp"
+#include "ProcessInterface//ModelMetadata.hpp"
 #include "Inspector/InspectorSectionWidget.hpp"
 #include "CommentEdit.hpp"
 

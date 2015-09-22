@@ -4,7 +4,7 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
-
+/*
 AddStateToStateModel::AddStateToStateModel(
         Path<StateModel>&& path,
         const iscore::StatePath& parent_path,
@@ -45,3 +45,6 @@ void AddStateToStateModel::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_parentPath >> m_state >> m_pos;
 }
+*/
+
+//////////////////:

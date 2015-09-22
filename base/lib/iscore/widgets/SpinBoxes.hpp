@@ -1,6 +1,8 @@
 #pragma once
 #include <QSpinBox>
 #include <QDoubleSpinBox>
+#include <QTimeEdit>
+#include <QWheelEvent>
 #include <type_traits>
 
 namespace iscore
@@ -34,6 +36,10 @@ class MaxRangeSpinBox : public SpinBox::spinbox_type
             this->setMinimum(std::numeric_limits<typename SpinBox::value_type>::lowest());
             this->setMaximum(std::numeric_limits<typename SpinBox::value_type>::max());
         }
+        void wheelEvent(QWheelEvent* event) override
+        {
+            event->ignore();
+        }
 };
 
 /**
@@ -47,4 +53,20 @@ class SpinBox : public MaxRangeSpinBox<TemplatedSpinBox<T>>
     public:
         using MaxRangeSpinBox<TemplatedSpinBox<T>>::MaxRangeSpinBox;
 };
+
+
+class TimeSpinBox : public QTimeEdit
+{
+    public:
+        TimeSpinBox(QWidget* parent = 0):
+            QTimeEdit(parent)
+        {
+
+        }
+        void wheelEvent(QWheelEvent* event) override
+        {
+            event->ignore();
+        }
+};
+
 }

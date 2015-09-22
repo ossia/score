@@ -40,6 +40,8 @@ class ScenarioControl : public iscore::PluginControlInterface
         void setExpandMode(ExpandMode e)
         { m_expandMode = e; }
 
+        void reinit_tools();
+
     signals:
         void keyPressed(int);
         void keyReleased(int);

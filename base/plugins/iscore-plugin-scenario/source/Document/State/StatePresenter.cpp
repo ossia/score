@@ -4,7 +4,9 @@
 
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/State/AddStateWithData.hpp"
+#include "Plugin/Commands/AddMessagesToModel.hpp"
 #include <State/StateMimeTypes.hpp>
+#include <State/MessageListSerialization.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
@@ -75,24 +77,19 @@ void StatePresenter::handleDrop(const QMimeData *mime)
     // If the mime data has states in it we can handle it.
     if(mime->formats().contains(iscore::mime::messagelist()))
     {
-        Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
-        iscore::MessageList ml;
-        deser.writeTo(ml);
+        Mime<iscore::MessageList>::Deserializer des{*mime};
+        iscore::MessageList ml = des.deserialize();
 
-        auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::path(m_model),
-                   iscore::StatePath{}, // Make it child of the root node
-                   {iscore::StateData{std::move(ml), "NewState"}, nullptr},
-                   -1};
+        auto cmd = new AddMessagesToModel{
+                   iscore::IDocument::path(m_model.messages()),
+                   ml};
 
         m_dispatcher.submitCommand(cmd);
     }
-
 }
 
 void StatePresenter::updateStateView()
 {
-    m_view->setContainMessage(m_model.states().rootNode().hasChildren());
+    m_view->setContainMessage(m_model.messages().rootNode().hasChildren());
 }
 

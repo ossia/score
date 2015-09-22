@@ -3,9 +3,11 @@
 #include <Document/Constraint/Rack/RackModel.hpp>
 #include <ProcessInterface/Process.hpp>
 
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 #include <source/Document/ModelConsistency.hpp>
 #include <source/Document/State/StateModel.hpp>
+#include <source/Document/TimeNode/TimeNodeModel.hpp>
+#include <source/Document/Event/EventModel.hpp>
 
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
@@ -52,6 +54,17 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ModelConsistency consistency;
         ConstraintDurations duration{*this};
 
+        /**
+         * @brief fetchEndTimeNodeId
+         * @return the end timenode id
+         */
+        const Id<TimeNodeModel> fetchEndTimeNodeId() const;
+
+        /**
+         * @brief fetchStartTimeNodeId
+         * @return the start timenode id
+         */
+        const Id<TimeNodeModel> fetchStartTimeNodeId() const;
 
         iscore::ElementPluginModelList pluginModelList;
 
@@ -98,9 +111,11 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
 
         const Id<StateModel>& startState() const;
         void setStartState(const Id<StateModel>& eventId);
+        const Id<TimeNodeModel>& startTimeNode() const;
 
         const Id<StateModel>& endState() const;
         void setEndState(const Id<StateModel> &endState);
+        const Id<TimeNodeModel>& endTimeNode() const;
 
         // Here we won't remove / add things from the outside so it is safe to
         // return a reference

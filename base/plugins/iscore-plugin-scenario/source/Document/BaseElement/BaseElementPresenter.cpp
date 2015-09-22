@@ -22,6 +22,9 @@
 
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include "BaseScenario/BaseScenarioStateMachine.hpp"
+
+#include "ZoomPolicy.hpp"
+
 using namespace iscore;
 
 BaseElementModel& BaseElementPresenter::model() const
@@ -65,6 +68,8 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
+    con(model().baseConstraint().duration, &ConstraintDurations::defaultDurationChanged,
+            m_mainTimeRuler, &TimeRulerPresenter::setDuration);
 
     // Setup of the state machine.
     m_stateMachine = new BaseScenarioStateMachine{this};
@@ -120,8 +125,23 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     m_scenarioPresenter->on_displayedConstraintChanged(displayedConstraint());
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
             this,				  &BaseElementPresenter::setDisplayedObject);
+
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
-    on_zoomSliderChanged(0);
+
+    auto newZoom = displayedConstraint().fullView()->zoom();
+
+    double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
+                              newZoom,
+                              displayedConstraint().duration.defaultDuration().msec(),
+                              view()->view()->width()
+                              );
+    view()->zoomSlider()->setValue(newSliderPos);
+
+    auto center = displayedConstraint().fullView()->center();
+
+    setMillisPerPixel(newZoom);
+    view()->view()->centerOn(center);
+
     on_askUpdate();
 }
 
@@ -166,49 +186,24 @@ void BaseElementPresenter::on_newSelection(const Selection& sel)
     }*/
 }
 
-void BaseElementPresenter::on_zoomSliderChanged(double newzoom)
+void BaseElementPresenter::on_zoomSliderChanged(double sliderPos)
 {
-    // 1. Map from 0 - 1 to min - max for m_pixelsPerMillisecond.
-    // Min: 90 pixels per ms
-    // Default: 0.03 pixels per ms
-    // Max: enough so that the whole base constraint fills the screen
+    auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
+                               sliderPos,
+                               displayedConstraint().duration.defaultDuration().msec(),
+                               view()->view()->width()
+                               );
 
-    // mapZoom maps a value between 0 and 1 to the correct zoom.
-    auto mapZoom = [] (double val, double min, double max)
-    { return (max - min) * val + min; };
-
-    // max : the number of pixels in a millisecond when the whole constraint
-    // is displayed on screen;
-    auto newMillisPerPix = mapZoom(
-                1.0 - newzoom,
-                16.,
-                std::max(
-                    24.,
-                    20 + displayedConstraint().duration.defaultDuration().msec() / view()->view()->width()
-                    )
-                );
     updateZoom(newMillisPerPix, QPointF(0,0));
 }
 
-void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
+void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 {
-    auto mapZoom = [] (double val, double min, double max)
-    { return (max - min) * val + min; };
+    // convert the mouse displacement into a fake slider move
 
-    // computedMax : the number of pixels in a millisecond when the whole constraint
-    // is displayed on screen;
-    auto computedMax = [&] ()
-    {
-        // On veut que cette fonction retourne le facteur de
-        // m_zoomRatio nécessaire pour que la contrainte affichée tienne à l'écran.
-        double viewWidth = view()->view()->width();
-        double duration =  displayedConstraint().duration.defaultDuration().msec();
-
-        return 5 + duration / viewWidth;
-    };
-
-    double zoomSpeed = 0.3;
-    double zoomratio = (view()->zoomSlider()->value() + zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
+    double zoomSpeed = 1.5; // experiment value
+    double zoomratio = (view()->zoomSlider()->value() +
+                        zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
 
     if (zoomratio > 1.)
         zoomratio = 0.99;
@@ -217,7 +212,11 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPointF center, QPoint zoom)
 
     view()->zoomSlider()->setValue(zoomratio);
 
-    auto newMillisPerPix = mapZoom(1.0 - zoomratio, 2., std::max(4., computedMax()));
+    auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
+                               zoomratio,
+                               displayedConstraint().duration.defaultDuration().msec(),
+                               view()->view()->width()
+                               );
 
     updateZoom(newMillisPerPix, center);
 
@@ -230,7 +229,10 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
-    m_mainTimeRuler->scroll(dx);
+    QRect viewport_rect = view()->view()->viewport()->rect() ;
+    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+
+    m_mainTimeRuler->scroll(visible_scene_rect.left());
     /*
     m_localTimeRuler->scroll(dx);
     */
@@ -256,9 +258,15 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     QRect viewport_rect = view()->view()->viewport()->rect() ;
     QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 
-    qreal center = (focus.isNull() ?
-                  visible_scene_rect.center().x() :
-                  focus.x());
+    qreal center = focus.x();
+    if (focus.isNull())
+        center = visible_scene_rect.center().x();
+    else if (focus.x() - visible_scene_rect.left() < 40)
+        center = visible_scene_rect.left();
+    else if (visible_scene_rect.right() - focus.x() < 40)
+        center = visible_scene_rect.right();
+
+
 
     qreal centerT = center * m_zoomRatio; // here's the old zoom
 
@@ -269,14 +277,17 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     if(newZoom != m_zoomRatio)
         setMillisPerPixel(newZoom);
 
-    qreal x;
-        x = (visible_scene_rect.x() < 5 ?
-                0 :
-                centerT/m_zoomRatio - deltaX); // here's the new zoom
+
+    qreal x = centerT/m_zoomRatio - deltaX;; // here's the new zoom
 
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
     view()->view()->ensureVisible(newView,0,0);
+
+    QRectF new_visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+
+    displayedConstraint().fullView()->setZoom(m_zoomRatio);
+    displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
 }
 
 

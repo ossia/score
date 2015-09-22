@@ -4,6 +4,7 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp"
 #include "Commands/Scenario/Displacement/MoveConstraint.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 class ScenarioStateMachine;
 
 class MoveConstraintState : public ScenarioStateBase
@@ -31,7 +32,7 @@ class MoveEventState : public ScenarioStateBase
                        iscore::ObjectLocker& locker,
                        QState* parent);
 
-        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent> m_dispatcher;
+        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent<GoodOldDisplacementPolicy>> m_dispatcher;
 };
 
 class MoveTimeNodeState : public ScenarioStateBase
@@ -43,5 +44,5 @@ class MoveTimeNodeState : public ScenarioStateBase
                           iscore::ObjectLocker& locker,
                           QState* parent);
 
-        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent> m_dispatcher;
+        SingleOngoingCommandDispatcher<Scenario::Command::MoveEvent<GoodOldDisplacementPolicy>> m_dispatcher;
 };

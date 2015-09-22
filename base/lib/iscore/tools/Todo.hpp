@@ -1,5 +1,5 @@
 #pragma once
-#include "iscore_compiler_detection.hpp"
+#include <iscore_compiler_detection.hpp>
 #include <exception>
 #include <typeinfo>
 #include <QDebug>
@@ -56,8 +56,8 @@ template<typename T,
 T safe_cast(U&& other)
 try
 {
-        auto&& res = dynamic_cast<T>(other);
-        return res;
+    auto&& res = dynamic_cast<T>(other);
+    return res;
 }
 catch(std::bad_cast& e)
 {
@@ -72,6 +72,52 @@ catch(std::bad_cast& e)
 #define ISCORE_METADATA(str) public: static constexpr const char className[]{ str }; private:
 
 /**
+ * @brief The ptr struct
+ * Reduces the chances of UB
+ */
+template<typename T>
+struct ptr
+{
+        T* impl{};
+        ptr() = default;
+        ptr(const ptr&) = default;
+        ptr(ptr&&) = default;
+        ptr& operator=(const ptr&) = default;
+        ptr& operator=(ptr&&) = default;
+
+        ptr(T* p): impl{p} { }
+
+        auto operator=(T* other)
+        {
+            impl = other;
+        }
+
+        operator bool() const
+        { return impl; }
+
+        operator T*() const
+        { return impl; }
+
+        auto operator*() const -> decltype(auto)
+        {
+            ISCORE_ASSERT(impl);
+            return *impl;
+        }
+
+        T* operator->() const
+        {
+            ISCORE_ASSERT(impl);
+            return impl;
+        }
+
+        void free()
+        {
+            ::delete impl;
+            impl = nullptr;
+        }
+};
+
+/**
  * @brief con A wrapper around Qt's connect
  *
  * Allows the first argument to be a reference
@@ -80,4 +126,10 @@ template<typename T, typename... Args>
 auto con(const T& t, Args&&... args)
 {
     return QObject::connect(&t, std::forward<Args&&>(args)...);
+}
+
+template<typename T, typename... Args>
+auto con(ptr<T> t, Args&&... args)
+{
+    return QObject::connect(&*t, std::forward<Args&&>(args)...);
 }

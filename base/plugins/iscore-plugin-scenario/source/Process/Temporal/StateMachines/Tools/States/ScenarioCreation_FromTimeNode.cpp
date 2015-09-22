@@ -204,10 +204,10 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                 return;
             }
 
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveEvent<GoodOldDisplacementPolicy>>(
                         Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
-                        m_scenarioPath.find().timeNode(hoveredTimeNode).date(),
+                        TimeValue::zero(),
                         stateMachine.expandMode());
         });
 

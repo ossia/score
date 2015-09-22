@@ -38,11 +38,16 @@ AutomationPresenter::AutomationPresenter(
 
     con(m_viewModel.model(), &Process::execution,
         this, [&] (bool b) {
-        qDebug() << b;
         if(b)
-            m_curvepresenter->stateMachine().stop();
+        {
+            if(m_curvepresenter->stateMachine().isRunning())
+                m_curvepresenter->stateMachine().stop();
+        }
         else
-            m_curvepresenter->stateMachine().start();
+        {
+            if(!m_curvepresenter->stateMachine().isRunning())
+                m_curvepresenter->stateMachine().start();
+        }
     });
     parentGeometryChanged();
 }

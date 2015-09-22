@@ -82,6 +82,9 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 
 //    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
 //    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
+
+    connect(this, &ScenarioControl::defocused,
+            this, &ScenarioControl::reinit_tools);
 }
 
 
@@ -177,6 +180,8 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
     // We set the currently focused view model to a "select" state
     // to prevent problems.
 
+    reinit_tools();
+
     for(AbstractMenuActions*& elt : m_pluginActions)
     {
         elt->setEnabled(false);
@@ -263,6 +268,13 @@ const ScenarioModel* ScenarioControl::focusedScenarioModel() const
 TemporalScenarioPresenter* ScenarioControl::focusedPresenter() const
 {
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
+}
+
+
+void ScenarioControl::reinit_tools()
+{
+    emit keyReleased(Qt::Key_Control);
+    emit keyReleased(Qt::Key_Shift);
 }
 
 ProcessFocusManager* ScenarioControl::processFocusManager() const

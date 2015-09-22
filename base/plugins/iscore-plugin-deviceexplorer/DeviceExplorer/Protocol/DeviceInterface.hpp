@@ -21,11 +21,14 @@ class DeviceInterface : public QObject
         // The addresses are not applied to the device, they have to be via a command!
         virtual bool canRefresh() const { return false; }
         virtual iscore::Node refresh() { return {}; }
-        virtual iscore::Value refresh(const iscore::Address&) { return {}; }
+        virtual boost::optional<iscore::Value> refresh(const iscore::Address&) { return {}; }
+        virtual void setListening(const iscore::Address&, bool) { }
+        virtual void replaceListening(const std::vector<iscore::Address>&) { }
+        virtual std::vector<iscore::Address> listening() const { return {}; }
 
-        virtual void addAddress(const iscore::FullAddressSettings& address) = 0;
-        virtual void updateAddress(const iscore::FullAddressSettings& address) = 0;
-        virtual void removeAddress(const iscore::Address& path) = 0;
+        virtual void addAddress(const iscore::FullAddressSettings&) = 0;
+        virtual void updateAddress(const iscore::FullAddressSettings&) = 0;
+        virtual void removeNode(const iscore::Address&) = 0;
 
         // Execution API... Maybe we don't need it here.
         virtual void sendMessage(iscore::Message mess) = 0;

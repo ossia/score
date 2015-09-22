@@ -97,18 +97,24 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
 
         if(auto event = dynamic_cast<const EventModel*>(obj))
         {
-            QByteArray arr;
-            Serializer<DataStream> s{&arr};
-            s.readFrom(*event);
-            m_removedEvents.push_back({event->id(), arr});
+            if(event->id() != Id<EventModel>{0})
+            {
+                QByteArray arr;
+                Serializer<DataStream> s{&arr};
+                s.readFrom(*event);
+                m_removedEvents.push_back({event->id(), arr});
+            }
         }
 
         if(auto tn = dynamic_cast<const TimeNodeModel*>(obj))
         {
-            QByteArray arr;
-            Serializer<DataStream> s2{&arr};
-            s2.readFrom(*tn);
-            m_removedTimeNodes.push_back({tn->id(), arr});
+            if(tn->id() != Id<TimeNodeModel>{0})
+            {
+                QByteArray arr;
+                Serializer<DataStream> s2{&arr};
+                s2.readFrom(*tn);
+                m_removedTimeNodes.push_back({tn->id(), arr});
+            }
         }
 
         if(auto constraint = dynamic_cast<const ConstraintModel*>(obj))
@@ -128,10 +134,13 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     // TODO how does this even work ? what happens of the maybe removed events / states ?
     for(const auto& tn : maybeRemovedTimenodes)
     {
-        QByteArray arr;
-        Serializer<DataStream> s2{&arr};
-        s2.readFrom(*tn);
-        m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
+        if(tn->id() != Id<TimeNodeModel>{0})
+        {
+            QByteArray arr;
+            Serializer<DataStream> s2{&arr};
+            s2.readFrom(*tn);
+            m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
+        }
     }
 }
 

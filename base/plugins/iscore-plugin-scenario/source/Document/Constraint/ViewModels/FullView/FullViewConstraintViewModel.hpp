@@ -1,5 +1,7 @@
 #pragma once
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "ProcessInterface/ZoomHelper.hpp"
+#include <QPointF>
 
 class ConstraintModel;
 /**
@@ -42,4 +44,16 @@ class FullViewConstraintViewModel : public ConstraintViewModel
         }
 
         QString type() const override;
+
+        ZoomRatio zoom() const;
+        void setZoom(const ZoomRatio& zoom);
+
+        QPointF center() const;
+        void setCenter(const QPointF& value);
+
+        bool isActive();
+
+private:
+        ZoomRatio m_zoom{0.};
+        QPointF m_center{0,0};
 };

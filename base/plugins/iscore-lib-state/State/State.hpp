@@ -72,4 +72,5 @@ class StateData : public VariantBasedNode<
 
 using StateNode = TreeNode<StateData>;
 using StatePath = TreePath<StateNode>;
+
 }

@@ -5,6 +5,9 @@
 /**
  * Creates a default constructor for serializable commands.
  * Requires ISCORE_COMMAND_DECL presence.
+ *
+ * TODO we can make this even better by having a
+ * using the_command = ... in ISCORE_COMMAND_DECL
  */
 #define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(THE_CLASS) THE_CLASS () : iscore::SerializableCommand{ factoryName() , commandName(), description() } { }
 

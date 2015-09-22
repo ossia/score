@@ -1,7 +1,7 @@
 #include "AssignMessagesToState.hpp"
 using namespace iscore;
 using namespace Scenario::Command;
-
+/*
 AssignMessagesToState::AssignMessagesToState(
         Path<StateModel>&& path,
         StatePath&& statepath,
@@ -51,3 +51,4 @@ void AssignMessagesToState::deserializeImpl(QDataStream& s)
 {
     s >> m_path >> m_statepath >> m_oldMessages >> m_newMessages;
 }
+*/

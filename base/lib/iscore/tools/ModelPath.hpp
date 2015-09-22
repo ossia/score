@@ -68,6 +68,8 @@ class Path
 
         Object& find() const
         { return m_impl.find<Object>(); }
+        Object* try_find() const
+        { return m_impl.try_find<Object>(); }
 
         const auto& unsafePath() const
         { return m_impl; }

@@ -279,7 +279,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 
 void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 {
-    InspectorSectionWidget* newProc = new InspectorSectionWidget(process.processName());
+    InspectorSectionWidget* newProc = new InspectorSectionWidget(process.metadata.name());
 
     // Process
     auto processWidget = InspectorWidgetList::makeInspectorWidget(

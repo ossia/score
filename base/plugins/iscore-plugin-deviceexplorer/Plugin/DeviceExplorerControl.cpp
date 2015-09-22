@@ -3,11 +3,13 @@
 #include "Commands/Add/AddAddress.hpp"
 #include "Commands/Add/AddDevice.hpp"
 #include "Commands/Add/LoadDevice.hpp"
+#include "Commands/AddMessagesToModel.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/EditData.hpp"
 #include "Commands/Insert.hpp"
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
+#include "Commands/Remove/RemoveAddress.hpp"
 #include "Commands/Remove.hpp"
 #include "Commands/RemoveNodes.hpp"
 #include "Commands/ReplaceDevice.hpp"
@@ -44,11 +46,14 @@ void DeviceExplorerControl::setupCommands()
             LoadDevice,
             UpdateAddressSettings,
             UpdateDeviceSettings,
+            AddMessagesToModel,
+            RemoveMessageNodes,
             Cut,
 //            Insert,
             Move,
             Paste,
             Remove,
+            RemoveAddress,
             RemoveNodes,
             ReplaceDevice,
             UpdateAddressesValues

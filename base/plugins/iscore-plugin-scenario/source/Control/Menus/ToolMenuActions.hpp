@@ -9,7 +9,7 @@ class ToolMenuActions : public AbstractMenuActions
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&sel) override;
         void makeToolBar(QToolBar* bar) override;
-        void setEnabled(bool);
+        void setEnabled(bool) override;
 
         QList<QAction*> modeActions();
         QList<QAction*> toolActions();

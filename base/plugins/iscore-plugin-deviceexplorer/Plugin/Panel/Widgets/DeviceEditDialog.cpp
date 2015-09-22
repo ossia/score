@@ -35,10 +35,13 @@ DeviceEditDialog::buildGUI()
 
     m_gLayout = new QGridLayout;
 
-    m_gLayout->addWidget(protocolLabel, 0, 0, 1, 1);
-    m_gLayout->addWidget(m_protocolCBox, 0, 1, 1, 1);
+    // QLabel for the warning text
+    m_gLayout->addWidget(new QLabel, 0, 0, 1, 2);
+
+    m_gLayout->addWidget(protocolLabel, 1, 0, 1, 1);
+    m_gLayout->addWidget(m_protocolCBox, 1, 1, 1, 1);
     //keep one row for m_protocolWidget
-    m_gLayout->addWidget(buttonBox, 2, 0, 1, 2);
+    m_gLayout->addWidget(buttonBox, 3, 0, 1, 2);
 
     setLayout(m_gLayout);
 
@@ -94,7 +97,7 @@ DeviceEditDialog::updateProtocolWidget()
 
     if(m_protocolWidget)
     {
-        m_gLayout->addWidget(m_protocolWidget, 1, 0, 1, 2);
+        m_gLayout->addWidget(m_protocolWidget, 2, 0, 1, 2);
         updateGeometry();
     }
 
@@ -131,4 +134,24 @@ DeviceEditDialog::setSettings(const iscore::DeviceSettings &settings)
     m_protocolCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
 
     m_protocolWidget->setSettings(settings);
+}
+
+void DeviceEditDialog::setEditingInvalidState(bool st)
+{
+    if(st != m_invalidState)
+    {
+        if(st)
+        {
+            auto item = m_gLayout->itemAtPosition(0, 0);
+            static_cast<QLabel*>(item->widget())->setText(tr("Warning : device requires editing."));
+        }
+        else
+        {
+            auto item = m_gLayout->takeAt(0);
+            delete item->widget();
+            delete item;
+        }
+
+        m_invalidState = st;
+    }
 }

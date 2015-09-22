@@ -7,3 +7,6 @@
 [submodule "3rdparty/QProgressIndicator"]
 	path = 3rdparty/QProgressIndicator
 	url = https://github.com/jcelerier/QProgressIndicator
+[submodule "3rdparty/kiwi"]
+	path = 3rdparty/kiwi
+	url = https://github.com/nucleic/kiwi.git

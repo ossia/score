@@ -3,13 +3,16 @@
 #include <QGridLayout>
 #include <QDialogButtonBox>
 #include <QListView>
+#include <QHostInfo>
 #include <QDialog>
 #include <KF5/KDNSSD/DNSSD/ServiceBrowser>
 #include <KF5/KDNSSD/DNSSD/ServiceModel>
 
 using namespace KDNSSD;
-ZeroconfBrowser::ZeroconfBrowser(QObject* parent):
-    m_dialog{new QDialog{}}
+ZeroconfBrowser::ZeroconfBrowser(
+        const QString& service,
+        QWidget* parent):
+    m_dialog{new QDialog{parent}}
 {
     QGridLayout* lay = new QGridLayout;
     auto buttonBox = new QDialogButtonBox(
@@ -23,7 +26,7 @@ ZeroconfBrowser::ZeroconfBrowser(QObject* parent):
 
 
     auto serviceModel = new ServiceModel(
-                         new ServiceBrowser("_iscore._tcp"));
+                         new ServiceBrowser(service));
     m_list = new QListView;
     m_list->setSelectionMode(QAbstractItemView::SingleSelection);
     m_list->setModel(serviceModel);
@@ -32,13 +35,13 @@ ZeroconfBrowser::ZeroconfBrowser(QObject* parent):
 
 QAction* ZeroconfBrowser::makeAction()
 {
-    QAction* act = new QAction(tr("Browse for server"), nullptr);
-    connect(act, SIGNAL(triggered()),
-            m_dialog, SLOT(show()));
+    QAction* act = new QAction(tr("Browse for server"), this);
+    connect(act, &QAction::triggered,
+            m_dialog, [=] { m_dialog->exec(); });
 
     return act;
 }
-#include <QHostInfo>
+
 void ZeroconfBrowser::accept()
 {
     auto selection = m_list->currentIndex();
@@ -67,7 +70,6 @@ void ZeroconfBrowser::accept()
         emit sessionSelected(ipAddress, data->port());
         m_dialog->close();
     }
-
 }
 
 void ZeroconfBrowser::reject()
