@@ -134,7 +134,7 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 }
 
-void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
+void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&)
 {
     if(sel.empty())
         return;

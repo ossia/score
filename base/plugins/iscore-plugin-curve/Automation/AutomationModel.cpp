@@ -23,10 +23,9 @@ AutomationModel::AutomationModel(
     m_curve = new CurveModel{Id<CurveModel>(45345), this};
 
     auto s1 = new PointArrayCurveSegmentModel{Id<CurveSegmentModel>(1), m_curve};
-    s1->setStart({0.3, -1});
-    s1->setEnd({0.6, -1});
-    s1->min_y = 0.3;
-    s1->max_y = 0.5;
+    s1->setStart({0, -1});
+    s1->setEnd({1, -1});
+
 
     s1->addPoint(0.3, 0.3);
     s1->addPoint(0.4, 0.2);

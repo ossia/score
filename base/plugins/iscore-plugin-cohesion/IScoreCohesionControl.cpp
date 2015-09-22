@@ -56,7 +56,6 @@ IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     connect(m_curves, &QAction::triggered,
             this, &IScoreCohesionControl::createCurvesFromAddresses);
 
-    m_recordTimer.setInterval(8);
 }
 
 void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
@@ -256,91 +255,186 @@ class Record : public iscore::AggregateCommand
 // TODO I require a special undo too
 };
 
+struct RecordData
+{
+        AddProcessToConstraint* addProcCmd{};
+
+        CurveModel& curveModel;
+        double min{};
+        double max{};
+        double initVal{};
+};
+
+class RecordManager : public QObject
+{
+        std::unique_ptr<QuietMacroCommandDispatcher> m_dispatcher;
+        ListeningState m_listening;
+        DeviceExplorerModel* m_explorer{};
+
+        QTimer m_recordTimer;
+
+        std::unordered_map<
+                iscore::Address,
+                RecordData
+        > proc_cmds;
+    public:
+        RecordManager()
+        {
+            m_recordTimer.setInterval(8);
+        }
+
+        void stopRecording()
+        {
+            m_recordTimer.stop();
+            // Commit
+
+            m_explorer->deviceModel().resumeListening(m_listening);
+        }
+
+        void initRecording(ScenarioModel& scenar, ScenarioPoint pt)
+        {
+            auto& doc = *iscore::IDocument::documentFromObject(scenar);
+            //// Device tree management ////
+
+            // Get all the selected nodes
+            m_explorer = doc.findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+            auto indices = m_explorer->selectedIndexes();
+
+            // Disable listening for everything
+            m_listening = m_explorer->deviceModel().pauseListening();
+
+            // First get the addresses to listen.
+            std::vector<std::vector<iscore::Address>> addresses_vec;
+            for(auto& index : indices)
+            {
+                // TODO use address settings instead.
+                auto addr = DeviceExplorer::addressFromModelIndex(index);
+                // TODO shall we check if the address is in, out, recordable ?
+                // Recording an automation of strings would actually have a meaning
+                // here (for instance recording someone typing).
+
+                // We sort the addresses by device to optimize.
+                auto dev_it = std::find_if(addresses_vec.begin(),
+                                           addresses_vec.end(),
+                                           [&] (const auto& vec)
+                { return vec.front().device == addr.device; });
+
+                if(dev_it != addresses_vec.end())
+                {
+                    dev_it->push_back(addr);
+                }
+                else
+                {
+                    addresses_vec.push_back({addr});
+                }
+            }
+
+            if(addresses_vec.empty())
+                return;
+
+            m_dispatcher = std::make_unique<QuietMacroCommandDispatcher>(new Record, doc.commandStack());
+
+            //// Initial commands ////
+
+            // Get the clicked point in scenario and create a state + constraint + state there
+            // Create an automation + a rack + a slot + process views for all automations.
+            auto cmd_start = new CreateTimeNode_Event_State{
+                    scenar,
+                    pt.date,
+                    pt.y};
+            cmd_start->redo();
+            m_dispatcher->submitCommand(cmd_start);
+
+            // TODO what happens if we go past the end of our scenario ? Stop recording ??
+            auto cmd_end = new CreateConstraint_State_Event_TimeNode{
+                    scenar,
+                    cmd_start->createdState(),
+                    pt.date + TimeValue::fromMsecs(1000),
+                    pt.y};
+            cmd_end->redo();
+            m_dispatcher->submitCommand(cmd_end);
+
+            //// Creation of the curves ////
+
+            for(const auto& vec : addresses_vec)
+            {
+                for(const auto& addr : vec)
+                {
+                    auto& cstr = scenar.constraint(cmd_end->createdConstraint());
+                    auto cmd_proc = new AddProcessToConstraint{
+                            iscore::IDocument::path(cstr),
+                            "Automation"};
+                    cmd_proc->redo();
+
+                    auto& proc = cstr.processes.at(cmd_proc->processId());
+                    auto& autom = static_cast<AutomationModel&>(proc);
+                    autom.curve().clear();
+
+                    // Don't forget to put them all in the dispatcher at the end
+                    // TODO fetch min / max from AddressSettings
+                    // TODO fetch current value from AddressSettings
+                    proc_cmds.insert({addr, {cmd_proc, autom.curve(), -1., 1., 0.}});
+                }
+            }
+
+            //// Setup listening on the curves ////
+            for(const auto& vec : addresses_vec)
+            {
+                auto& dev = m_explorer->deviceModel().list().device(vec.front().device);
+
+                dev.replaceListening(vec);
+                // Add a custom callback.
+                connect(&dev, &DeviceInterface::valueUpdated,
+                        this, [=] (const iscore::Address& addr, const iscore::Value& val) {
+
+                    bool ok = false;
+                    double newval = val.val.toDouble(&ok);
+                    if(!ok)
+                        return;
+
+                    qDebug() << addr.toString() << newval;
+                });
+            }
+
+            //// Start the record timer ////
+            auto start_time_pt = std::chrono::steady_clock::now();
+            auto current_time_pt = std::make_shared<std::chrono::steady_clock::time_point>();
+            connect(&m_recordTimer, &QTimer::timeout,
+                    this, [&] () {
+                *current_time_pt = std::chrono::steady_clock::now();
+
+                // Move end event by the current duration.
+                qDebug() << "yo dawg" << std::chrono::duration_cast<std::chrono::milliseconds>(*current_time_pt - start_time_pt).count();
+
+            });
+
+            m_recordTimer.start();
+            // TODO don't forget to set min/max/address at the end.
+
+            // At each tick, resize the constraint
+            // At each value received, resize the process (increase duration mode) to match the current value,
+            // and add a curve segment from the last to the current.
+            // Also, rescale with min / max values.
+            // So, if min is -3 and max is 5, the lowest point will be at 0 and the biggest at 1,
+            // with the min and max set in a relevant way.
+            // i.e., each time a new point is > max or < min, rescale everything in the
+            // automation.
+
+            // On stop, create the relevant command with the recorded automation by creating UpdateCurves commands.
+            // Push everything in quiet mode.
+
+            // Note : create a special curve command with an addNewPoint() method ?
+
+            /*
+            auto update_proc = new UpdateCurve(iscore::IDocument::path(autom.curve(), {}));
+            */
+
+        }
+};
+
 void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
 {
-    // Get all the selected nodes
-    auto device_explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto indices = device_explorer->selectedIndexes();
-
-    // Disable listening for everything
-    auto l = device_explorer->deviceModel().pauseListening();
-
-    // First get the addresses to listen.
-    std::vector<std::vector<iscore::Address>> addresses_vec;
-    for(auto& index : indices)
-    {
-        // TODO use address settings instead.
-        auto addr = DeviceExplorer::addressFromModelIndex(index);
-        // TODO shall we check if the address is in, out, recordable ?
-        // Recording an automation of strings would actually have a meaning
-        // here (for instance recording someone typing).
-
-        // We sort the addresses by device to optimize.
-        auto dev_it = std::find_if(addresses_vec.begin(),
-                                addresses_vec.end(),
-                                [&] (const auto& vec)
-          { return vec.front().device == addr.device; });
-
-        if(dev_it != addresses_vec.end())
-        {
-            dev_it->push_back(addr);
-        }
-        else
-        {
-            addresses_vec.push_back({addr});
-        }
-    }
-
-
-    auto disp = std::make_shared<QuietMacroCommandDispatcher>(new Record, currentDocument()->commandStack());
-    // Get the clicked point in scenario and create a state + constraint + state there
-    // Create an automation + a rack + a slot + process views for all automations.
-    auto cmd_start = new CreateTimeNode_Event_State{
-            scenar,
-            pt.date,
-            pt.y};
-    cmd_start->redo();
-    disp->submitCommand(cmd_start);
-
-    // TODO what happens if we go past the end of our scenario ? Stop recording ??
-    auto cmd_end = new CreateConstraint_State_Event_TimeNode{
-            scenar,
-            cmd_start->createdState(),
-            pt.date + TimeValue::fromMsecs(1000),
-            pt.y};
-    cmd_end->redo();
-    disp->submitCommand(cmd_end);
-
-    auto proc_cmds = std::make_shared<
-    std::unordered_map<
-            iscore::Address,
-            std::tuple<
-                AddProcessToConstraint*,
-                CurveModel*,
-                std::tuple<double, double, double> // min, max, start value
-            >
-    >>();
-
-    for(const auto& vec : addresses_vec)
-    {
-        for(const auto& addr : vec)
-        {
-            auto& cstr = scenar.constraint(cmd_end->createdConstraint());
-            auto cmd_proc = new AddProcessToConstraint{
-                    iscore::IDocument::path(cstr),
-                    "Automation"};
-            cmd_proc->redo();
-
-            auto& proc = cstr.processes.at(cmd_proc->processId());
-            auto& autom = static_cast<AutomationModel&>(proc);
-            autom.curve().clear();
-
-            // Don't forget to put them all in the dispatcher at the end
-            // TODO fetch min / max from AddressSettings
-            // TODO fetch current value from AddressSettings
-            proc_cmds->insert({addr, std::make_tuple(cmd_proc, &autom.curve(), std::make_tuple(-1., 1., 0.))});
-        }
-    }
+/*
 
     // Time keeping
     auto start_time_pt = std::chrono::steady_clock::now();
@@ -360,6 +454,8 @@ void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
             double newval = val.val.toDouble(&ok);
             if(!ok)
                 return;
+
+            qDebug() << addr << newval;
 
             auto it = proc_cmds->find(addr);
             ISCORE_ASSERT(it != proc_cmds->end());
@@ -418,16 +514,16 @@ void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
             curve->insertSegment(seg);
         });
     }
-
     connect(&m_recordTimer, &QTimer::timeout,
             this, [&] () {
         *current_time_pt = std::chrono::steady_clock::now();
 
         // Move end event by the current duration.
+        qDebug() << "yo dawg" << std::chrono::duration_cast<std::chrono::milliseconds>(*current_time_pt - start_time_pt).count()
 
     });
 
-    m_recordTimer.start();
+    m_recordTimer.start();*/
     // TODO don't forget to set min/max/address at the end.
 
     // At each tick, resize the constraint
@@ -447,15 +543,16 @@ void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
     /*
     auto update_proc = new UpdateCurve(iscore::IDocument::path(autom.curve(), {}));
     */
-    device_explorer->deviceModel().resumeListening(l);
 
-}
+    }
+
+    void IScoreCohesionControl::stopRecord(){}
 
 
-void IScoreCohesionControl::snapshotParametersInStates()
-{
-    using namespace std;
-    // Fetch the selected events
+    void IScoreCohesionControl::snapshotParametersInStates()
+    {
+        using namespace std;
+        // Fetch the selected events
     auto sel = currentDocument()->
                  selectionStack().
                    currentSelection();

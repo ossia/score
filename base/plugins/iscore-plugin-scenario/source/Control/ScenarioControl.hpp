@@ -3,6 +3,7 @@
 #include "ProcessInterface/ProcessList.hpp"
 #include "Menus/Plugin/ScenarioContextMenuPluginList.hpp"
 #include "Document/BaseElement/ProcessFocusManager.hpp"
+#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
 
 class QActionGroup;
 class ScenarioModel;
@@ -12,6 +13,16 @@ class TemporalScenarioPresenter;
 class ObjectMenuActions;
 class ToolMenuActions;
 class AbstractMenuActions;
+
+// TODO Moveme
+struct ScenarioRecordInitData
+{
+        LayerPresenter* presenter{};
+        QPoint point;
+};
+Q_DECLARE_METATYPE(ScenarioRecordInitData)
+
+
 class ScenarioControl : public iscore::PluginControlInterface
 {
         Q_OBJECT
@@ -45,6 +56,9 @@ class ScenarioControl : public iscore::PluginControlInterface
     signals:
         void keyPressed(int);
         void keyReleased(int);
+
+        void startRecording(ScenarioModel&, ScenarioPoint);
+        void stopRecording();
 
     public slots:
         void createContextMenu(const QPoint &);

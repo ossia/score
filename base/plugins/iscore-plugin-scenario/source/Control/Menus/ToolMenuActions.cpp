@@ -146,7 +146,7 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     }
 }
 
-void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
+void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&)
 {
     auto tool = menu->addMenu("Tool");
     tool->addActions(toolActions());
