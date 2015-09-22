@@ -40,7 +40,7 @@ class FullViewConstraintViewModel : public ConstraintViewModel
                                     QObject* parent) :
             ConstraintViewModel {vis, model, parent}
         {
-            // Nothing to add, no vis.visit(*this);
+            vis.writeTo(*this);
         }
 
         QString type() const override;
