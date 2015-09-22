@@ -395,7 +395,7 @@ class RecordManager : public QObject
                     // Don't forget to put them all in the dispatcher at the end
                     // TODO fetch min / max from AddressSettings
                     // TODO fetch current value from AddressSettings
-                    proc_cmds.insert(std::make_pair(addr, RecordData{cmd_proc, autom.curve(), -1., 1., 0.}));
+                    //proc_cmds.insert(std::make_pair(addr, RecordData{cmd_proc, autom.curve(), -1., 1., 0.}));
                 }
             }
 

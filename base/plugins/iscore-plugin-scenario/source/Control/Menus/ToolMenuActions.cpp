@@ -71,7 +71,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
 
     // SHIFT
     m_shiftAction = makeToolbarAction(
-                            tr("Fork Creation"),
+                            tr("Sequence"),
                             this,
                             ExpandMode::Fixed,
                             tr("Shift"));

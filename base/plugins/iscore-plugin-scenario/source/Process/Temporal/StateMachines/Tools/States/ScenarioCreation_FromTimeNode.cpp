@@ -193,7 +193,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        !stateMachine.isShiftPressed());
+                        stateMachine.isShiftPressed());
         });
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
