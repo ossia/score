@@ -7,13 +7,16 @@ class TemporalConstraintHeader : public ConstraintHeader
         TemporalConstraintHeader():
             ConstraintHeader{}
         {
-            this->setAcceptedMouseButtons(0);
+            this->setAcceptedMouseButtons(Qt::LeftButton);  // needs to be enabled for dblclick
+            this->setFlags(QGraphicsItem::ItemIsSelectable);// needs to be enabled for dblclick
         }
 
         QRectF boundingRect() const override;
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;
+
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
         int type() const override
         { return QGraphicsItem::UserType + 6; }
