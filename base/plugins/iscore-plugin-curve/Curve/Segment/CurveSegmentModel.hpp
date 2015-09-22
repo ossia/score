@@ -84,7 +84,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         mutable QVector<QPointF> m_data; // A data cache.
         mutable bool m_valid{}; // Used to perform caching.
 
-    private:
         CurvePoint m_start, m_end;
+
+    private:
         Id<CurveSegmentModel> m_previous, m_following;
 };
