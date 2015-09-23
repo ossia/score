@@ -117,6 +117,9 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_addProcess, &QAction::triggered,
             [this]()
     {
+        auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
+        if(selectedConstraints.isEmpty())
+            return;
         m_addProcessDialog->launchWindow();
     });
 
@@ -254,6 +257,8 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 void ObjectMenuActions::addProcessInConstraint(QString processName)
 {
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
+    if(selectedConstraints.isEmpty())
+        return;
     auto cmd = new Scenario::Command::AddProcessToConstraint
     {
         iscore::IDocument::path(**selectedConstraints.begin()),

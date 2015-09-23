@@ -224,12 +224,12 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 
 void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 {
-    auto pos = ZoomPolicy::zoomRatioToSliderPos(
-                                                m_zoomRatio,
+    auto zoom = ZoomPolicy::sliderPosToZoomRatio(
+                                                view()->zoomSlider()->value(),
                                                 displayedConstraint().duration.defaultDuration().msec(),
                                                 view()->view()->width());
-//    on_zoomSliderChanged(view()->zoomSlider()->value());
-    view()->zoomSlider()->setValue(pos);
+
+    updateZoom(zoom, {0,0});
 }
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
