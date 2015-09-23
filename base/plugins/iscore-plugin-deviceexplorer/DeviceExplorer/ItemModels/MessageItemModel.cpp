@@ -64,6 +64,30 @@ MessageList MessageItemModel::flatten() const
     return ml;
 }
 
+void MessageItemModel::insert(const Message& mess)
+{
+    // First, try to see if there is a corresponding node
+    auto n = try_getNodeFromAddress(m_rootNode, mess.address);
+    qDebug() << Q_FUNC_INFO << mess.address.toString() << mess.value.val;
+    if(n)
+    {
+        qDebug() << "item model: setting" << mess.address.toString() << "at" << mess.value.toString();
+        auto val = mess.value.val;
+        if(!val.canConvert(n->get<iscore::AddressSettings>().value.val.type()))
+            return;
+        n->get<iscore::AddressSettings>().value.val = val;
+
+        auto parent = n->parent();
+        auto idx = createIndex(parent->indexOfChild(n), 0, n->parent());
+        emit dataChanged(idx, idx);
+    }
+    else
+    {
+        ISCORE_TODO;
+        // We need to create a node.
+    }
+}
+
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;

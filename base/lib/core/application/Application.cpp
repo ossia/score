@@ -54,7 +54,7 @@ Application::Application(int& argc, char** argv) :
     NamedObject {"Application", nullptr}
 {
 #ifdef ISCORE_DEBUG
-    //qInstallMessageHandler(myMessageOutput);
+    qInstallMessageHandler(myMessageOutput);
 #endif
     // Application
     // Crashes if put in member initialization list... :(
