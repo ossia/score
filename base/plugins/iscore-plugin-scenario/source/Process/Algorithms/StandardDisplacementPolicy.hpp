@@ -87,29 +87,28 @@ public:
             auto& curConstraintToUpdate = scenario.constraint(curConstraintPropertiesToUpdate_id);
             auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
 
-            const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
-            const auto& endDate = scenario.event(scenario.state(curConstraintToUpdate.endState()).eventId()).date();
 
-            TimeValue newDuration = endDate - startDate;
-
-            if (!(curConstraintToUpdate.startDate() - startDate).isZero())
+            if(useNewValues)// update durations
             {
-                curConstraintToUpdate.setStartDate(startDate);
-            }
+                // compute default duration here
+                const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
+                const auto& endDate = scenario.event(scenario.state(curConstraintToUpdate.endState()).eventId()).date();
 
-            if(!(curConstraintToUpdate.duration.defaultDuration() - newDuration).isZero())
-            {
-                ConstraintDurations::Algorithms::changeAllDurations(curConstraintToUpdate, newDuration);
-                for(auto& process : curConstraintToUpdate.processes)
+                TimeValue defaultDuration = endDate - startDate;
+
+                // check if start date changed
+                if (!(curConstraintToUpdate.startDate() - startDate).isZero())
                 {
-                    scaleMethod(process, newDuration);
+                    curConstraintToUpdate.setStartDate(startDate);
                 }
+
+                //change durations
+                curConstraintToUpdate.duration.setDefaultDuration(defaultDuration);
+
+                curConstraintToUpdate.duration.setMinDuration(curConstraintPropertiesToUpdate.newMin);
+                curConstraintToUpdate.duration.setMaxDuration(curConstraintPropertiesToUpdate.newMax);
             }
-
-            emit scenario.constraintMoved(curConstraintToUpdate);
-
-            // IF UNDO THEN RESTORE THE STATE OF THE CONSTRAINTS
-            if(! useNewValues)
+            else// IF UNDO THEN RESTORE THE STATE OF THE CONSTRAINTS
             {
                 // Now we have to restore the state of each constraint that might have been modified
                 // during this command.
@@ -177,7 +176,7 @@ public:
                 }
             }
 
-
+            emit scenario.constraintMoved(curConstraintToUpdate);
         }
     }
 };

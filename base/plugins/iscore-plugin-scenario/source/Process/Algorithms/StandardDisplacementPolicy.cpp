@@ -59,7 +59,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
 
         StandardDisplacementPolicy::getRelatedTimeNodes(scenario, firstTimeNodeMovedId, timeNodesToTranslate);
 
-        // put each concerned timenode in modified elements
+        // put each concerned timenode in modified elements and compute new values
         for(auto& curTimeNodeId : timeNodesToTranslate)
         {
             auto& curTimeNode = scenario.timeNode(curTimeNodeId);
@@ -73,8 +73,14 @@ GoodOldDisplacementPolicy::computeDisplacement(
 
             // put the new date
             elementsProperties.timenodes[curTimeNodeId].newDate = curTimeNode.date() + deltaTime;
+        }
 
-            // Make a list of the constraints that need to be resized
+        // Make a list of the constraints that need to be resized
+        for(auto& curTimeNodeId : timeNodesToTranslate)
+        {
+            auto& curTimeNode = scenario.timeNode(curTimeNodeId);
+
+            // each previous constraint
             for(const auto& ev_id : curTimeNode.events())
             {
                 const auto& ev = scenario.event(ev_id);
@@ -109,13 +115,34 @@ GoodOldDisplacementPolicy::computeDisplacement(
                             // Save the constraint display data END ----------------
                         }
 
-                        elementsProperties.constraints[curConstraintId].newMin = curConstraint.duration.minDuration() + deltaTime;
-                        elementsProperties.constraints[curConstraintId].newMax = curConstraint.duration.maxDuration() + deltaTime;
+                        auto& startTnodeId = scenario.event(scenario.state(curConstraint.startState()).eventId()).timeNode();
+
+                        // compute default duration
+                        TimeValue startDate;
+
+                        // if prev tnode has moved take updated value else take existing
+                        if( elementsProperties.timenodes.contains(startTnodeId) )
+                        {
+                            startDate = elementsProperties.timenodes[startTnodeId].newDate;
+                        }else
+                        {
+                            startDate = scenario.event(scenario.state(curConstraint.startState()).eventId()).date();
+                        }
+
+                        const auto& endDate = elementsProperties.timenodes[curTimeNodeId].newDate;
+
+                        TimeValue newDefaultDuration = endDate - startDate;
+                        TimeValue deltaBounds = newDefaultDuration - curConstraint.duration.defaultDuration();
+
+                        elementsProperties.constraints[curConstraintId].newMin = curConstraint.duration.minDuration() + deltaBounds;
+                        elementsProperties.constraints[curConstraintId].newMax = curConstraint.duration.maxDuration() + deltaBounds;
 
                         // nothing to do for now
                     }
                 }
             }
         }
+
+
     }
 }

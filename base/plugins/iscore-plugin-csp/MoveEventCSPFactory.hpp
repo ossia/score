@@ -13,7 +13,7 @@ public:
 
     virtual int priority()//TODO make higher priority to use it when it will be working
     {
-         return 1;
+         return -1;
     }
 
     QString name() const override
