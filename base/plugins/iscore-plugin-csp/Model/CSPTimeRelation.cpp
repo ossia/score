@@ -20,6 +20,10 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     m_min.setValue(m_iscoreMin->msec());
     m_max.setValue(m_iscoreMax->msec());
 
+    // weight
+    //solver.addEditVariable(m_min, kiwi::strength::strong);
+    //solver.addEditVariable(m_max, kiwi::strength::medium);
+
     auto scenario = cspScenario.getScenario();
     auto& constraint = scenario->constraint(constraintId);
 

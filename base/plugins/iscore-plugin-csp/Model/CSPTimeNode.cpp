@@ -8,6 +8,8 @@
 CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)
     :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
+    auto& solver = cspScenario.getSolver();
+
     this->setParent(&cspScenario);
     this->setObjectName("CSPTimeNode");
 
@@ -17,7 +19,8 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
 
     m_date.setValue(m_iscoreDate->msec());
 
-    cspScenario.getSolver().addEditVariable(m_date, kiwi::strength::strong);
+    //weight
+    solver.addEditVariable(m_date, kiwi::strength::weak);
 
     // apply model constraints
 
@@ -27,7 +30,7 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
     {
         kiwi::Constraint* constraintNodeAfterStart = new kiwi::Constraint(m_date >= cspScenario.getStartTimeNode()->getDate());
 
-        cspScenario.getSolver().addConstraint(*constraintNodeAfterStart);
+        solver.addConstraint(*constraintNodeAfterStart);
 
         m_constraints.push_back(constraintNodeAfterStart);
     }

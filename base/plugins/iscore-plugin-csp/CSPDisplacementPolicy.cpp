@@ -14,7 +14,6 @@ CSPDisplacementPolicy::computeDisplacement(
 
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
-
         auto& solver = cspScenario->getSolver();
 
         // get the corresponding CSP elements
@@ -62,8 +61,9 @@ CSPDisplacementPolicy::computeDisplacement(
         {
             timeRelationIterator.next();
 
-            auto curTimeRelationId = timeRelationIterator.key();
-            auto curCspTimerelation = timeRelationIterator.value();
+            const auto& curTimeRelationId = timeRelationIterator.key();
+            auto& curCspTimerelation = timeRelationIterator.value();
+            const auto& curConstraint = scenario.constraint(curTimeRelationId);
 
             // if osef TODO : if updated
             if(true)
@@ -74,6 +74,22 @@ CSPDisplacementPolicy::computeDisplacement(
                     elementsProperties.constraints[curTimeRelationId] = ConstraintProperties{};
                     elementsProperties.constraints[curTimeRelationId].oldMin = *(curCspTimerelation->m_iscoreMin);
                     elementsProperties.constraints[curTimeRelationId].oldMax = *(curCspTimerelation->m_iscoreMax);
+
+                    // Save the constraint display data START ----------------
+                    QByteArray arr;
+                    Visitor<Reader<DataStream>> jr{&arr};
+                    jr.readFrom(curConstraint);
+
+                    // Save for each view model of this constraint
+                    // the identifier of the rack that was displayed
+                    QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
+                    for(const ConstraintViewModel* vm : curConstraint.viewModels())
+                    {
+                        map[vm->id()] = vm->shownRack();
+                    }
+
+                    elementsProperties.constraints[curTimeRelationId].savedDisplay = {{iscore::IDocument::path(curConstraint), arr}, map};
+                    // Save the constraint display data END ----------------
                 }
 
                 // put the new values
