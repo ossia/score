@@ -15,14 +15,12 @@ CSPDisplacementPolicy::computeDisplacement(
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
 
-
-
         auto& solver = cspScenario->getSolver();
 
         // get the corresponding CSP elements
         for(auto curDraggedTimeNodeId : draggedElements)
         {
-            auto curDraggedCspTimeNode = cspScenario->timenodes[curDraggedTimeNodeId];
+            auto curDraggedCspTimeNode = cspScenario->m_timeNodes[curDraggedTimeNodeId];
 
             // suggest their new values
             auto newDate = curDraggedCspTimeNode->getDate().value() + deltaTime.msec();
@@ -32,10 +30,10 @@ CSPDisplacementPolicy::computeDisplacement(
         // solve system
         solver.updateVariables();
 
-        // look for changes // TODO find a more efficient way of doing that
+        // look for changes // TODO : maybe find a more efficient way of doing that
 
         // - in timenodes :
-        QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario->timenodes);
+        QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario->m_timeNodes);
         while (timeNodeIterator.hasNext())
         {
             timeNodeIterator.next();
@@ -59,6 +57,7 @@ CSPDisplacementPolicy::computeDisplacement(
         }
 
         // - in time relations :
+            // (nothing yet)
     }else
     {
         std::runtime_error("No CSP scenario found for this model");

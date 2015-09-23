@@ -53,8 +53,8 @@ public:
 
     CSPTimeRelation* getTimeRelation(const Id<ConstraintModel>& ConstraintId);
 
-    QHash<Id<TimeNodeModel>,CSPTimeNode*> timenodes;
-    QHash<Id<ConstraintModel>,CSPTimeRelation*> m_TimeRelations;
+    QHash<Id<TimeNodeModel>,CSPTimeNode*> m_timeNodes;
+    QHash<Id<ConstraintModel>,CSPTimeRelation*> m_timeRelations;
 
 private:
 
