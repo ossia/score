@@ -3,6 +3,7 @@
 #include <QHash>
 
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <CSPDisplacementPolicy.hpp>
 
 #include <kiwi/kiwi.h>
 
@@ -19,6 +20,8 @@ class BaseScenario;
 
 class CSPScenario : public QObject
 {
+    friend class CSPDisplacementPolicy;
+
     Q_OBJECT
 public:
     //using QObject::QObject;

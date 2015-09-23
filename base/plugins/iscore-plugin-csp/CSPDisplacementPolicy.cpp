@@ -41,8 +41,8 @@ CSPDisplacementPolicy::computeDisplacement(
             auto curTimeNodeId = timeNodeIterator.key();
             auto curCspTimenode = timeNodeIterator.value();
 
-            // if update
-            if(curCspTimenode->dateChanged())
+            // if updated TODO : if updated => curCspTimenode->dateChanged()
+            if(true)
             {
                 // if timenode NOT already in element properties, create new element properties and set the old date
                 if(! elementsProperties.timenodes.contains(curTimeNodeId))
@@ -52,12 +52,37 @@ CSPDisplacementPolicy::computeDisplacement(
                 }
 
                 // put the new date
-                elementsProperties.timenodes[curTimeNodeId].newDate = TimeValue::fromMsecs(curCspTimenode->m_date.value()) + deltaTime;
+                elementsProperties.timenodes[curTimeNodeId].newDate = TimeValue::fromMsecs(curCspTimenode->m_date.value());
             }
         }
 
         // - in time relations :
-            // (nothing yet)
+        QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario->m_timeRelations);
+        while(timeRelationIterator.hasNext())
+        {
+            timeRelationIterator.next();
+
+            auto curTimeRelationId = timeRelationIterator.key();
+            auto curCspTimerelation = timeRelationIterator.value();
+
+            // if osef TODO : if updated
+            if(true)
+            {
+                // if timenode NOT already in element properties, create new element properties and set the old values
+                if(! elementsProperties.constraints.contains(curTimeRelationId))
+                {
+                    elementsProperties.constraints[curTimeRelationId] = ConstraintProperties{};
+                    elementsProperties.constraints[curTimeRelationId].oldMin = *(curCspTimerelation->m_iscoreMin);
+                    elementsProperties.constraints[curTimeRelationId].oldMax = *(curCspTimerelation->m_iscoreMax);
+                }
+
+                // put the new values
+                elementsProperties.constraints[curTimeRelationId].newMin = TimeValue::fromMsecs(curCspTimerelation->m_min.value());
+                elementsProperties.constraints[curTimeRelationId].newMax = TimeValue::fromMsecs(curCspTimerelation->m_max.value());
+            }
+        }
+
+
     }else
     {
         std::runtime_error("No CSP scenario found for this model");
