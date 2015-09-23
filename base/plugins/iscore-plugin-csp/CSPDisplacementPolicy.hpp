@@ -4,6 +4,8 @@
 #include <Tools/dataStructures.hpp>
 #include <Process/Algorithms/StandardDisplacementPolicy.hpp>
 
+class CSPScenario;
+
 class CSPDisplacementPolicy
 {
 public:
@@ -27,4 +29,6 @@ public:
     {
         CommonDisplacementPolicy::updatePositions(scenario, scaleMethod, elementsPropertiesToUpdate, useNewValues);
     }
+protected:
+    static void refreshStays(CSPScenario& cspScenario, ElementsProperties& elementsProperties);
 };

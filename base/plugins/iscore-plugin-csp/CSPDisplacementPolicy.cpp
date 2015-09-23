@@ -3,8 +3,74 @@
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
 
-void
-CSPDisplacementPolicy::computeDisplacement(
+#define STAY_MINMAX_STRENGTH kiwi::strength::weak
+#define STAY_TNODE_STRENGTH kiwi::strength::medium
+#define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong
+
+void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, ElementsProperties& elementsProperties)
+{
+    // time relations stays
+    QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);
+    while(timeRelationIterator.hasNext())
+    {
+        timeRelationIterator.next();
+
+        auto& curTimeRelationId = timeRelationIterator.key();
+        auto& curTimeRelation = timeRelationIterator.value();
+
+        //try to get the old values if existing
+        TimeValue currentMin, currentMax;
+        if(elementsProperties.constraints.contains(curTimeRelationId))
+        {
+            currentMin = elementsProperties.constraints[curTimeRelationId].oldMin;
+            currentMax = elementsProperties.constraints[curTimeRelationId].oldMax;
+        }else
+        {
+            currentMin = cspScenario.getScenario()->constraint(curTimeRelationId).duration.minDuration();
+            currentMax = cspScenario.getScenario()->constraint(curTimeRelationId).duration.maxDuration();
+        }
+
+        //remove old stays
+        curTimeRelation->removeStays();
+
+        //ad new stays
+        kiwi::Constraint* minStay = new kiwi::Constraint(curTimeRelation->m_min == currentMin.msec(), STAY_MINMAX_STRENGTH);
+        curTimeRelation->addStay(minStay);
+
+        kiwi::Constraint* maxStay = new kiwi::Constraint(curTimeRelation->m_max == currentMax.msec(), STAY_MINMAX_STRENGTH);
+        curTimeRelation->addStay(maxStay);
+    }
+
+    //time node stays
+    // - in timenodes :
+    QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario.m_timeNodes);
+    while (timeNodeIterator.hasNext())
+    {
+        timeNodeIterator.next();
+
+        auto& curTimeNodeId = timeNodeIterator.key();
+        auto& curCspTimeNode = timeNodeIterator.value();
+
+        //try to get the old values if existing
+        TimeValue currentDate;
+        if(elementsProperties.timenodes.contains(curTimeNodeId))
+        {
+            currentDate = elementsProperties.timenodes[curTimeNodeId].oldDate;
+        }else
+        {
+            currentDate = cspScenario.getScenario()->timeNode(curTimeNodeId).date();
+        }
+
+        //remove old stays
+        curCspTimeNode->removeStays();
+
+        //ad new stays
+        kiwi::Constraint* dateStay = new kiwi::Constraint(curCspTimeNode->m_date == currentDate.msec(), STAY_TNODE_STRENGTH);
+        curCspTimeNode->addStay(dateStay);
+    }
+}
+
+void CSPDisplacementPolicy::computeDisplacement(
         ScenarioModel& scenario,
         const QVector<Id<TimeNodeModel>>& draggedElements,
         const TimeValue& deltaTime,
@@ -16,10 +82,16 @@ CSPDisplacementPolicy::computeDisplacement(
     {
         auto& solver = cspScenario->getSolver();
 
-        // get the corresponding CSP elements
+        // add stays to all elements
+        refreshStays(*cspScenario, elementsProperties);
+
+        // get the corresponding CSP elements and start editing vars
         for(auto curDraggedTimeNodeId : draggedElements)
         {
             auto curDraggedCspTimeNode = cspScenario->m_timeNodes[curDraggedTimeNodeId];
+
+            //weight
+            solver.addEditVariable(curDraggedCspTimeNode->m_date, STAY_DRAGGED_TNODE_STRENGTH);
 
             // suggest their new values
             auto newDate = curDraggedCspTimeNode->getDate().value() + deltaTime.msec();
@@ -28,6 +100,12 @@ CSPDisplacementPolicy::computeDisplacement(
 
         // solve system
         solver.updateVariables();
+
+        // release edit vars
+        for(auto curDraggedTimeNodeId : draggedElements)
+        {
+            solver.removeEditVariable(cspScenario->m_timeNodes[curDraggedTimeNodeId]->m_date);
+        }
 
         // look for changes // TODO : maybe find a more efficient way of doing that
 

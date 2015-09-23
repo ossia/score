@@ -52,8 +52,5 @@ private:
     void onMinDurationChanged(const TimeValue& min);
     void onMaxDurationChanged(const TimeValue& max);
 
-    kiwi::Constraint* m_cstrStayMin;
-    kiwi::Constraint* m_cstrStayMax;
-
     QVector<CSPScenario*> m_subScenarios;
 };

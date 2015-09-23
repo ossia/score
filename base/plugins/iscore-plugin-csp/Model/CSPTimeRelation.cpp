@@ -11,8 +11,6 @@
     m_solver.addConstraint(*constraintName);\
     m_constraints.push_back(constraintName)
 
-#define STAY_STRENGTH kiwi::strength::medium
-
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
     :CSPConstraintHolder::CSPConstraintHolder(&cspScenario),
       m_solver(cspScenario.getSolver())
@@ -51,14 +49,6 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // 3 - min >= 0
     PUT_CONSTRAINT(cMinSupZero, m_min >= 0);
 
-    // 4 - STAY bahavior
-    m_cstrStayMin = new kiwi::Constraint(m_min == m_min.value(), STAY_STRENGTH); // try keeping interval
-    m_solver.addConstraint(*m_cstrStayMin);
-    m_cstrStayMax = new kiwi::Constraint(m_max == m_max.value(), STAY_STRENGTH);
-    m_solver.addConstraint(*m_cstrStayMax);
-
-
-
     // if there are sub scenarios, store them
     for(auto& process : constraint.processes)
     {
@@ -75,8 +65,6 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
 
 CSPTimeRelation::~CSPTimeRelation()
 {
-    delete(m_cstrStayMin);
-    delete(m_cstrStayMax);
 }
 
 kiwi::Variable& CSPTimeRelation::getMin()
@@ -102,13 +90,6 @@ bool CSPTimeRelation::maxChanged() const
 void CSPTimeRelation::onMinDurationChanged(const TimeValue& min)
 {
     m_min.setValue(min.msec());
-
-    // refresh min stay contraint
-    m_solver.removeConstraint(*m_cstrStayMin);
-
-    m_cstrStayMin = new kiwi::Constraint(m_min == m_min.value(), STAY_STRENGTH);
-    m_solver.addConstraint(*m_cstrStayMin);
-
 }
 
 void CSPTimeRelation::onMaxDurationChanged(const TimeValue& max)
@@ -119,11 +100,5 @@ void CSPTimeRelation::onMaxDurationChanged(const TimeValue& max)
     }else
     {
         m_max.setValue(max.msec());
-
-        // refresh max stay contraint
-        m_solver.removeConstraint(*m_cstrStayMax);
-
-        m_cstrStayMax = new kiwi::Constraint(m_max == m_max.value(), STAY_STRENGTH);
-        m_solver.addConstraint(*m_cstrStayMax);
     }
 }
