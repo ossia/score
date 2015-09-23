@@ -67,7 +67,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
 
     ////// BODY
-    QPushButton* setAsDisplayedConstraint = new QPushButton {"Full view", this};
+    QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {

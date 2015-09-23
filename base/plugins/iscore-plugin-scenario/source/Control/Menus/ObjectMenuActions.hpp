@@ -13,7 +13,7 @@ class ObjectMenuActions : public ScenarioActions
         void makeToolBar(QToolBar*) override;
         void setEnabled(bool) override;
 
-        QList<QAction*> actions();
+        QList<QAction*> actions() const override;
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();

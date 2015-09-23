@@ -208,8 +208,7 @@ void RecordManager::initRecording(ScenarioModel& scenar, ScenarioPoint pt)
                             RecordData{
                                 cmd_proc,
                                 autom.curve(),
-                                *segt,
-                                -1., 1., 0.}));
+                                *segt}));
         }
     }
 

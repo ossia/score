@@ -37,25 +37,24 @@ class AddProcessToConstraint;
 class CurveModel;
 class PointArrayCurveSegmentModel;
 class ScenarioModel;
+class DeviceExplorerModel;
+
 struct RecordData
 {
-        RecordData( Scenario::Command::AddProcessToConstraint* cmd, CurveModel& cm, PointArrayCurveSegmentModel& seg, double a, double b, double c):
-            curveModel{cm},
+        RecordData(
+                Scenario::Command::AddProcessToConstraint* cmd,
+                CurveModel& cm,
+                PointArrayCurveSegmentModel& seg):
             addProcCmd{cmd},
-            segment{seg},
-            min{a}, max{b}, initVal{c}
+            curveModel{cm},
+            segment{seg}
         { }
 
         Scenario::Command::AddProcessToConstraint* addProcCmd{};
 
         CurveModel& curveModel;
         PointArrayCurveSegmentModel& segment;
-        double min{};
-        double max{};
-        double initVal{};
 };
-
-class DeviceExplorerModel;
 class RecordManager : public QObject
 {
     public:

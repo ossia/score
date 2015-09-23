@@ -263,7 +263,7 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     emit dispatcher.submitCommand(cmd);
 }
 
-QList<QAction*> ObjectMenuActions::actions()
+QList<QAction*> ObjectMenuActions::actions() const
 {
     return {
             m_removeElements,
