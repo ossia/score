@@ -216,8 +216,8 @@ bool Presenter::saveDocumentAs(Document * doc)
     QString binFilter{tr("Binary (*.scorebin)")};
     QString jsonFilter{tr("JSON (*.scorejson)")};
     QStringList filters;
-    filters << binFilter
-            << jsonFilter;
+    filters << jsonFilter
+            << binFilter;
 
     d.setNameFilters(filters);
     d.setConfirmOverwrite(true);
