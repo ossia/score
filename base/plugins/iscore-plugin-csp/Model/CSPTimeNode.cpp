@@ -20,7 +20,7 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
     m_date.setValue(m_iscoreDate->msec());
 
     //weight
-    solver.addEditVariable(m_date, kiwi::strength::weak);
+    solver.addEditVariable(m_date, kiwi::strength::strong);
 
     // apply model constraints
 

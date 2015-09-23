@@ -6,17 +6,17 @@
 #include <Model/CSPTimeNode.hpp>
 #include <kiwi/kiwi.h>
 
-#define PUT_CONSTRAINT(constraint) \
-    {kiwi::Constraint* constraintName = new kiwi::Constraint(constraint);\
-    solver.addConstraint(*constraintName);\
-    m_constraints.push_back(constraintName);}
+#define PUT_CONSTRAINT(constraintName, constraint) \
+    kiwi::Constraint* constraintName = new kiwi::Constraint(constraint);\
+    m_solver.addConstraint(*constraintName);\
+    m_constraints.push_back(constraintName)
 
+#define STAY_STRENGTH kiwi::strength::medium
 
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
-    :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
+    :CSPConstraintHolder::CSPConstraintHolder(&cspScenario),
+      m_solver(cspScenario.getSolver())
 {
-    auto& solver = cspScenario.getSolver();
-
     this->setParent(&cspScenario);
     this->setObjectName("CSPTimeRelation");
 
@@ -42,14 +42,21 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // apply model constraints
     //Note: min & max can be negative no problemo muchacho
     // 1 - min inferior to max
-    PUT_CONSTRAINT(m_min <= m_max)
+    PUT_CONSTRAINT(cMinInfMax, m_min <= m_max);
 
     // 2 - date of end timenode inside min and max
-    PUT_CONSTRAINT(nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min))
-    PUT_CONSTRAINT(nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max))
+    PUT_CONSTRAINT(cInsideMin, nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min));
+    PUT_CONSTRAINT(cInsideMax, nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max));
 
     // 3 - min >= 0
-    PUT_CONSTRAINT(m_min >= 0)
+    PUT_CONSTRAINT(cMinSupZero, m_min >= 0);
+
+    // 4 - STAY bahavior
+    m_cstrStayMin = new kiwi::Constraint(m_min == m_min.value(), STAY_STRENGTH); // try keeping interval
+    m_solver.addConstraint(*m_cstrStayMin);
+    m_cstrStayMax = new kiwi::Constraint(m_max == m_max.value(), STAY_STRENGTH);
+    m_solver.addConstraint(*m_cstrStayMax);
+
 
 
     // if there are sub scenarios, store them
@@ -64,7 +71,12 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // watch over durations edits
     con(constraint.duration, &ConstraintDurations::minDurationChanged, this, &CSPTimeRelation::onMinDurationChanged);
     con(constraint.duration, &ConstraintDurations::maxDurationChanged, this, &CSPTimeRelation::onMaxDurationChanged);
+}
 
+CSPTimeRelation::~CSPTimeRelation()
+{
+    delete(m_cstrStayMin);
+    delete(m_cstrStayMax);
 }
 
 kiwi::Variable& CSPTimeRelation::getMin()
@@ -89,8 +101,29 @@ bool CSPTimeRelation::maxChanged() const
 
 void CSPTimeRelation::onMinDurationChanged(const TimeValue& min)
 {
+    m_min.setValue(min.msec());
+
+    // refresh min stay contraint
+    m_solver.removeConstraint(*m_cstrStayMin);
+
+    m_cstrStayMin = new kiwi::Constraint(m_min == m_min.value(), STAY_STRENGTH);
+    m_solver.addConstraint(*m_cstrStayMin);
+
 }
 
 void CSPTimeRelation::onMaxDurationChanged(const TimeValue& max)
 {
+    if(max.isInfinite())
+    {
+        //TODO : ??? remove constraints on max?
+    }else
+    {
+        m_max.setValue(max.msec());
+
+        // refresh max stay contraint
+        m_solver.removeConstraint(*m_cstrStayMax);
+
+        m_cstrStayMax = new kiwi::Constraint(m_max == m_max.value(), STAY_STRENGTH);
+        m_solver.addConstraint(*m_cstrStayMax);
+    }
 }

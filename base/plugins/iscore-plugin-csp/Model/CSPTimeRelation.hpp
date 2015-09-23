@@ -20,7 +20,7 @@ public:
 
     CSPTimeRelation() = default;
 
-    ~CSPTimeRelation() = default;
+    ~CSPTimeRelation();
 
     kiwi::Variable& getMin();
 
@@ -41,6 +41,8 @@ public:
     bool maxChanged() const;
 
 private:
+    kiwi::Solver& m_solver;
+
     kiwi::Variable m_min{"min"};
     const TimeValue* m_iscoreMin;
     kiwi::Variable m_max{"max"};
@@ -49,6 +51,9 @@ private:
     //void onDefaultDurationChanged(const TimeValue& arg);
     void onMinDurationChanged(const TimeValue& min);
     void onMaxDurationChanged(const TimeValue& max);
+
+    kiwi::Constraint* m_cstrStayMin;
+    kiwi::Constraint* m_cstrStayMax;
 
     QVector<CSPScenario*> m_subScenarios;
 };

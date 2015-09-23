@@ -11,7 +11,7 @@ public:
 
     using QObject::QObject;
 
-    ~CSPConstraintHolder()
+    virtual ~CSPConstraintHolder()
     {
         CSPScenario* cspScenario = static_cast<CSPScenario*>(parent());
 
