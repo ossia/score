@@ -265,7 +265,7 @@ void IScoreCohesionControl::interpolateStates()
 void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
 {
     m_recManager = std::make_unique<RecordManager>();
-    m_recManager->initRecording(scenar, pt);
+    m_recManager->recordInNewBox(scenar, pt);
 
 }
 

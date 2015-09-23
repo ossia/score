@@ -7,7 +7,7 @@
 
 #include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
-
+#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
 StateModel::StateModel(
@@ -22,16 +22,7 @@ StateModel::StateModel(
                             iscore::IDocument::commandStack(*this),
                             this}}
 {
-    con(m_messageItemModel, &QAbstractItemModel::modelReset,
-        this, &StateModel::statesUpdated);
-    con(m_messageItemModel, &QAbstractItemModel::dataChanged,
-        this, &StateModel::statesUpdated);
-    con(m_messageItemModel, &QAbstractItemModel::rowsInserted,
-        this, &StateModel::statesUpdated);
-    con(m_messageItemModel, &QAbstractItemModel::rowsMoved,
-        this, &StateModel::statesUpdated);
-    con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
-        this, &StateModel::statesUpdated);
+    init();
 }
 
 StateModel::StateModel(
@@ -41,6 +32,38 @@ StateModel::StateModel(
     StateModel{id, source.eventId(), source.heightPercentage(), parent}
 {
     messages() = source.messages();
+    init();
+}
+
+void StateModel::init()
+{
+    con(m_messageItemModel, &QAbstractItemModel::modelReset,
+        this, &StateModel::statesUpdated_slt);
+    con(m_messageItemModel, &QAbstractItemModel::dataChanged,
+        this, &StateModel::statesUpdated_slt);
+    con(m_messageItemModel, &QAbstractItemModel::rowsInserted,
+        this, &StateModel::statesUpdated_slt);
+    con(m_messageItemModel, &QAbstractItemModel::rowsMoved,
+        this, &StateModel::statesUpdated_slt);
+    con(m_messageItemModel, &QAbstractItemModel::rowsRemoved,
+        this, &StateModel::statesUpdated_slt);
+
+    if(m_previousConstraint)
+    {
+        const auto& cstr = parentScenario()->constraint(m_previousConstraint);
+        for(const auto& proc : cstr.processes)
+        {
+            on_previousProcessAdded(proc);
+        }
+    }
+    if(m_nextConstraint)
+    {
+        const auto& cstr = parentScenario()->constraint(m_nextConstraint);
+        for(const auto& proc : cstr.processes)
+        {
+            on_nextProcessAdded(proc);
+        }
+    }
 }
 
 const ScenarioInterface* StateModel::parentScenario() const
@@ -59,6 +82,35 @@ void StateModel::setHeightPercentage(double y)
         return;
     m_heightPercentage = y;
     emit heightPercentageChanged();
+}
+
+void StateModel::statesUpdated_slt()
+{
+    emit sig_statesUpdated();
+}
+
+void StateModel::on_previousProcessAdded(const Process&)
+{
+
+}
+
+void StateModel::on_previousProcessRemoved(const Process&)
+{
+
+}
+
+void StateModel::on_nextProcessAdded(const Process& proc)
+{
+    ProcessStateDataInterface* state = proc.startState();
+    connect(state, &ProcessStateDataInterface::messagesChanged,
+            this, [ ] (const iscore::MessageList&) {
+
+    });
+}
+
+void StateModel::on_nextProcessRemoved(const Process&)
+{
+
 }
 
 const Id<EventModel> &StateModel::eventId() const
@@ -84,11 +136,29 @@ const Id<ConstraintModel> &StateModel::nextConstraint() const
 void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 {
     m_nextConstraint = id;
+
+    if(!m_nextConstraint)
+        return;
+
+    auto& cstr = parentScenario()->constraint(m_nextConstraint);
+    con(cstr.processes, &NotifyingMap<Process>::added,
+        this, &StateModel::on_nextProcessAdded);
+    con(cstr.processes, &NotifyingMap<Process>::removed,
+        this, &StateModel::on_nextProcessRemoved);
 }
 
 void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 {
     m_previousConstraint = id;
+
+    if(!m_nextConstraint)
+        return;
+
+    auto& cstr = parentScenario()->constraint(m_nextConstraint);
+    con(cstr.processes, &NotifyingMap<Process>::added,
+        this, &StateModel::on_previousProcessAdded);
+    con(cstr.processes, &NotifyingMap<Process>::removed,
+        this, &StateModel::on_previousProcessRemoved);
 }
 
 

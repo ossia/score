@@ -14,7 +14,7 @@ namespace iscore
  *
  */
 struct Message
-{
+{/*
     friend QDataStream& operator<<(QDataStream& s, const Message& m)
     {
         s << m.address << m.value;
@@ -26,7 +26,7 @@ struct Message
         s >> m.address >> m.value;
         return s;
     }
-
+    */
     Message() = default;
     Message(const iscore::Address& addr, const iscore::Value& val):
         address(addr),

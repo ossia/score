@@ -100,7 +100,7 @@ void RecordManager::stopRecording()
     m_explorer->deviceModel().resumeListening(m_savedListening);
 }
 
-void RecordManager::initRecording(ScenarioModel& scenar, ScenarioPoint pt)
+void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
 {
     auto& doc = *iscore::IDocument::documentFromObject(scenar);
     //// Device tree management ////

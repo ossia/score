@@ -58,6 +58,7 @@ iscore::Message message(const iscore::Node& node);
 void messageList(const Node& treeNode,
                  MessageList& ml);
 
+// TODO have all these guys return references
 iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
 iscore::Node* try_getNodeFromAddress(iscore::Node& root, const iscore::Address&);
 iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& str);

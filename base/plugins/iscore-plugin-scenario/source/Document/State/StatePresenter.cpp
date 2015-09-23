@@ -31,7 +31,7 @@ StatePresenter::StatePresenter(
     con(m_model.metadata,  &ModelMetadata::colorChanged,
         m_view, &StateView::changeColor);
 
-    con(m_model, &StateModel::statesUpdated,
+    con(m_model, &StateModel::sig_statesUpdated,
             this, &StatePresenter::updateStateView);
 
     con(m_model, &StateModel::statusChanged,

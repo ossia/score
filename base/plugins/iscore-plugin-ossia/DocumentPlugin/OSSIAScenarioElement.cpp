@@ -141,7 +141,7 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
     ossia_ev->event()->addState(root_state);
 
 
-    con(iscore_state, &StateModel::statesUpdated, this,
+    con(iscore_state, &StateModel::sig_statesUpdated, this,
             [=] () {
         state_elt->rootState()->stateElements().clear();
         iscore::convert::state(

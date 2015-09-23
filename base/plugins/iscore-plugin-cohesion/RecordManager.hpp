@@ -60,7 +60,8 @@ class RecordManager : public QObject
     public:
         RecordManager();
 
-        void initRecording(ScenarioModel& scenar, ScenarioPoint pt);
+        void recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt);
+        // TODO : recordInExstingBox; recordFromState.
         void stopRecording();
 
         void commit();

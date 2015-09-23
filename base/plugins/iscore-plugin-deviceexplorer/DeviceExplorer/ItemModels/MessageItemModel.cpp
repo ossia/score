@@ -39,6 +39,7 @@ MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
     return *this;
 }
 
+// TESTME
 static void flatten_rec(iscore::MessageList& ml, const iscore::Node& node)
 {
     if(node.is<iscore::AddressSettings>())
