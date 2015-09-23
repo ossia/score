@@ -17,7 +17,7 @@ ZoomRatio ZoomPolicy::sliderPosToZoomRatio(double sliderPos, double cstrMaxTime,
 
 double ZoomPolicy::zoomRatioToSliderPos(ZoomRatio& z, double cstrMaxTime, int cstrMaxWidth)
 {
-    ZoomRatio zMax = cstrMaxTime/cstrMaxWidth;
+    ZoomRatio zMax = cstrMaxTime/cstrMaxWidth + 20;
     if(z == 0)
         z = zMax;
 
