@@ -39,6 +39,13 @@ class PointArrayCurveSegmentModel;
 class ScenarioModel;
 struct RecordData
 {
+        RecordData( Scenario::Command::AddProcessToConstraint* cmd, CurveModel& cm, PointArrayCurveSegmentModel& seg, double a, double b, double c):
+            curveModel{cm},
+            addProcCmd{cmd},
+            segment{seg},
+            min{a}, max{b}, initVal{c}
+        { }
+
         Scenario::Command::AddProcessToConstraint* addProcCmd{};
 
         CurveModel& curveModel;
