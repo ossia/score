@@ -93,6 +93,14 @@ CSPDisplacementPolicy::computeDisplacement(
                 }
 
                 // put the new values
+                /*
+                qDebug() << "----       min : " << curCspTimerelation->m_min.value();
+                qDebug() << "    min iscore : " << curCspTimerelation->m_iscoreMin->msec();
+
+                qDebug() << "----       max : " << curCspTimerelation->m_max.value();
+                qDebug() << "    max iscore : " << curCspTimerelation->m_iscoreMax->msec();
+                */
+
                 elementsProperties.constraints[curTimeRelationId].newMin = TimeValue::fromMsecs(curCspTimerelation->m_min.value());
                 elementsProperties.constraints[curTimeRelationId].newMax = TimeValue::fromMsecs(curCspTimerelation->m_max.value());
             }

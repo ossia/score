@@ -6,6 +6,12 @@
 #include <Model/CSPTimeNode.hpp>
 #include <kiwi/kiwi.h>
 
+#define PUT_CONSTRAINT(constraint) \
+    {kiwi::Constraint* constraintName = new kiwi::Constraint(constraint);\
+    solver.addConstraint(*constraintName);\
+    m_constraints.push_back(constraintName);}
+
+
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
     :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
 {
@@ -36,18 +42,15 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // apply model constraints
     //Note: min & max can be negative no problemo muchacho
     // 1 - min inferior to max
+    PUT_CONSTRAINT(m_min <= m_max)
+
     // 2 - date of end timenode inside min and max
-    kiwi::Constraint* constraintMinInferiorToMax = new kiwi::Constraint(m_min <= m_max);
-    solver.addConstraint(*constraintMinInferiorToMax);
-    m_constraints.push_back(constraintMinInferiorToMax);
+    PUT_CONSTRAINT(nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min))
+    PUT_CONSTRAINT(nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max))
 
-    kiwi::Constraint* constraintDateOverMin = new kiwi::Constraint(nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min));
-    solver.addConstraint(*constraintDateOverMin);
-    m_constraints.push_back(constraintDateOverMin);
+    // 3 - min >= 0
+    PUT_CONSTRAINT(m_min >= 0)
 
-    kiwi::Constraint* constraintDateUnderMax = new kiwi::Constraint(nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max));
-    solver.addConstraint(*constraintDateUnderMax);
-    m_constraints.push_back(constraintDateUnderMax);
 
     // if there are sub scenarios, store them
     for(auto& process : constraint.processes)
