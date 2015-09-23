@@ -103,8 +103,14 @@ void StateModel::on_nextProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.startState();
     connect(state, &ProcessStateDataInterface::messagesChanged,
-            this, [ ] (const iscore::MessageList&) {
-
+            this, [ ] (const iscore::MessageList& ml) {
+        // We merge the messages with the state.
+        // No need to undo-redo this, this is an invariant.
+        // TODO have some collapsing between all the processes of a state
+        // NOTE how to prevent these states from being played
+        // twice ? mark them ? which one shoul be sent ? the ones
+        // from the process ?
+        messages() =
     });
 }
 
