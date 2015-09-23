@@ -5,6 +5,8 @@
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include "Document/BaseElement/BaseElementModel.hpp"
 
 #include "TemporalConstraintHeader.hpp"
 #include <QGraphicsScene>
@@ -43,6 +45,15 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     m_header->setText(m_viewModel.model().metadata.name());
     con(m_viewModel.model().metadata, &ModelMetadata::nameChanged,
             this, [&] (const QString& name) { m_header->setText(name); });
+
+    // Change to full view when header is double-clicked
+    connect(static_cast<TemporalConstraintHeader*>(m_header), &TemporalConstraintHeader::doubleClicked,
+            this, [this] () {
+        using namespace iscore::IDocument;
+        auto& base = get<BaseElementModel> (*documentFromObject(m_viewModel.model()));
+
+        base.setDisplayedConstraint(m_viewModel.model());
+    });
 }
 
 TemporalConstraintPresenter::~TemporalConstraintPresenter()

@@ -79,10 +79,5 @@ void TemporalConstraintHeader::paint(
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-    // if double clicked, switch to full view on the corresponding constraint
-
-    /*
-    auto& base = get<BaseElementModel> (*iscore::IDocument::documentFromObject(model));
-
-    base.setDisplayedConstraint();*/
+    emit doubleClicked();
 }

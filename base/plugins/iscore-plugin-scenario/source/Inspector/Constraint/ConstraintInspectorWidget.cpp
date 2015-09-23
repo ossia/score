@@ -73,7 +73,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     {
         auto& base = get<BaseElementModel> (*documentFromObject(m_model));
 
-        base.setDisplayedConstraint(&model());
+        base.setDisplayedConstraint(model());
     });
 
     m_properties.push_back(setAsDisplayedConstraint);

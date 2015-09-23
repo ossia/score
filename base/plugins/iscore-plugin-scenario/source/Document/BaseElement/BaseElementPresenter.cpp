@@ -78,7 +78,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::displayedConstraintChanged,
             this, &BaseElementPresenter::on_displayedConstraintChanged);
 
-    model().setDisplayedConstraint(&model().baseConstraint());
+    model().setDisplayedConstraint(model().baseConstraint());
 
     // Progress bar, time rules
 
@@ -116,7 +116,7 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().last().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
     {
-        model().setDisplayedConstraint(&path.find<ConstraintModel>());
+        model().setDisplayedConstraint(path.find<ConstraintModel>());
     }
 }
 
