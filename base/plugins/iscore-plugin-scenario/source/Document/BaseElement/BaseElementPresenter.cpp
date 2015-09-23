@@ -202,18 +202,18 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
     // convert the mouse displacement into a fake slider move
 
     double zoomSpeed = 1.5; // experiment value
-    double zoomratio = (view()->zoomSlider()->value() +
+    double newSliderPos = (view()->zoomSlider()->value() +
                         zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
 
-    if (zoomratio > 1.)
-        zoomratio = 0.99;
-    else if(zoomratio < 0.)
-        zoomratio = 0.01;
+    if (newSliderPos > 1.)
+        newSliderPos = 0.99;
+    else if(newSliderPos < 0.)
+        newSliderPos = 0.01;
 
-    view()->zoomSlider()->setValue(zoomratio);
+    view()->zoomSlider()->setValue(newSliderPos);
 
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
-                               zoomratio,
+                               newSliderPos,
                                displayedConstraint().duration.defaultDuration().msec(),
                                view()->view()->width()
                                );
@@ -224,7 +224,12 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 
 void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 {
-    on_zoomSliderChanged(view()->zoomSlider()->value());
+    auto pos = ZoomPolicy::zoomRatioToSliderPos(
+                                                m_zoomRatio,
+                                                displayedConstraint().duration.defaultDuration().msec(),
+                                                view()->view()->width());
+//    on_zoomSliderChanged(view()->zoomSlider()->value());
+    view()->zoomSlider()->setValue(pos);
 }
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)

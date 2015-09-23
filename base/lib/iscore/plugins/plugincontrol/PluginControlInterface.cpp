@@ -29,6 +29,11 @@ QList<OrderedToolbar> PluginControlInterface::makeToolbars()
     return {};
 }
 
+QList<QAction*> PluginControlInterface::actions()
+{
+    return {};
+}
+
 
 DocumentDelegatePluginModel*PluginControlInterface::loadDocumentPlugin(
         const QString& name,

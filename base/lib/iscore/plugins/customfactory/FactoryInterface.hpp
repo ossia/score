@@ -7,5 +7,6 @@ namespace iscore
     {
         public:
             virtual ~FactoryInterface() = default;
+            // TODO maybe factoryName should be here ?
     };
 }

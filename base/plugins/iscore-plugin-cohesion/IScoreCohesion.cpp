@@ -10,4 +10,7 @@ iscore::PluginControlInterface* iscore_plugin_cohesion::make_control(iscore::Pre
     return new IScoreCohesionControl {pres};
 }
 
-
+QStringList iscore_plugin_cohesion::required() const
+{
+    return {"Scenario"};
+}

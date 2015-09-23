@@ -5,7 +5,7 @@
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/AddMessagesToModel.hpp"
 #include "Commands/Cut.hpp"
-#include "Commands/EditData.hpp"
+#include "Commands/RemoveMessageNodes.hpp"
 #include "Commands/Insert.hpp"
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"

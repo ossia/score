@@ -225,7 +225,7 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
 }
 
 
-#include "Plugin/Commands/EditData.hpp"
+#include "Plugin/Commands/EditValue.hpp"
 bool MessageItemModel::setData(
         const QModelIndex& index,
         const QVariant& value,

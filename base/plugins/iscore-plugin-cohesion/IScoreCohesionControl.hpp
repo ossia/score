@@ -3,7 +3,7 @@
 #include <QTemporaryFile>
 #include <QTimer>
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
-
+class RecordManager;
 class ScenarioModel;
 class IScoreCohesionControl : public iscore::PluginControlInterface
 {
@@ -22,6 +22,7 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void interpolateStates();
 
         void record(ScenarioModel&, ScenarioPoint pt);
+        void stopRecord();
 
     private:
         void setupCommands();
@@ -30,5 +31,5 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         QAction* m_curves{};
         QAction* m_interp{};
 
-        QTimer m_recordTimer;
+        std::unique_ptr<RecordManager> m_recManager;
 };

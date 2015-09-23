@@ -10,8 +10,10 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <core/document/DocumentModel.hpp>
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
+#include "Process/Temporal/TemporalScenarioPresenter.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
 PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
-    AbstractMenuActions(iscore::ToplevelMenuElement::AboutMenu, parent)
+    ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {
     m_playStates = new QAction{tr("Play (States)"), this};
     connect(m_playStates, &QAction::triggered,
@@ -57,6 +59,26 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
         }
     });
 
+    m_recordAction = new QAction{tr("Record from here"), this};
+    connect(m_recordAction, &QAction::triggered,
+            [=] ()
+    {
+        const auto& recdata = m_recordAction->data().value<ScenarioRecordInitData>();
+        if(!recdata.presenter)
+            return;
+
+        TemporalScenarioPresenter* pres = safe_cast<TemporalScenarioPresenter*>(recdata.presenter);
+        auto proc = safe_cast<ScenarioModel*>(&pres->layerModel().processModel());
+
+        parent->startRecording(
+                    *proc,
+                    ConvertToScenarioPoint(
+                        pres->view().mapFromScene(recdata.point),
+                        pres->zoomRatio(),
+                        pres->view().boundingRect().height()));
+
+        m_recordAction->setData({});
+    });
 }
 
 void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
@@ -64,13 +86,25 @@ void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
 
 }
 
-void PlayContextMenu::fillContextMenu(QMenu *menu, const Selection & s)
+void PlayContextMenu::fillContextMenu(
+        QMenu *menu,
+        const Selection & s,
+        LayerPresenter* pres,
+        const QPoint& pt,
+        const QPointF& scenept)
 {
-    if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const StateModel*>(obj);}))
+    if(s.empty())
     {
-        menu->addAction(m_playStates);
+        menu->addAction(m_recordAction);
+        m_recordAction->setData(QVariant::fromValue(ScenarioRecordInitData{pres, scenept}));
     }
-    /*
+    else
+    {
+        if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const StateModel*>(obj);}))
+        {
+            menu->addAction(m_playStates);
+        }
+        /*
     if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const ConstraintModel*>(obj);}))
     {
         menu->addAction(m_playConstraints);
@@ -80,6 +114,7 @@ void PlayContextMenu::fillContextMenu(QMenu *menu, const Selection & s)
         menu->addAction(m_playEvents);
     }
     */
+    }
 }
 
 void PlayContextMenu::makeToolBar(QToolBar *)

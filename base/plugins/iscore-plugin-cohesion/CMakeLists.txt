@@ -27,6 +27,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurvesFromAddresses.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesion.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/RecordManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionControl.cpp"
 )
 

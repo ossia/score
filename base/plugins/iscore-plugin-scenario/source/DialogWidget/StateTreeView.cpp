@@ -87,7 +87,7 @@ MessageTreeView::MessageTreeView(
             this, &MessageTreeView::removeNodes);
 }
 
-#include "Plugin/Commands/EditData.hpp"
+#include "Plugin/Commands/RemoveMessageNodes.hpp"
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 iscore::MessageItemModel&MessageTreeView::model() const
 {

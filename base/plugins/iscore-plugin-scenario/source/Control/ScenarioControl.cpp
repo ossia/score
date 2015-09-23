@@ -72,6 +72,7 @@ void ignore_template_instantiations()
 
 using namespace iscore;
 #include <State/Expression.hpp>
+#include "Control/Menus/ScenarioCommonContextMenuFactory.hpp"
 
 void test_parse_expr_full();
 ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
@@ -85,8 +86,21 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);
+
+    auto fact  = new ScenarioCommonActionsFactory;
+    for(const auto& act : fact->make(this))
+    {
+        m_pluginActions.push_back(act);
+    }
+    delete fact;
 }
 
+
+ScenarioControl* ScenarioControl::instance(Presenter* pres)
+{
+    static auto ctrl = new ScenarioControl(pres);
+    return ctrl;
+}
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
@@ -125,7 +139,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        m_deselectAll);
 
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->fillMenuBar(menu);
     }
@@ -135,13 +149,24 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->makeToolBar(bar);
         bar->addSeparator();
     }
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
+}
+
+QList<QAction*> ScenarioControl::actions()
+{
+    // TODO add the others
+    QList<QAction*> act;
+    for(const auto& elt : m_pluginActions)
+    {
+        act += elt->actions();
+    }
+    return act;
 }
 
 iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
@@ -151,8 +176,7 @@ iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
     return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
 }
 
-
-void ScenarioControl::createContextMenu(const QPoint& pos)
+void ScenarioControl::createContextMenu(const QPoint& pos, const QPointF& scenepos)
 {
     QMenu contextMenu;
 
@@ -164,9 +188,11 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
     {
         auto selected = scenario->selectedChildren();
 
-        for(AbstractMenuActions*& elt : m_pluginActions)
+        for(ScenarioActions*& elt : m_pluginActions)
         {
-            elt->fillContextMenu(&contextMenu, selected);
+            // TODO make a class to encapsulate all the data
+            // required to set-up a context menu in a scenario.
+            elt->fillContextMenu(&contextMenu, selected, focusedPresenter(), pos, scenepos);
             contextMenu.addSeparator();
         }
     }
@@ -182,7 +208,7 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
 
     reinit_tools();
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(false);
     }
@@ -199,7 +225,7 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(bool(s_pres));
     }
