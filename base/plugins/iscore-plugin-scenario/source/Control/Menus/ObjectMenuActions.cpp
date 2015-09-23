@@ -123,11 +123,17 @@ ObjectMenuActions::ObjectMenuActions(
         m_addProcessDialog->launchWindow();
     });
 
+    // ADD TRIGGER
+    m_addTrigger = new QAction{tr("Add Trigger"), this};
+    connect(m_addTrigger, &QAction::triggered,
+            this, &ObjectMenuActions::addTriggerToTimeNode);
+
 }
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeElements);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_clearElements);
@@ -147,6 +153,14 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, Layer
                    [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); }))
     {
         menu->addAction(m_addProcess);
+        menu->addSeparator();
+    }
+
+    if(std::any_of(sel.cbegin(),
+                   sel.cend(),
+                   [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
+    {
+        menu->addAction(m_addTrigger);
         menu->addSeparator();
     }
 
@@ -259,13 +273,20 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
     if(selectedConstraints.isEmpty())
         return;
-    auto cmd = new Scenario::Command::AddProcessToConstraint
+    auto cmd = new Scenario::Command::AddProcessToConstraint //NOTE just the first, not all ?
     {
         iscore::IDocument::path(**selectedConstraints.begin()),
         processName
     };
     CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
     emit dispatcher.submitCommand(cmd);
+}
+
+void ObjectMenuActions::addTriggerToTimeNode()
+{
+    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->events);// TODO : event or timenode ?
+    if(selectedTimeNodes.isEmpty())
+        return;
 }
 
 QList<QAction*> ObjectMenuActions::actions() const
@@ -277,7 +298,8 @@ QList<QAction*> ObjectMenuActions::actions() const
             m_cutContent,
             m_pasteContent,
             m_elementsToJson,
-            m_addProcess
+            m_addProcess,
+            m_addTrigger
         };
 }
 

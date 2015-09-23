@@ -110,7 +110,7 @@ void StateModel::on_nextProcessAdded(const Process& proc)
         // NOTE how to prevent these states from being played
         // twice ? mark them ? which one shoul be sent ? the ones
         // from the process ?
-        messages() =
+//        messages() =
     });
 }
 

@@ -5,7 +5,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include "EventPresenter.hpp"
 #include "ConditionView.hpp"
-#include "TriggerView.hpp"
 #include <QApplication>
 #include <QPalette>
 
@@ -19,9 +18,6 @@ EventView::EventView(EventPresenter& presenter,
     m_conditionItem = new ConditionView(this);
     m_conditionItem->setVisible(false);
     m_conditionItem->setPos(-13.5, -13.5);
-
-    m_triggerItem = new TriggerView(this);
-    m_triggerItem->setVisible(false);
 
     this->setParentItem(parent);
     this->setCursor(Qt::SizeHorCursor);
@@ -59,8 +55,8 @@ void EventView::setTrigger(const QString &trig)
     if(m_trigger == trig)
         return;
     m_trigger = trig;
-    m_triggerItem->setVisible(!trig.isEmpty());
-    m_triggerItem->setToolTip(m_condition);
+//    m_triggerItem->setVisible(!trig.isEmpty());
+//    m_triggerItem->setToolTip(m_condition);
 }
 
 bool EventView::hasTrigger() const

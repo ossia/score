@@ -2,6 +2,9 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
+#include "Document/TimeNode/Trigger/TriggerPresenter.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
+
 #include <QGraphicsScene>
 #include <QGraphicsObject>
 #include <iscore/widgets/GraphicsItem.hpp>
@@ -11,7 +14,8 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QObject* parent) :
     NamedObject {"TimeNodePresenter", parent},
     m_model {model},
-    m_view {new TimeNodeView{*this, parentview}}
+    m_view {new TimeNodeView{*this, parentview}},
+  m_triggerPres{new TriggerPresenter{new TriggerModel{}, m_view } }
 {
     con(m_model.selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);
@@ -21,6 +25,7 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
 
     con((m_model.metadata), &ModelMetadata::colorChanged,
             m_view,               &TimeNodeView::changeColor);
+
 
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.

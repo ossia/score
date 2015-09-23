@@ -19,6 +19,7 @@ class ObjectMenuActions : public ScenarioActions
         QJsonObject cutSelectedElementsToJson();
         void writeJsonToSelectedElements(const QJsonObject &obj);
         void addProcessInConstraint(QString);
+        void addTriggerToTimeNode();
 
 
         QAction* m_removeElements;
@@ -28,6 +29,7 @@ class ObjectMenuActions : public ScenarioActions
         QAction *m_pasteContent;
         QAction *m_elementsToJson;
         QAction *m_addProcess;
+        QAction *m_addTrigger;
 
         AddProcessDialog* m_addProcessDialog;
 };
