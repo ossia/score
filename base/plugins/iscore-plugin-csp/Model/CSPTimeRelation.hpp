@@ -41,8 +41,6 @@ public:
     bool maxChanged() const;
 
 private:
-    kiwi::Solver& m_solver;
-
     kiwi::Variable m_min{"min"};
     const TimeValue* m_iscoreMin;
     kiwi::Variable m_max{"max"};

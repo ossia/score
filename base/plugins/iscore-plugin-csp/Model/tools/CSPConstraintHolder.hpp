@@ -5,11 +5,20 @@
 #include <Model/CSPScenario.hpp>
 #include <kiwi/kiwi.h>
 
+#define PUT_CONSTRAINT(constraintName, constraint) \
+    kiwi::Constraint* constraintName = new kiwi::Constraint(constraint);\
+    m_solver.addConstraint(*constraintName);\
+    m_constraints.push_back(constraintName)
+
 class CSPConstraintHolder : public QObject
 {
 public:
 
     using QObject::QObject;
+    CSPConstraintHolder(kiwi::Solver& solver, QObject* parent)
+        :QObject::QObject{parent},
+          m_solver(solver)
+    {}
 
     virtual ~CSPConstraintHolder()
     {
@@ -18,11 +27,9 @@ public:
 
     void removeAllConstraints()
     {
-        CSPScenario* cspScenario = static_cast<CSPScenario*>(parent());
-
         for(auto constraint : m_constraints)
         {
-           cspScenario->getSolver().removeConstraint(*constraint);
+           m_solver.removeConstraint(*constraint);
            delete constraint;
         }
 
@@ -31,19 +38,15 @@ public:
 
     void addStay(kiwi::Constraint* stay)
     {
-        CSPScenario* cspScenario = static_cast<CSPScenario*>(parent());
-
-        cspScenario->getSolver().addConstraint(*stay);
+        m_solver.addConstraint(*stay);
         m_stays.push_back(stay);
     }
 
     void removeStays()
     {
-        CSPScenario* cspScenario = static_cast<CSPScenario*>(parent());
-
         for(auto stay : m_stays)
         {
-           cspScenario->getSolver().removeConstraint(*stay);
+           m_solver.removeConstraint(*stay);
            delete stay;
         }
 
@@ -53,4 +56,6 @@ public:
 protected:
     QVector<kiwi::Constraint*> m_constraints;
     QVector<kiwi::Constraint*> m_stays;
+
+    kiwi::Solver& m_solver;
 };

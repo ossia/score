@@ -3,8 +3,8 @@
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
 
-#define STAY_MINMAX_STRENGTH kiwi::strength::weak
-#define STAY_TNODE_STRENGTH kiwi::strength::medium
+#define STAY_MINMAX_STRENGTH kiwi::strength::medium
+#define STAY_TNODE_STRENGTH kiwi::strength::weak
 #define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong
 
 void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, ElementsProperties& elementsProperties)

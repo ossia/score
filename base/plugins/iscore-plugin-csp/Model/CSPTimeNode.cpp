@@ -6,7 +6,7 @@
 
 
 CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)
-    :CSPConstraintHolder::CSPConstraintHolder(&cspScenario)
+    :CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
 {
     auto& solver = cspScenario.getSolver();
 
@@ -30,6 +30,9 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
         solver.addConstraint(*constraintNodeAfterStart);
 
         m_constraints.push_back(constraintNodeAfterStart);
+    }else// if it is indeed start node, constrain him the the start value
+    {
+        PUT_CONSTRAINT(cStartDontMove, m_date == m_date.value());
     }
 
     // watch over date edits

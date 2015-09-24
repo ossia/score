@@ -6,14 +6,8 @@
 #include <Model/CSPTimeNode.hpp>
 #include <kiwi/kiwi.h>
 
-#define PUT_CONSTRAINT(constraintName, constraint) \
-    kiwi::Constraint* constraintName = new kiwi::Constraint(constraint);\
-    m_solver.addConstraint(*constraintName);\
-    m_constraints.push_back(constraintName)
-
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
-    :CSPConstraintHolder::CSPConstraintHolder(&cspScenario),
-      m_solver(cspScenario.getSolver())
+    :CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
 {
     this->setParent(&cspScenario);
     this->setObjectName("CSPTimeRelation");
