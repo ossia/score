@@ -19,3 +19,8 @@ void TriggerModel::setExpression(const Trigger& expression)
     m_expression = expression;
     emit triggerChanged(m_expression);
 }
+
+bool TriggerModel::isVoid()
+{
+    return m_expression.toString().isEmpty();
+}

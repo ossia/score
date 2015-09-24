@@ -10,6 +10,8 @@ class TriggerPresenter : public QObject
     public:
         TriggerPresenter(TriggerModel*, QGraphicsObject*, QObject* parent = 0);
 
+        TriggerModel* model() { return m_model;}
+
     private:
         TriggerModel* m_model;
         TriggerView* m_view;

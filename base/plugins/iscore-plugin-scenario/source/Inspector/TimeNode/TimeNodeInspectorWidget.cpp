@@ -2,6 +2,7 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
 
 #include "Process/ScenarioModel.hpp"
 
@@ -40,10 +41,25 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     dateLay->addWidget(dateTitle);
     dateLay->addWidget(m_date);
 
+    // Trigger
+    m_triggerLineEdit = new QLineEdit{};
+    m_triggerLineEdit->setValidator(&m_validator);
+
+    connect(m_triggerLineEdit, &QLineEdit::editingFinished,
+            this, &TimeNodeInspectorWidget::on_triggerChanged);
+
+    connect(m_model.trigger(), &TriggerModel::triggerChanged,
+        this, [this] (const iscore::Trigger& t) {
+        m_triggerLineEdit->setText(t.toString());
+    });
+
+
     // Events ids list
     m_eventList = new InspectorSectionWidget{"Events", this};
 
     m_properties.push_back(dateWid);
+    m_properties.push_back(new QLabel{tr("Trigger")});
+    m_properties.push_back(m_triggerLineEdit);
     m_properties.push_back(m_eventList);
 
     updateAreaLayout(m_properties);
@@ -101,6 +117,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
             selectionDispatcher().setAndCommit(Selection{evModel});
         });
     }
+
+    m_triggerLineEdit->setText(m_model.trigger()->expression().toString());
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
@@ -124,4 +142,17 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
     }
 
     updateDisplayedValues();
+}
+
+void TimeNodeInspectorWidget::on_triggerChanged()
+{
+    auto trig = m_validator.get();
+
+    if(*trig != m_model.trigger()->expression())
+    {
+//        auto cmd = new Scenario::Command::SetTrigger{path(m_model), std::move(*cond)};
+//        emit commandDispatcher()->submitCommand(cmd);
+        m_model.trigger()->setExpression(*trig);
+        qDebug() << "trigger changed !";
+    }
 }

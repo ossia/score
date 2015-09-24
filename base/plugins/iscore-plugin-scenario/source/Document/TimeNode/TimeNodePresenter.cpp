@@ -14,9 +14,10 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
                                      QObject* parent) :
     NamedObject {"TimeNodePresenter", parent},
     m_model {model},
-    m_view {new TimeNodeView{*this, parentview}},
-  m_triggerPres{new TriggerPresenter{new TriggerModel{}, m_view } }
+    m_view {new TimeNodeView{*this, parentview}}
 {
+    m_triggerPres = new TriggerPresenter{m_model.trigger(), m_view };
+
     con(m_model.selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);
 
@@ -25,7 +26,6 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
 
     con((m_model.metadata), &ModelMetadata::colorChanged,
             m_view,               &TimeNodeView::changeColor);
-
 
     // TODO find a correct way to handle validity of model elements.
     // extentChanged is updated in scenario.

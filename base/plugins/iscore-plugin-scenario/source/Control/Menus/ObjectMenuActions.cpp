@@ -13,6 +13,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
 
 #include "Commands/Constraint/ReplaceConstraintContent.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
@@ -284,9 +285,10 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
 
 void ObjectMenuActions::addTriggerToTimeNode()
 {
-    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->events);// TODO : event or timenode ?
+    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);// TODO : event or timenode ?
     if(selectedTimeNodes.isEmpty())
         return;
+
 }
 
 QList<QAction*> ObjectMenuActions::actions() const
