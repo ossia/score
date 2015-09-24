@@ -81,7 +81,6 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     con(m_model.duration, &ConstraintDurations::rigidityChanged,
             this, &DurationSectionWidget::on_modelRigidityChanged);
 
-
     // DISPLAY
     auto valLab = new QLabel("Default Duration");
     m_grid->addWidget(valLab, 0,1,1,1);
@@ -113,6 +112,8 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     {
         m_valueSpin->setEnabled(false);
     }
+    on_modelRigidityChanged(true);
+
 }
 
 using namespace Scenario::Command;

@@ -19,6 +19,7 @@ namespace Scenario
 	public:
 	    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveTrigger)
 	    RemoveTrigger(Path<TimeNodeModel>&& timeNodePath);
+        ~RemoveTrigger();
 
 	    virtual void undo() override;
 	    virtual void redo() override;
@@ -29,6 +30,8 @@ namespace Scenario
 
 	private:
 	    Path<TimeNodeModel> m_path;
+        QVector<SetRigidity*> m_cmds;
+
     };
 
     }

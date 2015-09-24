@@ -31,8 +31,6 @@ namespace Scenario
                 Path<TimeNodeModel> m_path;
                 iscore::Trigger m_trigger;
                 iscore::Trigger m_previousTrigger;
-
- //               QVector<SetRigidity*> m_cmds;
         };
     }
 }
