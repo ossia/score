@@ -14,6 +14,7 @@ class TriggerModel : public QObject
 
         Trigger expression() const;
         void setExpression(const Trigger& expression);
+        bool isVoid();
 
         bool active() const;
         void setActive(bool active);

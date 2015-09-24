@@ -8,6 +8,10 @@
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
 
+#include "Control/ScenarioControl.hpp"
+#include "Control/Menus/TransportActions.hpp"
+
+#include <QStyleFactory>
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
@@ -18,9 +22,11 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_localTimeRuler {new LocalTimeRulerView}*/
 {
    //*
+    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     // Configuration
     m_timeRulersView = new QGraphicsView{m_scene};
     m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    m_timeRulersView->setAttribute(Qt::WA_OpaquePaintEvent);
     m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
@@ -36,6 +42,22 @@ BaseElementView::BaseElementView(QObject* parent) :
     auto transportWidget = new QWidget{m_widget};
     auto transportLayout = new QGridLayout;
 
+    QToolBar* transportButtons = new QToolBar;
+
+    // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
+    transportButtons->setStyle(QStyleFactory::create("windows"));
+
+    for(const auto& action : ScenarioControl::instance()->pluginActions())
+    {
+        if(auto trsprt = dynamic_cast<TransportActions*>(action))
+        {
+            trsprt->makeToolBar(transportButtons);
+            break;
+        }
+    }
+
+    transportLayout->addWidget(transportButtons, 0, 0);
+
     /// Zoom
     m_zoomSlider = new DoubleSlider{transportWidget};
     m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
@@ -43,8 +65,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
             this,         &BaseElementView::horizontalZoomChanged);
 
-    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 0);
-    transportLayout->addWidget(m_zoomSlider, 0, 1);
+    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
+    transportLayout->addWidget(m_zoomSlider, 0, 2);
     transportLayout->setContentsMargins(0, 0, 0, 0);
 
     transportWidget->setLayout(transportLayout);

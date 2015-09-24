@@ -2,26 +2,28 @@
 
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
+
 class AutomationModel;
 class AutomationState : public ProcessStateDataInterface
 {
     public:
         // watchedPoint : something between 0 and 1
         AutomationState(
-                const AutomationModel& model,
+                AutomationModel& model,
                 double watchedPoint,
                 QObject* parent);
 
-        QString stateName() const override
-        { return "AutomationState"; }
+        QString stateName() const override;
+        AutomationModel& model() const;
 
         iscore::Message message() const;
-        double point() const
-        { return m_point; }
+        double point() const;
 
         AutomationState* clone(QObject* parent) const override;
 
-        const AutomationModel& model() const;
+        std::vector<iscore::Address> matchingAddresses() override;
+        iscore::MessageList messages() const override;
+        void setMessages(const iscore::MessageList&) override;
 
     private:
         double m_point{};

@@ -81,6 +81,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
 
     m_properties.push_back(dateWid);
     m_properties.push_back(new QLabel{tr("Trigger")});
+
     m_properties.push_back(trigwidg);
     m_properties.push_back(m_eventList);
 
@@ -204,3 +205,4 @@ void TimeNodeInspectorWidget::on_triggerActiveChanged()
     m_rmTrigBtn->setVisible(v);
     m_addTrigBtn->setVisible(!v);
 }
+

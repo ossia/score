@@ -76,6 +76,7 @@ MessageTreeView::MessageTreeView(
     setDropIndicatorShown(true);
     setDefaultDropAction(Qt::CopyAction);
     setDragDropOverwriteMode(false);
+    setUniformRowHeights(true);
 
     this->setModel(&m_model->messages());
 

@@ -20,25 +20,11 @@ AutomationModel::AutomationModel(
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
 
     // Named shall be enough ?
-    m_curve = new CurveModel{Id<CurveModel>(45345), this};
+    setCurve(new CurveModel{Id<CurveModel>(45345), this});
 
-    auto s1 = new PointArrayCurveSegmentModel{Id<CurveSegmentModel>(1), m_curve};
-    s1->setStart({0, -1});
-    s1->setEnd({1, -1});
-
-
-    s1->addPoint(0.3, 0.3);
-    s1->addPoint(0.4, 0.2);
-    s1->addPoint(0.5, 0.7);
-    s1->addPoint(0.6, 0.5);
-    s1->addPoint(0.45, 2);
-    s1->addPoint(0.8, -1);
-
-    /*
     auto s1 = new LinearCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
-    */
 
     m_curve->addSegment(s1);
     connect(m_curve, &CurveModel::changed,
@@ -53,12 +39,12 @@ AutomationModel::AutomationModel(
         QObject* parent):
     Process{source, id,  processName(), parent},
     m_address(source.address()),
-    m_curve{source.curve().clone(source.curve().id(), this)},
     m_min{source.min()},
     m_max{source.max()},
     m_startState{new AutomationState{*this, 0., this}},
     m_endState{new AutomationState{*this, 1., this}}
 {
+    setCurve(source.curve().clone(source.curve().id(), this));
     pluginModelList = new iscore::ElementPluginModelList(*source.pluginModelList, this);
     connect(m_curve, &CurveModel::changed,
             this, &AutomationModel::curveChanged);
@@ -212,18 +198,23 @@ void AutomationModel::setCurve(CurveModel* newCurve)
     m_curve = newCurve;
 
     connect(m_curve, &CurveModel::changed,
-            this, &AutomationModel::curveChanged);
+            this, [&] () {
+        emit curveChanged();
+
+        m_startState->messagesChanged(m_startState->messages());
+        m_endState->messagesChanged(m_endState->messages());
+    });
 
     emit m_curve->changed();
 }
 
 
-ProcessStateDataInterface* AutomationModel::startState() const
+AutomationState* AutomationModel::startState() const
 {
     return m_startState;
 }
 
-ProcessStateDataInterface* AutomationModel::endState() const
+AutomationState* AutomationModel::endState() const
 {
     return m_endState;
 }

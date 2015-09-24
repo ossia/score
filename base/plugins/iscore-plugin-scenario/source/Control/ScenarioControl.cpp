@@ -87,6 +87,9 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);
 
+    // Note : they are constructed here, because
+    // they need to be available quickly for other plug-ins,
+    // not after factory loading.
     auto fact  = new ScenarioCommonActionsFactory;
     for(const auto& act : fact->make(this))
     {
@@ -145,15 +148,25 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     }
 }
 
+#include "Menus/TransportActions.hpp"
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
-    for(ScenarioActions*& elt : m_pluginActions)
+    int i = 0;
+    for(const auto& act : m_pluginActions)
     {
-        elt->makeToolBar(bar);
-        bar->addSeparator();
+        if(dynamic_cast<TransportActions*>(act))
+            continue;
+
+        act->makeToolBar(bar);
+
+        if(i < m_pluginActions.size() - 1)
+            bar->addSeparator();
+
+        i++;
     }
+
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }

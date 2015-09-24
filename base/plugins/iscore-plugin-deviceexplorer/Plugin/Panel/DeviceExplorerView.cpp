@@ -41,6 +41,7 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
     setDragEnabled(true);
     setAcceptDrops(true);
+    setUniformRowHeights(true);
 
     //setDragDropMode(QAbstractItemView::InternalMove); //The view accepts move (not copy) operations only from itself.
     setDragDropMode(QAbstractItemView::DragDrop);

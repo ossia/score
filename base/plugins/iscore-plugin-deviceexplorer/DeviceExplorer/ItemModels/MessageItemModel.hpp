@@ -35,10 +35,14 @@ class MessageItemModel : public NodeBasedItemModel
 
         // Returns a flattened list of all the messages in the tree.
         iscore::MessageList flatten() const;
+
         const iscore::Node& rootNode() const override
         { return m_rootNode; }
         iscore::Node& rootNode() override
         { return m_rootNode; }
+
+        // Specific operations
+        void insert(const iscore::Message&);
 
         // AbstractItemModel interface
         int columnCount(const QModelIndex &parent) const override;
@@ -62,7 +66,7 @@ class MessageItemModel : public NodeBasedItemModel
 
     private:
         iscore::Node m_rootNode;
-        iscore::CommandStack& m_stack;
 
+        iscore::CommandStack& m_stack;
 };
 }

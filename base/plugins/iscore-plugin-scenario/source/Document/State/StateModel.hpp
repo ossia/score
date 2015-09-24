@@ -13,7 +13,7 @@
 #include <State/StateItemModel.hpp>
 
 #include <DeviceExplorer/ItemModels/MessageItemModel.hpp>
-
+#include <set>
 #include "StateView.hpp"
 #include "Document/Event/EventStatus.hpp"
 
@@ -22,6 +22,7 @@ class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
 class Process;
+class ProcessStateDataInterface;
 
 // Model for the graphical state in a scenario.
 class StateModel : public IdentifiedObject<StateModel>
@@ -94,6 +95,8 @@ class StateModel : public IdentifiedObject<StateModel>
         void on_previousProcessAdded(const Process&);
         void on_previousProcessRemoved(const Process&);
 
+        std::set<ProcessStateDataInterface*> m_previousProcesses;
+        std::set<ProcessStateDataInterface*> m_nextProcesses;
         Id<EventModel> m_eventId;
 
         // OPTIMIZEME if we shift to Id = int, put this Optional
