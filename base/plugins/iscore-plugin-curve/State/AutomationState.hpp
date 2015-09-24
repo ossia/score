@@ -2,8 +2,8 @@
 
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
+
 class AutomationModel;
-// TODO move in Automation plug-in
 class AutomationState : public ProcessStateDataInterface
 {
     public:
@@ -27,6 +27,4 @@ class AutomationState : public ProcessStateDataInterface
 
     private:
         double m_point{};
-
-        // DynamicStateDataInterface interface
 };

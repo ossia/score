@@ -89,9 +89,6 @@ void AutomationState::setMessages(const iscore::MessageList& received)
 
             val = (val - model().min()) / (model().max() - model().min());
 
-            // TODO this can be refactored easily
-            // by having a function that returns a function
-            // according to 0 / 1
             if(m_point == 0)
             {
                 // Find first segment
