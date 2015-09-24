@@ -86,37 +86,99 @@ void StateModel::setHeightPercentage(double y)
 
 void StateModel::statesUpdated_slt()
 {
+    // Check for all the messages in the state, for some
+    // that are matching our processes's addresses.
+    // If they match, update them in the process state.
+    // OPTIMIZEME
+    auto ml = messages().flatten();
+    for(const auto& proc : m_previousProcesses)
+    {
+        auto currentMessages = proc->messages();
+        for(const auto& mess : ml)
+        {
+            // OPTIMIZEME with set_intersection
+            auto it = std::find_if(
+                currentMessages.begin(),
+                currentMessages.end(),
+                [&] (const auto& m) { return m.address == mess.address; });
+
+            if(it != currentMessages.end())
+            {
+                it->value = mess.value;
+            }
+        }
+        proc->setMessages(currentMessages);
+    }
+    // TODO refactor
+    for(const auto& proc : m_nextProcesses)
+    {
+        auto currentMessages = proc->messages();
+        for(const auto& mess : ml)
+        {
+            // OPTIMIZEME with set_intersection
+            auto it = std::find_if(
+                currentMessages.begin(),
+                currentMessages.end(),
+                [&] (const auto& m) { return m.address == mess.address; });
+
+            if(it != currentMessages.end())
+            {
+                it->value = mess.value;
+            }
+        }
+        proc->setMessages(currentMessages);
+    }
     emit sig_statesUpdated();
 }
 
-void StateModel::on_previousProcessAdded(const Process&)
+void StateModel::on_previousProcessAdded(const Process& proc)
 {
+    ProcessStateDataInterface* state = proc.endState();
+    connect(state, &ProcessStateDataInterface::messagesChanged,
+            this, [&] (const iscore::MessageList& ml) {
+        // We merge the messages with the state.
+        // No need to undo-redo this, this is an invariant.
+        // TODO have some collapsing between all the processes of a state
+        // NOTE how to prevent these states from being played
+        // twice ? mark them ?
+        // TODO which one shoul be sent ? the ones
+        // from the process ?
+        for(const auto& mess : ml)
+        {
+            messages().insert(mess);
+        }
+    });
 
+    m_previousProcesses.insert(state);
 }
 
-void StateModel::on_previousProcessRemoved(const Process&)
+void StateModel::on_previousProcessRemoved(const Process& proc)
 {
+    ProcessStateDataInterface* state = proc.endState();
 
+    m_previousProcesses.erase(state);
 }
 
 void StateModel::on_nextProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.startState();
+
     connect(state, &ProcessStateDataInterface::messagesChanged,
-            this, [ ] (const iscore::MessageList& ml) {
-        // We merge the messages with the state.
-        // No need to undo-redo this, this is an invariant.
-        // TODO have some collapsing between all the processes of a state
-        // NOTE how to prevent these states from being played
-        // twice ? mark them ? which one shoul be sent ? the ones
-        // from the process ?
-//        messages() = // TODO
+            this, [&] (const iscore::MessageList& ml) {
+        for(const auto& mess : ml)
+        {
+            messages().insert(mess);
+        }
     });
+
+    m_nextProcesses.insert(state);
 }
 
-void StateModel::on_nextProcessRemoved(const Process&)
+void StateModel::on_nextProcessRemoved(const Process& proc)
 {
+    ProcessStateDataInterface* state = proc.startState();
 
+    m_nextProcesses.erase(state);
 }
 
 const Id<EventModel> &StateModel::eventId() const
@@ -157,10 +219,10 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 {
     m_previousConstraint = id;
 
-    if(!m_nextConstraint)
+    if(!m_previousConstraint)
         return;
 
-    auto& cstr = parentScenario()->constraint(m_nextConstraint);
+    auto& cstr = parentScenario()->constraint(m_previousConstraint);
     con(cstr.processes, &NotifyingMap<Process>::added,
         this, &StateModel::on_previousProcessAdded);
     con(cstr.processes, &NotifyingMap<Process>::removed,

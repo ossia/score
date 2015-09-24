@@ -101,6 +101,11 @@ void PluginManager::loadControls(QObject* plugin)
     {
         auto plug = ctrl_plugin->make_control(m_app->presenter());
         m_controlList.push_back(plug);
+        qDebug() << plug->objectName();
+        if(plug->objectName() == "ScenarioControl")
+        {
+            ;
+        }
     }
 }
 

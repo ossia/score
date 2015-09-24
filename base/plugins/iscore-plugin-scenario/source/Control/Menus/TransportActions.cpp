@@ -10,8 +10,10 @@ TransportActions::TransportActions(
 {
     m_play = new QAction{tr("▶ Play"), parent};
     m_play->setObjectName("Play");
+    m_play->setShortcut(Qt::Key_Space);
+    m_play->setShortcutContext(Qt::ApplicationShortcut);
 
-    m_stop = new QAction{tr("■ Stop"), parent};
+    m_stop = new QAction{tr("⬛ Stop"), parent};
     m_stop->setObjectName("Stop");
     m_goToStart = new QAction{tr("⏮ Start"), parent};
     m_goToStart->setObjectName("Start");

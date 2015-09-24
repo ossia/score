@@ -201,7 +201,6 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
             segt->addPoint(0, getNodeFromAddress(m_explorer->rootNode(), addr).get<iscore::AddressSettings>().value.val.toDouble());
 
             // TODO fetch initial min / max from AddressSettings ?
-            // TODO fetch initial value from AddressSettings ?
             records.insert(
                         std::make_pair(
                             addr,

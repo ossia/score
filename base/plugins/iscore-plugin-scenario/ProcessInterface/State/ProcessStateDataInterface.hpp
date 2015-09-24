@@ -6,16 +6,16 @@
 class ProcessStateDataInterface : public DynamicStateDataInterface
 {
     public:
-        ProcessStateDataInterface(const Process& model, QObject* parent):
+        ProcessStateDataInterface(Process& model, QObject* parent):
             DynamicStateDataInterface{parent},
             m_model{model}
         {
         }
 
     protected:
-        const Process& model() const
+        Process& model() const
         { return m_model; }
 
     private:
-        const Process& m_model;
+        Process& m_model;
 };
