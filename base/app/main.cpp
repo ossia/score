@@ -23,7 +23,7 @@ Q_IMPORT_PLUGIN(iscore_plugin_ossia)
 //#define ELPP_STACKTRACE_ON_CRASH
 //#include <easylogging++.h>
 //INITIALIZE_EASYLOGGINGPP
-
+#include <QSurfaceFormat>
 int main(int argc, char** argv)
 {
 //    START_EASYLOGGINGPP(argc, argv);
@@ -33,6 +33,14 @@ int main(int argc, char** argv)
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(DeviceExplorer);
 #endif
+
+    QSurfaceFormat fmt;
+    //fmt.setMajorVersion(4);
+    //fmt.setMinorVersion(0);
+    //fmt.setRenderableType(QSurfaceFormat::OpenGL);
+    //fmt.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
+    fmt.setSamples(2);
+    QSurfaceFormat::setDefaultFormat(fmt);
     iscore::Application app(argc, argv);
     return app.exec();
 }

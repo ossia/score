@@ -68,6 +68,7 @@ void RecordManager::stopRecording()
 
         // Conversion of the piecewise to segments, and
         // serialization.
+        recorded.second.segment.simplify();
         auto data = recorded.second.segment.piecewise();
 
         QVector<QByteArray> newSegments;
