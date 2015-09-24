@@ -3,8 +3,9 @@
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
 
-#define STAY_PREVIOUS_MINMAX_STRENGTH kiwi::strength::weak
-#define STAY_MINMAX_STRENGTH kiwi::strength::strong
+#define STAY_MINMAXFROMDATEONCREATION_STRENGTH kiwi::strength::required
+#define STAY_MINMAXPREVTIMERELATION_STRENGTH kiwi::strength::strong
+#define STAY_MINMAX_STRENGTH kiwi::strength::required
 #define STAY_TNODE_STRENGTH kiwi::strength::medium
 #define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0
 
@@ -151,23 +152,32 @@ void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector
         auto& curTimeRelationId = timeRelationIterator.key();
         auto& curTimeRelation = timeRelationIterator.value();
 
-        // try to stay on initial values
         auto initialMin = cspScenario.getScenario()->constraint(curTimeRelationId).duration.minDuration();
         auto initialMax = cspScenario.getScenario()->constraint(curTimeRelationId).duration.maxDuration();
 
         // - remove old stays
         curTimeRelation->removeStays();
 
-        // - if constraint preceed dragged element apply specific stay
-        auto strength = STAY_MINMAX_STRENGTH;
-        if( draggedElements.contains(cspScenario.getScenario()->constraint(curTimeRelationId).endTimeNode()) )
+        //ad new stays
+        // - if constraint preceed dragged element
+        auto endTimeNodeId = cspScenario.getScenario()->constraint(curTimeRelationId).endTimeNode();
+        if( draggedElements.contains(endTimeNodeId) )
         {
-            strength = STAY_PREVIOUS_MINMAX_STRENGTH;
+            auto endTimenode = cspScenario.m_timeNodes[endTimeNodeId];
+            auto endDateMsec = endTimenode->m_iscoreDate->msec();
+            auto distanceFromMinToDate = endDateMsec - curTimeRelation->m_iscoreMin->msec();
+            auto distanceFromMaxToDate = endDateMsec - curTimeRelation->m_iscoreMax->msec();
+
+            // keep min and max around default duration
+            curTimeRelation->addStay(new kiwi::Constraint(endTimenode->m_date - curTimeRelation->m_min == distanceFromMinToDate, STAY_MINMAXFROMDATEONCREATION_STRENGTH));
+            curTimeRelation->addStay(new kiwi::Constraint(endTimenode->m_date - curTimeRelation->m_max == distanceFromMaxToDate, STAY_MINMAXFROMDATEONCREATION_STRENGTH));
+
+        }else
+        {
+            curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_min == initialMin.msec(), STAY_MINMAX_STRENGTH));
+            curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_max == initialMax.msec(), STAY_MINMAX_STRENGTH));
         }
 
-        // - ad new stays
-        curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_min == initialMin.msec(), strength));
-        curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_max == initialMax.msec(), strength));
     }
 
     //time node stays

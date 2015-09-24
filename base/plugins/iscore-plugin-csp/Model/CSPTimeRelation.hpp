@@ -43,8 +43,11 @@ public:
 private:
     kiwi::Variable m_min{"min"};
     const TimeValue* m_iscoreMin;
+
     kiwi::Variable m_max{"max"};
     const TimeValue* m_iscoreMax;
+
+    kiwi::Constraint m_cstrRigidity{kiwi::Constraint(m_min == m_max)};// TODO ask JM if it is safe to do so
 
     //void onDefaultDurationChanged(const TimeValue& arg);
     void onMinDurationChanged(const TimeValue& min);
