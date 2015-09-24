@@ -30,6 +30,11 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         void on_splitTimeNodeClicked();
         void on_triggerChanged();
 
+        void createTrigger();
+        void removeTrigger();
+
+        void on_triggerActiveChanged();
+
     private:
         QVector<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
@@ -42,5 +47,7 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         MetadataWidget* m_metadata {};
 
         QLineEdit* m_triggerLineEdit{};
+        QPushButton* m_addTrigBtn{};
+        QPushButton* m_rmTrigBtn{};
         ExpressionValidator<iscore::Trigger> m_validator;
 };

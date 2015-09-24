@@ -20,7 +20,15 @@ void TriggerModel::setExpression(const Trigger& expression)
     emit triggerChanged(m_expression);
 }
 
-bool TriggerModel::isVoid()
+bool TriggerModel::active() const
 {
-    return m_expression.toString().isEmpty();
+    return m_active;
+}
+
+void TriggerModel::setActive(bool active)
+{
+    if (active == m_active)
+        return;
+    m_active = active;
+    emit activeChanged();
 }
