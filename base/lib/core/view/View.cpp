@@ -17,7 +17,7 @@ View::View(QObject* parent) :
     m_tabWidget{new QTabWidget}
 {
     setObjectName("View");
-    setUnifiedTitleAndToolBarOnMac(true);
+    //setUnifiedTitleAndToolBarOnMac(true);
 
     setDockOptions(QMainWindow::ForceTabbedDocks | QMainWindow::VerticalTabs);
     setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);

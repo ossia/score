@@ -14,7 +14,7 @@ if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
 endif()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test OpenGL)
 
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
@@ -298,7 +298,7 @@ if(TARGET iscore_lib_inspector)
 endif()
 
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
-target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Svg
+target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Svg Qt5::OpenGL
                      iscore_lib_base
                      iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
 

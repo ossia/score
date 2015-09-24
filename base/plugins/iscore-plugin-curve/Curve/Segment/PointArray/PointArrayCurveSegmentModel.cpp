@@ -1,6 +1,6 @@
 #include "PointArrayCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
-
+#include "psimpl.h"
 CurveSegmentModel*PointArrayCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject *parent) const
@@ -96,6 +96,37 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
 
     m_valid = false;
     emit dataChanged();
+}
+
+void PointArrayCurveSegmentModel::simplify()
+{
+    double tolerance = (max_y - min_y) / 8.;
+
+    // TODO reserve
+    std::vector <double> orig;
+    orig.reserve(m_points.size() * 2);
+    for(const auto& pt : m_points)
+    {
+        orig.push_back(pt.first);
+        orig.push_back(pt.second);
+    }
+
+
+    std::vector <double> result;
+    result.reserve(m_points.size() / 2);
+
+    psimpl::simplify_reumann_witkam <2> (
+        orig.begin (), orig.end (),
+        tolerance, std::back_inserter (result));
+    ISCORE_ASSERT(result.size() > 0);
+    ISCORE_ASSERT(result.size() % 2 == 0);
+
+    m_points.clear();
+    m_points.reserve(result.size() / 2);
+    for(auto i = 0u; i < result.size(); i+= 2)
+    {
+        m_points.insert(std::make_pair(result[i], result[i+1]));
+    }
 }
 
 std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentModel::piecewise() const

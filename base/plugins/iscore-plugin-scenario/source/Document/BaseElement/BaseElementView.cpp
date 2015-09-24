@@ -12,6 +12,7 @@
 #include "Control/Menus/TransportActions.hpp"
 
 #include <QStyleFactory>
+#include <QGLWidget>
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
@@ -22,9 +23,18 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_localTimeRuler {new LocalTimeRulerView}*/
 {
    //*
+    auto vp1 = new QGLWidget;
+    vp1->setFormat(QGLFormat(QGL::SampleBuffers));
+    m_view->setViewport(vp1);
+
     m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     // Configuration
     m_timeRulersView = new QGraphicsView{m_scene};
+
+    auto vp2 = new QGLWidget;
+    vp2->setFormat(QGLFormat(QGL::SampleBuffers));
+    m_timeRulersView->setViewport(vp2);
+
     m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     m_timeRulersView->setAttribute(Qt::WA_OpaquePaintEvent);
     m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

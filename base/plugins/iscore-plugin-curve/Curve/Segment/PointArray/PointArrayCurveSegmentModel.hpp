@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <boost/container/flat_map.hpp>
 
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
@@ -30,6 +31,7 @@ class PointArrayCurveSegmentModel : public CurveSegmentModel
         double valueAt(double x) const override;
 
         void addPoint(double, double);
+        void simplify();
         std::vector<std::unique_ptr<LinearCurveSegmentModel>> piecewise() const;
 
         double min() { return min_y; }
@@ -44,5 +46,5 @@ class PointArrayCurveSegmentModel : public CurveSegmentModel
         double min_x{}, max_x{};
         double min_y{}, max_y{};
 
-        std::map<double, double> m_points;
+        boost::container::flat_map<double, double> m_points;
 };
