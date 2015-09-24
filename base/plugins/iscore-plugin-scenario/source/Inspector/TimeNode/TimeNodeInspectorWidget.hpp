@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+
+#include "Inspector/ExpressionValidator.hpp"
 class TimeNodeModel;
 
 class QFormLayout;
@@ -26,6 +28,7 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         void updateDisplayedValues();
 
         void on_splitTimeNodeClicked();
+        void on_triggerChanged();
 
     private:
         QVector<QWidget*> m_properties;
@@ -37,4 +40,7 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
         QLabel* m_date {};
 
         MetadataWidget* m_metadata {};
+
+        QLineEdit* m_triggerLineEdit{};
+        ExpressionValidator<iscore::Trigger> m_validator;
 };

@@ -14,9 +14,10 @@ class TriggerModel : public QObject
 
         Trigger expression() const;
         void setExpression(const Trigger& expression);
+        bool isVoid();
 
     signals:
-        void triggerChanged(Trigger);
+        void triggerChanged(const Trigger&);
 
     public slots:
 
