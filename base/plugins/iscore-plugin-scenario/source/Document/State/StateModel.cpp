@@ -164,7 +164,7 @@ void StateModel::on_nextProcessAdded(const Process& proc)
     ProcessStateDataInterface* state = proc.startState();
 
     connect(state, &ProcessStateDataInterface::messagesChanged,
-            this, [&] (const iscore::MessageList& ml) {
+        this, [&] (const iscore::MessageList& ml) {
         for(const auto& mess : ml)
         {
             messages().insert(mess);

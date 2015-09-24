@@ -37,7 +37,7 @@ namespace Scenario
 
                 bool m_rigidity {};
 
-                // Unused if the constraint was rigid
+                // Unused if the constraint was rigid // NOTE Why ??
                 TimeValue m_oldMinDuration;
                 TimeValue m_oldMaxDuration;
         };

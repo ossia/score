@@ -100,6 +100,7 @@ class ScenarioModel : public Process, public ScenarioInterface
         {
             return states.at(stId);
         }
+        const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const;
 
         TimeNodeModel& startTimeNode() const override
         {
