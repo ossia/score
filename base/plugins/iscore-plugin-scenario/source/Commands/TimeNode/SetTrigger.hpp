@@ -4,7 +4,10 @@
 
 #include "Commands/Constraint/SetRigidity.hpp"
 
-class EventModel;
+#include "State/Expression.hpp"
+
+class TimeNodeModel;
+
 namespace Scenario
 {
     namespace Command
@@ -14,7 +17,7 @@ namespace Scenario
                 ISCORE_COMMAND_DECL_OBSOLETE("SetTrigger", "SetTrigger")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SetTrigger, "ScenarioControl")
-                SetTrigger(Path<EventModel>&& eventPath, QString condition);
+                SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
                 ~SetTrigger();
 
                 virtual void undo() override;
@@ -25,11 +28,11 @@ namespace Scenario
                 virtual void deserializeImpl(QDataStream&) override;
 
             private:
-                Path<EventModel> m_path;
-                QString m_trigger;
-                QString m_previousTrigger;
+                Path<TimeNodeModel> m_path;
+                iscore::Trigger m_trigger;
+                iscore::Trigger m_previousTrigger;
 
-                QVector<SetRigidity*> m_cmds;
+ //               QVector<SetRigidity*> m_cmds;
         };
     }
 }

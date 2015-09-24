@@ -1,8 +1,11 @@
 #include "SetTrigger.hpp"
 
-#include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
+
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Process/ScenarioModel.hpp"
+
 #include "iscore/document/DocumentInterface.hpp"
 
 using namespace iscore;
@@ -11,17 +14,16 @@ using namespace Scenario::Command;
 
 
 // TODO
-SetTrigger::SetTrigger(Path<EventModel>&& eventPath, QString message) :
+SetTrigger::SetTrigger(Path<TimeNodeModel>&& timeNodePath,
+                       Trigger trigger) :
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-m_path {std::move(eventPath) },
-m_trigger(message)
+m_path {std::move(timeNodePath) },
+m_trigger(std::move(trigger))
 {
-    /*
-    auto& event = m_path.find();
-    m_previousTrigger = event.trigger();
-    */
+    auto& tn = m_path.find();
+    m_previousTrigger = tn.trigger()->expression();
 }
 
 SetTrigger::~SetTrigger()
@@ -33,9 +35,10 @@ SetTrigger::~SetTrigger()
 
 void SetTrigger::undo()
 {
+    auto& tn = m_path.find();
+    tn.trigger()->setExpression(m_previousTrigger);
+
     /*
-    auto& event = m_path.find();
-    event.setTrigger(m_previousTrigger);
 
     for (auto cmd : m_cmds)
     {
@@ -47,12 +50,10 @@ void SetTrigger::undo()
 
 void SetTrigger::redo()
 {
-    ISCORE_TODO;
-    /*
-    auto& event = m_path.find();
-    event.setTrigger(m_trigger);
+    auto& tn = m_path.find();
+    tn.trigger()->setExpression(m_trigger);
 
-    if(m_previousTrigger.isEmpty() != m_trigger.isEmpty())
+/*    if(m_previousTrigger.isEmpty() != m_trigger.isEmpty())
     {
         ScenarioModel* scenar = event.parentScenario();
         for (auto cstr : event.previousConstraints())
@@ -67,9 +68,8 @@ void SetTrigger::redo()
 
 void SetTrigger::serializeImpl(QDataStream& s) const
 {
-    /*
     s << m_path << m_trigger << m_previousTrigger;
-    s << m_cmds.count();
+/*    s << m_cmds.count();
 
     for(const auto& cmd : m_cmds)
     {
@@ -80,10 +80,10 @@ void SetTrigger::serializeImpl(QDataStream& s) const
 
 void SetTrigger::deserializeImpl(QDataStream& s)
 {
-    /*
     int n;
-    s >> m_path >> m_trigger >> m_previousTrigger >> n;
-
+    s >> m_path >> m_trigger >> m_previousTrigger;
+/*
+ * s >> n;
     for(;n-->0;)
     {
         QByteArray a;

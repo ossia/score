@@ -11,6 +11,7 @@
 #include "Inspector/Event/EventWidgets/EventShortcut.hpp"
 
 #include "Commands/TimeNode/SplitTimeNode.hpp"
+#include "Commands/TimeNode/SetTrigger.hpp"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -150,8 +151,7 @@ void TimeNodeInspectorWidget::on_triggerChanged()
 
     if(*trig != m_model.trigger()->expression())
     {
-//        auto cmd = new Scenario::Command::SetTrigger{path(m_model), std::move(*cond)};
-//        emit commandDispatcher()->submitCommand(cmd);
-        m_model.trigger()->setExpression(*trig);
+        auto cmd = new Scenario::Command::SetTrigger{iscore::IDocument::path(m_model), std::move(*trig)};
+        emit commandDispatcher()->submitCommand(cmd);
     }
 }

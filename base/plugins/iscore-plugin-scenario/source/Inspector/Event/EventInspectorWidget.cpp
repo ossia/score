@@ -3,7 +3,6 @@
 #include "Document/Event/EventModel.hpp"
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
-#include "Commands/Event/SetTrigger.hpp"
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 
