@@ -56,7 +56,7 @@ public:
     {}
 
     /**
-                 * @brief MoveEvent2
+                 * @brief MoveEvent
                  * @param scenarioPath
                  * @param eventId
                  * @param newDate
@@ -71,7 +71,8 @@ public:
         :
           SerializableMoveEvent{},
           m_path {std::move(scenarioPath)},
-          m_mode{mode}
+          m_mode{mode},
+          m_displacementPolicy{scenarioPath.find(), QVector<Id<TimeNodeModel>>({scenarioPath.find().event(eventId).timeNode()})}
     {
         // we need to compute the new time delta and store this initial event id for recalculate the delta on updates
         // NOTE: in the future in would be better to give directly the delta value to this method,
@@ -188,6 +189,8 @@ private:
 private:
     ElementsProperties m_savedElementsProperties;
     Path<ScenarioModel> m_path;
+
+    DisplacementPolicy m_displacementPolicy;
 
     Id<EventModel> m_eventId;
     TimeValue m_oldDate; //used to compute the deltaTime

@@ -3,70 +3,22 @@
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
 
-#define STAY_MINMAX_STRENGTH kiwi::strength::medium
-#define STAY_TNODE_STRENGTH kiwi::strength::weak
-#define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong
+#define STAY_PREVIOUS_MINMAX_STRENGTH kiwi::strength::weak
+#define STAY_MINMAX_STRENGTH kiwi::strength::strong
+#define STAY_TNODE_STRENGTH kiwi::strength::medium
+#define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0
 
-void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, ElementsProperties& elementsProperties)
+
+CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
 {
-    // time relations stays
-    QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);
-    while(timeRelationIterator.hasNext())
+    if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
-        timeRelationIterator.next();
+        // add stays to all elements
+        refreshStays(*cspScenario, draggedElements);
 
-        auto& curTimeRelationId = timeRelationIterator.key();
-        auto& curTimeRelation = timeRelationIterator.value();
-
-        //try to get the old values if existing
-        TimeValue currentMin, currentMax;
-        if(elementsProperties.constraints.contains(curTimeRelationId))
-        {
-            currentMin = elementsProperties.constraints[curTimeRelationId].oldMin;
-            currentMax = elementsProperties.constraints[curTimeRelationId].oldMax;
-        }else
-        {
-            currentMin = cspScenario.getScenario()->constraint(curTimeRelationId).duration.minDuration();
-            currentMax = cspScenario.getScenario()->constraint(curTimeRelationId).duration.maxDuration();
-        }
-
-        //remove old stays
-        curTimeRelation->removeStays();
-
-        //ad new stays
-        kiwi::Constraint* minStay = new kiwi::Constraint(curTimeRelation->m_min == currentMin.msec(), STAY_MINMAX_STRENGTH);
-        curTimeRelation->addStay(minStay);
-
-        kiwi::Constraint* maxStay = new kiwi::Constraint(curTimeRelation->m_max == currentMax.msec(), STAY_MINMAX_STRENGTH);
-        curTimeRelation->addStay(maxStay);
-    }
-
-    //time node stays
-    // - in timenodes :
-    QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario.m_timeNodes);
-    while (timeNodeIterator.hasNext())
+    }else
     {
-        timeNodeIterator.next();
-
-        auto& curTimeNodeId = timeNodeIterator.key();
-        auto& curCspTimeNode = timeNodeIterator.value();
-
-        //try to get the old values if existing
-        TimeValue currentDate;
-        if(elementsProperties.timenodes.contains(curTimeNodeId))
-        {
-            currentDate = elementsProperties.timenodes[curTimeNodeId].oldDate;
-        }else
-        {
-            currentDate = cspScenario.getScenario()->timeNode(curTimeNodeId).date();
-        }
-
-        //remove old stays
-        curCspTimeNode->removeStays();
-
-        //ad new stays
-        kiwi::Constraint* dateStay = new kiwi::Constraint(curCspTimeNode->m_date == currentDate.msec(), STAY_TNODE_STRENGTH);
-        curCspTimeNode->addStay(dateStay);
+        std::runtime_error("No CSP scenario found for this model");
     }
 }
 
@@ -81,9 +33,6 @@ void CSPDisplacementPolicy::computeDisplacement(
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
         auto& solver = cspScenario->getSolver();
-
-        // add stays to all elements
-        refreshStays(*cspScenario, elementsProperties);
 
         // get the corresponding CSP elements and start editing vars
         for(auto curDraggedTimeNodeId : draggedElements)
@@ -188,5 +137,56 @@ void CSPDisplacementPolicy::computeDisplacement(
     }else
     {
         std::runtime_error("No CSP scenario found for this model");
+    }
+}
+
+void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements)
+{
+    // time relations stays
+    QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);
+    while(timeRelationIterator.hasNext())
+    {
+        timeRelationIterator.next();
+
+        auto& curTimeRelationId = timeRelationIterator.key();
+        auto& curTimeRelation = timeRelationIterator.value();
+
+        // try to stay on initial values
+        auto initialMin = cspScenario.getScenario()->constraint(curTimeRelationId).duration.minDuration();
+        auto initialMax = cspScenario.getScenario()->constraint(curTimeRelationId).duration.maxDuration();
+
+        // - remove old stays
+        curTimeRelation->removeStays();
+
+        // - if constraint preceed dragged element apply specific stay
+        auto strength = STAY_MINMAX_STRENGTH;
+        if( draggedElements.contains(cspScenario.getScenario()->constraint(curTimeRelationId).endTimeNode()) )
+        {
+            strength = STAY_PREVIOUS_MINMAX_STRENGTH;
+        }
+
+        // - ad new stays
+        curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_min == initialMin.msec(), strength));
+        curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_max == initialMax.msec(), strength));
+    }
+
+    //time node stays
+    // - in timenodes :
+    QHashIterator<Id<TimeNodeModel>, CSPTimeNode*> timeNodeIterator(cspScenario.m_timeNodes);
+    while (timeNodeIterator.hasNext())
+    {
+        timeNodeIterator.next();
+
+        auto& curTimeNodeId = timeNodeIterator.key();
+        auto& curCspTimeNode = timeNodeIterator.value();
+
+        // try to stay on initial value
+        auto initialDate = cspScenario.getScenario()->timeNode(curTimeNodeId).date();
+
+        // - remove old stays
+        curCspTimeNode->removeStays();
+
+        // - add new stays
+        curCspTimeNode->addStay(new kiwi::Constraint(curCspTimeNode->m_date == initialDate.msec(), STAY_TNODE_STRENGTH));
     }
 }

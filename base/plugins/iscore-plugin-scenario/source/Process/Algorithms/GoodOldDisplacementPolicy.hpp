@@ -1,18 +1,21 @@
 #pragma once
 
-#include <Process/ScenarioModel.hpp>
-#include <Tools/dataStructures.hpp>
+#include <QVector>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/Algorithms/StandardDisplacementPolicy.hpp>
 
-class CSPScenario;
+class QString;
+class ScenarioModel;
+class TimeNodeModel;
+struct ElementsProperties;
 
-class CSPDisplacementPolicy
+class GoodOldDisplacementPolicy
 {
 public:
 
-    CSPDisplacementPolicy() = default;
+    GoodOldDisplacementPolicy() = default;
 
-    CSPDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements);
+    GoodOldDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel>>& draggedElements){}
 
     static
     void
@@ -24,7 +27,7 @@ public:
 
     static QString name()
     {
-        return QString{"CSP"};
+        return QString{"Old way"};
     }
 
     template<typename ProcessScaleMethod>
@@ -34,6 +37,4 @@ public:
     {
         CommonDisplacementPolicy::updatePositions(scenario, scaleMethod, elementsPropertiesToUpdate, useNewValues);
     }
-protected:
-    static void refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements);
 };

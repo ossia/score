@@ -1,5 +1,5 @@
 #include <Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
-#include <Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 #include <Commands/Scenario/Displacement/MoveEvent.hpp>
 
 SerializableMoveEvent* MoveEventClassicFactory::make(

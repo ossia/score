@@ -226,6 +226,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardCreationPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/GoodOldDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardRemovalPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/VerticalMovePolicy.cpp"
