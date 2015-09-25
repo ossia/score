@@ -9,4 +9,7 @@ class TriggerView : public QGraphicsItem
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget);
+
+        int type() const override
+        { return QGraphicsItem::UserType + 7; }
 };

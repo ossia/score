@@ -1,7 +1,7 @@
 #include "TriggerModel.hpp"
 
-TriggerModel::TriggerModel(QObject* parent):
-    QObject{parent}
+TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
+    IdentifiedObject<TriggerModel>{id, "TriggerModel", parent}
 {
 
 }
@@ -12,7 +12,7 @@ Trigger TriggerModel::expression() const
     return m_expression;
 }
 
-void TriggerModel::setExpression(const Trigger& expression)
+void TriggerModel::setExpression(const iscore::Trigger& expression)
 {
     if (m_expression == expression)
         return;
