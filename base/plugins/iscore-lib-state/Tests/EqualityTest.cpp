@@ -55,5 +55,5 @@ class EqualityTest: public QObject
         }
 };
 
-QTEST_MAIN(EqualityTest)
+QTEST_APPLESS_MAIN(EqualityTest)
 #include "EqualityTest.moc"

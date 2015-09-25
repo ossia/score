@@ -178,7 +178,7 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
         {
             // Get the 1st event on the timenode.
             auto& scenar = m_scenarioPath.find();
-            auto& tn = scenar.timeNode(clickedTimeNode);
+            auto& tn = scenar.timeNodes.at(clickedTimeNode);
             const auto& ev_id = tn.events().first();
             auto date = currentPoint.date;
 

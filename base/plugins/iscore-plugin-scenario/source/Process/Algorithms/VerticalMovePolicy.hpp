@@ -6,7 +6,7 @@ class ScenarioModel;
 class ConstraintModel;
 
 void updateTimeNodeExtent(
-        const Id<TimeNodeModel>& id,
+        const Cache<TimeNodeModel>& id,
         ScenarioModel& s);
 
 // Will call updateTimeNodeExtent

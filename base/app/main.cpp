@@ -41,6 +41,9 @@ int main(int argc, char** argv)
     //fmt.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
     fmt.setSamples(2);
     QSurfaceFormat::setDefaultFormat(fmt);
+
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
     iscore::Application app(argc, argv);
     return app.exec();
 }

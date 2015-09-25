@@ -72,6 +72,8 @@ class NotifyingMap : public QObject
         const auto& get() const { return m_map.get(); }
         T& at(const Id<T>& id) { return m_map.at(id); }
         T& at(const Id<T>& id) const { return m_map.at(id); }
+        T& at(const Cache<T>& elt) { return elt ? *elt : m_map.at(elt); }
+        T& at(const Cache<T>& elt) const { return elt ? *elt : m_map.at(elt); }
         auto find(const Id<T>& id) const { return m_map.find(id); }
 
         // signals:

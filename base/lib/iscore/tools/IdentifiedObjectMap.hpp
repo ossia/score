@@ -69,17 +69,26 @@ class MapBase
         auto& get() { return map.template get<0>(); }
         const auto& get() const { return map.template get<0>(); }
 
-#ifdef ISCORE_DEBUG
+        template<std::enable_if_t<!std::is_same<Element, Model>::value>* = nullptr>
         auto& at(const Id<model_type>& id) const
         {
             auto item = map.find(id);
             ISCORE_ASSERT(item != map.end());
-            return **item;
+            return *item;
         }
-#else
+
+        template<std::enable_if_t<std::is_same<Element, Model>::value>* = nullptr>
         auto& at(const Id<model_type>& id) const
-        { return *find(id); }
-#endif
+        {
+            if(id.m_ptr)
+                return safe_cast<value_type&>(*id.m_ptr);
+
+            auto item = map.find(id);
+            ISCORE_ASSERT(item != map.end());
+
+            id.m_ptr = *item;
+            return safe_cast<value_type&>(*id.m_ptr);
+        }
 
     private:
         Map map;

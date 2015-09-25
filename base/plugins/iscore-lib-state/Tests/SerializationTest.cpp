@@ -46,5 +46,5 @@ class SerializationTest: public QObject
         }
 };
 
-QTEST_MAIN(SerializationTest)
+QTEST_APPLESS_MAIN(SerializationTest)
 #include "SerializationTest.moc"

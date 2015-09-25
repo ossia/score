@@ -52,6 +52,13 @@ class Visitor<Reader<JSONValue>> : public AbstractVisitor
             readFrom(obj.val());
         }
 
+        template<typename T, typename U>
+        void readFrom(const Cache<T, U>& obj)
+        {
+            readFrom(obj.id());
+        }
+
+
         QJsonValue val;
 };
 
@@ -88,6 +95,14 @@ class Visitor<Writer<JSONValue>> : public AbstractVisitor
             typename Id<T>::value_type id_impl;
             writeTo(id_impl);
             obj.setVal(std::move(id_impl));
+        }
+
+        template<typename T, typename U>
+        void writeTo(Cache<T, U>& obj)
+        {
+            typename Cache<T, U>::local_id_type id;
+            writeTo(id);
+            obj = id;
         }
 
         QJsonValue val;

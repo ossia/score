@@ -51,7 +51,7 @@ void SplitEvent::redo()
     auto& originalEvent = scenar.event(m_originalEvent);
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
-                scenar.timeNode(originalEvent.timeNode()),
+                scenar.timeNodes.at(originalEvent.timeNode()),
                 originalEvent.extent(),
                 scenar);
 
