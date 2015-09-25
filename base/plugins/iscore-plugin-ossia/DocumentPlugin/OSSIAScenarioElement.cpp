@@ -160,64 +160,12 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
     ISCORE_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
-    auto ossia_ev = *ossia_tn->timeNode()->emplace(ossia_tn->timeNode()->timeEvents().begin(),
-                                                   [=,the_event=&ev] (OSSIA::TimeEvent::Status newStatus)
-    {
-        the_event->setStatus(static_cast<EventStatus>(newStatus));
-
-        for(auto& state : the_event->states())
-        {
-            auto& iscore_state = m_iscore_scenario.state(state);
-
-            switch(newStatus)
-            {
-                case OSSIA::TimeEvent::Status::NONE:
-                    break;
-                case OSSIA::TimeEvent::Status::PENDING:
-                    break;
-                case OSSIA::TimeEvent::Status::HAPPENED:
-                {
-                    // Stop the previous constraints clocks,
-                    // start the next constraints clocks
-                    if(iscore_state.previousConstraint())
-                    {
-                        stopConstraintExecution(iscore_state.previousConstraint());
-                    }
-
-                    if(iscore_state.nextConstraint())
-                    {
-                        startConstraintExecution(iscore_state.nextConstraint());
-                    }
-                    break;
-                }
-
-                case OSSIA::TimeEvent::Status::DISPOSED:
-                {
-                    // TODO disable the constraints graphically
-                    break;
-                }
-                default:
-                    ISCORE_TODO;
-                    break;
-            }
-        }
-    });
-
-    connect(&ev, &EventModel::conditionChanged,
-            this, [=] (const iscore::Condition& c) {
-        try {
-            auto expr = iscore::convert::expression(c, m_deviceList);
-
-            ossia_ev->setExpression(expr);
-        }
-        catch(std::exception& e)
-        {
-            qDebug() << e.what();
-        }
-    });
+    auto ossia_ev = *ossia_tn->timeNode()->emplace(
+                ossia_tn->timeNode()->timeEvents().begin(),
+                std::function<void(OSSIA::TimeEvent::Status)>{});
 
     // Create the mapping object
-    auto elt = new OSSIAEventElement{ossia_ev, ev, this};
+    auto elt = new OSSIAEventElement{ossia_ev, ev, m_deviceList, this};
     m_ossia_timeevents.insert({ev.id(), elt});
 }
 

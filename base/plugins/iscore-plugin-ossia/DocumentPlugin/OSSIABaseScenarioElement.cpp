@@ -9,6 +9,10 @@
 #include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 static void statusCallback(
         OSSIA::TimeEvent::Status newStatus)
@@ -16,7 +20,11 @@ static void statusCallback(
 
 }
 
-OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, QObject *parent)
+OSSIABaseScenarioElement::OSSIABaseScenarioElement(
+        const BaseScenario *element,
+        QObject *parent):
+    QObject{parent},
+    m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
     auto main_start_node = OSSIA::TimeNode::create();
     auto main_end_node = OSSIA::TimeNode::create();
@@ -33,8 +41,8 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(const BaseScenario *element, 
     m_ossia_startTimeNode = new OSSIATimeNodeElement{main_start_node, element->startTimeNode(), this};
     m_ossia_endTimeNode = new OSSIATimeNodeElement{main_end_node, element->endTimeNode(), this};
 
-    m_ossia_startEvent = new OSSIAEventElement{*main_start_event_it, element->startEvent(), this};
-    m_ossia_endEvent = new OSSIAEventElement{*main_end_event_it, element->endEvent(), this};
+    m_ossia_startEvent = new OSSIAEventElement{*main_start_event_it, element->startEvent(), m_deviceList, this};
+    m_ossia_endEvent = new OSSIAEventElement{*main_end_event_it, element->endEvent(), m_deviceList, this};
 
     m_ossia_startState = new OSSIAStateElement{element->startState(), OSSIA::State::create(), this};
     m_ossia_endState = new OSSIAStateElement{element->endState(), OSSIA::State::create(), this};

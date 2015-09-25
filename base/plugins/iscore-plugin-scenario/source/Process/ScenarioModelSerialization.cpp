@@ -17,6 +17,15 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
     m_stream << scenario.m_startEventId
              << scenario.m_endEventId;
 
+    // Constraints
+    const auto& constraints = scenario.constraints;
+    m_stream << (int32_t) constraints.size();
+
+    for(const auto& constraint : constraints)
+    {
+        readFrom(constraint);
+    }
+
     // Timenodes
     const auto& timenodes = scenario.timeNodes;
     m_stream << (int32_t) timenodes.size();
@@ -44,17 +53,6 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
         readFrom(state);
     }
 
-    // Constraints
-    const auto& constraints = scenario.constraints;
-    m_stream << (int32_t) constraints.size();
-
-    for(const auto& constraint : constraints)
-    {
-        readFrom(constraint);
-    }
-
-
-
     insertDelimiter();
 }
 
@@ -70,6 +68,16 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
              >> scenario.m_endTimeNodeId;
     m_stream >> scenario.m_startEventId
              >> scenario.m_endEventId;
+
+    // Constraints
+    int32_t constraint_count;
+    m_stream >> constraint_count;
+
+    for(; constraint_count -- > 0;)
+    {
+        auto constraint = new ConstraintModel {*this, &scenario};
+        scenario.constraints.add(constraint);
+    }
 
     // Timenodes
     int32_t timenode_count;
@@ -99,16 +107,6 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     {
         auto stmodel = new StateModel {*this, &scenario};
         scenario.states.add(stmodel);
-    }
-
-    // Constraints
-    int32_t constraint_count;
-    m_stream >> constraint_count;
-
-    for(; constraint_count -- > 0;)
-    {
-        auto constraint = new ConstraintModel {*this, &scenario};
-        scenario.constraints.add(constraint);
     }
 
     checkDelimiter();
@@ -146,6 +144,14 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
     scenario.m_startEventId = fromJsonValue<Id<EventModel>> (m_obj["StartEventId"]);
     scenario.m_endEventId = fromJsonValue<Id<EventModel>> (m_obj["EndEventId"]);
 
+    for(const auto& json_vref : m_obj["Constraints"].toArray())
+    {
+        auto constraint = new ConstraintModel{
+                Deserializer<JSONObject>{json_vref.toObject() },
+                &scenario};
+        scenario.constraints.add(constraint);
+    }
+
     for(const auto& json_vref : m_obj["TimeNodes"].toArray())
     {
         auto tnmodel = new TimeNodeModel {
@@ -173,13 +179,6 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
         scenario.states.add(stmodel);
     }
 
-    for(const auto& json_vref : m_obj["Constraints"].toArray())
-    {
-        auto constraint = new ConstraintModel{
-                Deserializer<JSONObject>{json_vref.toObject() },
-                &scenario};
-        scenario.constraints.add(constraint);
-    }
 }
 
 
