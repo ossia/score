@@ -105,7 +105,7 @@ void CSPTimeRelation::onProcessCreated(const Process& process)
 {
     if(auto scenario = dynamic_cast<const ScenarioModel*>(&process))
     {
-        m_subScenarios.insert(scenario->id(), new CSPScenario(*scenario, const_cast<ScenarioModel*  >(scenario)));
+        m_subScenarios.insert(scenario->id(), new CSPScenario(*scenario, const_cast<ScenarioModel*>(scenario)));
     }
 }
 
