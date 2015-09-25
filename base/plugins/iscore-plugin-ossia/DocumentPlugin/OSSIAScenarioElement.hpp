@@ -68,11 +68,6 @@ class OSSIAScenarioElement : public OSSIAProcessElement
                 OSSIAEventElement& ev,
                 OSSIA::TimeEvent::Status newStatus);
 
-        void constraintCallback(OSSIAConstraintElement& cst,
-                                const OSSIA::TimeValue& position,
-                                const OSSIA::TimeValue& date,
-                                const std::shared_ptr<OSSIA::StateElement>& state);
-
     private:
         QPointer<OSSIAConstraintElement> m_parent_constraint;
 
