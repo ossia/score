@@ -52,6 +52,13 @@ OSSIAConstraintElement::OSSIAConstraintElement(
         }
     });
 
+    ossia_cst->setCallback([&] (
+                           const OSSIA::TimeValue& position,
+                           const OSSIA::TimeValue& date,
+                           const std::shared_ptr<OSSIA::StateElement>& state)
+    {
+        constraintCallback(position, date, state);
+    });
 
     for(const auto& process : iscore_cst.processes)
     {
@@ -168,4 +175,21 @@ void OSSIAConstraintElement::on_processRemoved(const Process& process)
         // We don't have ownership so we don't delete. The ProcessModel has it.
         m_processes.erase(it);
     }
+}
+
+#include "OSSIA2iscore.hpp"
+void OSSIAConstraintElement::constraintCallback(
+        const OSSIA::TimeValue& position,
+        const OSSIA::TimeValue& date,
+        const std::shared_ptr<OSSIA::StateElement>& state)
+{
+    auto currentTime = OSSIA::convert::time(date);
+
+    auto& cstdur = m_iscore_constraint.duration;
+    const auto& maxdur = cstdur.maxDuration();
+
+    if(!maxdur.isInfinite())
+        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+    else
+        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 }

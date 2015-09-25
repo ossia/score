@@ -3,7 +3,7 @@
 
 #include <Document/Event/EventModel.hpp>
 #include <API/Headers/Editor/TimeEvent.h>
-#include "Process/ScenarioInterface.hpp"
+
 OSSIAEventElement::OSSIAEventElement(
         std::shared_ptr<OSSIA::TimeEvent> event,
         const EventModel &element,

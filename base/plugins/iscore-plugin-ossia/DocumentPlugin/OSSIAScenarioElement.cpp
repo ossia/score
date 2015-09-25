@@ -111,10 +111,6 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     // Create the mapping object
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
     m_ossia_constraints.insert({cst.id(), elt});
-
-    elt->constraint()->setCallback([=] (auto&&... args) {
-        return constraintCallback(*elt, std::forward<decltype(args)>(args)...);
-    });
 }
 
 void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
@@ -123,27 +119,14 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
     auto ossia_ev = m_ossia_timeevents.at(iscore_state.eventId());
 
     // Create the mapping object
-    auto root_state = iscore::convert::state(
-                          OSSIA::State::create(),
-                          iscore_state.messages().rootNode(),
-                          m_deviceList);
+    auto root_state = OSSIA::State::create();
+    ossia_ev->event()->addState(root_state);
 
     auto state_elt = new OSSIAStateElement{
             iscore_state,
             root_state,
+            m_deviceList,
             this};
-
-    ossia_ev->event()->addState(root_state);
-
-
-    con(iscore_state, &StateModel::sig_statesUpdated, this,
-            [=] () {
-        state_elt->rootState()->stateElements().clear();
-        iscore::convert::state(
-                    state_elt->rootState(),
-                    state_elt->iscoreState().messages().rootNode(),
-                    m_deviceList);
-    } );
 
     m_ossia_states.insert({iscore_state.id(), state_elt});
 }
@@ -157,7 +140,7 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
 
     auto ossia_ev = *ossia_tn->timeNode()->emplace(
                 ossia_tn->timeNode()->timeEvents().begin(),
-                std::function<void(OSSIA::TimeEvent::Status)>{});
+                OSSIA::TimeEvent::ExecutionCallback{});
 
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, ev, m_deviceList, this};
@@ -186,7 +169,7 @@ void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
     }
 
     // Create the mapping object
-    auto elt = new OSSIATimeNodeElement{ossia_tn, tn, this};
+    auto elt = new OSSIATimeNodeElement{ossia_tn, tn, m_deviceList, this};
     m_ossia_timenodes.insert({tn.id(), elt});
 }
 
@@ -322,21 +305,4 @@ void OSSIAScenarioElement::eventCallback(
                 break;
         }
     }
-}
-
-void OSSIAScenarioElement::constraintCallback(
-        OSSIAConstraintElement& cst,
-        const OSSIA::TimeValue& position,
-        const OSSIA::TimeValue& date,
-        std::shared_ptr<OSSIA::StateElement> state)
-{
-    auto currentTime = OSSIA::convert::time(date);
-
-    auto& cstdur = cst.iscoreConstraint().duration;
-    auto maxdur = cstdur.maxDuration();
-
-    if(!maxdur.isInfinite())
-        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-    else
-        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 }

@@ -9,6 +9,8 @@ class OSSIAProcessElement;
 namespace OSSIA
 {
     class TimeConstraint;
+    class TimeValue;
+    class StateElement;
 }
 class OSSIAConstraintElement : public QObject
 {
@@ -28,11 +30,15 @@ class OSSIAConstraintElement : public QObject
         void executionStarted();
         void executionStopped();
 
-    private slots:
+    private:
         void on_processAdded(const Process& id);
         void on_processRemoved(const Process& id);
 
-    private:
+        void constraintCallback(
+                const OSSIA::TimeValue& position,
+                const OSSIA::TimeValue& date,
+                const std::shared_ptr<OSSIA::StateElement>& state);
+
         ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
 

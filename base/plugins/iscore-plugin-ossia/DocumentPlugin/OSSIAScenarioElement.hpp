@@ -71,11 +71,12 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void constraintCallback(OSSIAConstraintElement& cst,
                                 const OSSIA::TimeValue& position,
                                 const OSSIA::TimeValue& date,
-                                std::shared_ptr<OSSIA::StateElement> state);
+                                const std::shared_ptr<OSSIA::StateElement>& state);
 
     private:
         QPointer<OSSIAConstraintElement> m_parent_constraint;
 
+        // TODO use IdContainer
         std::map<Id<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
         std::map<Id<StateModel>, OSSIAStateElement*> m_ossia_states;
         std::map<Id<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;
