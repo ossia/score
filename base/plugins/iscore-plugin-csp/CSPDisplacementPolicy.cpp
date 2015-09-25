@@ -7,7 +7,7 @@
 #define STAY_MINMAXPREVTIMERELATION_STRENGTH kiwi::strength::strong
 #define STAY_MINMAX_STRENGTH kiwi::strength::required
 #define STAY_TNODE_STRENGTH kiwi::strength::medium
-#define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0
+#define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0 //not so sure that its working
 
 
 CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
@@ -175,7 +175,6 @@ void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector
             curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_min == initialMin.msec(), STAY_MINMAX_STRENGTH));
             curTimeRelation->addStay(new kiwi::Constraint(curTimeRelation->m_max == initialMax.msec(), STAY_MINMAX_STRENGTH));
         }
-
     }
 
     //time node stays

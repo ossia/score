@@ -58,7 +58,7 @@ template void NotifyingMap<EventModel>::remove(const Id<EventModel>&);
 template void NotifyingMap<TimeNodeModel>::remove(const Id<TimeNodeModel>&);
 template void NotifyingMap<StateModel>::remove(const Id<StateModel>&);
 
-void ignore_template_instantiations()
+void ignore_template_instantiations_Scenario()
 {
     NotifyingMapInstantiations_T<LayerModel>();
     NotifyingMapInstantiations_T<SlotModel>();
