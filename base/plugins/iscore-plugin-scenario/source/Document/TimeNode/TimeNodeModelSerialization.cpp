@@ -1,5 +1,5 @@
 #include "TimeNodeModel.hpp"
-
+#include "Trigger/TriggerModel.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
@@ -12,6 +12,8 @@ void Visitor<Reader<DataStream>>::readFrom(const TimeNodeModel& timenode)
     m_stream << timenode.m_date
              << timenode.m_events;
 
+    m_stream << timenode.trigger()->active()
+             << timenode.trigger()->expression();
 
     insertDelimiter();
 }
@@ -22,9 +24,16 @@ void Visitor<Writer<DataStream>>::writeTo(TimeNodeModel& timenode)
     writeTo(timenode.metadata);
     timenode.pluginModelList = iscore::ElementPluginModelList{*this, &timenode};
 
+    bool a;
+    iscore::Trigger t;
     m_stream >> timenode.m_date
-             >> timenode.m_events;
+             >> timenode.m_events
+             >> a
+             >> t;
 
+    timenode.m_trigger = new TriggerModel{Id<TriggerModel>(0), &timenode};
+    timenode.trigger()->setActive(a);
+    timenode.trigger()->setExpression(t);
 
     checkDelimiter();
 }
@@ -39,6 +48,12 @@ void Visitor<Reader<JSONObject>>::readFrom(const TimeNodeModel& timenode)
     m_obj["Events"] = toJsonArray(timenode.m_events);
 
     m_obj["PluginsMetadata"] = toJsonValue(timenode.pluginModelList);
+
+    QJsonObject trig;
+    trig["Active"] = timenode.m_trigger->active();
+    trig["Expression"] = toJsonObject(timenode.m_trigger->expression());
+    m_obj["Trigger"] = trig;
+
 }
 
 template<>
@@ -52,4 +67,13 @@ void Visitor<Writer<JSONObject>>::writeTo(TimeNodeModel& timenode)
 
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     timenode.pluginModelList = iscore::ElementPluginModelList{elementPluginDeserializer, &timenode};
+
+    timenode.m_trigger =  new TriggerModel{Id<TriggerModel>(0), &timenode};
+
+    timenode.m_trigger->setActive(m_obj["Trigger"].toObject()["Active"].toBool());
+
+    Trigger t;
+    fromJsonObject(m_obj["Trigger"].toObject()["Expression"].toObject(),t);
+    timenode.m_trigger->setExpression(t);
+
 }

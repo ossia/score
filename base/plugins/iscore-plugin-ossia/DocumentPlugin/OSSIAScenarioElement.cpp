@@ -112,8 +112,11 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
     m_ossia_constraints.insert({cst.id(), elt});
 
-    elt->constraint()->setCallback([=] (auto&&... args) {
-        return constraintCallback(*elt, std::forward<decltype(args)>(args)...);
+    elt->constraint()->setCallback([=] (
+                                   const OSSIA::TimeValue& position,
+                                   const OSSIA::TimeValue& date,
+                                   std::shared_ptr<OSSIA::StateElement> state) {
+        return constraintCallback(*elt, position, date, state);
     });
 }
 
