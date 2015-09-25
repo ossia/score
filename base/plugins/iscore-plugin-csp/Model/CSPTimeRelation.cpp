@@ -46,15 +46,19 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     // if there are sub scenarios, store them
     for(auto& process : constraint.processes)
     {
-        if(auto scenario = dynamic_cast<ScenarioModel*>(&process))
+        if(auto* scenario = dynamic_cast<ScenarioModel*>(&process))
         {
-            m_subScenarios.push_back(new CSPScenario(*scenario, scenario));
+            m_subScenarios.insert(scenario->id(), new CSPScenario(*scenario, scenario));
         }
     }
 
     // watch over durations edits
     con(constraint.duration, &ConstraintDurations::minDurationChanged, this, &CSPTimeRelation::onMinDurationChanged);
     con(constraint.duration, &ConstraintDurations::maxDurationChanged, this, &CSPTimeRelation::onMaxDurationChanged);
+
+    // watch over potential subscenarios
+    con(constraint.processes, &NotifyingMap<Process>::added, this, &CSPTimeRelation::onProcessCreated);
+    con(constraint.processes, &NotifyingMap<Process>::removed, this, &CSPTimeRelation::onProcessRemoved);
 }
 
 CSPTimeRelation::~CSPTimeRelation()
@@ -94,5 +98,21 @@ void CSPTimeRelation::onMaxDurationChanged(const TimeValue& max)
     }else
     {
         m_max.setValue(max.msec());
+    }
+}
+
+void CSPTimeRelation::onProcessCreated(const Process& process)
+{
+    if(auto scenario = dynamic_cast<const ScenarioModel*>(&process))
+    {
+        m_subScenarios.insert(scenario->id(), new CSPScenario(*scenario, const_cast<ScenarioModel*  >(scenario)));
+    }
+}
+
+void CSPTimeRelation::onProcessRemoved(const Process& process)
+{
+    if(auto scenario = dynamic_cast<const ScenarioModel*>(&process))
+    {
+        delete(m_subScenarios.take(scenario->id()));
     }
 }

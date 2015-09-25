@@ -53,8 +53,6 @@ CSPScenario::CSPScenario(const ScenarioModel& scenario, QObject *parent)
 CSPScenario::CSPScenario(const BaseScenario& baseScenario, QObject *parent)
     :QObject::QObject(parent), m_scenario(&baseScenario)
 {
-    this->setObjectName("CSPScenario");
-
     // ensure that start then end timenode are stored first of all
     m_startTimeNode = insertTimenode(baseScenario.startTimeNode().id());
     m_endTimeNode = insertTimenode(baseScenario.endTimeNode().id());
@@ -96,7 +94,6 @@ const ScenarioInterface *CSPScenario::getScenario() const
 
 CSPTimeNode* CSPScenario::insertTimenode(const Id<TimeNodeModel> &timeNodeId)
 {
-
     // if timenode not already here, put it in
     if(! m_timeNodes.contains(timeNodeId))
     {

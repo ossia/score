@@ -53,5 +53,8 @@ private:
     void onMinDurationChanged(const TimeValue& min);
     void onMaxDurationChanged(const TimeValue& max);
 
-    QVector<CSPScenario*> m_subScenarios;
+    void onProcessCreated(const Process& process);
+    void onProcessRemoved(const Process& process);
+
+    QHash<Id<Process>, CSPScenario*> m_subScenarios;
 };

@@ -19,7 +19,7 @@ CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVec
 
     }else
     {
-        std::runtime_error("No CSP scenario found for this model");
+        throw std::runtime_error("No CSP scenario found for this model");
     }
 }
 
@@ -133,8 +133,6 @@ void CSPDisplacementPolicy::computeDisplacement(
                 elementsProperties.constraints[curTimeRelationId].newMax = TimeValue::fromMsecs(curCspTimerelation->m_max.value());
             }
         }
-
-
     }else
     {
         std::runtime_error("No CSP scenario found for this model");
