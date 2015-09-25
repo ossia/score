@@ -9,7 +9,7 @@ using namespace Scenario::Command;
 
 AddTrigger::AddTrigger(Path<TimeNodeModel>&& timeNodePath):
     iscore::SerializableCommand{
-	factoryName(), commandName(), description()},
+    factoryName(), commandName(), description()},
     m_path{std::move(timeNodePath)}
 {
 
@@ -38,11 +38,11 @@ void AddTrigger::redo()
     auto& tn = m_path.find();
     tn.trigger()->setActive(true);
 
-    ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(tn.parentScenario());
+    ScenarioModel* scenar = safe_cast<ScenarioModel*>(tn.parentScenario());
 
     for (auto& cstrId : scenar->constraintsBeforeTimeNode(tn.id()))
     {
-        auto cmd = new SetRigidity(iscore::IDocument::path(scenar->constraint(cstrId)), false);
+        auto cmd = new SetRigidity(iscore::IDocument::path(scenar->constraints.at(cstrId)), false);
         cmd->redo();
         m_cmds.push_back(cmd);
     }

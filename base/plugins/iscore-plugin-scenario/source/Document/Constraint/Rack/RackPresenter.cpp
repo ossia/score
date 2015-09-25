@@ -56,7 +56,7 @@ qreal RackPresenter::height() const
 {
     qreal totalHeight = 0; // No slot -> not visible ? or just "add a process" button ? Bottom bar ? How to make it visible ?
 
-    for(const auto& slot : slotmodels)
+    for(const auto& slot : m_slots)
     {
         totalHeight += slot.height() + slotSpacing;
     }
@@ -73,7 +73,7 @@ void RackPresenter::setWidth(qreal w)
 {
     m_view->setWidth(w);
 
-    for(auto& slot : slotmodels)
+    for(auto& slot : m_slots)
     {
         slot.setWidth(m_view->boundingRect().width());
     }
@@ -86,7 +86,7 @@ const Id<RackModel>& RackPresenter::id() const
 
 void RackPresenter::setDisabledSlotState()
 {
-    for(auto& slot : slotmodels)
+    for(auto& slot : m_slots)
     {
         slot.disable();
     }
@@ -94,7 +94,7 @@ void RackPresenter::setDisabledSlotState()
 
 void RackPresenter::setEnabledSlotState()
 {
-    for(auto& slot : slotmodels)
+    for(auto& slot : m_slots)
     {
         slot.enable();
     }
@@ -117,7 +117,7 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
     auto slotPres = new SlotPresenter {slotModel,
                                        m_view,
                                        this};
-    slotmodels.insert(slotPres);
+    m_slots.insert(slotPres);
     slotPres->on_zoomRatioChanged(m_zoomRatio);
 
     connect(slotPres, &SlotPresenter::askUpdate,
@@ -141,10 +141,10 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 
 void RackPresenter::on_slotRemoved(const SlotModel& slot_model)
 {
-    auto slot = &slotmodels.at(slot_model.id());
+    auto& slot = m_slots.at(slot_model.id());
 
-    slotmodels.remove(slot_model.id());
-    delete slot;
+    m_slots.remove(slot_model.id());
+    delete &slot;
 
     on_askUpdate();
 }
@@ -160,7 +160,7 @@ void RackPresenter::updateShape()
 
     for(const auto& slotId : m_model.slotsPositions())
     {
-        auto& slotPres = slotmodels.at(slotId);
+        auto& slotPres = m_slots.at(slotId);
         slotPres.setWidth(width());
         slotPres.setVerticalPosition(currentSlotY);
         currentSlotY += slotPres.height() + slotSpacing; // Separation between slots
@@ -169,7 +169,7 @@ void RackPresenter::updateShape()
     // Horizontal shape
     setWidth(m_duration.toPixels(m_zoomRatio));
 
-    for(auto& slot : slotmodels)
+    for(auto& slot : m_slots)
     {
         slot.on_parentGeometryChanged();
     }
@@ -190,7 +190,7 @@ void RackPresenter::on_zoomRatioChanged(ZoomRatio val)
     // We have to change the width of the slots aftewards
     // because their width depend on the rack width
     // TODO this smells.
-    for(auto& slot : slotmodels)
+    for(auto& slot : m_slots)
     {
         slot.on_zoomRatioChanged(m_zoomRatio);
     }

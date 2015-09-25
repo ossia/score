@@ -46,7 +46,7 @@ void updateTimeNodeExtent(const Cache<TimeNodeModel>& id, ScenarioModel &s)
 
 void updateConstraintVerticalPos(double y, const Id<ConstraintModel> &id, ScenarioModel &s)
 {
-    auto& cst = s.constraint(id);
+    auto& cst = s.constraints.at(id);
 
     // First make the list of all the constraints to update
     QSet<ConstraintModel*> constraintsToUpdate;

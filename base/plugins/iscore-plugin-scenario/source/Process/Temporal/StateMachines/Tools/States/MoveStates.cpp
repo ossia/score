@@ -38,7 +38,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
         connect(t_pressed, &QAbstractTransition::triggered, [&] ()
         {
             auto& scenar = m_scenarioPath.find();
-            m_constraintInitialStartDate= scenar.constraint(clickedConstraint).startDate();
+            m_constraintInitialStartDate= scenar.constraints.at(clickedConstraint).startDate();
             m_constraintInitialClickDate = currentPoint.date;
         });
 

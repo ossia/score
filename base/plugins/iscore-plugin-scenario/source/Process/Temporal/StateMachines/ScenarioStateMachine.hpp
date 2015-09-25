@@ -31,7 +31,7 @@ class ScenarioStateMachine : public BaseStateMachine
         ScenarioStateMachine(iscore::Document&, TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const;
-        const ScenarioModel& model() const;
+        const ScenarioModel& model() const { return m_model; }
 
         iscore::CommandStack& commandStack() const
         { return m_commandStack; }
@@ -60,6 +60,7 @@ class ScenarioStateMachine : public BaseStateMachine
 
     private:
         TemporalScenarioPresenter& m_presenter;
+        const ScenarioModel& m_model;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
 

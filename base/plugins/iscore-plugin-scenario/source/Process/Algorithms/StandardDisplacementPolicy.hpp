@@ -77,14 +77,14 @@ public:
             // update related events
             for (const auto& event : curTimenodeToUpdate.events())
             {
-                scenario.event(event).setDate(curTimenodeToUpdate.date());
+                scenario.events.at(event).setDate(curTimenodeToUpdate.date());
             }
         }
 
         // update affected constraints
         for(auto& curConstraintPropertiesToUpdate_id : elementsPropertiesToUpdate.constraints.keys())
         {
-            auto& curConstraintToUpdate = scenario.constraint(curConstraintPropertiesToUpdate_id);
+            auto& curConstraintToUpdate = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
             auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
 
             const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();

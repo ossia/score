@@ -7,7 +7,7 @@
 template<typename T>
 class NotifyingMap;
 template<typename Element, typename Model, typename Map>
-class MapBase;
+class IdContainer;
 template<typename T>
 class IdentifiedObject;
 /**
@@ -23,7 +23,7 @@ class id_base_t
         friend class IdentifiedObject<tag>;
 
         // TODO Try to only have Map as a tempalte type here
-        template<typename Element, typename Model, typename Map> friend class MapBase;
+        template<typename Element, typename Model, typename Map> friend class IdContainer;
     public:
         using value_type = impl;
         explicit id_base_t() = default;

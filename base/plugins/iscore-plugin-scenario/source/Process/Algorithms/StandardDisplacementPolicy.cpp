@@ -29,8 +29,8 @@ void StandardDisplacementPolicy::getRelatedTimeNodes(
             if(state.nextConstraint())
             {
                 auto cons = state.nextConstraint();
-                auto endStateId = scenario.constraint(cons).endState();
-                auto endTnId = scenario.event(scenario.state(endStateId).eventId()).timeNode();
+                auto endStateId = scenario.constraints.at(cons).endState();
+                auto endTnId = scenario.events.at(scenario.state(endStateId).eventId()).timeNode();
                 getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
             }
         }
@@ -83,7 +83,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
                     const auto& st = scenario.state(st_id);
                     if(auto& curConstraintId = st.previousConstraint())
                     {
-                        auto& curConstraint = scenario.constraint(curConstraintId);
+                        auto& curConstraint = scenario.constraints.at(curConstraintId);
 
                         // if timenode NOT already in element properties, create new element properties and set old values
                         if(! elementsProperties.constraints.contains(curConstraintId))

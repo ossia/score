@@ -250,7 +250,7 @@ void OSSIAScenarioElement::on_timeNodeRemoved(const TimeNodeModel& iscore_tn)
 
 void OSSIAScenarioElement::startConstraintExecution(const Id<ConstraintModel>& id)
 {
-    auto& cst = m_iscore_scenario.constraint(id);
+    auto& cst = m_iscore_scenario.constraints.at(id);
     m_executingConstraints.insert(&cst);
 
     m_ossia_constraints.at(id)->executionStarted();
