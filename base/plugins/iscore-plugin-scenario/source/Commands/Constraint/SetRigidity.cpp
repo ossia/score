@@ -5,6 +5,8 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
+// Rigid constraint == end TimeNode has a trigger
+
 SetRigidity::SetRigidity(
         Path<ConstraintModel>&& constraintPath,
         bool rigid) :
@@ -18,13 +20,11 @@ SetRigidity::SetRigidity(
 //    if(rigid)  // it is currently not rigid so min & max are set -> TODO : WHY ??
     // TODO make a class that embodies the logic for the relationship between rigidity and min/max.
     // Also, min/max are indicative if rigid, they can still be set but won't be used.
-    {
-        auto& constraint = m_path.find();
-        ISCORE_ASSERT(constraint.duration.isRigid() != rigid);
+    auto& constraint = m_path.find();
+    ISCORE_ASSERT(constraint.duration.isRigid() != rigid);
 
-        m_oldMinDuration = constraint.duration.minDuration();
-        m_oldMaxDuration = constraint.duration.maxDuration();
-    }
+    m_oldMinDuration = constraint.duration.minDuration();
+    m_oldMaxDuration = constraint.duration.maxDuration();
 }
 
 void SetRigidity::undo()
@@ -48,6 +48,7 @@ void SetRigidity::redo()
 {
     auto& constraint = m_path.find();
     constraint.duration.setRigid(m_rigidity);
+    auto dur = constraint.duration.defaultDuration();
 
     if(m_rigidity)
     {
@@ -56,8 +57,8 @@ void SetRigidity::redo()
     }
     else
     {
-        constraint.duration.setMinDuration(TimeValue(std::chrono::milliseconds(0)));
-        constraint.duration.setMaxDuration(TimeValue(PositiveInfinity{}));
+        constraint.duration.setMinDuration( TimeValue::fromMsecs(0.8 * dur.msec()));
+        constraint.duration.setMaxDuration( TimeValue::fromMsecs(1.2 * dur.msec()));
     }
 
 }

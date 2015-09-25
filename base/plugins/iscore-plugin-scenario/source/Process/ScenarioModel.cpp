@@ -263,6 +263,23 @@ ProcessStateDataInterface* ScenarioModel::endState() const
     return nullptr;
 }
 
+const QVector<Id<ConstraintModel> > ScenarioModel::constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const
+{
+    QVector<Id<ConstraintModel>> cstrs;
+    auto& tn = timeNode(timeNodeId);
+    for(auto& ev : tn.events())
+    {
+        auto& evM = event(ev);
+        for (auto& st : evM.states())
+        {
+            auto& stM = state(st);
+            if(stM.previousConstraint())
+                cstrs.push_back(stM.previousConstraint());
+        }
+    }
+    return cstrs;
+}
+
 
 void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
 {

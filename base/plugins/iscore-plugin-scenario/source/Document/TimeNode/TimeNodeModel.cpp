@@ -1,6 +1,7 @@
 #include "TimeNodeModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
 
 #include "Process/ScenarioModel.hpp"
 
@@ -14,7 +15,8 @@ TimeNodeModel::TimeNodeModel(
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_extent{extent},
-    m_date{date}
+    m_date{date},
+    m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
@@ -78,6 +80,11 @@ const QVector<Id<EventModel> >& TimeNodeModel::events() const
 void TimeNodeModel::setEvents(const QVector<Id<EventModel>>& events)
 {
     m_events = events;
+}
+
+TriggerModel* TimeNodeModel::trigger() const
+{
+    return m_trigger;
 }
 
 const VerticalExtent& TimeNodeModel::extent() const

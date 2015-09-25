@@ -2,12 +2,14 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
 
 #include "Process/ScenarioModel.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 #include "Inspector/Event/EventWidgets/EventShortcut.hpp"
+#include "Inspector/TimeNode/TriggerInspectorWidget.hpp"
 
 #include "Commands/TimeNode/SplitTimeNode.hpp"
 
@@ -35,15 +37,22 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
     auto dateTitle = new QLabel{"Default date"};
-    m_date = new QLabel{QString::number(m_model.date().msec()) };
+    m_date = new QLabel{m_model.date().toString() };
 
     dateLay->addWidget(dateTitle);
     dateLay->addWidget(m_date);
+
+    // Trigger
+    m_trigwidg = new TriggerInspectorWidget{m_model, this};
+
 
     // Events ids list
     m_eventList = new InspectorSectionWidget{"Events", this};
 
     m_properties.push_back(dateWid);
+    m_properties.push_back(new QLabel{tr("Trigger")});
+
+    m_properties.push_back(m_trigwidg);
     m_properties.push_back(m_eventList);
 
     updateAreaLayout(m_properties);
@@ -83,7 +92,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 
     m_events.clear();
 
-    m_date->setText(QString::number(m_model.date().msec()));
+    m_date->setText(m_model.date().toString());
 
     for(const auto& event : m_model.events())
     {
@@ -101,6 +110,8 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
             selectionDispatcher().setAndCommit(Selection{evModel});
         });
     }
+
+    m_trigwidg->updateExpression(m_model.trigger()->expression().toString());
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()

@@ -7,36 +7,11 @@ class QFormLayout;
 class StateModel;
 class MetadataWidget;
 struct Message;
+class TriggerInspectorWidget;
 
+#include "Inspector/ExpressionValidator.hpp"
 #include <QLineEdit>
-#include <QValidator>
-#include <State/Expression.hpp>
-class ExpressionValidator : public QValidator
-{
-    public:
-        State validate(QString& str, int&) const
-        {
-            if(str.isEmpty())
-            {
-                // Remove the condition
-                m_currentExp = iscore::Condition{};
-                return State::Acceptable;
-            }
-            else
-            {
-                m_currentExp = iscore::parse(str);
-                return m_currentExp ? State::Acceptable : State::Intermediate;
-            }
-        }
 
-        boost::optional<iscore::Expression> get() const
-        {
-            return m_currentExp;
-        }
-
-    private:
-        mutable boost::optional<iscore::Expression> m_currentExp;
-};
 
 /*!
  * \brief The EventInspectorWidget class
@@ -69,12 +44,12 @@ class EventInspectorWidget : public InspectorWidgetBase
 
         QLabel* m_date {};
         QLineEdit* m_conditionLineEdit{};
-        QLineEdit* m_triggerLineEdit{};
         QLineEdit* m_stateLineEdit{};
         QWidget* m_statesWidget{};
         const EventModel& m_model;
 
         MetadataWidget* m_metadata {};
 
-        ExpressionValidator m_validator;
+        ExpressionValidator<iscore::Condition> m_validator;
+        TriggerInspectorWidget* m_triggerWidg{};
 };

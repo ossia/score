@@ -38,17 +38,6 @@ class TimeNodeView : public QGraphicsObject
             return m_selected;
         }
 
-        bool isValid() const
-        {
-            return m_valid;
-        }
-
-        void setValid(bool arg)
-        {
-            m_valid = arg;
-            update();
-        }
-
     public slots:
         void changeColor(QColor);
 
@@ -63,7 +52,5 @@ class TimeNodeView : public QGraphicsObject
 
         QPointF m_clickedPoint {};
         QColor m_color;
-        bool m_moving {false};
         bool m_selected{};
-        bool m_valid{true};
 };
