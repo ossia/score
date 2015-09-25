@@ -169,6 +169,7 @@ void OSSIADevice::sendMessage(iscore::Message mess)
     auto val = addr->getValue()->clone();
     updateOSSIAValue(mess.value.val, *val);
     addr->pushValue(val);
+    delete val;
 }
 
 

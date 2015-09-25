@@ -184,6 +184,7 @@ void updateOSSIAAddress(
 
         updateOSSIAValue(settings.value.val,*val);
         addr->pushValue(val);
+        delete val;
     }
 }
 
