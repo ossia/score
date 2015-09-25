@@ -8,15 +8,15 @@ namespace iscore
     class FactoryInterface;
 }
 
-class ScenarioContextMenuFactory;
+class ScenarioActionsFactory;
 
 class ScenarioContextMenuPluginList
 {
     public:
-        const std::vector<ScenarioContextMenuFactory*>& contextMenus() const;
+        const std::vector<ScenarioActionsFactory*>& contextMenus() const;
 
         void registerContextMenu(iscore::FactoryInterface* f);
 
     private:
-        std::vector<ScenarioContextMenuFactory*> m_factories;
+        std::vector<ScenarioActionsFactory*> m_factories;
 };

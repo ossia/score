@@ -13,7 +13,7 @@
 #include <State/StateItemModel.hpp>
 
 #include <DeviceExplorer/ItemModels/MessageItemModel.hpp>
-
+#include <set>
 #include "StateView.hpp"
 #include "Document/Event/EventStatus.hpp"
 
@@ -21,6 +21,8 @@ class ConstraintView;
 class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
+class Process;
+class ProcessStateDataInterface;
 
 // Model for the graphical state in a scenario.
 class StateModel : public IdentifiedObject<StateModel>
@@ -51,6 +53,7 @@ class StateModel : public IdentifiedObject<StateModel>
             IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
+            init();
         }
 
         const ScenarioInterface* parentScenario() const;
@@ -65,6 +68,9 @@ class StateModel : public IdentifiedObject<StateModel>
 
         const Id<ConstraintModel>& previousConstraint() const;
         const Id<ConstraintModel>& nextConstraint() const;
+
+        // Note : the added constraint shall be in
+        // the scenario when this is called.
         void setNextConstraint(const Id<ConstraintModel>&);
         void setPreviousConstraint(const Id<ConstraintModel>&);
 
@@ -73,7 +79,7 @@ class StateModel : public IdentifiedObject<StateModel>
         { return m_status; }
 
     signals:
-        void statesUpdated();
+        void sig_statesUpdated();
         void heightPercentageChanged();
         void statusChanged(EventStatus);
 
@@ -81,6 +87,16 @@ class StateModel : public IdentifiedObject<StateModel>
         void setHeightPercentage(double y);
 
     private:
+        void statesUpdated_slt();
+        void init(); // TODO check if other model elements need an init method too.
+        void setConstraint_impl(const Id<ConstraintModel>& id);
+        void on_nextProcessAdded(const Process&);
+        void on_nextProcessRemoved(const Process&);
+        void on_previousProcessAdded(const Process&);
+        void on_previousProcessRemoved(const Process&);
+
+        std::set<ProcessStateDataInterface*> m_previousProcesses;
+        std::set<ProcessStateDataInterface*> m_nextProcesses;
         Id<EventModel> m_eventId;
 
         // OPTIMIZEME if we shift to Id = int, put this Optional

@@ -3,6 +3,8 @@
 #include <ProcessInterface/Process.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+
+#include <State/AutomationState.hpp>
 #include <State/Address.hpp>
 
 /**
@@ -68,8 +70,8 @@ class AutomationModel : public Process
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        AutomationState* startState() const override;
+        AutomationState* endState() const override;
 
         //// AutomationModel specifics ////
         iscore::Address address() const;

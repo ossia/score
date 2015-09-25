@@ -14,7 +14,7 @@ if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
 endif()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
+find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test OpenGL)
 
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
@@ -119,7 +119,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/UnassignMessagesFromState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/AddStateToEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetCondition.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SplitEvent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateState.cpp"
@@ -142,8 +141,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SwitchStatePosition.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/AddTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/MergeTimeNodes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/RemoveTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SplitTimeNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/CommandNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/ResizeBaseConstraint.cpp"
 
@@ -152,6 +154,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TransportActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TextDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/Plugin/ScenarioContextMenuPluginList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
@@ -200,7 +203,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintDurations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/ConditionView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/TriggerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventView.cpp"
@@ -209,6 +211,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/Trigger/TriggerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/Trigger/TriggerPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/Trigger/TriggerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/AbstractTimeRuler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/AbstractTimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.cpp"
@@ -301,7 +306,7 @@ if(TARGET iscore_lib_inspector)
 endif()
 
 add_library(iscore_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
-target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Svg
+target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5::Svg Qt5::OpenGL
                      iscore_lib_base
                      iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
 

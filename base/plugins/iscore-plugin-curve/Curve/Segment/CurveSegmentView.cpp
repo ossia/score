@@ -104,7 +104,7 @@ void CurveSegmentView::updatePoints()
         m_unstrockedShape = QPainterPath{first_scaled};
         for(int i = 1; i < pts.size(); i++)
         {
-            const auto& next = pts.at(i);
+            auto next = pts.at(i);
             m_unstrockedShape.lineTo(QPointF{
                          next.x() * scalex - startx,
                          (1. - next.y()) * m_rect.height()});

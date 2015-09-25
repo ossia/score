@@ -40,9 +40,9 @@ void DisplayedElementsModel::setSelection(const Selection & s)
     if(m_constraint) m_endState->selection.set(cst);
  }
 
-void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel *constraint)
+void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel& constraint)
 {
-    m_constraint = constraint;
+    m_constraint = &constraint;
     if(auto parent = dynamic_cast<BaseScenario*>(m_constraint->parent()))
     {
         m_startNode = &parent->startTimeNode();

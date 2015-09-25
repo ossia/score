@@ -15,7 +15,8 @@ ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &o
 
 void ConstraintDurations::checkConsistency()
 {
-  m_model.consistency.setWarning(m_minDuration.msec() < 0);
+  m_model.consistency.setWarning(m_minDuration.msec() < 0 ||
+                                 (isRigid() && m_minDuration != m_maxDuration) );
 
   m_model.consistency.setValid(m_minDuration <= m_defaultDuration &&
                                m_maxDuration >= m_defaultDuration &&

@@ -63,6 +63,7 @@ struct PluginDependencyNode
         }
 };
 
+// TESTME
 struct PluginDependencyGraph
 {
     private:
@@ -136,6 +137,12 @@ struct PluginDependencyGraph
          */
         void visit(Fun f)
         {
+            auto apply = [&] (auto&& node) {
+                if(!node->mark)
+                    f(node->plug);
+                node->mark = true;
+            };
+
             // First get rid of the plug-ins that don't have all their dependencies
             for(auto node : nodes)
             {
@@ -151,8 +158,7 @@ struct PluginDependencyGraph
             {
                 if(node->found_dependencies.empty())
                 {
-                    f(node->plug);
-                    node->mark = true;
+                    apply(node);
                 }
                 else
                 {
@@ -163,8 +169,7 @@ struct PluginDependencyGraph
                             apply_parents_rec(f, dep.lock(), node);
                         }
 
-                        f(node->plug);
-                        node->mark = true;
+                        apply(node);
                     }
                     catch(CircularDependency& e)
                     {

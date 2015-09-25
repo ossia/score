@@ -1,5 +1,6 @@
 #include "TriggerView.hpp"
 #include <QGraphicsSvgItem>
+
 TriggerView::TriggerView(QGraphicsItem *parent):
     QGraphicsItem{parent}
 {

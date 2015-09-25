@@ -78,7 +78,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::displayedConstraintChanged,
             this, &BaseElementPresenter::on_displayedConstraintChanged);
 
-    model().setDisplayedConstraint(&model().baseConstraint());
+    model().setDisplayedConstraint(model().baseConstraint());
 
     // Progress bar, time rules
 
@@ -116,7 +116,7 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().last().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
     {
-        model().setDisplayedConstraint(&path.find<ConstraintModel>());
+        model().setDisplayedConstraint(path.find<ConstraintModel>());
     }
 }
 
@@ -224,12 +224,12 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 
 void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 {
-    auto pos = ZoomPolicy::zoomRatioToSliderPos(
-                                                m_zoomRatio,
+    auto zoom = ZoomPolicy::sliderPosToZoomRatio(
+                                                view()->zoomSlider()->value(),
                                                 displayedConstraint().duration.defaultDuration().msec(),
                                                 view()->view()->width());
-//    on_zoomSliderChanged(view()->zoomSlider()->value());
-    view()->zoomSlider()->setValue(pos);
+
+    updateZoom(zoom, {0,0});
 }
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)

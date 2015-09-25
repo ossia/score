@@ -40,7 +40,7 @@ class BaseElementModel : public iscore::DocumentDelegateModelInterface
         ProcessFocusManager& focusManager()
         { return m_focusManager; }
 
-        void setDisplayedConstraint(const ConstraintModel *constraint);
+        void setDisplayedConstraint(const ConstraintModel& constraint);
 
         DisplayedElementsModel displayedElements;
 

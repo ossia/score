@@ -1,7 +1,6 @@
 #include "PointArrayCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
-
-// TODO put in nice folders
+#include "psimpl.h"
 CurveSegmentModel*PointArrayCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject *parent) const
@@ -46,7 +45,6 @@ void PointArrayCurveSegmentModel::updateData(int numInterp) const
         // Scale all the points between 0 / 1 in <->
         // and the local min / max in vertical
 
-        // m_points must be sorted!!
         for(const auto& elt : m_points)
         {
             m_data.push_back(
@@ -58,7 +56,8 @@ void PointArrayCurveSegmentModel::updateData(int numInterp) const
 
 double PointArrayCurveSegmentModel::valueAt(double x) const
 {
-    return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
+    ISCORE_TODO;
+    return 0;
 }
 
 void PointArrayCurveSegmentModel::addPoint(double x, double y)
@@ -97,30 +96,61 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
 
     m_valid = false;
     emit dataChanged();
-    /*
+}
 
+void PointArrayCurveSegmentModel::simplify()
+{
+    double tolerance = (max_y - min_y) / 8.;
 
-    if(y < 0)
+    // TODO reserve
+    std::vector <double> orig;
+    orig.reserve(m_points.size() * 2);
+    for(const auto& pt : m_points)
     {
-       auto oldmin = min;
-       // All points will be scaled up a bit.
-       // Note : this has to edit all the other curve segments, too.
-       for(auto& pt : m_points)
-       {
-
-       }
-
-       y = 0;
+        orig.push_back(pt.first);
+        orig.push_back(pt.second);
     }
 
-    if(y > 1)
-    {
-        auto oldmax = max;
-        // All points will be down up a bit.
 
-        y = 1;
+    std::vector <double> result;
+    result.reserve(m_points.size() / 2);
+
+    psimpl::simplify_reumann_witkam <2> (
+        orig.begin (), orig.end (),
+        tolerance, std::back_inserter (result));
+    ISCORE_ASSERT(result.size() > 0);
+    ISCORE_ASSERT(result.size() % 2 == 0);
+
+    m_points.clear();
+    m_points.reserve(result.size() / 2);
+    for(auto i = 0u; i < result.size(); i+= 2)
+    {
+        m_points.insert(std::make_pair(result[i], result[i+1]));
+    }
+}
+
+std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentModel::piecewise() const
+{
+    m_valid = false;
+    updateData(0);
+    const auto& pts = data();
+    std::vector<std::unique_ptr<LinearCurveSegmentModel> > vec;
+    vec.reserve(pts.size() - 1);
+
+
+    for(int i = 0; i < pts.size() - 1; i++)
+    {
+        auto cmd = std::make_unique<LinearCurveSegmentModel>(Id<CurveSegmentModel>(i), nullptr);
+        cmd->setStart(pts[i]);
+        cmd->setEnd(pts[i+1]);
+        if(i > 0)
+        {
+            cmd->setPrevious(Id<CurveSegmentModel>(i-1));
+            vec.back()->setFollowing(Id<CurveSegmentModel>(i));
+        }
+        vec.push_back(std::move(cmd));
+
     }
 
-    m_points.insert(x, y);
-    */
+    return vec;
 }

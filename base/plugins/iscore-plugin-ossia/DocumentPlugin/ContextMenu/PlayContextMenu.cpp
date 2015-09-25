@@ -13,7 +13,7 @@
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 #include "Process/Temporal/TemporalScenarioView.hpp"
 PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
-    AbstractMenuActions(iscore::ToplevelMenuElement::AboutMenu, parent)
+    ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {
     m_playStates = new QAction{tr("Play (States)"), this};
     connect(m_playStates, &QAction::triggered,
@@ -73,7 +73,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
         parent->startRecording(
                     *proc,
                     ConvertToScenarioPoint(
-                        recdata.point,
+                        pres->view().mapFromScene(recdata.point),
                         pres->zoomRatio(),
                         pres->view().boundingRect().height()));
 
@@ -86,12 +86,17 @@ void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
 
 }
 
-void PlayContextMenu::fillContextMenu(QMenu *menu, const Selection & s, LayerPresenter* pres, const QPoint& pt)
+void PlayContextMenu::fillContextMenu(
+        QMenu *menu,
+        const Selection & s,
+        LayerPresenter* pres,
+        const QPoint& pt,
+        const QPointF& scenept)
 {
     if(s.empty())
     {
         menu->addAction(m_recordAction);
-        m_recordAction->setData(QVariant::fromValue(ScenarioRecordInitData{pres, pt}));
+        m_recordAction->setData(QVariant::fromValue(ScenarioRecordInitData{pres, scenept}));
     }
     else
     {

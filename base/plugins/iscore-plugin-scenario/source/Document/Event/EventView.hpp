@@ -6,7 +6,6 @@
 #include "EventStatus.hpp"
 class EventPresenter;
 class ConditionView;
-class TriggerView;
 class EventView : public QGraphicsObject
 {
         Q_OBJECT
@@ -76,6 +75,5 @@ class EventView : public QGraphicsObject
         VerticalExtent m_extent;
 
         ConditionView* m_conditionItem{};
-        TriggerView* m_triggerItem{};
 };
 

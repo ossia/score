@@ -8,20 +8,24 @@
 
 class QAction;
 class ScenarioControl;
-
-class AbstractMenuActions : public QObject
+// TODO rename me
+class ScenarioActions : public QObject
 {
         Q_OBJECT
 
     public:
-        explicit AbstractMenuActions(iscore::ToplevelMenuElement, ScenarioControl *);
+        explicit ScenarioActions(iscore::ToplevelMenuElement, ScenarioControl *);
+
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
-        virtual void fillContextMenu(QMenu*, const Selection& s, LayerPresenter* pres, const QPoint&) = 0;
+        virtual void fillContextMenu(QMenu*, const Selection& s, LayerPresenter* pres, const QPoint&, const QPointF&) = 0;
         virtual void makeToolBar(QToolBar* ) = 0;
         virtual void setEnabled(bool) = 0;
 
+        // TODO reimplement me for all the classes
+        virtual QList<QAction*> actions() const;
+
     protected:
-        ScenarioControl* m_parent;
+        ScenarioControl* m_parent{};
         iscore::ToplevelMenuElement m_menuElt;
 };
 

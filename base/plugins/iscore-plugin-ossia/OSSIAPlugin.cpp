@@ -28,10 +28,16 @@ QVector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString&
                 new OSCProtocolFactory};
     }
 
-    if(factoryName == ScenarioContextMenuFactory::factoryName())
+    if(factoryName == ScenarioActionsFactory::factoryName())
     {
         return {new PlayContextMenuFactory};
     }
 
     return {};
+}
+
+
+QStringList iscore_plugin_ossia::required() const
+{
+    return {"Scenario"};
 }

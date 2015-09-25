@@ -67,13 +67,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
 
     ////// BODY
-    QPushButton* setAsDisplayedConstraint = new QPushButton {"Full view", this};
+    QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {
         auto& base = get<BaseElementModel> (*documentFromObject(m_model));
 
-        base.setDisplayedConstraint(&model());
+        base.setDisplayedConstraint(model());
     });
 
     m_properties.push_back(setAsDisplayedConstraint);

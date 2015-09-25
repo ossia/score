@@ -15,25 +15,34 @@ class TemporalScenarioPresenter;
 
 class ObjectMenuActions;
 class ToolMenuActions;
-class AbstractMenuActions;
+class ScenarioActions;
 
 // TODO Moveme
 struct ScenarioRecordInitData
 {
+        ScenarioRecordInitData() {}
+        ScenarioRecordInitData(LayerPresenter* lp, QPointF p):
+            presenter{lp},
+            point{p}
+        {
+        }
+
         LayerPresenter* presenter{};
-        QPoint point;
+        QPointF point;
 };
 Q_DECLARE_METATYPE(ScenarioRecordInitData)
+
 
 
 class ScenarioControl : public iscore::PluginControlInterface
 {
         Q_OBJECT
     public:
-        ScenarioControl(iscore::Presenter* pres);
+        static ScenarioControl* instance(iscore::Presenter* = nullptr);
 
         virtual void populateMenus(iscore::MenubarManager*) override;
         virtual QList<iscore::OrderedToolbar> makeToolbars() override;
+        QList<QAction*> actions() override;
 
         virtual iscore::SerializableCommand* instantiateUndoCommand(
                 const QString& name,
@@ -45,7 +54,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         MoveEventList* moveEventList()
         { return &m_moveEventList; }
 
-        QVector<AbstractMenuActions*>& pluginActions()
+        QVector<ScenarioActions*>& pluginActions()
         { return m_pluginActions; }
 
         const ScenarioModel* focusedScenarioModel() const;
@@ -67,21 +76,23 @@ class ScenarioControl : public iscore::PluginControlInterface
         void stopRecording();
 
     public slots:
-        void createContextMenu(const QPoint &);
+        void createContextMenu(const QPoint &, const QPointF&);
 
     protected:
         virtual void on_documentChanged() override;
 
     private:
+        ScenarioControl(iscore::Presenter* pres);
+
         ExpandMode m_expandMode{ExpandMode::Scale};
         ProcessList m_processList;
         MoveEventList m_moveEventList;
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection;
 
-        ObjectMenuActions* m_objectAction;
-        ToolMenuActions* m_toolActions;
-        QVector<AbstractMenuActions*> m_pluginActions;
+        ObjectMenuActions* m_objectAction{};
+        ToolMenuActions* m_toolActions{};
+        QVector<ScenarioActions*> m_pluginActions;
 
         QAction *m_selectAll{};
         QAction *m_deselectAll{};

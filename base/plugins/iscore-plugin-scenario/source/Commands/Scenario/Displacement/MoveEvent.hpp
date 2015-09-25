@@ -54,7 +54,6 @@ class MoveEvent : public SerializableMoveEvent
         MoveEvent()
             :SerializableMoveEvent{}
         {}
-
         /**
                  * @brief MoveEvent
                  * @param scenarioPath
@@ -144,8 +143,6 @@ class MoveEvent : public SerializableMoveEvent
 
             updateEventExtent(m_eventId, scenario);
         }
-
-
 
         const Path<ScenarioModel>& path() const
         { return m_path; }

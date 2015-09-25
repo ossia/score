@@ -39,6 +39,7 @@ MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
     return *this;
 }
 
+// TESTME
 static void flatten_rec(iscore::MessageList& ml, const iscore::Node& node)
 {
     if(node.is<iscore::AddressSettings>())
@@ -61,6 +62,30 @@ MessageList MessageItemModel::flatten() const
     iscore::MessageList ml;
     flatten_rec(ml, m_rootNode);
     return ml;
+}
+
+void MessageItemModel::insert(const Message& mess)
+{
+    // First, try to see if there is a corresponding node
+    auto n = try_getNodeFromAddress(m_rootNode, mess.address);
+    qDebug() << Q_FUNC_INFO << mess.address.toString() << mess.value.val;
+    if(n)
+    {
+        qDebug() << "item model: setting" << mess.address.toString() << "at" << mess.value.toString();
+        auto val = mess.value.val;
+        if(!val.canConvert(n->get<iscore::AddressSettings>().value.val.type()))
+            return;
+        n->get<iscore::AddressSettings>().value.val = val;
+
+        auto parent = n->parent();
+        auto idx = createIndex(parent->indexOfChild(n), 0, n->parent());
+        emit dataChanged(idx, idx);
+    }
+    else
+    {
+        ISCORE_TODO;
+        // We need to create a node.
+    }
 }
 
 int MessageItemModel::columnCount(const QModelIndex &parent) const

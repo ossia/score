@@ -48,7 +48,4 @@ class iscore_plugin_scenario :
         QStringList required() const override;
         QStringList offered() const override;
 
-    private:
-        ScenarioControl* m_control{};
-
 };

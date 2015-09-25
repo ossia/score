@@ -12,6 +12,7 @@ SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     //scene()->addItem(m_graduations);
 
     m_bg =  qApp->palette("ScenarioPalette").background();
+    this->setAttribute(Qt::WA_OpaquePaintEvent);
     //m_graduations->setColor(m_bg.color().lighter());
     this->setBackgroundBrush(m_bg);
 }

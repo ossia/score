@@ -51,9 +51,7 @@ QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documen
 
 iscore::PluginControlInterface* iscore_plugin_scenario::make_control(iscore::Presenter* pres)
 {
-    delete m_control;
-    m_control = new ScenarioControl{pres};
-    return m_control;
+    return ScenarioControl::instance(pres);
 }
 
 QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
@@ -68,19 +66,19 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
     return {
             {ProcessFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
-             { m_control->processList()->registerProcess(fact); }
+             { ScenarioControl::instance()->processList()->registerProcess(fact); }
             },
             {MoveEventFactoryInterface::factoryName(),
              [&] (iscore::FactoryInterface* fact)
-             { m_control->moveEventList()->registerMoveEventFactory(fact); }
+             { ScenarioControl::instance()->moveEventList()->registerMoveEventFactory(fact); }
             },
-            {ScenarioContextMenuFactory::factoryName(),
+            {ScenarioActionsFactory::factoryName(),
              [&] (iscore::FactoryInterface* fact)
              {
-                auto context_menu_fact = static_cast<ScenarioContextMenuFactory*>(fact);
-                for(auto& act : context_menu_fact->make(m_control))
+                auto context_menu_fact = static_cast<ScenarioActionsFactory*>(fact);
+                for(auto& act : context_menu_fact->make(ScenarioControl::instance()))
                 {
-                    m_control->pluginActions().push_back(act);
+                    ScenarioControl::instance()->pluginActions().push_back(act);
                 }
              }
             }
@@ -94,9 +92,11 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
         return {new ScenarioFactory};
     }
 
-    if(factoryName == ScenarioContextMenuFactory::factoryName())
+    if(factoryName == ScenarioActionsFactory::factoryName())
     {
-        return {new ScenarioCommonContextMenuFactory};
+        // new ScenarioCommonActionsFactory is instantiated in Control
+        // because other plug ins need it.
+        return {};
     }
 
     if(factoryName == MoveEventClassicFactory::factoryName())
