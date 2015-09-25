@@ -1,15 +1,26 @@
 #include "EventInspectorWidget.hpp"
 
 #include "Document/Event/EventModel.hpp"
+#include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
 
-#include "Document/TimeNode/TimeNodeModel.hpp"
-
 #include <Inspector/InspectorSectionWidget.hpp>
+#include "Inspector/Separator.hpp"
+#include <Inspector/InspectorWidgetList.hpp>
+
 #include "Inspector/MetadataWidget.hpp"
+#include "Inspector/SelectionButton.hpp"
+#include "Inspector/State/StateInspectorWidget.hpp"
+#include "Inspector/TimeNode/TriggerInspectorWidget.hpp"
 
 #include "base/plugins/iscore-plugin-deviceexplorer/Plugin/Panel/DeviceExplorerModel.hpp"
+#include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
+#include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
+#include <Singletons/DeviceExplorerInterface.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
@@ -20,20 +31,11 @@
 #include <QCompleter>
 
 #include <Process/ScenarioModel.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
-#include <Singletons/DeviceExplorerInterface.hpp>
-#include "Document/Constraint/ConstraintModel.hpp"
 
+#include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-
-#include "Inspector/Separator.hpp"
-#include "Inspector/SelectionButton.hpp"
 #include "core/document/DocumentModel.hpp"
-#include "Inspector/State/StateInspectorWidget.hpp"
-#include <Inspector/InspectorWidgetList.hpp>
-#include <iscore/widgets/MarginLess.hpp>
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,
@@ -82,7 +84,7 @@ EventInspectorWidget::EventInspectorWidget(
     auto datewidg = new QWidget;
     auto dateLay = new iscore::MarginLess<QHBoxLayout>;
     datewidg->setLayout(dateLay);
-    m_date = new QLabel{QString::number(m_model.date().msec())};
+    m_date = new QLabel{(m_model.date().toString())};
 
     dateLay->addWidget(new QLabel(tr("Default date")));
     dateLay->addWidget(m_date);
@@ -90,11 +92,16 @@ EventInspectorWidget::EventInspectorWidget(
     infoLay->addWidget(datewidg);
     m_properties.push_back(infoWidg);
 
+    // Trigger
+    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
+    m_triggerWidg = new TriggerInspectorWidget{tn, this};
+    m_properties.push_back(new QLabel{tr("Trigger")});
+    m_properties.push_back(m_triggerWidg);
 
     // Separator
     m_properties.push_back(new Separator {this});
 
-    /// Condition
+    // Condition
     m_conditionLineEdit = new QLineEdit{this};
     m_conditionLineEdit->setValidator(&m_validator);
 
@@ -171,7 +178,7 @@ void EventInspectorWidget::updateDisplayedValues()
     m_states.clear();
     m_date->clear();
 
-    m_date->setText(QString::number(m_model.date().msec()));
+    m_date->setText(m_model.date().toString());
 
     const auto& scenar = m_model.parentScenario();
     for(const auto& state : m_model.states())
@@ -180,6 +187,8 @@ void EventInspectorWidget::updateDisplayedValues()
     }
 
     m_conditionLineEdit->setText(m_model.condition().toString());
+    auto& tn = m_model.parentScenario()->timeNode(m_model.timeNode());
+    m_triggerWidg->updateExpression(tn.trigger()->expression().toString());
 }
 
 
@@ -234,5 +243,5 @@ void EventInspectorWidget::on_conditionChanged()
 
 void EventInspectorWidget::modelDateChanged()
 {
-    m_date->setText(QString::number(m_model.date().msec()));
+    m_date->setText(m_model.date().toString());
 }

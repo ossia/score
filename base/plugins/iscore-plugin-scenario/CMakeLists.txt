@@ -289,6 +289,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TriggerInspectorWidget.cpp"
     )
 
     set(SRCS ${SRCS} ${INSPECTOR_SRCS})

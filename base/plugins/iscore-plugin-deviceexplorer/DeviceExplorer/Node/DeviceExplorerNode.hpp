@@ -98,5 +98,14 @@ void dumpTree(const iscore::Node& node, QString rec);
  */
 QList<iscore::Node*> filterUniqueParents(const QList<iscore::Node*>& nodes);
 
+
+iscore::Node merge(
+        iscore::Node base,
+        const iscore::MessageList& other);
+
+void merge(
+        iscore::Node& base,
+        const iscore::Message& message);
+
 }
 

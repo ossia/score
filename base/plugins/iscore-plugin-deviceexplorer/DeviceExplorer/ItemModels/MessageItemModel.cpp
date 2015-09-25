@@ -64,14 +64,13 @@ MessageList MessageItemModel::flatten() const
     return ml;
 }
 
+// TESTME
 void MessageItemModel::insert(const Message& mess)
 {
     // First, try to see if there is a corresponding node
     auto n = try_getNodeFromAddress(m_rootNode, mess.address);
-    qDebug() << Q_FUNC_INFO << mess.address.toString() << mess.value.val;
     if(n)
     {
-        qDebug() << "item model: setting" << mess.address.toString() << "at" << mess.value.toString();
         auto val = mess.value.val;
         if(!val.canConvert(n->get<iscore::AddressSettings>().value.val.type()))
             return;
@@ -83,8 +82,8 @@ void MessageItemModel::insert(const Message& mess)
     }
     else
     {
-        ISCORE_TODO;
         // We need to create a node.
+        *this = iscore::merge(m_rootNode, iscore::MessageList{mess});
     }
 }
 

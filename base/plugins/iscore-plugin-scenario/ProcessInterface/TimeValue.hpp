@@ -78,6 +78,30 @@ class TimeValue_T
                 return QTime(0,0,0,0).addMSecs(static_cast<int>(*m_impl));
         }
 
+        QString toString() const
+        {
+            QString t;
+            auto qT = this->toQTime();
+
+            if(qT.hour() != 0)
+            {
+                t += QString::number(qT.hour());
+                t += " h ";
+            }
+            if(qT.minute() != 0)
+            {
+                t += QString::number(qT.minute());
+                t += " min ";
+            }
+
+            t += QString::number(qT.second());
+            t += " s ";
+            t += QString::number(qT.msec());
+            t += " ms";
+
+            return t;
+        }
+
         void addMSecs(T msecs)
         {
             if(m_impl)

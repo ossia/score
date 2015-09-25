@@ -84,6 +84,7 @@ void StateModel::setHeightPercentage(double y)
     emit heightPercentageChanged();
 }
 
+// TESTME
 void StateModel::statesUpdated_slt()
 {
     // Check for all the messages in the state, for some
@@ -131,9 +132,15 @@ void StateModel::statesUpdated_slt()
     emit sig_statesUpdated();
 }
 
+// When we add a process, the data in the process takes precedence on the states
+// present here, because it might contain saved states at the beginning /
+// end that we don't want to change.
 void StateModel::on_previousProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.endState();
+    if(!state)
+        return;
+
     connect(state, &ProcessStateDataInterface::messagesChanged,
             this, [&] (const iscore::MessageList& ml) {
         // We merge the messages with the state.
@@ -150,11 +157,14 @@ void StateModel::on_previousProcessAdded(const Process& proc)
     });
 
     m_previousProcesses.insert(state);
+    statesUpdated_slt();
 }
 
 void StateModel::on_previousProcessRemoved(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.endState();
+    if(!state)
+        return;
 
     m_previousProcesses.erase(state);
 }
@@ -162,6 +172,8 @@ void StateModel::on_previousProcessRemoved(const Process& proc)
 void StateModel::on_nextProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.startState();
+    if(!state)
+        return;
 
     connect(state, &ProcessStateDataInterface::messagesChanged,
         this, [&] (const iscore::MessageList& ml) {
@@ -172,11 +184,14 @@ void StateModel::on_nextProcessAdded(const Process& proc)
     });
 
     m_nextProcesses.insert(state);
+    statesUpdated_slt();
 }
 
 void StateModel::on_nextProcessRemoved(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.startState();
+    if(!state)
+        return;
 
     m_nextProcesses.erase(state);
 }

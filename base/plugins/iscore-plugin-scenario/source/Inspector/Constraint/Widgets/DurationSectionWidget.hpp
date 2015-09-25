@@ -51,12 +51,8 @@ class DurationSectionWidget : public InspectorSectionWidget
         QCheckBox* m_minNonNullBox{};
         QCheckBox* m_maxFiniteBox{};
 
-        QCheckBox* m_infinite{};
-
-        bool m_rigidity{};
-
         TimeValue m_max;
-        TimeValue m_default;
+        TimeValue m_min;
 
         OngoingCommandDispatcher m_dispatcher;
 };
