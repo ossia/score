@@ -53,7 +53,17 @@ boost::optional<double> CurveSegmentModel::horizontalParameter() const
     return {};
 }
 
+void CurveSegmentModel::setStart(const CurvePoint& pt)
+{
+    if(pt != m_start)
+    {
+        m_start = pt;
+        m_valid = false;
+        on_startChanged();
 
+        emit startChanged();
+    }
+}
 
 void CurveSegmentModel::setEnd(const CurvePoint& pt)
 {
@@ -62,17 +72,7 @@ void CurveSegmentModel::setEnd(const CurvePoint& pt)
         m_end = pt;
         m_valid = false;
         on_endChanged();
-    }
-}
 
-
-
-void CurveSegmentModel::setStart(const CurvePoint& pt)
-{
-    if(pt != m_start)
-    {
-        m_start = pt;
-        m_valid = false;
-        on_startChanged();
+        emit endChanged();
     }
 }

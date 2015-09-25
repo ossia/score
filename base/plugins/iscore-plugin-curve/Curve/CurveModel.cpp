@@ -148,6 +148,29 @@ void CurveModel::insertSegment(CurveSegmentModel* m)
     m->setParent(this);
     m_segments.insert(m);
 
+    // TODO have indexes on the points with the start and end
+    // curve segments
+    connect(m, &CurveSegmentModel::startChanged, this, [=] () {
+        for(CurvePointModel* pt : m_points)
+        {
+            if(pt->following() == m->id())
+            {
+                pt->setPos(m->start());
+                break;
+            }
+        }
+    });
+    connect(m, &CurveSegmentModel::endChanged, this, [=] () {
+        for(CurvePointModel* pt : m_points)
+        {
+            if(pt->previous() == m->id())
+            {
+                pt->setPos(m->end());
+                break;
+            }
+        }
+    });
+
     emit segmentAdded(*m);
 }
 
