@@ -64,6 +64,11 @@ std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() cons
     return m_ossia_constraint;
 }
 
+ConstraintModel&OSSIAConstraintElement::iscoreConstraint() const
+{
+    return m_iscore_constraint;
+}
+
 void OSSIAConstraintElement::play()
 {
     m_iscore_constraint.duration.setPlayPercentage(0);

@@ -20,9 +20,12 @@ class OSSIAConstraintElement;
 
 namespace OSSIA
 {
+    class StateElement;
     class Scenario;
+    class TimeValue;
 }
 
+// TODO see if this can be used for the base scenario model too.
 class OSSIAScenarioElement : public OSSIAProcessElement
 {
     public:
@@ -60,6 +63,15 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 
         void startConstraintExecution(const Id<ConstraintModel>&);
         void stopConstraintExecution(const Id<ConstraintModel>&);
+
+        void eventCallback(
+                OSSIAEventElement& ev,
+                OSSIA::TimeEvent::Status newStatus);
+
+        void constraintCallback(OSSIAConstraintElement& cst,
+                                const OSSIA::TimeValue& position,
+                                const OSSIA::TimeValue& date,
+                                std::shared_ptr<OSSIA::StateElement> state);
 
     private:
         QPointer<OSSIAConstraintElement> m_parent_constraint;

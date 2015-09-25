@@ -19,6 +19,9 @@ class OSSIAEventElement : public QObject
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeEvent> event() const;
+        const EventModel& iscoreEvent() const
+        { return m_iscore_event; }
+
 
         bool event(QEvent* ev) override { return QObject::event(ev); }
 
@@ -27,6 +30,5 @@ class OSSIAEventElement : public QObject
 
         const EventModel& m_iscore_event;
         std::shared_ptr<OSSIA::TimeEvent> m_event;
-
         const DeviceList& m_deviceList;
 };

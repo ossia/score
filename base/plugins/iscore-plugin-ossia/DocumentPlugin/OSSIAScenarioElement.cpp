@@ -97,17 +97,8 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     ISCORE_ASSERT(m_ossia_timeevents.find(m_iscore_scenario.state(cst.endState()).eventId()) != m_ossia_timeevents.end());
     auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.endState()).eventId());
 
-    auto ossia_cst = OSSIA::TimeConstraint::create([=,iscore_constraint=&cst](
-                                                   const OSSIA::TimeValue& position,
-                                                   const OSSIA::TimeValue& date,
-                                                   std::shared_ptr<OSSIA::StateElement> state) {
-        auto currentTime = OSSIA::convert::time(date);
-        auto maxdur = iscore_constraint->duration.maxDuration();
-        if(!maxdur.isInfinite())
-            iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.maxDuration());
-        else
-            iscore_constraint->duration.setPlayPercentage(currentTime / iscore_constraint->duration.defaultDuration());
-    },
+    auto ossia_cst = OSSIA::TimeConstraint::create(
+                OSSIA::TimeConstraint::ExecutionCallback{},
                 ossia_sev->event(),
                 ossia_eev->event(),
                 iscore::convert::time(cst.duration.defaultDuration()),
@@ -120,6 +111,10 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     // Create the mapping object
     auto elt = new OSSIAConstraintElement{ossia_cst, cst, this};
     m_ossia_constraints.insert({cst.id(), elt});
+
+    elt->constraint()->setCallback([=] (auto&&... args) {
+        return constraintCallback(*elt, std::forward<decltype(args)>(args)...);
+    });
 }
 
 void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
@@ -167,6 +162,10 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, ev, m_deviceList, this};
     m_ossia_timeevents.insert({ev.id(), elt});
+
+    elt->event()->setCallback([=] (OSSIA::TimeEvent::Status st) {
+        return eventCallback(*elt, st);
+    });
 }
 
 void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
@@ -278,4 +277,66 @@ void OSSIAScenarioElement::stopConstraintExecution(const Id<ConstraintModel>& id
 {
     m_executingConstraints.remove(id);
     m_ossia_constraints.at(id)->executionStopped();
+}
+
+void OSSIAScenarioElement::eventCallback(
+        OSSIAEventElement& ev,
+        OSSIA::TimeEvent::Status newStatus)
+{
+    auto the_event = const_cast<EventModel*>(&ev.iscoreEvent());
+    the_event->setStatus(static_cast<EventStatus>(newStatus));
+
+    for(auto& state : the_event->states())
+    {
+        auto& iscore_state = m_iscore_scenario.states.at(state);
+
+        switch(newStatus)
+        {
+            case OSSIA::TimeEvent::Status::NONE:
+                break;
+            case OSSIA::TimeEvent::Status::PENDING:
+                break;
+            case OSSIA::TimeEvent::Status::HAPPENED:
+            {
+                // Stop the previous constraints clocks,
+                // start the next constraints clocks
+                if(iscore_state.previousConstraint())
+                {
+                    stopConstraintExecution(iscore_state.previousConstraint());
+                }
+
+                if(iscore_state.nextConstraint())
+                {
+                    startConstraintExecution(iscore_state.nextConstraint());
+                }
+                break;
+            }
+
+            case OSSIA::TimeEvent::Status::DISPOSED:
+            {
+                // TODO disable the constraints graphically
+                break;
+            }
+            default:
+                ISCORE_TODO;
+                break;
+        }
+    }
+}
+
+void OSSIAScenarioElement::constraintCallback(
+        OSSIAConstraintElement& cst,
+        const OSSIA::TimeValue& position,
+        const OSSIA::TimeValue& date,
+        std::shared_ptr<OSSIA::StateElement> state)
+{
+    auto currentTime = OSSIA::convert::time(date);
+
+    auto& cstdur = cst.iscoreConstraint().duration;
+    auto maxdur = cstdur.maxDuration();
+
+    if(!maxdur.isInfinite())
+        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+    else
+        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 }
