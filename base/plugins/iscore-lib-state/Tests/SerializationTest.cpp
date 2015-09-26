@@ -3,6 +3,7 @@
 #include <State/Message.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 
 namespace iscore {
     class State;
@@ -24,25 +25,18 @@ class SerializationTest: public QObject
             qRegisterMetaTypeStreamOperators<iscore::Value>();
             Message m;
             m.address = {"dada", {"bilou", "yadaa", "zoo"}};
-            m.value.val = 5.5;
+            m.value.val = 5.5f;
 
-            StateData s(iscore::MessageList{m}, "le state");
+            {
+                auto json = marshall<JSONObject>(m);
+                auto mess_json = unmarshall<iscore::Message>(json);
+                ISCORE_ASSERT(m == mess_json);
 
-            Serializer<JSONObject> js;
-            js.readFrom(s);
-            qDebug() << js.m_obj;
+                auto barray = marshall<DataStream>(m);
+                auto mess_array = unmarshall<iscore::Message>(barray);
+                ISCORE_ASSERT(m == mess_array);
 
-            StateData s2(s);
-            Serializer<JSONObject> js2;
-            js2.readFrom(s2);
-            qDebug() << js2.m_obj;
-
-
-            Deserializer<JSONObject> jd(js.m_obj);
-            StateData s3;
-            jd.writeTo(s3);
-
-            ISCORE_ASSERT(s3.is<MessageList>());
+            }
         }
 };
 

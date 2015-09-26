@@ -15,5 +15,3 @@ endFunction()
 
 
 addIScoreQtTest(SpaceTest "${CMAKE_CURRENT_SOURCE_DIR}/space_test.cpp")
-
-include(CTest)

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_lib_base)
+enable_testing()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Svg)

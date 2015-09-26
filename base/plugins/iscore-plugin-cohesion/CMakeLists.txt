@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(iscore_plugin_cohesion)
+enable_testing()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC ON)
 cmake_policy(SET CMP0042 NEW)

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+enable_testing()
 
 # TODO same for install
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins/)

@@ -103,3 +103,13 @@ auto marshall(const Object& obj)
 {
     return Visitor<Reader<Type>>::marshall(obj);
 }
+template<typename Object>
+auto unmarshall(const QJsonObject& obj)
+{
+    return Visitor<Writer<JSONObject>>::unmarshall<Object>(obj);
+}
+template<typename Object>
+auto unmarshall(const QByteArray& arr)
+{
+    return Visitor<Writer<DataStream>>::unmarshall<Object>(arr);
+}

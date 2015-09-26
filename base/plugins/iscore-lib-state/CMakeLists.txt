@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(iscore_lib_state)
+enable_testing()
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 cmake_policy(SET CMP0020 NEW)
