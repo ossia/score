@@ -319,8 +319,25 @@ void CurvePresenter::addSegment(CurveSegmentView * seg_view)
 {
     connect(seg_view, &CurveSegmentView::contextMenuRequested,
             m_view, &CurveView::contextMenuRequested);
-    m_segments.insert(seg_view);
 
+    // Change the position of the points, when the segment moves.
+    con(seg_view->model(), &CurveSegmentModel::startChanged,
+            this, [=] () {
+        auto pt = std::find_if(m_points.begin(), m_points.end(), [&] (const CurvePointView& pt_view) {
+            return pt_view.model().following() == seg_view->model().id();
+        });
+        if(pt != m_points.end())
+        { setPos(*pt); }
+    });
+    con(seg_view->model(), &CurveSegmentModel::endChanged,
+        this, [=] () {
+        auto pt = std::find_if(m_points.begin(), m_points.end(), [&] (const CurvePointView& pt_view) {
+            return pt_view.model().previous() == seg_view->model().id();
+        });
+        if(pt != m_points.end())
+        { setPos(*pt); }
+    });
+    m_segments.insert(seg_view);
     setPos(*seg_view);
 }
 

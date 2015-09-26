@@ -93,6 +93,7 @@ void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
     }
 
     setDuration(newDuration);
+    m_curve->changed();
 }
 
 void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
@@ -136,6 +137,7 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     }
 
     setDuration(newDuration);
+    m_curve->changed();
 }
 
 void AutomationModel::startExecution()
@@ -248,6 +250,7 @@ void AutomationModel::setAddress(const iscore::Address &arg)
 
     m_address = arg;
     emit addressChanged(arg);
+    emit m_curve->changed();
 }
 
 void AutomationModel::setMin(double arg)
@@ -257,6 +260,7 @@ void AutomationModel::setMin(double arg)
 
     m_min = arg;
     emit minChanged(arg);
+    emit m_curve->changed();
 }
 
 void AutomationModel::setMax(double arg)
@@ -266,5 +270,6 @@ void AutomationModel::setMax(double arg)
 
     m_max = arg;
     emit maxChanged(arg);
+    emit m_curve->changed();
 }
 
