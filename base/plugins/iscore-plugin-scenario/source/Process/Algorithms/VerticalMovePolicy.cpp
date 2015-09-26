@@ -26,7 +26,7 @@ void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
 }
 
 
-void updateTimeNodeExtent(const Cache<TimeNodeModel>& id, ScenarioModel &s)
+void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
 {
     auto& tn = s.timeNodes.at(id);
     double min = std::numeric_limits<double>::max();

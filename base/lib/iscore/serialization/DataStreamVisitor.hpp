@@ -81,12 +81,6 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
             }
         }
 
-        template<typename T, typename U>
-        void readFrom(const Cache<T, U>& obj)
-        {
-            readFrom(obj.id());
-        }
-
         template<typename T>
         void readFrom(const IdentifiedObject<T>& obj)
         {
@@ -164,14 +158,6 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
             {
                 obj.unset();
             }
-        }
-
-        template<typename T, typename U>
-        void writeTo(Cache<T, U>& obj)
-        {
-            typename Cache<T, U>::local_id_type id;
-            writeTo(id);
-            obj = id;
         }
 
         template<typename T>
