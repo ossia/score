@@ -71,7 +71,7 @@ Application::Application(
         int& argc,
         char** argv) :
     NamedObject {"Application", nullptr},
-    m_applicationSettings{appSettings}
+    m_applicationSettings(appSettings)
 {
 #ifdef ISCORE_DEBUG
     qInstallMessageHandler(myMessageOutput);
