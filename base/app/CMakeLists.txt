@@ -23,8 +23,6 @@ endif()
 target_link_libraries(${APPNAME} iscore_lib_base)
 
 if(ISCORE_STATIC_PLUGINS)
-
-    message("=== ${ISCORE_PLUGINS_LIST} ===")
     set(ISCORE_PLUGINS_FILE "${CMAKE_CURRENT_BINARY_DIR}/iscore_static_plugins.hpp")
     file(WRITE "${ISCORE_PLUGINS_FILE}" "#pragma once\n")
     foreach(plugin ${ISCORE_PLUGINS_LIST})
@@ -38,7 +36,7 @@ if(ISCORE_STATIC_PLUGINS)
     target_link_libraries(${APPNAME} ${ISCORE_PLUGINS_LIST})
 endif()
 
-iscore_cotire(${APPNAME})
+setup_iscore_common_features(${APPNAME})
 
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .

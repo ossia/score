@@ -290,7 +290,6 @@ target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5
                      iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
 
 if(TARGET iscore_lib_inspector)
-    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
     target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
 endif()
 

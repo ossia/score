@@ -6,8 +6,6 @@ iscore_common_setup()
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml PrintSupport Test)
 
 # Files & main target
-# TODO put this in CMake interface of iscore_lib
-
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurveFromStates.cpp"

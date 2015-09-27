@@ -28,20 +28,32 @@ function(iscore_common_setup)
 endfunction()
 
 
+### Initialization of most common stuff ###
+function(setup_iscore_common_features TheTarget)
+  iscore_cotire(${TheTarget})
+
+  if(ENABLE_LTO)
+    set_property(TARGET ${TheTarget}
+                 PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
+  endif()
+endfunction()
+
+
 ### Initialization of common stuff ###
-function(setup_iscore_common_features PluginName)
-  iscore_cotire(${PluginName})
-  string(TOUPPER "${PluginName}" UPPERCASE_PLUGIN_NAME)
-  set_property(TARGET ${PluginName} APPEND
+function(setup_iscore_common_lib_features TheTarget)
+  setup_iscore_common_features("${TheTarget}")
+
+  string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
+  set_property(TARGET ${TheTarget} APPEND
                PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
-  set_property(TARGET ${PluginName} APPEND
+  set_property(TARGET ${TheTarget} APPEND
                PROPERTY INTERFACE_COMPILE_DEFINITIONS "${UPPERCASE_PLUGIN_NAME}")
 endfunction()
 
 
 ### Call with a library target ###
 function(setup_iscore_library PluginName)
-  setup_iscore_common_features("${PluginName}")
+  setup_iscore_common_lib_features("${PluginName}")
 
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION .
@@ -52,7 +64,7 @@ endfunction()
 
 ### Call with a plug-in target ###
 function(setup_iscore_plugin PluginName)
-  setup_iscore_common_features("${PluginName}")
+  setup_iscore_common_lib_features("${PluginName}")
 
   set(ISCORE_PLUGINS_LIST ${ISCORE_PLUGINS_LIST} "${PluginName}" CACHE INTERNAL "List of plugins")
   install(TARGETS "${PluginName}"

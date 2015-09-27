@@ -5,17 +5,19 @@
 
 mkdir build
 cd build
-export CMAKE_COMMON_FLAGS="-DCMAKE_BUILD_TYPE=Release -DISCORE_STATIC_PLUGINS:Bool=True -DDEPLOYMENT_BUILD:Bool=True"
+export CMAKE_COMMON_FLAGS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT"
+export CTEST_OUTPUT_ON_FAILURE=1
+
 case "$TRAVIS_OS_NAME" in
-    linux)
-        source /opt/qt55/bin/qt55-env.sh
-        /usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
+  linux)
+    source /opt/qt55/bin/qt55-env.sh
+    /usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
 
-        make package -j2
-    ;;
-    osx)
-        cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.0/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
+    make package -j2
+  ;;
+  osx)
+    cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.0/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
-        make install -j2
-    ;;
+    make install/strip -j2
+  ;;
 esac

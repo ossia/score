@@ -6,16 +6,13 @@ if(ANDROID)
     return()
 endif()
 
+iscore_common_setup()
+
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Network Xml Test)
 find_package(KF5DNSSD NO_MODULE)
 
-set(CMAKE_AUTOMOC ON)
-
 # Files & main target
-include_directories(.)
-include_directories("${SCENARIO_INTERFACE_FOLDER}")
-include_directories("${ISCORE_ROOT_SOURCE_DIR}")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Repartition")
 
 set(SRCS
@@ -63,8 +60,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkMessage.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkServer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Serialization/NetworkSocket.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/client/main.cpp" # TODO not here
-"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/server/main.cpp" # TODO not here
+#"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/client/main.cpp" # TODO not here
+#"${CMAKE_CURRENT_SOURCE_DIR}/Tests/Repartition/server/main.cpp" # TODO not here
 "${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/settings_impl/NetworkSettingsPresenter.cpp"
@@ -96,7 +93,7 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${ZEROCONF_SRCS})
 
 target_link_libraries(${PROJECT_NAME}
                                     iscore_lib_base
-                                    iscore_plugin_scenario # TODO :(
+                                    iscore_plugin_scenario
                                     Qt5::Core
                                     Qt5::Widgets
                                     Qt5::Network)
@@ -110,9 +107,4 @@ if(NOT APPLE AND NOT WIN32)
     target_link_libraries(${PROJECT_NAME} dns_sd)
 endif()
 
-iscore_cotire(${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
+setup_iscore_plugin(${PROJECT_NAME})

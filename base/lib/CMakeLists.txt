@@ -1,18 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_lib_base)
-enable_testing()
+iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Svg)
 
-if(NOT Boost_FOUND)
-        message("i-score requires boost to build")
-        return()
-endif()
-
 # Files & main target
-include_directories(.)
-
 file(GLOB_RECURSE HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/core/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/iscore/*.hpp)
@@ -86,12 +79,5 @@ set(SRCS
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets Qt5::Svg)
 
-iscore_cotire(iscore_lib_base)
-
-install(TARGETS iscore_lib_base
-        LIBRARY DESTINATION .
-        ARCHIVE DESTINATION static_lib/
-        COMPONENT DynamicRuntime)
-
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests)
+setup_iscore_library(iscore_lib_base)
+setup_iscore_tests(tests)

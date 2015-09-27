@@ -4,6 +4,11 @@ then
     exit 0
 fi
 
+if [[ "$CAN_DEPLOY" = "False" ]];
+then
+    exit 0
+fi
+
 cd build
 if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then
     if [[ -f /etc/lsb-release ]]; then

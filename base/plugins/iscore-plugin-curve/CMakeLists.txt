@@ -90,7 +90,6 @@ target_link_libraries(${PROJECT_NAME}
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
 
 if(TARGET iscore_lib_inspector)
-    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
     target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
 endif()
 

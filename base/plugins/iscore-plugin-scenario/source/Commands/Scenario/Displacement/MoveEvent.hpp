@@ -91,7 +91,7 @@ class MoveEvent : public SerializableMoveEvent
                 const Path<ScenarioModel>& scenarioPath,
                 const Id<EventModel>& eventId,
                 const TimeValue& newDate,
-                ExpandMode mode)
+                ExpandMode mode) override
         {
             // we need to compute the new time delta
             // NOTE: in the future in would be better to give directly the delta value to this method
@@ -102,7 +102,7 @@ class MoveEvent : public SerializableMoveEvent
 
             //NOTICE: multiple event displacement functionnality already available, this is "retro" compatibility
             QVector <Id<TimeNodeModel>> draggedElements;
-            draggedElements.push_back(scenario.event(eventId).timeNode());// retrieve corresponding timenode and store it in array
+            draggedElements.push_back(scenario.events.at(eventId).timeNode());// retrieve corresponding timenode and store it in array
 
             // the displacement is computed here and we don't need to know how.
             DisplacementPolicy::computeDisplacement(scenario, draggedElements, deltaDate, m_savedElementsProperties);
