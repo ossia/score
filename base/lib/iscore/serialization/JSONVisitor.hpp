@@ -104,6 +104,15 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
         {}
 
         template<typename T>
+        static auto unmarshall(const QJsonObject& obj)
+        {
+            T data;
+            Visitor<Writer<JSONObject>> wrt{obj};
+            wrt.writeTo(data);
+            return data;
+        }
+
+        template<typename T>
         void writeTo(T&);
 
         template<typename T>

@@ -9,6 +9,7 @@ set(ISCORE_VERSION_PATCH 0)
 set(ISCORE_VERSION_EXTRA a3)
 set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VERSION_PATCH}-${ISCORE_VERSION_EXTRA}")
 
+enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 
@@ -45,8 +46,12 @@ endif()
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools DBus)
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/variant/include")
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator")
+
+set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
+
 add_subdirectory(base)
+
+include(CTest)

@@ -23,7 +23,7 @@ class TransportActions : public ScenarioActions
 
         void setEnabled(bool) override;
 
-        QList<QAction*> actions() const;
+        QList<QAction*> actions() const override;
 
     private:
         QAction* m_play{};

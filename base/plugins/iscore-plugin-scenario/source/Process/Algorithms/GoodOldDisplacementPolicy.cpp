@@ -27,14 +27,14 @@ GoodOldDisplacementPolicy::computeDisplacement(
     }else
     {
         const Id<TimeNodeModel>& firstTimeNodeMovedId = draggedElements.at(0);
-        QVector<Id<TimeNodeModel> > timeNodesToTranslate;
+        std::vector<Id<TimeNodeModel>> timeNodesToTranslate;
 
         StandardDisplacementPolicy::getRelatedTimeNodes(scenario, firstTimeNodeMovedId, timeNodesToTranslate);
 
         // put each concerned timenode in modified elements and compute new values
-        for(auto& curTimeNodeId : timeNodesToTranslate)
+        for(const auto& curTimeNodeId : timeNodesToTranslate)
         {
-            auto& curTimeNode = scenario.timeNode(curTimeNodeId);
+            auto& curTimeNode = scenario.timeNodes.at(curTimeNodeId);
 
             // if timenode NOT already in element properties, create new element properties and set the old date
             if(! elementsProperties.timenodes.contains(curTimeNodeId))
@@ -48,7 +48,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
         }
 
         // Make a list of the constraints that need to be resized
-        for(auto& curTimeNodeId : timeNodesToTranslate)
+        for(const auto& curTimeNodeId : timeNodesToTranslate)
         {
             auto& curTimeNode = scenario.timeNode(curTimeNodeId);
 
@@ -58,10 +58,10 @@ GoodOldDisplacementPolicy::computeDisplacement(
                 const auto& ev = scenario.event(ev_id);
                 for(const auto& st_id : ev.states())
                 {
-                    const auto& st = scenario.state(st_id);
-                    if(auto& curConstraintId = st.previousConstraint())
+                    const auto& st = scenario.states.at(st_id);
+                    if(const auto& curConstraintId = st.previousConstraint())
                     {
-                        auto& curConstraint = scenario.constraint(curConstraintId);
+                        auto& curConstraint = scenario.constraints.at(curConstraintId);
 
                         // if timenode NOT already in element properties, create new element properties and set old values
                         if(! elementsProperties.constraints.contains(curConstraintId))

@@ -10,11 +10,11 @@ public:
             Path<ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
-            ExpandMode mode);
+            ExpandMode mode) override;
 
-    SerializableMoveEvent* make();
+    SerializableMoveEvent* make() override;
 
-    virtual int priority()
+    virtual int priority() override
     {
         // we set a low priority here to let plugins easily take over
         return 0;

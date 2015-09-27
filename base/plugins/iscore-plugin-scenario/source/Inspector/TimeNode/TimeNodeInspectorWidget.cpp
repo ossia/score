@@ -9,11 +9,9 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include "Inspector/MetadataWidget.hpp"
 #include "Inspector/Event/EventWidgets/EventShortcut.hpp"
+#include "Inspector/TimeNode/TriggerInspectorWidget.hpp"
 
 #include "Commands/TimeNode/SplitTimeNode.hpp"
-#include "Commands/TimeNode/SetTrigger.hpp"
-#include "Commands/TimeNode/AddTrigger.hpp"
-#include "Commands/TimeNode/RemoveTrigger.hpp"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -39,42 +37,14 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     QHBoxLayout* dateLay = new QHBoxLayout{dateWid};
 
     auto dateTitle = new QLabel{"Default date"};
-    m_date = new QLabel{QString::number(m_model.date().msec()) };
+    m_date = new QLabel{m_model.date().toString() };
 
     dateLay->addWidget(dateTitle);
     dateLay->addWidget(m_date);
 
     // Trigger
-    auto trigwidg = new QWidget{this};
-    auto triglay = new QHBoxLayout{trigwidg};
+    m_trigwidg = new TriggerInspectorWidget{m_model, this};
 
-    m_triggerLineEdit = new QLineEdit{};
-    m_triggerLineEdit->setValidator(&m_validator);
-
-    connect(m_triggerLineEdit, &QLineEdit::editingFinished,
-            this, &TimeNodeInspectorWidget::on_triggerChanged);
-
-    connect(m_model.trigger(), &TriggerModel::triggerChanged,
-        this, [this] (const iscore::Trigger& t) {
-        m_triggerLineEdit->setText(t.toString());
-    });
-
-    m_addTrigBtn = new QPushButton{"Add Trigger"};
-    m_rmTrigBtn = new QPushButton{"X"};
-
-    triglay->addWidget(m_triggerLineEdit);
-    triglay->addWidget(m_rmTrigBtn);
-    triglay->addWidget(m_addTrigBtn);
-
-    on_triggerActiveChanged();
-
-    connect(m_addTrigBtn, &QPushButton::released,
-            this, &TimeNodeInspectorWidget::createTrigger );
-
-    connect(m_rmTrigBtn, &QPushButton::released,
-            this, &TimeNodeInspectorWidget::removeTrigger);
-    connect(m_model.trigger(), &TriggerModel::activeChanged,
-            this, &TimeNodeInspectorWidget::on_triggerActiveChanged);
 
     // Events ids list
     m_eventList = new InspectorSectionWidget{"Events", this};
@@ -82,7 +52,7 @@ TimeNodeInspectorWidget::TimeNodeInspectorWidget(
     m_properties.push_back(dateWid);
     m_properties.push_back(new QLabel{tr("Trigger")});
 
-    m_properties.push_back(trigwidg);
+    m_properties.push_back(m_trigwidg);
     m_properties.push_back(m_eventList);
 
     updateAreaLayout(m_properties);
@@ -122,7 +92,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
 
     m_events.clear();
 
-    m_date->setText(QString::number(m_model.date().msec()));
+    m_date->setText(m_model.date().toString());
 
     for(const auto& event : m_model.events())
     {
@@ -141,7 +111,7 @@ void TimeNodeInspectorWidget::updateDisplayedValues()
         });
     }
 
-    m_triggerLineEdit->setText(m_model.trigger()->expression().toString());
+    m_trigwidg->updateExpression(m_model.trigger()->expression().toString());
 }
 
 void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
@@ -166,43 +136,3 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     updateDisplayedValues();
 }
-
-void TimeNodeInspectorWidget::on_triggerChanged()
-{
-    auto trig = m_validator.get();
-
-    if(*trig != m_model.trigger()->expression())
-    {
-        auto cmd = new Scenario::Command::SetTrigger{iscore::IDocument::path(m_model), std::move(*trig)};
-        emit commandDispatcher()->submitCommand(cmd);
-    }
-}
-
-void TimeNodeInspectorWidget::createTrigger()
-{
-    m_triggerLineEdit->setVisible(true);
-    m_rmTrigBtn->setVisible(true);
-    m_addTrigBtn->setVisible(false);
-
-    auto cmd = new Scenario::Command::AddTrigger{iscore::IDocument::path(m_model)};
-    emit commandDispatcher()->submitCommand(cmd);
-}
-
-void TimeNodeInspectorWidget::removeTrigger()
-{
-    m_triggerLineEdit->setVisible(false);
-    m_rmTrigBtn->setVisible(false);
-    m_addTrigBtn->setVisible(true);
-
-    auto cmd = new Scenario::Command::RemoveTrigger{iscore::IDocument::path(m_model)};
-    emit commandDispatcher()->submitCommand(cmd);
-}
-
-void TimeNodeInspectorWidget::on_triggerActiveChanged()
-{
-    bool v = m_model.trigger()->active();
-    m_triggerLineEdit->setVisible(v);
-    m_rmTrigBtn->setVisible(v);
-    m_addTrigBtn->setVisible(!v);
-}
-

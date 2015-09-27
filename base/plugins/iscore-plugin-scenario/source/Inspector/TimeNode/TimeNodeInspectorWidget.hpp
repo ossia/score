@@ -8,6 +8,7 @@ class TimeNodeModel;
 class QFormLayout;
 class MetadataWidget;
 class EventShortCut;
+class TriggerInspectorWidget;
 
 /*!
  * \brief The TimeNodeInspectorWidget class
@@ -21,19 +22,13 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
                 const TimeNodeModel& object,
                 iscore::Document& doc,
                 QWidget* parent);
-
     signals:
 
     public slots:
         void updateDisplayedValues();
 
         void on_splitTimeNodeClicked();
-        void on_triggerChanged();
 
-        void createTrigger();
-        void removeTrigger();
-
-        void on_triggerActiveChanged();
 
     private:
         QVector<QWidget*> m_properties;
@@ -46,8 +41,6 @@ class TimeNodeInspectorWidget : public InspectorWidgetBase
 
         MetadataWidget* m_metadata {};
 
-        QLineEdit* m_triggerLineEdit{};
-        QPushButton* m_addTrigBtn{};
-        QPushButton* m_rmTrigBtn{};
-        ExpressionValidator<iscore::Trigger> m_validator;
+        TriggerInspectorWidget* m_trigwidg{};
+
 };

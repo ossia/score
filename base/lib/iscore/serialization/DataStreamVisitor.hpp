@@ -65,7 +65,7 @@ class Visitor<Reader<DataStream>> : public AbstractVisitor
         static auto marshall(const T& t)
         {
             QByteArray arr;
-            Visitor<Reader<DataStream>> reader(&arr);
+            Visitor<Reader<DataStream>> reader{&arr};
             reader.readFrom(t);
             return arr;
         }
@@ -140,6 +140,16 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         Visitor<Writer<DataStream>> (QIODevice* dev) :
                                      m_stream {dev}
         {
+        }
+
+
+        template<typename T>
+        static auto unmarshall(const QByteArray& arr)
+        {
+            T data;
+            Visitor<Writer<DataStream>> wrt{arr};
+            wrt.writeTo(data);
+            return data;
         }
 
         template<typename T>

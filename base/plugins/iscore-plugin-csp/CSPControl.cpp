@@ -1,7 +1,7 @@
 #include "CSPControl.hpp"
 #include "CSPDocumentPlugin.hpp"
 #include <core/document/DocumentModel.hpp>
-/*
+
 #include <ProcessInterface/Process.hpp>
 #include "Document/Constraint/Rack/RackModel.hpp"
 // This part is somewhat similar to what moc does
@@ -12,7 +12,7 @@ void ignore_template_instantiations_CSPControl()
     NotifyingMapInstantiations_T<RackModel>();
     NotifyingMapInstantiations_T<Process>();
 }
-*/
+
 CSPControl::CSPControl(iscore::Presenter* pres) :
     iscore::PluginControlInterface {pres, "CSPControl", nullptr}
 {

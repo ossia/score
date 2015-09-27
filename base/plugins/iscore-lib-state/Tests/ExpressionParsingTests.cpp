@@ -314,6 +314,6 @@ class ExpressionParsingTests: public QObject
         }
 };
 
-QTEST_MAIN(ExpressionParsingTests)
+QTEST_APPLESS_MAIN(ExpressionParsingTests)
 #include "ExpressionParsingTests.moc"
 

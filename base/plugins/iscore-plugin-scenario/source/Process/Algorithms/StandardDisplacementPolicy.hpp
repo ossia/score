@@ -77,14 +77,14 @@ public:
             // update related events
             for (const auto& event : curTimenodeToUpdate.events())
             {
-                scenario.event(event).setDate(curTimenodeToUpdate.date());
+                scenario.events.at(event).setDate(curTimenodeToUpdate.date());
             }
         }
 
         // update affected constraints
         for(auto& curConstraintPropertiesToUpdate_id : elementsPropertiesToUpdate.constraints.keys())
         {
-            auto& curConstraintToUpdate = scenario.constraint(curConstraintPropertiesToUpdate_id);
+            auto& curConstraintToUpdate = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
             auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
 
 
@@ -190,7 +190,7 @@ namespace StandardDisplacementPolicy
     void getRelatedTimeNodes(
             ScenarioModel& scenario,
             const Id<TimeNodeModel>& firstTimeNodeMovedId,
-            QVector<Id<TimeNodeModel> >& translatedTimeNodes);
+            std::vector<Id<TimeNodeModel> >& translatedTimeNodes);
 
 
     template<typename ProcessScaleMethod>

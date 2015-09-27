@@ -44,4 +44,6 @@ class OSSIABaseScenarioElement : public QObject
 
         OSSIAStateElement* m_ossia_startState{};
         OSSIAStateElement* m_ossia_endState{};
+
+        const DeviceList& m_deviceList;
 };

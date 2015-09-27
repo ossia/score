@@ -1,7 +1,15 @@
 #pragma once
 #include <boost/optional.hpp>
 #include <QDebug>
+#include <QPointer>
+#include <iscore/tools/Todo.hpp>
 
+template<typename T>
+class NotifyingMap;
+template<typename Element, typename Model, typename Map>
+class IdContainer;
+template<typename T>
+class IdentifiedObject;
 /**
  * @brief The id_base_t class
  *
@@ -10,10 +18,33 @@
 template<typename tag, typename impl>
 class id_base_t
 {
+        friend tag;
+        friend class NotifyingMap<tag>;
+        friend class IdentifiedObject<tag>;
+
+        // TODO Try to only have Map as a tempalte type here
+        template<typename Element, typename Model, typename Map> friend class IdContainer;
     public:
         using value_type = impl;
         explicit id_base_t() = default;
+        // TODO check if then an id is returned by value,
+        // the pointer getscopied correctly
         explicit id_base_t(value_type val) : m_id {val} { }
+
+        explicit id_base_t(tag& element):
+            m_ptr{&element},
+            m_id{element.id()}
+        {
+
+        }
+
+        id_base_t& operator=(tag& element)
+        {
+            m_ptr = &element;
+            m_id = element.id();
+
+            return *this;
+        }
 
         friend bool operator== (const id_base_t& lhs, const id_base_t& rhs)
         {
@@ -56,6 +87,7 @@ class id_base_t
         }
 
     private:
+        mutable QPointer<QObject> m_ptr;
         value_type m_id {};
 };
 

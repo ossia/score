@@ -69,19 +69,8 @@ class MapBase
         auto& get() { return map.template get<0>(); }
         const auto& get() const { return map.template get<0>(); }
 
-#ifdef ISCORE_DEBUG
-        auto& at(const Id<model_type>& id) const
-        {
-            auto item = map.find(id);
-            ISCORE_ASSERT(item != map.end());
-            return **item;
-        }
-#else
-        auto& at(const Id<model_type>& id) const
-        { return *find(id); }
-#endif
 
-    private:
+    protected:
         Map map;
 };
 
@@ -113,6 +102,7 @@ class IdContainer<Element, Model,
             >
         >
 {
+    public:
    using MapBase<
     Element,
     Model,
@@ -129,6 +119,21 @@ class IdContainer<Element, Model,
         >
     >
 >::MapBase;
+
+        Element& at(const Id<Model>& id) const
+        {
+            if(id.m_ptr)
+            {
+                ISCORE_ASSERT(id.m_ptr->parent() == (*this->map.find(id))->parent());
+                return safe_cast<Element&>(*id.m_ptr);
+            }
+            auto item = this->map.find(id);
+            ISCORE_ASSERT(item != this->map.end());
+
+            id.m_ptr = *item;
+            return safe_cast<Element&>(**item);
+        }
+
 };
 
 
@@ -158,6 +163,7 @@ class IdContainer<Element, Model,
             >
         >
 {
+    public:
     using MapBase<
     Element,
     Model,
@@ -174,4 +180,11 @@ class IdContainer<Element, Model,
         >
     >
 >::MapBase;
+
+        auto& at(const Id<Model>& id) const
+        {
+            auto item = this->map.find(id);
+            ISCORE_ASSERT(item != this->map.end());
+            return **item;
+        }
 };

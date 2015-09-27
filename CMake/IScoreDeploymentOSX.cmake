@@ -1,5 +1,18 @@
 if(APPLE)
 
+set_target_properties(
+  ${APPNAME}
+  PROPERTIES
+    MACOSX_BUNDLE_INFO_STRING "i-score, an interactive sequencer for the intermedia arts"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.i-score"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_NAME "i-score"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "The i-score team"
+    MACOSX_BUNDLE_ICON_FILE "i-score.icns"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+)
 # Copy the dylibs if necessary
 if(NOT ISCORE_STATIC_PLUGINS)
     set(ISCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/")
@@ -44,10 +57,6 @@ endif()
 # Qt setup
 include(DeployQt5)
 if(ISCORE_STATIC_PLUGINS) # For now we only take this branch
-    foreach(plugin ${ISCORE_PLUGINS})
-        list(APPEND ISCORE_BUNDLE_INSTALLED_PLUGINS ${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib)
-    endforeach()
-
     # We don't put the Jamoma path in here, because the paths get perverted by DeployQt5.
     install_qt5_executable(${APPNAME}.app "" "" "${CMAKE_BINARY_DIR}/base/lib")
 else()

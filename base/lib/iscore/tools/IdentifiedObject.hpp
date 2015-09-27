@@ -26,6 +26,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
             m_id {id}
         {
+            m_id.m_ptr = this;
         }
 
         template<typename ReaderImpl, typename... Args>
@@ -34,6 +35,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             IdentifiedObjectAbstract {v, std::forward<Args> (args)...}
         {
             v.writeTo(*this);
+            m_id.m_ptr = this;
         }
 
         const Id<model>& id() const

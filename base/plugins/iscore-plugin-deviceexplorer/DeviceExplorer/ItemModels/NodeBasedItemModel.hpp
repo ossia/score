@@ -8,6 +8,7 @@
  * Provides basic tree-like functionality
  * shared between item models that uses the iscore::Node.
  */
+// TESTME
 class NodeBasedItemModel : public QAbstractItemModel
 {
     public:

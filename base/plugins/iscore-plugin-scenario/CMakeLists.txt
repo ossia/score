@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_scenario)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-
-set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface" PARENT_SCOPE)
-set(SCENARIO_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source" PARENT_SCOPE)
+iscore_common_setup()
 
 option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
 if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
@@ -18,13 +12,6 @@ find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test OpenGL)
 
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../") # API
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../iscore-plugin-csp/")# TODO remove
-
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 set(PROCESS_SRCS
@@ -47,17 +34,8 @@ add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
 target_link_libraries(iscore_lib_process
     Qt5::Core Qt5::Widgets
     iscore_lib_base iscore_lib_state)
-install(TARGETS iscore_lib_process
-    LIBRARY DESTINATION .
-    ARCHIVE DESTINATION static_lib/
-    COMPONENT DynamicRuntime)
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_lib_process PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(iscore_lib_process)
-endif()
+setup_iscore_library(iscore_lib_process)
 
 ### Plugin ###
 file(GLOB_RECURSE HDRS
@@ -295,6 +273,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TriggerInspectorWidget.cpp"
     )
 
     set(SRCS ${SRCS} ${INSPECTOR_SRCS})
@@ -315,21 +294,7 @@ if(TARGET iscore_lib_inspector)
     target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
 endif()
 
+setup_iscore_plugin(iscore_plugin_scenario)
+set_property(TARGET iscore_plugin_scenario APPEND
+             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_plugin_scenario PROPERTIES
-                              COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-        set_target_properties(iscore_plugin_scenario PROPERTIES
-                              COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
-
-    cotire(iscore_plugin_scenario)
-endif()
-
-install(TARGETS iscore_plugin_scenario
-    LIBRARY DESTINATION plugins/
-    ARCHIVE DESTINATION static_plugins/
-    COMPONENT DynamicRuntime)
-
-#add_subdirectory(tests)

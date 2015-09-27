@@ -144,7 +144,7 @@ class MoveEvent : public SerializableMoveEvent
             updateEventExtent(m_eventId, scenario);
         }
 
-        const Path<ScenarioModel>& path() const
+        const Path<ScenarioModel>& path() const override
         { return m_path; }
 
     protected:
