@@ -261,11 +261,15 @@ bool Presenter::saveDocumentAs(Document * doc)
     return false;
 }
 
-Document* Presenter::loadDocument()
+Document* Presenter::loadFile()
+{
+    QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
+    return loadFile(loadname);
+}
+
+Document* Presenter::loadFile(const QString& loadname)
 {
     Document* doc{};
-    QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
-
     if(!loadname.isEmpty())
     {
         QFile f {loadname};
@@ -335,7 +339,7 @@ void Presenter::setupMenus()
     //// Save and load
     auto openAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                                        FileMenuElement::Load,
-                                                       [this]() { loadDocument(); });
+                                                       [this]() { loadFile(); });
     openAct->setShortcut(QKeySequence::Open);
 
     auto saveAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -347,11 +351,6 @@ void Presenter::setupMenus()
                                                        FileMenuElement::SaveAs,
                                                        [this]() { saveDocumentAs(currentDocument()); });
     saveAsAct->setShortcut(QKeySequence::SaveAs);
-
-
-    //	m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-    //										FileMenuElement::SaveAs,
-    //										notyet);
 
     // ----------
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,

@@ -1,4 +1,5 @@
 #pragma once
+#include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
 #include <iscore/tools/NamedObject.hpp>
@@ -28,15 +29,21 @@ namespace iscore
             // Returns the direct child of qApp.
             static Application& instance();
 
-            Application(int& argc, char** argv);
+            Application(
+                    int& argc,
+                    char** argv);
+
+            Application(
+                    const ApplicationSettings& appSettings,
+                    int& argc,
+                    char** argv);
+
             Application(const Application&) = delete;
             Application& operator= (const Application&) = delete;
             ~Application();
 
             int exec()
-            {
-                return m_app->exec();
-            }
+            { return m_app->exec(); }
 
             Presenter* presenter() const
             { return m_presenter; }
@@ -49,6 +56,7 @@ namespace iscore
 
 
         private:
+            void init(); // m_applicationSettings has to be set.
             void loadPluginData();
 
             // Base stuff.
@@ -61,5 +69,7 @@ namespace iscore
 
             // Data
             PluginManager m_pluginManager {this};
+
+            ApplicationSettings m_applicationSettings;
     };
 }

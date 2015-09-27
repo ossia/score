@@ -55,4 +55,6 @@ set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
 
 add_subdirectory(base)
 
+setup_iscore_tests(Tests/Integration)
+
 include(CTest)

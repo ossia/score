@@ -250,6 +250,8 @@ static void NotifyingMapInstantiations_T()
     NotifyingMap<T> m;
     m.add(nullptr);
     T* ptr{};
+    m.added(*ptr);
+    m.removed(*ptr);
     m.remove(ptr);
     m.remove(Id<T>{});
 }
