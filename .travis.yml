@@ -19,6 +19,10 @@ env:
 
 # TODO : DEPLOYMENT=False & Release ?
 matrix:
+  exclude:
+    - os: linux
+    - os: osx
+    
   include:      
     - os: linux
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
