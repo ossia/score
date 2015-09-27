@@ -29,8 +29,11 @@ then
     ;;
   esac
 else
-  source /opt/qt55/bin/qt55-env.sh
-  /usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
-  
-  eval "$COVERITY_SCAN_BUILD"
+  if [[ "$TRAVIS_BRANCH" = "$COVERITY_SCAN_BRANCH_PATTERN" ]];
+  then
+    source /opt/qt55/bin/qt55-env.sh
+    /usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
+    
+    eval "$COVERITY_SCAN_BUILD"
+  fi
 fi

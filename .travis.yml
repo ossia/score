@@ -45,9 +45,6 @@ matrix:
   # Coverity
     - os: linux
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
-  
-  allow_failures:
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
       
 before_install:
 - "./tools/travis/deps.sh"
