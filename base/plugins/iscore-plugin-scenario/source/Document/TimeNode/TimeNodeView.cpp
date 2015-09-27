@@ -42,11 +42,6 @@ void TimeNodeView::paint(QPainter* painter,
 #endif
 }
 
-QRectF TimeNodeView::boundingRect() const
-{
-    return { -3., 0., 6., m_extent.bottom() - m_extent.top()};
-}
-
 void TimeNodeView::setExtent(const VerticalExtent& extent)
 {
     prepareGeometryChange();

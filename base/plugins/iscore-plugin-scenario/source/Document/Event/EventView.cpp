@@ -28,9 +28,6 @@ EventView::EventView(EventPresenter& presenter,
     m_color = Qt::white;
 }
 
-int EventView::type() const
-{ return QGraphicsItem::UserType + 1; }
-
 const EventPresenter& EventView::presenter() const
 {
     return m_presenter;
@@ -65,10 +62,7 @@ bool EventView::hasTrigger() const
 }
 
 
-QRectF EventView::boundingRect() const
-{
-    return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};
-}
+
 
 void EventView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,

@@ -25,10 +25,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 }
 
 
-QRectF TemporalConstraintView::boundingRect() const
-{
-    return {0, -15, qreal(maxWidth()), qreal(constraintHeight()) };
-}
+
 
 void TemporalConstraintView::paint(
         QPainter* painter,
