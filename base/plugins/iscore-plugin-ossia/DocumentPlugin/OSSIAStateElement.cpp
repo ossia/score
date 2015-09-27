@@ -11,7 +11,7 @@ OSSIAStateElement::OSSIAStateElement(
         QObject *parent):
     QObject{parent},
     m_iscore_state{element},
-    m_ossia_rootState{root},
+    m_ossia_state{root},
     m_deviceList{deviceList}
 {
     con(m_iscore_state, &StateModel::sig_statesUpdated, this,
@@ -27,9 +27,9 @@ const StateModel &OSSIAStateElement::iscoreState() const
 
 void OSSIAStateElement::on_stateUpdated()
 {
-    m_ossia_rootState->stateElements().clear();
+    m_ossia_state->stateElements().clear();
     iscore::convert::state(
-                m_ossia_rootState,
+                m_ossia_state,
                 m_iscore_state.messages().rootNode(),
                 m_deviceList);
 }

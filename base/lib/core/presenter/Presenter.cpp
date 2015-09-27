@@ -58,6 +58,7 @@ Presenter::~Presenter()
     }
 
     m_documents.clear();
+    m_currentDocument = nullptr;
 }
 
 void Presenter::registerPluginControl(PluginControlInterface* ctrl)

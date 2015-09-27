@@ -66,7 +66,7 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     }
 }
 
-std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::constraint() const
+std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraintElement::OSSIAConstraint() const
 {
     return m_ossia_constraint;
 }

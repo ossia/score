@@ -25,7 +25,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
 
             for(const auto& state : selectedElements(sm->states))
             {
-                s_plugin->states().at(state->id())->rootState()->launch();
+                s_plugin->states().at(state->id())->OSSIAState()->launch();
             }
         }
     });
@@ -54,7 +54,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
 
             for(const auto& ev : selectedElements(sm->events))
             {
-                s_plugin->events().at(ev->id())->event()->happen();
+                s_plugin->events().at(ev->id())->OSSIAEvent()->happen();
             }
         }
     });

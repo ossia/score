@@ -23,15 +23,12 @@ endif()
 target_link_libraries(${APPNAME} iscore_lib_base)
 
 if(ISCORE_STATIC_PLUGINS)
-    set(ISCORE_PLUGINS_FILE "${CMAKE_CURRENT_BINARY_DIR}/iscore_static_plugins.hpp")
+    set(ISCORE_PLUGINS_FILE "${ISCORE_ROOT_BINARY_DIR}/iscore_static_plugins.hpp")
     file(WRITE "${ISCORE_PLUGINS_FILE}" "#pragma once\n")
     foreach(plugin ${ISCORE_PLUGINS_LIST})
         message("${plugin}")
         file(APPEND "${ISCORE_PLUGINS_FILE}" "Q_IMPORT_PLUGIN(${plugin})\n")
     endforeach()
-
-    target_compile_definitions(${APPNAME}
-                               PUBLIC ISCORE_STATIC_PLUGINS)
 
     target_link_libraries(${APPNAME} ${ISCORE_PLUGINS_LIST})
 endif()
@@ -42,5 +39,13 @@ install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
         RUNTIME DESTINATION bin
         COMPONENT Runtime)
+
+if(INTEGRATION_TESTING)
+    add_library(iscore_integration_lib INTERFACE)
+
+    target_link_libraries(iscore_integration_lib INTERFACE
+      ${ISCORE_PLUGINS_LIST}
+      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::PrintSupport Qt5::Svg Qt5::Test Qt5::DBus)
+endif()
 
 include(IScoreDeployment)

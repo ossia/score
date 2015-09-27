@@ -1,7 +1,7 @@
 #include <core/application/Application.hpp>
 
 #if defined(ISCORE_STATIC_PLUGINS)
-#include "iscore_static_plugins.hpp"
+#include <iscore_static_plugins.hpp>
 #endif
 
 #include <QSurfaceFormat>

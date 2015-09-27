@@ -10,6 +10,7 @@
 #include "OSSIATimeNodeElement.hpp"
 #include "OSSIAStateElement.hpp"
 #include "OSSIAEventElement.hpp"
+#include <Editor/TimeEvent.h>
 #include <QPointer>
 class EventModel;
 class ConstraintModel;

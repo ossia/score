@@ -11,7 +11,7 @@ OSSIAEventElement::OSSIAEventElement(
         QObject* parent):
     QObject{parent},
     m_iscore_event{element},
-    m_event{event},
+    m_ossia_event{event},
     m_deviceList{deviceList}
 {
     con(m_iscore_event, &EventModel::conditionChanged,
@@ -21,9 +21,9 @@ OSSIAEventElement::OSSIAEventElement(
 
 }
 
-std::shared_ptr<OSSIA::TimeEvent> OSSIAEventElement::event() const
+std::shared_ptr<OSSIA::TimeEvent> OSSIAEventElement::OSSIAEvent() const
 {
-    return m_event;
+    return m_ossia_event;
 }
 
 void OSSIAEventElement::on_conditionChanged(const iscore::Condition& c)
@@ -31,7 +31,7 @@ try
 {
     auto expr = iscore::convert::expression(c, m_deviceList);
 
-    m_event->setExpression(expr);
+    m_ossia_event->setExpression(expr);
 }
 catch(std::exception& e)
 {

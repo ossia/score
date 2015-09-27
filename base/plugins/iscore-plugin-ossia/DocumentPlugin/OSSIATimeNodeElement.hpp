@@ -19,7 +19,7 @@ class OSSIATimeNodeElement : public QObject
                 const DeviceList& devlist,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeNode> timeNode() const;
+        std::shared_ptr<OSSIA::TimeNode> OSSIATimeNode() const;
 
     private:
         void on_triggerChanged(const iscore::Trigger& c);

@@ -21,7 +21,7 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
     on_triggerChanged(m_iscore_node.trigger()->expression());
 }
 
-std::shared_ptr<OSSIA::TimeNode> OSSIATimeNodeElement::timeNode() const
+std::shared_ptr<OSSIA::TimeNode> OSSIATimeNodeElement::OSSIATimeNode() const
 {
     return m_ossia_node;
 }

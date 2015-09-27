@@ -99,8 +99,8 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
 
     auto ossia_cst = OSSIA::TimeConstraint::create(
                 OSSIA::TimeConstraint::ExecutionCallback{},
-                ossia_sev->event(),
-                ossia_eev->event(),
+                ossia_sev->OSSIAEvent(),
+                ossia_eev->OSSIAEvent(),
                 iscore::convert::time(cst.duration.defaultDuration()),
                 iscore::convert::time(cst.duration.minDuration()),
                 iscore::convert::time(cst.duration.maxDuration()));
@@ -120,7 +120,7 @@ void OSSIAScenarioElement::on_stateCreated(const StateModel &iscore_state)
 
     // Create the mapping object
     auto root_state = OSSIA::State::create();
-    ossia_ev->event()->addState(root_state);
+    ossia_ev->OSSIAEvent()->addState(root_state);
 
     auto state_elt = new OSSIAStateElement{
             iscore_state,
@@ -138,15 +138,15 @@ void OSSIAScenarioElement::on_eventCreated(const EventModel& const_ev)
     ISCORE_ASSERT(m_ossia_timenodes.find(ev.timeNode()) != m_ossia_timenodes.end());
     auto ossia_tn = m_ossia_timenodes.at(ev.timeNode());
 
-    auto ossia_ev = *ossia_tn->timeNode()->emplace(
-                ossia_tn->timeNode()->timeEvents().begin(),
+    auto ossia_ev = *ossia_tn->OSSIATimeNode()->emplace(
+                ossia_tn->OSSIATimeNode()->timeEvents().begin(),
                 OSSIA::TimeEvent::ExecutionCallback{});
 
     // Create the mapping object
     auto elt = new OSSIAEventElement{ossia_ev, ev, m_deviceList, this};
     m_ossia_timeevents.insert({ev.id(), elt});
 
-    elt->event()->setCallback([=] (OSSIA::TimeEvent::Status st) {
+    elt->OSSIAEvent()->setCallback([=] (OSSIA::TimeEvent::Status st) {
         return eventCallback(*elt, st);
     });
 }
@@ -178,10 +178,10 @@ void OSSIAScenarioElement::on_constraintRemoved(const ConstraintModel& iscore_cs
     auto it = m_ossia_constraints.find(iscore_cstr.id());
     auto cst = (*it).second;
 
-    auto ref = cst->constraint();
+    auto ref = cst->OSSIAConstraint();
 
     // API Cleanup
-    m_ossia_scenario->removeTimeConstraint(cst->constraint());
+    m_ossia_scenario->removeTimeConstraint(cst->OSSIAConstraint());
 
     // Remove the constraint from the events
     auto& startEventNextConstraints = ref->getStartEvent()->nextTimeConstraints();
@@ -209,7 +209,7 @@ void OSSIAScenarioElement::on_stateRemoved(const StateModel& iscore_state)
     if(ev_it != m_ossia_timeevents.end())
     {
         OSSIAEventElement* ev = (*ev_it).second;
-        ev->event()->removeState(state_elt->rootState());
+        ev->OSSIAEvent()->removeState(state_elt->OSSIAState());
     }
 
     m_ossia_states.erase(it);
@@ -228,8 +228,8 @@ void OSSIAScenarioElement::on_eventRemoved(const EventModel& iscore_ev)
         OSSIATimeNodeElement* tn = (*tn_it).second;
 
         // Cleanup the timenode
-        auto& timeEvents = tn->timeNode()->timeEvents();
-        timeEvents.erase( std::remove( timeEvents.begin(), timeEvents.end(), ev->event()), timeEvents.end());
+        auto& timeEvents = tn->OSSIATimeNode()->timeEvents();
+        timeEvents.erase( std::remove( timeEvents.begin(), timeEvents.end(), ev->OSSIAEvent()), timeEvents.end());
     }
 
     m_ossia_timeevents.erase(ev_it);
@@ -241,7 +241,7 @@ void OSSIAScenarioElement::on_timeNodeRemoved(const TimeNodeModel& iscore_tn)
     auto tn_it = m_ossia_timenodes.find(iscore_tn.id());
     OSSIATimeNodeElement* tn = (*tn_it).second;
 
-    m_ossia_scenario->removeTimeNode(tn->timeNode());
+    m_ossia_scenario->removeTimeNode(tn->OSSIATimeNode());
     // Deletion will be part of the TimeNodeModel* delete.
 
     m_ossia_timenodes.erase(tn_it);

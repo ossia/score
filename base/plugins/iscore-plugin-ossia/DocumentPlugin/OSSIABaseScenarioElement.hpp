@@ -27,11 +27,15 @@ class OSSIABaseScenarioElement : public QObject
                 QObject* parent);
 
         OSSIAConstraintElement* baseConstraint() const;
+
         OSSIATimeNodeElement* startTimeNode() const;
         OSSIATimeNodeElement* endTimeNode() const;
 
         OSSIAEventElement* startEvent() const;
         OSSIAEventElement* endEvent() const;
+
+        OSSIAStateElement* startState() const;
+        OSSIAStateElement* endState() const;
 
     private:
         OSSIAConstraintElement* m_ossia_constraint{};

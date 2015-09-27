@@ -56,7 +56,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
                 if(b)
                 {
                     if(m_playing)
-                        baseConstraint().constraint()->resume();
+                        baseConstraint().OSSIAConstraint()->resume();
                     else
                         baseConstraint().play();
 
@@ -64,7 +64,7 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
                 }
                 else
                 {
-                    baseConstraint().constraint()->pause();
+                    baseConstraint().OSSIAConstraint()->pause();
                 } });
         }
         if(act->objectName() == "Stop")
@@ -86,14 +86,23 @@ OSSIAControl::~OSSIAControl()
 
     // TODO check the deletion order.
     // Maybe we should have a dependency graph of some kind ??
-    if(currentDocument())
+    if(currentDocument()
+    && currentDocument()->model().pluginModel<OSSIADocumentPlugin>()
+    && currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario())
+    {
         baseConstraint().stop();
+    }
 }
 
 
 OSSIAConstraintElement &OSSIAControl::baseConstraint() const
 {
     return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
+}
+
+OSSIABaseScenarioElement&OSSIAControl::baseScenario() const
+{
+    return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
 }
 
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)

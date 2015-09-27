@@ -1,26 +1,20 @@
+#include <IscoreIntegrationTests.hpp>
+#include <Editor/TimeConstraint.h>
 
-#include <QtWidgets>
-#include <QtTest/QtTest>
-#include <core/application/Application.hpp>
-class Test1: public QObject
+class Test1: public IscoreTestBase
 {
-    Q_OBJECT
+        Q_OBJECT
+    public:
+        using IscoreTestBase::IscoreTestBase;
 
-private slots:
-    void testGui()
-    {
-        int argc = 0;
-        iscore::Application app{argc, nullptr};
-        QLineEdit lineEdit;
-
-        QTest::keyClicks(&lineEdit, "hello world");
-
-        QCOMPARE(lineEdit.text(), QString("hello world"));
-        qApp->postEvent(0, 0);
-        app.exec();
-    }
-
+    private slots:
+        void testGui()
+        {
+            const auto& baseconstraint = getBaseScenario().baseConstraint()->OSSIAConstraint();
+            QVERIFY(baseconstraint->timeProcesses().size() == 1); // There is a scenario at the beginning
+        }
 };
 
-QTEST_MAIN(Test1)
+ISCORE_INTEGRATION_TEST(Test1)
+
 #include "Test1.moc"
