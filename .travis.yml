@@ -7,13 +7,6 @@ os:
 osx_image: xcode6.4
 
 env:
-  - BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
-  - BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-  - BUILD_TYPE=Debug   STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-  - BUILD_TYPE=Release STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
-  - BUILD_TYPE=Release STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
-
-env:
   global:
   # Coverity
    - secure: "qu69N1nyTl2TPAMQKSW7gnHFNiTpKGs+xLIl6pGZp28HtLsI+ejeQD2FuVcN2w8RUpUSWL7VBHXtSrEN0ByM2UJ2JSYaEdNyLH0aOt0irDLfUciNhIkG02oY1/pIL+e5+CwB/rsk19Bai6Q9VKJDNnM0WFV4fLvMMDOKFXuncKU="
@@ -24,10 +17,31 @@ env:
    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
 
+# TODO : DEPLOYMENT=False & Release ?
 matrix:
-  exclude:
+  include:      
+    - os: linux
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux 
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux 
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+      
     - os: osx
-      env: BUILD_TYPE=Debug   STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: osx 
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: osx
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
+    - os: osx
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+  
+  # Coverity
+  allow_failures:
+    - os: linux
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
       
 before_install:
 - "./tools/travis/deps.sh"
