@@ -3,7 +3,6 @@
 #include <QResizeEvent>
 
 #include <QPainter>
-#include <QOpenGLWidget>
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QDebug>

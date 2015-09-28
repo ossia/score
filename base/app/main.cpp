@@ -13,11 +13,11 @@ int main(int argc, char** argv)
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(DeviceExplorer);
 #endif
-
+#if defined(ISCORE_OPENGL)
     QSurfaceFormat fmt;
     fmt.setSamples(2);
     QSurfaceFormat::setDefaultFormat(fmt);
-
+#endif
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     iscore::Application app(argc, argv);
