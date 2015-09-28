@@ -18,6 +18,7 @@ CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVec
 
     }else
     {
+        ISCORE_BREAKPOINT;
         throw std::runtime_error("No CSP scenario found for this model");
     }
 }
