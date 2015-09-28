@@ -95,8 +95,7 @@ ConstraintModel& BaseElementModel::baseConstraint() const
     return m_baseScenario->baseConstraint();
 }
 
-namespace {
-void updateSlotFocus(const LayerModel* lm, bool b)
+static void updateSlotFocus(const LayerModel* lm, bool b)
 {
     if(lm && lm->parent())
     {
@@ -105,7 +104,6 @@ void updateSlotFocus(const LayerModel* lm, bool b)
             slot->setFocus(b);
         }
     }
-}
 }
 
 void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)

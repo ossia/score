@@ -64,6 +64,8 @@ namespace iscore
             // Restore documents after a crash
             void restoreDocuments();
 
+            const auto& documents() const
+            { return m_documents; }
             Document* currentDocument() const;
             void setCurrentDocument(Document* doc);
 
@@ -78,7 +80,8 @@ namespace iscore
             bool saveDocument(Document*);
             bool saveDocumentAs(Document*);
 
-            Document* loadDocument();
+            Document* loadFile();
+            Document* loadFile(const QString& filename);
 
             // Toolbars
             QList<OrderedToolbar>& toolbars()

@@ -36,6 +36,10 @@ if(APPLE AND DEPLOYMENT_BUILD)
   add_definitions(-DISCORE_DEPLOYMENT_BUILD)
 endif()
 
+if(INTEGRATION_TESTING)
+  set(ISCORE_STATIC_PLUGINS True)
+endif()
+
 if(ISCORE_STATIC_PLUGINS)
     set(BUILD_SHARED_LIBS OFF)
     add_definitions(-DQT_STATICPLUGIN)
@@ -46,13 +50,17 @@ endif()
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test LinguistTools DBus)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
-
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${ISCORE_ROOT_BINARY_DIR}")
 include_directories("${3RDPARTY_FOLDER}/variant/include")
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator")
 
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
 
 add_subdirectory(base)
+
+if(INTEGRATION_TESTING)
+    setup_iscore_tests(Tests/Integration)
+endif()
 
 include(CTest)

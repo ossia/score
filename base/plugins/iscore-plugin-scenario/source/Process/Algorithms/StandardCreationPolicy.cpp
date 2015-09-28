@@ -3,6 +3,7 @@
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Document/TimeNode/Trigger/TriggerModel.hpp>
 
 void ScenarioCreate<TimeNodeModel>::undo(
         const Id<TimeNodeModel>& id,
@@ -116,10 +117,20 @@ ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
 
     const auto& sev = s.event(sst.eventId());
     const auto& eev = s.event(est.eventId());
+    const auto& tn = s.timeNode(eev.timeNode());
+
 
     ConstraintDurations::Algorithms::changeAllDurations(*constraint,
                                                     eev.date() - sev.date());
     constraint->setStartDate(sev.date());
+
+    if(tn.trigger()->active())
+    {
+        constraint->duration.setRigid(false);
+        const auto& dur = constraint->duration.defaultDuration();
+        constraint->duration.setMinDuration( TimeValue::fromMsecs(0.8 * dur.msec()));
+        constraint->duration.setMaxDuration( TimeValue::fromMsecs(1.2 * dur.msec()));
+    }
 
     return *constraint;
 }

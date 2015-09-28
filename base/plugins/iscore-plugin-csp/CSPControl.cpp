@@ -4,6 +4,8 @@
 
 #include <ProcessInterface/Process.hpp>
 #include "Document/Constraint/Rack/RackModel.hpp"
+
+#if defined(ISCORE_STATIC_PLUGINS) || defined(ISCORE_COMPILER_IS_AppleClang)
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
 #include <iscore/tools/NotifyingMap_impl.hpp>
@@ -12,7 +14,7 @@ void ignore_template_instantiations_CSPControl()
     NotifyingMapInstantiations_T<RackModel>();
     NotifyingMapInstantiations_T<Process>();
 }
-
+#endif
 CSPControl::CSPControl(iscore::Presenter* pres) :
     iscore::PluginControlInterface {pres, "CSPControl", nullptr}
 {

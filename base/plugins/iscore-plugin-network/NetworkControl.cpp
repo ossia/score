@@ -138,12 +138,14 @@ DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &n
 #include "DistributedScenario/Commands/ChangeGroup.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
 
+namespace {
 struct NetworkCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap NetworkCommandFactory::map;
+}
 
 void NetworkControl::setupCommands()
 {

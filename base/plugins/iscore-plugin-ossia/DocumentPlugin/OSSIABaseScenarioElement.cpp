@@ -82,3 +82,13 @@ OSSIAEventElement *OSSIABaseScenarioElement::endEvent() const
 {
     return m_ossia_endEvent;
 }
+
+OSSIAStateElement *OSSIABaseScenarioElement::startState() const
+{
+    return m_ossia_startState;
+}
+
+OSSIAStateElement *OSSIABaseScenarioElement::endState() const
+{
+    return m_ossia_endState;
+}

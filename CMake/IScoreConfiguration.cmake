@@ -10,6 +10,7 @@ option(ISCORE_COTIRE "Use cotire. Will make the build faster." OFF)
 option(ISCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Faster for CI but slower for development" OFF)
 
 option(ISCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
+option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
@@ -38,7 +39,7 @@ else()
   if(NOT APPLE AND NOT WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
-    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
   endif()
 
 

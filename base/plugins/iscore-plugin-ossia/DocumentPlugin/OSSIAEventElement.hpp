@@ -1,7 +1,6 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <State/Expression.hpp>
-#include <API/Headers/Editor/TimeEvent.h>
 #include <memory>
 class DeviceList;
 class EventModel;
@@ -18,7 +17,7 @@ class OSSIAEventElement : public QObject
                 const DeviceList& deviceList,
                 QObject* parent);
 
-        std::shared_ptr<OSSIA::TimeEvent> event() const;
+        std::shared_ptr<OSSIA::TimeEvent> OSSIAEvent() const;
         const EventModel& iscoreEvent() const
         { return m_iscore_event; }
 
@@ -29,6 +28,6 @@ class OSSIAEventElement : public QObject
         void on_conditionChanged(const iscore::Condition& c);
 
         const EventModel& m_iscore_event;
-        std::shared_ptr<OSSIA::TimeEvent> m_event;
+        std::shared_ptr<OSSIA::TimeEvent> m_ossia_event;
         const DeviceList& m_deviceList;
 };

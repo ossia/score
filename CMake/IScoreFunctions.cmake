@@ -36,6 +36,11 @@ function(setup_iscore_common_features TheTarget)
     set_property(TARGET ${TheTarget}
                  PROPERTY INTERPROCEDURAL_OPTIMIZATION True)
   endif()
+
+  if(ISCORE_STATIC_PLUGINS)
+    target_compile_definitions(${TheTarget}
+                               PUBLIC ISCORE_STATIC_PLUGINS)
+  endif()
 endfunction()
 
 
