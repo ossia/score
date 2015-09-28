@@ -12,4 +12,8 @@ endFunction()
 # Commands
 addIntegrationTest(Test1
              "${CMAKE_CURRENT_SOURCE_DIR}/Test1.cpp")
+addIntegrationTest(TestStatesMinMax
+             "${CMAKE_CURRENT_SOURCE_DIR}/States/TestStatesMinMax.cpp")
+addIntegrationTest(TestStatesCurve
+             "${CMAKE_CURRENT_SOURCE_DIR}/States/TestStatesCurve.cpp")
 
