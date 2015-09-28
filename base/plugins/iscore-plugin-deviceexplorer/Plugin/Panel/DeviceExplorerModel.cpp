@@ -971,11 +971,6 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
         // if there is an existing device that would use the same ports, etc.
         // we have to open a dialog to change the device settings.
 
-        if(row == -1)
-        {
-            row = parentNode->childCount();
-        }
-
         Deserializer<JSONObject> deser{QJsonDocument::fromJson(mimeData->data(mimeType)).object()};
         Node n;
         deser.writeTo(n);

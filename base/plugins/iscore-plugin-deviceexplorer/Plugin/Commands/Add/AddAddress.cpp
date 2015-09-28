@@ -27,6 +27,7 @@ AddAddress::AddAddress(
     {
         parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
     }
+    ISCORE_ASSERT(parentNode);
     m_parentNodePath = iscore::NodePath{*parentNode};
 }
 

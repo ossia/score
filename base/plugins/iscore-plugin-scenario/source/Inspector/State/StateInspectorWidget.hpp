@@ -25,5 +25,4 @@ class StateInspectorWidget : public InspectorWidgetBase
         const StateModel& m_model;
 
         InspectorSectionWidget* m_stateSection{};
-        QVector<StateWidget*> m_stateWidgets;
 };
