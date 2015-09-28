@@ -15,7 +15,7 @@ class AddMessagesToModel : public iscore::SerializableCommand
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddMessagesToModel)
         AddMessagesToModel(
-        Path<iscore::MessageItemModel>&& path,
+          Path<iscore::MessageItemModel>&& path,
           const iscore::MessageList& messages);
 
         virtual void undo() override;

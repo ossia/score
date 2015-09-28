@@ -14,9 +14,9 @@ CreateConstraint_State::CreateConstraint_State(
         double endStateY):
     iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
     m_newState{getStrongId(scenario.states)},
-    m_command{iscore::IDocument::path(scenario),
-                       startState,
-                       m_newState},
+    m_command{scenario,
+              startState,
+              m_newState},
     m_endEvent{endEvent},
     m_stateY{endStateY}
 {

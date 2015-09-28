@@ -82,7 +82,7 @@ void RecordManager::stopRecording()
 
         // Add a point with the last state.
         auto initCurveCmd = new InitAutomation{
-                iscore::IDocument::path(*safe_cast<AutomationModel*>(recorded.second.curveModel.parent())),
+                *safe_cast<AutomationModel*>(recorded.second.curveModel.parent()),
                 recorded.first,
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
@@ -166,10 +166,10 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
     m_dispatcher->submitCommand(cmd_end);
 
     auto& cstr = scenar.constraints.at(cmd_end->createdConstraint());
-    auto cstr_path = iscore::IDocument::path(cstr);
+    Path<ConstraintModel> cstr_path{cstr};
 
     auto cmd_move = new Scenario::Command::MoveNewEvent(
-                iscore::IDocument::path(scenar),
+                scenar,
                 cstr.id(),
                 cmd_end->createdEvent(),
                 default_end_date,

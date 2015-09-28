@@ -36,7 +36,7 @@ namespace Scenario
 
                     for(LayerModel* lm : sourceslot->layerModels())
                     {
-                        addCommand(new MoveLayerModel(iscore::IDocument::path(lm),
+                        addCommand(new MoveLayerModel(lm,
                         ObjectPath {mergeTarget}));
                     }
 

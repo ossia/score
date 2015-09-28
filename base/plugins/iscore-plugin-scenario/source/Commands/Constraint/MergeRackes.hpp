@@ -34,7 +34,7 @@ namespace Scenario
                     for(const auto& slot : sourcerack.slotmodels)
                     {
                         addCommand(new MoveSlot{
-                                       iscore::IDocument::path(slot),
+                                       slot,
                                        Path<RackModel>{mergeTarget}});
                     }
 

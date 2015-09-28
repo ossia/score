@@ -60,6 +60,7 @@ class Path
         Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
         Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
 
+        Path(const Object& obj): Path(iscore::IDocument::path(obj)) { }
         Path() = default;
         Path(const Path&) = default;
         Path(Path&&) = default;

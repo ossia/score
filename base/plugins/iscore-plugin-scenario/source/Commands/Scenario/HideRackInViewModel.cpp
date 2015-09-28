@@ -21,7 +21,7 @@ HideRackInViewModel::HideRackInViewModel(
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_constraintViewPath {iscore::IDocument::path(constraint_vm) }
+    m_constraintViewPath {constraint_vm}
 {
     m_constraintPreviousId = constraint_vm.shownRack();
 }

@@ -23,8 +23,7 @@ void SetSegmentParametersCommandObject::press()
 
     m_originalPress = m_state->currentPoint;
 
-    m_dispatcher.submitCommand(
-                iscore::IDocument::path(m_presenter->model()),
+    m_dispatcher.submitCommand(m_presenter->model(),
     SegmentParameterMap{{m_state->clickedSegmentId, {m_verticalOrig.get_value_or(0), m_horizontalOrig.get_value_or(0)}}});
 
 }

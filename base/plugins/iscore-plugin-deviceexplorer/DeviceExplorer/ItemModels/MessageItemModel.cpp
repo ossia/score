@@ -209,9 +209,7 @@ bool MessageItemModel::dropMimeData(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
 
-    auto cmd = new AddMessagesToModel{
-               iscore::IDocument::path(*this),
-               ml};
+    auto cmd = new AddMessagesToModel{*this, ml};
 
     CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
@@ -279,7 +277,7 @@ bool MessageItemModel::setData(
             auto res = copy.convert(addr.value.val.type());
             if(res)
             {
-                auto cmd = new EditValue(iscore::IDocument::path(*this),
+                auto cmd = new EditValue(*this,
                                          iscore::NodePath(*n),
                                          copy);
 

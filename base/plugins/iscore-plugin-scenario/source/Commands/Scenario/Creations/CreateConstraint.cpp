@@ -33,7 +33,7 @@ CreateConstraint::CreateConstraint(
     // we have to generate ConstraintViewModels, too
     for(const auto& viewModel : layers(scenar))
     {
-        m_createdConstraintViewModelIDs[iscore::IDocument::path(*viewModel)] = getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[*viewModel] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view

@@ -64,8 +64,9 @@ namespace iscore
             // Restore documents after a crash
             void restoreDocuments();
 
-            const auto& documents() const
+            const QList<Document*>& documents() const
             { return m_documents; }
+
             Document* currentDocument() const;
             void setCurrentDocument(Document* doc);
 

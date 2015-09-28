@@ -170,7 +170,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
         }
 
         // TODO skip the ones that can't send messages or aren't int / double / float
-        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(*constraint), l};
+        auto cmd = new CreateCurvesFromAddresses {*constraint, l};
         macro.submitCommand(cmd);
     }
 
@@ -251,7 +251,7 @@ void IScoreCohesionControl::interpolateStates()
                     continue;
 
                 auto cmd = new CreateCurveFromStates{
-                        iscore::IDocument::path(*constraint),
+                        *constraint,
                         message.address,
                         message.value.val.toDouble(),
                         (*it).value.val.toDouble()};
@@ -316,7 +316,7 @@ void IScoreCohesionControl::snapshotParametersInStates()
     for(auto& state : selected_states)
     {
         auto cmd = new AddMessagesToModel{
-                iscore::IDocument::path(state->messages()),
+                state->messages(),
                 messages};
         macro.submitCommand(cmd);
     }

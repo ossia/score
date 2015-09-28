@@ -95,8 +95,8 @@ OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = boost::range::find_if(children,
-                                        [&] (const auto& ossia_node)
+        auto it = std::find_if(children.begin(), children.end(),
+                               [&] (const auto& ossia_node)
         { return ossia_node->getName() == path[i].toStdString(); });
         if(it != children.end())
             node = it->get();
