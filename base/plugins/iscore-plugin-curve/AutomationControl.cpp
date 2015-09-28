@@ -17,12 +17,14 @@ AutomationControl::AutomationControl(
     setupCommands();
 }
 
+namespace {
 struct AutomationCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap AutomationCommandFactory::map;
+}
 
 void AutomationControl::setupCommands()
 {

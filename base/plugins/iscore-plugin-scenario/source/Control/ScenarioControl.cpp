@@ -183,13 +183,6 @@ QList<QAction*> ScenarioControl::actions()
     return act;
 }
 
-iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
-{
-    return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
-}
-
 void ScenarioControl::createContextMenu(const QPoint& pos, const QPointF& scenepos)
 {
     QMenu contextMenu;

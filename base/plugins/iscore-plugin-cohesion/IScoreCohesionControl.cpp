@@ -111,13 +111,14 @@ QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
     return QList<OrderedToolbar>{OrderedToolbar(2, bar)};
 }
 
-
+namespace {
 struct IScoreCohesionCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap IScoreCohesionCommandFactory::map;
+}
 
 void IScoreCohesionControl::setupCommands()
 {

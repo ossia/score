@@ -1,5 +1,6 @@
 #include <IscoreIntegrationTests.hpp>
 #include <Editor/TimeConstraint.h>
+#include <Editor/Scenario.h>
 
 class Test1: public IscoreTestBase
 {
@@ -12,6 +13,7 @@ class Test1: public IscoreTestBase
         {
             const auto& baseconstraint = getBaseScenario().baseConstraint()->OSSIAConstraint();
             QVERIFY(baseconstraint->timeProcesses().size() == 1); // There is a scenario at the beginning
+            QVERIFY(dynamic_cast<OSSIA::Scenario*>(baseconstraint->timeProcesses().front().get()));
         }
 };
 

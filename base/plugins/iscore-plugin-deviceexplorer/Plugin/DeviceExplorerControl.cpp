@@ -28,13 +28,14 @@ DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     setupCommands();
 }
 
-
+namespace {
 struct DeviceExplorerCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap DeviceExplorerCommandFactory::map;
+}
 
 void DeviceExplorerControl::setupCommands()
 {

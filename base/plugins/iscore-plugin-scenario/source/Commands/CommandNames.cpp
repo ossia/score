@@ -80,8 +80,17 @@ namespace boost { namespace mpl {
 
 #include "Plugin/Commands/AddMessagesToModel.hpp"
 
-CommandGeneratorMap ScenarioCommandFactory::map;
+#include <iscore/command/CommandGeneratorMap.hpp>
 
+namespace {
+struct ScenarioCommandFactory
+{
+        static CommandGeneratorMap map;
+};
+// Instantiation is in CommandNames.cpp
+
+CommandGeneratorMap ScenarioCommandFactory::map;
+}
 void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
@@ -163,4 +172,13 @@ void ScenarioControl::setupCommands()
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<ScenarioCommandFactory>());
+}
+
+
+
+iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
+        const QString& name,
+        const QByteArray& data)
+{
+    return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
 }
