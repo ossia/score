@@ -1,6 +1,7 @@
 #include "ShowRackInViewModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "iscore/document/DocumentInterface.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

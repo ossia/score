@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
-#include "iscore/serialization/VisitorInterface.hpp"
-#include "Todo.hpp"
+#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/tools/Todo.hpp>
 ////////////////////////////////////////////////
 // This file contains utility algorithms & classes that can be used
 // everywhere (core, plugins...)

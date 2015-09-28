@@ -2,6 +2,8 @@
 #include <QObject>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+
 namespace iscore
 {
 /**

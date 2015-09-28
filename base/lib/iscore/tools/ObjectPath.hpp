@@ -21,11 +21,6 @@
 */
 class ObjectPath
 {
-        friend Serializer<DataStream>;
-        friend Serializer<JSONObject>;
-        friend Deserializer<DataStream>;
-        friend Deserializer<JSONObject>;
-
         friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
         {
             return path.m_objectIdentifiers.begin();
@@ -116,9 +111,10 @@ class ObjectPath
         }
 
         const ObjectIdentifierVector& vec() const
-        {
-            return m_objectIdentifiers;
-        }
+        { return m_objectIdentifiers; }
+
+        ObjectIdentifierVector& vec()
+        { return m_objectIdentifiers; }
 
     private:
         // Throws

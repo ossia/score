@@ -1,8 +1,6 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-
+#include <iscore/serialization/VisitorInterface.hpp>
 
 /**
  * @brief The ObjectIdentifier class
@@ -18,11 +16,6 @@
  */
 class ObjectIdentifier
 {
-        friend Serializer<DataStream>;
-        friend Serializer<JSONObject>;
-        friend Deserializer<DataStream>;
-        friend Deserializer<JSONObject>;
-
         friend bool operator== (const ObjectIdentifier& lhs, const ObjectIdentifier& rhs)
         {
             return (lhs.m_objectName == rhs.m_objectName) && (lhs.m_id == rhs.m_id);
