@@ -4,7 +4,7 @@
 #include "AutomationControl.hpp"
 #include "Curve/Segment/CurveSegmentList.hpp"
 
-#if defined(ISCORE_INSPECTOR_LIB)
+#if defined(ISCORE_LIB_INSPECTOR)
 #include "Inspector/AutomationInspectorFactory.hpp"
 #include "Inspector/AutomationStateInspectorFactory.hpp"
 #endif
@@ -38,7 +38,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString&
         return {new AutomationFactory};
     }
 
-#if defined(ISCORE_INSPECTOR_LIB)
+#if defined(ISCORE_LIB_INSPECTOR)
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new AutomationInspectorFactory,

@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_library)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+iscore_common_setup()
+
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets)
 
@@ -19,13 +17,4 @@ target_link_libraries(
   Qt5::Core Qt5::Widgets
   iscore_lib_base iscore_lib_state iscore_plugin_deviceexplorer)
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_plugin_library PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(iscore_plugin_library)
-endif()
-install(TARGETS iscore_plugin_library
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
+setup_iscore_plugin(iscore_plugin_library)

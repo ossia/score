@@ -20,9 +20,12 @@ class OSSIAConstraintElement;
 
 namespace OSSIA
 {
+    class StateElement;
     class Scenario;
+    class TimeValue;
 }
 
+// TODO see if this can be used for the base scenario model too.
 class OSSIAScenarioElement : public OSSIAProcessElement
 {
     public:
@@ -61,9 +64,14 @@ class OSSIAScenarioElement : public OSSIAProcessElement
         void startConstraintExecution(const Id<ConstraintModel>&);
         void stopConstraintExecution(const Id<ConstraintModel>&);
 
+        void eventCallback(
+                OSSIAEventElement& ev,
+                OSSIA::TimeEvent::Status newStatus);
+
     private:
         QPointer<OSSIAConstraintElement> m_parent_constraint;
 
+        // TODO use IdContainer
         std::map<Id<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
         std::map<Id<StateModel>, OSSIAStateElement*> m_ossia_states;
         std::map<Id<TimeNodeModel>, OSSIATimeNodeElement*> m_ossia_timenodes;

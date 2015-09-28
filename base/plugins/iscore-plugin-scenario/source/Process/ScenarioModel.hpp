@@ -104,11 +104,11 @@ class ScenarioModel : public Process, public ScenarioInterface
 
         TimeNodeModel& startTimeNode() const override
         {
-            return timeNode(m_startTimeNodeId);
+            return timeNodes.at(m_startTimeNodeId);
         }
         TimeNodeModel& endTimeNode() const override
         {
-            return timeNode(m_endTimeNodeId);
+            return timeNodes.at(m_endTimeNodeId);
         }
         EventModel& startEvent() const
         {

@@ -76,6 +76,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         void dataChanged();
         void previousChanged();
         void followingChanged();
+        void startChanged();
+        void endChanged();
 
     protected:
         virtual void on_startChanged() = 0;

@@ -31,7 +31,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     {
         if(auto state = dynamic_cast<const StateModel*>(obj))
         {
-            auto& ev = scenar.event(state->eventId());
+            auto& ev = scenar.events.at(state->eventId());
             if(ev.states().size() == 1)
             {
                 sel.insert(&ev);
@@ -46,7 +46,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
         {
             for (const auto& ev : tn->events())
             {
-                sel.insert(&scenar.event(ev));
+                sel.insert(&scenar.events.at(ev));
             }
         }
     }
@@ -62,11 +62,11 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
             // and return the corresponding elements.
             for(const auto& state : event->states())
             {
-                sel.insert(&scenar.state(state));
+                sel.insert(&scenar.states.at(state));
             }
 
             // This timenode may be removed if the event is alone.
-            auto tn = &scenar.timeNode(event->timeNode());
+            auto tn = &scenar.timeNodes.at(event->timeNode());
             if(sel.find(tn) == sel.end())
                 maybeRemovedTimenodes.append(tn);
         }
@@ -78,9 +78,9 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
         if(auto state = dynamic_cast<const StateModel*>(obj))
         {
             if(state->previousConstraint())
-                sel.insert(&scenar.constraint(state->previousConstraint()));
+                sel.insert(&scenar.constraints.at(state->previousConstraint()));
             if(state->nextConstraint())
-                sel.insert(&scenar.constraint(state->nextConstraint()));
+                sel.insert(&scenar.constraints.at(state->nextConstraint()));
         }
     }
 

@@ -20,6 +20,7 @@ ScenarioStateMachine::ScenarioStateMachine(
         TemporalScenarioPresenter& presenter):
     BaseStateMachine{*presenter.view().scene()},
     m_presenter{presenter},
+    m_model{static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel())},
     m_commandStack{doc.commandStack()},
     m_locker{doc.locker()},
     m_expandMode{[] () -> auto&& {
@@ -68,6 +69,7 @@ ScenarioStateMachine::ScenarioStateMachine(
 
         transitionState = new QState{this};
         transitionState->setParent(toolState);
+
 
 
         auto QPointFToScenarioPoint = [&] (QPointF point) -> ScenarioPoint
@@ -144,10 +146,7 @@ const TemporalScenarioPresenter &ScenarioStateMachine::presenter() const
     return m_presenter;
 }
 
-const ScenarioModel& ScenarioStateMachine::model() const
-{
-    return static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel());
-}
+
 
 ScenarioToolKind ScenarioStateMachine::tool() const
 {

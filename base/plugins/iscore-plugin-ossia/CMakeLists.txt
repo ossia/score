@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(iscore_plugin_ossia)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC ON)
-cmake_policy(SET CMP0042 NEW)
+iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml PrintSupport Test)
@@ -14,28 +12,39 @@ if(NOT ${Jamoma_FOUND})
     return()
 endif()
 
-# For OSSIA API
-include_directories(${ISCORE_ROOT_SOURCE_DIR})
-include_directories(${ISCORE_ROOT_SOURCE_DIR}/API)
-include_directories(${ISCORE_ROOT_SOURCE_DIR}/API/Headers)
 # Files & main target
-include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
-include_directories("${SCENARIO_INTERFACE_FOLDER}")
-include_directories("${CURVE_INTERFACE_FOLDER}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-# TODO put this in CMake interface of iscore_lib
-
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
-file(GLOB_RECURSE SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIADocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.cpp"
+)
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer APIJamoma)
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer
+                        OSSIAHeadersLib APIJamoma)
 
-iscore_cotire(${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
+setup_iscore_plugin(${PROJECT_NAME})

@@ -1,4 +1,6 @@
-include (CTest)
+cmake_minimum_required(VERSION 3.0)
+project(iscore_plugin_deviceexplorer_tests)
+enable_testing()
 include(CppcheckTargets)
 find_package(Qt5Core)
 find_package(Qt5Test)

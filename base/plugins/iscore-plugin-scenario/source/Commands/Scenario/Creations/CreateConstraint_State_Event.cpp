@@ -58,7 +58,7 @@ void CreateConstraint_State_Event::redo()
                 {{m_command.endStateY(), m_command.endStateY()}},
                 scenar);
 
-    scenar.event(m_newEvent).metadata.setName(m_createdName);
+    scenar.events.at(m_newEvent).metadata.setName(m_createdName);
 
     // The state + constraint between
     m_command.redo();

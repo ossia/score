@@ -29,12 +29,12 @@ SplitEvent::SplitEvent(const Path<ScenarioModel> &scenario,
 void SplitEvent::undo()
 {
     auto& scenar = m_scenarioPath.find();
-    auto& originalEvent = scenar.event(m_originalEvent);
+    auto& originalEvent = scenar.events.at(m_originalEvent);
 
     for (auto& st : m_movingStates)
     {
         originalEvent.addState(st);
-        scenar.state(st).setEventId(m_originalEvent);
+        scenar.states.at(st).setEventId(m_originalEvent);
     }
 
     ScenarioCreate<EventModel>::undo(
@@ -51,19 +51,20 @@ void SplitEvent::redo()
     auto& originalEvent = scenar.event(m_originalEvent);
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
-                scenar.timeNode(originalEvent.timeNode()),
+                scenar.timeNodes.at(originalEvent.timeNode()),
                 originalEvent.extent(),
                 scenar);
 
-    auto& newEvent = scenar.event(m_newEvent);
+    auto& newEvent = scenar.events.at(m_newEvent);
     newEvent.metadata.setName(m_createdName);
 
     for(auto& st : m_movingStates)
     {
         originalEvent.removeState(st);
         newEvent.addState(st);
-        scenar.state(st).setEventId(m_newEvent);
+        scenar.states.at(st).setEventId(m_newEvent);
     }
+
     updateEventExtent(m_newEvent, scenar);
     updateEventExtent(m_originalEvent, scenar);
 }

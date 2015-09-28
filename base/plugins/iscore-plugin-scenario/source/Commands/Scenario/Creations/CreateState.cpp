@@ -45,7 +45,7 @@ void CreateState::redo()
     // Create the end state
     ScenarioCreate<StateModel>::redo(
                 m_newState,
-                scenar.event(m_event),
+                scenar.events.at(m_event),
                 m_stateY,
                 scenar);
 

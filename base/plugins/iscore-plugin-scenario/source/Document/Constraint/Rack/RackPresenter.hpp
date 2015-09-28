@@ -36,7 +36,7 @@ class RackPresenter : public NamedObject
 
         const Id<RackModel>& id() const;
         const IdContainer<SlotPresenter,SlotModel>& getSlots() const // here we use the 'get' prefix, because 'slots' is keyWord for Qt ...
-        { return slotmodels; }
+        { return m_slots; }
 
         void setDisabledSlotState();
         void setEnabledSlotState();
@@ -69,7 +69,7 @@ class RackPresenter : public NamedObject
 
         const RackModel& m_model;
         RackView* m_view;
-        IdContainer<SlotPresenter,SlotModel> slotmodels;
+        IdContainer<SlotPresenter,SlotModel> m_slots;
 
         ZoomRatio m_zoomRatio{};
         TimeValue m_duration {};

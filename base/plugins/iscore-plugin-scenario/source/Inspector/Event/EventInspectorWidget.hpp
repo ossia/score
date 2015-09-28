@@ -7,6 +7,7 @@ class QFormLayout;
 class StateModel;
 class MetadataWidget;
 struct Message;
+class TriggerInspectorWidget;
 
 #include "Inspector/ExpressionValidator.hpp"
 #include <QLineEdit>
@@ -50,4 +51,5 @@ class EventInspectorWidget : public InspectorWidgetBase
         MetadataWidget* m_metadata {};
 
         ExpressionValidator<iscore::Condition> m_validator;
+        TriggerInspectorWidget* m_triggerWidg{};
 };

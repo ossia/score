@@ -1,20 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 project(iscore_plugin_curve)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-cmake_policy(SET CMP0020 NEW)
-cmake_policy(SET CMP0042 NEW)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
+iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
 
 # Files & main target
-include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
-include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-set(CURVE_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Automation/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp"
@@ -91,19 +83,14 @@ if(TARGET iscore_lib_inspector)
 
     set(HDRS ${HDRS} ${INSPECTOR_HDRS})
 endif()
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
 
 if(TARGET iscore_lib_inspector)
-    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
     target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
 endif()
 
-iscore_cotire(${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
+setup_iscore_plugin(${PROJECT_NAME})

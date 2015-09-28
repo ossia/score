@@ -34,7 +34,7 @@ MoveConstraint::MoveConstraint(
     m_newHeight{height}
 {
     auto& scenar = m_path.find();
-    auto& cst = scenar.constraint(m_constraint);
+    auto& cst = scenar.constraints.at(m_constraint);
 
     m_oldHeight = cst.heightPercentage();
 }

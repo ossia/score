@@ -4,12 +4,13 @@
 void StandardDisplacementPolicy::getRelatedTimeNodes(
         ScenarioModel& scenario,
         const Id<TimeNodeModel>& firstTimeNodeMovedId,
-        QVector<Id<TimeNodeModel> >& translatedTimeNodes)
+        std::vector<Id<TimeNodeModel> >& translatedTimeNodes)
 {
     if (*firstTimeNodeMovedId.val() == 0 || *firstTimeNodeMovedId.val() == 1 )
         return;
 
-    if(translatedTimeNodes.indexOf(firstTimeNodeMovedId) == -1)
+    auto it = std::find(translatedTimeNodes.begin(), translatedTimeNodes.end(), firstTimeNodeMovedId);
+    if(it == translatedTimeNodes.end())
     {
         translatedTimeNodes.push_back(firstTimeNodeMovedId);
     }
@@ -18,24 +19,21 @@ void StandardDisplacementPolicy::getRelatedTimeNodes(
         return;
     }
 
-    const auto& cur_timeNode = scenario.timeNode(firstTimeNodeMovedId);
+    const auto& cur_timeNode = scenario.timeNodes.at(firstTimeNodeMovedId);
     for(const auto& cur_eventId : cur_timeNode.events())
     {
-        const auto& cur_event = scenario.event(cur_eventId);
+        const auto& cur_event = scenario.events.at(cur_eventId);
 
         for(const auto& state_id : cur_event.states())
         {
-            auto& state = scenario.state(state_id);
-            if(state.nextConstraint())
+            const auto& state = scenario.states.at(state_id);
+            if(const auto& cons = state.nextConstraint())
             {
-                auto cons = state.nextConstraint();
-                auto endStateId = scenario.constraint(cons).endState();
-                auto endTnId = scenario.event(scenario.state(endStateId).eventId()).timeNode();
+                const auto& endStateId = scenario.constraints.at(cons).endState();
+                const auto& endTnId = scenario.events.at(scenario.state(endStateId).eventId()).timeNode();
                 getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
             }
         }
     }
 }
-
-//----------------------------------------------------------------------------------------------
 

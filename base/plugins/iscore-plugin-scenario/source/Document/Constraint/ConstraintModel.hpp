@@ -54,18 +54,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         ModelConsistency consistency;
         ConstraintDurations duration{*this};
 
-        /**
-         * @brief fetchEndTimeNodeId
-         * @return the end timenode id
-         */
-        const Id<TimeNodeModel> fetchEndTimeNodeId() const;
-
-        /**
-         * @brief fetchStartTimeNodeId
-         * @return the start timenode id
-         */
-        const Id<TimeNodeModel> fetchStartTimeNodeId() const;
-
         iscore::ElementPluginModelList pluginModelList;
 
         static QString prettyName()

@@ -16,7 +16,7 @@ TimeNodeModel::TimeNodeModel(
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
     m_extent{extent},
     m_date{date},
-    m_trigger{new TriggerModel{} }
+    m_trigger{new TriggerModel{Id<TriggerModel>(0), this} }
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
@@ -32,6 +32,10 @@ TimeNodeModel::TimeNodeModel(
     m_date{source.m_date},
     m_events(source.m_events)
 {
+    m_trigger = new TriggerModel{Id<TriggerModel>(0), this};
+    m_trigger->setExpression(source.trigger()->expression());
+    m_trigger->setActive(source.trigger()->active());
+
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
 }

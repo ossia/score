@@ -54,7 +54,7 @@ void CreateConstraint_State::redo()
     // Create the end state
     ScenarioCreate<StateModel>::redo(
                 m_newState,
-                scenar.event(m_endEvent),
+                scenar.events.at(m_endEvent),
                 m_stateY,
                 scenar);
 

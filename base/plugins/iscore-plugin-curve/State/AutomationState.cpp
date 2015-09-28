@@ -24,6 +24,7 @@ AutomationState::AutomationState(
 QString AutomationState::stateName() const
 { return "AutomationState"; }
 
+// TESTME
 iscore::Message AutomationState::message() const
 {
     iscore::Message m;
@@ -70,6 +71,7 @@ iscore::MessageList AutomationState::messages() const
     return {};
 }
 
+// TESTME
 void AutomationState::setMessages(const iscore::MessageList& received)
 {
     if(m_point != 0 && m_point != 1)
@@ -81,6 +83,7 @@ void AutomationState::setMessages(const iscore::MessageList& received)
         if(mess.address == model().address())
         {
             // Scale min, max, and the value
+            // TODO convert to the real type of the curve.
             auto val = mess.value.val.toDouble();
             if(val < model().min())
                 model().setMin(val);
@@ -100,7 +103,10 @@ void AutomationState::setMessages(const iscore::MessageList& received)
                 });
                 if(seg_it != segs.end())
                 {
-                    seg_it->setStart({0, val});
+                    if(val != seg_it->start().y())
+                    {
+                        seg_it->setStart({0, val});
+                    }
                 }
             }
             else if(m_point == 1)
@@ -114,7 +120,8 @@ void AutomationState::setMessages(const iscore::MessageList& received)
                 });
                 if(seg_it != segs.end())
                 {
-                    seg_it->setEnd({1, val});
+                    if(val != seg_it->end().y())
+                        seg_it->setEnd({1, val});
                 }
             }
             return;

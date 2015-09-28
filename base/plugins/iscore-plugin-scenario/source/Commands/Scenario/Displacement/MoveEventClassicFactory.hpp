@@ -10,9 +10,9 @@ public:
             Path<ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
             const TimeValue& newDate,
-            ExpandMode mode);
+            ExpandMode mode) override;
 
-    SerializableMoveEvent* make();
+    SerializableMoveEvent* make() override;
 
     virtual int priority(MoveEventList::Strategy strategy)
     {

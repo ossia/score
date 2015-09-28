@@ -7,6 +7,11 @@ namespace OSSIA
     class TimeConstraint;
 }
 class OSSIAConstraintElement;
+// TODO this should have "OSSIA Policies" : one would be the
+// "basic" that corresponds to the default scenario.
+// One would be the "distributed" policy which provides the
+// same functionalities but for scenario executing on different computers.
+
 class OSSIAControl : public iscore::PluginControlInterface
 {
     public:

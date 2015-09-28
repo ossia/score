@@ -46,7 +46,7 @@ void MergeTimeNodes::undo()
     for (auto& event : movingTimeNode->events())
     {
         aimedTimeNode.removeEvent(event);
-        scenar.event(event).changeTimeNode(movingTimeNode->id());
+        scenar.event(event).changeTimeNode(*movingTimeNode);
         StandardDisplacementPolicy::setEventPosition(scenar,
                                                      event,
                                                      movingTimeNode->date(),
@@ -78,7 +78,7 @@ void MergeTimeNodes::redo()
 
         aimedTimeNode.addEvent(event);
         movingTimeNode.removeEvent(event);
-        scenar.event(event).changeTimeNode(aimedTimeNode.id());
+        scenar.event(event).changeTimeNode(aimedTimeNode);
     }
 
     CreateTimeNodeMin::undo(m_movingTimeNodeId, scenar);

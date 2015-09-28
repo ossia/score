@@ -11,7 +11,7 @@
 #include <Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 
-#if defined(ISCORE_INSPECTOR_LIB)
+#if defined(ISCORE_LIB_INSPECTOR)
 #include <Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Inspector/Event/EventInspectorFactory.hpp>
 #include <Inspector/Scenario/ScenarioInspectorFactory.hpp>
@@ -104,7 +104,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QStri
         return {new MoveEventClassicFactory};
     }
 
-#if defined(ISCORE_INSPECTOR_LIB)
+#if defined(ISCORE_LIB_INSPECTOR)
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {
