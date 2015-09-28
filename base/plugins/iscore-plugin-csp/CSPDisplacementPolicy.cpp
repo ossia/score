@@ -9,7 +9,6 @@
 #define STAY_TNODE_STRENGTH kiwi::strength::medium
 #define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0 //not so sure that its working
 
-
 CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
 {
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))

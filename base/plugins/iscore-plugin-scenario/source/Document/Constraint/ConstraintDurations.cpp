@@ -1,6 +1,7 @@
 #include "ConstraintDurations.hpp"
 #include "ConstraintModel.hpp"
 
+#define TIME_TOLERANCE_MSEC 0.5
 
 ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &other)
 {
@@ -15,12 +16,12 @@ ConstraintDurations &ConstraintDurations::operator=(const ConstraintDurations &o
 
 void ConstraintDurations::checkConsistency()
 {
-  m_model.consistency.setWarning(m_minDuration.msec() < 0 ||
-                                 (isRigid() && m_minDuration != m_maxDuration) );
+  m_model.consistency.setWarning(m_minDuration.msec() < 0 - TIME_TOLERANCE_MSEC ||
+                                 (isRigid() && m_minDuration != m_maxDuration) ); // a voir
 
-  m_model.consistency.setValid(m_minDuration <= m_defaultDuration &&
-                               m_maxDuration >= m_defaultDuration &&
-                               m_defaultDuration.msec() > 0);
+  m_model.consistency.setValid(m_minDuration - TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) <= m_defaultDuration &&
+                               m_maxDuration + TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) >= m_defaultDuration &&
+                               m_defaultDuration.msec() + TIME_TOLERANCE_MSEC > 0);
 }
 
 void ConstraintDurations::setDefaultDuration(const TimeValue& arg)
