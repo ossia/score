@@ -1,5 +1,6 @@
 #include "MoveEventMeta.hpp"
 #include <Commands/Scenario/Displacement/MoveEventList.hpp>
+#include "MoveEventFactoryInterface.hpp"
 
 MoveEventMeta::MoveEventMeta(
         Path<ScenarioModel>&& scenarioPath,
@@ -7,7 +8,7 @@ MoveEventMeta::MoveEventMeta(
         const TimeValue& newDate,
         ExpandMode mode)
     :SerializableMoveEvent{},
-     m_moveEventImplementation(MoveEventList::getFactory()->make(std::move(scenarioPath), eventId, newDate, mode))
+     m_moveEventImplementation(MoveEventList::getFactory(MoveEventList::Strategy::MOVING)->make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
 
@@ -38,7 +39,7 @@ void MoveEventMeta::deserializeImpl(QDataStream& qDataStream)
 
     qDataStream >> cmdData;
 
-    m_moveEventImplementation = MoveEventList::getFactory()->make();
+    m_moveEventImplementation = MoveEventList::getFactory(MoveEventList::Strategy::MOVING)->make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }

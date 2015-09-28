@@ -175,13 +175,13 @@ class MoveEvent : public SerializableMoveEvent
         ElementsProperties m_savedElementsProperties;
         Path<ScenarioModel> m_path;
 
+        ExpandMode m_mode{ExpandMode::Scale};
         DisplacementPolicy m_displacementPolicy;
 
         Id<EventModel> m_eventId;
         TimeValue m_oldDate; //used to compute the deltaTime
         TimeValue m_initialDate; //used to compute the deltaTime and respect undo behavior
 
-        ExpandMode m_mode{ExpandMode::Scale};
 };
 
 }

@@ -1,8 +1,14 @@
 #pragma once
 
 #include <QMap>
-#include <Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
+#include <iscore/tools/NamedObject.hpp>
 #include <QApplication>
+
+class MoveEventFactoryInterface;
+namespace iscore
+{
+class FactoryInterface;
+}
 
 class MoveEventList : public NamedObject
 {
@@ -11,13 +17,14 @@ public:
     MoveEventList(QObject* parent)
         :NamedObject("MoveEventList", parent){};
 
+    enum Strategy{ MOVING, CREATION, EXTRA };
 
     /**
      * @brief getMoveEventFactory
      * @return
-     * the factory with the highest priority
+     * the factory with the highest priority for the specified strategy
      */
-    MoveEventFactoryInterface* getMoveEventFactory();
+    MoveEventFactoryInterface* getMoveEventFactory(MoveEventList::Strategy strategy);
 
     /**
      * @brief registerMoveEventFactory
@@ -28,15 +35,16 @@ public:
      */
     void registerMoveEventFactory(iscore::FactoryInterface* factoryInterface);
 
-    static MoveEventFactoryInterface* getFactory()
+    static MoveEventFactoryInterface* getFactory(MoveEventList::Strategy strategy)
     {
+
         return qApp
                 ->findChild<MoveEventList*> ("MoveEventList")
-                ->getMoveEventFactory();
+                ->getMoveEventFactory(strategy);
     }
 
 private:
-    QMap<int,MoveEventFactoryInterface*> m_moveEventFactories;
+    QVector<MoveEventFactoryInterface*> m_moveEventFactories;
 };
 
 

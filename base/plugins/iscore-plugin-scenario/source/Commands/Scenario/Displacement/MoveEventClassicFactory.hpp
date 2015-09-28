@@ -14,10 +14,14 @@ public:
 
     SerializableMoveEvent* make();
 
-    virtual int priority()
+    virtual int priority(MoveEventList::Strategy strategy)
     {
-        // we set a low priority here to let plugins easily take over
-        return 0;
+        switch(strategy)
+        {
+            default:
+                return 0;// not suited for other strategies
+                break;
+        }
     }
 
     QString name() const override
