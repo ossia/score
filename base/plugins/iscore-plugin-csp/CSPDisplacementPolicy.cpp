@@ -9,7 +9,6 @@
 #define STAY_TNODE_STRENGTH kiwi::strength::medium
 #define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0 //not so sure that its working
 
-
 CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
 {
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
@@ -19,6 +18,7 @@ CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVec
 
     }else
     {
+        ISCORE_BREAKPOINT;
         throw std::runtime_error("No CSP scenario found for this model");
     }
 }
@@ -40,11 +40,21 @@ void CSPDisplacementPolicy::computeDisplacement(
         {
             auto curDraggedCspTimeNode = cspScenario->m_timeNodes[curDraggedTimeNodeId];
 
+            // get the initial value
+            TimeValue initialDate;
+            if(elementsProperties.timenodes.contains(curDraggedTimeNodeId))
+            {
+                initialDate = elementsProperties.timenodes[curDraggedTimeNodeId].oldDate;
+            }else
+            {
+                initialDate = *(curDraggedCspTimeNode->m_iscoreDate);
+            }
+
             //weight
             solver.addEditVariable(curDraggedCspTimeNode->m_date, STAY_DRAGGED_TNODE_STRENGTH);
 
             // suggest their new values
-            auto newDate = curDraggedCspTimeNode->getDate().value() + deltaTime.msec();
+            auto newDate = initialDate.msec() + deltaTime.msec();
             solver.suggestValue(curDraggedCspTimeNode->getDate(), newDate);
         }
 

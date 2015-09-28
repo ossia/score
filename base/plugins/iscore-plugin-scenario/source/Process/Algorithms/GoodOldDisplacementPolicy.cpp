@@ -44,7 +44,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
             }
 
             // put the new date
-            elementsProperties.timenodes[curTimeNodeId].newDate = curTimeNode.date() + deltaTime;
+            elementsProperties.timenodes[curTimeNodeId].newDate = elementsProperties.timenodes[curTimeNodeId].oldDate + deltaTime;
         }
 
         // Make a list of the constraints that need to be resized

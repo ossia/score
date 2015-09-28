@@ -3,6 +3,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 //#include <iscore/command/SerializableCommand.hpp>
 #include <Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -11,6 +12,7 @@
 
 class ScenarioModel;
 class EventModel;
+
 
 class MoveEventFactoryInterface : public iscore::FactoryInterface
 {
@@ -25,13 +27,15 @@ public:
 
     virtual ~MoveEventFactoryInterface() = default;
 
-    /**
+     /**
      * @brief priority
-     * the highest priority will be default move behavior
+     * the highest priority will be default move behavior for the indicated strategy
+     * Basically, we want to know how well the policy is suited for the desired strategy.
+     * @param strategy
+     * the strategy for which we need a displacement policy;
      * @return
-     * the priority
      */
-    virtual int priority() =0;
+    virtual int priority(MoveEventList::Strategy strategy) = 0;
 
     static QString factoryName()
     {
