@@ -74,11 +74,10 @@ class MoveEvent : public SerializableMoveEvent
               m_displacementPolicy{scenarioPath.find(), QVector<Id<TimeNodeModel>>({scenarioPath.find().event(eventId).timeNode()})}
         {
             // we need to compute the new time delta and store this initial event id for recalculate the delta on updates
-            // NOTE: in the future in would be better to give directly the delta value to this method,
+            // NOTE: in the future in would be better to give directly the delta value to this method ?,
             // in that way we wouldn't need to keep the initial event and recalculate the delta
             m_eventId = eventId;
             m_initialDate = newDate;
-            m_oldDate = m_initialDate;
 
             update(m_path,
                    eventId,
@@ -95,8 +94,7 @@ class MoveEvent : public SerializableMoveEvent
         {
             // we need to compute the new time delta
             // NOTE: in the future in would be better to give directly the delta value to this method
-            TimeValue deltaDate = newDate - m_oldDate;
-            m_oldDate = newDate;
+            TimeValue deltaDate = newDate - m_initialDate;
 
             auto& scenario = m_path.find();
 
@@ -112,9 +110,6 @@ class MoveEvent : public SerializableMoveEvent
         void undo() override
         {
             auto& scenario = m_path.find();
-
-            // needed to calculate delta
-            m_oldDate = m_initialDate;
 
             bool useNewValues{false};
 
@@ -154,7 +149,6 @@ class MoveEvent : public SerializableMoveEvent
               << m_path
               << m_eventId
               << m_initialDate
-              << m_oldDate
               << (int)m_mode;
         }
 
@@ -165,7 +159,6 @@ class MoveEvent : public SerializableMoveEvent
                     >> m_path
                     >> m_eventId
                     >> m_initialDate
-                    >> m_oldDate
                     >> mode;
 
             m_mode = static_cast<ExpandMode>(mode);
@@ -179,7 +172,10 @@ class MoveEvent : public SerializableMoveEvent
         DisplacementPolicy m_displacementPolicy;
 
         Id<EventModel> m_eventId;
-        TimeValue m_oldDate; //used to compute the deltaTime
+        /**
+         * @brief m_initialDate
+         * the delta will be calculated from the initial date
+         */
         TimeValue m_initialDate; //used to compute the deltaTime and respect undo behavior
 
 };

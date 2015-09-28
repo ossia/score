@@ -40,11 +40,21 @@ void CSPDisplacementPolicy::computeDisplacement(
         {
             auto curDraggedCspTimeNode = cspScenario->m_timeNodes[curDraggedTimeNodeId];
 
+            // get the initial value
+            TimeValue initialDate;
+            if(elementsProperties.timenodes.contains(curDraggedTimeNodeId))
+            {
+                initialDate = elementsProperties.timenodes[curDraggedTimeNodeId].oldDate;
+            }else
+            {
+                initialDate = *(curDraggedCspTimeNode->m_iscoreDate);
+            }
+
             //weight
             solver.addEditVariable(curDraggedCspTimeNode->m_date, STAY_DRAGGED_TNODE_STRENGTH);
 
             // suggest their new values
-            auto newDate = curDraggedCspTimeNode->getDate().value() + deltaTime.msec();
+            auto newDate = initialDate.msec() + deltaTime.msec();
             solver.suggestValue(curDraggedCspTimeNode->getDate(), newDate);
         }
 
