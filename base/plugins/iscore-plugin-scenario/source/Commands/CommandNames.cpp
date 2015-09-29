@@ -95,7 +95,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list59<
+            boost::mpl::list62<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -104,6 +104,7 @@ void ScenarioControl::setupCommands()
 //            AddStateToStateModel,
 //            AssignMessagesToState,
             AddStateWithData,
+            AddTrigger,
 
             ChangeElementColor<ConstraintModel>,
             ChangeElementColor<EventModel>,
@@ -166,6 +167,8 @@ void ScenarioControl::setupCommands()
             SetMaxDuration,
             SetMinDuration,
             SetRigidity,
+            SetTrigger,
+            RemoveTrigger,
 
             SplitTimeNode,
             SwitchStatePosition,
