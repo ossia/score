@@ -1,4 +1,4 @@
-#include <CSPDisplacementPolicy.hpp>
+#include <CSPFlexDisplacementPolicy.hpp>
 #include <Model/CSPScenario.hpp>
 #include <Model/CSPTimeNode.hpp>
 #include <Model/CSPTimeRelation.hpp>
@@ -9,7 +9,7 @@
 #define STAY_TNODE_STRENGTH kiwi::strength::medium
 #define STAY_DRAGGED_TNODE_STRENGTH kiwi::strength::strong + 1.0 //not so sure that its working
 
-CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
+CSPFlexDisplacementPolicy::CSPFlexDisplacementPolicy(ScenarioModel& scenario, const QVector<Id<TimeNodeModel> >& draggedElements)
 {
     if(CSPScenario* cspScenario = scenario.findChild<CSPScenario*>("CSPScenario", Qt::FindDirectChildrenOnly))
     {
@@ -23,7 +23,7 @@ CSPDisplacementPolicy::CSPDisplacementPolicy(ScenarioModel& scenario, const QVec
     }
 }
 
-void CSPDisplacementPolicy::computeDisplacement(
+void CSPFlexDisplacementPolicy::computeDisplacement(
         ScenarioModel& scenario,
         const QVector<Id<TimeNodeModel>>& draggedElements,
         const TimeValue& deltaTime,
@@ -156,7 +156,7 @@ void CSPDisplacementPolicy::computeDisplacement(
     }
 }
 
-void CSPDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements)
+void CSPFlexDisplacementPolicy::refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements)
 {
     // time relations stays
     QHashIterator<Id<ConstraintModel>, CSPTimeRelation*> timeRelationIterator(cspScenario.m_timeRelations);

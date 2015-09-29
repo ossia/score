@@ -15,6 +15,8 @@ class ConstraintModel;
 class CSPTimeRelation : public CSPConstraintHolder
 {
     friend class CSPDisplacementPolicy;
+    friend class CSPFlexDisplacementPolicy;
+
 public:
     CSPTimeRelation(CSPScenario& scenario, const Id<ConstraintModel>& constraintId);
 

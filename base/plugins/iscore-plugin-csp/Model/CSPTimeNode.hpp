@@ -17,6 +17,8 @@ class TimeNodeModel;
 class CSPTimeNode : public CSPConstraintHolder
 {
     friend class CSPDisplacementPolicy;
+    friend class CSPFlexDisplacementPolicy;
+
 public:
     CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId);
 
