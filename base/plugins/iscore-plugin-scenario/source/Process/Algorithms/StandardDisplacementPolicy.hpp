@@ -107,6 +107,13 @@ public:
 
                 curConstraintToUpdate.duration.setMinDuration(curConstraintPropertiesToUpdate.newMin);
                 curConstraintToUpdate.duration.setMaxDuration(curConstraintPropertiesToUpdate.newMax);
+
+
+                for(auto& process : curConstraintToUpdate.processes)
+                {
+                    scaleMethod(process, defaultDuration);
+                }
+
             }
             else// IF UNDO THEN RESTORE THE STATE OF THE CONSTRAINTS
             {
@@ -186,12 +193,6 @@ public:
 
 namespace StandardDisplacementPolicy
 {
-    // pick out each timeNode that need to move when firstTimeNodeMovedId is moving
-    void getRelatedTimeNodes(
-            ScenarioModel& scenario,
-            const Id<TimeNodeModel>& firstTimeNodeMovedId,
-            std::vector<Id<TimeNodeModel> >& translatedTimeNodes);
-
 
     template<typename ProcessScaleMethod>
     void updatePositions(

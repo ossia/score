@@ -4,7 +4,7 @@
 #include <Commands/Scenario/Displacement/MoveEventList.hpp>
 
 
-class MoveEventCSPFactory : public MoveEventFactoryInterface
+class MoveEventCSPFlexFactory : public MoveEventFactoryInterface
 {
         // MoveEventFactory interface
     public:
@@ -16,8 +16,11 @@ class MoveEventCSPFactory : public MoveEventFactoryInterface
         {
             switch(strategy)
             {
-                case MoveEventList::Strategy::MOVING:
+                case MoveEventList::Strategy::CREATION:
                     return 10;
+                    break;
+                case MoveEventList::Strategy::MOVING:
+                    return 5;
                     break;
                 default:
                     return -1;// not suited for other strategies
@@ -26,5 +29,5 @@ class MoveEventCSPFactory : public MoveEventFactoryInterface
         }
 
         QString name() const override
-        { return "CSPFlex"; }
+        { return "CSP"; }
 };
