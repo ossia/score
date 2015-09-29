@@ -35,6 +35,9 @@ class CurveModel : public IdentifiedObject<CurveModel>
         // Here we don't pass an id because it's more efficient
         void removeSegment(CurveSegmentModel* m);
 
+        QVector<CurveSegmentData> toCurveData() const;
+        void fromCurveData(const QVector<CurveSegmentData>& curve);
+
 
         Selection selectedChildren() const;
         void setSelection(const Selection& s);

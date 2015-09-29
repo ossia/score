@@ -2,6 +2,15 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <cmath>
 
+PowerCurveSegmentModel::PowerCurveSegmentModel(
+        const CurveSegmentData& dat,
+        QObject* parent):
+    CurveSegmentModel{dat, parent},
+    gamma{dat.specificSegmentData.value<PowerCurveSegmentData>().gamma}
+{
+
+}
+
 CurveSegmentModel*PowerCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject* parent) const

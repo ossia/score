@@ -2,6 +2,7 @@
 
 CurveSegmentFactory* CurveSegmentList::get(const QString& name) const
 {
+    // TODO here we should really use a map.
     return *std::find_if(factories.begin(), factories.end(),
                          [&] (auto&& p) { return p->name() == name; });
 }

@@ -4,7 +4,7 @@
 
 /**
  * This file contains usefule functions
- * for simple serialization / deserializatoin of the common types
+ * for simple serialization / deserialization of the common types
  * used in i-score.
  */
 template<typename TheClass>

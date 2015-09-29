@@ -1,10 +1,21 @@
 #pragma once
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
+struct PowerCurveSegmentData
+{
+    double gamma;
+};
+
+Q_DECLARE_METATYPE(PowerCurveSegmentData)
+
 class PowerCurveSegmentModel : public CurveSegmentModel
 {
     public:
+        using data_type = PowerCurveSegmentData;
         using CurveSegmentModel::CurveSegmentModel;
+        PowerCurveSegmentModel(
+                const CurveSegmentData& dat,
+                QObject* parent);
 
         template<typename Impl>
         PowerCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -28,6 +39,5 @@ class PowerCurveSegmentModel : public CurveSegmentModel
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
-        double gamma = 0.5;
-
+        double gamma = 0.5; // TODO private
 };

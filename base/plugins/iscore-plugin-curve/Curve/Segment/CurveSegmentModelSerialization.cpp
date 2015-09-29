@@ -4,6 +4,34 @@
 #include "CurveSegmentList.hpp"
 
 template<>
+void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
+{
+    m_stream << segmt.id
+             << segmt.start << segmt.end
+             << segmt.previous << segmt.following;
+
+    auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
+    ISCORE_ASSERT(segmt_fact);
+    segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
+
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
+{
+    m_stream >> segmt.id
+             >> segmt.start >> segmt.end
+             >> segmt.previous >> segmt.following;
+
+    auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
+    ISCORE_ASSERT(segmt_fact);
+    segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
+
+    checkDelimiter();
+}
+
+template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 {
     // To allow recration using createProcess
@@ -90,4 +118,15 @@ CurveSegmentModel*createCurveSegment(
     auto model = fact->load(deserializer.toVariant(), parent);
 
     return model;
+}
+
+
+CurveSegmentModel*createCurveSegment(const CurveSegmentData& dat, QObject* parent)
+{
+    auto& instance = SingletonCurveSegmentList::instance();
+    auto fact = instance.get(dat.type);
+    auto model = fact->load(dat, parent);
+
+    return model;
+
 }

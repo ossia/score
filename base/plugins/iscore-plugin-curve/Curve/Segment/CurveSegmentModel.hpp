@@ -4,7 +4,10 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <Curve/StateMachine/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+
 class CurveModel;
+
 
 // Gives the data.
 class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
@@ -17,6 +20,9 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         Selectable selection;
         CurveSegmentModel(
                 const Id<CurveSegmentModel>& id,
+                QObject* parent);
+        CurveSegmentModel(
+                const CurveSegmentData& id,
                 QObject* parent);
 
         template<typename Impl>

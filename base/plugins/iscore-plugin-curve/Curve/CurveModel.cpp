@@ -202,6 +202,19 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
     delete m;
 }
 
+QVector<CurveSegmentData> CurveModel::toCurveData() const
+{
+    ISCORE_TODO;
+    return {};
+}
+
+void CurveModel::fromCurveData(const QVector<CurveSegmentData>& curve)
+{
+    clear();
+
+    emit changed();
+}
+
 Selection CurveModel::selectedChildren() const
 {
     Selection s;
