@@ -95,7 +95,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list58<
+            boost::mpl::list59<
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
@@ -133,6 +133,7 @@ void ScenarioControl::setupCommands()
             CreateConstraint_State,
             CreateConstraint_State_Event,
             CreateConstraint_State_Event_TimeNode,
+            CreateSequence,
             CreationMetaCommand,
 
             ShowRackInViewModel,

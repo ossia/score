@@ -8,6 +8,7 @@
 #include "CreateConstraint_State.hpp"
 #include "CreateConstraint_State_Event.hpp"
 #include "CreateConstraint_State_Event_TimeNode.hpp"
+#include "CreateSequence.hpp"
 namespace Scenario
 {
     namespace Command
@@ -35,6 +36,7 @@ namespace Scenario
                         || m_cmds[i]->uid() == CreateConstraint_State::static_uid()
                         || m_cmds[i]->uid() == CreateConstraint_State_Event::static_uid()
                         || m_cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_uid()
+                        || m_cmds[i]->uid() == CreateSequence::static_uid()
                         )
                 {
                     m_cmds[i]->undo();
