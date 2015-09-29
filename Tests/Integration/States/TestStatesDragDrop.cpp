@@ -34,12 +34,14 @@ class TestStatesDragDrop: public IscoreTestBase
 
             iscore::Address addr{"MockDevice", {"test1"}};
 
+            // We add states
             auto& stateMessages = scenar.states.at(newStateCmd->createdState()).messages();
             auto addStartState = new AddMessagesToModel{
                                      stateMessages,
                                      iscore::MessageList{iscore::Message{addr, -30.}}};
             redo(addStartState);
 
+            // Check correct insertion of the state
             QVERIFY(stateMessages.rootNode().childCount() == 1);
 
             auto& dev_node = stateMessages.rootNode().childAt(0);
@@ -56,6 +58,7 @@ class TestStatesDragDrop: public IscoreTestBase
             QVERIFY(addr_var.name == "test1");
             QVERIFY(addr_var.value.val == -30.);
 
+            // Check that undo is done correctly
             undo();
 
             QVERIFY(stateMessages.rootNode().childCount() == 0);

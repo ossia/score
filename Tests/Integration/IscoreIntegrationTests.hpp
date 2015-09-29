@@ -8,33 +8,36 @@
 #include <DocumentPlugin/OSSIAEventElement.hpp>
 #include <DocumentPlugin/OSSIAStateElement.hpp>
 #include <DocumentPlugin/OSSIATimeNodeElement.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+
+#include <Editor/TimeConstraint.h>
+#include <Editor/Scenario.h>
+
 #include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore_static_plugins.hpp>
+
+#include <Automation/AutomationModel.hpp>
+#include <Curve/Commands/UpdateCurve.hpp>
+
+#include <Plugin/Commands/Add/LoadDevice.hpp>
+#include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Plugin/Commands/AddMessagesToModel.hpp>
+#include <Commands/ChangeAddress.hpp>
+
 #include <Document/BaseElement/BaseElementModel.hpp>
 #include <Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Event/EventModel.hpp>
 #include <Document/TimeNode/TimeNodeModel.hpp>
 #include <Document/State/StateModel.hpp>
-
-#include <Editor/TimeConstraint.h>
-#include <Editor/Scenario.h>
-
-#include <Automation/AutomationModel.hpp>
-#include <Plugin/Commands/Add/LoadDevice.hpp>
-#include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
-
 #include <Process/ScenarioModel.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Commands/Scenario/Creations/CreateState.hpp>
 #include <Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
 #include <Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Plugin/Commands/AddMessagesToModel.hpp>
-#include <Commands/ChangeAddress.hpp>
 
 QT_BEGIN_NAMESPACE
 QTEST_ADD_GPU_BLACKLIST_SUPPORT_DEFS
