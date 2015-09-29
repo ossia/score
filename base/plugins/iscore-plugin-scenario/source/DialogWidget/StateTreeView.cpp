@@ -55,6 +55,10 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 
 */
 
+#include "Plugin/Commands/RemoveMessageNodes.hpp"
+#include <QContextMenuEvent>
+#include <QMenu>
+#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QAction>
 MessageTreeView::MessageTreeView(
         const StateModel& model,
@@ -88,8 +92,6 @@ MessageTreeView::MessageTreeView(
             this, &MessageTreeView::removeNodes);
 }
 
-#include "Plugin/Commands/RemoveMessageNodes.hpp"
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 iscore::MessageItemModel&MessageTreeView::model() const
 {
     return *static_cast<iscore::MessageItemModel*>(QTreeView::model());
@@ -109,15 +111,13 @@ void MessageTreeView::removeNodes()
     }
 
     auto cmd = new RemoveMessageNodes(
-                      iscore::IDocument::path(model()),
+                      model(),
                       iscore::filterUniqueParents(nodes));
 
     CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_model)};
     dispatcher.submitCommand(cmd);
 }
 
-#include <QContextMenuEvent>
-#include <QMenu>
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
 {
     QMenu contextMenu{this};
@@ -126,39 +126,3 @@ void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
     contextMenu.exec(event->globalPos());
 }
 
-/*
-void MessageTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
-{
-    QTreeView::mouseDoubleClickEvent(ev);
-    auto sel = selectedIndexes();
-    if(sel.empty())
-        return;
-
-    auto index = sel.first();
-
-    auto node = index.isValid()
-                ? static_cast<iscore::StateNode*>(index.internalPointer())
-                : nullptr;
-
-    if(node && node->is<iscore::AddressSettings>())
-    {
-        const auto& addr = node->get<iscore::AddressSettings>();
-        MessageListEditor ed(node->get<iscore::MessageList>(), m_devExplorer, this);
-        int ret = ed.exec();
-
-        if(ret)
-        {
-            auto cmd = new Scenario::Command::AssignMessagesToState{
-                       iscore::IDocument::path(*m_model),
-                       iscore::StatePath(*node),
-                       ed.messages()};
-
-            m_dispatcher.submitCommand(cmd);
-        }
-    }
-    else
-    {
-        ISCORE_TODO;
-    }
-}
-*/

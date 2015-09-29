@@ -295,10 +295,7 @@ void ObjectMenuActions::addTriggerToTimeNode()
     if(selectedTimeNodes.isEmpty())
         return;
 
-    auto cmd = new Scenario::Command::AddTrigger
-    {
-        iscore::IDocument::path(**selectedTimeNodes.begin())
-    };
+    auto cmd = new Scenario::Command::AddTrigger{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
 
@@ -308,10 +305,7 @@ void ObjectMenuActions::removeTriggerFromTimeNode()
     if(selectedTimeNodes.isEmpty())
         return;
 
-    auto cmd = new Scenario::Command::RemoveTrigger
-    {
-        iscore::IDocument::path(**selectedTimeNodes.begin())
-    };
+    auto cmd = new Scenario::Command::RemoveTrigger{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
 

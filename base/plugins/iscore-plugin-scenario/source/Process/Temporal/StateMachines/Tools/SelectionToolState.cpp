@@ -56,7 +56,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveConstraint =
             new MoveConstraintState{
                   m_parentSM,
-                  iscore::IDocument::path(m_parentSM.model()),
+                  m_parentSM.model(),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -74,7 +74,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveEvent =
             new MoveEventState{
                   m_parentSM,
-                  iscore::IDocument::path(m_parentSM.model()),
+                  m_parentSM.model(),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
@@ -96,7 +96,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
     m_moveTimeNode =
             new MoveTimeNodeState{
                   m_parentSM,
-                  iscore::IDocument::path(m_parentSM.model()),
+                  m_parentSM.model(),
                   m_parentSM.commandStack(),
                   m_parentSM.locker(),
                   nullptr};
