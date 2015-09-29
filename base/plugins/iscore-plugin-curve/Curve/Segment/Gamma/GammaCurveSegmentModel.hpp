@@ -39,6 +39,11 @@ class GammaCurveSegmentModel : public CurveSegmentModel
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
+        QVariant toSegmentSpecificData() const
+        {
+            return QVariant::fromValue(GammaCurveSegmentData{gamma});
+        }
+
         double gamma = 0.5;
 
 };

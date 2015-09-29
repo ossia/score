@@ -31,4 +31,6 @@ class LinearCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) const override;
         double valueAt(double x) const override;
+
+        QVariant toSegmentSpecificData() const override;
 };

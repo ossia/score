@@ -39,5 +39,10 @@ class PowerCurveSegmentModel : public CurveSegmentModel
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
+        QVariant toSegmentSpecificData() const
+        {
+            return QVariant::fromValue(PowerCurveSegmentData{gamma});
+        }
+
         double gamma = 0.5; // TODO private
 };

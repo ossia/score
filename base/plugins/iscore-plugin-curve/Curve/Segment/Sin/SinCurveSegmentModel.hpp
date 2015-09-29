@@ -45,4 +45,9 @@ class SinCurveSegmentModel : public CurveSegmentModel
         double freq = 5;
         double ampl = 0.6;
 
+        QVariant toSegmentSpecificData() const
+        {
+            return QVariant::fromValue(SinCurveSegmentData{freq, ampl});
+        }
+
 };

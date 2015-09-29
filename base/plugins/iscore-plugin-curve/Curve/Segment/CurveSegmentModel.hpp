@@ -50,33 +50,34 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
         void setStart(const CurvePoint& pt);
         CurvePoint start() const
-        {
-            return m_start;
-        }
+        { return m_start; }
 
         void setEnd(const CurvePoint& pt);
         CurvePoint end() const
-        {
-            return m_end;
-        }
+        { return m_end; }
 
         void setPrevious(const Id<CurveSegmentModel>& previous);
         const Id<CurveSegmentModel>& previous() const
-        {
-            return m_previous;
-        }
+        { return m_previous; }
 
         void setFollowing(const Id<CurveSegmentModel>& following);
         const Id<CurveSegmentModel>& following() const
-        {
-            return m_following;
-        }
+        { return m_following; }
 
         // Between -1 and 1, to map to the real parameter.
         virtual void setVerticalParameter(double p);
         virtual void setHorizontalParameter(double p);
         virtual boost::optional<double> verticalParameter() const;
         virtual boost::optional<double> horizontalParameter() const;
+
+        CurveSegmentData toSegmentData() const
+        {
+            return{
+                id(),
+                start(), end(),
+                previous(), following(),
+                name(), toSegmentSpecificData()};
+        }
 
     signals:
         void dataChanged();
@@ -88,6 +89,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
     protected:
         virtual void on_startChanged() = 0;
         virtual void on_endChanged() = 0;
+
+        virtual QVariant toSegmentSpecificData() const = 0;
 
         mutable QVector<QPointF> m_data; // A data cache.
         mutable bool m_valid{}; // Used to perform caching.

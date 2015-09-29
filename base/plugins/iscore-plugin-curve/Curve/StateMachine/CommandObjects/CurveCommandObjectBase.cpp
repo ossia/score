@@ -19,17 +19,10 @@ CurveCommandObjectBase::CurveCommandObjectBase(
 
 void CurveCommandObjectBase::press()
 {
-    const auto& current = m_presenter->model().segments();
+    const auto& current = m_presenter->model();
 
     // Serialize the current state of the curve
-    m_startSegments.clear();
-    m_startSegments.resize(current.size());
-    int i = 0;
-    for(const auto& segment : current)
-    {
-        Serializer<DataStream> s{&m_startSegments[i++]};
-        s.readFrom(segment);
-    }
+    m_startSegments = current.toCurveData();
 
     // To prevent behind locked at 0.000001 or 0.9999
     m_xmin = -1;
@@ -67,29 +60,19 @@ void CurveCommandObjectBase::handleLocking()
 QVector<CurveSegmentModel*> CurveCommandObjectBase::deserializeSegments() const
 {
     QVector<CurveSegmentModel*> segments;
+    segments.reserve(m_startSegments.size());
     std::transform(m_startSegments.begin(), m_startSegments.end(), std::back_inserter(segments),
-                   [] (QByteArray arr)
+                   [] (const CurveSegmentData& arr)
     {
-        Deserializer<DataStream> des(arr);
-        return createCurveSegment(des, nullptr);
+        return createCurveSegment(arr, nullptr);
     });
 
     return segments;
 }
 
-void CurveCommandObjectBase::submit(const QVector<CurveSegmentModel*> segments)
+void CurveCommandObjectBase::submit(const QVector<CurveSegmentData>& segments)
 {
-    QVector<QByteArray> newSegments;
-    newSegments.resize(segments.size());
-    int i = 0;
-    for(const auto& segment : segments)
-    {
-        Serializer<DataStream> s(&newSegments[i++]);
-        s.readFrom(*segment);
-    }
-
-    qDeleteAll(segments);
-
+    // TODO std::move
     m_dispatcher.submitCommand(m_presenter->model(),
-                               std::move(newSegments));
+                               segments);
 }

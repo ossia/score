@@ -50,6 +50,19 @@ class PointArrayCurveSegmentModel : public CurveSegmentModel
         double min() { return min_y; }
         double max() { return max_y; }
 
+        QVariant toSegmentSpecificData() const
+        {
+            PointArrayCurveSegmentData dat{
+                           min_x, max_x,
+                           min_y, max_y, {}};
+
+            dat.m_points.reserve(m_points.size());
+            for(const auto& pt : m_points)
+                dat.m_points.push_back({pt.first, pt.second});
+
+            return QVariant::fromValue(std::move(dat));
+        }
+
     signals:
         void minChanged(double);
         void maxChanged(double);

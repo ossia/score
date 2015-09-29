@@ -37,13 +37,13 @@ class UpdateCurveFast : public iscore::SerializableCommand
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateCurveFast)
         UpdateCurveFast(
           Path<CurveModel>&& model,
-          QVector<CurveSegmentData>&& segments);
+          const QVector<CurveSegmentData>& segments);
 
         void undo() override;
         void redo() override;
 
         void update(const Path<CurveModel>&,
-                    QVector<CurveSegmentData>&&);
+                    const QVector<CurveSegmentData>&);
 
     protected:
         void serializeImpl(QDataStream & s) const override;
