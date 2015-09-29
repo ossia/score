@@ -1,6 +1,7 @@
 #include "HideRackInViewModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -21,7 +22,7 @@ HideRackInViewModel::HideRackInViewModel(
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_constraintViewPath {iscore::IDocument::path(constraint_vm) }
+    m_constraintViewPath {constraint_vm}
 {
     m_constraintPreviousId = constraint_vm.shownRack();
 }

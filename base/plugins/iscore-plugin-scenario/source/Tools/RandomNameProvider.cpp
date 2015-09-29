@@ -10,11 +10,22 @@ static void initWordList()
 {
     words.clear();
     QFile f(":/dict.txt");
-    f.open(QFile::Text | QFile::ReadOnly);
-    QString list = f.readAll();
-    words = list.split("\n");
+    if(f.open(QFile::Text | QFile::ReadOnly))
+    {
+        QString list = f.readAll();
+        words = list.split("\n");
+    }
+    else
+    {
+        words.append("some");
+        words.append("basic");
+        words.append("words");
+        words.append("lambda");
+        words.append("default");
+    }
 
     vec_init = true;
+    ;
 }
 
 QString RandomNameProvider::generateRandomName()

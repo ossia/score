@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<jamoma version="0.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jamoma.org/ file:jamoma.xsd">
+
+<application author="i-score" version="v1.1" name="test" type="proxy">
+<node address="test1" object="Data" instance="10" service="parameter" type="decimal" repetitionsFilter="1" rangeBounds="-10 10" priority="6" valueDefault="0"/>
+
+</application>>
+</jamoma>

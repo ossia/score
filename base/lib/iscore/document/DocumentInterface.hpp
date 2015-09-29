@@ -1,6 +1,7 @@
 #pragma once
+#include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <iscore/tools/ModelPath.hpp>
+//#include <iscore/tools/ModelPath.hpp>
 
 namespace iscore
 {
@@ -39,22 +40,6 @@ iscore::ObjectLocker& locker(const QObject& obj);
  */
 ObjectPath unsafe_path(QObject const * const& obj);
 ObjectPath unsafe_path(const QObject& obj);
-
-/**
- * @brief path Typesafe path of an object in a document.
- * @param obj The object of which path is to be created.
- * @return A path to the object if it is in a document
- *
- * This function will abort the software if given an object
- * not in a document hierarchy in argument.
- */
-template<typename T>
-Path<T> path(const T& obj)
-{
-    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    return unsafe_path(safe_cast<const QObject&>(obj));
-}
-
 
 //// Various getters ////
 // Panel models

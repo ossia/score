@@ -616,7 +616,7 @@ void DeviceExplorerWidget::edit()
         if(code == QDialog::Accepted)
         {
             auto cmd = new DeviceExplorer::Command::UpdateDeviceSettings{
-                    iscore::IDocument::path(model()->deviceModel()),
+                    model()->deviceModel(),
                     set.name,
                     m_deviceDialog->getSettings()};
 
@@ -639,7 +639,7 @@ void DeviceExplorerWidget::edit()
                 return;
 
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
-                    iscore::IDocument::path(model()->deviceModel()),
+                    model()->deviceModel(),
                     iscore::NodePath(*select),
                     dial.getSettings()};
 
@@ -666,7 +666,7 @@ void DeviceExplorerWidget::refresh()
         auto wrkr = make_worker(
             [=] (iscore::Node&& node) {
                 auto cmd = new DeviceExplorer::Command::ReplaceDevice{
-                    iscore::IDocument::path(*model()),
+                    *model(),
                     m_ntView->selectedIndex().row(),
                     std::move(node)};
 
@@ -708,7 +708,7 @@ void DeviceExplorerWidget::refreshValue()
 
     // Send the command
     auto cmd = new DeviceExplorer::Command::UpdateAddressesValues{
-            iscore::IDocument::path(*model()),
+            *model(),
             lst};
 
     m_cmdDispatcher->submitCommand(cmd);
@@ -833,7 +833,7 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
 
         m_cmdDispatcher->submitCommand(
                         new DeviceExplorer::Command::AddAddress{
-                            iscore::IDocument::path(model()->deviceModel()),
+                            model()->deviceModel(),
                             iscore::NodePath{index},
                             insert,
                             stgs});

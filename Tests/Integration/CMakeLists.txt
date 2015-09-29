@@ -9,6 +9,10 @@ function(addIntegrationTest TESTNAME TESTSRCS)
     add_test(Integration_${TESTNAME}_target Integration_${TESTNAME})
 endFunction()
 
+
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/TestData"
+	 DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
 # Commands
 addIntegrationTest(Test1
              "${CMAKE_CURRENT_SOURCE_DIR}/Test1.cpp")
@@ -16,4 +20,6 @@ addIntegrationTest(TestStatesMinMax
              "${CMAKE_CURRENT_SOURCE_DIR}/States/TestStatesMinMax.cpp")
 addIntegrationTest(TestStatesCurve
              "${CMAKE_CURRENT_SOURCE_DIR}/States/TestStatesCurve.cpp")
+addIntegrationTest(TestStatesDragDrop
+			 "${CMAKE_CURRENT_SOURCE_DIR}/States/TestStatesDragDrop.cpp")
 

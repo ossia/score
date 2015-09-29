@@ -2,6 +2,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/utilsCPP11.hpp>
+#include <iscore/tools/ModelPath.hpp>
 
 /**
  * @brief The IdentifiedObject class
@@ -53,6 +54,8 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id = id;
         }
 
+        // private:
+        mutable Path<model> m_path_cache;
     private:
         Id<model> m_id {};
 };

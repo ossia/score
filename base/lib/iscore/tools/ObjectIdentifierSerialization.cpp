@@ -5,27 +5,34 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ObjectIdentifier& obj)
 {
-    m_stream << obj.m_objectName;
-    readFrom(obj.m_id);
+    m_stream << obj.objectName();
+    readFrom(obj.id());
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ObjectIdentifier& obj)
 {
-    m_stream >> obj.m_objectName;
-    writeTo(obj.m_id);
+    QString name;
+    boost::optional<int32_t> id;
+    m_stream >> name;
+    writeTo(id);
+    obj = ObjectIdentifier{name, id};
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const ObjectIdentifier& obj)
 {
-    m_obj["ObjectName"] = obj.m_objectName;
-    m_obj["ObjectId"] = toJsonObject(obj.m_id);
+    m_obj["ObjectName"] = obj.objectName();
+    m_obj["ObjectId"] = toJsonObject(obj.id());
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(ObjectIdentifier& obj)
 {
-    obj.m_objectName = m_obj["ObjectName"].toString();
-    fromJsonObject(m_obj["ObjectId"].toObject(), obj.m_id);
+    auto name = m_obj["ObjectName"].toString();
+
+    boost::optional<int32_t> id;
+    fromJsonObject(m_obj["ObjectId"].toObject(), id);
+
+    obj = ObjectIdentifier{name, id};
 }

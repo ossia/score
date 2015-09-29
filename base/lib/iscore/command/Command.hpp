@@ -8,6 +8,8 @@
 #include <numeric>
 
 #include <iscore/Settings.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/tools/ModelPathSerialization.hpp>
 
 #define ISCORE_COMMAND_DECL_OBSOLETE(name, desc) \
     public: \

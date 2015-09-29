@@ -22,6 +22,7 @@ void ConstraintDurations::checkConsistency()
   m_model.consistency.setValid(m_minDuration - TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) <= m_defaultDuration &&
                                m_maxDuration + TimeValue::fromMsecs(TIME_TOLERANCE_MSEC) >= m_defaultDuration &&
                                m_defaultDuration.msec() + TIME_TOLERANCE_MSEC > 0);
+
 }
 
 void ConstraintDurations::setDefaultDuration(const TimeValue& arg)

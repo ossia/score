@@ -1,4 +1,5 @@
 #include "PropertyCommand.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 void iscore::PropertyCommand::undo()
 {

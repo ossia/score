@@ -42,7 +42,7 @@ void RemoveTrigger::redo()
 
     for (auto& cstrId : scenar->constraintsBeforeTimeNode(tn.id()))
     {
-        auto cmd = new SetRigidity(iscore::IDocument::path(scenar->constraints.at(cstrId)), true);
+        auto cmd = new SetRigidity(scenar->constraints.at(cstrId), true);
         cmd->redo();
         m_cmds.push_back(cmd);
     }

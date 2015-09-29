@@ -3,7 +3,7 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
+#include <iscore/tools/ModelPathSerialization.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const TimenodeProperties& timenodeProperties)
 {

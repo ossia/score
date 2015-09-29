@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-
+#include <QJsonObject>
 #include <tests/helpers/ForwardDeclaration.hpp>
 #include "ProcessInterface/ExpandMode.hpp"
 

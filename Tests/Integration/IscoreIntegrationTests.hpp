@@ -10,7 +10,31 @@
 #include <DocumentPlugin/OSSIATimeNodeElement.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/presenter/Presenter.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore_static_plugins.hpp>
+#include <Document/BaseElement/BaseElementModel.hpp>
+#include <Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Document/Constraint/ConstraintModel.hpp>
+#include <Document/Event/EventModel.hpp>
+#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Document/State/StateModel.hpp>
+
+#include <Editor/TimeConstraint.h>
+#include <Editor/Scenario.h>
+
+#include <Automation/AutomationModel.hpp>
+#include <Plugin/Commands/Add/LoadDevice.hpp>
+#include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
+
+#include <Process/ScenarioModel.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Commands/Scenario/Creations/CreateState.hpp>
+#include <Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Plugin/Commands/AddMessagesToModel.hpp>
+#include <Commands/ChangeAddress.hpp>
 
 QT_BEGIN_NAMESPACE
 QTEST_ADD_GPU_BLACKLIST_SUPPORT_DEFS
@@ -18,6 +42,8 @@ QT_END_NAMESPACE
 class IscoreTestBase : public QObject
 {
     public:
+		iscore::Application app;
+
         IscoreTestBase(int& argc, char** argv):
             app{ApplicationSettings{false, false, {}}, argc, argv}
         {
@@ -36,9 +62,18 @@ class IscoreTestBase : public QObject
             return getOSSIAControl()->localDevice();
         }
 
-        iscore::Application app;
 
-    private:
+		void redo(iscore::SerializableCommand* cmd)
+		{
+			getDocument().commandStack().redoAndPush(cmd);
+		}
+
+        void undo()
+        {
+            getDocument().commandStack().undo();
+        }
+
+
         OSSIAControl* getOSSIAControl() const
         {
             const auto& ctrls = app.presenter()->pluginControls();
@@ -47,6 +82,38 @@ class IscoreTestBase : public QObject
 
             return static_cast<OSSIAControl*>(*it);
         }
+
+		iscore::Document& getDocument() const
+		{
+			return *app.presenter()->documents()[0];
+		}
+
+		BaseElementModel& getBaseElementModel() const
+		{
+			return iscore::IDocument::get<BaseElementModel>(getDocument());
+		}
+
+		template<typename T>
+		T& pluginModel()
+		{
+			return *getDocument().model().pluginModel<T>();
+		}
+
+		int exec()
+		{
+			int cnt = this->metaObject()->methodCount();
+			for(int i = 0; i < cnt; i++)
+			{
+				auto method = this->metaObject()->method(i);
+				method.invoke(this);
+
+				auto& stack = getDocument().commandStack();
+				while(stack.canUndo())
+					stack.undo();
+			}
+
+			return 0;
+		}
 };
 
 #define ISCORE_INTEGRATION_TEST(TestObject) \

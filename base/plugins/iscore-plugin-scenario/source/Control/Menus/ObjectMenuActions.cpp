@@ -267,7 +267,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
         {
             auto cmd = new Scenario::Command::ReplaceConstraintContent{
                        json_vref.toObject(),
-                       iscore::IDocument::path(*constraint),
+                       *constraint,
                        pres->stateMachine().expandMode()};
 
             CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
@@ -283,7 +283,7 @@ void ObjectMenuActions::addProcessInConstraint(QString processName)
         return;
     auto cmd = new Scenario::Command::AddProcessToConstraint //NOTE just the first, not all ?
     {
-        iscore::IDocument::path(**selectedConstraints.begin()),
+        **selectedConstraints.begin(),
         processName
     };
     emit dispatcher().submitCommand(cmd);
@@ -295,10 +295,7 @@ void ObjectMenuActions::addTriggerToTimeNode()
     if(selectedTimeNodes.isEmpty())
         return;
 
-    auto cmd = new Scenario::Command::AddTrigger
-    {
-        iscore::IDocument::path(**selectedTimeNodes.begin())
-    };
+    auto cmd = new Scenario::Command::AddTrigger{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
 
@@ -308,10 +305,7 @@ void ObjectMenuActions::removeTriggerFromTimeNode()
     if(selectedTimeNodes.isEmpty())
         return;
 
-    auto cmd = new Scenario::Command::RemoveTrigger
-    {
-        iscore::IDocument::path(**selectedTimeNodes.begin())
-    };
+    auto cmd = new Scenario::Command::RemoveTrigger{**selectedTimeNodes.begin()};
     emit dispatcher().submitCommand(cmd);
 }
 

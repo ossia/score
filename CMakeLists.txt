@@ -60,6 +60,11 @@ set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
 add_subdirectory(base)
 
 if(INTEGRATION_TESTING)
+
+	include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
+	file(GLOB_RECURSE TESTS_HDRS
+		"${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
+	add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
     setup_iscore_tests(Tests/Integration)
 endif()
 

@@ -443,7 +443,7 @@ bool DeviceExplorerModel::setData(
             {
                 // We changed
                 m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
-                                        iscore::IDocument::path(this->deviceModel()),
+                                        this->deviceModel(),
                                         iscore::NodePath{*n},
                                         settings});
                 return true;
@@ -990,8 +990,8 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
 
             // Perform the loading
             auto cmd = new LoadDevice{
-                    iscore::IDocument::path(deviceModel()),
-                    std::move(n)};
+                       deviceModel(),
+                       std::move(n)};
 
             m_cmdQ->redoAndPush(cmd);
         }
