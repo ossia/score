@@ -95,7 +95,11 @@ void SlotInspectorSection::displayLayerModel(const LayerModel& lm)
     frame->setFrameShape(QFrame::StyledPanel);
 
     // LM label
-    lay->addWidget(new QLabel {QString{"ViewModel.%1"} .arg(*lm_id.val()) }, 0, 0);
+    QString name = lm.objectName();
+    name.resize(name.indexOf("Layer"));
+    auto id = lm.processModel().id();
+
+    lay->addWidget(new QLabel {QString{name + ".%1"} .arg(*id.val()) }, 0, 0);
 
     // To front button
     auto pb = new QPushButton {tr("Front")};
