@@ -21,6 +21,7 @@ class BaseScenario;
 class CSPScenario : public QObject
 {
     friend class CSPDisplacementPolicy;
+    friend class CSPFlexDisplacementPolicy;
 
     Q_OBJECT
 public:
