@@ -1,9 +1,12 @@
 #include "ScenarioCreationState.hpp"
+#include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
+#include "Process/ScenarioModel.hpp"
 
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
+#include "Commands/Scenario/Creations/CreateSequence.hpp"
 
 using namespace Scenario::Command;
 void ScenarioCreationState::createToState_base(const Id<StateModel> & originalState)
@@ -51,16 +54,34 @@ void ScenarioCreationState::createToTimeNode_base(const Id<StateModel> & origina
 
 
 void ScenarioCreationState::createToNothing_base(const Id<StateModel> & originalState)
-{
-    auto cmd = new CreateConstraint_State_Event_TimeNode{
-            m_scenarioPath,
-            originalState, // Put there in createInitialState
-            currentPoint.date,
-            currentPoint.y};
-    m_dispatcher.submitCommand(cmd);
+{            
+    if(!m_parentSM.isShiftPressed())
+    {
+        auto cmd = new CreateConstraint_State_Event_TimeNode{
+                m_scenarioPath,
+                originalState, // Put there in createInitialState
+                currentPoint.date,
+                currentPoint.y};
+        m_dispatcher.submitCommand(cmd);
 
-    createdStates.append(cmd->createdState());
-    createdEvents.append(cmd->createdEvent());
-    createdTimeNodes.append(cmd->createdTimeNode());
-    createdConstraints.append(cmd->createdConstraint());
+        createdStates.append(cmd->createdState());
+        createdEvents.append(cmd->createdEvent());
+        createdTimeNodes.append(cmd->createdTimeNode());
+        createdConstraints.append(cmd->createdConstraint());
+    } // TODO  : code duplicated ...
+    else
+    {
+        auto cmd = new CreateSequence{
+                m_scenarioPath,
+                originalState, // Put there in createInitialState
+                currentPoint.date,
+                currentPoint.y};
+        m_dispatcher.submitCommand(cmd);
+
+        createdStates.append(cmd->createdState());
+        createdEvents.append(cmd->createdEvent());
+        createdTimeNodes.append(cmd->createdTimeNode());
+        createdConstraints.append(cmd->createdConstraint());
+    }
+
 }
