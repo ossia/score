@@ -99,7 +99,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
         scenario.events.add(evmodel);
     }
 
-    // Events
+    // States
     int32_t state_count;
     m_stream >> state_count;
 
