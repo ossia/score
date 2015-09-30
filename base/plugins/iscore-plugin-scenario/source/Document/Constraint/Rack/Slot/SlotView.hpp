@@ -31,10 +31,13 @@ class SlotView : public QGraphicsObject
 
         void setFocus(bool b);
 
+        void setFrontProcessName(const QString&);
+
     private:
         qreal m_height {};
         qreal m_width {};
         SlotOverlay* m_overlay{};
         SlotHandle* m_handle{};
         bool m_focus{false};
+        QString m_frontProcessName{};
 };
