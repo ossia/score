@@ -79,6 +79,10 @@ ConstraintPresenter::ConstraintPresenter(
     {
         on_rackShown(m_viewModel.shownRack());
     }
+    else if(!m_viewModel.model().processes.empty())
+    {
+        on_rackHidden();
+    }
     else
     {
         on_rackRemoved();
