@@ -15,6 +15,8 @@ void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 
     readFrom(process.duration());
 
+    readFrom(process.metadata);
+
     // Save the subclass
     process.serialize(toVariant());
 
@@ -27,6 +29,7 @@ template<>
 void Visitor<Writer<DataStream>>::writeTo(Process& process)
 {
     writeTo(process.m_duration);
+    writeTo(process.metadata);
 
     // Delimiter checked on createProcess
 }
@@ -60,6 +63,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
     readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
     m_obj["Duration"] = toJsonValue(process.duration());
+    m_obj["Metadata"] = toJsonObject(process.metadata);
 
     // Save the subclass
     process.serialize(toVariant());
@@ -70,6 +74,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(Process& process)
 {
     process.m_duration = fromJsonValue<TimeValue>(m_obj["Duration"]);
+    process.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 }
 
 template<>
