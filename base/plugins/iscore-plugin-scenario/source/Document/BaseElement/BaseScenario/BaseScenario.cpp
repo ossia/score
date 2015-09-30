@@ -39,6 +39,7 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     m_startState->setNextConstraint(m_constraint->id());
     m_endState->setPreviousConstraint(m_constraint->id());
 
+    m_constraint->duration.setRigid(false);
     ConstraintDurations::Algorithms::changeAllDurations(*m_constraint, std::chrono::minutes{3});
     m_endEvent->setDate(m_constraint->duration.defaultDuration());
     m_endNode->setDate(m_constraint->duration.defaultDuration());
