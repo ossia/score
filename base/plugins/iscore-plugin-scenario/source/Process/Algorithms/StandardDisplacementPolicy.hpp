@@ -82,32 +82,33 @@ public:
         }
 
         // update affected constraints
-        for(auto& curConstraintPropertiesToUpdate_id : elementsPropertiesToUpdate.constraints.keys())
+        QMapIterator<Id<ConstraintModel>, ConstraintProperties> constraintPropertiesIterator(elementsPropertiesToUpdate.constraints);
+        while (constraintPropertiesIterator.hasNext())
         {
+            constraintPropertiesIterator.next();
+
+            auto curConstraintPropertiesToUpdate_id = constraintPropertiesIterator.key();
+
             auto& curConstraintToUpdate = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
-            auto& curConstraintPropertiesToUpdate = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id];
+            auto& curConstraintPropertiesToUpdate = constraintPropertiesIterator.value();
 
+            // compute default duration here
+            const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
+            const auto& endDate = scenario.event(scenario.state(curConstraintToUpdate.endState()).eventId()).date();
 
-            if(useNewValues)// update durations
+            TimeValue defaultDuration = endDate - startDate;
+
+            // set start date and default duration
+            if (!(curConstraintToUpdate.startDate() - startDate).isZero())
             {
-                // compute default duration here
-                const auto& startDate = scenario.event(scenario.state(curConstraintToUpdate.startState()).eventId()).date();
-                const auto& endDate = scenario.event(scenario.state(curConstraintToUpdate.endState()).eventId()).date();
+                curConstraintToUpdate.setStartDate(startDate);
+            }
+            curConstraintToUpdate.duration.setDefaultDuration(defaultDuration);
 
-                TimeValue defaultDuration = endDate - startDate;
-
-                // check if start date changed
-                if (!(curConstraintToUpdate.startDate() - startDate).isZero())
-                {
-                    curConstraintToUpdate.setStartDate(startDate);
-                }
-
-                //change durations
-                curConstraintToUpdate.duration.setDefaultDuration(defaultDuration);
-
+            if(useNewValues)// scale processes and set durations
+            {
                 curConstraintToUpdate.duration.setMinDuration(curConstraintPropertiesToUpdate.newMin);
                 curConstraintToUpdate.duration.setMaxDuration(curConstraintPropertiesToUpdate.newMax);
-
 
                 for(auto& process : curConstraintToUpdate.processes)
                 {
@@ -117,6 +118,10 @@ public:
             }
             else// IF UNDO THEN RESTORE THE STATE OF THE CONSTRAINTS
             {
+                // set durations
+                curConstraintToUpdate.duration.setMinDuration(curConstraintPropertiesToUpdate.oldMin);
+                curConstraintToUpdate.duration.setMaxDuration(curConstraintPropertiesToUpdate.oldMax);
+
                 // Now we have to restore the state of each constraint that might have been modified
                 // during this command.
                 auto& savedConstraintData = elementsPropertiesToUpdate.constraints[curConstraintPropertiesToUpdate_id].savedDisplay;
@@ -187,52 +192,3 @@ public:
         }
     }
 };
-
-
-
-
-namespace StandardDisplacementPolicy
-{
-
-    template<typename ProcessScaleMethod>
-    void updatePositions(
-            ScenarioModel& scenario,
-            const QVector<Id<TimeNodeModel> >& translatedTimeNodes,
-            const TimeValue& deltaTime,
-            ProcessScaleMethod&& scaleMethod)
-    {
-        for (const auto& timeNode_id : translatedTimeNodes)
-        {
-            auto& timeNode = scenario.timeNode(timeNode_id);
-            timeNode.setDate(timeNode.date() + deltaTime);
-            for (const auto& event : timeNode.events())
-            {
-                scenario.event(event).setDate(timeNode.date());
-            }
-        }
-
-        for(auto& constraint : scenario.constraints)
-        {
-            const auto& startDate = scenario.event(scenario.state(constraint.startState()).eventId()).date();
-            const auto& endDate = scenario.event(scenario.state(constraint.endState()).eventId()).date();
-
-            TimeValue newDuration = endDate - startDate;
-
-            if (!(constraint.startDate() - startDate).isZero())
-            {
-                constraint.setStartDate(startDate);
-            }
-
-            if(!(constraint.duration.defaultDuration() - newDuration).isZero())
-            {
-                ConstraintDurations::Algorithms::changeAllDurations(constraint, newDuration);
-                for(auto& process : constraint.processes)
-                {
-                    scaleMethod(process, newDuration);
-                }
-            }
-
-            emit scenario.constraintMoved(constraint);
-        }
-    }
-}

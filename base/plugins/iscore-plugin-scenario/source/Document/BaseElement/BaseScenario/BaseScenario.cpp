@@ -1,6 +1,7 @@
 #include "BaseScenario.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
 #include "Document/State/StateModel.hpp"
 #include "source/Document/Constraint/ConstraintModel.hpp"
 #include <iscore/document/DocumentInterface.hpp>
@@ -27,6 +28,7 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
 {
     m_startNode->addEvent(m_startEvent->id());
     m_endNode->addEvent(m_endEvent->id());
+    m_endNode->trigger()->setActive(true);
 
     m_startEvent->addState(m_startState->id());
     m_endEvent->addState(m_endState->id());
@@ -37,6 +39,7 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     m_startState->setNextConstraint(m_constraint->id());
     m_endState->setPreviousConstraint(m_constraint->id());
 
+    m_constraint->duration.setRigid(false);
     ConstraintDurations::Algorithms::changeAllDurations(*m_constraint, std::chrono::minutes{3});
     m_endEvent->setDate(m_constraint->duration.defaultDuration());
     m_endNode->setDate(m_constraint->duration.defaultDuration());

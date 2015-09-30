@@ -18,6 +18,9 @@
 #include "Document/TimeNode/TimeNodeView.hpp"
 #include "Document/TimeNode/TimeNodePresenter.hpp"
 
+#include <Document/TimeNode/Trigger/TriggerModel.hpp>
+#include <Document/TimeNode/Trigger/TriggerView.hpp>
+
 #include "Document/State/StateModel.hpp"
 
 #include "ScenarioViewInterface.hpp"

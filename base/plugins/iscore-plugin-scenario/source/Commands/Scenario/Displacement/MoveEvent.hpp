@@ -9,6 +9,7 @@
 #include "Process/ScenarioModel.hpp"
 #include "Process/Algorithms/StandardDisplacementPolicy.hpp"
 #include "Process/Algorithms/VerticalMovePolicy.hpp"
+#include "Tools/elementFindingHelper.hpp"
 
 class EventModel;
 class TimeNodeModel;
@@ -77,7 +78,7 @@ class MoveEvent : public SerializableMoveEvent
             // NOTE: in the future in would be better to give directly the delta value to this method ?,
             // in that way we wouldn't need to keep the initial event and recalculate the delta
             m_eventId = eventId;
-            m_initialDate = newDate;
+            m_initialDate =  getDate(m_path.find(), eventId);
 
             update(m_path,
                    eventId,

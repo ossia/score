@@ -25,11 +25,7 @@ CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& time
     // except for start timenode
     if(timeNodeId.val() != 0)
     {
-        kiwi::Constraint* constraintNodeAfterStart = new kiwi::Constraint(m_date >= cspScenario.getStartTimeNode()->getDate());
-
-        solver.addConstraint(*constraintNodeAfterStart);
-
-        m_constraints.push_back(constraintNodeAfterStart);
+        PUT_CONSTRAINT(constraintNodeAfterStart, m_date >= cspScenario.getStartTimeNode()->getDate());
     }else// if it is indeed start node, constrain him the the start value
     {
         PUT_CONSTRAINT(cStartDontMove, m_date == m_date.value());

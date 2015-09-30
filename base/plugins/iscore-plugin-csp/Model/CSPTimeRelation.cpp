@@ -9,6 +9,7 @@
 CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintModel>& constraintId)
     :CSPConstraintHolder::CSPConstraintHolder(cspScenario.getSolver(), &cspScenario)
 {
+    qDebug("coucou");
     this->setParent(&cspScenario);
     this->setObjectName("CSPTimeRelation");
 
@@ -28,20 +29,21 @@ CSPTimeRelation::CSPTimeRelation(CSPScenario& cspScenario, const Id<ConstraintMo
     auto& prevTimenodeModel = scenario->timeNode(constraint.startTimeNode());
     auto& nextTimenodeModel = scenario->timeNode(constraint.endTimeNode());
 
+    //retrieve/create prev and next timenode
     auto prevCSPTimenode = cspScenario.insertTimenode(prevTimenodeModel.id());
     auto nextCSPTimenode = cspScenario.insertTimenode(nextTimenodeModel.id());
 
     // apply model constraints
-    //Note: min & max can be negative no problemo muchacho
-    // 1 - min inferior to max
+    // 1 - min >= 0
+    PUT_CONSTRAINT(cMinSupZero, m_min >= 0);
+
+    // 2 - min inferior to max
     PUT_CONSTRAINT(cMinInfMax, m_min <= m_max);
 
-    // 2 - date of end timenode inside min and max
-    PUT_CONSTRAINT(cInsideMin, nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min));
-    PUT_CONSTRAINT(cInsideMax, nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max));
+    // 3 - date of end timenode inside min and max
+    PUT_CONSTRAINT(cNextDateMin, nextCSPTimenode->getDate() >= (prevCSPTimenode->getDate() + m_min));
+    PUT_CONSTRAINT(cNextDateMax, nextCSPTimenode->getDate() <= (prevCSPTimenode->getDate() + m_max));
 
-    // 3 - min >= 0
-    PUT_CONSTRAINT(cMinSupZero, m_min >= 0);
 
     // if there are sub scenarios, store them
     for(auto& process : constraint.processes)

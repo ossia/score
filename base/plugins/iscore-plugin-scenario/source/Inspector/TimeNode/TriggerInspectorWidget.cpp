@@ -88,6 +88,11 @@ void TriggerInspectorWidget::on_triggerActiveChanged()
     m_addTrigBtn->setVisible(!v);
 }
 
+void TriggerInspectorWidget::HideRmButton()
+{
+    m_rmTrigBtn->setVisible(false);
+}
+
 void TriggerInspectorWidget::updateExpression(QString str)
 {
     m_triggerLineEdit->setText(str);
