@@ -51,9 +51,6 @@ namespace bmi = boost::multi_index;
 using CurveSegmentMap = bmi::multi_index_container<
     CurveSegmentData,
     bmi::indexed_by<
-        bmi::ordered_unique<
-            bmi::identity<CurveSegmentData>
-        >,
         bmi::hashed_unique<
             bmi::member<
                 CurveSegmentData,
@@ -64,5 +61,20 @@ using CurveSegmentMap = bmi::multi_index_container<
         >
     >
 >;
+using CurveSegmentOrderedMap = bmi::multi_index_container<
+CurveSegmentData,
+bmi::indexed_by<
+bmi::hashed_unique<
+bmi::member<
+CurveSegmentData,
+Id<CurveSegmentModel>,
+&CurveSegmentData::id
+>, CurveDataHash
+>,
+bmi::ordered_unique<
+bmi::identity<CurveSegmentData>
+>
+>
+>;
 
-enum Segments { Ordered, Hashed };
+enum Segments { Hashed, Ordered };

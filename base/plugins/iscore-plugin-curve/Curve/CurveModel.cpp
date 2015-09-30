@@ -254,8 +254,8 @@ QVector<CurveSegmentData> CurveModel::toCurveData() const
 void CurveModel::fromCurveData(const QVector<CurveSegmentData>& curve)
 {
     clear();
-    CurveSegmentMap map(curve.begin(), curve.end());
-    for(const auto& elt : map.get<0>()) // Ordered
+    CurveSegmentOrderedMap map(curve.begin(), curve.end());
+    for(const auto& elt : map.get<Segments::Ordered>())
     {
         addSortedSegment(createCurveSegment(elt, this));
     }
