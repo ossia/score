@@ -10,6 +10,7 @@ class RackModel;
 class SlotModel;
 class ScenarioModel;
 class Process;
+class TriggerInspectorWidget;
 
 class RackWidget;
 class RackInspectorSection;
@@ -67,6 +68,8 @@ class ConstraintInspectorWidget : public InspectorWidgetBase
 
         InspectorSectionWidget* m_processSection {};
         std::vector<InspectorSectionWidget*> m_processesSectionWidgets;
+
+        TriggerInspectorWidget* m_triggerLine{};
 
         InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};

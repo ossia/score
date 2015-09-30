@@ -20,6 +20,7 @@ class TriggerInspectorWidget : public QWidget
         void removeTrigger();
 
         void on_triggerActiveChanged();
+        void HideRmButton();
 
         void updateExpression(QString);
 
