@@ -35,17 +35,15 @@ class CurveCommandObjectBase
 
         void handleLocking();
 
-        // Get the current saved segments
-        QVector<CurveSegmentModel*> deserializeSegments() const;
-
         // Creates and pushes an UpdateCurve command
         // from a vector of segments.
         // They are removed afterwards
-        void submit(const QVector<CurveSegmentData>&);
+        void submit(const std::vector<CurveSegmentData>&);
 
     protected:
+
         auto find(
-                QVector<CurveSegmentData>& segments,
+                std::vector<CurveSegmentData>& segments,
                 const Id<CurveSegmentModel>& id)
         {
             return std::find_if(
@@ -54,16 +52,17 @@ class CurveCommandObjectBase
                         [&] (const auto& seg) { return seg.id == id; });
         }
         auto find(
-                const QVector<CurveSegmentData>& segments,
+                const std::vector<CurveSegmentData>& segments,
                 const Id<CurveSegmentModel>& id)
         {
             return std::find_if(
-                        segments.begin(),
-                        segments.end(),
+                        segments.cbegin(),
+                        segments.cend(),
                         [&] (const auto& seg) { return seg.id == id; });
         }
 
-        Id<CurveSegmentModel> getSegmentId(const QVector<CurveSegmentData>& ids)
+        template<typename Container>
+        Id<CurveSegmentModel> getSegmentId(const Container& ids)
         {
             Id<CurveSegmentModel> id {};
 
@@ -71,9 +70,64 @@ class CurveCommandObjectBase
             {
                 id = Id<CurveSegmentModel>{getNextId()};
             }
-            while(find(ids, id) != std::end(ids));
+            while(ids.find(id) != ids.end());
 
             return id;
+        }
+
+        Id<CurveSegmentModel> getSegmentId(const std::vector<CurveSegmentData>& ids)
+        {
+            Id<CurveSegmentModel> id {};
+
+            do
+            {
+                id = Id<CurveSegmentModel>{getNextId()};
+            }
+            while(std::find_if(ids.begin(),
+                               ids.end(),
+                               [&] (const auto& other) { return other.id == id; }) != ids.end());
+
+            return id;
+        }
+
+
+        bool isConsistent(const std::vector<CurveSegmentData>& segs)
+        {
+            // For all elements, we check that :
+            // If there is a previous, it is another's following and reciprocally
+            for(const CurveSegmentData& elt : segs)
+            {
+                ISCORE_ASSERT(bool(elt.id));
+                if(elt.previous)
+                {
+                    auto it = find(segs, elt.previous);
+                    ISCORE_ASSERT(it != segs.end());
+                    ISCORE_ASSERT(it->following == elt.id);
+                    ISCORE_ASSERT(it->end.x() <= elt.start.x());
+                }
+
+                if(elt.following)
+                {
+                    auto it = find(segs, elt.following);
+                    ISCORE_ASSERT(it != segs.end());
+                    ISCORE_ASSERT(it->previous == elt.id);
+                    ISCORE_ASSERT(it->start.x() >= elt.end.x());
+                }
+/*
+                // Check that the start & end are not in the middle of any other segment.
+                auto it = std::find_if(segs.begin(), segs.end(), [&] (const CurveSegmentData& other) {
+                    bool b = other.id != elt.id &&
+                           (   (elt.start.x() > other.start.x() && elt.start.x() < other.end.x())
+                            || (elt.end.x() > other.start.x()   && elt.end.x() < other.end.x()));
+
+                    ISCORE_ASSERT(!b);
+                    return b;
+                });*/
+
+            }
+
+            return true;
+
         }
 
         virtual void on_press() = 0;

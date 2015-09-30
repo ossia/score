@@ -1,8 +1,12 @@
 #include "SettableIdentifierGeneration.hpp"
 
 #include <random>
+
 int32_t getNextId()
 {
+    static int x = 15;
+    return x++;
+    /*
     using namespace std;
     static random_device rd;
     static mt19937 gen(rd());
@@ -11,4 +15,5 @@ int32_t getNextId()
          numeric_limits<int32_t>::max());
 
     return dist(gen);
+    */
 }

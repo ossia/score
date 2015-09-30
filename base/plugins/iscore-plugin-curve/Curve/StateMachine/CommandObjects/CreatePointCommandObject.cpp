@@ -35,13 +35,14 @@ void CreatePointCommandObject::on_press()
 
 void CreatePointCommandObject::move()
 {
-    auto segments = m_startSegments;
+    auto segments = m_startSegments.toStdVector();
 
     // Locking between bounds
     handleLocking();
 
     // Creation
     createPoint(segments);
+    isConsistent(segments);
 
     // Submit
     submit(segments);
@@ -57,7 +58,7 @@ void CreatePointCommandObject::cancel()
     m_dispatcher.rollback();
 }
 
-void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
+void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segments)
 {
     // Create a point where we clicked
     // By creating segments that goes to the closest points if we're in the empty,

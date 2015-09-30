@@ -28,6 +28,42 @@ CurveModel* CurveModel::clone(
     return cm;
 }
 
+
+void CurveModel::addSortedSegment(CurveSegmentModel* m)
+{
+    insertSegment(m);
+
+    // Add points if necessary
+    // If there is an existing previous segment, its end point also exists
+    auto createStartPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setFollowing(m->id());
+        pt->setPos(m->start());
+        addPoint(pt);
+        return pt;
+    };
+    auto createEndPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setPrevious(m->id());
+        pt->setPos(m->end());
+        addPoint(pt);
+        return pt;
+    };
+
+    if(!m->previous())
+    {
+        createStartPoint();
+    }
+    else
+    {
+        // The previous segment has already been inserted,
+        // hence the previous point is present.
+        m_points.back()->setFollowing(m->id());
+    }
+
+    createEndPoint();
+}
+
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
     insertSegment(m);
@@ -218,10 +254,10 @@ QVector<CurveSegmentData> CurveModel::toCurveData() const
 void CurveModel::fromCurveData(const QVector<CurveSegmentData>& curve)
 {
     clear();
-
-    for(const auto& elt : curve)
+    CurveSegmentMap map(curve.begin(), curve.end());
+    for(const auto& elt : map.get<0>()) // Ordered
     {
-        addSegment(createCurveSegment(elt, this));
+        addSortedSegment(createCurveSegment(elt, this));
     }
 
     emit changed();
