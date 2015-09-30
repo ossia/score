@@ -27,13 +27,18 @@ public:
         return QString{"CSP"};
     }
 
-    template<typename ProcessScaleMethod>
-    static
-    void
-    updatePositions(ScenarioModel& scenario, ProcessScaleMethod&& scaleMethod, ElementsProperties& elementsPropertiesToUpdate, bool useNewValues)
+    template<typename... Args>
+    static void updatePositions(Args&&... args)
     {
-        CommonDisplacementPolicy::updatePositions(scenario, scaleMethod, elementsPropertiesToUpdate, useNewValues);
+        CommonDisplacementPolicy::updatePositions(std::forward<Args>(args)...);
     }
+
+    template<typename... Args>
+    static void revertPositions(Args&&... args)
+    {
+        CommonDisplacementPolicy::revertPositions(std::forward<Args>(args)...);
+    }
+
 protected:
     static void refreshStays(CSPScenario& cspScenario, const QVector<Id<TimeNodeModel> >& draggedElements);
 };

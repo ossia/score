@@ -111,14 +111,11 @@ class MoveEvent : public SerializableMoveEvent
         {
             auto& scenario = m_path.find();
 
-            bool useNewValues{false};
-
             // update positions using old stored dates
-            DisplacementPolicy::updatePositions(
+            DisplacementPolicy::revertPositions(
                         scenario,
                         [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
-            m_savedElementsProperties,
-                    useNewValues);
+            m_savedElementsProperties);
 
             updateEventExtent(m_eventId, scenario);
         }
@@ -127,14 +124,11 @@ class MoveEvent : public SerializableMoveEvent
         {
             auto& scenario = m_path.find();
 
-            bool useNewValues{true};
-
             // update positions using new stored dates
             DisplacementPolicy::updatePositions(
                         scenario,
                         [&] (Process& p, const TimeValue& t){ p.expandProcess(m_mode, t); },
-            m_savedElementsProperties,
-                    useNewValues);
+            m_savedElementsProperties);
 
             updateEventExtent(m_eventId, scenario);
         }

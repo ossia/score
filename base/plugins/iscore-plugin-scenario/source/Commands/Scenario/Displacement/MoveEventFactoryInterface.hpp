@@ -38,6 +38,7 @@ public:
     virtual int priority(MoveEventList::Strategy strategy) = 0;
 
     static QString factoryName()
+
     {
         return "MoveEvent";
     }
