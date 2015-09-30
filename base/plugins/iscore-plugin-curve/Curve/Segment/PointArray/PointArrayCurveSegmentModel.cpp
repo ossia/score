@@ -1,6 +1,25 @@
 #include "PointArrayCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 #include "psimpl.h"
+
+PointArrayCurveSegmentModel::PointArrayCurveSegmentModel(
+        const CurveSegmentData& dat,
+        QObject* parent):
+    CurveSegmentModel{dat, parent}
+{
+    const auto& pa_data = dat.specificSegmentData.value<PointArrayCurveSegmentData>();
+    min_x = pa_data.min_x;
+    max_x = pa_data.max_x;
+    min_y = pa_data.min_y;
+    max_y = pa_data.max_y;
+
+    for(auto pt : pa_data.m_points)
+    {
+        m_points.insert(std::make_pair(pt.x(), pt.y()));
+    }
+}
+
+
 CurveSegmentModel*PointArrayCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject *parent) const

@@ -1,9 +1,16 @@
 #pragma once
 #include "Curve/Segment/CurveSegmentModel.hpp"
-// ALl between zero and one.
+class LinearCurveSegmentData
+{
+
+};
+
+Q_DECLARE_METATYPE(LinearCurveSegmentData)
+
 class LinearCurveSegmentModel : public CurveSegmentModel
 {
     public:
+        using data_type = LinearCurveSegmentData;
         using CurveSegmentModel::CurveSegmentModel;
 
         template<typename Impl>
@@ -24,4 +31,6 @@ class LinearCurveSegmentModel : public CurveSegmentModel
 
         void updateData(int numInterp) const override;
         double valueAt(double x) const override;
+
+        QVariant toSegmentSpecificData() const override;
 };

@@ -1,10 +1,21 @@
 #pragma once
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
+struct GammaCurveSegmentData
+{
+    double gamma;
+};
+
+Q_DECLARE_METATYPE(GammaCurveSegmentData)
+
 class GammaCurveSegmentModel : public CurveSegmentModel
 {
     public:
+        using data_type = GammaCurveSegmentData;
         using CurveSegmentModel::CurveSegmentModel;
+        GammaCurveSegmentModel(
+                const CurveSegmentData& dat,
+                QObject* parent);
 
         template<typename Impl>
         GammaCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -27,6 +38,11 @@ class GammaCurveSegmentModel : public CurveSegmentModel
 
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
+
+        QVariant toSegmentSpecificData() const
+        {
+            return QVariant::fromValue(GammaCurveSegmentData{gamma});
+        }
 
         double gamma = 0.5;
 

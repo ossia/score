@@ -1,10 +1,22 @@
 #pragma once
 #include "Curve/Segment/CurveSegmentModel.hpp"
 
+struct SinCurveSegmentData
+{
+    double freq;
+    double ampl;
+};
+
+Q_DECLARE_METATYPE(SinCurveSegmentData)
+
 class SinCurveSegmentModel : public CurveSegmentModel
 {
     public:
+        using data_type = SinCurveSegmentData;
         using CurveSegmentModel::CurveSegmentModel;
+        SinCurveSegmentModel(
+                const CurveSegmentData& dat,
+                QObject* parent);
 
         template<typename Impl>
         SinCurveSegmentModel(Deserializer<Impl>& vis, QObject* parent) :
@@ -32,5 +44,10 @@ class SinCurveSegmentModel : public CurveSegmentModel
 
         double freq = 5;
         double ampl = 0.6;
+
+        QVariant toSegmentSpecificData() const
+        {
+            return QVariant::fromValue(SinCurveSegmentData{freq, ampl});
+        }
 
 };

@@ -6,7 +6,7 @@ UpdateCurve::UpdateCurve(
         Path<CurveModel>&& model,
         QVector<QByteArray> &&segments):
     iscore::SerializableCommand{
-        "AutomationControl", commandName(), description()},
+        factoryName(), commandName(), description()},
     m_model{std::move(model)},
     m_newCurveData{std::move(segments)}
 {
@@ -48,7 +48,9 @@ void UpdateCurve::redo()
     curve.changed();
 }
 
-void UpdateCurve::update(Path<CurveModel>&& model, QVector<QByteArray> &&segments)
+void UpdateCurve::update(
+        Path<CurveModel>&& model,
+        QVector<QByteArray> &&segments)
 {
     m_newCurveData = std::move(segments);
 }
@@ -59,6 +61,54 @@ void UpdateCurve::serializeImpl(QDataStream& s) const
 }
 
 void UpdateCurve::deserializeImpl(QDataStream& s)
+{
+    s >> m_model >> m_oldCurveData >> m_newCurveData;
+}
+
+
+///////////////////
+///////////////////
+///////////////////
+///////////////////
+
+
+UpdateCurveFast::UpdateCurveFast(
+        Path<CurveModel>&& model,
+        const QVector<CurveSegmentData> &segments):
+    iscore::SerializableCommand{
+        factoryName(), commandName(), description()},
+    m_model{std::move(model)},
+    m_newCurveData{segments}
+{
+    const auto& curve = m_model.find();
+    m_oldCurveData = curve.toCurveData();
+}
+
+void UpdateCurveFast::undo()
+{
+    auto& curve = m_model.find();
+    curve.fromCurveData(m_oldCurveData);
+}
+
+void UpdateCurveFast::redo()
+{
+    auto& curve = m_model.find();
+    curve.fromCurveData(m_newCurveData);
+}
+
+void UpdateCurveFast::update(
+        const Path<CurveModel>& model,
+        const QVector<CurveSegmentData>& segments)
+{
+    m_newCurveData = std::move(segments);
+}
+
+void UpdateCurveFast::serializeImpl(QDataStream& s) const
+{
+    s << m_model << m_oldCurveData << m_newCurveData;
+}
+
+void UpdateCurveFast::deserializeImpl(QDataStream& s)
 {
     s >> m_model >> m_oldCurveData >> m_newCurveData;
 }

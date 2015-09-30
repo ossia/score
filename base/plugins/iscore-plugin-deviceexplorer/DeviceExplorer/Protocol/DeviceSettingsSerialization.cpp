@@ -6,10 +6,11 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 {
-    insertDelimiter();
     m_stream << n.name
              << n.protocol;
 
+    // TODO try to see if this pattern is refactorable with the similar thing
+    // usef for CurveSegmentData.
     if(!n.protocol.isEmpty())
     {
         auto prot = SingletonProtocolList::instance().protocol(n.protocol);
@@ -23,7 +24,6 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
 {
-    checkDelimiter();
     m_stream >> n.name
              >> n.protocol;
 

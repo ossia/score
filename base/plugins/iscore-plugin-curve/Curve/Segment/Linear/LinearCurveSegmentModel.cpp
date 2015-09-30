@@ -48,3 +48,8 @@ double LinearCurveSegmentModel::valueAt(double x) const
 {
     return start().y() + (end().y() - start().y()) * (x - start().x()) / (end().x() - start().x());
 }
+
+QVariant LinearCurveSegmentModel::toSegmentSpecificData() const
+{
+    return QVariant::fromValue(data_type{});
+}

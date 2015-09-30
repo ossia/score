@@ -1,8 +1,9 @@
 #include "CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
 
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -200,6 +201,30 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
     }
 
     delete m;
+}
+
+QVector<CurveSegmentData> CurveModel::toCurveData() const
+{
+    QVector<CurveSegmentData> dat;
+    dat.reserve(m_segments.size());
+    for(const auto& seg : m_segments)
+    {
+        dat.push_back(seg.toSegmentData());
+    }
+
+    return dat;
+}
+
+void CurveModel::fromCurveData(const QVector<CurveSegmentData>& curve)
+{
+    clear();
+
+    for(const auto& elt : curve)
+    {
+        addSegment(createCurveSegment(elt, this));
+    }
+
+    emit changed();
 }
 
 Selection CurveModel::selectedChildren() const

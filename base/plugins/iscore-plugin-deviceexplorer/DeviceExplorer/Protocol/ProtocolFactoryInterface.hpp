@@ -27,9 +27,7 @@ class ProtocolFactory : public iscore::FactoryInterface
         void serializeProtocolSpecificSettings_T(
                 const QVariant& data,
                 const VisitorVariant& visitor) const
-        {
-            serialize_dyn(visitor, data.value<T>());
-        }
+        { serialize_dyn(visitor, data.value<T>()); }
 
 
         // Load
@@ -39,9 +37,7 @@ class ProtocolFactory : public iscore::FactoryInterface
         template<typename T>
         QVariant makeProtocolSpecificSettings_T(
                 const VisitorVariant& vis) const
-        {
-            return QVariant::fromValue(deserialize_dyn<T>(vis));
-        }
+        { return QVariant::fromValue(deserialize_dyn<T>(vis)); }
 
 
         // Returns true if the two devicesettings can coexist at the same time.

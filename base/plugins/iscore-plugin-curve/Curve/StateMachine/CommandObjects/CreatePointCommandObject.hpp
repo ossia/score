@@ -15,5 +15,5 @@ class CreatePointCommandObject : public CurveCommandObjectBase
         void cancel();
 
     private:
-        void createPoint(QVector<CurveSegmentModel *>& segments);
+        void createPoint(QVector<CurveSegmentData>& segments);
 };

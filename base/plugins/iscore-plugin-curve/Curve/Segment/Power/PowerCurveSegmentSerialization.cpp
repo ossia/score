@@ -25,3 +25,28 @@ void Visitor<Writer<JSONObject>>::writeTo(PowerCurveSegmentModel& segmt)
 {
     segmt.gamma = m_obj["Power"].toDouble();
 }
+
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const PowerCurveSegmentData& segmt)
+{
+    m_stream << segmt.gamma;
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(PowerCurveSegmentData& segmt)
+{
+    m_stream >> segmt.gamma;
+}
+
+template<>
+void Visitor<Reader<JSONObject>>::readFrom(const PowerCurveSegmentData& segmt)
+{
+    m_obj["Power"] = segmt.gamma;
+}
+
+template<>
+void Visitor<Writer<JSONObject>>::writeTo(PowerCurveSegmentData& segmt)
+{
+    segmt.gamma = m_obj["Power"].toDouble();
+}

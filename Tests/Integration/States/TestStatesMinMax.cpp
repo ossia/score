@@ -24,6 +24,8 @@ class TestStatesMinMax: public IscoreTestBase
         }
 
     private slots:
+        // TODO try with adding curve after state
+        // TODO try with removing curve ?
         void testMinMaxChanges()
         {
             setupDevice();
@@ -48,26 +50,39 @@ class TestStatesMinMax: public IscoreTestBase
             auto setAddr = new ChangeAddress(autom, addr);
             redo(setAddr);
 
+            // We check that the address min/max is [-10; 10] (from the address)
+            QVERIFY(autom.min() == -10);
+            QVERIFY(autom.max() == 10);
+
             // We add start and end states [-30, 50] while the address is bewteen [-10; 10]
             auto addStartState = new AddMessagesToModel(
                                      scenar.states.at(newStateCmd->createdState()).messages(),
                                      iscore::MessageList{iscore::Message{addr, -30.}});
             redo(addStartState);
 
+            // We check that the address min changes
+            QVERIFY(autom.min() == -30);
+            QVERIFY(autom.max() == 10);
+
             auto addEndState = new AddMessagesToModel(
                                      scenar.states.at(newConstraintCmd->createdState()).messages(),
                                      iscore::MessageList{iscore::Message{addr, 50.}});
             redo(addEndState);
 
-            // We check that the address min/max becomes [-30; 50]
+            // We check that the address max changes
             QVERIFY(autom.min() == -30);
             QVERIFY(autom.max() == 50);
 
             undo();
 
-            // We check that the address min/max didn't change
+            // We check that the address min/max changes back
             QVERIFY(autom.min() == -30);
-            QVERIFY(autom.max() == 50);
+            QVERIFY(autom.max() == 10);
+
+            undo();
+
+            QVERIFY(autom.min() == -10);
+            QVERIFY(autom.max() == 10);
         }
 
         void testMinMaxDoesNotChange()
@@ -100,6 +115,10 @@ class TestStatesMinMax: public IscoreTestBase
                                      iscore::MessageList{iscore::Message{addr, -5.}});
             redo(addStartState);
 
+            // We check that the address min/max does not change
+            QVERIFY(autom.min() == -10);
+            QVERIFY(autom.max() == 10);
+
             auto addEndState = new AddMessagesToModel(
                                    scenar.states.at(newConstraintCmd->createdState()).messages(),
                                    iscore::MessageList{iscore::Message{addr, 5.}});
@@ -108,6 +127,17 @@ class TestStatesMinMax: public IscoreTestBase
             // We check that the address min/max does not change
             QVERIFY(autom.min() == -10);
             QVERIFY(autom.max() == 10);
+
+            undo();
+
+            QVERIFY(autom.min() == -10);
+            QVERIFY(autom.max() == 10);
+
+            undo();
+
+            QVERIFY(autom.min() == -10);
+            QVERIFY(autom.max() == 10);
+
         }
 };
 

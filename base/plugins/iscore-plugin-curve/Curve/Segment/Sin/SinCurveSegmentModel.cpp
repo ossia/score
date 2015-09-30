@@ -2,6 +2,17 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <cmath>
 
+SinCurveSegmentModel::SinCurveSegmentModel(
+        const CurveSegmentData& dat,
+        QObject* parent):
+    CurveSegmentModel{dat, parent}
+{
+    const auto& sin_data = dat.specificSegmentData.value<SinCurveSegmentData>();
+    freq = sin_data.freq;
+    ampl = sin_data.ampl;
+}
+
+
 CurveSegmentModel*SinCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject* parent) const

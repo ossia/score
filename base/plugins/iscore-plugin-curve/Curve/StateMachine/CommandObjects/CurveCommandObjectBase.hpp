@@ -41,7 +41,7 @@ class CurveCommandObjectBase
         // Creates and pushes an UpdateCurve command
         // from a vector of segments.
         // They are removed afterwards
-        void submit(const QVector<CurveSegmentModel*>);
+        void submit(const QVector<CurveSegmentData>&);
 
     protected:
         virtual void on_press() = 0;
@@ -54,8 +54,8 @@ class CurveCommandObjectBase
         Curve::StateBase* m_state{};
 
 
-        SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
-        QVector<QByteArray> m_startSegments;
+        SingleOngoingCommandDispatcher<UpdateCurveFast> m_dispatcher;
+        QVector<CurveSegmentData> m_startSegments;
 
         // To prevent behind locked at 0.000001 or 0.9999
         double m_xmin{-1}, m_xmax{2};
