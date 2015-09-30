@@ -6,7 +6,6 @@
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
 CreatePointCommandObject::CreatePointCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
     CurveCommandObjectBase{presenter, stack}
 {
@@ -58,20 +57,6 @@ void CreatePointCommandObject::cancel()
     m_dispatcher.rollback();
 }
 
-static Id<CurveSegmentModel> getSegmentId(const QVector<CurveSegmentData>& ids)
-{
-    Id<CurveSegmentModel> id {};
-
-    do
-    {
-        id = Id<CurveSegmentModel>{getNextId()};
-    }
-    while(std::find_if(ids.begin(), ids.end(),
-                       [&] (const auto& elt) { return elt.id == id; }) != std::end(ids));
-
-    return id;
-}
-
 void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
 {
     // Create a point where we clicked
@@ -108,20 +93,16 @@ void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
     }
     else if(middle)
     {
-        // TODO refactor with MovePointState
+        // TODO refactor with MovePointState (line ~330)
         // The segment goes in the first half of "middle"
-        auto newSegment = *middle;
-        newSegment.id = getSegmentId(segments);
-        newSegment.start = middle->start;
-        newSegment.end = m_state->currentPoint;
-        newSegment.previous = middle->previous;
-        newSegment.following = middle->id;
+        CurveSegmentData newSegment{
+                    getSegmentId(segments),
+                    middle->start,    m_state->currentPoint,
+                    middle->previous, middle->id,
+                    middle->type, middle->specificSegmentData
+        };
 
-        auto prev_it = std::find_if(
-                           segments.begin(),
-                           segments.end(),
-                           [&] (const auto& seg) { return seg.id == middle->previous; });
-
+        auto prev_it = find(segments, middle->previous);
         // TODO we shouldn't have to test for this, only test if middle->previous != id{}
         if(prev_it != segments.end())
         {

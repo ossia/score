@@ -4,8 +4,8 @@
 #include "Curve/StateMachine/CurveStateMachineBaseStates.hpp"
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include "Curve/Commands/UpdateCurve.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 class CurvePresenter;
-
 
 /*
 concept CommandObject
@@ -44,6 +44,38 @@ class CurveCommandObjectBase
         void submit(const QVector<CurveSegmentData>&);
 
     protected:
+        auto find(
+                QVector<CurveSegmentData>& segments,
+                const Id<CurveSegmentModel>& id)
+        {
+            return std::find_if(
+                        segments.begin(),
+                        segments.end(),
+                        [&] (const auto& seg) { return seg.id == id; });
+        }
+        auto find(
+                const QVector<CurveSegmentData>& segments,
+                const Id<CurveSegmentModel>& id)
+        {
+            return std::find_if(
+                        segments.begin(),
+                        segments.end(),
+                        [&] (const auto& seg) { return seg.id == id; });
+        }
+
+        Id<CurveSegmentModel> getSegmentId(const QVector<CurveSegmentData>& ids)
+        {
+            Id<CurveSegmentModel> id {};
+
+            do
+            {
+                id = Id<CurveSegmentModel>{getNextId()};
+            }
+            while(find(ids, id) != std::end(ids));
+
+            return id;
+        }
+
         virtual void on_press() = 0;
 
         QVector<QByteArray> m_oldCurveData;
