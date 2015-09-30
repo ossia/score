@@ -72,12 +72,12 @@ GoodOldDisplacementPolicy::computeDisplacement(
 
                             // Save the constraint display data START ----------------
                             QByteArray arr;
-                            Visitor<Reader<DataStream>> jr{&arr};
+                            Visitor<Reader<DataStream> > jr{&arr};
                             jr.readFrom(curConstraint);
 
                             // Save for each view model of this constraint
                             // the identifier of the rack that was displayed
-                            QMap<Id<ConstraintViewModel>, Id<RackModel>> map;
+                            QMap<Id<ConstraintViewModel>, Id<RackModel> > map;
                             for(const ConstraintViewModel* vm : curConstraint.viewModels())
                             {
                                 map[vm->id()] = vm->shownRack();
@@ -85,6 +85,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
 
                             elementsProperties.constraints[curConstraintId].savedDisplay = {{iscore::IDocument::path(curConstraint), arr}, map};
                             // Save the constraint display data END ----------------
+
                         }
 
                         auto& startTnodeId = scenario.event(scenario.state(curConstraint.startState()).eventId()).timeNode();
