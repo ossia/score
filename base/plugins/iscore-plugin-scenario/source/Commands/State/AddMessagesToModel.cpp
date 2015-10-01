@@ -1,5 +1,5 @@
 #include "AddMessagesToModel.hpp"
-#include <DeviceExplorer/ItemModels/MessageItemModel.hpp>
+#include <Document/State/ItemModel/MessageItemModel.hpp>
 
 AddMessagesToModel::AddMessagesToModel(
         Path<iscore::MessageItemModel>&& path,

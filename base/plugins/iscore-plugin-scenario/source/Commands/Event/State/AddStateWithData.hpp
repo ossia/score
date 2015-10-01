@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/AggregateCommand.hpp>
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/AddMessagesToModel.hpp>
 #include "Commands/Scenario/Creations/CreateState.hpp"
 #include "Document/Event/EventModel.hpp"
 namespace Scenario

@@ -3,7 +3,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
-#include <DeviceExplorer/ItemModels/MessageItemModel.hpp>
+#include <Document/State/ItemModel/MessageItemModel.hpp>
 
 class EditValue : public iscore::SerializableCommand
 {
@@ -13,7 +13,7 @@ class EditValue : public iscore::SerializableCommand
 
           EditValue(
             Path<iscore::MessageItemModel>&&,
-            const iscore::NodePath&,
+            const iscore::MessageNodePath&,
             const QVariant&);
 
         void undo() override;
@@ -25,8 +25,8 @@ class EditValue : public iscore::SerializableCommand
 
     private:
         Path<iscore::MessageItemModel> m_path;
-        iscore::NodePath m_nodePath;
+        iscore::MessageNodePath m_nodePath;
 
-        QVariant m_old;
-        QVariant m_new;
+        iscore::OptionalValue m_oldProcess, m_oldUser;
+        iscore::OptionalValue m_newProcess, m_newUser;
 };

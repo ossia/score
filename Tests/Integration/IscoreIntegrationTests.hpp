@@ -25,7 +25,7 @@
 #include <Plugin/Commands/Add/LoadDevice.hpp>
 #include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Plugin/Commands/AddMessagesToModel.hpp>
+#include <Commands/State/AddMessagesToModel.hpp>
 #include <Commands/ChangeAddress.hpp>
 
 #include <Document/BaseElement/BaseElementModel.hpp>
@@ -45,7 +45,7 @@ QT_END_NAMESPACE
 class IscoreTestBase : public QObject
 {
     public:
-		iscore::Application app;
+        iscore::Application app;
 
         IscoreTestBase(int& argc, char** argv):
             app{ApplicationSettings{false, false, {}}, argc, argv}
@@ -66,10 +66,10 @@ class IscoreTestBase : public QObject
         }
 
 
-		void redo(iscore::SerializableCommand* cmd)
-		{
-			getDocument().commandStack().redoAndPush(cmd);
-		}
+        void redo(iscore::SerializableCommand* cmd)
+        {
+            getDocument().commandStack().redoAndPush(cmd);
+        }
 
         void undo()
         {
@@ -86,37 +86,37 @@ class IscoreTestBase : public QObject
             return static_cast<OSSIAControl*>(*it);
         }
 
-		iscore::Document& getDocument() const
-		{
-			return *app.presenter()->documents()[0];
-		}
+        iscore::Document& getDocument() const
+        {
+            return *app.presenter()->documents()[0];
+        }
 
-		BaseElementModel& getBaseElementModel() const
-		{
-			return iscore::IDocument::get<BaseElementModel>(getDocument());
-		}
+        BaseElementModel& getBaseElementModel() const
+        {
+            return iscore::IDocument::get<BaseElementModel>(getDocument());
+        }
 
-		template<typename T>
-		T& pluginModel()
-		{
-			return *getDocument().model().pluginModel<T>();
-		}
+        template<typename T>
+        T& pluginModel()
+        {
+            return *getDocument().model().pluginModel<T>();
+        }
 
-		int exec()
-		{
-			int cnt = this->metaObject()->methodCount();
-			for(int i = 0; i < cnt; i++)
-			{
-				auto method = this->metaObject()->method(i);
-				method.invoke(this);
+        int exec()
+        {
+            int cnt = this->metaObject()->methodCount();
+            for(int i = 0; i < cnt; i++)
+            {
+                auto method = this->metaObject()->method(i);
+                method.invoke(this);
 
-				auto& stack = getDocument().commandStack();
-				while(stack.canUndo())
-					stack.undo();
-			}
+                auto& stack = getDocument().commandStack();
+                while(stack.canUndo())
+                    stack.undo();
+            }
 
-			return 0;
-		}
+            return 0;
+        }
 };
 
 #define ISCORE_INTEGRATION_TEST(TestObject) \

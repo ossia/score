@@ -55,7 +55,7 @@ void StateTreeView::mouseDoubleClickEvent(QMouseEvent* ev)
 
 */
 
-#include "Plugin/Commands/RemoveMessageNodes.hpp"
+#include <Commands/State/RemoveMessageNodes.hpp>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>

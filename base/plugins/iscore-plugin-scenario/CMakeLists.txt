@@ -123,6 +123,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/AddMessagesToModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/EditValue.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SwitchStatePosition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/AddTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/MergeTimeNodes.cpp"
@@ -206,6 +211,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StatePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageData.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"

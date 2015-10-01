@@ -1,9 +1,9 @@
 #include "MessageItemModel.hpp"
-#include "NodeDisplayMethods.hpp"
-#include "Commands/AddMessagesToModel.hpp"
+
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+#include <Commands/State/AddMessagesToModel.hpp>
 using namespace iscore;
 MessageItemModel::MessageItemModel(
         CommandStack& stack,
@@ -90,6 +90,9 @@ void merge_impl(
         MessageItemModel::node_type& base,
         const StateNodeMessage& message)
 {
+
+    ISCORE_TODO;
+    /*
     using iscore::Node;
 
     QStringList path = message.addr;
@@ -145,11 +148,14 @@ void merge_impl(
             }
         }
     }
+    */
 }
 
 // TESTME
 void MessageItemModel::merge(const StateNodeMessage& mess)
 {
+    ISCORE_TODO;
+    /*
     // First, try to see if there is a corresponding node
 
     auto n = try_getNodeFromString(m_rootNode, QStringList(mess.addr));
@@ -167,6 +173,7 @@ void MessageItemModel::merge(const StateNodeMessage& mess)
         // We need to create a node.
         merge_impl(m_rootNode, mess);
     }
+    */
 }
 
 int MessageItemModel::columnCount(const QModelIndex &parent) const
@@ -350,7 +357,7 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
 }
 
 
-#include "Plugin/Commands/EditValue.hpp"
+#include <Commands/State/EditValue.hpp>
 bool MessageItemModel::setData(
         const QModelIndex& index,
         const QVariant& value,
@@ -400,6 +407,8 @@ void MessageItemModel::editData(
         const OptionalValue& processValue,
         const OptionalValue& userValue)
 {
+    ISCORE_TODO;
+    /*
     auto n = path.toNode(&rootNode());
     ISCORE_ASSERT(n && n->parent());
 
@@ -418,4 +427,5 @@ void MessageItemModel::editData(
     n->userValue = userValue;
 
     emit dataChanged(changedTopLeft, changedBottomRight);
+    */
 }

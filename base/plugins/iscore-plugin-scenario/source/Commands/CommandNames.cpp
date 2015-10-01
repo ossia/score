@@ -80,7 +80,9 @@ namespace boost { namespace mpl {
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/AddMessagesToModel.hpp>
+#include <Commands/State/RemoveMessageNodes.hpp>
+#include <Commands/State/EditValue.hpp>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 
@@ -97,13 +99,16 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list63<
+            boost::mpl::list66<
 
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
+            AddMessagesToModel,
+            RemoveMessageNodes,
+            EditValue,
 //            AddStateToStateModel,
 //            AssignMessagesToState,
             AddStateWithData,

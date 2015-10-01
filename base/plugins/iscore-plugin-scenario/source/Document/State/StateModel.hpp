@@ -12,7 +12,7 @@
 
 #include <State/StateItemModel.hpp>
 
-#include <DeviceExplorer/ItemModels/MessageItemModel.hpp>
+#include <source/Document/State/ItemModel/MessageItemModel.hpp>
 #include <set>
 #include "StateView.hpp"
 #include "Document/Event/EventStatus.hpp"

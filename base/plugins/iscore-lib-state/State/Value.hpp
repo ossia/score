@@ -1,6 +1,7 @@
 #pragma once
 #include <QVariant>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <boost/optional.hpp>
 
 namespace iscore
 {
@@ -13,7 +14,6 @@ namespace iscore
 struct Value
 {
         QVariant val{};
-
 
         friend QDataStream& operator<<(QDataStream& s, const Value& m)
         {
@@ -65,6 +65,7 @@ struct Value
 };
 
 using ValueList = QList<Value>;
+using OptionalValue = boost::optional<iscore::Value>;
 }
 
 Q_DECLARE_METATYPE(iscore::Value)

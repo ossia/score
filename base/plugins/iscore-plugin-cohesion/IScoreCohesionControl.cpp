@@ -25,7 +25,7 @@
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QKeySequence>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/AddMessagesToModel.hpp>
 #include "Control/ScenarioControl.hpp"
 
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
