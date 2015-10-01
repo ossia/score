@@ -36,8 +36,8 @@ class CurveModel : public IdentifiedObject<CurveModel>
         // Here we don't pass an id because it's more efficient
         void removeSegment(CurveSegmentModel* m);
 
-        QVector<CurveSegmentData> toCurveData() const;
-        void fromCurveData(const QVector<CurveSegmentData>& curve);
+        std::vector<CurveSegmentData> toCurveData() const;
+        void fromCurveData(const std::vector<CurveSegmentData>& curve);
 
 
         Selection selectedChildren() const;
@@ -60,6 +60,7 @@ class CurveModel : public IdentifiedObject<CurveModel>
         // This signal has to be emitted after big modifications.
         // (it's an optimization to prevent updating the OSSIA API each time a segment moves).
         void changed();
+        void curveReset(); // like changed() but for the presenter
         void cleared();
 
     private:

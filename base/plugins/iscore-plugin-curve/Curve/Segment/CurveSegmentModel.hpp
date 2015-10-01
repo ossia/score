@@ -44,7 +44,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual void updateData(int numInterp) const = 0; // Will interpolate.
         virtual double valueAt(double x) const = 0;
 
-        const QVector<QPointF>& data() const
+        const std::vector<QPointF>& data() const
         { return m_data; }
 
 
@@ -92,7 +92,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
 
         virtual QVariant toSegmentSpecificData() const = 0;
 
-        mutable QVector<QPointF> m_data; // A data cache.
+        mutable std::vector<QPointF> m_data; // A data cache.
         mutable bool m_valid{}; // Used to perform caching.
         // TODO it seems that m_valid is never true.
 

@@ -239,9 +239,9 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
     delete m;
 }
 
-QVector<CurveSegmentData> CurveModel::toCurveData() const
+std::vector<CurveSegmentData> CurveModel::toCurveData() const
 {
-    QVector<CurveSegmentData> dat;
+    std::vector<CurveSegmentData> dat;
     dat.reserve(m_segments.size());
     for(const auto& seg : m_segments)
     {
@@ -251,15 +251,17 @@ QVector<CurveSegmentData> CurveModel::toCurveData() const
     return dat;
 }
 
-void CurveModel::fromCurveData(const QVector<CurveSegmentData>& curve)
+void CurveModel::fromCurveData(const std::vector<CurveSegmentData>& curve)
 {
+    this->blockSignals(true);
     clear();
     CurveSegmentOrderedMap map(curve.begin(), curve.end());
     for(const auto& elt : map.get<Segments::Ordered>())
     {
         addSortedSegment(createCurveSegment(elt, this));
     }
-
+    this->blockSignals(false);
+    emit curveReset();
     emit changed();
 }
 

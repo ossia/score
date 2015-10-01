@@ -12,7 +12,8 @@ CurveCommandObjectBase::CurveCommandObjectBase(
         CurvePresenter* pres,
         iscore::CommandStack& stack):
     m_presenter{pres},
-    m_dispatcher{stack}
+    m_dispatcher{stack},
+    m_modelPath{m_presenter->model()}
 {
 
 }
@@ -57,9 +58,11 @@ void CurveCommandObjectBase::handleLocking()
     }
 }
 
-void CurveCommandObjectBase::submit(const std::vector<CurveSegmentData>& segments)
+void CurveCommandObjectBase::submit(std::vector<CurveSegmentData>&& segments)
 {
     // TODO std::move
-    m_dispatcher.submitCommand(m_presenter->model(),
-                               QVector<CurveSegmentData>::fromStdVector(segments));
+    m_dispatcher.submitCommand(Path<CurveModel>(m_modelPath),
+                               std::move(segments));
 }
+
+

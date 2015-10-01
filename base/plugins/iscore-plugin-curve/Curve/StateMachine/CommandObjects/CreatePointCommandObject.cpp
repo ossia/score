@@ -35,17 +35,16 @@ void CreatePointCommandObject::on_press()
 
 void CreatePointCommandObject::move()
 {
-    auto segments = m_startSegments.toStdVector();
+    auto segments = m_startSegments;
 
     // Locking between bounds
     handleLocking();
 
     // Creation
     createPoint(segments);
-    isConsistent(segments);
 
     // Submit
-    submit(segments);
+    submit(std::move(segments));
 }
 
 void CreatePointCommandObject::release()

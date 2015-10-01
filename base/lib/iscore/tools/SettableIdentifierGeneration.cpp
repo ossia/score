@@ -1,12 +1,16 @@
 #include "SettableIdentifierGeneration.hpp"
 
 #include <random>
-
+#ifdef ISCORE_VALGRIND_IDS
 int32_t getNextId()
 {
     static int x = 15;
     return x++;
-    /*
+}
+
+#else
+int32_t getNextId()
+{
     using namespace std;
     static random_device rd;
     static mt19937 gen(rd());
@@ -15,5 +19,6 @@ int32_t getNextId()
          numeric_limits<int32_t>::max());
 
     return dist(gen);
-    */
 }
+
+#endif

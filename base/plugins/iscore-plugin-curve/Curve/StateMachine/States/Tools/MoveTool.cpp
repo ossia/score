@@ -11,73 +11,11 @@ using namespace Curve;
 EditionTool::EditionTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
 {
-/*
-    {
-        m_createPointChoice = new QState{this};
-        m_movePointChoice = new QState{this};
-        m_setSegmentChoice = new QState{this};
-        this->setInitialState(m_movePointChoice);
-
-        auto t_create_move = new QSignalTransition(this, SIGNAL(setMoveState()), m_createPointChoice);
-        t_create_move->setTargetState(m_movePointChoice);
-        auto t_create_setSegment = new QSignalTransition(this, SIGNAL(setSetSegmentState()), m_createPointChoice);
-        t_create_setSegment->setTargetState(m_setSegmentChoice);
-
-        auto t_move_create = new QSignalTransition(this, SIGNAL(setCreationState()), m_movePointChoice);
-        t_move_create->setTargetState(m_createPointChoice);
-        auto t_move_setSegment = new QSignalTransition(this, SIGNAL(setSetSegmentState()), m_movePointChoice);
-        t_move_setSegment->setTargetState(m_setSegmentChoice);
-
-        auto t_setSegment_create = new QSignalTransition(this, SIGNAL(setCreationState()), m_setSegmentChoice);
-        t_setSegment_create->setTargetState(m_createPointChoice);
-        auto t_setSegment_move = new QSignalTransition(this, SIGNAL(setMoveState()), m_setSegmentChoice);
-        t_setSegment_move->setTargetState(m_movePointChoice);
-
-    }
-
-    auto base = new QState;
-    localSM().addState(base);
-    localSM().setInitialState(base);
-    localSM().start();
-*/
-
 }
-
-/*
-void EditionTool::changeMode(int state)
-{
-    emit exitState();
-    switch(state)
-    {
-        case static_cast<int>(EditionTool::Mode::Create):
-            emit setCreationState();
-            break;
-        case static_cast<int>(EditionTool::Mode::Move):
-            emit setMoveState();
-            break;
-        case static_cast<int>(EditionTool::Mode::SetSegment):
-            emit setSetSegmentState();
-            break;
-        default:
-            ISCORE_ABORT;
-            break;
-    }
-}
-
-int EditionTool::mode() const
-{
-    if(m_createPointChoice->active())
-        return (int)EditionTool::Mode::Create;
-    if(m_movePointChoice->active())
-        return (int)EditionTool::Mode::Move;
-    if(m_setSegmentChoice->active())
-        return (int)EditionTool::Mode::SetSegment;
-
-    return -1;
-}*/
 
 void EditionTool::on_pressed()
 {
+    m_prev = std::chrono::steady_clock::now();
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
     {
@@ -95,6 +33,12 @@ void EditionTool::on_pressed()
 
 void EditionTool::on_moved()
 {
+    auto t = std::chrono::steady_clock::now();
+    if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
+    {
+        return;
+    }
+
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
                [&] (const QGraphicsItem* point)
     {
@@ -108,6 +52,8 @@ void EditionTool::on_moved()
     {
         localSM().postEvent(new MoveOnNothing_Event(m_parentSM.curvePoint, nullptr));
     });
+
+    m_prev = t;
 }
 
 void EditionTool::on_released()

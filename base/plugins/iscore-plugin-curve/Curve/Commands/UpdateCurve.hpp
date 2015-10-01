@@ -28,7 +28,7 @@ class UpdateCurve : public iscore::SerializableCommand
         QVector<QByteArray> m_newCurveData;
 };
 
-
+// TODO move me
 #include <Curve/Segment/CurveSegmentData.hpp>
 class UpdateCurveFast : public iscore::SerializableCommand
 {
@@ -37,13 +37,13 @@ class UpdateCurveFast : public iscore::SerializableCommand
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateCurveFast)
         UpdateCurveFast(
           Path<CurveModel>&& model,
-          const QVector<CurveSegmentData>& segments);
+          std::vector<CurveSegmentData>&& segments);
 
         void undo() override;
         void redo() override;
 
         void update(const Path<CurveModel>&,
-                    const QVector<CurveSegmentData>&);
+                    std::vector<CurveSegmentData>&&);
 
     protected:
         void serializeImpl(QDataStream & s) const override;
@@ -51,6 +51,6 @@ class UpdateCurveFast : public iscore::SerializableCommand
 
     private:
         Path<CurveModel> m_model;
-        QVector<CurveSegmentData> m_oldCurveData;
-        QVector<CurveSegmentData> m_newCurveData;
+        std::vector<CurveSegmentData> m_oldCurveData;
+        std::vector<CurveSegmentData> m_newCurveData;
 };

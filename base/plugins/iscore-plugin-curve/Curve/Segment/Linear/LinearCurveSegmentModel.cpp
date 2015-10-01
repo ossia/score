@@ -38,7 +38,8 @@ void LinearCurveSegmentModel::updateData(int numInterp) const
 {
     if(!m_valid)
     {
-        m_data.resize(2);
+        if(m_data.size() != 2)
+            m_data.resize(2);
         m_data[0] = start();
         m_data[1] = end();
     }

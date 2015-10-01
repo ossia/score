@@ -51,12 +51,9 @@ void MovePointCommandObject::on_press()
 
 void MovePointCommandObject::move()
 {
-    // First we deserialize the base segments. This way we can start from a clean state at each time.
-    // TODO it would be less costly to have a specific "data" structure for this (no need for vcalls then).
+    // We start from a clean state
     CurveSegmentMap segments(m_startSegments.cbegin(), m_startSegments.cend());
 
-    isConsistent(std::vector<CurveSegmentData>(m_startSegments.begin(), m_startSegments.end()));
-    // TODO: if we're locking we can just bybass the overlap ?
     // Locking between bounds
     handleLocking();
 

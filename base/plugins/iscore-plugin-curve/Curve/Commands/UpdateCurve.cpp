@@ -74,11 +74,11 @@ void UpdateCurve::deserializeImpl(QDataStream& s)
 
 UpdateCurveFast::UpdateCurveFast(
         Path<CurveModel>&& model,
-        const QVector<CurveSegmentData> &segments):
+        std::vector<CurveSegmentData> &&segments):
     iscore::SerializableCommand{
         factoryName(), commandName(), description()},
     m_model{std::move(model)},
-    m_newCurveData{segments}
+    m_newCurveData{std::move(segments)}
 {
     const auto& curve = m_model.find();
     m_oldCurveData = curve.toCurveData();
@@ -98,17 +98,24 @@ void UpdateCurveFast::redo()
 
 void UpdateCurveFast::update(
         const Path<CurveModel>& model,
-        const QVector<CurveSegmentData>& segments)
+        std::vector<CurveSegmentData>&& segments)
 {
     m_newCurveData = std::move(segments);
 }
 
+
+
 void UpdateCurveFast::serializeImpl(QDataStream& s) const
 {
-    s << m_model << m_oldCurveData << m_newCurveData;
+    s << m_model << QVector<CurveSegmentData>::fromStdVector(m_oldCurveData) << QVector<CurveSegmentData>::fromStdVector(m_newCurveData);
 }
 
 void UpdateCurveFast::deserializeImpl(QDataStream& s)
 {
-    s >> m_model >> m_oldCurveData >> m_newCurveData;
+    QVector<CurveSegmentData> old_one;
+    QVector<CurveSegmentData> new_one;
+    s >> m_model >> old_one >> new_one;
+
+    m_oldCurveData = old_one.toStdVector();
+    m_newCurveData = new_one.toStdVector();
 }

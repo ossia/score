@@ -1,6 +1,6 @@
 #pragma once
 #include "Curve/StateMachine/States/Tools/CurveTool.hpp"
-
+#include <QTimer>
 namespace Curve
 {
 
@@ -27,6 +27,9 @@ class EditionTool : public CurveTool
         void on_pressed();
         void on_moved();
         void on_released();
+
+    private:
+        std::chrono::steady_clock::time_point m_prev;
 };
 
 class CreateTool : public EditionTool

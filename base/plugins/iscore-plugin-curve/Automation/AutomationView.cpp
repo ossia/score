@@ -23,7 +23,7 @@ void AutomationView::paint(QPainter* painter,
     if(m_showName)
     {
         painter->setFont(f);
-        QColor c = Qt::lightGray;
+        static const QColor c = Qt::lightGray;
         painter->setPen(c);
         painter->drawText(processNameRect, Qt::AlignRight, m_displayedName);
     }
