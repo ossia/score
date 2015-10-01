@@ -1,10 +1,11 @@
 #include "NodeDisplayMethods.hpp"
 #include <QFont>
 #include <QBrush>
-namespace iscore
+namespace DeviceExplorer
 {
-QVariant nameColumnData(const Node& node, int role)
+QVariant nameColumnData(const iscore::Node& node, int role)
 {
+    using namespace iscore;
     if(node.is<DeviceSettings>())
     {
         if(role == Qt::DisplayRole || role == Qt::EditRole)
@@ -44,8 +45,9 @@ QVariant nameColumnData(const Node& node, int role)
 }
 
 // TODO rework this to use iscore::Value::toString();
-QVariant valueColumnData(const Node& node, int role)
+QVariant valueColumnData(const iscore::Node& node, int role)
 {
+    using namespace iscore;
     if(node.is<DeviceSettings>())
         return {};
 
@@ -72,8 +74,9 @@ QVariant valueColumnData(const Node& node, int role)
     return {};
 }
 
-QVariant IOTypeColumnData(const Node& node, int role)
+QVariant IOTypeColumnData(const iscore::Node& node, int role)
 {
+    using namespace iscore;
     if(node.is<DeviceSettings>())
         return {};
 
@@ -98,8 +101,9 @@ QVariant IOTypeColumnData(const Node& node, int role)
     return {};
 }
 
-QVariant minColumnData(const Node& node, int role)
+QVariant minColumnData(const iscore::Node& node, int role)
 {
+    using namespace iscore;
     if(node.is<DeviceSettings>())
         return {};
 
@@ -111,8 +115,9 @@ QVariant minColumnData(const Node& node, int role)
     return {};
 }
 
-QVariant maxColumnData(const Node& node, int role)
+QVariant maxColumnData(const iscore::Node& node, int role)
 {
+    using namespace iscore;
     if(node.is<DeviceSettings>())
         return {};
 

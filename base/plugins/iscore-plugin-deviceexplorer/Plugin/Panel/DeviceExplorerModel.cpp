@@ -304,19 +304,19 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     switch((Column)col)
     {
         case Column::Name:
-            return nameColumnData(n, role);
+            return DeviceExplorer::nameColumnData(n, role);
 
         case Column::Value:
-            return valueColumnData(n, role);
+            return DeviceExplorer::valueColumnData(n, role);
 
         case Column::IOType:
-            return IOTypeColumnData(n, role);
+            return DeviceExplorer::IOTypeColumnData(n, role);
 
         case Column::Min:
-            return minColumnData(n, role);
+            return DeviceExplorer::minColumnData(n, role);
 
         case Column::Max:
-            return maxColumnData(n, role);
+            return DeviceExplorer::maxColumnData(n, role);
 
         default :
             ISCORE_ABORT;

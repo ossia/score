@@ -46,7 +46,7 @@ void PowerCurveSegmentModel::on_endChanged()
 
 void PowerCurveSegmentModel::updateData(int numInterp) const
 {
-    if(numInterp + 1 != m_data.size())
+    if(std::size_t(numInterp + 1) != m_data.size())
         m_valid = false;
     if(!m_valid)
     {

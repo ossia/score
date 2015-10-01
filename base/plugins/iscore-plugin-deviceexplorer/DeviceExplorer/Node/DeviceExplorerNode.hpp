@@ -60,8 +60,6 @@ void messageList(const Node& treeNode,
 
 // TODO have all these guys return references
 iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
-iscore::Node* try_getNodeFromAddress(iscore::Node& root, const iscore::Address&);
-iscore::Node* try_getNodeFromString(iscore::Node& n, QStringList&& str);
 iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
 
 // True if gramps is a parent, grand-parent, etc. of node.
@@ -106,6 +104,43 @@ iscore::Node merge(
 void merge(
         iscore::Node& base,
         const iscore::Message& message);
+
+
+
+// Generic algorithms for DeviceExplorerNode-like structures.
+template<typename Node_T>
+Node_T* try_getNodeFromString(Node_T& n, QStringList&& parts)
+{
+    if(parts.size() == 0)
+        return &n;
+
+    for(auto& child : n)
+    {
+        if(child.displayName() == parts[0])
+        {
+            parts.removeFirst();
+            return try_getNodeFromString(child, std::move(parts));
+        }
+    }
+
+    return nullptr;
+}
+
+template<typename Node_T>
+Node_T* try_getNodeFromAddress(Node_T& root, const iscore::Address& addr)
+{
+    if(addr.device.isEmpty())
+        return &root;
+
+    auto dev = std::find_if(root.begin(), root.end(), [&] (const Node_T& n)
+    { return n.template is<DeviceSettings>()
+          && n.template get<DeviceSettings>().name == addr.device; });
+
+    if(dev == root.end())
+        return nullptr;
+
+    return try_getNodeFromString(*dev, QStringList(addr.path));
+}
 
 }
 

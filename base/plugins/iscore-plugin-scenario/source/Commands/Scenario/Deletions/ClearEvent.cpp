@@ -16,26 +16,35 @@ ClearState::ClearState(Path<StateModel>&& path) :
                          description()},
     m_path {std::move(path) }
 {
+    ISCORE_TODO;
+    /*
     const auto& state = m_path.find();
 
     m_serializedStates = marshall<DataStream>(state.messages().rootNode());
+    */
 }
 
 void ClearState::undo()
 {
+    ISCORE_TODO;
+    /*
     auto& state = m_path.find();
     iscore::Node states;
     QDataStream s(m_serializedStates);
     s >> states;
 
     state.messages() = states;
+    */
 }
 
 void ClearState::redo()
 {
+    ISCORE_TODO;
+    /*
     auto& state = m_path.find();
 
     state.messages() = iscore::Node{};
+    */
 }
 
 void ClearState::serializeImpl(QDataStream& s) const

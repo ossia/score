@@ -150,10 +150,14 @@ void StateModel::on_previousProcessAdded(const Process& proc)
         // twice ? mark them ?
         // TODO which one shoul be sent ? the ones
         // from the process ?
+
+        ISCORE_TODO;
+        /*
         for(const auto& mess : ml)
         {
             messages().insert(mess);
         }
+        */
     });
 
     m_previousProcesses.insert(state);
@@ -177,10 +181,14 @@ void StateModel::on_nextProcessAdded(const Process& proc)
 
     connect(state, &ProcessStateDataInterface::messagesChanged,
         this, [&] (const iscore::MessageList& ml) {
+
+        ISCORE_TODO;
+        /*
         for(const auto& mess : ml)
         {
             messages().insert(mess);
         }
+        */
     });
 
     m_nextProcesses.insert(state);

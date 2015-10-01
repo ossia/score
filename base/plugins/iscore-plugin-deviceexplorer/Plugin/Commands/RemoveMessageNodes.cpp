@@ -1,9 +1,4 @@
 #include "RemoveMessageNodes.hpp"
-
-
-
-
-
 #include <iscore/serialization/VisitorCommon.hpp>
 
 RemoveMessageNodes::RemoveMessageNodes(
@@ -23,6 +18,8 @@ RemoveMessageNodes::RemoveMessageNodes(
 
 void RemoveMessageNodes::undo()
 {
+    ISCORE_TODO;
+    /*
     auto& model = m_path.find();
 
     for(int i = 0; i < m_nodePaths.size(); i++)
@@ -34,10 +31,13 @@ void RemoveMessageNodes::undo()
 
         model.insertNode(*parent, m_savedNodes[i], m_nodePaths[i].back());
     }
+    */
 }
 
 void RemoveMessageNodes::redo()
 {
+    ISCORE_TODO;
+    /*
     auto& model = m_path.find();
 
     for(const auto& nodepath : m_nodePaths)
@@ -47,6 +47,7 @@ void RemoveMessageNodes::redo()
         ISCORE_ASSERT(n->parent());
         model.removeNode(n->parent()->iterOfChild(n));
     }
+    */
 }
 
 void RemoveMessageNodes::serializeImpl(QDataStream &d) const

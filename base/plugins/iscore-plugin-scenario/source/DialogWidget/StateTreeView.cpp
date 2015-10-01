@@ -99,6 +99,8 @@ iscore::MessageItemModel&MessageTreeView::model() const
 
 void MessageTreeView::removeNodes()
 {
+    ISCORE_TODO;
+    /*
     qDebug(Q_FUNC_INFO);
     auto indexes = selectedIndexes();
 
@@ -116,6 +118,7 @@ void MessageTreeView::removeNodes()
 
     CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_model)};
     dispatcher.submitCommand(cmd);
+    */
 }
 
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)

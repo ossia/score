@@ -3,6 +3,49 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 
 class CurveSegmentModel;
+struct CurveSegmentData;
+/* TODO it would maybe faster to have them on the heap and use QPointer for
+ * caching ...
+class SegmentId
+{
+    public:
+        using value_type = boost::optional<int32_t>;
+        explicit SegmentId() = default;
+        explicit SegmentId(value_type val) : m_id {val} { }
+        SegmentId(const SegmentId&) = delete;
+        SegmentId(SegmentId&& ) = delete;
+        SegmentId& operator=(const SegmentId&) = delete;
+        SegmentId& operator=(SegmentId&& ) = delete;
+
+        friend bool operator== (const id_base_t& lhs, const id_base_t& rhs)
+        { return lhs.m_id == rhs.m_id; }
+
+        friend bool operator!= (const id_base_t& lhs, const id_base_t& rhs)
+        { return lhs.m_id != rhs.m_id; }
+
+        friend bool operator< (const id_base_t& lhs, const id_base_t& rhs)
+        { return *lhs.val() < *rhs.val(); }
+
+        explicit operator bool() const
+        { return bool(m_id); }
+
+        explicit operator value_type() const
+        { return m_id; }
+
+        const value_type& val() const
+        { return m_id; }
+
+        void setVal(value_type&& val)
+        { m_id = val; }
+
+        void unset()
+        { m_id = value_type(); }
+
+    private:
+        mutable CurveSegmentData* m_ptr{};
+        value_type m_id {};
+};*/
+
 
 // An object wrapper useful for saving / loading
 struct CurveSegmentData
@@ -61,6 +104,26 @@ using CurveSegmentMap = bmi::multi_index_container<
         >
     >
 >;
+/*
+class CurveSegmentCachingMap : private CurveSegmentMap
+{
+        using CurveSegmentMap::CurveSegmentMap;
+
+        CurveSegmentData& at(const Id<CurveSegmentModel>& id) const
+        {
+            if(id.m_ptr)
+            {
+                ISCORE_ASSERT(id.m_ptr->parent() == (*this->map.find(id))->parent());
+                return safe_cast<CurveSegmentData&>(*id.m_ptr);
+            }
+            auto item = this->map.find(id);
+            ISCORE_ASSERT(item != this->map.end());
+
+            id.m_ptr = *item;
+            return safe_cast<Element&>(**item);
+        }
+};
+*/
 using CurveSegmentOrderedMap = bmi::multi_index_container<
 CurveSegmentData,
 bmi::indexed_by<

@@ -13,23 +13,30 @@ EditValue::EditValue(
     m_nodePath{nodePath},
     m_new{value}
 {
+    ISCORE_TODO;
+    /*
     auto& model = m_path.find();
     auto n = m_nodePath.toNode(&model.rootNode());
     ISCORE_ASSERT(n->is<iscore::AddressSettings>());
 
     m_old = n->get<iscore::AddressSettings>().value.val;
+    */
 }
 
 void EditValue::undo()
 {
+    /*
     auto& model = m_path.find();
     model.editData(m_nodePath, m_old);
+    */
 }
 
 void EditValue::redo()
 {
+    /*
     auto& model = m_path.find();
     model.editData(m_nodePath, m_new);
+    */
 }
 
 void EditValue::serializeImpl(QDataStream &d) const

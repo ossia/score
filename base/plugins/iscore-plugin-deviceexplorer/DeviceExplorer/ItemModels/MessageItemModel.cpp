@@ -8,7 +8,7 @@ using namespace iscore;
 MessageItemModel::MessageItemModel(
         CommandStack& stack,
         QObject* parent):
-    NodeBasedItemModel{parent},
+    TreeNodeBasedItemModel<MessageNode>{parent},
     m_rootNode{},
     m_stack{stack}
 {
@@ -23,7 +23,7 @@ MessageItemModel &MessageItemModel::operator=(const MessageItemModel & other)
     return *this;
 }
 
-MessageItemModel &MessageItemModel::operator=(const iscore::Node & n)
+MessageItemModel &MessageItemModel::operator=(const node_type & n)
 {
     beginResetModel();
     m_rootNode = n;
@@ -31,7 +31,7 @@ MessageItemModel &MessageItemModel::operator=(const iscore::Node & n)
     return *this;
 }
 
-MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
+MessageItemModel &MessageItemModel::operator=(node_type && n)
 {
     beginResetModel();
     m_rootNode = std::move(n);
@@ -39,16 +39,37 @@ MessageItemModel &MessageItemModel::operator=(iscore::Node && n)
     return *this;
 }
 
-// TESTME
-static void flatten_rec(iscore::MessageList& ml, const iscore::Node& node)
+iscore::Address address(const MessageItemModel::node_type &treeNode)
 {
-    if(node.is<iscore::AddressSettings>())
+    iscore::Address addr;
+    auto n = &treeNode;
+    while(n->parent() && n->parent()->parent())
     {
-        const auto& set = node.get<iscore::AddressSettings>();
-        if(hasOutput(set.ioType))
-        {
-            ml.append(iscore::message(node));
-        }
+        addr.path.prepend(n->name);
+        n = n->parent();
+    }
+
+    ISCORE_ASSERT(n);
+    addr.device = n->name;
+
+    return addr;
+}
+
+iscore::Message message(const MessageItemModel::node_type& node)
+{
+    iscore::Message mess;
+    mess.address = address(node);
+    mess.value = node.value();
+
+    return mess;
+}
+
+// TESTME
+static void flatten_rec(iscore::MessageList& ml, const MessageItemModel::node_type& node)
+{
+    if(node.hasValue())
+    {
+        ml.append(message(node));
     }
 
     for(const auto& child : node)
@@ -64,17 +85,78 @@ MessageList MessageItemModel::flatten() const
     return ml;
 }
 
+// TODO another one to refactor with merges
+void merge_impl(
+        MessageItemModel::node_type& base,
+        const StateNodeMessage& message)
+{
+    using iscore::Node;
+
+    QStringList path = message.addr;
+
+    ptr<MessageItemModel::node_type> node = &base;
+    for(int i = 0; i < path.size(); i++)
+    {
+        auto& children = node->children();
+        auto it = std::find_if(
+                    children.begin(), children.end(),
+                    [&] (const auto& cur_node) {
+            return cur_node.displayName() == path[i];
+        });
+
+        if(it == children.end())
+        {
+            // We have to start adding sub-nodes from here.
+            ptr<MessageItemModel::node_type> parentnode{node};
+            for(int k = i; k < path.size(); k++)
+            {
+                ptr<MessageItemModel::node_type> newNode;
+                if(k < path.size() - 1)
+                {
+                    newNode = &parentnode->emplace_back(
+                                StateNodeData{path[k],
+                                              OptionalValue{},
+                                              OptionalValue{}},
+                                nullptr);
+                }
+                else
+                {
+                    newNode = &parentnode->emplace_back(
+                                StateNodeData{path[k],
+                                              message.processValue,
+                                              message.userValue},
+                                nullptr);
+                }
+
+                parentnode = newNode;
+            }
+
+            break;
+        }
+        else
+        {
+            node = &*it;
+
+            if(i == path.size() - 1)
+            {
+                // We replace the value by the one in the message
+                node->processValue = message.processValue;
+                node->userValue = message.userValue;
+            }
+        }
+    }
+}
+
 // TESTME
-void MessageItemModel::insert(const Message& mess)
+void MessageItemModel::merge(const StateNodeMessage& mess)
 {
     // First, try to see if there is a corresponding node
-    auto n = try_getNodeFromAddress(m_rootNode, mess.address);
+
+    auto n = try_getNodeFromString(m_rootNode, QStringList(mess.addr));
     if(n)
     {
-        auto val = mess.value.val;
-        if(!val.canConvert(n->get<iscore::AddressSettings>().value.val.type()))
-            return;
-        n->get<iscore::AddressSettings>().value.val = val;
+        n->processValue = mess.processValue;
+        n->userValue = mess.userValue;
 
         auto parent = n->parent();
         auto idx = createIndex(parent->indexOfChild(n), 0, n->parent());
@@ -83,13 +165,33 @@ void MessageItemModel::insert(const Message& mess)
     else
     {
         // We need to create a node.
-        *this = iscore::merge(m_rootNode, iscore::MessageList{mess});
+        merge_impl(m_rootNode, mess);
     }
 }
 
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;
+}
+
+QVariant nameColumnData(const MessageItemModel::node_type& node, int role)
+{
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.displayName();
+    }
+
+    return {};
+}
+
+QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
+{
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        return node.displayValue();
+    }
+
+    return {};
 }
 
 QVariant MessageItemModel::data(const QModelIndex &index, int role) const
@@ -230,13 +332,14 @@ Qt::DropActions MessageItemModel::supportedDragActions() const
 
 Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
 {
+    ISCORE_TODO;
     Qt::ItemFlags f = Qt::ItemIsEnabled;
+
     if(index.isValid())
     {
         f |= Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 
-        Node* n = nodeFromModelIndex(index);
-        if(n->isEditable())
+        if(index.column() == (int)Column::Value)
             f |= Qt::ItemIsEditable;
     }
     else
@@ -258,11 +361,10 @@ bool MessageItemModel::setData(
 
     auto n = nodeFromModelIndex(index);
 
-    if(!n->is<AddressSettings>())
+    if(!n->parent() || !n->parent()->parent())
         return false;
 
-    const auto& addr = n->get<iscore::AddressSettings>();
-    if(!hasOutput(addr.ioType))
+    if(!n->hasValue())
         return false;
 
     auto col = Column(index.column());
@@ -274,11 +376,11 @@ bool MessageItemModel::setData(
             // In this case we don't make a command, but we directly push the
             // new value.
             QVariant copy = value;
-            auto res = copy.convert(addr.value.val.type());
+            auto res = copy.convert(n->value().val.type());
             if(res)
             {
                 auto cmd = new EditValue(*this,
-                                         iscore::NodePath(*n),
+                                         MessageNodePath(*n),
                                          copy);
 
                 CommandDispatcher<> disp(m_stack);
@@ -294,24 +396,26 @@ bool MessageItemModel::setData(
 }
 
 void MessageItemModel::editData(
-        const NodePath& path,
-        const QVariant& val)
+        const MessageNodePath& path,
+        const OptionalValue& processValue,
+        const OptionalValue& userValue)
 {
-    Node* node = path.toNode(&rootNode());
-    ISCORE_ASSERT(node && node->parent());
+    auto n = path.toNode(&rootNode());
+    ISCORE_ASSERT(n && n->parent());
 
     QModelIndex index = createIndex(
-                            node->parent()->indexOfChild(node),
+                            n->parent()->indexOfChild(n),
                             (int)Column::Value,
-                            node->parent());
+                            n->parent());
 
     QModelIndex changedTopLeft = index;
     QModelIndex changedBottomRight = index;
 
-    if(!node->is<AddressSettings>())
+    if(!n->parent()->parent())
         return;
 
-    node->get<iscore::AddressSettings>().value.val = val;
+    n->processValue = processValue;
+    n->userValue = userValue;
 
     emit dataChanged(changedTopLeft, changedBottomRight);
 }
