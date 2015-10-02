@@ -8,7 +8,7 @@
 
 class RemoveMessageNodes : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("DeviceExplorerControl", "RemoveMessageNodes", "RemoveMessageNodes")
+        ISCORE_COMMAND_DECL("ScenarioControl", "RemoveMessageNodes", "RemoveMessageNodes")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveMessageNodes)
 

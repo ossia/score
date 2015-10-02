@@ -6,6 +6,12 @@ enum class Position {
     Previous, Following
 };
 
+// User messages
+void updateTreeWithMessageList(
+        MessageNode& rootNode,
+        iscore::MessageList lst);
+
+// Messages from a process
 void updateTreeWithMessageList(
         MessageNode& rootNode,
         iscore::MessageList lst,

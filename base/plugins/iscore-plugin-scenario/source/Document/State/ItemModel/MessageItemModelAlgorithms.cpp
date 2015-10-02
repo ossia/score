@@ -238,11 +238,26 @@ void merge_impl(
             if(i == path.size() - 1)
             {
                 // We replace the value by the one in the message
-                node->values = message.values;
+                node->values.userValue = message.values.userValue;
             }
         }
     }
 }
+
+
+void updateTreeWithMessageList(
+        MessageNode& rootNode,
+        iscore::MessageList lst)
+{
+
+    for(const auto& mess : lst)
+    {
+        merge_impl(
+            rootNode,
+            {mess.address, StateNodeValues{{}, {}, mess.value}});
+    }
+}
+
 
 void updateTreeWithMessageList(
         MessageNode& rootNode,

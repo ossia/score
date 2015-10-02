@@ -53,9 +53,6 @@ class MessageItemModel : public TreeNodeBasedItemModel<MessageNode>
 
         QVariant data(const QModelIndex &index, int role) const override;
         bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-        void editData(const MessageNodePath& path,
-                      const iscore::OptionalValue& processValue,
-                      const iscore::OptionalValue& userValue);
 
         QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
         bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role) override;

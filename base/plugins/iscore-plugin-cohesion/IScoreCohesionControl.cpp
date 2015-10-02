@@ -25,7 +25,7 @@
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QKeySequence>
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <Commands/State/AddMessagesToModel.hpp>
+#include <Commands/State/EditValue.hpp>
 #include "Control/ScenarioControl.hpp"
 
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
@@ -315,7 +315,7 @@ void IScoreCohesionControl::snapshotParametersInStates()
                 currentDocument()->commandStack()};
     for(auto& state : selected_states)
     {
-        auto cmd = new AddMessagesToModel{
+        auto cmd = new UpdateState{
                 state->messages(),
                 messages};
         macro.submitCommand(cmd);

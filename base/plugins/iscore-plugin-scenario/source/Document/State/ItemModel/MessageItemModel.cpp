@@ -3,6 +3,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+#include <Commands/State/EditValue.hpp>
 #include <Commands/State/AddMessagesToModel.hpp>
 using namespace iscore;
 MessageItemModel::MessageItemModel(
@@ -232,7 +233,7 @@ bool MessageItemModel::dropMimeData(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
 
-    auto cmd = new AddMessagesToModel{*this, ml};
+    auto cmd = new UpdateState{*this, ml};
 
     CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
@@ -271,7 +272,6 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
 }
 
 
-#include <Commands/State/EditValue.hpp>
 bool MessageItemModel::setData(
         const QModelIndex& index,
         const QVariant& value,
@@ -294,9 +294,8 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
-            auto cmd = new EditValue(*this,
-                                     MessageNodePath(*n),
-                                     iscore::Value::fromVariant(value));
+            auto cmd = new UpdateState(*this,
+                                     iscore::MessageList{{address(*n), iscore::Value::fromVariant(value)}});
 
             CommandDispatcher<> disp(m_stack);
             disp.submitCommand(cmd);
@@ -305,32 +304,4 @@ bool MessageItemModel::setData(
     }
 
     return false;
-}
-
-void MessageItemModel::editData(
-        const MessageNodePath& path,
-        const OptionalValue& processValue,
-        const OptionalValue& userValue)
-{
-    ISCORE_TODO;
-    /*
-    auto n = path.toNode(&rootNode());
-    ISCORE_ASSERT(n && n->parent());
-
-    QModelIndex index = createIndex(
-                            n->parent()->indexOfChild(n),
-                            (int)Column::Value,
-                            n->parent());
-
-    QModelIndex changedTopLeft = index;
-    QModelIndex changedBottomRight = index;
-
-    if(!n->parent()->parent())
-        return;
-
-    n->processValue = processValue;
-    n->userValue = userValue;
-
-    emit dataChanged(changedTopLeft, changedBottomRight);
-    */
 }

@@ -5,16 +5,16 @@
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <Document/State/ItemModel/MessageItemModel.hpp>
 
-class EditValue : public iscore::SerializableCommand
+// TODO rename file
+class UpdateState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("DeviceExplorerControl", "EditValue", "EditValue")
+        ISCORE_COMMAND_DECL("ScenarioControl", "UpdateState", "UpdateState")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditValue)
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateState)
 
-          EditValue(
+          UpdateState(
             Path<MessageItemModel>&&,
-            const MessageNodePath&,
-            const iscore::Value&);
+            const iscore::MessageList& messages);
 
         void undo() override;
         void redo() override;

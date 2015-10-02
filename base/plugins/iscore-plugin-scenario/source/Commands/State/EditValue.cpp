@@ -4,65 +4,71 @@
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 
-EditValue::EditValue(
+UpdateState::UpdateState(
         Path<MessageItemModel> &&device_tree,
-        const MessageNodePath& nodePath,
-        const iscore::Value& value):
+        const iscore::MessageList& messages):
     iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},
-    m_path{device_tree},
-    m_nodePath{nodePath}
+    m_path{device_tree}
 {
-    auto& model = m_path.find();
-    m_oldState = model.rootNode();
+    auto model = m_path.try_find();
+    if(model)
+    {
+        m_oldState = model->rootNode();
+    }
 
-    auto n = m_nodePath.toNode(&model.rootNode());
-    ISCORE_ASSERT(n && n->parent() && n->parent()->parent());
-
-    auto& sm = model.stateModel;
     m_newState = m_oldState;
-    iscore::MessageList mess{iscore::Message{address(*n), value}};
 
-    // For all the nodes in m_newState :
-    // - if there is a new message in lst, add it as "process" node in the tree
-    // - if there is a message both in lst and in the tree, update it in the tree
-    // - if there is a message in the tree with the process, but not in lst it means
-    // that the process stopped using this address. Hence we remove the "process" part
-    // of this node, and if there is no "user" or message from another process, we remove
-    // the node altogether
-
-    for(ProcessStateDataInterface* prevProc : sm.previousProcesses())
+    if(model)
     {
-        auto lst = prevProc->setMessages(mess, m_oldState);
+        auto& sm = model->stateModel;
 
-        updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Previous);
+        // For all the nodes in m_newState :
+        // - if there is a new message in lst, add it as "process" node in the tree
+        // - if there is a message both in lst and in the tree, update it in the tree
+        // - if there is a message in the tree with the process, but not in lst it means
+        // that the process stopped using this address. Hence we remove the "process" part
+        // of this node, and if there is no "user" or message from another process, we remove
+        // the node altogether
+
+        for(ProcessStateDataInterface* prevProc : sm.previousProcesses())
+        {
+            auto lst = prevProc->setMessages(messages, m_oldState);
+
+            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Previous);
+        }
+        for(ProcessStateDataInterface* prevProc : sm.followingProcesses())
+        {
+            auto lst = prevProc->setMessages(messages, m_oldState);
+
+            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Following);
+        }
+
+        updateTreeWithMessageList(m_newState, messages);
+        // TODO one day there will also be State functions that will perform
+        // some local computation.
     }
-    for(ProcessStateDataInterface* prevProc : sm.followingProcesses())
+    else
     {
-        auto lst = prevProc->setMessages(mess, m_oldState);
-
-        updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Following);
+        // Just merge
+        ISCORE_TODO;
     }
-
-    // TODO one day there will also be State functions that will perform
-    // some local computation.
-
 }
 
-void EditValue::undo()
+void UpdateState::undo()
 {
     auto& model = m_path.find();
     model = m_oldState;
 }
 
-void EditValue::redo()
+void UpdateState::redo()
 {
     auto& model = m_path.find();
     model = m_newState;
 }
 
-void EditValue::serializeImpl(QDataStream &d) const
+void UpdateState::serializeImpl(QDataStream &d) const
 {
     d << m_path
       << m_nodePath
@@ -70,7 +76,7 @@ void EditValue::serializeImpl(QDataStream &d) const
       << m_newState;
 }
 
-void EditValue::deserializeImpl(QDataStream &d)
+void UpdateState::deserializeImpl(QDataStream &d)
 {
     d >> m_path
       >> m_nodePath
