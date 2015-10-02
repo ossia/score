@@ -27,6 +27,5 @@ class EditValue : public iscore::SerializableCommand
         Path<MessageItemModel> m_path;
         MessageNodePath m_nodePath;
 
-        MessageNode m_oldState;
-        StateNodeValues m_newValues;
+        MessageNode m_oldState, m_newState;
 };

@@ -52,6 +52,9 @@ class ProcessStateDataInterface : public QObject
             return messages();
         }
 
+        Process& process() const
+        { return m_model; }
+
     signals:
         void stateChanged();
         /**
@@ -60,10 +63,6 @@ class ProcessStateDataInterface : public QObject
          *
          */
         void messagesChanged(const iscore::MessageList&);
-
-    protected:
-        Process& model() const
-        { return m_model; }
 
     private:
         Process& m_model;

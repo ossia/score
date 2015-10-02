@@ -10,9 +10,9 @@ MessageItemModel::MessageItemModel(
         const StateModel& sm,
         QObject* parent):
     TreeNodeBasedItemModel<MessageNode>{parent},
+    stateModel{sm},
     m_rootNode{},
-    m_stack{stack},
-    stateModel{sm}
+    m_stack{stack}
 {
     this->setObjectName("MessageItemModel");
 }
@@ -62,70 +62,11 @@ MessageList MessageItemModel::flatten() const
     return ml;
 }
 
-// TODO another one to refactor with merges
-void merge_impl(
-        MessageItemModel::node_type& base,
-        const StateNodeMessage& message)
-{
-    using iscore::Node;
-
-    QStringList path = toStringList(message.addr);
-
-    ptr<MessageItemModel::node_type> node = &base;
-    for(int i = 0; i < path.size(); i++)
-    {
-        auto& children = node->children();
-        auto it = std::find_if(
-                    children.begin(), children.end(),
-                    [&] (const auto& cur_node) {
-            return cur_node.displayName() == path[i];
-        });
-
-        if(it == children.end())
-        {
-            // We have to start adding sub-nodes from here.
-            ptr<MessageItemModel::node_type> parentnode{node};
-            for(int k = i; k < path.size(); k++)
-            {
-                ptr<MessageItemModel::node_type> newNode;
-                if(k < path.size() - 1)
-                {
-                    newNode = &parentnode->emplace_back(
-                                StateNodeData{
-                                    path[k],
-                                    {}},
-                                nullptr);
-                }
-                else
-                {
-                    newNode = &parentnode->emplace_back(
-                                StateNodeData{
-                                    path[k],
-                                    message.values},
-                                nullptr);
-                }
-
-                parentnode = newNode;
-            }
-
-            break;
-        }
-        else
-        {
-            node = &*it;
-
-            if(i == path.size() - 1)
-            {
-                // We replace the value by the one in the message
-                node->values = message.values;
-            }
-        }
-    }
-}
 
 // TESTME
 void MessageItemModel::merge(const StateNodeMessage& mess)
 {
+    /* ISCORE_TODO
     // First, try to see if there is a corresponding node
     auto n = try_getNodeFromString(m_rootNode, toStringList(mess.addr));
     if(n)
@@ -141,6 +82,7 @@ void MessageItemModel::merge(const StateNodeMessage& mess)
         // We need to create a node.
         merge_impl(m_rootNode, mess);
     }
+    */
 }
 
 void MessageItemModel::remove(const Address&)

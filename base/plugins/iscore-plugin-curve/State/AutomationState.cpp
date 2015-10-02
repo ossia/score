@@ -14,10 +14,10 @@ AutomationState::AutomationState(
 {
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-    con(this->model(), &AutomationModel::curveChanged,
+    con(this->process(), &AutomationModel::curveChanged,
             this, &ProcessStateDataInterface::stateChanged);
 
-    con(this->model(), &AutomationModel::addressChanged,
+    con(this->process(), &AutomationModel::addressChanged,
             this, &ProcessStateDataInterface::stateChanged);
 }
 
@@ -28,14 +28,14 @@ QString AutomationState::stateName() const
 iscore::Message AutomationState::message() const
 {
     iscore::Message m;
-    m.address = model().address();
-    for(const CurveSegmentModel& seg : model().curve().segments())
+    m.address = process().address();
+    for(const CurveSegmentModel& seg : process().curve().segments())
     {
         // OPTIMIZEME introduce another index on that has an ordering on curve segments
         // to make this fast (just checking for the first and the last).
         if(seg.start().x() <= m_point && seg.end().x() >= m_point)
         {
-            m.value.val = seg.valueAt(m_point) * (model().max() - model().min()) + model().min();
+            m.value.val = seg.valueAt(m_point) * (process().max() - process().min()) + process().min();
             break;
         }
     }
@@ -48,25 +48,25 @@ double AutomationState::point() const
 
 AutomationState *AutomationState::clone(QObject* parent) const
 {
-    return new AutomationState{model(), m_point, parent};
+    return new AutomationState{process(), m_point, parent};
 }
 
-AutomationModel& AutomationState::model() const
+AutomationModel& AutomationState::process() const
 {
-    return static_cast<AutomationModel&>(ProcessStateDataInterface::model());
+    return static_cast<AutomationModel&>(ProcessStateDataInterface::process());
 }
 
 std::vector<iscore::Address> AutomationState::matchingAddresses()
 {
     // TODO have a better check of "adress validity"
-    if(!model().address().device.isEmpty())
-        return {model().address()};
+    if(!process().address().device.isEmpty())
+        return {process().address()};
     return {};
 }
 
 iscore::MessageList AutomationState::messages() const
 {
-    if(!model().address().device.isEmpty())
+    if(!process().address().device.isEmpty())
         return {message()};
     return {};
 }
@@ -74,6 +74,8 @@ iscore::MessageList AutomationState::messages() const
 // TESTME
 iscore::MessageList AutomationState::setMessages(const iscore::MessageList& received, const MessageNode&)
 {
+    ISCORE_TODO;
+    /*
     if(m_point != 0 && m_point != 1)
         return messages();
 
@@ -128,6 +130,6 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
             return messages();
         }
     }
-
+*/
     return messages();
 }

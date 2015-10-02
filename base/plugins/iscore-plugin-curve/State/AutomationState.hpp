@@ -9,12 +9,12 @@ class AutomationState : public ProcessStateDataInterface
     public:
         // watchedPoint : something between 0 and 1
         AutomationState(
-                AutomationModel& model,
+                AutomationModel& process,
                 double watchedPoint,
                 QObject* parent);
 
         QString stateName() const override;
-        AutomationModel& model() const;
+        AutomationModel& process() const;
 
         iscore::Message message() const;
         double point() const;

@@ -10,7 +10,7 @@
 class StateModel;
 struct ProcessStateData
 {
-        QPointer<Process> process;
+        QPointer<const Process> process;
         iscore::OptionalValue value;
 };
 
@@ -20,15 +20,17 @@ enum class PriorityPolicy {
 
 struct StateNodeValues
 {
+        // TODO use lists or queues instead to manage the priorities
+        QVector<ProcessStateData> previousProcessValues;
+        QVector<ProcessStateData> followingProcessValues;
+        iscore::OptionalValue userValue;
+
+
         std::array<PriorityPolicy, 3> priorities{{
             PriorityPolicy::Previous,
             PriorityPolicy::Following,
             PriorityPolicy::User
         }};
-        // TODO use lists or queues instead to manage the priorities
-        QVector<ProcessStateData> previousProcessValues;
-        QVector<ProcessStateData> followingProcessValues;
-        iscore::OptionalValue userValue;
 
         static bool hasValue(const QVector<ProcessStateData>& vec)
         {
