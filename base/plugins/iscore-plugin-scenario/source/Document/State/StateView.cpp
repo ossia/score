@@ -5,8 +5,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QCursor>
 #include <QDebug>
-static const qreal radiusFull = 10.;
-static const qreal radiusVoid = 3.;
 
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsObject(parent),
@@ -19,20 +17,12 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     this->setAcceptHoverEvents(true);
 }
 
-int StateView::type() const
-{
-    return QGraphicsItem::UserType + 4;
-}
-
 const StatePresenter &StateView::presenter() const
 {
     return m_presenter;
 }
 
-QRectF StateView::boundingRect() const
-{
-    return {-radiusFull, -radiusFull, 2*radiusFull, 2*radiusFull};
-}
+
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -46,7 +36,7 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     if(m_selected)
         painter->setBrush(highlight);
 
-    qreal radius = m_containMessage ? radiusFull : radiusVoid;
+    qreal radius = m_containMessage ? m_radiusFull : m_radiusVoid;
     painter->drawEllipse({0., 0.}, radius, radius);
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setBrush(Qt::NoBrush);

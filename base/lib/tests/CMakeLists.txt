@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(iscore_tests)
+enable_testing()
 #include (CTest)
 #include(CppcheckTargets)
 #find_package(Qt5Core)

@@ -4,7 +4,7 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEventMeta.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 
 #include "Commands/Scenario/Creations/CreateConstraint.hpp"
@@ -193,7 +193,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        !stateMachine.isShiftPressed());
+                        stateMachine.isShiftPressed());
         });
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
@@ -204,10 +204,10 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                 return;
             }
 
-            m_dispatcher.submitCommand<MoveEvent>(
+            m_dispatcher.submitCommand<MoveEventMeta>(
                         Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
-                        m_scenarioPath.find().timeNode(hoveredTimeNode).date(),
+                        TimeValue::zero(),
                         stateMachine.expandMode());
         });
 

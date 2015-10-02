@@ -109,9 +109,7 @@ void AutomationInspectorWidget::on_addressChange(const iscore::Address& newAddr)
     if(newAddr.path.isEmpty())
         return;
 
-    auto cmd = new ChangeAddress{
-            iscore::IDocument::path(m_model),
-            newAddr };
+    auto cmd = new ChangeAddress{m_model, newAddr};
 
     commandDispatcher()->submitCommand(cmd);
 }
@@ -121,8 +119,7 @@ void AutomationInspectorWidget::on_minValueChanged()
     auto newVal = m_minsb->value();
     if(newVal != m_model.min())
     {
-        auto cmd = new SetCurveMin{
-                    iscore::IDocument::path(m_model), newVal};
+        auto cmd = new SetCurveMin{m_model, newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }
@@ -133,8 +130,7 @@ void AutomationInspectorWidget::on_maxValueChanged()
     auto newVal = m_maxsb->value();
     if(newVal != m_model.max())
     {
-        auto cmd = new SetCurveMax{
-                    iscore::IDocument::path(m_model), newVal};
+        auto cmd = new SetCurveMax{m_model, newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }

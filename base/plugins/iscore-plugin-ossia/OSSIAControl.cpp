@@ -2,6 +2,8 @@
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
 #include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
 
+#include "Control/ScenarioControl.hpp"
+
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/Protocol/Local.h>
@@ -42,6 +44,38 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
 
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
+
+    auto ctrl = ScenarioControl::instance();
+    auto acts = ctrl->actions();
+    for(const auto& act : acts)
+    {
+        if(act->objectName() == "Play")
+        {
+            connect(act, &QAction::toggled,
+                    this, [&] (bool b) {
+                if(b)
+                {
+                    if(m_playing)
+                        baseConstraint().OSSIAConstraint()->resume();
+                    else
+                        baseConstraint().play();
+
+                    m_playing = true;
+                }
+                else
+                {
+                    baseConstraint().OSSIAConstraint()->pause();
+                } });
+        }
+        if(act->objectName() == "Stop")
+        {
+            connect(act, &QAction::triggered,
+                    this, [&] {
+                baseConstraint().stop();
+                m_playing = false;
+            });
+        }
+    }
 }
 
 OSSIAControl::~OSSIAControl()
@@ -52,8 +86,12 @@ OSSIAControl::~OSSIAControl()
 
     // TODO check the deletion order.
     // Maybe we should have a dependency graph of some kind ??
-    if(currentDocument())
+    if(currentDocument()
+    && currentDocument()->model().pluginModel<OSSIADocumentPlugin>()
+    && currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario())
+    {
         baseConstraint().stop();
+    }
 }
 
 
@@ -62,39 +100,13 @@ OSSIAConstraintElement &OSSIAControl::baseConstraint() const
     return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
+OSSIABaseScenarioElement&OSSIAControl::baseScenario() const
+{
+    return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
+}
+
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 {
-    QAction* play = new QAction {tr("Play"), this};
-    connect(play, &QAction::triggered,
-            [&] ()
-    { baseConstraint().play(); });
-
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
-                                       play);
-
-    QAction* pause = new QAction {tr("Pause"), this};
-    connect(pause, &QAction::triggered,
-            [&] ()
-    { baseConstraint().constraint()->pause(); });
-
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
-                                       pause);
-
-    QAction* resume = new QAction {tr("Resume"), this};
-    connect(resume, &QAction::triggered,
-            [&] ()
-    { baseConstraint().constraint()->resume(); });
-
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
-                                       resume);
-
-    QAction* stop = new QAction {tr("Stop"), this};
-    connect(stop, &QAction::triggered,
-            [&] ()
-    { baseConstraint().stop(); });
-
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::PlayMenu,
-                                       stop);
 }
 
 iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
@@ -125,5 +137,6 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 
 void OSSIAControl::on_documentChanged()
 {
+    ISCORE_TODO;
 }
 

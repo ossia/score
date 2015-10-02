@@ -33,7 +33,7 @@ CreateConstraint::CreateConstraint(
     // we have to generate ConstraintViewModels, too
     for(const auto& viewModel : layers(scenar))
     {
-        m_createdConstraintViewModelIDs[iscore::IDocument::path(*viewModel)] = getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[*viewModel] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view
@@ -50,8 +50,8 @@ void CreateConstraint::undo()
 void CreateConstraint::redo()
 {
     auto& scenar = m_path.find();
-    auto& sst = scenar.state(m_startStateId);
-    auto& est = scenar.state(m_endStateId);
+    auto& sst = scenar.states.at(m_startStateId);
+    auto& est = scenar.states.at(m_endStateId);
 
     ScenarioCreate<ConstraintModel>::redo(
                 m_createdConstraintId,
@@ -61,7 +61,7 @@ void CreateConstraint::redo()
                 sst.heightPercentage(),
                 scenar);
 
-    scenar.constraint(m_createdConstraintId).metadata.setName(m_createdName);
+    scenar.constraints.at(m_createdConstraintId).metadata.setName(m_createdName);
 
     createConstraintViewModels(m_createdConstraintViewModelIDs,
                                m_createdConstraintId,

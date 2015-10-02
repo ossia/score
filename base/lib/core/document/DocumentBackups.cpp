@@ -20,6 +20,7 @@ bool iscore::DocumentBackups::canRestoreDocuments()
         else
         {
             DocumentBackups::clear();
+            // TODO clear tmp folder.
             return false;
         }
     }

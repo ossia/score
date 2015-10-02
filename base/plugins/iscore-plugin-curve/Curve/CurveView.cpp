@@ -8,7 +8,7 @@
 CurveView::CurveView(QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-    this->setCursor(Qt::ArrowCursor);
+    //this->setCursor(Qt::ArrowCursor);
     this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
 
     this->setZValue(parent->zValue() + 1);
@@ -16,12 +16,6 @@ CurveView::CurveView(QGraphicsItem *parent):
 
 CurveView::~CurveView()
 {
-}
-
-
-QRectF CurveView::boundingRect() const
-{
-    return m_rect;
 }
 
 void CurveView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

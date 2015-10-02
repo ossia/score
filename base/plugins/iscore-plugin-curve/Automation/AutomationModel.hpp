@@ -3,6 +3,8 @@
 #include <ProcessInterface/Process.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+
+#include <State/AutomationState.hpp>
 #include <State/Address.hpp>
 
 /**
@@ -37,7 +39,9 @@ class AutomationModel : public Process
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
-            Process{vis, parent}
+            Process{vis, parent},
+            m_startState{new AutomationState{*this, 0., this}},
+            m_endState{new AutomationState{*this, 1., this}}
         {
             vis.writeTo(*this);
         }
@@ -68,8 +72,8 @@ class AutomationModel : public Process
         void serialize(const VisitorVariant& vis) const override;
 
         /// States
-        ProcessStateDataInterface* startState() const override;
-        ProcessStateDataInterface* endState() const override;
+        AutomationState* startState() const override;
+        AutomationState* endState() const override;
 
         //// AutomationModel specifics ////
         iscore::Address address() const;

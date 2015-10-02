@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(iscore_base)
+enable_testing()
 
 include_directories(lib)
 

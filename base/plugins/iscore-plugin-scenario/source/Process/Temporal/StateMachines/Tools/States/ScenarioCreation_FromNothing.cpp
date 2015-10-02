@@ -3,7 +3,6 @@
 #include "Process/Temporal/StateMachines/ScenarioStateMachine.hpp"
 #include <Process/ScenarioModel.hpp>
 
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveNewState.hpp"
 
@@ -155,7 +154,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        !stateMachine.isShiftPressed());
+                        stateMachine.isShiftPressed());
         });
 
         QObject::connect(move_timenode , &QState::entered, [&] ()
@@ -220,8 +219,14 @@ void ScenarioCreation_FromNothing::createToNothing()
 
 void ScenarioCreation_FromNothing::createToState()
 {
-    createInitialState();
-    createToState_base(createdStates.first());
+    ISCORE_ASSERT(bool(hoveredState));
+
+    const auto& state = m_parentSM.model().states.at(hoveredState);
+    if(!bool(state.previousConstraint()))
+    {
+        createInitialState();
+        createToState_base(createdStates.first());
+    }
 }
 
 void ScenarioCreation_FromNothing::createToEvent()

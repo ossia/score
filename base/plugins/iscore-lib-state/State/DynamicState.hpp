@@ -2,6 +2,7 @@
 #include <QMetaType>
 #include <QPointer>
 #include <State/DynamicStateDataInterface.hpp>
+#include <State/Message.hpp>
 
 /**
  * @brief The DynamicState class

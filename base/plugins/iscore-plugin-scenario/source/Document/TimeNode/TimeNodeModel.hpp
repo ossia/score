@@ -2,7 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <source/Document/VerticalExtent.hpp>
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -11,6 +11,7 @@
 
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 class EventModel;
+class TriggerModel;
 class ScenarioInterface;
 class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
 {
@@ -65,6 +66,8 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
         const QVector<Id<EventModel>>& events() const;
         void setEvents(const QVector<Id<EventModel>>& events);
 
+        TriggerModel* trigger() const;
+
     signals:
         void extentChanged(const VerticalExtent&);
         void dateChanged(const TimeValue&);
@@ -75,6 +78,7 @@ class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
     private:
         VerticalExtent m_extent;
         TimeValue m_date{std::chrono::seconds{0}};
+        TriggerModel* m_trigger;
 
         QVector<Id<EventModel>> m_events;
 };

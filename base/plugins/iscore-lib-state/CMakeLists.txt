@@ -1,18 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 project(iscore_lib_state)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-cmake_policy(SET CMP0020 NEW)
-cmake_policy(SET CMP0042 NEW)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
+iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
-
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AddressSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.cpp"
@@ -29,6 +23,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/StateItemModel.cpp"
 
+
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/AddressLineEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Widgets/Values/StringValueWidget.cpp"
@@ -41,16 +36,5 @@ file(GLOB_RECURSE HDRS
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets iscore_lib_base)
 
-set_property(TARGET ${PROJECT_NAME} APPEND
-             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
-
-iscore_cotire(${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION .
-        ARCHIVE DESTINATION static_lib/
-        COMPONENT DynamicRuntime)
-
-if(NOT DEPLOYMENT_BUILD)
-    add_subdirectory(Tests)
-endif()
+setup_iscore_library(${PROJECT_NAME})
+setup_iscore_tests(Tests)

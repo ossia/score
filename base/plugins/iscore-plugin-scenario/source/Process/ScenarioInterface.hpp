@@ -12,4 +12,7 @@ class ScenarioInterface
         virtual EventModel& event(const Id<EventModel>& eventId) const = 0;
         virtual TimeNodeModel& timeNode(const Id<TimeNodeModel>& timeNodeId) const = 0;
         virtual StateModel& state(const Id<StateModel>& stId) const = 0;
+
+        virtual TimeNodeModel& startTimeNode() const = 0;
+        virtual TimeNodeModel& endTimeNode() const = 0;
 };

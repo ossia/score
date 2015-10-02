@@ -40,9 +40,9 @@ void DisplayedElementsModel::setSelection(const Selection & s)
     if(m_constraint) m_endState->selection.set(cst);
  }
 
-void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel *constraint)
+void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel& constraint)
 {
-    m_constraint = constraint;
+    m_constraint = &constraint;
     if(auto parent = dynamic_cast<BaseScenario*>(m_constraint->parent()))
     {
         m_startNode = &parent->startTimeNode();
@@ -56,14 +56,14 @@ void DisplayedElementsModel::setDisplayedConstraint(const ConstraintModel *const
     }
     else if(auto parent = dynamic_cast<ScenarioModel*>(m_constraint->parent()))
     {
-        m_startState = &parent->state(m_constraint->startState());
-        m_endState = &parent->state(m_constraint->endState());
+        m_startState = &parent->states.at(m_constraint->startState());
+        m_endState = &parent->states.at(m_constraint->endState());
 
-        m_startEvent = &parent->event(m_startState->eventId());
-        m_endEvent = &parent->event(m_endState->eventId());
+        m_startEvent = &parent->events.at(m_startState->eventId());
+        m_endEvent = &parent->events.at(m_endState->eventId());
 
-        m_startNode = &parent->timeNode(m_startEvent->timeNode());
-        m_endNode = &parent->timeNode(m_endEvent->timeNode());
+        m_startNode = &parent->timeNodes.at(m_startEvent->timeNode());
+        m_endNode = &parent->timeNodes.at(m_endEvent->timeNode());
     }
 }
 

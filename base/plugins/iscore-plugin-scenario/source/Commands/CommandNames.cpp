@@ -22,7 +22,6 @@
 #include "Constraint/SetRigidity.hpp"
 #include "Event/AddStateToEvent.hpp"
 #include "Event/SetCondition.hpp"
-#include "Event/SetTrigger.hpp"
 #include "Event/State/AssignMessagesToState.hpp"
 #include "Event/State/AddStateWithData.hpp"
 #include "Event/State/UnassignMessagesFromState.hpp"
@@ -43,13 +42,17 @@
 #include "Scenario/Deletions/ClearEvent.hpp"
 #include "Scenario/Deletions/RemoveSelection.hpp"
 #include "Scenario/Displacement/MoveConstraint.hpp"
-#include "Scenario/Displacement/MoveEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
+#include "Scenario/Displacement/MoveEventMeta.hpp"
+#include "Scenario/Displacement/MoveEventOnCreationMeta.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
 #include "Scenario/HideRackInViewModel.hpp"
 #include "Scenario/ShowRackInViewModel.hpp"
 #include "SwitchStatePosition.hpp"
+#include "TimeNode/AddTrigger.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
+#include "TimeNode/RemoveTrigger.hpp"
+#include "TimeNode/SetTrigger.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
@@ -77,22 +80,39 @@ namespace boost { namespace mpl {
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
+#include <Commands/State/AddMessagesToModel.hpp>
+#include <Commands/State/RemoveMessageNodes.hpp>
+#include <Commands/State/EditValue.hpp>
+
+#include <iscore/command/CommandGeneratorMap.hpp>
+
+namespace {
+struct ScenarioCommandFactory
+{
+        static CommandGeneratorMap map;
+};
+// Instantiation is in CommandNames.cpp
 
 CommandGeneratorMap ScenarioCommandFactory::map;
-
+}
 void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list60<
+            boost::mpl::list66<
+
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
-            AddStateToStateModel,
-            AssignMessagesToState,
+            AddMessagesToModel,
+            RemoveMessageNodes,
+            EditValue,
+//            AddStateToStateModel,
+//            AssignMessagesToState,
             AddStateWithData,
+            AddTrigger,
 
             ChangeElementColor<ConstraintModel>,
             ChangeElementColor<EventModel>,
@@ -122,6 +142,7 @@ void ScenarioControl::setupCommands()
             CreateConstraint_State,
             CreateConstraint_State_Event,
             CreateConstraint_State_Event_TimeNode,
+            CreateSequence,
             CreationMetaCommand,
 
             ShowRackInViewModel,
@@ -133,7 +154,8 @@ void ScenarioControl::setupCommands()
             MoveConstraint,
             MoveSlot,
             SwapSlots,
-            MoveEvent,
+            MoveEventMeta,
+            MoveEventOnCreationMeta,
             MoveNewEvent,
             MoveNewState,
 
@@ -154,6 +176,8 @@ void ScenarioControl::setupCommands()
             SetMaxDuration,
             SetMinDuration,
             SetRigidity,
+            SetTrigger,
+            RemoveTrigger,
 
             SplitTimeNode,
             SwitchStatePosition,
@@ -161,4 +185,13 @@ void ScenarioControl::setupCommands()
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<ScenarioCommandFactory>());
+}
+
+
+
+iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
+        const QString& name,
+        const QByteArray& data)
+{
+    return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
 }

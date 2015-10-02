@@ -1,6 +1,14 @@
 #include "SettableIdentifierGeneration.hpp"
 
 #include <random>
+#ifdef ISCORE_VALGRIND_IDS
+int32_t getNextId()
+{
+    static int x = 15;
+    return x++;
+}
+
+#else
 int32_t getNextId()
 {
     using namespace std;
@@ -12,3 +20,5 @@ int32_t getNextId()
 
     return dist(gen);
 }
+
+#endif

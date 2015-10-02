@@ -27,3 +27,4 @@ class ChangeAddress : public iscore::SerializableCommand
         iscore::FullAddressSettings m_old, m_new;
 };
 
+

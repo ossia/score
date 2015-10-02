@@ -10,6 +10,7 @@ class TimeNodeView;
 class TimeNodeModel;
 class EventModel;
 class QGraphicsObject;
+class TriggerPresenter;
 
 class TimeNodePresenter :  public NamedObject
 {
@@ -42,4 +43,5 @@ class TimeNodePresenter :  public NamedObject
     private:
         const TimeNodeModel& m_model;
         TimeNodeView* m_view {};
+        TriggerPresenter* m_triggerPres;
  };

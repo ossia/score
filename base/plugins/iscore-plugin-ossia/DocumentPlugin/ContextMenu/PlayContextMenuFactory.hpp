@@ -1,8 +1,8 @@
 #pragma once
 #include "source/Control/Menus/Plugin/ScenarioContextMenuFactoryFamily.hpp"
 
-class PlayContextMenuFactory : public ScenarioContextMenuFactory
+class PlayContextMenuFactory : public ScenarioActionsFactory
 {
     public:
-        QList<AbstractMenuActions*> make(ScenarioControl* ctrl) override;
+        QList<ScenarioActions*> make(ScenarioControl* ctrl) override;
 };

@@ -5,7 +5,6 @@
 #include "iscore/menu/MenuInterface.hpp"
 
 #include "Process/ScenarioGlobalCommandManager.hpp"
-#include "Process/ScenarioModel.hpp"
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
 #include "Document/BaseElement/BaseElementModel.hpp"
@@ -13,9 +12,12 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
 
 #include "Commands/Constraint/ReplaceConstraintContent.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/TimeNode/AddTrigger.hpp"
+#include "Commands/TimeNode/RemoveTrigger.hpp"
 
 #include "Control/ScenarioControl.hpp"
 
@@ -33,11 +35,12 @@
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
         ScenarioControl* parent) :
-    AbstractMenuActions(menuElt, parent)
+    ScenarioActions(menuElt, parent)
 {
     // REMOVE
     m_removeElements = new QAction{tr("Remove selected elements"), this};
-    m_removeElements->setShortcut(QKeySequence::Delete);
+    m_removeElements->setShortcut(Qt::Key_Backspace);
+    m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_removeElements, &QAction::triggered,
             [this]()
     {
@@ -49,7 +52,8 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     m_clearElements = new QAction{tr("Clear selected elements"), this};
-    m_clearElements->setShortcut(Qt::Key_Backspace);
+    m_clearElements->setShortcut(QKeySequence::Delete);
+    m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_clearElements, &QAction::triggered,
             [this]()
     {
@@ -63,6 +67,7 @@ ObjectMenuActions::ObjectMenuActions(
     // COPY/CUT
     m_copyContent = new QAction{tr("Copy"), this};
     m_copyContent->setShortcut(QKeySequence::Copy);
+    m_copyContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
@@ -73,6 +78,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_cutContent = new QAction{tr("Cut"), this};
     m_cutContent->setShortcut(QKeySequence::Cut);
+    m_cutContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_cutContent, &QAction::triggered,
             [this]()
     {
@@ -83,6 +89,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_pasteContent = new QAction{tr("Paste"), this};
     m_pasteContent->setShortcut(QKeySequence::Paste);
+    m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_pasteContent, &QAction::triggered,
             [this]()
     {
@@ -112,14 +119,28 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_addProcess, &QAction::triggered,
             [this]()
     {
+        auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
+        if(selectedConstraints.isEmpty())
+            return;
         m_addProcessDialog->launchWindow();
     });
+
+    // ADD TRIGGER
+    m_addTrigger = new QAction{tr("Add Trigger"), this};
+    connect(m_addTrigger, &QAction::triggered,
+            this, &ObjectMenuActions::addTriggerToTimeNode);
+
+    m_removeTrigger = new QAction{tr("Remove Trigger"), this};
+    connect(m_removeTrigger, &QAction::triggered,
+            this, &ObjectMenuActions::removeTriggerFromTimeNode);
 
 }
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
+    menu->insertActionIntoToplevelMenu(m_menuElt, m_removeTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeElements);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_clearElements);
@@ -129,7 +150,7 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
 }
 
-void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
+void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
 {
     if(sel.empty())
         return;
@@ -139,6 +160,15 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel)
                    [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); }))
     {
         menu->addAction(m_addProcess);
+        menu->addSeparator();
+    }
+
+    if(std::any_of(sel.cbegin(),
+                   sel.cend(),
+                   [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
+    {
+        menu->addAction(m_addTrigger);
+        menu->addAction(m_removeTrigger);
         menu->addSeparator();
     }
 
@@ -237,7 +267,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
         {
             auto cmd = new Scenario::Command::ReplaceConstraintContent{
                        json_vref.toObject(),
-                       iscore::IDocument::path(*constraint),
+                       *constraint,
                        pres->stateMachine().expandMode()};
 
             CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
@@ -249,16 +279,44 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 void ObjectMenuActions::addProcessInConstraint(QString processName)
 {
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
-    auto cmd = new Scenario::Command::AddProcessToConstraint
+    if(selectedConstraints.isEmpty())
+        return;
+    auto cmd = new Scenario::Command::AddProcessToConstraint //NOTE just the first, not all ?
     {
-        iscore::IDocument::path(**selectedConstraints.begin()),
+        **selectedConstraints.begin(),
         processName
     };
-    CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
-    emit dispatcher.submitCommand(cmd);
+    emit dispatcher().submitCommand(cmd);
 }
 
-QVector<QAction *> ObjectMenuActions::actions()
+void ObjectMenuActions::addTriggerToTimeNode()
+{
+    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);// TODO : event or timenode ?
+    if(selectedTimeNodes.isEmpty())
+        return;
+
+    auto cmd = new Scenario::Command::AddTrigger{**selectedTimeNodes.begin()};
+    emit dispatcher().submitCommand(cmd);
+}
+
+void ObjectMenuActions::removeTriggerFromTimeNode()
+{
+    auto selectedTimeNodes = selectedElements(m_parent->focusedScenarioModel()->timeNodes);// TODO : event or timenode ?
+    if(selectedTimeNodes.isEmpty())
+        return;
+
+    auto cmd = new Scenario::Command::RemoveTrigger{**selectedTimeNodes.begin()};
+    emit dispatcher().submitCommand(cmd);
+}
+
+CommandDispatcher<> ObjectMenuActions::dispatcher()
+{
+    CommandDispatcher<> disp{m_parent->currentDocument()->commandStack()};
+    return disp;
+}
+
+
+QList<QAction*> ObjectMenuActions::actions() const
 {
     return {
             m_removeElements,
@@ -267,7 +325,8 @@ QVector<QAction *> ObjectMenuActions::actions()
             m_cutContent,
             m_pasteContent,
             m_elementsToJson,
-            m_addProcess
+            m_addProcess,
+            m_addTrigger
         };
 }
 

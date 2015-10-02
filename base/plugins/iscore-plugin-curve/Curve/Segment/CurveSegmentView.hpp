@@ -7,7 +7,7 @@ class CurveSegmentView : public QGraphicsObject
         Q_OBJECT
     public:
         CurveSegmentView(
-                const CurveSegmentModel& model,
+                const CurveSegmentModel* model,
                 QGraphicsItem* parent);
 
         const Id<CurveSegmentModel>& id() const;
@@ -16,8 +16,10 @@ class CurveSegmentView : public QGraphicsObject
         QPainterPath shape() const override;
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
+        void setModel(const CurveSegmentModel*);
         const CurveSegmentModel& model() const
-        { return m_model; }
+        { return *m_model; }
+
         void setRect(const QRectF& theRect);
 
         void setSelected(bool selected);
@@ -33,17 +35,14 @@ class CurveSegmentView : public QGraphicsObject
 
     private:
         void updatePoints();
-        void updateStroke();
         // Takes a table of points and draws them in a square given by the boundingRect
         // QGraphicsItem interface
         QRectF m_rect;
 
-        const CurveSegmentModel& m_model;
+        const CurveSegmentModel* m_model{};
         bool m_selected{};
 
         QPainterPath m_unstrockedShape;
-        QPainterPath m_shape;
-        QVector<QLineF> m_lines;
 
         bool m_enabled{true};
 };

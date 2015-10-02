@@ -1,11 +1,24 @@
 #include "CurveSegmentModel.hpp"
 
 
-CurveSegmentModel::CurveSegmentModel(const Id<CurveSegmentModel>& id, QObject* parent):
+CurveSegmentModel::CurveSegmentModel(
+        const Id<CurveSegmentModel>& id,
+        QObject* parent):
     IdentifiedObject<CurveSegmentModel>{id, "CurveSegmentModel", parent}
 
 {
 
+}
+
+CurveSegmentModel::CurveSegmentModel(
+        const CurveSegmentData& data,
+        QObject* parent):
+    IdentifiedObject<CurveSegmentModel>{data.id, "CurveSegmentModel", parent},
+    m_start{data.start},
+    m_end{data.end},
+    m_previous{data.previous},
+    m_following{data.following}
+{
 }
 
 CurveSegmentModel::~CurveSegmentModel()
@@ -53,7 +66,17 @@ boost::optional<double> CurveSegmentModel::horizontalParameter() const
     return {};
 }
 
+void CurveSegmentModel::setStart(const CurvePoint& pt)
+{
+    if(pt != m_start)
+    {
+        m_start = pt;
+        m_valid = false;
+        on_startChanged();
 
+        emit startChanged();
+    }
+}
 
 void CurveSegmentModel::setEnd(const CurvePoint& pt)
 {
@@ -62,17 +85,7 @@ void CurveSegmentModel::setEnd(const CurvePoint& pt)
         m_end = pt;
         m_valid = false;
         on_endChanged();
-    }
-}
 
-
-
-void CurveSegmentModel::setStart(const CurvePoint& pt)
-{
-    if(pt != m_start)
-    {
-        m_start = pt;
-        m_valid = false;
-        on_startChanged();
+        emit endChanged();
     }
 }

@@ -10,11 +10,15 @@ class StateView : public QGraphicsObject
     public:
         StateView(StatePresenter &presenter, QGraphicsItem *parent = 0);
         virtual ~StateView() = default;
-        int type() const override;
+
+        int type() const override final
+        { return QGraphicsItem::UserType + 4; }
 
         const StatePresenter& presenter() const;
 
-        QRectF boundingRect() const override;
+        QRectF boundingRect() const override final
+        { return {-m_radiusFull, -m_radiusFull, 2*m_radiusFull, 2*m_radiusFull }; }
+
         void paint(QPainter* painter,
                const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
@@ -40,5 +44,8 @@ class StateView : public QGraphicsObject
         bool m_selected{false};
 
         QColor m_baseColor;
+
+        static const constexpr qreal m_radiusFull = 7.;
+        static const constexpr qreal m_radiusVoid = 3.;
 
 };

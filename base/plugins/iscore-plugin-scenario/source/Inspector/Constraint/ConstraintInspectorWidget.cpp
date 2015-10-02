@@ -14,6 +14,8 @@
 #include "Commands/Constraint/AddRackToConstraint.hpp"
 #include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
 #include "Document/Event/EventModel.hpp"
+#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Document/TimeNode/Trigger/TriggerModel.hpp>
 #include "Commands/Scenario/ShowRackInViewModel.hpp"
 #include "Commands/Scenario/HideRackInViewModel.hpp"
 #include "ProcessInterface/Process.hpp"
@@ -22,6 +24,8 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include "Document/BaseElement/BaseElementModel.hpp"
 #include "Process/ScenarioModel.hpp"
+
+#include <Inspector/TimeNode/TriggerInspectorWidget.hpp>
 
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -65,15 +69,24 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     addHeader(m_metadata);
 
+    if(m_model.objectName() == "BaseConstraintModel")
+    {
+        auto scenario = m_model.parentScenario();
+        auto& tn = scenario->timeNode(m_model.endTimeNode());
+        m_triggerLine = new TriggerInspectorWidget{tn, this};
+        m_triggerLine->HideRmButton();
+        m_properties.push_back(new QLabel(tr("Trigger")));
+        m_properties.push_back(m_triggerLine);
+    }
 
     ////// BODY
-    QPushButton* setAsDisplayedConstraint = new QPushButton {"Full view", this};
+    QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
             [this]()
     {
         auto& base = get<BaseElementModel> (*documentFromObject(m_model));
 
-        base.setDisplayedConstraint(&model());
+        base.setDisplayedConstraint(model());
     });
 
     m_properties.push_back(setAsDisplayedConstraint);
@@ -156,6 +169,16 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     // Display data
     updateAreaLayout(m_properties);
+
+    if(m_model.objectName() == "BaseConstraintModel")
+    {
+        auto scenario = m_model.parentScenario();
+        auto& tn = scenario->timeNode(m_model.endTimeNode());
+        auto trWidg = new TriggerInspectorWidget{tn, this};
+        trWidg->HideRmButton();
+        m_properties.push_back(trWidg);
+    }
+
 }
 
 const ConstraintModel& ConstraintInspectorWidget::model() const
@@ -220,6 +243,14 @@ void ConstraintInspectorWidget::updateDisplayedValues()
     {
         setupRack(rack);
     }
+
+    if(m_model.objectName() == "BaseConstraintModel")
+    {
+        auto scenario = m_model.parentScenario();
+        auto& tn = scenario->timeNode(m_model.endTimeNode());
+        m_triggerLine->updateExpression(tn.trigger()->expression().toString() );
+    }
+
 }
 
 void ConstraintInspectorWidget::createProcess(QString processName)
@@ -279,7 +310,7 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 
 void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 {
-    InspectorSectionWidget* newProc = new InspectorSectionWidget(process.processName());
+    InspectorSectionWidget* newProc = new InspectorSectionWidget(process.metadata.name());
 
     // Process
     auto processWidget = InspectorWidgetList::makeInspectorWidget(

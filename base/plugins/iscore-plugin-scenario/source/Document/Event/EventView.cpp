@@ -5,7 +5,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include "EventPresenter.hpp"
 #include "ConditionView.hpp"
-#include "TriggerView.hpp"
 #include <QApplication>
 #include <QPalette>
 
@@ -20,9 +19,6 @@ EventView::EventView(EventPresenter& presenter,
     m_conditionItem->setVisible(false);
     m_conditionItem->setPos(-13.5, -13.5);
 
-    m_triggerItem = new TriggerView(this);
-    m_triggerItem->setVisible(false);
-
     this->setParentItem(parent);
     this->setCursor(Qt::SizeHorCursor);
 
@@ -31,9 +27,6 @@ EventView::EventView(EventPresenter& presenter,
 
     m_color = Qt::white;
 }
-
-int EventView::type() const
-{ return QGraphicsItem::UserType + 1; }
 
 const EventPresenter& EventView::presenter() const
 {
@@ -59,8 +52,8 @@ void EventView::setTrigger(const QString &trig)
     if(m_trigger == trig)
         return;
     m_trigger = trig;
-    m_triggerItem->setVisible(!trig.isEmpty());
-    m_triggerItem->setToolTip(m_condition);
+//    m_triggerItem->setVisible(!trig.isEmpty());
+//    m_triggerItem->setToolTip(m_condition);
 }
 
 bool EventView::hasTrigger() const
@@ -69,10 +62,7 @@ bool EventView::hasTrigger() const
 }
 
 
-QRectF EventView::boundingRect() const
-{
-    return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};
-}
+
 
 void EventView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,

@@ -55,7 +55,7 @@ class Visitor<Reader<JSONObject>> : public AbstractVisitor
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
         template<typename T>
-        static auto serialize(const T& t)
+        static auto marshall(const T& t)
         {
             Visitor<Reader<JSONObject>> reader;
             reader.readFrom(t);
@@ -102,6 +102,15 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
         Visitor<Writer<JSONObject>> (QJsonObject&& obj) :
                                m_obj {std::move(obj) }
         {}
+
+        template<typename T>
+        static auto unmarshall(const QJsonObject& obj)
+        {
+            T data;
+            Visitor<Writer<JSONObject>> wrt{obj};
+            wrt.writeTo(data);
+            return data;
+        }
 
         template<typename T>
         void writeTo(T&);

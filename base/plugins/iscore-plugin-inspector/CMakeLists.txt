@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_inspector)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+iscore_common_setup()
+
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets)
 
@@ -23,18 +21,8 @@ set(INTERFACE_SRCS
 add_library(iscore_lib_inspector ${INTERFACE_HDRS} ${INTERFACE_SRCS})
 target_link_libraries(iscore_lib_inspector Qt5::Core Qt5::Widgets iscore_lib_base)
 
-set_property(TARGET iscore_lib_inspector APPEND
-             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
-set_property(TARGET iscore_lib_inspector APPEND
-             PROPERTY INTERFACE_COMPILE_DEFINITIONS "ISCORE_INSPECTOR_LIB")
+setup_iscore_library(iscore_lib_inspector)
 
-
-iscore_cotire(iscore_lib_inspector)
-
-install(TARGETS iscore_lib_inspector
-        LIBRARY DESTINATION .
-        ARCHIVE DESTINATION static_lib/
-        COMPONENT DynamicRuntime)
 
 # Inspector panel plug-in
 file(GLOB_RECURSE PLUGIN_HDRS
@@ -51,12 +39,6 @@ set(PLUGIN_SRCS
 )
 
 add_library(iscore_plugin_inspector ${PLUGIN_HDRS} ${PLUGIN_SRCS})
-
 target_link_libraries(iscore_plugin_inspector iscore_lib_inspector)
 
-iscore_cotire(iscore_plugin_inspector)
-
-install(TARGETS iscore_plugin_inspector
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
+setup_iscore_plugin(iscore_plugin_inspector)

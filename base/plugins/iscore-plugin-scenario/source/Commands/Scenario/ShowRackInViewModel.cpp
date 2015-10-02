@@ -1,6 +1,7 @@
 #include "ShowRackInViewModel.hpp"
 #include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
 #include "iscore/document/DocumentInterface.hpp"
+#include <iscore/serialization/DataStreamVisitor.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -24,7 +25,7 @@ ShowRackInViewModel::ShowRackInViewModel(
     SerializableCommand {"ScenarioControl",
                          commandName(),
                          description()},
-    m_constraintViewPath {iscore::IDocument::path(vm)},
+    m_constraintViewPath {vm},
     m_rackId {rackId}
 {
     m_previousRackId = vm.shownRack();

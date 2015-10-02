@@ -8,6 +8,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <State/StateMimeTypes.hpp>
+#include <State/MessageListSerialization.hpp>
 
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <QMimeData>
@@ -90,10 +91,8 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData *mime)
     // If the mime data has states in it we can handle it.
     if(scenar && mime->formats().contains(iscore::mime::messagelist()))
     {
-        Deserializer<JSONObject> deser{
-            QJsonDocument::fromJson(mime->data(iscore::mime::messagelist())).object()};
-        iscore::MessageList ml;
-        deser.writeTo(ml);
+        Mime<iscore::MessageList>::Deserializer des{*mime};
+        iscore::MessageList ml = des.deserialize();
 
         auto cmd = new Scenario::Command::AddStateWithData{
                 *scenar,

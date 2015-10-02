@@ -30,7 +30,17 @@ void ReplaceDevice::redo()
 {
     auto& explorer = m_deviceTree.find();
 
-    explorer.removeRow(m_deviceIndex);
+    const auto& cld = explorer.rootNode().children();
+    for(auto it = cld.begin(); it != cld.end(); ++it)
+    {
+        auto ds = it->get<iscore::DeviceSettings>();
+        if(ds.name == m_deviceNode.get<iscore::DeviceSettings>().name)
+        {
+            explorer.removeNode(it);
+            break;
+        }
+    }
+
     explorer.addDevice(m_deviceNode);
 }
 

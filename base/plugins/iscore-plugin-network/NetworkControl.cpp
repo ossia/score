@@ -17,7 +17,7 @@ NetworkControl::NetworkControl(Presenter* pres) :
     PluginControlInterface {pres, "NetworkControl", nullptr}
 {
 #ifdef USE_ZEROCONF
-    m_zeroconfBrowser = new ZeroconfBrowser{this};
+    m_zeroconfBrowser = new ZeroconfBrowser{"_iscore._tcp", qApp->activeWindow()};
     connect(m_zeroconfBrowser, SIGNAL(sessionSelected(QString,int)),
             this, SLOT(setupClientConnection(QString, int)));
 #endif
@@ -138,12 +138,14 @@ DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &n
 #include "DistributedScenario/Commands/ChangeGroup.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
 
+namespace {
 struct NetworkCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap NetworkCommandFactory::map;
+}
 
 void NetworkControl::setupCommands()
 {

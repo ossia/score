@@ -13,7 +13,7 @@ class TimeNodeView : public QGraphicsObject
                      QGraphicsObject* parent);
         ~TimeNodeView() = default;
 
-        int type() const override
+        int type() const override final
         { return QGraphicsItem::UserType + 3; }
 
         const TimeNodePresenter& presenter() const
@@ -24,7 +24,8 @@ class TimeNodeView : public QGraphicsObject
                    QWidget* widget) override;
 
         // QGraphicsItem interface
-        QRectF boundingRect() const override;
+        QRectF boundingRect() const override final
+        { return { -3., 0., 6., m_extent.bottom() - m_extent.top()}; }
 
         void setExtent(const VerticalExtent& extent);
         void setExtent(VerticalExtent&& extent);
@@ -36,17 +37,6 @@ class TimeNodeView : public QGraphicsObject
         bool isSelected() const
         {
             return m_selected;
-        }
-
-        bool isValid() const
-        {
-            return m_valid;
-        }
-
-        void setValid(bool arg)
-        {
-            m_valid = arg;
-            update();
         }
 
     public slots:
@@ -63,7 +53,5 @@ class TimeNodeView : public QGraphicsObject
 
         QPointF m_clickedPoint {};
         QColor m_color;
-        bool m_moving {false};
         bool m_selected{};
-        bool m_valid{true};
 };

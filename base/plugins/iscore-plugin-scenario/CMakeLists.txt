@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_scenario)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-
-set(SCENARIO_PROCESS_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface" PARENT_SCOPE)
-set(SCENARIO_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/source" PARENT_SCOPE)
+iscore_common_setup()
 
 option(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elements of a scenario" OFF)
 if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
@@ -15,14 +9,12 @@ endif()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
+if(ISCORE_OPENGL)
+find_package(Qt5 5.5 REQUIRED COMPONENTS OpenGL)
+endif()
 
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../") # API
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../../API/Headers/")
 
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 set(PROCESS_SRCS
@@ -37,23 +29,16 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ModelMetadata.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ModelMetadataSerialization.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )
 target_link_libraries(iscore_lib_process
     Qt5::Core Qt5::Widgets
     iscore_lib_base iscore_lib_state)
-install(TARGETS iscore_lib_process
-    LIBRARY DESTINATION .
-    ARCHIVE DESTINATION static_lib/
-    COMPONENT DynamicRuntime)
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_lib_process PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-    cotire(iscore_lib_process)
-endif()
+setup_iscore_library(iscore_lib_process)
 
 ### Plugin ###
 file(GLOB_RECURSE HDRS
@@ -66,6 +51,7 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/source/ScenarioPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Tools/*.hpp"
 )
 
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/resources/ScenarioResources.qrc")
@@ -79,8 +65,6 @@ set(SRCS
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/LayerModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadataSerialization.cpp"
-
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/Slot/SlotModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/Rack/RackModelSerialization.cpp"
@@ -116,7 +100,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/UnassignMessagesFromState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/AddStateToEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetCondition.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SplitEvent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateState.cpp"
@@ -126,19 +109,31 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Creations/CreateSequence.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/ClearEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Deletions/RemoveSelection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveConstraint.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEvent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEventClassicFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEventList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEventMeta.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveEventOnCreationMeta.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewEvent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/AddMessagesToModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/EditValue.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SwitchStatePosition.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/AddTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/MergeTimeNodes.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/RemoveTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SplitTimeNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/CommandNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/ResizeBaseConstraint.cpp"
 
@@ -147,6 +142,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TransportActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TextDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/Plugin/ScenarioContextMenuPluginList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
@@ -161,6 +157,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ProcessFocusManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ZoomPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/ScenarioDocument.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/ProgressBar.cpp"
@@ -194,16 +191,17 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintDurations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ConstraintModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/ConditionView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/TriggerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventStatus.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelConsistency.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/Trigger/TriggerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/Trigger/TriggerPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/Trigger/TriggerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/AbstractTimeRuler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/AbstractTimeRulerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerPresenter.cpp"
@@ -213,6 +211,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StatePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageData.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"
@@ -221,7 +221,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardCreationPolicy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardDisplacementPolicy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/GoodOldDisplacementPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/StandardRemovalPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Algorithms/VerticalMovePolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioFactory.cpp"
@@ -256,6 +256,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioGlobalCommandManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/ScenarioModel.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Tools/dataStructures.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Tools/RandomNameProvider.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ScenarioPlugin.cpp"
@@ -283,6 +284,7 @@ if(TARGET iscore_lib_inspector)
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/Scenario/ScenarioInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TimeNodeInspectorWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Inspector/TimeNode/TriggerInspectorWidget.cpp"
     )
 
     set(SRCS ${SRCS} ${INSPECTOR_SRCS})
@@ -298,26 +300,15 @@ target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5
                      iscore_lib_base
                      iscore_lib_process iscore_plugin_deviceexplorer iscore_lib_state pthread)
 
+if(ISCORE_OPENGL)
+target_link_libraries(iscore_plugin_scenario Qt5::OpenGL)
+endif()
+
 if(TARGET iscore_lib_inspector)
-    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
     target_link_libraries(iscore_plugin_scenario iscore_lib_inspector)
 endif()
 
+setup_iscore_plugin(iscore_plugin_scenario)
+set_property(TARGET iscore_plugin_scenario APPEND
+             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
-if(ISCORE_COTIRE)
-    if(ISCORE_COTIRE_ALL_HEADERS)
-        set_target_properties(iscore_plugin_scenario PROPERTIES
-                              COTIRE_PREFIX_HEADER_IGNORE_PATH "")
-    endif()
-        set_target_properties(iscore_plugin_scenario PROPERTIES
-                              COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
-
-    cotire(iscore_plugin_scenario)
-endif()
-
-install(TARGETS iscore_plugin_scenario
-    LIBRARY DESTINATION plugins/
-    ARCHIVE DESTINATION static_plugins/
-    COMPONENT DynamicRuntime)
-
-#add_subdirectory(tests)

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(ScenarioTests)
+enable_testing()
 
 include_directories("${ISCORE_ROOT_SOURCE_DIR}/base")
 
@@ -76,4 +77,3 @@ addIScoreQtTest(ConstraintModelTest
 addIScoreQtTest(TimeNodeModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/TimeNode/TimeNodeModelTests.cpp")
 
-include(CTest)

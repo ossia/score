@@ -10,10 +10,21 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
 {
     readFrom(*scenario.pluginModelList);
 
+    m_stream << scenario.metadata.name();
+
     m_stream << scenario.m_startTimeNodeId
              << scenario.m_endTimeNodeId;
     m_stream << scenario.m_startEventId
              << scenario.m_endEventId;
+
+    // Constraints
+    const auto& constraints = scenario.constraints;
+    m_stream << (int32_t) constraints.size();
+
+    for(const auto& constraint : constraints)
+    {
+        readFrom(constraint);
+    }
 
     // Timenodes
     const auto& timenodes = scenario.timeNodes;
@@ -42,17 +53,6 @@ void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
         readFrom(state);
     }
 
-    // Constraints
-    const auto& constraints = scenario.constraints;
-    m_stream << (int32_t) constraints.size();
-
-    for(const auto& constraint : constraints)
-    {
-        readFrom(constraint);
-    }
-
-
-
     insertDelimiter();
 }
 
@@ -61,10 +61,23 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
 {
     scenario.pluginModelList = new iscore::ElementPluginModelList{*this, &scenario};
 
+    QString name;
+    m_stream >> name;
+    scenario.metadata.setName(name);
     m_stream >> scenario.m_startTimeNodeId
              >> scenario.m_endTimeNodeId;
     m_stream >> scenario.m_startEventId
              >> scenario.m_endEventId;
+
+    // Constraints
+    int32_t constraint_count;
+    m_stream >> constraint_count;
+
+    for(; constraint_count -- > 0;)
+    {
+        auto constraint = new ConstraintModel {*this, &scenario};
+        scenario.constraints.add(constraint);
+    }
 
     // Timenodes
     int32_t timenode_count;
@@ -86,7 +99,7 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
         scenario.events.add(evmodel);
     }
 
-    // Events
+    // States
     int32_t state_count;
     m_stream >> state_count;
 
@@ -94,16 +107,6 @@ void Visitor<Writer<DataStream>>::writeTo(ScenarioModel& scenario)
     {
         auto stmodel = new StateModel {*this, &scenario};
         scenario.states.add(stmodel);
-    }
-
-    // Constraints
-    int32_t constraint_count;
-    m_stream >> constraint_count;
-
-    for(; constraint_count -- > 0;)
-    {
-        auto constraint = new ConstraintModel {*this, &scenario};
-        scenario.constraints.add(constraint);
     }
 
     checkDelimiter();
@@ -116,6 +119,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const ScenarioModel& scenario)
 {
     m_obj["PluginsMetadata"] = toJsonValue(*scenario.pluginModelList);
+    m_obj["Metadata"] = toJsonObject(scenario.metadata);
 
     m_obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeNodeId);
     m_obj["EndTimeNodeId"] = toJsonValue(scenario.m_endTimeNodeId);
@@ -133,11 +137,20 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 {
     Deserializer<JSONValue> elementPluginDeserializer(m_obj["PluginsMetadata"]);
     scenario.pluginModelList = new iscore::ElementPluginModelList{elementPluginDeserializer, &scenario};
+    scenario.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
     scenario.m_startTimeNodeId = fromJsonValue<Id<TimeNodeModel>> (m_obj["StartTimeNodeId"]);
     scenario.m_endTimeNodeId = fromJsonValue<Id<TimeNodeModel>> (m_obj["EndTimeNodeId"]);
     scenario.m_startEventId = fromJsonValue<Id<EventModel>> (m_obj["StartEventId"]);
     scenario.m_endEventId = fromJsonValue<Id<EventModel>> (m_obj["EndEventId"]);
+
+    for(const auto& json_vref : m_obj["Constraints"].toArray())
+    {
+        auto constraint = new ConstraintModel{
+                Deserializer<JSONObject>{json_vref.toObject() },
+                &scenario};
+        scenario.constraints.add(constraint);
+    }
 
     for(const auto& json_vref : m_obj["TimeNodes"].toArray())
     {
@@ -166,13 +179,6 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
         scenario.states.add(stmodel);
     }
 
-    for(const auto& json_vref : m_obj["Constraints"].toArray())
-    {
-        auto constraint = new ConstraintModel{
-                Deserializer<JSONObject>{json_vref.toObject() },
-                &scenario};
-        scenario.constraints.add(constraint);
-    }
 }
 
 

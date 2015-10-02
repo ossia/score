@@ -1,6 +1,6 @@
 #pragma once
 #include "Slot/SlotModel.hpp"
-#include "source/Document/ModelMetadata.hpp"
+#include "ProcessInterface/ModelMetadata.hpp"
 
 #include <ProcessInterface/TimeValue.hpp>
 #include <iscore/tools/NotifyingMap.hpp>

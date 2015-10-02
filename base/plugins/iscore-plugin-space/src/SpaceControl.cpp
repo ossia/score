@@ -8,12 +8,14 @@ SpaceControl::SpaceControl(
     setupCommands();
 }
 
+namespace {
 struct SpaceCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap SpaceCommandFactory::map;
+}
 
 void SpaceControl::setupCommands()
 {

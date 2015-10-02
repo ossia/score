@@ -11,6 +11,12 @@ namespace iscore
 }
 
 
+class ListeningState
+{
+    public:
+        std::vector<std::vector<iscore::Address>> listened;
+};
+
 
 class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 {
@@ -37,6 +43,9 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         iscore::Node createDeviceFromNode(const iscore::Node&);
 
         NodeUpdateProxy updateProxy{*this};
+
+        ListeningState pauseListening();
+        void resumeListening(const ListeningState&);
 
     private:
         iscore::Node m_rootNode;

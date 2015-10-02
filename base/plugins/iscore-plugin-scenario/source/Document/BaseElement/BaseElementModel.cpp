@@ -95,8 +95,7 @@ ConstraintModel& BaseElementModel::baseConstraint() const
     return m_baseScenario->baseConstraint();
 }
 
-namespace {
-void updateSlotFocus(const LayerModel* lm, bool b)
+static void updateSlotFocus(const LayerModel* lm, bool b)
 {
     if(lm && lm->parent())
     {
@@ -105,7 +104,6 @@ void updateSlotFocus(const LayerModel* lm, bool b)
             slot->setFocus(b);
         }
     }
-}
 }
 
 void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
@@ -200,9 +198,9 @@ void BaseElementModel::setNewSelection(const Selection& s)
     emit focusMe();
 }
 
-void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
+void BaseElementModel::setDisplayedConstraint(const ConstraintModel& constraint)
 {
-    if(constraint == &displayedElements.displayedConstraint())
+    if(&constraint == &displayedElements.displayedConstraint())
         return;
 
     displayedElements.setDisplayedConstraint(constraint);
@@ -210,11 +208,11 @@ void BaseElementModel::setDisplayedConstraint(const ConstraintModel* constraint)
     m_focusManager.focusNothing();
 
     disconnect(m_constraintConnection);
-    if(constraint != &m_baseScenario->baseConstraint())
+    if(&constraint != &m_baseScenario->baseConstraint())
     {
         m_constraintConnection =
-                connect(constraint->fullView(), &QObject::destroyed,
-                        this, [&] () { setDisplayedConstraint(&m_baseScenario->baseConstraint()); });
+                connect(constraint.fullView(), &QObject::destroyed,
+                        this, [&] () { setDisplayedConstraint(m_baseScenario->baseConstraint()); });
     }
 
     emit displayedConstraintChanged();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 
 #include <State/State.hpp>
 
@@ -12,6 +12,8 @@
 
 #include <State/StateItemModel.hpp>
 
+#include <source/Document/State/ItemModel/MessageItemModel.hpp>
+#include <set>
 #include "StateView.hpp"
 #include "Document/Event/EventStatus.hpp"
 
@@ -19,6 +21,8 @@ class ConstraintView;
 class ScenarioInterface;
 class EventModel;
 class ConstraintModel;
+class Process;
+class ProcessStateDataInterface;
 
 // Model for the graphical state in a scenario.
 class StateModel : public IdentifiedObject<StateModel>
@@ -49,28 +53,33 @@ class StateModel : public IdentifiedObject<StateModel>
             IdentifiedObject{vis, parent}
         {
             vis.writeTo(*this);
+            init();
         }
 
         const ScenarioInterface* parentScenario() const;
 
         double heightPercentage() const;
 
-        const iscore::StateItemModel &states() const;
-        iscore::StateItemModel &states();
+        const iscore::MessageItemModel &messages() const;
+        iscore::MessageItemModel &messages();
 
         const Id<EventModel>& eventId() const;
         void setEventId(const Id<EventModel>&);
 
         const Id<ConstraintModel>& previousConstraint() const;
         const Id<ConstraintModel>& nextConstraint() const;
+
+        // Note : the added constraint shall be in
+        // the scenario when this is called.
         void setNextConstraint(const Id<ConstraintModel>&);
         void setPreviousConstraint(const Id<ConstraintModel>&);
 
         void setStatus(EventStatus);
         EventStatus status() const
         { return m_status; }
+
     signals:
-        void statesUpdated();
+        void sig_statesUpdated();
         void heightPercentageChanged();
         void statusChanged(EventStatus);
 
@@ -78,6 +87,16 @@ class StateModel : public IdentifiedObject<StateModel>
         void setHeightPercentage(double y);
 
     private:
+        void statesUpdated_slt();
+        void init(); // TODO check if other model elements need an init method too.
+        void setConstraint_impl(const Id<ConstraintModel>& id);
+        void on_nextProcessAdded(const Process&);
+        void on_nextProcessRemoved(const Process&);
+        void on_previousProcessAdded(const Process&);
+        void on_previousProcessRemoved(const Process&);
+
+        std::set<ProcessStateDataInterface*> m_previousProcesses;
+        std::set<ProcessStateDataInterface*> m_nextProcesses;
         Id<EventModel> m_eventId;
 
         // OPTIMIZEME if we shift to Id = int, put this Optional
@@ -86,7 +105,7 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double m_heightPercentage{0.5}; // In the whole scenario
 
-        iscore::StateItemModel m_itemModel;
+        ptr<iscore::MessageItemModel> m_messageItemModel;
         EventStatus m_status{EventStatus::Editing};
 };
 

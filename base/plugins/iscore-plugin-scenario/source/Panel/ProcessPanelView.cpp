@@ -10,6 +10,7 @@ ProcessPanelView::ProcessPanelView(QObject* parent):
 {
     m_widget = new QWidget;
     m_scene = new QGraphicsScene(this);
+    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
     m_widget->setLayout(new QVBoxLayout);
     m_view = new SizeNotifyingGraphicsView{m_scene};

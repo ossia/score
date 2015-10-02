@@ -6,7 +6,6 @@
 #include "EventStatus.hpp"
 class EventPresenter;
 class ConditionView;
-class TriggerView;
 class EventView : public QGraphicsObject
 {
         Q_OBJECT
@@ -15,11 +14,14 @@ class EventView : public QGraphicsObject
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        int type() const override;
+        int type() const override final
+        { return QGraphicsItem::UserType + 1; }
 
         const EventPresenter& presenter() const;
 
-        QRectF boundingRect() const override;
+        QRectF boundingRect() const override final
+        { return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
+
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
                    QWidget* widget) override;
@@ -76,6 +78,5 @@ class EventView : public QGraphicsObject
         VerticalExtent m_extent;
 
         ConditionView* m_conditionItem{};
-        TriggerView* m_triggerItem{};
 };
 

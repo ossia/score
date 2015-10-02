@@ -58,7 +58,7 @@ template void NotifyingMap<EventModel>::remove(const Id<EventModel>&);
 template void NotifyingMap<TimeNodeModel>::remove(const Id<TimeNodeModel>&);
 template void NotifyingMap<StateModel>::remove(const Id<StateModel>&);
 
-void ignore_template_instantiations()
+void ignore_template_instantiations_Scenario()
 {
     NotifyingMapInstantiations_T<LayerModel>();
     NotifyingMapInstantiations_T<SlotModel>();
@@ -72,18 +72,39 @@ void ignore_template_instantiations()
 
 using namespace iscore;
 #include <State/Expression.hpp>
+#include "Control/Menus/ScenarioCommonContextMenuFactory.hpp"
 
 void test_parse_expr_full();
 ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
-    m_processList{this}
+    m_processList{this},
+    m_moveEventList{this}
 {
     setupCommands();
 
 //    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
 //    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
+
+    connect(this, &ScenarioControl::defocused,
+            this, &ScenarioControl::reinit_tools);
+
+    // Note : they are constructed here, because
+    // they need to be available quickly for other plug-ins,
+    // not after factory loading.
+    auto fact  = new ScenarioCommonActionsFactory;
+    for(const auto& act : fact->make(this))
+    {
+        m_pluginActions.push_back(act);
+    }
+    delete fact;
 }
 
+
+ScenarioControl* ScenarioControl::instance(Presenter* pres)
+{
+    static auto ctrl = new ScenarioControl(pres);
+    return ctrl;
+}
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
@@ -122,34 +143,47 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
                                        m_deselectAll);
 
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->fillMenuBar(menu);
     }
 }
 
+#include "Menus/TransportActions.hpp"
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    int i = 0;
+    for(const auto& act : m_pluginActions)
     {
-        elt->makeToolBar(bar);
-        bar->addSeparator();
+        if(dynamic_cast<TransportActions*>(act))
+            continue;
+
+        act->makeToolBar(bar);
+
+        if(i < m_pluginActions.size() - 1)
+            bar->addSeparator();
+
+        i++;
     }
+
 
     return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
 
-iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
+QList<QAction*> ScenarioControl::actions()
 {
-    return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
+    // TODO add the others
+    QList<QAction*> act;
+    for(const auto& elt : m_pluginActions)
+    {
+        act += elt->actions();
+    }
+    return act;
 }
 
-
-void ScenarioControl::createContextMenu(const QPoint& pos)
+void ScenarioControl::createContextMenu(const QPoint& pos, const QPointF& scenepos)
 {
     QMenu contextMenu;
 
@@ -161,9 +195,11 @@ void ScenarioControl::createContextMenu(const QPoint& pos)
     {
         auto selected = scenario->selectedChildren();
 
-        for(AbstractMenuActions*& elt : m_pluginActions)
+        for(ScenarioActions*& elt : m_pluginActions)
         {
-            elt->fillContextMenu(&contextMenu, selected);
+            // TODO make a class to encapsulate all the data
+            // required to set-up a context menu in a scenario.
+            elt->fillContextMenu(&contextMenu, selected, focusedPresenter(), pos, scenepos);
             contextMenu.addSeparator();
         }
     }
@@ -177,7 +213,9 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
     // We set the currently focused view model to a "select" state
     // to prevent problems.
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    reinit_tools();
+
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(false);
     }
@@ -194,7 +232,7 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     // Get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
 
-    for(AbstractMenuActions*& elt : m_pluginActions)
+    for(ScenarioActions*& elt : m_pluginActions)
     {
         elt->setEnabled(bool(s_pres));
     }
@@ -263,6 +301,13 @@ const ScenarioModel* ScenarioControl::focusedScenarioModel() const
 TemporalScenarioPresenter* ScenarioControl::focusedPresenter() const
 {
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
+}
+
+
+void ScenarioControl::reinit_tools()
+{
+    emit keyReleased(Qt::Key_Control);
+    emit keyReleased(Qt::Key_Shift);
 }
 
 ProcessFocusManager* ScenarioControl::processFocusManager() const

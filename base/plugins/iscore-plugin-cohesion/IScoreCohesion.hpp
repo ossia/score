@@ -1,10 +1,9 @@
 #pragma once
 #include <QObject>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-class Dummy {};
-
-
+// TODO rename this file
 /**
  * @brief The IScoreCohesion class
  *
@@ -16,18 +15,22 @@ class Dummy {};
 class iscore_plugin_cohesion:
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
-    private Dummy
+    public iscore::PluginRequirementslInterface_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID PluginControlInterface_QtInterface_iid)
         Q_INTERFACES(
             iscore::PluginControlInterface_QtInterface
+            iscore::PluginRequirementslInterface_QtInterface
         )
 
     public:
         iscore_plugin_cohesion();
-        virtual ~iscore_plugin_cohesion() = default;
+        ~iscore_plugin_cohesion() = default;
 
-        virtual iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::PluginControlInterface* make_control(
+                iscore::Presenter* pres) override;
+
+        QStringList required() const override;
 };
 

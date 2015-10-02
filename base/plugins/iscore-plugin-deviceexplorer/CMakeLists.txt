@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_deviceexplorer)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOUIC ON)
+
+iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Test Xml)
 
-set(DEVICEEXPLORER_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/" PARENT_SCOPE)
 # Files & main target
-
 ### Plugin ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Plugin")
 file(GLOB_RECURSE HEADERS
@@ -34,18 +32,21 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/ClipMode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/FullAddressSettings.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeDisplayMethods.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeBasedItemModel.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/XML/XMLDeviceLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/AddDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Add/LoadDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove/RemoveAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Update/UpdateAddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Update/UpdateDeviceSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Cut.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Move.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Paste.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/EditData.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Insert.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/ReplaceDevice.cpp"
@@ -99,14 +100,6 @@ target_link_libraries(iscore_plugin_deviceexplorer
                       iscore_lib_base iscore_lib_state
                       QProgressIndicator)
 
-iscore_cotire(iscore_plugin_deviceexplorer)
-set_property(TARGET iscore_plugin_deviceexplorer APPEND
-       PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+setup_iscore_plugin(iscore_plugin_deviceexplorer)
+setup_iscore_tests(Tests)
 
-install(TARGETS iscore_plugin_deviceexplorer
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
-
-
-add_subdirectory(Tests)

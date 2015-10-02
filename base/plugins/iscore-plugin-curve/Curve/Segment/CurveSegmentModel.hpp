@@ -4,7 +4,10 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
 #include <Curve/StateMachine/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+
 class CurveModel;
+
 
 // Gives the data.
 class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
@@ -17,6 +20,9 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         Selectable selection;
         CurveSegmentModel(
                 const Id<CurveSegmentModel>& id,
+                QObject* parent);
+        CurveSegmentModel(
+                const CurveSegmentData& id,
                 QObject* parent);
 
         template<typename Impl>
@@ -38,33 +44,25 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual void updateData(int numInterp) const = 0; // Will interpolate.
         virtual double valueAt(double x) const = 0;
 
-        const QVector<QPointF>& data() const
+        const std::vector<QPointF>& data() const
         { return m_data; }
 
 
         void setStart(const CurvePoint& pt);
         CurvePoint start() const
-        {
-            return m_start;
-        }
+        { return m_start; }
 
         void setEnd(const CurvePoint& pt);
         CurvePoint end() const
-        {
-            return m_end;
-        }
+        { return m_end; }
 
         void setPrevious(const Id<CurveSegmentModel>& previous);
         const Id<CurveSegmentModel>& previous() const
-        {
-            return m_previous;
-        }
+        { return m_previous; }
 
         void setFollowing(const Id<CurveSegmentModel>& following);
         const Id<CurveSegmentModel>& following() const
-        {
-            return m_following;
-        }
+        { return m_following; }
 
         // Between -1 and 1, to map to the real parameter.
         virtual void setVerticalParameter(double p);
@@ -72,19 +70,34 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual boost::optional<double> verticalParameter() const;
         virtual boost::optional<double> horizontalParameter() const;
 
+        CurveSegmentData toSegmentData() const
+        {
+            return{
+                id(),
+                start(), end(),
+                previous(), following(),
+                name(), toSegmentSpecificData()};
+        }
+
     signals:
         void dataChanged();
         void previousChanged();
         void followingChanged();
+        void startChanged();
+        void endChanged();
 
     protected:
         virtual void on_startChanged() = 0;
         virtual void on_endChanged() = 0;
 
-        mutable QVector<QPointF> m_data; // A data cache.
+        virtual QVariant toSegmentSpecificData() const = 0;
+
+        mutable std::vector<QPointF> m_data; // A data cache.
         mutable bool m_valid{}; // Used to perform caching.
+        // TODO it seems that m_valid is never true.
+
+        CurvePoint m_start, m_end;
 
     private:
-        CurvePoint m_start, m_end;
         Id<CurveSegmentModel> m_previous, m_following;
 };

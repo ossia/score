@@ -54,17 +54,53 @@ Application::Application(int& argc, char** argv) :
     NamedObject {"Application", nullptr}
 {
 #ifdef ISCORE_DEBUG
-    //qInstallMessageHandler(myMessageOutput);
+    qInstallMessageHandler(myMessageOutput);
 #endif
     // Application
     // Crashes if put in member initialization list... :(
     m_app = new SafeQApplication{argc, argv};
     ::application_instance = this;
 
+    m_applicationSettings.parse();
+
+    init();
+}
+
+Application::Application(
+        const ApplicationSettings& appSettings,
+        int& argc,
+        char** argv) :
+    NamedObject {"Application", nullptr},
+    m_applicationSettings(appSettings)
+{
+#ifdef ISCORE_DEBUG
+    qInstallMessageHandler(myMessageOutput);
+#endif
+    // Application
+    // Crashes if put in member initialization list... :(
+    m_app = new SafeQApplication{argc, argv};
+    ::application_instance = this;
+
+    init();
+}
+
+
+Application::~Application()
+{
+    this->setParent(nullptr);
+    delete m_presenter;
+
+    DocumentBackups::clear();
+    delete m_app;
+}
+
+void Application::init()
+{
 #if !defined(ISCORE_DEBUG)
     QPixmap logo{":/iscore.png"};
     QSplashScreen splash{logo, Qt::FramelessWindowHint};
-    splash.show();
+    if(m_applicationSettings.gui)
+        splash.show();
 #endif
 
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");
@@ -114,13 +150,27 @@ Application::Application(int& argc, char** argv) :
     loadPluginData();
 
     // View
-    m_view->show();
 
-#if !defined(ISCORE_DEBUG)
-    splash.finish(m_view);
-#endif
+    if(m_applicationSettings.gui)
+    {
+        m_view->show();
+
+    #if !defined(ISCORE_DEBUG)
+        splash.finish(m_view);
+    #endif
+    }
+
+    if(!m_applicationSettings.loadList.empty())
+    {
+        for(const auto& doc : m_applicationSettings.loadList)
+            m_presenter->loadFile(doc);
+
+        if(!m_presenter->documents().isEmpty())
+            return; // A document was loaded correctly
+    }
+
     // Try to reload if there was a crash
-    if(DocumentBackups::canRestoreDocuments())
+    if(m_applicationSettings.tryToRestore && DocumentBackups::canRestoreDocuments())
     {
         m_presenter->restoreDocuments();
     }
@@ -129,15 +179,6 @@ Application::Application(int& argc, char** argv) :
         if(!m_pluginManager.m_documentPanelList.empty())
             m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
     }
-}
-
-Application::~Application()
-{
-    this->setParent(nullptr);
-    delete m_presenter;
-
-    DocumentBackups::clear();
-    delete m_app;
 }
 
 Application &Application::instance()

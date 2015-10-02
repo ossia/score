@@ -7,7 +7,7 @@ AddressLineEdit::AddressLineEdit(QWidget* parent):
             this, [&] (const QString& str) {
         QString s = str;
         int i = 0;
-        if(m_validator.validate(s, i))
+        if(m_validator.validate(s, i) == 2)
         {
             this->setStyleSheet("QLineEdit { background: white; }");
         }

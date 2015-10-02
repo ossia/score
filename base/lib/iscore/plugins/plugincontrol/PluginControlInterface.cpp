@@ -1,4 +1,7 @@
 #include "PluginControlInterface.hpp"
+
+#include <QApplication>
+
 using namespace iscore;
 
 
@@ -11,7 +14,8 @@ PluginControlInterface::PluginControlInterface(iscore::Presenter* presenter,
     connect(this, &PluginControlInterface::documentChanged,
             this, &PluginControlInterface::on_documentChanged);
 
-
+    connect(qApp, &QApplication::applicationStateChanged,
+            this, &PluginControlInterface::on_focusChanged);
 }
 
 void PluginControlInterface::populateMenus(MenubarManager*)
@@ -21,6 +25,11 @@ void PluginControlInterface::populateMenus(MenubarManager*)
 
 
 QList<OrderedToolbar> PluginControlInterface::makeToolbars()
+{
+    return {};
+}
+
+QList<QAction*> PluginControlInterface::actions()
 {
     return {};
 }
@@ -67,4 +76,13 @@ void PluginControlInterface::on_newDocument(iscore::Document* doc)
 void PluginControlInterface::on_loadedDocument(iscore::Document *doc)
 {
 
+}
+
+
+void PluginControlInterface::on_focusChanged(Qt::ApplicationState st)
+{
+    if(st == Qt::ApplicationActive)
+        emit focused();
+    else
+        emit defocused();
 }

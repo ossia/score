@@ -28,7 +28,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     localSM().addState(m_waitState);
     localSM().setInitialState(m_waitState);
 
-    auto scenarioPath = iscore::IDocument::path(m_parentSM.model());
+    Path<ScenarioModel> scenarioPath = m_parentSM.model();
 
     //// Create from nothing ////
     m_createFromNothingState = new ScenarioCreation_FromNothing{

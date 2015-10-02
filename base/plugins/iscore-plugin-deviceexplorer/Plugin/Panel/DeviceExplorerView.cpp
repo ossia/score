@@ -41,6 +41,7 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
     setDragEnabled(true);
     setAcceptDrops(true);
+    setUniformRowHeights(true);
 
     //setDragDropMode(QAbstractItemView::InternalMove); //The view accepts move (not copy) operations only from itself.
     setDragDropMode(QAbstractItemView::DragDrop);
@@ -106,6 +107,7 @@ DeviceExplorerView::restoreSettings()
 void
 DeviceExplorerView::installStyleSheet()
 {
+    // TODO put me in an external CSS file.
     setStyleSheet(
         "QTreeView {"
         "show-decoration-selected: 1;"

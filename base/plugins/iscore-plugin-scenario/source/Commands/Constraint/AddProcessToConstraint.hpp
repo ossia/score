@@ -36,10 +36,8 @@ namespace Scenario
 
                 const Path<ConstraintModel>& constraintPath() const
                 { return m_path; }
-                Id<Process> processId() const
-                {
-                    return m_createdProcessId;
-                }
+                const Id<Process>& processId() const
+                { return m_createdProcessId; }
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

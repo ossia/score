@@ -12,6 +12,7 @@ SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     //scene()->addItem(m_graduations);
 
     m_bg =  qApp->palette("ScenarioPalette").background();
+    this->setAttribute(Qt::WA_OpaquePaintEvent);
     //m_graduations->setColor(m_bg.color().lighter());
     this->setBackgroundBrush(m_bg);
 }
@@ -37,9 +38,10 @@ void SizeNotifyingGraphicsView::scrollContentsBy(int dx, int dy)
 
 void SizeNotifyingGraphicsView::wheelEvent(QWheelEvent *event)
 {
+    QPoint delta = event->angleDelta() / 8;
     if (m_zoomModifier)
     {
-        emit zoom(mapToScene(event->pos()), event->pixelDelta());
+        emit zoom(delta, mapToScene(event->pos()));
         return;
     }
 
@@ -63,5 +65,13 @@ void SizeNotifyingGraphicsView::keyReleaseEvent(QKeyEvent *event)
     event->ignore();
 
     QGraphicsView::keyReleaseEvent(event);
+}
+
+void SizeNotifyingGraphicsView::focusOutEvent(QFocusEvent* event)
+{
+    m_zoomModifier = false;
+    event->ignore();
+
+    QGraphicsView::focusOutEvent(event);
 }
 

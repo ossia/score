@@ -41,9 +41,8 @@ void SplitTimeNode::undo()
 
     for (auto& eventId : newTN.events())
     {
-        originalTN.addEvent(eventId);
         newTN.removeEvent(eventId);
-        scenar.event(eventId).changeTimeNode(m_originalTimeNodeId);
+        originalTN.addEvent(eventId);
     }
 
     CreateTimeNodeMin::undo(m_newTimeNodeId, scenar);
@@ -62,9 +61,8 @@ void SplitTimeNode::redo()
 
     for (auto& eventId : m_eventsInNewTimeNode)
     {
-        tn.addEvent(eventId);
         originalTN.removeEvent(eventId);
-        scenar.event(eventId).changeTimeNode(m_newTimeNodeId);
+        tn.addEvent(eventId);
     }
     */
 }

@@ -33,15 +33,9 @@ EventModel::EventModel(const EventModel& source,
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
-void EventModel::changeTimeNode(const Id<TimeNodeModel>& newTimeNodeId)
-{
-    m_timeNode = newTimeNodeId;
-}
 
-const Id<TimeNodeModel>& EventModel::timeNode() const
-{
-    return m_timeNode;
-}
+
+
 
 
 VerticalExtent EventModel::extent() const

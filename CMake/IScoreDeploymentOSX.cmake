@@ -1,5 +1,19 @@
 if(APPLE)
 
+set_target_properties(
+  ${APPNAME}
+  PROPERTIES
+    MACOSX_BUNDLE_INFO_STRING "i-score, an interactive sequencer for the intermedia arts"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.i-score"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_NAME "i-score"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${ISCORE_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "The i-score team"
+    MACOSX_BUNDLE_ICON_FILE "i-score.icns"
+    MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
+)
+
 # Copy the dylibs if necessary
 if(NOT ISCORE_STATIC_PLUGINS)
     set(ISCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/")
@@ -12,24 +26,10 @@ if(NOT ISCORE_STATIC_PLUGINS)
     # Copy iscore plugins into the app bundle
     add_custom_command(TARGET ${APPNAME} POST_BUILD
                        COMMAND mkdir -p ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
-    iscore_copy_osx_plugin(iscore_plugin_curve)
-    iscore_copy_osx_plugin(iscore_plugin_inspector)
-    iscore_copy_osx_plugin(iscore_plugin_scenario)
-    iscore_copy_osx_plugin(iscore_plugin_pluginsettings)
-    iscore_copy_osx_plugin(iscore_plugin_deviceexplorer)
 
-    if(TARGET iscore_plugin_network)
-        iscore_copy_osx_plugin(iscore_plugin_network)
-    endif()
-    if(TARGET iscore_plugin_cohesion)
-        iscore_copy_osx_plugin(iscore_plugin_cohesion)
-    endif()
-    if(TARGET iscore_plugin_ossia)
-        iscore_copy_osx_plugin(iscore_plugin_ossia)
-    endif()
-    # TODO it's not a plugin. It should be copied to the MacOS folder instead.
-    # add_custom_command(TARGET ${APPNAME} POST_BUILD
-    #                  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:process_interface> ${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/)
+    foreach(plugin ${ISCORE_PLUGINS_LIST})
+        iscore_copy_osx_plugin(${plugin})
+    endforeach()
 endif()
 
 
@@ -44,17 +44,10 @@ endif()
 # Qt setup
 include(DeployQt5)
 if(ISCORE_STATIC_PLUGINS) # For now we only take this branch
-    foreach(plugin ${ISCORE_PLUGINS})
-        list(APPEND ISCORE_BUNDLE_INSTALLED_PLUGINS ${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib)
-    endforeach()
-
     # We don't put the Jamoma path in here, because the paths get perverted by DeployQt5.
     install_qt5_executable(${APPNAME}.app "" "" "${CMAKE_BINARY_DIR}/base/lib")
 else()
-    # TODO fix this.
-    set(ISCORE_PLUGINS "device_explorer_plugin;inspector_plugin;scenario_process;CurvePlugin;iscore_cohesion;networkplugin;pluginsettings_plugin")
-
-    foreach(plugin ${ISCORE_PLUGINS})
+    foreach(plugin ${ISCORE_PLUGINS_LIST})
         list(APPEND ISCORE_BUNDLE_INSTALLED_PLUGINS ${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib)
     endforeach()
 
@@ -63,7 +56,6 @@ else()
                            "${ISCORE_BUNDLE_INSTALLED_PLUGINS}"
                            "${CMAKE_BINARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_BINARY_DIR}/${APPNAME}.app/Contents/MacOS/plugins/")
 endif()
-
 
 if(${Jamoma_FOUND})
     # After installation and fix-up by DeployQt5, we import the Jamoma libraries.

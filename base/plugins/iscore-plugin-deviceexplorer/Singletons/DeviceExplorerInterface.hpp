@@ -20,7 +20,4 @@ namespace DeviceExplorer
 
     iscore::Address addressFromModelIndex(const QModelIndex& index);
     iscore::Message messageFromModelIndex(const QModelIndex& index);
-
-    iscore::Address addressFromNode(const iscore::Node& index);
-    iscore::Message messageFromNode(const iscore::Node& index);
 }

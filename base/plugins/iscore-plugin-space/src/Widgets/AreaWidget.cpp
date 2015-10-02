@@ -247,8 +247,8 @@ void AreaWidget::validate()
     {
 
         m_dispatcher.submitCommand(
-                    new AddArea{
-                        iscore::IDocument::path(m_space),
+					new AddArea{
+						m_space,
                         m_selectionWidget->comboBox()->currentData().toInt(),
                         m_selectionWidget->lineEdit()->text(),
                         dim_map,

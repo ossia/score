@@ -1,20 +1,12 @@
 cmake_minimum_required(VERSION 2.8)
 project(iscore_plugin_curve)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-cmake_policy(SET CMP0020 NEW)
-cmake_policy(SET CMP0042 NEW)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
+iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
 
 # Files & main target
-include_directories("${SCENARIO_PROCESS_INTERFACE_FOLDER}")
-include_directories("${DEVICEEXPLORER_INTERFACE_FOLDER}")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/")
-set(CURVE_INTERFACE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Automation/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp"
@@ -25,10 +17,12 @@ file(GLOB_RECURSE HDRS
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/LinearCurveSegmentModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/GammaCurveSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearCurveSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Gamma/GammaCurveSegmentSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerCurveSegmentSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/SinCurveSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinCurveSegmentSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArrayCurveSegmentSerialization.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationSerialization.cpp"
 
@@ -38,24 +32,24 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerModel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/SetSegmentParameters.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/UpdateCurve.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerCurveSegmentFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/GammaCurveSegmentFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/LinearCurveSegmentFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/LinearCurveSegmentModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/SinCurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/GammaCurveSegmentModel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearCurveSegmentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Gamma/GammaCurveSegmentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerCurveSegmentModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/SinCurveSegmentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinCurveSegmentModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArrayCurveSegmentModel.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/MoveSegmentCommandObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/CreatePointCommandObject.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CommandObjects/MovePointCommandObject.cpp"
@@ -67,6 +61,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/StateMachine/CurveStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_curve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AutomationState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.cpp"
@@ -87,19 +83,14 @@ if(TARGET iscore_lib_inspector)
 
     set(HDRS ${HDRS} ${INSPECTOR_HDRS})
 endif()
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)
 
 if(TARGET iscore_lib_inspector)
-    # TODO instead put the definition in the INTERFACE of iscore_lib_inspector
     target_link_libraries(${PROJECT_NAME} iscore_lib_inspector)
 endif()
 
-iscore_cotire(${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION plugins/
-        ARCHIVE DESTINATION static_plugins/
-        COMPONENT DynamicRuntime)
+setup_iscore_plugin(${PROJECT_NAME})

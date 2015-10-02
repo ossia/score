@@ -8,6 +8,13 @@
 #include "Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp"
 #include "Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp"
 
+#include "Control/ScenarioControl.hpp"
+#include "Control/Menus/TransportActions.hpp"
+
+#include <QStyleFactory>
+#if defined(ISCORE_OPENGL)
+#include <QGLWidget>
+#endif
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
@@ -17,10 +24,21 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRuler {new TimeRulerView}/*,
     m_localTimeRuler {new LocalTimeRulerView}*/
 {
-   //*
-    // Configuration
     m_timeRulersView = new QGraphicsView{m_scene};
+#if defined(ISCORE_OPENGL)
+    auto vp1 = new QGLWidget;
+    vp1->setFormat(QGLFormat(QGL::SampleBuffers));
+    m_view->setViewport(vp1);
+    auto vp2 = new QGLWidget;
+    vp2->setFormat(QGLFormat(QGL::SampleBuffers));
+    m_timeRulersView->setViewport(vp2);
+#endif
+
+    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+    // Configuration
+
     m_timeRulersView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    m_timeRulersView->setAttribute(Qt::WA_OpaquePaintEvent);
     m_timeRulersView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_timeRulersView->setFocusPolicy(Qt::NoFocus);
@@ -36,6 +54,22 @@ BaseElementView::BaseElementView(QObject* parent) :
     auto transportWidget = new QWidget{m_widget};
     auto transportLayout = new QGridLayout;
 
+    QToolBar* transportButtons = new QToolBar;
+
+    // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
+    transportButtons->setStyle(QStyleFactory::create("windows"));
+
+    for(const auto& action : ScenarioControl::instance()->pluginActions())
+    {
+        if(auto trsprt = dynamic_cast<TransportActions*>(action))
+        {
+            trsprt->makeToolBar(transportButtons);
+            break;
+        }
+    }
+
+    transportLayout->addWidget(transportButtons, 0, 0);
+
     /// Zoom
     m_zoomSlider = new DoubleSlider{transportWidget};
     m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
@@ -43,8 +77,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
             this,         &BaseElementView::horizontalZoomChanged);
 
-    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 0);
-    transportLayout->addWidget(m_zoomSlider, 0, 1);
+    transportLayout->addWidget(new QLabel{tr("Zoom") }, 0, 1);
+    transportLayout->addWidget(m_zoomSlider, 0, 2);
     transportLayout->setContentsMargins(0, 0, 0, 0);
 
     transportWidget->setLayout(transportLayout);

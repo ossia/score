@@ -11,7 +11,7 @@ CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &ev
     SerializableCommand{"ScenarioControl",
                         commandName(),
                         description()},
-    m_path {iscore::IDocument::path(scenario)},
+    m_path {scenario},
     m_newState{getStrongId(scenario.states)},
     m_event{event},
     m_stateY{stateY}
@@ -45,7 +45,7 @@ void CreateState::redo()
     // Create the end state
     ScenarioCreate<StateModel>::redo(
                 m_newState,
-                scenar.event(m_event),
+                scenar.events.at(m_event),
                 m_stateY,
                 scenar);
 

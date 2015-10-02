@@ -4,7 +4,7 @@
 
 #include "Document/Constraint/ConstraintModel.hpp"
 
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include "Commands/Scenario/Displacement/MoveEventMeta.hpp"
 #include "Commands/Constraint/SetMinDuration.hpp"
 #include "Commands/Constraint/SetMaxDuration.hpp"
 #include "Commands/ResizeBaseConstraint.hpp"
@@ -14,6 +14,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
+#include "Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -22,12 +23,13 @@
 #include "Control/ScenarioControl.hpp"
 
 #include <QCheckBox>
-#include <QSpinBox>
 #include <QToolButton>
 #include <QLabel>
 #include <QFormLayout>
 #include <QTimeEdit>
+
 using namespace iscore;
+
 DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
@@ -41,17 +43,15 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     widg->setLayout(m_grid);
 
     // SPINBOXES
-    m_minSpin = new QTimeEdit{};
-    m_maxSpin = new QTimeEdit{};
-    m_valueSpin = new QTimeEdit{};
+    m_minSpin = new TimeSpinBox{this};
+    m_maxSpin = new TimeSpinBox{this};
+    m_valueSpin = new TimeSpinBox{this};
 
-    m_valueSpin->setDisplayFormat(QString("mm.ss.zzz"));
-    m_minSpin->setDisplayFormat(QString("mm.ss.zzz"));
-//    m_minSpin->setHidden(m_model.isRigid());
-    m_minSpin->setEnabled(false);
-    m_maxSpin->setDisplayFormat(QString("mm.ss.zzz"));
-//    m_maxSpin->setHidden(m_model.isRigid());
-    m_maxSpin->setEnabled(false);
+    m_valueSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
+    m_minSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
+    m_minSpin->setEnabled(true);
+    m_maxSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
+    m_maxSpin->setEnabled(true);
 
     m_maxSpin->setTime(m_model.duration.maxDuration().toQTime());
     m_minSpin->setTime(m_model.duration.minDuration().toQTime());
@@ -64,10 +64,10 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     m_minNonNullBox->setChecked(!m_model.duration.minDuration().isZero());
     m_maxFiniteBox->setChecked(!m_model.duration.maxDuration().isInfinite());
 
-    connect(m_minNonNullBox, &QCheckBox::toggled,
+    connect(m_minNonNullBox, &QCheckBox::clicked,
             this, &DurationSectionWidget::on_minNonNullToggled);
 
-    connect(m_maxFiniteBox, &QCheckBox::toggled,
+    connect(m_maxFiniteBox, &QCheckBox::clicked,
             this, &DurationSectionWidget::on_maxFiniteToggled);
 
     // CONNECTIONS FROM MODEL
@@ -80,7 +80,6 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
             this, &DurationSectionWidget::on_modelMaxDurationChanged);
     con(m_model.duration, &ConstraintDurations::rigidityChanged,
             this, &DurationSectionWidget::on_modelRigidityChanged);
-
 
     // DISPLAY
     auto valLab = new QLabel("Default Duration");
@@ -99,15 +98,24 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
 
     //on_modelRigidityChanged(m_model.duration.isRigid());
 
-    connect(m_valueSpin,    &QTimeEdit::editingFinished,
+    connect(m_valueSpin,    &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-    connect(m_minSpin,  &QTimeEdit::editingFinished,
+    connect(m_minSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
-    connect(m_maxSpin,  &QTimeEdit::editingFinished,
+    connect(m_maxSpin,  &TimeSpinBox::editingFinished,
             this,   &DurationSectionWidget::on_durationsChanged);
 
 
     addContent(widg);
+
+    if(m_model.fullView()->isActive() && m_model.id().val() != 0)
+    {
+        m_valueSpin->setEnabled(false);
+    }
+    on_modelRigidityChanged(m_model.duration.isRigid());
+
+    m_min = m_model.duration.defaultDuration() * 0.8;
+    m_max = m_model.duration.defaultDuration() * 1.2;
 }
 
 using namespace Scenario::Command;
@@ -137,7 +145,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 
     if(m_model.objectName() != "BaseConstraintModel")
     {
-        m_dispatcher.submitCommand<MoveEvent>(
+        m_dispatcher.submitCommand<MoveEventMeta>(
                 iscore::IDocument::path(*safe_cast<ScenarioModel*>(m_model.parent())),
                 scenario->state(m_model.endState()).eventId(),
                 m_model.startDate() + TimeValue::fromMsecs(val),
@@ -177,6 +185,8 @@ void DurationSectionWidget::on_modelMinDurationChanged(const TimeValue& dur)
         return;
 
     m_minSpin->setTime(dur.toQTime());
+    m_minSpin->setEnabled(!dur.isZero());
+    m_minNonNullBox->setChecked(!dur.isZero());
 }
 
 void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
@@ -186,6 +196,7 @@ void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
         if(m_maxFiniteBox->isChecked())
         {
             m_maxFiniteBox->setCheckState(Qt::Unchecked);
+            m_maxSpin->setEnabled(m_maxFiniteBox->isChecked());
         }
     }
     else
@@ -194,6 +205,7 @@ void DurationSectionWidget::on_modelMaxDurationChanged(const TimeValue& dur)
         {
             m_maxFiniteBox->setCheckState(Qt::Checked);
         }
+        m_maxSpin->setEnabled(m_maxFiniteBox->isChecked());
 
         if (dur.toQTime() == m_maxSpin->time())
             return;
@@ -226,11 +238,13 @@ void DurationSectionWidget::on_durationsChanged()
 void DurationSectionWidget::on_minNonNullToggled(bool val)
 {
     m_minSpin->setEnabled(val);
+
+    if (!val)
+        m_min = m_model.duration.minDuration();
+
     TimeValue newTime = !val
                         ? TimeValue(std::chrono::milliseconds(0))
-                        : m_model.duration.defaultDuration() * 0.5;
-    if(m_model.duration.minDuration() == newTime)
-        return;
+                        : m_min ;
 
     auto cmd = new Scenario::Command::SetMinDuration(
                    iscore::IDocument::path(m_model),
@@ -241,11 +255,13 @@ void DurationSectionWidget::on_minNonNullToggled(bool val)
 void DurationSectionWidget::on_maxFiniteToggled(bool val)
 {
     m_maxSpin->setEnabled(val);
+
+    if(!val)
+        m_max = m_model.duration.maxDuration();
+
     TimeValue newTime = !val
                         ? TimeValue(PositiveInfinity{})
-                        : m_model.duration.defaultDuration() * 1.5;
-    if(m_model.duration.maxDuration() == newTime)
-        return;
+                        : m_max;
 
     auto cmd = new Scenario::Command::SetMaxDuration(
                    iscore::IDocument::path(m_model),

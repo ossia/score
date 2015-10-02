@@ -42,10 +42,10 @@ void ScenarioSelectionState::on_pressAreaSelection()
 void ScenarioSelectionState::on_moveAreaSelection()
 {
     m_movePoint = m_parentSM.scenePoint;
-    m_scenarioView.setSelectionArea(
-                QRectF{m_scenarioView.mapFromScene(m_initialPoint),
-                       m_scenarioView.mapFromScene(m_movePoint)}.normalized());
-    setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
+    auto area = QRectF{m_scenarioView.mapFromScene(m_initialPoint),
+            m_scenarioView.mapFromScene(m_movePoint)}.normalized();
+    m_scenarioView.setSelectionArea(area);
+    setSelectionArea(area);
 }
 
 
@@ -82,48 +82,34 @@ void ScenarioSelectionState::on_deleteContent()
 void ScenarioSelectionState::setSelectionArea(const QRectF& area)
 {
     using namespace std;
-    QPainterPath path;
-    path.addRect(area);
     Selection sel;
 
-    auto scenario = dynamic_cast<ScenarioInterface*>(&m_parentSM.presenter().layerModel().processModel());
-    ISCORE_ASSERT(scenario);
-    for(const auto& item : m_parentSM.scene().items(path))
+    for(const auto& elt : m_parentSM.presenter().constraints())
     {
-        switch(item->type())
+        if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
         {
-            case QGraphicsItem::UserType + 1: // event
-            {
-                const auto& ev_model = static_cast<const EventView*>(item)->presenter().model();
-                if(ev_model.parentScenario() == scenario)
-                    sel.insert(&ev_model);
-                break;
-            }
-            case QGraphicsItem::UserType + 2: // constraint
-            {
-                const auto& cst_model = static_cast<const ConstraintView*>(item)->presenter().abstractConstraintViewModel().model();
-                if(cst_model.parentScenario() == scenario)
-                    sel.insert(&cst_model);
-                break;
-            }
-            case QGraphicsItem::UserType + 3: // timenode
-            {
-                const auto& tn_model = static_cast<const TimeNodeView*>(item)->presenter().model();
-                if(tn_model.parentScenario() == scenario)
-                    sel.insert(&tn_model);
-                break;
-            }
-            case QGraphicsItem::UserType + 4: // state
-            {
-                const auto& st_model = static_cast<const StateView*>(item)->presenter().model();
-                if(st_model.parentScenario() == scenario)
-                {
-                    sel.insert(&st_model);
-                }
-                break;
-            }
-            default:
-                break;
+            sel.insert(&elt.model());
+        }
+    }
+    for(const auto& elt : m_parentSM.presenter().timeNodes())
+    {
+        if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+        {
+            sel.insert(&elt.model());
+        }
+    }
+    for(const auto& elt : m_parentSM.presenter().events())
+    {
+        if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+        {
+            sel.insert(&elt.model());
+        }
+    }
+    for(const auto& elt : m_parentSM.presenter().states())
+    {
+        if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+        {
+            sel.insert(&elt.model());
         }
     }
 

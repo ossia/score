@@ -7,6 +7,8 @@
 #include "Commands/SetCurveMin.hpp"
 #include "Commands/SetCurveMax.hpp"
 
+#include "Commands/InitAutomation.hpp"
+
 #include <iscore/command/CommandGeneratorMap.hpp>
 AutomationControl::AutomationControl(
         iscore::Presenter* pres) :
@@ -15,22 +17,26 @@ AutomationControl::AutomationControl(
     setupCommands();
 }
 
+namespace {
 struct AutomationCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap AutomationCommandFactory::map;
+}
 
 void AutomationControl::setupCommands()
 {
     boost::mpl::for_each<
             boost::mpl::list<
                 UpdateCurve,
+                UpdateCurveFast,
                 SetSegmentParameters,
                 ChangeAddress,
                 SetCurveMin,
-                SetCurveMax
+                SetCurveMax,
+                InitAutomation
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<AutomationCommandFactory>());

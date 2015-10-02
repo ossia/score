@@ -4,7 +4,7 @@
 
 /**
  * This file contains usefule functions
- * for simple serialization / deserializatoin of the common types
+ * for simple serialization / deserialization of the common types
  * used in i-score.
  */
 template<typename TheClass>
@@ -101,6 +101,15 @@ auto deserialize_dyn(const VisitorVariant& vis, Functor&& fun)
 template<typename Type, typename Object>
 auto marshall(const Object& obj)
 {
-    Visitor<Reader<Type>> r;
-    return r.serialize(obj);
+    return Visitor<Reader<Type>>::marshall(obj);
+}
+template<typename Object>
+auto unmarshall(const QJsonObject& obj)
+{
+    return Visitor<Writer<JSONObject>>::unmarshall<Object>(obj);
+}
+template<typename Object>
+auto unmarshall(const QByteArray& arr)
+{
+    return Visitor<Writer<DataStream>>::unmarshall<Object>(arr);
 }

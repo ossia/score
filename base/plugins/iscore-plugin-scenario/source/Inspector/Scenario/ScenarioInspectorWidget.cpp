@@ -18,7 +18,6 @@ ScenarioInspectorWidget::ScenarioInspectorWidget(
     setParent(parent);
 
     QVector<QWidget*> vec;
-    vec.push_back(new QLabel{ QString::number(m_model.id_val())} );
 
     QPushButton* displayBtn = new QPushButton {tr("Display in new Slot"), this};
     vec.push_back(displayBtn);

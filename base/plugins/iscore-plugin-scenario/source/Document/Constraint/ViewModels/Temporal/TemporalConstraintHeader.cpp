@@ -1,4 +1,5 @@
 #include "TemporalConstraintHeader.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 #include <QFont>
 #include <QPainter>
 #include <QGraphicsView>
@@ -74,4 +75,9 @@ void TemporalConstraintHeader::paint(
                     boundingRect().bottomLeft(),
                     boundingRect().bottomRight());
     }
+}
+
+void TemporalConstraintHeader::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+    emit doubleClicked();
 }

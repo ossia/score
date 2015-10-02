@@ -15,9 +15,9 @@ class MovePointCommandObject : public CurveCommandObjectBase
         void cancel();
 
     private:
-        void handlePointOverlap(QVector<CurveSegmentModel *> &segments);
-        void handleSuppressOnOverlap(QVector<CurveSegmentModel *> &segments);
-        void handleCrossOnOverlap(QVector<CurveSegmentModel *> &segments);
-        void setCurrentPoint(QVector<CurveSegmentModel *> &segments);
+        void handlePointOverlap(CurveSegmentMap& segments);
+        void handleSuppressOnOverlap(CurveSegmentMap& segments);
+        void handleCrossOnOverlap(CurveSegmentMap& segments);
+        void setCurrentPoint(CurveSegmentMap& segments);
 
 };

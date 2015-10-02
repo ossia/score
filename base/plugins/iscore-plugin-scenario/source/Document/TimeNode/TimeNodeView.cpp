@@ -30,10 +30,6 @@ void TimeNodeView::paint(QPainter* painter,
     {
         pen_color = highlight;
     }
-    if(! isValid())
-    {
-        pen_color = Qt::red;
-    }
 
     QPen pen{QBrush(pen_color), 1.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
@@ -44,11 +40,6 @@ void TimeNodeView::paint(QPainter* painter,
     painter->setPen(Qt::darkMagenta);
     painter->drawRect(boundingRect());
 #endif
-}
-
-QRectF TimeNodeView::boundingRect() const
-{
-    return { -3., 0., 6., m_extent.bottom() - m_extent.top()};
 }
 
 void TimeNodeView::setExtent(const VerticalExtent& extent)
@@ -67,7 +58,6 @@ void TimeNodeView::setExtent(VerticalExtent &&extent)
 
 void TimeNodeView::setMoving(bool arg)
 {
-    m_moving = arg;
     update();
 }
 

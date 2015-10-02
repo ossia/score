@@ -13,7 +13,7 @@ class DisplayedElementsModel
         void setSelection(const Selection&);
 
         // Will set all the other
-        void setDisplayedConstraint(const ConstraintModel* cst);
+        void setDisplayedConstraint(const ConstraintModel& cst);
         const ConstraintModel& displayedConstraint() const;
 
         const TimeNodeModel& startNode() const;

@@ -1,8 +1,9 @@
 #include "CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
 
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -27,12 +28,45 @@ CurveModel* CurveModel::clone(
     return cm;
 }
 
+
+void CurveModel::addSortedSegment(CurveSegmentModel* m)
+{
+    insertSegment(m);
+
+    // Add points if necessary
+    // If there is an existing previous segment, its end point also exists
+    auto createStartPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setFollowing(m->id());
+        pt->setPos(m->start());
+        addPoint(pt);
+        return pt;
+    };
+    auto createEndPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setPrevious(m->id());
+        pt->setPos(m->end());
+        addPoint(pt);
+        return pt;
+    };
+
+    if(!m->previous())
+    {
+        createStartPoint();
+    }
+    else
+    {
+        // The previous segment has already been inserted,
+        // hence the previous point is present.
+        m_points.back()->setFollowing(m->id());
+    }
+
+    createEndPoint();
+}
+
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
-    m->setParent(this);
-    m_segments.insert(m);
-
-    emit segmentAdded(*m);
+    insertSegment(m);
 
     // Add points if necessary
     // If there is an existing previous segment, its end point also exists
@@ -146,6 +180,37 @@ void CurveModel::addSegments(QVector<CurveSegmentModel*> segts)
     }
 }
 
+void CurveModel::insertSegment(CurveSegmentModel* m)
+{
+    m->setParent(this);
+    m_segments.insert(m);
+
+    // TODO have indexes on the points with the start and end
+    // curve segments
+    connect(m, &CurveSegmentModel::startChanged, this, [=] () {
+        for(CurvePointModel* pt : m_points)
+        {
+            if(pt->following() == m->id())
+            {
+                pt->setPos(m->start());
+                break;
+            }
+        }
+    });
+    connect(m, &CurveSegmentModel::endChanged, this, [=] () {
+        for(CurvePointModel* pt : m_points)
+        {
+            if(pt->previous() == m->id())
+            {
+                pt->setPos(m->end());
+                break;
+            }
+        }
+    });
+
+    emit segmentAdded(*m);
+}
+
 
 void CurveModel::removeSegment(CurveSegmentModel* m)
 {
@@ -172,6 +237,32 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
     }
 
     delete m;
+}
+
+std::vector<CurveSegmentData> CurveModel::toCurveData() const
+{
+    std::vector<CurveSegmentData> dat;
+    dat.reserve(m_segments.size());
+    for(const auto& seg : m_segments)
+    {
+        dat.push_back(seg.toSegmentData());
+    }
+
+    return dat;
+}
+
+void CurveModel::fromCurveData(const std::vector<CurveSegmentData>& curve)
+{
+    this->blockSignals(true);
+    clear();
+    CurveSegmentOrderedMap map(curve.begin(), curve.end());
+    for(const auto& elt : map.get<Segments::Ordered>())
+    {
+        addSortedSegment(createCurveSegment(elt, this));
+    }
+    this->blockSignals(false);
+    emit curveReset();
+    emit changed();
 }
 
 Selection CurveModel::selectedChildren() const

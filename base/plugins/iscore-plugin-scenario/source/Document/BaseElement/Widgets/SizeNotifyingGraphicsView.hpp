@@ -3,13 +3,12 @@
 #include <QResizeEvent>
 
 #include <QPainter>
-#include <QOpenGLWidget>
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QDebug>
 #include "SceneGraduations.hpp"
 
-class SizeNotifyingGraphicsView : public QGraphicsView
+class SizeNotifyingGraphicsView : public QGraphicsView // TODO rename this class
 {
         Q_OBJECT
     public:
@@ -20,7 +19,7 @@ class SizeNotifyingGraphicsView : public QGraphicsView
     signals:
         void sizeChanged(const QSize&);
         void scrolled(int);
-        void zoom(QPointF pos, QPoint pixDelta);
+        void zoom(QPoint pixDelta, QPointF pos);
 
     protected:
         virtual void resizeEvent(QResizeEvent* ev) override;
@@ -28,6 +27,7 @@ class SizeNotifyingGraphicsView : public QGraphicsView
         virtual void wheelEvent(QWheelEvent* event) override;
         virtual void keyPressEvent(QKeyEvent* event) override;
         virtual void keyReleaseEvent(QKeyEvent* event) override;
+        virtual void focusOutEvent(QFocusEvent* event) override;
 
     private:
         QBrush m_bg;

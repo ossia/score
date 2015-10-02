@@ -3,10 +3,11 @@
 
 using namespace DeviceExplorer::Command;
 
-AddAddress::AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
-                       const iscore::NodePath& nodePath,
-                       InsertMode insert,
-                       const iscore::AddressSettings &addressSettings):
+AddAddress::AddAddress(
+        Path<DeviceDocumentPlugin>&& device_tree,
+        const iscore::NodePath& nodePath,
+        InsertMode insert,
+        const iscore::AddressSettings &addressSettings):
     iscore::SerializableCommand{"DeviceExplorerControl",
                                 commandName(),
                                 description()},
@@ -26,13 +27,14 @@ AddAddress::AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
     {
         parentNode =  nodePath.toNode(&devplug.rootNode())->parent();
     }
+    ISCORE_ASSERT(parentNode);
     m_parentNodePath = iscore::NodePath{*parentNode};
 }
 
 void AddAddress::undo()
 {
     auto& devplug = m_devicesModel.find();
-    devplug.updateProxy.removeAddress(m_parentNodePath,
+    devplug.updateProxy.removeNode(m_parentNodePath,
                                    m_addressSettings);
 }
 
@@ -40,7 +42,8 @@ void AddAddress::redo()
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.addAddress(m_parentNodePath,
-                                   m_addressSettings);
+                                   m_addressSettings,
+                                   0);
 }
 
 void AddAddress::serializeImpl(QDataStream &s) const

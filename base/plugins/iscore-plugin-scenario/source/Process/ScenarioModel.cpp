@@ -29,6 +29,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 
     // At the end because plug-ins depend on the start/end timenode & al being here
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
+    metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
@@ -50,6 +51,7 @@ ScenarioModel::ScenarioModel(const ScenarioModel& source,
         for(const auto& elt : source.*m)
             (this->*m).add(new the_class{elt, elt.id(), this});
     });
+    metadata.setName(QString("Scenario.%1").arg(*this->id().val()));
 }
 
 ScenarioModel* ScenarioModel::clone(
@@ -259,6 +261,23 @@ ProcessStateDataInterface* ScenarioModel::endState() const
 {
     ISCORE_TODO;
     return nullptr;
+}
+
+const QVector<Id<ConstraintModel> > ScenarioModel::constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const
+{
+    QVector<Id<ConstraintModel>> cstrs;
+    auto& tn = timeNode(timeNodeId);
+    for(auto& ev : tn.events())
+    {
+        auto& evM = event(ev);
+        for (auto& st : evM.states())
+        {
+            auto& stM = state(st);
+            if(stM.previousConstraint())
+                cstrs.push_back(stM.previousConstraint());
+        }
+    }
+    return cstrs;
 }
 
 

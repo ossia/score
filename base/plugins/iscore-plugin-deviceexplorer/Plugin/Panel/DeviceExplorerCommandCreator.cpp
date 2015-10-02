@@ -9,8 +9,6 @@
 #include "Commands/Insert.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/Paste.hpp"
-#include "Commands/EditData.hpp"
-
 
 using namespace DeviceExplorer::Command;
 
@@ -55,7 +53,6 @@ QModelIndex DeviceExplorerCommandCreator::copy(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
 
     iscore::Node* copiedNode = new iscore::Node(*n);
     const bool isDevice = n->is<iscore::DeviceSettings>();
@@ -85,7 +82,7 @@ QModelIndex DeviceExplorerCommandCreator::cut(const QModelIndex &index)
                 iscore::NodePath{index.parent()},
                 index.row(),
                 tr("Cut %1").arg(name),
-                iscore::IDocument::path(*m_model)};
+                *m_model};
 
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -118,7 +115,7 @@ QModelIndex DeviceExplorerCommandCreator::paste(const QModelIndex &index)
             iscore::NodePath{index.parent()},
             index.row(),
             tr("Paste %1").arg(name),
-            iscore::IDocument::path(*m_model)};
+            *m_model};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -140,7 +137,6 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -155,7 +151,7 @@ QModelIndex DeviceExplorerCommandCreator::moveUp(const QModelIndex &index)
                 parentPath,
                 newRow,
                 tr("Move up %1").arg(n->displayName()) ,
-                iscore::IDocument::path(*m_model)};
+                *m_model};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -179,7 +175,6 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -200,7 +195,7 @@ QModelIndex DeviceExplorerCommandCreator::moveDown(const QModelIndex &index)
              parentPath,
             newRow + 1,
              tr("Move down %1").arg(n->displayName()) ,
-            iscore::IDocument::path(*m_model)};
+            *m_model};
     //newRow+1 because moved before, cf doc.
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
@@ -225,7 +220,6 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -252,7 +246,7 @@ QModelIndex DeviceExplorerCommandCreator::promote(const QModelIndex &index)
                 iscore::NodePath{*grandParent},
                 rowParent + 1,
                 tr("Promote %1").arg(n->displayName()) ,
-                iscore::IDocument::path(*m_model)};
+                *m_model};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 
@@ -275,7 +269,6 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
     }
 
     iscore::Node* n = m_model->nodeFromModelIndex(index);
-    ISCORE_ASSERT(n);
     iscore::Node* parent = n->parent();
     ISCORE_ASSERT(parent);
 
@@ -301,7 +294,7 @@ QModelIndex DeviceExplorerCommandCreator::demote(const QModelIndex &index)
                 newPath ,
                 sibling.childCount(),
                 tr("Demote %1").arg(n->displayName()) ,
-                iscore::IDocument::path(*m_model)};
+                *m_model};
     ISCORE_ASSERT(m_cmdQ);
     m_cmdQ->redoAndPush(cmd);
 

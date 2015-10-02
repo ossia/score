@@ -21,11 +21,6 @@
 */
 class ObjectPath
 {
-        friend Serializer<DataStream>;
-        friend Serializer<JSONObject>;
-        friend Deserializer<DataStream>;
-        friend Deserializer<JSONObject>;
-
         friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
         {
             return path.m_objectIdentifiers.begin();
@@ -54,15 +49,6 @@ class ObjectPath
             m_objectIdentifiers(lst)
         {
         }
-
-        /*
-        template<template<class> typename Path_T, typename T>
-        ObjectPath(Path_T<T>&& other):
-            m_objectIdentifiers(other.m_impl.m_objectIdentifiers)
-        {
-
-        }
-        */
 
         ObjectPath(const ObjectPath& obj) = default;
         ObjectPath(ObjectPath&&) = default;
@@ -97,13 +83,46 @@ class ObjectPath
             }
         }
 
-        const ObjectIdentifierVector& vec() const
+        /**
+         * @brief try_find Tries to find an object
+         *
+         * @return null if the object does not exist.
+         */
+        template<class T>
+        T* try_find() const
         {
-            return m_objectIdentifiers;
+            try
+            {
+                if(!m_cache.isNull())
+                {
+                    return safe_cast<T*>(m_cache.data());
+                }
+                else // Load it by hand
+                {
+                    auto ptr = static_cast<typename std::remove_const<T>::type*>(find_impl_unsafe());
+                    m_cache = ptr;
+                    return ptr;
+                }
+            }
+            catch(...)
+            {
+                return nullptr;
+            }
         }
 
+        const ObjectIdentifierVector& vec() const
+        { return m_objectIdentifiers; }
+
+        ObjectIdentifierVector& vec()
+        { return m_objectIdentifiers; }
+
     private:
+        // Throws
         QObject* find_impl() const;
+
+        // Returns nullptr
+        QObject* find_impl_unsafe() const;
+
         ObjectIdentifierVector m_objectIdentifiers;
         mutable QPointer<QObject> m_cache;
 };

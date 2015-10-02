@@ -38,7 +38,7 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
         connect(t_pressed, &QAbstractTransition::triggered, [&] ()
         {
             auto& scenar = m_scenarioPath.find();
-            m_constraintInitialStartDate= scenar.constraint(clickedConstraint).startDate();
+            m_constraintInitialStartDate= scenar.constraints.at(clickedConstraint).startDate();
             m_constraintInitialClickDate = currentPoint.date;
         });
 
@@ -178,11 +178,11 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
         {
             // Get the 1st event on the timenode.
             auto& scenar = m_scenarioPath.find();
-            auto& tn = scenar.timeNode(clickedTimeNode);
+            auto& tn = scenar.timeNodes.at(clickedTimeNode);
             const auto& ev_id = tn.events().first();
             auto date = currentPoint.date;
 
-            if (stateMachine.isShiftPressed())
+            if (!stateMachine.isShiftPressed())
                 date = tn.date();
 
             m_dispatcher.submitCommand(

@@ -2,6 +2,9 @@
 
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/TimeNodeView.hpp"
+#include "Document/TimeNode/Trigger/TriggerPresenter.hpp"
+#include "Document/TimeNode/Trigger/TriggerModel.hpp"
+
 #include <QGraphicsScene>
 #include <QGraphicsObject>
 #include <iscore/widgets/GraphicsItem.hpp>
@@ -13,6 +16,8 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     m_model {model},
     m_view {new TimeNodeView{*this, parentview}}
 {
+    m_triggerPres = new TriggerPresenter{m_model.trigger(), m_view, this };
+
     con(m_model.selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);
 

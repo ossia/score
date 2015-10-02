@@ -4,10 +4,10 @@
 #include "Commands/Add/AddDevice.hpp"
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Cut.hpp"
-#include "Commands/EditData.hpp"
 #include "Commands/Insert.hpp"
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
+#include "Commands/Remove/RemoveAddress.hpp"
 #include "Commands/Remove.hpp"
 #include "Commands/RemoveNodes.hpp"
 #include "Commands/ReplaceDevice.hpp"
@@ -26,13 +26,14 @@ DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     setupCommands();
 }
 
-
+namespace {
 struct DeviceExplorerCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
 CommandGeneratorMap DeviceExplorerCommandFactory::map;
+}
 
 void DeviceExplorerControl::setupCommands()
 {
@@ -49,6 +50,7 @@ void DeviceExplorerControl::setupCommands()
             Move,
             Paste,
             Remove,
+            RemoveAddress,
             RemoveNodes,
             ReplaceDevice,
             UpdateAddressesValues

@@ -38,12 +38,33 @@ AutomationPresenter::AutomationPresenter(
 
     con(m_viewModel.model(), &Process::execution,
         this, [&] (bool b) {
-        qDebug() << b;
         if(b)
-            m_curvepresenter->stateMachine().stop();
+        {
+            if(m_curvepresenter->stateMachine().isRunning())
+                m_curvepresenter->stateMachine().stop();
+        }
         else
-            m_curvepresenter->stateMachine().start();
+        {
+            if(!m_curvepresenter->stateMachine().isRunning())
+                m_curvepresenter->stateMachine().start();
+        }
     });
+
+    con(m_viewModel.model(), &AutomationModel::addressChanged,
+        this, [&] (iscore::Address add)
+    {
+        QString name = m_viewModel.model().metadata.name();
+        name += " : ";
+        name += add.toString();
+        m_view->setDisplayedName(name);
+    });
+
+    QString name = m_viewModel.model().metadata.name();
+    name += " : ";
+    name += m_viewModel.model().address().toString();
+    m_view->setDisplayedName(name);
+    m_view->showName(true);
+
     parentGeometryChanged();
 }
 
@@ -69,12 +90,14 @@ void AutomationPresenter::putToFront()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
     m_curvepresenter->enable();
+    m_view->showName(true);
 }
 
 void AutomationPresenter::putBehind()
 {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     m_curvepresenter->disable();
+    m_view->showName(false);
 }
 
 void AutomationPresenter::on_zoomRatioChanged(ZoomRatio val)

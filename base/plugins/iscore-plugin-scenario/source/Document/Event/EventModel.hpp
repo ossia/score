@@ -1,5 +1,5 @@
 #pragma once
-#include <source/Document/ModelMetadata.hpp>
+#include <ProcessInterface/ModelMetadata.hpp>
 #include <source/Document/VerticalExtent.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -27,16 +27,6 @@ class EventModel : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
         ISCORE_METADATA("EventModel")
-
-        Q_PROPERTY(iscore::Condition condition
-                   READ condition
-                   WRITE setCondition
-                   NOTIFY conditionChanged)
-
-        Q_PROPERTY(EventStatus status
-                   READ status
-                   WRITE setStatus
-                   NOTIFY statusChanged)
 
         ISCORE_SERIALIZE_FRIENDS(EventModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(EventModel, JSONObject)
@@ -71,8 +61,10 @@ class EventModel : public IdentifiedObject<EventModel>
         }
 
         // Timenode
-        void changeTimeNode(const Id<TimeNodeModel>&);
-        const Id<TimeNodeModel>& timeNode() const;
+        void changeTimeNode(const Id<TimeNodeModel>& elt)
+        { m_timeNode = elt; }
+        const auto& timeNode() const
+        { return m_timeNode; }
 
         // States
         void addState(const Id<StateModel>& ds);
@@ -110,7 +102,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void statusChanged(EventStatus status);
 
     private:
-        Id<TimeNodeModel> m_timeNode {};
+        Id<TimeNodeModel> m_timeNode;
 
         QVector<Id<StateModel>> m_states;
 

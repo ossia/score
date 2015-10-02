@@ -95,8 +95,8 @@ OSSIA::Node* findNodeFromPath(const QStringList& path, OSSIA::Device* dev)
     for(int i = 0; i < path.size(); i++)
     {
         const auto& children = node->children();
-        auto it = boost::range::find_if(children,
-                                        [&] (const auto& ossia_node)
+        auto it = std::find_if(children.begin(), children.end(),
+                               [&] (const auto& ossia_node)
         { return ossia_node->getName() == path[i].toStdString(); });
         if(it != children.end())
             node = it->get();
@@ -184,6 +184,7 @@ void updateOSSIAAddress(
 
         updateOSSIAValue(settings.value.val,*val);
         addr->pushValue(val);
+        delete val;
     }
 }
 
@@ -355,6 +356,8 @@ std::shared_ptr<OSSIA::Message> message(
     if(!deviceList.hasDevice(mess.address.device))
         return {};
 
+    // TODO optimizeme by sorting by device prior
+    // to this.
     const auto& dev = deviceList.device(mess.address.device);
 
     if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&dev))
@@ -405,6 +408,51 @@ std::shared_ptr<OSSIA::State> state(
 
     return ossia_state;
 }
+
+template<typename Fun>
+static void visit_node(
+        const iscore::Node* root,
+        Fun f)
+{
+    f(root);
+
+    for(const auto& child : root->children())
+    {
+        visit_node(&child, f);
+    }
+}
+
+std::shared_ptr<OSSIA::State> state(
+        std::shared_ptr<OSSIA::State> ossia_state,
+        const iscore::Node &iscore_state,
+        const DeviceList& deviceList)
+{
+    auto& elts = ossia_state->stateElements();
+
+    // For all elements where IOType != Invalid,
+    // we add the elements to the state.
+
+    visit_node(&iscore_state, [&] (const iscore::Node* n) {
+        if(n->is<iscore::AddressSettings>())
+        {
+            const auto& val = n->get<iscore::AddressSettings>();
+            if(val.ioType != IOType::Invalid)
+            {
+                elts.push_back(
+                            message(
+                                iscore::Message{
+                                    iscore::address(*n),
+                                    val.value},
+                                deviceList
+                                )
+                            );
+            }
+        }
+    });
+
+    return ossia_state;
+}
+
 
 
 

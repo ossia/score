@@ -31,7 +31,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     {
         if(auto state = dynamic_cast<const StateModel*>(obj))
         {
-            auto& ev = scenar.event(state->eventId());
+            auto& ev = scenar.events.at(state->eventId());
             if(ev.states().size() == 1)
             {
                 sel.insert(&ev);
@@ -46,7 +46,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
         {
             for (const auto& ev : tn->events())
             {
-                sel.insert(&scenar.event(ev));
+                sel.insert(&scenar.events.at(ev));
             }
         }
     }
@@ -62,11 +62,11 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
             // and return the corresponding elements.
             for(const auto& state : event->states())
             {
-                sel.insert(&scenar.state(state));
+                sel.insert(&scenar.states.at(state));
             }
 
             // This timenode may be removed if the event is alone.
-            auto tn = &scenar.timeNode(event->timeNode());
+            auto tn = &scenar.timeNodes.at(event->timeNode());
             if(sel.find(tn) == sel.end())
                 maybeRemovedTimenodes.append(tn);
         }
@@ -78,9 +78,9 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
         if(auto state = dynamic_cast<const StateModel*>(obj))
         {
             if(state->previousConstraint())
-                sel.insert(&scenar.constraint(state->previousConstraint()));
+                sel.insert(&scenar.constraints.at(state->previousConstraint()));
             if(state->nextConstraint())
-                sel.insert(&scenar.constraint(state->nextConstraint()));
+                sel.insert(&scenar.constraints.at(state->nextConstraint()));
         }
     }
 
@@ -97,18 +97,24 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
 
         if(auto event = dynamic_cast<const EventModel*>(obj))
         {
-            QByteArray arr;
-            Serializer<DataStream> s{&arr};
-            s.readFrom(*event);
-            m_removedEvents.push_back({event->id(), arr});
+            if(event->id() != Id<EventModel>{0})
+            {
+                QByteArray arr;
+                Serializer<DataStream> s{&arr};
+                s.readFrom(*event);
+                m_removedEvents.push_back({event->id(), arr});
+            }
         }
 
         if(auto tn = dynamic_cast<const TimeNodeModel*>(obj))
         {
-            QByteArray arr;
-            Serializer<DataStream> s2{&arr};
-            s2.readFrom(*tn);
-            m_removedTimeNodes.push_back({tn->id(), arr});
+            if(tn->id() != Id<TimeNodeModel>{0})
+            {
+                QByteArray arr;
+                Serializer<DataStream> s2{&arr};
+                s2.readFrom(*tn);
+                m_removedTimeNodes.push_back({tn->id(), arr});
+            }
         }
 
         if(auto constraint = dynamic_cast<const ConstraintModel*>(obj))
@@ -128,10 +134,13 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     // TODO how does this even work ? what happens of the maybe removed events / states ?
     for(const auto& tn : maybeRemovedTimenodes)
     {
-        QByteArray arr;
-        Serializer<DataStream> s2{&arr};
-        s2.readFrom(*tn);
-        m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
+        if(tn->id() != Id<TimeNodeModel>{0})
+        {
+            QByteArray arr;
+            Serializer<DataStream> s2{&arr};
+            s2.readFrom(*tn);
+            m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
+        }
     }
 }
 

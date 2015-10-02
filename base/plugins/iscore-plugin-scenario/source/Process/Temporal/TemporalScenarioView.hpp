@@ -38,7 +38,8 @@ class TemporalScenarioView : public LayerView
         void keyPressed(int);
         void keyReleased(int);
 
-        void askContextMenu(const QPoint&);
+        // Screen pos, scene pos
+        void askContextMenu(const QPoint&, const QPointF&);
         void dropReceived(const QPointF& pos, const QMimeData*);
 
 

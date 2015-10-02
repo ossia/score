@@ -29,8 +29,6 @@ void StateInspectorWidget::updateDisplayedValues()
 {
     // Cleanup
     // OPTIMIZEME
-    qDeleteAll(m_stateWidgets);
-    m_stateWidgets.clear();
     qDeleteAll(m_properties);
     m_properties.clear();
 
@@ -88,7 +86,7 @@ void StateInspectorWidget::updateDisplayedValues()
 
     auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)
             ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto tv = new StateTreeView{m_model,
+    auto tv = new MessageTreeView{m_model,
                                 deviceexplorer,
                                 m_stateSection};
 

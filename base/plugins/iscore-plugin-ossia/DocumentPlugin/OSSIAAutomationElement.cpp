@@ -15,7 +15,7 @@
 #include "OSSIAConstraintElement.hpp"
 
 #include "../iscore-plugin-curve/Curve/CurveModel.hpp"
-#include "../iscore-plugin-curve/Curve/Segment/LinearCurveSegmentModel.hpp"
+#include "../iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "../iscore-plugin-curve/Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -63,6 +63,7 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
     std::shared_ptr<OSSIA::Automation> new_autom;
     std::shared_ptr<OSSIA::Address> address;
     OSSIA::Node* node{};
+    OSSIADevice* dev{};
     // The updating routine
     auto update = [&] (auto new_autom) {
         auto old_autom = m_ossia_autom;
@@ -86,7 +87,11 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
     if(dev_it == devices.end())
         goto curve_cleanup_label;
 
-    node = iscore::convert::findNodeFromPath(addr.path, &static_cast<OSSIADevice&>(**dev_it).impl());
+    dev = dynamic_cast<OSSIADevice*>(*dev_it);
+    if(!dev)
+        goto curve_cleanup_label;
+
+    node = iscore::convert::findNodeFromPath(addr.path, &dev->impl());
     if(!node)
         goto curve_cleanup_label;
 

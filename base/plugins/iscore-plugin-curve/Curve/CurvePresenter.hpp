@@ -63,7 +63,7 @@ class CurvePresenter : public QObject
         void enable();
         void disable();
 
-        auto& stateMachine()
+        CurveStateMachine& stateMachine()
         { return *m_sm; }
 
 
@@ -83,6 +83,11 @@ class CurvePresenter : public QObject
         // Adding
         void addPoint(CurvePointView*);
         void addSegment(CurveSegmentView*);
+
+        void setupPointConnections(CurvePointView*);
+        void setupSegmentConnections(CurveSegmentView*);
+
+        void modelReset();
 
         CurveStateMachine* m_sm{};
 

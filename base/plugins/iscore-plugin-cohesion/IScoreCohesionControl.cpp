@@ -1,15 +1,16 @@
 #include "IScoreCohesionControl.hpp"
 #include <QApplication>
 
-#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ViewModels/ConstraintPresenter.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Document/Event/EventModel.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Document/BaseElement/BaseElementPresenter.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Process/ScenarioModel.hpp"
-#include "base/plugins/iscore-plugin-scenario/source/Commands/Event/AddStateToEvent.hpp"
+#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
+#include "Document/Constraint/ViewModels/ConstraintPresenter.hpp"
+#include "Document/Constraint/ConstraintModel.hpp"
+#include "Document/Event/EventModel.hpp"
+#include "Document/BaseElement/BaseElementPresenter.hpp"
+#include "Process/ScenarioModel.hpp"
+#include "Commands/Event/AddStateToEvent.hpp"
+#include "RecordManager.hpp"
 #include "Singletons/DeviceExplorerInterface.hpp"
-
+#include "Automation/AutomationModel.hpp"
 // TODO Refactor in order to use the Node data structure instead.
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
@@ -24,6 +25,14 @@
 #include <source/Document/BaseElement/BaseElementModel.hpp>
 #include <QKeySequence>
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <Commands/State/AddMessagesToModel.hpp>
+#include "Control/ScenarioControl.hpp"
+
+#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
+#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include "Curve/CurveModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
 #include <QToolBar>
@@ -32,6 +41,28 @@ using namespace iscore;
 IScoreCohesionControl::IScoreCohesionControl(Presenter* pres) :
     iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
 {
+    // Since we have declared the dependency, we can assume
+    // that ScenarioControl is instantiated already.
+    auto scen = ScenarioControl::instance();
+    connect(scen, &ScenarioControl::startRecording,
+            this, &IScoreCohesionControl::record);
+    connect(scen, &ScenarioControl::stopRecording,
+            this, &IScoreCohesionControl::stopRecord);
+
+
+
+    auto acts = scen->actions();
+    for(const auto& act : acts)
+    {
+        if(act->objectName() == "Stop")
+        {
+            connect(act, &QAction::triggered,
+                    this, [&] {
+                stopRecord();
+            });
+        }
+    }
+
     setupCommands();
 
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
@@ -80,30 +111,32 @@ QList<OrderedToolbar> IScoreCohesionControl::makeToolbars()
     return QList<OrderedToolbar>{OrderedToolbar(2, bar)};
 }
 
-
-struct IScoreionCohesionCommandFactory
+namespace {
+struct IScoreCohesionCommandFactory
 {
         static CommandGeneratorMap map;
 };
 
-CommandGeneratorMap IScoreionCohesionCommandFactory::map;
+CommandGeneratorMap IScoreCohesionCommandFactory::map;
+}
 
 void IScoreCohesionControl::setupCommands()
 {
     boost::mpl::for_each<
             boost::mpl::list<
-                CreateCurvesFromAddresses,
-                CreateCurvesFromAddressesInConstraints,
-                InterpolateMacro,
-                CreateStatesFromParametersInEvents
+            CreateCurvesFromAddresses,
+            CreateCurvesFromAddressesInConstraints,
+            InterpolateMacro,
+            Record,
+            CreateStatesFromParametersInEvents
             >,
             boost::type<boost::mpl::_>
-    >(CommandGeneratorMapInserter<IScoreionCohesionCommandFactory>());
+            >(CommandGeneratorMapInserter<IScoreCohesionCommandFactory>());
 }
 
 SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(const QString& name, const QByteArray& data)
 {
-    return PluginControlInterface::instantiateUndoCommand<IScoreionCohesionCommandFactory>(name, data);
+    return PluginControlInterface::instantiateUndoCommand<IScoreCohesionCommandFactory>(name, data);
 }
 
 void IScoreCohesionControl::createCurvesFromAddresses()
@@ -111,8 +144,8 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     using namespace std;
     // Fetch the selected constraints
     auto sel = currentDocument()->
-                 selectionStack().
-                   currentSelection();
+            selectionStack().
+            currentSelection();
 
     QList<const ConstraintModel*> selected_constraints;
     for(auto obj : sel)
@@ -127,7 +160,7 @@ void IScoreCohesionControl::createCurvesFromAddresses()
     auto addresses = device_explorer->selectedIndexes();
 
     MacroCommandDispatcher macro{new CreateCurvesFromAddressesInConstraints,
-                                 currentDocument()->commandStack()};
+                currentDocument()->commandStack()};
     for(auto& constraint : selected_constraints)
     {
         QList<Address> l;
@@ -136,7 +169,8 @@ void IScoreCohesionControl::createCurvesFromAddresses()
             l.push_back(DeviceExplorer::addressFromModelIndex(index));
         }
 
-        auto cmd = new CreateCurvesFromAddresses {iscore::IDocument::path(*constraint), l};
+        // TODO skip the ones that can't send messages or aren't int / double / float
+        auto cmd = new CreateCurvesFromAddresses {*constraint, l};
         macro.submitCommand(cmd);
     }
 
@@ -145,13 +179,11 @@ void IScoreCohesionControl::createCurvesFromAddresses()
 
 void IScoreCohesionControl::interpolateStates()
 {
-    ISCORE_TODO;
-    /*
     using namespace std;
     // Fetch the selected constraints
     auto sel = currentDocument()->
-                 selectionStack().
-                   currentSelection();
+            selectionStack().
+            currentSelection();
 
     QList<const ConstraintModel*> selected_constraints;
     for(auto obj : sel)
@@ -170,66 +202,81 @@ void IScoreCohesionControl::interpolateStates()
 
     // TODO maybe template it instead?
     MacroCommandDispatcher macro{new InterpolateMacro,
-                                 currentDocument()->commandStack()};
+                currentDocument()->commandStack()};
     // They should all be in the same scenario so we can select the first.
     ScenarioModel* scenar =
             selected_constraints.empty()
             ? nullptr
             : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
 
+    auto checkType = [] (const QVariant& var) {
+        QMetaType::Type t = static_cast<QMetaType::Type>(var.type());
+        return t == QMetaType::Int
+                || t == QMetaType::Float
+                || t == QMetaType::Double;
+    };
     for(auto& constraint : selected_constraints)
     {
-        // TODO state collapsing if twice the same message ?
-        // Check the states similar between its start and end event
         const auto& startState = scenar->state(constraint->startState());
         const auto& endState = scenar->state(constraint->endState());
 
-        QList<Message> startMessages;
-        for(const auto& state : startState.states())
-        {
-            if(state.data().canConvert<Message>())
-            {
-                startMessages.push_back(state.data().value<Message>());
-            }
-            else if(state.data().canConvert<MessageList>())
-            {
-                startMessages += state.data().value<MessageList>();
-            }
-        }
-
-        QList<Message> endMessages;
-        for(auto& state : endState.states())
-        {
-            if(state.data().canConvert<Message>())
-            {
-                endMessages.push_back(state.data().value<Message>());
-            }
-            else if(state.data().canConvert<MessageList>())
-            {
-                endMessages += state.data().value<MessageList>();
-            }
-        }
+        iscore::MessageList startMessages = startState.messages().flatten();
+        iscore::MessageList endMessages = endState.messages().flatten();
 
         for(auto& message : startMessages)
         {
+            if(!checkType(message.value.val))
+                continue;
+
             auto it = std::find_if(begin(endMessages),
                                    end(endMessages),
-                         [&] (const Message& arg) { return message.address == arg.address; });
+                                   [&] (const Message& arg) { return message.address == arg.address; });
 
             if(it != end(endMessages))
             {
+                if(!checkType((*it).value.val))
+                    continue;
+
+                auto has_existing_curve = std::find_if(
+                            constraint->processes.begin(),
+                            constraint->processes.end(),
+                            [&] (const Process& proc) {
+                    auto ptr = dynamic_cast<const AutomationModel*>(&proc);
+                    if(ptr && ptr->address() == message.address)
+                        return true;
+                    return false;
+                });
+
+                if(has_existing_curve != constraint->processes.end())
+                    continue;
+
                 auto cmd = new CreateCurveFromStates{
-                           iscore::IDocument::path(constraint),
-                           message.address,
-                           message.value.val.toDouble(),
-                           (*it).value.val.toDouble()};
+                        *constraint,
+                        message.address,
+                        message.value.val.toDouble(),
+                        (*it).value.val.toDouble()};
                 macro.submitCommand(cmd);
             }
         }
     }
 
     macro.commit();
-    */
+}
+
+void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
+{
+    m_recManager = std::make_unique<RecordManager>();
+    m_recManager->recordInNewBox(scenar, pt);
+
+}
+
+void IScoreCohesionControl::stopRecord()
+{
+    if(m_recManager)
+    {
+        m_recManager->stopRecording();
+        m_recManager.release();
+    }
 }
 
 
@@ -238,8 +285,8 @@ void IScoreCohesionControl::snapshotParametersInStates()
     using namespace std;
     // Fetch the selected events
     auto sel = currentDocument()->
-                 selectionStack().
-                   currentSelection();
+            selectionStack().
+            currentSelection();
 
     QList<const StateModel*> selected_states;
     for(auto obj : sel)
@@ -265,14 +312,12 @@ void IScoreCohesionControl::snapshotParametersInStates()
         return;
 
     MacroCommandDispatcher macro{new CreateStatesFromParametersInEvents,
-                                 currentDocument()->commandStack()};
+                currentDocument()->commandStack()};
     for(auto& state : selected_states)
     {
-        auto cmd = new Scenario::Command::AddStateToStateModel{
-                   iscore::IDocument::path(*state),
-                   iscore::StatePath{}, // Make it child of the root node
-                   {iscore::StateData{std::move(messages), "NewState"}, nullptr},
-                   -1};
+        auto cmd = new AddMessagesToModel{
+                state->messages(),
+                messages};
         macro.submitCommand(cmd);
     }
 

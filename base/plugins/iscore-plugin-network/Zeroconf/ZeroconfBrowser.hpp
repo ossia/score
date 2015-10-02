@@ -8,11 +8,14 @@ class ZeroconfBrowser : public QObject
 {
         Q_OBJECT
     public:
-        ZeroconfBrowser(QObject* parent);
+        ZeroconfBrowser(
+                const QString& service,
+                QWidget* parent);
         QAction* makeAction();
 
     signals:
-        void sessionSelected(QString ip, int port);
+        // ip, port
+        void sessionSelected(QString, int);
 
     public slots:
         void accept();

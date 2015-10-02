@@ -28,6 +28,16 @@ void SlotView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
     QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
     painter->setPen(QPen{m_focus? highlight : Qt::transparent});
     painter->drawRect(rect);
+
+    static const int fontSize = 12;
+    QRectF processNameRect{0,0, rect.width(), (-fontSize - 2.)};
+    static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
+/*
+    painter->setFont(f);
+    QColor c = QColor::black();
+    painter->setPen(c);
+    painter->drawText(processNameRect, Qt::AlignCenter, m_frontProcessName);
+*/
 }
 
 void SlotView::setHeight(qreal height)
@@ -96,4 +106,9 @@ void SlotView::setFocus(bool b)
 {
     m_focus = b;
     update();
+}
+
+void SlotView::setFrontProcessName(const QString& s)
+{
+    m_frontProcessName = s;
 }

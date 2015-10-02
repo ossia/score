@@ -35,6 +35,7 @@ namespace iscore
 
             virtual void populateMenus(iscore::MenubarManager*);
             virtual QList<iscore::OrderedToolbar> makeToolbars();
+            virtual QList<QAction*> actions();
 
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
                     const QString& name,
@@ -74,8 +75,13 @@ namespace iscore
             virtual void on_newDocument(iscore::Document* doc);
             virtual void on_loadedDocument(iscore::Document* doc);
 
+        private slots:
+            void on_focusChanged(Qt::ApplicationState st);
+
         signals:
             void documentChanged();
+            void defocused();
+            void focused();
 
         protected:
             virtual void on_documentChanged();

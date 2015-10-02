@@ -10,11 +10,13 @@
  * An aggregate command is required : it will put them under the same "command"
  * once in the stack.
  */
-class MacroCommandDispatcher : public ICommandDispatcher
+
+template<typename RedoStrategy_T, typename SendStrategy_T>
+class GenericMacroCommandDispatcher : public ICommandDispatcher
 {
     public:
         template<typename... Args>
-        MacroCommandDispatcher(iscore::AggregateCommand* aggregate, Args&&... args):
+        GenericMacroCommandDispatcher(iscore::AggregateCommand* aggregate, Args&&... args):
                 ICommandDispatcher{std::forward<Args&&>(args)...},
             m_aggregateCommand{aggregate}
         {
@@ -22,6 +24,7 @@ class MacroCommandDispatcher : public ICommandDispatcher
 
         void submitCommand(iscore::SerializableCommand* cmd)
         {
+            RedoStrategy_T::redo(*cmd);
             m_aggregateCommand->addCommand(cmd);
         }
 
@@ -29,11 +32,23 @@ class MacroCommandDispatcher : public ICommandDispatcher
         {
             if(m_aggregateCommand)
             {
-                SendStrategy::Simple::send(stack(), m_aggregateCommand);
-                m_aggregateCommand = nullptr;
+                if(m_aggregateCommand->count() != 0)
+                {
+                    SendStrategy_T::send(stack(), m_aggregateCommand.release());
+                }
+                else
+                {
+                    m_aggregateCommand.reset();
+                }
             }
         }
 
     protected:
-        iscore::AggregateCommand* m_aggregateCommand {};
+        std::unique_ptr<iscore::AggregateCommand> m_aggregateCommand;
 };
+
+// Don't redo() the individual commands, and redo() the aggregate command.
+using MacroCommandDispatcher = GenericMacroCommandDispatcher<RedoStrategy::Quiet, SendStrategy::Simple>;
+
+// Don't redo anything, just push
+using QuietMacroCommandDispatcher = GenericMacroCommandDispatcher<RedoStrategy::Quiet, SendStrategy::Quiet>;

@@ -100,14 +100,15 @@ class ScenarioModel : public Process, public ScenarioInterface
         {
             return states.at(stId);
         }
+        const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(const Id<TimeNodeModel>& timeNodeId) const;
 
-        TimeNodeModel& startTimeNode() const
+        TimeNodeModel& startTimeNode() const override
         {
-            return timeNode(m_startTimeNodeId);
+            return timeNodes.at(m_startTimeNodeId);
         }
-        TimeNodeModel& endTimeNode() const
+        TimeNodeModel& endTimeNode() const override
         {
-            return timeNode(m_endTimeNodeId);
+            return timeNodes.at(m_endTimeNodeId);
         }
         EventModel& startEvent() const
         {
@@ -122,6 +123,23 @@ class ScenarioModel : public Process, public ScenarioInterface
         NotifyingMap<EventModel> events;
         NotifyingMap<TimeNodeModel> timeNodes;
         NotifyingMap<StateModel> states;
+
+        IdContainer<ConstraintModel> getConstraints() const
+        {
+            return constraints;
+        }
+        IdContainer<EventModel> getEvents() const
+        {
+            return events;
+        }
+        IdContainer<TimeNodeModel>getTimeNodes() const
+        {
+            return timeNodes;
+        }
+        IdContainer<StateModel> getStates() const
+        {
+            return states;
+        }
 
     signals:
         void stateMoved(const StateModel&);

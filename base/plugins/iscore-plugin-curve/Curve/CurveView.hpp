@@ -10,7 +10,9 @@ class CurveView : public QGraphicsObject
 
         void setRect(const QRectF& theRect);
 
-        QRectF boundingRect() const override;
+        QRectF boundingRect() const override
+        { return m_rect; }
+
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;

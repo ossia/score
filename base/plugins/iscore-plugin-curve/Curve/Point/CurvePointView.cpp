@@ -8,26 +8,34 @@
 #include <QCursor>
 static const qreal radius = 2.;
 CurvePointView::CurvePointView(
-        const CurvePointModel& model,
+        const CurvePointModel* model,
         QGraphicsItem* parent):
-    QGraphicsObject{parent},
-    m_model{model}
+    QGraphicsObject{parent}
 {
-    this->setAcceptHoverEvents(true);
     this->setZValue(parent->zValue() + 2);
-    con(m_model.selection, &Selectable::changed,
-            this, &CurvePointView::setSelected);
     this->setCursor(Qt::CrossCursor);
+
+    setModel(model);
+}
+
+void CurvePointView::setModel(const CurvePointModel* model)
+{
+    m_model = model;
+    if(m_model)
+    {
+        con(m_model->selection, &Selectable::changed,
+            this, &CurvePointView::setSelected);
+    }
 }
 
 const CurvePointModel& CurvePointView::model() const
 {
-    return m_model;
+    return *m_model;
 }
 
 const Id<CurvePointModel>& CurvePointView::id() const
 {
-    return m_model.id();
+    return m_model->id();
 }
 
 int CurvePointView::type() const
@@ -62,7 +70,6 @@ void CurvePointView::paint(
 
     painter->setPen(pen);
     painter->drawEllipse(boundingRect());
-//    painter->drawRect(boundingRect());
 }
 
 void CurvePointView::setSelected(bool selected)
@@ -86,14 +93,4 @@ void CurvePointView::disable()
 void CurvePointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
     emit contextMenuRequested(ev->screenPos());
-}
-
-void CurvePointView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
-{
-    iscore::setCursor(Qt::CrossCursor);
-}
-
-void CurvePointView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
-{
-    iscore::setCursor(Qt::ArrowCursor);
 }
