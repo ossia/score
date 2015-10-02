@@ -14,7 +14,7 @@ class EditValue : public iscore::SerializableCommand
           EditValue(
             Path<iscore::MessageItemModel>&&,
             const iscore::MessageNodePath&,
-            const QVariant&);
+            const iscore::Value&);
 
         void undo() override;
         void redo() override;
@@ -27,6 +27,6 @@ class EditValue : public iscore::SerializableCommand
         Path<iscore::MessageItemModel> m_path;
         iscore::MessageNodePath m_nodePath;
 
-        iscore::OptionalValue m_oldProcess, m_oldUser;
-        iscore::OptionalValue m_newProcess, m_newUser;
+        iscore::StateNodeValues m_oldValues;
+        iscore::StateNodeValues m_newValues;
 };

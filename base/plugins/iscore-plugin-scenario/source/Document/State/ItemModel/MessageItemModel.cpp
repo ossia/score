@@ -64,6 +64,13 @@ iscore::Message message(const MessageItemModel::node_type& node)
     return mess;
 }
 
+QStringList toStringList(const iscore::Address& addr)
+{
+    QStringList l;
+    l.append(addr.device);
+    return l + addr.path;
+}
+
 // TESTME
 static void flatten_rec(iscore::MessageList& ml, const MessageItemModel::node_type& node)
 {
@@ -90,12 +97,9 @@ void merge_impl(
         MessageItemModel::node_type& base,
         const StateNodeMessage& message)
 {
-
-    ISCORE_TODO;
-    /*
     using iscore::Node;
 
-    QStringList path = message.addr;
+    QStringList path = toStringList(message.addr);
 
     ptr<MessageItemModel::node_type> node = &base;
     for(int i = 0; i < path.size(); i++)
@@ -117,17 +121,17 @@ void merge_impl(
                 if(k < path.size() - 1)
                 {
                     newNode = &parentnode->emplace_back(
-                                StateNodeData{path[k],
-                                              OptionalValue{},
-                                              OptionalValue{}},
+                                StateNodeData{
+                                    path[k],
+                                    {}},
                                 nullptr);
                 }
                 else
                 {
                     newNode = &parentnode->emplace_back(
-                                StateNodeData{path[k],
-                                              message.processValue,
-                                              message.userValue},
+                                StateNodeData{
+                                    path[k],
+                                    message.values},
                                 nullptr);
                 }
 
@@ -143,26 +147,20 @@ void merge_impl(
             if(i == path.size() - 1)
             {
                 // We replace the value by the one in the message
-                node->processValue = message.processValue;
-                node->userValue = message.userValue;
+                node->values = message.values;
             }
         }
     }
-    */
 }
 
 // TESTME
 void MessageItemModel::merge(const StateNodeMessage& mess)
 {
-    ISCORE_TODO;
-    /*
     // First, try to see if there is a corresponding node
-
-    auto n = try_getNodeFromString(m_rootNode, QStringList(mess.addr));
+    auto n = try_getNodeFromString(m_rootNode, toStringList(mess.addr));
     if(n)
     {
-        n->processValue = mess.processValue;
-        n->userValue = mess.userValue;
+        n->values = mess.values;
 
         auto parent = n->parent();
         auto idx = createIndex(parent->indexOfChild(n), 0, n->parent());
@@ -173,7 +171,6 @@ void MessageItemModel::merge(const StateNodeMessage& mess)
         // We need to create a node.
         merge_impl(m_rootNode, mess);
     }
-    */
 }
 
 int MessageItemModel::columnCount(const QModelIndex &parent) const
@@ -195,7 +192,7 @@ QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.displayValue();
+        return node.value().toString();
     }
 
     return {};
@@ -380,22 +377,13 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
-            // In this case we don't make a command, but we directly push the
-            // new value.
-            QVariant copy = value;
-            auto res = copy.convert(n->value().val.type());
-            if(res)
-            {
-                auto cmd = new EditValue(*this,
-                                         MessageNodePath(*n),
-                                         copy);
+            auto cmd = new EditValue(*this,
+                                     MessageNodePath(*n),
+                                     iscore::Value::fromVariant(value));
 
-                CommandDispatcher<> disp(m_stack);
-                disp.submitCommand(cmd);
-                return true;
-            }
-
-            return false;
+            CommandDispatcher<> disp(m_stack);
+            disp.submitCommand(cmd);
+            return true;
         }
     }
 

@@ -11,58 +11,27 @@
 namespace iscore
 {
 
-struct StateNodeMessage
-{
-        QStringList addr; // device + path
-        OptionalValue processValue;
-        OptionalValue userValue;
-};
-
 struct ProcessStateData
 {
         QPointer<Process> process;
         OptionalValue value;
-        int priority;
 };
 
-struct StateNodeData
-{
-        enum class PriorityPolicy {
-            User, Previous, Following
-        };
+enum class PriorityPolicy {
+    User, Previous, Following
+};
 
+struct StateNodeValues
+{
         std::array<PriorityPolicy, 3> priorities{{
             PriorityPolicy::Previous,
             PriorityPolicy::Following,
             PriorityPolicy::User
         }};
-
-        QString name;
+        // TODO use lists or queues instead to manage the priorities
         QVector<ProcessStateData> previousProcessValues;
         QVector<ProcessStateData> followingProcessValues;
         OptionalValue userValue;
-
-        StateNodeData(
-                const QString& name,
-                const QVector<ProcessStateData>& prev,
-                const QVector<ProcessStateData>& foll,
-                const OptionalValue& user):
-            name{name},
-            previousProcessValues{prev},
-            followingProcessValues{foll},
-            userValue{user}
-        {
-
-        }
-
-        StateNodeData() = default;
-        StateNodeData(const StateNodeData&) = default;
-        StateNodeData(StateNodeData&&) = default;
-        StateNodeData& operator=(const StateNodeData&) = default;
-        StateNodeData& operator=(StateNodeData&&) = default;
-
-        const QString& displayName() const
-        { return name; }
 
         static bool hasValue(const QVector<ProcessStateData>& vec)
         {
@@ -77,9 +46,6 @@ struct StateNodeData
             return hasValue(previousProcessValues) || hasValue(followingProcessValues) || bool(userValue);
         }
 
-        // TODO here we have to choose a policy
-        // if we have both previous and following processes ?
-
         static auto value(const QVector<ProcessStateData>& vec)
         {
             return std::find_if(vec.cbegin(), vec.cend(),
@@ -88,6 +54,8 @@ struct StateNodeData
                 });
         }
 
+        // TODO here we have to choose a policy
+        // if we have both previous and following processes ?
         iscore::Value value() const
         {
             for(const auto& prio : priorities)
@@ -124,52 +92,34 @@ struct StateNodeData
             }
 
             return iscore::Value{};
-
-            /*
-            switch(priorityPolicy)
-            {
-                case PriorityPolicy::User:
-                    return userValue
-                            ? *userValue
-                            : ()
-
-                case PriorityPolicy::Previous:
-
-                case PriorityPolicy::Following:
-
-                default:
-                    break;
-            }
-
-            if(!previousProcessValues.empty())
-            {
-                auto it = std::find_if(
-                            processValues.cbegin(),
-                            processValues.cend(),
-                            [] (const auto& pv) {
-                    return bool(pv.value);
-                });
-
-                if(it != processValues.end())
-                {
-                    return *it->value;
-                }
-            }
-            else if(userValue)
-            {
-                return *userValue;
-            }
-            else
-            {
-                return iscore::Value{};
-            }
-            */
         }
 
         QString displayValue() const
         {
             return value().toString();
         }
+
+};
+
+struct StateNodeMessage
+{
+        iscore::Address addr; // device + path
+        StateNodeValues values;
+};
+
+struct StateNodeData
+{
+        QString name;
+        StateNodeValues values;
+
+        const QString& displayName() const
+        { return name; }
+
+        bool hasValue() const
+        { return values.hasValue(); }
+
+        iscore::Value value() const
+        { return values.value(); }
 };
 
 using MessageNode = TreeNode<StateNodeData>;
@@ -213,8 +163,7 @@ class MessageItemModel : public TreeNodeBasedItemModel<MessageNode>
         // Specific operations
         void merge(const StateNodeMessage&);
 
-        void removeFromUser(const iscore::Address&);
-        void removeFromProcess(const iscore::Address&);
+        void remove(const iscore::Address&);
 
         // AbstractItemModel interface
         int columnCount(const QModelIndex &parent) const override;

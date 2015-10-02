@@ -5,7 +5,7 @@
 EditValue::EditValue(
         Path<iscore::MessageItemModel> &&device_tree,
         const iscore::MessageNodePath& nodePath,
-        const QVariant& value):
+        const iscore::Value& value):
     iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},
