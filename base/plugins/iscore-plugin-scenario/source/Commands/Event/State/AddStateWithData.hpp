@@ -32,7 +32,7 @@ namespace Scenario
                     auto vecpath = createStateCmd->scenarioPath().unsafePath().vec();
                     vecpath.append({"StateModel", createStateCmd->createdState()});
                     vecpath.append({"MessageItemModel", {}});
-                    Path<iscore::MessageItemModel> Path{ObjectPath(std::move(vecpath)), {}};
+                    Path<MessageItemModel> Path{ObjectPath(std::move(vecpath)), {}};
 
                     addCommand(createStateCmd);
                     addCommand(new AddMessagesToModel{

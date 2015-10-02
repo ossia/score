@@ -2,7 +2,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 RemoveMessageNodes::RemoveMessageNodes(
-        Path<iscore::MessageItemModel>&& device_tree,
+        Path<MessageItemModel>&& device_tree,
         const iscore::NodeList& lst):
     iscore::SerializableCommand{factoryName(),
                                 commandName(),

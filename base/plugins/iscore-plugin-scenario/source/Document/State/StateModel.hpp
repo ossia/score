@@ -60,8 +60,8 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double heightPercentage() const;
 
-        const iscore::MessageItemModel &messages() const;
-        iscore::MessageItemModel &messages();
+        const MessageItemModel &messages() const;
+        MessageItemModel &messages();
 
         const Id<EventModel>& eventId() const;
         void setEventId(const Id<EventModel>&);
@@ -73,6 +73,11 @@ class StateModel : public IdentifiedObject<StateModel>
         // the scenario when this is called.
         void setNextConstraint(const Id<ConstraintModel>&);
         void setPreviousConstraint(const Id<ConstraintModel>&);
+
+        const auto& previousProcesses() const
+        { return m_previousProcesses; }
+        const auto& followingProcesses() const
+        { return m_nextProcesses; }
 
         void setStatus(EventStatus);
         EventStatus status() const
@@ -105,7 +110,7 @@ class StateModel : public IdentifiedObject<StateModel>
 
         double m_heightPercentage{0.5}; // In the whole scenario
 
-        ptr<iscore::MessageItemModel> m_messageItemModel;
+        ptr<MessageItemModel> m_messageItemModel;
         EventStatus m_status{EventStatus::Editing};
 };
 

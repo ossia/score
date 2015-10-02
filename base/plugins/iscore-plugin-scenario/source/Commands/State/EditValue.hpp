@@ -12,8 +12,8 @@ class EditValue : public iscore::SerializableCommand
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(EditValue)
 
           EditValue(
-            Path<iscore::MessageItemModel>&&,
-            const iscore::MessageNodePath&,
+            Path<MessageItemModel>&&,
+            const MessageNodePath&,
             const iscore::Value&);
 
         void undo() override;
@@ -24,9 +24,9 @@ class EditValue : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        Path<iscore::MessageItemModel> m_path;
-        iscore::MessageNodePath m_nodePath;
+        Path<MessageItemModel> m_path;
+        MessageNodePath m_nodePath;
 
-        iscore::StateNodeValues m_oldValues;
-        iscore::StateNodeValues m_newValues;
+        MessageNode m_oldState;
+        StateNodeValues m_newValues;
 };

@@ -18,8 +18,9 @@ StateModel::StateModel(
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
     m_heightPercentage{yPos},
-    m_messageItemModel{new iscore::MessageItemModel{
+    m_messageItemModel{new MessageItemModel{
                             iscore::IDocument::commandStack(*this),
+                            *this,
                             this}}
 {
     init();
@@ -91,6 +92,10 @@ void StateModel::statesUpdated_slt()
     // that are matching our processes's addresses.
     // If they match, update them in the process state.
     // OPTIMIZEME
+
+    ISCORE_TODO;
+
+    /*
     auto ml = messages().flatten();
     for(const auto& proc : m_previousProcesses)
     {
@@ -130,6 +135,7 @@ void StateModel::statesUpdated_slt()
         proc->setMessages(currentMessages);
     }
     emit sig_statesUpdated();
+    */
 }
 
 // When we add a process, the data in the process takes precedence on the states
@@ -253,12 +259,12 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 }
 
 
-const iscore::MessageItemModel& StateModel::messages() const
+const MessageItemModel& StateModel::messages() const
 {
     return *m_messageItemModel;
 }
 
-iscore::MessageItemModel& StateModel::messages()
+MessageItemModel& StateModel::messages()
 {
     return *m_messageItemModel;
 }

@@ -15,10 +15,10 @@ AutomationState::AutomationState(
     ISCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
     con(this->model(), &AutomationModel::curveChanged,
-            this, &DynamicStateDataInterface::stateChanged);
+            this, &ProcessStateDataInterface::stateChanged);
 
     con(this->model(), &AutomationModel::addressChanged,
-            this, &DynamicStateDataInterface::stateChanged);
+            this, &ProcessStateDataInterface::stateChanged);
 }
 
 QString AutomationState::stateName() const
@@ -72,10 +72,10 @@ iscore::MessageList AutomationState::messages() const
 }
 
 // TESTME
-void AutomationState::setMessages(const iscore::MessageList& received)
+iscore::MessageList AutomationState::setMessages(const iscore::MessageList& received, const MessageNode&)
 {
     if(m_point != 0 && m_point != 1)
-        return;
+        return messages();
 
     const auto& segs = model().curve().segments();
     for(const auto& mess : received)
@@ -95,6 +95,7 @@ void AutomationState::setMessages(const iscore::MessageList& received)
             if(m_point == 0)
             {
                 // Find first segment
+                // TODO ordering would help, here.
                 auto seg_it = std::find_if(
                             segs.begin(),
                             segs.end(),
@@ -124,7 +125,9 @@ void AutomationState::setMessages(const iscore::MessageList& received)
                         seg_it->setEnd({1, val});
                 }
             }
-            return;
+            return messages();
         }
     }
+
+    return messages();
 }

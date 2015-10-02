@@ -2,7 +2,7 @@
 #include <Document/State/ItemModel/MessageItemModel.hpp>
 
 AddMessagesToModel::AddMessagesToModel(
-        Path<iscore::MessageItemModel>&& path,
+        Path<MessageItemModel>&& path,
         const iscore::MessageList& messages) :
     SerializableCommand {factoryName(),
                          commandName(),

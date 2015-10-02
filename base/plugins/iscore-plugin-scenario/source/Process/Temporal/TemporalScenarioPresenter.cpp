@@ -373,7 +373,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         auto vecpath = cmd->scenarioPath().unsafePath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
         vecpath.append({"MessageItemModel", {}});
-        Path<iscore::MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
+        Path<MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
 
         auto cmd2 = new AddMessagesToModel{

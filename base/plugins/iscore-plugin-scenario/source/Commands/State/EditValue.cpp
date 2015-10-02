@@ -1,10 +1,11 @@
 #include "EditValue.hpp"
-
+#include <Document/State/StateModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 
 EditValue::EditValue(
-        Path<iscore::MessageItemModel> &&device_tree,
-        const iscore::MessageNodePath& nodePath,
+        Path<MessageItemModel> &&device_tree,
+        const MessageNodePath& nodePath,
         const iscore::Value& value):
     iscore::SerializableCommand{factoryName(),
                                 commandName(),
@@ -12,17 +13,25 @@ EditValue::EditValue(
     m_path{device_tree},
     m_nodePath{nodePath}
 {
-    ISCORE_TODO;
-    /*
     auto& model = m_path.find();
+    m_oldState = model.rootNode();
+
     auto n = m_nodePath.toNode(&model.rootNode());
-    ISCORE_ASSERT(n->parent() && n->parent()->parent());
+    ISCORE_ASSERT(n && n->parent() && n->parent()->parent());
 
-    // TODO fetch the new values from the processes by asking for it.
+    // TODO fetch the new values from the processes by asking for it ?
+    // This makes sense if we are in a mode where all the values in
+    // the state are collapsed into one.
+    // What if we don't want this and we instead want all three values sent ?
 
-    m_oldProcess = n->processValue;
-    m_oldUser= n->userValue;
-    */
+    auto& sm = model.stateModel;
+    iscore::MessageList mess{iscore::Message{address(*n), value}};
+    for(ProcessStateDataInterface* prevProc : sm.previousProcesses())
+    {
+        auto lst = prevProc->setMessages(mess, m_oldState);
+
+    }
+
 }
 
 void EditValue::undo()

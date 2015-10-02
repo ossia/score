@@ -23,7 +23,7 @@ class AutomationState : public ProcessStateDataInterface
 
         std::vector<iscore::Address> matchingAddresses() override;
         iscore::MessageList messages() const override;
-        void setMessages(const iscore::MessageList&) override;
+        iscore::MessageList setMessages(const iscore::MessageList&, const MessageNode&) override;
 
     private:
         double m_point{};

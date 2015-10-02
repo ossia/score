@@ -7,10 +7,12 @@
 using namespace iscore;
 MessageItemModel::MessageItemModel(
         CommandStack& stack,
+        const StateModel& sm,
         QObject* parent):
     TreeNodeBasedItemModel<MessageNode>{parent},
     m_rootNode{},
-    m_stack{stack}
+    m_stack{stack},
+    stateModel{sm}
 {
     this->setObjectName("MessageItemModel");
 }
@@ -37,38 +39,6 @@ MessageItemModel &MessageItemModel::operator=(node_type && n)
     m_rootNode = std::move(n);
     endResetModel();
     return *this;
-}
-
-iscore::Address address(const MessageItemModel::node_type &treeNode)
-{
-    iscore::Address addr;
-    auto n = &treeNode;
-    while(n->parent() && n->parent()->parent())
-    {
-        addr.path.prepend(n->name);
-        n = n->parent();
-    }
-
-    ISCORE_ASSERT(n);
-    addr.device = n->name;
-
-    return addr;
-}
-
-iscore::Message message(const MessageItemModel::node_type& node)
-{
-    iscore::Message mess;
-    mess.address = address(node);
-    mess.value = node.value();
-
-    return mess;
-}
-
-QStringList toStringList(const iscore::Address& addr)
-{
-    QStringList l;
-    l.append(addr.device);
-    return l + addr.path;
 }
 
 // TESTME
@@ -171,6 +141,11 @@ void MessageItemModel::merge(const StateNodeMessage& mess)
         // We need to create a node.
         merge_impl(m_rootNode, mess);
     }
+}
+
+void MessageItemModel::remove(const Address&)
+{
+    ISCORE_TODO;
 }
 
 int MessageItemModel::columnCount(const QModelIndex &parent) const

@@ -377,38 +377,6 @@ std::shared_ptr<OSSIA::Message> message(
     return {};
 }
 
-std::shared_ptr<OSSIA::State> state(
-        const iscore::StateNode &iscore_state,
-        const DeviceList& deviceList)
-{
-    auto ossia_state = OSSIA::State::create();
-
-    auto& elts = ossia_state->stateElements();
-
-    if(iscore_state.is<InvisibleRootNodeTag>())
-    {
-        // Do nothing
-    }
-    else if(iscore_state.is<MessageList>())
-    {
-        for(const auto& mess : iscore_state.get<MessageList>())
-        {
-            elts.push_back(message(mess, deviceList));
-        }
-    }
-    else
-    {
-        ISCORE_TODO;
-    }
-
-    for(const auto& child : iscore_state)
-    {
-        elts.push_back(state(child, deviceList));
-    }
-
-    return ossia_state;
-}
-
 template<typename Fun>
 static void visit_node(
         const iscore::Node* root,

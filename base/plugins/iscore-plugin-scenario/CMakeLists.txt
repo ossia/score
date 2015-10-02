@@ -31,6 +31,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/LayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ModelMetadataSerialization.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/State/MessageNode.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )

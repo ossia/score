@@ -13,7 +13,7 @@ class RemoveMessageNodes : public iscore::SerializableCommand
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveMessageNodes)
 
           RemoveMessageNodes(
-            Path<iscore::MessageItemModel>&& ,
+            Path<MessageItemModel>&& ,
             const iscore::NodeList&);
 
         void undo() override;
@@ -24,7 +24,7 @@ class RemoveMessageNodes : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        Path<iscore::MessageItemModel> m_path;
+        Path<MessageItemModel> m_path;
         QList<iscore::Node> m_savedNodes;
         QList<iscore::NodePath> m_nodePaths;
 };
