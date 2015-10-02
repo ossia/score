@@ -175,3 +175,12 @@ void SpaceProcess::addComputation(ComputationModel * c)
 
     emit computationAdded(*c);
 }
+
+
+void SpaceProcess::startExecution()
+{
+}
+
+void SpaceProcess::stopExecution()
+{
+}
