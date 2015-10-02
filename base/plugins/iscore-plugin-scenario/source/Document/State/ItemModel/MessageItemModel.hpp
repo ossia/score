@@ -43,11 +43,6 @@ class MessageItemModel : public TreeNodeBasedItemModel<MessageNode>
         node_type& rootNode() override
         { return m_rootNode; }
 
-        // Specific operations
-        void merge(const StateNodeMessage&);
-
-        void remove(const iscore::Address&);
-
         // AbstractItemModel interface
         int columnCount(const QModelIndex &parent) const override;
 

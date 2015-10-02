@@ -249,7 +249,6 @@ void updateTreeWithMessageList(
         MessageNode& rootNode,
         iscore::MessageList lst)
 {
-
     for(const auto& mess : lst)
     {
         merge_impl(

@@ -63,34 +63,6 @@ MessageList MessageItemModel::flatten() const
     return ml;
 }
 
-
-// TESTME
-void MessageItemModel::merge(const StateNodeMessage& mess)
-{
-    /* ISCORE_TODO
-    // First, try to see if there is a corresponding node
-    auto n = try_getNodeFromString(m_rootNode, toStringList(mess.addr));
-    if(n)
-    {
-        n->values = mess.values;
-
-        auto parent = n->parent();
-        auto idx = createIndex(parent->indexOfChild(n), 0, n->parent());
-        emit dataChanged(idx, idx);
-    }
-    else
-    {
-        // We need to create a node.
-        merge_impl(m_rootNode, mess);
-    }
-    */
-}
-
-void MessageItemModel::remove(const Address&)
-{
-    ISCORE_TODO;
-}
-
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;
@@ -254,7 +226,6 @@ Qt::DropActions MessageItemModel::supportedDragActions() const
 
 Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
 {
-    ISCORE_TODO;
     Qt::ItemFlags f = Qt::ItemIsEnabled;
 
     if(index.isValid())

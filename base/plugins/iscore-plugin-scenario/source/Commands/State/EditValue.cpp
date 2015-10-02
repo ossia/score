@@ -45,15 +45,11 @@ UpdateState::UpdateState(
             updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Following);
         }
 
-        updateTreeWithMessageList(m_newState, messages);
         // TODO one day there will also be State functions that will perform
         // some local computation.
     }
-    else
-    {
-        // Just merge
-        ISCORE_TODO;
-    }
+
+    updateTreeWithMessageList(m_newState, messages);
 }
 
 void UpdateState::undo()
