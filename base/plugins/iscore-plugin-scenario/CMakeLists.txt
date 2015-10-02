@@ -18,9 +18,10 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/*.hpp")
 set(PROCESS_SRCS
-
+# TODO move these files bak in ProcessInterface.
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/TimeValueSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ProcessInterfaceSerialization/ProcessModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/State/MessageNodeSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/Focus/FocusDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ProcessInterface/ProcessList.cpp"
@@ -214,6 +215,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StatePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModelAlgorithms.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageData.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"

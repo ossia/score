@@ -10,7 +10,7 @@
 class StateModel;
 struct ProcessStateData
 {
-        QPointer<const Process> process;
+        Id<Process> process;
         iscore::OptionalValue value;
 };
 
