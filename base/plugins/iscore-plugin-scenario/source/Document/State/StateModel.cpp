@@ -108,6 +108,11 @@ void StateModel::on_previousProcessAdded(const Process& proc)
         auto node = m_messageItemModel->rootNode();
         updateTreeWithMessageList(node, ml, proc.id(), Position::Previous);
         *m_messageItemModel = std::move(node);
+
+        for(auto& proc : m_nextProcesses)
+        {
+            proc->setMessages(ml, m_messageItemModel->rootNode());
+        }
     });
 
     m_previousProcesses.insert(state);
@@ -139,6 +144,12 @@ void StateModel::on_nextProcessAdded(const Process& proc)
         auto node = m_messageItemModel->rootNode();
         updateTreeWithMessageList(node, ml, proc.id(), Position::Following);
         *m_messageItemModel = std::move(node);
+
+        // TODO if(synchronize) ...
+        for(auto& proc : m_previousProcesses)
+        {
+            proc->setMessages(ml, m_messageItemModel->rootNode());
+        }
     });
 
     m_nextProcesses.insert(state);
