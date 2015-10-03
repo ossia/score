@@ -82,7 +82,8 @@ QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.value().toString();
+        auto val = node.value();
+        return val ? val->toString() : "";
     }
 
     return {};

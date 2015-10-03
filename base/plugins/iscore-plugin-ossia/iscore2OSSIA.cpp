@@ -1,5 +1,6 @@
 #include "iscore2OSSIA.hpp"
 
+#include <ProcessInterface/State/MessageNode.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/int.hpp>
@@ -379,20 +380,20 @@ std::shared_ptr<OSSIA::Message> message(
 
 template<typename Fun>
 static void visit_node(
-        const iscore::Node* root,
+        const MessageNode& root,
         Fun f)
 {
     f(root);
 
-    for(const auto& child : root->children())
+    for(const auto& child : root.children())
     {
-        visit_node(&child, f);
+        visit_node(child, f);
     }
 }
 
 std::shared_ptr<OSSIA::State> state(
         std::shared_ptr<OSSIA::State> ossia_state,
-        const iscore::Node &iscore_state,
+        const MessageNode &iscore_state,
         const DeviceList& deviceList)
 {
     auto& elts = ossia_state->stateElements();
@@ -400,22 +401,19 @@ std::shared_ptr<OSSIA::State> state(
     // For all elements where IOType != Invalid,
     // we add the elements to the state.
 
-    visit_node(&iscore_state, [&] (const iscore::Node* n) {
-        if(n->is<iscore::AddressSettings>())
-        {
-            const auto& val = n->get<iscore::AddressSettings>();
-            if(val.ioType != IOType::Invalid)
+    visit_node(iscore_state, [&] (const MessageNode& n) {
+            const auto& val = n.value();
+            if(val)
             {
                 elts.push_back(
                             message(
                                 iscore::Message{
-                                    iscore::address(*n),
-                                    val.value},
+                                    address(n),
+                                    *val},
                                 deviceList
                                 )
                             );
             }
-        }
     });
 
     return ossia_state;

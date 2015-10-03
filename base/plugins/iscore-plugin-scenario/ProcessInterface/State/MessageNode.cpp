@@ -19,7 +19,10 @@ iscore::Message message(const MessageNode& node)
 {
     iscore::Message mess;
     mess.address = address(node);
-    mess.value = node.value();
+
+    auto val = node.value();
+    ISCORE_ASSERT(bool(val));
+    mess.value = *val;
 
     return mess;
 }

@@ -15,7 +15,7 @@
 #include <State/Expression.hpp>
 
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
-
+#include <ProcessInterface/State/MessageNode.hpp>
 namespace iscore
 {
 namespace convert
@@ -62,9 +62,8 @@ inline OSSIA::TimeValue time(const TimeValue& t)
             : OSSIA::TimeValue{t.msec()};
 }
 
-std::shared_ptr<OSSIA::State> state(
-        std::shared_ptr<OSSIA::State> ossia_state,
-        const iscore::Node &iscore_state,
+std::shared_ptr<OSSIA::State> state(std::shared_ptr<OSSIA::State> ossia_state,
+        const MessageNode& iscore_state,
         const DeviceList& deviceList);
 
 

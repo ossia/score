@@ -27,12 +27,9 @@ const StateModel &OSSIAStateElement::iscoreState() const
 
 void OSSIAStateElement::on_stateUpdated()
 {
-    ISCORE_TODO;
-    /*
     m_ossia_state->stateElements().clear();
     iscore::convert::state(
                 m_ossia_state,
                 m_iscore_state.messages().rootNode(),
                 m_deviceList);
-                */
 }

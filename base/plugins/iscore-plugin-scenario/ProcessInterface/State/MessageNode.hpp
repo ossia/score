@@ -55,7 +55,7 @@ struct StateNodeValues
 
         // TODO here we have to choose a policy
         // if we have both previous and following processes ?
-        iscore::Value value() const
+        iscore::OptionalValue value() const
         {
             for(const auto& prio : priorities)
             {
@@ -90,12 +90,15 @@ struct StateNodeValues
                 }
             }
 
-            return iscore::Value{};
+            return {};
         }
 
         QString displayValue() const
         {
-            return value().toString();
+            auto val = value();
+            if(val)
+                return val->toString();
+            return {};
         }
 
 };
@@ -117,7 +120,7 @@ struct StateNodeData
         bool hasValue() const
         { return values.hasValue(); }
 
-        iscore::Value value() const
+        iscore::OptionalValue value() const
         { return values.value(); }
 };
 
