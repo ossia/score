@@ -71,22 +71,7 @@ void CurvePresenter::setRect(const QRectF& rect)
 
 void CurvePresenter::setPos(CurvePointView& point)
 {
-    auto size = m_view->boundingRect().size();
-    // Get the previous or next segment. There has to be at least one.
-    if(const auto& prev_id = point.model().previous())
-    {
-        const auto& curvemodel = m_model.segments().at(prev_id);
-        point.setPos(myscale(curvemodel.end(), size));
-        return;
-    }
-    else if(const auto& next_id = point.model().following())
-    {
-        const auto& curvemodel = m_model.segments().at(next_id);
-        point.setPos(myscale(curvemodel.start(), size));
-        return;
-    }
-
-    ISCORE_ABORT;
+    point.setPos(myscale(point.model().pos(),  m_view->boundingRect().size()));
 }
 
 void CurvePresenter::setPos(CurveSegmentView& segment)
@@ -329,30 +314,14 @@ void CurvePresenter::setupPointConnections(CurvePointView* pt_view)
 {
     connect(pt_view, &CurvePointView::contextMenuRequested,
             m_view, &CurveView::contextMenuRequested);
+    con(pt_view->model(), &CurvePointModel::posChanged,
+        this, [=] () { setPos(*pt_view); });
 }
 
 void CurvePresenter::setupSegmentConnections(CurveSegmentView* seg_view)
 {
     connect(seg_view, &CurveSegmentView::contextMenuRequested,
             m_view, &CurveView::contextMenuRequested);
-
-    // Change the position of the points, when the segment moves.
-    con(seg_view->model(), &CurveSegmentModel::startChanged,
-            this, [=] () {
-        auto pt = std::find_if(m_points.begin(), m_points.end(), [&] (const CurvePointView& pt_view) {
-            return pt_view.model().following() == seg_view->model().id();
-        });
-        if(pt != m_points.end())
-        { setPos(*pt); }
-    });
-    con(seg_view->model(), &CurveSegmentModel::endChanged,
-        this, [=] () {
-        auto pt = std::find_if(m_points.begin(), m_points.end(), [&] (const CurvePointView& pt_view) {
-            return pt_view.model().previous() == seg_view->model().id();
-        });
-        if(pt != m_points.end())
-        { setPos(*pt); }
-    });
 }
 
 void CurvePresenter::modelReset()
@@ -412,7 +381,7 @@ void CurvePresenter::modelReset()
         }
     }
 
-    ISCORE_ASSERT(points.size() == m_model.points().size());
+    ISCORE_ASSERT((int)points.size() == m_model.points().size());
     ISCORE_ASSERT(segments.size() == m_model.segments().size());
 
     // 3. We set the data

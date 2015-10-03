@@ -3,6 +3,7 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include "SettableIdentifier.hpp"
 
+// TODO refactor with OptionalValue serialization.
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const boost::optional<int32_t>& obj)
 {
@@ -33,6 +34,7 @@ void Visitor<Writer<DataStream>>::writeTo(boost::optional<int32_t>& obj)
     }
 }
 
+// TODO should not be used. Save as optional json value instead.
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const boost::optional<int32_t>& obj)
 {

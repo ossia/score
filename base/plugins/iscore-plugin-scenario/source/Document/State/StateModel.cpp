@@ -120,6 +120,10 @@ void StateModel::on_previousProcessRemoved(const Process& proc)
     if(!state)
         return;
 
+    auto node = m_messageItemModel->rootNode();
+    updateTreeWithRemovedProcess(node, proc.id(), Position::Previous);
+    *m_messageItemModel = std::move(node);
+
     m_previousProcesses.erase(state);
 }
 
@@ -146,6 +150,10 @@ void StateModel::on_nextProcessRemoved(const Process& proc)
     ProcessStateDataInterface* state = proc.startState();
     if(!state)
         return;
+
+    auto node = m_messageItemModel->rootNode();
+    updateTreeWithRemovedProcess(node, proc.id(), Position::Following);
+    *m_messageItemModel = std::move(node);
 
     m_nextProcesses.erase(state);
 }

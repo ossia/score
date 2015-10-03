@@ -58,6 +58,44 @@ void rec_delete(MessageNode& node)
     }
 }
 
+
+// Returns true if this node is to be deleted.
+bool nodePruneAction_impl(
+        MessageNode& node,
+        const Id<Process>& proc,
+        QVector<ProcessStateData>& vec,
+        const QVector<ProcessStateData>& other_vec)
+{
+    int vec_size = vec.size();
+    if(vec_size > 1)
+    {
+        // We just remove the element
+        // corresponding to this process.
+        auto it = std::find_if(vec.begin(),
+                               vec.end(),
+                               [&] (const auto& data) {
+            return data.process == proc;
+        });
+
+        if(it != vec.end())
+        {
+            vec.erase(it);
+        }
+    }
+    else if(vec_size == 1)
+    {
+        // We are able to remove the whole node
+        if(vec.front().process == proc
+        && other_vec.isEmpty()
+        && !node.values.userValue)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void nodePruneAction(
         MessageNode& node,
         const Id<Process>& proc,
@@ -72,32 +110,18 @@ void nodePruneAction(
     {
         case Position::Previous:
         {
-            bool deleteMeMaybe = std::any_of(node.values.previousProcessValues.begin(),
-                                          node.values.previousProcessValues.end(),
-                                          [&] (const ProcessStateData& data)
-            { return data.process == proc; });
-
-            if(deleteMeMaybe
-            && node.values.followingProcessValues.isEmpty()
-            && !node.values.userValue)
-            {
-                deleteMe = true;
-            }
+            nodePruneAction_impl(
+                        node, proc,
+                        node.values.previousProcessValues,
+                        node.values.followingProcessValues);
             break;
         }
         case Position::Following:
         {
-            bool deleteMeMaybe = std::any_of(node.values.followingProcessValues.begin(),
-                                          node.values.followingProcessValues.end(),
-                                          [&] (const ProcessStateData& data)
-            { return data.process == proc; });
-
-            if(deleteMeMaybe
-            && node.values.previousProcessValues.isEmpty()
-            && !node.values.userValue)
-            {
-                deleteMe = true;
-            }
+            nodePruneAction_impl(
+                        node, proc,
+                        node.values.followingProcessValues,
+                        node.values.previousProcessValues);
             break;
         }
         default:
@@ -114,6 +138,8 @@ void nodePruneAction(
         }
         else
         {
+            // We can delete this node and recursively
+            // try to delete its empty parents
             rec_delete(node);
         }
     }
@@ -159,25 +185,15 @@ void nodeInsertAction(
     }
 }
 
-void nodeAction(
-        MessageNode& node,
-        iscore::MessageList& msg,
-        const Id<Process>& proc,
-        Position pos)
-{
-    // If the message is in the tree, we add the process value.
-    nodeInsertAction(node, msg, proc, pos);
-    nodePruneAction(node, proc, pos);
-}
-
-
 void rec_updateTree(
         MessageNode& node,
         iscore::MessageList& lst,
         const Id<Process>& proc,
         Position pos)
 {
-    nodeAction(node, lst, proc, pos);
+    // If the message is in the tree, we add the process value.
+    nodeInsertAction(node, lst, proc, pos);
+    nodePruneAction(node, proc, pos);
 
     for(auto& child : node)
     {
@@ -285,4 +301,33 @@ void updateTreeWithMessageList(
             rootNode,
             {mess.address, StateNodeValues{{}, {}, mess.value}});
     }
+}
+
+
+
+void rec_pruneTree(
+        MessageNode& node,
+        const Id<Process>& proc,
+        Position pos)
+{
+    // If the message is in the tree, we add the process value.
+    nodePruneAction(node, proc, pos);
+
+    for(auto& child : node)
+    {
+        rec_pruneTree(child, proc, pos);
+    }
+}
+
+void updateTreeWithRemovedProcess(
+        MessageNode& rootNode,
+        const Id<Process>& proc,
+        Position pos)
+{
+    for(auto& child : rootNode)
+    {
+        rec_pruneTree(child, proc, pos);
+    }
+
+
 }

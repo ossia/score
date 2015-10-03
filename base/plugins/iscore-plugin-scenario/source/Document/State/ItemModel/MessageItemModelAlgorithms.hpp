@@ -17,3 +17,9 @@ void updateTreeWithMessageList(
         iscore::MessageList lst,
         const Id<Process>& proc,
         Position pos);
+
+void updateTreeWithRemovedProcess(
+        MessageNode& rootNode,
+        const Id<Process>& proc,
+        Position pos);
+

@@ -198,3 +198,33 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::Value& val)
     }
 }
 
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const iscore::OptionalValue& obj)
+{
+    m_stream << static_cast<bool>(obj);
+
+    if(obj)
+    {
+        m_stream << *obj;
+    }
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(iscore::OptionalValue& obj)
+{
+    bool b {};
+    m_stream >> b;
+
+    if(b)
+    {
+        iscore::Value val;
+        m_stream >> val;
+
+        obj = val;
+    }
+    else
+    {
+        obj = boost::none_t {};
+    }
+}

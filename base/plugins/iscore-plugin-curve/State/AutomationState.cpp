@@ -74,25 +74,23 @@ iscore::MessageList AutomationState::messages() const
 // TESTME
 iscore::MessageList AutomationState::setMessages(const iscore::MessageList& received, const MessageNode&)
 {
-    ISCORE_TODO;
-    /*
     if(m_point != 0 && m_point != 1)
         return messages();
 
-    const auto& segs = model().curve().segments();
+    const auto& segs = process().curve().segments();
     for(const auto& mess : received)
     {
-        if(mess.address == model().address())
+        if(mess.address == process().address())
         {
             // Scale min, max, and the value
             // TODO convert to the real type of the curve.
             auto val = mess.value.val.toDouble();
-            if(val < model().min())
-                model().setMin(val);
-            if(val > model().max())
-                model().setMax(val);
+            if(val < process().min())
+                process().setMin(val);
+            if(val > process().max())
+                process().setMax(val);
 
-            val = (val - model().min()) / (model().max() - model().min());
+            val = (val - process().min()) / (process().max() - process().min());
 
             if(m_point == 0)
             {
@@ -130,6 +128,5 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
             return messages();
         }
     }
-*/
     return messages();
 }
