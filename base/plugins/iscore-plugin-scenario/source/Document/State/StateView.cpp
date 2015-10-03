@@ -48,6 +48,7 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 void StateView::setContainMessage(bool arg)
 {
     m_containMessage = arg;
+    update();
 }
 
 void StateView::setSelected(bool arg)

@@ -110,7 +110,7 @@ void nodePruneAction(
     {
         case Position::Previous:
         {
-            nodePruneAction_impl(
+            deleteMe = nodePruneAction_impl(
                         node, proc,
                         node.values.previousProcessValues,
                         node.values.followingProcessValues);
@@ -118,7 +118,7 @@ void nodePruneAction(
         }
         case Position::Following:
         {
-            nodePruneAction_impl(
+            deleteMe = nodePruneAction_impl(
                         node, proc,
                         node.values.followingProcessValues,
                         node.values.previousProcessValues);
@@ -202,11 +202,14 @@ void rec_updateTree(
 }
 
 // TODO another one to refactor with merges
+// MergeFun takes a state node value and modifies it.
+template<typename MergeFun>
 void merge_impl(
         MessageNode& base,
-        const StateNodeMessage& message)
+        const iscore::Address& addr,
+        MergeFun merge)
 {
-    QStringList path = toStringList(message.addr);
+    QStringList path = toStringList(addr);
 
     ptr<MessageNode> node = &base;
     for(int i = 0; i < path.size(); i++)
@@ -235,10 +238,12 @@ void merge_impl(
                 }
                 else
                 {
+                    StateNodeValues v;
+                    merge(v);
                     newNode = &parentnode->emplace_back(
                                 StateNodeData{
                                     path[k],
-                                    message.values},
+                                    std::move(v)},
                                 nullptr);
                 }
 
@@ -254,7 +259,7 @@ void merge_impl(
             if(i == path.size() - 1)
             {
                 // We replace the value by the one in the message
-                node->values.userValue = message.values.userValue;
+                merge(node->values);
             }
         }
     }
@@ -269,7 +274,11 @@ void updateTreeWithMessageList(
     {
         merge_impl(
             rootNode,
-            {mess.address, StateNodeValues{{}, {}, mess.value}});
+            mess.address,
+            [&] (auto& nodeValues) {
+            nodeValues.userValue = mess.value;
+        });
+
     }
 }
 
@@ -297,9 +306,24 @@ void updateTreeWithMessageList(
     // Handle the remaining messages
     for(const auto& mess : lst)
     {
+
+        //{mess.address, StateNodeValues{{}, {}, {}}}
         merge_impl(
-            rootNode,
-            {mess.address, StateNodeValues{{}, {}, mess.value}});
+            rootNode, mess.address,
+            [&] (StateNodeValues& nodeValues) {
+            switch(pos)
+            {
+                case Position::Previous:
+                    nodeValues.previousProcessValues.push_back({proc, mess.value});
+                    break;
+                case Position::Following:
+                    nodeValues.followingProcessValues.push_back({proc, mess.value});
+                    break;
+                default:
+                    ISCORE_ABORT;
+                    break;
+            }
+        });
     }
 }
 
@@ -328,6 +352,4 @@ void updateTreeWithRemovedProcess(
     {
         rec_pruneTree(child, proc, pos);
     }
-
-
 }
