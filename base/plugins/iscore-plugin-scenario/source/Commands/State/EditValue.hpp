@@ -28,4 +28,7 @@ class UpdateState : public iscore::SerializableCommand
         MessageNodePath m_nodePath;
 
         MessageNode m_oldState, m_newState;
+
+        QMap<Id<Process>, iscore::MessageList> m_previousBackup;
+        QMap<Id<Process>, iscore::MessageList> m_followingBackup;
 };
