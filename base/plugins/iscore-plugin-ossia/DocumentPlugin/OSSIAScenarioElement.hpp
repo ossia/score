@@ -31,7 +31,7 @@ class OSSIAScenarioElement : public OSSIAProcessElement
 {
     public:
         OSSIAScenarioElement(
-                OSSIAConstraintElement* parentConstraint,
+                OSSIAConstraintElement& parentConstraint,
                 ScenarioModel& element,
                 QObject* parent);
 
@@ -70,8 +70,6 @@ class OSSIAScenarioElement : public OSSIAProcessElement
                 OSSIA::TimeEvent::Status newStatus);
 
     private:
-        QPointer<OSSIAConstraintElement> m_parent_constraint;
-
         // TODO use IdContainer
         std::map<Id<ConstraintModel>, OSSIAConstraintElement*> m_ossia_constraints;
         std::map<Id<StateModel>, OSSIAStateElement*> m_ossia_states;

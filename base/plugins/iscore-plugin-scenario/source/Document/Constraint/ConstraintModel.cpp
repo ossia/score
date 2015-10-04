@@ -133,6 +133,21 @@ void ConstraintModel::on_rackAdded(const RackModel& rack)
         &rack, &RackModel::on_durationChanged);
 }
 
+bool ConstraintModel::looping() const
+{
+    return m_looping;
+}
+
+void ConstraintModel::setLooping(bool looping)
+{
+    if(looping != m_looping)
+    {
+        m_looping = looping;
+
+        emit loopingChanged(m_looping);
+    }
+}
+
 const Id<StateModel>& ConstraintModel::startState() const
 {
     return m_startState;

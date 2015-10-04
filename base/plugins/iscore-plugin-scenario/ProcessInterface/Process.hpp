@@ -126,6 +126,7 @@ class Process: public IdentifiedObject<Process>
     signals:
         // True if the execution is running.
         void execution(bool);
+        void durationChanged(const TimeValue&);
 
     protected:
         // Clone

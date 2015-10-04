@@ -15,11 +15,10 @@
 #include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 OSSIAScenarioElement::OSSIAScenarioElement(
-        OSSIAConstraintElement *parentConstraint,
+        OSSIAConstraintElement& parentConstraint,
         ScenarioModel& element,
         QObject* parent):
-    OSSIAProcessElement{parent},
-    m_parent_constraint{parentConstraint},
+    OSSIAProcessElement{parentConstraint, parent},
     m_iscore_scenario{element},
     m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
@@ -156,11 +155,11 @@ void OSSIAScenarioElement::on_timeNodeCreated(const TimeNodeModel& tn)
     std::shared_ptr<OSSIA::TimeNode> ossia_tn;
     if(&tn == &m_iscore_scenario.startTimeNode())
     {
-        ossia_tn = m_ossia_scenario->getStartNode();
+        ossia_tn = m_ossia_scenario->getStartTimeNode();
     }
     else if(&tn == &m_iscore_scenario.endTimeNode())
     {
-        ossia_tn = m_ossia_scenario->getEndNode();
+        ossia_tn = m_ossia_scenario->getEndTimeNode();
     }
     else
     {

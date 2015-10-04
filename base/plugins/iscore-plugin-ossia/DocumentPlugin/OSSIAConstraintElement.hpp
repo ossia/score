@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include "ProcessWrapper.hpp"
 #include <memory>
 
 class ConstraintModel;
@@ -8,10 +9,15 @@ class Process;
 class OSSIAProcessElement;
 namespace OSSIA
 {
-    class TimeConstraint;
-    class TimeValue;
-    class StateElement;
+class Loop;
+class TimeConstraint;
+class TimeValue;
+class StateElement;
+class Scenario;
+class TimeNode;
+class TimeProcess;
 }
+
 class OSSIAConstraintElement : public QObject
 {
     public:
@@ -34,6 +40,8 @@ class OSSIAConstraintElement : public QObject
         void on_processAdded(const Process& id);
         void on_processRemoved(const Process& id);
 
+        void on_loopingChanged(bool);
+
         void constraintCallback(
                 const OSSIA::TimeValue& position,
                 const OSSIA::TimeValue& date,
@@ -42,6 +50,7 @@ class OSSIAConstraintElement : public QObject
         ConstraintModel& m_iscore_constraint;
         std::shared_ptr<OSSIA::TimeConstraint> m_ossia_constraint;
 
-        std::map<Id<Process>, OSSIAProcessElement*> m_processes;
+        std::map<Id<Process>, OSSIAProcess> m_processes;
 
+        std::shared_ptr<OSSIA::Loop> m_loop;
 };

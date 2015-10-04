@@ -47,6 +47,52 @@ using namespace iscore;
 using namespace iscore::IDocument;
 
 
+// TODO MOVEME
+// TODO add to command list
+class SetLooping : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL("ScenarioControl", "SetLooping", "SetLooping")
+
+    public:
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetLooping)
+
+        SetLooping(
+                Path<ConstraintModel>&& constraintPath,
+                bool looping) :
+            SerializableCommand {factoryName(),
+                                 commandName(),
+                                 description()},
+            m_path {constraintPath},
+            m_looping {looping}
+        {
+        }
+
+        void undo() override
+        {
+            m_path.find().setLooping(!m_looping);
+        }
+
+        void redo() override
+        {
+            m_path.find().setLooping(m_looping);
+        }
+
+    protected:
+        void serializeImpl(QDataStream& s) const override
+        {
+            s << m_path << m_looping;
+        }
+
+        void deserializeImpl(QDataStream& s) override
+        {
+            s >> m_path >> m_looping;
+        }
+
+    private:
+        Path<ConstraintModel> m_path;
+        bool m_looping{};
+};
+
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ConstraintModel& object,
         iscore::Document& doc,
@@ -82,8 +128,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     ////// BODY
     QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
-            [this]()
-    {
+            this, [this] {
         auto& base = get<BaseElementModel> (*documentFromObject(m_model));
 
         base.setDisplayedConstraint(model());
@@ -103,6 +148,13 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Durations
     m_durationSection = new DurationSectionWidget {this};
     m_properties.push_back(m_durationSection);
+    auto loop = new QPushButton{tr("Loop"), this};
+    connect(loop, &QPushButton::clicked,
+            this, [this] {
+        auto cmd = new SetLooping{m_model, !m_model.looping()};
+        commandDispatcher()->submitCommand(cmd);
+    });
+    m_properties.push_back(loop);
 
     // Separator
     m_properties.push_back(new Separator {this});

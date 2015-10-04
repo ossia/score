@@ -102,7 +102,7 @@ void StateModel::on_previousProcessAdded(const Process& proc)
         // TODO have some collapsing between all the processes of a state
         // NOTE how to prevent these states from being played
         // twice ? mark them ?
-        // TODO which one shoul be sent ? the ones
+        // TODO which one should be sent ? the ones
         // from the process ?
 
         auto node = m_messageItemModel->rootNode();

@@ -25,8 +25,10 @@ OSSIAConstraintElement::OSSIAConstraintElement(
     con(iscore_cst.processes, &NotifyingMap<Process>::removed,
             this, &OSSIAConstraintElement::on_processRemoved);
 
+    con(iscore_cst, &ConstraintModel::loopingChanged,
+        this, &OSSIAConstraintElement::on_loopingChanged);
+
     // Setup updates
-    // todo : should be in OSSIAConstraintElement
     con(iscore_cst.duration, &ConstraintDurations::defaultDurationChanged, this,
             [=] (const TimeValue& t) {
         ossia_cst->setDuration(iscore::convert::time(t));
@@ -88,7 +90,7 @@ void OSSIAConstraintElement::stop()
     m_ossia_constraint->stop();
     for(auto& process : m_processes)
     {
-        process.second->stop();
+        process.second.element->stop();
     }
 
     m_iscore_constraint.reset();
@@ -120,21 +122,28 @@ void OSSIAConstraintElement::on_processAdded(
     OSSIAProcessElement* plug{};
     if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
     {
-        plug = new OSSIAScenarioElement{this, *scenar, proc};
+        plug = new OSSIAScenarioElement{*this, *scenar, proc};
     }
     else if(auto autom = dynamic_cast<AutomationModel*>(proc))
     {
-        plug = new OSSIAAutomationElement{this, *autom, proc};
+        plug = new OSSIAAutomationElement{*this, *autom, proc};
     }
 
     if(plug)
     {
-        m_processes.insert({iscore_proc.id(), plug});
+        auto id = iscore_proc.id();
+
+        ProcessWrapper pw{m_ossia_constraint,
+                          plug->process(),
+                          iscore::convert::time(plug->iscoreProcess().duration()),
+                          m_iscore_constraint.looping()};
+        m_processes.insert({id, {plug, std::move(pw)}});
+
 
         // i-score scenario has ownership, hence
         // we have to remove it from the array if deleted
         connect(plug, &QObject::destroyed, this,
-                [&,id=iscore_proc.id()] (QObject*) {
+                [=] (QObject*) {
             // The OSSIA::Process removal is in each process dtor
             m_processes.erase(id);
         }, Qt::DirectConnection);
@@ -142,19 +151,17 @@ void OSSIAConstraintElement::on_processAdded(
         // Processes might change (for instance automation needs to be recreated
         // at each address change) so we do this little dance.
         connect(plug, &OSSIAProcessElement::changed,
-                this, [=] (auto&& oldProc, auto&& newProc) {
-            if(oldProc)
-                m_ossia_constraint->removeTimeProcess(oldProc);
-
-            if(newProc)
-                m_ossia_constraint->addTimeProcess(plug->process());
+                this, [=] (
+                    const std::shared_ptr<OSSIA::TimeProcess>& a1,
+                    const std::shared_ptr<OSSIA::TimeProcess>& a2) {
+            m_processes.at(id).wrapper.changed(a1, a2);
         });
 
-
-        if(plug->process())
-        {
-            m_ossia_constraint->addTimeProcess(plug->process());
-        }
+        connect(&plug->iscoreProcess(), &Process::durationChanged,
+                this, [=] () {
+            auto& proc = m_processes.at(id);
+            proc.wrapper.setDuration(iscore::convert::time(proc.element->iscoreProcess().duration()));
+        });
     }
 }
 
@@ -163,17 +170,18 @@ void OSSIAConstraintElement::on_processRemoved(const Process& process)
     auto it = m_processes.find(process.id());
     if(it != m_processes.end())
     {
-        // It is possible for a process to be null
-        // (e.g. invalid state in GUI like automation without address)
-        auto proc = (*it).second->process();
-        auto proc_it =  std::find(m_ossia_constraint->timeProcesses().begin(),
-                                  m_ossia_constraint->timeProcesses().end(),
-                                  proc);
-        if(proc && proc_it != m_ossia_constraint->timeProcesses().end())
-            m_ossia_constraint->removeTimeProcess(proc);
-
         // We don't have ownership so we don't delete. The ProcessModel has it.
         m_processes.erase(it);
+    }
+}
+
+void OSSIAConstraintElement::on_loopingChanged(bool b)
+{
+    // Note : by default the processes are in a "basic" impl. If the process starts looping, they are moved to the loop impl.
+
+    for(auto& proc_pair : m_processes)
+    {
+        proc_pair.second.wrapper.setLooping(b);
     }
 }
 

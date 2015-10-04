@@ -28,6 +28,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ProcessWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"
