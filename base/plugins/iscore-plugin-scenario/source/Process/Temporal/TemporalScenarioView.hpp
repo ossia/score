@@ -14,7 +14,7 @@ class TemporalScenarioView : public LayerView
         TemporalScenarioView(QGraphicsItem* parent);
         ~TemporalScenarioView();
 
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+        void paint_impl(QPainter* painter) const override final;
 
         void setSelectionArea(const QRectF& rect)
         {

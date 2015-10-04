@@ -22,9 +22,7 @@ TemporalScenarioView::~TemporalScenarioView()
 {
 }
 
-void TemporalScenarioView::paint(QPainter* painter,
-                                 const QStyleOptionGraphicsItem* option,
-                                 QWidget* widget)
+void TemporalScenarioView::paint_impl(QPainter* painter) const
 {
     if(m_lock)
     {

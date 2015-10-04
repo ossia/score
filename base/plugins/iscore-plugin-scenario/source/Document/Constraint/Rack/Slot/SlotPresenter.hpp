@@ -14,6 +14,14 @@ class Process;
 class LayerModel;
 class LayerView;
 class RackView;
+
+struct SlotProcessData
+{
+        using ProcessPair = std::pair<LayerPresenter*, LayerView*>;
+        const LayerModel* model{};
+        std::vector<ProcessPair> processes;
+};
+
 class SlotPresenter : public NamedObject
 {
         Q_OBJECT
@@ -36,13 +44,13 @@ class SlotPresenter : public NamedObject
         void enable();
         void disable();
 
-        using ProcessPair = QPair<LayerPresenter*, LayerView*>;
-        const QVector<ProcessPair>& processes() const { return m_processes; }
+        const auto& processes() const { return m_processes; }
 
         void on_heightChanged(double);
         void on_parentGeometryChanged();
 
         void on_zoomRatioChanged(ZoomRatio);
+        void on_loopingChanged(bool);
 
     signals:
         void askUpdate();
@@ -59,11 +67,13 @@ class SlotPresenter : public NamedObject
 
         void on_layerModelCreated_impl(const LayerModel&);
 
+        void updateProcesses();
+        void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
         const SlotModel& m_model;
         SlotView* m_view{};
-        QVector<ProcessPair> m_processes;
+        std::vector<SlotProcessData> m_processes;
 
         // Maybe move this out of the state of the presenter ?
         int m_currentResizingValue {}; // Used when the m_slotView is being resized.
@@ -71,5 +81,6 @@ class SlotPresenter : public NamedObject
         ZoomRatio m_zoomRatio {};
 
         bool m_enabled{true};
+        bool m_looping{false};
 };
 

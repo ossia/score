@@ -131,6 +131,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
 void SelectionTool::on_pressed()
 {
     using namespace std;
+    m_prev = std::chrono::steady_clock::now();
 
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
     [&] (const Id<StateModel>& id) // State
@@ -167,6 +168,13 @@ void SelectionTool::on_pressed()
 
 void SelectionTool::on_moved()
 {
+    // TODO same on creation tool
+    auto t = std::chrono::steady_clock::now();
+    if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
+    {
+        return;
+    }
+
     if (m_nothingPressed)
     {
         localSM().postEvent(new Move_Event);
@@ -187,6 +195,8 @@ void SelectionTool::on_moved()
         [&] ()
         { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint});});
     }
+
+    m_prev = t;
 }
 
 void SelectionTool::on_released()
