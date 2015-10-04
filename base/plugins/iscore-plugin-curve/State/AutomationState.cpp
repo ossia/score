@@ -36,11 +36,11 @@ iscore::Message AutomationState::message() const
         if(seg.start().x() <= m_point && seg.end().x() >= m_point)
         {
             m.value.val = seg.valueAt(m_point) * (process().max() - process().min()) + process().min();
-            break;
+            return m;
         }
     }
 
-    return m;
+    return {};
 }
 
 double AutomationState::point() const
@@ -58,7 +58,7 @@ AutomationModel& AutomationState::process() const
 
 std::vector<iscore::Address> AutomationState::matchingAddresses()
 {
-    // TODO have a better check of "adress validity"
+    // TODO have a better check of "address validity"
     if(!process().address().device.isEmpty())
         return {process().address()};
     return {};
@@ -67,7 +67,12 @@ std::vector<iscore::Address> AutomationState::matchingAddresses()
 iscore::MessageList AutomationState::messages() const
 {
     if(!process().address().device.isEmpty())
-        return {message()};
+    {
+        auto mess = message();
+        if(!mess.address.device.isEmpty())
+            return {mess};
+    }
+
     return {};
 }
 

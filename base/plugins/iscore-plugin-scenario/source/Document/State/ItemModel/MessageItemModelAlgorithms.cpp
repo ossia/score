@@ -192,8 +192,12 @@ void rec_updateTree(
         Position pos)
 {
     // If the message is in the tree, we add the process value.
+    int n = lst.size();
     nodeInsertAction(node, lst, proc, pos);
-    nodePruneAction(node, proc, pos);
+    if(lst.size() == n) // No nodes were added / updated
+    {
+        nodePruneAction(node, proc, pos);
+    }
 
     for(auto& child : node)
     {
@@ -306,8 +310,6 @@ void updateTreeWithMessageList(
     // Handle the remaining messages
     for(const auto& mess : lst)
     {
-
-        //{mess.address, StateNodeValues{{}, {}, {}}}
         merge_impl(
             rootNode, mess.address,
             [&] (StateNodeValues& nodeValues) {

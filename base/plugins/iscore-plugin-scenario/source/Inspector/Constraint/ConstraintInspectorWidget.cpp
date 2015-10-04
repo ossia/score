@@ -40,6 +40,7 @@
 #include <QLabel>
 #include <QFormLayout>
 #include <QToolButton>
+#include <QCheckBox>
 #include <QPushButton>
 
 using namespace Scenario::Command;
@@ -148,10 +149,11 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Durations
     m_durationSection = new DurationSectionWidget {this};
     m_properties.push_back(m_durationSection);
-    auto loop = new QPushButton{tr("Loop"), this};
-    connect(loop, &QPushButton::clicked,
-            this, [this] {
-        auto cmd = new SetLooping{m_model, !m_model.looping()};
+    auto loop = new QCheckBox{tr("Loop content"), this};
+    loop->setChecked(m_model.looping());
+    connect(loop, &QCheckBox::clicked,
+            this, [this] (bool checked){
+        auto cmd = new SetLooping{m_model, checked};
         commandDispatcher()->submitCommand(cmd);
     });
     m_properties.push_back(loop);

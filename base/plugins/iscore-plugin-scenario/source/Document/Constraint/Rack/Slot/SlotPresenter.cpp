@@ -48,6 +48,7 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
             m_view,  &SlotView::setFocus);
     m_view->setHeight(m_model.height());
 
+    m_looping = m_model.parentConstraint().looping();
     con(m_model.parentConstraint(), &ConstraintModel::loopingChanged,
         this, &SlotPresenter::on_loopingChanged);
 }
@@ -280,14 +281,14 @@ void SlotPresenter::updateProcesses()
                     proc.processes.push_back({proc_pres, proc_view});
                 }
 
-                if(m_model.frontLayerModel().id() == proc.model->id())
-                {
-                    on_layerModelPutToFront(*proc.model);
-                }
-
                 for(SlotProcessData::ProcessPair& pair : proc.processes)
                 {
                     pair.first->on_zoomRatioChanged(m_zoomRatio);
+                }
+
+                if(m_model.frontLayerModel().id() == proc.model->id())
+                {
+                    on_layerModelPutToFront(*proc.model);
                 }
             }
             else if(proc_size == numproc)
