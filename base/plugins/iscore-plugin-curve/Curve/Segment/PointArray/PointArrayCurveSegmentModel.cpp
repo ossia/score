@@ -157,7 +157,7 @@ std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentMod
     vec.reserve(pts.size() - 1);
 
 
-    for(int i = 0; i < pts.size() - 1; i++)
+    for(std::size_t i = 0; i < pts.size() - 1; i++)
     {
         auto cmd = std::make_unique<LinearCurveSegmentModel>(Id<CurveSegmentModel>(i), nullptr);
         cmd->setStart(pts[i]);

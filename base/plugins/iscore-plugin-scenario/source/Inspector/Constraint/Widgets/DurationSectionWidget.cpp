@@ -47,10 +47,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     m_maxSpin = new TimeSpinBox{this};
     m_valueSpin = new TimeSpinBox{this};
 
-    m_valueSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
-    m_minSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
     m_minSpin->setEnabled(true);
-    m_maxSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
     m_maxSpin->setEnabled(true);
 
     m_maxSpin->setTime(m_model.duration.maxDuration().toQTime());

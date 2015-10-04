@@ -47,6 +47,53 @@ using namespace Scenario::Command;
 using namespace iscore;
 using namespace iscore::IDocument;
 
+// TODO MOVEME
+// TODO add to command list
+class SetProcessDuration : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL("ScenarioControl", "SetProcessDuration", "SetProcessDuration")
+
+    public:
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetProcessDuration)
+
+        SetProcessDuration(
+                Path<Process>&& path,
+                const TimeValue& newVal) :
+            SerializableCommand {factoryName(),
+                                 commandName(),
+                                 description()},
+            m_path {std::move(path)},
+            m_new {newVal}
+        {
+            m_old = m_path.find().duration();
+        }
+
+        void undo() override
+        {
+            m_path.find().setDuration(m_old);
+        }
+
+        void redo() override
+        {
+            m_path.find().setDuration(m_new);
+        }
+
+    protected:
+        void serializeImpl(QDataStream& s) const override
+        {
+            s << m_path << m_old << m_new;
+        }
+
+        void deserializeImpl(QDataStream& s) override
+        {
+            s >> m_path >> m_old >> m_new;
+        }
+
+    private:
+        Path<Process> m_path;
+        TimeValue m_old;
+        TimeValue m_new;
+};
 
 // TODO MOVEME
 // TODO add to command list
@@ -63,7 +110,7 @@ class SetLooping : public iscore::SerializableCommand
             SerializableCommand {factoryName(),
                                  commandName(),
                                  description()},
-            m_path {constraintPath},
+            m_path {std::move(constraintPath)},
             m_looping {looping}
         {
         }
@@ -93,6 +140,7 @@ class SetLooping : public iscore::SerializableCommand
         Path<ConstraintModel> m_path;
         bool m_looping{};
 };
+
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ConstraintModel& object,
@@ -392,6 +440,19 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
         stateLayout->addRow(tr("End state"), endWidg);
     }
     newProc->addContent(stateWidget);
+
+    auto durWidg = new TimeSpinBox;
+    durWidg->setTime(process.duration().toQTime());
+    con(process, &Process::durationChanged,
+        this, [=] (const TimeValue& tv) {
+        durWidg->setTime(tv.toQTime());
+    });
+    connect(durWidg, &TimeSpinBox::editingFinished,
+        this, [&,durWidg] {
+        auto cmd = new SetProcessDuration{process, TimeValue(durWidg->time())};
+        commandDispatcher()->submitCommand(cmd);
+    });
+    stateLayout->addRow(tr("Duration"), durWidg);
 
     // Delete button
     auto deleteButton = new QPushButton{tr("Delete")};

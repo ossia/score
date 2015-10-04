@@ -59,7 +59,7 @@ void CurveSegmentView::paint(
     static const QColor yellow = QColor::fromRgb(0xD8, 0xB2, 0x18);
 
     QPen pen;
-    pen.setWidth(m_enabled ? 2.5 : 2);
+    pen.setWidth(m_enabled ? 2 : 1);
     pen.setColor(m_enabled
                     ? (m_selected
                         ? yellow

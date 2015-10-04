@@ -54,16 +54,21 @@ class SpinBox : public MaxRangeSpinBox<TemplatedSpinBox<T>>
         using MaxRangeSpinBox<TemplatedSpinBox<T>>::MaxRangeSpinBox;
 };
 
-
+/**
+ * @brief The TimeSpinBox class
+ *
+ * Adapted for the i-score usage in various duration widgets.
+ */
 class TimeSpinBox : public QTimeEdit
 {
     public:
         TimeSpinBox(QWidget* parent = 0):
             QTimeEdit(parent)
         {
-
+            setDisplayFormat(QString("h.mm.ss.zzz"));
         }
-        void wheelEvent(QWheelEvent* event) override
+
+        void wheelEvent(QWheelEvent* event) final override
         {
             event->ignore();
         }
