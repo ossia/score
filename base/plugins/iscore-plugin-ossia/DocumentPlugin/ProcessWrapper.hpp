@@ -51,5 +51,5 @@ class ProcessWrapper
 struct OSSIAProcess
 {
         OSSIAProcessElement* element{};
-        ProcessWrapper wrapper;
+        std::unique_ptr<ProcessWrapper> wrapper;
 };

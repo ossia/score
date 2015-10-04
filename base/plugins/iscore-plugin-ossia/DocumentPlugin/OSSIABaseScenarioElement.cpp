@@ -20,6 +20,13 @@ static void statusCallback(
 
 }
 
+static void constraintCallback(const OSSIA::TimeValue&,
+                               const OSSIA::TimeValue&,
+                               std::shared_ptr<OSSIA::StateElement> element)
+{
+    element->launch();
+}
+
 OSSIABaseScenarioElement::OSSIABaseScenarioElement(
         const BaseScenario *element,
         QObject *parent):
@@ -41,11 +48,16 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
     auto main_constraint = OSSIA::TimeConstraint::create(
-                               [] (const OSSIA::TimeValue&, const OSSIA::TimeValue&,
-                std::shared_ptr<OSSIA::StateElement> element) {
-        element->launch();
-    }, *main_start_event_it, *main_end_event_it, main_duration);
+                               &constraintCallback,
+                               *main_start_event_it,
+                               *main_end_event_it,
+                               main_duration,
+                               main_duration,
+                               main_duration);
 
+    // TODO put graphical settings somewhere.
+    main_constraint->setSpeed(1.);
+    main_constraint->setGranularity(50.);
     m_ossia_startTimeNode = new OSSIATimeNodeElement{main_start_node, element->startTimeNode(),  m_deviceList, this};
     m_ossia_endTimeNode = new OSSIATimeNodeElement{main_end_node, element->endTimeNode(), m_deviceList, this};
 

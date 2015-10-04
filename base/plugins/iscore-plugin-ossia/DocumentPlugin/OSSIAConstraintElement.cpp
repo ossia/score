@@ -54,13 +54,16 @@ OSSIAConstraintElement::OSSIAConstraintElement(
         }
     });
 
-    ossia_cst->setCallback([&] (
-                           const OSSIA::TimeValue& position,
-                           const OSSIA::TimeValue& date,
-                           const std::shared_ptr<OSSIA::StateElement>& state)
+    if(iscore_cst.objectName() != QString("BaseConstraintModel"))
     {
-        constraintCallback(position, date, state);
-    });
+        ossia_cst->setCallback([&] (
+                               const OSSIA::TimeValue& position,
+                               const OSSIA::TimeValue& date,
+                               const std::shared_ptr<OSSIA::StateElement>& state)
+        {
+            constraintCallback(position, date, state);
+        });
+    }
 
     for(const auto& process : iscore_cst.processes)
     {
@@ -81,6 +84,7 @@ ConstraintModel&OSSIAConstraintElement::iscoreConstraint() const
 void OSSIAConstraintElement::play()
 {
     m_iscore_constraint.duration.setPlayPercentage(0);
+    m_ossia_constraint->setOffset(0.);
     m_ossia_constraint->start();
     executionStarted();
 }
@@ -118,6 +122,8 @@ void OSSIAConstraintElement::on_processAdded(
         const Process& iscore_proc) // TODO REMOVE CONST
 {
     // The DocumentPlugin creates the elements in the processes.
+    // TODO maybe have an execution_view template on processes, that
+    // gives correct const / non_const access ?
     auto proc = const_cast<Process*>(&iscore_proc);
     OSSIAProcessElement* plug{};
     if(auto scenar = dynamic_cast<ScenarioModel*>(proc))
@@ -132,13 +138,16 @@ void OSSIAConstraintElement::on_processAdded(
     if(plug)
     {
         auto id = iscore_proc.id();
-
-        ProcessWrapper pw{m_ossia_constraint,
-                          plug->process(),
-                          iscore::convert::time(plug->iscoreProcess().duration()),
-                          m_iscore_constraint.looping()};
-        m_processes.insert({id, {plug, std::move(pw)}});
-
+        m_processes.insert(std::make_pair(id,
+                            OSSIAProcess{plug,
+                             std::make_unique<ProcessWrapper>(
+                                 m_ossia_constraint,
+                                 plug->process(),
+                                 iscore::convert::time(plug->iscoreProcess().duration()),
+                                 m_iscore_constraint.looping()
+                             )
+                            }
+                           ));
 
         // i-score scenario has ownership, hence
         // we have to remove it from the array if deleted
@@ -154,13 +163,13 @@ void OSSIAConstraintElement::on_processAdded(
                 this, [=] (
                     const std::shared_ptr<OSSIA::TimeProcess>& a1,
                     const std::shared_ptr<OSSIA::TimeProcess>& a2) {
-            m_processes.at(id).wrapper.changed(a1, a2);
+            m_processes.at(id).wrapper->changed(a1, a2);
         });
 
         connect(&plug->iscoreProcess(), &Process::durationChanged,
                 this, [=] () {
             auto& proc = m_processes.at(id);
-            proc.wrapper.setDuration(iscore::convert::time(proc.element->iscoreProcess().duration()));
+            proc.wrapper->setDuration(iscore::convert::time(proc.element->iscoreProcess().duration()));
         });
     }
 }
@@ -177,11 +186,12 @@ void OSSIAConstraintElement::on_processRemoved(const Process& process)
 
 void OSSIAConstraintElement::on_loopingChanged(bool b)
 {
-    // Note : by default the processes are in a "basic" impl. If the process starts looping, they are moved to the loop impl.
+    // Note : by default the processes are in a "basic" impl.
+    // If the process starts looping, they are moved to the loop impl.
 
     for(auto& proc_pair : m_processes)
     {
-        proc_pair.second.wrapper.setLooping(b);
+        proc_pair.second.wrapper->setLooping(b);
     }
 }
 

@@ -29,7 +29,6 @@ class OSSIAConstraintElement : public QObject
         std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraint() const;
         ConstraintModel& iscoreConstraint() const;
 
-
         void play();
         void stop();
 
