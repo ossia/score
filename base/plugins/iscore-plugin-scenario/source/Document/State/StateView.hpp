@@ -4,19 +4,19 @@
 class QMimeData;
 class StatePresenter;
 
-class StateView : public QGraphicsObject
+class StateView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
         StateView(StatePresenter &presenter, QGraphicsItem *parent = 0);
         virtual ~StateView() = default;
 
-        int type() const override final
+        int type() const override
         { return QGraphicsItem::UserType + 4; }
 
         const StatePresenter& presenter() const;
 
-        QRectF boundingRect() const override final
+        QRectF boundingRect() const override
         { return {-m_radiusFull, -m_radiusFull, 2*m_radiusFull, 2*m_radiusFull }; }
 
         void paint(QPainter* painter,

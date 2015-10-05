@@ -2,7 +2,7 @@
 #include <QGraphicsItem>
 #include <iscore/tools/SettableIdentifier.hpp>
 class CurveSegmentModel;
-class CurveSegmentView : public QGraphicsObject
+class CurveSegmentView final : public QGraphicsObject
 {
         Q_OBJECT
     public:

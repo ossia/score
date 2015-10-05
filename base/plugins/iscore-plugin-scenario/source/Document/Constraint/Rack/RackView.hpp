@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 
-class RackView : public QGraphicsObject
+class RackView final : public QGraphicsObject
 {
         Q_OBJECT
 

@@ -112,5 +112,8 @@ class StateModel : public IdentifiedObject<StateModel>
 
         ptr<MessageItemModel> m_messageItemModel;
         EventStatus m_status{EventStatus::Editing};
+
+        std::vector<QMetaObject::Connection> m_prevConnections;
+        std::vector<QMetaObject::Connection> m_nextConnections;
 };
 

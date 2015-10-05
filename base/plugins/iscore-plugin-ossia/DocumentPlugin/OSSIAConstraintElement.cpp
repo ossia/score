@@ -140,14 +140,14 @@ void OSSIAConstraintElement::on_processAdded(
     {
         auto id = iscore_proc.id();
         m_processes.insert(std::make_pair(id,
-                            OSSIAProcess{plug,
+                            OSSIAProcess(plug,
                              std::make_unique<ProcessWrapper>(
                                  m_ossia_constraint,
                                  plug->process(),
                                  iscore::convert::time(plug->iscoreProcess().duration()),
                                  m_iscore_constraint.looping()
                              )
-                            }
+                            )
                            ));
 
         // i-score scenario has ownership, hence

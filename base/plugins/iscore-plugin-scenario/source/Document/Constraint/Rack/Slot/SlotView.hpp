@@ -5,7 +5,7 @@ class SlotPresenter;
 class SlotOverlay;
 class SlotHandle;
 
-class SlotView : public QGraphicsObject
+class SlotView final : public QGraphicsObject
 {
         Q_OBJECT
 

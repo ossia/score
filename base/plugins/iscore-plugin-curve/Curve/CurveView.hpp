@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 
-class CurveView : public QGraphicsObject
+class CurveView final : public QGraphicsObject
 {
         Q_OBJECT
     public:

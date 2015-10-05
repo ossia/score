@@ -23,3 +23,7 @@ void updateTreeWithRemovedProcess(
         const Id<Process>& proc,
         Position pos);
 
+void updateTreeWithRemovedConstraint(
+        MessageNode& rootNode,
+        Position pos);
+

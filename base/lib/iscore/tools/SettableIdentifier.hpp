@@ -22,13 +22,18 @@ class id_base_t
         friend class NotifyingMap<tag>;
         friend class IdentifiedObject<tag>;
 
-        // TODO Try to only have Map as a tempalte type here
+        // TODO Try to only have Map as a template type here
         template<typename Element, typename Model, typename Map> friend class IdContainer;
     public:
         using value_type = impl;
         explicit id_base_t() = default;
-        // TODO check if then an id is returned by value,
-        // the pointer getscopied correctly
+        id_base_t(const id_base_t & other) = default;
+        id_base_t(id_base_t && other) = default;
+        id_base_t& operator=(const id_base_t & other) = default;
+        id_base_t& operator=(id_base_t && other) = default;
+
+        // TODO check if when an id is returned by value,
+        // the pointer gets copied correctly
         explicit id_base_t(value_type val) : m_id {val} { }
 
         explicit id_base_t(tag& element):

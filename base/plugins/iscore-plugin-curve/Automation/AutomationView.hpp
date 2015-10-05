@@ -2,7 +2,7 @@
 
 #include <ProcessInterface/LayerView.hpp>
 
-class AutomationView : public LayerView
+class AutomationView final : public LayerView
 {
     public:
         explicit AutomationView(QGraphicsItem *parent);
@@ -11,7 +11,7 @@ class AutomationView : public LayerView
         void showName(bool b) {m_showName = b;}
 
     protected:
-        void paint_impl(QPainter* painter) const final override;
+        void paint_impl(QPainter* painter) const override;
 
     private:
         QString m_displayedName{};

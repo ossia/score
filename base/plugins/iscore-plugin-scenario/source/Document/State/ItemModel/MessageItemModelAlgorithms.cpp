@@ -355,3 +355,70 @@ void updateTreeWithRemovedProcess(
         rec_pruneTree(child, proc, pos);
     }
 }
+
+
+
+
+
+
+void nodePruneAction(
+        MessageNode& node,
+        Position pos)
+{
+    // If there is no corresponding message in our list,
+    // but there is a corresponding process in the tree,
+    // we prune it
+    bool deleteMe = false;
+    switch(pos)
+    {
+        case Position::Previous:
+        {
+            deleteMe = !node.values.userValue && node.values.followingProcessValues.isEmpty();
+            break;
+        }
+        case Position::Following:
+        {
+            deleteMe = !node.values.userValue && node.values.previousProcessValues.isEmpty();
+            break;
+        }
+        default:
+            ISCORE_ABORT;
+            break;
+    }
+
+    if(deleteMe)
+    {
+        if(node.childCount() > 0)
+        {
+            // We just clear the data
+            node.values = StateNodeValues{};
+        }
+        else
+        {
+            // We can delete this node and recursively
+            // try to delete its empty parents
+            rec_delete(node);
+        }
+    }
+}
+
+void rec_pruneTree(
+        MessageNode& node,
+        Position pos)
+{
+    // If the message is in the tree, we add the process value.
+    nodePruneAction(node, pos);
+
+    for(auto& child : node)
+    {
+        rec_pruneTree(child, pos);
+    }
+}
+
+void updateTreeWithRemovedConstraint(MessageNode& rootNode, Position pos)
+{
+    for(auto& child : rootNode)
+    {
+        rec_pruneTree(child, pos);
+    }
+}

@@ -4,7 +4,7 @@
 #include "Document/VerticalExtent.hpp"
 
 class TimeNodePresenter;
-class TimeNodeView : public QGraphicsObject
+class TimeNodeView final : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -13,7 +13,7 @@ class TimeNodeView : public QGraphicsObject
                      QGraphicsObject* parent);
         ~TimeNodeView() = default;
 
-        int type() const override final
+        int type() const override
         { return QGraphicsItem::UserType + 3; }
 
         const TimeNodePresenter& presenter() const
@@ -24,7 +24,7 @@ class TimeNodeView : public QGraphicsObject
                    QWidget* widget) override;
 
         // QGraphicsItem interface
-        QRectF boundingRect() const override final
+        QRectF boundingRect() const override
         { return { -3., 0., 6., m_extent.bottom() - m_extent.top()}; }
 
         void setExtent(const VerticalExtent& extent);

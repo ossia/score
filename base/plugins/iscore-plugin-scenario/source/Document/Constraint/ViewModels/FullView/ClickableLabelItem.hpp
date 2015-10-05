@@ -3,13 +3,13 @@
 #include <QGraphicsObject>
 #include <functional>
 
-class SeparatorItem : public QGraphicsSimpleTextItem
+class SeparatorItem final : public QGraphicsSimpleTextItem
 {
     public:
         SeparatorItem(QGraphicsItem* parent);
 };
 
-class ClickableLabelItem : public QGraphicsSimpleTextItem
+class ClickableLabelItem final : public QGraphicsSimpleTextItem
 {
     public:
         using ClickHandler= std::function<void(ClickableLabelItem*)>;

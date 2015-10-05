@@ -34,7 +34,7 @@ class OSSIAScenarioImpl;
  * Creation methods return tuples with the identifiers of the objects in their temporal order.
  * (first to last)
  */
-class ScenarioModel : public Process, public ScenarioInterface
+class ScenarioModel final : public Process, public ScenarioInterface
 {
         Q_OBJECT
 
@@ -84,6 +84,27 @@ class ScenarioModel : public Process, public ScenarioInterface
         //// ScenarioModel specifics ////
 
         // Accessors
+        ConstraintModel* findConstraint(const Id<ConstraintModel>& id) const override
+        {
+            auto it = constraints.find(id);
+            return it != constraints.end() ? &*it : nullptr;
+        }
+        EventModel* findEvent(const Id<EventModel>& id) const override
+        {
+            auto it = events.find(id);
+            return it != events.end() ? &*it : nullptr;
+        }
+        TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& id) const override
+        {
+            auto it = timeNodes.find(id);
+            return it != timeNodes.end() ? &*it : nullptr;
+        }
+        StateModel* findState(const Id<StateModel>& id) const override
+        {
+            auto it = states.find(id);
+            return it != states.end() ? &*it : nullptr;
+        }
+
         ConstraintModel& constraint(const Id<ConstraintModel>& constraintId) const override
         {
             return constraints.at(constraintId);

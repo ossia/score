@@ -46,6 +46,61 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     m_constraint->setObjectName("BaseConstraintModel");
 }
 
+ConstraintModel* BaseScenario::findConstraint(const Id<ConstraintModel>& constraintId) const
+{
+    if(constraintId == m_constraint->id())
+        return m_constraint;
+    return nullptr;
+}
+
+EventModel* BaseScenario::findEvent(const Id<EventModel>& id) const
+{
+    if(id == m_startEvent->id())
+    {
+        return m_startEvent;
+    }
+    else if(id == m_endEvent->id())
+    {
+        return m_endEvent;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+TimeNodeModel* BaseScenario::findTimeNode(const Id<TimeNodeModel>& id) const
+{
+    if(id == m_startNode->id())
+    {
+        return m_startNode;
+    }
+    else if(id == m_endNode->id())
+    {
+        return m_endNode;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+StateModel* BaseScenario::findState(const Id<StateModel>& id) const
+{
+    if(id == m_startState->id())
+    {
+        return m_startState;
+    }
+    else if(id == m_endState->id())
+    {
+        return m_endState;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
 
 ConstraintModel& BaseScenario::baseConstraint() const
 {

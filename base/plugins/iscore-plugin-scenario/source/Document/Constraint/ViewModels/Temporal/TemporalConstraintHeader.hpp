@@ -1,7 +1,7 @@
 #pragma once
 #include "Document/Constraint/ViewModels/ConstraintHeader.hpp"
 
-class TemporalConstraintHeader : public ConstraintHeader
+class TemporalConstraintHeader final : public ConstraintHeader
 {
         Q_OBJECT
     public:

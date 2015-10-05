@@ -6,7 +6,7 @@
 
 class QMimeData;
 class TemporalScenarioPresenter;
-class TemporalScenarioView : public LayerView
+class TemporalScenarioView final : public LayerView
 {
         Q_OBJECT
 
@@ -14,7 +14,7 @@ class TemporalScenarioView : public LayerView
         TemporalScenarioView(QGraphicsItem* parent);
         ~TemporalScenarioView();
 
-        void paint_impl(QPainter* painter) const override final;
+        void paint_impl(QPainter* painter) const override;
 
         void setSelectionArea(const QRectF& rect)
         {

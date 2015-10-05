@@ -3,7 +3,7 @@
 #include <QBrush>
 #include <ProcessInterface/LayerModel.hpp>
 class ProcessPanelPresenter;
-class ProcessPanelGraphicsProxy : public QGraphicsObject
+class ProcessPanelGraphicsProxy final : public QGraphicsObject
 {
         QSizeF m_size;
         QBrush m_bgBrush;

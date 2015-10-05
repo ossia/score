@@ -6,7 +6,7 @@
 #include "EventStatus.hpp"
 class EventPresenter;
 class ConditionView;
-class EventView : public QGraphicsObject
+class EventView final : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -14,12 +14,12 @@ class EventView : public QGraphicsObject
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        int type() const override final
+        int type() const override
         { return QGraphicsItem::UserType + 1; }
 
         const EventPresenter& presenter() const;
 
-        QRectF boundingRect() const override final
+        QRectF boundingRect() const override
         { return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
 
         void paint(QPainter* painter,

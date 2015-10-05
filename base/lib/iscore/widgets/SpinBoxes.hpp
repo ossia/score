@@ -48,7 +48,7 @@ class MaxRangeSpinBox : public SpinBox::spinbox_type
  * An abstraction for the most common spinbox type in iscore.
  */
 template<typename T>
-class SpinBox : public MaxRangeSpinBox<TemplatedSpinBox<T>>
+class SpinBox final : public MaxRangeSpinBox<TemplatedSpinBox<T>>
 {
     public:
         using MaxRangeSpinBox<TemplatedSpinBox<T>>::MaxRangeSpinBox;
@@ -59,7 +59,7 @@ class SpinBox : public MaxRangeSpinBox<TemplatedSpinBox<T>>
  *
  * Adapted for the i-score usage in various duration widgets.
  */
-class TimeSpinBox : public QTimeEdit
+class TimeSpinBox final : public QTimeEdit
 {
     public:
         TimeSpinBox(QWidget* parent = 0):
@@ -68,7 +68,7 @@ class TimeSpinBox : public QTimeEdit
             setDisplayFormat(QString("h.mm.ss.zzz"));
         }
 
-        void wheelEvent(QWheelEvent* event) final override
+        void wheelEvent(QWheelEvent* event) override
         {
             event->ignore();
         }
