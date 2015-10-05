@@ -70,7 +70,7 @@ void RecordManager::stopRecording()
         // serialization.
         recorded.second.segment.simplify();
         auto data = recorded.second.segment.piecewise();
-
+        // TODO Use CurveSegmentData
         QVector<QByteArray> newSegments;
         newSegments.resize(data.size());
         int i = 0;

@@ -21,10 +21,9 @@ class Record : public iscore::AggregateCommand
 
         void undo() override
         {
-            ISCORE_TODO;
+            m_cmds[1]->undo();
+            m_cmds[0]->undo();
         }
-
-// TODO I require a special undo too
 };
 
 namespace Scenario
