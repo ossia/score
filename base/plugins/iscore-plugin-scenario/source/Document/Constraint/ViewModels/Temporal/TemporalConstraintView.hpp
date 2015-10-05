@@ -52,6 +52,6 @@ class TemporalConstraintView final : public ConstraintView
         bool m_shadow {false};
         bool m_hasFocus{};
         QString m_label{};
-        QColor m_labelColor{Qt::gray};
-        QColor m_bgColor{QColor::fromRgba(qRgba(0, 127, 229, 76))};
+        QColor m_labelColor;
+        QColor m_bgColor;
 };

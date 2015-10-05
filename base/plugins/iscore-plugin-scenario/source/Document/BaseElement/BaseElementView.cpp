@@ -15,6 +15,7 @@
 #if defined(ISCORE_OPENGL)
 #include <QGLWidget>
 #endif
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
@@ -47,7 +48,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-    m_timeRulersView->setBackgroundBrush(QBrush(qApp->palette("ScenarioPalette").background()));
+    m_timeRulersView->setBackgroundBrush(QBrush(ScenarioStyle::instance().timeRulerBackground));
     //*/
 
     // Transport

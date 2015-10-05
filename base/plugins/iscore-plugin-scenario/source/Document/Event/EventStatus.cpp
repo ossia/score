@@ -1,17 +1,17 @@
 #include "EventStatus.hpp"
-#include <QMap>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
-namespace {
-static const QMap<EventStatus, QColor> event_status_map{
-    {EventStatus::Waiting, Qt::lightGray},
-    {EventStatus::Pending, Qt::yellow},
-    {EventStatus::Happened, QColor::fromRgb(34, 224, 0)},
-    {EventStatus::Disposed, Qt::red},
-    {EventStatus::Editing, Qt::white}
-};
-}
-
-const QMap<EventStatus, QColor>& eventStatusColorMap()
+const QColor& eventStatusColor(EventStatus e)
 {
-    return event_status_map;
+    static const QColor error = Qt::magenta;
+    const auto& col = ScenarioStyle::instance();
+    switch(e)
+    {
+        case EventStatus::Editing:  return col.eventDefault;
+        case EventStatus::Waiting:  return col.eventWaiting;
+        case EventStatus::Pending:  return col.eventPending;
+        case EventStatus::Happened: return col.eventHappened;
+        case EventStatus::Disposed: return col.eventDisposed;
+        default: return error;
+    }
 }

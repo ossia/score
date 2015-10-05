@@ -1,9 +1,8 @@
 #include "SlotHandle.hpp"
 #include "SlotView.hpp"
 #include <QCursor>
-#include <QApplication>
 #include <QPainter>
-#include <QPalette>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
     QGraphicsItem{parent},
@@ -12,11 +11,7 @@ SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
 {
     this->setCursor(Qt::SizeVerCursor);
 
-    QPalette palette = qApp->palette("ScenarioPalette").base().color();
-    auto col = palette.background().color();
-    col.setAlphaF(0.2);
-
-    m_pen.setColor(col);
+    m_pen.setColor(ScenarioStyle::instance().slotHandle);
     m_pen.setCosmetic(true);
     m_pen.setWidth(0);
 }

@@ -2,14 +2,11 @@
 #include <ProcessInterface/Process.hpp>
 #include "ProcessPanelPresenter.hpp"
 #include <QPainter>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 ProcessPanelGraphicsProxy::ProcessPanelGraphicsProxy(const LayerModel& lm,
                                                      const ProcessPanelPresenter& pres)
 {
-    QColor col = Qt::darkGray;
-    col.setAlphaF(0.7);
-    m_bgBrush = col;
-
 }
 
 QRectF ProcessPanelGraphicsProxy::boundingRect() const
@@ -22,7 +19,7 @@ void ProcessPanelGraphicsProxy::paint(
         const QStyleOptionGraphicsItem* option,
         QWidget* widget)
 {
-    painter->setBrush(QColor::fromRgba(qRgba(0, 127, 229, 76)));
+    painter->setBrush(ScenarioStyle::instance().processPanelBackground);
     painter->drawRect(boundingRect());
 }
 

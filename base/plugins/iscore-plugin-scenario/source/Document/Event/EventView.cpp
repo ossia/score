@@ -2,11 +2,12 @@
 
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include "EventPresenter.hpp"
+#include "EventModel.hpp"
 #include "ConditionView.hpp"
-#include <QApplication>
-#include <QPalette>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 EventView::EventView(EventPresenter& presenter,
                      QGraphicsObject* parent) :
@@ -25,7 +26,7 @@ EventView::EventView(EventPresenter& presenter,
     this->setZValue(parent->zValue() + 2);
     this->setAcceptHoverEvents(true);
 
-    m_color = Qt::white;
+    m_color = presenter.model().metadata.color();
 }
 
 const EventPresenter& EventView::presenter() const
@@ -72,20 +73,12 @@ void EventView::paint(QPainter* painter,
     if(m_status == EventStatus::Editing)
         eventPen = QPen(m_color);
     else
-        eventPen = QPen(eventStatusColorMap()[m_status]);
+        eventPen = QPen(eventStatusColor(m_status));
 
-    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
-
-    // Rect
     if(isSelected())
     {
-        eventPen = QPen(highlight);
+        eventPen = QPen(ScenarioStyle::instance().eventSelected);
     }
- /*   else if (isShadow())
-    {
-        eventPen = QPen(highlight.lighter());
-    }
-*/
     eventPen.setWidth(2);
 
 
@@ -133,21 +126,10 @@ bool EventView::isSelected() const
     return m_selected;
 }
 
-bool EventView::isShadow() const
-{
-    return m_shadow;
-}
-
 void EventView::changeColor(QColor newColor)
 {
     m_color = newColor;
     this->update();
-}
-
-void EventView::setShadow(bool arg)
-{
-    m_shadow = arg;
-    update();
 }
 
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)

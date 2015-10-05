@@ -1,7 +1,7 @@
 #include "LocalTimeRulerView.hpp"
 
 #include <QApplication>
-#include <QPalette>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 LocalTimeRulerView::LocalTimeRulerView():
     AbstractTimeRulerView()
@@ -9,7 +9,7 @@ LocalTimeRulerView::LocalTimeRulerView():
     m_graduationHeight = 10;
     m_textPosition = 1.75 * m_graduationHeight;
     m_height = 3 * m_graduationHeight;
-    m_color = qApp->palette("ScenarioPalette").base().color();
+    m_color = ScenarioStyle::instance().localTimeRuler;
     m_timeFormat = "ss''''z";
     setZValue(1);
 }

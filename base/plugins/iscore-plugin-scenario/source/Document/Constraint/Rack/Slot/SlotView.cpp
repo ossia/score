@@ -6,7 +6,7 @@
 #include <QGraphicsScene>
 #include <QApplication>
 #include <QPainter>
-
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 SlotView::SlotView(const SlotPresenter &pres, QGraphicsObject* parent) :
     QGraphicsObject {parent},
     presenter{pres},
@@ -26,8 +26,7 @@ void SlotView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 {
     const auto& rect = boundingRect();
 
-    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
-    painter->setPen(QPen{m_focus? highlight : Qt::transparent});
+    painter->setPen(QPen{m_focus? ScenarioStyle::instance().slotFocus : Qt::transparent});
     painter->drawRect(rect);
 }
 

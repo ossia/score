@@ -26,7 +26,6 @@
 #include <QFileDialog>
 #include <QApplication>
 
-
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
 #include <iscore/tools/NotifyingMap_impl.hpp>
@@ -82,9 +81,6 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 {
     setupCommands();
 
-//    m_objectAction = new ObjectMenuActions{iscore::ToplevelMenuElement::ObjectMenu, this};
-//    m_toolActions = new ToolMenuActions{iscore::ToplevelMenuElement::ToolMenu, this};
-
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);
 
@@ -109,7 +105,6 @@ ScenarioControl* ScenarioControl::instance(Presenter* pres)
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
     ///// Edit /////
-//    m_objectAction->fillMenuBar(menu);
 
     ///// View /////
     // TODO create ViewMenuActions

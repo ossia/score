@@ -1,5 +1,6 @@
 #include "LayerView.hpp"
 #include <QPainter>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 QRectF LayerView::boundingRect() const
 {
@@ -10,13 +11,7 @@ void LayerView::paint(QPainter* painter,
                       const QStyleOptionGraphicsItem* option,
                       QWidget* widget)
 {
-    static const QPen borderPen{[] () -> QPen {
-            QPen p(Qt::gray);
-            //p.setCosmetic(true);
-            return p;
-    }()};
-
-    painter->setPen(borderPen);
+    painter->setPen(ScenarioStyle::instance().processViewBorder);
     painter->drawRect(boundingRect());
 
     paint_impl(painter);

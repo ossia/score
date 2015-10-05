@@ -22,7 +22,7 @@ namespace iscore
     {
             Q_OBJECT
         public:
-            explicit MenubarManager(QMenuBar* bar, QObject* parent = 0);
+            explicit MenubarManager(QMenuBar* bar, QObject* parent = nullptr);
 
             QMenuBar* menuBar() const
             {

@@ -30,7 +30,6 @@ class SizeNotifyingGraphicsView : public QGraphicsView // TODO rename this class
         virtual void focusOutEvent(QFocusEvent* event) override;
 
     private:
-        QBrush m_bg;
         bool m_zoomModifier{false};
         SceneGraduations* m_graduations{};
 };

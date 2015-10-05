@@ -1,5 +1,6 @@
 #include "SizeNotifyingGraphicsView.hpp"
 #include <QDebug>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {
@@ -11,10 +12,9 @@ SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     //m_graduations = new SceneGraduations{this};
     //scene()->addItem(m_graduations);
 
-    m_bg =  qApp->palette("ScenarioPalette").background();
     this->setAttribute(Qt::WA_OpaquePaintEvent);
     //m_graduations->setColor(m_bg.color().lighter());
-    this->setBackgroundBrush(m_bg);
+    this->setBackgroundBrush(ScenarioStyle::instance().background);
 }
 
 void SizeNotifyingGraphicsView::setGrid(QPainterPath&& newGrid)

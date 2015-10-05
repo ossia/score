@@ -15,10 +15,11 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
 
 void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setPen(QPen(QBrush(m_color), 2, Qt::SolidLine));
+    const auto brush = QBrush(m_color);
+    painter->setPen(QPen(brush, 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
 
-    painter->setPen(QPen(QBrush(m_color), 1, Qt::SolidLine));
+    painter->setPen(QPen(brush, 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
     if (m_width > 0)

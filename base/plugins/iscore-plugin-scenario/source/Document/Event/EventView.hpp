@@ -29,8 +29,6 @@ class EventView final : public QGraphicsObject
         void setSelected(bool selected);
         bool isSelected() const;
 
-        bool isShadow() const;
-
         void setCondition(const QString& cond);
         bool hasCondition() const;
 
@@ -42,8 +40,6 @@ class EventView final : public QGraphicsObject
 
         void setStatus(EventStatus s);
 
-
-
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
@@ -52,7 +48,6 @@ class EventView final : public QGraphicsObject
 
     public slots:
         void changeColor(QColor);
-        void setShadow(bool arg);
 
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -72,7 +67,6 @@ class EventView final : public QGraphicsObject
         QColor m_color;
 
         EventStatus m_status{EventStatus::Editing};
-        bool m_shadow {false};
         bool m_selected{};
 
         VerticalExtent m_extent;

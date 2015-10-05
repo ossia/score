@@ -37,14 +37,14 @@ StatePresenter::StatePresenter(
     con(m_model, &StateModel::statusChanged,
         this, [&] (EventStatus e)
     {
-        m_view->changeColor(eventStatusColorMap()[e]);
+        m_view->changeColor(eventStatusColor(e));
     });
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
 
     updateStateView();
-    m_view->changeColor(eventStatusColorMap()[m_model.status()]);
+    m_view->changeColor(eventStatusColor(m_model.status()));
 }
 
 StatePresenter::~StatePresenter()

@@ -6,7 +6,6 @@ class ProcessPanelPresenter;
 class ProcessPanelGraphicsProxy final : public QGraphicsObject
 {
         QSizeF m_size;
-        QBrush m_bgBrush;
 
     public:
         ProcessPanelGraphicsProxy(const LayerModel& lm, const ProcessPanelPresenter& pres);

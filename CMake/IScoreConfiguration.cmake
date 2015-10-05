@@ -17,6 +17,10 @@ if(ISCORE_OPENGL)
         add_definitions(-DISCORE_OPENGL)
 endif()
 
+if(DEPLOYMENT_BUILD)
+  add_definitions(-DISCORE_DEPLOYMENT_BUILD)
+endif()
+
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5
@@ -58,9 +62,19 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
   endif()
 
-   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
-   endif()
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+                    OUTPUT_VARIABLE GCC_VERSION)
+
+    if (GCC_VERSION VERSION_LESS 4.9)
+      message(FATAL_ERROR "i-score requires at least g++-4.9 to build")
+    endif()
+    if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
+      # -Wcast-qual is nice but requires more work...
+      # -Wzero-as-null-pointer-constant  is garbage
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-div-by-zero -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wpointer-arith  -Wsuggest-attribute=pure -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
+    endif()
+  endif()
 endif()
 
 

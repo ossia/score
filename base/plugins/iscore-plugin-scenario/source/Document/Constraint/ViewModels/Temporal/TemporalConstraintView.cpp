@@ -12,12 +12,15 @@
 #include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 #include <thread>
 #include <chrono>
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
-    ConstraintView {presenter, parent}
+    ConstraintView {presenter, parent},
+    m_labelColor{ScenarioStyle::instance().constraintDefaultLabel},
+    m_bgColor{ScenarioStyle::instance().constraintDefaultBackground}
 {
     this->setParentItem(parent);
 
@@ -46,7 +49,7 @@ void TemporalConstraintView::paint(
         painter->fillRect(rect, m_bgColor);
 
         // Fake timenode continuation
-        auto color = qApp->palette("ScenarioPalette").base().color();
+        auto color = ScenarioStyle::instance().rackSideBorder;
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
@@ -98,21 +101,22 @@ void TemporalConstraintView::paint(
 
     // Colors
     QColor constraintColor;
+    // TODO make a switch instead
     if(isSelected())
     {
-        constraintColor = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
+        constraintColor = ScenarioStyle::instance().constraintSelected;
+    }
+    else if(warning())
+    {
+        constraintColor = ScenarioStyle::instance().constraintWarning;
     }
     else
     {
-        constraintColor = qApp->palette("ScenarioPalette").base().color();
-    }
-    if(warning())
-    {
-        constraintColor = QColor{200,150,0};
+        constraintColor = ScenarioStyle::instance().constraintBase;
     }
     if(! isValid())
     {
-        constraintColor = Qt::red;
+        constraintColor = ScenarioStyle::instance().constraintInvalid;
         this->setZValue(this->zValue()+ 1);
     }
     else
@@ -148,16 +152,9 @@ void TemporalConstraintView::paint(
     painter->drawPath(rightBrace);
 
     static const QPen playedPen{
-        QBrush{QColor::fromRgb(34, 224, 0)},
+        QBrush{ScenarioStyle::instance().constraintPlayFill},
         4,
         Qt::SolidLine,
-                Qt::RoundCap,
-                Qt::RoundJoin
-    };
-    static const QPen dashedPlayedPen{
-        QBrush{Qt::green},
-        4,
-        Qt::DashLine,
                 Qt::RoundCap,
                 Qt::RoundJoin
     };

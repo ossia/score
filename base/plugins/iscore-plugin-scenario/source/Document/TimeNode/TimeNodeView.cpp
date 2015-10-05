@@ -2,8 +2,8 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QPalette>
-#include <QApplication>
+#include <QCursor>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 #include "TimeNodePresenter.hpp"
 TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
                            QGraphicsObject* parent) :
@@ -15,20 +15,21 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 
-    // TODO in palette ?
-    m_color = Qt::darkGray; // qApp->palette("ScenarioPalette").alternateBase().color();
+    m_color = presenter.model().metadata.color();
 }
 
 void TimeNodeView::paint(QPainter* painter,
                          const QStyleOptionGraphicsItem* option,
                          QWidget* widget)
 {
-    QColor pen_color = m_color;
-    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
-
+    QColor pen_color;
     if(isSelected())
     {
-        pen_color = highlight;
+        pen_color = ScenarioStyle::instance().timenodeSelected;
+    }
+    else
+    {
+        pen_color = m_color;
     }
 
     QPen pen{QBrush(pen_color), 1.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
