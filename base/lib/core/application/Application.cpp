@@ -127,7 +127,6 @@ void Application::init()
     stylesheet_file.open(QFile::ReadOnly);
     QString stylesheet = QLatin1String(stylesheet_file.readAll());
 
-    qDebug() << QStyleFactory::keys();
     qApp->setStyle(QStyleFactory::create("Fusion"));
     qApp->setStyleSheet(stylesheet);
 

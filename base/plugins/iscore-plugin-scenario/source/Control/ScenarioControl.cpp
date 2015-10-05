@@ -290,7 +290,6 @@ void ScenarioControl::on_documentChanged()
     }
 }
 
-#include <iscore/serialization/JSONValueVisitor.hpp>
 void ScenarioControl::initColors()
 {
     ScenarioStyle& instance = ScenarioStyle::instance();

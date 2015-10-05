@@ -2,8 +2,9 @@
 #include "CurveSegmentModel.hpp"
 #include <QGraphicsSceneContextMenuEvent>
 #include <QPainter>
+#include <Curve/CurveStyle.hpp>
+
 #include <QCursor>
-static QColor baseColor{QColor::fromRgb(221, 195, 3)};
 CurveSegmentView::CurveSegmentView(
         const CurveSegmentModel* model,
         QGraphicsItem *parent):
@@ -55,16 +56,14 @@ void CurveSegmentView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    static const QColor base = QColor::fromRgb(0xC7, 0x1F, 0x2C);
-    static const QColor yellow = QColor::fromRgb(0xD8, 0xB2, 0x18);
-
+    auto& style = CurveStyle::instance();
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
     pen.setColor(m_enabled
                     ? (m_selected
-                        ? yellow
-                        : base)
-                    : Qt::gray);
+                        ? style.SegmentSelected
+                        : style.Segment)
+                    : style.SegmentDisabled);
 
     painter->setPen(pen);
     painter->drawPath(m_unstrockedShape);

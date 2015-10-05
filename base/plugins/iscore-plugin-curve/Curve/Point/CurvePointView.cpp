@@ -3,10 +3,11 @@
 #include <iscore/selection/Selectable.hpp>
 #include <iscore/widgets/ClearLayout.hpp>
 #include "CurvePointModel.hpp"
-
+#include <Curve/CurveStyle.hpp>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QCursor>
-static const qreal radius = 2.;
+
+static const qreal radius = 2.5;
 CurvePointView::CurvePointView(
         const CurvePointModel* model,
         QGraphicsItem* parent):
@@ -53,13 +54,15 @@ void CurvePointView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    static const QColor base = QColor::fromRgb(0x80, 0xD7, 0x3E);
-    static const QColor yellow = QColor::fromHsl(base.hue() / 2, base.saturation(), base.lightness());
+    auto& style = CurveStyle::instance();
     if(!m_enabled)
         return;
 
     QPen pen;
-    QColor c = m_selected? yellow : base;
+    QColor c = m_selected
+               ? style.PointSelected
+               : style.Point;
+
     pen.setColor(c);
     pen.setWidth(1);
     painter->setPen(pen);

@@ -4,5 +4,6 @@
         <file>resources/images/addChild.png</file>
         <file>resources/images/addSibling.png</file>
         <file>resources/images/edit.png</file>
+        <file>resources/DeviceExplorer.qss</file>
     </qresource>
 </RCC>
