@@ -18,6 +18,19 @@ class RackView;
 struct SlotProcessData
 {
         using ProcessPair = std::pair<LayerPresenter*, LayerView*>;
+
+        SlotProcessData() = default;
+        SlotProcessData(const SlotProcessData&) = default;
+        SlotProcessData(SlotProcessData&&) = default;
+        SlotProcessData& operator=(const SlotProcessData&) = default;
+        SlotProcessData& operator=(SlotProcessData&&) = default;
+        SlotProcessData(const LayerModel* m, std::vector<ProcessPair>&& procs):
+            model(m),
+            processes(std::move(procs))
+        {
+
+        }
+
         const LayerModel* model{};
         std::vector<ProcessPair> processes;
 };

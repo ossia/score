@@ -226,7 +226,7 @@ void SlotPresenter::on_layerModelCreated_impl(
         vec.push_back({proc_pres, proc_view});
     }
 
-    m_processes.push_back({&proc_vm, std::move(vec)});
+    m_processes.push_back(SlotProcessData(&proc_vm, std::move(vec)));
 
     con(proc_vm.processModel(), &Process::durationChanged,
         this, [&] (const TimeValue&) {
@@ -278,7 +278,7 @@ void SlotPresenter::updateProcesses()
                     auto proc_view = factory->makeLayerView(*proc.model, m_view);
                     auto proc_pres = factory->makeLayerPresenter(*proc.model, proc_view, this);
 
-                    proc.processes.push_back({proc_pres, proc_view});
+                    proc.processes.push_back(std::make_pair(proc_pres, proc_view));
                 }
 
                 for(SlotProcessData::ProcessPair& pair : proc.processes)

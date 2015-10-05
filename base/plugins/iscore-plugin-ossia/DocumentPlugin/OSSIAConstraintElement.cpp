@@ -9,6 +9,7 @@
 #include "OSSIAAutomationElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 #include "iscore2OSSIA.hpp"
+#include "OSSIA2iscore.hpp"
 
 #include <sstream>
 
@@ -195,7 +196,6 @@ void OSSIAConstraintElement::on_loopingChanged(bool b)
     }
 }
 
-#include "OSSIA2iscore.hpp"
 void OSSIAConstraintElement::constraintCallback(
         const OSSIA::TimeValue& position,
         const OSSIA::TimeValue& date,
