@@ -57,7 +57,7 @@ void RecordManager::stopRecording()
             int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
             const auto& node = getNodeFromAddress(m_explorer->rootNode(), addr);
-            double newval = node.get<iscore::AddressSettings>().value.val.toDouble();
+            double newval = node.get<iscore::AddressSettings>().value.val.toFloat();
 
             const auto& proc_data = records.at(addr);
             proc_data.segment.addPoint(msecs, newval);
@@ -199,7 +199,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
 
             autom.curve().addSegment(segt);
 
-            segt->addPoint(0, getNodeFromAddress(m_explorer->rootNode(), addr).get<iscore::AddressSettings>().value.val.toDouble());
+            segt->addPoint(0, getNodeFromAddress(m_explorer->rootNode(), addr).get<iscore::AddressSettings>().value.val.toFloat());
 
             // TODO fetch initial min / max from AddressSettings ?
             records.insert(
@@ -228,7 +228,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
             int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
             bool ok = false;
-            double newval = val.val.toDouble(&ok);
+            double newval = val.val.toFloat(&ok);
             if(!ok)
                 return;
 

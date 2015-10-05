@@ -161,7 +161,6 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
     {
         if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
         {
-            qDebug() << "Adding segment between " << segt->start().x() << scale(segt->start().y())  << "and" << segt->end().x() << scale(segt->end().y());
             auto linearSegment = CurveSegmentLinear<T>::create(curve);
             curve->addPoint(segt->start().x(), scale(segt->start().y()), linearSegment);
             curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);

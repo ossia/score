@@ -35,7 +35,7 @@ iscore::Message AutomationState::message() const
         // to make this fast (just checking for the first and the last).
         if(seg.start().x() <= m_point && seg.end().x() >= m_point)
         {
-            m.value.val = seg.valueAt(m_point) * (process().max() - process().min()) + process().min();
+            m.value.val = float(seg.valueAt(m_point) * (process().max() - process().min()) + process().min());
             return m;
         }
     }
@@ -89,7 +89,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
         {
             // Scale min, max, and the value
             // TODO convert to the real type of the curve.
-            auto val = mess.value.val.toDouble();
+            auto val = mess.value.val.toFloat();
             if(val < process().min())
                 process().setMin(val);
             if(val > process().max())
