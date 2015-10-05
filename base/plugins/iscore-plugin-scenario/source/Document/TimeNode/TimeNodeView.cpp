@@ -25,7 +25,7 @@ void TimeNodeView::paint(QPainter* painter,
     QColor pen_color;
     if(isSelected())
     {
-        pen_color = ScenarioStyle::instance().timenodeSelected;
+        pen_color = ScenarioStyle::instance().TimenodeSelected;
     }
     else
     {

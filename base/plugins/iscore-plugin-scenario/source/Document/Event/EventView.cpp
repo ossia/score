@@ -77,7 +77,7 @@ void EventView::paint(QPainter* painter,
 
     if(isSelected())
     {
-        eventPen = QPen(ScenarioStyle::instance().eventSelected);
+        eventPen = QPen(ScenarioStyle::instance().EventSelected);
     }
     eventPen.setWidth(2);
 

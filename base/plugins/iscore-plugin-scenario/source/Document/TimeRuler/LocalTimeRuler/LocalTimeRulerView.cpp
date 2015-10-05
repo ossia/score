@@ -9,7 +9,7 @@ LocalTimeRulerView::LocalTimeRulerView():
     m_graduationHeight = 10;
     m_textPosition = 1.75 * m_graduationHeight;
     m_height = 3 * m_graduationHeight;
-    m_color = ScenarioStyle::instance().localTimeRuler;
+    m_color = ScenarioStyle::instance().LocalTimeRuler;
     m_timeFormat = "ss''''z";
     setZValue(1);
 }

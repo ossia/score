@@ -20,7 +20,7 @@
 #include "Menus/ToolMenuActions.hpp"
 
 #include <core/document/DocumentModel.hpp>
-
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 #include <QToolBar>
 #include <QFile>
 #include <QFileDialog>
@@ -93,6 +93,8 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
         m_pluginActions.push_back(act);
     }
     delete fact;
+
+    initColors();
 }
 
 
@@ -285,6 +287,75 @@ void ScenarioControl::on_documentChanged()
                         this, &ScenarioControl::on_presenterDefocused);
 
         on_presenterFocused(focusManager->focusedPresenter());
+    }
+}
+
+#include <iscore/serialization/JSONValueVisitor.hpp>
+void ScenarioControl::initColors()
+{
+    ScenarioStyle& instance = ScenarioStyle::instance();
+    QFile cols(":/ScenarioColors.json");
+
+    if(cols.open(QFile::ReadOnly))
+    {
+        auto obj = QJsonDocument::fromJson(cols.readAll()).object();
+        auto fromColor = [&] (const QString& key) {
+          auto arr = obj[key].toArray();
+          if(arr.size() == 3)
+            return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
+          else if(arr.size() == 4)
+              return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
+          return QColor{};
+        };
+
+        instance.ConstraintBase = fromColor("ConstraintBase");
+        instance.ConstraintSelected = fromColor("ConstraintSelected");
+        instance.ConstraintPlayFill = fromColor("ConstraintPlayFill");
+        instance.ConstraintWarning = fromColor("constraintWarning");
+        instance.ConstraintInvalid = fromColor("ConstraintInvalid");
+        instance.ConstraintDefaultLabel = fromColor("ConstraintDefaultLabel");
+        instance.ConstraintDefaultBackground = fromColor("ConstraintDefaultBackground");
+
+        instance.RackSideBorder = fromColor("RackSideBorder");
+
+        instance.ConstraintFullViewParentSelected = fromColor("ConstraintFullViewParentSelected");
+
+        instance.ConstraintHeaderText = fromColor("ConstraintHeaderText");
+        instance.ConstraintHeaderBottomLine = fromColor("ConstraintHeaderBottomLine");
+        instance.ConstraintHeaderRackHidden = fromColor("ConstraintHeaderRackHidden");
+        instance.ConstraintHeaderSideBorder = fromColor("ConstraintHeaderSideBorder");
+
+        instance.ProcessViewBorder = fromColor("ProcessViewBorder");
+
+        instance.SlotFocus = fromColor("SlotFocus");
+        instance.SlotOverlayBorder = fromColor("SlotOverlayBorder");
+        instance.SlotOverlay = fromColor("SlotOverlay");
+        instance.SlotHandle = fromColor("SlotHandle");
+
+        instance.TimenodeDefault = fromColor("TimenodeDefault");
+        instance.TimenodeSelected = fromColor("TimenodeSelected");
+
+        instance.EventDefault = fromColor("EventDefault");
+        instance.EventWaiting = fromColor("EventWaiting");
+        instance.EventPending = fromColor("EventPending");
+        instance.EventHappened = fromColor("EventHappened");
+        instance.EventDisposed = fromColor("EventDisposed");
+        instance.EventSelected = fromColor("EventSelected");
+
+        instance.ConditionWaiting = fromColor("ConditionWaiting");
+        instance.ConditionDisabled = fromColor("ConditionDisabled");
+        instance.ConditionFalse = fromColor("ConditionFalse");
+        instance.ConditionTrue = fromColor("ConditionTrue");
+
+        instance.StateOutline = fromColor("StateOutline");
+        instance.StateSelected = fromColor("StateSelected");
+
+        instance.Background = fromColor("Background");
+        instance.ProcessPanelBackground = fromColor("ProcessPanelBackground");
+
+        instance.TimeRulerBackground = fromColor("TimeRulerBackground");
+        instance.TimeRuler = fromColor("TimeRuler");
+        instance.LocalTimeRuler = fromColor("LocalTimeRuler");
     }
 }
 

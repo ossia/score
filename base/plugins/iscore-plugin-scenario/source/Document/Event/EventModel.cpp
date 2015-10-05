@@ -17,7 +17,7 @@ EventModel::EventModel(
     m_date{date}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
-    metadata.setColor(ScenarioStyle::instance().eventDefault);
+    metadata.setColor(ScenarioStyle::instance().EventDefault);
 }
 
 EventModel::EventModel(const EventModel& source,

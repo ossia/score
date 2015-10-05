@@ -35,8 +35,8 @@ void SlotOverlay::setWidth(qreal width)
 
 void SlotOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    painter->setPen(ScenarioStyle::instance().slotOverlayBorder);
-    painter->setBrush(ScenarioStyle::instance().slotOverlay);
+    painter->setPen(ScenarioStyle::instance().SlotOverlayBorder);
+    painter->setBrush(ScenarioStyle::instance().SlotOverlay);
     painter->drawRect(boundingRect());
 }
 

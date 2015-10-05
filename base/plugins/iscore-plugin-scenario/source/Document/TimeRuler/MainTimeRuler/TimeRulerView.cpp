@@ -7,7 +7,7 @@ TimeRulerView::TimeRulerView() :
 {
     m_height = -3 * m_graduationHeight;
     m_textPosition = 1.05 * m_graduationHeight;
-    m_color = ScenarioStyle::instance().timeRuler;
+    m_color = ScenarioStyle::instance().TimeRuler;
 }
 
 QRectF TimeRulerView::boundingRect() const

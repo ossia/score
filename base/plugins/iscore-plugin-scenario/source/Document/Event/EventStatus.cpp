@@ -7,11 +7,11 @@ const QColor& eventStatusColor(EventStatus e)
     const auto& col = ScenarioStyle::instance();
     switch(e)
     {
-        case EventStatus::Editing:  return col.eventDefault;
-        case EventStatus::Waiting:  return col.eventWaiting;
-        case EventStatus::Pending:  return col.eventPending;
-        case EventStatus::Happened: return col.eventHappened;
-        case EventStatus::Disposed: return col.eventDisposed;
+        case EventStatus::Editing:  return col.EventDefault;
+        case EventStatus::Waiting:  return col.EventWaiting;
+        case EventStatus::Pending:  return col.EventPending;
+        case EventStatus::Happened: return col.EventHappened;
+        case EventStatus::Disposed: return col.EventDisposed;
         default: return error;
     }
 }

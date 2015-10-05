@@ -33,16 +33,16 @@ void ConditionView::paint(
     switch(m_currentState)
     {
         case State::Waiting:
-            pen = ScenarioStyle::instance().conditionWaiting;
+            pen = ScenarioStyle::instance().ConditionWaiting;
             break;
         case State::Disabled:
-            pen = ScenarioStyle::instance().conditionDisabled;
+            pen = ScenarioStyle::instance().ConditionDisabled;
             break;
         case State::False:
-            pen = ScenarioStyle::instance().conditionFalse;
+            pen = ScenarioStyle::instance().ConditionFalse;
             break;
         case State::True:
-            pen = ScenarioStyle::instance().conditionTrue;
+            pen = ScenarioStyle::instance().ConditionTrue;
             break;
         default:
             pen = QColor(Qt::magenta);

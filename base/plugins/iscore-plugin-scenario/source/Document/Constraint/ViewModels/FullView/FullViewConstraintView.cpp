@@ -38,15 +38,15 @@ void FullViewConstraintView::paint(QPainter* painter,
     QColor c;
     if(isSelected())
     {
-        c = ScenarioStyle::instance().constraintSelected;
+        c = ScenarioStyle::instance().ConstraintSelected;
     }
     else if(parentItem()->isSelected())
     {
-        c = ScenarioStyle::instance().constraintFullViewParentSelected;
+        c = ScenarioStyle::instance().ConstraintFullViewParentSelected;
     }
     else
     {
-        c = ScenarioStyle::instance().constraintBase;
+        c = ScenarioStyle::instance().ConstraintBase;
     }
 
     m_solidPen.setColor(c);

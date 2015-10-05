@@ -11,7 +11,7 @@ SlotHandle::SlotHandle(const SlotView &slotView, QGraphicsItem *parent):
 {
     this->setCursor(Qt::SizeVerCursor);
 
-    m_pen.setColor(ScenarioStyle::instance().slotHandle);
+    m_pen.setColor(ScenarioStyle::instance().SlotHandle);
     m_pen.setCosmetic(true);
     m_pen.setWidth(0);
 }

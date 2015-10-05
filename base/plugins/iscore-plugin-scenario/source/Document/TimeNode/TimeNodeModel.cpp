@@ -21,7 +21,7 @@ TimeNodeModel::TimeNodeModel(
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
-    metadata.setColor(ScenarioStyle::instance().timenodeDefault);
+    metadata.setColor(ScenarioStyle::instance().TimenodeDefault);
 }
 
 TimeNodeModel::TimeNodeModel(

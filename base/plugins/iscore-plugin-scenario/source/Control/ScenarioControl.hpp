@@ -82,6 +82,8 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual void on_documentChanged() override;
 
     private:
+        void initColors();
+
         ScenarioControl(iscore::Presenter* pres);
 
         ExpandMode m_expandMode{ExpandMode::Scale};

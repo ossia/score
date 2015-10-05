@@ -27,10 +27,10 @@ const StatePresenter &StateView::presenter() const
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPen statePen = ScenarioStyle::instance().stateOutline;
+    QPen statePen = ScenarioStyle::instance().StateOutline;
     statePen.setWidth(2);
     QBrush stateBrush = m_baseColor;
-    QColor highlight = ScenarioStyle::instance().stateSelected;
+    QColor highlight = ScenarioStyle::instance().StateSelected;
 
     painter->setPen(statePen);
     painter->setBrush(stateBrush);

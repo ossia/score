@@ -48,7 +48,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-    m_timeRulersView->setBackgroundBrush(QBrush(ScenarioStyle::instance().timeRulerBackground));
+    m_timeRulersView->setBackgroundBrush(QBrush(ScenarioStyle::instance().TimeRulerBackground));
     //*/
 
     // Transport

@@ -26,7 +26,7 @@ void SlotView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 {
     const auto& rect = boundingRect();
 
-    painter->setPen(QPen{m_focus? ScenarioStyle::instance().slotFocus : Qt::transparent});
+    painter->setPen(QPen{m_focus? ScenarioStyle::instance().SlotFocus : Qt::transparent});
     painter->drawRect(rect);
 }
 

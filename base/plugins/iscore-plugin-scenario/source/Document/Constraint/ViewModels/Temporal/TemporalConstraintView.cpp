@@ -19,8 +19,8 @@
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
     ConstraintView {presenter, parent},
-    m_labelColor{ScenarioStyle::instance().constraintDefaultLabel},
-    m_bgColor{ScenarioStyle::instance().constraintDefaultBackground}
+    m_labelColor{ScenarioStyle::instance().ConstraintDefaultLabel},
+    m_bgColor{ScenarioStyle::instance().ConstraintDefaultBackground}
 {
     this->setParentItem(parent);
 
@@ -49,7 +49,7 @@ void TemporalConstraintView::paint(
         painter->fillRect(rect, m_bgColor);
 
         // Fake timenode continuation
-        auto color = ScenarioStyle::instance().rackSideBorder;
+        auto color = ScenarioStyle::instance().RackSideBorder;
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
@@ -104,19 +104,19 @@ void TemporalConstraintView::paint(
     // TODO make a switch instead
     if(isSelected())
     {
-        constraintColor = ScenarioStyle::instance().constraintSelected;
+        constraintColor = ScenarioStyle::instance().ConstraintSelected;
     }
     else if(warning())
     {
-        constraintColor = ScenarioStyle::instance().constraintWarning;
+        constraintColor = ScenarioStyle::instance().ConstraintWarning;
     }
     else
     {
-        constraintColor = ScenarioStyle::instance().constraintBase;
+        constraintColor = ScenarioStyle::instance().ConstraintBase;
     }
     if(! isValid())
     {
-        constraintColor = ScenarioStyle::instance().constraintInvalid;
+        constraintColor = ScenarioStyle::instance().ConstraintInvalid;
         this->setZValue(this->zValue()+ 1);
     }
     else
@@ -152,7 +152,7 @@ void TemporalConstraintView::paint(
     painter->drawPath(rightBrace);
 
     static const QPen playedPen{
-        QBrush{ScenarioStyle::instance().constraintPlayFill},
+        QBrush{ScenarioStyle::instance().ConstraintPlayFill},
         4,
         Qt::SolidLine,
                 Qt::RoundCap,
