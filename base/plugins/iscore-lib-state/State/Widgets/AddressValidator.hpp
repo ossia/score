@@ -11,10 +11,10 @@
  *  - "device:/dada/dodo" would work.
  *  - "/;/.f,v ç'tế&'" would not.
  */
-class AddressValidator : public QValidator
+class AddressValidator final : public QValidator
 {
     public:
-        State validate(QString& s, int& pos) const
+        State validate(QString& s, int& pos) const override
         {
             return iscore::Address::validateString(s)
                     ? State::Acceptable

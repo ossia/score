@@ -22,9 +22,9 @@ class ClickableLabelItem final : public QGraphicsSimpleTextItem
         void setIndex(int index);
 
     protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent *event);
-        void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
-        void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
 
     private:
         int m_index{-1};

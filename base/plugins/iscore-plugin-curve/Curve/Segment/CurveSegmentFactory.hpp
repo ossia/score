@@ -55,16 +55,16 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
 
         virtual void serializeCurveSegmentData(
                 const QVariant& data,
-                const VisitorVariant& visitor) const
+                const VisitorVariant& visitor) const override
         { serialize_dyn(visitor, data.value<typename T::data_type>()); }
 
         virtual QVariant makeCurveSegmentData(
-                const VisitorVariant& vis) const
+                const VisitorVariant& vis) const override
         { return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis)); }
 };
 
 #define DEFINE_CURVE_FACTORY(Name, DynName, Model) \
-    class Name : public CurveSegmentFactory_T<Model> \
+    class Name final : public CurveSegmentFactory_T<Model> \
 { \
     QString name() const override { return DynName; } \
 };

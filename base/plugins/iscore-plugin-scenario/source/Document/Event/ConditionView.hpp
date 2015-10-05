@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 
-class ConditionView : public QGraphicsItem
+class ConditionView final : public QGraphicsItem
 {
     public:
         enum class State {
@@ -11,10 +11,10 @@ class ConditionView : public QGraphicsItem
         ConditionView(QGraphicsItem* parent);
 
         using QGraphicsItem::QGraphicsItem;
-        QRectF boundingRect() const;
+        QRectF boundingRect() const override;
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
-                   QWidget *widget);
+                   QWidget *widget) override;
     private:
         State m_currentState{State::Waiting};
         QPainterPath m_Cpath, m_trianglePath;

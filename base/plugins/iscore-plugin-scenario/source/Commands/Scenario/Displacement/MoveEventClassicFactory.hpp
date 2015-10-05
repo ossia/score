@@ -14,7 +14,7 @@ public:
 
     SerializableMoveEvent* make() override;
 
-    virtual int priority(MoveEventList::Strategy strategy)
+    virtual int priority(MoveEventList::Strategy strategy) override
     {
         switch(strategy)
         {

@@ -8,7 +8,7 @@ struct GammaCurveSegmentData
 
 Q_DECLARE_METATYPE(GammaCurveSegmentData)
 
-class GammaCurveSegmentModel : public CurveSegmentModel
+class GammaCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = GammaCurveSegmentData;
@@ -39,7 +39,7 @@ class GammaCurveSegmentModel : public CurveSegmentModel
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
-        QVariant toSegmentSpecificData() const
+        QVariant toSegmentSpecificData() const override
         {
             return QVariant::fromValue(GammaCurveSegmentData{gamma});
         }

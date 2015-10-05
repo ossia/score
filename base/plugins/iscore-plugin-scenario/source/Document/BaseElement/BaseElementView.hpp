@@ -19,7 +19,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         BaseElementView(QObject* parent);
         virtual ~BaseElementView() = default;
 
-        virtual QWidget* getWidget();
+        QWidget* getWidget() override;
 
         QGraphicsItem* baseItem()
             { return m_baseObject;}

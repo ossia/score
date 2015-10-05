@@ -11,8 +11,8 @@ class ProcessPanelGraphicsProxy final : public QGraphicsObject
     public:
         ProcessPanelGraphicsProxy(const LayerModel& lm, const ProcessPanelPresenter& pres);
 
-        QRectF boundingRect() const;
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
     public slots:
         void setSize(const QSizeF& size);

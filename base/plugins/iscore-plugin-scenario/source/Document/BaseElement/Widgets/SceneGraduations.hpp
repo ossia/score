@@ -2,7 +2,7 @@
 #include <QGraphicsItem>
 #include <QPen>
 class SizeNotifyingGraphicsView;
-class SceneGraduations : public QGraphicsItem
+class SceneGraduations final : public QGraphicsItem
 {
     private:
         QPen m_lines;
@@ -13,8 +13,8 @@ class SceneGraduations : public QGraphicsItem
     public:
         SceneGraduations(SizeNotifyingGraphicsView* view);
 
-        QRectF boundingRect() const;
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
         void setGrid(QPainterPath&& newGrid);
         void setColor(const QColor& col);

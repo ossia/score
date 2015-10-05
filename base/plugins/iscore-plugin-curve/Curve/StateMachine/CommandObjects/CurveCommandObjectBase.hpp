@@ -90,46 +90,6 @@ class CurveCommandObjectBase
             return id;
         }
 
-
-        bool isConsistent(const std::vector<CurveSegmentData>& segs)
-        {
-            // For all elements, we check that :
-            // If there is a previous, it is another's following and reciprocally
-            for(const CurveSegmentData& elt : segs)
-            {
-                ISCORE_ASSERT(bool(elt.id));
-                if(elt.previous)
-                {
-                    auto it = find(segs, elt.previous);
-                    ISCORE_ASSERT(it != segs.end());
-                    ISCORE_ASSERT(it->following == elt.id);
-                    ISCORE_ASSERT(it->end.x() <= elt.start.x());
-                }
-
-                if(elt.following)
-                {
-                    auto it = find(segs, elt.following);
-                    ISCORE_ASSERT(it != segs.end());
-                    ISCORE_ASSERT(it->previous == elt.id);
-                    ISCORE_ASSERT(it->start.x() >= elt.end.x());
-                }
-/*
-                // Check that the start & end are not in the middle of any other segment.
-                auto it = std::find_if(segs.begin(), segs.end(), [&] (const CurveSegmentData& other) {
-                    bool b = other.id != elt.id &&
-                           (   (elt.start.x() > other.start.x() && elt.start.x() < other.end.x())
-                            || (elt.end.x() > other.start.x()   && elt.end.x() < other.end.x()));
-
-                    ISCORE_ASSERT(!b);
-                    return b;
-                });*/
-
-            }
-
-            return true;
-
-        }
-
         virtual void on_press() = 0;
 
         QVector<QByteArray> m_oldCurveData;

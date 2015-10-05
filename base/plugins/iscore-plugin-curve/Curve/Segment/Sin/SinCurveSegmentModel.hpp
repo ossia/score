@@ -9,7 +9,7 @@ struct SinCurveSegmentData
 
 Q_DECLARE_METATYPE(SinCurveSegmentData)
 
-class SinCurveSegmentModel : public CurveSegmentModel
+class SinCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = SinCurveSegmentData;
@@ -45,7 +45,7 @@ class SinCurveSegmentModel : public CurveSegmentModel
         double freq = 5;
         double ampl = 0.6;
 
-        QVariant toSegmentSpecificData() const
+        QVariant toSegmentSpecificData() const override
         {
             return QVariant::fromValue(SinCurveSegmentData{freq, ampl});
         }

@@ -14,7 +14,7 @@ option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
 if(ISCORE_OPENGL)
-	add_definitions(-DISCORE_OPENGL)
+        add_definitions(-DISCORE_OPENGL)
 endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
@@ -39,7 +39,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Za /wd4180 /wd4224")
 else()
-
   # Linux flags
   if(NOT APPLE AND NOT WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
@@ -59,6 +58,9 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
   endif()
 
+   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wpointer-arith -Wcast-qual -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
+   endif()
 endif()
 
 

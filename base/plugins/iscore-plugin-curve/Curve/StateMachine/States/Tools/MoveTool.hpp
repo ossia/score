@@ -24,9 +24,9 @@ class EditionTool : public CurveTool
         void exitState();
 
     protected:
-        void on_pressed();
-        void on_moved();
-        void on_released();
+        void on_pressed() override;
+        void on_moved() override;
+        void on_released() override;
 
     private:
         std::chrono::steady_clock::time_point m_prev;

@@ -14,12 +14,12 @@ struct PointArrayCurveSegmentData
 
 Q_DECLARE_METATYPE(PointArrayCurveSegmentData)
 
-class PointArrayCurveSegmentModel : public CurveSegmentModel
+class PointArrayCurveSegmentModel final : public CurveSegmentModel
 {
         Q_OBJECT
     public:
         using data_type = PointArrayCurveSegmentData;
-        using CurveSegmentModel::CurveSegmentModel;        
+        using CurveSegmentModel::CurveSegmentModel;
         PointArrayCurveSegmentModel(
                 const CurveSegmentData& dat,
                 QObject* parent);
@@ -50,7 +50,7 @@ class PointArrayCurveSegmentModel : public CurveSegmentModel
         double min() { return min_y; }
         double max() { return max_y; }
 
-        QVariant toSegmentSpecificData() const
+        QVariant toSegmentSpecificData() const override
         {
             PointArrayCurveSegmentData dat{
                            min_x, max_x,

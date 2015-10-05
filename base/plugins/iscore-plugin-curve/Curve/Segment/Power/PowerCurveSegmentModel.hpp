@@ -8,7 +8,7 @@ struct PowerCurveSegmentData
 
 Q_DECLARE_METATYPE(PowerCurveSegmentData)
 
-class PowerCurveSegmentModel : public CurveSegmentModel
+class PowerCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = PowerCurveSegmentData;
@@ -39,7 +39,7 @@ class PowerCurveSegmentModel : public CurveSegmentModel
         boost::optional<double> verticalParameter() const override;
         void setVerticalParameter(double p) override;
 
-        QVariant toSegmentSpecificData() const
+        QVariant toSegmentSpecificData() const override
         {
             return QVariant::fromValue(PowerCurveSegmentData{gamma});
         }

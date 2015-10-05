@@ -1,7 +1,7 @@
 #pragma once
 #include "Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp"
 
-class ClickOnSlotOverlay_Transition : public MatchedTransition<ClickOnSlotOverlay_Event>
+class ClickOnSlotOverlay_Transition final : public MatchedTransition<ClickOnSlotOverlay_Event>
 {
     public:
         ClickOnSlotOverlay_Transition(SlotState& state);
@@ -15,7 +15,7 @@ class ClickOnSlotOverlay_Transition : public MatchedTransition<ClickOnSlotOverla
         SlotState& m_state;
 };
 
-class ClickOnSlotHandle_Transition : public MatchedTransition<ClickOnSlotHandle_Event>
+class ClickOnSlotHandle_Transition final : public MatchedTransition<ClickOnSlotHandle_Event>
 {
     public:
         ClickOnSlotHandle_Transition(SlotState& state);
