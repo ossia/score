@@ -136,11 +136,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
                               view()->view()->width()
                               );
     view()->zoomSlider()->setValue(newSliderPos);
-
-    auto center = displayedConstraint().fullView()->center();
-
     setMillisPerPixel(newZoom);
-    view()->view()->centerOn(center);
 
     on_askUpdate();
 }
@@ -265,12 +261,17 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
     qreal center = focus.x();
     if (focus.isNull())
-        center = visible_scene_rect.center().x();
+    {
+     //   center = visible_scene_rect.center().x();
+    }
     else if (focus.x() - visible_scene_rect.left() < 40)
+    {
         center = visible_scene_rect.left();
+    }
     else if (visible_scene_rect.right() - focus.x() < 40)
+    {
         center = visible_scene_rect.right();
-
+    }
 
 
     qreal centerT = center * m_zoomRatio; // here's the old zoom
@@ -288,11 +289,10 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
     view()->view()->ensureVisible(newView,0,0);
+    qDebug() << newView;
 
     QRectF new_visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 
     displayedConstraint().fullView()->setZoom(m_zoomRatio);
     displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
 }
-
-
