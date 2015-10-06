@@ -265,7 +265,34 @@ bool DeviceExplorerModel::checkAddressInstantiatable(
     return std::none_of(parent.begin(),
                         parent.end(),
                         [&] (const iscore::Node& n) {
-        return n.get<iscore::AddressSettings>().name == addr.name; });
+        return n.get<iscore::AddressSettings>().name == addr.name;
+    });
+}
+
+bool DeviceExplorerModel::checkAddressEditable(
+        Node& parent,
+        const AddressSettings& before,
+        const AddressSettings& after)
+{
+    ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+
+    auto it = std::find_if(
+                parent.begin(),
+                parent.end(),
+                [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == after.name; });
+    if(it != parent.end())
+    {
+        //  We didn't change name, it's ok
+        if(after.name == before.name)
+            return true;
+        else
+            return false;
+    }
+    else
+    {
+        // Ok, no conflicts
+        return true;
+    }
 }
 
 int

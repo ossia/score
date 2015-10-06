@@ -630,7 +630,8 @@ void DeviceExplorerWidget::edit()
     }
     else
     {
-        AddressEditDialog dial{select->get<iscore::AddressSettings>(), this};
+        auto before = select->get<iscore::AddressSettings>();
+        AddressEditDialog dial{before, this};
 
         auto code = static_cast<QDialog::DialogCode>(dial.exec());
 
@@ -638,7 +639,7 @@ void DeviceExplorerWidget::edit()
         {
             auto stgs = dial.getSettings();
             // TODO do like for DeviceSettings
-            if(!model()->checkAddressInstantiatable(*select->parent(), stgs))
+            if(!model()->checkAddressEditable(*select->parent(), before, stgs))
                 return;
 
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{

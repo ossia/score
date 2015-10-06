@@ -48,7 +48,7 @@ AddressEditDialog::AddressEditDialog(
     }
     else
     {
-        // Make a way to add addresses when there are none.
+        // TODO Make a way to add addresses when there are none.
         // e. g. "Add address" and "Remove address" button.
         ISCORE_TODO;
     }

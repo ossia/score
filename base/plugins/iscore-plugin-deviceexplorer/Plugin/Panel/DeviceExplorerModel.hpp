@@ -184,6 +184,11 @@ class DeviceExplorerModel : public NodeBasedItemModel
                 iscore::Node& parent,
                 const iscore::AddressSettings& addr);
 
+        bool checkAddressEditable(
+                iscore::Node& parent,
+                const iscore::AddressSettings& before,
+                const iscore::AddressSettings& after);
+
         int columnCount() const;
         QStringList getColumns() const;
         bool isEmpty() const;

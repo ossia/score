@@ -213,7 +213,7 @@ void IScoreCohesionControl::interpolateStates()
         QMetaType::Type t = static_cast<QMetaType::Type>(var.type());
         return t == QMetaType::Int
                 || t == QMetaType::Float
-                || t == QMetaType::Double;
+                || t == QMetaType::Double; // TODO NOPE
     };
     for(auto& constraint : selected_constraints)
     {
@@ -230,13 +230,13 @@ void IScoreCohesionControl::interpolateStates()
 
             auto it = std::find_if(begin(endMessages),
                                    end(endMessages),
-                                   [&] (const Message& arg) { return message.address == arg.address; });
+                                   [&] (const Message& arg) {
+                return message.address == arg.address
+                    && checkType(arg.value.val)
+                    && message.value.val.type() == arg.value.val.type(); });
 
             if(it != end(endMessages))
             {
-                if(!checkType((*it).value.val))
-                    continue;
-
                 auto has_existing_curve = std::find_if(
                             constraint->processes.begin(),
                             constraint->processes.end(),
