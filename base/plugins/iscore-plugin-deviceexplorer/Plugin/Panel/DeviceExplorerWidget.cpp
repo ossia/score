@@ -178,8 +178,11 @@ DeviceExplorerWidget::buildGUI()
     m_pasteAction = new QAction(QIcon(":/resources/images/paste.png"), tr("Paste"), this);
     m_pasteAction->setShortcut(QKeySequence::Paste);
     m_removeNodeAction = new QAction(tr("Remove"), this);
+#ifdef __APPLE__
+    m_removeNodeAction->setShortcut(QKeySequence(tr("Ctrl+Backspace")));
+#else
     m_removeNodeAction->setShortcut(QKeySequence::Delete);
-
+#endif
     m_moveUpAction = new QAction(QIcon(":/resources/images/up.png"), tr("Move up"), this);
     m_moveUpAction->setShortcut(QKeySequence(tr("Alt+Up")));
     m_moveDownAction = new QAction(QIcon(":/resources/images/down.png"), tr("Move down"), this);
