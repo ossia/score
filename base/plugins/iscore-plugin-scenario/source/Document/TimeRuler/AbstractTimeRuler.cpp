@@ -1,7 +1,8 @@
 #include "AbstractTimeRuler.hpp"
 
 #include "AbstractTimeRulerView.hpp"
-
+#include <QGraphicsScene>
+#include <QGraphicsView>
 AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* parent) :
     QObject{parent},
     m_view{view}
@@ -25,7 +26,14 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* paren
 
 void AbstractTimeRuler::scroll(qreal x)
 {
-    view()->setX(-x);
+    /*
+    QGraphicsScene * scene = m_view->scene();
+    auto view = scene->views().first();
+
+    auto viewport = view->mapToScene(view->rect()).boundingRect();
+    qDebug() << x << TimeValue::fromMsecs(view->mapToScene(QPoint(0, 0)).x() / m_pixelPerMillis);
+    */
+    m_view->setX(-x);
 //    m_totalScroll += dx;
 }
 

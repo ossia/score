@@ -12,10 +12,4 @@ class TimeRulerPresenter : public AbstractTimeRuler
         explicit TimeRulerPresenter(TimeRulerView* view, QObject *parent = 0);
         ~TimeRulerPresenter();
 
-    signals:
-
-    public slots:
-        virtual void setStartPoint(TimeValue dur) override;
-    private:
-
 };

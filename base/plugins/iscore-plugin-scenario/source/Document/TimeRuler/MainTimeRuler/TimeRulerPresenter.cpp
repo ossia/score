@@ -13,11 +13,3 @@ TimeRulerPresenter::~TimeRulerPresenter()
 {
 
 }
-
-void TimeRulerPresenter::setStartPoint(TimeValue dur)
-{
-    if (m_startPoint != dur)
-    {
-        m_startPoint = dur;
-    }
-}
