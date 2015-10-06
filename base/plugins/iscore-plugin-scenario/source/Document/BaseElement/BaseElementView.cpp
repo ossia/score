@@ -73,7 +73,6 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     /// Zoom
     m_zoomSlider = new DoubleSlider{transportWidget};
-    m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
 
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
             this,         &BaseElementView::horizontalZoomChanged);

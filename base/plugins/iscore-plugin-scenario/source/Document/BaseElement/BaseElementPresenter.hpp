@@ -91,7 +91,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         TimeRulerPresenter* m_mainTimeRuler{};
         //LocalTimeRulerPresenter* m_localTimeRuler {};
 
-        // 30s displayed by default on average
-        ZoomRatio m_zoomRatio{0.03};
+        ZoomRatio m_zoomRatio;
 
 };
