@@ -62,7 +62,7 @@ ScenarioStateMachine::ScenarioStateMachine(
                 selectState->start();
                 moveSlotState->start();
 
-                exitState();
+                changeTool(1);
             }
 
         });
