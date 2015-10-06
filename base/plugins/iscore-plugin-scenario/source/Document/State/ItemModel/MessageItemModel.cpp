@@ -246,7 +246,7 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex &index) const
 
 bool MessageItemModel::setData(
         const QModelIndex& index,
-        const QVariant& value,
+        const QVariant& value_received,
         int role)
 {
     if(! index.isValid())
@@ -266,6 +266,12 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
+            auto value = value_received; // Copy to be able to convert
+            auto current_val = n->value();
+            if(current_val)
+            {
+                value.convert((*current_val).val.type());
+            }
             auto cmd = new UpdateState(*this,
                                      iscore::MessageList{{address(*n), iscore::Value::fromVariant(value)}});
 
