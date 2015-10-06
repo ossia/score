@@ -441,11 +441,12 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     }
     newProc->addContent(stateWidget);
 
-    auto durWidg = new TimeSpinBox;
+    QPointer<TimeSpinBox> durWidg = new TimeSpinBox;
     durWidg->setTime(process.duration().toQTime());
     con(process, &Process::durationChanged,
         this, [=] (const TimeValue& tv) {
-        durWidg->setTime(tv.toQTime());
+        if(durWidg)
+            durWidg->setTime(tv.toQTime());
     });
     connect(durWidg, &TimeSpinBox::editingFinished,
         this, [&,durWidg] {

@@ -41,6 +41,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 
         static void addNodeToDevice(DeviceInterface& dev, const iscore::Node& node);
         iscore::Node createDeviceFromNode(const iscore::Node&);
+        iscore::Node loadDeviceFromNode(const iscore::Node&);
 
         NodeUpdateProxy updateProxy{*this};
 
