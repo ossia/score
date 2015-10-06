@@ -41,6 +41,10 @@ MessageTreeView::MessageTreeView(
     m_removeNodesAction->setEnabled(true);
     connect(m_removeNodesAction, &QAction::triggered,
             this, &MessageTreeView::removeNodes);
+
+    expandAll();
+    con(m_model->messages(), &MessageItemModel::modelReset,
+        this, &QTreeView::expandAll);
 }
 
 MessageItemModel& MessageTreeView::model() const
