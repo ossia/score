@@ -89,7 +89,6 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         // Various widgets
         TimeRulerPresenter* m_mainTimeRuler{};
-        //LocalTimeRulerPresenter* m_localTimeRuler {};
 
         ZoomRatio m_zoomRatio;
 

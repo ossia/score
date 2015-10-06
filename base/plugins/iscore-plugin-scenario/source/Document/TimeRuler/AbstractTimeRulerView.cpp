@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QGraphicsScene>
+#include <Document/TimeRuler/AbstractTimeRuler.hpp>
 
 AbstractTimeRulerView::AbstractTimeRulerView() :
     m_width{800},
@@ -15,10 +16,6 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
 
 void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    /*
-    painter->fillRect(boundingRect(), QBrush(Qt::red));
-    return;
-    */
     const auto brush = QBrush(m_color);
     painter->setPen(QPen(brush, 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
@@ -30,7 +27,7 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     {
         for (const auto& mark : m_marks)
         {
-            painter->drawText(m_marks.key(mark) + 2 , m_textPosition, mark.toString(m_timeFormat) );
+            painter->drawText(m_marks.key(mark) + 2 , m_textPosition, mark.toString(m_timeFormat));
         }
     }
 }
@@ -68,7 +65,6 @@ void AbstractTimeRulerView::createRulerPath()
     m_marks.clear();
 
     QPainterPath path;
-    QTime time{0,0,0,0};
 
     if(m_width == 0)
     {
@@ -76,8 +72,14 @@ void AbstractTimeRulerView::createRulerPath()
         return;
     }
 
+    // If we are between two graduations, we adjust our origin.
+    auto big_delta = m_graduationDelta * 5;
+    auto prev_big_grad_msec = floor(m_pres->startPoint().msec() / big_delta) * big_delta;
 
-    double t = 0;
+    auto startTime = TimeValue::fromMsecs(m_pres->startPoint().msec() - prev_big_grad_msec);
+    QTime time = TimeValue::fromMsecs(prev_big_grad_msec).toQTime();
+    double t = -startTime.toPixels(1./m_pres->pixelsPerMillis());
+
     int i = 0;
     double gradSize;
 

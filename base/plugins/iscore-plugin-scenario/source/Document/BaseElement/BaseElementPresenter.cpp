@@ -51,8 +51,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
     m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
-    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}}/*,
-    m_localTimeRuler { new LocalTimeRulerPresenter{view()->localTimeRuler(), this}}*/
+    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}}
 {
     // Setup the connections
     con((m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
@@ -68,9 +67,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
-    con(model().baseConstraint().duration, &ConstraintDurations::defaultDurationChanged,
-            m_mainTimeRuler, &TimeRulerPresenter::setDuration);
-
     // Setup of the state machine.
     m_stateMachine = new BaseScenarioStateMachine{this};
 
@@ -79,13 +75,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
         this, &BaseElementPresenter::on_displayedConstraintChanged);
 
     model().setDisplayedConstraint(model().baseConstraint());
-
-    // Progress bar, time rules
-
-    m_mainTimeRuler->setDuration(model().baseConstraint().duration.defaultDuration());
-    /*
-    m_localTimeRuler->setDuration(model().baseConstraint().duration.defaultDuration());
-    */
 }
 
 const ConstraintModel& BaseElementPresenter::displayedConstraint() const
@@ -146,40 +135,11 @@ void BaseElementPresenter::setMillisPerPixel(ZoomRatio newRatio)
     m_zoomRatio = newRatio;
 
     m_mainTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
-    /*
-    m_localTimeRuler->setPixelPerMillis(1.0 / m_zoomRatio);
-    */
     m_scenarioPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
 void BaseElementPresenter::on_newSelection(const Selection& sel)
 {
-    /*
-    int scroll = m_localTimeRuler->totalScroll();
-    delete m_localTimeRuler;
-    view()->newLocalTimeRuler();
-    m_localTimeRuler = new LocalTimeRulerPresenter{view()->localTimeRuler(), this};
-    m_localTimeRuler->scroll(scroll);
-    m_localTimeRuler->setPixelPerMillis(1./m_zoomRatio);
-
-    if (sel.empty())
-    {
-        m_localTimeRuler->setDuration(TimeValue::zero());
-        m_localTimeRuler->setStartPoint(TimeValue::zero());
-    }
-    else
-    {
-        if(auto cstr = dynamic_cast<const ConstraintModel*>(*sel.begin()) )
-        {
-            m_localTimeRuler->setDuration(cstr->duration.defaultDuration());
-            m_localTimeRuler->setStartPoint(cstr->startDate());
-
-            connect(cstr,               &ConstraintModel::defaultDurationChanged,
-                    m_localTimeRuler,   &LocalTimeRulerPresenter::setDuration);
-            connect(cstr,               &ConstraintModel::startDateChanged,
-                    m_localTimeRuler,   &LocalTimeRulerPresenter::setStartPoint);
-        }
-    }*/
 }
 
 void BaseElementPresenter::on_zoomSliderChanged(double sliderPos)
@@ -225,6 +185,7 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
                                                 displayedConstraint().duration.defaultDuration().msec(),
                                                 view()->view()->width());
 
+    m_mainTimeRuler->view()->setWidth(s.width());
     updateZoom(zoom, {0,0});
 }
 
@@ -233,22 +194,12 @@ void BaseElementPresenter::on_horizontalPositionChanged(int dx)
     QRect viewport_rect = view()->view()->viewport()->rect() ;
     QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 
-    m_mainTimeRuler->scroll(visible_scene_rect.left());
-    /*
-    m_localTimeRuler->scroll(dx);
-    */
+    m_mainTimeRuler->setStartPoint(TimeValue::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
 }
 
 void BaseElementPresenter::updateRect(const QRectF& rect)
 {
     view()->view()->setSceneRect(rect);
-
-    /*
-    QRectF other{view()->rulerView()->sceneRect()};
-    other.setWidth(rect.width());
-    other.setX(rect.x());
-    view()->rulerView()->setSceneRect(other);
-    */
 }
 
 void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
@@ -289,7 +240,6 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
     view()->view()->ensureVisible(newView,0,0);
-    qDebug() << newView;
 
     QRectF new_visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 

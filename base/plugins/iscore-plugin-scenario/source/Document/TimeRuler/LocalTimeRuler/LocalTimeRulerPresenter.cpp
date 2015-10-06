@@ -14,7 +14,6 @@ LocalTimeRulerPresenter::LocalTimeRulerPresenter(LocalTimeRulerView *view,
     LocalTimeRulerPresenter{view, parent}
 {
     m_startPoint = startDate;
-    m_duration = duration;
     m_pixelPerMillis = pixPerMillis;
 }
 
