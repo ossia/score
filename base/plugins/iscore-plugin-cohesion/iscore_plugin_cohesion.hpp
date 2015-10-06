@@ -3,7 +3,6 @@
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-// TODO rename this file
 /**
  * @brief The IScoreCohesion class
  *

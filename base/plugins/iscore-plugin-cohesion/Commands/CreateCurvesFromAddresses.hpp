@@ -15,12 +15,12 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
           Path<ConstraintModel>&& constraint,
             const QList<iscore::Address> &addresses);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() override;
+        void redo() override;
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     private:
         Path<ConstraintModel> m_path;

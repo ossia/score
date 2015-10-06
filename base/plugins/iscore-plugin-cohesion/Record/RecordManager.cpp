@@ -1,6 +1,8 @@
 #include "RecordManager.hpp"
 #include "Singletons/DeviceExplorerInterface.hpp"
 
+#include "Commands/Record.hpp"
+
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
