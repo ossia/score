@@ -357,7 +357,7 @@ std::shared_ptr<OSSIA::Message> message(
     if(!deviceList.hasDevice(mess.address.device))
         return {};
 
-    // TODO optimizeme by sorting by device prior
+    // OPTIMIZEME by sorting by device prior
     // to this.
     const auto& dev = deviceList.device(mess.address.device);
 

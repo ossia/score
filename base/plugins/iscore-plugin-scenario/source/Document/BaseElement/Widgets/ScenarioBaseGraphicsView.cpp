@@ -1,7 +1,7 @@
-#include "SizeNotifyingGraphicsView.hpp"
+#include "ScenarioBaseGraphicsView.hpp"
 #include <QDebug>
 #include <ProcessInterface/Style/ScenarioStyle.hpp>
-SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
+ScenarioBaseGraphicsView::ScenarioBaseGraphicsView(QGraphicsScene* parent):
     QGraphicsView{parent}
 {
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -17,18 +17,18 @@ SizeNotifyingGraphicsView::SizeNotifyingGraphicsView(QGraphicsScene* parent):
     this->setBackgroundBrush(ScenarioStyle::instance().Background);
 }
 
-void SizeNotifyingGraphicsView::setGrid(QPainterPath&& newGrid)
+void ScenarioBaseGraphicsView::setGrid(QPainterPath&& newGrid)
 {
     //m_graduations->setGrid(std::move(newGrid));
 }
 
-void SizeNotifyingGraphicsView::resizeEvent(QResizeEvent* ev)
+void ScenarioBaseGraphicsView::resizeEvent(QResizeEvent* ev)
 {
     QGraphicsView::resizeEvent(ev);
     emit sizeChanged(size());
 }
 
-void SizeNotifyingGraphicsView::scrollContentsBy(int dx, int dy)
+void ScenarioBaseGraphicsView::scrollContentsBy(int dx, int dy)
 {
     QGraphicsView::scrollContentsBy(dx, dy);
 
@@ -36,7 +36,7 @@ void SizeNotifyingGraphicsView::scrollContentsBy(int dx, int dy)
     emit scrolled(dx);
 }
 
-void SizeNotifyingGraphicsView::wheelEvent(QWheelEvent *event)
+void ScenarioBaseGraphicsView::wheelEvent(QWheelEvent *event)
 {
     QPoint delta = event->angleDelta() / 8;
     if (m_zoomModifier)
@@ -49,7 +49,7 @@ void SizeNotifyingGraphicsView::wheelEvent(QWheelEvent *event)
 }
 
 
-void SizeNotifyingGraphicsView::keyPressEvent(QKeyEvent *event)
+void ScenarioBaseGraphicsView::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control)
         m_zoomModifier = true;
@@ -58,7 +58,7 @@ void SizeNotifyingGraphicsView::keyPressEvent(QKeyEvent *event)
     QGraphicsView::keyPressEvent(event);
 }
 
-void SizeNotifyingGraphicsView::keyReleaseEvent(QKeyEvent *event)
+void ScenarioBaseGraphicsView::keyReleaseEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Control)
         m_zoomModifier = false;
@@ -67,7 +67,7 @@ void SizeNotifyingGraphicsView::keyReleaseEvent(QKeyEvent *event)
     QGraphicsView::keyReleaseEvent(event);
 }
 
-void SizeNotifyingGraphicsView::focusOutEvent(QFocusEvent* event)
+void ScenarioBaseGraphicsView::focusOutEvent(QFocusEvent* event)
 {
     m_zoomModifier = false;
     event->ignore();

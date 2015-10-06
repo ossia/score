@@ -1,4 +1,4 @@
-#include "AbstractMenuActions.hpp"
+#include "ScenarioActions.hpp"
 #include "Control/ScenarioControl.hpp"
 ScenarioActions::ScenarioActions(iscore::ToplevelMenuElement menuElt, ScenarioControl *parent) :
     QObject(parent),

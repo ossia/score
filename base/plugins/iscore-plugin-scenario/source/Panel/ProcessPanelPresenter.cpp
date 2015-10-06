@@ -13,7 +13,7 @@
 #include <ProcessInterface/LayerView.hpp>
 #include <ProcessInterface/ProcessFactory.hpp>
 
-#include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
+#include <Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
 
 #include "ProcessPanelId.hpp"
 #include "Document/BaseElement/ProcessFocusManager.hpp"

@@ -3,7 +3,7 @@
 
 class QGraphicsScene;
 class QGraphicsView;
-class SizeNotifyingGraphicsView;
+class ScenarioBaseGraphicsView;
 class DoubleSlider;
 class ProcessPanelView : public iscore::PanelView
 {
@@ -19,7 +19,7 @@ class ProcessPanelView : public iscore::PanelView
         { return tr("Ctrl+P"); }
 
         QGraphicsScene* scene() const;
-        SizeNotifyingGraphicsView* view() const;
+        ScenarioBaseGraphicsView* view() const;
 
         DoubleSlider* zoomSlider() const
         { return m_zoomSlider; }
@@ -31,6 +31,6 @@ class ProcessPanelView : public iscore::PanelView
     private:
         QWidget* m_widget{};
         QGraphicsScene* m_scene{};
-        SizeNotifyingGraphicsView* m_view{};
+        ScenarioBaseGraphicsView* m_view{};
         DoubleSlider* m_zoomSlider{};
 };

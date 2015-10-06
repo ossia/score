@@ -34,7 +34,7 @@
 #include <QJsonDocument>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <core/document/Document.hpp>
-#include <Commands/State/EditValue.hpp>
+#include <Commands/State/UpdateState.hpp>
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateStateMacro.hpp"

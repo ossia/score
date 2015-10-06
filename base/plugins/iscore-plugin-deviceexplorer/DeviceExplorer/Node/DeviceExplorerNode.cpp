@@ -115,7 +115,7 @@ Message message(const Node& node)
 
 QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
 {
-    // TODO optimizeme this horrible lazy algorithm.
+    // OPTIMIZEME this horrible lazy algorithm.
     auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
 
     QList<iscore::Node*> cleaned_nodes;

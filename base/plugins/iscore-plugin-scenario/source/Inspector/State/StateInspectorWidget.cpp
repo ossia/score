@@ -6,7 +6,7 @@
 #include "Inspector/SelectionButton.hpp"
 #include <core/document/Document.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
-#include "DialogWidget/StateTreeView.hpp"
+#include "DialogWidget/MessageTreeView.hpp"
 #include <iscore/widgets/MarginLess.hpp>
 #include "Commands/Event/SplitEvent.hpp"
 #include <QPushButton>

@@ -82,7 +82,7 @@ namespace boost { namespace mpl {
 
 #include <Commands/State/AddMessagesToModel.hpp>
 #include <Commands/State/RemoveMessageNodes.hpp>
-#include <Commands/State/EditValue.hpp>
+#include <Commands/State/UpdateState.hpp>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 

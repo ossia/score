@@ -1,5 +1,5 @@
 #pragma once
-#include "source/Control/Menus/Plugin/ScenarioContextMenuFactoryFamily.hpp"
+#include "source/Control/Menus/Plugin/ScenarioActionsFactory.hpp"
 
 class PlayContextMenuFactory : public ScenarioActionsFactory
 {

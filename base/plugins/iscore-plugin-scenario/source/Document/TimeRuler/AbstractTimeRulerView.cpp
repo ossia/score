@@ -1,5 +1,6 @@
 #include "AbstractTimeRulerView.hpp"
 
+#include <cmath>
 #include <QPainter>
 #include <QGraphicsScene>
 #include <Document/TimeRuler/AbstractTimeRuler.hpp>
@@ -74,7 +75,7 @@ void AbstractTimeRulerView::createRulerPath()
 
     // If we are between two graduations, we adjust our origin.
     auto big_delta = m_graduationDelta * 5;
-    auto prev_big_grad_msec = floor(m_pres->startPoint().msec() / big_delta) * big_delta;
+    auto prev_big_grad_msec = std::floor(m_pres->startPoint().msec() / big_delta) * big_delta;
 
     auto startTime = TimeValue::fromMsecs(m_pres->startPoint().msec() - prev_big_grad_msec);
     QTime time = TimeValue::fromMsecs(prev_big_grad_msec).toQTime();

@@ -1,4 +1,4 @@
-#include "StateTreeView.hpp"
+#include "MessageTreeView.hpp"
 
 #include <Document/State/StateModel.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/MessageListEditor.hpp>

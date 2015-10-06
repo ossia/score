@@ -3,7 +3,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Commands/State/EditValue.hpp>
+#include <Commands/State/UpdateState.hpp>
 #include <Commands/State/AddMessagesToModel.hpp>
 using namespace iscore;
 MessageItemModel::MessageItemModel(

@@ -3,7 +3,7 @@
 
 class ScenarioControl;
 class ScenarioActions;
-// TODO rename me
+
 class ScenarioActionsFactory : public iscore::FactoryInterface
 {
     public:

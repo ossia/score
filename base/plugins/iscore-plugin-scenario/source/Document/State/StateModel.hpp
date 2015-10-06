@@ -15,7 +15,7 @@
 #include <source/Document/State/ItemModel/MessageItemModel.hpp>
 #include <set>
 #include "StateView.hpp"
-#include "Document/Event/EventStatus.hpp"
+#include <Document/Event/ExecutionStatus.hpp>
 
 class ConstraintView;
 class ScenarioInterface;

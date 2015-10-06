@@ -1,4 +1,4 @@
-#include "EventStatus.hpp"
+#include "ExecutionStatus.hpp"
 #include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 const QColor& eventStatusColor(EventStatus e)

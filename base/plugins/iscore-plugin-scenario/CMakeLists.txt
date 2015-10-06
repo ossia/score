@@ -130,7 +130,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/AddMessagesToModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/EditValue.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/UpdateState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SwitchStatePosition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/AddTrigger.cpp"
@@ -143,7 +143,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/PutLayerModelToFront.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/AbstractMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TransportActions.cpp"
@@ -153,7 +153,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/ScenarioControl.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/AddProcessDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/StateTreeView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/DialogWidget/MessageTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/BaseScenarioStateMachine.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.cpp"
@@ -166,7 +166,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/ProgressBar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/SceneGraduations.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/SizeNotifyingGraphicsView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/BaseElementView.cpp"
@@ -198,7 +198,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/EventStatus.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Event/ExecutionStatus.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/ModelConsistency.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/TimeNode/TimeNodePresenter.cpp"

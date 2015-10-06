@@ -10,7 +10,6 @@ namespace DeviceExplorer
 {
 namespace Command
 {
-// TODO moveme
 class Remove : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("DeviceExplorerControl", "Remove", "Remove")

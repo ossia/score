@@ -20,7 +20,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
-    m_view {new SizeNotifyingGraphicsView{m_scene}},
+    m_view {new ScenarioBaseGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject},
     m_timeRuler {new TimeRulerView}
 {
@@ -95,7 +95,7 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     lay->setSpacing(1);
 
-    connect(m_view, &SizeNotifyingGraphicsView::scrolled,
+    connect(m_view, &ScenarioBaseGraphicsView::scrolled,
             this,   &BaseElementView::horizontalPositionChanged);
 }
 

@@ -1,8 +1,7 @@
 #include "LinearCurveSegmentModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 
-// TODO put in nice folders
-CurveSegmentModel*LinearCurveSegmentModel::clone(
+CurveSegmentModel* LinearCurveSegmentModel::clone(
         const Id<CurveSegmentModel>& id,
         QObject *parent) const
 {

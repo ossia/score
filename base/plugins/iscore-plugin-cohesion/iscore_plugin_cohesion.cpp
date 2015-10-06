@@ -1,4 +1,4 @@
-#include "IScoreCohesion.hpp"
+#include "iscore_plugin_cohesion.hpp"
 #include "IScoreCohesionControl.hpp"
 iscore_plugin_cohesion::iscore_plugin_cohesion() :
     QObject {}

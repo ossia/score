@@ -24,8 +24,6 @@ class AbstractTimeRulerView : public QGraphicsObject
             return m_width;
         }
 
-    signals:
-
     public slots:
         void setGraduationsStyle(double size, int delta, QString format, int mark);
         void setFormat(QString);

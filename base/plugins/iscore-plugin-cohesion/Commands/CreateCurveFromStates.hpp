@@ -27,12 +27,12 @@ class CreateCurveFromStates : public iscore::SerializableCommand
                 double start,
                 double end);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() override;
+        void redo() override;
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     private:
         Scenario::Command::AddProcessToConstraint* m_addProcessCmd{};

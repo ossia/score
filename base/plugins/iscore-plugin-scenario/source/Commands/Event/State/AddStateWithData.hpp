@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/AggregateCommand.hpp>
-#include <Commands/State/EditValue.hpp>
+#include <Commands/State/UpdateState.hpp>
 #include "Commands/Scenario/Creations/CreateState.hpp"
 #include "Document/Event/EventModel.hpp"
 namespace Scenario
