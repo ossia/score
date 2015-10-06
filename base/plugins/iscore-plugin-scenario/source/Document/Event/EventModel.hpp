@@ -12,8 +12,8 @@
 #include <State/State.hpp>
 #include <State/Expression.hpp>
 
-#include "source/Document/State/StateModel.hpp"
-#include "source/Document/Event/EventStatus.hpp"
+#include <Document/State/StateModel.hpp>
+#include <Document/Event/ExecutionStatus.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 namespace OSSIA
 {

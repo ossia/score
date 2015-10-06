@@ -144,7 +144,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
                 // If the new segment is non-sensical we remove it
                 if(segment.start.x() >= segment.end.x())
                 {
-                    // TODO optimizeme
+                    // OPTIMIZEME
                     indicesToRemove.push_back(segment.id);
                 }
 

@@ -1,4 +1,4 @@
-#include "OSSIAPlugin.hpp"
+#include "iscore_plugin_ossia.hpp"
 #include "OSSIAControl.hpp"
 
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>

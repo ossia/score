@@ -5,7 +5,6 @@
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <Document/State/ItemModel/MessageItemModel.hpp>
 
-// TODO rename file
 class UpdateState : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("ScenarioControl", "UpdateState", "UpdateState")

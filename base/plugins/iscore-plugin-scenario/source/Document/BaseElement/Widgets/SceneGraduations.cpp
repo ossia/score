@@ -1,5 +1,5 @@
 #include "SceneGraduations.hpp"
-#include "SizeNotifyingGraphicsView.hpp"
+#include "ScenarioBaseGraphicsView.hpp"
 #include <QObject>
 #include <QDebug>
 
@@ -11,9 +11,9 @@ void SceneGraduations::setSize(const QSizeF& s)
 }
 
 
-SceneGraduations::SceneGraduations(SizeNotifyingGraphicsView* view)
+SceneGraduations::SceneGraduations(ScenarioBaseGraphicsView* view)
 {
-    QObject::connect(view, &SizeNotifyingGraphicsView::sizeChanged,
+    QObject::connect(view, &ScenarioBaseGraphicsView::sizeChanged,
                      [&] (const QSize& s) { setSize(s); });
 }
 

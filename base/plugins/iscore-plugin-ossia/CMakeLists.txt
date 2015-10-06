@@ -25,7 +25,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ProcessWrapper.cpp"

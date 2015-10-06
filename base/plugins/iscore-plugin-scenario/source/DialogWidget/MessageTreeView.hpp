@@ -4,8 +4,6 @@
 
 class StateModel;
 class DeviceExplorerModel;
-// TODO rename file
-
 class MessageItemModel;
 class MessageTreeView :  public QTreeView
 {

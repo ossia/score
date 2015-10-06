@@ -8,7 +8,6 @@
 
 class QAction;
 class ScenarioControl;
-// TODO rename me
 class ScenarioActions : public QObject
 {
         Q_OBJECT

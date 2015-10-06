@@ -70,7 +70,7 @@ struct StateNodeValues
 
                     case PriorityPolicy::Previous:
                     {
-                        // TODO optimize me by computing them only once
+                        // OPTIMIZEME  by computing them only once
                         auto it = value(previousProcessValues);
                         if(it != previousProcessValues.cend())
                             return *it->value;

@@ -4,7 +4,6 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-// TODO rename file
 class iscore_plugin_ossia:
     public QObject,
     public iscore::PluginControlInterface_QtInterface,

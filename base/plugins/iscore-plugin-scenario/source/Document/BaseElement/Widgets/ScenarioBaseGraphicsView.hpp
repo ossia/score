@@ -8,11 +8,11 @@
 #include <QDebug>
 #include "SceneGraduations.hpp"
 
-class SizeNotifyingGraphicsView : public QGraphicsView // TODO rename this class
+class ScenarioBaseGraphicsView : public QGraphicsView
 {
         Q_OBJECT
     public:
-        SizeNotifyingGraphicsView(QGraphicsScene* parent);
+        ScenarioBaseGraphicsView(QGraphicsScene* parent);
 
         void setGrid(QPainterPath&& newGrid);
 

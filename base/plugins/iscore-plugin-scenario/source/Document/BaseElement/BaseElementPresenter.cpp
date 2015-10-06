@@ -58,9 +58,9 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
             this,                             &BaseElementPresenter::on_newSelection);
     connect(view(), &BaseElementView::horizontalZoomChanged,
             this,   &BaseElementPresenter::on_zoomSliderChanged);
-    connect(view()->view(), &SizeNotifyingGraphicsView::sizeChanged,
+    connect(view()->view(), &ScenarioBaseGraphicsView::sizeChanged,
             this,           &BaseElementPresenter::on_viewSizeChanged);
-    connect(view()->view(), &SizeNotifyingGraphicsView::zoom,
+    connect(view()->view(), &ScenarioBaseGraphicsView::zoom,
             this,  &BaseElementPresenter::on_zoomOnWheelEvent);
     connect(view(), &BaseElementView::horizontalPositionChanged,
             this,   &BaseElementPresenter::on_horizontalPositionChanged);

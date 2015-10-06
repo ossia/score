@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include "Widgets/SizeNotifyingGraphicsView.hpp"
+#include "Widgets/ScenarioBaseGraphicsView.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
 class QSlider;
 class QGraphicsScene;
@@ -30,7 +30,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         QGraphicsScene* scene() const
         { return m_scene;}
 
-        SizeNotifyingGraphicsView* view() const
+        ScenarioBaseGraphicsView* view() const
         { return m_view;}
 
         QGraphicsView* rulerView() const
@@ -53,7 +53,7 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
     private:
         QWidget* m_widget {};
         QGraphicsScene* m_scene {};
-        SizeNotifyingGraphicsView* m_view {};
+        ScenarioBaseGraphicsView* m_view {};
         GraphicsProxyObject* m_baseObject {};
 
         QGraphicsView* m_timeRulersView {};

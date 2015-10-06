@@ -3,7 +3,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include "Document/VerticalExtent.hpp"
-#include "EventStatus.hpp"
+#include "ExecutionStatus.hpp"
 class EventPresenter;
 class ConditionView;
 class EventView final : public QGraphicsObject

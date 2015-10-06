@@ -2,7 +2,7 @@
 
 #include <Commands/CreateStatesFromParametersInEvents.hpp>
 
-#include <Commands/State/EditValue.hpp>
+#include <Commands/State/UpdateState.hpp>
 #include <Document/State/StateModel.hpp>
 #include <Plugin/Panel/DeviceExplorerModel.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>
