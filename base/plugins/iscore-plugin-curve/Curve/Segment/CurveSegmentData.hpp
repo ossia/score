@@ -50,6 +50,28 @@ class SegmentId
 // An object wrapper useful for saving / loading
 struct CurveSegmentData
 {
+        CurveSegmentData() = default;
+        CurveSegmentData(const CurveSegmentData&) = default;
+        CurveSegmentData(CurveSegmentData&&) = default;
+        CurveSegmentData& operator=(const CurveSegmentData&) = default;
+        CurveSegmentData& operator=(CurveSegmentData&&) = default;
+
+        CurveSegmentData(
+                const Id<CurveSegmentModel>& id,
+                CurvePoint start, CurvePoint end,
+                const Id<CurveSegmentModel>& prev, const Id<CurveSegmentModel>&  foll,
+                const QString& type, const QVariant& data):
+            id(id),
+            start(start),
+            end(end),
+            previous(prev),
+            following(foll),
+            type(type),
+            specificSegmentData(data)
+        {
+
+        }
+
         Id<CurveSegmentModel> id;
 
         CurvePoint start, end;

@@ -37,6 +37,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                      m_scenarioToolActionGroup,
                      ScenarioToolKind::Select,
                      tr("Alt+x"));
+    m_selecttool->setObjectName("Select");
     m_selecttool->setChecked(true);
     auto set_tool = [&] (ScenarioToolKind t) {
         if(auto&& pres = m_parent->focusedPresenter())

@@ -11,7 +11,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-
+#include <API/Toolkit/DebugVisitor.h>
 #include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 OSSIAScenarioElement::OSSIAScenarioElement(
@@ -65,7 +65,6 @@ OSSIAScenarioElement::OSSIAScenarioElement(
     }
 }
 
-
 std::shared_ptr<OSSIA::Scenario> OSSIAScenarioElement::scenario() const
 {
     return m_ossia_scenario;
@@ -87,6 +86,14 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
 }
 
 
+static void constraintCallback(const OSSIA::TimeValue&,
+                               const OSSIA::TimeValue&,
+                               std::shared_ptr<OSSIA::StateElement> element)
+{
+    element->launch();
+}
+
+
 void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_constraint)
 {
     auto& cst = const_cast<ConstraintModel&>(const_constraint);
@@ -97,7 +104,7 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create(
-                OSSIA::TimeConstraint::ExecutionCallback{},
+                constraintCallback,
                 ossia_sev->OSSIAEvent(),
                 ossia_eev->OSSIAEvent(),
                 iscore::convert::time(cst.duration.defaultDuration()),

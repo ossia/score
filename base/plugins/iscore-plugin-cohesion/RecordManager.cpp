@@ -69,16 +69,6 @@ void RecordManager::stopRecording()
         // Conversion of the piecewise to segments, and
         // serialization.
         recorded.second.segment.simplify();
-        auto data = recorded.second.segment.piecewise();
-        // TODO Use CurveSegmentData
-        QVector<QByteArray> newSegments;
-        newSegments.resize(data.size());
-        int i = 0;
-        for(const auto& segment : data)
-        {
-            Serializer<DataStream> s(&newSegments[i++]);
-            s.readFrom(*static_cast<CurveSegmentModel*>(segment.get()));
-        }
 
         // Add a point with the last state.
         auto initCurveCmd = new InitAutomation{
@@ -86,7 +76,7 @@ void RecordManager::stopRecording()
                 recorded.first,
                 recorded.second.segment.min(),
                 recorded.second.segment.max(),
-                newSegments};
+                recorded.second.segment.toLinearSegments()};
 
         // This one shall not be redone
         m_dispatcher->submitCommand(recorded.second.addProcCmd);

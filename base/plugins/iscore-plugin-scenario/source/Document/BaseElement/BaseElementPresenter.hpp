@@ -38,6 +38,9 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         virtual ~BaseElementPresenter() = default;
 
         const ConstraintModel& displayedConstraint() const;
+        const DisplayedElementsPresenter& presenters() const
+        { return *m_scenarioPresenter; }
+
         BaseElementModel& model() const;
         BaseElementView* view() const;
 

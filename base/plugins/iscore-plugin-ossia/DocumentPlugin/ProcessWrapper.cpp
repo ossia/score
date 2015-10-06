@@ -6,63 +6,63 @@
 #include <Editor/TimeConstraint.h>
 #include <algorithm>
 #include <QDebug>
-class BasicProcessWrapper
+
+// MOVEME
+BasicProcessWrapper::BasicProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst, const std::shared_ptr<OSSIA::TimeProcess>& ptr, const OSSIA::TimeValue& dur, bool looping):
+    m_parent{cst},
+    m_process{ptr}
 {
+    if(m_process)
+        m_parent->addTimeProcess(m_process);
+}
 
-    public:
-        BasicProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,
-                       const std::shared_ptr<OSSIA::TimeProcess>& ptr,
-                       const OSSIA::TimeValue& dur,
-                       bool looping):
-            m_parent{cst},
-            m_process{ptr}
-        {
-            if(m_process)
-                m_parent->addTimeProcess(m_process);
-        }
+BasicProcessWrapper::~BasicProcessWrapper()
+{
+    auto proc = currentProcess();
+    auto& processes = m_parent->timeProcesses();
+    auto proc_it =  std::find(processes.begin(),
+                              processes.end(),
+                              currentProcess());
 
-        ~BasicProcessWrapper()
-        {
-            auto proc = currentProcess();
-            auto& processes = m_parent->timeProcesses();
-            auto proc_it =  std::find(processes.begin(),
-                                      processes.end(),
-                                      currentProcess());
+    // It is possible for a process to be null
+    // (e.g. invalid state in GUI like automation without address)
+    if(proc && proc_it != processes.end())
+        m_parent->removeTimeProcess(proc);
+}
 
-            // It is possible for a process to be null
-            // (e.g. invalid state in GUI like automation without address)
-            if(proc && proc_it != processes.end())
-                m_parent->removeTimeProcess(proc);
-        }
+void BasicProcessWrapper::setDuration(const OSSIA::TimeValue& val) { }
 
-        void setDuration(const OSSIA::TimeValue& val) { }
-        void setLooping(bool b) { }
+void BasicProcessWrapper::setLooping(bool b) { }
 
-        void changed(const std::shared_ptr<OSSIA::TimeProcess>& oldProc,
-                     const std::shared_ptr<OSSIA::TimeProcess>& newProc)
-        {
-            if(oldProc)
-            {
-                currentConstraint().removeTimeProcess(oldProc);
-            }
+void BasicProcessWrapper::changed(const std::shared_ptr<OSSIA::TimeProcess>& oldProc, const std::shared_ptr<OSSIA::TimeProcess>& newProc)
+{
+    if(oldProc)
+    {
+        currentConstraint().removeTimeProcess(oldProc);
+    }
 
-            m_process = newProc;
-            if(m_process)
-            {
-                currentConstraint().addTimeProcess(m_process);
-            }
-        }
+    m_process = newProc;
+    if(m_process)
+    {
+        currentConstraint().addTimeProcess(m_process);
+    }
+}
 
-    private:
-        std::shared_ptr<OSSIA::TimeProcess> currentProcess() const
-        { return m_process; }
-        OSSIA::TimeConstraint& currentConstraint() const
-        { return *m_parent; }
+std::shared_ptr<OSSIA::TimeProcess> BasicProcessWrapper::currentProcess() const
+{ return m_process; }
 
-        std::shared_ptr<OSSIA::TimeConstraint> m_parent;
-        std::shared_ptr<OSSIA::TimeProcess> m_process;
+OSSIA::TimeConstraint&BasicProcessWrapper::currentConstraint() const
+{ return *m_parent; }
 
-};
+
+
+
+
+
+
+
+
+
 
 static void constraintCallback(const OSSIA::TimeValue&,
                                const OSSIA::TimeValue&,
@@ -70,7 +70,7 @@ static void constraintCallback(const OSSIA::TimeValue&,
 {
     element->launch();
 }
-ProcessWrapper::ProcessWrapper(
+LoopingProcessWrapper::LoopingProcessWrapper(
         const std::shared_ptr<OSSIA::TimeConstraint>& cst,
         const std::shared_ptr<OSSIA::TimeProcess>& ptr,
         const OSSIA::TimeValue& dur,
@@ -109,7 +109,7 @@ ProcessWrapper::ProcessWrapper(
 
 }
 
-ProcessWrapper::~ProcessWrapper()
+LoopingProcessWrapper::~LoopingProcessWrapper()
 {
     auto proc = currentProcess();
 
@@ -127,13 +127,13 @@ ProcessWrapper::~ProcessWrapper()
         m_parent->removeTimeProcess(proc);
 }
 
-void ProcessWrapper::setDuration(const OSSIA::TimeValue& val)
+void LoopingProcessWrapper::setDuration(const OSSIA::TimeValue& val)
 {
     m_fixed_cst->setDuration(val);
     m_looping_impl->getPatternTimeConstraint()->setDuration(val);
 }
 
-void ProcessWrapper::setLooping(bool b)
+void LoopingProcessWrapper::setLooping(bool b)
 {
     if(b == m_looping)
         return;
@@ -166,7 +166,7 @@ void ProcessWrapper::setLooping(bool b)
     }
 }
 
-void ProcessWrapper::changed(
+void LoopingProcessWrapper::changed(
         const std::shared_ptr<OSSIA::TimeProcess>& oldProc,
         const std::shared_ptr<OSSIA::TimeProcess>& newProc)
 {
@@ -182,7 +182,7 @@ void ProcessWrapper::changed(
     }
 }
 
-std::shared_ptr<OSSIA::TimeProcess> ProcessWrapper::currentProcess() const
+std::shared_ptr<OSSIA::TimeProcess> LoopingProcessWrapper::currentProcess() const
 {
     if(m_looping)
         return m_looping_impl;
@@ -190,7 +190,7 @@ std::shared_ptr<OSSIA::TimeProcess> ProcessWrapper::currentProcess() const
         return m_fixed_impl;
 }
 
-OSSIA::TimeConstraint& ProcessWrapper::currentConstraint() const
+OSSIA::TimeConstraint& LoopingProcessWrapper::currentConstraint() const
 {
     if(m_looping)
         return *m_looping_impl->getPatternTimeConstraint();

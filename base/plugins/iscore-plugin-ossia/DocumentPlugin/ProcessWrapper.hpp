@@ -16,15 +16,42 @@ class TimeNode;
 class TimeProcess;
 }
 
-class ProcessWrapper
+// MOVEME
+class BasicProcessWrapper
 {
+
     public:
-        ProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,
+        BasicProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,
                        const std::shared_ptr<OSSIA::TimeProcess>& ptr,
                        const OSSIA::TimeValue& dur,
                        bool looping);
 
-        ~ProcessWrapper();
+        ~BasicProcessWrapper();
+
+        void setDuration(const OSSIA::TimeValue& val);
+        void setLooping(bool b);
+
+        void changed(const std::shared_ptr<OSSIA::TimeProcess>& oldProc,
+                     const std::shared_ptr<OSSIA::TimeProcess>& newProc);
+
+    private:
+        std::shared_ptr<OSSIA::TimeProcess> currentProcess() const;
+        OSSIA::TimeConstraint& currentConstraint() const;
+
+        std::shared_ptr<OSSIA::TimeConstraint> m_parent;
+        std::shared_ptr<OSSIA::TimeProcess> m_process;
+};
+
+
+class LoopingProcessWrapper
+{
+    public:
+        LoopingProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,
+                       const std::shared_ptr<OSSIA::TimeProcess>& ptr,
+                       const OSSIA::TimeValue& dur,
+                       bool looping);
+
+        ~LoopingProcessWrapper();
 
         void setDuration(const OSSIA::TimeValue& val);
 
@@ -47,6 +74,8 @@ class ProcessWrapper
         std::shared_ptr<OSSIA::Loop> m_looping_impl;
         bool m_looping = false;
 };
+
+using ProcessWrapper = LoopingProcessWrapper;
 
 struct OSSIAProcess
 {

@@ -45,7 +45,8 @@ class PointArrayCurveSegmentModel final : public CurveSegmentModel
 
         void addPoint(double, double);
         void simplify();
-        std::vector<std::unique_ptr<LinearCurveSegmentModel>> piecewise() const;
+        [[ deprecated ]] std::vector<std::unique_ptr<LinearCurveSegmentModel>> piecewise() const;
+        std::vector<CurveSegmentData> toLinearSegments() const;
 
         double min() { return min_y; }
         double max() { return max_y; }

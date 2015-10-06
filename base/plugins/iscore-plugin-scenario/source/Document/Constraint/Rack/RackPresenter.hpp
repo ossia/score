@@ -28,6 +28,8 @@ class RackPresenter : public NamedObject
                      QObject* parent);
         virtual ~RackPresenter();
 
+        const RackModel& model() const
+        { return m_model; }
         const RackView& view() const;
 
         qreal height() const;

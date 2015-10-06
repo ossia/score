@@ -31,6 +31,37 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
     checkDelimiter();
 }
 
+
+template<>
+void Visitor<Reader<DataStream>>::readFrom(const std::vector<CurveSegmentData>& segmt)
+{
+    m_stream << (int)segmt.size();
+    for(const auto& elt : segmt)
+        readFrom(elt);
+
+    insertDelimiter();
+}
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(std::vector<CurveSegmentData>& segmt)
+{
+    int n = 0;
+    m_stream >> n;
+
+    // TODO see if this could be used as a basis for generic tools for
+    // serialization of template elements,
+    // by providing a VisitorTemplateImpl<std::vector> that also has readfrom / writeto
+    // and could be used for different types..
+    segmt.clear();
+    segmt.resize(n);
+    for(int i = 0; i < n; i++)
+    {
+        writeTo(segmt[i]);
+    }
+
+    checkDelimiter();
+}
+
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 {

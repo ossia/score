@@ -1,5 +1,6 @@
 #include "StateTreeView.hpp"
 
+#include <Document/State/StateModel.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/MessageListEditor.hpp>
 #include <State/StateItemModel.hpp>
 #include <Commands/Event/State/AssignMessagesToState.hpp>
@@ -14,11 +15,9 @@
 #include <QAction>
 MessageTreeView::MessageTreeView(
         const StateModel& model,
-        DeviceExplorerModel* devexplorer,
         QWidget* parent):
     QTreeView{parent},
     m_model{const_cast<StateModel*>(&model)}, // TODO sorry o lord for I have sinned
-    //m_devExplorer{devexplorer},
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     setAllColumnsShowFocus(true);

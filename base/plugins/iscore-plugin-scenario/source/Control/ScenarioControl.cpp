@@ -250,25 +250,33 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
         connect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
                 this, &ScenarioControl::createContextMenu);
 
-        // Set the current state on the statemachine.
-        // TODO put this in a pattern (MappedActionGroup?)
-  /*      for (QAction *action : m_toolActions->toolActions())
+        for(ScenarioActions* elt : m_pluginActions)
         {
-            if (action->isChecked())
+            const auto& acts = elt->actions();
+            auto it = std::find_if(acts.begin(), acts.end(), [] (const auto& act) { return act->objectName() == "Select"; });
+            if(it != acts.end())
             {
-                s_pres->stateMachine().changeTool(action->data().toInt());
+                (*it)->trigger();
+                break;
             }
-        }*/
+        }
     }
 }
 
-
+#include <Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Document/Constraint/Rack/RackPresenter.hpp>
+#include <Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <core/document/DocumentView.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <Document/BaseElement/BaseElementView.hpp>
 void ScenarioControl::on_documentChanged()
 {
     this->disconnect(m_focusConnection);
     this->disconnect(m_defocusConnection);
 
-    if(!currentDocument())
+    auto doc = currentDocument();
+    if(!doc)
     {
         return;
     }
@@ -286,7 +294,49 @@ void ScenarioControl::on_documentChanged()
                 connect(focusManager, &ProcessFocusManager::sig_defocusedPresenter,
                         this, &ScenarioControl::on_presenterDefocused);
 
-        on_presenterFocused(focusManager->focusedPresenter());
+        if(focusManager->focusedPresenter())
+        {
+            // Used when switching between documents
+            on_presenterFocused(focusManager->focusedPresenter());
+        }
+        else
+        {
+            // We focus by default the first process of the constraint in full view we're in
+            // TODO this snippet is useful, put it somewhere in some Toolkit file.
+            auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*doc);
+            auto& cst = pres.displayedConstraint();
+            if(!cst.processes.empty())
+            {
+                const auto& slts = pres.presenters().constraintPresenter()->rack()->getSlots();
+                if(!slts.empty())
+                {
+                    const auto& top_slot = pres.presenters().constraintPresenter()->rack()->model().slotsPositions().front();
+                    const SlotPresenter& first = slts.at(top_slot);
+                    const auto& slot_processes = first.processes();
+                    if(!slot_processes.empty())
+                    {
+                        const auto& front_proc = first.model().frontLayerModel();
+                        auto it = std::find_if(slot_processes.begin(), slot_processes.end(),
+                                               [&] (const auto& proc_elt) {
+                            return proc_elt.model == &front_proc;
+                        });
+                        if(it != slot_processes.end())
+                        {
+                            const SlotProcessData& proc_elt = *it;
+                            if(!proc_elt.processes.empty())
+                            {
+                                focusManager->setFocusedPresenter(proc_elt.processes.front().first);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Finally we focus the View widget.
+        auto bev = dynamic_cast<BaseElementView*>(doc->view().viewDelegate());
+        if(bev)
+            bev->view()->setFocus();
     }
 }
 
@@ -299,12 +349,12 @@ void ScenarioControl::initColors()
     {
         auto obj = QJsonDocument::fromJson(cols.readAll()).object();
         auto fromColor = [&] (const QString& key) {
-          auto arr = obj[key].toArray();
-          if(arr.size() == 3)
-            return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
-          else if(arr.size() == 4)
-              return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
-          return QColor{};
+            auto arr = obj[key].toArray();
+            if(arr.size() == 3)
+                return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
+            else if(arr.size() == 4)
+                return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
+            return QColor{};
         };
 
         instance.ConstraintBase = fromColor("ConstraintBase");

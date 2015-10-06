@@ -38,6 +38,7 @@
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateStateMacro.hpp"
+#include <Document/BaseElement/BaseElementModel.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         const TemporalScenarioLayerModel& process_view_model,
@@ -237,6 +238,11 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
 void TemporalScenarioPresenter::on_askUpdate()
 {
     m_view->update();
+}
+
+void TemporalScenarioPresenter::on_focusChanged()
+{
+    m_view->setFocus();
 }
 
 /////////////////////////////////////////////////////////////////////

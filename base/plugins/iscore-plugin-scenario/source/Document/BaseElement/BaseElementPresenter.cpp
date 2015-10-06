@@ -76,7 +76,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
 
     // Show our constraint
     con(model(), &BaseElementModel::displayedConstraintChanged,
-            this, &BaseElementPresenter::on_displayedConstraintChanged);
+        this, &BaseElementPresenter::on_displayedConstraintChanged);
 
     model().setDisplayedConstraint(model().baseConstraint());
 

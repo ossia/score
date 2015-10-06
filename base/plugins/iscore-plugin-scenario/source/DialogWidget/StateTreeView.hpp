@@ -12,7 +12,6 @@ class MessageTreeView :  public QTreeView
     public:
         MessageTreeView(
                 const StateModel& model,
-                DeviceExplorerModel* devexplorer,
                 QWidget* parent);
 
         MessageItemModel& model() const;
@@ -25,7 +24,6 @@ class MessageTreeView :  public QTreeView
 
         QAction* m_removeNodesAction{};
         StateModel* m_model{};
-        //DeviceExplorerModel* m_devExplorer{};
 
         CommandDispatcher<> m_dispatcher;
 };
