@@ -71,22 +71,7 @@ void CurvePresenter::setRect(const QRectF& rect)
 
 void CurvePresenter::setPos(CurvePointView& point)
 {
-    auto size = m_view->boundingRect().size();
-    // Get the previous or next segment. There has to be at least one.
-    if(point.model().previous())
-    {
-        const auto& curvemodel = m_model.segments().at(point.model().previous());
-        point.setPos(myscale(curvemodel.end(), size));
-        return;
-    }
-    else if(point.model().following())
-    {
-        const auto& curvemodel = m_model.segments().at(point.model().following());
-        point.setPos(myscale(curvemodel.start(), size));
-        return;
-    }
-
-    ISCORE_ABORT;
+    point.setPos(myscale(point.model().pos(),  m_view->boundingRect().size()));
 }
 
 void CurvePresenter::setPos(CurveSegmentView& segment)
@@ -107,13 +92,13 @@ void CurvePresenter::setupSignals()
     con(m_model, &CurveModel::segmentAdded, this,
             [&] (const CurveSegmentModel& segment)
     {
-        addSegment(new CurveSegmentView{segment, m_view});
+        addSegment(new CurveSegmentView{&segment, m_view});
     });
 
     con(m_model, &CurveModel::pointAdded, this,
             [&] (const CurvePointModel& point)
     {
-        addPoint(new CurvePointView{point, m_view});
+        addPoint(new CurvePointView{&point, m_view});
     });
 
     con(m_model, &CurveModel::pointRemoved, this,
@@ -148,6 +133,9 @@ void CurvePresenter::setupSignals()
         m_points.clear();
         m_segments.clear();
     });
+
+    con(m_model, &CurveModel::curveReset,
+        this, &CurvePresenter::modelReset);
 }
 
 void CurvePresenter::setupView()
@@ -155,12 +143,12 @@ void CurvePresenter::setupView()
     // Initialize the elements
     for(const auto& segment : m_model.segments())
     {
-        addSegment(new CurveSegmentView{segment, m_view});
+        addSegment(new CurveSegmentView{&segment, m_view});
     }
 
     for(CurvePointModel* pt : m_model.points())
     {
-        addPoint(new CurvePointView{*pt, m_view});
+        addPoint(new CurvePointView{pt, m_view});
     }
 
     // Setup the actions
@@ -308,37 +296,132 @@ void CurvePresenter::setupContextMenu()
 
 void CurvePresenter::addPoint(CurvePointView * pt_view)
 {
-    connect(pt_view, &CurvePointView::contextMenuRequested,
-            m_view, &CurveView::contextMenuRequested);
-    m_points.insert(pt_view);
+    setupPointConnections(pt_view);
 
+    m_points.insert(pt_view);
     setPos(*pt_view);
 }
 
 void CurvePresenter::addSegment(CurveSegmentView * seg_view)
 {
-    connect(seg_view, &CurveSegmentView::contextMenuRequested,
-            m_view, &CurveView::contextMenuRequested);
+    setupSegmentConnections(seg_view);
 
-    // Change the position of the points, when the segment moves.
-    con(seg_view->model(), &CurveSegmentModel::startChanged,
-            this, [=] () {
-        auto pt = std::find_if(m_points.begin(), m_points.end(), [&] (const CurvePointView& pt_view) {
-            return pt_view.model().following() == seg_view->model().id();
-        });
-        if(pt != m_points.end())
-        { setPos(*pt); }
-    });
-    con(seg_view->model(), &CurveSegmentModel::endChanged,
-        this, [=] () {
-        auto pt = std::find_if(m_points.begin(), m_points.end(), [&] (const CurvePointView& pt_view) {
-            return pt_view.model().previous() == seg_view->model().id();
-        });
-        if(pt != m_points.end())
-        { setPos(*pt); }
-    });
     m_segments.insert(seg_view);
     setPos(*seg_view);
+}
+
+void CurvePresenter::setupPointConnections(CurvePointView* pt_view)
+{
+    connect(pt_view, &CurvePointView::contextMenuRequested,
+            m_view, &CurveView::contextMenuRequested);
+    con(pt_view->model(), &CurvePointModel::posChanged,
+        this, [=] () { setPos(*pt_view); });
+}
+
+void CurvePresenter::setupSegmentConnections(CurveSegmentView* seg_view)
+{
+    connect(seg_view, &CurveSegmentView::contextMenuRequested,
+            m_view, &CurveView::contextMenuRequested);
+}
+
+void CurvePresenter::modelReset()
+{
+    // 1. We put our current elements in our pool.
+    std::vector<CurvePointView*> points(m_points.get().begin(), m_points.get().end());
+    std::vector<CurveSegmentView*> segments(m_segments.get().begin(), m_segments.get().end());
+
+    std::vector<CurvePointView*> newPoints;
+    std::vector<CurveSegmentView*> newSegments;
+
+    // 2. We add / remove new elements if necessary
+    {
+        int diff_points = m_model.points().size() - points.size();
+        if(diff_points > 0)
+        {
+            points.reserve(points.size() + diff_points);
+            for(;diff_points --> 0;)
+            {
+                auto pt = new CurvePointView{nullptr, m_view};
+                points.push_back(pt);
+                newPoints.push_back(pt);
+            }
+        }
+        else if(diff_points < 0)
+        {
+            int inv_diff_points = -diff_points;
+            for(;inv_diff_points --> 0;)
+            {
+                deleteGraphicsObject(points[points.size() - inv_diff_points - 1]);
+            }
+            points.resize(points.size() + diff_points);
+        }
+    }
+
+    // Same for segments
+    {
+        int diff_segts = m_model.segments().size() - segments.size();
+        if(diff_segts > 0)
+        {
+            segments.reserve(segments.size() + diff_segts);
+            for(;diff_segts --> 0;)
+            {
+                auto seg = new CurveSegmentView{nullptr, m_view};
+                segments.push_back(seg);
+                newSegments.push_back(seg);
+            }
+        }
+        else if(diff_segts < 0)
+        {
+            int inv_diff_segts = -diff_segts;
+            for(;inv_diff_segts --> 0;)
+            {
+                deleteGraphicsObject(segments[segments.size() - inv_diff_segts - 1]);
+            }
+            segments.resize(segments.size() + diff_segts);
+        }
+    }
+
+    ISCORE_ASSERT((int)points.size() == m_model.points().size());
+    ISCORE_ASSERT(segments.size() == m_model.segments().size());
+
+    // 3. We set the data
+    { // Points
+        int i = 0;
+        for(const auto& point : m_model.points())
+        {
+            points.at(i)->setModel(point);
+            i++;
+        }
+    }
+    { // Segments
+        int i = 0;
+        for(const auto& segment : m_model.segments())
+        {
+            segments[i]->setModel(&segment);
+            i++;
+        }
+    }
+
+    for(const auto& seg : newSegments)
+        setupSegmentConnections(seg);
+    for(const auto& pt: newPoints)
+        setupPointConnections(pt);
+
+    // Now the ones that have a new model
+    // 4. We put them all back in our maps.
+    m_points.clear();
+    m_segments.clear();
+
+    for(const auto& pt_view : points)
+    {
+        m_points.insert(pt_view);
+        setPos(*pt_view);
+    }
+    for(const auto& seg_view : segments)
+    {
+        m_segments.insert(seg_view);
+        setPos(*seg_view);
+    }
 }
 
 CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
@@ -380,6 +463,7 @@ void CurvePresenter::disable()
     }
 }
 
+// TESTME
 void CurvePresenter::removeSelection()
 {
     // We remove all that is selected,
@@ -402,22 +486,22 @@ void CurvePresenter::removeSelection()
         }
     }
 
-    QVector<QByteArray> newSegments;
-    newSegments.resize(m_model.segments().size() - segmentsToDelete.size());
-    int i = 0;
-    for(const auto& segment : m_model.segments())
+    auto newSegments = model().toCurveData();
+    auto it = newSegments.begin();
+    while(it != newSegments.end())
     {
-        if(!segmentsToDelete.contains(segment.id()))
+        if(segmentsToDelete.contains(it->id))
         {
-            auto cp = segment.clone(segment.id(), nullptr);
-            if(segment.previous() && !segmentsToDelete.contains(segment.previous()))
-                cp->setPrevious(segment.previous());
-            if(segment.following() && !segmentsToDelete.contains(segment.following()))
-                cp->setFollowing(segment.following());
-
-            Serializer<DataStream> s{&newSegments[i++]};
-            s.readFrom(*cp);
+            it = newSegments.erase(it);
+            continue;
         }
+
+        if(it->previous && segmentsToDelete.contains(it->previous))
+            it->previous = Id<CurveSegmentModel>{};
+        if(it->following && segmentsToDelete.contains(it->following))
+            it->following = Id<CurveSegmentModel>{};
+
+        it++;
     }
 
     m_commandDispatcher.submitCommand(
@@ -430,32 +514,17 @@ void CurvePresenter::removeSelection()
 void CurvePresenter::updateSegmentsType(const QString& segmentName)
 {
     // They keep their start / end and previous / following but change type.
-    // TODO maybe it would be better to encapsulate this ?
     auto factory = SingletonCurveSegmentList::instance().get(segmentName);
+    auto this_type_base_data = factory->makeCurveSegmentData();
+    auto newSegments = model().toCurveData();
 
-    QVector<QByteArray> newSegments;
-    newSegments.resize(m_model.segments().size());
-    int i = 0;
-    for(const auto& segment : m_model.segments())
+    for(auto& seg_data : newSegments)
     {
-        const CurveSegmentModel* current;
-        if(segment.selection.get())
+        if(model().segments().at(seg_data.id).selection.get())
         {
-            auto ns = factory->make(segment.id(), nullptr);
-            ns->setStart(segment.start());
-            ns->setEnd(segment.end());
-            ns->setPrevious(segment.previous());
-            ns->setFollowing(segment.following());
-
-            current = ns;
+            seg_data.type = segmentName;
+            seg_data.specificSegmentData = this_type_base_data;
         }
-        else
-        {
-            current = &segment;
-        }
-
-        Serializer<DataStream> s{&newSegments[i++]};
-        s.readFrom(*current);
     }
 
     m_commandDispatcher.submitCommand(

@@ -1,10 +1,11 @@
 #include "ConstraintInspectorWidget.hpp"
-
 #include "DialogWidget/AddProcessDialog.hpp"
 #include "Widgets/RackWidget.hpp"
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 
+#include <Commands/SetProcessDuration.hpp>
+#include <Commands/Constraint/SetLooping.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
@@ -40,12 +41,11 @@
 #include <QLabel>
 #include <QFormLayout>
 #include <QToolButton>
+#include <QCheckBox>
 #include <QPushButton>
-
 using namespace Scenario::Command;
 using namespace iscore;
 using namespace iscore::IDocument;
-
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ConstraintModel& object,
@@ -82,8 +82,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     ////// BODY
     QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
     connect(setAsDisplayedConstraint, &QPushButton::clicked,
-            [this]()
-    {
+            this, [this] {
         auto& base = get<BaseElementModel> (*documentFromObject(m_model));
 
         base.setDisplayedConstraint(model());
@@ -103,6 +102,14 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Durations
     m_durationSection = new DurationSectionWidget {this};
     m_properties.push_back(m_durationSection);
+    auto loop = new QCheckBox{tr("Loop content"), this};
+    loop->setChecked(m_model.looping());
+    connect(loop, &QCheckBox::clicked,
+            this, [this] (bool checked){
+        auto cmd = new SetLooping{m_model, checked};
+        commandDispatcher()->submitCommand(cmd);
+    });
+    m_properties.push_back(loop);
 
     // Separator
     m_properties.push_back(new Separator {this});
@@ -255,30 +262,23 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
-    auto cmd = new AddProcessToConstraint
-    {
-               iscore::IDocument::path(model()),
-               processName
-};
-    emit commandDispatcher()->submitCommand(cmd);
+    auto cmd = new AddProcessToConstraint{model(), processName};
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createRack()
 {
-    auto cmd = new AddRackToConstraint(
-                   iscore::IDocument::path(model()));
-    emit commandDispatcher()->submitCommand(cmd);
+    auto cmd = new AddRackToConstraint{model()};
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
 {
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
-    auto cmd = new AddLayerInNewSlot(
-                   iscore::IDocument::path(model()),
-                   Id<Process>(processName.toInt()));
+    auto cmd = new AddLayerInNewSlot{model(), Id<Process>(processName.toInt())};
 
-    emit commandDispatcher()->submitCommand(cmd);
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewModel* vm)
@@ -338,6 +338,20 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
         stateLayout->addRow(tr("End state"), endWidg);
     }
     newProc->addContent(stateWidget);
+
+    QPointer<TimeSpinBox> durWidg = new TimeSpinBox;
+    durWidg->setTime(process.duration().toQTime());
+    con(process, &Process::durationChanged,
+        this, [=] (const TimeValue& tv) {
+        if(durWidg)
+            durWidg->setTime(tv.toQTime());
+    });
+    connect(durWidg, &TimeSpinBox::editingFinished,
+        this, [&,durWidg] {
+        auto cmd = new SetProcessDuration{process, TimeValue(durWidg->time())};
+        commandDispatcher()->submitCommand(cmd);
+    });
+    stateLayout->addRow(tr("Duration"), durWidg);
 
     // Delete button
     auto deleteButton = new QPushButton{tr("Delete")};

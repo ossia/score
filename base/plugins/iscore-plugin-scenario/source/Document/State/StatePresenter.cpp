@@ -4,7 +4,7 @@
 
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/State/AddStateWithData.hpp"
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/AddMessagesToModel.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
 
@@ -37,14 +37,14 @@ StatePresenter::StatePresenter(
     con(m_model, &StateModel::statusChanged,
         this, [&] (EventStatus e)
     {
-        m_view->changeColor(eventStatusColorMap()[e]);
+        m_view->changeColor(eventStatusColor(e));
     });
 
     connect(m_view, &StateView::dropReceived,
             this, &StatePresenter::handleDrop);
 
     updateStateView();
-    m_view->changeColor(eventStatusColorMap()[m_model.status()]);
+    m_view->changeColor(eventStatusColor(m_model.status()));
 }
 
 StatePresenter::~StatePresenter()
@@ -80,7 +80,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         Mime<iscore::MessageList>::Deserializer des{*mime};
         iscore::MessageList ml = des.deserialize();
 
-        auto cmd = new AddMessagesToModel{
+        auto cmd = new UpdateState{
                    iscore::IDocument::path(m_model.messages()),
                    ml};
 

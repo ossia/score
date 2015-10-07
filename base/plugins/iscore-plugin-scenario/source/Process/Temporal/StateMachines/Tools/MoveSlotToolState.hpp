@@ -34,9 +34,15 @@ class MoveSlotToolState : public GenericStateBase
 
         // TODO refactor this with ToolState
         void start()
-        { m_localSM.start(); }
+        {
+            if(!m_localSM.isRunning())
+                m_localSM.start();
+        }
         void stop()
-        { m_localSM.stop(); }
+        {
+            if(m_localSM.isRunning())
+                m_localSM.stop();
+        }
 
     private:
         QState* m_waitState{};

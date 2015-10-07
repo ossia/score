@@ -1,3 +1,5 @@
+#include "SetProcessDuration.hpp"
+#include "Constraint/SetLooping.hpp"
 #include "Constraint/AddRackToConstraint.hpp"
 #include "Constraint/AddProcessToConstraint.hpp"
 #include "Constraint/AddLayerInNewSlot.hpp"
@@ -80,7 +82,9 @@ namespace boost { namespace mpl {
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/AddMessagesToModel.hpp>
+#include <Commands/State/RemoveMessageNodes.hpp>
+#include <Commands/State/UpdateState.hpp>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 
@@ -97,15 +101,16 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list63<
+            boost::mpl::list68<
 
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
-//            AddStateToStateModel,
-//            AssignMessagesToState,
+            UpdateState,
+            RemoveMessageNodes,
+            UpdateState,
             AddStateWithData,
             AddTrigger,
 
@@ -161,6 +166,9 @@ void ScenarioControl::setupCommands()
             RemoveProcessFromConstraint,
             RemoveLayerModelFromSlot,
             //RemoveStateFromStateModel,
+
+            SetLooping,
+            SetProcessDuration,
 
             MoveBaseEvent,
             ResizeSlotVertically,

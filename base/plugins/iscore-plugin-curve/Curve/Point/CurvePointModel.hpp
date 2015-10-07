@@ -7,6 +7,7 @@ class CurveSegmentModel;
 
 class CurvePointModel : public IdentifiedObject<CurvePointModel>
 {
+        Q_OBJECT
     public:
         Selectable selection;
         CurvePointModel(const Id<CurvePointModel>& id, QObject* parent);
@@ -19,6 +20,9 @@ class CurvePointModel : public IdentifiedObject<CurvePointModel>
 
         CurvePoint pos() const;
         void setPos(const CurvePoint &pos);
+
+    signals:
+        void posChanged();
 
     private:
         Id<CurveSegmentModel> m_previous, m_following;

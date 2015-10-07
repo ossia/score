@@ -100,7 +100,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 BOOST_FUSION_ADAPT_STRUCT(
         iscore::Value,
-        (QVariant, val)
+        (iscore::Value::value_type, val)
         )
 
 BOOST_FUSION_ADAPT_STRUCT(

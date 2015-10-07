@@ -21,7 +21,7 @@ class MatchedCurveTransition : public GenericCurveTransition<MatchedTransition<E
 
 
 template<typename Element_T, typename Modifier_T>
-class PositionedCurveTransition : public MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>
+class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>
 {
     public:
         using MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>::MatchedCurveTransition;
@@ -91,7 +91,7 @@ using ReleaseOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, 
 using ReleaseOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, Modifier::Release_tag>;
 
 
-class ClickOnAnything_Transition : public GenericCurveTransition<QAbstractTransition>
+class ClickOnAnything_Transition final : public GenericCurveTransition<QAbstractTransition>
 {
     public:
         using GenericCurveTransition<QAbstractTransition>::GenericCurveTransition;
@@ -115,7 +115,7 @@ class ClickOnAnything_Transition : public GenericCurveTransition<QAbstractTransi
         }
 };
 
-class MoveOnAnything_Transition : public GenericCurveTransition<QAbstractTransition>
+class MoveOnAnything_Transition final : public GenericCurveTransition<QAbstractTransition>
 {
     public:
         using GenericCurveTransition<QAbstractTransition>::GenericCurveTransition;
@@ -140,7 +140,7 @@ class MoveOnAnything_Transition : public GenericCurveTransition<QAbstractTransit
 };
 
 
-class ReleaseOnAnything_Transition : public QAbstractTransition
+class ReleaseOnAnything_Transition final : public QAbstractTransition
 {
     protected:
         bool eventTest(QEvent* e) override

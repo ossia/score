@@ -46,11 +46,6 @@ class DeviceExplorerView : public QTreeView
         void columnVisibilityChanged(bool shown);
 
     protected:
-
-        //virtual void closeEvent(QCloseEvent *event) override;
-
-        void installStyleSheet();
-
         void saveSettings();
         void restoreSettings();
         void setInitialColumnsSizes();

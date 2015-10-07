@@ -33,6 +33,7 @@ TransportActions::TransportActions(
         m_record->blockSignals(true);
 
         m_play->setChecked(false);
+        m_play->setText(QString("▶ Play"));
         m_record->setChecked(false);
 
         m_play->blockSignals(false);

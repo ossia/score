@@ -9,14 +9,14 @@ InitAutomation::InitAutomation(
         const iscore::Address& newaddr,
         double newmin,
         double newmax,
-        const QVector<QByteArray>& segments):
+        std::vector<CurveSegmentData>&& segments):
     iscore::SerializableCommand{
         factoryName(), commandName(), description()},
     m_path{path},
     m_addr(newaddr),
     m_newMin{newmin},
     m_newMax{newmax},
-    m_segments{segments}
+    m_segments{std::move(segments)}
 {
 }
 
@@ -35,16 +35,7 @@ void InitAutomation::redo()
     autom.setAddress(m_addr);
 
     auto& curve = autom.curve();
-
-    curve.clear();
-
-    for(const auto& elt : m_segments)
-    {
-        Deserializer<DataStream> des(elt);
-        curve.addSegment(createCurveSegment(des, &curve));
-    }
-
-    curve.changed();
+    curve.fromCurveData(m_segments);
 }
 
 void InitAutomation::serializeImpl(QDataStream& s) const

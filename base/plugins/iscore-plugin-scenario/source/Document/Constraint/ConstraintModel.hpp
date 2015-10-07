@@ -134,6 +134,9 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         NotifyingMap<RackModel> racks; // No content -> Phantom ?
         NotifyingMap<Process> processes;
 
+        bool looping() const;
+        void setLooping(bool looping);
+
     signals:
         void viewModelCreated(const ConstraintViewModel&);
         void viewModelRemoved(const QObject*);
@@ -143,6 +146,7 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         void startDateChanged(const TimeValue&);
 
         void focusChanged(bool);
+        void loopingChanged(bool);
 
     public slots:
         void setHeightPercentage(double arg);
@@ -169,4 +173,6 @@ class ConstraintModel : public IdentifiedObject<ConstraintModel>
         TimeValue m_startDate; // origin
 
         double m_heightPercentage {0.5};
+
+        bool m_looping{false};
 };

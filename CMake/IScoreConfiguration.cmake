@@ -14,7 +14,11 @@ option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
 if(ISCORE_OPENGL)
-	add_definitions(-DISCORE_OPENGL)
+        add_definitions(-DISCORE_OPENGL)
+endif()
+
+if(DEPLOYMENT_BUILD)
+  add_definitions(-DISCORE_DEPLOYMENT_BUILD)
 endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
@@ -39,7 +43,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/CMake;${
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Za /wd4180 /wd4224")
 else()
-
   # Linux flags
   if(NOT APPLE AND NOT WIN32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -Wl,-z,defs -fvisibility=hidden")
@@ -59,6 +62,19 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
   endif()
 
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+                    OUTPUT_VARIABLE GCC_VERSION)
+
+    if (GCC_VERSION VERSION_LESS 4.9)
+      message(FATAL_ERROR "i-score requires at least g++-4.9 to build")
+    endif()
+    if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
+      # -Wcast-qual is nice but requires more work...
+      # -Wzero-as-null-pointer-constant  is garbage
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-div-by-zero -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wpointer-arith  -Wsuggest-attribute=pure -Wsuggest-attribute=const -Wsuggest-attribute=noreturn -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
+    endif()
+  endif()
 endif()
 
 

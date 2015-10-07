@@ -6,7 +6,7 @@
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 CreatePointCommandObject::CreatePointCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
     CurveCommandObjectBase{presenter, stack}
 {
@@ -45,7 +45,7 @@ void CreatePointCommandObject::move()
     createPoint(segments);
 
     // Submit
-    submit(segments);
+    submit(std::move(segments));
 }
 
 void CreatePointCommandObject::release()
@@ -58,21 +58,7 @@ void CreatePointCommandObject::cancel()
     m_dispatcher.rollback();
 }
 
-static Id<CurveSegmentModel> getSegmentId(const QVector<CurveSegmentData>& ids)
-{
-    Id<CurveSegmentModel> id {};
-
-    do
-    {
-        id = Id<CurveSegmentModel>{getNextId()};
-    }
-    while(std::find_if(ids.begin(), ids.end(),
-                       [&] (const auto& elt) { return elt.id == id; }) != std::end(ids));
-
-    return id;
-}
-
-void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
+void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segments)
 {
     // Create a point where we clicked
     // By creating segments that goes to the closest points if we're in the empty,
@@ -108,20 +94,16 @@ void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
     }
     else if(middle)
     {
-        // TODO refactor with MovePointState
+        // TODO refactor with MovePointState (line ~330)
         // The segment goes in the first half of "middle"
-        auto newSegment = *middle;
-        newSegment.id = getSegmentId(segments);
-        newSegment.start = middle->start;
-        newSegment.end = m_state->currentPoint;
-        newSegment.previous = middle->previous;
-        newSegment.following = middle->id;
+        CurveSegmentData newSegment{
+                    getSegmentId(segments),
+                    middle->start,    m_state->currentPoint,
+                    middle->previous, middle->id,
+                    middle->type, middle->specificSegmentData
+        };
 
-        auto prev_it = std::find_if(
-                           segments.begin(),
-                           segments.end(),
-                           [&] (const auto& seg) { return seg.id == middle->previous; });
-
+        auto prev_it = find(segments, middle->previous);
         // TODO we shouldn't have to test for this, only test if middle->previous != id{}
         if(prev_it != segments.end())
         {
@@ -134,6 +116,14 @@ void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
     }
     else
     {
+        // ~ Creating in the void ~ ... Spooky!
+
+        // This is of *utmost* importance : if we don't do this,
+        // when we push_back, the pointers get invalidated because the memory
+        // has been moved, which causes a wealth of uncanny bugs and random memory errors
+        // in other threads. So we reserve from up front the size we'll need.
+        segments.reserve(segments.size() + 2);
+
         double seg_closest_from_left_x = 0;
         CurveSegmentData* seg_closest_from_left{};
         double seg_closest_from_right_x = 1.;
@@ -163,8 +153,8 @@ void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
             segments.push_back(newLeftSegment);
         }
         CurveSegmentData& newLeftSegment = segments.back();
-        newLeftSegment.type = "Linear";
-        newLeftSegment.specificSegmentData = QVariant::fromValue(LinearCurveSegmentData{});
+        newLeftSegment.type = "Power";
+        newLeftSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
         newLeftSegment.start = {seg_closest_from_left_x, 0.};
         newLeftSegment.end = m_state->currentPoint;
 
@@ -174,8 +164,8 @@ void CreatePointCommandObject::createPoint(QVector<CurveSegmentData> &segments)
             segments.push_back(newRightSegment);
         }
         CurveSegmentData& newRightSegment = segments.back();
-        newRightSegment.type = "Linear";
-        newRightSegment.specificSegmentData = QVariant::fromValue(LinearCurveSegmentData{});
+        newRightSegment.type = "Power";
+        newRightSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
         newRightSegment.start = m_state->currentPoint;
         newRightSegment.end = {seg_closest_from_right_x, 0.};
 

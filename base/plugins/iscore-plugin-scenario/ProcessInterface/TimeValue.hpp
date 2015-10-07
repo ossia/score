@@ -29,6 +29,11 @@ class TimeValue_T
             m_impl {0}
         { }
 
+        TimeValue_T(QTime t):
+            m_impl{t.msec() + 1000 * t.second() + 60000 * t.minute() + 3600000 * t.hour()}
+        { }
+
+
         // These two overloads are here to please coverity...
         constexpr TimeValue_T(std::chrono::seconds&& dur) :
             m_impl {std::chrono::duration_cast<std::chrono::milliseconds> (dur).count() }

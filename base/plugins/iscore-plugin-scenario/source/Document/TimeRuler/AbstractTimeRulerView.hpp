@@ -1,14 +1,15 @@
 #pragma once
-
 #include <QGraphicsObject>
-#include "ProcessInterface/TimeValue.hpp"
+#include <ProcessInterface/TimeValue.hpp>
 
 class QPainterPath;
-
+class AbstractTimeRuler;
 class AbstractTimeRulerView : public QGraphicsObject
 {
+        AbstractTimeRuler* m_pres{};
     public:
         AbstractTimeRulerView();
+        void setPresenter(AbstractTimeRuler* pres) { m_pres = pres; }
         void paint(QPainter* painter,
                    const QStyleOptionGraphicsItem* option,
                    QWidget* widget) override;
@@ -22,8 +23,6 @@ class AbstractTimeRulerView : public QGraphicsObject
         {
             return m_width;
         }
-
-    signals:
 
     public slots:
         void setGraduationsStyle(double size, int delta, QString format, int mark);

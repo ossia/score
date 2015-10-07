@@ -28,11 +28,10 @@
 #include <API/Headers/Editor/CurveSegment/CurveSegmentPower.h>
 
 OSSIAAutomationElement::OSSIAAutomationElement(
-        OSSIAConstraintElement* parentConstraint,
+        OSSIAConstraintElement& parentConstraint,
         AutomationModel& element,
         QObject *parent):
-    OSSIAProcessElement{parent},
-    m_parent_constraint{parentConstraint},
+    OSSIAProcessElement{parentConstraint, parent},
     m_iscore_autom{element},
     m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {

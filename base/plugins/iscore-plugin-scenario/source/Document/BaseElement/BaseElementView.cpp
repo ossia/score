@@ -15,14 +15,14 @@
 #if defined(ISCORE_OPENGL)
 #include <QGLWidget>
 #endif
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
-    m_view {new SizeNotifyingGraphicsView{m_scene}},
+    m_view {new ScenarioBaseGraphicsView{m_scene}},
     m_baseObject {new GraphicsProxyObject},
-    m_timeRuler {new TimeRulerView}/*,
-    m_localTimeRuler {new LocalTimeRulerView}*/
+    m_timeRuler {new TimeRulerView}
 {
     m_timeRulersView = new QGraphicsView{m_scene};
 #if defined(ISCORE_OPENGL)
@@ -47,7 +47,7 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_timeRulersView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-    m_timeRulersView->setBackgroundBrush(QBrush(qApp->palette("ScenarioPalette").background()));
+    m_timeRulersView->setBackgroundBrush(QBrush(ScenarioStyle::instance().TimeRulerBackground));
     //*/
 
     // Transport
@@ -72,7 +72,6 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     /// Zoom
     m_zoomSlider = new DoubleSlider{transportWidget};
-    m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
 
     connect(m_zoomSlider, &DoubleSlider::valueChanged,
             this,         &BaseElementView::horizontalZoomChanged);
@@ -84,7 +83,6 @@ BaseElementView::BaseElementView(QObject* parent) :
     transportWidget->setLayout(transportLayout);
 
     // view layout
-    //m_scene->addItem(m_localTimeRuler);
     m_scene->addItem(m_timeRuler);
     m_scene->addItem(m_baseObject);
 
@@ -97,8 +95,7 @@ BaseElementView::BaseElementView(QObject* parent) :
 
     lay->setSpacing(1);
 
-    //m_timeRulersView->setAutoFillBackground(true);
-    connect(m_view, &SizeNotifyingGraphicsView::scrolled,
+    connect(m_view, &ScenarioBaseGraphicsView::scrolled,
             this,   &BaseElementView::horizontalPositionChanged);
 }
 
@@ -114,9 +111,4 @@ void BaseElementView::update()
 
 void BaseElementView::newLocalTimeRuler()
 {
-    /*
-    delete m_localTimeRuler;
-    m_localTimeRuler = new LocalTimeRulerView{};
-    m_scene->addItem(m_localTimeRuler);
-    */
 }

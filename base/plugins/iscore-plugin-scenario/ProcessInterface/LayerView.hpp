@@ -6,13 +6,19 @@ class LayerView : public QGraphicsObject
     public:
         using QGraphicsObject::QGraphicsObject;
 
-        virtual QRectF boundingRect() const override;
+        QRectF boundingRect() const final override;
+        void paint(QPainter *painter,
+                   const QStyleOptionGraphicsItem *option,
+                   QWidget *widget) final override;
 
         void setHeight(qreal height);
         qreal height() const;
 
         void setWidth(qreal width);
         qreal width() const;
+
+    protected:
+        virtual void paint_impl(QPainter*) const = 0;
 
     private:
         qreal m_height {};

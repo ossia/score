@@ -27,6 +27,7 @@ namespace Scenario
             // We only undo the creation commands
             // since the move ones perform unnecessary serialization / etc in this case
             // and don't bring anything to the table.
+            // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
             for(int i = m_cmds.size() - 1; i >= 0; --i)
             {
                 if(

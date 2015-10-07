@@ -1,5 +1,5 @@
 #include <ScenarioPlugin.hpp>
-#include "Document/Event/EventStatus.hpp"
+#include "Document/Event/ExecutionStatus.hpp"
 #include <Control/ScenarioControl.hpp>
 #include <Process/ScenarioFactory.hpp>
 #include <Panel/ProcessPanelFactory.hpp>

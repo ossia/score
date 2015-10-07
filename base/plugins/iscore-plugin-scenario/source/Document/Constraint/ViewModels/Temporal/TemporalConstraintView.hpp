@@ -3,7 +3,7 @@
 #include <QPainter>
 class TemporalConstraintPresenter;
 
-class TemporalConstraintView : public ConstraintView
+class TemporalConstraintView final : public ConstraintView
 {
         Q_OBJECT
 
@@ -11,7 +11,7 @@ class TemporalConstraintView : public ConstraintView
         TemporalConstraintView(TemporalConstraintPresenter& presenter,
                                QGraphicsObject* parent);
 
-        QRectF boundingRect() const override final
+        QRectF boundingRect() const override
         { return {0, -15, qreal(maxWidth()), qreal(constraintHeight()) }; }
 
         virtual void paint(QPainter* painter,
@@ -52,6 +52,6 @@ class TemporalConstraintView : public ConstraintView
         bool m_shadow {false};
         bool m_hasFocus{};
         QString m_label{};
-        QColor m_labelColor{Qt::gray};
-        QColor m_bgColor{QColor::fromRgba(qRgba(0, 127, 229, 76))};
+        QColor m_labelColor;
+        QColor m_bgColor;
 };

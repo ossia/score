@@ -50,7 +50,7 @@ void SinCurveSegmentModel::on_endChanged()
 
 void SinCurveSegmentModel::updateData(int numInterp) const
 {
-    if(2*numInterp+1 != m_data.size())
+    if(std::size_t(2 * numInterp + 1) != m_data.size())
         m_valid = false;
     if(!m_valid)
     {

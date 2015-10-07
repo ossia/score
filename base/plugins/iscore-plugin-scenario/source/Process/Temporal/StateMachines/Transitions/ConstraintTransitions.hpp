@@ -3,7 +3,7 @@
 
 
 template<>
-class ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Click_tag::value> :
+class ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Click_tag::value> final :
         public MatchedScenarioTransition<PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Click_tag::value>>
 {
     public:
@@ -16,7 +16,7 @@ using ClickOnConstraint_Transition = ScenarioTransition_T<ScenarioElement::Const
 
 
 template<>
-class ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Move_tag::value> :
+class ScenarioTransition_T<ScenarioElement::Constraint + Modifier::Move_tag::value> final :
         public MatchedScenarioTransition<PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Move_tag::value>>
 {
     public:

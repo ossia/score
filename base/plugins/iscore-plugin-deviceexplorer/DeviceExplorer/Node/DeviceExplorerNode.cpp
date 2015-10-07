@@ -50,43 +50,6 @@ iscore::Node& getNodeFromAddress(
     return *theN;
 }
 
-iscore::Node* try_getNodeFromAddress(
-        iscore::Node& root,
-        const Address& addr)
-{
-    if(addr.device.isEmpty())
-        return &root;
-
-    using namespace boost::range;
-    auto dev = std::find_if(root.begin(), root.end(), [&] (const iscore::Node& n)
-    { return n.is<DeviceSettings>() && n.get<DeviceSettings>().name == addr.device; });
-
-    if(dev == root.end())
-        return nullptr;
-
-    return try_getNodeFromString(*dev, QStringList(addr.path));
-}
-
-
-iscore::Node* try_getNodeFromString(
-        iscore::Node& n,
-        QStringList&& parts)
-{
-    if(parts.size() == 0)
-        return &n;
-
-    for(auto& child : n)
-    {
-        if(child.displayName() == parts[0])
-        {
-            parts.removeFirst();
-            return try_getNodeFromString(child, std::move(parts));
-        }
-    }
-
-    return nullptr;
-}
-
 Address address(const Node &treeNode)
 {
     Address addr;
@@ -152,7 +115,7 @@ Message message(const Node& node)
 
 QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
 {
-    // TODO optimizeme this horrible lazy algorithm.
+    // OPTIMIZEME this horrible lazy algorithm.
     auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
 
     QList<iscore::Node*> cleaned_nodes;
@@ -162,13 +125,11 @@ QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
     for(auto n : nodes_cpy)
     {
         if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
-                       [&] (iscore::Node* other)
-        {
-                       if(other == n)
-                       return false;
-
-                       return isAncestor(*other, n);
-    }))
+                       [&] (iscore::Node* other) {
+              if(other == n)
+                  return false;
+              return isAncestor(*other, n);
+           }))
         {
             nodes_cpy.removeOne(n);
         }

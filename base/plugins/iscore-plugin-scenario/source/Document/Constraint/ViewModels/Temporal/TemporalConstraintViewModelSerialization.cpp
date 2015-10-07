@@ -56,7 +56,7 @@ void deserializeConstraintViewModels(
         {
             auto svm_id = iscore::IDocument::path(static_cast<const AbstractScenarioLayerModel&>(*temporalSVM));
 
-            auto it = find_if(begin(vms), end(vms),
+            auto it = std::find_if(begin(vms), end(vms),
                           [&] (const auto& elt) { return elt.first == svm_id; });
             if(it != end(vms))
             {

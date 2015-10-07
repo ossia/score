@@ -17,7 +17,7 @@ template <typename T>
 class AddressSettingsWidgetFactoryMethodT : public AddressSettingsWidgetFactoryMethod
 {
     public:
-        virtual AddressSettingsWidget* create() const
+        virtual AddressSettingsWidget* create() const override
         {
             return new T;
         }

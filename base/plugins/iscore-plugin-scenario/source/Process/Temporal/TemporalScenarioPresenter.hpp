@@ -124,6 +124,8 @@ class TemporalScenarioPresenter : public LayerPresenter
         TemporalScenarioView* m_view;
 
     private:
+        void on_focusChanged() override;
+
         template<typename Map, typename Id>
         void removeElement(Map& map, const Id& id);
 

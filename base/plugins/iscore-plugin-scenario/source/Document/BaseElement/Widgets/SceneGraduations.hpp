@@ -1,8 +1,8 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QPen>
-class SizeNotifyingGraphicsView;
-class SceneGraduations : public QGraphicsItem
+class ScenarioBaseGraphicsView;
+class SceneGraduations final : public QGraphicsItem
 {
     private:
         QPen m_lines;
@@ -11,10 +11,10 @@ class SceneGraduations : public QGraphicsItem
         void setSize(const QSizeF& s);
 
     public:
-        SceneGraduations(SizeNotifyingGraphicsView* view);
+        SceneGraduations(ScenarioBaseGraphicsView* view);
 
-        QRectF boundingRect() const;
-        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
         void setGrid(QPainterPath&& newGrid);
         void setColor(const QColor& col);

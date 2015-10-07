@@ -1,5 +1,5 @@
 #pragma once
-#include "Control/Menus/AbstractMenuActions.hpp"
+#include "Control/Menus/ScenarioActions.hpp"
 
 class QToolBar;
 class ToolMenuActions : public ScenarioActions

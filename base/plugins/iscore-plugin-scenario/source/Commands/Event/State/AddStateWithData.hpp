@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/AggregateCommand.hpp>
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/UpdateState.hpp>
 #include "Commands/Scenario/Creations/CreateState.hpp"
 #include "Document/Event/EventModel.hpp"
 namespace Scenario
@@ -32,10 +32,10 @@ namespace Scenario
                     auto vecpath = createStateCmd->scenarioPath().unsafePath().vec();
                     vecpath.append({"StateModel", createStateCmd->createdState()});
                     vecpath.append({"MessageItemModel", {}});
-                    Path<iscore::MessageItemModel> Path{ObjectPath(std::move(vecpath)), {}};
+                    Path<MessageItemModel> Path{ObjectPath(std::move(vecpath)), {}};
 
                     addCommand(createStateCmd);
-                    addCommand(new AddMessagesToModel{
+                    addCommand(new UpdateState{
                                    std::move(Path),
                                    stateData});
                 }

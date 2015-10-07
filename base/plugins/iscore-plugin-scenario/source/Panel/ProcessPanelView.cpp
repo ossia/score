@@ -1,7 +1,7 @@
 #include "ProcessPanelView.hpp"
 #include <QHBoxLayout>
 #include <QGraphicsScene>
-#include <Document/BaseElement/Widgets/SizeNotifyingGraphicsView.hpp>
+#include <Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
 #include "Document/BaseElement/Widgets/DoubleSlider.hpp"
 
 
@@ -13,13 +13,13 @@ ProcessPanelView::ProcessPanelView(QObject* parent):
     m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
     m_widget->setLayout(new QVBoxLayout);
-    m_view = new SizeNotifyingGraphicsView{m_scene};
+    m_view = new ScenarioBaseGraphicsView{m_scene};
 
     m_widget->layout()->addWidget(m_view);
 
     //m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    connect(m_view, &SizeNotifyingGraphicsView::sizeChanged,
+    connect(m_view, &ScenarioBaseGraphicsView::sizeChanged,
             this,   &ProcessPanelView::sizeChanged);
 
 
@@ -47,5 +47,5 @@ const iscore::DefaultPanelStatus &ProcessPanelView::defaultPanelStatus() const
 QGraphicsScene*ProcessPanelView::scene() const
 {return m_scene;}
 
-SizeNotifyingGraphicsView*ProcessPanelView::view() const
+ScenarioBaseGraphicsView*ProcessPanelView::view() const
 { return m_view; }

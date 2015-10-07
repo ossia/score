@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QApplication>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 #include <cmath>
 QRectF TemporalConstraintHeader::boundingRect() const
 {
@@ -19,10 +20,10 @@ void TemporalConstraintHeader::paint(
     if(m_state == State::RackHidden)
     {
         auto rect = boundingRect();
-        painter->fillRect(rect, QColor::fromRgba(qRgba(0, 127, 229, 76)));
+        painter->fillRect(rect, ScenarioStyle::instance().ConstraintHeaderRackHidden);
 
         // Fake timenode continuation
-        auto color = qApp->palette("ScenarioPalette").base().color();
+        auto color = ScenarioStyle::instance().ConstraintHeaderSideBorder;
         QPen pen{color, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
         painter->setPen(pen);
         painter->drawLine(rect.topLeft(), rect.bottomLeft());
@@ -31,7 +32,7 @@ void TemporalConstraintHeader::paint(
     }
     // Header
     painter->setFont(font);
-    painter->setPen(Qt::white);
+    painter->setPen(ScenarioStyle::instance().ConstraintHeaderText);
 
     QFontMetrics fm(font);
     int textWidth = fm.width(m_text);
@@ -70,7 +71,7 @@ void TemporalConstraintHeader::paint(
 
     if(m_width > 20)
     {
-        painter->setPen(qRgba(0, 127, 229, 76));
+        painter->setPen(ScenarioStyle::instance().ConstraintHeaderBottomLine);
         painter->drawLine(
                     boundingRect().bottomLeft(),
                     boundingRect().bottomRight());

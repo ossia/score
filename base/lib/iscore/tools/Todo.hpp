@@ -22,8 +22,8 @@
 
 #ifdef ISCORE_DEBUG
 #define ISCORE_ASSERT(arg) do { \
-        bool b = (arg); \
-        if(!b) { DEBUG_BREAK; Q_ASSERT( b ); } \
+        bool iscore_assert_b = (arg); \
+        if(!iscore_assert_b) { DEBUG_BREAK; Q_ASSERT( iscore_assert_b ); } \
     } while (0)
 #else
 #define ISCORE_ASSERT(arg) ((void)(0))

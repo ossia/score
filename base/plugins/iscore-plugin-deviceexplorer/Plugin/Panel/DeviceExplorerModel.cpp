@@ -3,7 +3,7 @@
 #include "DeviceExplorerCommandCreator.hpp"
 
 #include "Commands/Insert.hpp"
-#include "Commands/RemoveMessageNodes.hpp"
+
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Update/UpdateAddressSettings.hpp"
 
@@ -265,7 +265,34 @@ bool DeviceExplorerModel::checkAddressInstantiatable(
     return std::none_of(parent.begin(),
                         parent.end(),
                         [&] (const iscore::Node& n) {
-        return n.get<iscore::AddressSettings>().name == addr.name; });
+        return n.get<iscore::AddressSettings>().name == addr.name;
+    });
+}
+
+bool DeviceExplorerModel::checkAddressEditable(
+        Node& parent,
+        const AddressSettings& before,
+        const AddressSettings& after)
+{
+    ISCORE_ASSERT(!parent.is<InvisibleRootNodeTag>());
+
+    auto it = std::find_if(
+                parent.begin(),
+                parent.end(),
+                [&] (const iscore::Node& n) { return n.get<iscore::AddressSettings>().name == after.name; });
+    if(it != parent.end())
+    {
+        //  We didn't change name, it's ok
+        if(after.name == before.name)
+            return true;
+        else
+            return false;
+    }
+    else
+    {
+        // Ok, no conflicts
+        return true;
+    }
 }
 
 int
@@ -304,19 +331,19 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     switch((Column)col)
     {
         case Column::Name:
-            return nameColumnData(n, role);
+            return DeviceExplorer::nameColumnData(n, role);
 
         case Column::Value:
-            return valueColumnData(n, role);
+            return DeviceExplorer::valueColumnData(n, role);
 
         case Column::IOType:
-            return IOTypeColumnData(n, role);
+            return DeviceExplorer::IOTypeColumnData(n, role);
 
         case Column::Min:
-            return minColumnData(n, role);
+            return DeviceExplorer::minColumnData(n, role);
 
         case Column::Max:
-            return maxColumnData(n, role);
+            return DeviceExplorer::maxColumnData(n, role);
 
         default :
             ISCORE_ABORT;

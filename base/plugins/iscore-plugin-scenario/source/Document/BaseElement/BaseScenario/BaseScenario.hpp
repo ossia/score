@@ -12,7 +12,7 @@ class StateModel;
 class DataStream;
 class JSONObject;
 
-class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInterface
+class BaseScenario final : public IdentifiedObject<BaseScenario>, public ScenarioInterface
 {
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, DataStream)
         ISCORE_SERIALIZE_FRIENDS(BaseScenario, JSONObject)
@@ -28,6 +28,11 @@ class BaseScenario : public IdentifiedObject<BaseScenario>, public ScenarioInter
         {
             vis.writeTo(*this);
         }
+
+        ConstraintModel* findConstraint(const Id<ConstraintModel>& constraintId) const override;
+        EventModel* findEvent(const Id<EventModel>& eventId) const override;
+        TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& timeNodeId) const override;
+        StateModel* findState(const Id<StateModel>& stId) const override;
 
         ConstraintModel &constraint(const Id<ConstraintModel> &constraintId) const override;
         EventModel &event(const Id<EventModel> &eventId) const override;

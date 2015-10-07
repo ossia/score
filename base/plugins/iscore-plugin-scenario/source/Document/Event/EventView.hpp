@@ -3,10 +3,10 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include "Document/VerticalExtent.hpp"
-#include "EventStatus.hpp"
+#include "ExecutionStatus.hpp"
 class EventPresenter;
 class ConditionView;
-class EventView : public QGraphicsObject
+class EventView final : public QGraphicsObject
 {
         Q_OBJECT
 
@@ -14,12 +14,12 @@ class EventView : public QGraphicsObject
         EventView(EventPresenter& presenter, QGraphicsObject* parent);
         virtual ~EventView() = default;
 
-        int type() const override final
+        int type() const override
         { return QGraphicsItem::UserType + 1; }
 
         const EventPresenter& presenter() const;
 
-        QRectF boundingRect() const override final
+        QRectF boundingRect() const override
         { return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
 
         void paint(QPainter* painter,
@@ -28,8 +28,6 @@ class EventView : public QGraphicsObject
 
         void setSelected(bool selected);
         bool isSelected() const;
-
-        bool isShadow() const;
 
         void setCondition(const QString& cond);
         bool hasCondition() const;
@@ -42,8 +40,6 @@ class EventView : public QGraphicsObject
 
         void setStatus(EventStatus s);
 
-
-
     signals:
         void eventHoverEnter();
         void eventHoverLeave();
@@ -52,7 +48,6 @@ class EventView : public QGraphicsObject
 
     public slots:
         void changeColor(QColor);
-        void setShadow(bool arg);
 
     protected:
         virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -72,7 +67,6 @@ class EventView : public QGraphicsObject
         QColor m_color;
 
         EventStatus m_status{EventStatus::Editing};
-        bool m_shadow {false};
         bool m_selected{};
 
         VerticalExtent m_extent;

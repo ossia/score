@@ -3,6 +3,11 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QDebug>
+
+static const int fontSize = 10;
+static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
+static const QColor c = Qt::lightGray;
+
 AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}
 {
@@ -10,20 +15,13 @@ AutomationView::AutomationView(QGraphicsItem* parent) :
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 }
 
-void AutomationView::paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget)
+void AutomationView::paint_impl(QPainter* painter) const
 {
-    static const int fontSize = 10;
-
     QRectF processNameRect{0, this->height() - 2*fontSize, 0.95 * this->width(), fontSize + 2 };
-
-    static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
 
     if(m_showName)
     {
         painter->setFont(f);
-        QColor c = Qt::lightGray;
         painter->setPen(c);
         painter->drawText(processNameRect, Qt::AlignRight, m_displayedName);
     }

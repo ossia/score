@@ -28,6 +28,42 @@ CurveModel* CurveModel::clone(
     return cm;
 }
 
+
+void CurveModel::addSortedSegment(CurveSegmentModel* m)
+{
+    insertSegment(m);
+
+    // Add points if necessary
+    // If there is an existing previous segment, its end point also exists
+    auto createStartPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setFollowing(m->id());
+        pt->setPos(m->start());
+        addPoint(pt);
+        return pt;
+    };
+    auto createEndPoint = [&] () {
+        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        pt->setPrevious(m->id());
+        pt->setPos(m->end());
+        addPoint(pt);
+        return pt;
+    };
+
+    if(!m->previous())
+    {
+        createStartPoint();
+    }
+    else
+    {
+        // The previous segment has already been inserted,
+        // hence the previous point is present.
+        m_points.back()->setFollowing(m->id());
+    }
+
+    createEndPoint();
+}
+
 void CurveModel::addSegment(CurveSegmentModel* m)
 {
     insertSegment(m);
@@ -203,9 +239,9 @@ void CurveModel::removeSegment(CurveSegmentModel* m)
     delete m;
 }
 
-QVector<CurveSegmentData> CurveModel::toCurveData() const
+std::vector<CurveSegmentData> CurveModel::toCurveData() const
 {
-    QVector<CurveSegmentData> dat;
+    std::vector<CurveSegmentData> dat;
     dat.reserve(m_segments.size());
     for(const auto& seg : m_segments)
     {
@@ -215,15 +251,17 @@ QVector<CurveSegmentData> CurveModel::toCurveData() const
     return dat;
 }
 
-void CurveModel::fromCurveData(const QVector<CurveSegmentData>& curve)
+void CurveModel::fromCurveData(const std::vector<CurveSegmentData>& curve)
 {
+    this->blockSignals(true);
     clear();
-
-    for(const auto& elt : curve)
+    CurveSegmentOrderedMap map(curve.begin(), curve.end());
+    for(const auto& elt : map.get<Segments::Ordered>())
     {
-        addSegment(createCurveSegment(elt, this));
+        addSortedSegment(createCurveSegment(elt, this));
     }
-
+    this->blockSignals(false);
+    emit curveReset();
     emit changed();
 }
 

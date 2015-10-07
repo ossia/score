@@ -61,6 +61,7 @@ namespace iscore
         public:
             virtual ~Command();
 
+            // TODO they should be const
             virtual void undo() = 0;
             virtual void redo() = 0;
 

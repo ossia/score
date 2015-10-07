@@ -55,8 +55,8 @@ void TriggerInspectorWidget::on_triggerChanged()
 
     if(*trig != m_model.trigger()->expression())
     {
-        auto cmd = new Scenario::Command::SetTrigger{iscore::IDocument::path(m_model), std::move(*trig)};
-        emit m_parent->commandDispatcher()->submitCommand(cmd);
+        auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
+        m_parent->commandDispatcher()->submitCommand(cmd);
     }
 }
 
@@ -66,8 +66,8 @@ void TriggerInspectorWidget::createTrigger()
     m_rmTrigBtn->setVisible(true);
     m_addTrigBtn->setVisible(false);
 
-    auto cmd = new Scenario::Command::AddTrigger{iscore::IDocument::path(m_model)};
-    emit m_parent->commandDispatcher()->submitCommand(cmd);
+    auto cmd = new Scenario::Command::AddTrigger{m_model};
+    m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void TriggerInspectorWidget::removeTrigger()
@@ -76,8 +76,8 @@ void TriggerInspectorWidget::removeTrigger()
     m_rmTrigBtn->setVisible(false);
     m_addTrigBtn->setVisible(true);
 
-    auto cmd = new Scenario::Command::RemoveTrigger{iscore::IDocument::path(m_model)};
-    emit m_parent->commandDispatcher()->submitCommand(cmd);
+    auto cmd = new Scenario::Command::RemoveTrigger{m_model};
+    m_parent->commandDispatcher()->submitCommand(cmd);
 }
 
 void TriggerInspectorWidget::on_triggerActiveChanged()

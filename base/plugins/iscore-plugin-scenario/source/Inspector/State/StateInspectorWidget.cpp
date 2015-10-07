@@ -6,7 +6,7 @@
 #include "Inspector/SelectionButton.hpp"
 #include <core/document/Document.hpp>
 #include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
-#include "DialogWidget/StateTreeView.hpp"
+#include "DialogWidget/MessageTreeView.hpp"
 #include <iscore/widgets/MarginLess.hpp>
 #include "Commands/Event/SplitEvent.hpp"
 #include <QPushButton>
@@ -83,11 +83,7 @@ void StateInspectorWidget::updateDisplayedValues()
 
     // State setup
     m_stateSection = new InspectorSectionWidget{"States", this};
-
-    auto deviceexplorer = iscore::IDocument::documentFromObject(m_model)
-            ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     auto tv = new MessageTreeView{m_model,
-                                deviceexplorer,
                                 m_stateSection};
 
     m_stateSection->addContent(tv);
@@ -103,11 +99,11 @@ void StateInspectorWidget::splitEvent()
     auto scenar = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
     if (scenar)
     {
-        auto cmd = new Command::SplitEvent(
-                    iscore::IDocument::path(*scenar),
+        auto cmd = new Command::SplitEvent{
+                    *scenar,
                     m_model.eventId(),
-                    {m_model.id()} );
+                    {m_model.id()}};
 
-        emit commandDispatcher()->submitCommand(cmd);
+        commandDispatcher()->submitCommand(cmd);
     }
 }

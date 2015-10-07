@@ -3,7 +3,7 @@
 #include <Process/ScenarioModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
-
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 EventModel::EventModel(
         const Id<EventModel>& id,
         const Id<TimeNodeModel>& timenode,
@@ -17,12 +17,14 @@ EventModel::EventModel(
     m_date{date}
 {
     metadata.setName(QString("Event.%1").arg(*this->id().val()));
+    metadata.setColor(ScenarioStyle::instance().EventDefault);
 }
 
 EventModel::EventModel(const EventModel& source,
                        const Id<EventModel>& id,
                        QObject* parent) :
     IdentifiedObject<EventModel> {id, "EventModel", parent},
+    metadata{source.metadata},
     pluginModelList{source.pluginModelList, this},
     m_timeNode{source.m_timeNode},
     m_states(source.m_states),
@@ -30,7 +32,6 @@ EventModel::EventModel(const EventModel& source,
     m_extent{source.m_extent},
     m_date{source.m_date}
 {
-    metadata.setName(QString("Event.%1").arg(*this->id().val()));
 }
 
 

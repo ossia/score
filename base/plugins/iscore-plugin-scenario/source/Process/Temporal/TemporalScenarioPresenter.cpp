@@ -34,10 +34,11 @@
 #include <QJsonDocument>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <core/document/Document.hpp>
-#include "Plugin/Commands/AddMessagesToModel.hpp"
+#include <Commands/State/UpdateState.hpp>
 #include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateStateMacro.hpp"
+#include <Document/BaseElement/BaseElementModel.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         const TemporalScenarioLayerModel& process_view_model,
@@ -239,6 +240,11 @@ void TemporalScenarioPresenter::on_askUpdate()
     m_view->update();
 }
 
+void TemporalScenarioPresenter::on_focusChanged()
+{
+    m_view->setFocus();
+}
+
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
 void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
@@ -373,10 +379,10 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         auto vecpath = cmd->scenarioPath().unsafePath().vec();
         vecpath.append({"StateModel", cmd->createdState()});
         vecpath.append({"MessageItemModel", {}});
-        Path<iscore::MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
+        Path<MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
 
-        auto cmd2 = new AddMessagesToModel{
+        auto cmd2 = new UpdateState{
                    std::move(state_path),
                    ml};
 

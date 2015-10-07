@@ -121,7 +121,6 @@ void PointArrayCurveSegmentModel::simplify()
 {
     double tolerance = (max_y - min_y) / 8.;
 
-    // TODO reserve
     std::vector <double> orig;
     orig.reserve(m_points.size() * 2);
     for(const auto& pt : m_points)
@@ -129,7 +128,6 @@ void PointArrayCurveSegmentModel::simplify()
         orig.push_back(pt.first);
         orig.push_back(pt.second);
     }
-
 
     std::vector <double> result;
     result.reserve(m_points.size() / 2);
@@ -157,7 +155,7 @@ std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentMod
     vec.reserve(pts.size() - 1);
 
 
-    for(int i = 0; i < pts.size() - 1; i++)
+    for(std::size_t i = 0; i < pts.size() - 1; i++)
     {
         auto cmd = std::make_unique<LinearCurveSegmentModel>(Id<CurveSegmentModel>(i), nullptr);
         cmd->setStart(pts[i]);
@@ -169,6 +167,33 @@ std::vector<std::unique_ptr<LinearCurveSegmentModel> > PointArrayCurveSegmentMod
         }
         vec.push_back(std::move(cmd));
 
+    }
+
+    return vec;
+}
+
+std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() const
+{
+    m_valid = false;
+    updateData(0);
+    const auto& pts = data();
+    std::vector<CurveSegmentData> vec;
+    vec.reserve(pts.size() - 1);
+
+    vec.emplace_back(Id<CurveSegmentModel>{0},
+                     pts[0], pts[1],
+                     Id<CurveSegmentModel>{}, Id<CurveSegmentModel>{},
+                     QString{"Linear"}, QVariant::fromValue(LinearCurveSegmentData{}));
+
+    int size = pts.size();
+    for(int i = 1; i < size - 1; i++)
+    {
+        vec.back().following = Id<CurveSegmentModel>{i};
+
+        vec.emplace_back(Id<CurveSegmentModel>{i},
+                         pts[i], pts[i+1],
+                         Id<CurveSegmentModel>{i-1}, Id<CurveSegmentModel>{},
+                         QString{"Linear"}, QVariant::fromValue(LinearCurveSegmentData()));
     }
 
     return vec;

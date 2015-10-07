@@ -16,13 +16,15 @@ class CurveSegmentFactory : public iscore::FactoryInterface
                 const Id<CurveSegmentModel>&,
                 QObject* parent) = 0;
 
-        virtual CurveSegmentModel *load(
+        virtual CurveSegmentModel* load(
                 const VisitorVariant& data,
                 QObject* parent) = 0;
 
-        virtual CurveSegmentModel *load(
+        virtual CurveSegmentModel* load(
                 const CurveSegmentData& data,
                 QObject* parent) = 0;
+
+        virtual QVariant makeCurveSegmentData() const = 0;
 
         virtual void serializeCurveSegmentData(
                 const QVariant& data,
@@ -53,18 +55,21 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
                 QObject* parent) override
         { return new T{dat, parent}; }
 
-        virtual void serializeCurveSegmentData(
+        QVariant makeCurveSegmentData() const override
+        { return QVariant::fromValue(typename T::data_type{}); }
+
+        void serializeCurveSegmentData(
                 const QVariant& data,
-                const VisitorVariant& visitor) const
+                const VisitorVariant& visitor) const override
         { serialize_dyn(visitor, data.value<typename T::data_type>()); }
 
-        virtual QVariant makeCurveSegmentData(
-                const VisitorVariant& vis) const
+        QVariant makeCurveSegmentData(
+                const VisitorVariant& vis) const override
         { return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis)); }
 };
 
 #define DEFINE_CURVE_FACTORY(Name, DynName, Model) \
-    class Name : public CurveSegmentFactory_T<Model> \
+    class Name final : public CurveSegmentFactory_T<Model> \
 { \
     QString name() const override { return DynName; } \
 };

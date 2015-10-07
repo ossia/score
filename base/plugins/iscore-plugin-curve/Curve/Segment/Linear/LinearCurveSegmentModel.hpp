@@ -7,7 +7,7 @@ class LinearCurveSegmentData
 
 Q_DECLARE_METATYPE(LinearCurveSegmentData)
 
-class LinearCurveSegmentModel : public CurveSegmentModel
+class LinearCurveSegmentModel final : public CurveSegmentModel
 {
     public:
         using data_type = LinearCurveSegmentData;

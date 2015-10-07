@@ -274,12 +274,10 @@ void RemoveSelection::undo()
 
         // Set-up the start / end events correctly.
         auto& sst = scenar.state(cstr->startState());
-        if (sst.nextConstraint() != cstr->id())
-            sst.setNextConstraint(cstr->id());
+        sst.setNextConstraint(cstr->id());
 
         auto& est = scenar.state(cstr->endState());
-        if (est.previousConstraint() != cstr->id())
-            est.setPreviousConstraint(cstr->id());
+        est.setPreviousConstraint(cstr->id());
     }
 
     // And finally the constraint's view models
@@ -308,9 +306,10 @@ void RemoveSelection::redo()
     // Finally if there are remaining states
     for(const auto& st : m_removedStates)
     {
-        if(scenar.states.find(st.first) != scenar.states.end())
+        auto it = scenar.states.find(st.first);
+        if(it != scenar.states.end())
         {
-            StandardRemovalPolicy::removeState(scenar, st.first);
+            StandardRemovalPolicy::removeState(scenar, *it);
         }
     }
 }

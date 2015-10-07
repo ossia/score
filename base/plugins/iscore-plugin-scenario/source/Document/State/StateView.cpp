@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QCursor>
 #include <QDebug>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     QGraphicsObject(parent),
@@ -26,10 +27,10 @@ const StatePresenter &StateView::presenter() const
 
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPen statePen = QPen(Qt::white);
+    QPen statePen = ScenarioStyle::instance().StateOutline;
     statePen.setWidth(2);
     QBrush stateBrush = m_baseColor;
-    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
+    QColor highlight = ScenarioStyle::instance().StateSelected;
 
     painter->setPen(statePen);
     painter->setBrush(stateBrush);
@@ -48,6 +49,7 @@ void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 void StateView::setContainMessage(bool arg)
 {
     m_containMessage = arg;
+    update();
 }
 
 void StateView::setSelected(bool arg)

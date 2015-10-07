@@ -1,5 +1,5 @@
 #include "ScenarioContextMenuPluginList.hpp"
-#include "ScenarioContextMenuFactoryFamily.hpp"
+#include "ScenarioActionsFactory.hpp"
 
 const std::vector<ScenarioActionsFactory *> &ScenarioContextMenuPluginList::contextMenus() const
 {

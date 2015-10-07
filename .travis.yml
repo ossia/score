@@ -63,5 +63,5 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
-      condition: "$TRAVIS_OS_NAME = osx"
+      condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = osx
 

@@ -7,12 +7,12 @@ class GraphicsProxyObject : public QGraphicsItem
 {
     public:
         using QGraphicsItem::QGraphicsItem;
-        virtual QRectF boundingRect() const
+        QRectF boundingRect() const override
         {
             return {};
         }
 
-        virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+        void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
         {
         }
 };

@@ -6,6 +6,7 @@
 #include "Process/ScenarioModel.hpp"
 
 #include <iscore/tools/NotifyingMap.hpp>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
@@ -20,6 +21,7 @@ TimeNodeModel::TimeNodeModel(
 {
     metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
     metadata.setLabel("TimeNode");
+    metadata.setColor(ScenarioStyle::instance().TimenodeDefault);
 }
 
 TimeNodeModel::TimeNodeModel(
@@ -27,6 +29,7 @@ TimeNodeModel::TimeNodeModel(
         const Id<TimeNodeModel>& id,
         QObject* parent):
     IdentifiedObject<TimeNodeModel> {id, "TimeNodeModel", parent},
+    metadata{source.metadata},
     pluginModelList{source.pluginModelList, this},
     m_extent{source.m_extent},
     m_date{source.m_date},
@@ -35,9 +38,6 @@ TimeNodeModel::TimeNodeModel(
     m_trigger = new TriggerModel{Id<TriggerModel>(0), this};
     m_trigger->setExpression(source.trigger()->expression());
     m_trigger->setActive(source.trigger()->active());
-
-    metadata.setName(QString("TimeNode.%1").arg(*this->id().val()));
-    metadata.setLabel("TimeNode");
 }
 
 ScenarioInterface* TimeNodeModel::parentScenario() const

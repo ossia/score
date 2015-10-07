@@ -47,10 +47,7 @@ DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
     m_maxSpin = new TimeSpinBox{this};
     m_valueSpin = new TimeSpinBox{this};
 
-    m_valueSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
-    m_minSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
     m_minSpin->setEnabled(true);
-    m_maxSpin->setDisplayFormat(QString("h.mm.ss.zzz"));
     m_maxSpin->setEnabled(true);
 
     m_maxSpin->setTime(m_model.duration.maxDuration().toQTime());
@@ -122,15 +119,15 @@ using namespace Scenario::Command;
 
 void DurationSectionWidget::minDurationSpinboxChanged(int val)
 {
-    emit m_dispatcher.submitCommand<SetMinDuration>(
-                iscore::IDocument::path(m_model),
+    m_dispatcher.submitCommand<SetMinDuration>(
+                m_model,
                 TimeValue{std::chrono::milliseconds{val}});
 }
 
 void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 {
     m_dispatcher.submitCommand<SetMaxDuration>(
-                iscore::IDocument::path(m_model),
+                m_model,
                 TimeValue{std::chrono::milliseconds {val}});
 }
 
@@ -146,7 +143,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     if(m_model.objectName() != "BaseConstraintModel")
     {
         m_dispatcher.submitCommand<MoveEventMeta>(
-                iscore::IDocument::path(*safe_cast<ScenarioModel*>(m_model.parent())),
+                *safe_cast<ScenarioModel*>(m_model.parent()),
                 scenario->state(m_model.endState()).eventId(),
                 m_model.startDate() + TimeValue::fromMsecs(val),
                 expandmode); // todo Take mode from scenario control
@@ -154,7 +151,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     else
     {
         m_dispatcher.submitCommand<MoveBaseEvent>(
-                    iscore::IDocument::path(*safe_cast<BaseScenario*>(m_model.parent())),
+                    *safe_cast<BaseScenario*>(m_model.parent()),
                     std::chrono::milliseconds {val},
                     expandmode);
     }
@@ -247,7 +244,7 @@ void DurationSectionWidget::on_minNonNullToggled(bool val)
                         : m_min ;
 
     auto cmd = new Scenario::Command::SetMinDuration(
-                   iscore::IDocument::path(m_model),
+                   m_model,
                    newTime);
     m_parent->commandDispatcher()->submitCommand(cmd);
 }
@@ -264,7 +261,7 @@ void DurationSectionWidget::on_maxFiniteToggled(bool val)
                         : m_max;
 
     auto cmd = new Scenario::Command::SetMaxDuration(
-                   iscore::IDocument::path(m_model),
+                   m_model,
                    newTime);
 
     m_parent->commandDispatcher()->submitCommand(cmd);

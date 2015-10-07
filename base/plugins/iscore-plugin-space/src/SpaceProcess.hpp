@@ -46,9 +46,17 @@ class SpaceProcess : public Process
         void computationAdded(const ComputationModel&);
 
     protected:
-        LayerModel *makeLayer_impl(const Id<LayerModel> &viewModelId, const QByteArray &constructionData, QObject *parent);
-        LayerModel *loadLayer_impl(const VisitorVariant &, QObject *parent);
-        LayerModel *cloneLayer_impl(const Id<LayerModel> &newId, const LayerModel &source, QObject *parent);
+        LayerModel *makeLayer_impl(
+                const Id<LayerModel> &viewModelId,
+                const QByteArray &constructionData,
+                QObject *parent);
+        LayerModel *loadLayer_impl(
+                const VisitorVariant &,
+                QObject *parent);
+        LayerModel *cloneLayer_impl(
+                const Id<LayerModel> &newId,
+                const LayerModel &source,
+                QObject *parent);
 
     private:
         SpaceModel* m_space{};
@@ -56,4 +64,9 @@ class SpaceProcess : public Process
         IdContainer<ComputationModel> m_computations;
 
         // Default viewport
+
+        // Process interface
+    public:
+        void startExecution() override;
+        void stopExecution() override;
 };

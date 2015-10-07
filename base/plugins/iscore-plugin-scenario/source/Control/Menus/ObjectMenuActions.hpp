@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AbstractMenuActions.hpp"
+#include "ScenarioActions.hpp"
 
 #include "DialogWidget/AddProcessDialog.hpp"
 #include "Process/ScenarioModel.hpp"

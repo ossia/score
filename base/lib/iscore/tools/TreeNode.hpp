@@ -26,7 +26,7 @@ class TreeNode : public DataType
 
         // The parent has to be set afterwards.
         TreeNode(const TreeNode& other):
-            DataType{static_cast<const DataType&>(other)},
+            DataType(static_cast<const DataType&>(other)),
             m_parent{other.m_parent},
             m_children(other.m_children)
         {
@@ -35,7 +35,7 @@ class TreeNode : public DataType
         }
 
         TreeNode(TreeNode&& other):
-            DataType{static_cast<DataType&&>(other)},
+            DataType(static_cast<DataType&&>(other)),
             m_parent{other.m_parent},
             m_children(std::move(other.m_children))
         {

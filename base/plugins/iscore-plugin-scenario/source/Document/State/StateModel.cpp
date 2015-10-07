@@ -18,8 +18,9 @@ StateModel::StateModel(
     IdentifiedObject<StateModel> {id, "StateModel", parent},
     m_eventId{eventId},
     m_heightPercentage{yPos},
-    m_messageItemModel{new iscore::MessageItemModel{
+    m_messageItemModel{new MessageItemModel{
                             iscore::IDocument::commandStack(*this),
+                            *this,
                             this}}
 {
     init();
@@ -50,19 +51,11 @@ void StateModel::init()
 
     if(m_previousConstraint)
     {
-        const auto& cstr = parentScenario()->constraint(m_previousConstraint);
-        for(const auto& proc : cstr.processes)
-        {
-            on_previousProcessAdded(proc);
-        }
+        setPreviousConstraint(m_previousConstraint);
     }
     if(m_nextConstraint)
     {
-        const auto& cstr = parentScenario()->constraint(m_nextConstraint);
-        for(const auto& proc : cstr.processes)
-        {
-            on_nextProcessAdded(proc);
-        }
+        setNextConstraint(m_nextConstraint);
     }
 }
 
@@ -84,77 +77,37 @@ void StateModel::setHeightPercentage(double y)
     emit heightPercentageChanged();
 }
 
-// TESTME
 void StateModel::statesUpdated_slt()
 {
-    // Check for all the messages in the state, for some
-    // that are matching our processes's addresses.
-    // If they match, update them in the process state.
-    // OPTIMIZEME
-    auto ml = messages().flatten();
-    for(const auto& proc : m_previousProcesses)
-    {
-        auto currentMessages = proc->messages();
-        for(const auto& mess : ml)
-        {
-            // OPTIMIZEME with set_intersection
-            auto it = std::find_if(
-                currentMessages.begin(),
-                currentMessages.end(),
-                [&] (const auto& m) { return m.address == mess.address; });
-
-            if(it != currentMessages.end())
-            {
-                it->value = mess.value;
-            }
-        }
-        proc->setMessages(currentMessages);
-    }
-    // TODO refactor
-    for(const auto& proc : m_nextProcesses)
-    {
-        auto currentMessages = proc->messages();
-        for(const auto& mess : ml)
-        {
-            // OPTIMIZEME with set_intersection
-            auto it = std::find_if(
-                currentMessages.begin(),
-                currentMessages.end(),
-                [&] (const auto& m) { return m.address == mess.address; });
-
-            if(it != currentMessages.end())
-            {
-                it->value = mess.value;
-            }
-        }
-        proc->setMessages(currentMessages);
-    }
     emit sig_statesUpdated();
 }
-
-// When we add a process, the data in the process takes precedence on the states
-// present here, because it might contain saved states at the beginning /
-// end that we don't want to change.
+#include "ItemModel/MessageItemModelAlgorithms.hpp"
 void StateModel::on_previousProcessAdded(const Process& proc)
 {
     ProcessStateDataInterface* state = proc.endState();
     if(!state)
         return;
 
-    connect(state, &ProcessStateDataInterface::messagesChanged,
-            this, [&] (const iscore::MessageList& ml) {
-        // We merge the messages with the state.
-        // No need to undo-redo this, this is an invariant.
+    auto prev_proc_fun = [&] (const iscore::MessageList& ml) {
         // TODO have some collapsing between all the processes of a state
         // NOTE how to prevent these states from being played
         // twice ? mark them ?
-        // TODO which one shoul be sent ? the ones
+        // TODO which one should be sent ? the ones
         // from the process ?
-        for(const auto& mess : ml)
+
+        auto node = m_messageItemModel->rootNode();
+        updateTreeWithMessageList(node, ml, proc.id(), Position::Previous);
+        *m_messageItemModel = std::move(node);
+
+        for(auto& proc : m_nextProcesses)
         {
-            messages().insert(mess);
+            proc->setMessages(ml, m_messageItemModel->rootNode());
         }
-    });
+    };
+    connect(state, &ProcessStateDataInterface::messagesChanged,
+            this, prev_proc_fun);
+
+    prev_proc_fun(state->messages());
 
     m_previousProcesses.insert(state);
     statesUpdated_slt();
@@ -166,6 +119,10 @@ void StateModel::on_previousProcessRemoved(const Process& proc)
     if(!state)
         return;
 
+    auto node = m_messageItemModel->rootNode();
+    updateTreeWithRemovedProcess(node, proc.id(), Position::Previous);
+    *m_messageItemModel = std::move(node);
+
     m_previousProcesses.erase(state);
 }
 
@@ -175,13 +132,23 @@ void StateModel::on_nextProcessAdded(const Process& proc)
     if(!state)
         return;
 
-    connect(state, &ProcessStateDataInterface::messagesChanged,
-        this, [&] (const iscore::MessageList& ml) {
-        for(const auto& mess : ml)
+    auto next_proc_fun = [&] (const iscore::MessageList& ml) {
+
+        auto node = m_messageItemModel->rootNode();
+        updateTreeWithMessageList(node, ml, proc.id(), Position::Following);
+        *m_messageItemModel = std::move(node);
+
+        // TODO if(synchronize) ...
+        for(auto& proc : m_previousProcesses)
         {
-            messages().insert(mess);
+            proc->setMessages(ml, m_messageItemModel->rootNode());
         }
-    });
+    };
+
+    connect(state, &ProcessStateDataInterface::messagesChanged,
+            this, next_proc_fun);
+
+    next_proc_fun(state->messages());
 
     m_nextProcesses.insert(state);
     statesUpdated_slt();
@@ -192,6 +159,10 @@ void StateModel::on_nextProcessRemoved(const Process& proc)
     ProcessStateDataInterface* state = proc.startState();
     if(!state)
         return;
+
+    auto node = m_messageItemModel->rootNode();
+    updateTreeWithRemovedProcess(node, proc.id(), Position::Following);
+    *m_messageItemModel = std::move(node);
 
     m_nextProcesses.erase(state);
 }
@@ -218,39 +189,79 @@ const Id<ConstraintModel> &StateModel::nextConstraint() const
 
 void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 {
+    if(m_nextConstraint)
+    {
+        auto node = m_messageItemModel->rootNode();
+        updateTreeWithRemovedConstraint(node, Position::Following);
+        *m_messageItemModel = std::move(node);
+
+        for(auto conn : m_nextConnections)
+            QObject::disconnect(conn);
+        m_nextConnections.clear();
+    }
     m_nextConstraint = id;
 
     if(!m_nextConstraint)
         return;
 
-    auto& cstr = parentScenario()->constraint(m_nextConstraint);
-    con(cstr.processes, &NotifyingMap<Process>::added,
-        this, &StateModel::on_nextProcessAdded);
-    con(cstr.processes, &NotifyingMap<Process>::removed,
-        this, &StateModel::on_nextProcessRemoved);
+    // The constraints might not be present in a scenario
+    // for instance when restoring removed elements.
+    auto cstr = parentScenario()->findConstraint(m_nextConstraint);
+    if(cstr)
+    {
+        for(const auto& proc : cstr->processes)
+        {
+            on_nextProcessAdded(proc);
+        }
+
+        m_nextConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::added,
+            this, &StateModel::on_nextProcessAdded));
+        m_nextConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::removed,
+            this, &StateModel::on_nextProcessRemoved));
+    }
 }
 
 void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 {
+    // First clean the state model of the previous constraint's states
+    if(m_previousConstraint)
+    {
+        auto node = m_messageItemModel->rootNode();
+        updateTreeWithRemovedConstraint(node, Position::Previous);
+        *m_messageItemModel = std::move(node);
+
+        for(auto conn : m_prevConnections)
+            QObject::disconnect(conn);
+        m_prevConnections.clear();
+    }
+
     m_previousConstraint = id;
 
     if(!m_previousConstraint)
         return;
 
-    auto& cstr = parentScenario()->constraint(m_previousConstraint);
-    con(cstr.processes, &NotifyingMap<Process>::added,
-        this, &StateModel::on_previousProcessAdded);
-    con(cstr.processes, &NotifyingMap<Process>::removed,
-        this, &StateModel::on_previousProcessRemoved);
+    auto cstr = parentScenario()->findConstraint(m_previousConstraint);
+    if(cstr)
+    {
+        for(const auto& proc : cstr->processes)
+        {
+            on_previousProcessAdded(proc);
+        }
+
+        m_prevConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::added,
+            this, &StateModel::on_previousProcessAdded));
+        m_prevConnections.push_back(con(cstr->processes, &NotifyingMap<Process>::removed,
+            this, &StateModel::on_previousProcessRemoved));
+    }
 }
 
 
-const iscore::MessageItemModel& StateModel::messages() const
+const MessageItemModel& StateModel::messages() const
 {
     return *m_messageItemModel;
 }
 
-iscore::MessageItemModel& StateModel::messages()
+MessageItemModel& StateModel::messages()
 {
     return *m_messageItemModel;
 }

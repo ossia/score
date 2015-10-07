@@ -39,9 +39,9 @@ class AutomationModel : public Process
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
+            Process{vis, parent},
             m_startState{new AutomationState{*this, 0., this}},
-            m_endState{new AutomationState{*this, 1., this}},
-            Process{vis, parent}
+            m_endState{new AutomationState{*this, 1., this}}
         {
             vis.writeTo(*this);
         }

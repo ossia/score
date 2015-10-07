@@ -2,11 +2,11 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QGraphicsItem>
 class CurvePointModel;
-class CurvePointView : public QGraphicsObject
+class CurvePointView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
-        CurvePointView(const CurvePointModel& model,
+        CurvePointView(const CurvePointModel* model,
                        QGraphicsItem* parent);
 
         const CurvePointModel& model() const;
@@ -21,6 +21,8 @@ class CurvePointView : public QGraphicsObject
         void enable();
         void disable();
 
+        void setModel(const CurvePointModel* model);
+
     signals:
         void contextMenuRequested(const QPoint&);
 
@@ -29,12 +31,7 @@ class CurvePointView : public QGraphicsObject
 
 
     private:
-        const CurvePointModel& m_model;
+        const CurvePointModel* m_model;
         bool m_selected{};
         bool m_enabled{true};
-
-        // QGraphicsItem interface
-    protected:
-        void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-        void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 };

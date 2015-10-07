@@ -3,13 +3,13 @@
 #include <QGraphicsObject>
 #include <functional>
 
-class SeparatorItem : public QGraphicsSimpleTextItem
+class SeparatorItem final : public QGraphicsSimpleTextItem
 {
     public:
         SeparatorItem(QGraphicsItem* parent);
 };
 
-class ClickableLabelItem : public QGraphicsSimpleTextItem
+class ClickableLabelItem final : public QGraphicsSimpleTextItem
 {
     public:
         using ClickHandler= std::function<void(ClickableLabelItem*)>;
@@ -22,9 +22,9 @@ class ClickableLabelItem : public QGraphicsSimpleTextItem
         void setIndex(int index);
 
     protected:
-        void mousePressEvent(QGraphicsSceneMouseEvent *event);
-        void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
-        void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
 
     private:
         int m_index{-1};

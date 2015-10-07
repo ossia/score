@@ -12,7 +12,8 @@ CurveCommandObjectBase::CurveCommandObjectBase(
         CurvePresenter* pres,
         iscore::CommandStack& stack):
     m_presenter{pres},
-    m_dispatcher{stack}
+    m_dispatcher{stack},
+    m_modelPath{m_presenter->model()}
 {
 
 }
@@ -57,22 +58,11 @@ void CurveCommandObjectBase::handleLocking()
     }
 }
 
-QVector<CurveSegmentModel*> CurveCommandObjectBase::deserializeSegments() const
-{
-    QVector<CurveSegmentModel*> segments;
-    segments.reserve(m_startSegments.size());
-    std::transform(m_startSegments.begin(), m_startSegments.end(), std::back_inserter(segments),
-                   [] (const CurveSegmentData& arr)
-    {
-        return createCurveSegment(arr, nullptr);
-    });
-
-    return segments;
-}
-
-void CurveCommandObjectBase::submit(const QVector<CurveSegmentData>& segments)
+void CurveCommandObjectBase::submit(std::vector<CurveSegmentData>&& segments)
 {
     // TODO std::move
-    m_dispatcher.submitCommand(m_presenter->model(),
-                               segments);
+    m_dispatcher.submitCommand(Path<CurveModel>(m_modelPath),
+                               std::move(segments));
 }
+
+

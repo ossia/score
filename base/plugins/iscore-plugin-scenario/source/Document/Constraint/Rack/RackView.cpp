@@ -5,8 +5,6 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QApplication>
-#include <QPalette>
 
 RackView::RackView(QGraphicsObject* parent) :
     QGraphicsObject {parent}

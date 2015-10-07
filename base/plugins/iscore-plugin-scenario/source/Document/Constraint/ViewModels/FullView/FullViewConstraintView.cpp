@@ -8,6 +8,7 @@
 #include <QCursor>
 
 #include <QApplication>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& presenter,
                                                QGraphicsItem *parent) :
@@ -30,19 +31,22 @@ void FullViewConstraintView::paint(QPainter* painter,
                                    const QStyleOptionGraphicsItem* option,
                                    QWidget* widget)
 {
-    QColor c = qApp->palette("ScenarioPalette").base().color();
-
     int min_w = static_cast<int>(minWidth());
     int max_w = static_cast<int>(maxWidth());
     int def_w = static_cast<int>(defaultWidth());
 
+    QColor c;
     if(isSelected())
     {
-        c = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
+        c = ScenarioStyle::instance().ConstraintSelected;
     }
     else if(parentItem()->isSelected())
     {
-        c = Qt::cyan;
+        c = ScenarioStyle::instance().ConstraintFullViewParentSelected;
+    }
+    else
+    {
+        c = ScenarioStyle::instance().ConstraintBase;
     }
 
     m_solidPen.setColor(c);
@@ -68,7 +72,7 @@ void FullViewConstraintView::paint(QPainter* painter,
         painter->setPen(m_dashPen);
         painter->drawLine(min_w, 0, max_w, 0);
     }
-
+/*
     QLinearGradient gradient {qreal(max_w), 0, qreal(max_w + 200), 0};
     gradient.setColorAt(0, Qt::black);
     gradient.setColorAt(1, Qt::transparent);
@@ -78,4 +82,5 @@ void FullViewConstraintView::paint(QPainter* painter,
     painter->setPen(QPen(brush, 4));
 
     painter->drawLine(max_w, 0, max_w + 200, 0);
+    */
 }

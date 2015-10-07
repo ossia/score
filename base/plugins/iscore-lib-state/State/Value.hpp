@@ -1,7 +1,62 @@
 #pragma once
 #include <QVariant>
 #include <iscore/serialization/VisitorInterface.hpp>
+#include <boost/optional.hpp>
+#include <eggs/variant.hpp>
+/*
+// TODO use this
+struct impulse_t {};
+class ValueImpl;
+using tuple_t = std::vector<ValueImpl>;
 
+class ValueImpl : eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>
+{
+        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
+    public:
+        ValueImpl() = default;
+        ValueImpl(const ValueImpl& other): variant_t{static_cast<const variant_t&>(other)} {}
+        ValueImpl(const QVariant&) {}
+        const char* typeName() const { return ""; }
+        int type() const { return -1; }
+        ValueImpl& operator =(const QVariant& other) { return *this; }
+        ValueImpl& operator =(const ValueImpl& other) { return *this; }
+        bool operator ==(const ValueImpl& other) const { return true; }
+        bool operator !=(const ValueImpl& other) const { return true; }
+
+        operator QVariant() const { return {}; }
+        bool isValid() const { return {}; }
+        int toInt() const { return {}; }
+        float toFloat() const { return {}; }
+        bool toBool() const { return {}; }
+        QString toString() const { return {}; }
+        QStringList toStringList() const { return {}; }
+        QChar toChar() const { return {}; }
+        tuple_t toTuple() const { return {}; }
+
+        template<typename TheType>
+        bool canConvert() const
+        { return {}; }
+
+        template<typename TheType>
+        TheType value() const
+        { return {}; }
+
+
+        friend QDebug& operator<<(QDebug& s, const ValueImpl& m)
+        {
+            return s;
+        }
+        friend QDataStream& operator<<(QDataStream& s, const ValueImpl& m)
+        {
+            return s;
+        }
+
+        friend QDataStream& operator>>(QDataStream& s, ValueImpl& m)
+        {
+            return s;
+        }
+};
+*/
 namespace iscore
 {
 /**
@@ -12,8 +67,8 @@ namespace iscore
  */
 struct Value
 {
-        QVariant val{};
-
+        using value_type = QVariant;
+        value_type val{};
 
         friend QDataStream& operator<<(QDataStream& s, const Value& m)
         {
@@ -27,7 +82,7 @@ struct Value
             return s;
         }
 
-        static Value fromVariant(const QVariant& var)
+        static Value fromVariant(const value_type& var)
         {
             Value v;
             v.val = var;
@@ -65,6 +120,7 @@ struct Value
 };
 
 using ValueList = QList<Value>;
+using OptionalValue = boost::optional<iscore::Value>;
 }
 
 Q_DECLARE_METATYPE(iscore::Value)

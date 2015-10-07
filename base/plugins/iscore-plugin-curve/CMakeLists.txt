@@ -25,6 +25,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
@@ -62,6 +63,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveStyle.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_curve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AutomationState.cpp"
@@ -84,7 +86,9 @@ if(TARGET iscore_lib_inspector)
     set(HDRS ${HDRS} ${INSPECTOR_HDRS})
 endif()
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Curve/resources/AutomationResources.qrc")
+
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)

@@ -38,6 +38,9 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
         virtual ~BaseElementPresenter() = default;
 
         const ConstraintModel& displayedConstraint() const;
+        const DisplayedElementsPresenter& presenters() const
+        { return *m_scenarioPresenter; }
+
         BaseElementModel& model() const;
         BaseElementView* view() const;
 
@@ -86,9 +89,7 @@ class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
 
         // Various widgets
         TimeRulerPresenter* m_mainTimeRuler{};
-        //LocalTimeRulerPresenter* m_localTimeRuler {};
 
-        // 30s displayed by default on average
-        ZoomRatio m_zoomRatio{0.03};
+        ZoomRatio m_zoomRatio;
 
 };

@@ -21,7 +21,7 @@ struct NumberedEvent : public QEvent
 };
 
 template<typename Element, int N>
-struct NumberedWithPath_Event : public NumberedEvent<N>
+struct NumberedWithPath_Event final : public NumberedEvent<N>
 {
         explicit NumberedWithPath_Event(const Path<Element>& p):
             NumberedEvent<N>{},

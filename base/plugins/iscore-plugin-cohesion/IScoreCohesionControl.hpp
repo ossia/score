@@ -16,11 +16,6 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
                 const QString& name,
                 const QByteArray& data) override;
 
-    public slots:
-        void createCurvesFromAddresses();
-        void snapshotParametersInStates();
-        void interpolateStates();
-
         void record(ScenarioModel&, ScenarioPoint pt);
         void stopRecord();
 

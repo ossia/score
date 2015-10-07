@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 
-class CurveView : public QGraphicsObject
+class CurveView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
@@ -10,7 +10,9 @@ class CurveView : public QGraphicsObject
 
         void setRect(const QRectF& theRect);
 
-        QRectF boundingRect() const override;
+        QRectF boundingRect() const override
+        { return m_rect; }
+
         void paint(QPainter *painter,
                    const QStyleOptionGraphicsItem *option,
                    QWidget *widget) override;

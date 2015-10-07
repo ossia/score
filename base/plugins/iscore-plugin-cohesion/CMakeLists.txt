@@ -10,8 +10,14 @@ file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurvesFromAddresses.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesion.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/RecordManager.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Actions/CreateCurves.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Actions/InterpolateStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Actions/SnapshotParameters.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Record/RecordManager.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_cohesion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/IScoreCohesionControl.cpp"
 )
 

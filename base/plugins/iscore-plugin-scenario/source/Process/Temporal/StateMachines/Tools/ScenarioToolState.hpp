@@ -2,6 +2,7 @@
 #include <QState>
 #include <QGraphicsItem>
 #include <QStateMachine>
+#include <chrono>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/statemachine/ToolState.hpp>
 class EventModel;
@@ -126,4 +127,6 @@ class ScenarioTool : public ToolState
         }
 
         const ScenarioStateMachine& m_parentSM;
+
+        std::chrono::steady_clock::time_point m_prev;
 };

@@ -7,7 +7,7 @@ template<typename T>
 class ExpressionValidator : public QValidator
 {
     public:
-    State validate(QString& str, int&) const
+    State validate(QString& str, int&) const override
     {
         if(str.isEmpty())
         {

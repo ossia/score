@@ -97,6 +97,7 @@ void Process::expandProcess(ExpandMode mode, const TimeValue& t)
 void Process::setDuration(const TimeValue& other)
 {
     m_duration = other;
+    emit durationChanged(m_duration);
 }
 
 

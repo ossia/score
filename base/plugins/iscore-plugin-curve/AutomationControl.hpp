@@ -12,4 +12,5 @@ class AutomationControl : public iscore::PluginControlInterface
                                                                     const QByteArray& data) override;
     private:
         void setupCommands();
+        void initColors();
 };

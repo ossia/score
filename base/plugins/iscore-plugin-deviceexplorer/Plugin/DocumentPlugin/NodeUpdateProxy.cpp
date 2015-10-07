@@ -27,7 +27,7 @@ void NodeUpdateProxy::addDevice(const iscore::DeviceSettings& dev)
 
 void NodeUpdateProxy::loadDevice(const iscore::Node& node)
 {
-    auto n = m_devModel.createDeviceFromNode(node);
+    auto n = m_devModel.loadDeviceFromNode(node);
 
     if(m_deviceExplorer)
     {

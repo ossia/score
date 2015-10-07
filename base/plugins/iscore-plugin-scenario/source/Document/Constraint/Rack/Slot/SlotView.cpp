@@ -6,12 +6,13 @@
 #include <QGraphicsScene>
 #include <QApplication>
 #include <QPainter>
-
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 SlotView::SlotView(const SlotPresenter &pres, QGraphicsObject* parent) :
     QGraphicsObject {parent},
     presenter{pres},
     m_handle{new SlotHandle{*this, this}}
 {
+    this->setFlag(ItemClipsChildrenToShape, true);
     this->setZValue(parent->zValue() + 1);
     m_handle->setPos(0, this->boundingRect().height() - SlotHandle::handleHeight());
 }
@@ -25,19 +26,8 @@ void SlotView::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 {
     const auto& rect = boundingRect();
 
-    QColor highlight = QColor::fromRgbF(0.188235, 0.54902, 0.776471);
-    painter->setPen(QPen{m_focus? highlight : Qt::transparent});
+    painter->setPen(QPen{m_focus? ScenarioStyle::instance().SlotFocus : Qt::transparent});
     painter->drawRect(rect);
-
-    static const int fontSize = 12;
-    QRectF processNameRect{0,0, rect.width(), (-fontSize - 2.)};
-    static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
-/*
-    painter->setFont(f);
-    QColor c = QColor::black();
-    painter->setPen(c);
-    painter->drawText(processNameRect, Qt::AlignCenter, m_frontProcessName);
-*/
 }
 
 void SlotView::setHeight(qreal height)

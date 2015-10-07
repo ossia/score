@@ -6,8 +6,8 @@
 #include <QCursor>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
-#include <QApplication>
-#include <QPalette>
+
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 SlotOverlay::SlotOverlay(SlotView *parent):
     QGraphicsItem{parent},
@@ -35,10 +35,8 @@ void SlotOverlay::setWidth(qreal width)
 
 void SlotOverlay::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QPalette palette{QApplication::palette()};
-
-    painter->setPen(Qt::black);
-    painter->setBrush(QColor(170, 170, 170, 70));
+    painter->setPen(ScenarioStyle::instance().SlotOverlayBorder);
+    painter->setBrush(ScenarioStyle::instance().SlotOverlay);
     painter->drawRect(boundingRect());
 }
 

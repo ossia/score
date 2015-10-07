@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include "Widgets/SizeNotifyingGraphicsView.hpp"
+#include "Widgets/ScenarioBaseGraphicsView.hpp"
 #include "Widgets/GraphicsProxyObject.hpp"
 class QSlider;
 class QGraphicsScene;
@@ -10,6 +10,7 @@ class TemporalConstraintView;
 class DoubleSlider;
 class TimeRulerView;
 class LocalTimeRulerView;
+class TimeRuler2;
 
 class BaseElementView : public iscore::DocumentDelegateViewInterface
 {
@@ -19,30 +20,27 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
         BaseElementView(QObject* parent);
         virtual ~BaseElementView() = default;
 
-        virtual QWidget* getWidget();
+        QWidget* getWidget() override;
 
-        QGraphicsItem* baseItem()
-            { return m_baseObject;}
+        QGraphicsItem* baseItem() const
+        { return m_baseObject;}
 
         void update();
 
-        QGraphicsScene* scene()
-            { return m_scene;}
+        QGraphicsScene* scene() const
+        { return m_scene;}
 
-        SizeNotifyingGraphicsView* view()
-            { return m_view;}
+        ScenarioBaseGraphicsView* view() const
+        { return m_view;}
 
-        QGraphicsView* rulerView()
-            { return m_timeRulersView;}
+        QGraphicsView* rulerView() const
+        { return m_timeRulersView;}
 
         TimeRulerView* timeRuler()
-            { return m_timeRuler;}
-/*        LocalTimeRulerView* localTimeRuler()
-            { return m_localTimeRuler;}
+        { return m_timeRuler;}
 
-*/
-        DoubleSlider* zoomSlider()
-            { return m_zoomSlider;}
+        DoubleSlider* zoomSlider() const
+        { return m_zoomSlider;}
 
         void newLocalTimeRuler();
 
@@ -55,13 +53,13 @@ class BaseElementView : public iscore::DocumentDelegateViewInterface
     private:
         QWidget* m_widget {};
         QGraphicsScene* m_scene {};
-        SizeNotifyingGraphicsView* m_view {};
+        ScenarioBaseGraphicsView* m_view {};
         GraphicsProxyObject* m_baseObject {};
 
         QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};
-        //LocalTimeRulerView* m_localTimeRuler {};
 
         DoubleSlider* m_zoomSlider {};
 };
+
 

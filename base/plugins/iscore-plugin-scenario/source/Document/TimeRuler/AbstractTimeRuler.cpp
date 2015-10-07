@@ -1,11 +1,13 @@
 #include "AbstractTimeRuler.hpp"
 
 #include "AbstractTimeRulerView.hpp"
-
+#include <QGraphicsScene>
+#include <QGraphicsView>
 AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* parent) :
     QObject{parent},
     m_view{view}
 {
+    m_view->setPresenter(this);
     m_graduationsSpacing.push_back( {0.2, TimeValue{std::chrono::seconds (60)} });
     m_graduationsSpacing.push_back( {0.5, TimeValue{std::chrono::seconds (30)} });
 
@@ -23,27 +25,12 @@ AbstractTimeRuler::AbstractTimeRuler(AbstractTimeRulerView* view, QObject* paren
     m_graduationsSpacing.push_back( {500, TimeValue{std::chrono::milliseconds (20)} });
 }
 
-void AbstractTimeRuler::scroll(qreal x)
-{
-    view()->setX(-x);
-//    m_totalScroll += dx;
-}
-
-void AbstractTimeRuler::setDuration(TimeValue dur)
-{
-    if (m_duration != dur)
-    {
-        m_duration = dur;
-        m_view->setWidth(m_duration.msec() * m_pixelPerMillis);
-    }
-//    computeGraduationSpacing();
-}
-
 void AbstractTimeRuler::setStartPoint(TimeValue dur)
 {
     if (m_startPoint != dur)
     {
         m_startPoint = dur;
+        computeGraduationSpacing();
     }
 }
 
@@ -51,8 +38,6 @@ void AbstractTimeRuler::setPixelPerMillis(double factor)
 {
     if (factor != m_pixelPerMillis)
     {
-        m_view->setWidth(m_duration.msec() * factor);
-//        m_view->setX(m_startPoint.msec() * factor + m_totalScroll * (factor / m_pixelPerMillis));
         m_pixelPerMillis = factor;
         computeGraduationSpacing();
     }
@@ -85,7 +70,8 @@ void AbstractTimeRuler::computeGraduationSpacing()
 
     m_view->setGraduationsStyle(gradSpace, deltaTime, format, loop );
 }
-QVector<QPair<double, TimeValue> > AbstractTimeRuler::graduationsSpacing() const
+
+const QVector<QPair<double, TimeValue> >& AbstractTimeRuler::graduationsSpacing() const
 {
     return m_graduationsSpacing;
 }

@@ -1,8 +1,6 @@
 #include "ConditionView.hpp"
 #include <QPainter>
-#include <QPalette>
-#include <QApplication>
-
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 ConditionView::ConditionView(QGraphicsItem *parent):
     QGraphicsItem{parent},
     m_currentState{State::Waiting}
@@ -31,21 +29,20 @@ void ConditionView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    auto pal = qApp->palette("ScenarioPalette");
     QPen pen;
     switch(m_currentState)
     {
         case State::Waiting:
-            pen = pal.alternateBase().color();
+            pen = ScenarioStyle::instance().ConditionWaiting;
             break;
         case State::Disabled:
-            pen = pal.base().color();
+            pen = ScenarioStyle::instance().ConditionDisabled;
             break;
         case State::False:
-            pen = pal.windowText().color();
+            pen = ScenarioStyle::instance().ConditionFalse;
             break;
         case State::True:
-            pen = pal.button().color();
+            pen = ScenarioStyle::instance().ConditionTrue;
             break;
         default:
             pen = QColor(Qt::magenta);

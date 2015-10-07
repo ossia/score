@@ -149,6 +149,7 @@ class MoveEvent : public SerializableMoveEvent
 
         void deserializeImpl(QDataStream& s) override
         {
+            // TODO how is saved DisplacementPolicy ?
             int mode;
             s >> m_savedElementsProperties
                     >> m_path

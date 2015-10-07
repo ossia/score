@@ -37,7 +37,8 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const ConstraintModel& con
              << constraint.m_endState
 
              << constraint.m_startDate
-             << constraint.m_heightPercentage;
+             << constraint.m_heightPercentage
+             << constraint.m_looping;
 
     readFrom(constraint.pluginModelList);
 
@@ -78,7 +79,8 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
              >> constraint.m_endState
 
              >> constraint.m_startDate
-             >> constraint.m_heightPercentage;
+             >> constraint.m_heightPercentage
+             >> constraint.m_looping;
 
 
     constraint.pluginModelList = iscore::ElementPluginModelList{*this, &constraint};
@@ -113,6 +115,7 @@ template<> void Visitor<Reader<JSONObject>>::readFrom(const ConstraintModel& con
 
     m_obj["StartDate"] = toJsonValue(constraint.m_startDate);
     m_obj["HeightPercentage"] = constraint.m_heightPercentage;
+    m_obj["Looping"] = constraint.m_looping;
 
     m_obj["PluginsMetadata"] = toJsonValue(constraint.pluginModelList);
 }
@@ -146,6 +149,7 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
 
     constraint.m_startDate = fromJsonValue<TimeValue> (m_obj["StartDate"]);
     constraint.m_heightPercentage = m_obj["HeightPercentage"].toDouble();
+    constraint.m_looping = m_obj["Looping"].toBool();
 
 
 

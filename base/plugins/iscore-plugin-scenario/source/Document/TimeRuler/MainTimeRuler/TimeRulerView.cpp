@@ -1,14 +1,13 @@
 #include "TimeRulerView.hpp"
 
-#include <QApplication>
-#include <QPalette>
+#include <ProcessInterface/Style/ScenarioStyle.hpp>
 
 TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}
 {
     m_height = -3 * m_graduationHeight;
     m_textPosition = 1.05 * m_graduationHeight;
-    m_color = qApp->palette("ScenarioPalette").alternateBase().color();
+    m_color = ScenarioStyle::instance().TimeRuler;
 }
 
 QRectF TimeRulerView::boundingRect() const

@@ -24,6 +24,7 @@ CurvePoint CurvePointModel::pos() const
 void CurvePointModel::setPos(const CurvePoint &pos)
 {
     m_pos = pos;
+    emit posChanged();
 }
 
 

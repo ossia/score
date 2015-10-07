@@ -52,11 +52,11 @@ class TreePath : public QList<int>
         TreePath(const T& node)
         {
             // We have to take care of the root node.
-            if(node.template is<InvisibleRootNodeTag>())
+            if(!node.parent())
                 return;
 
             auto iter = &node;
-            while(iter && !iter->template is<InvisibleRootNodeTag>())
+            while(iter && iter->parent())
             {
                 prepend(iter->parent()->indexOfChild(iter));
                 iter = iter->parent();

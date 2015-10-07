@@ -53,9 +53,8 @@ void StandardRemovalPolicy::removeConstraint(
 
 void StandardRemovalPolicy::removeState(
         ScenarioModel& scenario,
-        const Id<StateModel>& stateId)
+        StateModel& state)
 {
-    auto& state = scenario.state(stateId);
     if(state.previousConstraint())
     {
         StandardRemovalPolicy::removeConstraint(scenario, state.previousConstraint());
@@ -66,7 +65,7 @@ void StandardRemovalPolicy::removeState(
     }
 
     auto& ev = scenario.events.at(state.eventId());
-    ev.removeState(stateId);
+    ev.removeState(state.id());
 
     scenario.states.remove(&state);
 }
@@ -77,9 +76,12 @@ void StandardRemovalPolicy::removeEventStatesAndConstraints(
 {
     auto& ev = scenario.event(eventId);
 
-    for(const auto& state : ev.states())
+    auto states = ev.states().toStdVector();
+    for(const auto& state : states)
     {
-        StandardRemovalPolicy::removeState(scenario, state);
+        auto it = scenario.states.find(state);
+        if(it != scenario.states.end())
+            StandardRemovalPolicy::removeState(scenario, *it);
     }
 
     removeEventFromTimeNode(scenario, eventId);

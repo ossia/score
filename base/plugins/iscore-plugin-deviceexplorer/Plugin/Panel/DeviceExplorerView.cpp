@@ -62,17 +62,15 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
      */
 
-
-    installStyleSheet();
-
+    QFile f(":/DeviceExplorer.qss");
+    if(f.open(QFile::ReadOnly))
+        setStyleSheet(f.readAll());
 }
 
 
 DeviceExplorerView::~DeviceExplorerView() //void DeviceExplorerView::closeEvent(QCloseEvent *event)
 {
     saveSettings();
-
-    //QTreeView::closeEvent(event);
 }
 
 void
@@ -102,58 +100,6 @@ DeviceExplorerView::restoreSettings()
     QSettings settings;
     restoreGeometry(settings.value(GeometrySetting).toByteArray());
     header()->restoreState(settings.value(HeaderViewSetting).toByteArray());
-}
-
-void
-DeviceExplorerView::installStyleSheet()
-{
-    // TODO put me in an external CSS file.
-    setStyleSheet(
-        "QTreeView {"
-        "show-decoration-selected: 1;"
-        "background-color: #bababa;"
-        "}"
-
-        "QTreeView::item {"
-        "border-right: 1px solid #000000;"
-        "border-top-color: transparent;"
-        "border-bottom-color: transparent;"
-        "}"
-
-        "QTreeView::item:disabled {"
-        "background: transparent;"
-        "}"
-
-        "QTreeView::item:hover {"
-        "background: qlineargradient(x1: -5, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);"
-        "color: #bababa;"
-        "border: 1px solid #bfcde4;"
-        "}"
-
-        "QTreeView::item:selected {"
-        "border: 1px solid #567dbc;"
-        "}"
-
-        "QTreeView::item:selected:active{"
-        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6ea1f1, stop: 1 #567dbc);"
-        "}"
-
-        "QTreeView::item:selected:!active {"
-        "background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #577fbf);"
-        "}"
-
-        "  QHeaderView::section {"
-        "background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,"
-        "stop:0 #a1a1a1, stop: 0.5 #909090,"
-        "stop: 0.6 #808080, stop:1 #a3a3a3);"
-        "color: black;"
-        "padding-left: 1px;"
-        "padding-top: 2px;"
-        "padding-bottom: 1px;"
-        "border: 1px solid #606060;"
-        "}"
-    );
-
 }
 
 void

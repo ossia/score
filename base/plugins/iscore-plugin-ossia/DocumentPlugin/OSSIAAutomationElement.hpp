@@ -18,7 +18,7 @@ class OSSIAAutomationElement : public OSSIAProcessElement
 {
     public:
         OSSIAAutomationElement(
-                OSSIAConstraintElement* parentConstraint,
+                OSSIAConstraintElement& parentConstraint,
                 AutomationModel& element,
                 QObject* parent);
 
@@ -35,7 +35,6 @@ class OSSIAAutomationElement : public OSSIAProcessElement
         template<typename T>
         std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
 
-        QPointer<OSSIAConstraintElement> m_parent_constraint;
         std::shared_ptr<OSSIA::Automation> m_ossia_autom;
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
 

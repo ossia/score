@@ -13,48 +13,48 @@ class MockDevice : public DeviceInterface
 
         }
 
-        void updateSettings(const iscore::DeviceSettings&)
+        void updateSettings(const iscore::DeviceSettings&) override
         {
         }
 
-        bool canRefresh() const
+        bool canRefresh() const override
         {
             return false;
         }
 
-        void setListening(const iscore::Address&, bool)
+        void setListening(const iscore::Address&, bool) override
         {
         }
 
-        void replaceListening(const std::vector<iscore::Address>&)
+        void replaceListening(const std::vector<iscore::Address>&) override
         {
         }
 
-        std::vector<iscore::Address> listening() const
+        std::vector<iscore::Address> listening() const override
         {
             return {};
         }
 
-        void addAddress(const iscore::FullAddressSettings& addr)
+        void addAddress(const iscore::FullAddressSettings& addr) override
         {
             m_addresses.insert({addr.address, addr});
         }
 
-        void updateAddress(const iscore::FullAddressSettings& addr)
+        void updateAddress(const iscore::FullAddressSettings& addr) override
         {
             m_addresses.insert({addr.address, addr});
         }
 
-        void removeNode(const iscore::Address& addr)
+        void removeNode(const iscore::Address& addr) override
         {
             m_addresses.erase(addr);
         }
 
-        void sendMessage(iscore::Message mess)
+        void sendMessage(iscore::Message mess) override
         {
         }
 
-        bool check(const QString& str)
+        bool check(const QString& str) override
         {
             return false;
         }
@@ -65,17 +65,17 @@ class MockDevice : public DeviceInterface
 class MockDeviceSettings : public ProtocolSettingsWidget
 {
     public:
-        iscore::DeviceSettings getSettings() const
+        iscore::DeviceSettings getSettings() const override
         {
             return {};
         }
 
-        QString getPath() const
+        QString getPath() const override
         {
             return {};
         }
 
-        void setSettings(const iscore::DeviceSettings& settings)
+        void setSettings(const iscore::DeviceSettings& settings) override
         {
         }
 };
@@ -83,36 +83,36 @@ class MockDeviceSettings : public ProtocolSettingsWidget
 class MockDeviceFactory : public ProtocolFactory
 {
     public:
-        QString name() const
+        QString name() const override
         {
             return "Mock";
         }
 
-        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings)
+        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {
             return new MockDevice(settings);
         }
 
-        ProtocolSettingsWidget* makeSettingsWidget()
+        ProtocolSettingsWidget* makeSettingsWidget() override
         {
             return new MockDeviceSettings;
         }
 
         void serializeProtocolSpecificSettings(
                 const QVariant& data,
-                const VisitorVariant& visitor) const
+                const VisitorVariant& visitor) const override
         {
         }
 
         QVariant makeProtocolSpecificSettings(
-                const VisitorVariant& visitor) const
+                const VisitorVariant& visitor) const override
         {
             return {};
         }
 
         bool checkCompatibility(
                 const iscore::DeviceSettings& a,
-                const iscore::DeviceSettings& b) const
+                const iscore::DeviceSettings& b) const override
         {
             return true;
         }

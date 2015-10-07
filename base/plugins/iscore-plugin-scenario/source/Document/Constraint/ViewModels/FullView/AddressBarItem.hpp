@@ -4,7 +4,7 @@
 #include <iscore/tools/ModelPath.hpp>
 
 class ClickableLabelItem;
-class AddressBarItem : public QGraphicsObject
+class AddressBarItem final : public QGraphicsObject
 {
         Q_OBJECT
     public:
@@ -13,8 +13,8 @@ class AddressBarItem : public QGraphicsObject
         double width() const;
         void setTargetObject(ObjectPath&&);
 
-        QRectF boundingRect() const;
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+        QRectF boundingRect() const override;
+        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
     signals:
         void objectSelected(ObjectPath path);

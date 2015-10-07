@@ -15,7 +15,7 @@ namespace StandardRemovalPolicy
 
     void removeState(
             ScenarioModel& scenario,
-            const Id<StateModel>& stateId);
+            StateModel& state);
 
 
     void removeEventStatesAndConstraints(

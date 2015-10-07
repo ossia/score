@@ -48,8 +48,8 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
                 m_valueSBox->setValue(settings.value.val.value<T>());
             }
 
-            m_minSBox->setValue(settings.domain.min.val.toDouble());
-            m_maxSBox->setValue(settings.domain.max.val.toDouble());
+            m_minSBox->setValue(settings.domain.min.val.value<T>());
+            m_maxSBox->setValue(settings.domain.max.val.value<T>());
 
             // TODO if the "values" part of the domain is set, we
             // have to display a combobox instead.

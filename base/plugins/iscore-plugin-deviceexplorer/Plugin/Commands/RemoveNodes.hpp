@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iscore/command/AggregateCommand.hpp>
-// TODO moveme
+
 class RemoveNodes : public iscore::AggregateCommand
 {
         ISCORE_COMMAND_DECL("DeviceExplorerControl", "RemoveNodes", "RemoveNodes")

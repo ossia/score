@@ -42,10 +42,10 @@ class NotifyingMap : public QObject
         Q_OBJECT_NO_OVERRIDE_WARNING
 
         static const QMetaObject staticMetaObject;
-        virtual const QMetaObject *metaObject() const;
+        const QMetaObject *metaObject() const override;
 
-        virtual void *qt_metacast(const char * _clname);
-        virtual int qt_metacall(QMetaObject::Call _c, int _id, void ** _a);
+        void *qt_metacast(const char * _clname) override;
+        int qt_metacall(QMetaObject::Call _c, int _id, void ** _a) override;
 
         QT_WARNING_POP
 

@@ -12,7 +12,6 @@ DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
     QWidget {parent},
     m_document{doc},
     m_view{fact->makeView(this)}
-
 {
     m_view->setParent(this);
     setObjectName("DocumentView");

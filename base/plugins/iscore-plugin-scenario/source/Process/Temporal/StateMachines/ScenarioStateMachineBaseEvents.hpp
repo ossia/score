@@ -42,7 +42,7 @@ struct PositionedScenarioEvent : public PositionedEvent<ScenarioPoint>
 };
 
 template<typename Element, int N>
-struct PositionedWithId_ScenarioEvent : public PositionedScenarioEvent<N>
+struct PositionedWithId_ScenarioEvent final : public PositionedScenarioEvent<N>
 {
         PositionedWithId_ScenarioEvent(
                 const Id<Element>& tn_id,

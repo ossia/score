@@ -30,10 +30,12 @@ QGraphicsItem* ToolState::itemUnderMouse(const QPointF &point) const
 
 void ToolState::start()
 {
-    localSM().start();
+    if(!localSM().isRunning())
+        localSM().start();
 }
 
 void ToolState::stop()
 {
-    localSM().stop();
+    if(localSM().isRunning())
+        localSM().stop();
 }
