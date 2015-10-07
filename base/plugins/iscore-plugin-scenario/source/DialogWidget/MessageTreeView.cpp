@@ -10,6 +10,7 @@
 
 #include <Commands/State/RemoveMessageNodes.hpp>
 #include <QContextMenuEvent>
+#include <QHeaderView>
 #include <QMenu>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QAction>
@@ -45,6 +46,8 @@ MessageTreeView::MessageTreeView(
     expandAll();
     con(m_model->messages(), &MessageItemModel::modelReset,
         this, &QTreeView::expandAll);
+
+    header()->resizeSection((int)MessageItemModel::Column::Name, 220);
 }
 
 MessageItemModel& MessageTreeView::model() const
