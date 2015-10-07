@@ -53,7 +53,6 @@ void CreateCurveFromStates::redo()
     // Add a segment
     auto segment = new LinearCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve());
 
-    qDebug() << m_start << m_end;
     if(m_start != m_end)
     {
         segment->setStart({0., qreal(m_start > m_end)}); // Biggest is 1

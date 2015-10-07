@@ -91,7 +91,7 @@ class TestStatesCurve: public IscoreTestBase
             */
 
             // We change the curve manually.
-            auto curveUpd = new UpdateCurveFast{autom.curve(), {{
+            auto curveUpd = new UpdateCurve{autom.curve(), {{
                     Id<CurveSegmentModel>{0},
                     {0, 0.5}, {1, 0.2},
                     Id<CurveSegmentModel>{}, Id<CurveSegmentModel>{},

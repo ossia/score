@@ -13,8 +13,6 @@ class AddProcessToConstraint;
 }
 }
 
-class UpdateCurve;
-
 class CreateCurveFromStates : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("IScoreCohesionControl", "CreateCurveFromStates", "CreateCurveFromStates")

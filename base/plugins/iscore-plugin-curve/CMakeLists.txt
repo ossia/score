@@ -25,6 +25,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"

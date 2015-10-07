@@ -95,30 +95,3 @@ LayerModel* AutomationModel::loadLayer_impl(
         return autom;
     });
 }
-
-
-
-/////// ViewModel
-// TODO in its own file.
-// Also id's should be saved.
-template<>
-void Visitor<Reader<DataStream>>::readFrom(const AutomationLayerModel& lm)
-{
-}
-
-template<>
-void Visitor<Writer<DataStream>>::writeTo(AutomationLayerModel& lm)
-{
-}
-
-
-
-template<>
-void Visitor<Reader<JSONObject>>::readFrom(const AutomationLayerModel& lm)
-{
-}
-
-template<>
-void Visitor<Writer<JSONObject>>::writeTo(AutomationLayerModel& lm)
-{
-}

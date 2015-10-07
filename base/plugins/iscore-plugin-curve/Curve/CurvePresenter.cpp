@@ -463,6 +463,7 @@ void CurvePresenter::disable()
     }
 }
 
+// TESTME
 void CurvePresenter::removeSelection()
 {
     // We remove all that is selected,
@@ -485,22 +486,22 @@ void CurvePresenter::removeSelection()
         }
     }
 
-    QVector<QByteArray> newSegments;
-    newSegments.resize(m_model.segments().size() - segmentsToDelete.size());
-    int i = 0;
-    for(const auto& segment : m_model.segments())
+    auto newSegments = model().toCurveData();
+    auto it = newSegments.begin();
+    while(it != newSegments.end())
     {
-        if(!segmentsToDelete.contains(segment.id()))
+        if(segmentsToDelete.contains(it->id))
         {
-            auto cp = segment.clone(segment.id(), nullptr);
-            if(segment.previous() && !segmentsToDelete.contains(segment.previous()))
-                cp->setPrevious(segment.previous());
-            if(segment.following() && !segmentsToDelete.contains(segment.following()))
-                cp->setFollowing(segment.following());
-
-            Serializer<DataStream> s{&newSegments[i++]};
-            s.readFrom(*cp);
+            it = newSegments.erase(it);
+            continue;
         }
+
+        if(it->previous && segmentsToDelete.contains(it->previous))
+            it->previous = Id<CurveSegmentModel>{};
+        if(it->following && segmentsToDelete.contains(it->following))
+            it->following = Id<CurveSegmentModel>{};
+
+        it++;
     }
 
     m_commandDispatcher.submitCommand(
@@ -513,32 +514,17 @@ void CurvePresenter::removeSelection()
 void CurvePresenter::updateSegmentsType(const QString& segmentName)
 {
     // They keep their start / end and previous / following but change type.
-    // TODO maybe it would be better to encapsulate this ?
     auto factory = SingletonCurveSegmentList::instance().get(segmentName);
+    auto this_type_base_data = factory->makeCurveSegmentData();
+    auto newSegments = model().toCurveData();
 
-    QVector<QByteArray> newSegments;
-    newSegments.resize(m_model.segments().size());
-    int i = 0;
-    for(const auto& segment : m_model.segments())
+    for(auto& seg_data : newSegments)
     {
-        const CurveSegmentModel* current;
-        if(segment.selection.get())
+        if(model().segments().at(seg_data.id).selection.get())
         {
-            auto ns = factory->make(segment.id(), nullptr);
-            ns->setStart(segment.start());
-            ns->setEnd(segment.end());
-            ns->setPrevious(segment.previous());
-            ns->setFollowing(segment.following());
-
-            current = ns;
+            seg_data.type = segmentName;
+            seg_data.specificSegmentData = this_type_base_data;
         }
-        else
-        {
-            current = &segment;
-        }
-
-        Serializer<DataStream> s{&newSegments[i++]};
-        s.readFrom(*current);
     }
 
     m_commandDispatcher.submitCommand(
