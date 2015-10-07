@@ -2,7 +2,6 @@
 #include <iscore/tools/ObjectIdentifier.hpp>
 #include <QVector>
 #include <QPointer>
-#include <iscore/Settings.hpp>
 
 /**
  * @brief The ObjectPath class

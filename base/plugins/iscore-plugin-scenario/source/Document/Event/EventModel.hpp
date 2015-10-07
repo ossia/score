@@ -9,7 +9,6 @@
 #include <iscore/selection/Selectable.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
-#include <State/State.hpp>
 #include <State/Expression.hpp>
 
 #include <Document/State/StateModel.hpp>

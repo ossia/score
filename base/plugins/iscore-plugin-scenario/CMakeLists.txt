@@ -101,9 +101,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveRackFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveProcessFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/SetRigidity.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/AssignMessagesToState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/UnassignMessagesFromState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/AddStateToEvent.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetCondition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SplitEvent.cpp"
 
@@ -129,7 +127,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/AddMessagesToModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/UpdateState.cpp"
 
@@ -219,7 +216,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModelAlgorithms.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageData.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"

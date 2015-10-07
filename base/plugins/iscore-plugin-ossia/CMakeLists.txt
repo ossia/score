@@ -30,7 +30,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/BasicProcessWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/LoopingProcessWrapper.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ProcessWrapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"

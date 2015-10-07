@@ -1,5 +1,4 @@
 #include <QTest>
-#include <State/State.hpp>
 #include <State/Message.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>

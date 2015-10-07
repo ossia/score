@@ -10,7 +10,6 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/State/StateModel.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "ScenarioCommandFactory.hpp"
 
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 

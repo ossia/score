@@ -4,6 +4,7 @@
 #include <Commands/State/UpdateState.hpp>
 #include "Commands/Scenario/Creations/CreateState.hpp"
 #include "Document/Event/EventModel.hpp"
+
 namespace Scenario
 {
     namespace Command

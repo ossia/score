@@ -1,7 +1,6 @@
 #pragma once
 #include <QObject>
 #include <memory>
-#include <State/State.hpp>
 #include <unordered_map>
 class StateModel;
 class DeviceList;

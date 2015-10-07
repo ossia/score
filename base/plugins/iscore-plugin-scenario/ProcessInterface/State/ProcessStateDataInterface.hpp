@@ -1,6 +1,5 @@
 #pragma once
 #include <QObject>
-#include <State/DynamicStateDataInterface.hpp>
 #include <State/Message.hpp>
 #include <ProcessInterface/Process.hpp>
 #include <ProcessInterface/State/MessageNode.hpp>

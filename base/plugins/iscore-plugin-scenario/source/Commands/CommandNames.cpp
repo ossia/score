@@ -22,11 +22,8 @@
 #include "Constraint/SetMaxDuration.hpp"
 #include "Constraint/SetMinDuration.hpp"
 #include "Constraint/SetRigidity.hpp"
-#include "Event/AddStateToEvent.hpp"
 #include "Event/SetCondition.hpp"
-#include "Event/State/AssignMessagesToState.hpp"
 #include "Event/State/AddStateWithData.hpp"
-#include "Event/State/UnassignMessagesFromState.hpp"
 #include "ClearSelection.hpp"
 #include "ResizeBaseConstraint.hpp"
 
@@ -71,7 +68,6 @@ namespace boost { namespace mpl {
 #include BOOST_PP_ITERATE()
 }}
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include "Control/ScenarioCommandFactory.hpp"
 #include "Control/ScenarioControl.hpp"
 
 #include <Document/Constraint/ConstraintModel.hpp>
@@ -82,7 +78,6 @@ namespace boost { namespace mpl {
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
-#include <Commands/State/AddMessagesToModel.hpp>
 #include <Commands/State/RemoveMessageNodes.hpp>
 #include <Commands/State/UpdateState.hpp>
 
@@ -101,7 +96,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list68<
+            boost::mpl::list67<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -183,8 +178,7 @@ void ScenarioControl::setupCommands()
             RemoveTrigger,
 
             SplitTimeNode,
-            SwitchStatePosition,
-            UnassignMessagesFromState
+            SwitchStatePosition
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<ScenarioCommandFactory>());

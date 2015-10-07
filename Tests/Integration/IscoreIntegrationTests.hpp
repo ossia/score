@@ -25,7 +25,6 @@
 #include <Plugin/Commands/Add/LoadDevice.hpp>
 #include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Commands/State/AddMessagesToModel.hpp>
 #include <Commands/ChangeAddress.hpp>
 
 #include <Document/BaseElement/BaseElementModel.hpp>

@@ -24,7 +24,6 @@
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
 
-#include <State/State.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
 
