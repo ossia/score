@@ -115,29 +115,31 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
     }
     else
     {
+        // We're creating in ~the void~ (spooky!)
         double seg_closest_from_left_x = 0;
-        CurveSegmentData* seg_closest_from_left{};
+        Id<CurveSegmentModel> seg_closest_from_left;
         double seg_closest_from_right_x = 1.;
-        CurveSegmentData* seg_closest_from_right{};
+        Id<CurveSegmentModel> seg_closest_from_right;
         for(CurveSegmentData& segment : segments)
         {
             auto seg_start_x = segment.start.x();
             if(seg_start_x > m_state->currentPoint.x() && seg_start_x < seg_closest_from_right_x)
             {
                 seg_closest_from_right_x = seg_start_x;
-                seg_closest_from_right = &segment;
+                seg_closest_from_right = segment.id;
             }
 
             auto seg_end_x = segment.end.x();
             if(seg_end_x < m_state->currentPoint.x() && seg_end_x > seg_closest_from_left_x)
             {
                 seg_closest_from_left_x = seg_end_x;
-                seg_closest_from_left = &segment;
+                seg_closest_from_left = segment.id;
             }
         }
 
         // Create a curve segment for the left
         // We do this little dance because of id generation.
+
         {
             CurveSegmentData newLeftSegment;
             newLeftSegment.id = getSegmentId(segments);
@@ -154,6 +156,7 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
             newRightSegment.id = getSegmentId(segments);
             segments.push_back(newRightSegment);
         }
+
         CurveSegmentData& newRightSegment = segments.back();
         newRightSegment.type = "Linear";
         newRightSegment.specificSegmentData = QVariant::fromValue(LinearCurveSegmentData{});
@@ -165,19 +168,22 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
 
         if(seg_closest_from_left)
         {
-            newLeftSegment.start = seg_closest_from_left->end;
-            newLeftSegment.previous = seg_closest_from_left->id;
+            // OPTIMIZEME a map would be much faster... make a IdentifiedMap of CurveSegmentData.
+            auto& seg = *std::find_if(segments.begin(), segments.end(), [&] (const auto& other) { return other.id == seg_closest_from_left; } );
+            newLeftSegment.start = seg.end;
+            newLeftSegment.previous = seg.id;
 
-            seg_closest_from_left->following = newLeftSegment.id;
+            seg.following = newLeftSegment.id;
         }
 
         if(seg_closest_from_right)
         {
-            newRightSegment.end = seg_closest_from_right->start;
-            newRightSegment.following = seg_closest_from_right->id;
+            auto& seg = *std::find_if(segments.begin(), segments.end(), [&] (const auto& other) { return other.id == seg_closest_from_right; } );
 
-            seg_closest_from_right->previous = newRightSegment.id;
+            newRightSegment.end = seg.start;
+            newRightSegment.following = seg.id;
+
+            seg.previous = newRightSegment.id;
         }
-
     }
 }
