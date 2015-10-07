@@ -31,7 +31,6 @@ void AutomationControl::setupCommands()
     boost::mpl::for_each<
             boost::mpl::list<
                 UpdateCurve,
-                UpdateCurveFast,
                 SetSegmentParameters,
                 ChangeAddress,
                 SetCurveMin,

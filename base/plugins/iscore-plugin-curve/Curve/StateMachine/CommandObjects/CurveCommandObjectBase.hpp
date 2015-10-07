@@ -99,7 +99,7 @@ class CurveCommandObjectBase
 
         Curve::StateBase* m_state{};
 
-        SingleOngoingCommandDispatcher<UpdateCurveFast> m_dispatcher;
+        SingleOngoingCommandDispatcher<UpdateCurve> m_dispatcher;
         Path<CurveModel> m_modelPath;
 
         std::vector<CurveSegmentData> m_startSegments;

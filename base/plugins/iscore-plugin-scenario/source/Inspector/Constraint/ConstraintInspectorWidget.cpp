@@ -1,10 +1,11 @@
 #include "ConstraintInspectorWidget.hpp"
-
 #include "DialogWidget/AddProcessDialog.hpp"
 #include "Widgets/RackWidget.hpp"
 #include "Widgets/DurationSectionWidget.hpp"
 #include "Widgets/Rack/RackInspectorSection.hpp"
 
+#include <Commands/SetProcessDuration.hpp>
+#include <Commands/Constraint/SetLooping.hpp>
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp"
 #include "Document/Constraint/Rack/RackModel.hpp"
@@ -42,105 +43,9 @@
 #include <QToolButton>
 #include <QCheckBox>
 #include <QPushButton>
-
 using namespace Scenario::Command;
 using namespace iscore;
 using namespace iscore::IDocument;
-
-// TODO MOVEME
-// TODO add to command list
-class SetProcessDuration : public iscore::SerializableCommand
-{
-        ISCORE_COMMAND_DECL("ScenarioControl", "SetProcessDuration", "SetProcessDuration")
-
-    public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetProcessDuration)
-
-        SetProcessDuration(
-                Path<Process>&& path,
-                const TimeValue& newVal) :
-            SerializableCommand {factoryName(),
-                                 commandName(),
-                                 description()},
-            m_path {std::move(path)},
-            m_new {newVal}
-        {
-            m_old = m_path.find().duration();
-        }
-
-        void undo() override
-        {
-            m_path.find().setDuration(m_old);
-        }
-
-        void redo() override
-        {
-            m_path.find().setDuration(m_new);
-        }
-
-    protected:
-        void serializeImpl(QDataStream& s) const override
-        {
-            s << m_path << m_old << m_new;
-        }
-
-        void deserializeImpl(QDataStream& s) override
-        {
-            s >> m_path >> m_old >> m_new;
-        }
-
-    private:
-        Path<Process> m_path;
-        TimeValue m_old;
-        TimeValue m_new;
-};
-
-// TODO MOVEME
-// TODO add to command list
-class SetLooping : public iscore::SerializableCommand
-{
-        ISCORE_COMMAND_DECL("ScenarioControl", "SetLooping", "SetLooping")
-
-    public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetLooping)
-
-        SetLooping(
-                Path<ConstraintModel>&& constraintPath,
-                bool looping) :
-            SerializableCommand {factoryName(),
-                                 commandName(),
-                                 description()},
-            m_path {std::move(constraintPath)},
-            m_looping {looping}
-        {
-        }
-
-        void undo() override
-        {
-            m_path.find().setLooping(!m_looping);
-        }
-
-        void redo() override
-        {
-            m_path.find().setLooping(m_looping);
-        }
-
-    protected:
-        void serializeImpl(QDataStream& s) const override
-        {
-            s << m_path << m_looping;
-        }
-
-        void deserializeImpl(QDataStream& s) override
-        {
-            s >> m_path >> m_looping;
-        }
-
-    private:
-        Path<ConstraintModel> m_path;
-        bool m_looping{};
-};
-
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const ConstraintModel& object,
@@ -357,30 +262,23 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 void ConstraintInspectorWidget::createProcess(QString processName)
 {
-    auto cmd = new AddProcessToConstraint
-    {
-               iscore::IDocument::path(model()),
-               processName
-};
-    emit commandDispatcher()->submitCommand(cmd);
+    auto cmd = new AddProcessToConstraint{model(), processName};
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createRack()
 {
-    auto cmd = new AddRackToConstraint(
-                   iscore::IDocument::path(model()));
-    emit commandDispatcher()->submitCommand(cmd);
+    auto cmd = new AddRackToConstraint{model()};
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::createLayerInNewSlot(QString processName)
 {
     // TODO this will bite us when the name does not contain the id anymore.
     // We will have to stock the id's somewhere.
-    auto cmd = new AddLayerInNewSlot(
-                   iscore::IDocument::path(model()),
-                   Id<Process>(processName.toInt()));
+    auto cmd = new AddLayerInNewSlot{model(), Id<Process>(processName.toInt())};
 
-    emit commandDispatcher()->submitCommand(cmd);
+    commandDispatcher()->submitCommand(cmd);
 }
 
 void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewModel* vm)

@@ -54,7 +54,6 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id = id;
         }
 
-        // private:
         mutable Path<model> m_path_cache;
     private:
         Id<model> m_id {};
@@ -79,4 +78,49 @@ template<typename T, typename U,std::enable_if_t<! std::is_pointer<std::decay_t<
 bool operator==(const T& obj, const Id<U>& id)
 {
     return obj.id() == id;
+}
+
+namespace iscore
+{
+namespace IDocument
+{
+
+/**
+ * @brief path Typesafe path of an object in a document.
+ * @param obj The object of which path is to be created.
+ * @return A path to the object if it is in a document
+ *
+ * This function will abort the software if given an object
+ * not in a document hierarchy in argument.
+ */
+template<typename T, std::enable_if_t<
+             std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >*
+         >
+Path<T> path(const T& obj)
+{
+    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
+    if(obj.m_path_cache.valid())
+        return obj.m_path_cache;
+
+    obj.m_path_cache = Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
+    return obj.m_path_cache;
+}
+
+template<typename T, std::enable_if_t<
+             !std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >*
+         >
+Path<T> path(const T& obj)
+{
+    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
+    return Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
+}
+}
 }

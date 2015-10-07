@@ -1,3 +1,5 @@
+#include "SetProcessDuration.hpp"
+#include "Constraint/SetLooping.hpp"
 #include "Constraint/AddRackToConstraint.hpp"
 #include "Constraint/AddProcessToConstraint.hpp"
 #include "Constraint/AddLayerInNewSlot.hpp"
@@ -99,7 +101,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list66<
+            boost::mpl::list68<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -109,8 +111,6 @@ void ScenarioControl::setupCommands()
             UpdateState,
             RemoveMessageNodes,
             UpdateState,
-//            AddStateToStateModel,
-//            AssignMessagesToState,
             AddStateWithData,
             AddTrigger,
 
@@ -166,6 +166,9 @@ void ScenarioControl::setupCommands()
             RemoveProcessFromConstraint,
             RemoveLayerModelFromSlot,
             //RemoveStateFromStateModel,
+
+            SetLooping,
+            SetProcessDuration,
 
             MoveBaseEvent,
             ResizeSlotVertically,

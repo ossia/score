@@ -3,7 +3,7 @@
 #include <QAbstractItemModel>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
-#include <DeviceExplorer/ItemModels/NodeBasedItemModel.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
 
 
 #include "Result.hpp"

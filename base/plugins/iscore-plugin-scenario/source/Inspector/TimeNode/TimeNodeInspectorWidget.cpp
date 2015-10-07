@@ -128,8 +128,8 @@ void TimeNodeInspectorWidget::on_splitTimeNodeClicked()
 
     if (eventGroup.size() < int(m_events.size()))
     {
-        auto cmd = new SplitTimeNode(iscore::IDocument::path(m_model),
-                                     eventGroup);
+        auto cmd = new SplitTimeNode{m_model,
+                                     eventGroup};
 
         commandDispatcher()->submitCommand(cmd);
     }

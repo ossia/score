@@ -84,6 +84,7 @@ set(SRCS
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/SetLooping.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/CopyLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.cpp"
@@ -140,6 +141,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/SetTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/CommandNames.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/ResizeBaseConstraint.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SetProcessDuration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/ViewCommands/PutLayerModelToFront.cpp"
 

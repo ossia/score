@@ -99,11 +99,11 @@ void StateInspectorWidget::splitEvent()
     auto scenar = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
     if (scenar)
     {
-        auto cmd = new Command::SplitEvent(
-                    iscore::IDocument::path(*scenar),
+        auto cmd = new Command::SplitEvent{
+                    *scenar,
                     m_model.eventId(),
-                    {m_model.id()} );
+                    {m_model.id()}};
 
-        emit commandDispatcher()->submitCommand(cmd);
+        commandDispatcher()->submitCommand(cmd);
     }
 }

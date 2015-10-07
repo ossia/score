@@ -156,7 +156,7 @@ void SelectionTool::on_pressed()
     },
     [&] (const SlotModel& slot) // Slot handle
     {
-        localSM().postEvent(new ClickOnSlotHandle_Event{iscore::IDocument::path(slot)});
+        localSM().postEvent(new ClickOnSlotHandle_Event{slot});
         m_nothingPressed = true; // Because we use the Move_Event and Release_Event.
     },
     [&] ()
