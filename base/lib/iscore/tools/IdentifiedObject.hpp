@@ -4,38 +4,6 @@
 #include <iscore/tools/utilsCPP11.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-// These forward declarations are required
-// because iscore::IDocument::path() has a cache member
-// which requires friendship.
-template<typename T>
-class Path;
-
-namespace iscore
-{
-namespace IDocument
-{
-
-template<typename T, std::enable_if_t<
-             std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >* = nullptr
-         >
-Path<T> path(const T& obj);
-
-template<typename T, std::enable_if_t<
-             !std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >* = nullptr
-         >
-Path<T> path(const T& obj);
-}
-}
-
-
 /**
  * @brief The IdentifiedObject class
  *
@@ -51,8 +19,6 @@ Path<T> path(const T& obj);
 template<typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
-        template <typename U, std::enable_if_t<std::is_base_of<IdentifiedObjectAbstract, U>::value>*>
-        friend  Path<U> iscore::IDocument::path(const U& obj);
     public:
         using model_type = model;
         template<typename... Args>
@@ -88,8 +54,8 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id = id;
         }
 
-    private:
         mutable Path<model> m_path_cache;
+    private:
         Id<model> m_id {};
 };
 
@@ -112,4 +78,49 @@ template<typename T, typename U,std::enable_if_t<! std::is_pointer<std::decay_t<
 bool operator==(const T& obj, const Id<U>& id)
 {
     return obj.id() == id;
+}
+
+namespace iscore
+{
+namespace IDocument
+{
+
+/**
+ * @brief path Typesafe path of an object in a document.
+ * @param obj The object of which path is to be created.
+ * @return A path to the object if it is in a document
+ *
+ * This function will abort the software if given an object
+ * not in a document hierarchy in argument.
+ */
+template<typename T, std::enable_if_t<
+             std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >*
+         >
+Path<T> path(const T& obj)
+{
+    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
+    if(obj.m_path_cache.valid())
+        return obj.m_path_cache;
+
+    obj.m_path_cache = Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
+    return obj.m_path_cache;
+}
+
+template<typename T, std::enable_if_t<
+             !std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >*
+         >
+Path<T> path(const T& obj)
+{
+    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
+    return Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
+}
+}
 }

@@ -18,7 +18,15 @@ namespace iscore
 {
 namespace IDocument
 {
-
+#if defined(__clang__)
+/*
+template<typename T, typename U = void>
+  Path<T> path(const T& obj)
+  {
+      static_assert(false, "Bad instantiation");
+  }
+  */
+#endif
 template<typename T, std::enable_if_t<
              std::is_base_of<
                  IdentifiedObjectAbstract,
@@ -106,48 +114,3 @@ class Path
         Path(ObjectPath&& path): m_impl{std::move(path)} { }
         ObjectPath m_impl;
 };
-
-namespace iscore
-{
-namespace IDocument
-{
-
-/**
- * @brief path Typesafe path of an object in a document.
- * @param obj The object of which path is to be created.
- * @return A path to the object if it is in a document
- *
- * This function will abort the software if given an object
- * not in a document hierarchy in argument.
- */
-template<typename T, std::enable_if_t<
-             std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >* = nullptr
-         >
-Path<T> path(const T& obj)
-{
-    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    if(obj.m_path_cache.valid())
-        return obj.m_path_cache;
-
-    obj.m_path_cache = Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
-    return obj.m_path_cache;
-}
-
-template<typename T, std::enable_if_t<
-             !std::is_base_of<
-                 IdentifiedObjectAbstract,
-                 T
-                >::value
-             >* = nullptr
-         >
-Path<T> path(const T& obj)
-{
-    static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    return Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
-}
-}
-}

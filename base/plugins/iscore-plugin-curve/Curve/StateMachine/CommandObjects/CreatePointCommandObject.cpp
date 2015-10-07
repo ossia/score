@@ -6,6 +6,7 @@
 #include "Curve/Point/CurvePointView.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 CreatePointCommandObject::CreatePointCommandObject(CurvePresenter *presenter, iscore::CommandStack &stack):
     CurveCommandObjectBase{presenter, stack}
 {
@@ -152,8 +153,8 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
             segments.push_back(newLeftSegment);
         }
         CurveSegmentData& newLeftSegment = segments.back();
-        newLeftSegment.type = "Linear";
-        newLeftSegment.specificSegmentData = QVariant::fromValue(LinearCurveSegmentData{});
+        newLeftSegment.type = "Power";
+        newLeftSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
         newLeftSegment.start = {seg_closest_from_left_x, 0.};
         newLeftSegment.end = m_state->currentPoint;
 
@@ -163,8 +164,8 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
             segments.push_back(newRightSegment);
         }
         CurveSegmentData& newRightSegment = segments.back();
-        newRightSegment.type = "Linear";
-        newRightSegment.specificSegmentData = QVariant::fromValue(LinearCurveSegmentData{});
+        newRightSegment.type = "Power";
+        newRightSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
         newRightSegment.start = m_state->currentPoint;
         newRightSegment.end = {seg_closest_from_right_x, 0.};
 
