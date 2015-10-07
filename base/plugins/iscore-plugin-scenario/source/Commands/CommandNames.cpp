@@ -96,11 +96,12 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list67<
+            boost::mpl::list68<
 
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
+            AddOnlyProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
             UpdateState,

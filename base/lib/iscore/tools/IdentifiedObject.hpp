@@ -27,6 +27,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             IdentifiedObjectAbstract {std::forward<Args> (args)...},
             m_id {id}
         {
+            id.m_ptr = this; // We update the cache in the other id.
             m_id.m_ptr = this;
         }
 

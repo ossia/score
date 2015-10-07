@@ -182,7 +182,6 @@ class TreeNode : public DataType
             m_children.swap(oldIndex, newIndex);
         }
 
-        // Won't delete the child!
         void removeChild(const_iterator it)
         {
             m_children.erase(it);

@@ -90,7 +90,7 @@ static void constraintCallback(const OSSIA::TimeValue&,
                                const OSSIA::TimeValue&,
                                std::shared_ptr<OSSIA::StateElement> element)
 {
-    element->launch();
+
 }
 
 

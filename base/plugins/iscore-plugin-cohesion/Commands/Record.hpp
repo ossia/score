@@ -18,4 +18,5 @@ class Record : public iscore::AggregateCommand
             m_cmds[1]->undo();
             m_cmds[0]->undo();
         }
+
 };

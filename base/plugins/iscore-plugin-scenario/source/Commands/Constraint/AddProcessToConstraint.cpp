@@ -152,3 +152,47 @@ void AddProcessToConstraint::deserializeImpl(QDataStream& s)
       >> m_noRackes
       >> m_notBaseConstraint;
 }
+
+// MOVEME
+AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
+        Path<ConstraintModel>&& constraintPath,
+        QString process):
+    SerializableCommand {factoryName(),
+                         commandName(),
+                         description()},
+    m_path{std::move(constraintPath)},
+    m_processName{process}
+{
+    auto& constraint = m_path.find();
+    m_createdProcessId = getStrongId(constraint.processes);
+}
+
+void AddOnlyProcessToConstraint::undo()
+{
+    auto& constraint = m_path.find();
+    constraint.processes.remove(m_createdProcessId);
+}
+
+void AddOnlyProcessToConstraint::redo()
+{
+    auto& constraint = m_path.find();
+
+    // Create process model
+    auto proc = ProcessList::getFactory(m_processName)
+            ->makeModel(
+                constraint.duration.defaultDuration(), // TODO should maybe be max ?
+                m_createdProcessId,
+                &constraint);
+
+    constraint.processes.add(proc);
+}
+
+void AddOnlyProcessToConstraint::serializeImpl(QDataStream& s) const
+{
+    s << m_path << m_processName << m_createdProcessId;
+}
+
+void AddOnlyProcessToConstraint::deserializeImpl(QDataStream& s)
+{
+    s >> m_path >> m_processName >> m_createdProcessId;
+}

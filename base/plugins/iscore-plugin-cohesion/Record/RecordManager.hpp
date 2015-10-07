@@ -8,6 +8,12 @@
 #include <unordered_map>
 
 
+using RecordCommandDispatcher = GenericMacroCommandDispatcher<
+    RedoStrategy::Quiet,
+    SendStrategy::UndoRedo>;
+
+// TODO for some reason we have to undo redo
+// to be able to send the curve at execution. Investigate why.
 class RecordManager : public QObject
 {
     public:
@@ -20,7 +26,7 @@ class RecordManager : public QObject
         void commit();
 
     private:
-        std::unique_ptr<QuietMacroCommandDispatcher> m_dispatcher;
+        std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
         ListeningState m_savedListening;
         std::vector<std::vector<iscore::Address>> m_recordListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;

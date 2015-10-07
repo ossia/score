@@ -10,6 +10,10 @@
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/ChangeAddress.hpp"
 #include "Commands/InitAutomation.hpp"
+#include "Commands/Scenario/ShowRackInViewModel.hpp"
+#include <Commands/Constraint/AddRackToConstraint.hpp>
+#include <Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
 #include "Automation/AutomationModel.hpp"
 #include "Curve/CurveModel.hpp"
@@ -82,9 +86,9 @@ void RecordManager::stopRecording()
 
         // This one shall not be redone
         m_dispatcher->submitCommand(recorded.second.addProcCmd);
-
+        m_dispatcher->submitCommand(recorded.second.addLayCmd);
         m_dispatcher->submitCommand(initCurveCmd);
-        initCurveCmd->redo();
+        //initCurveCmd->redo();
     }
 
     // Commit
@@ -134,7 +138,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
     if(m_recordListening.empty())
         return;
 
-    m_dispatcher = std::make_unique<QuietMacroCommandDispatcher>(new Record, doc.commandStack());
+    m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack());
 
     //// Initial commands ////
 
@@ -169,18 +173,39 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
                 true);
     m_dispatcher->submitCommand(cmd_move);
 
+    auto cmd_rack = new Scenario::Command::AddRackToConstraint{cstr};
+    cmd_rack->redo();
+    m_dispatcher->submitCommand(cmd_rack);
+    auto& rack = cstr.racks.at(cmd_rack->createdRack());
+    auto cmd_slot = new Scenario::Command::AddSlotToRack{rack};
+    cmd_slot->redo();
+    m_dispatcher->submitCommand(cmd_slot);
+
+    for(const auto& vm : cstr.viewModels())
+    {
+        auto cmd_showrack = new Scenario::Command::ShowRackInViewModel{*vm, rack.id()};
+        cmd_showrack->redo();
+        m_dispatcher->submitCommand(cmd_showrack);
+    }
+
+
+    auto& slot = rack.slotmodels.at(cmd_slot->createdSlot());
     //// Creation of the curves ////
     for(const auto& vec : m_recordListening)
     {
         for(const auto& addr : vec)
         {
-            auto cmd_proc = new AddProcessToConstraint{
+            auto cmd_proc = new AddOnlyProcessToConstraint{
                     Path<ConstraintModel>(cstr_path),
                     "Automation"};
             cmd_proc->redo();
-
             auto& proc = cstr.processes.at(cmd_proc->processId());
             auto& autom = static_cast<AutomationModel&>(proc);
+
+
+            auto cmd_layer = new AddLayerModelToSlot{slot, proc};
+            cmd_layer->redo();
+
             autom.curve().clear();
             auto segt = new PointArrayCurveSegmentModel{
                     Id<CurveSegmentModel>{0},
@@ -199,6 +224,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
                             addr,
                             RecordData{
                                 cmd_proc,
+                                cmd_layer,
                                 autom.curve(),
                                 *segt}));
         }

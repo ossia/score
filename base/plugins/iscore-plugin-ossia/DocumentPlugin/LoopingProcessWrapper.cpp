@@ -6,11 +6,14 @@
 #include <Editor/TimeConstraint.h>
 #include <algorithm>
 
+#include "OSSIA2iscore.hpp"
+
+#include <QDebug>
+
 static void constraintCallback(const OSSIA::TimeValue&,
-                               const OSSIA::TimeValue&,
+                               const OSSIA::TimeValue& t,
                                std::shared_ptr<OSSIA::StateElement> element)
 {
-    element->launch();
 }
 LoopingProcessWrapper::LoopingProcessWrapper(
         const std::shared_ptr<OSSIA::TimeConstraint>& cst,
@@ -48,7 +51,6 @@ LoopingProcessWrapper::LoopingProcessWrapper(
             m_fixed_cst->addTimeProcess(m_process);
         m_parent->addTimeProcess(m_fixed_impl);
     }
-
 }
 
 LoopingProcessWrapper::~LoopingProcessWrapper()
