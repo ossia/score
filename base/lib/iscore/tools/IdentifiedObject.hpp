@@ -4,6 +4,38 @@
 #include <iscore/tools/utilsCPP11.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
+// These forward declarations are required
+// because iscore::IDocument::path() has a cache member
+// which requires friendship.
+template<typename T>
+class Path;
+
+namespace iscore
+{
+namespace IDocument
+{
+
+template<typename T, std::enable_if_t<
+             std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >* = nullptr
+         >
+Path<T> path(const T& obj);
+
+template<typename T, std::enable_if_t<
+             !std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >* = nullptr
+         >
+Path<T> path(const T& obj);
+}
+}
+
+
 /**
  * @brief The IdentifiedObject class
  *
@@ -19,6 +51,8 @@
 template<typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
 {
+        template <typename U, std::enable_if_t<std::is_base_of<IdentifiedObjectAbstract, U>::value>*>
+        friend  Path<U> iscore::IDocument::path(const U& obj);
     public:
         using model_type = model;
         template<typename... Args>
@@ -54,9 +88,8 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id = id;
         }
 
-        // private:
-        mutable Path<model> m_path_cache;
     private:
+        mutable Path<model> m_path_cache;
         Id<model> m_id {};
 };
 

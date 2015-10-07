@@ -83,7 +83,7 @@ GoodOldDisplacementPolicy::computeDisplacement(
                                 map[vm->id()] = vm->shownRack();
                             }
 
-                            elementsProperties.constraints[curConstraintId].savedDisplay = {{iscore::IDocument::path(curConstraint), arr}, map};
+                            elementsProperties.constraints[curConstraintId].savedDisplay = {{curConstraint, arr}, map};
                             // Save the constraint display data END ----------------
 
                         }

@@ -3,7 +3,7 @@
 #include <State/Message.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <DeviceExplorer/ItemModels/NodeBasedItemModel.hpp>
+#include <iscore/tools/TreeNodeItemModel.hpp>
 #include <QModelIndex>
 #include <ProcessInterface/State/MessageNode.hpp>
 /**

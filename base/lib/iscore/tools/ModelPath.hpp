@@ -8,6 +8,37 @@ struct in_relationship
     static const constexpr bool value = std::is_base_of<T, U>::value || std::is_base_of<U, T>::value ;
 };
 
+// These forward declarations are required
+// because Path<T>(Object&) calls iscore::IDocument::path()
+// which in turns calls another constructor of Path<T>.
+template<typename T>
+class Path;
+
+namespace iscore
+{
+namespace IDocument
+{
+
+template<typename T, std::enable_if_t<
+             std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >* = nullptr
+         >
+Path<T> path(const T& obj);
+
+template<typename T, std::enable_if_t<
+             !std::is_base_of<
+                 IdentifiedObjectAbstract,
+                 T
+                >::value
+             >* = nullptr
+         >
+Path<T> path(const T& obj);
+}
+}
+
 /**
  * @brief The Path class is a typesafe wrapper around ObjectPath.
  */
@@ -35,8 +66,10 @@ class Path
         Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
         Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
 
-        Path(const Object& obj): m_impl(iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj))) { }
+        Path(const Object& obj): Path(iscore::IDocument::path(obj)) { }
 
+        // TODO do the same for ids
+        // TODO make it work only for upcasts
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
         Path(const Path<U>& other): m_impl(other.m_impl) { }
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
@@ -100,7 +133,7 @@ Path<T> path(const T& obj)
     if(obj.m_path_cache.valid())
         return obj.m_path_cache;
 
-    obj.m_path_cache = Path<T>{obj};
+    obj.m_path_cache = Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
     return obj.m_path_cache;
 }
 
@@ -114,7 +147,7 @@ template<typename T, std::enable_if_t<
 Path<T> path(const T& obj)
 {
     static_assert(!std::is_pointer<T>::value, "Don't pass a pointer to path");
-    return obj;
+    return Path<T>{iscore::IDocument::unsafe_path(safe_cast<const QObject&>(obj)), {}};
 }
 }
 }
