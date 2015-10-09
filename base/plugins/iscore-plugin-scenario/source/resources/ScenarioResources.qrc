@@ -6,5 +6,6 @@
         <file>images/forward.svg</file>
         <file>dict.txt</file>
         <file>ScenarioColors.json</file>
+        <file>ScenarioColors-IEEE.json</file>
     </qresource>
 </RCC>

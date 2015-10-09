@@ -13,12 +13,17 @@ option(ISCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
+option(ISCORE_IEEE "Use a graphical skin adapted to publication" OFF)
 if(ISCORE_OPENGL)
         add_definitions(-DISCORE_OPENGL)
 endif()
 
 if(DEPLOYMENT_BUILD)
   add_definitions(-DISCORE_DEPLOYMENT_BUILD)
+endif()
+
+if(ISCORE_IEEE)
+  add_definitions(-DISCORE_IEEE_SKIN)
 endif()
 
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
