@@ -161,7 +161,15 @@ void Application::init()
             m_presenter->loadFile(doc);
 
         if(!m_presenter->documents().isEmpty())
+        {
+            if(m_applicationSettings.autoplay)
+            {
+                // TODO find a better way, most likely by allowing plug-ins to have
+                // command line arguments, too. Eww.
+                emit autoplay();
+            }
             return; // A document was loaded correctly
+        }
     }
 
     // Try to reload if there was a crash

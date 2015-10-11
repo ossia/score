@@ -54,6 +54,8 @@ namespace iscore
             Settings* settings() const
             { return m_settings.get(); }
 
+        signals:
+            void autoplay();
 
         private:
             void init(); // m_applicationSettings has to be set.
