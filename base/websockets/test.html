@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+   <head>    
+      <script type="text/javascript">          
+         function IScore()
+         {
+                var ws = new WebSocket("ws://localhost:9998/echo");
+                
+               ws.onopen = function()
+               {
+                   ws.send("");
+               };
+                
+               ws.onmessage = function (evt) 
+               {                   
+                  document.getElementById("svgContainer").innerHTML = evt.data;
+                  ws.send("");
+               };
+                
+               ws.onclose = function()
+               { 
+                  alert("Connection is closed..."); 
+               };
+         }         
+         window.onload = IScore;
+      </script>        
+   </head>
+<body>
+<div id="svgContainer">
+</div>
+</body>
+</html>

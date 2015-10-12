@@ -9,7 +9,7 @@
 RackView::RackView(QGraphicsObject* parent) :
     QGraphicsObject {parent}
 {
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
 }
 
 QRectF RackView::boundingRect() const

@@ -7,7 +7,7 @@ SpaceLayerView::SpaceLayerView(QGraphicsItem *parent):
     LayerView{parent}
 {
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable); // TODO should not be ?
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
 }
 
 void SpaceLayerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

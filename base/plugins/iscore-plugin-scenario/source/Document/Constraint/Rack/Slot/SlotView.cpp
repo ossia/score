@@ -13,7 +13,7 @@ SlotView::SlotView(const SlotPresenter &pres, QGraphicsObject* parent) :
     m_handle{new SlotHandle{*this, this}}
 {
     this->setFlag(ItemClipsChildrenToShape, true);
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
     m_handle->setPos(0, this->boundingRect().height() - SlotHandle::handleHeight());
 }
 

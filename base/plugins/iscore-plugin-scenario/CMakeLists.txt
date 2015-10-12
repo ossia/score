@@ -13,6 +13,10 @@ if(ISCORE_OPENGL)
 find_package(Qt5 5.5 REQUIRED COMPONENTS OpenGL)
 endif()
 
+if(ISCORE_WEBSOCKETS)
+find_package(Qt5 5.5 REQUIRED COMPONENTS WebSockets)
+endif()
+
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
 
@@ -60,7 +64,12 @@ file(GLOB_RECURSE HDRS
 
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/resources/ScenarioResources.qrc")
 
+if(ISCORE_WEBSOCKETS)
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/WebSocketView.cpp"
+)
+endif()
+set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/VerticalExtentSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintViewModelSerialization.cpp"
@@ -305,6 +314,10 @@ target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario Qt5::OpenGL)
+endif()
+
+if(ISCORE_WEBSOCKETS)
+target_link_libraries(iscore_plugin_scenario Qt5::WebSockets)
 endif()
 
 if(TARGET iscore_lib_inspector)

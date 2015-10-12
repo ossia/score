@@ -14,8 +14,13 @@ option(INTEGRATION_TESTING "Run integration tests" OFF)
 
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
 option(ISCORE_IEEE "Use a graphical skin adapted to publication" OFF)
+option(ISCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)
 if(ISCORE_OPENGL)
         add_definitions(-DISCORE_OPENGL)
+endif()
+
+if(ISCORE_WEBSOCKETS)
+  add_definitions(-DISCORE_WEBSOCKETS)
 endif()
 
 if(DEPLOYMENT_BUILD)

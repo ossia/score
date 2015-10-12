@@ -24,7 +24,7 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 {
     this->setParentItem(parent);
 
-    this->setZValue(parent->zValue() + 3);
+    this->setZValue(3);
 }
 
 

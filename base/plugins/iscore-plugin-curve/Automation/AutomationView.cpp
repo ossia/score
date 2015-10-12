@@ -11,7 +11,7 @@ static const QColor c = Qt::lightGray;
 AutomationView::AutomationView(QGraphicsItem* parent) :
     LayerView {parent}
 {
-    setZValue(parent->zValue() + 1);
+    setZValue(1);
     this->setFlags(ItemClipsChildrenToShape | ItemIsSelectable | ItemIsFocusable);
 }
 

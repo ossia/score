@@ -23,7 +23,7 @@ EventView::EventView(EventPresenter& presenter,
     this->setParentItem(parent);
     this->setCursor(Qt::SizeHorCursor);
 
-    this->setZValue(parent->zValue() + 2);
+    this->setZValue(2);
     this->setAcceptHoverEvents(true);
 
     m_color = presenter.model().metadata.color();
@@ -79,13 +79,12 @@ void EventView::paint(QPainter* painter,
     {
         eventPen = QPen(ScenarioStyle::instance().EventSelected);
     }
-    eventPen.setWidth(2);
 
-
-    QPen pen{QBrush(eventPen.color()), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    QPen pen{QBrush(eventPen.color()), 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
+    painter->setBrush(eventPen.color());
 
-    painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top())));
+    painter->fillRect(QRectF(QPointF(-1.3, 0), QPointF(1.3, m_extent.bottom() - m_extent.top())), QBrush(eventPen.color()));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::cyan);

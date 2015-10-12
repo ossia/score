@@ -18,7 +18,7 @@ FullViewConstraintView::FullViewConstraintView(FullViewConstraintPresenter& pres
     this->setFlag(ItemIsSelectable);
     this->setCursor(Qt::CrossCursor);
 
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
     this->setY(2*constraintHeight());
 }
 
