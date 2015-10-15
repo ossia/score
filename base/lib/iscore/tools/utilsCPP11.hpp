@@ -22,7 +22,7 @@ using return_type_of_iterator =
 template<typename Range, typename Fun>
 void erase_if(Range&& r, Fun&& f)
 {
-    for(auto&& it = begin(r); it != end(r); )
+    for(auto&& it = std::begin(r); it != std::end(r); )
     {
         it = f(*it) ? r.erase(it) : ++it;
     }

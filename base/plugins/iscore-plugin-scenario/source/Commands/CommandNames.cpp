@@ -53,6 +53,7 @@
 #include "TimeNode/RemoveTrigger.hpp"
 #include "TimeNode/SetTrigger.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
+#include "Event/SplitEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
 
@@ -96,7 +97,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list68<
+            boost::mpl::list69<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -122,6 +123,7 @@ void ScenarioControl::setupCommands()
             ChangeElementName<ConstraintModel>,
             ChangeElementName<EventModel>,
             ChangeElementName<TimeNodeModel>,
+            // TODO State.
 
             ClearConstraint,
             ClearState,
@@ -178,6 +180,7 @@ void ScenarioControl::setupCommands()
             SetTrigger,
             RemoveTrigger,
 
+            SplitEvent,
             SplitTimeNode,
             SwitchStatePosition
             >,

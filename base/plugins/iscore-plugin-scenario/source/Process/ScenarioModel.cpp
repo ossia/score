@@ -220,7 +220,7 @@ Selection ScenarioModel::selectableChildren() const
     Selection objects;
     apply([&] (const auto& m) {
         for(auto& elt : this->*m)
-            objects.insert(&elt);
+            objects.append(&elt);
     });
     return objects;
 }
@@ -231,7 +231,7 @@ static void copySelected(const InputVec& in, OutputVec& out)
     for(const auto& elt : in)
     {
         if(elt.selection.get())
-            out.insert(&elt);
+            out.append(&elt);
     }
 }
 
@@ -247,7 +247,7 @@ void ScenarioModel::setSelection(const Selection& s) const
     // OPTIMIZEME
     apply([&] (auto&& m) {
         for(auto& elt : this->*m)
-            elt.selection.set(s.find(&elt) != s.end());
+            elt.selection.set(s.contains(&elt));
     });
 }
 

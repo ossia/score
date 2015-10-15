@@ -100,7 +100,7 @@ void PlayContextMenu::fillContextMenu(
     }
     else
     {
-        if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const StateModel*>(obj);}))
+        if(std::any_of(s.cbegin(), s.cend(), [] (auto obj) { return dynamic_cast<const StateModel*>(obj.data());}))
         {
             menu->addAction(m_playStates);
         }

@@ -24,24 +24,29 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     // Ignore items in both
     // Create items in objects and not in current
     // Delete items in current and not in objects
-    Selection toCreate, toDelete;
+    QList<const QObject*> toCreate, toDelete; // TODO not selection else with dead QPointers it will not work.
 
     // OPTIMIZEME (set_difference won't work due to unordered_set)
     for(auto& elt : objects)
     {
         auto it = std::find(m_currentSel.begin(), m_currentSel.end(), elt);
         if(it == m_currentSel.end())
-            toCreate.insert(elt);
+            toCreate.append(elt);
     }
+
     for(auto& elt : m_currentSel)
     {
         auto it = std::find(objects.begin(), objects.end(), elt);
         if(it == objects.end())
-            toDelete.insert(elt);
+            toDelete.append(elt);
     }
+
     for(const auto& object : toDelete)
     {
         auto& map =  m_map.get<0>();
+        qDebug() << object;
+        for(const auto& elt : map)
+            qDebug() << "==>" << elt ;
         auto widget_it = map.find(object);
         if(widget_it != map.end())
         {
@@ -61,7 +66,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
         m_map.insert(widget);
     }
 
-    m_currentSel = objects;
+    m_currentSel = objects.toList();
 }
 
 void InspectorPanel::on_tabClose(int index)
@@ -69,8 +74,8 @@ void InspectorPanel::on_tabClose(int index)
     auto inspector_widget = static_cast<InspectorWidgetBase*>(m_tabWidget->widget(index));
     // TODO need m_tabWidget.movable() = false !
 
-    Selection sel = m_currentSel;
-    sel.erase(inspector_widget->inspectedObject_addr());
+    Selection sel = Selection::fromList(m_currentSel);
+    sel.removeAll(inspector_widget->inspectedObject_addr());
 
     m_selectionDispatcher.setAndCommit(sel);
 }

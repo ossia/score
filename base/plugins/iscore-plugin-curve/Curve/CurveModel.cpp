@@ -271,12 +271,12 @@ Selection CurveModel::selectedChildren() const
     for(const auto& elt : m_segments)
     {
         if(elt.selection.get())
-            s.insert(&elt);
+            s.append(&elt);
     }
     for(const auto& elt : m_points)
     {
         if(elt->selection.get())
-            s.insert(elt);
+            s.append(elt);
     }
 
     return s;
@@ -284,10 +284,11 @@ Selection CurveModel::selectedChildren() const
 
 void CurveModel::setSelection(const Selection &s)
 {
+    // OPTIMIZEME
     for(auto& elt : m_segments)
-        elt.selection.set(s.find(&elt) != s.end());
+        elt.selection.set(s.contains(&elt));
     for(auto& elt : m_points)
-        elt->selection.set(s.find(elt) != s.end());
+        elt->selection.set(s.contains(elt));
 }
 
 void CurveModel::clear()

@@ -22,7 +22,7 @@ void CreateCurves(iscore::Document* doc)
     QList<const ConstraintModel*> selected_constraints;
     for(auto obj : sel)
     {
-        if(auto cst = dynamic_cast<const ConstraintModel*>(obj))
+        if(auto cst = dynamic_cast<const ConstraintModel*>(obj.data()))
             if(cst->selection.get())
                 selected_constraints.push_back(cst);
     }

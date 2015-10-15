@@ -1,11 +1,59 @@
 #pragma once
 #include <QObject>
-#include <unordered_set>
+#include <QPointer>
 
 /**
  * A selection is a set of objects.
  */
-using Selection = std::unordered_set<const QObject*>;
+class Selection : private QList<QPointer<const QObject>>
+{
+        using base_type = QList<QPointer<const QObject>>;
+    public:
+        using base_type::base_type;
+        using base_type::begin;
+        using base_type::end;
+        using base_type::cbegin;
+        using base_type::cend;
+        using base_type::erase;
+        using base_type::empty;
+        using base_type::clear;
+        using base_type::contains;
+        using base_type::removeAll;
+
+        static Selection fromList(const QList<const QObject*> & other)
+        {
+            Selection s;
+            for(auto elt : other)
+            {
+                s.base_type::append(elt);
+            }
+            return s;
+        }
+
+        void append(base_type::value_type obj)
+        {
+            if(!contains(obj))
+                base_type::append(obj);
+        }
+
+        bool operator==(const Selection& other) const
+        {
+            return base_type::operator !=(static_cast<const base_type&>(other));
+        }
+
+        bool operator!=(const Selection& other) const
+        {
+            return base_type::operator !=(static_cast<const base_type&>(other));
+        }
+
+        QList<const QObject*> toList() const
+        {
+            QList<const QObject*> l;
+            for(const auto& elt : *this)
+                l.push_back(elt);
+            return l;
+        }
+};
 
 template<typename T>
 /**
@@ -36,16 +84,16 @@ Selection filterSelections(
     {
         if(cumulation)
         {
-            sel.erase(pressedModel);
+            sel.removeAll(pressedModel);
         }
         else
         {
-            sel.insert(pressedModel);
+            sel.append(pressedModel);
         }
     }
     else
     {
-        sel.insert(pressedModel);
+        sel.append(pressedModel);
     }
 
     return sel;
@@ -65,7 +113,7 @@ inline Selection filterSelections(
     if(cumulation)
     {
         for(auto& elt : currentSelection)
-            newSelection.insert(elt);
+            newSelection.append(elt);
     }
 
     return newSelection;

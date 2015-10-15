@@ -472,7 +472,7 @@ void CurvePresenter::removeSelection()
 
     for(const auto& elt : m_model.selectedChildren())
     {
-        if(auto point = dynamic_cast<const CurvePointModel*>(elt))
+        if(auto point = dynamic_cast<const CurvePointModel*>(elt.data()))
         {
             if(point->previous())
                 segmentsToDelete.insert(point->previous());
@@ -480,7 +480,7 @@ void CurvePresenter::removeSelection()
                 segmentsToDelete.insert(point->following());
         }
 
-        if(auto segmt = dynamic_cast<const CurveSegmentModel*>(elt))
+        if(auto segmt = dynamic_cast<const CurveSegmentModel*>(elt.data()))
         {
             segmentsToDelete.insert(segmt->id());
         }
