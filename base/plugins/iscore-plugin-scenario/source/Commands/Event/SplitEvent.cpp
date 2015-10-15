@@ -40,9 +40,8 @@ void SplitEvent::undo()
     ScenarioCreate<EventModel>::undo(
                 m_newEvent,
                 m_scenarioPath.find());
-    updateEventExtent(m_newEvent, scenar);
-    updateEventExtent(m_originalEvent, scenar);
 
+    updateEventExtent(m_originalEvent, scenar);
 }
 
 void SplitEvent::redo()
