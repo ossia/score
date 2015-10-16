@@ -44,7 +44,7 @@ void MessageListEditor::addMessage()
 
     if(res)
     {
-        m_messages.push_back(iscore::Message(dial.address(), dial.value()));
+        m_messages.push_back(iscore::Message(dial.address(), iscore::Value::fromQVariant(dial.value())));
     }
 
     updateLayout();

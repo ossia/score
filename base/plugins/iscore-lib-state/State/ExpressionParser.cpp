@@ -180,10 +180,10 @@ struct Value_parser : qi::grammar<Iterator, iscore::Value()>
 
     BoolParse_map bool_parser;
 
-    qi::rule<Iterator, QVariantList()> tuple_parser;
+    qi::rule<Iterator, iscore::tuple_t()> tuple_parser;
     qi::rule<Iterator, QChar()> char_parser;
     qi::rule<Iterator, QString()> str_parser;
-    qi::rule<Iterator, QVariant()> variant;
+    qi::rule<Iterator, iscore::Value::value_type()> variant;
     qi::rule<Iterator, iscore::Value()> start;
 };
 

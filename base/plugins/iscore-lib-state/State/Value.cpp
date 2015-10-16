@@ -1,47 +1,10 @@
 #include "Value.hpp"
 
-#include <boost/variant/static_visitor.hpp>
-#include <boost/variant/apply_visitor.hpp>
-
-
-struct impulse_t {};
-#include <eggs/variant.hpp>
-class Val;
-using Tuple = std::vector<Val>;
-using Variant = eggs::variant<int, std::string, Tuple>;
-class Val : public Variant
-{
-    public:
-        using Variant::variant;
-};
-
-class ToStr final : public boost::static_visitor<std::string>
-{
-    public:
-
-        std::string operator()(int i) const { return ""; }
-
-        std::string operator()(const std::string& s) const
-        {
-            return s;
-        }
-
-        std::string operator()(const Tuple& t) const
-        {
-            std::string s;
-
-            for(const auto& elt : t)
-            {
-                s += boost::apply_visitor(*this, elt);
-            }
-            return s;
-        }
-};
 
 namespace
 {
 
-class VariantToString final : public boost::static_visitor<QString>
+class VariantToString
 {
     public:
         QString operator()(const iscore::impulse_t&) const { return {}; }
@@ -69,7 +32,7 @@ class VariantToString final : public boost::static_visitor<QString>
 
             for(const auto& elt : t)
             {
-                s += boost::apply_visitor(*this, elt.impl());
+                s += eggs::variants::apply(*this, elt.impl());
                 s += ", ";
             }
 
@@ -77,6 +40,12 @@ class VariantToString final : public boost::static_visitor<QString>
             return s;
         }
 };
+}
+
+iscore::Value iscore::Value::fromQVariant(const QVariant& var)
+{
+    ISCORE_TODO;
+    return {};
 }
 
 QVariant iscore::Value::toQVariant() const
@@ -87,5 +56,5 @@ QVariant iscore::Value::toQVariant() const
 
 QString iscore::Value::toString() const
 {
-    return boost::apply_visitor(VariantToString{}, this->val);
+    return eggs::variants::apply(VariantToString{}, val.impl());
 }

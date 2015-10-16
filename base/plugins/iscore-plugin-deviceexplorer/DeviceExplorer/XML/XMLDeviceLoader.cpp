@@ -2,25 +2,25 @@
 #include <QtXml/QtXml>
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
-static QVariant stringToVal(const QString& str, const QString& type)
+static iscore::Value stringToVal(const QString& str, const QString& type)
 {
-    QVariant val;
+    iscore::Value val;
     bool ok = false;
     if(type == "integer")
     {
-        val = str.toInt(&ok);
+        val.val = str.toInt(&ok);
     }
     else if(type == "decimal")
     {
-        val = str.toFloat(&ok);
+        val.val = str.toFloat(&ok);
     }
     else if(type == "boolean")
     {
-        val = (str.toFloat(&ok) != 0);
+        val.val = (str.toFloat(&ok) != 0);
     }
     else if(type == "string")
     {
-        val = str;
+        val.val = str;
         ok = true;
     }
     else
@@ -29,12 +29,12 @@ static QVariant stringToVal(const QString& str, const QString& type)
     }
 
     if(!ok)
-        return QVariant{};
+        return iscore::Value{};
 
     return val;
 }
 
-static QVariant read_valueDefault(
+static iscore::Value read_valueDefault(
         const QDomElement& dom_element,
         const QString& type)
 {
@@ -86,8 +86,8 @@ static auto read_rangeBounds(
 
         if(type == "decimal" || type == "integer")
         {
-            domain.min.val = stringToVal(minBound, type);
-            domain.max.val = stringToVal(bounds, type);
+            domain.min = stringToVal(minBound, type);
+            domain.max = stringToVal(bounds, type);
         }
     }
 
@@ -128,7 +128,7 @@ static void convertFromDomElement(const QDomElement& dom_element, Node &parentNo
     if(dom_element.hasAttribute("type"))
     {
         const auto type = dom_element.attribute("type");
-        addr.value.val = read_valueDefault(dom_element, type);
+        addr.value = read_valueDefault(dom_element, type);
         addr.ioType = read_service(dom_element);
 
         addr.priority = dom_element.attribute("priority").toInt();

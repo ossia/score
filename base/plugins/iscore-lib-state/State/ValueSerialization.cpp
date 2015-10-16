@@ -169,7 +169,7 @@ static const std::map<
 namespace
 {
 
-class VariantToJson final : public boost::static_visitor<QJsonValue>
+class VariantToJson
 {
     public:
         QJsonValue operator()(const impulse_t&) const { return {}; }
@@ -190,7 +190,7 @@ class VariantToJson final : public boost::static_visitor<QJsonValue>
 
             for(const auto& elt : t)
             {
-                arr.append(boost::apply_visitor(*this, elt));
+                arr.append(eggs::variants::apply(*this, elt.impl()));
             }
 
             return arr;
@@ -198,10 +198,9 @@ class VariantToJson final : public boost::static_visitor<QJsonValue>
 };
 }
 
-#include <boost/variant/apply_visitor.hpp>
 QJsonValue ValueToJson(const iscore::Value & value)
 {
-    return boost::apply_visitor(VariantToJson{}, value.val);
+    return eggs::variants::apply(VariantToJson{}, value.val.impl());
 }
 
 iscore::Value JsonToValue(const QJsonValue &val, QMetaType::Type t)

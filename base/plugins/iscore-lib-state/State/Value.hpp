@@ -3,7 +3,6 @@
 #include <iscore/tools/Todo.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <boost/optional.hpp>
-#include <boost/variant.hpp>
 #include <eggs/variant.hpp>
 
 
@@ -16,23 +15,37 @@ using tuple_t = std::vector<ValueImpl>;
 class ValueImpl
 {
     public:
-        using variant_t = boost::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
+        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
         ValueImpl() = default;
-        //ValueImpl(const QVariant&) { ISCORE_TODO; }
-        template<typename T>
-        ValueImpl(T&& val):
-            variant_t{std::forward<T>(val)}
-        {
+        ValueImpl(const ValueImpl&) = default;
+        ValueImpl(ValueImpl&&) = default;
 
-        }
+        ValueImpl& operator=(const ValueImpl&) = default;
+        ValueImpl& operator=(ValueImpl&&) = default;
+
+        ValueImpl(impulse_t v): m_variant{v} { }
+        ValueImpl(int v): m_variant{v} { }
+        ValueImpl(float v): m_variant{v} { }
+        ValueImpl(double v): m_variant{(float)v} { }
+        ValueImpl(bool v): m_variant{v} { }
+        ValueImpl(const QString& v): m_variant{v} { }
+        ValueImpl(QChar v): m_variant{v} { }
+        ValueImpl(const tuple_t& v): m_variant{v} { }
+
+        ValueImpl& operator=(impulse_t v) { m_variant = v; return *this; }
+        ValueImpl& operator=(int v) { m_variant = v; return *this;  }
+        ValueImpl& operator=(float v) { m_variant = v; return *this;  }
+        ValueImpl& operator=(double v) { m_variant = (float)v; return *this;  }
+        ValueImpl& operator=(bool v) { m_variant = v; return *this;  }
+        ValueImpl& operator=(const QString& v) { m_variant = v; return *this;  }
+        ValueImpl& operator=(QChar v) { m_variant = v; return *this;  }
+        ValueImpl& operator=(const tuple_t& v) { m_variant = v; return *this;  }
 
         const auto& impl() const
         { return m_variant; }
 
         const char* typeName() const { return ""; }
         int type() const { return -1; }
-        //ValueImpl& operator =(const QVariant& other) { return *this; }
-//        ValueImpl& operator =(const ValueImpl& other) { return *this; }
         bool operator ==(const ValueImpl& other) const { return true; }
         bool operator !=(const ValueImpl& other) const { return true; }
 
@@ -126,6 +139,7 @@ struct Value
             return false;
         }
 
+        static iscore::Value fromQVariant(const QVariant& var);
         QVariant toQVariant() const;
         QString toString() const;
         /*

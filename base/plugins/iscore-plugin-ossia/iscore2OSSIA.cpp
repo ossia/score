@@ -218,7 +218,7 @@ void createOSSIAAddress(
 
 }
 
-void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
+void updateOSSIAValue(const iscore::ValueImpl& data, OSSIA::Value& val)
 {
     switch(val.getType())
     {
@@ -241,7 +241,7 @@ void updateOSSIAValue(const QVariant& data, OSSIA::Value& val)
             break;
         case OSSIA::Value::Type::TUPLE:
         {
-            QVariantList tuple = data.value<QVariantList>();
+            tuple_t tuple = data.value<tuple_t>();
             const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
             ISCORE_ASSERT(tuple.size() == (int)vec.size());
             for(int i = 0; i < (int)vec.size(); i++)
@@ -288,7 +288,8 @@ OSSIA::Value* createOSSIAValue(const T& val)
     return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
-static OSSIA::Value* toValue(const QVariant& val)
+//TODO visitor
+static OSSIA::Value* toValue(const iscore::ValueImpl& val)
 {
     switch(static_cast<QMetaType::Type>(val.type()))
     {
@@ -308,7 +309,7 @@ static OSSIA::Value* toValue(const QVariant& val)
             return createOSSIAValue(val.value<QString>().toStdString());
         case QMetaType::Type::QVariantList:
         {
-            QVariantList tuple = val.value<QVariantList>();
+            tuple_t tuple = val.value<tuple_t>();
             auto ossia_tuple = new OSSIA::Tuple;
             for(const auto& val : tuple)
             {

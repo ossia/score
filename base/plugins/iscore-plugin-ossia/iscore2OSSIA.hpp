@@ -47,7 +47,7 @@ void updateOSSIAAddress(
 void removeOSSIAAddress(
         OSSIA::Node*); // Keeps the Node.
 void updateOSSIAValue(
-        const QVariant& data,
+        const iscore::ValueImpl& data,
         OSSIA::Value& val);
 
 OSSIA::Value* toValue(

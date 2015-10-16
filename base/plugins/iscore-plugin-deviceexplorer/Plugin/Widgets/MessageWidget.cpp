@@ -33,7 +33,7 @@ void MessageWidget::on_clicked()
     {
         // Update message
         m_message.address = dial.address();
-        m_message.value.val = dial.value();
+        m_message.value = iscore::Value::fromQVariant(dial.value());
 
         this->setText(m_message.toString());
     }

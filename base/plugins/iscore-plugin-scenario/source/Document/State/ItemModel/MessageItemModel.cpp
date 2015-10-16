@@ -272,7 +272,7 @@ bool MessageItemModel::setData(
                 value.convert((*current_val).val.type());
             }
             auto cmd = new UpdateState(*this,
-                                     iscore::MessageList{{address(*n), iscore::Value::fromVariant(value)}});
+                                     iscore::MessageList{{address(*n), iscore::Value::fromQVariant(value)}});
 
             CommandDispatcher<> disp(m_stack);
             disp.submitCommand(cmd);
