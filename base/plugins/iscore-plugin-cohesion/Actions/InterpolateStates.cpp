@@ -43,12 +43,6 @@ void InterpolateStates(iscore::Document* doc)
             ? nullptr
             : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
 
-    auto checkType = [] (const iscore::ValueImpl& var) {
-        QMetaType::Type t = static_cast<QMetaType::Type>(var.type());
-        return t == QMetaType::Int
-                || t == QMetaType::Float
-                || t == QMetaType::Double; // TODO NOPE
-    };
     for(auto& constraint : selected_constraints)
     {
         const auto& startState = scenar->state(constraint->startState());
@@ -59,14 +53,14 @@ void InterpolateStates(iscore::Document* doc)
 
         for(auto& message : startMessages)
         {
-            if(!checkType(message.value.val))
+            if(!message.value.val.isNumeric())
                 continue;
 
             auto it = std::find_if(begin(endMessages),
                                    end(endMessages),
                                    [&] (const iscore::Message& arg) {
                 return message.address == arg.address
-                        && checkType(arg.value.val)
+                        && arg.value.val.isNumeric()
                         && message.value.val.type() == arg.value.val.type(); });
 
             if(it != end(endMessages))

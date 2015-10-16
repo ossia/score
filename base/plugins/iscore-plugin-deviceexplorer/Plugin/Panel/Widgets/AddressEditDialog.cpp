@@ -115,26 +115,10 @@ void AddressEditDialog::setNodeSettings()
     m_nameEdit->setText(name);
 }
 
+#include <State/ValueConversion.hpp>
 void AddressEditDialog::setValueSettings()
 {
-    // TODO find a way to keep this in sync with
-    // AddressSettingsFactory::AddressSettingsFactory()
-    static const QMap<QMetaType::Type, QString> typeMap
-    {
-        {QMetaType::Int, tr("Int")},
-        {QMetaType::Float, tr("Float")},
-        {QMetaType::QString, tr("String")},
-        {QMetaType::Bool, tr("Bool")},
-        {QMetaType::QChar, tr("Char")},
-        {QMetaType::QVariantList, tr("Tuple")},
-        {QMetaType::UnknownType, tr("Impulse")}
-    };
-
-    auto t = static_cast<QMetaType::Type>(m_originalSettings.value.val.type());
-    ISCORE_ASSERT(typeMap.contains(t));
-    QString type = typeMap[t];
-
-    const int index = m_valueTypeCBox->findText(type);
+    const int index = m_valueTypeCBox->findText(iscore::convert::prettyType(m_originalSettings.value));
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_valueTypeCBox->count());
     m_valueTypeCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot

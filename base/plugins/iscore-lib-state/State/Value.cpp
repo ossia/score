@@ -1,47 +1,5 @@
 #include "Value.hpp"
 
-
-namespace
-{
-
-class VariantToString
-{
-    public:
-        QString operator()(const iscore::impulse_t&) const { return {}; }
-        QString operator()(int i) const { return QString::number(i); }
-        QString operator()(float f) const { return QString::number(f); }
-        QString operator()(bool b) const {
-            static const QString tr = "true";
-            static const QString f = "false";
-            return b ? tr : f;
-        }
-        QString operator()(const QString& s) const
-        {
-            // TODO escape ?
-            return QString("\"%1\"").arg(s);
-        }
-
-        QString operator()(const QChar& c) const
-        {
-            return QString("'%1'").arg(c);
-        }
-
-        QString operator()(const iscore::tuple_t& t) const
-        {
-            QString s{"["};
-
-            for(const auto& elt : t)
-            {
-                s += eggs::variants::apply(*this, elt.impl());
-                s += ", ";
-            }
-
-            s+= "]";
-            return s;
-        }
-};
-}
-
 namespace iscore {
 QDataStream& operator<<(QDataStream& s, const iscore::Value& m)
 {
@@ -90,7 +48,7 @@ QVariant iscore::Value::toQVariant() const
 
 QString iscore::Value::toString() const
 {
-    return eggs::variants::apply(VariantToString{}, val.impl());
+    return {};
 }
 
 
@@ -143,8 +101,6 @@ iscore::ValueImpl& iscore::ValueImpl::operator=(const iscore::tuple_t& v) { m_va
 
 
 
-const char*iscore::ValueImpl::typeName() const { return ""; }
-
 
 int iscore::ValueImpl::type() const { return -1; }
 
@@ -153,6 +109,11 @@ bool iscore::ValueImpl::operator ==(const iscore::ValueImpl& other) const { retu
 
 
 bool iscore::ValueImpl::operator !=(const iscore::ValueImpl& other) const { return true; }
+
+bool iscore::ValueImpl::isNumeric() const
+{
+    return {};
+}
 
 
 bool iscore::ValueImpl::isValid() const { return {}; }

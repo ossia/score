@@ -198,24 +198,19 @@ void createOSSIAAddress(
 
     using namespace OSSIA;
 
-    // Read the Qt docs on QVariant::type for the relationship with QMetaType::Type
-    QMetaType::Type t = static_cast<QMetaType::Type>(settings.value.val.type());
+    static const constexpr struct {
+        public:
+            using return_type = OSSIA::Value::Type;
+            return_type operator()(const impulse_t&) const { return OSSIA::Value::Type::IMPULSE; }
+            return_type operator()(int) const { return OSSIA::Value::Type::INT; }
+            return_type operator()(float) const { return OSSIA::Value::Type::FLOAT; }
+            return_type operator()(bool) const { return OSSIA::Value::Type::BOOL; }
+            return_type operator()(const QString&) const { return OSSIA::Value::Type::STRING; }
+            return_type operator()(const QChar&) const { return OSSIA::Value::Type::CHAR; }
+            return_type operator()(const tuple_t&) const { return OSSIA::Value::Type::TUPLE; }
+    } visitor{};
 
-    static const QMap<QMetaType::Type, OSSIA::Value::Type> type_map{
-        {QMetaType::UnknownType, OSSIA::Value::Type::IMPULSE},
-        {QMetaType::Float, OSSIA::Value::Type::FLOAT},
-        {QMetaType::Int, OSSIA::Value::Type::INT},
-        {QMetaType::QString, OSSIA::Value::Type::STRING},
-        {QMetaType::Bool, OSSIA::Value::Type::BOOL},
-        {QMetaType::QChar, OSSIA::Value::Type::CHAR},
-        {QMetaType::QVariantList, OSSIA::Value::Type::TUPLE},
-        {QMetaType::QByteArray, OSSIA::Value::Type::GENERIC}
-    };
-
-    ISCORE_ASSERT(type_map.keys().contains(t));
-
-    updateOSSIAAddress(settings,  node->createAddress(type_map[t]));
-
+    updateOSSIAAddress(settings,  node->createAddress(eggs::variants::apply(visitor, settings.value.val.impl())));
 }
 
 void updateOSSIAValue(const iscore::ValueImpl& data, OSSIA::Value& val)
@@ -291,58 +286,27 @@ OSSIA::Value* createOSSIAValue(const T& val)
 //TODO visitor
 static OSSIA::Value* toValue(const iscore::ValueImpl& val)
 {
-    switch(static_cast<QMetaType::Type>(val.type()))
-    {
-        case QMetaType::Type::UnknownType: // == QVariant::Invalid
-            return new OSSIA::Impulse;
-        case QMetaType::Type::Bool:
-            return createOSSIAValue(val.value<bool>());
-        case QMetaType::Type::Int:
-            return createOSSIAValue(val.value<int>());
-        case QMetaType::Type::Float:
-            return createOSSIAValue(val.value<float>());
-        case QMetaType::Type::Double:
-            return createOSSIAValue((float)val.value<double>());
-        case QMetaType::Type::QChar:// TODO See TODO in MessageEditDialog
-            return createOSSIAValue(val.value<QChar>().toLatin1());
-        case QMetaType::Type::QString:
-            return createOSSIAValue(val.value<QString>().toStdString());
-        case QMetaType::Type::QVariantList:
-        {
-            tuple_t tuple = val.value<tuple_t>();
-            auto ossia_tuple = new OSSIA::Tuple;
-            for(const auto& val : tuple)
+    static const constexpr struct {
+        public:
+            using return_type = OSSIA::Value*;
+            return_type operator()(const impulse_t&) const { return new OSSIA::Impulse; }
+            return_type operator()(int v) const { return new OSSIA::Int{v}; }
+            return_type operator()(float v) const { return new OSSIA::Float{v}; }
+            return_type operator()(bool v) const { return new OSSIA::Bool{v}; }
+            return_type operator()(const QString& v) const { return new OSSIA::String{v.toStdString()}; }
+            return_type operator()(const QChar& v) const { return new OSSIA::Char{v.toLatin1()}; }
+            return_type operator()(const tuple_t& v) const
             {
-                ossia_tuple->value.push_back(toValue(val));
+                auto ossia_tuple = new OSSIA::Tuple;
+                for(const auto& val : v)
+                {
+                    ossia_tuple->value.push_back(eggs::variants::apply(*this, val.impl()));
+                }
+                return ossia_tuple;
             }
-            return ossia_tuple;
-            break;
-        }
-        case QMetaType::Type::QByteArray:
-        {
-            //return createOSSIAValue(val.value<QByteArray>());
-            ISCORE_TODO;
-            /*
-            const auto& array = data.value<QByteArray>();
-            auto& generic = dynamic_cast<OSSIA::Generic&>(val);
+    } visitor{};
 
-            generic.size = array.size();
-
-            delete generic.start;
-            generic.start = new char[generic.size];
-
-            boost::range::copy(array, generic.start);
-            */
-            break;
-        }
-        default:
-            break;
-    }
-
-
-    ISCORE_BREAKPOINT;
-    ISCORE_ABORT;
-    return nullptr;
+    return eggs::variants::apply(visitor, val.impl());
 }
 
 OSSIA::Value* toValue(

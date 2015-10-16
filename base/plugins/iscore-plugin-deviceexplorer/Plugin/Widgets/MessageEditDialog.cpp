@@ -5,7 +5,7 @@
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
 #include <State/Widgets/Values/BoolValueWidget.hpp>
-
+#include <State/ValueConversion.hpp>
 #include <State/Message.hpp>
 
 #include <QDialogButtonBox>
@@ -58,36 +58,14 @@ QVariant MessageEditDialog::value() const
 
 void MessageEditDialog::initTypeCombo()
 {
-    m_typeCombo->insertItems(0, {tr("None"), tr("Int"), tr("Float"), tr("Char"), tr("String"), tr("Bool"), tr("Tuple")});
-
-    switch(static_cast<QMetaType::Type>(m_message.value.val.type()))
-    {
-        case QMetaType::Int:
-            m_typeCombo->setCurrentIndex(1);
-            break;
-        case QMetaType::Float:
-            m_typeCombo->setCurrentIndex(2);
-            break;
-        case QMetaType::QChar:
-            m_typeCombo->setCurrentIndex(3);
-            break;
-        case QMetaType::QString:
-            m_typeCombo->setCurrentIndex(4);
-            break;
-        case QMetaType::Bool:
-            m_typeCombo->setCurrentIndex(5);
-            break;
-        case QMetaType::QVariantList:
-            m_typeCombo->setCurrentIndex(6);
-            break;
-        default:
-            m_typeCombo->setCurrentIndex(0);
-            break;
-    }
+    // TODO sync with ValueConversion
+    m_typeCombo->insertItems(0, iscore::convert::prettyTypes());
+    m_typeCombo->setCurrentIndex(m_message.value.val.impl().which());
 }
 
 void MessageEditDialog::on_typeChanged(int t)
 {
+    // TODO use an enum
     switch(t)
     {
         case 0:
@@ -100,17 +78,17 @@ void MessageEditDialog::on_typeChanged(int t)
             m_val->setWidget(new NumericValueWidget<float>(m_message.value.val.toFloat(), this));
             break;
         case 3:
-            // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
-            m_val->setWidget(new NumericValueWidget<char>(m_message.value.val.toChar().toLatin1(), this));
+            m_val->setWidget(new BoolValueWidget(m_message.value.val.toBool(), this));
             break;
         case 4:
             m_val->setWidget(new StringValueWidget(m_message.value.val.toString(), this));
             break;
         case 5:
-            m_val->setWidget(new BoolValueWidget(m_message.value.val.toBool(), this));
+            // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
+            m_val->setWidget(new NumericValueWidget<char>(m_message.value.val.toChar().toLatin1(), this));
             break;
         case 6:
-            ISCORE_TODO;
+            ISCORE_TODO; // TODO Tuples
             break;
         default:
             ISCORE_ABORT;

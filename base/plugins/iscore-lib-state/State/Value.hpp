@@ -43,11 +43,11 @@ class ValueImpl
 
         const auto& impl() const { return m_variant; }
 
-        const char* typeName() const;
         int type() const;
         bool operator ==(const ValueImpl& other) const;
         bool operator !=(const ValueImpl& other) const;
 
+        bool isNumeric() const;
         bool isValid() const;
         int toInt() const;
         float toFloat() const;
