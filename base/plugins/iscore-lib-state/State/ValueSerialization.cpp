@@ -206,7 +206,8 @@ QJsonValue ValueToJson(const iscore::Value & value)
 
 iscore::Value JsonToValue(const QJsonValue &val, QMetaType::Type t)
 {
-    return iscore::Value::fromVariant(QMetaType_QJSonValueToQVariant.at(t)(val));
+    ISCORE_TODO;
+    //return iscore::Value::fromVariant(QMetaType_QJSonValueToQVariant.at(t)(val));
 }
 
 

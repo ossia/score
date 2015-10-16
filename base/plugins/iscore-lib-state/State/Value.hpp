@@ -6,23 +6,33 @@
 #include <boost/variant.hpp>
 #include <eggs/variant.hpp>
 
+
+namespace iscore
+{
 struct impulse_t {};
 class ValueImpl;
 using tuple_t = std::vector<ValueImpl>;
 
-class ValueImpl : public boost::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>
+class ValueImpl
 {
     public:
         using variant_t = boost::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
-
         ValueImpl() = default;
-        ValueImpl(ValueImpl&& other): variant_t{std::move(static_cast<const variant_t&&>(other))} {}
-        ValueImpl(const ValueImpl& other): variant_t{static_cast<const variant_t&>(other)} {}
-        ValueImpl(const QVariant&) { ISCORE_TODO; }
+        //ValueImpl(const QVariant&) { ISCORE_TODO; }
+        template<typename T>
+        ValueImpl(T&& val):
+            variant_t{std::forward<T>(val)}
+        {
+
+        }
+
+        const auto& impl() const
+        { return m_variant; }
+
         const char* typeName() const { return ""; }
         int type() const { return -1; }
-        ValueImpl& operator =(const QVariant& other) { return *this; }
-        ValueImpl& operator =(const ValueImpl& other) { return *this; }
+        //ValueImpl& operator =(const QVariant& other) { return *this; }
+//        ValueImpl& operator =(const ValueImpl& other) { return *this; }
         bool operator ==(const ValueImpl& other) const { return true; }
         bool operator !=(const ValueImpl& other) const { return true; }
 
@@ -57,10 +67,10 @@ class ValueImpl : public boost::variant<impulse_t, int, float, bool, QString, QC
         {
             return s;
         }
-};
 
-namespace iscore
-{
+    private:
+        variant_t m_variant;
+};
 /**
  * @brief The Value struct
  *
@@ -87,7 +97,7 @@ struct Value
         template<typename Val>
         static Value fromValue(Val&& val)
         {
-            return iscore::Value{value_type{val}};
+            return iscore::Value{value_type{std::forward<Val>(val)}};
         }
 
         static Value fromVariant(const value_type& var)

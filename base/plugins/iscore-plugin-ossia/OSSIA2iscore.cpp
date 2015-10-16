@@ -43,49 +43,43 @@ iscore::ClipMode ToClipMode(OSSIA::Address::BoundingMode b)
     }
 }
 
-
 iscore::Value ToValue(const OSSIA::Value *val)
 {
-    QVariant v;
     if(!val)
-        return iscore::Value::fromVariant(v);
+        return {};
 
     // TODO this should be a dynamic_cast every time
     // for safety ?
     switch(val->getType())
     {
         case OSSIA::Value::Type::IMPULSE:
-            break;
+            return iscore::Value::fromValue(iscore::impulse_t{});
         case OSSIA::Value::Type::BOOL:
-            v = safe_cast<const OSSIA::Bool*>(val)->value;
-            break;
+            return iscore::Value::fromValue(safe_cast<const OSSIA::Bool*>(val)->value);
         case OSSIA::Value::Type::INT:
-            v = safe_cast<const OSSIA::Int*>(val)->value;
-            break;
+            return iscore::Value::fromValue(safe_cast<const OSSIA::Int*>(val)->value);
         case OSSIA::Value::Type::FLOAT:
-            v = safe_cast<const OSSIA::Float*>(val)->value;
-            break;
+            return iscore::Value::fromValue(safe_cast<const OSSIA::Float*>(val)->value);
         case OSSIA::Value::Type::CHAR:
-            v = QChar::fromLatin1(safe_cast<const OSSIA::Char*>(val)->value);
-            break;
+            return iscore::Value::fromValue(QChar::fromLatin1(safe_cast<const OSSIA::Char*>(val)->value));
         case OSSIA::Value::Type::STRING:
-            v = QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value);
-            break;
+            return iscore::Value::fromValue(QString::fromStdString(safe_cast<const OSSIA::String*>(val)->value));
         case OSSIA::Value::Type::TUPLE:
         {
-            QVariantList tuple;
-            for (const auto & e : safe_cast<const OSSIA::Tuple*>(val)->value)
+            auto ossia_tuple = safe_cast<const OSSIA::Tuple*>(val);
+            iscore::tuple_t tuple;
+            tuple.reserve(ossia_tuple->value.size());
+            for (const auto & e : ossia_tuple->value)
             {
-                tuple.append(ToValue(e).val); // TODO REVIEW THIS
+                tuple.push_back(ToValue(e).val); // TODO REVIEW THIS
             }
 
-            v = tuple;
-            break;
+            return iscore::Value::fromValue(tuple);
         }
         case OSSIA::Value::Type::GENERIC:
         {
             ISCORE_TODO;
-            break;
+            return {};
             /*
             auto generic = dynamic_cast<const OSSIA::Generic*>(val);
             v = QByteArray{generic->start, generic->size};
@@ -93,10 +87,8 @@ iscore::Value ToValue(const OSSIA::Value *val)
             */
         }
         default:
-            break;
+            return {};
     }
-
-    return iscore::Value::fromVariant(v);
 }
 
 

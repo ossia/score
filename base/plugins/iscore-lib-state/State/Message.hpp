@@ -20,10 +20,6 @@ struct Message
         address(addr),
         value(val)
     { }
-    Message(const iscore::Address& addr, const QVariant& val):
-        address(addr),
-        value(iscore::Value::fromVariant(val))
-    { }
 
     Message(const Message&) = default;
     Message(Message&&) = default;
