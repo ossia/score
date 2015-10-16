@@ -43,21 +43,11 @@ class ValueImpl
 
         const auto& impl() const { return m_variant; }
 
-        int type() const;
         bool operator ==(const ValueImpl& other) const;
         bool operator !=(const ValueImpl& other) const;
 
         bool isNumeric() const;
         bool isValid() const;
-        int toInt() const;
-        float toFloat() const;
-        float toFloat(bool*) const;
-        double toDouble() const;
-        bool toBool() const;
-        QString toString() const;
-        QStringList toStringList() const;
-        QChar toChar() const;
-        tuple_t toTuple() const;
 
         template<typename TheType>
         bool canConvert() const

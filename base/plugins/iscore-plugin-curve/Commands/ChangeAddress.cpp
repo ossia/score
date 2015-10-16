@@ -57,8 +57,8 @@ void ChangeAddress::undo()
 {
     auto& autom = m_path.find();
 
-    autom.setMin(m_old.domain.min.val.toFloat());
-    autom.setMax(m_old.domain.max.val.toFloat());
+    autom.setMin(iscore::convert::value<double>(m_old.domain.min));
+    autom.setMax(iscore::convert::value<double>(m_old.domain.max));
 
     autom.setAddress(m_old.address);
 }
@@ -67,8 +67,8 @@ void ChangeAddress::redo()
 {
     auto& autom = m_path.find();
 
-    autom.setMin(m_new.domain.min.val.toFloat());
-    autom.setMax(m_new.domain.max.val.toFloat());
+    autom.setMin(iscore::convert::value<double>(m_new.domain.min));
+    autom.setMax(iscore::convert::value<double>(m_new.domain.max));
 
     autom.setAddress(m_new.address);
 }

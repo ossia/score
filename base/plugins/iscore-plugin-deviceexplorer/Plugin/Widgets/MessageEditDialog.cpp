@@ -63,6 +63,7 @@ void MessageEditDialog::initTypeCombo()
     m_typeCombo->setCurrentIndex(m_message.value.val.impl().which());
 }
 
+#include <State/ValueConversion.hpp>
 void MessageEditDialog::on_typeChanged(int t)
 {
     // TODO use an enum
@@ -72,20 +73,20 @@ void MessageEditDialog::on_typeChanged(int t)
             m_val->setWidget(nullptr);
             break;
         case 1:
-            m_val->setWidget(new NumericValueWidget<int>(m_message.value.val.toInt(), this));
+            m_val->setWidget(new NumericValueWidget<int>(iscore::convert::value<int>(m_message.value), this));
             break;
         case 2:
-            m_val->setWidget(new NumericValueWidget<float>(m_message.value.val.toFloat(), this));
+            m_val->setWidget(new NumericValueWidget<float>(iscore::convert::value<float>(m_message.value), this));
             break;
         case 3:
-            m_val->setWidget(new BoolValueWidget(m_message.value.val.toBool(), this));
+            m_val->setWidget(new BoolValueWidget(iscore::convert::value<bool>(m_message.value), this));
             break;
         case 4:
-            m_val->setWidget(new StringValueWidget(m_message.value.val.toString(), this));
+            m_val->setWidget(new StringValueWidget(iscore::convert::value<QString>(m_message.value), this));
             break;
         case 5:
             // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
-            m_val->setWidget(new NumericValueWidget<char>(m_message.value.val.toChar().toLatin1(), this));
+            m_val->setWidget(new NumericValueWidget<char>(iscore::convert::value<QChar>(m_message.value).toLatin1(), this));
             break;
         case 6:
             ISCORE_TODO; // TODO Tuples

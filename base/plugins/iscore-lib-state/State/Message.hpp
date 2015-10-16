@@ -3,6 +3,7 @@
 #include <QStringList>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
 namespace iscore
 {
 /**
@@ -41,7 +42,7 @@ struct Message
     }
 
     QString toString() const
-    { return address.toString() + " " + value.val.toString(); }
+    { return address.toString() + " " + iscore::convert::toPrettyString(value); }
 
     Address address;
     Value value;

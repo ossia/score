@@ -61,7 +61,7 @@ void InterpolateStates(iscore::Document* doc)
                                    [&] (const iscore::Message& arg) {
                 return message.address == arg.address
                         && arg.value.val.isNumeric()
-                        && message.value.val.type() == arg.value.val.type(); });
+                        && message.value.val.impl().which() == arg.value.val.impl().which(); });
 
             if(it != end(endMessages))
             {
@@ -81,8 +81,8 @@ void InterpolateStates(iscore::Document* doc)
                 auto cmd = new CreateCurveFromStates{
                         *constraint,
                         message.address,
-                        message.value.val.toDouble(),
-                        (*it).value.val.toDouble()};
+                        iscore::convert::value<double>(message.value),
+                        iscore::convert::value<double>((*it).value)};
                 macro.submitCommand(cmd);
             }
         }

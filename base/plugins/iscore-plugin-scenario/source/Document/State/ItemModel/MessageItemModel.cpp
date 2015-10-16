@@ -265,14 +265,14 @@ bool MessageItemModel::setData(
     {
         if(col == Column::Value)
         {
-            auto value = value_received; // Copy to be able to convert
+            auto value = iscore::convert::toValue(value_received);
             auto current_val = n->value();
             if(current_val)
             {
-                value.convert((*current_val).val.type());
+                iscore::convert::convert(*current_val, value);
             }
-            auto cmd = new UpdateState(*this,
-                                     iscore::MessageList{{address(*n), iscore::Value::fromQVariant(value)}});
+            auto cmd = new UpdateState{*this,
+                                     iscore::MessageList{{address(*n), value}}};
 
             CommandDispatcher<> disp(m_stack);
             disp.submitCommand(cmd);

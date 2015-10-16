@@ -102,7 +102,6 @@ iscore::ValueImpl& iscore::ValueImpl::operator=(const iscore::tuple_t& v) { m_va
 
 
 
-int iscore::ValueImpl::type() const { return -1; }
 
 
 bool iscore::ValueImpl::operator ==(const iscore::ValueImpl& other) const { return true; }
@@ -118,32 +117,6 @@ bool iscore::ValueImpl::isNumeric() const
 
 bool iscore::ValueImpl::isValid() const { return {}; }
 
-
-int iscore::ValueImpl::toInt() const { return {}; }
-
-
-float iscore::ValueImpl::toFloat() const { return {}; }
-double iscore::ValueImpl::toDouble() const { return {}; }
-
-float iscore::ValueImpl::toFloat(bool*) const
-{
-    return {};
-}
-
-
-bool iscore::ValueImpl::toBool() const { return {}; }
-
-
-QString iscore::ValueImpl::toString() const { return {}; }
-
-
-QStringList iscore::ValueImpl::toStringList() const { return {}; }
-
-
-QChar iscore::ValueImpl::toChar() const { return {}; }
-
-
-iscore::tuple_t iscore::ValueImpl::toTuple() const { return {}; }
 
 namespace iscore {
 QDebug& operator<<(QDebug& s, const iscore::ValueImpl& m)

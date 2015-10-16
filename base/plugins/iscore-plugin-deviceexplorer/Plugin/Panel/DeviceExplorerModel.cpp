@@ -433,15 +433,14 @@ bool DeviceExplorerModel::setData(
         {
             // In this case we don't make a command, but we directly push the
             // new value.
-            QVariant copy = value;
-            auto res = copy.convert(n->get<iscore::AddressSettings>().value.val.type());
+            auto copy = iscore::convert::toValue(value);
+            auto res = iscore::convert::convert(n->get<iscore::AddressSettings>().value, copy);
             if(res)
             {
-                n->get<iscore::AddressSettings>().value = iscore::Value::fromQVariant(copy);
+                n->get<iscore::AddressSettings>().value = copy;
                 // Note : if we want to disable remote updating, we have to do it
                 // here (e.g. if this becomes a settings)
-                m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(*n), iscore::Value::fromQVariant(copy));
-
+                m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(*n), copy);
                 return true;
             }
 

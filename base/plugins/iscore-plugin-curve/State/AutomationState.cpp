@@ -89,7 +89,7 @@ iscore::MessageList AutomationState::setMessages(const iscore::MessageList& rece
         {
             // Scale min, max, and the value
             // TODO convert to the real type of the curve.
-            auto val = mess.value.val.toFloat();
+            auto val = iscore::convert::value<float>(mess.value);
             if(val < process().min())
                 process().setMin(val);
             if(val > process().max())

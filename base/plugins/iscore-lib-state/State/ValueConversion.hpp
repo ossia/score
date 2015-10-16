@@ -24,10 +24,15 @@ double value(const iscore::Value& val);
 template<>
 QString value(const iscore::Value& val);
 
+bool convert(const iscore::Value& orig, iscore::Value& toConvert);
+
+QString toPrettyString(const iscore::Value& val);
+
 // We require the type to crrectly read back (e.g. int / float / char)
 // and as an optimization, since we may need it multiple times,
 // we chose to leave the caller save it however he wants. Hence the specific API.
 QString textualType(const iscore::Value& val); // For JSONValue serialization
+iscore::Value toValue(const QVariant& val);
 iscore::Value toValue(const QJsonValue& val, const QString& type);
 
 QString prettyType(const iscore::Value& val); // For display to the user, translated
