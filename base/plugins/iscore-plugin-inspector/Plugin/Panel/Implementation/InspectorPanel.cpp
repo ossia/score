@@ -44,9 +44,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     for(const auto& object : toDelete)
     {
         auto& map =  m_map.get<0>();
-        qDebug() << object;
-        for(const auto& elt : map)
-            qDebug() << "==>" << elt ;
+
         auto widget_it = map.find(object);
         if(widget_it != map.end())
         {
