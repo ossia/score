@@ -65,7 +65,6 @@ file(GLOB_RECURSE HDRS
 list(REMOVE_ITEM HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/WebSocketView.hpp")
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/resources/ScenarioResources.qrc")
 
-message(${HDRS})
 if(ISCORE_WEBSOCKETS)
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/WebSocketView.cpp"

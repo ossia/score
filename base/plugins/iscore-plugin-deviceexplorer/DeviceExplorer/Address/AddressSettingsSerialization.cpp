@@ -3,6 +3,7 @@
 #include "AddressSettings.hpp"
 #include "DomainSerialization.hpp"
 #include <State/ValueSerialization.hpp>
+#include <State/ValueConversion.hpp>
 
 
 template<>
@@ -90,11 +91,7 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::AddressSettings& n)
 
     // Value, domain and type
     readFrom(n.value);
-    auto type = n.value.val.typeName();
-    if(type)
-    {
-        m_obj["Domain"] = DomainToJson(n.domain);
-    }
+    m_obj["Domain"] = DomainToJson(n.domain);
 }
 
 template<>
@@ -119,7 +116,6 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::AddressSettings& n)
     // TODO doesn't handle multi-type variants.
     if(m_obj.contains("Type"))
     {
-        auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toUtf8()));
-        n.domain = JsonToDomain(m_obj["Domain"].toObject(), valueType);
+        n.domain = JsonToDomain(m_obj["Domain"].toObject(), m_obj["Type"].toString());
     }
 }

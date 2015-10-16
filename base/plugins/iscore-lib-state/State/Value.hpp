@@ -23,40 +23,41 @@ class ValueImpl
         ValueImpl& operator=(const ValueImpl&) = default;
         ValueImpl& operator=(ValueImpl&&) = default;
 
-        ValueImpl(impulse_t v): m_variant{v} { }
-        ValueImpl(int v): m_variant{v} { }
-        ValueImpl(float v): m_variant{v} { }
-        ValueImpl(double v): m_variant{(float)v} { }
-        ValueImpl(bool v): m_variant{v} { }
-        ValueImpl(const QString& v): m_variant{v} { }
-        ValueImpl(QChar v): m_variant{v} { }
-        ValueImpl(const tuple_t& v): m_variant{v} { }
+        ValueImpl(impulse_t v);
+        ValueImpl(int v);
+        ValueImpl(float v);
+        ValueImpl(double v);
+        ValueImpl(bool v);
+        ValueImpl(const QString& v);
+        ValueImpl(QChar v);
+        ValueImpl(const tuple_t& v);
 
-        ValueImpl& operator=(impulse_t v) { m_variant = v; return *this; }
-        ValueImpl& operator=(int v) { m_variant = v; return *this;  }
-        ValueImpl& operator=(float v) { m_variant = v; return *this;  }
-        ValueImpl& operator=(double v) { m_variant = (float)v; return *this;  }
-        ValueImpl& operator=(bool v) { m_variant = v; return *this;  }
-        ValueImpl& operator=(const QString& v) { m_variant = v; return *this;  }
-        ValueImpl& operator=(QChar v) { m_variant = v; return *this;  }
-        ValueImpl& operator=(const tuple_t& v) { m_variant = v; return *this;  }
+        ValueImpl& operator=(impulse_t v);
+        ValueImpl& operator=(int v);
+        ValueImpl& operator=(float v);
+        ValueImpl& operator=(double v);
+        ValueImpl& operator=(bool v);
+        ValueImpl& operator=(const QString& v);
+        ValueImpl& operator=(QChar v);
+        ValueImpl& operator=(const tuple_t& v);
 
-        const auto& impl() const
-        { return m_variant; }
+        const auto& impl() const { return m_variant; }
 
-        const char* typeName() const { return ""; }
-        int type() const { return -1; }
-        bool operator ==(const ValueImpl& other) const { return true; }
-        bool operator !=(const ValueImpl& other) const { return true; }
+        const char* typeName() const;
+        int type() const;
+        bool operator ==(const ValueImpl& other) const;
+        bool operator !=(const ValueImpl& other) const;
 
-        bool isValid() const { return {}; }
-        int toInt() const { return {}; }
-        float toFloat() const { return {}; }
-        bool toBool() const { return {}; }
-        QString toString() const { return {}; }
-        QStringList toStringList() const { return {}; }
-        QChar toChar() const { return {}; }
-        tuple_t toTuple() const { return {}; }
+        bool isValid() const;
+        int toInt() const;
+        float toFloat() const;
+        float toFloat(bool*) const;
+        double toDouble() const;
+        bool toBool() const;
+        QString toString() const;
+        QStringList toStringList() const;
+        QChar toChar() const;
+        tuple_t toTuple() const;
 
         template<typename TheType>
         bool canConvert() const
@@ -67,19 +68,10 @@ class ValueImpl
         { return {}; }
 
 
-        friend QDebug& operator<<(QDebug& s, const ValueImpl& m)
-        {
-            return s;
-        }
-        friend QDataStream& operator<<(QDataStream& s, const ValueImpl& m)
-        {
-            return s;
-        }
+        friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
+        friend QDataStream& operator<<(QDataStream& s, const ValueImpl& m);
 
-        friend QDataStream& operator>>(QDataStream& s, ValueImpl& m)
-        {
-            return s;
-        }
+        friend QDataStream& operator>>(QDataStream& s, ValueImpl& m);
 
     private:
         variant_t m_variant;
@@ -95,17 +87,9 @@ struct Value
         using value_type = ValueImpl;
         value_type val{};
 
-        friend QDataStream& operator<<(QDataStream& s, const Value& m)
-        {
-            s << m.val;
-            return s;
-        }
+        friend QDataStream& operator<<(QDataStream& s, const Value& m);
 
-        friend QDataStream& operator>>(QDataStream& s, Value& m)
-        {
-            s >> m.val;
-            return s;
-        }
+        friend QDataStream& operator>>(QDataStream& s, Value& m);
 
         template<typename Val>
         static Value fromValue(Val&& val)
@@ -113,10 +97,7 @@ struct Value
             return iscore::Value{value_type{std::forward<Val>(val)}};
         }
 
-        static Value fromVariant(const value_type& var)
-        {
-            return iscore::Value{var};
-        }
+        static Value fromVariant(const value_type& var);
 
         Value() = default;
         Value(const Value&) = default;
@@ -124,20 +105,11 @@ struct Value
         Value& operator=(const Value&) = default;
         Value& operator=(Value&&) = default;
 
-        bool operator==(const Value& m) const
-        {
-            return val == m.val;
-        }
+        bool operator==(const Value& m) const;
 
-        bool operator!=(const Value& m) const
-        {
-            return val != m.val;
-        }
+        bool operator!=(const Value& m) const;
 
-        bool operator<(const Value& m) const
-        {
-            return false;
-        }
+        bool operator<(const Value& m) const;
 
         static iscore::Value fromQVariant(const QVariant& var);
         QVariant toQVariant() const;

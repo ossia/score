@@ -1,6 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <State/ValueSerialization.hpp>
+#include <State/ValueConversion.hpp>
 
 #include "DomainSerialization.hpp"
 
@@ -19,10 +20,8 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::Domain& n)
 QJsonObject DomainToJson(const iscore::Domain& d)
 {
     QJsonObject obj;
-    if(d.min.val.isValid())
-        obj["Min"] = ValueToJson(d.min);
-    if(d.max.val.isValid())
-        obj["Max"] = ValueToJson(d.max);
+    obj["Min"] = ValueToJson(d.min);
+    obj["Max"] = ValueToJson(d.max);
 
     QJsonArray arr;
     for(auto& val : d.values)
@@ -32,20 +31,20 @@ QJsonObject DomainToJson(const iscore::Domain& d)
     return obj;
 }
 
-iscore::Domain JsonToDomain(const QJsonObject& obj, QMetaType::Type t)
+iscore::Domain JsonToDomain(const QJsonObject& obj, const QString& t)
 {
     iscore::Domain d;
     if(obj.contains("Min"))
     {
-        d.min = JsonToValue(obj["Min"], t);
+        d.min = iscore::convert::toValue(obj["Min"], t);
     }
     if(obj.contains("Max"))
     {
-        d.max = JsonToValue(obj["Max"], t);
+        d.max = iscore::convert::toValue(obj["Max"], t);
     }
 
     for(const QJsonValue& val : obj["Values"].toArray())
-        d.values.append(JsonToValue(val, t));
+        d.values.append(iscore::convert::toValue(val, t));
 
     return d;
 }

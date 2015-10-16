@@ -2,7 +2,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "Message.hpp"
 #include "ValueSerialization.hpp"
-
+#include "ValueConversion.hpp"
 using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Message& mess)
@@ -16,7 +16,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Message& mess)
 {
     m_obj["Address"] = toJsonObject(mess.address);
-    m_obj["Type"] = QString(mess.value.val.typeName());
+    m_obj["Type"] = iscore::convert::textualType(mess.value);
     m_obj["Value"] = ValueToJson(mess.value);
 }
 
@@ -33,8 +33,7 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(Message& mess)
 {
     mess.address = fromJsonObject<Address>(m_obj["Address"].toObject());
-    auto valueType = static_cast<QMetaType::Type>(QMetaType::type(m_obj["Type"].toString().toUtf8()));
-    mess.value = JsonToValue(m_obj["Value"], valueType);
+    mess.value = iscore::convert::toValue(m_obj["Value"], m_obj["Type"].toString());
 }
 
 

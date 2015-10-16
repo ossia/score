@@ -43,7 +43,7 @@ void InterpolateStates(iscore::Document* doc)
             ? nullptr
             : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
 
-    auto checkType = [] (const QVariant& var) {
+    auto checkType = [] (const iscore::ValueImpl& var) {
         QMetaType::Type t = static_cast<QMetaType::Type>(var.type());
         return t == QMetaType::Int
                 || t == QMetaType::Float
