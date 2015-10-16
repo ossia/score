@@ -1,21 +1,24 @@
 #pragma once
 #include <QVariant>
+#include <iscore/tools/Todo.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <boost/optional.hpp>
+#include <boost/variant.hpp>
 #include <eggs/variant.hpp>
-/*
-// TODO use this
+
 struct impulse_t {};
 class ValueImpl;
 using tuple_t = std::vector<ValueImpl>;
 
-class ValueImpl : eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>
+class ValueImpl : public boost::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>
 {
-        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
     public:
+        using variant_t = boost::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
+
         ValueImpl() = default;
+        ValueImpl(ValueImpl&& other): variant_t{std::move(static_cast<const variant_t&&>(other))} {}
         ValueImpl(const ValueImpl& other): variant_t{static_cast<const variant_t&>(other)} {}
-        ValueImpl(const QVariant&) {}
+        ValueImpl(const QVariant&) { ISCORE_TODO; }
         const char* typeName() const { return ""; }
         int type() const { return -1; }
         ValueImpl& operator =(const QVariant& other) { return *this; }
@@ -23,7 +26,7 @@ class ValueImpl : eggs::variant<impulse_t, int, float, bool, QString, QChar, tup
         bool operator ==(const ValueImpl& other) const { return true; }
         bool operator !=(const ValueImpl& other) const { return true; }
 
-        operator QVariant() const { return {}; }
+        //operator QVariant() const { return {}; }
         bool isValid() const { return {}; }
         int toInt() const { return {}; }
         float toFloat() const { return {}; }
@@ -56,7 +59,7 @@ class ValueImpl : eggs::variant<impulse_t, int, float, bool, QString, QChar, tup
             return s;
         }
 };
-*/
+
 namespace iscore
 {
 /**
@@ -67,7 +70,7 @@ namespace iscore
  */
 struct Value
 {
-        using value_type = QVariant;
+        using value_type = ValueImpl;
         value_type val{};
 
         friend QDataStream& operator<<(QDataStream& s, const Value& m)

@@ -166,11 +166,44 @@ static const std::map<
 
 
 
+namespace
+{
 
+class VariantToJson final : public boost::static_visitor<QJsonValue>
+{
+    public:
+        QJsonValue operator()(const impulse_t&) const { return {}; }
+        QJsonValue operator()(int i) const { return i; }
+        QJsonValue operator()(float f) const { return f; }
+        QJsonValue operator()(bool b) const { return b; }
+        QJsonValue operator()(const QString& s) const { return s; }
+
+        QJsonValue operator()(const QChar& c) const
+        {
+            // TODO check this
+            return QString(c);
+        }
+
+        QJsonValue operator()(const tuple_t& t) const
+        {
+            QJsonArray arr;
+
+            for(const auto& elt : t)
+            {
+                arr.append(boost::apply_visitor(*this, elt));
+            }
+
+            return arr;
+        }
+};
+}
+
+#include <boost/variant/apply_visitor.hpp>
 QJsonValue ValueToJson(const iscore::Value & value)
 {
-    return QMetaType_QVariantToQJSonValue.at(static_cast<QMetaType::Type>(value.val.type()))(value.val);
+    return boost::apply_visitor(VariantToJson{}, value.val);
 }
+
 iscore::Value JsonToValue(const QJsonValue &val, QMetaType::Type t)
 {
     return iscore::Value::fromVariant(QMetaType_QJSonValueToQVariant.at(t)(val));
