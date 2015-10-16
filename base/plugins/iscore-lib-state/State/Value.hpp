@@ -26,7 +26,6 @@ class ValueImpl : public boost::variant<impulse_t, int, float, bool, QString, QC
         bool operator ==(const ValueImpl& other) const { return true; }
         bool operator !=(const ValueImpl& other) const { return true; }
 
-        //operator QVariant() const { return {}; }
         bool isValid() const { return {}; }
         int toInt() const { return {}; }
         float toFloat() const { return {}; }
@@ -85,11 +84,15 @@ struct Value
             return s;
         }
 
+        template<typename Val>
+        static Value fromValue(Val&& val)
+        {
+            return iscore::Value{value_type{val}};
+        }
+
         static Value fromVariant(const value_type& var)
         {
-            Value v;
-            v.val = var;
-            return v;
+            return iscore::Value{var};
         }
 
         Value() = default;
@@ -113,6 +116,7 @@ struct Value
             return false;
         }
 
+        QVariant toQVariant() const;
         QString toString() const;
         /*
         template<typename Fun> auto map(Fun&& f)

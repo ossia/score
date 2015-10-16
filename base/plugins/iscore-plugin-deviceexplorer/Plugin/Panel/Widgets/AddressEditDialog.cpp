@@ -99,9 +99,9 @@ iscore::AddressSettings AddressEditDialog::makeDefaultSettings()
     static iscore::AddressSettings defaultSettings
             = [] () {
         iscore::AddressSettings s;
-        s.value = iscore::Value::fromVariant(0);
-        s.domain.min = iscore::Value::fromVariant(0);
-        s.domain.max = iscore::Value::fromVariant(100);
+        s.value = iscore::Value::fromValue(0);
+        s.domain.min = iscore::Value::fromValue(0);
+        s.domain.max = iscore::Value::fromValue(100);
         s.ioType = iscore::IOType::InOut;
         return s;
     }();

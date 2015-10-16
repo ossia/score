@@ -271,7 +271,7 @@ class ExpressionParsingTests: public QObject
                 iscore::Relation val;
                 bool r = parse(first, last, parser, val);
 
-                qDebug() << str.c_str() << r << val.lhs.target<iscore::Address>()->path << val.rhs.target<iscore::Value>()->val << "                    ";
+                qDebug() << str.c_str() << r << val.lhs.target<iscore::Address>()->path << val.rhs.target<iscore::Value>()->toQVariant() << "                    ";
             }
         }
 

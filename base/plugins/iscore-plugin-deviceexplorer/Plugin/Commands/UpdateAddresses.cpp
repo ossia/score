@@ -24,14 +24,14 @@ void UpdateAddressesValues::undo()
 {
     auto& explorer = m_deviceTree.find();
     for(const auto& elt : m_data)
-        explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.first.val, Qt::EditRole);
+        explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.first, Qt::EditRole);
 }
 
 void UpdateAddressesValues::redo()
 {
     auto& explorer = m_deviceTree.find();
     for(const auto& elt : m_data)
-        explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.second.val, Qt::EditRole);
+        explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.second, Qt::EditRole);
 }
 
 void UpdateAddressesValues::serializeImpl(QDataStream& d) const

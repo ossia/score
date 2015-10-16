@@ -208,7 +208,7 @@ class DeviceExplorerModel : public NodeBasedItemModel
         bool setData(const QModelIndex& index, const QVariant& value, int role) override;
         bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
 
-        void editData(const iscore::NodePath &path, Column column, const QVariant& value, int role);
+        void editData(const iscore::NodePath &path, Column column, const iscore::Value& value, int role);
 
         virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
 

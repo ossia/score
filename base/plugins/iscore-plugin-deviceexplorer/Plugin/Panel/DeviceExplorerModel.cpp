@@ -495,7 +495,7 @@ DeviceExplorerModel::setHeaderData(int, Qt::Orientation, const QVariant&, int)
 void DeviceExplorerModel::editData(
         const iscore::NodePath &path,
         DeviceExplorerModel::Column column,
-        const QVariant &value,
+        const iscore::Value &value,
         int role)
 {
     Node* node = path.toNode(&rootNode());
@@ -526,7 +526,7 @@ void DeviceExplorerModel::editData(
         }
         else if(index.column() == (int)Column::Value)
         {
-            node->get<iscore::AddressSettings>().value.val = value;
+            node->get<iscore::AddressSettings>().value = value;
         }
         // TODO min/max/tags editing
     }

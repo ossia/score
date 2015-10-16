@@ -44,6 +44,12 @@ class VariantToString final : public boost::static_visitor<QString>
 };
 }
 
+QVariant iscore::Value::toQVariant() const
+{
+    ISCORE_TODO;
+    return {};
+}
+
 QString iscore::Value::toString() const
 {
     return boost::apply_visitor(VariantToString{}, this->val);

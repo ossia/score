@@ -3,6 +3,7 @@
 #include <QBrush>
 namespace DeviceExplorer
 {
+// TODO boost::visitor ?
 QVariant nameColumnData(const iscore::Node& node, int role)
 {
     using namespace iscore;
@@ -109,7 +110,7 @@ QVariant minColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.get<AddressSettings>().domain.min.val;
+        return node.get<AddressSettings>().domain.min.toQVariant();
     }
 
     return {};
@@ -123,7 +124,7 @@ QVariant maxColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.get<AddressSettings>().domain.max.val;
+        return node.get<AddressSettings>().domain.max.toQVariant();
     }
 
     return {};
