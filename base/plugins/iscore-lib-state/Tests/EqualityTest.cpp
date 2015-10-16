@@ -1,5 +1,4 @@
 #include <QTest>
-#include <State/State.hpp>
 #include <State/Message.hpp>
 
 using namespace iscore;

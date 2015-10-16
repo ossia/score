@@ -26,6 +26,9 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
+                const auto& createdRack() const
+                { return m_createdRackId; }
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;

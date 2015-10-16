@@ -22,11 +22,8 @@
 #include "Constraint/SetMaxDuration.hpp"
 #include "Constraint/SetMinDuration.hpp"
 #include "Constraint/SetRigidity.hpp"
-#include "Event/AddStateToEvent.hpp"
 #include "Event/SetCondition.hpp"
-#include "Event/State/AssignMessagesToState.hpp"
 #include "Event/State/AddStateWithData.hpp"
-#include "Event/State/UnassignMessagesFromState.hpp"
 #include "ClearSelection.hpp"
 #include "ResizeBaseConstraint.hpp"
 
@@ -56,6 +53,7 @@
 #include "TimeNode/RemoveTrigger.hpp"
 #include "TimeNode/SetTrigger.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
+#include "Event/SplitEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
 
@@ -71,7 +69,6 @@ namespace boost { namespace mpl {
 #include BOOST_PP_ITERATE()
 }}
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include "Control/ScenarioCommandFactory.hpp"
 #include "Control/ScenarioControl.hpp"
 
 #include <Document/Constraint/ConstraintModel.hpp>
@@ -82,7 +79,6 @@ namespace boost { namespace mpl {
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
-#include <Commands/State/AddMessagesToModel.hpp>
 #include <Commands/State/RemoveMessageNodes.hpp>
 #include <Commands/State/UpdateState.hpp>
 
@@ -101,11 +97,12 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list68<
+            boost::mpl::list69<
 
             AddRackToConstraint,
             AddSlotToRack,
             AddProcessToConstraint,
+            AddOnlyProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
             UpdateState,
@@ -126,6 +123,7 @@ void ScenarioControl::setupCommands()
             ChangeElementName<ConstraintModel>,
             ChangeElementName<EventModel>,
             ChangeElementName<TimeNodeModel>,
+            // TODO State.
 
             ClearConstraint,
             ClearState,
@@ -182,9 +180,9 @@ void ScenarioControl::setupCommands()
             SetTrigger,
             RemoveTrigger,
 
+            SplitEvent,
             SplitTimeNode,
-            SwitchStatePosition,
-            UnassignMessagesFromState
+            SwitchStatePosition
             >,
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<ScenarioCommandFactory>());

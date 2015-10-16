@@ -88,28 +88,28 @@ void ScenarioSelectionState::setSelectionArea(const QRectF& area)
     {
         if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
         {
-            sel.insert(&elt.model());
+            sel.append(&elt.model());
         }
     }
     for(const auto& elt : m_parentSM.presenter().timeNodes())
     {
         if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
         {
-            sel.insert(&elt.model());
+            sel.append(&elt.model());
         }
     }
     for(const auto& elt : m_parentSM.presenter().events())
     {
         if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
         {
-            sel.insert(&elt.model());
+            sel.append(&elt.model());
         }
     }
     for(const auto& elt : m_parentSM.presenter().states())
     {
         if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
         {
-            sel.insert(&elt.model());
+            sel.append(&elt.model());
         }
     }
 

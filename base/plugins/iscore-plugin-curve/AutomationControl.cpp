@@ -15,6 +15,7 @@ AutomationControl::AutomationControl(
     PluginControlInterface {pres, "AutomationControl", nullptr}
 {
     setupCommands();
+    initColors();
 }
 
 namespace {
@@ -55,8 +56,11 @@ iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
 void AutomationControl::initColors()
 {
     CurveStyle& instance = CurveStyle::instance();
+#ifdef ISCORE_IEEE_SKIN
+    QFile cols(":/CurveColors-IEEE.json");
+#else
     QFile cols(":/CurveColors.json");
-
+#endif
     if(cols.open(QFile::ReadOnly))
     {
         // TODO refactor with ScenarioControl

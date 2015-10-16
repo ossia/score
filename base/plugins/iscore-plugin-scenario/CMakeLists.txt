@@ -13,6 +13,10 @@ if(ISCORE_OPENGL)
 find_package(Qt5 5.5 REQUIRED COMPONENTS OpenGL)
 endif()
 
+if(ISCORE_WEBSOCKETS)
+find_package(Qt5 5.5 REQUIRED COMPONENTS WebSockets)
+endif()
+
 ### Library ###
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
 
@@ -58,9 +62,19 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/source/Tools/*.hpp"
 )
 
+list(REMOVE_ITEM HDRS "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/WebSocketView.hpp")
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/source/resources/ScenarioResources.qrc")
 
+message(${HDRS})
+if(ISCORE_WEBSOCKETS)
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/WebSocketView.cpp"
+)
+set(HDRS ${HDRS}
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/BaseElement/WebSocketView.hpp"
+)
+endif()
+set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/VerticalExtentSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/Constraint/ViewModels/ConstraintViewModelSerialization.cpp"
@@ -101,9 +115,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveRackFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/RemoveProcessFromConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/SetRigidity.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/AssignMessagesToState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/State/UnassignMessagesFromState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/AddStateToEvent.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SetCondition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Event/SplitEvent.cpp"
 
@@ -129,7 +141,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/AddMessagesToModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/UpdateState.cpp"
 
@@ -219,7 +230,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/StateModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageItemModelAlgorithms.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/source/Document/State/ItemModel/MessageData.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Panel/ProcessPanelGraphicsProxy.cpp"
@@ -309,6 +319,10 @@ target_link_libraries(iscore_plugin_scenario Qt5::Core Qt5::Widgets Qt5::Xml Qt5
 
 if(ISCORE_OPENGL)
 target_link_libraries(iscore_plugin_scenario Qt5::OpenGL)
+endif()
+
+if(ISCORE_WEBSOCKETS)
+target_link_libraries(iscore_plugin_scenario Qt5::WebSockets)
 endif()
 
 if(TARGET iscore_lib_inspector)

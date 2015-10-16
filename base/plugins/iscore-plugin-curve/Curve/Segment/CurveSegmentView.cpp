@@ -10,7 +10,7 @@ CurveSegmentView::CurveSegmentView(
         QGraphicsItem *parent):
     QGraphicsObject{parent}
 {
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
     this->setFlag(ItemIsFocusable, false);
 
     setModel(model);

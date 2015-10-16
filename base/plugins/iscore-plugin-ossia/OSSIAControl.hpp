@@ -37,7 +37,12 @@ class OSSIAControl : public iscore::PluginControlInterface
         void on_documentChanged() override;
 
     private:
+        void on_play(bool);
+        void on_stop();
+
+        void setupOSSIACallbacks();
         std::shared_ptr<OSSIA::Device> m_localDevice;
+        std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
         bool m_playing{false};
 };

@@ -11,7 +11,7 @@ TimeNodeView::TimeNodeView(TimeNodePresenter& presenter,
     m_presenter{presenter}
 {
     this->setParentItem(parent);
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
     this->setAcceptHoverEvents(true);
     this->setCursor(Qt::CrossCursor);
 
@@ -32,10 +32,10 @@ void TimeNodeView::paint(QPainter* painter,
         pen_color = m_color;
     }
 
-    QPen pen{QBrush(pen_color), 1.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+    QPen pen{QBrush(pen_color), 0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
     painter->setPen(pen);
 
-    painter->drawRect(QRectF(QPointF(0, 0), QPointF(0, m_extent.bottom() - m_extent.top())));
+    painter->fillRect(QRectF(QPointF(-1, 0), QPointF(1, m_extent.bottom() - m_extent.top())), QBrush(pen_color));
 
 #if defined(ISCORE_SCENARIO_DEBUG_RECTS)
     painter->setPen(Qt::darkMagenta);

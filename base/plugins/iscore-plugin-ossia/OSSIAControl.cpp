@@ -16,6 +16,8 @@
 #include <API/Headers/Editor/ExpressionAtom.h>
 #include <API/Headers/Editor/ExpressionComposition.h>
 #include <API/Headers/Editor/Value.h>
+
+#include <Network/Protocol/OSC.h>
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
 #include <TTFoundationAPI.h>
 #include <TTModular.h>
@@ -24,6 +26,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
+#include <core/application/Application.hpp>
 
 OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
@@ -37,6 +40,9 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     using namespace OSSIA;
     auto localDevice = OSSIA::Local::create();
     m_localDevice = Device::create(localDevice, "i-score");
+
+    setupOSSIACallbacks();
+
     // Two parts :
     // One that maintains the devices for each document
     // (and disconnects / reconnects them when the current document changes)
@@ -52,30 +58,17 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
         if(act->objectName() == "Play")
         {
             connect(act, &QAction::toggled,
-                    this, [&] (bool b) {
-                if(b)
-                {
-                    if(m_playing)
-                        baseConstraint().OSSIAConstraint()->resume();
-                    else
-                        baseConstraint().play();
-
-                    m_playing = true;
-                }
-                else
-                {
-                    baseConstraint().OSSIAConstraint()->pause();
-                } });
+                    this, &OSSIAControl::on_play);
         }
-        if(act->objectName() == "Stop")
+        else if(act->objectName() == "Stop")
         {
             connect(act, &QAction::triggered,
-                    this, [&] {
-                baseConstraint().stop();
-                m_playing = false;
-            });
+                    this, &OSSIAControl::on_stop);
         }
     }
+
+    con(iscore::Application::instance(), &iscore::Application::autoplay,
+        this, [&] () { on_play(true); });
 }
 
 OSSIAControl::~OSSIAControl()
@@ -138,5 +131,52 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 void OSSIAControl::on_documentChanged()
 {
     ISCORE_TODO;
+}
+
+void OSSIAControl::on_play(bool b)
+{
+    if(b)
+    {
+        if(m_playing)
+            baseConstraint().OSSIAConstraint()->resume();
+        else
+            baseConstraint().play();
+
+        m_playing = true;
+    }
+    else
+    {
+        baseConstraint().OSSIAConstraint()->pause();
+    }
+}
+
+void OSSIAControl::on_stop()
+{
+    baseConstraint().stop();
+    m_playing = false;
+}
+
+void OSSIAControl::setupOSSIACallbacks()
+{
+    // TODO in settings allow to set-up the local device's tree. Or maybe just use the device explorer ??
+    // TODO OSSIALocalDevice
+    auto local_play_node = *(m_localDevice->emplace(m_localDevice->children().cend(), "play"));
+    auto local_play_address = local_play_node->createAddress(OSSIA::Value::Type::BOOL);
+    auto local_stop_node = *(m_localDevice->emplace(m_localDevice->children().cend(), "stop"));
+    auto local_stop_address = local_stop_node->createAddress(OSSIA::Value::Type::IMPULSE);
+
+    local_play_address->addCallback([&] (const OSSIA::Value* v) {
+        if (v->getType() == OSSIA::Value::Type::BOOL)
+        {
+            on_play(static_cast<const OSSIA::Bool*>(v)->value);
+        }
+    });
+
+    local_stop_address->addCallback([&] (const OSSIA::Value*) {
+        on_stop();
+    });
+
+    auto remote_protocol = OSSIA::OSC::create("127.0.0.1", 9999, 6666);
+    m_remoteDevice = OSSIA::Device::create(remote_protocol, "i-score-remote");
 }
 

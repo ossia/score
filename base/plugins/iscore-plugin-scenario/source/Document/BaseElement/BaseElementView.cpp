@@ -15,7 +15,15 @@
 #if defined(ISCORE_OPENGL)
 #include <QGLWidget>
 #endif
+#if defined(ISCORE_WEBSOCKETS)
+#include "WebSocketView.hpp"
+#endif
 #include <ProcessInterface/Style/ScenarioStyle.hpp>
+#include <QSvgGenerator>
+#include <QApplication>
+#include <QAction>
+#include <QMimeData>
+#include <QClipboard>
 BaseElementView::BaseElementView(QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
@@ -24,6 +32,9 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_baseObject {new GraphicsProxyObject},
     m_timeRuler {new TimeRulerView}
 {
+#if defined(ISCORE_WEBSOCKETS)
+    auto wsview = new WebSocketView(m_scene, 9998, this);
+#endif
     m_timeRulersView = new QGraphicsView{m_scene};
 #if defined(ISCORE_OPENGL)
     auto vp1 = new QGLWidget;
@@ -34,6 +45,27 @@ BaseElementView::BaseElementView(QObject* parent) :
     m_timeRulersView->setViewport(vp2);
 #endif
 
+    QAction* snapshot = new QAction("Scenario Screenshot", m_widget);
+    m_widget->addAction(snapshot);
+    snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    snapshot->setShortcut(Qt::Key_F10);
+    connect(snapshot, &QAction::triggered,
+            this, [&] () {
+        QBuffer b;
+        QSvgGenerator p;
+        p.setOutputDevice(&b);
+        p.setSize(QSize(1024,768));
+        p.setViewBox(QRect(0,0,1024,768));
+        QPainter painter;
+        painter.begin(&p);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+        m_scene->render(&painter);
+        painter.end();
+
+        QMimeData * d = new QMimeData;
+        d->setData("image/svg+xml",b.buffer());
+        QApplication::clipboard()->setMimeData(d,QClipboard::Clipboard);
+    });
     m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
     // Configuration
 
@@ -55,7 +87,6 @@ BaseElementView::BaseElementView(QObject* parent) :
     auto transportLayout = new QGridLayout;
 
     QToolBar* transportButtons = new QToolBar;
-
     // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
     transportButtons->setStyle(QStyleFactory::create("windows"));
 

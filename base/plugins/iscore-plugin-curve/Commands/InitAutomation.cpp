@@ -29,13 +29,13 @@ void InitAutomation::redo()
 {
     auto& autom = m_path.find();
 
+    auto& curve = autom.curve();
+    curve.fromCurveData(m_segments);
+
     autom.setMin(m_newMin);
     autom.setMax(m_newMax);
 
     autom.setAddress(m_addr);
-
-    auto& curve = autom.curve();
-    curve.fromCurveData(m_segments);
 }
 
 void InitAutomation::serializeImpl(QDataStream& s) const

@@ -15,7 +15,7 @@ TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
     this->setCursor(Qt::ArrowCursor);
     setAcceptDrops(true);
 
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
 }
 
 TemporalScenarioView::~TemporalScenarioView()

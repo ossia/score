@@ -57,3 +57,31 @@ namespace Scenario
         };
     }
 }
+
+
+
+class AddOnlyProcessToConstraint : public iscore::SerializableCommand
+{
+        ISCORE_COMMAND_DECL("ScenarioControl", "AddOnlyProcessToConstraint", "AddOnlyProcessToConstraint")
+    public:
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddOnlyProcessToConstraint)
+        AddOnlyProcessToConstraint(
+            Path<ConstraintModel>&& constraintPath,
+            QString process);
+
+        void undo() override;
+        void redo() override;
+
+        const Id<Process>& processId() const
+        { return m_createdProcessId; }
+
+    protected:
+        void serializeImpl(QDataStream& s) const override;
+        void deserializeImpl(QDataStream& s) override;
+
+    private:
+        Path<ConstraintModel> m_path;
+        QString m_processName;
+
+        Id<Process> m_createdProcessId {};
+};

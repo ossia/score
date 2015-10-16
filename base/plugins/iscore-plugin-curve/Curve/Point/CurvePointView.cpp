@@ -13,7 +13,7 @@ CurvePointView::CurvePointView(
         QGraphicsItem* parent):
     QGraphicsObject{parent}
 {
-    this->setZValue(parent->zValue() + 2);
+    this->setZValue(2);
     this->setCursor(Qt::CrossCursor);
 
     setModel(model);

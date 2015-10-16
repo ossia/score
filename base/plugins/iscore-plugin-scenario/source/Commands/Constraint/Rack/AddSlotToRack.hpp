@@ -25,6 +25,9 @@ namespace Scenario
                 virtual void undo() override;
                 virtual void redo() override;
 
+                const auto& createdSlot() const
+                { return m_createdSlotId; }
+
             protected:
                 virtual void serializeImpl(QDataStream&) const override;
                 virtual void deserializeImpl(QDataStream&) override;

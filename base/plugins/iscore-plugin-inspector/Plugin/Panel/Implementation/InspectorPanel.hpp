@@ -68,5 +68,5 @@ class InspectorPanel : public QWidget
         InspectorWidgetMap m_map;
 
         iscore::SelectionDispatcher m_selectionDispatcher;
-        Selection m_currentSel;
+        QList<const QObject*> m_currentSel;
 };

@@ -1,6 +1,6 @@
 #pragma once
 #include <QPointF>
-#include <iscore/Settings.hpp>
+#include <QDebug>
 
 /**
  * @brief The VerticalExtent struct
@@ -11,6 +11,8 @@
  * The value is currently in percentage.
  * TODO assess if it would be better to have it in absolute
  * instead.
+ *
+ * TODO private inheritance instead
  */
 struct VerticalExtent
 {
@@ -32,7 +34,6 @@ struct VerticalExtent
         QPointF point;
 };
 
-#include <QDebug>
 inline QDebug operator<< (QDebug d, const VerticalExtent& ve)
 {
     d << ve.point;

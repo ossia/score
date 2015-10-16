@@ -5,7 +5,6 @@
 #include "Document/TimeNode/Trigger/TriggerModel.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 
-#include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/SetCondition.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>

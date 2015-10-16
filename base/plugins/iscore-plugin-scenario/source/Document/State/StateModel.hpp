@@ -1,16 +1,11 @@
 #pragma once
-
 #include <ProcessInterface/ModelMetadata.hpp>
-
-#include <State/State.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/selection/Selectable.hpp>
-
-#include <State/StateItemModel.hpp>
 
 #include <source/Document/State/ItemModel/MessageItemModel.hpp>
 #include <set>

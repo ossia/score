@@ -1,0 +1,7 @@
+{
+"Point" : [ 30, 30, 30 ],
+"PointSelected" : [ 100, 100, 100 ],
+"Segment" : [ 0, 0, 0 ],
+"SegmentSelected" : [ 100, 100, 100 ],
+"SegmentDisabled" : [ 150, 150, 150 ]
+}

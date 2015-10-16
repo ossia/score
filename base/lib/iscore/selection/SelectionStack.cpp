@@ -66,14 +66,36 @@ Selection SelectionStack::currentSelection() const
 
 void SelectionStack::prune(QObject* p)
 {
-    for(auto& sel : m_unselectable)
-    {
-        sel.erase(p);
+    for(Selection& sel : m_unselectable)
+    { // OPTIMIZEME should be removeOne
+        sel.removeAll(p);
+
+        for(auto it = sel.begin(); it != sel.end();)
+        {
+            // We prune the QPointer that might have been invalidated.
+            // This is because if we remove multiple elements at the same time
+            // some might still be in the list after the first destroyed() call; they will be refreshed and may lead to crashes.
+            if((*it).isNull())
+            {
+                it = sel.erase(it);
+            }
+            else
+                ++it;
+        }
     }
 
-    for(auto& sel : m_reselectable)
+    for(Selection& sel : m_reselectable)
     {
-        sel.erase(p);
+        sel.removeAll(p);
+        for(auto it = sel.begin(); it != sel.end();)
+        {
+            if((*it).isNull())
+            {
+                it = sel.erase(it);
+            }
+            else
+                ++it;
+        }
     }
 
     m_unselectable.erase(std::remove_if(

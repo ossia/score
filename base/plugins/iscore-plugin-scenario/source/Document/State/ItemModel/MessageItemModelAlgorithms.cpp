@@ -52,8 +52,13 @@ void rec_delete(MessageNode& node)
         auto parent = node.parent();
         if(parent)
         {
-            parent->removeChild(parent->begin() + parent->indexOfChild(&node));
-            rec_delete(*parent);
+            auto it = std::find_if(parent->begin(), parent->end(), [&] (const auto& other) { return &node == &other; });
+            if(it != parent->end())
+            {
+                parent->children().erase(it);
+                //parent->removeChild(parent->begin() + parent->indexOfChild(&node));
+                rec_delete(*parent);
+            }
         }
     }
 }

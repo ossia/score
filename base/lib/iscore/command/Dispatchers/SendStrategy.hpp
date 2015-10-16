@@ -20,6 +20,16 @@ namespace SendStrategy
             cmd.push(other);
         }
     };
+
+    struct UndoRedo
+    {
+        static void send(iscore::CommandStack& cmd,
+                         iscore::SerializableCommand* other)
+        {
+            other->undo();
+            cmd.redoAndPush(other);
+        }
+    };
 }
 namespace RedoStrategy
 {

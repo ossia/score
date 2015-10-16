@@ -23,7 +23,7 @@ void InterpolateStates(iscore::Document* doc)
     for(auto obj : sel)
     {
         // TODO replace with a virtual Element::type() which will be faster.
-        if(auto cst = dynamic_cast<const ConstraintModel*>(obj))
+        if(auto cst = dynamic_cast<const ConstraintModel*>(obj.data()))
         {
             if(cst->selection.get() && dynamic_cast<ScenarioModel*>(cst->parent()))
             {

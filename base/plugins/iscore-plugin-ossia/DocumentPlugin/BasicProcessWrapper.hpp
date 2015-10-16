@@ -9,7 +9,6 @@ class TimeProcess;
 }
 class BasicProcessWrapper
 {
-
     public:
         BasicProcessWrapper(const std::shared_ptr<OSSIA::TimeConstraint>& cst,
                        const std::shared_ptr<OSSIA::TimeProcess>& ptr,

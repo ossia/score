@@ -11,7 +11,7 @@ CurveView::CurveView(QGraphicsItem *parent):
     //this->setCursor(Qt::ArrowCursor);
     this->setFlags(ItemClipsChildrenToShape | ItemIsFocusable);
 
-    this->setZValue(parent->zValue() + 1);
+    this->setZValue(1);
 }
 
 CurveView::~CurveView()

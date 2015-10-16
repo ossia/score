@@ -22,7 +22,7 @@ void SnapshotParametersInStates(iscore::Document* doc)
     QList<const StateModel*> selected_states;
     for(auto obj : sel)
     {
-        if(auto st = dynamic_cast<const StateModel*>(obj))
+        if(auto st = dynamic_cast<const StateModel*>(obj.data()))
             if(st->selection.get()) // TODO this should not be necessary?
                 selected_states.push_back(st);
     }

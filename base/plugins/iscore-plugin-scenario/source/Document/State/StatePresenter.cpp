@@ -2,9 +2,7 @@
 #include "StateModel.hpp"
 #include "StateView.hpp"
 
-#include "Commands/Event/AddStateToEvent.hpp"
 #include "Commands/Event/State/AddStateWithData.hpp"
-#include <Commands/State/AddMessagesToModel.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
 

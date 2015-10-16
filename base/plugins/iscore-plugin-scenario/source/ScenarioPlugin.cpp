@@ -4,7 +4,6 @@
 #include <Process/ScenarioFactory.hpp>
 #include <Panel/ProcessPanelFactory.hpp>
 
-#include <State/State.hpp>
 #include <State/Message.hpp>
 #include "Control/Menus/ScenarioCommonContextMenuFactory.hpp"
 

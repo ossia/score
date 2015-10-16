@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>CurveColors.json</file>
+        <file>CurveColors-IEEE.json</file>
     </qresource>
 </RCC>

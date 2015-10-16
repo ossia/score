@@ -2,8 +2,6 @@
 
 #include <Document/State/StateModel.hpp>
 #include <DeviceExplorer/../Plugin/Widgets/MessageListEditor.hpp>
-#include <State/StateItemModel.hpp>
-#include <Commands/Event/State/AssignMessagesToState.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <Document/State/ItemModel/MessageItemModel.hpp>
 #include <core/document/Document.hpp>

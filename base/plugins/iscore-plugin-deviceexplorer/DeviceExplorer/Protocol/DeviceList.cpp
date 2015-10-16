@@ -11,7 +11,7 @@ static auto get_device_iterator_by_name(
                         [&] (DeviceInterface* d) { return d->settings().name == name; });
 }
 
-
+// TODO directly return iterator
 bool DeviceList::hasDevice(const QString &name) const
 {
     return get_device_iterator_by_name(name, m_devices) != m_devices.cend();

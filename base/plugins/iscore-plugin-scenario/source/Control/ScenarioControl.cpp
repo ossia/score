@@ -10,7 +10,6 @@
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/State/StateModel.hpp"
 #include "Process/ScenarioModel.hpp"
-#include "ScenarioCommandFactory.hpp"
 
 #include "Process/Temporal/TemporalScenarioPresenter.hpp"
 
@@ -343,8 +342,11 @@ void ScenarioControl::on_documentChanged()
 void ScenarioControl::initColors()
 {
     ScenarioStyle& instance = ScenarioStyle::instance();
+#ifdef ISCORE_IEEE_SKIN
+    QFile cols(":/ScenarioColors-IEEE.json");
+#else
     QFile cols(":/ScenarioColors.json");
-
+#endif
     if(cols.open(QFile::ReadOnly))
     {
         auto obj = QJsonDocument::fromJson(cols.readAll()).object();
@@ -354,13 +356,14 @@ void ScenarioControl::initColors()
                 return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
             else if(arr.size() == 4)
                 return QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt());
+            ISCORE_ABORT;
             return QColor{};
         };
 
         instance.ConstraintBase = fromColor("ConstraintBase");
         instance.ConstraintSelected = fromColor("ConstraintSelected");
         instance.ConstraintPlayFill = fromColor("ConstraintPlayFill");
-        instance.ConstraintWarning = fromColor("constraintWarning");
+        instance.ConstraintWarning = fromColor("ConstraintWarning");
         instance.ConstraintInvalid = fromColor("ConstraintInvalid");
         instance.ConstraintDefaultLabel = fromColor("ConstraintDefaultLabel");
         instance.ConstraintDefaultBackground = fromColor("ConstraintDefaultBackground");
@@ -405,6 +408,8 @@ void ScenarioControl::initColors()
         instance.TimeRulerBackground = fromColor("TimeRulerBackground");
         instance.TimeRuler = fromColor("TimeRuler");
         instance.LocalTimeRuler = fromColor("LocalTimeRuler");
+
+        qDebug() << instance.Background;
     }
 }
 

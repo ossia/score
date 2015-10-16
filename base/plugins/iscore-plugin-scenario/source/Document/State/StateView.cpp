@@ -13,7 +13,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
 {
     this->setParentItem(parent);
 
-    this->setZValue(parent->zValue() + 5);
+    this->setZValue(5);
     this->setAcceptDrops(true);
     this->setAcceptHoverEvents(true);
 }
