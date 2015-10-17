@@ -1,6 +1,7 @@
 #include "Expression.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <iscore/tools/VariantSerialization.hpp>
 
 #include "Relation.hpp"
 

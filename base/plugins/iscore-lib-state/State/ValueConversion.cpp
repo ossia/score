@@ -1,7 +1,12 @@
 #include "ValueConversion.hpp"
 #include <QJsonArray>
+namespace iscore
+{
+namespace convert
+{
+
 template<>
-QVariant iscore::convert::value(const iscore::Value& val)
+QVariant value(const iscore::Value& val)
 {
     static const constexpr struct {
         public:
@@ -31,7 +36,7 @@ QVariant iscore::convert::value(const iscore::Value& val)
 }
 
 template<>
-QJsonValue iscore::convert::value(const iscore::Value& val)
+QJsonValue value(const iscore::Value& val)
 {
     static const constexpr struct {
         public:
@@ -65,7 +70,7 @@ QJsonValue iscore::convert::value(const iscore::Value& val)
 }
 
 
-QString iscore::convert::textualType(const iscore::Value& val)
+QString textualType(const iscore::Value& val)
 {
     // TODO apply_type ?
     static const constexpr struct {
@@ -142,14 +147,14 @@ static iscore::Value toValue(const QJsonValue& val, std::size_t which)
     return iscore::Value{toValueImpl(val, which)};
 }
 
-iscore::Value iscore::convert::toValue(const QJsonValue& val, const QString& type)
+iscore::Value toValue(const QJsonValue& val, const QString& type)
 {
     return toValue(val, which(type));
 }
 
 
 
-QString iscore::convert::prettyType(const iscore::Value& val)
+QString prettyType(const iscore::Value& val)
 {
     // TODO apply_type ?
 
@@ -171,7 +176,7 @@ QString iscore::convert::prettyType(const iscore::Value& val)
 }
 
 
-QStringList iscore::convert::prettyTypes()
+QStringList prettyTypes()
 {
     return {
         QString{"Impulse"}, QString{"Int"}, QString{"Float"}, QString{"Bool"}, QString{"String"}, QString{"Char"}, QString{"Tuple"}
@@ -179,7 +184,7 @@ QStringList iscore::convert::prettyTypes()
 }
 
 template<>
-int iscore::convert::value(const iscore::Value& val)
+int value(const iscore::Value& val)
 {
     static const constexpr struct {
         public:
@@ -197,7 +202,7 @@ int iscore::convert::value(const iscore::Value& val)
 }
 
 template<>
-float iscore::convert::value(const iscore::Value& val)
+float value(const iscore::Value& val)
 {
     static const constexpr struct {
         public:
@@ -214,13 +219,13 @@ float iscore::convert::value(const iscore::Value& val)
     return eggs::variants::apply(visitor, val.val.impl());
 }
 template<>
-double iscore::convert::value(const iscore::Value& val)
+double value(const iscore::Value& val)
 {
-    return (double) iscore::convert::value<float>(val);
+    return (double) value<float>(val);
 }
 
 template<>
-bool iscore::convert::value(const iscore::Value& val)
+bool value(const iscore::Value& val)
 {
     static const constexpr struct {
         public:
@@ -238,7 +243,7 @@ bool iscore::convert::value(const iscore::Value& val)
 }
 
 template<>
-QChar iscore::convert::value(const iscore::Value& val)
+QChar value(const iscore::Value& val)
 {
     static const constexpr struct {
         public:
@@ -256,7 +261,7 @@ QChar iscore::convert::value(const iscore::Value& val)
 }
 
 template<>
-QString iscore::convert::value(const iscore::Value& val)
+QString value(const iscore::Value& val)
 {
     static const constexpr struct {
             QString operator()(const iscore::impulse_t&) const { return {}; }
@@ -276,7 +281,7 @@ QString iscore::convert::value(const iscore::Value& val)
 }
 
 
-QString iscore::convert::toPrettyString(const iscore::Value& val)
+QString toPrettyString(const iscore::Value& val)
 {
     static const constexpr struct {
             QString operator()(const iscore::impulse_t&) const { return {}; }
@@ -317,14 +322,17 @@ QString iscore::convert::toPrettyString(const iscore::Value& val)
 }
 
 
-bool iscore::convert::convert(const iscore::Value& orig, iscore::Value& toConvert)
+bool convert(const iscore::Value& orig, iscore::Value& toConvert)
 {
     ISCORE_TODO;
 
 }
 
 
-iscore::Value iscore::convert::toValue(const QVariant& val)
+iscore::Value toValue(const QVariant& val)
 {
     ISCORE_TODO;
+}
+
+}
 }

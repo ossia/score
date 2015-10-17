@@ -2,7 +2,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include "Value.hpp"
 #include <State/ValueConversion.hpp>
-#include <iscore/tools/VariantBasedNode.hpp>
+#include <iscore/tools/VariantSerialization.hpp>
 using namespace iscore;
 // TODO clean this file
 template<>
