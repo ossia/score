@@ -10,7 +10,7 @@ BoolValueWidget::BoolValueWidget(bool value, QWidget *parent)
 {
     auto lay = new iscore::MarginLess<QGridLayout>;
     m_value = new QComboBox;
-    m_value->addItems({tr("False"), tr("True")});
+    m_value->addItems({tr("false"), tr("true")});
 
     lay->addWidget(m_value);
     m_value->setCurrentIndex(value ? 1 : 0);

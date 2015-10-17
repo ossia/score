@@ -11,6 +11,7 @@ QVariant value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = QVariant;
+            return_type operator()(const no_value_t&) const { return QVariant{}; }
             return_type operator()(const impulse_t&) const { return QVariant{}; } // TODO UserType+1 instead.
             return_type operator()(int i) const { return QVariant::fromValue(i); }
             return_type operator()(float f) const { return QVariant::fromValue(f); }
@@ -41,6 +42,7 @@ QJsonValue value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = QJsonValue;
+            return_type operator()(const no_value_t&) const { return {}; }
             return_type operator()(const impulse_t&) const { return {}; }
             return_type operator()(int i) const { return i; }
             return_type operator()(float f) const { return f; }
@@ -76,6 +78,7 @@ QString textualType(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = QString;
+            return_type operator()(const no_value_t&) const { return "NoValue"; }
             return_type operator()(const impulse_t&) const { return "Impulse"; }
             return_type operator()(int) const { return "Int"; }
             return_type operator()(float) const { return "Float"; }
@@ -90,41 +93,49 @@ QString textualType(const iscore::Value& val)
 
 #include <array>
 
-static std::size_t which(const QString& val)
+static ValueType which(const QString& val)
 {
-    static const std::array<QString, 7> types{{
-        QString{"Impulse"}, QString{"Int"}, QString{"Float"}, QString{"Bool"}, QString{"String"}, QString{"Char"}, QString{"Tuple"}
+    static const std::array<QString, 8> types{{
+        QString{"Impulse"},
+        QString{"Int"},
+        QString{"Float"},
+        QString{"Bool"},
+        QString{"String"},
+        QString{"Char"},
+        QString{"Tuple"},
+        QString{"NoValue"}
     }};
 
     auto it = std::find(types.begin(), types.end(), val);
-    if(it != types.end())
-        return std::distance(types.begin(), it);
-    return iscore::ValueImpl::variant_t::npos;
+    ISCORE_ASSERT(it != types.end()); // What happens if there is a corrupt save file ?
+    return static_cast<iscore::ValueType>(std::distance(types.begin(), it));
 }
 
 
-static iscore::ValueImpl toValueImpl(const QJsonValue& val, std::size_t which)
+static iscore::ValueImpl toValueImpl(const QJsonValue& val, iscore::ValueType which)
 {
     switch(which)
     {
-        case 0:
+        case ValueType::NoValue:
+            return iscore::ValueImpl{iscore::no_value_t{}};
+        case ValueType::Impulse:
             return iscore::ValueImpl{iscore::impulse_t{}};
-        case 1:
+        case ValueType::Int:
             return iscore::ValueImpl{val.toInt()};
-        case 2:
+        case ValueType::Float:
             return iscore::ValueImpl{val.toDouble()};
-        case 3:
+        case ValueType::Bool:
             return iscore::ValueImpl{val.toBool()};
-        case 4:
+        case ValueType::String:
             return iscore::ValueImpl{val.toString()};
-        case 5:
+        case ValueType::Char:
         {
             auto str = val.toString();
             if(str.size() > 0)
                 return iscore::ValueImpl{val.toString()[0]};
             return iscore::ValueImpl{QChar{}};
         }
-        case 6:
+        case ValueType::Tuple:
         {
             auto arr = val.toArray();
             iscore::tuple_t tuple;
@@ -139,10 +150,11 @@ static iscore::ValueImpl toValueImpl(const QJsonValue& val, std::size_t which)
         }
         default:
             ISCORE_ABORT;
+            throw;
     }
 }
 
-static iscore::Value toValue(const QJsonValue& val, std::size_t which)
+static iscore::Value toValue(const QJsonValue& val, ValueType which)
 {
     return iscore::Value{toValueImpl(val, which)};
 }
@@ -163,6 +175,7 @@ QString prettyType(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = QString;
+            return_type operator()(const no_value_t&) const { return QObject::tr("No value"); }
             return_type operator()(const impulse_t&) const { return QObject::tr("Impulse"); }
             return_type operator()(int) const { return QObject::tr("Int"); }
             return_type operator()(float) const { return QObject::tr("Float"); }
@@ -179,7 +192,14 @@ QString prettyType(const iscore::Value& val)
 QStringList prettyTypes()
 {
     return {
-        QString{"Impulse"}, QString{"Int"}, QString{"Float"}, QString{"Bool"}, QString{"String"}, QString{"Char"}, QString{"Tuple"}
+        QObject::tr("Impulse"),
+        QObject::tr("Int"),
+        QObject::tr("Float"),
+        QObject::tr("Bool"),
+        QObject::tr("String"),
+        QObject::tr("Char"),
+        QObject::tr("Tuple"),
+        QObject::tr("NoValue")
     };
 }
 
@@ -189,6 +209,7 @@ int value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = int;
+            return_type operator()(const no_value_t&) const { return 0; }
             return_type operator()(const impulse_t&) const { return 0; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -207,6 +228,7 @@ float value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = float;
+            return_type operator()(const no_value_t&) const { return {}; }
             return_type operator()(const impulse_t&) const { return {}; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -230,6 +252,7 @@ bool value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = bool;
+            return_type operator()(const no_value_t&) const { return {}; }
             return_type operator()(const impulse_t&) const { return {}; }
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
@@ -248,6 +271,7 @@ QChar value(const iscore::Value& val)
     static const constexpr struct {
         public:
             using return_type = QChar;
+            return_type operator()(const no_value_t&) const { return '-'; }
             return_type operator()(const impulse_t&) const { return '-'; }
             return_type operator()(int v) const { return '-'; }
             return_type operator()(float v) const { return '-'; }
@@ -264,17 +288,39 @@ template<>
 QString value(const iscore::Value& val)
 {
     static const constexpr struct {
-            QString operator()(const iscore::impulse_t&) const { return {}; }
-            QString operator()(int i) const { return QString::number(i); }
-            QString operator()(float f) const { return QString::number(f); }
-            QString operator()(bool b) const {
-                static const QString tr = "True";
-                static const QString f = "False";
+            using return_type = QString;
+            return_type operator()(const iscore::no_value_t&) const { return {}; }
+            return_type operator()(const iscore::impulse_t&) const { return {}; }
+            return_type operator()(int i) const { return QString::number(i); }
+            return_type operator()(float f) const { return QString::number(f); }
+            return_type operator()(bool b) const {
+                static const QString tr = "true";
+                static const QString f = "false";
                 return b ? tr : f;
             }
-            QString operator()(const QString& s) const { return s; }
-            QString operator()(const QChar& c) const { return c; }
-            QString operator()(const iscore::tuple_t& t) const { return ""; }
+            return_type operator()(const QString& s) const { return s; }
+            return_type operator()(const QChar& c) const { return c; }
+            return_type operator()(const iscore::tuple_t& t) const { return ""; }
+    } visitor{};
+
+    return eggs::variants::apply(visitor, val.val.impl());
+}
+
+template<>
+tuple_t value(const iscore::Value& val)
+{
+    static const constexpr struct {
+            using return_type = tuple_t;
+            return_type operator()(const iscore::no_value_t&) const { return {impulse_t{}}; }
+            return_type operator()(const iscore::impulse_t&) const { return {impulse_t{}}; }
+            return_type operator()(int i) const { return {i}; }
+            return_type operator()(float f) const { return {f}; }
+            return_type operator()(bool b) const {
+                return {b};
+            }
+            return_type operator()(const QString& s) const { return {s}; }
+            return_type operator()(const QChar& c) const { return {c}; }
+            return_type operator()(const iscore::tuple_t& t) const { return t; }
     } visitor{};
 
     return eggs::variants::apply(visitor, val.val.impl());
@@ -284,6 +330,7 @@ QString value(const iscore::Value& val)
 QString toPrettyString(const iscore::Value& val)
 {
     static const constexpr struct {
+            QString operator()(const iscore::no_value_t&) const { return {}; }
             QString operator()(const iscore::impulse_t&) const { return {}; }
             QString operator()(int i) const { return QString::number(i); }
             QString operator()(float f) const { return QString::number(f); }
@@ -324,14 +371,92 @@ QString toPrettyString(const iscore::Value& val)
 
 bool convert(const iscore::Value& orig, iscore::Value& toConvert)
 {
-    ISCORE_TODO;
+    switch(orig.val.which())
+    {
+        case ValueType::NoValue:
+            toConvert.val = no_value_t{};
+            break;
+        case ValueType::Impulse:
+            toConvert.val = impulse_t{};
+            break;
+        case ValueType::Int:
+            toConvert.val = value<int>(toConvert);
+            break;
+        case ValueType::Float:
+            toConvert.val = value<float>(toConvert);
+            break;
+        case ValueType::Bool:
+            toConvert.val = value<bool>(toConvert);
+            break;
+        case ValueType::String:
+            toConvert.val = value<QString>(toConvert);
+            break;
+        case ValueType::Char:
+            toConvert.val = value<QChar>(toConvert);
+            break;
+        case ValueType::Tuple:
+            toConvert.val = value<tuple_t>(toConvert);
+            break;
+        default:
+            break;
+    }
 
+    return true;
+}
+
+
+iscore::ValueImpl toValueImpl(const QVariant& val)
+{
+    switch(QMetaType::Type(val.type()))
+    {
+        case QMetaType::Int:
+            return iscore::ValueImpl{val.value<int>()};
+        case QMetaType::UInt:
+            return iscore::ValueImpl{(int)val.value<unsigned int>()};
+        case QMetaType::Long:
+            return iscore::ValueImpl{(int)val.value<long>()};
+        case QMetaType::LongLong:
+            return iscore::ValueImpl{(int)val.value<long long>()};
+        case QMetaType::ULong:
+            return iscore::ValueImpl{(int)val.value<unsigned long>()};
+        case QMetaType::ULongLong:
+            return iscore::ValueImpl{(int)val.value<unsigned long long>()};
+        case QMetaType::Short:
+            return iscore::ValueImpl{(int)val.value<short>()};
+        case QMetaType::UShort:
+            return iscore::ValueImpl{(int)val.value<unsigned short>()};
+        case QMetaType::Float:
+            return iscore::ValueImpl{val.value<float>()};
+        case QMetaType::Double:
+            return iscore::ValueImpl{(float)val.value<double>()};
+        case QMetaType::Bool:
+            return iscore::ValueImpl{val.value<bool>()};
+        case QMetaType::QString:
+            return iscore::ValueImpl{val.value<QString>()};
+        case QMetaType::Char:
+            return iscore::ValueImpl{(QChar)val.value<char>()};
+        case QMetaType::QChar:
+            return iscore::ValueImpl{val.value<char>()};
+        case QMetaType::QVariantList:
+        {
+            auto list = val.value<QVariantList>();
+            tuple_t val;
+            val.reserve(list.size());
+            for(const auto& elt : list)
+            {
+                val.push_back(toValueImpl(elt));
+            }
+        }
+        default:
+            ISCORE_ABORT;
+            return {};
+    }
 }
 
 
 iscore::Value toValue(const QVariant& val)
 {
-    ISCORE_TODO;
+    return iscore::Value{toValueImpl(val)};
 }
 
 }

@@ -21,6 +21,17 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::ValueImpl& value)
 
 
 template<>
+void Visitor<Reader<DataStream>>::readFrom(const iscore::no_value_t& value)
+{
+}
+
+
+template<>
+void Visitor<Writer<DataStream>>::writeTo(iscore::no_value_t& value)
+{
+}
+
+template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::impulse_t& value)
 {
 }

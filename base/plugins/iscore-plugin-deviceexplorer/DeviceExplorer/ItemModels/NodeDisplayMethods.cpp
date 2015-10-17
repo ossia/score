@@ -54,7 +54,16 @@ QVariant valueColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return iscore::convert::toPrettyString(node.get<AddressSettings>().value);
+        const auto& val = node.get<AddressSettings>().value;
+        if(val.val.is<iscore::tuple_t>())
+        {
+            return iscore::convert::toPrettyString(val);
+        }
+        else
+        {
+            return iscore::convert::value<QVariant>(val);
+        }
+
     }
     else if(role == Qt::ForegroundRole)
     {

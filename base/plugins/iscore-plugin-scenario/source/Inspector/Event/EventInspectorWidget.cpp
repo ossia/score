@@ -191,41 +191,6 @@ void EventInspectorWidget::updateDisplayedValues()
 }
 
 
-QVariant textToVariant(const QString& txt)
-{
-    bool ok = false;
-    if(float val = txt.toFloat(&ok))
-    {
-        return val;
-    }
-    if(int val = txt.toInt(&ok))
-    {
-        return val;
-    }
-
-    return txt;
-}
-
-QVariant textToMessageValue(const QStringList& txt)
-{
-    if(txt.empty())
-    {
-        return {};
-    }
-    else if(txt.size() == 1)
-    {
-        return textToVariant(txt.first());
-    }
-    else
-    {
-        QVariantList vl;
-        for(auto& elt : txt)
-        {
-            vl.append(textToVariant(elt));
-        }
-        return vl;
-    }
-}
 using namespace iscore::IDocument;
 using namespace Scenario;
 

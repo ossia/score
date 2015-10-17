@@ -66,33 +66,36 @@ void MessageEditDialog::initTypeCombo()
 #include <State/ValueConversion.hpp>
 void MessageEditDialog::on_typeChanged(int t)
 {
-    // TODO use an enum
     // TODO refactor these widgets with the various address settings widgets
-    switch(t)
+    switch(iscore::ValueType(t))
     {
-        case 0:
+        case iscore::ValueType::NoValue:
             m_val->setWidget(nullptr);
             break;
-        case 1:
+        case iscore::ValueType::Impulse:
+            m_val->setWidget(nullptr);
+            break;
+        case iscore::ValueType::Int:
             m_val->setWidget(new NumericValueWidget<int>(iscore::convert::value<int>(m_message.value), this));
             break;
-        case 2:
+        case iscore::ValueType::Float:
             m_val->setWidget(new NumericValueWidget<float>(iscore::convert::value<float>(m_message.value), this));
             break;
-        case 3:
+        case iscore::ValueType::Bool:
             m_val->setWidget(new BoolValueWidget(iscore::convert::value<bool>(m_message.value), this));
             break;
-        case 4:
+        case iscore::ValueType::String:
             m_val->setWidget(new StringValueWidget(iscore::convert::value<QString>(m_message.value), this));
             break;
-        case 5:
+        case iscore::ValueType::Char:
             // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
             m_val->setWidget(new CharValueWidget(iscore::convert::value<QChar>(m_message.value).toLatin1(), this));
             break;
-        case 6:
+        case iscore::ValueType::Tuple:
             ISCORE_TODO; // TODO Tuples
             break;
         default:
             ISCORE_ABORT;
+            throw;
     }
 }

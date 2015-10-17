@@ -201,6 +201,7 @@ void createOSSIAAddress(
     static const constexpr struct {
         public:
             using return_type = OSSIA::Value::Type;
+            return_type operator()(const no_value_t&) const { ISCORE_ABORT; return OSSIA::Value::Type::IMPULSE; }
             return_type operator()(const impulse_t&) const { return OSSIA::Value::Type::IMPULSE; }
             return_type operator()(int) const { return OSSIA::Value::Type::INT; }
             return_type operator()(float) const { return OSSIA::Value::Type::FLOAT; }
@@ -220,25 +221,25 @@ void updateOSSIAValue(const iscore::ValueImpl& data, OSSIA::Value& val)
         case OSSIA::Value::Type::IMPULSE:
             break;
         case OSSIA::Value::Type::BOOL:
-            dynamic_cast<OSSIA::Bool&>(val).value = data.get<bool>();
+            safe_cast<OSSIA::Bool&>(val).value = data.get<bool>();
             break;
         case OSSIA::Value::Type::INT:
-            dynamic_cast<OSSIA::Int&>(val).value = data.get<int>();
+            safe_cast<OSSIA::Int&>(val).value = data.get<int>();
             break;
         case OSSIA::Value::Type::FLOAT:
-            dynamic_cast<OSSIA::Float&>(val).value = data.get<float>();
+            safe_cast<OSSIA::Float&>(val).value = data.get<float>();
             break;
         case OSSIA::Value::Type::CHAR: // TODO See TODO in MessageEditDialog
-            dynamic_cast<OSSIA::Char&>(val).value = data.get<QChar>().toLatin1();
+            safe_cast<OSSIA::Char&>(val).value = data.get<QChar>().toLatin1();
             break;
         case OSSIA::Value::Type::STRING:
-            dynamic_cast<OSSIA::String&>(val).value = data.get<QString>().toStdString();
+            safe_cast<OSSIA::String&>(val).value = data.get<QString>().toStdString();
             break;
         case OSSIA::Value::Type::TUPLE:
         {
             tuple_t tuple = data.get<tuple_t>();
-            const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
-            ISCORE_ASSERT(tuple.size() == (int)vec.size());
+            const auto& vec = safe_cast<OSSIA::Tuple&>(val).value;
+            ISCORE_ASSERT(tuple.size() == vec.size());
             for(int i = 0; i < (int)vec.size(); i++)
             {
                 updateOSSIAValue(tuple[i], *vec[i]);
@@ -283,12 +284,12 @@ OSSIA::Value* createOSSIAValue(const T& val)
     return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
-//TODO visitor
 static OSSIA::Value* toValue(const iscore::ValueImpl& val)
 {
     static const constexpr struct {
         public:
             using return_type = OSSIA::Value*;
+            return_type operator()(const no_value_t&) const { ISCORE_ABORT; return nullptr; }
             return_type operator()(const impulse_t&) const { return new OSSIA::Impulse; }
             return_type operator()(int v) const { return new OSSIA::Int{v}; }
             return_type operator()(float v) const { return new OSSIA::Float{v}; }

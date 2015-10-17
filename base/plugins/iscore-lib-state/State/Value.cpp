@@ -29,6 +29,7 @@ bool iscore::Value::operator<(const iscore::Value& m) const
     return false;
 }
 
+iscore::ValueImpl::ValueImpl(iscore::no_value_t v): m_variant{v} { }
 iscore::ValueImpl::ValueImpl(iscore::impulse_t v): m_variant{v} { }
 iscore::ValueImpl::ValueImpl(int v): m_variant{v} { }
 iscore::ValueImpl::ValueImpl(float v): m_variant{v} { }
@@ -39,6 +40,13 @@ iscore::ValueImpl::ValueImpl(QChar v): m_variant{v} { }
 iscore::ValueImpl::ValueImpl(const iscore::tuple_t& v): m_variant{v} { }
 
 
+iscore::ValueImpl::ValueImpl():
+    m_variant{no_value_t{}}
+{
+
+}
+
+iscore::ValueImpl& iscore::ValueImpl::operator=(iscore::no_value_t v) { m_variant = v; return *this; }
 iscore::ValueImpl& iscore::ValueImpl::operator=(iscore::impulse_t v) { m_variant = v; return *this; }
 iscore::ValueImpl& iscore::ValueImpl::operator=(int v) { m_variant = v; return *this;  }
 iscore::ValueImpl& iscore::ValueImpl::operator=(float v) { m_variant = v; return *this;  }

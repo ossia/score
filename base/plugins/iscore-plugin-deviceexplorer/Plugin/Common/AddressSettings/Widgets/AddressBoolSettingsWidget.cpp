@@ -1,12 +1,13 @@
 #include "AddressBoolSettingsWidget.hpp"
+#include <State/ValueConversion.hpp>
 #include <QFormLayout>
 #include <QComboBox>
 AddressBoolSettingsWidget::AddressBoolSettingsWidget(QWidget* parent)
     : AddressSettingsWidget(parent)
 {
     m_cb = new QComboBox;
-    m_cb->addItem(tr("False"), false); // index 0
-    m_cb->addItem(tr("True"), true); // index 1
+    m_cb->addItem(tr("false"), false); // index 0
+    m_cb->addItem(tr("true"), true); // index 1
     // The order is important because then
     // setting the index from a bool is a one-liner in setSettings.
 
@@ -24,5 +25,5 @@ iscore::AddressSettings AddressBoolSettingsWidget::getSettings() const
 void AddressBoolSettingsWidget::setSettings(const iscore::AddressSettings& settings)
 {
     setCommonSettings(settings);
-    m_cb->setCurrentIndex(settings.value.val.get<bool>());
+    m_cb->setCurrentIndex(iscore::convert::value<bool>(settings.value));
 }

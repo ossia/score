@@ -8,12 +8,16 @@
 
 namespace iscore
 {
+struct no_value_t {};
+inline bool operator==(no_value_t, no_value_t) { return true; }
+inline bool operator!=(no_value_t, no_value_t) { return false; }
 struct impulse_t {};
 inline bool operator==(impulse_t, impulse_t) { return true; }
 inline bool operator!=(impulse_t, impulse_t) { return false; }
 
 class ValueImpl;
 using tuple_t = std::vector<ValueImpl>;
+enum class ValueType { Impulse, Int, Float, Bool, String, Char, Tuple, NoValue };
 
 class ValueImpl
 {
@@ -21,14 +25,15 @@ class ValueImpl
         ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
 
     public:
-        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
-        ValueImpl() = default;
+        using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t, no_value_t>;
+        ValueImpl();
         ValueImpl(const ValueImpl&) = default;
         ValueImpl(ValueImpl&&) = default;
 
         ValueImpl& operator=(const ValueImpl&) = default;
         ValueImpl& operator=(ValueImpl&&) = default;
 
+        ValueImpl(no_value_t v);
         ValueImpl(impulse_t v);
         ValueImpl(int v);
         ValueImpl(float v);
@@ -38,6 +43,7 @@ class ValueImpl
         ValueImpl(QChar v);
         ValueImpl(const tuple_t& v);
 
+        ValueImpl& operator=(no_value_t v);
         ValueImpl& operator=(impulse_t v);
         ValueImpl& operator=(int v);
         ValueImpl& operator=(float v);
@@ -54,6 +60,11 @@ class ValueImpl
 
         bool isNumeric() const;
         bool isValid() const;
+
+        ValueType which() const
+        {
+            return static_cast<ValueType>(m_variant.which());
+        }
 
         template<typename TheType>
         bool is() const

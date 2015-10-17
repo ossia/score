@@ -548,7 +548,7 @@ void DeviceExplorerWidget::edit()
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     model()->deviceModel(),
                     iscore::NodePath(*select),
-                    dial.getSettings()};
+                    stgs};
 
             m_cmdDispatcher->submitCommand(cmd);
         }

@@ -35,6 +35,7 @@ AddressEditDialog::AddressEditDialog(
         // Value type
         m_valueTypeCBox = new QComboBox(this);
         m_valueTypeCBox->addItems(AddressSettingsFactory::instance().getAvailableValueTypes());
+        m_valueTypeCBox->setEnabled(false); // Note : the day where the OSSIA API will be able to change the type of an address.
         connect(m_valueTypeCBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
                 this, &AddressEditDialog::updateType);
 

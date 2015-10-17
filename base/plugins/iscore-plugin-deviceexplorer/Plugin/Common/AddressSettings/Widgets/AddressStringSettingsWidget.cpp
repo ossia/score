@@ -1,5 +1,5 @@
 #include "AddressStringSettingsWidget.hpp"
-
+#include <State/ValueConversion.hpp>
 #include <QComboBox>
 #include <QDebug>
 #include <QGridLayout>
@@ -26,7 +26,7 @@ void
 AddressStringSettingsWidget::setSettings(const iscore::AddressSettings &settings)
 {
     setCommonSettings(settings);
-    m_valueEdit->setText(settings.value.val.get<QString>());
+    m_valueEdit->setText(iscore::convert::value<QString>(settings.value));
 }
 
 
@@ -54,7 +54,7 @@ void
 AddressCharSettingsWidget::setSettings(const iscore::AddressSettings &settings)
 {
     setCommonSettings(settings);
-    m_valueEdit->setText(settings.value.val.get<QChar>());
+    m_valueEdit->setText(iscore::convert::value<QChar>(settings.value));
 }
 
 
