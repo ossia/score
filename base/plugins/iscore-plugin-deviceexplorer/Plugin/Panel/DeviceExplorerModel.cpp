@@ -148,14 +148,10 @@ void DeviceExplorerModel::updateDevice(
         auto n = &m_rootNode.childAt(i);
         if(n->get<iscore::DeviceSettings>().name == name)
         {
-            QModelIndex index = createIndex(i, 0, n->parent());
-
-            QModelIndex changedTopLeft = index;
-            QModelIndex changedBottomRight = index;
-
             n->set(dev);
 
-            emit dataChanged(changedTopLeft, changedBottomRight);
+            QModelIndex index = createIndex(i, 0, n->parent());
+            emit dataChanged(index, index);
             return;
         }
     }
@@ -190,24 +186,18 @@ void DeviceExplorerModel::updateAddress(
 
     node->set(addressSettings);
 
-    // OPTIMIZEME
-    QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*node));
-
     emit dataChanged(
-                createIndex(nodeIndex.row(), 0, node->parent()),
-                createIndex(nodeIndex.row(), HEADERS.count(), node->parent()));
+                modelIndexFromNode(*node, 0),
+                modelIndexFromNode(*node, (int)Column::Count));
 }
 
 void DeviceExplorerModel::updateValue(iscore::Node* n, const iscore::Value& v)
 {
     n->get<iscore::AddressSettings>().value = v;
 
-    // OPTIMIZEME
-    QModelIndex nodeIndex = convertPathToIndex(iscore::NodePath(*n));
+    QModelIndex nodeIndex = modelIndexFromNode(*n, 1);
 
-    // TODO this index *may* be invalid. Check it.
-    auto idx = createIndex(nodeIndex.row(), 1, n->parent());
-    emit dataChanged(idx, idx);
+    emit dataChanged(nodeIndex, nodeIndex);
 }
 
 bool DeviceExplorerModel::checkDeviceInstantiatable(
