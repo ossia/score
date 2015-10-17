@@ -62,14 +62,14 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::tuple_t& value)
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::Value& value)
 {
-    m_stream << value.val;
+    readFrom(value.val);
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(iscore::Value& value)
 {
-    m_stream >> value.val;
+    writeTo(value.val);
     checkDelimiter();
 }
 

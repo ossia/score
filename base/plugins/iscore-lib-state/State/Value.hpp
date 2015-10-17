@@ -75,9 +75,6 @@ class ValueImpl
         { return eggs::variants::get<TheType>(m_variant); }
 
         friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
-        friend QDataStream& operator<<(QDataStream& s, const ValueImpl& m);
-
-        friend QDataStream& operator>>(QDataStream& s, ValueImpl& m);
 
     private:
         variant_t m_variant;
@@ -92,9 +89,6 @@ struct Value
 {
         using value_type = ValueImpl;
         value_type val{};
-
-        friend QDataStream& operator<<(QDataStream& s, const Value& m);
-        friend QDataStream& operator>>(QDataStream& s, Value& m);
 
         template<typename Val>
         static Value fromValue(Val&& val)
