@@ -97,7 +97,7 @@ struct StateNodeValues
         {
             auto val = value();
             if(val)
-                return val->toString();
+                return iscore::convert::value<QString>(*val);
             return {};
         }
 

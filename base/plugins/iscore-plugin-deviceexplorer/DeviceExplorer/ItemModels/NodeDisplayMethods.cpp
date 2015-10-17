@@ -104,7 +104,7 @@ QVariant minColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.get<AddressSettings>().domain.min.toQVariant();
+        return iscore::convert::value<QVariant>(node.get<AddressSettings>().domain.min);
     }
 
     return {};
@@ -118,7 +118,7 @@ QVariant maxColumnData(const iscore::Node& node, int role)
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
-        return node.get<AddressSettings>().domain.max.toQVariant();
+        return iscore::convert::value<QVariant>(node.get<AddressSettings>().domain.max);
     }
 
     return {};

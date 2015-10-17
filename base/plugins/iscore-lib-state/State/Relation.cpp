@@ -1,4 +1,5 @@
 #include "Relation.hpp"
+#include <State/ValueConversion.hpp>
 
 
 QString iscore::Relation::toString() const
@@ -11,7 +12,7 @@ QString iscore::Relation::toString() const
             case 0:
                 return get<iscore::Address>(m).toString();
             case 1:
-                return get<iscore::Value>(m).toString();
+                return iscore::convert::toPrettyString(get<iscore::Value>(m));
             default:
                 return "ERROR";
         }

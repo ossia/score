@@ -87,7 +87,7 @@ void Visitor<Reader<DataStream>>::readFrom(const eggs::variant<Args...>& var)
 
             if(auto res = var.template target<typename std::remove_reference<decltype(elt)>::type>())
             {
-                this->readFrom(*res);
+                m_stream << *res;
                 done = true;
             }
         });
@@ -113,7 +113,7 @@ void Visitor<Writer<DataStream>>::writeTo(eggs::variant<Args...>& var)
                 return;
 
             typename std::remove_reference<decltype(elt)>::type data;
-            this->writeTo(data);
+            m_stream >> data;
             var = data;
         });
     }
@@ -136,7 +136,8 @@ class TypeToName;
 // This allows easy store and retrieval under a familiar name
 
 
-
+// TODO add some ASSERT for the variant being set on debug mode. npos case should not happen since we have the OptionalVariant.
+// TODO qstring and Qt-serializable objects ???
 // The _eggs_impl functions are because enum's don't need full-fledged objects in json.
 template<typename T, std::enable_if_t<!is_value_t<T>::value>* = nullptr>
 QJsonValue readFrom_eggs_impl(const T& res)

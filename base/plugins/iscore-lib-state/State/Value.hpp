@@ -1,7 +1,7 @@
 #pragma once
 #include <QVariant>
 #include <iscore/tools/Todo.hpp>
-#include <iscore/serialization/VisitorInterface.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
 #include <boost/optional.hpp>
 #include <eggs/variant.hpp>
 
@@ -17,6 +17,9 @@ using tuple_t = std::vector<ValueImpl>;
 
 class ValueImpl
 {
+        ISCORE_SERIALIZE_FRIENDS(ValueImpl, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(ValueImpl, JSONObject)
+
     public:
         using variant_t = eggs::variant<impulse_t, int, float, bool, QString, QChar, tuple_t>;
         ValueImpl() = default;
@@ -53,7 +56,11 @@ class ValueImpl
         bool isValid() const;
 
         template<typename TheType>
-        TheType value() const
+        bool is() const
+        { return m_variant.target<TheType>() != nullptr; }
+
+        template<typename TheType>
+        TheType get() const
         { return eggs::variants::get<TheType>(m_variant); }
 
         friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
@@ -81,7 +88,7 @@ struct Value
         template<typename Val>
         static Value fromValue(Val&& val)
         {
-            return iscore::Value{value_type{std::forward<Val>(val)}};
+            return iscore::Value{std::forward<Val>(val)};
         }
 
         Value() = default;
@@ -93,16 +100,6 @@ struct Value
         bool operator==(const Value& m) const;
         bool operator!=(const Value& m) const;
         bool operator<(const Value& m) const;
-
-        static iscore::Value fromQVariant(const QVariant& var);
-        QVariant toQVariant() const;
-        QString toString() const;
-        /*
-        template<typename Fun> auto map(Fun&& f)
-        {
-            // todo make a generic switch like serialize_dyn.
-        }
-        */
 };
 
 using ValueList = QList<Value>;

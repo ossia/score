@@ -220,23 +220,23 @@ void updateOSSIAValue(const iscore::ValueImpl& data, OSSIA::Value& val)
         case OSSIA::Value::Type::IMPULSE:
             break;
         case OSSIA::Value::Type::BOOL:
-            dynamic_cast<OSSIA::Bool&>(val).value = data.value<bool>();
+            dynamic_cast<OSSIA::Bool&>(val).value = data.get<bool>();
             break;
         case OSSIA::Value::Type::INT:
-            dynamic_cast<OSSIA::Int&>(val).value = data.value<int>();
+            dynamic_cast<OSSIA::Int&>(val).value = data.get<int>();
             break;
         case OSSIA::Value::Type::FLOAT:
-            dynamic_cast<OSSIA::Float&>(val).value = data.value<float>();
+            dynamic_cast<OSSIA::Float&>(val).value = data.get<float>();
             break;
         case OSSIA::Value::Type::CHAR: // TODO See TODO in MessageEditDialog
-            dynamic_cast<OSSIA::Char&>(val).value = data.value<QChar>().toLatin1();
+            dynamic_cast<OSSIA::Char&>(val).value = data.get<QChar>().toLatin1();
             break;
         case OSSIA::Value::Type::STRING:
-            dynamic_cast<OSSIA::String&>(val).value = data.value<QString>().toStdString();
+            dynamic_cast<OSSIA::String&>(val).value = data.get<QString>().toStdString();
             break;
         case OSSIA::Value::Type::TUPLE:
         {
-            tuple_t tuple = data.value<tuple_t>();
+            tuple_t tuple = data.get<tuple_t>();
             const auto& vec = dynamic_cast<OSSIA::Tuple&>(val).value;
             ISCORE_ASSERT(tuple.size() == (int)vec.size());
             for(int i = 0; i < (int)vec.size(); i++)

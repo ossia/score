@@ -28,6 +28,7 @@ QChar value(const iscore::Value& val);
 
 bool convert(const iscore::Value& orig, iscore::Value& toConvert);
 
+// Adornishments to allow to differentiate between different value types, e.g. 'a', ['a', 12], or "str" for a string.
 QString toPrettyString(const iscore::Value& val);
 
 // We require the type to crrectly read back (e.g. int / float / char)

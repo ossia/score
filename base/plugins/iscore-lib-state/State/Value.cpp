@@ -29,24 +29,6 @@ bool iscore::Value::operator<(const iscore::Value& m) const
     return false;
 }
 
-iscore::Value iscore::Value::fromQVariant(const QVariant& var)
-{
-    ISCORE_TODO;
-    return {};
-}
-
-QVariant iscore::Value::toQVariant() const
-{
-    ISCORE_TODO;
-    return {};
-}
-
-QString iscore::Value::toString() const
-{
-    return {};
-}
-
-
 iscore::ValueImpl::ValueImpl(iscore::impulse_t v): m_variant{v} { }
 iscore::ValueImpl::ValueImpl(int v): m_variant{v} { }
 iscore::ValueImpl::ValueImpl(float v): m_variant{v} { }

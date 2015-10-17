@@ -510,6 +510,8 @@ void DeviceExplorerModel::editData(
 
     if(role == Qt::EditRole)
     {
+        ISCORE_TODO;
+        /*
         if(index.column() == (int)Column::Name)
         {
             const QString s = value.toString();
@@ -523,7 +525,7 @@ void DeviceExplorerModel::editData(
         {
             node->get<iscore::AddressSettings>().ioType = IOTypeStringMap().key(value.toString());
         }
-        else if(index.column() == (int)Column::Value)
+        else */if(index.column() == (int)Column::Value)
         {
             node->get<iscore::AddressSettings>().value = value;
         }

@@ -26,6 +26,7 @@ bool validate(const iscore::Expression& expr)
 #include <State/Expression.hpp>
 using namespace iscore;
 #include <State/ExpressionParser.cpp>
+#include <State/ValueConversion.hpp>
 
 
 /*
@@ -271,7 +272,10 @@ class ExpressionParsingTests: public QObject
                 iscore::Relation val;
                 bool r = parse(first, last, parser, val);
 
-                qDebug() << str.c_str() << r << val.lhs.target<iscore::Address>()->path << val.rhs.target<iscore::Value>()->toQVariant() << "                    ";
+                qDebug() << str.c_str()
+                         << r
+                         << val.lhs.target<iscore::Address>()->path
+                         << iscore::convert::toPrettyString(*val.rhs.target<iscore::Value>());
             }
         }
 
