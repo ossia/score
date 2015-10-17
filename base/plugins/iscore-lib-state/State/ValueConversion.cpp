@@ -213,8 +213,8 @@ int value(const iscore::Value& val)
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
-            return_type operator()(const QString& v) const { return v.toInt(); }
-            return_type operator()(const QChar& v) const { return QString(v).toInt(); }
+            return_type operator()(const QString& v) const { return QLocale::c().toInt(v); }
+            return_type operator()(const QChar& v) const { return QLocale::c().toInt(QString(v)); }
             return_type operator()(const tuple_t& v) const { return 0; }
     } visitor{};
 
@@ -232,8 +232,8 @@ float value(const iscore::Value& val)
             return_type operator()(int v) const { return v; }
             return_type operator()(float v) const { return v; }
             return_type operator()(bool v) const { return v; }
-            return_type operator()(const QString& v) const { return v.toInt(); }
-            return_type operator()(const QChar& v) const { return QString(v).toInt(); }
+            return_type operator()(const QString& v) const { return QLocale::c().toFloat(v); }
+            return_type operator()(const QChar& v) const { return QLocale::c().toFloat(QString(v)); }
             return_type operator()(const tuple_t& v) const { return {}; }
     } visitor{};
 
@@ -290,8 +290,8 @@ QString value(const iscore::Value& val)
             using return_type = QString;
             return_type operator()(const iscore::no_value_t&) const { return {}; }
             return_type operator()(const iscore::impulse_t&) const { return {}; }
-            return_type operator()(int i) const { return QString::number(i); }
-            return_type operator()(float f) const { return QString::number(f); }
+            return_type operator()(int i) const { return QLocale::c().toString(i); }
+            return_type operator()(float f) const { return QLocale::c().toString(f); }
             return_type operator()(bool b) const {
                 static const QString tr = "true";
                 static const QString f = "false";
@@ -331,8 +331,8 @@ QString toPrettyString(const iscore::Value& val)
     static const constexpr struct {
             QString operator()(const iscore::no_value_t&) const { return {}; }
             QString operator()(const iscore::impulse_t&) const { return {}; }
-            QString operator()(int i) const { return QString::number(i); }
-            QString operator()(float f) const { return QString::number(f); }
+            QString operator()(int i) const { return QLocale::c().toString(i); }
+            QString operator()(float f) const { return QLocale::c().toString(f); }
             QString operator()(bool b) const {
                 static const QString tr = "true";
                 static const QString f = "false";

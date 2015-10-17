@@ -423,6 +423,7 @@ bool DeviceExplorerModel::setData(
         {
             // In this case we don't make a command, but we directly push the
             // new value.
+            qDebug() << value.typeName() << value.type();
             auto copy = iscore::convert::toValue(value);
             auto res = iscore::convert::convert(n->get<iscore::AddressSettings>().value, copy);
             if(res)

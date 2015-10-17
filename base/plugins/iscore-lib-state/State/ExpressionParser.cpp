@@ -123,9 +123,10 @@ struct Address_parser : qi::grammar<Iterator, iscore::Address()>
     Address_parser() : Address_parser::base_type(start)
     {
         using qi::alnum;
+        auto base = +qi::char_("a-zA-Z0-9_~().");
 
-        dev = +alnum;
-        member_elt = +alnum;
+        dev = base;
+        member_elt = base;
         path %= (
                     +("/" >> member_elt)
                     | "/"
