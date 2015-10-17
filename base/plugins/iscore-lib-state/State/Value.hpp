@@ -9,6 +9,9 @@
 namespace iscore
 {
 struct impulse_t {};
+inline bool operator==(impulse_t, impulse_t) { return true; }
+inline bool operator!=(impulse_t, impulse_t) { return false; }
+
 class ValueImpl;
 using tuple_t = std::vector<ValueImpl>;
 
@@ -50,13 +53,8 @@ class ValueImpl
         bool isValid() const;
 
         template<typename TheType>
-        bool canConvert() const
-        { return {}; }
-
-        template<typename TheType>
         TheType value() const
-        { return {}; }
-
+        { return eggs::variants::get<TheType>(m_variant); }
 
         friend QDebug& operator<<(QDebug& s, const ValueImpl& m);
         friend QDataStream& operator<<(QDataStream& s, const ValueImpl& m);
@@ -78,7 +76,6 @@ struct Value
         value_type val{};
 
         friend QDataStream& operator<<(QDataStream& s, const Value& m);
-
         friend QDataStream& operator>>(QDataStream& s, Value& m);
 
         template<typename Val>
@@ -87,8 +84,6 @@ struct Value
             return iscore::Value{value_type{std::forward<Val>(val)}};
         }
 
-        static Value fromVariant(const value_type& var);
-
         Value() = default;
         Value(const Value&) = default;
         Value(Value&&) = default;
@@ -96,9 +91,7 @@ struct Value
         Value& operator=(Value&&) = default;
 
         bool operator==(const Value& m) const;
-
         bool operator!=(const Value& m) const;
-
         bool operator<(const Value& m) const;
 
         static iscore::Value fromQVariant(const QVariant& var);

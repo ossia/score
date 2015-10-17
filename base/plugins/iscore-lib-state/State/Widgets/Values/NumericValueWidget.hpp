@@ -21,9 +21,9 @@ class NumericValueWidget : public ValueWidget
             this->setLayout(lay);
         }
 
-        QVariant value() const override
+        iscore::Value value() const override
         {
-            return m_valueSBox->value();
+            return iscore::Value{m_valueSBox->value()};
         }
 
     private:

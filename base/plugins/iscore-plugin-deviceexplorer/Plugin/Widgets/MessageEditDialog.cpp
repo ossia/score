@@ -48,7 +48,7 @@ const iscore::Address &MessageEditDialog::address() const
     return m_addr->address();
 }
 
-QVariant MessageEditDialog::value() const
+iscore::Value MessageEditDialog::value() const
 {
     if(m_val && m_val->widget())
         return m_val->widget()->value();
@@ -67,6 +67,7 @@ void MessageEditDialog::initTypeCombo()
 void MessageEditDialog::on_typeChanged(int t)
 {
     // TODO use an enum
+    // TODO refactor these widgets with the various address settings widgets
     switch(t)
     {
         case 0:
@@ -86,7 +87,7 @@ void MessageEditDialog::on_typeChanged(int t)
             break;
         case 5:
             // TODO here a bug might be introduced : everywhere the char are utf8 while here it's latin1.
-            m_val->setWidget(new NumericValueWidget<char>(iscore::convert::value<QChar>(m_message.value).toLatin1(), this));
+            m_val->setWidget(new CharValueWidget(iscore::convert::value<QChar>(m_message.value).toLatin1(), this));
             break;
         case 6:
             ISCORE_TODO; // TODO Tuples

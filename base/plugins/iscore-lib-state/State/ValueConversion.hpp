@@ -23,6 +23,8 @@ template<>
 double value(const iscore::Value& val);
 template<>
 QString value(const iscore::Value& val);
+template<>
+QChar value(const iscore::Value& val);
 
 bool convert(const iscore::Value& orig, iscore::Value& toConvert);
 

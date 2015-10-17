@@ -1,6 +1,6 @@
 #pragma once
 #include <QWidget>
-
+#include <State/Value.hpp>
 /**
  * @brief The ValueWidget class
  *
@@ -16,5 +16,5 @@ class ValueWidget : public QWidget
 {
     public:
         using QWidget::QWidget;
-        virtual QVariant value() const = 0;
+        virtual iscore::Value value() const = 0;
 };

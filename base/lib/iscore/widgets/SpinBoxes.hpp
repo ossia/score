@@ -15,7 +15,6 @@ template<typename T>
  */
 struct TemplatedSpinBox;
 template<> struct TemplatedSpinBox<int> { using spinbox_type = QSpinBox; using value_type = int; };
-template<> struct TemplatedSpinBox<char> { using spinbox_type = QSpinBox;  using value_type = char; };
 template<> struct TemplatedSpinBox<float> { using spinbox_type = QDoubleSpinBox;  using value_type = float; };
 template<> struct TemplatedSpinBox<double> { using spinbox_type = QDoubleSpinBox;  using value_type = double; };
 

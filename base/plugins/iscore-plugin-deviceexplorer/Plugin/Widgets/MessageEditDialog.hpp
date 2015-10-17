@@ -1,5 +1,6 @@
 #pragma once
 #include <QDialog>
+#include <State/Value.hpp>
 #include "ValueWrapper.hpp"
 
 namespace iscore
@@ -32,7 +33,7 @@ class MessageEditDialog : public QDialog
 
         const iscore::Address& address() const;
 
-        QVariant value() const;
+        iscore::Value value() const;
 
     private:
         void initTypeCombo();

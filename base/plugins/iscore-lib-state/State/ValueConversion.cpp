@@ -139,7 +139,7 @@ static iscore::ValueImpl toValueImpl(const QJsonValue& val, std::size_t which)
 
 static iscore::Value toValue(const QJsonValue& val, std::size_t which)
 {
-    return iscore::Value::fromVariant(toValueImpl(val, which));
+    return iscore::Value{toValueImpl(val, which)};
 }
 
 iscore::Value iscore::convert::toValue(const QJsonValue& val, const QString& type)
@@ -232,6 +232,24 @@ bool iscore::convert::value(const iscore::Value& val)
             return_type operator()(const QString& v) const { return v == "true" || v == "True"; } // TODO boueeeff
             return_type operator()(const QChar& v) const { return v.toLatin1(); }
             return_type operator()(const tuple_t& v) const { return false; }
+    } visitor{};
+
+    return eggs::variants::apply(visitor, val.val.impl());
+}
+
+template<>
+QChar iscore::convert::value(const iscore::Value& val)
+{
+    static const constexpr struct {
+        public:
+            using return_type = QChar;
+            return_type operator()(const impulse_t&) const { return '-'; }
+            return_type operator()(int v) const { return '-'; }
+            return_type operator()(float v) const { return '-'; }
+            return_type operator()(bool v) const { return v ? 'T' : 'F'; }
+            return_type operator()(const QString& v) const { return '-'; } // TODO boueeeff
+            return_type operator()(const QChar& v) const { return  v; }
+            return_type operator()(const tuple_t& v) const { return '-'; }
     } visitor{};
 
     return eggs::variants::apply(visitor, val.val.impl());

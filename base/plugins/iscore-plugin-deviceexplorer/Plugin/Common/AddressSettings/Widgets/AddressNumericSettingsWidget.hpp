@@ -8,7 +8,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QFormLayout>
-
+#include <State/ValueConversion.hpp>
 
 template<typename T>
 class AddressNumericSettingsWidget : public AddressSettingsWidget
@@ -43,13 +43,10 @@ class AddressNumericSettingsWidget : public AddressSettingsWidget
         virtual void setSettings(const iscore::AddressSettings& settings) override
         {
             setCommonSettings(settings);
-            if (settings.value.val.canConvert<T>())
-            {
-                m_valueSBox->setValue(settings.value.val.value<T>());
-            }
+            m_valueSBox->setValue(iscore::convert::value<T>(settings.value));
 
-            m_minSBox->setValue(settings.domain.min.val.value<T>());
-            m_maxSBox->setValue(settings.domain.max.val.value<T>());
+            m_minSBox->setValue(iscore::convert::value<T>(settings.domain.min));
+            m_maxSBox->setValue(iscore::convert::value<T>(settings.domain.max));
 
             // TODO if the "values" part of the domain is set, we
             // have to display a combobox instead.

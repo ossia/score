@@ -10,8 +10,6 @@
 
 using AddressIntSettingsWidget = AddressNumericSettingsWidget<int>;
 using AddressFloatSettingsWidget = AddressNumericSettingsWidget<float>;
-using AddressCharSettingsWidget = AddressNumericSettingsWidget<char>;
-
 
 template <typename T>
 class AddressSettingsWidgetFactoryMethodT : public AddressSettingsWidgetFactoryMethod
