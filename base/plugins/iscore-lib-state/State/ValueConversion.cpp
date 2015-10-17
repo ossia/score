@@ -1,5 +1,6 @@
 #include "ValueConversion.hpp"
 #include <QJsonArray>
+#include <array>
 namespace iscore
 {
 namespace convert
@@ -90,8 +91,6 @@ QString textualType(const iscore::Value& val)
 
     return eggs::variants::apply(visitor, val.val.impl());
 }
-
-#include <array>
 
 static ValueType which(const QString& val)
 {
