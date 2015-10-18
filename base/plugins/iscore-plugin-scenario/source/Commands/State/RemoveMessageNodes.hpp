@@ -9,9 +9,8 @@
 
 class RemoveMessageNodes : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveMessageNodes", "RemoveMessageNodes")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveMessageNodes, "RemoveMessageNodes")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveMessageNodes)
 
           RemoveMessageNodes(
             Path<MessageItemModel>&& ,

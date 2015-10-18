@@ -8,9 +8,8 @@ class AreaModel;
 class DimensionModel;
 class AddArea : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("SpaceControl", "AddArea", "AddArea")
+        ISCORE_COMMAND_DECL("SpaceControl", AddArea, "AddArea")
     public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddArea)
 
           AddArea(Path<SpaceProcess>&& spacProcess,
             int type,

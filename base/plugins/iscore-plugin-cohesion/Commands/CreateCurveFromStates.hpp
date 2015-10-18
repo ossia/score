@@ -1,24 +1,16 @@
 #pragma once
 
+#include "base/plugins/iscore-plugin-scenario/source/Commands/Constraint/AddProcessToConstraint.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
 
 class ConstraintModel;
-namespace Scenario
-{
-namespace Command
-{
-class AddProcessToConstraint;
-}
-}
 
 class CreateCurveFromStates : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("IScoreCohesionControl", "CreateCurveFromStates", "CreateCurveFromStates")
+        ISCORE_SERIALIZABLE_COMMAND_DECL("IScoreCohesionControl", CreateCurveFromStates, "CreateCurveFromStates")
     public:
-        CreateCurveFromStates();
-        ~CreateCurveFromStates();
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,
                 const iscore::Address &address,
@@ -33,7 +25,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        Scenario::Command::AddProcessToConstraint* m_addProcessCmd{};
+        Scenario::Command::AddProcessToConstraint m_addProcessCmd;
 
         iscore::Address m_address;
 

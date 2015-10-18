@@ -20,9 +20,8 @@ namespace Command
 */
 class SetMaxDuration : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SetMaxDuration", "Set constraint maximum")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMaxDuration, "Set constraint maximum")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetMaxDuration)
 
         SetMaxDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
             iscore::SerializableCommand{

@@ -3,9 +3,8 @@
 
 class SetCurveMax : public iscore::PropertyCommand
 {
-        ISCORE_COMMAND_DECL("AutomationControl", "SetCurveMax", "Set curve maximum")
-    public:
-        ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(SetCurveMax, "AutomationControl")
+        ISCORE_PROPERTY_COMMAND_DECL("AutomationControl", SetCurveMax, "Set curve maximum")
+        public:
 
         SetCurveMax(Path<AutomationModel>&& path, double newval):
             iscore::PropertyCommand{std::move(path), "max", newval, factoryName(), commandName(), description()}

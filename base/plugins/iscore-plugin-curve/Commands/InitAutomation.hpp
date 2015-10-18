@@ -8,9 +8,8 @@
 class AutomationModel;
 class InitAutomation : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("AutomationControl", "InitAutomation", "InitAutomation")
+        ISCORE_SERIALIZABLE_COMMAND_DECL("AutomationControl", InitAutomation, "InitAutomation")
     public:
-             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(InitAutomation)
            // Note : the segments shall be sorted from start to end.
         InitAutomation(
                 Path<AutomationModel>&& path,

@@ -19,9 +19,8 @@ namespace Command
  */
 class SetMinDuration : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SetMinDuration", "Set constraint minimum")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetMinDuration)
 
         SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
             iscore::SerializableCommand{

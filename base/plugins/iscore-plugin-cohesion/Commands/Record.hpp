@@ -3,16 +3,8 @@
 
 class Record : public iscore::AggregateCommand
 {
-         ISCORE_COMMAND_DECL("IScoreCohesionControl", "Record", "Record")
+         ISCORE_AGGREGATE_COMMAND_DECL("IScoreCohesionControl", Record, "Record")
     public:
-        Record():
-            AggregateCommand{factoryName(),
-                             commandName(),
-                             description()}
-        {
-
-        }
-
         void undo() const override
         {
             m_cmds[1]->undo();

@@ -6,9 +6,8 @@
 class Group;
 class CreateGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("NetworkControl", "CreateGroup", "CreateGroup")
+        ISCORE_COMMAND_DECL("NetworkControl", CreateGroup, "CreateGroup")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateGroup)
         CreateGroup(ObjectPath&& groupMgrPath, QString groupName);
 
         void undo() const override;

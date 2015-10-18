@@ -16,9 +16,8 @@ namespace Scenario
          */
         class RemoveLayerModelFromSlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveLayerModelFromSlot", "RemoveLayerModelFromSlot")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveLayerModelFromSlot, "RemoveLayerModelFromSlot")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveLayerModelFromSlot)
 
                 RemoveLayerModelFromSlot(
                     Path<SlotModel>&& slotPath,

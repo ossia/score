@@ -15,10 +15,9 @@ namespace Scenario
     {
         class ReplaceConstraintContent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "ReplaceConstraintContent", "ReplaceConstraintContent")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ReplaceConstraintContent, "ReplaceConstraintContent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceConstraintContent)
                 ReplaceConstraintContent(
                     QJsonObject&& sourceConstraint,
                     Path<ConstraintModel>&&  targetConstraint,

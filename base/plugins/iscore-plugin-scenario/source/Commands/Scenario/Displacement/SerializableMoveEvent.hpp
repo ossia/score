@@ -11,9 +11,8 @@ class ScenarioModel;
 
 class SerializableMoveEvent : public iscore::SerializableCommand
 {
-ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "move", "move")
+ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SerializableMoveEvent, "move")
 public:
-    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SerializableMoveEvent)
     virtual
     void
     update(

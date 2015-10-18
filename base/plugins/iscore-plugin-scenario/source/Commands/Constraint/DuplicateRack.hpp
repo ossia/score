@@ -12,10 +12,9 @@ namespace Scenario
     {
         class DuplicateRack : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "DuplicateRack", "DuplicateRack")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), DuplicateRack, "DuplicateRack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(DuplicateRack)
                 DuplicateRack(ObjectPath&& rackToCopy);
 
                 void undo() const override;

@@ -12,9 +12,8 @@ namespace Command
 {
 class CreateState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateState","CreateState")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateState, "CreateState")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateState)
 
         CreateState(
             const ScenarioModel& scenario,

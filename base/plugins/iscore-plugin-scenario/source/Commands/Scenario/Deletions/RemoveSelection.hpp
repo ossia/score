@@ -19,9 +19,8 @@ namespace Scenario
         */
         class RemoveSelection : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveSelection", "RemoveSelection")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "RemoveSelection")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSelection)
                 RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
 
                 void undo() const override;

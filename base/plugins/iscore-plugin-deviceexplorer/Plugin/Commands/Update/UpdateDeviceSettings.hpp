@@ -11,9 +11,8 @@ namespace Command
 {
 class UpdateDeviceSettings : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("DeviceExplorerControl", "UpdateDeviceSettings", "UpdateDeviceSettings")
+        ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", UpdateDeviceSettings, "UpdateDeviceSettings")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateDeviceSettings)
         UpdateDeviceSettings(
                   Path<DeviceDocumentPlugin>&& device_tree,
                   const QString& name,

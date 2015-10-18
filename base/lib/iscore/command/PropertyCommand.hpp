@@ -1,7 +1,21 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#define ISCORE_PROPERTY_COMMAND_DEFAULT_CTOR(THE_CLASS, ParentName) THE_CLASS () : iscore::PropertyCommand{ ParentName , commandName(), description()} { }
+
+#define ISCORE_PROPERTY_COMMAND_DECL(facName, name, desc) \
+    public: \
+        name (): iscore::PropertyCommand{ factoryName() , commandName(), description() } { } \
+        static constexpr const char* factoryName() { return facName; } \
+        static constexpr const char* commandName() { return #name; } \
+        static QString description() { return QObject::tr(desc); }  \
+    static auto static_uid() \
+    { \
+        using namespace std; \
+        hash<string> fn; \
+        return fn(std::string(commandName())); \
+    } \
+    private:
+
 namespace iscore
 {
 /**

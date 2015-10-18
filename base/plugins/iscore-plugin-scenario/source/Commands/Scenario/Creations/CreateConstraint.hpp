@@ -25,10 +25,9 @@ namespace Scenario
         */
         class CreateConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateConstraint","CreateConstraint")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"CreateConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint)
                 CreateConstraint(
                     Path<ScenarioModel>&& scenarioPath,
                     const Id<StateModel>& startState,

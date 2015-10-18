@@ -4,11 +4,5 @@
 
 class RemoveNodes : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL("DeviceExplorerControl", "RemoveNodes", "RemoveNodes")
-         public:
-             RemoveNodes():
-                 AggregateCommand{factoryName(),
-                                  commandName(),
-                                  description()}
-             { }
+        ISCORE_AGGREGATE_COMMAND_DECL("DeviceExplorerControl", RemoveNodes, "RemoveNodes")
 };

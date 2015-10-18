@@ -1,15 +1,26 @@
 #pragma once
 #include <iscore/command/Command.hpp>
-#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(THE_CLASS, ParentName) THE_CLASS () : iscore::SerializableCommand{ ParentName , commandName(), description()} { }
 
 /**
- * Creates a default constructor for serializable commands.
- * Requires ISCORE_COMMAND_DECL presence.
- *
- * TODO we can make this even better by having a
- * using the_command = ... in ISCORE_COMMAND_DECL
+ * This macro is used to specify the common metadata of commands :
+ *  - factory name (e.g. "ScenarioControl")
+ *  - command name
+ *  - command description
  */
-#define ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(THE_CLASS) THE_CLASS () : iscore::SerializableCommand{ factoryName() , commandName(), description() } { }
+#define ISCORE_SERIALIZABLE_COMMAND_DECL(facName, name, desc) \
+    public: \
+        name (): iscore::SerializableCommand{ factoryName() , commandName(), description() } { } \
+        static constexpr const char* factoryName() { return facName; } \
+        static constexpr const char* commandName() { return #name; } \
+        static QString description() { return QObject::tr(desc); }  \
+    static auto static_uid() \
+    { \
+        using namespace std; \
+        hash<string> fn; \
+        return fn(std::string(commandName())); \
+    } \
+    private:
+
 
 namespace iscore
 {

@@ -3,11 +3,5 @@
 
 class CreateCurvesFromAddressesInConstraints : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL("IScoreCohesionControl", "CreateCurvesFromAddressesInConstraints", "CreateCurvesFromAddressesInConstraints")
-    public:
-        CreateCurvesFromAddressesInConstraints():
-            AggregateCommand{factoryName(),
-                             commandName(),
-                             description()}
-        { }
+        ISCORE_AGGREGATE_COMMAND_DECL("IScoreCohesionControl", CreateCurvesFromAddressesInConstraints, "CreateCurvesFromAddressesInConstraints")
 };

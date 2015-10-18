@@ -15,13 +15,8 @@ namespace Command
  */
 class CreateStateMacro : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateStateMacro", "CreateStateMacro")
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateStateMacro, "CreateStateMacro")
     public:
-        CreateStateMacro():
-            AggregateCommand{factoryName(),
-                             commandName(),
-                             description()} { }
-
         void undo() const override
         {
             // We only need to undo the creation of the StateModel.

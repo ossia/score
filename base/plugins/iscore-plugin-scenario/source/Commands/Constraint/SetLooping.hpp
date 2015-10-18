@@ -6,10 +6,9 @@
 class ConstraintModel;
 class SetLooping : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SetLooping", "SetLooping")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "SetLooping")
 
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetLooping)
 
         SetLooping(
                 Path<ConstraintModel>&& constraintPath,

@@ -15,9 +15,8 @@ namespace Scenario
     {
         class SetTrigger : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SetTrigger", "SetTrigger")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "SetTrigger")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetTrigger)
                 SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
                 ~SetTrigger();
 

@@ -8,9 +8,8 @@ namespace Scenario
     {
         class SwitchStatePosition : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SwitchStatePosition", "SwitchStatePosition")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SwitchStatePosition, "SwitchStatePosition")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwitchStatePosition)
                 void undo() const override;
                 void redo() const override;
 

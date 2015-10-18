@@ -14,9 +14,8 @@ namespace Scenario
     {
         class SplitTimeNode : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SplitTimeNode", "SplitTimeNode")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitTimeNode, "SplitTimeNode")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitTimeNode)
                 SplitTimeNode(
                     Path<TimeNodeModel>&& path,
                     QVector<Id<EventModel> > eventsInNewTimeNode);

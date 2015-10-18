@@ -9,9 +9,8 @@ namespace Command
 {
 class CreateTimeNode_Event_State : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateTimeNode_Event_State","CreateTimeNode_Event_State")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateTimeNode_Event_State,"CreateTimeNode_Event_State")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateTimeNode_Event_State)
 
           CreateTimeNode_Event_State(
             const ScenarioModel& scenario,

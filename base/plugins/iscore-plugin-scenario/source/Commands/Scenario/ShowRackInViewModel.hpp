@@ -19,9 +19,8 @@ namespace Scenario
          */
         class ShowRackInViewModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "ShowRackInViewModel", "ShowRackInViewModel")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInViewModel, "ShowRackInViewModel")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowRackInViewModel)
                 ShowRackInViewModel(
                         Path<ConstraintViewModel>&& constraint_path,
                         Id<RackModel> rackId);

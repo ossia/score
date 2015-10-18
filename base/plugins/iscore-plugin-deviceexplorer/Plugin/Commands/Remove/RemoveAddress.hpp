@@ -13,9 +13,8 @@
  */
 class RemoveAddress : public iscore::SerializableCommand
 {
-    ISCORE_COMMAND_DECL("DeviceExplorerControl", "RemoveAddress", "RemoveAddress")
+    ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", RemoveAddress, "RemoveAddress")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveAddress)
         RemoveAddress(
                    Path<DeviceDocumentPlugin>&& device_tree,
                    const iscore::NodePath &nodePath);

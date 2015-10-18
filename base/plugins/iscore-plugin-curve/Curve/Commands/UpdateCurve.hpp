@@ -7,9 +7,8 @@ class CurveSegmentModel;
 
 class UpdateCurve : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("AutomationControl", "UpdateCurve", "UpdateCurve")
+        ISCORE_SERIALIZABLE_COMMAND_DECL("AutomationControl", UpdateCurve, "UpdateCurve")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateCurve)
         UpdateCurve(
           Path<CurveModel>&& model,
           std::vector<CurveSegmentData>&& segments);

@@ -16,13 +16,9 @@ namespace Scenario
          */
         class MoveSlot : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "MoveSlot", "MoveSlot")
+                ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "MoveSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveSlot():
-                      AggregateCommand{factoryName(),
-                                       commandName(),
-                                       description()} { }
 
                 MoveSlot(const Path<SlotModel>& slotToMove,
                          Path<RackModel>&& targetRack) :

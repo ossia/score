@@ -4,6 +4,26 @@
 #include <QList>
 #include <QPair>
 
+/**
+ * This macro is used to specify the common metadata of commands :
+ *  - factory name (e.g. "ScenarioControl")
+ *  - command name
+ *  - command description
+ */
+#define ISCORE_AGGREGATE_COMMAND_DECL(facName, name, desc) \
+    public: \
+        name (): iscore::AggregateCommand{ factoryName() , commandName(), description() } { } \
+        static constexpr const char* factoryName() { return facName; } \
+        static constexpr const char* commandName() { return #name; } \
+        static QString description() { return QObject::tr(desc); }  \
+    static auto static_uid() \
+    { \
+        using namespace std; \
+        hash<string> fn; \
+        return fn(std::string(commandName())); \
+    } \
+    private:
+
 namespace iscore
 {
     /**

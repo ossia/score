@@ -22,10 +22,9 @@ namespace Scenario
         */
         class AddProcessToConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddProcessToConstraint", "AddProcessToConstraint")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddProcessToConstraint, "AddProcessToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint)
                 AddProcessToConstraint(
                     Path<ConstraintModel>&& constraintPath,
                     QString process);
@@ -61,12 +60,10 @@ namespace Scenario
 
 class AddOnlyProcessToConstraint : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddOnlyProcessToConstraint", "AddOnlyProcessToConstraint")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddOnlyProcessToConstraint, "AddOnlyProcessToConstraint")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddOnlyProcessToConstraint)
         AddOnlyProcessToConstraint(
-            Path<ConstraintModel>&& constraintPath,
-            QString process);
+            Path<ConstraintModel>&& constraint, QString process);
 
         void undo() const override;
         void redo() const override;

@@ -27,7 +27,12 @@ namespace Scenario
                     return QObject::tr("Change %1 comments").arg(T::prettyName());
                 }
 
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementComments)
+                ChangeElementComments():
+                    SerializableCommand {factoryName(),
+                                         commandName(),
+                                         description()}
+                { }
+
                 ChangeElementComments(Path<T>&& path, QString newComments) :
                     SerializableCommand {factoryName(),
                                          commandName(),

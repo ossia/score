@@ -17,11 +17,10 @@ namespace Scenario
          */
         class AddRackToConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddRackToConstraint", "AddRackToConstraint")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "AddRackToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddRackToConstraint)
                 AddRackToConstraint(Path<ConstraintModel>&& constraintPath);
 
                 void undo() const override;

@@ -7,9 +7,8 @@ class CurveSegmentModel;
 using SegmentParameterMap = QMap<Id<CurveSegmentModel>, QPair<double, double>>;
 class SetSegmentParameters : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("AutomationControl", "SetSegmentParameters", "SetSegmentParameters")
+        ISCORE_SERIALIZABLE_COMMAND_DECL("AutomationControl", SetSegmentParameters, "SetSegmentParameters")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetSegmentParameters)
         SetSegmentParameters(Path<CurveModel>&& model, SegmentParameterMap&& parameters);
 
         void undo() const override;

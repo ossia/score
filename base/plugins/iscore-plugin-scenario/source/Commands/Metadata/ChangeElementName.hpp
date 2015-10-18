@@ -27,7 +27,12 @@ namespace Scenario
                     return QObject::tr("Change %1 name").arg(T::prettyName());
                 }
 
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementName)
+                ChangeElementName():
+                    SerializableCommand {factoryName(),
+                                         commandName(),
+                                         description()}
+                { }
+
                 ChangeElementName(Path<T>&& path, QString newName) :
                     SerializableCommand{factoryName(),
                                         commandName(),

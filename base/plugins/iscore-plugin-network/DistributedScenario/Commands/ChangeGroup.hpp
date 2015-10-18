@@ -8,7 +8,6 @@ class ChangeGroup : public iscore::SerializableCommand
 {
         ISCORE_COMMAND_DECL("NetworkControl", "ChangeGroup", "Change the group of an element")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeGroup)
         ChangeGroup(ObjectPath&& path, Id<Group> newGroup);
 
         void undo() const override;

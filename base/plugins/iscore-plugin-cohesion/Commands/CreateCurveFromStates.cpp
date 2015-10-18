@@ -1,23 +1,9 @@
 #include "CreateCurveFromStates.hpp"
 
-#include "base/plugins/iscore-plugin-scenario/source/Commands/Constraint/AddProcessToConstraint.hpp"
 #include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Automation/AutomationModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Curve/CurveModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-CreateCurveFromStates::CreateCurveFromStates():
-    iscore::SerializableCommand{
-        "IScoreCohesionControl",
-        commandName(),
-        description()},
-    m_addProcessCmd{new Scenario::Command::AddProcessToConstraint}
-{
-}
-
-CreateCurveFromStates::~CreateCurveFromStates()
-{
-    delete m_addProcessCmd;
-}
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
@@ -28,25 +14,25 @@ CreateCurveFromStates::CreateCurveFromStates(
         "IScoreCohesionControl",
         commandName(),
         description()},
+    m_addProcessCmd{
+        std::move(constraint),
+        "Automation"},
     m_address(address),
     m_start{start},
     m_end{end}
 {
-    m_addProcessCmd = new Scenario::Command::AddProcessToConstraint{
-        std::move(constraint),
-        "Automation"};
 }
 
 void CreateCurveFromStates::undo() const
 {
-    m_addProcessCmd->undo();
+    m_addProcessCmd.undo();
 }
 
 void CreateCurveFromStates::redo() const
 {
-    m_addProcessCmd->redo();
-    auto& cstr = m_addProcessCmd->constraintPath().find();
-    auto& autom = safe_cast<AutomationModel&>(cstr.processes.at(m_addProcessCmd->processId()));
+    m_addProcessCmd.redo();
+    auto& cstr = m_addProcessCmd.constraintPath().find();
+    auto& autom = safe_cast<AutomationModel&>(cstr.processes.at(m_addProcessCmd.processId()));
     autom.setAddress(m_address);
     autom.curve().clear();
 
@@ -73,7 +59,7 @@ void CreateCurveFromStates::redo() const
 
 void CreateCurveFromStates::serializeImpl(QDataStream& s) const
 {
-    s << m_addProcessCmd->serialize() << m_address << m_start << m_end;
+    s << m_addProcessCmd.serialize() << m_address << m_start << m_end;
 }
 
 void CreateCurveFromStates::deserializeImpl(QDataStream& s)
@@ -81,5 +67,5 @@ void CreateCurveFromStates::deserializeImpl(QDataStream& s)
     QByteArray a;
     s >> a >> m_address >> m_start >> m_end;
 
-    m_addProcessCmd->deserialize(a);
+    m_addProcessCmd.deserialize(a);
 }
