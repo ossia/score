@@ -451,10 +451,10 @@ void DeviceExplorerWidget::setListening_rec(const iscore::Node& node, bool b)
 
 void DeviceExplorerWidget::setListening_rec2(const QModelIndex& index, bool b)
 {
-    auto node = model()->nodeFromModelIndex(sourceIndex(index));
+    const auto& node = model()->nodeFromModelIndex(sourceIndex(index));
 
     int i = 0;
-    for(const auto& child : *node)
+    for(const auto& child : node)
     {
         if(child.is<iscore::AddressSettings>())
         {
@@ -485,8 +485,8 @@ void DeviceExplorerWidget::setListening(const QModelIndex& idx, bool b)
     }
     else
     {
-        auto node = model()->nodeFromModelIndex(sourceIndex(idx));
-        for(const auto& child : *node)
+        const auto& node = model()->nodeFromModelIndex(sourceIndex(idx));
+        for(const auto& child : node)
         {
             setListening_rec(child, false);
         }
@@ -507,14 +507,14 @@ DeviceExplorerWidget::proxyModel()
 
 void DeviceExplorerWidget::edit()
 {
-    iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if (select->is<iscore::DeviceSettings>())
+    const auto& select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    if (select.is<iscore::DeviceSettings>())
     {
         if(! m_deviceDialog)
         {
             m_deviceDialog = new DeviceEditDialog(this);
         }
-        auto set = select->get<iscore::DeviceSettings>();
+        auto set = select.get<iscore::DeviceSettings>();
         m_deviceDialog->setSettings(set);
 
         QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());
@@ -533,7 +533,7 @@ void DeviceExplorerWidget::edit()
     }
     else
     {
-        auto before = select->get<iscore::AddressSettings>();
+        auto before = select.get<iscore::AddressSettings>();
         AddressEditDialog dial{before, this};
 
         auto code = static_cast<QDialog::DialogCode>(dial.exec());
@@ -542,12 +542,12 @@ void DeviceExplorerWidget::edit()
         {
             auto stgs = dial.getSettings();
             // TODO do like for DeviceSettings
-            if(!model()->checkAddressEditable(*select->parent(), before, stgs))
+            if(!model()->checkAddressEditable(*select.parent(), before, stgs))
                 return;
 
             auto cmd = new DeviceExplorer::Command::UpdateAddressSettings{
                     model()->deviceModel(),
-                    iscore::NodePath(*select),
+                    iscore::NodePath(select),
                     stgs};
 
             m_cmdDispatcher->submitCommand(cmd);
@@ -562,11 +562,11 @@ void DeviceExplorerWidget::refresh()
     if(!model())
         return;
 
-    iscore::Node* select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
+    const auto& select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
     if ( model()->isDevice(m_ntView->selectedIndex()))
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
-        auto& dev = model()->deviceModel().list().device(select->get<iscore::DeviceSettings>().name);
+        auto& dev = model()->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
         if(!dev.canRefresh())
             return;
 
@@ -690,9 +690,9 @@ void DeviceExplorerWidget::removeNodes()
     QList<iscore::Node*> nodes;
     for(auto index : indexes)
     {
-        auto n = model()->nodeFromModelIndex(sourceIndex(index));
-        if(!n->is<InvisibleRootNodeTag>())
-            nodes.append(n);
+        auto& n = model()->nodeFromModelIndex(sourceIndex(index));
+        if(!n.is<InvisibleRootNodeTag>())
+            nodes.append(&n);
     }
 
     auto cmd = new RemoveNodes;
@@ -721,18 +721,18 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
         // If the node is added in sibling mode, we check that no sibling have
         // the same name
         // Else we check that no child of the index has the same name.
-        auto node = model()->nodeFromModelIndex(index);
+        auto& node = model()->nodeFromModelIndex(index);
 
         // TODO not very elegant.
-        if(insert == InsertMode::AsSibling && node->is<iscore::DeviceSettings>())
+        if(insert == InsertMode::AsSibling && node.is<iscore::DeviceSettings>())
         {
             return;
         }
 
         iscore::Node* parent =
               (insert == InsertMode::AsChild)
-                ? node
-                : node->parent();
+                ? &node
+                : node.parent();
 
         auto stgs = dial.getSettings();
         if(!model()->checkAddressInstantiatable(*parent, stgs))

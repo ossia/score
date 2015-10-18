@@ -97,18 +97,18 @@ QVariant MessageItemModel::data(const QModelIndex &index, int role) const
     if(col < 0 || col >= (int)Column::Count)
         return {};
 
-    auto node = nodeFromModelIndex(index);
+    auto& node = nodeFromModelIndex(index);
 
     switch((Column)col)
     {
         case Column::Name:
         {
-            return nameColumnData(*node, role);
+            return nameColumnData(node, role);
             break;
         }
         case Column::Value:
         {
-            return valueColumnData(*node, role);
+            return valueColumnData(node, role);
             break;
         }
         default:
@@ -253,12 +253,12 @@ bool MessageItemModel::setData(
     if(! index.isValid())
         return false;
 
-    auto n = nodeFromModelIndex(index);
+    auto& n = nodeFromModelIndex(index);
 
-    if(!n->parent() || !n->parent()->parent())
+    if(!n.parent() || !n.parent()->parent())
         return false;
 
-    if(!n->hasValue())
+    if(!n.hasValue())
         return false;
 
     auto col = Column(index.column());
@@ -268,13 +268,13 @@ bool MessageItemModel::setData(
         if(col == Column::Value)
         {
             auto value = iscore::convert::toValue(value_received);
-            auto current_val = n->value();
+            auto current_val = n.value();
             if(current_val)
             {
                 iscore::convert::convert(*current_val, value);
             }
             auto cmd = new AddMessagesToState{*this,
-                                     iscore::MessageList{{address(*n), value}}};
+                                     iscore::MessageList{{address(n), value}}};
 
             CommandDispatcher<> disp(m_stack);
             disp.submitCommand(cmd);

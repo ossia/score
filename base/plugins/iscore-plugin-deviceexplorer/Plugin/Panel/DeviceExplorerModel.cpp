@@ -314,9 +314,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         return QVariant();
     }
 
-    Node* node = nodeFromModelIndex(index);
-
-    const auto& n = *node;
+    const Node& n = nodeFromModelIndex(index);
     switch((Column)col)
     {
         case Column::Name:
@@ -364,9 +362,9 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
 
     if(index.isValid())
     {
-        Node* n = nodeFromModelIndex(index);
+        const Node& n = nodeFromModelIndex(index);
 
-        if(n->isSelectable())
+        if(n.isSelectable())
         {
             f |= Qt::ItemIsSelectable;
         }
@@ -378,7 +376,7 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
         }
 
 
-        if(n->isEditable())
+        if(n.isEditable())
         {
             f |= Qt::ItemIsEditable;
         }
@@ -410,9 +408,9 @@ bool DeviceExplorerModel::setData(
     if(! index.isValid())
         return false;
 
-    auto n = nodeFromModelIndex(index);
+    auto& n = nodeFromModelIndex(index);
 
-    if(!n->is<AddressSettings>())
+    if(!n.is<AddressSettings>())
         return false;
 
     auto col = DeviceExplorerModel::Column(index.column());
@@ -426,23 +424,23 @@ bool DeviceExplorerModel::setData(
             auto copy = iscore::convert::toValue(value);
 
             // We may have to convert types.
-            const auto& orig = n->get<iscore::AddressSettings>().value;
+            const auto& orig = n.get<iscore::AddressSettings>().value;
             if(copy.val.which() != orig.val.which()
             && !iscore::convert::convert(orig, copy))
                 return false;
 
-            n->get<iscore::AddressSettings>().value = copy;
+            n.get<iscore::AddressSettings>().value = copy;
 
             // Note : if we want to disable remote updating, we have to do it
             // here (e.g. if this becomes a settings)
-            m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(*n), copy);
+            m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(n), copy);
 
             return true;
         }
         else
         {
             // Here we make a command because we change the structure of the tree.
-            auto settings = n->get<iscore::AddressSettings>();
+            auto settings = n.get<iscore::AddressSettings>();
             if(col == Column::Name)
             {
                 const QString s = value.toString();
@@ -457,12 +455,12 @@ bool DeviceExplorerModel::setData(
                 settings.ioType = iscore::IOTypeStringMap().key(value.value<QString>());
             }
 
-            if(settings != n->get<iscore::AddressSettings>())
+            if(settings != n.get<iscore::AddressSettings>())
             {
                 // We changed
                 m_cmdQ->redoAndPush(new DeviceExplorer::Command::UpdateAddressSettings{
                                         this->deviceModel(),
-                                        iscore::NodePath{*n},
+                                        iscore::NodePath{n},
                                         settings});
                 return true;
             }
@@ -532,18 +530,18 @@ void DeviceExplorerModel::editData(
 QModelIndex
 DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
 {
-    Node* node = nodeFromModelIndex(index);
+    auto& node = nodeFromModelIndex(index);
 
-    if(! node->hasChildren())
+    if(! node.hasChildren())
     {
         return index;
     }
 
     return bottomIndex(
                 createIndex(
-                    node->childCount() - 1,
+                    node.childCount() - 1,
                     index.column(),
-                    &node->childAt(node->childCount() - 1)));
+                    &node.childAt(node.childCount() - 1)));
 }
 
 bool
@@ -554,8 +552,8 @@ DeviceExplorerModel::isDevice(QModelIndex index) const
         return false;
     }
 
-    Node* n = nodeFromModelIndex(index);
-    return n->is<DeviceSettings>();
+    const Node& n = nodeFromModelIndex(index);
+    return n.is<DeviceSettings>();
 }
 
 bool
@@ -854,7 +852,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     QList<iscore::Node*> nodes;
     std::transform(indexes.begin(), indexes.end(), std::back_inserter(nodes),
                    [&] (const QModelIndex& idx) {
-        return nodeFromModelIndex(idx);
+        return &nodeFromModelIndex(idx);
     });
 
     nodes.removeAll(&m_rootNode);
@@ -918,11 +916,11 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     }
 
 
-    Node* parentNode = nodeFromModelIndex(parent);
+    const Node& parentNode = nodeFromModelIndex(parent);
 
     if(mimeData->hasFormat(iscore::mime::address()))
     {
-        if(parentNode == &m_rootNode)
+        if(&parentNode == &m_rootNode)
         {
             return false;
         }
@@ -931,7 +929,7 @@ DeviceExplorerModel::canDropMimeData(const QMimeData* mimeData,
     {
         ISCORE_ASSERT(mimeData->hasFormat(iscore::mime::device()));
 
-        if(parentNode != &m_rootNode)
+        if(&parentNode != &m_rootNode)
         {
             return false;
         }
@@ -971,7 +969,7 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     if(mimeData->hasFormat(iscore::mime::address()))
     {
         parentIndex = parent;
-        parentNode = nodeFromModelIndex(parent);
+        parentNode = &nodeFromModelIndex(parent);
         mimeType = iscore::mime::address();
 
         if(parentNode == &m_rootNode)
@@ -1069,7 +1067,7 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
         if(index.isValid())
         {
             std::cerr << " index.row=" << index.row() << " col=" << index.column() << " ";
-            Node* n = nodeFromModelIndex(index);
+            Node* n = &nodeFromModelIndex(index);
             std::cerr << " n=" << n << " ";
             Node* parent = n->parent();
 

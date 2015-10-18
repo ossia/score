@@ -4,7 +4,7 @@
 
 RemoveMessageNodes::RemoveMessageNodes(
         Path<MessageItemModel>&& device_tree,
-        const QList<MessageNode*>& nodes):
+        const QList<const MessageNode*>& nodes):
     iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},

@@ -57,12 +57,12 @@ void MessageTreeView::removeNodes()
 {
     auto indexes = selectedIndexes();
 
-    QList<MessageNode*> nodes;
+    QList<const MessageNode*> nodes;
     for(auto index : indexes)
     {
-        auto n = model().nodeFromModelIndex(index);
-        if(n->parent())
-            nodes.append(n);
+        auto& n = model().nodeFromModelIndex(index);
+        if(n.parent())
+            nodes.append(&n);
     }
 
     auto cmd = new RemoveMessageNodes(

@@ -18,23 +18,20 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
         virtual NodeType& rootNode() = 0;
         virtual const NodeType& rootNode() const = 0;
 
-        // TODO references.
-        // TODO candidate for inlining
-        // TODO return ptr<> ?
-        NodeType* nodeFromModelIndex(const QModelIndex &index) const
+        NodeType& nodeFromModelIndex(const QModelIndex &index) const
         {
             auto n =  index.isValid()
                     ? static_cast<NodeType*>(index.internalPointer())
-                    : const_cast<NodeType*>(&rootNode()); // TODO bleh.
+                    : const_cast<NodeType*>(&rootNode());
 
             ISCORE_ASSERT(n);
-            return n;
+            return *n;
         }
 
         QModelIndex parent(const QModelIndex &index) const override
         {
-            auto node = nodeFromModelIndex(index);
-            auto parentNode = node->parent();
+            const auto& node = nodeFromModelIndex(index);
+            auto parentNode = node.parent();
 
             if(!parentNode)
                 return QModelIndex();
@@ -56,10 +53,10 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
             if (!hasIndex(row, column, parent))
                 return QModelIndex();
 
-            auto parentItem = nodeFromModelIndex(parent);
+            auto& parentItem = nodeFromModelIndex(parent);
 
-            if (parentItem->hasChild(row))
-                return createIndex(row, column, &parentItem->childAt(row));
+            if (parentItem.hasChild(row))
+                return createIndex(row, column, &parentItem.childAt(row));
             else
                 return QModelIndex();
         }
@@ -69,13 +66,13 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
             if(parent.column() > 0)
                 return 0;
 
-            auto parentNode = nodeFromModelIndex(parent);
-            return parentNode->childCount();
+            const auto& parentNode = nodeFromModelIndex(parent);
+            return parentNode.childCount();
         }
 
         bool hasChildren(const QModelIndex &parent) const override
         {
-            auto parentNode = nodeFromModelIndex(parent);
-            return parentNode->childCount() > 0;
+            const auto& parentNode = nodeFromModelIndex(parent);
+            return parentNode.childCount() > 0;
         }
 };
