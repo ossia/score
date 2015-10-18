@@ -45,7 +45,6 @@ QVariant nameColumnData(const iscore::Node& node, int role)
     return {};
 }
 
-// TODO rework this to use iscore::Value::toString();
 QVariant valueColumnData(const iscore::Node& node, int role)
 {
     using namespace iscore;
@@ -57,6 +56,7 @@ QVariant valueColumnData(const iscore::Node& node, int role)
         const auto& val = node.get<AddressSettings>().value;
         if(val.val.is<iscore::tuple_t>())
         {
+            // TODO a nice editor for tuples.
             return iscore::convert::toPrettyString(val);
         }
         else

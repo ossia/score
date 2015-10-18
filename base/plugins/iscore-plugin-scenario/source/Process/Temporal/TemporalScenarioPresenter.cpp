@@ -215,7 +215,7 @@ void TemporalScenarioPresenter::on_constraintViewModelRemoved(
     // Don't put a const auto& here, else deletion will crash.
     for(auto& pres : m_constraints)
     {
-        // TODO add an index in the map on viewmodel id ?
+        // OPTIMIZEME add an index in the map on viewmodel id ?
         if(::viewModel(pres).id() == cvm.id())
         {
             auto cid = pres.id();
