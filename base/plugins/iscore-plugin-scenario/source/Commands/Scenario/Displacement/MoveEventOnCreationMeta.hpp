@@ -17,8 +17,8 @@ public:
             const TimeValue& newDate,
             ExpandMode mode);
 
-    void undo() override;
-    void redo() override;
+    void undo() const override;
+    void redo() const override;
 
     const Path<ScenarioModel>& path() const override;
 

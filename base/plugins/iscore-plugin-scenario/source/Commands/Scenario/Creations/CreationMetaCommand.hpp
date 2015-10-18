@@ -22,7 +22,7 @@ namespace Scenario
                                    commandName(),
                                    description()} { }
 
-                virtual void undo() override
+                void undo() const override
         {
             // We only undo the creation commands
             // since the move ones perform unnecessary serialization / etc in this case

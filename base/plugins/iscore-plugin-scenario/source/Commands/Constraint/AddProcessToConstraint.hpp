@@ -31,8 +31,8 @@ namespace Scenario
                     Path<ConstraintModel>&& constraintPath,
                     QString process);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 const Path<ConstraintModel>& constraintPath() const
                 { return m_path; }
@@ -69,8 +69,8 @@ class AddOnlyProcessToConstraint : public iscore::SerializableCommand
             Path<ConstraintModel>&& constraintPath,
             QString process);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
         const Id<Process>& processId() const
         { return m_createdProcessId; }

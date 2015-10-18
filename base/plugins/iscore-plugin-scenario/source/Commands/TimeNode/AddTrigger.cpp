@@ -21,7 +21,7 @@ AddTrigger::~AddTrigger()
     qDeleteAll(m_cmds);
 }
 
-void AddTrigger::undo()
+void AddTrigger::undo() const
 {
     auto& tn = m_path.find();
     tn.trigger()->setActive(false);
@@ -34,7 +34,7 @@ void AddTrigger::undo()
     }
 }
 
-void AddTrigger::redo()
+void AddTrigger::redo() const
 {
     auto& tn = m_path.find();
     tn.trigger()->setActive(true);

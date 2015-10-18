@@ -22,8 +22,8 @@ namespace Scenario
                     Path<SlotModel>&& slotPath,
                     double newSize);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 void update(const Path<SlotModel>&, double size)
                 {

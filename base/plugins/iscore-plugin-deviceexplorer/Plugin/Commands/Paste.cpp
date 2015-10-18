@@ -17,7 +17,7 @@ Paste::Paste(const iscore::NodePath &parentPath, int row,
 
 
 void
-Paste::undo()
+Paste::undo() const
 {
     auto& model = m_model.find();
 
@@ -30,7 +30,7 @@ Paste::undo()
 }
 
 void
-Paste::redo()
+Paste::redo() const
 {
     auto& model = m_model.find();
     QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);

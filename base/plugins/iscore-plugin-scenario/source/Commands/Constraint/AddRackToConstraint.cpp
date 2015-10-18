@@ -18,13 +18,13 @@ AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath)
     m_createdRackId = getStrongId(constraint.racks);
 }
 
-void AddRackToConstraint::undo()
+void AddRackToConstraint::undo() const
 {
     auto& constraint = m_path.find();
     constraint.racks.remove(m_createdRackId);
 }
 
-void AddRackToConstraint::redo()
+void AddRackToConstraint::redo() const
 {
     auto& constraint = m_path.find();
     auto rack = new RackModel{m_createdRackId, &constraint};

@@ -47,7 +47,7 @@ void MoveConstraint::update(const Path<ScenarioModel>& path,
     m_newHeight = height;
 }
 
-void MoveConstraint::undo()
+void MoveConstraint::undo() const
 {
     updateConstraintVerticalPos(
                 m_oldHeight,
@@ -55,7 +55,7 @@ void MoveConstraint::undo()
                 m_path.find());
 }
 
-void MoveConstraint::redo()
+void MoveConstraint::redo() const
 {
     updateConstraintVerticalPos(
                 m_newHeight,

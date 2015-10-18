@@ -32,8 +32,8 @@ class MoveBaseEvent : public iscore::SerializableCommand
             const TimeValue& date,
                   ExpandMode mode);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
 
         void update(
                 const Path<BaseScenario>&,

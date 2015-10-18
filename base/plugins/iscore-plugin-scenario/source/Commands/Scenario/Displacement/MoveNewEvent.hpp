@@ -29,8 +29,8 @@ namespace Scenario
                     const double y,
                     bool yLocked);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 void update(
                         const Path<ScenarioModel>& path,

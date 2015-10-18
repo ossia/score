@@ -6,7 +6,6 @@
 class ConstraintModel;
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
-        //TODO now use this everywhere
         ISCORE_COMMAND_DECL("IScoreCohesionControl", "CreateCurvesFromAddresses", "CreateCurvesFromAddresses")
     public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateCurvesFromAddresses)
@@ -15,8 +14,8 @@ class CreateCurvesFromAddresses : public iscore::SerializableCommand
           Path<ConstraintModel>&& constraint,
             const QList<iscore::Address> &addresses);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

@@ -55,12 +55,12 @@ CreateSequence::CreateSequence(
 
 }
 
-void CreateSequence::undo()
+void CreateSequence::undo() const
 {
     m_command.undo();
 }
 
-void CreateSequence::redo()
+void CreateSequence::redo() const
 {
     m_command.redo();
 

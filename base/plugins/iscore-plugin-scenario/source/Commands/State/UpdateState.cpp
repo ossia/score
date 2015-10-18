@@ -58,7 +58,7 @@ UpdateState::UpdateState(
     updateTreeWithMessageList(m_newState, messages);
 }
 
-void UpdateState::undo()
+void UpdateState::undo() const
 {
     auto& model = m_path.find();
     model = m_oldState;
@@ -75,7 +75,7 @@ void UpdateState::undo()
     }
 }
 
-void UpdateState::redo()
+void UpdateState::redo() const
 {
     auto& model = m_path.find();
     model = m_newState;

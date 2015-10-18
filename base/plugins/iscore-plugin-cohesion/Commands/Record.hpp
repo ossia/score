@@ -13,7 +13,7 @@ class Record : public iscore::AggregateCommand
 
         }
 
-        void undo() override
+        void undo() const override
         {
             m_cmds[1]->undo();
             m_cmds[0]->undo();

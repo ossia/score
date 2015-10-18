@@ -7,16 +7,16 @@
 class AutomationModel;
 class ChangeAddress : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("ChangeAddress", "ChangeAddress")
+        ISCORE_COMMAND_DECL("AutomationControl", "ChangeAddress", "ChangeAddress")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ChangeAddress, "AutomationControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeAddress)
         ChangeAddress(
                 Path<AutomationModel>&& path,
                 const iscore::Address& newval);
 
     public:
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream &) const override;

@@ -25,8 +25,8 @@ class CreateCurveFromStates : public iscore::SerializableCommand
                 double start,
                 double end);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

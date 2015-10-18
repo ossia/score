@@ -56,7 +56,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
     }
 }
 
-void ReplaceConstraintContent::undo()
+void ReplaceConstraintContent::undo() const
 {
     // We just have to remove what we added
     auto& trg_constraint = m_target.find();
@@ -73,7 +73,7 @@ void ReplaceConstraintContent::undo()
 }
 
 
-void ReplaceConstraintContent::redo()
+void ReplaceConstraintContent::redo() const
 {
     auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{

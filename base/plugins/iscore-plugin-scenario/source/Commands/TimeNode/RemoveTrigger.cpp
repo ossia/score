@@ -20,7 +20,7 @@ RemoveTrigger::~RemoveTrigger()
     qDeleteAll(m_cmds);
 }
 
-void RemoveTrigger::undo()
+void RemoveTrigger::undo() const
 {
     auto& tn = m_path.find();
     tn.trigger()->setActive(true);
@@ -33,7 +33,7 @@ void RemoveTrigger::undo()
     }
 }
 
-void RemoveTrigger::redo()
+void RemoveTrigger::redo() const
 {
     auto& tn = m_path.find();
     tn.trigger()->setActive(false);

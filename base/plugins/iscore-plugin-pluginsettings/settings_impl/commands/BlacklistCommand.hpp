@@ -9,8 +9,8 @@ class BlacklistCommand : public iscore::SerializableCommand
     public:
         BlacklistCommand(QString name, bool value);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
         //virtual bool mergeWith(const Command* other) override;
 
     protected:

@@ -29,13 +29,13 @@ class ClientPortChangedCommand : public iscore::Command
         }
         */
 
-        virtual void undo() override
+        void undo() const override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
             target->setClientPort(m_oldval);
         }
 
-        virtual void redo() override
+        void redo() const override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
             target->setClientPort(m_newval);

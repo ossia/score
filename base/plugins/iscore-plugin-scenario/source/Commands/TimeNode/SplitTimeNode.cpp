@@ -30,7 +30,7 @@ SplitTimeNode::SplitTimeNode(
     m_newTimeNodeId = getStrongId(scenar->timeNodes);
 }
 
-void SplitTimeNode::undo()
+void SplitTimeNode::undo() const
 {
     auto& scenar = static_cast<ScenarioModel&>(*m_path.find().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);
@@ -48,7 +48,7 @@ void SplitTimeNode::undo()
     updateTimeNodeExtent(originalTN.id(), scenar);
 }
 
-void SplitTimeNode::redo()
+void SplitTimeNode::redo() const
 {
     auto& scenar = static_cast<ScenarioModel&>(*m_path.find().parent());
     auto& originalTN = scenar.timeNode(m_originalTimeNodeId);

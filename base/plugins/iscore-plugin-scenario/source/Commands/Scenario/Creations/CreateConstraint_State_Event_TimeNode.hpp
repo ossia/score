@@ -40,8 +40,8 @@ class CreateConstraint_State_Event_TimeNode : public iscore::SerializableCommand
         const Id<TimeNodeModel>& createdTimeNode() const
         { return m_newTimeNode; }
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

@@ -20,8 +20,8 @@ namespace DeviceExplorer
                 UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
                               const QList<QPair<const iscore::Node*, iscore::Value>>& nodes);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

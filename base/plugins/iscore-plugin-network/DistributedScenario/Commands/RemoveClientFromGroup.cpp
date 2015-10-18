@@ -12,12 +12,12 @@ RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, Id<Clien
 {
 }
 
-void RemoveClientFromGroup::undo()
+void RemoveClientFromGroup::undo() const
 {
     m_path.find<GroupManager>().group(m_group)->addClient(m_client);
 }
 
-void RemoveClientFromGroup::redo()
+void RemoveClientFromGroup::redo() const
 {
     m_path.find<GroupManager>().group(m_group)->removeClient(m_client);
 }

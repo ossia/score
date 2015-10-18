@@ -16,8 +16,8 @@ class RemoveMessageNodes : public iscore::SerializableCommand
             Path<MessageItemModel>&& ,
             const iscore::NodeList&);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

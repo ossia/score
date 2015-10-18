@@ -34,9 +34,9 @@ class CreateState : public iscore::SerializableCommand
         const Id<StateModel>& createdState() const
         { return m_newState; }
 
-        void undo() override;
+        void undo() const override;
 
-        void redo() override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

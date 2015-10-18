@@ -22,8 +22,8 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(AddSlotToRack, "ScenarioControl")
                 AddSlotToRack(Path<RackModel>&& rackPath);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 const auto& createdSlot() const
                 { return m_createdSlotId; }

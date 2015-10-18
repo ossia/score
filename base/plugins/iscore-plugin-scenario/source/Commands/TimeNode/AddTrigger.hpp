@@ -21,8 +21,8 @@ namespace Scenario
             AddTrigger(Path<TimeNodeModel>&& timeNodePath);
             ~AddTrigger();
 
-            virtual void undo() override;
-            virtual void redo() override;
+            void undo() const override;
+            void redo() const override;
 
         protected:
             virtual void serializeImpl(QDataStream&) const override;
@@ -30,7 +30,7 @@ namespace Scenario
 
         private:
             Path<TimeNodeModel> m_path;
-            QVector<SetRigidity*> m_cmds;
+            mutable QVector<SetRigidity*> m_cmds; // TODO investigate mutable
 
     };
 

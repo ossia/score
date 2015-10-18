@@ -20,8 +20,8 @@ class InitAutomation : public iscore::SerializableCommand
                 std::vector<CurveSegmentData>&& segments);
 
     public:
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream &) const override;

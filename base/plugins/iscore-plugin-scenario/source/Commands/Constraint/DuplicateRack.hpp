@@ -17,8 +17,8 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(DuplicateRack, "ScenarioControl")
                 DuplicateRack(ObjectPath&& rackToCopy);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

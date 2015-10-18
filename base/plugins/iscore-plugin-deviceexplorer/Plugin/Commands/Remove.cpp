@@ -34,12 +34,12 @@ Remove::~Remove()
     delete m_cmd;
 }
 
-void Remove::undo()
+void Remove::undo() const
 {
     m_device ? m_cmd->redo() : m_cmd->undo();
 }
 
-void Remove::redo()
+void Remove::redo() const
 {
     m_device ? m_cmd->undo() : m_cmd->redo();
 }

@@ -23,8 +23,8 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(AddRackToConstraint, "ScenarioControl")
                 AddRackToConstraint(Path<ConstraintModel>&& constraintPath);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 const auto& createdRack() const
                 { return m_createdRackId; }

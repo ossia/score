@@ -16,12 +16,12 @@ class LoadDevice: public iscore::SerializableCommand
             iscore::Node&& node);
 
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;

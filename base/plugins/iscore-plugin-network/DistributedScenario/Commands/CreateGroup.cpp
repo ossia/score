@@ -14,12 +14,12 @@ CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
     m_newGroupId = getStrongId(mgr.groups());
 }
 
-void CreateGroup::undo()
+void CreateGroup::undo() const
 {
     m_path.find<GroupManager>().removeGroup(m_newGroupId);
 }
 
-void CreateGroup::redo()
+void CreateGroup::redo() const
 {
     auto& mgr = m_path.find<GroupManager>();
     mgr.addGroup(new Group{m_name, m_newGroupId, &mgr});

@@ -14,13 +14,13 @@ AddDevice::AddDevice(
 
 }
 
-void AddDevice::undo()
+void AddDevice::undo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.removeDevice(m_parameters);
 }
 
-void AddDevice::redo()
+void AddDevice::redo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.addDevice(m_parameters);

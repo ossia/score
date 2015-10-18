@@ -33,7 +33,7 @@ CreateEvent_State::CreateEvent_State(
 
 }
 
-void CreateEvent_State::undo()
+void CreateEvent_State::undo() const
 {
     m_command.undo();
 
@@ -42,7 +42,7 @@ void CreateEvent_State::undo()
                 m_command.scenarioPath().find());
 }
 
-void CreateEvent_State::redo()
+void CreateEvent_State::redo() const
 {
     auto& scenar = m_command.scenarioPath().find();
 

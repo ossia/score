@@ -14,12 +14,12 @@ AddClientToGroup::AddClientToGroup(ObjectPath&& groupMgrPath,
 {
 }
 
-void AddClientToGroup::undo()
+void AddClientToGroup::undo() const
 {
     m_path.find<GroupManager>().group(m_group)->removeClient(m_client);
 }
 
-void AddClientToGroup::redo()
+void AddClientToGroup::redo() const
 {
     m_path.find<GroupManager>().group(m_group)->addClient(m_client);
 }

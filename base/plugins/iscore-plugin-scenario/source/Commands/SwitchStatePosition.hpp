@@ -10,8 +10,8 @@ namespace Scenario
                 ISCORE_COMMAND_DECL_OBSOLETE("SwitchStatePosition", "SwitchStatePosition")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SwitchStatePosition, "ScenarioControl")
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

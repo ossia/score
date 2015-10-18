@@ -28,8 +28,8 @@ namespace Scenario
                     Path<ConstraintModel>&& constraintPath,
                     Id<Process> process);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 Id<Process> processId() const
                 {

@@ -18,13 +18,13 @@ ResizeSlotVertically::ResizeSlotVertically(
     m_originalSize = slot.height();
 }
 
-void ResizeSlotVertically::undo()
+void ResizeSlotVertically::undo() const
 {
     auto& slot = m_path.find();
     slot.setHeight(m_originalSize);
 }
 
-void ResizeSlotVertically::redo()
+void ResizeSlotVertically::redo() const
 {
     auto& slot = m_path.find();
     slot.setHeight(m_newSize);

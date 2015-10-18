@@ -12,12 +12,12 @@ MoveEventMeta::MoveEventMeta(
 {
 }
 
-void MoveEventMeta::undo()
+void MoveEventMeta::undo() const
 {
     m_moveEventImplementation->undo();
 }
 
-void MoveEventMeta::redo()
+void MoveEventMeta::redo() const
 {
 
     m_moveEventImplementation->redo();

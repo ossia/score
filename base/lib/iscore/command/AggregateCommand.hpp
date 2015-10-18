@@ -25,8 +25,8 @@ namespace iscore
                 m_cmds.push_front(cmd);
             }
 
-            virtual void undo() override;
-            virtual void redo() override;
+            void undo() const override;
+            void redo() const override;
 
             void addCommand(iscore::SerializableCommand* cmd)
             {

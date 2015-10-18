@@ -24,7 +24,7 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses(
     }
 }
 
-void CreateCurvesFromAddresses::undo()
+void CreateCurvesFromAddresses::undo() const
 {
     for(auto& cmd_pack : m_serializedCommands)
     {
@@ -36,7 +36,7 @@ void CreateCurvesFromAddresses::undo()
     }
 }
 
-void CreateCurvesFromAddresses::redo()
+void CreateCurvesFromAddresses::redo() const
 {
     auto& constraint = m_path.find();
 

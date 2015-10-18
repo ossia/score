@@ -30,8 +30,8 @@ class CreateEvent_State : public iscore::SerializableCommand
         const Id<EventModel>& createdEvent() const
         { return m_newEvent; }
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

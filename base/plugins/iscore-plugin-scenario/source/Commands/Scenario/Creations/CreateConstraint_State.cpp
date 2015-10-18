@@ -37,7 +37,7 @@ CreateConstraint_State::CreateConstraint_State(
 }
 
 
-void CreateConstraint_State::undo()
+void CreateConstraint_State::undo() const
 {
     m_command.undo();
 
@@ -47,7 +47,7 @@ void CreateConstraint_State::undo()
     updateEventExtent(m_endEvent, m_command.scenarioPath().find());
 }
 
-void CreateConstraint_State::redo()
+void CreateConstraint_State::redo() const
 {
     auto& scenar = m_command.scenarioPath().find();
 

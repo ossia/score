@@ -144,7 +144,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
     }
 }
 
-void RemoveSelection::undo()
+void RemoveSelection::undo() const
 {
     auto& scenar = m_path.find();
     // First instantiate everything
@@ -288,7 +288,7 @@ void RemoveSelection::undo()
     }
 }
 
-void RemoveSelection::redo()
+void RemoveSelection::redo() const
 {
     auto& scenar = m_path.find();
     // Remove the constraints

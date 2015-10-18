@@ -34,13 +34,13 @@ namespace Scenario
                     m_oldColor = obj.metadata.color();
                 }
 
-                virtual void undo() override
+                void undo() const override
                 {
                     auto& obj = m_path.find();
                     obj.metadata.setColor(m_oldColor);
                 }
 
-                virtual void redo() override
+                void redo() const override
                 {
                     auto& obj = m_path.find();
                     obj.metadata.setColor(m_newColor);

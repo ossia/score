@@ -31,7 +31,7 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
 
 }
 
-void CreateTimeNode_Event_State::undo()
+void CreateTimeNode_Event_State::undo() const
 {
     m_command.undo();
 
@@ -40,7 +40,7 @@ void CreateTimeNode_Event_State::undo()
                 m_command.scenarioPath().find());
 }
 
-void CreateTimeNode_Event_State::redo()
+void CreateTimeNode_Event_State::redo() const
 {
     auto& scenar = m_command.scenarioPath().find();
 

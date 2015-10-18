@@ -21,8 +21,8 @@ namespace DeviceExplorer
                               int deviceIndex,
                               iscore::Node&& rootNode);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

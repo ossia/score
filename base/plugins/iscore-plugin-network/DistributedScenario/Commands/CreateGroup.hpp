@@ -11,8 +11,8 @@ class CreateGroup : public iscore::SerializableCommand
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateGroup)
         CreateGroup(ObjectPath&& groupMgrPath, QString groupName);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
 
         virtual void serializeImpl(QDataStream & s) const override;
         virtual void deserializeImpl(QDataStream & s) override;

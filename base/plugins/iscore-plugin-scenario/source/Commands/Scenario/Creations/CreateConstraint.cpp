@@ -40,14 +40,14 @@ CreateConstraint::CreateConstraint(
     m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
 }
 
-void CreateConstraint::undo()
+void CreateConstraint::undo() const
 {
     auto& scenar = m_path.find();
 
     ScenarioCreate<ConstraintModel>::undo(m_createdConstraintId, scenar);
 }
 
-void CreateConstraint::redo()
+void CreateConstraint::redo() const
 {
     auto& scenar = m_path.find();
     auto& sst = scenar.states.at(m_startStateId);

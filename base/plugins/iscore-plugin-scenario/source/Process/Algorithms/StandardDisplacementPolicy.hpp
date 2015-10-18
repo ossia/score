@@ -33,7 +33,10 @@ class CommonDisplacementPolicy
         template<typename ProcessScaleMethod>
         static
         void
-        updatePositions(ScenarioModel& scenario, ProcessScaleMethod&& scaleMethod, ElementsProperties& elementsPropertiesToUpdate)
+        updatePositions(
+                ScenarioModel& scenario,
+                ProcessScaleMethod&& scaleMethod,
+                const ElementsProperties& elementsPropertiesToUpdate)
         {
             // update each affected timenodes
             for(auto& curTimenodePropertiesToUpdate_id : elementsPropertiesToUpdate.timenodes.keys())
@@ -94,7 +97,10 @@ class CommonDisplacementPolicy
         template<typename ProcessScaleMethod>
         static
         void
-        revertPositions(ScenarioModel& scenario, ProcessScaleMethod&& scaleMethod, ElementsProperties& elementsPropertiesToUpdate)
+        revertPositions(
+                ScenarioModel& scenario,
+                ProcessScaleMethod&& scaleMethod,
+                const ElementsProperties& elementsPropertiesToUpdate)
         {
             // update each affected timenodes with old values
             for(auto& curTimenodePropertiesToUpdate_id : elementsPropertiesToUpdate.timenodes.keys())

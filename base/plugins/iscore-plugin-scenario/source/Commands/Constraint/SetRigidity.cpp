@@ -27,7 +27,7 @@ SetRigidity::SetRigidity(
     m_oldMaxDuration = constraint.duration.maxDuration();
 }
 
-void SetRigidity::undo()
+void SetRigidity::undo() const
 {
     auto& constraint = m_path.find();
     constraint.duration.setRigid(!m_rigidity);
@@ -44,7 +44,7 @@ void SetRigidity::undo()
     }
 }
 
-void SetRigidity::redo()
+void SetRigidity::redo() const
 {
     auto& constraint = m_path.find();
     constraint.duration.setRigid(m_rigidity);

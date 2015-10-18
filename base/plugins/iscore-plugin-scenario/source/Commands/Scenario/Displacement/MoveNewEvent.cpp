@@ -26,14 +26,14 @@ MoveNewEvent::MoveNewEvent(
 
 }
 
-void MoveNewEvent::undo()
+void MoveNewEvent::undo() const
 {
     m_cmd.undo();
     // It is not needed to move the constraint since
     // the sub-command already does it correctly.
 }
 
-void MoveNewEvent::redo()
+void MoveNewEvent::redo() const
 {
     m_cmd.redo();
     if(! m_yLocked)

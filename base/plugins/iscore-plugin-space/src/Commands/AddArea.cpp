@@ -28,13 +28,13 @@ AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
     m_createdAreaId = getStrongId(m_path.find().areas());
 }
 
-void AddArea::undo()
+void AddArea::undo() const
 {
     auto& proc = m_path.find();
     proc.removeArea(m_createdAreaId);
 }
 
-void AddArea::redo()
+void AddArea::redo() const
 {
     auto& proc = m_path.find();
 

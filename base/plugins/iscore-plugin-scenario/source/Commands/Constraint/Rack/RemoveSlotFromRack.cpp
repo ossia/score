@@ -43,14 +43,14 @@ RemoveSlotFromRack::RemoveSlotFromRack(
     m_position = rack.slotPosition(slotId);
 }
 
-void RemoveSlotFromRack::undo()
+void RemoveSlotFromRack::undo() const
 {
     auto& rack = m_path.find();
     Deserializer<DataStream> s {m_serializedSlotData};
     rack.addSlot(new SlotModel {s, &rack}, m_position);
 }
 
-void RemoveSlotFromRack::redo()
+void RemoveSlotFromRack::redo() const
 {
     auto& rack = m_path.find();
     rack.slotmodels.remove(m_slotId);

@@ -108,7 +108,7 @@ class MoveEvent : public SerializableMoveEvent
 
         }
 
-        void undo() override
+        void undo() const override
         {
             auto& scenario = m_path.find();
 
@@ -121,7 +121,7 @@ class MoveEvent : public SerializableMoveEvent
             updateEventExtent(m_eventId, scenario);
         }
 
-        void redo() override
+        void redo() const override
         {
             auto& scenario = m_path.find();
 

@@ -26,7 +26,7 @@ SplitEvent::SplitEvent(const Path<ScenarioModel> &scenario,
 
 }
 
-void SplitEvent::undo()
+void SplitEvent::undo() const
 {
     auto& scenar = m_scenarioPath.find();
     auto& originalEvent = scenar.events.at(m_originalEvent);
@@ -44,7 +44,7 @@ void SplitEvent::undo()
     updateEventExtent(m_originalEvent, scenar);
 }
 
-void SplitEvent::redo()
+void SplitEvent::redo() const
 {
     auto& scenar = m_scenarioPath.find();
     auto& originalEvent = scenar.event(m_originalEvent);

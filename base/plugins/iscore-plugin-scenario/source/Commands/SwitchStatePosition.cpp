@@ -3,11 +3,11 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-void SwitchStatePosition::undo()
+void SwitchStatePosition::undo() const
 {
 }
 
-void SwitchStatePosition::redo()
+void SwitchStatePosition::redo() const
 {
 }
 

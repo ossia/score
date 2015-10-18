@@ -27,8 +27,8 @@ namespace Scenario
                 const Id<StateModel>& stateId,
                 const double y);
 
-              virtual void undo() override;
-              virtual void redo() override;
+              void undo() const override;
+              void redo() const override;
 
               void update(
                       const Path<ScenarioModel>&,

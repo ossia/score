@@ -37,8 +37,8 @@ namespace Scenario
                 const Path<ScenarioModel>& scenarioPath() const
                 { return m_path; }
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 const Id<ConstraintModel>& createdConstraint() const
                 { return m_createdConstraintId; }

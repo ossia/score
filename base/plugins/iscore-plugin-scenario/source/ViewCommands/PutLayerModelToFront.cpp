@@ -10,7 +10,7 @@ PutLayerModelToFront::PutLayerModelToFront(
 
 }
 
-void PutLayerModelToFront::redo()
+void PutLayerModelToFront::redo() const
 {
     m_slotPath.find().putToFront(m_pid);
 }
