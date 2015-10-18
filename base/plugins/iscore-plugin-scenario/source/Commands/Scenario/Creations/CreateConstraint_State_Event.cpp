@@ -55,7 +55,7 @@ void CreateConstraint_State_Event::redo() const
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
                 scenar.timeNode(m_endTimeNode),
-                {{m_command.endStateY(), m_command.endStateY()}},
+                {m_command.endStateY(), m_command.endStateY()},
                 scenar);
 
     scenar.events.at(m_newEvent).metadata.setName(m_createdName);

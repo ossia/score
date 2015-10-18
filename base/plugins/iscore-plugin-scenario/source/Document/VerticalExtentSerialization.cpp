@@ -5,25 +5,25 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const VerticalExtent& ve)
 {
-    m_stream << ve.point;
+    m_stream << static_cast<QPointF>(ve);
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(VerticalExtent& ve)
 {
-    m_stream >> ve.point;
+    m_stream >> static_cast<QPointF&>(ve);
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONValue>>::readFrom(const VerticalExtent& ve)
 {
-    readFrom(ve.point);
+    readFrom(static_cast<QPointF>(ve));
 }
 
 template<>
 void Visitor<Writer<JSONValue>>::writeTo(VerticalExtent& ve)
 {
-    writeTo(ve.point);
+    writeTo(static_cast<QPointF&>(ve));
 }

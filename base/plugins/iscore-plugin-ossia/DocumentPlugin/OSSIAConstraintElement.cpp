@@ -120,7 +120,7 @@ void OSSIAConstraintElement::executionStopped()
 }
 
 void OSSIAConstraintElement::on_processAdded(
-        const Process& iscore_proc) // TODO REMOVE CONST
+        const Process& iscore_proc) // TODO ProcessExecutionView
 {
     // The DocumentPlugin creates the elements in the processes.
     // TODO maybe have an execution_view template on processes, that

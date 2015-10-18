@@ -86,7 +86,6 @@ void merge(
 template<typename Node_T>
 bool isAncestor(const Node_T& gramps, const Node_T* node)
 {
-    // TODO why ??
     auto parent = node->parent();
     if(!parent)
         return false;

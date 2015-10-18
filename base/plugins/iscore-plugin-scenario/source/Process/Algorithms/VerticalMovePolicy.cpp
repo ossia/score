@@ -21,7 +21,7 @@ void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
             max = st.heightPercentage();
     }
 
-    ev.setExtent({{min, max}});
+    ev.setExtent({min, max});
     updateTimeNodeExtent(ev.timeNode(), s);
 }
 
@@ -40,7 +40,7 @@ void updateTimeNodeExtent(const Id<TimeNodeModel>& id, ScenarioModel &s)
             max = ev.extent().bottom();
     }
 
-    tn.setExtent({{min, max}});
+    tn.setExtent({min, max});
     // TODO what happens if no event on timenode / no state on event??
 }
 

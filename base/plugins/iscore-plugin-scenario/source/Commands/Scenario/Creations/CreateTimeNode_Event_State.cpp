@@ -47,7 +47,7 @@ void CreateTimeNode_Event_State::redo() const
     // Create the node
     ScenarioCreate<TimeNodeModel>::redo(
                 m_newTimeNode,
-                {{0.4, 0.6}},
+                {0.4, 0.6},
                 m_date,
                 scenar);
 

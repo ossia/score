@@ -11,11 +11,11 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent):
     IdentifiedObject<BaseScenario>{id, "BaseScenario", parent},
     pluginModelList{iscore::IDocument::documentFromObject(parent), this},
 
-    m_startNode{new TimeNodeModel{Id<TimeNodeModel>{0}, {{0.2, 0.8}}, TimeValue::zero(),  this}},
-    m_endNode  {new TimeNodeModel{Id<TimeNodeModel>{1}, {{0.2, 0.8}}, TimeValue::zero(), this}},
+    m_startNode{new TimeNodeModel{Id<TimeNodeModel>{0}, {0.2, 0.8}, TimeValue::zero(),  this}},
+    m_endNode  {new TimeNodeModel{Id<TimeNodeModel>{1}, {0.2, 0.8}, TimeValue::zero(), this}},
 
-    m_startEvent{new EventModel{Id<EventModel>{0}, m_startNode->id(), {{0.4, 0.6}}, TimeValue::zero(), this}},
-    m_endEvent  {new EventModel{Id<EventModel>{1}, m_endNode->id(),   {{0.4, 0.6}}, TimeValue::zero(), this}},
+    m_startEvent{new EventModel{Id<EventModel>{0}, m_startNode->id(), {0.4, 0.6}, TimeValue::zero(), this}},
+    m_endEvent  {new EventModel{Id<EventModel>{1}, m_endNode->id(),   {0.4, 0.6}, TimeValue::zero(), this}},
 
     m_startState{new StateModel{Id<StateModel>{0}, m_startEvent->id(), 0, this}},
     m_endState  {new StateModel{Id<StateModel>{1}, m_endEvent->id(),   0, this}},

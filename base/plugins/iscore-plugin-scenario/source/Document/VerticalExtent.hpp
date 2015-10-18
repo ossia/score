@@ -12,30 +12,32 @@
  * TODO assess if it would be better to have it in absolute
  * instead.
  *
- * TODO private inheritance instead
  */
-struct VerticalExtent
+struct VerticalExtent : public QPointF
 {
         Q_DECL_CONSTEXPR VerticalExtent() = default;
+        Q_DECL_CONSTEXPR VerticalExtent(qreal x, qreal y): QPointF{x, y} {}
         Q_DECL_CONSTEXPR VerticalExtent(const VerticalExtent&) = default;
         Q_DECL_CONSTEXPR VerticalExtent(VerticalExtent&&) = default;
-        Q_DECL_CONSTEXPR VerticalExtent(const QPointF& other): point{other} {}
-        Q_DECL_CONSTEXPR VerticalExtent(QPointF&& other): point{std::move(other)} {}
-        VerticalExtent& operator =(const VerticalExtent& other) { point = other.point; return *this; }
-        VerticalExtent& operator =(VerticalExtent&& other) { point = std::move(other.point); return *this; }
-        VerticalExtent& operator =(const QPointF& other) { point = other; return *this;  }
-        VerticalExtent& operator =(QPointF&& other) { point = std::move(other); return *this; }
+        Q_DECL_CONSTEXPR VerticalExtent(const QPointF& other): QPointF{other} {}
+        Q_DECL_CONSTEXPR VerticalExtent(QPointF&& other): QPointF{std::move(other)} {}
+        VerticalExtent& operator =(const VerticalExtent& other) { static_cast<QPointF&>(*this) = other; return *this; }
+        VerticalExtent& operator =(VerticalExtent&& other) { static_cast<QPointF&>(*this) = std::move(other); return *this; }
+        VerticalExtent& operator =(const QPointF& other) {  static_cast<QPointF&>(*this) = other; return *this;  }
+        VerticalExtent& operator =(QPointF&& other) {  static_cast<QPointF&>(*this) = std::move(other); return *this; }
 
-        Q_DECL_CONSTEXPR double top() const    { return point.x(); }
-        Q_DECL_CONSTEXPR double bottom() const { return point.y(); }
 
-        operator QPointF&() { return point; }
-        Q_DECL_CONSTEXPR operator const QPointF&() const { return point; }
-        QPointF point;
+        Q_DECL_CONSTEXPR VerticalExtent operator*(qreal other)
+        {
+            return VerticalExtent{top() * other, bottom() * other};
+        }
+
+        Q_DECL_CONSTEXPR double top() const    { return QPointF::x(); }
+        Q_DECL_CONSTEXPR double bottom() const { return QPointF::y(); }
 };
 
 inline QDebug operator<< (QDebug d, const VerticalExtent& ve)
 {
-    d << ve.point;
+    d << static_cast<QPointF>(ve);
     return d;
 }

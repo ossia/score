@@ -50,7 +50,7 @@ void CreateEvent_State::redo() const
     ScenarioCreate<EventModel>::redo(
                 m_newEvent,
                 scenar.timeNode(m_timeNode),
-                {{m_command.endStateY() - 0.1, m_command.endStateY() + 0.1}},
+                {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1},
                 scenar);
 
     scenar.events.at(m_newEvent).metadata.setName(m_createdName);
