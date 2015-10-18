@@ -14,9 +14,9 @@ namespace Scenario
     {
         class MergeTimeNodes : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("MergeTimeNodes", "MergeTimeNodes")
+                ISCORE_COMMAND_DECL("ScenarioControl", "MergeTimeNodes", "MergeTimeNodes")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MergeTimeNodes, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MergeTimeNodes)
                 MergeTimeNodes(Path<ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
                 void undo() const override;
                 void redo() const override;

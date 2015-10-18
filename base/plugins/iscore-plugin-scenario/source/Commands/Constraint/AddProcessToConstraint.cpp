@@ -20,7 +20,7 @@ using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         QString process) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(constraintPath) },

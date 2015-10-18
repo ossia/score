@@ -18,9 +18,9 @@ namespace Scenario
 
         class MoveNewEvent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("MoveNewEvent", "MoveNewEvent")
+                ISCORE_COMMAND_DECL("ScenarioControl", "MoveNewEvent", "MoveNewEvent")
                 public:
-                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveNewEvent, "ScenarioControl")
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewEvent)
                 MoveNewEvent(
                   Path<ScenarioModel>&& scenarioPath,
                     const Id<ConstraintModel>& constraintId,

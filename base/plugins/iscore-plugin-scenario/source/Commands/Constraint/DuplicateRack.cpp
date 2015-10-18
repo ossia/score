@@ -9,7 +9,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_rackPath {rackToCopy}

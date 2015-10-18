@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 Paste::Paste(const iscore::NodePath &parentPath, int row,
                                 const QString& text,
                                 Path<DeviceExplorerModel> &&Path):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()}
 {

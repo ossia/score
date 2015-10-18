@@ -8,9 +8,9 @@ namespace Command
 {
 class CreateConstraint_State : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("CreateConstraint_State","CreateConstraint_State")
+        ISCORE_COMMAND_DECL("ScenarioControl", "CreateConstraint_State","CreateConstraint_State")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateConstraint_State, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint_State)
 
           CreateConstraint_State(
             const ScenarioModel& scenario,

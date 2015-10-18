@@ -8,18 +8,6 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-MoveConstraint::MoveConstraint():
-    SerializableCommand {"ScenarioControl",
-                         commandName(),
-                         description()}
-{
-
-}
-
-MoveConstraint::~MoveConstraint()
-{
-
-}
 
 MoveConstraint::MoveConstraint(
         Path<ScenarioModel>&& scenarioPath,

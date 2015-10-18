@@ -16,10 +16,10 @@ namespace Scenario
          */
         class AddSlotToRack : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("AddSlotToRack", "AddSlotToRack")
+                ISCORE_COMMAND_DECL("ScenarioControl", "AddSlotToRack", "AddSlotToRack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(AddSlotToRack, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddSlotToRack)
                 AddSlotToRack(Path<RackModel>&& rackPath);
 
                 void undo() const override;
