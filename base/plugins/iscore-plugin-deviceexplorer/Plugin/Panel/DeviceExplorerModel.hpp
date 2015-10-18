@@ -29,15 +29,14 @@ class DeviceEditDialog;
 namespace iscore {
 struct AddressSettings;
 }
-// TODO Put me in my file
+// MOVEME
 class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
 {
     public:
         using TreeNodeBasedItemModel<iscore::Node>::TreeNodeBasedItemModel;
 
-        QModelIndex modelIndexFromNode(node_type& n) const
+        QModelIndex modelIndexFromNode(node_type& n, int column) const
         {
-            QModelIndex m;
             if(n.is<InvisibleRootNodeTag>())
             {
                 return QModelIndex();
@@ -53,12 +52,7 @@ class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
                 ISCORE_ASSERT(parent);
                 ISCORE_ASSERT(parent != &rootNode());
 
-                node_type* grandparent = parent->parent();
-                ISCORE_ASSERT(grandparent);
-
-                int rowParent = grandparent->indexOfChild(parent);
-                QModelIndex parentIndex = createIndex(rowParent, 0, parent);
-                return index(n.parent()->indexOfChild(&n), 0, parentIndex);
+                return createIndex(n.parent()->indexOfChild(&n), column, &n);
             }
         }
 
@@ -66,7 +60,7 @@ class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
                         const node_type& other,
                         int row)
         {
-            QModelIndex parentIndex = modelIndexFromNode(parentNode);
+            QModelIndex parentIndex = modelIndexFromNode(parentNode, 0);
 
             beginInsertRows(parentIndex, row, row);
 

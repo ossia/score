@@ -4,12 +4,13 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/for_each.hpp>
-
+#include <QDebug>
 template<typename... Args>
 void Visitor<Reader<DataStream>>::readFrom(const eggs::variant<Args...>& var)
 {
     m_stream << (quint64)var.which();
 
+    // TODO this should be an assert.
     if((quint64)var.which() != (quint64)var.npos)
     {
         // This trickery iterates over all the types in Args...

@@ -1,19 +1,5 @@
 #include "Value.hpp"
 
-namespace iscore {
-QDataStream& operator<<(QDataStream& s, const iscore::Value& m)
-{
-    s << m.val;
-    return s;
-}
-
-QDataStream& operator>>(QDataStream& s, iscore::Value& m)
-{
-    s >> m.val;
-    return s;
-}
-}
-
 bool iscore::Value::operator==(const iscore::Value& m) const
 {
     return val == m.val;
@@ -81,18 +67,6 @@ bool iscore::ValueImpl::isValid() const
 
 namespace iscore {
 QDebug& operator<<(QDebug& s, const iscore::ValueImpl& m)
-{
-    return s;
-}
-
-
-QDataStream& operator<<(QDataStream& s, const iscore::ValueImpl& m)
-{
-    return s;
-}
-
-
-QDataStream& operator>>(QDataStream& s, iscore::ValueImpl& m)
 {
     return s;
 }
