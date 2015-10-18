@@ -423,19 +423,21 @@ bool DeviceExplorerModel::setData(
         {
             // In this case we don't make a command, but we directly push the
             // new value.
-            qDebug() << value.typeName() << value.type();
             auto copy = iscore::convert::toValue(value);
-            auto res = iscore::convert::convert(n->get<iscore::AddressSettings>().value, copy);
-            if(res)
-            {
-                n->get<iscore::AddressSettings>().value = copy;
-                // Note : if we want to disable remote updating, we have to do it
-                // here (e.g. if this becomes a settings)
-                m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(*n), copy);
-                return true;
-            }
 
-            return false;
+            // We may have to convert types.
+            const auto& orig = n->get<iscore::AddressSettings>().value;
+            if(copy.val.which() != orig.val.which()
+            && !iscore::convert::convert(orig, copy))
+                return false;
+
+            n->get<iscore::AddressSettings>().value = copy;
+
+            // Note : if we want to disable remote updating, we have to do it
+            // here (e.g. if this becomes a settings)
+            m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(*n), copy);
+
+            return true;
         }
         else
         {

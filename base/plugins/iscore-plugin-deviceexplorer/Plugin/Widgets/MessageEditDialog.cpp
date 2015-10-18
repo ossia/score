@@ -59,7 +59,7 @@ iscore::Value MessageEditDialog::value() const
 void MessageEditDialog::initTypeCombo()
 {
     // TODO sync with ValueConversion
-    m_typeCombo->insertItems(0, iscore::convert::prettyTypes());
+    m_typeCombo->insertItems(0, iscore::convert::ValuePrettyTypesList());
     m_typeCombo->setCurrentIndex(m_message.value.val.impl().which());
 }
 

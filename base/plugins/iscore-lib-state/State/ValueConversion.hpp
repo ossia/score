@@ -41,6 +41,6 @@ iscore::Value toValue(const QVariant& val);
 iscore::Value toValue(const QJsonValue& val, const QString& type);
 
 QString prettyType(const iscore::Value& val); // For display to the user, translated
-QStringList prettyTypes(); // For display to the user, translated
+const QStringList& ValuePrettyTypesList(); // For display to the user, translated
 }
 }
