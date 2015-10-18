@@ -41,15 +41,10 @@ EventPresenter::EventPresenter(const EventModel& model,
     connect(m_view, &EventView::dropReceived,
             this, &EventPresenter::handleDrop);
 
-    // TODO Conditions in EventPresenter
-    /*
     m_view->setCondition(m_model.condition().toString());
 
     con(m_model, &EventModel::conditionChanged,
         this, [&] (const iscore::Condition& c) { m_view->setCondition(c.toString()); });
-        */
-
-
 }
 
 EventPresenter::~EventPresenter()

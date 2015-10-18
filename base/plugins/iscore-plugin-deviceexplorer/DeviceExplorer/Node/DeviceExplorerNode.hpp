@@ -62,8 +62,6 @@ void messageList(const Node& treeNode,
 iscore::Node& getNodeFromAddress(iscore::Node& root, const iscore::Address&);
 iscore::Node* getNodeFromString(iscore::Node& n, QStringList&& str); // Fails if not present.
 
-// True if gramps is a parent, grand-parent, etc. of node.
-bool isAncestor(const iscore::Node& gramps, iscore::Node* node);
 
 
 /**
@@ -72,6 +70,32 @@ bool isAncestor(const iscore::Node& gramps, iscore::Node* node);
  */
 void dumpTree(const iscore::Node& node, QString rec);
 
+
+
+
+iscore::Node merge(
+        iscore::Node base,
+        const iscore::MessageList& other);
+
+void merge(
+        iscore::Node& base,
+        const iscore::Message& message);
+
+
+// True if gramps is a parent, grand-parent, etc. of node.
+template<typename Node_T>
+bool isAncestor(const Node_T& gramps, const Node_T* node)
+{
+    // TODO why ??
+    auto parent = node->parent();
+    if(!parent)
+        return false;
+
+    if(node == &gramps)
+        return true;
+
+    return isAncestor(gramps, parent);
+}
 
 /**
  * @brief filterUniqueParents
@@ -94,18 +118,35 @@ void dumpTree(const iscore::Node& node, QString rec);
  *
  * TESTME
  */
-QList<iscore::Node*> filterUniqueParents(const QList<iscore::Node*>& nodes);
+template<typename Node_T>
+QList<Node_T*> filterUniqueParents(const QList<Node_T*>& nodes)
+{
+    // OPTIMIZEME this horrible lazy algorithm.
+    auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
 
+    QList<Node_T*> cleaned_nodes;
 
-iscore::Node merge(
-        iscore::Node base,
-        const iscore::MessageList& other);
+    // Only copy the index if it none of its parents
+    // except the invisible root are in the list.
+    for(auto n : nodes_cpy)
+    {
+        if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
+                       [&] (Node_T* other) {
+              if(other == n)
+                  return false;
+              return isAncestor(*other, n);
+           }))
+        {
+            nodes_cpy.removeOne(n);
+        }
+        else
+        {
+            cleaned_nodes.append(n);
+        }
+    }
 
-void merge(
-        iscore::Node& base,
-        const iscore::Message& message);
-
-
+    return cleaned_nodes;
+}
 
 // Generic algorithms for DeviceExplorerNode-like structures.
 template<typename Node_T>

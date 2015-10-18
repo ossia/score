@@ -31,7 +31,7 @@ namespace Scenario
                     Path<MessageItemModel> Path{ObjectPath(std::move(vecpath)), {}};
 
                     addCommand(createStateCmd);
-                    addCommand(new UpdateState{
+                    addCommand(new AddMessagesToState{
                                    std::move(Path),
                                    stateData});
                 }

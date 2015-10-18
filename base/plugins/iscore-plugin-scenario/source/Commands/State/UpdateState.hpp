@@ -6,12 +6,13 @@
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <Document/State/ItemModel/MessageItemModel.hpp>
 
-class UpdateState : public iscore::SerializableCommand
+// TODO rename file
+class AddMessagesToState : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), UpdateState, "UpdateState")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "AddMessagesToState")
         public:
 
-          UpdateState(
+          AddMessagesToState(
             Path<MessageItemModel>&&,
             const iscore::MessageList& messages);
 
@@ -24,7 +25,6 @@ class UpdateState : public iscore::SerializableCommand
 
     private:
         Path<MessageItemModel> m_path;
-        MessageNodePath m_nodePath;
 
         MessageNode m_oldState, m_newState;
 

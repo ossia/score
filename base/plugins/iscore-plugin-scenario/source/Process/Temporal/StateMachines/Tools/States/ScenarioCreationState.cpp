@@ -67,34 +67,31 @@ void ScenarioCreationState::createToTimeNode_base(const Id<StateModel> & origina
 
 
 void ScenarioCreationState::createToNothing_base(const Id<StateModel> & originalState)
-{            
+{
+    auto create = [&] (auto cmd) {
+        m_dispatcher.submitCommand(cmd);
+
+        createdStates.append(cmd->createdState());
+        createdEvents.append(cmd->createdEvent());
+        createdTimeNodes.append(cmd->createdTimeNode());
+        createdConstraints.append(cmd->createdConstraint());
+    };
+
     if(!m_parentSM.isShiftPressed())
     {
-        auto cmd = new CreateConstraint_State_Event_TimeNode{
+        create(new CreateConstraint_State_Event_TimeNode{
                 m_scenarioPath,
                 originalState, // Put there in createInitialState
                 currentPoint.date,
-                currentPoint.y};
-        m_dispatcher.submitCommand(cmd);
-
-        createdStates.append(cmd->createdState());
-        createdEvents.append(cmd->createdEvent());
-        createdTimeNodes.append(cmd->createdTimeNode());
-        createdConstraints.append(cmd->createdConstraint());
-    } // TODO  : code duplicated ...
+                currentPoint.y});
+    }
     else
     {
-        auto cmd = new CreateSequence{
+        create(new CreateSequence{
                 m_scenarioPath,
                 originalState, // Put there in createInitialState
                 currentPoint.date,
-                currentPoint.y};
-        m_dispatcher.submitCommand(cmd);
-
-        createdStates.append(cmd->createdState());
-        createdEvents.append(cmd->createdEvent());
-        createdTimeNodes.append(cmd->createdTimeNode());
-        createdConstraints.append(cmd->createdConstraint());
+                currentPoint.y});
     }
 
 }

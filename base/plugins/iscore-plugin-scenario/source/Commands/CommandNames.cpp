@@ -105,9 +105,9 @@ void ScenarioControl::setupCommands()
             AddOnlyProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,
-            UpdateState,
+            AddMessagesToState,
             RemoveMessageNodes,
-            UpdateState,
+            AddMessagesToState,
             AddStateWithData,
             AddTrigger,
 

@@ -13,8 +13,6 @@
  * A class should only have a single child of the same type with a given identifier
  * since QObject::findChild is used.
  *
- * TODO : assess if it is interesting to make a ModelObject class
- * that would supplant the IdentifiedObject but with a path().
  */
 template<typename model>
 class IdentifiedObject : public IdentifiedObjectAbstract
@@ -55,7 +53,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id = id;
         }
 
-        mutable Path<model> m_path_cache;
+        mutable Path<model> m_path_cache; // TODO see stackoverflow to put in private
     private:
         Id<model> m_id {};
 };

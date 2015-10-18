@@ -78,7 +78,7 @@ void StatePresenter::handleDrop(const QMimeData *mime)
         Mime<iscore::MessageList>::Deserializer des{*mime};
         iscore::MessageList ml = des.deserialize();
 
-        auto cmd = new UpdateState{
+        auto cmd = new AddMessagesToState{
                    iscore::IDocument::path(m_model.messages()),
                    ml};
 

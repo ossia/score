@@ -67,18 +67,6 @@ Address address(const Node &treeNode)
     return addr;
 }
 
-bool isAncestor(const Node& gramps, Node* node)
-{
-    // TODO why ??
-    if(node->is<InvisibleRootNodeTag>())
-        return false;
-
-    if(node == &gramps)
-        return true;
-
-    return isAncestor(gramps, node->parent());
-}
-
 void messageList(const Node& n,
                  MessageList& ml)
 {
@@ -111,35 +99,6 @@ Message message(const Node& node)
     mess.value = node.get<iscore::AddressSettings>().value;
 
     return mess;
-}
-
-QList<Node*> filterUniqueParents(const QList<Node*>& nodes)
-{
-    // OPTIMIZEME this horrible lazy algorithm.
-    auto nodes_cpy = nodes.toSet().toList(); // Remove duplicates
-
-    QList<iscore::Node*> cleaned_nodes;
-
-    // Only copy the index if it none of its parents
-    // except the invisible root are in the list.
-    for(auto n : nodes_cpy)
-    {
-        if(std::any_of(nodes_cpy.begin(), nodes_cpy.end(),
-                       [&] (iscore::Node* other) {
-              if(other == n)
-                  return false;
-              return isAncestor(*other, n);
-           }))
-        {
-            nodes_cpy.removeOne(n);
-        }
-        else
-        {
-            cleaned_nodes.append(n);
-        }
-    }
-
-    return cleaned_nodes;
 }
 
 

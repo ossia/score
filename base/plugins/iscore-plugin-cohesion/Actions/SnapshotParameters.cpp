@@ -46,7 +46,7 @@ void SnapshotParametersInStates(iscore::Document* doc)
                 doc->commandStack()};
     for(auto& state : selected_states)
     {
-        auto cmd = new UpdateState{
+        auto cmd = new AddMessagesToState{
                 state->messages(),
                 messages};
         macro.submitCommand(cmd);

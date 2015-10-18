@@ -96,7 +96,7 @@ void StateModel::on_previousProcessAdded(const Process& proc)
         // from the process ?
 
         auto node = m_messageItemModel->rootNode();
-        updateTreeWithMessageList(node, ml, proc.id(), Position::Previous);
+        updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
         *m_messageItemModel = std::move(node);
 
         for(auto& proc : m_nextProcesses)
@@ -120,7 +120,7 @@ void StateModel::on_previousProcessRemoved(const Process& proc)
         return;
 
     auto node = m_messageItemModel->rootNode();
-    updateTreeWithRemovedProcess(node, proc.id(), Position::Previous);
+    updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
     *m_messageItemModel = std::move(node);
 
     m_previousProcesses.erase(state);
@@ -135,7 +135,7 @@ void StateModel::on_nextProcessAdded(const Process& proc)
     auto next_proc_fun = [&] (const iscore::MessageList& ml) {
 
         auto node = m_messageItemModel->rootNode();
-        updateTreeWithMessageList(node, ml, proc.id(), Position::Following);
+        updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);
         *m_messageItemModel = std::move(node);
 
         // TODO if(synchronize) ...
@@ -161,7 +161,7 @@ void StateModel::on_nextProcessRemoved(const Process& proc)
         return;
 
     auto node = m_messageItemModel->rootNode();
-    updateTreeWithRemovedProcess(node, proc.id(), Position::Following);
+    updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
     *m_messageItemModel = std::move(node);
 
     m_nextProcesses.erase(state);
@@ -192,7 +192,7 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
     if(m_nextConstraint)
     {
         auto node = m_messageItemModel->rootNode();
-        updateTreeWithRemovedConstraint(node, Position::Following);
+        updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
         *m_messageItemModel = std::move(node);
 
         for(auto conn : m_nextConnections)
@@ -227,7 +227,7 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
     if(m_previousConstraint)
     {
         auto node = m_messageItemModel->rootNode();
-        updateTreeWithRemovedConstraint(node, Position::Previous);
+        updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
         *m_messageItemModel = std::move(node);
 
         for(auto conn : m_prevConnections)

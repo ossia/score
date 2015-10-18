@@ -207,7 +207,7 @@ bool MessageItemModel::dropMimeData(
                 QJsonDocument::fromJson(data->data(iscore::mime::messagelist())).array(),
                 ml);
 
-    auto cmd = new UpdateState{*this, ml};
+    auto cmd = new AddMessagesToState{*this, ml};
 
     CommandDispatcher<> disp(m_stack);
     disp.submitCommand(cmd);
@@ -273,7 +273,7 @@ bool MessageItemModel::setData(
             {
                 iscore::convert::convert(*current_val, value);
             }
-            auto cmd = new UpdateState{*this,
+            auto cmd = new AddMessagesToState{*this,
                                      iscore::MessageList{{address(*n), value}}};
 
             CommandDispatcher<> disp(m_stack);

@@ -1,5 +1,6 @@
 #include "MessageItemModelAlgorithms.hpp"
 #include <ProcessInterface/State/MessageNode.hpp>
+#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 
 bool match(MessageNode& node, const iscore::Message& mess)
 {
@@ -104,7 +105,7 @@ bool nodePruneAction_impl(
 void nodePruneAction(
         MessageNode& node,
         const Id<Process>& proc,
-        Position pos
+        ProcessPosition pos
         )
 {
     // If there is no corresponding message in our list,
@@ -113,7 +114,7 @@ void nodePruneAction(
     bool deleteMe = false;
     switch(pos)
     {
-        case Position::Previous:
+        case ProcessPosition::Previous:
         {
             deleteMe = nodePruneAction_impl(
                         node, proc,
@@ -121,7 +122,7 @@ void nodePruneAction(
                         node.values.followingProcessValues);
             break;
         }
-        case Position::Following:
+        case ProcessPosition::Following:
         {
             deleteMe = nodePruneAction_impl(
                         node, proc,
@@ -154,7 +155,7 @@ void nodeInsertAction(
         MessageNode& node,
         iscore::MessageList& msg,
         const Id<Process>& proc,
-        Position pos
+        ProcessPosition pos
         )
 {
     auto it = msg.begin();
@@ -166,12 +167,12 @@ void nodeInsertAction(
         {
             switch(pos)
             {
-                case Position::Previous:
+                case ProcessPosition::Previous:
                 {
                     updateNode(node.values.previousProcessValues, mess.value, proc);
                     break;
                 }
-                case Position::Following:
+                case ProcessPosition::Following:
                 {
                     updateNode(node.values.followingProcessValues, mess.value, proc);
                     break;
@@ -194,7 +195,7 @@ void rec_updateTree(
         MessageNode& node,
         iscore::MessageList& lst,
         const Id<Process>& proc,
-        Position pos)
+        ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
     int n = lst.size();
@@ -296,7 +297,7 @@ void updateTreeWithMessageList(
         MessageNode& rootNode,
         iscore::MessageList lst,
         const Id<Process>& proc,
-        Position pos)
+        ProcessPosition pos)
 {
     // We go through the tree.
     // For each node :
@@ -320,10 +321,10 @@ void updateTreeWithMessageList(
             [&] (StateNodeValues& nodeValues) {
             switch(pos)
             {
-                case Position::Previous:
+                case ProcessPosition::Previous:
                     nodeValues.previousProcessValues.push_back({proc, mess.value});
                     break;
-                case Position::Following:
+                case ProcessPosition::Following:
                     nodeValues.followingProcessValues.push_back({proc, mess.value});
                     break;
                 default:
@@ -339,7 +340,7 @@ void updateTreeWithMessageList(
 void rec_pruneTree(
         MessageNode& node,
         const Id<Process>& proc,
-        Position pos)
+        ProcessPosition pos)
 {
     // If the message is in the tree, we add the process value.
     nodePruneAction(node, proc, pos);
@@ -353,7 +354,7 @@ void rec_pruneTree(
 void updateTreeWithRemovedProcess(
         MessageNode& rootNode,
         const Id<Process>& proc,
-        Position pos)
+        ProcessPosition pos)
 {
     for(auto& child : rootNode)
     {
@@ -368,7 +369,7 @@ void updateTreeWithRemovedProcess(
 
 void nodePruneAction(
         MessageNode& node,
-        Position pos)
+        ProcessPosition pos)
 {
     // If there is no corresponding message in our list,
     // but there is a corresponding process in the tree,
@@ -376,12 +377,12 @@ void nodePruneAction(
     bool deleteMe = false;
     switch(pos)
     {
-        case Position::Previous:
+        case ProcessPosition::Previous:
         {
             deleteMe = !node.values.userValue && node.values.followingProcessValues.isEmpty();
             break;
         }
-        case Position::Following:
+        case ProcessPosition::Following:
         {
             deleteMe = !node.values.userValue && node.values.previousProcessValues.isEmpty();
             break;
@@ -409,9 +410,8 @@ void nodePruneAction(
 
 void rec_pruneTree(
         MessageNode& node,
-        Position pos)
+        ProcessPosition pos)
 {
-    // If the message is in the tree, we add the process value.
     nodePruneAction(node, pos);
 
     for(auto& child : node)
@@ -420,10 +420,32 @@ void rec_pruneTree(
     }
 }
 
-void updateTreeWithRemovedConstraint(MessageNode& rootNode, Position pos)
+void updateTreeWithRemovedConstraint(MessageNode& rootNode, ProcessPosition pos)
 {
     for(auto& child : rootNode)
     {
         rec_pruneTree(child, pos);
+    }
+}
+
+void updateTreeWithRemovedUserMessage(MessageNode& rootNode, const iscore::Message& mess)
+{
+    // Find the message node
+    QStringList s;
+    s += mess.address.device;
+    s = s + mess.address.path;
+    MessageNode* node = iscore::try_getNodeFromString(rootNode, std::move(s));
+
+    if(node)
+    {
+        node->values.userValue = iscore::OptionalValue{};
+
+        // If it is empty, delete it.
+        if(node->values.previousProcessValues.isEmpty()
+        && node->values.followingProcessValues.isEmpty()
+        && node->childCount() == 0)
+        {
+            rec_delete(*node);
+        }
     }
 }

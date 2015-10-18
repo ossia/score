@@ -381,7 +381,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
         Path<MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
 
 
-        auto cmd2 = new UpdateState{
+        auto cmd2 = new AddMessagesToState{
                    std::move(state_path),
                    ml};
 

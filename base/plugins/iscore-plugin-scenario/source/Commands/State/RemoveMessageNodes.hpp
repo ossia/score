@@ -6,15 +6,14 @@
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
 #include <Document/State/ItemModel/MessageItemModel.hpp>
 
-
 class RemoveMessageNodes : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveMessageNodes, "RemoveMessageNodes")
-        public:
 
+        public:
           RemoveMessageNodes(
             Path<MessageItemModel>&& ,
-            const iscore::NodeList&);
+            const QList<MessageNode*>&);
 
         void undo() const override;
         void redo() const override;
@@ -25,6 +24,6 @@ class RemoveMessageNodes : public iscore::SerializableCommand
 
     private:
         Path<MessageItemModel> m_path;
-        QList<iscore::Node> m_savedNodes;
-        QList<iscore::NodePath> m_nodePaths;
+        MessageNode m_oldState;
+        MessageNode m_newState;
 };

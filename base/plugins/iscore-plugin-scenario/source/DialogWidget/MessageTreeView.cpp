@@ -55,16 +55,13 @@ MessageItemModel& MessageTreeView::model() const
 
 void MessageTreeView::removeNodes()
 {
-    ISCORE_TODO;
-    /*
-    qDebug(Q_FUNC_INFO);
     auto indexes = selectedIndexes();
 
-    QList<iscore::Node*> nodes;
+    QList<MessageNode*> nodes;
     for(auto index : indexes)
     {
         auto n = model().nodeFromModelIndex(index);
-        if(!n->is<InvisibleRootNodeTag>())
+        if(n->parent())
             nodes.append(n);
     }
 
@@ -74,7 +71,6 @@ void MessageTreeView::removeNodes()
 
     CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_model)};
     dispatcher.submitCommand(cmd);
-    */
 }
 
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)

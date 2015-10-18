@@ -4,7 +4,7 @@
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 
-UpdateState::UpdateState(
+AddMessagesToState::AddMessagesToState(
         Path<MessageItemModel> &&device_tree,
         const iscore::MessageList& messages):
     iscore::SerializableCommand{factoryName(),
@@ -40,7 +40,7 @@ UpdateState::UpdateState(
 
             auto lst = prevProc->setMessages(messages, m_oldState);
 
-            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Previous);
+            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), ProcessPosition::Previous);
         }
         for(ProcessStateDataInterface* prevProc : sm.followingProcesses())
         {
@@ -48,7 +48,7 @@ UpdateState::UpdateState(
 
             auto lst = prevProc->setMessages(messages, m_oldState);
 
-            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), Position::Following);
+            updateTreeWithMessageList(m_newState, lst, prevProc->process().id(), ProcessPosition::Following);
         }
 
         // TODO one day there will also be State functions that will perform
@@ -58,7 +58,7 @@ UpdateState::UpdateState(
     updateTreeWithMessageList(m_newState, messages);
 }
 
-void UpdateState::undo() const
+void AddMessagesToState::undo() const
 {
     auto& model = m_path.find();
     model = m_oldState;
@@ -75,24 +75,26 @@ void UpdateState::undo() const
     }
 }
 
-void UpdateState::redo() const
+void AddMessagesToState::redo() const
 {
     auto& model = m_path.find();
     model = m_newState;
 }
 
-void UpdateState::serializeImpl(QDataStream &d) const
+void AddMessagesToState::serializeImpl(QDataStream &d) const
 {
     d << m_path
-      << m_nodePath
       << m_oldState
-      << m_newState;
+      << m_newState
+      << m_previousBackup
+      << m_followingBackup;
 }
 
-void UpdateState::deserializeImpl(QDataStream &d)
+void AddMessagesToState::deserializeImpl(QDataStream &d)
 {
     d >> m_path
-      >> m_nodePath
       >> m_oldState
-      >> m_newState;
+      >> m_newState
+      >> m_previousBackup
+      >> m_followingBackup;
 }
