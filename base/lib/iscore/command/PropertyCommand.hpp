@@ -30,8 +30,8 @@ class PropertyCommand : public SerializableCommand
             m_old = m_path.find<QObject>().property(m_property.toUtf8().constData());
         }
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
         template<typename Path_T>
         void update(const Path_T&, const QVariant& newval)

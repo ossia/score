@@ -12,12 +12,12 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
 {
 }
 
-void MoveEventOnCreationMeta::undo()
+void MoveEventOnCreationMeta::undo() const
 {
     m_moveEventImplementation->undo();
 }
 
-void MoveEventOnCreationMeta::redo()
+void MoveEventOnCreationMeta::redo() const
 {
 
     m_moveEventImplementation->redo();

@@ -66,7 +66,7 @@ static void updateDuration(
     }
 }
 
-void MoveBaseEvent::undo()
+void MoveBaseEvent::undo() const
 {
     auto& scenar = m_path.find();
 
@@ -139,7 +139,7 @@ void MoveBaseEvent::undo()
     }
 }
 
-void MoveBaseEvent::redo()
+void MoveBaseEvent::redo() const
 {
     auto& scenar = m_path.find();
 

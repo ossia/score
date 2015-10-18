@@ -14,14 +14,14 @@ namespace Scenario
     {
         class SetTrigger : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("SetTrigger", "SetTrigger")
+                ISCORE_COMMAND_DECL("ScenarioControl", "SetTrigger", "SetTrigger")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SetTrigger, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetTrigger)
                 SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
                 ~SetTrigger();
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

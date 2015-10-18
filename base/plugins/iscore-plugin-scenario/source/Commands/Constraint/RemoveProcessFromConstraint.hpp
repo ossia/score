@@ -12,15 +12,15 @@ namespace Scenario
     {
         class RemoveProcessFromConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("RemoveProcessFromConstraint", "RemoveProcessFromConstraint")
+                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveProcessFromConstraint", "RemoveProcessFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(RemoveProcessFromConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessFromConstraint)
                 RemoveProcessFromConstraint(
                     Path<ConstraintModel>&& constraintPath,
                     const Id<Process>& processId);
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -34,13 +34,13 @@ namespace Scenario
                     m_oldComments = obj.metadata.comment();
                 }
 
-                virtual void undo() override
+                void undo() const override
                 {
                     auto& obj = m_path.find();
                     obj.metadata.setComment(m_oldComments);
                 }
 
-                virtual void redo() override
+                void redo() const override
                 {
                     auto& obj = m_path.find();
                     obj.metadata.setComment(m_newComments);

@@ -18,10 +18,10 @@ namespace Scenario
          */
         class HideRackInViewModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("HideRackInViewModel", "HideRackInViewModel")
+                ISCORE_COMMAND_DECL("ScenarioControl", "HideRackInViewModel", "HideRackInViewModel")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(HideRackInViewModel, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(HideRackInViewModel)
                 HideRackInViewModel(Path<ConstraintViewModel>&& path);
 
                 /**
@@ -33,8 +33,8 @@ namespace Scenario
                  */
                 HideRackInViewModel(const ConstraintViewModel& constraint);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -18,18 +18,18 @@ namespace Scenario
          */
         class RemoveRackFromConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("RemoveRackFromConstraint", "RemoveRackFromConstraint")
+                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveRackFromConstraint", "RemoveRackFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(RemoveRackFromConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveRackFromConstraint)
                 RemoveRackFromConstraint(
                         Path<RackModel>&& rackPath);
                 RemoveRackFromConstraint(
                         Path<ConstraintModel>&& constraintPath,
                         Id<RackModel> rackId);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -20,13 +20,13 @@ CopyLayerModel::CopyLayerModel(ObjectPath&& lmPath,
     m_newLayerModelId = getStrongId(slot->layerModels());
 }
 
-void CopyLayerModel::undo()
+void CopyLayerModel::undo() const
 {
     auto slot = m_targetSlotPath.find<SlotModel>();
     slot->deleteLayerModel(m_newLayerModelId);
 }
 
-void CopyLayerModel::redo()
+void CopyLayerModel::redo() const
 {
     auto sourceLM = m_lmPath.find<LayerModel>();
     auto targetSlot = m_targetSlotPath.find<SlotModel>();

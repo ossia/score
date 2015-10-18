@@ -10,9 +10,9 @@ namespace Command
 {
 class CreateSequence : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("CreateSequence","CreateSequence")
+        ISCORE_COMMAND_DECL("ScenarioControl", "CreateSequence","CreateSequence")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateSequence, "ScenarioControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateSequence)
 
         CreateSequence(
             const ScenarioModel& scenario,
@@ -41,8 +41,8 @@ class CreateSequence : public iscore::SerializableCommand
         const Id<TimeNodeModel>& createdTimeNode() const
         { return m_command.createdTimeNode(); }
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

@@ -17,7 +17,7 @@ Scenario::Command::MoveNewState::MoveNewState(
     m_oldy = scenar.state(m_stateId).heightPercentage();
 }
 
-void Scenario::Command::MoveNewState::undo()
+void Scenario::Command::MoveNewState::undo() const
 {
     auto& scenar = m_path.find();
     auto& state = scenar.state(m_stateId);
@@ -26,7 +26,7 @@ void Scenario::Command::MoveNewState::undo()
     updateEventExtent(state.eventId(), scenar);
 }
 
-void Scenario::Command::MoveNewState::redo()
+void Scenario::Command::MoveNewState::redo() const
 {
     auto& scenar = m_path.find();
     auto& state = scenar.state(m_stateId);

@@ -19,14 +19,14 @@ CopySlot::CopySlot(Path<SlotModel>&& slotToCopy,
     m_newSlotId = getStrongId(rack.slotmodels);
 }
 
-void CopySlot::undo()
+void CopySlot::undo() const
 {
     auto& targetRack = m_targetRackPath.find();
     targetRack.slotmodels.remove(m_newSlotId);
 }
 
 
-void CopySlot::redo()
+void CopySlot::redo() const
 {
     const auto& sourceSlot = m_slotPath.find();
     auto& targetRack = m_targetRackPath.find();

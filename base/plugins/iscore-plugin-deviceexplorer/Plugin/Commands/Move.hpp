@@ -12,9 +12,9 @@ namespace DeviceExplorer
     {
         class Move : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("Move", "Move")
+                ISCORE_COMMAND_DECL("DeviceExplorerControl", "Move", "Move")
                 public:
-                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(Move, "DeviceExplorerControl")
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Move)
 
                 Move(const iscore::NodePath& srcParentPath, int srcRow, int count,
                          const iscore::NodePath& dstParentPath, int dstRow,
@@ -22,12 +22,12 @@ namespace DeviceExplorer
                          Path<DeviceExplorerModel>&& tree_model);
 
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             protected:
                 Path<DeviceExplorerModel> m_model{};

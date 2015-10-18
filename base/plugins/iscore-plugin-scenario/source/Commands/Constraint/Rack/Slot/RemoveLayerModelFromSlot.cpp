@@ -23,7 +23,7 @@ RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
     s.readFrom(slot.layers.at(m_layerId));
 }
 
-void RemoveLayerModelFromSlot::undo()
+void RemoveLayerModelFromSlot::undo() const
 {
     auto& slot = m_path.find();
     Deserializer<DataStream> s {m_serializedLayerData};
@@ -34,7 +34,7 @@ void RemoveLayerModelFromSlot::undo()
     slot.layers.add(lm);
 }
 
-void RemoveLayerModelFromSlot::redo()
+void RemoveLayerModelFromSlot::redo() const
 {
     auto& slot = m_path.find();
     slot.layers.remove(m_layerId);

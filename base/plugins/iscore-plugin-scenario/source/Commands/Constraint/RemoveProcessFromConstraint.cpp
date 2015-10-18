@@ -42,7 +42,7 @@ RemoveProcessFromConstraint::RemoveProcessFromConstraint(
     }
 }
 
-void RemoveProcessFromConstraint::undo()
+void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
@@ -65,7 +65,7 @@ void RemoveProcessFromConstraint::undo()
     }
 }
 
-void RemoveProcessFromConstraint::redo()
+void RemoveProcessFromConstraint::redo() const
 {
     auto& constraint = m_path.find();
     constraint.processes.remove(m_processId);

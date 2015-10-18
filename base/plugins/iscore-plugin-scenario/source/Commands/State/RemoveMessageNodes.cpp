@@ -16,7 +16,7 @@ RemoveMessageNodes::RemoveMessageNodes(
     }
 }
 
-void RemoveMessageNodes::undo()
+void RemoveMessageNodes::undo() const
 {
     ISCORE_TODO;
     /*
@@ -34,7 +34,7 @@ void RemoveMessageNodes::undo()
     */
 }
 
-void RemoveMessageNodes::redo()
+void RemoveMessageNodes::redo() const
 {
     ISCORE_TODO;
     /*

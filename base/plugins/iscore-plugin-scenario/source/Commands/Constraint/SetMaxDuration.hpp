@@ -38,12 +38,12 @@ class SetMaxDuration : public iscore::SerializableCommand
             m_newVal = newval;
         }
 
-        virtual void undo() override
+        void undo() const override
         {
             m_path.find().duration.setMaxDuration(m_oldVal);
         }
 
-        virtual void redo() override
+        void redo() const override
         {
             m_path.find().duration.setMaxDuration(m_newVal);
         }

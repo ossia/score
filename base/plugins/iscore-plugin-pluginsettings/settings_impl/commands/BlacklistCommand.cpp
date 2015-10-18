@@ -10,12 +10,14 @@ m_blacklistedState {{name, value}}
 
 }
 
-void BlacklistCommand::undo()
+void BlacklistCommand::undo() const
 {
 }
 
-void BlacklistCommand::redo()
+void BlacklistCommand::redo() const
 {
+    ISCORE_TODO;
+    /*
     QSettings s;
 
     auto currentList = s.value("PluginSettings/Blacklist", QStringList {}).toStringList();
@@ -39,6 +41,7 @@ void BlacklistCommand::redo()
     }
 
     s.setValue("PluginSettings/Blacklist", newList);
+    */
 }
 
 /*

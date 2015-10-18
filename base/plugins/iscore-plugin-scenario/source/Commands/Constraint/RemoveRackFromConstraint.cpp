@@ -54,7 +54,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
     }
 }
 
-void RemoveRackFromConstraint::undo()
+void RemoveRackFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedRackData};
@@ -69,7 +69,7 @@ void RemoveRackFromConstraint::undo()
     }
 }
 
-void RemoveRackFromConstraint::redo()
+void RemoveRackFromConstraint::redo() const
 {
     auto& constraint = m_path.find();
     constraint.racks.remove(m_rackId);

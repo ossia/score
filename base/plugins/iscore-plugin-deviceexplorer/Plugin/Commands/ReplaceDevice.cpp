@@ -7,7 +7,7 @@ using namespace iscore;
 ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                              int deviceIndex,
                              Node&& rootNode):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},
     m_deviceTree{device_tree},
@@ -18,7 +18,7 @@ ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
     m_savedNode = *explorer.nodeFromModelIndex(explorer.index(m_deviceIndex, 0, QModelIndex()));
 }
 
-void ReplaceDevice::undo()
+void ReplaceDevice::undo() const
 {
     auto& explorer = m_deviceTree.find();
 
@@ -26,7 +26,7 @@ void ReplaceDevice::undo()
     explorer.addDevice(m_savedNode);
 }
 
-void ReplaceDevice::redo()
+void ReplaceDevice::redo() const
 {
     auto& explorer = m_deviceTree.find();
 

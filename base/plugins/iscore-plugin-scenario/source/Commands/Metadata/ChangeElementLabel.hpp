@@ -34,13 +34,13 @@ namespace Scenario
                     m_oldLabel = obj.metadata.label();
                 }
 
-                virtual void undo() override
+                void undo() const override
                 {
                     auto& obj = m_path.find();
                     obj.metadata.setLabel(m_oldLabel);
                 }
 
-                virtual void redo() override
+                void redo() const override
                 {
                     auto& obj = m_path.find();
                     obj.metadata.setLabel(m_newLabel);

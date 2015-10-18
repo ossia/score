@@ -15,22 +15,22 @@ namespace Scenario
     {
     class RemoveTrigger : public iscore::SerializableCommand
     {
-	    ISCORE_COMMAND_DECL("ScenarioControl", "RemoveTrigger", "RemoveTrigger")
-	public:
-	    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveTrigger)
-	    RemoveTrigger(Path<TimeNodeModel>&& timeNodePath);
+        ISCORE_COMMAND_DECL("ScenarioControl", "RemoveTrigger", "RemoveTrigger")
+    public:
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveTrigger)
+        RemoveTrigger(Path<TimeNodeModel>&& timeNodePath);
         ~RemoveTrigger();
 
-	    virtual void undo() override;
-	    virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
 
-	protected:
-	    virtual void serializeImpl(QDataStream&) const override;
-	    virtual void deserializeImpl(QDataStream&) override;
+    protected:
+        virtual void serializeImpl(QDataStream&) const override;
+        virtual void deserializeImpl(QDataStream&) override;
 
-	private:
-	    Path<TimeNodeModel> m_path;
-        QVector<SetRigidity*> m_cmds;
+    private:
+        Path<TimeNodeModel> m_path;
+        mutable QVector<SetRigidity*> m_cmds;
 
     };
 

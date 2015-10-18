@@ -5,7 +5,7 @@
 LoadDevice::LoadDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
         iscore::Node&& node):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},
     m_devicesModel{std::move(device_tree)},
@@ -13,13 +13,13 @@ LoadDevice::LoadDevice(
 {
 }
 
-void LoadDevice::undo()
+void LoadDevice::undo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.removeDevice(m_deviceNode.get<iscore::DeviceSettings>());
 }
 
-void LoadDevice::redo()
+void LoadDevice::redo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.loadDevice(m_deviceNode);

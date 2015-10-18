@@ -8,9 +8,9 @@ namespace Command
 {
 class CreateConstraint_State_Event : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("CreateConstraint_State_Event","CreateConstraint_State_Event")
+        ISCORE_COMMAND_DECL("ScenarioControl", "CreateConstraint_State_Event","CreateConstraint_State_Event")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateConstraint_State_Event, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint_State_Event)
 
           CreateConstraint_State_Event(
             const ScenarioModel& scenario,
@@ -39,8 +39,8 @@ class CreateConstraint_State_Event : public iscore::SerializableCommand
         const Id<EventModel>& createdEvent() const
         { return m_newEvent; }
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

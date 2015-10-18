@@ -17,13 +17,13 @@ AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     m_createdSlotId = getStrongId(rack.slotmodels);
 }
 
-void AddSlotToRack::undo()
+void AddSlotToRack::undo() const
 {
     auto& rack = m_path.find();
     rack.slotmodels.remove(m_createdSlotId);
 }
 
-void AddSlotToRack::redo()
+void AddSlotToRack::redo() const
 {
     auto& rack = m_path.find();
     rack.addSlot(new SlotModel {m_createdSlotId,

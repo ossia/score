@@ -43,7 +43,7 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
     }
 }
 
-void ClearConstraint::undo()
+void ClearConstraint::undo() const
 {
     auto& constraint = m_path.find();
 
@@ -68,7 +68,7 @@ void ClearConstraint::undo()
     }
 }
 
-void ClearConstraint::redo()
+void ClearConstraint::redo() const
 {
     auto& constraint = m_path.find();
 

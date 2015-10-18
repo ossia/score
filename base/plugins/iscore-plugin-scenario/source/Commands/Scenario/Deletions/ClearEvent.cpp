@@ -24,7 +24,7 @@ ClearState::ClearState(Path<StateModel>&& path) :
     */
 }
 
-void ClearState::undo()
+void ClearState::undo() const
 {
     ISCORE_TODO;
     /*
@@ -37,7 +37,7 @@ void ClearState::undo()
     */
 }
 
-void ClearState::redo()
+void ClearState::redo() const
 {
     ISCORE_TODO;
     /*

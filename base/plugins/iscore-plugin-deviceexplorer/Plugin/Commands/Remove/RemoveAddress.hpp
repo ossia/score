@@ -20,8 +20,8 @@ class RemoveAddress : public iscore::SerializableCommand
                    Path<DeviceDocumentPlugin>&& device_tree,
                    const iscore::NodePath &nodePath);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         virtual void serializeImpl(QDataStream&) const override;

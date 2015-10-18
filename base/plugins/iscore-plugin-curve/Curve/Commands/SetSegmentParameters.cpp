@@ -6,7 +6,7 @@ SetSegmentParameters::SetSegmentParameters(
         Path<CurveModel>&& model,
         SegmentParameterMap&& parameters):
     iscore::SerializableCommand{
-        "AutomationControl", commandName(), description()},
+         factoryName(), commandName(), description()},
     m_model{std::move(model)},
     m_new{std::move(parameters)}
 {
@@ -18,7 +18,7 @@ SetSegmentParameters::SetSegmentParameters(
     }
 }
 
-void SetSegmentParameters::undo()
+void SetSegmentParameters::undo() const
 {
     auto& curve = m_model.find();
     for(const auto& elt : m_old.keys())
@@ -34,7 +34,7 @@ void SetSegmentParameters::undo()
     curve.changed();
 }
 
-void SetSegmentParameters::redo()
+void SetSegmentParameters::redo() const
 {
     auto& curve = m_model.find();
     for(const auto& elt : m_new.keys())

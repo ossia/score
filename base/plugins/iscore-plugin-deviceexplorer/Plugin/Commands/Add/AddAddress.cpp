@@ -8,7 +8,7 @@ AddAddress::AddAddress(
         const iscore::NodePath& nodePath,
         InsertMode insert,
         const iscore::AddressSettings &addressSettings):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},
     m_devicesModel{device_tree}
@@ -31,14 +31,14 @@ AddAddress::AddAddress(
     m_parentNodePath = iscore::NodePath{*parentNode};
 }
 
-void AddAddress::undo()
+void AddAddress::undo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.removeNode(m_parentNodePath,
                                    m_addressSettings);
 }
 
-void AddAddress::redo()
+void AddAddress::redo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.addAddress(m_parentNodePath,

@@ -18,13 +18,13 @@ namespace Scenario
         */
         class RemoveSelection : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("RemoveSelection", "RemoveSelection")
+                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveSelection", "RemoveSelection")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(RemoveSelection, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSelection)
                 RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

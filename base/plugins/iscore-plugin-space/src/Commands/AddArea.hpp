@@ -18,8 +18,8 @@ class AddArea : public iscore::SerializableCommand
                   const QMap<Id<DimensionModel>, QString>& dimMap,
                   const QMap<QString, iscore::FullAddressSettings>& addrMap);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream & s) const override;

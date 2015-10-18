@@ -13,14 +13,14 @@ namespace Scenario
     {
         class SplitTimeNode : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("SplitTimeNode", "SplitTimeNode")
+                ISCORE_COMMAND_DECL("ScenarioControl", "SplitTimeNode", "SplitTimeNode")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SplitTimeNode, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitTimeNode)
                 SplitTimeNode(
                     Path<TimeNodeModel>&& path,
                     QVector<Id<EventModel> > eventsInNewTimeNode);
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

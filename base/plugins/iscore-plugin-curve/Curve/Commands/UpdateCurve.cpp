@@ -14,13 +14,13 @@ UpdateCurve::UpdateCurve(
     m_oldCurveData = curve.toCurveData();
 }
 
-void UpdateCurve::undo()
+void UpdateCurve::undo() const
 {
     auto& curve = m_model.find();
     curve.fromCurveData(m_oldCurveData);
 }
 
-void UpdateCurve::redo()
+void UpdateCurve::redo() const
 {
     auto& curve = m_model.find();
     curve.fromCurveData(m_newCurveData);

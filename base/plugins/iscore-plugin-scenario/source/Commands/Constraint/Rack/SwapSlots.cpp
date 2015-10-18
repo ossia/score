@@ -18,13 +18,13 @@ SwapSlots::SwapSlots(
 }
 
 
-void SwapSlots::undo()
+void SwapSlots::undo() const
 {
     redo();
 }
 
 
-void SwapSlots::redo()
+void SwapSlots::redo() const
 {
     auto& rack = m_rackPath.find();
     rack.swapSlots(m_first, m_second);

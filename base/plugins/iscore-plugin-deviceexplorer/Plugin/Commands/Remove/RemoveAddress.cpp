@@ -18,7 +18,7 @@ RemoveAddress::RemoveAddress(
     m_savedNode = *n;
 }
 
-void RemoveAddress::undo()
+void RemoveAddress::undo() const
 {
     auto& devplug = m_devicesModel.find();
     auto parentPath = m_nodePath;
@@ -27,7 +27,7 @@ void RemoveAddress::undo()
     devplug.updateProxy.addNode(parentPath, m_savedNode, m_nodePath.back());
 }
 
-void RemoveAddress::redo()
+void RemoveAddress::redo() const
 {
     auto& devplug = m_devicesModel.find();
     auto parentPath = m_nodePath;

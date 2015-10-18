@@ -19,13 +19,13 @@ SetCondition::SetCondition(
     m_previousCondition = event.condition();
 }
 
-void SetCondition::undo()
+void SetCondition::undo() const
 {
     auto& event = m_path.find();
     event.setCondition(m_previousCondition);
 }
 
-void SetCondition::redo()
+void SetCondition::redo() const
 {
     auto& event = m_path.find();
     event.setCondition(m_condition);

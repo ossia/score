@@ -18,12 +18,12 @@ namespace Scenario
          */
         class ClearConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("ClearConstraint", "ClearConstraint")
+                ISCORE_COMMAND_DECL("ScenarioControl", "ClearConstraint", "ClearConstraint")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ClearConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearConstraint)
                 ClearConstraint(Path<ConstraintModel>&& constraintPath);
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

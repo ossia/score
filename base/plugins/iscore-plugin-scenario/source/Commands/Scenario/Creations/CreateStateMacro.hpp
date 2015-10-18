@@ -7,26 +7,26 @@ namespace Command
 {
 /**
  * @brief The CreateStateMacro class
- * 
+ *
  * Used to quickly create a state from data coming from outside.
  * For instance creating a StateModel and adding data inside.
- * 
+ *
  */
 class CreateStateMacro : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("CreateStateMacro", "CreateStateMacro")
+        ISCORE_COMMAND_DECL("ScenarioControl", "CreateStateMacro", "CreateStateMacro")
     public:
         CreateStateMacro():
-            AggregateCommand{"ScenarioControl",
+            AggregateCommand{factoryName(),
                              commandName(),
                              description()} { }
-        
-        void undo() override
+
+        void undo() const override
         {
             // We only need to undo the creation of the StateModel.
             m_cmds[0]->undo();
         }
-        
+
 };
 }
 }

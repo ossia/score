@@ -12,16 +12,16 @@ namespace Scenario
     {
         class SwapSlots : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("SwapSlots", "SwapSlots")
+                ISCORE_COMMAND_DECL("ScenarioControl", "SwapSlots", "SwapSlots")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SwapSlots, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwapSlots)
                 SwapSlots(
                     Path<RackModel>&& rack,
                     const Id<SlotModel>& first,
                     const Id<SlotModel>& second);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -7,13 +7,13 @@ class CurveSegmentModel;
 using SegmentParameterMap = QMap<Id<CurveSegmentModel>, QPair<double, double>>;
 class SetSegmentParameters : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("SetSegmentParameters", "SetSegmentParameters")
+        ISCORE_COMMAND_DECL("AutomationControl", "SetSegmentParameters", "SetSegmentParameters")
     public:
-        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SetSegmentParameters, "AutomationControl")
+        ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetSegmentParameters)
         SetSegmentParameters(Path<CurveModel>&& model, SegmentParameterMap&& parameters);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
         void update(Path<CurveModel>&& model, SegmentParameterMap&&  segments);
 

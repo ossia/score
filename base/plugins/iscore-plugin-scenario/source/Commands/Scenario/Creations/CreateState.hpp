@@ -11,9 +11,9 @@ namespace Command
 {
 class CreateState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("CreateState","CreateState")
+        ISCORE_COMMAND_DECL("ScenarioControl", "CreateState","CreateState")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateState, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateState)
 
         CreateState(
             const ScenarioModel& scenario,
@@ -34,9 +34,9 @@ class CreateState : public iscore::SerializableCommand
         const Id<StateModel>& createdState() const
         { return m_newState; }
 
-        void undo() override;
+        void undo() const override;
 
-        void redo() override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

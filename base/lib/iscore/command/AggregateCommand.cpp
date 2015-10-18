@@ -3,7 +3,7 @@
 #include <QApplication>
 using namespace iscore;
 
-void AggregateCommand::undo()
+void AggregateCommand::undo() const
 {
     for(int i = m_cmds.size() - 1; i >= 0; --i)
     {
@@ -11,7 +11,7 @@ void AggregateCommand::undo()
     }
 }
 
-void AggregateCommand::redo()
+void AggregateCommand::redo() const
 {
     for(auto& cmd : m_cmds)
     {

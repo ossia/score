@@ -19,11 +19,10 @@ namespace Scenario
     {
         class MoveConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("MoveConstraint", "MoveConstraint")
+                ISCORE_COMMAND_DECL("ScenarioControl", "MoveConstraint", "MoveConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                MoveConstraint();
-                ~MoveConstraint();
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveConstraint)
                 MoveConstraint(
                         Path<ScenarioModel>&& scenarioPath,
                     const Id<ConstraintModel>& id,
@@ -35,8 +34,8 @@ namespace Scenario
                             const TimeValue& date,
                             double height);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

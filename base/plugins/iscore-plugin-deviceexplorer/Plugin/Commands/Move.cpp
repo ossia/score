@@ -7,7 +7,7 @@ Move::Move(const iscore::NodePath &srcParentPath, int srcRow, int count,
            const iscore::NodePath &dstParentPath, int dstRow,
            const QString& text,
            Path<DeviceExplorerModel> &&tree_model):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()}
 {
@@ -23,7 +23,7 @@ Move::Move(const iscore::NodePath &srcParentPath, int srcRow, int count,
 
 
 void
-Move::undo()
+Move::undo() const
 {
     auto& model = m_model.find();
 
@@ -54,7 +54,7 @@ Move::undo()
 }
 
 void
-Move::redo()
+Move::redo() const
 {
     auto& model = m_model.find();
 

@@ -9,14 +9,14 @@ namespace Scenario
     {
         class SetCondition : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("SetCondition", "SetCondition")
+                ISCORE_COMMAND_DECL("ScenarioControl", "SetCondition", "SetCondition")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SetCondition, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetCondition)
                 SetCondition(
                     Path<EventModel>&& eventPath,
                     iscore::Condition&& condition);
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

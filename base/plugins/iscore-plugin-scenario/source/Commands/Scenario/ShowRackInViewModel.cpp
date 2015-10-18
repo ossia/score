@@ -31,7 +31,7 @@ ShowRackInViewModel::ShowRackInViewModel(
     m_previousRackId = vm.shownRack();
 }
 
-void ShowRackInViewModel::undo()
+void ShowRackInViewModel::undo() const
 {
     auto& vm = m_constraintViewPath.find();
 
@@ -45,7 +45,7 @@ void ShowRackInViewModel::undo()
     }
 }
 
-void ShowRackInViewModel::redo()
+void ShowRackInViewModel::redo() const
 {
     auto& vm = m_constraintViewPath.find();
     vm.showRack(m_rackId);

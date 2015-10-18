@@ -14,17 +14,17 @@ namespace Scenario
     {
         class ReplaceConstraintContent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("ReplaceConstraintContent", "ReplaceConstraintContent")
+                ISCORE_COMMAND_DECL("ScenarioControl", "ReplaceConstraintContent", "ReplaceConstraintContent")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ReplaceConstraintContent, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ReplaceConstraintContent)
                 ReplaceConstraintContent(
                     QJsonObject&& sourceConstraint,
                     Path<ConstraintModel>&&  targetConstraint,
                     ExpandMode mode);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -24,10 +24,10 @@ namespace Scenario
         */
         class CreateConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("CreateConstraint","CreateConstraint")
+                ISCORE_COMMAND_DECL("ScenarioControl", "CreateConstraint","CreateConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateConstraint, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint)
                 CreateConstraint(
                     Path<ScenarioModel>&& scenarioPath,
                     const Id<StateModel>& startState,
@@ -37,8 +37,8 @@ namespace Scenario
                 const Path<ScenarioModel>& scenarioPath() const
                 { return m_path; }
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 const Id<ConstraintModel>& createdConstraint() const
                 { return m_createdConstraintId; }

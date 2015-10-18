@@ -23,17 +23,17 @@ namespace Command
 {
 class MoveBaseEvent : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("MoveBaseEvent", "MoveBaseEvent")
+        ISCORE_COMMAND_DECL("ScenarioControl", "MoveBaseEvent", "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveBaseEvent, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveBaseEvent)
           MoveBaseEvent(
           Path<BaseScenario>&& scenarioPath,
             const TimeValue& date,
                   ExpandMode mode);
 
-        virtual void undo() override;
-        virtual void redo() override;
+        void undo() const override;
+        void redo() const override;
 
         void update(
                 const Path<BaseScenario>&,

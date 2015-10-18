@@ -20,7 +20,7 @@ using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         QString process) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(constraintPath) },
@@ -56,7 +56,7 @@ AddProcessToConstraint::AddProcessToConstraint(
     }
 }
 
-void AddProcessToConstraint::undo()
+void AddProcessToConstraint::undo() const
 {
     auto& constraint = m_path.find();
     if(m_noRackes)
@@ -79,7 +79,7 @@ void AddProcessToConstraint::undo()
     constraint.processes.remove(m_createdProcessId);
 }
 
-void AddProcessToConstraint::redo()
+void AddProcessToConstraint::redo() const
 {
     auto& constraint = m_path.find();
 
@@ -167,13 +167,13 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
     m_createdProcessId = getStrongId(constraint.processes);
 }
 
-void AddOnlyProcessToConstraint::undo()
+void AddOnlyProcessToConstraint::undo() const
 {
     auto& constraint = m_path.find();
     constraint.processes.remove(m_createdProcessId);
 }
 
-void AddOnlyProcessToConstraint::redo()
+void AddOnlyProcessToConstraint::redo() const
 {
     auto& constraint = m_path.find();
 

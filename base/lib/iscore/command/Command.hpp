@@ -60,9 +60,8 @@ namespace iscore
         public:
             virtual ~Command();
 
-            // TODO they should be const
-            virtual void undo() = 0;
-            virtual void redo() = 0;
+            virtual void undo() const = 0;
+            virtual void redo() const = 0;
 
         protected:
             quint32 timestamp() const;

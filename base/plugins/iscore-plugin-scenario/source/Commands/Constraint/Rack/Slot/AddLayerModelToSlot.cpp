@@ -23,13 +23,13 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processData = m_processPath.find().makeViewModelConstructionData();
 }
 
-void AddLayerModelToSlot::undo()
+void AddLayerModelToSlot::undo() const
 {
     auto& slot = m_slotPath.find();
     slot.layers.remove(m_createdLayerId);
 }
 
-void AddLayerModelToSlot::redo()
+void AddLayerModelToSlot::redo() const
 {
     auto& slot = m_slotPath.find();
     auto& proc = m_processPath.find();

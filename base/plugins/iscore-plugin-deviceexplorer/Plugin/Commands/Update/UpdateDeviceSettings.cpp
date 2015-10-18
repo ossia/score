@@ -25,13 +25,13 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     m_oldParameters = (*it).get<DeviceSettings>();
 }
 
-void UpdateDeviceSettings::undo()
+void UpdateDeviceSettings::undo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.updateDevice(m_newParameters.name, m_oldParameters);
 }
 
-void UpdateDeviceSettings::redo()
+void UpdateDeviceSettings::redo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.updateDevice(m_oldParameters.name, m_newParameters);

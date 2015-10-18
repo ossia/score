@@ -37,12 +37,12 @@ CreateCurveFromStates::CreateCurveFromStates(
         "Automation"};
 }
 
-void CreateCurveFromStates::undo()
+void CreateCurveFromStates::undo() const
 {
     m_addProcessCmd->undo();
 }
 
-void CreateCurveFromStates::redo()
+void CreateCurveFromStates::redo() const
 {
     m_addProcessCmd->redo();
     auto& cstr = m_addProcessCmd->constraintPath().find();

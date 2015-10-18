@@ -13,17 +13,17 @@ namespace DeviceExplorer
 
         class Paste : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("Paste", "Paste")
+                ISCORE_COMMAND_DECL("DeviceExplorerControl", "Paste", "Paste")
                 public:
-                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(Paste, "DeviceExplorerControl")
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(Paste)
 
                 Paste(const iscore::NodePath& parentPath, int row,
                          const QString& text,
                          Path<DeviceExplorerModel>&& Path);
 
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

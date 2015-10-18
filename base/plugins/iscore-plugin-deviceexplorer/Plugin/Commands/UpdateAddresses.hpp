@@ -14,14 +14,14 @@ namespace DeviceExplorer
     // TODO Moveme
         class UpdateAddressesValues : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND_DECL_OBSOLETE("UpdateAddressesValues", "UpdateAddressesValues")
+            ISCORE_COMMAND_DECL("DeviceExplorerControl", "UpdateAddressesValues", "UpdateAddressesValues")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(UpdateAddressesValues, "DeviceExplorerControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateAddressesValues)
                 UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
                               const QList<QPair<const iscore::Node*, iscore::Value>>& nodes);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

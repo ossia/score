@@ -10,12 +10,12 @@ SetProcessDuration::SetProcessDuration(Path<Process>&& path, const TimeValue& ne
     m_old = m_path.find().duration();
 }
 
-void SetProcessDuration::undo()
+void SetProcessDuration::undo() const
 {
     m_path.find().setDuration(m_old);
 }
 
-void SetProcessDuration::redo()
+void SetProcessDuration::redo() const
 {
     m_path.find().setDuration(m_new);
 }

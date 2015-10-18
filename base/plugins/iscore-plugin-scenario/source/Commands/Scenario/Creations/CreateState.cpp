@@ -28,7 +28,7 @@ CreateState::CreateState(
 
 }
 
-void CreateState::undo()
+void CreateState::undo() const
 {
     auto& scenar = m_path.find();
 
@@ -38,7 +38,7 @@ void CreateState::undo()
     updateEventExtent(m_event, scenar);
 }
 
-void CreateState::redo()
+void CreateState::redo() const
 {
     auto& scenar = m_path.find();
 

@@ -21,13 +21,13 @@ UpdateAddressSettings::UpdateAddressSettings(
     m_oldParameters = n->get<iscore::AddressSettings>();
 }
 
-void UpdateAddressSettings::undo()
+void UpdateAddressSettings::undo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.updateAddress(m_node, m_oldParameters);
 }
 
-void UpdateAddressSettings::redo()
+void UpdateAddressSettings::redo() const
 {
     auto& devplug = m_devicesModel.find();
     devplug.updateProxy.updateAddress(m_node, m_newParameters);

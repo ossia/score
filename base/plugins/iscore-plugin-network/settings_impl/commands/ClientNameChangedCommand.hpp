@@ -28,13 +28,13 @@ class ClientNameChangedCommand : public iscore::Command
         }
         */
 
-        virtual void undo() override
+        void undo() const override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
             target->setClientName(m_oldval);
         }
 
-        virtual void redo() override
+        void redo() const override
         {
             auto target = qApp->findChild<NetworkSettingsModel*> ("NetworkSettingsModel");
             target->setClientName(m_newval);

@@ -19,15 +19,15 @@ namespace Scenario
          */
         class CopySlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("CopySlot", "CopySlot")
+                ISCORE_COMMAND_DECL("ScenarioControl", "CopySlot", "CopySlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CopySlot, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopySlot)
                 CopySlot(Path<SlotModel>&& slotToCopy,
                          Path<RackModel>&& targetRackPath);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

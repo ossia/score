@@ -7,11 +7,11 @@ namespace Scenario
     {
         class SwitchStatePosition : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("SwitchStatePosition", "SwitchStatePosition")
+                ISCORE_COMMAND_DECL("ScenarioControl", "SwitchStatePosition", "SwitchStatePosition")
             public:
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(SwitchStatePosition, "ScenarioControl")
-                virtual void undo() override;
-                virtual void redo() override;
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwitchStatePosition)
+                void undo() const override;
+                void redo() const override;
 
             protected:
                 virtual void serializeImpl(QDataStream&) const override;

@@ -9,9 +9,9 @@ namespace Command
 {
 class CreateTimeNode_Event_State : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL_OBSOLETE("CreateTimeNode_Event_State","CreateTimeNode_Event_State")
+        ISCORE_COMMAND_DECL("ScenarioControl", "CreateTimeNode_Event_State","CreateTimeNode_Event_State")
         public:
-            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(CreateTimeNode_Event_State, "ScenarioControl")
+            ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateTimeNode_Event_State)
 
           CreateTimeNode_Event_State(
             const ScenarioModel& scenario,
@@ -35,8 +35,8 @@ class CreateTimeNode_Event_State : public iscore::SerializableCommand
         const Id<TimeNodeModel>& createdTimeNode() const
         { return m_newTimeNode; }
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

@@ -16,7 +16,7 @@ using namespace Scenario::Command;
 AddLayerInNewSlot::AddLayerInNewSlot(
         Path<ConstraintModel>&& constraintPath,
         Id<Process> process) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(constraintPath) },
@@ -40,7 +40,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     m_processData = constraint.processes.at(m_sharedProcessModelId).makeViewModelConstructionData();
 }
 
-void AddLayerInNewSlot::undo()
+void AddLayerInNewSlot::undo() const
 {
     auto& constraint = m_path.find();
     auto& rack = constraint.racks.at(m_createdRackId);
@@ -55,7 +55,7 @@ void AddLayerInNewSlot::undo()
     }
 }
 
-void AddLayerInNewSlot::redo()
+void AddLayerInNewSlot::redo() const
 {
     auto& constraint = m_path.find();
 

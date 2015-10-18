@@ -28,7 +28,7 @@ MergeTimeNodes::MergeTimeNodes( Path<ScenarioModel> &&path,
     m_serializedTimeNode = arr;
 }
 
-void MergeTimeNodes::undo()
+void MergeTimeNodes::undo() const
 {
 
     ISCORE_TODO;
@@ -56,7 +56,7 @@ void MergeTimeNodes::undo()
     */
 }
 
-void MergeTimeNodes::redo()
+void MergeTimeNodes::redo() const
 {
 
     ISCORE_TODO;

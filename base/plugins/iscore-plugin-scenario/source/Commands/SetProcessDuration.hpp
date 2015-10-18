@@ -14,8 +14,8 @@ class SetProcessDuration : public iscore::SerializableCommand
                 Path<Process>&& path,
                 const TimeValue& newVal);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream& s) const override;

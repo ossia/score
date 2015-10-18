@@ -29,13 +29,13 @@ SetTrigger::~SetTrigger()
 
 }
 
-void SetTrigger::undo()
+void SetTrigger::undo() const
 {
     auto& tn = m_path.find();
     tn.trigger()->setExpression(m_previousTrigger);
 }
 
-void SetTrigger::redo()
+void SetTrigger::redo() const
 {
     auto& tn = m_path.find();
     tn.trigger()->setExpression(m_trigger);

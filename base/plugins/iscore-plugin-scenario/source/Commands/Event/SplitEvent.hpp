@@ -22,8 +22,8 @@ namespace Scenario
                 const Id<EventModel>& event,
                 const QVector<Id<StateModel>>& movingstates);
 
-            virtual void undo() override;
-            virtual void redo() override;
+            void undo() const override;
+            void redo() const override;
 
             protected:
             virtual void serializeImpl(QDataStream&) const override;

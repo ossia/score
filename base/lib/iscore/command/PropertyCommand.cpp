@@ -1,12 +1,12 @@
 #include "PropertyCommand.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
-void iscore::PropertyCommand::undo()
+void iscore::PropertyCommand::undo() const
 {
     m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_old);
 }
 
-void iscore::PropertyCommand::redo()
+void iscore::PropertyCommand::redo() const
 {
     m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_new);
 }

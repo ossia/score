@@ -27,13 +27,13 @@ HideRackInViewModel::HideRackInViewModel(
     m_constraintPreviousId = constraint_vm.shownRack();
 }
 
-void HideRackInViewModel::undo()
+void HideRackInViewModel::undo() const
 {
     auto& vm = m_constraintViewPath.find();
     vm.showRack(m_constraintPreviousId);
 }
 
-void HideRackInViewModel::redo()
+void HideRackInViewModel::redo() const
 {
     auto& vm = m_constraintViewPath.find();
     vm.hideRack();

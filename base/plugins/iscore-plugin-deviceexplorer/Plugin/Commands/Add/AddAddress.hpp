@@ -21,8 +21,8 @@ namespace DeviceExplorer
                            InsertMode insert,
                            const iscore::AddressSettings& addressSettings);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 int createdNodeIndex() const;
 

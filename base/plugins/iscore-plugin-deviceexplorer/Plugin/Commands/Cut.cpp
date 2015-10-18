@@ -5,7 +5,7 @@ using namespace DeviceExplorer::Command;
 Cut::Cut(const iscore::NodePath &parentPath, int row,
                               const QString& text,
                               Path<DeviceExplorerModel> &&model):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()}
 {
@@ -18,7 +18,7 @@ Cut::Cut(const iscore::NodePath &parentPath, int row,
 
 
 void
-Cut::undo()
+Cut::undo() const
 {
     auto& model = m_model.find();
 
@@ -48,7 +48,7 @@ Cut::undo()
 }
 
 void
-Cut::redo()
+Cut::redo() const
 {
     auto& model = m_model.find();
     QModelIndex parentIndex = model.convertPathToIndex(m_parentPath);

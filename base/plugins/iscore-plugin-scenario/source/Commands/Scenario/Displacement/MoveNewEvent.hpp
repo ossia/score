@@ -18,9 +18,9 @@ namespace Scenario
 
         class MoveNewEvent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("MoveNewEvent", "MoveNewEvent")
+                ISCORE_COMMAND_DECL("ScenarioControl", "MoveNewEvent", "MoveNewEvent")
                 public:
-                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(MoveNewEvent, "ScenarioControl")
+                    ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewEvent)
                 MoveNewEvent(
                   Path<ScenarioModel>&& scenarioPath,
                     const Id<ConstraintModel>& constraintId,
@@ -29,8 +29,8 @@ namespace Scenario
                     const double y,
                     bool yLocked);
 
-                virtual void undo() override;
-                virtual void redo() override;
+                void undo() const override;
+                void redo() const override;
 
                 void update(
                         const Path<ScenarioModel>& path,

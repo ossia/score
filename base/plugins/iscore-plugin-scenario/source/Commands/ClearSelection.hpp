@@ -9,10 +9,10 @@ namespace Scenario
     {
         class ClearSelection : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL_OBSOLETE("ClearSelection", "ClearSelection")
+                ISCORE_COMMAND_DECL("ScenarioControl", "ClearSelection", "ClearSelection")
             public:
                 ClearSelection():
-                      AggregateCommand{"ScenarioControl",
+                      AggregateCommand{factoryName(),
                                        commandName(),
                                        description()} { }
 

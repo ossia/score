@@ -15,8 +15,8 @@ class UpdateState : public iscore::SerializableCommand
             Path<MessageItemModel>&&,
             const iscore::MessageList& messages);
 
-        void undo() override;
-        void redo() override;
+        void undo() const override;
+        void redo() const override;
 
     protected:
         void serializeImpl(QDataStream&) const override;

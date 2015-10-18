@@ -11,7 +11,7 @@ class PutLayerModelToFront
                 Path<SlotModel>&& slotPath,
                 const Id<LayerModel>& pid);
 
-        void redo();
+        void redo() const;
 
     private:
         Path<SlotModel> m_slotPath;

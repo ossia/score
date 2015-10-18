@@ -9,7 +9,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_rackPath {rackToCopy}
@@ -20,7 +20,7 @@ DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
     m_newRackId = getStrongId(constraint.racks);
 }
 
-void DuplicateRack::undo()
+void DuplicateRack::undo() const
 {
     auto& rack = m_rackPath.find<RackModel>();
     auto& constraint = rack.constraint();
@@ -28,7 +28,7 @@ void DuplicateRack::undo()
     constraint.racks.remove(m_newRackId);
 }
 
-void DuplicateRack::redo()
+void DuplicateRack::redo() const
 {
     auto& rack = m_rackPath.find<RackModel>();
     auto& constraint = rack.constraint();

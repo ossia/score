@@ -20,12 +20,12 @@ InitAutomation::InitAutomation(
 {
 }
 
-void InitAutomation::undo()
+void InitAutomation::undo() const
 {
 
 }
 
-void InitAutomation::redo()
+void InitAutomation::redo() const
 {
     auto& autom = m_path.find();
 

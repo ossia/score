@@ -9,12 +9,12 @@ SetLooping::SetLooping(Path<ConstraintModel>&& constraintPath, bool looping) :
 {
 }
 
-void SetLooping::undo()
+void SetLooping::undo() const
 {
     m_path.find().setLooping(!m_looping);
 }
 
-void SetLooping::redo()
+void SetLooping::redo() const
 {
     m_path.find().setLooping(m_looping);
 }
