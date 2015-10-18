@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/AutomationCommandFactory.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
@@ -7,7 +8,7 @@
 class AutomationModel;
 class ChangeAddress : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("AutomationControl", ChangeAddress, "ChangeAddress")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), ChangeAddress, "ChangeAddress")
     public:
         ChangeAddress(
                 Path<AutomationModel>&& path,

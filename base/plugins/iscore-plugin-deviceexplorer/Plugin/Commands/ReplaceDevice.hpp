@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -14,7 +15,7 @@ namespace DeviceExplorer
         // Replaces all the nodes of a device by new nodes.
         class ReplaceDevice : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", ReplaceDevice, "ReplaceDevice")
+            ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReplaceDevice, "ReplaceDevice")
             public:
                 ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                               int deviceIndex,

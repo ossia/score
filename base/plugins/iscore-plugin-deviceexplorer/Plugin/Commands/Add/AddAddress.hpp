@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -13,7 +14,7 @@ namespace DeviceExplorer
     {
         class AddAddress : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", AddAddress, "AddAddress")
+            ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "AddAddress")
             public:
                 AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
                            const iscore::NodePath &nodePath,

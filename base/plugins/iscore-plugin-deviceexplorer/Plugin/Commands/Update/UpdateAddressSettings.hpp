@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
@@ -14,7 +15,7 @@ namespace Command
 {
 class UpdateAddressSettings : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", UpdateAddressSettings, "UpdateAddressSettings")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressSettings, "UpdateAddressSettings")
         public:
           UpdateAddressSettings(
             Path<DeviceDocumentPlugin>&& device_tree,

@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -13,7 +14,7 @@
  */
 class RemoveAddress : public iscore::SerializableCommand
 {
-    ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", RemoveAddress, "RemoveAddress")
+    ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "RemoveAddress")
     public:
         RemoveAddress(
                    Path<DeviceDocumentPlugin>&& device_tree,

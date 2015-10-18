@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -12,7 +13,7 @@ namespace Command
 {
 class Remove : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", Remove, "Remove")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
         public:
 
           Remove(

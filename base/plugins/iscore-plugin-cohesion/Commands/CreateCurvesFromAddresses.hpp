@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/IScoreCohesionCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
@@ -6,7 +7,7 @@
 class ConstraintModel;
 class CreateCurvesFromAddresses : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("IScoreCohesionControl", CreateCurvesFromAddresses, "CreateCurvesFromAddresses")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), CreateCurvesFromAddresses, "CreateCurvesFromAddresses")
     public:
 
         CreateCurvesFromAddresses(

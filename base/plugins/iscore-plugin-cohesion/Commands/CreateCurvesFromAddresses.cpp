@@ -8,7 +8,7 @@ using namespace iscore;
 CreateCurvesFromAddresses::CreateCurvesFromAddresses(
         Path<ConstraintModel>&& constraint,
         const QList<Address>& addresses):
-    SerializableCommand {"IScoreCohesionControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {constraint},

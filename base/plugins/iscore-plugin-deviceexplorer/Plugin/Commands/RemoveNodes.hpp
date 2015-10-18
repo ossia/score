@@ -1,8 +1,9 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <iscore/command/AggregateCommand.hpp>
 
 class RemoveNodes : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL("DeviceExplorerControl", RemoveNodes, "RemoveNodes")
+        ISCORE_AGGREGATE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveNodes, "RemoveNodes")
 };

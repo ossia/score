@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/AutomationCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <State/Address.hpp>
@@ -8,7 +9,7 @@
 class AutomationModel;
 class InitAutomation : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("AutomationControl", InitAutomation, "InitAutomation")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")
     public:
            // Note : the segments shall be sorted from start to end.
         InitAutomation(

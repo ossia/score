@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -12,7 +13,7 @@ namespace DeviceExplorer
     {
         class Move : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", Move, "Move")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Move, "Move")
                 public:
 
                 Move(const iscore::NodePath& srcParentPath, int srcRow, int count,

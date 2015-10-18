@@ -1,5 +1,5 @@
 #pragma once
-
+#include <Commands/IScoreCohesionCommandFactory.hpp>
 #include "base/plugins/iscore-plugin-scenario/source/Commands/Constraint/AddProcessToConstraint.hpp"
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -9,7 +9,7 @@ class ConstraintModel;
 
 class CreateCurveFromStates : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("IScoreCohesionControl", CreateCurveFromStates, "CreateCurveFromStates")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
     public:
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,

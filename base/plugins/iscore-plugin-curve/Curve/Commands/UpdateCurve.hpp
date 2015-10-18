@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/AutomationCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
@@ -7,7 +8,7 @@ class CurveSegmentModel;
 
 class UpdateCurve : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("AutomationControl", UpdateCurve, "UpdateCurve")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), UpdateCurve, "UpdateCurve")
     public:
         UpdateCurve(
           Path<CurveModel>&& model,

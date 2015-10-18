@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -13,7 +14,7 @@ namespace DeviceExplorer
 
         class Paste : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", Paste, "Paste")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Paste, "Paste")
                 public:
 
                 Paste(const iscore::NodePath& parentPath, int row,

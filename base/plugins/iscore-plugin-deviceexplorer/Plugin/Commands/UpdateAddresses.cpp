@@ -8,7 +8,7 @@ using namespace iscore;
 UpdateAddressesValues::UpdateAddressesValues(
         Path<DeviceExplorerModel>&& device_tree,
         const QList<QPair<const Node *, iscore::Value> > &nodes):
-    iscore::SerializableCommand{"DeviceExplorerControl",
+    iscore::SerializableCommand{factoryName(),
                                 commandName(),
                                 description()},
     m_deviceTree{std::move(device_tree)}

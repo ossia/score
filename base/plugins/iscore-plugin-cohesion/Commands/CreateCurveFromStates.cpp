@@ -11,7 +11,7 @@ CreateCurveFromStates::CreateCurveFromStates(
         double start,
         double end):
     iscore::SerializableCommand{
-        "IScoreCohesionControl",
+        factoryName(),
         commandName(),
         description()},
     m_addProcessCmd{

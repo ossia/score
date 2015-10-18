@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
@@ -8,7 +9,7 @@ class DeviceDocumentPlugin;
 // Note : could also be used for loading from the library
 class LoadDevice: public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", LoadDevice, "LoadDevice")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), LoadDevice, "LoadDevice")
         public:
           LoadDevice(
             Path<DeviceDocumentPlugin>&& device_tree,

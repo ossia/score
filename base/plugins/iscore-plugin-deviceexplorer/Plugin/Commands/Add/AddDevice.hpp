@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>
@@ -6,7 +7,7 @@
 class DeviceDocumentPlugin;
 class AddDevice : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL("DeviceExplorerControl", AddDevice, "AddDevice")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "AddDevice")
         public:
         AddDevice(Path<DeviceDocumentPlugin>&& device_tree,
                   const iscore::DeviceSettings& parameters);
