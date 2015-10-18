@@ -37,18 +37,12 @@ void UpdateCurve::update(
 
 void UpdateCurve::serializeImpl(QDataStream& s) const
 {
-    // TODO serialize std::vector (there are already existing methods for this)
     s << m_model
-      << QVector<CurveSegmentData>::fromStdVector(m_oldCurveData)
-      << QVector<CurveSegmentData>::fromStdVector(m_newCurveData);
+      << m_oldCurveData
+      << m_newCurveData;
 }
 
 void UpdateCurve::deserializeImpl(QDataStream& s)
 {
-    QVector<CurveSegmentData> old_one;
-    QVector<CurveSegmentData> new_one;
-    s >> m_model >> old_one >> new_one;
-
-    m_oldCurveData = old_one.toStdVector();
-    m_newCurveData = new_one.toStdVector();
+    s >> m_model >> m_oldCurveData >> m_newCurveData;
 }

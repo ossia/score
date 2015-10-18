@@ -8,7 +8,8 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
 {
     m_stream << segmt.id
              << segmt.start << segmt.end
-             << segmt.previous << segmt.following;
+             << segmt.previous << segmt.following
+             << segmt.type;
 
     auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
@@ -22,7 +23,8 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
 {
     m_stream >> segmt.id
              >> segmt.start >> segmt.end
-             >> segmt.previous >> segmt.following;
+             >> segmt.previous >> segmt.following
+             >> segmt.type;
 
     auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
     ISCORE_ASSERT(segmt_fact);

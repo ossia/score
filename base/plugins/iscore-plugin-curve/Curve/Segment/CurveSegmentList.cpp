@@ -3,8 +3,12 @@
 CurveSegmentFactory* CurveSegmentList::get(const QString& name) const
 {
     // TODO here we should really use a map.
-    return *std::find_if(factories.begin(), factories.end(),
+    auto it = std::find_if(factories.begin(), factories.end(),
                          [&] (auto&& p) { return p->name() == name; });
+
+    ISCORE_ASSERT(it != factories.end());
+
+    return *it;
 }
 
 void CurveSegmentList::registerFactory(CurveSegmentFactory* fact)
