@@ -12,7 +12,7 @@ using namespace Scenario::Command;
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_slotPath {slotPath},

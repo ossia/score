@@ -10,7 +10,7 @@ using namespace Scenario::Command;
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
         Path<RackModel>&& rackPath) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()}
 {
@@ -37,7 +37,7 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
 RemoveRackFromConstraint::RemoveRackFromConstraint(
         Path<ConstraintModel>&& constraintPath,
         Id<RackModel> rackId) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {constraintPath},

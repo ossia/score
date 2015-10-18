@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -19,7 +20,7 @@ namespace Scenario
          */
         class CopySlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "CopySlot", "CopySlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CopySlot", "CopySlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CopySlot)

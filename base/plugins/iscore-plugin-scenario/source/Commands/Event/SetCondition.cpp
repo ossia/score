@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 SetCondition::SetCondition(
         Path<EventModel>&& eventPath,
         iscore::Condition&& cond) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(eventPath) },

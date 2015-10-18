@@ -10,7 +10,7 @@ namespace Command
 {
 class CreateSequence : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "CreateSequence","CreateSequence")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateSequence","CreateSequence")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateSequence)
 

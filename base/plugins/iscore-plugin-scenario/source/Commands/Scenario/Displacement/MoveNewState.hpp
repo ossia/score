@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -19,7 +20,7 @@ namespace Scenario
 
         class MoveNewState : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND_DECL("ScenarioControl", "MoveNewState", "MoveNewState")
+            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "MoveNewState", "MoveNewState")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewState)
             MoveNewState(

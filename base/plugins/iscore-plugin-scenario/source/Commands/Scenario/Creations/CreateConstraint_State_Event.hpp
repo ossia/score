@@ -8,7 +8,7 @@ namespace Command
 {
 class CreateConstraint_State_Event : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "CreateConstraint_State_Event","CreateConstraint_State_Event")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateConstraint_State_Event","CreateConstraint_State_Event")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint_State_Event)
 

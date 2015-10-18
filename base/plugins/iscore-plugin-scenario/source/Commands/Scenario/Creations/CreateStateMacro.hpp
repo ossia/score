@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/AggregateCommand.hpp>
 
 namespace Scenario
@@ -14,7 +15,7 @@ namespace Command
  */
 class CreateStateMacro : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "CreateStateMacro", "CreateStateMacro")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateStateMacro", "CreateStateMacro")
     public:
         CreateStateMacro():
             AggregateCommand{factoryName(),

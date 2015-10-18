@@ -1,11 +1,12 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 
 class ConstraintModel;
 class SetLooping : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "SetLooping", "SetLooping")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SetLooping", "SetLooping")
 
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetLooping)

@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -12,7 +13,7 @@ namespace Scenario
     {
         class RemoveProcessFromConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveProcessFromConstraint", "RemoveProcessFromConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveProcessFromConstraint", "RemoveProcessFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveProcessFromConstraint)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -15,7 +16,7 @@ namespace Scenario
     {
     class RemoveTrigger : public iscore::SerializableCommand
     {
-        ISCORE_COMMAND_DECL("ScenarioControl", "RemoveTrigger", "RemoveTrigger")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveTrigger", "RemoveTrigger")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveTrigger)
         RemoveTrigger(Path<TimeNodeModel>&& timeNodePath);

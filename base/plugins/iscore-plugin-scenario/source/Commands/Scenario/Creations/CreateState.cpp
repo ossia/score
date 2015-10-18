@@ -8,7 +8,7 @@
 #include "Process/ScenarioModel.hpp"
 using namespace Scenario::Command;
 CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &event, double stateY) :
-    SerializableCommand{"ScenarioControl",
+    SerializableCommand{factoryName(),
                         commandName(),
                         description()},
     m_path {scenario},

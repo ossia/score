@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -16,7 +17,7 @@ namespace Scenario
          */
         class AddRackToConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "AddRackToConstraint", "AddRackToConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddRackToConstraint", "AddRackToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:

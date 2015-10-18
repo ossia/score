@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -15,7 +16,7 @@ namespace Scenario
          */
         class RemoveSlotFromRack : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveSlotFromRack", "RemoveSlotFromRack")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveSlotFromRack", "RemoveSlotFromRack")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSlotFromRack)
                 RemoveSlotFromRack(Path<SlotModel>&& slotPath);

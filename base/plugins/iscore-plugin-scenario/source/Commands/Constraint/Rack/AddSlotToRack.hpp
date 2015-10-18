@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -16,7 +17,7 @@ namespace Scenario
          */
         class AddSlotToRack : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "AddSlotToRack", "AddSlotToRack")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddSlotToRack", "AddSlotToRack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddSlotToRack)

@@ -12,7 +12,7 @@ CreateConstraint_State_Event::CreateConstraint_State_Event(
         const Id<StateModel>& startState,
         const Id<TimeNodeModel>& endTimeNode,
         double endStateY):
-    iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
+    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_newEvent{getStrongId(scenario.events)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,

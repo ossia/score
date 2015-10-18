@@ -21,7 +21,7 @@ MoveBaseEvent::MoveBaseEvent(
         Path<BaseScenario>&& baseScenarioPath,
         const TimeValue& date,
         ExpandMode mode) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {std::move(baseScenarioPath)},

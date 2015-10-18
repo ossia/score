@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -7,7 +8,7 @@
 
 class UpdateState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "UpdateState", "UpdateState")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "UpdateState", "UpdateState")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(UpdateState)
 

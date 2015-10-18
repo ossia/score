@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -8,7 +9,7 @@
 
 class RemoveMessageNodes : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "RemoveMessageNodes", "RemoveMessageNodes")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveMessageNodes", "RemoveMessageNodes")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveMessageNodes)
 

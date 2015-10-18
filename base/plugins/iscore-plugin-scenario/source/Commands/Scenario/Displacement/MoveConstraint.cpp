@@ -14,7 +14,7 @@ MoveConstraint::MoveConstraint(
         const Id<ConstraintModel>& id,
         const TimeValue& date,
         double height) :
-    SerializableCommand{"ScenarioControl",
+    SerializableCommand{factoryName(),
                         commandName(),
                         description()},
     m_path{std::move(scenarioPath)},

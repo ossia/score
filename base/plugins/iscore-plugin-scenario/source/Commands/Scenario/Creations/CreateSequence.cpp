@@ -12,7 +12,7 @@ CreateSequence::CreateSequence(
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
-    iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
+    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_command{scenario,
               startState,
               date,

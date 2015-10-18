@@ -11,7 +11,7 @@ CreateEvent_State::CreateEvent_State(
         const ScenarioModel& scenario,
         const Id<TimeNodeModel>& timeNode,
         double stateY):
-    iscore::SerializableCommand{"ScenarioControl", commandName(), description()},
+    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_newEvent{getStrongId(scenario.events)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,

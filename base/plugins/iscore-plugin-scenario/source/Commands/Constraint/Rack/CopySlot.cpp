@@ -9,7 +9,7 @@ using namespace Scenario::Command;
 
 CopySlot::CopySlot(Path<SlotModel>&& slotToCopy,
                    Path<RackModel>&& targetRackPath) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_slotPath {slotToCopy},

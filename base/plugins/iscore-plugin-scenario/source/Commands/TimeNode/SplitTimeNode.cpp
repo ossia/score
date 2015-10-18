@@ -17,7 +17,7 @@ using namespace Scenario::Command;
 SplitTimeNode::SplitTimeNode(
         Path<TimeNodeModel>&& path,
         QVector<Id<EventModel> > eventsInNewTimeNode):
-    SerializableCommand{"ScenarioControl",
+    SerializableCommand{factoryName(),
                         commandName(),
                         description()},
     m_path {std::move(path) },

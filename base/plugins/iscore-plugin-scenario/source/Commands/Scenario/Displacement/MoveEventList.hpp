@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <QMap>
 #include <iscore/tools/NamedObject.hpp>
 #include <QApplication>

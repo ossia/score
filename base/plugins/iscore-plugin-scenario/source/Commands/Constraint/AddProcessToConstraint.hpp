@@ -1,8 +1,7 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-
-
 
 #include <QString>
 
@@ -23,7 +22,7 @@ namespace Scenario
         */
         class AddProcessToConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "AddProcessToConstraint", "AddProcessToConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddProcessToConstraint", "AddProcessToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddProcessToConstraint)
@@ -62,7 +61,7 @@ namespace Scenario
 
 class AddOnlyProcessToConstraint : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "AddOnlyProcessToConstraint", "AddOnlyProcessToConstraint")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddOnlyProcessToConstraint", "AddOnlyProcessToConstraint")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddOnlyProcessToConstraint)
         AddOnlyProcessToConstraint(

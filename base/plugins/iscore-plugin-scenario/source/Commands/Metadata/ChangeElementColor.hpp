@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
@@ -12,6 +13,10 @@ namespace Scenario
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
+                static constexpr const char * factoryName()
+                {
+                    return ScenarioCommandFactoryName();
+                }
                 static const char * commandName()
                 {
                     static QByteArray name = QString{"ChangeElementColor_%1"}.arg(T::staticMetaObject.className()).toUtf8();
@@ -22,9 +27,9 @@ namespace Scenario
                     return QObject::tr("Change %1 color").arg(T::prettyName());
                 }
 
-                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR_OBSOLETE(ChangeElementColor, "ScenarioControl")
+                ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ChangeElementColor)
                 ChangeElementColor(Path<T>&& path, QColor newLabel) :
-                    SerializableCommand {"ScenarioControl",
+                    SerializableCommand {factoryName(),
                                          commandName(),
                                          description()},
                     m_path {std::move(path) },

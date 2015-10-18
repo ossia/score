@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
@@ -14,7 +15,7 @@ namespace Scenario
     {
         class MergeTimeNodes : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "MergeTimeNodes", "MergeTimeNodes")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "MergeTimeNodes", "MergeTimeNodes")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MergeTimeNodes)
                 MergeTimeNodes(Path<ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);

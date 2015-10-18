@@ -15,7 +15,7 @@ namespace Scenario
     {
         class CreationMetaCommand : public iscore::AggregateCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "CreationMetaCommand", "CreationMetaCommand")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreationMetaCommand", "CreationMetaCommand")
             public:
                 CreationMetaCommand():
                   AggregateCommand{factoryName(),

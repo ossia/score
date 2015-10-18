@@ -18,7 +18,7 @@ namespace Scenario
 
         class MoveNewEvent : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "MoveNewEvent", "MoveNewEvent")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "MoveNewEvent", "MoveNewEvent")
                 public:
                     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveNewEvent)
                 MoveNewEvent(

@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -18,7 +19,7 @@ namespace Scenario
          */
         class RemoveRackFromConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveRackFromConstraint", "RemoveRackFromConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveRackFromConstraint", "RemoveRackFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveRackFromConstraint)

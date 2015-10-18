@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
@@ -13,7 +14,7 @@ namespace Scenario
     {
         class SplitTimeNode : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "SplitTimeNode", "SplitTimeNode")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SplitTimeNode", "SplitTimeNode")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SplitTimeNode)
                 SplitTimeNode(

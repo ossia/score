@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 
 #include <Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>

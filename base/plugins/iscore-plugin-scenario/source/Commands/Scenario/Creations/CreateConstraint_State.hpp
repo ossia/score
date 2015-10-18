@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include "CreateConstraint.hpp"
 class ScenarioModel;
@@ -8,7 +9,7 @@ namespace Command
 {
 class CreateConstraint_State : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "CreateConstraint_State","CreateConstraint_State")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateConstraint_State","CreateConstraint_State")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint_State)
 

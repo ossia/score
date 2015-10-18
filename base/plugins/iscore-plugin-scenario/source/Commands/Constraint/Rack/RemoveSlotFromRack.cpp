@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 
 RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath) :
     SerializableCommand {
-        "ScenarioControl",
+        factoryName(),
         commandName(),
         description()}
 {
@@ -30,7 +30,7 @@ RemoveSlotFromRack::RemoveSlotFromRack(
         Path<RackModel>&& rackPath,
         Id<SlotModel> slotId) :
     SerializableCommand {
-        "ScenarioControl",
+        factoryName(),
         commandName(),
         description()},
     m_path {rackPath},

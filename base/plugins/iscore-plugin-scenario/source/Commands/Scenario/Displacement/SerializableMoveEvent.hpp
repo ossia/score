@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <ProcessInterface/ExpandMode.hpp>
@@ -10,7 +11,7 @@ class ScenarioModel;
 
 class SerializableMoveEvent : public iscore::SerializableCommand
 {
-ISCORE_COMMAND_DECL("ScenarioControl", "move", "move")
+ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "move", "move")
 public:
     ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SerializableMoveEvent)
     virtual

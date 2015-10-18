@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
+#include <Commands/ScenarioCommandFactory.hpp>
 
 namespace Scenario
 {
@@ -7,7 +8,7 @@ namespace Scenario
     {
         class SwitchStatePosition : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "SwitchStatePosition", "SwitchStatePosition")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SwitchStatePosition", "SwitchStatePosition")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwitchStatePosition)
                 void undo() const override;

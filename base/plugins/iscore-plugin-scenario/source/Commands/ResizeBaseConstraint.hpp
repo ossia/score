@@ -4,6 +4,7 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/ExpandMode.hpp>
+#include <Commands/ScenarioCommandFactory.hpp>
 
 class EventModel;
 class TimeNodeModel;
@@ -23,7 +24,7 @@ namespace Command
 {
 class MoveBaseEvent : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "MoveBaseEvent", "MoveBaseEvent")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "MoveBaseEvent", "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(MoveBaseEvent)

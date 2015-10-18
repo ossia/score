@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -18,7 +19,7 @@ namespace Command
  */
 class SetMinDuration : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "SetMinDuration", "Set constraint minimum")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SetMinDuration", "Set constraint minimum")
     public:
         ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SetMinDuration)
 

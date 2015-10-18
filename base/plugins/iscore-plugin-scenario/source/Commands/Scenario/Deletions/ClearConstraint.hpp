@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
@@ -18,7 +19,7 @@ namespace Scenario
          */
         class ClearConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "ClearConstraint", "ClearConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "ClearConstraint", "ClearConstraint")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearConstraint)
                 ClearConstraint(Path<ConstraintModel>&& constraintPath);

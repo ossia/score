@@ -8,7 +8,7 @@ using namespace Scenario::Command;
 
 HideRackInViewModel::HideRackInViewModel(
         Path<ConstraintViewModel>&& path) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_constraintViewPath {std::move(path) }
@@ -19,7 +19,7 @@ HideRackInViewModel::HideRackInViewModel(
 
 HideRackInViewModel::HideRackInViewModel(
         const ConstraintViewModel& constraint_vm) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_constraintViewPath {constraint_vm}

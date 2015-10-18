@@ -14,7 +14,7 @@ MoveNewEvent::MoveNewEvent(
         const TimeValue& date,
         const double y,
         bool yLocked) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path {scenarioPath},

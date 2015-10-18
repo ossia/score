@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include "Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp"
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
@@ -18,7 +19,7 @@ namespace Scenario
         */
         class RemoveSelection : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveSelection", "RemoveSelection")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveSelection", "RemoveSelection")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveSelection)
                 RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);

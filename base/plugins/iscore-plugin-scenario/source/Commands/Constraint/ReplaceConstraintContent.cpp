@@ -15,7 +15,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
         QJsonObject&& sourceConstraint,
         Path<ConstraintModel>&& targetConstraint,
         ExpandMode mode) :
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_source{sourceConstraint},

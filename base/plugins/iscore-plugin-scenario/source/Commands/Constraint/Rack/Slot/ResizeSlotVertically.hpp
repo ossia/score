@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -15,7 +16,7 @@ namespace Scenario
          */
         class ResizeSlotVertically : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "ResizeSlotVertically", "ResizeSlotVertically")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "ResizeSlotVertically", "ResizeSlotVertically")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ResizeSlotVertically)
                 ResizeSlotVertically(

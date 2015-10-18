@@ -7,7 +7,7 @@ SwapSlots::SwapSlots(
         Path<RackModel>&& rack,
         const Id<SlotModel>& first,
         const Id<SlotModel>& second):
-    SerializableCommand {"ScenarioControl",
+    SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_rackPath{std::move(rack)},

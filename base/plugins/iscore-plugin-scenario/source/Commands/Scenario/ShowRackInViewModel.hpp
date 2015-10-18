@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -18,7 +19,7 @@ namespace Scenario
          */
         class ShowRackInViewModel : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "ShowRackInViewModel", "ShowRackInViewModel")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "ShowRackInViewModel", "ShowRackInViewModel")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ShowRackInViewModel)
                 ShowRackInViewModel(

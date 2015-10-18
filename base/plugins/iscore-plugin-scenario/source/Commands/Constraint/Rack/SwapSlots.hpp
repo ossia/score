@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -12,7 +13,7 @@ namespace Scenario
     {
         class SwapSlots : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "SwapSlots", "SwapSlots")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "SwapSlots", "SwapSlots")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(SwapSlots)
                 SwapSlots(

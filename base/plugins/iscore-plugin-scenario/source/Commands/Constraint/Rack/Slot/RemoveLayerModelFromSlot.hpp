@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -15,7 +16,7 @@ namespace Scenario
          */
         class RemoveLayerModelFromSlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "RemoveLayerModelFromSlot", "RemoveLayerModelFromSlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "RemoveLayerModelFromSlot", "RemoveLayerModelFromSlot")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(RemoveLayerModelFromSlot)
 

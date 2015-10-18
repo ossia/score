@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
@@ -9,7 +10,7 @@ namespace Scenario
     {
         class ClearState : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "ClearState", "ClearState")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "ClearState", "ClearState")
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(ClearState)
                 ClearState(Path<StateModel>&& path);

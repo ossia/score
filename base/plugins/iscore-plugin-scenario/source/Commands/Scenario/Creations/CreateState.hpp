@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 class ScenarioModel;
@@ -11,7 +12,7 @@ namespace Command
 {
 class CreateState : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("ScenarioControl", "CreateState","CreateState")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateState","CreateState")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateState)
 

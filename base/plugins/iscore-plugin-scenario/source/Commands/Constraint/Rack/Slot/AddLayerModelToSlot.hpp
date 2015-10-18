@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -17,7 +18,7 @@ namespace Scenario
          */
         class AddLayerModelToSlot : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "AddLayerModelToSlot", "AddLayerModelToSlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddLayerModelToSlot", "AddLayerModelToSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddLayerModelToSlot)

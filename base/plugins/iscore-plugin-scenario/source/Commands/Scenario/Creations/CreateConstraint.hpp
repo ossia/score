@@ -1,4 +1,5 @@
 #pragma once
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -24,7 +25,7 @@ namespace Scenario
         */
         class CreateConstraint : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL("ScenarioControl", "CreateConstraint","CreateConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "CreateConstraint","CreateConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(CreateConstraint)

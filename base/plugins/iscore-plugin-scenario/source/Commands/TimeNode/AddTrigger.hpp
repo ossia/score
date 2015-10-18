@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -15,7 +16,7 @@ namespace Scenario
     {
     class AddTrigger : public iscore::SerializableCommand
     {
-            ISCORE_COMMAND_DECL("ScenarioControl", "AddTrigger", "AddTrigger")
+            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), "AddTrigger", "AddTrigger")
         public:
             ISCORE_SERIALIZABLE_COMMAND_DEFAULT_CTOR(AddTrigger)
             AddTrigger(Path<TimeNodeModel>&& timeNodePath);
