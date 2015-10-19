@@ -114,7 +114,8 @@ class DeviceExplorerModel : public NodeBasedItemModel
         {
             Name = 0,
             Value,
-            IOType,
+            Get,
+            Set,
             Min,
             Max,
 

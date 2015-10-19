@@ -79,8 +79,9 @@ DeviceExplorerView::setInitialColumnsSizes()
     ISCORE_ASSERT(model());
 
     header()->resizeSection((int)DeviceExplorerModel::Column::Name, 220);
-    header()->resizeSection((int)DeviceExplorerModel::Column::IOType, 36);
     header()->resizeSection((int)DeviceExplorerModel::Column::Value, 50);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Get, 36);
+    header()->resizeSection((int)DeviceExplorerModel::Column::Set, 36);
     header()->resizeSection((int)DeviceExplorerModel::Column::Min, 50);
     header()->resizeSection((int)DeviceExplorerModel::Column::Max, 50);
 }

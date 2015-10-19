@@ -38,7 +38,8 @@ using namespace iscore;
 static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
     {DeviceExplorerModel::Column::Name, QObject::tr("Address")},
     {DeviceExplorerModel::Column::Value, QObject::tr("Value")},
-    {DeviceExplorerModel::Column::IOType, QObject::tr("I/O")},
+    {DeviceExplorerModel::Column::Get, QObject::tr("Get")},
+    {DeviceExplorerModel::Column::Set, QObject::tr("Set")},
     {DeviceExplorerModel::Column::Min, QObject::tr("Min")},
     {DeviceExplorerModel::Column::Max, QObject::tr("Max")}
 };
@@ -323,8 +324,11 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         case Column::Value:
             return DeviceExplorer::valueColumnData(n, role);
 
-        case Column::IOType:
-            return DeviceExplorer::IOTypeColumnData(n, role);
+        case Column::Get:
+            return DeviceExplorer::GetColumnData(n, role);
+
+        case Column::Set:
+            return DeviceExplorer::SetColumnData(n, role);
 
         case Column::Min:
             return DeviceExplorer::minColumnData(n, role);
@@ -374,6 +378,14 @@ DeviceExplorerModel::flags(const QModelIndex& index) const
         {
             f |= Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
         }
+        else if(index.column() == (int)Column::Get)
+        {
+            f |= Qt::ItemIsUserCheckable;
+        }
+        else if(index.column() == (int)Column::Set)
+        {
+            f |= Qt::ItemIsUserCheckable;
+        }
 
 
         if(n.isEditable())
@@ -415,7 +427,7 @@ bool DeviceExplorerModel::setData(
 
     auto col = DeviceExplorerModel::Column(index.column());
 
-    if(role == Qt::EditRole)
+    if(role == Qt::EditRole || role == Qt::CheckStateRole)
     {
         if(col == Column::Value)
         {
@@ -449,11 +461,83 @@ bool DeviceExplorerModel::setData(
                     settings.name = s;
                 }
             }
-            else if(col == Column::IOType)
+
+            // TODO uncomment to enable io type edition
+/*
+            if(role == Qt::CheckStateRole)
             {
-                // TODO Harmonize this with IOTypeDelegate to prevent the use of this map
-                settings.ioType = iscore::IOTypeStringMap().key(value.value<QString>());
+                if(col == Column::Get)
+                {
+                    if(value.value<bool>())
+                    {
+                        switch(settings.ioType)
+                        {
+                            case IOType::In:
+                                break;
+                            case IOType::Out:
+                                settings.ioType = IOType::InOut;
+                                break;
+                            case IOType::InOut:
+                                break;
+                            default:
+                                settings.ioType = IOType::In;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch(settings.ioType)
+                        {
+                            case IOType::In:
+                                settings.ioType = IOType::Invalid;
+                                break;
+                            case IOType::Out:
+                                break;
+                            case IOType::InOut:
+                                settings.ioType = IOType::Out;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                else if(col == Column::Set)
+                {
+                    if(value.value<bool>())
+                    {
+                        switch(settings.ioType)
+                        {
+                            case IOType::In:
+                                settings.ioType = IOType::InOut;
+                                break;
+                            case IOType::Out:
+                                break;
+                            case IOType::InOut:
+                                break;
+                            default:
+                                settings.ioType = IOType::Out;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch(settings.ioType)
+                        {
+                            case IOType::In:
+                                break;
+                            case IOType::Out:
+                                settings.ioType = IOType::Invalid;
+                                break;
+                            case IOType::InOut:
+                                settings.ioType = IOType::In;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
+            */
 
             if(settings != n.get<iscore::AddressSettings>())
             {
@@ -511,10 +595,6 @@ void DeviceExplorerModel::editData(
             {
                 node->get<iscore::AddressSettings>().name = s;
             }
-        }
-        else if(index.column() == (int)Column::IOType)
-        {
-            node->get<iscore::AddressSettings>().ioType = IOTypeStringMap().key(value.toString());
         }
         else */if(index.column() == (int)Column::Value)
         {

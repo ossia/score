@@ -61,8 +61,6 @@ DeviceExplorerWidget::buildGUI()
 {
     m_ntView = new DeviceExplorerView(this);
 
-    m_ntView->setItemDelegateForColumn((int)DeviceExplorerModel::Column::IOType, new IOTypeDelegate);
-
     connect(m_ntView, static_cast<void (DeviceExplorerView::*)()>(&DeviceExplorerView::selectionChanged),
             this, &DeviceExplorerWidget::updateActions);
 
@@ -586,6 +584,7 @@ void DeviceExplorerWidget::refresh()
 
 void DeviceExplorerWidget::refreshValue()
 {
+    // TODO deprecate this
     QList<QPair<const iscore::Node*, iscore::Value>> lst;
     for(auto index : m_ntView->selectedIndexes())
     {

@@ -4,6 +4,8 @@
 
 #include <iostream>//DEBUG
 #include <DeviceExplorer/Address/IOType.hpp>
+
+// REMOVEME
 IOTypeDelegate::IOTypeDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
 {
