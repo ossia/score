@@ -61,7 +61,8 @@ void InterpolateStates(iscore::Document* doc)
                                    [&] (const iscore::Message& arg) {
                 return message.address == arg.address
                         && arg.value.val.isNumeric()
-                        && message.value.val.impl().which() == arg.value.val.impl().which(); });
+                        && message.value.val.impl().which() == arg.value.val.impl().which()
+                        && message.value != arg.value; });
 
             if(it != end(endMessages))
             {
