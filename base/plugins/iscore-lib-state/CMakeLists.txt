@@ -4,7 +4,7 @@ project(iscore_lib_state)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(SRCS

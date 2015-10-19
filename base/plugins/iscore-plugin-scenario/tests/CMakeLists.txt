@@ -4,7 +4,7 @@ enable_testing()
 
 include_directories("${ISCORE_ROOT_SOURCE_DIR}/base")
 
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
 
 function(addIScoreQtTest TESTNAME TESTSRCS)
                 add_executable(${TESTNAME} ${TESTSRCS})

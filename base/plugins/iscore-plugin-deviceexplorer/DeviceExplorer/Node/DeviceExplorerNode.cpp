@@ -203,7 +203,7 @@ iscore::Node merge(
 
 void dumpTree(const Node& node, QString rec)
 {
-    qDebug() << qUtf8Printable(rec) << qUtf8Printable(node.displayName());
+    qDebug() << rec.toUtf8().constData() << node.displayName().toUtf8().constData();
     rec += " ";
     for(const auto& child : node)
     {

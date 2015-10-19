@@ -4,6 +4,7 @@
 #include "Curve/CurveView.hpp"
 #include "Curve/StateMachine/States/Tools/MoveTool.hpp"
 #include "Curve/StateMachine/States/Tools/SelectionTool.hpp"
+#include <iscore/statemachine/StateMachineTools.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <core/document/Document.hpp>
 #include <QSignalTransition>
@@ -149,13 +150,13 @@ void CurveStateMachine::changeTool(int state)
 
 int CurveStateMachine::tool() const
 {
-    if(m_createTool->active())
+    if(isStateActive(m_createTool))
         return (int)Curve::Tool::Create;
-    if(m_moveTool->active())
+    if(isStateActive(m_moveTool))
         return (int)Curve::Tool::Create;
-    if(m_setSegmentTool->active())
+    if(isStateActive(m_setSegmentTool))
         return (int)Curve::Tool::Create;
-    if(m_selectTool->active())
+    if(isStateActive(m_selectTool))
         return (int)Curve::Tool::Selection;
 
     return (int)Curve::Tool::Selection;

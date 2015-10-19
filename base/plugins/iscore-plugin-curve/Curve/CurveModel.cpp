@@ -153,32 +153,6 @@ void CurveModel::addSegment(CurveSegmentModel* m)
 }
 
 #include <numeric>
-void CurveModel::addSegments(QVector<CurveSegmentModel*> segts)
-{
-    // Sort them by previous - following.
-    QVector<CurveSegmentModel*> sorted;
-
-    auto min_segt = [] (const CurveSegmentModel* lhs, const CurveSegmentModel* rhs)
-    {
-        return lhs->start().x() < rhs->start().x();
-    };
-
-    // Sort them
-    while(segts.size() != 0)
-    {
-        auto it = std::min_element(segts.begin(), segts.end(), min_segt);
-        ISCORE_ASSERT(it != segts.end());
-
-        sorted.push_back(*it);
-        segts.removeAll(*it);
-    }
-
-
-    for(const auto& segment : sorted)
-    {
-        addSegment(segment);
-    }
-}
 
 void CurveModel::insertSegment(CurveSegmentModel* m)
 {

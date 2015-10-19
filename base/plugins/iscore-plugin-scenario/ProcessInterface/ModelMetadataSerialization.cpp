@@ -28,7 +28,11 @@ void Visitor<Reader<JSONObject>>::readFrom(const ModelMetadata& md)
     m_obj["ScriptingName"] = md.m_scriptingName;
     m_obj["Comment"] = md.m_comment;
 
-    m_obj["Color"] = QJsonArray {md.m_color.red(), md.m_color.green(), md.m_color.blue()};
+    QJsonArray arr;
+    arr.append(md.m_color.red());
+    arr.append(md.m_color.green());
+    arr.append(md.m_color.blue());
+    m_obj["Color"] = arr;
 
     m_obj["Label"] = md.m_label;
 }

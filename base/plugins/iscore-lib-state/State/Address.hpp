@@ -59,9 +59,17 @@ namespace std {
       // Compute individual hash values for first,
       // second and third and combine them using XOR
       // and bit shifting:
-
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
       return ((qHash(k.device)
                ^ (qHashRange(k.path.begin(), k.path.end()) << 1)) >> 1);
+#else
+        auto h = qHash(k.device);
+        for(const auto& elt : k.path)
+        {
+            h = (h ^ (qHash(elt) << 1)) >> 1;
+        }
+        return h;
+#endif
     }
   };
 

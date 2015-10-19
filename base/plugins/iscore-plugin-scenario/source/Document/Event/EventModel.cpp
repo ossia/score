@@ -115,7 +115,7 @@ void EventModel::addState(const Id<StateModel> &ds)
 
 void EventModel::removeState(const Id<StateModel> &ds)
 {
-    m_states.removeOne(ds);
+    m_states.remove(m_states.indexOf(ds, 0));
     emit statesChanged();
 }
 

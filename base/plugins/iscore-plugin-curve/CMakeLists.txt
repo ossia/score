@@ -4,7 +4,7 @@ project(iscore_plugin_curve)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
 
 # Files & main target
 file(GLOB_RECURSE HDRS

@@ -4,7 +4,7 @@ project(iscore_plugin_library)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 file(GLOB_RECURSE PLUGIN_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp"

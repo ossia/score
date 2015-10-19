@@ -38,8 +38,10 @@ class NotifyingMap : public QObject
 {
         // Fake Q_OBJECT macro here.
     public:
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
         QT_WARNING_PUSH
         Q_OBJECT_NO_OVERRIDE_WARNING
+#endif
 
         static const QMetaObject staticMetaObject;
         const QMetaObject *metaObject() const override;
@@ -47,7 +49,9 @@ class NotifyingMap : public QObject
         void *qt_metacast(const char * _clname) override;
         int qt_metacall(QMetaObject::Call _c, int _id, void ** _a) override;
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
         QT_WARNING_POP
+#endif
 
     private:
         Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject* _o, QMetaObject::Call _c, int _id, void ** _a);

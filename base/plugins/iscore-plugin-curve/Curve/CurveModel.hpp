@@ -28,7 +28,6 @@ class CurveModel : public IdentifiedObject<CurveModel>
         // These two will create points
         void addSegment(CurveSegmentModel* m);
         void addSortedSegment(CurveSegmentModel* m);
-        void addSegments(QVector<CurveSegmentModel*> m);
 
         // Won't create points, plain insertion.
         void insertSegment(CurveSegmentModel*);

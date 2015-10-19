@@ -9,7 +9,7 @@ endif()
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Network Xml Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network Xml Test)
 find_package(KF5DNSSD NO_MODULE)
 
 # Files & main target

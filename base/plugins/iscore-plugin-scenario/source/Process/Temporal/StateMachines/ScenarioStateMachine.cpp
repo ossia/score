@@ -1,4 +1,5 @@
 #include "ScenarioStateMachine.hpp"
+#include <iscore/statemachine/StateMachineTools.hpp>
 #include "Tools/CreationToolState.hpp"
 #include "Tools/SelectionToolState.hpp"
 #include "Tools/MoveSlotToolState.hpp"
@@ -151,13 +152,13 @@ const TemporalScenarioPresenter &ScenarioStateMachine::presenter() const
 
 ScenarioToolKind ScenarioStateMachine::tool() const
 {
-    if(createState->active())
+    if(isStateActive(createState))
         return ScenarioToolKind::Create;
-    if(selectState->active())
+    if(isStateActive(selectState))
         return ScenarioToolKind::Select;
-    if(moveSlotState->active())
+    if(isStateActive(moveSlotState))
         return ScenarioToolKind::MoveSlot;
-    if(playState->active())
+    if(isStateActive(playState))
         return ScenarioToolKind::Play;
 
     return ScenarioToolKind::Select;
@@ -165,7 +166,7 @@ ScenarioToolKind ScenarioStateMachine::tool() const
 
 bool ScenarioStateMachine::isShiftPressed() const
 {
-    return shiftPressedState->active();
+    return isStateActive(shiftPressedState);
 }
 
 

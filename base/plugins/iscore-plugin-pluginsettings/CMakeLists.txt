@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_pluginsettings)
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HEADER_FILES

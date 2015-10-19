@@ -29,8 +29,8 @@ void RemoveTrigger::undo() const
     {
         cmd->undo();
         delete cmd;
-        m_cmds.removeAll(cmd);
     }
+    m_cmds.clear();
 }
 
 void RemoveTrigger::redo() const

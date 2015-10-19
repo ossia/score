@@ -4,7 +4,7 @@ project(iscore_plugin_csp)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core)
 
 # Files & main target
 include_directories("${3RDPARTY_FOLDER}kiwi")

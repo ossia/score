@@ -1,6 +1,6 @@
 #pragma once
-#include <QState>
 #include <iscore/selection/SelectionDispatcher.hpp>
+#include <iscore/statemachine/StateMachineTools.hpp>
 class QGraphicsObject;
 
 namespace iscore
@@ -28,7 +28,7 @@ class CommonSelectionState : public QState
 
         bool multiSelection() const
         {
-            return m_multiSelection->active();
+            return isStateActive(m_multiSelection);
         }
 
     protected:

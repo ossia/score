@@ -1,4 +1,5 @@
 #include "CreationToolState.hpp"
+#include <iscore/statemachine/StateMachineTools.hpp>
 #include "Process/Temporal/StateMachines/Transitions/NothingTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/EventTransitions.hpp"
 #include "Process/Temporal/StateMachines/Transitions/StateTransitions.hpp"
@@ -178,13 +179,13 @@ QList<Id<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(const QVector<
 
 CreationState* CreationToolState::currentState() const
 {
-    if(m_createFromEventState->active())
+    if(isStateActive(m_createFromEventState))
         return m_createFromEventState;
-    if(m_createFromNothingState->active())
+    if(isStateActive(m_createFromNothingState))
         return m_createFromNothingState;
-    if(m_createFromStateState->active())
+    if(isStateActive(m_createFromStateState))
         return m_createFromStateState;
-    if(m_createFromTimeNodeState->active())
+    if(isStateActive(m_createFromTimeNodeState))
         return m_createFromTimeNodeState;
     return nullptr;
 }

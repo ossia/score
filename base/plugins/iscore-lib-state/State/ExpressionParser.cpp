@@ -1,11 +1,12 @@
 #include "Expression.hpp"
+#ifndef Q_MOC_RUN
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_real.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
-
+#endif
 /*
 Here is the grammar used. The grammar itself is split in multiple classes where
 relevant.

@@ -4,7 +4,7 @@ project(iscore_plugin_deviceexplorer)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Test Xml)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 # Files & main target
 ### Plugin ###

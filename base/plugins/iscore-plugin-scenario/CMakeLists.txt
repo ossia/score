@@ -8,13 +8,13 @@ if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
 endif()
 
 # Packages
-find_package(Qt5 5.5 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
 if(ISCORE_OPENGL)
-find_package(Qt5 5.5 REQUIRED COMPONENTS OpenGL)
+find_package(Qt5 5.3 REQUIRED COMPONENTS OpenGL)
 endif()
 
 if(ISCORE_WEBSOCKETS)
-find_package(Qt5 5.5 REQUIRED COMPONENTS WebSockets)
+find_package(Qt5 5.3 REQUIRED COMPONENTS WebSockets)
 endif()
 
 ### Library ###

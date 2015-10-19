@@ -30,8 +30,8 @@ void AddTrigger::undo() const
     {
         cmd->undo();
         delete cmd;
-        m_cmds.removeAll(cmd);
     }
+    m_cmds.clear();
 }
 
 void AddTrigger::redo() const
