@@ -45,7 +45,7 @@ MessageTreeView::MessageTreeView(
     con(m_model->messages(), &MessageItemModel::modelReset,
         this, &QTreeView::expandAll);
 
-    header()->resizeSection((int)MessageItemModel::Column::Name, 220);
+    header()->resizeSection((int)MessageItemModel::Column::Name, 300);
 }
 
 MessageItemModel& MessageTreeView::model() const
