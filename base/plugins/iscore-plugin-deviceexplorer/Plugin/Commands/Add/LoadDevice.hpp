@@ -1,5 +1,5 @@
 #pragma once
-#include <Commands/DeviceExplorerCommandFactory.hpp>
+#include <Plugin/Commands/DeviceExplorerCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <DeviceExplorer/Protocol/DeviceSettings.hpp>

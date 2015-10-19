@@ -5,6 +5,7 @@
 #include <Commands/State/UpdateState.hpp>
 #include <Document/State/StateModel.hpp>
 #include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -29,14 +30,13 @@ void SnapshotParametersInStates(iscore::Document* doc)
 
     // Fetch the selected DeviceExplorer elements
     auto device_explorer = doc->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto indexes = device_explorer->selectedIndexes();
+    auto uniqueNodes = device_explorer->uniqueSelectedNodes(device_explorer->selectedIndexes());
+    device_explorer->deviceModel().updateProxy.updateRemoteValues(uniqueNodes);
 
     iscore::MessageList messages;
-    for(auto& index : indexes)
+    for(const auto& node : uniqueNodes)
     {
-        auto m = DeviceExplorer::messageFromModelIndex(index);
-        if(m != iscore::Message{})
-            messages.push_back(m);
+        iscore::messageList(*node, messages);
     }
 
     if(messages.empty())

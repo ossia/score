@@ -23,29 +23,29 @@ matrix:
     - os: linux
     - os: osx
     
-  include:      
-    - os: linux
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux 
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux 
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux
+  include:
+
+    - os: osx
       env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
-      
     - os: osx
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
     - os: osx 
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
     - os: osx
       env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
-    - os: osx
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
-  
-  # Coverity
+
     - os: linux
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
-      
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux 
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux 
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+  # Coverity
+#    - os: linux
+#      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
+
 before_install:
 - "./tools/travis/deps.sh"
 

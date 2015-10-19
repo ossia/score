@@ -221,6 +221,8 @@ class DeviceExplorerModel : public NodeBasedItemModel
 
         void beginReset() { beginResetModel(); }
         void endReset() { endResetModel(); }
+        QList<iscore::Node*> uniqueSelectedNodes(const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
+
     protected:
         DeviceExplorer::Result cut_aux(const QModelIndex& index);
         DeviceExplorer::Result paste_aux(const QModelIndex& index, bool after);

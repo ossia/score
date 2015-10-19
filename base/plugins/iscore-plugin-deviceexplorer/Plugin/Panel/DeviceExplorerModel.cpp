@@ -844,33 +844,29 @@ DeviceExplorerModel::mimeTypes() const
     return {iscore::mime::device(), iscore::mime::address()};
 }
 
-#include <thread>
-//method called when a drag is initiated
-QMimeData*
-DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
+QList<iscore::Node*> DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
 {
     QList<iscore::Node*> nodes;
-    std::transform(indexes.begin(), indexes.end(), std::back_inserter(nodes),
+    std::transform(indexes.begin(), indexes.end(),
+                   std::back_inserter(nodes),
                    [&] (const QModelIndex& idx) {
         return &nodeFromModelIndex(idx);
     });
 
     nodes.removeAll(&m_rootNode);
 
-    auto uniqueNodes = filterUniqueParents(nodes);
+    return filterUniqueParents(nodes);
+}
+#include <thread>
+//method called when a drag is initiated
+QMimeData*
+DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
+{
+    QMimeData* mimeData = new QMimeData;
+    auto uniqueNodes = uniqueSelectedNodes(indexes);
 
     // Now we request an update to the device explorer.
     m_devicePlugin->updateProxy.updateRemoteValues(uniqueNodes);
-
-    QMimeData* mimeData = new QMimeData;
-
-    // The "Nodes" part.
-    // TODO The mime data should also transmit the root address for
-    // each node in this case. For now it's useless.
-    {
-        Mime<iscore::NodeList>::Serializer s{*mimeData};
-        s.serialize(nodes);
-    }
 
     // The "MessagesList" part.
     MessageList messages;
@@ -878,13 +874,22 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     {
         messageList(*node, messages);
     }
+
     if(!messages.empty())
     {
         Mime<iscore::MessageList>::Serializer s{*mimeData};
         s.serialize(messages);
     }
 
-    if(messages.empty() && nodes.empty())
+    // The "Nodes" part.
+    // TODO The mime data should also transmit the root address for
+    // each node in this case. For now it's useless.
+    {
+        Mime<iscore::NodeList>::Serializer s{*mimeData};
+        s.serialize(uniqueNodes);
+    }
+
+    if(messages.empty() && uniqueNodes.empty())
     {
         delete mimeData;
         return nullptr;
