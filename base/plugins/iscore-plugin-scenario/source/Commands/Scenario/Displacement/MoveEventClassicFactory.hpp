@@ -18,6 +18,9 @@ public:
     {
         switch(strategy)
         {
+            case MoveEventList::Strategy::CREATION:
+            case MoveEventList::Strategy::MOVING:
+            case MoveEventList::Strategy::EXTRA:
             default:
                 return 0;// not suited for other strategies
                 break;

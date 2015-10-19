@@ -263,6 +263,8 @@ void updateOSSIAValue(const iscore::ValueImpl& data, OSSIA::Value& val)
             break;
             */
         }
+        case OSSIA::Value::Type::DESTINATION:
+        case OSSIA::Value::Type::BEHAVIOR:
         default:
             break;
     }

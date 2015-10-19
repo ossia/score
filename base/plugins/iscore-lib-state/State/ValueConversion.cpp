@@ -99,7 +99,7 @@ QJsonValue value(const iscore::Value& val)
 QString textualType(const iscore::Value& val)
 {
     const auto& impl = val.val.impl();
-    ISCORE_ASSERT(impl.which() >= 0 && impl.which() < ValueTypesArray.size());
+    ISCORE_ASSERT(impl.which() < ValueTypesArray.size());
     return ValueTypesArray[impl.which()];
 }
 
@@ -168,7 +168,7 @@ iscore::Value toValue(const QJsonValue& val, const QString& type)
 QString prettyType(const iscore::Value& val)
 {
     const auto& impl = val.val.impl();
-    ISCORE_ASSERT(impl.which() >= 0 && impl.which() < ValuePrettyTypesArray.size());
+    ISCORE_ASSERT(impl.which() < ValuePrettyTypesArray.size());
     return ValuePrettyTypesArray[impl.which()];
 }
 
@@ -390,6 +390,8 @@ bool convert(const iscore::Value& orig, iscore::Value& toConvert)
 
 iscore::ValueImpl toValueImpl(const QVariant& val)
 {
+#pragma GCC diagnostic ignored "-Wswitch"
+#pragma GCC diagnostic ignored "-Wswitch-enum"
     switch(QMetaType::Type(val.type()))
     {
         case QMetaType::Int:
@@ -435,6 +437,9 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
         default:
             return iscore::ValueImpl{no_value_t{}};
     }
+
+#pragma GCC diagnostic warning "-Wswitch"
+#pragma GCC diagnostic warning "-Wswitch-enum"
 }
 
 

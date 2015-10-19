@@ -86,6 +86,8 @@ iscore::Value ToValue(const OSSIA::Value *val)
             break;
             */
         }
+        case OSSIA::Value::Type::DESTINATION:
+        case OSSIA::Value::Type::BEHAVIOR:
         default:
             return {};
     }
