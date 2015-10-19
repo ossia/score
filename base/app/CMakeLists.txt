@@ -45,7 +45,7 @@ if(INTEGRATION_TESTING)
 
     target_link_libraries(iscore_integration_lib INTERFACE
       ${ISCORE_PLUGINS_LIST}
-      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::PrintSupport Qt5::Svg Qt5::Test Qt5::DBus)
+	  Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::PrintSupport Qt5::Svg Qt5::Test)
 endif()
 
 include(IScoreDeployment)
