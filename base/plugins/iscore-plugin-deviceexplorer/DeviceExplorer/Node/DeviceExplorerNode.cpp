@@ -74,9 +74,7 @@ void messageList(const Node& n,
     {
         const auto& stgs = n.get<AddressSettings>();
 
-        // Note : this is an arbitrary choice. Discuss with
-        // the users and see repercussions in MessageItemModel.
-        if(hasOutput(stgs.ioType))
+        if(stgs.ioType == IOType::InOut)
         {
             ml.push_back(message(n));
         }
@@ -86,7 +84,6 @@ void messageList(const Node& n,
     {
         messageList(child, ml);
     }
-
 }
 
 Message message(const Node& node)
