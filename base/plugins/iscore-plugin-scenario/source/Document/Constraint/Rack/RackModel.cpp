@@ -3,7 +3,7 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Slot/SlotModel.hpp"
 
-const char RackModel::className[];
+constexpr const char RackModel::className[];
 
 
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :

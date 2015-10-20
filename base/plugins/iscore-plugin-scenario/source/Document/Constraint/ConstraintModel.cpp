@@ -10,7 +10,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 
-const char ConstraintModel::className[];
+constexpr const char ConstraintModel::className[];
 ConstraintModel::ConstraintModel(
         const Id<ConstraintModel>& id,
         const Id<ConstraintViewModel>& fullViewId,

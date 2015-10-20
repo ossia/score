@@ -6,7 +6,7 @@
 #include "ProcessInterface/Process.hpp"
 #include "ProcessInterface/LayerModel.hpp"
 
-const char SlotModel::className[];
+constexpr const char SlotModel::className[];
 
 SlotModel::SlotModel(
         const Id<SlotModel>& id,
