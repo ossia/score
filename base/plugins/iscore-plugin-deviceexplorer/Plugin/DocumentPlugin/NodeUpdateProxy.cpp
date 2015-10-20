@@ -239,7 +239,18 @@ void NodeUpdateProxy::updateRemoteValue(
     }
 }
 
-void rec_updateRemoteValues(iscore::Node& n, DeviceInterface& dev)
+void NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
+{
+    auto& dev = m_devModel.list().device(addr.device);
+    if(!dev.canRefresh())
+        return;
+
+    auto val = dev.refresh(addr);
+    if(val)
+        n.get<iscore::AddressSettings>().value = *val;
+}
+
+void rec_refreshRemoteValues(iscore::Node& n, DeviceInterface& dev)
 {
     // OPTIMIZEME
     auto val = dev.refresh(iscore::address(n));
@@ -248,11 +259,11 @@ void rec_updateRemoteValues(iscore::Node& n, DeviceInterface& dev)
 
     for(auto& child : n)
     {
-        rec_updateRemoteValues(child, dev);
+        rec_refreshRemoteValues(child, dev);
     }
 }
 
-void NodeUpdateProxy::updateRemoteValues(const iscore::NodeList& nodes)
+void NodeUpdateProxy::refreshRemoteValues(const iscore::NodeList& nodes)
 {
     // For each node, get its device.
     for(auto n : nodes)
@@ -266,7 +277,7 @@ void NodeUpdateProxy::updateRemoteValues(const iscore::NodeList& nodes)
 
             for(auto& child : *n)
             {
-                rec_updateRemoteValues(child, dev);
+                rec_refreshRemoteValues(child, dev);
             }
         }
         else
@@ -276,7 +287,7 @@ void NodeUpdateProxy::updateRemoteValues(const iscore::NodeList& nodes)
             if(!dev.canRefresh())
                 continue;
 
-            rec_updateRemoteValues(*n, dev);
+            rec_refreshRemoteValues(*n, dev);
         }
     }
 }

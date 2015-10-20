@@ -31,7 +31,7 @@ void SnapshotParametersInStates(iscore::Document* doc)
     // Fetch the selected DeviceExplorer elements
     auto device_explorer = doc->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
     auto uniqueNodes = device_explorer->uniqueSelectedNodes(device_explorer->selectedIndexes());
-    device_explorer->deviceModel().updateProxy.updateRemoteValues(uniqueNodes);
+    device_explorer->deviceModel().updateProxy.refreshRemoteValues(uniqueNodes);
 
     iscore::MessageList messages;
     for(const auto& node : uniqueNodes)

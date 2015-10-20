@@ -74,7 +74,10 @@ class NodeUpdateProxy
         void updateRemoteValue(
                 const iscore::Address&,
                 const iscore::Value&);
-        void updateRemoteValues(
+
+        void refreshRemoteValue(
+                const iscore::Address&);
+        void refreshRemoteValues(
                 const iscore::NodeList&);
 
     private:

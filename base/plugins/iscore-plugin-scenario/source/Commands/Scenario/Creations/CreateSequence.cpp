@@ -24,14 +24,19 @@ CreateSequence::CreateSequence(
     auto& scenar = m_command.scenarioPath().find();
     auto messages = scenar.state(startState).messages().flatten();
 
-    const auto& rootNode = iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>()->rootNode();
+    const auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
+    const auto& rootNode = devPlugin.rootNode();
+
     auto it = messages.begin();
     while(it != messages.end())
     {
         auto& mess = *it;
+
         auto node = iscore::try_getNodeFromAddress(rootNode, mess.address);
+
         if(node && node->is<iscore::AddressSettings>())
         {
+            devPlugin.updateProxy.refreshRemoteValue(mess.address);
             mess.value = node->get<iscore::AddressSettings>().value;
             ++it;
         }

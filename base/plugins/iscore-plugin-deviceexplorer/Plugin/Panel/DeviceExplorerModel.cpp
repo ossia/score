@@ -946,7 +946,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     auto uniqueNodes = uniqueSelectedNodes(indexes);
 
     // Now we request an update to the device explorer.
-    m_devicePlugin->updateProxy.updateRemoteValues(uniqueNodes);
+    m_devicePlugin->updateProxy.refreshRemoteValues(uniqueNodes);
 
     // The "MessagesList" part.
     MessageList messages;

@@ -91,6 +91,7 @@ QVariant GetColumnData(const iscore::Node& node, int role)
             case IOType::In:    return true;
             case IOType::Out:   return false;
             case IOType::InOut: return true;
+            case IOType::Invalid: return QVariant{};
             default:            return QVariant{};
         }
     }
@@ -101,6 +102,7 @@ QVariant GetColumnData(const iscore::Node& node, int role)
             case IOType::In:    return Qt::Checked;
             case IOType::Out:   return Qt::Unchecked;
             case IOType::InOut: return Qt::Checked;
+            case IOType::Invalid: return Qt::Unchecked;
             default:            return Qt::Unchecked;
         }
     }
@@ -120,6 +122,7 @@ QVariant SetColumnData(const iscore::Node& node, int role)
             case IOType::In:    return false;
             case IOType::Out:   return true;
             case IOType::InOut: return true;
+            case IOType::Invalid: return true;
             default:            return QVariant{};
         }
     }
@@ -130,6 +133,7 @@ QVariant SetColumnData(const iscore::Node& node, int role)
             case IOType::In:    return Qt::Unchecked;
             case IOType::Out:   return Qt::Checked;
             case IOType::InOut: return Qt::Checked;
+            case IOType::Invalid: return Qt::Unchecked;
             default:            return Qt::Unchecked;
         }
     }
