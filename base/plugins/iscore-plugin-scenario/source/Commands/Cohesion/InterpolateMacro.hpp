@@ -14,7 +14,37 @@ class InterpolateMacro : public iscore::AggregateCommand
                                       "InterpolateMacro")
 
         public:
-            InterpolateMacro(const ConstraintModel& constraint):
+            InterpolateMacro& operator=(const InterpolateMacro& other) = default;
+
+        // Use this constructor when the constraint does not exist yet.
+        InterpolateMacro(const Path<ConstraintModel>& cstpath):
+            iscore::AggregateCommand{factoryName(), commandName(), description()}
+        {
+            auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
+            addCommand(cmd_rack);
+
+            auto unsaferackPath = cstpath.unsafePath().vec();
+            unsaferackPath.push_back({RackModel::className, cmd_rack->createdRack()});
+
+            Path<RackModel> createdRackPath{
+                                   ObjectPath{std::move(unsaferackPath)},
+                                   Path<RackModel>::UnsafeDynamicCreation{}};
+
+            auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
+            addCommand(cmd_slot);
+
+            auto unsafeSlotPath = createdRackPath.unsafePath().vec();
+            unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
+
+            slotsToUse.push_back(Path<SlotModel>{
+                            ObjectPath{std::move(unsafeSlotPath)},
+                            Path<SlotModel>::UnsafeDynamicCreation{}});
+
+            addCommand(new ShowRackInAllViewModels{Path<ConstraintModel>{cstpath}, cmd_rack->createdRack()});
+        }
+
+            // Use this constructor when the constraint already exists
+        InterpolateMacro(const ConstraintModel& constraint):
           iscore::AggregateCommand{factoryName(), commandName(), description()}
         {
             auto cstpath = iscore::IDocument::path(constraint);
@@ -140,5 +170,5 @@ class InterpolateMacro : public iscore::AggregateCommand
             }
         }
 
-        std::vector<Path<SlotModel>> slotsToUse;
+        std::vector<Path<SlotModel>> slotsToUse; // No need to save this, it is useful only for construction.
 };

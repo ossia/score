@@ -43,8 +43,8 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 {
     // For each constraint, interpolate between the states in its start event and end event.
 
-    auto macroCmd = new InterpolateMacro{*selected_constraints.first()};
-    MacroCommandDispatcher macro{macroCmd, stack};
+    auto macro = new InterpolateMacro{*selected_constraints.first()};
+
 
     // They should all be in the same scenario so we can select the first.
     ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
@@ -89,14 +89,15 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
                 auto cmd = new CreateCurveFromStates{
                         *constraint,
-                        macroCmd->slotsToUse,
+                        macro->slotsToUse,
                         message.address,
                         iscore::convert::value<double>(message.value),
                         iscore::convert::value<double>((*it).value)};
-                macroCmd->addCommand(cmd);
+                macro->addCommand(cmd);
             }
         }
     }
 
-    macro.commit();
+    CommandDispatcher<> disp{stack};
+    disp.submitCommand(macro);
 }

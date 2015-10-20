@@ -100,7 +100,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list71<
+            boost::mpl::list72<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -150,6 +150,7 @@ void ScenarioControl::setupCommands()
             InterpolateMacro,
 
             ShowRackInViewModel,
+            ShowRackInAllViewModels,
             HideRackInViewModel,
 
             MergeRackes,

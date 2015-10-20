@@ -3,6 +3,8 @@
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include <ProcessInterface/TimeValue.hpp>
 #include <ProcessInterface/State/MessageNode.hpp>
+
+#include <Commands/Cohesion/InterpolateMacro.hpp>
 class TimeNodeModel;
 namespace Scenario
 {
@@ -49,6 +51,7 @@ class CreateSequence : public iscore::SerializableCommand
 
     private:
         CreateConstraint_State_Event_TimeNode m_command;
+        InterpolateMacro m_interpolations;
         MessageNode m_stateData;
 };
 }

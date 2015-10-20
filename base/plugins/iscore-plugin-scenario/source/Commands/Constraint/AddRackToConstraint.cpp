@@ -14,8 +14,16 @@ AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath)
                          description()},
     m_path {constraintPath}
 {
-    auto& constraint = m_path.find();
-    m_createdRackId = getStrongId(constraint.racks);
+    auto constraint = m_path.try_find();
+
+    if(constraint)
+    {
+        m_createdRackId = getStrongId(constraint->racks);
+    }
+    else
+    {
+        m_createdRackId = Id<RackModel>{getNextId()};
+    }
 }
 
 void AddRackToConstraint::undo() const
@@ -33,6 +41,7 @@ void AddRackToConstraint::redo() const
 
     // If it is the first rack created,
     // it is also assigned to the full view of the constraint.
+    // TODO should this logic be here ?
     if(constraint.racks.size() == 1)
     {
         constraint.fullView()->showRack(m_createdRackId);

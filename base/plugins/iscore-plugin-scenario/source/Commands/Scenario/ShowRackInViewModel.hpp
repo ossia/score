@@ -23,7 +23,7 @@ namespace Scenario
             public:
                 ShowRackInViewModel(
                         Path<ConstraintViewModel>&& constraint_path,
-                        Id<RackModel> rackId);
+                        const Id<RackModel>& rackId);
                 ShowRackInViewModel(
                         const ConstraintViewModel& vm,
                         const Id<RackModel>& rackId);
@@ -43,3 +43,29 @@ namespace Scenario
         };
     }
 }
+
+
+// MOVEME
+// TODO add me to command list
+class ShowRackInAllViewModels : public iscore::SerializableCommand
+{
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInAllViewModels, "ShowRackInAllViewModels")
+    public:
+        ShowRackInAllViewModels(
+                Path<ConstraintModel>&& constraint_path,
+                const Id<RackModel>& rackId);
+
+        void undo() const override;
+        void redo() const override;
+
+    protected:
+        virtual void serializeImpl(QDataStream&) const override;
+        virtual void deserializeImpl(QDataStream&) override;
+
+    private:
+        Path<ConstraintModel> m_constraintPath;
+        Id<RackModel> m_rackId {};
+
+        QMap<Id<ConstraintViewModel>, Id<RackModel>> m_previousRacks;
+
+};

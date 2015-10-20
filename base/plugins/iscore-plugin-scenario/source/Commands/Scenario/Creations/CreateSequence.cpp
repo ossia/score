@@ -5,6 +5,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Commands/Cohesion/CreateCurveFromStates.hpp>
 using namespace Scenario::Command;
 
 CreateSequence::CreateSequence(
@@ -22,13 +23,14 @@ CreateSequence::CreateSequence(
 
     // We get the device explorer, and we fetch the new states.
     auto& scenar = m_command.scenarioPath().find();
-    auto messages = scenar.state(startState).messages().flatten();
+    const auto& startMessages = scenar.state(startState).messages().flatten();
 
+    auto endMessages = startMessages;
     auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto it = messages.begin();
-    while(it != messages.end())
+    auto it = endMessages.begin();
+    while(it != endMessages.end())
     {
         auto& mess = *it;
 
@@ -42,13 +44,46 @@ CreateSequence::CreateSequence(
         }
         else
         {
-            it = messages.erase(it);
+            it = endMessages.erase(it);
         }
     }
 
-    updateTreeWithMessageList(m_stateData, messages);
+    updateTreeWithMessageList(m_stateData, endMessages);
 
     // We also create relevant curves.
+    // TODO refactor this with a new constructor to Path<> that takes an object identifier and an existing path.
+    Path<ScenarioModel> scenarioPath{scenario};
+    auto vec = scenarioPath.unsafePath().vec();
+    vec.push_back({ConstraintModel::className, m_command.createdConstraint()});
+    Path<ConstraintModel> constraint{ObjectPath{std::move(vec)}, Path<ConstraintModel>::UnsafeDynamicCreation{}};
+
+    m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
+
+    for(auto& message : startMessages)
+    {
+        if(!message.value.val.isNumeric())
+            continue;
+
+        auto it = std::find_if(std::begin(endMessages),
+                               std::end(endMessages),
+                               [&] (const iscore::Message& arg) {
+            return message.address == arg.address
+                    && arg.value.val.isNumeric()
+                    && message.value.val.impl().which() == arg.value.val.impl().which()
+                    && message.value != arg.value; });
+
+        if(it != std::end(endMessages))
+        {
+            auto cmd = new CreateCurveFromStates{
+                    Path<ConstraintModel>{constraint},
+                    m_interpolations.slotsToUse,
+                    message.address,
+                    iscore::convert::value<double>(message.value),
+                    iscore::convert::value<double>((*it).value)};
+            m_interpolations.addCommand(cmd);
+        }
+    }
+
 }
 
 CreateSequence::CreateSequence(

@@ -40,6 +40,8 @@ class SerializableCommand : public Command
         const QString& text() const;
         void setText(const QString& t);
 
+        SerializableCommand& operator=(const SerializableCommand& other) = default;
+
         std::size_t uid() const
         {
             std::hash<std::string> fn;
@@ -71,8 +73,8 @@ class SerializableCommand : public Command
         virtual void deserializeImpl(QDataStream&) = 0;
 
     private:
-        const QString m_name;
-        const QString m_parentName;
+        QString m_name;
+        QString m_parentName;
         QString m_text;
 };
 }

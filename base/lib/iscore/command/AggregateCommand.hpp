@@ -45,6 +45,8 @@ namespace iscore
                 m_cmds.push_front(cmd);
             }
 
+            AggregateCommand& operator=(const AggregateCommand& other) = default;
+
             void undo() const override;
             void redo() const override;
 
