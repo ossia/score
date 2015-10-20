@@ -47,6 +47,8 @@ CreateSequence::CreateSequence(
     }
 
     updateTreeWithMessageList(m_stateData, messages);
+
+    // We also create relevant curves.
 }
 
 CreateSequence::CreateSequence(

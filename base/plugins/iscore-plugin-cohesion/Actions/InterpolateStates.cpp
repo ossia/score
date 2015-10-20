@@ -35,10 +35,16 @@ void InterpolateStates(iscore::Document* doc)
     if(selected_constraints.empty())
         return;
 
+    InterpolateStates(selected_constraints, doc->commandStack());
+}
+
+void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints,
+                       iscore::CommandStack& stack)
+{
     // For each constraint, interpolate between the states in its start event and end event.
 
     auto macroCmd = new InterpolateMacro{*selected_constraints.first()};
-    MacroCommandDispatcher macro{macroCmd, doc->commandStack()};
+    MacroCommandDispatcher macro{macroCmd, stack};
 
     // They should all be in the same scenario so we can select the first.
     ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
@@ -57,16 +63,17 @@ void InterpolateStates(iscore::Document* doc)
             if(!message.value.val.isNumeric())
                 continue;
 
-            auto it = std::find_if(begin(endMessages),
-                                   end(endMessages),
+            auto it = std::find_if(std::begin(endMessages),
+                                   std::end(endMessages),
                                    [&] (const iscore::Message& arg) {
                 return message.address == arg.address
                         && arg.value.val.isNumeric()
                         && message.value.val.impl().which() == arg.value.val.impl().which()
                         && message.value != arg.value; });
 
-            if(it != end(endMessages))
+            if(it != std::end(endMessages))
             {
+                // TODO any_of
                 auto has_existing_curve = std::find_if(
                             constraint->processes.begin(),
                             constraint->processes.end(),

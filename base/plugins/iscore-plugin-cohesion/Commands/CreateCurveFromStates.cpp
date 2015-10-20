@@ -34,9 +34,9 @@ CreateCurveFromStates::CreateCurveFromStates(
 
 void CreateCurveFromStates::undo() const
 {
-    m_addProcessCmd.undo();
     for(const auto& cmd : m_slotsCmd)
         cmd.undo();
+    m_addProcessCmd.undo();
 }
 
 void CreateCurveFromStates::redo() const
