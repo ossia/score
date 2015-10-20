@@ -37,7 +37,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 
     m_createdSlotId = Id<SlotModel> (getNextId());
     m_createdLayerId = Id<LayerModel> (getNextId());
-    m_processData = constraint.processes.at(m_sharedProcessModelId).makeViewModelConstructionData();
+    m_processData = constraint.processes.at(m_sharedProcessModelId).makeLayerConstructionData();
 }
 
 void AddLayerInNewSlot::undo() const

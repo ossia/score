@@ -7,6 +7,7 @@
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
+        const std::vector<Path<SlotModel>>& slotList,
         const iscore::Address& address,
         double start,
         double end):
@@ -21,11 +22,21 @@ CreateCurveFromStates::CreateCurveFromStates(
     m_start{start},
     m_end{end}
 {
+    auto vec = m_addProcessCmd.constraintPath().unsafePath().vec();
+    vec.push_back({"Automation", m_addProcessCmd.processId()});
+    Path<Process> proc{ObjectPath{std::move(vec)}, Path<Process>::UnsafeDynamicCreation{}};
+    m_slotsCmd.reserve(slotList.size());
+    for(const auto& elt : slotList)
+    {
+        m_slotsCmd.emplace_back(Path<SlotModel>(elt), Path<Process>(proc), "Automation");
+    }
 }
 
 void CreateCurveFromStates::undo() const
 {
     m_addProcessCmd.undo();
+    for(const auto& cmd : m_slotsCmd)
+        cmd.undo();
 }
 
 void CreateCurveFromStates::redo() const
@@ -55,6 +66,9 @@ void CreateCurveFromStates::redo() const
     }
 
     autom.curve().addSegment(segment);
+
+    for(const auto& cmd : m_slotsCmd)
+        cmd.redo();
 }
 
 void CreateCurveFromStates::serializeImpl(QDataStream& s) const

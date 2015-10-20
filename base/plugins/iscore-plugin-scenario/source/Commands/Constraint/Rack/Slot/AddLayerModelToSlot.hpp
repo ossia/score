@@ -21,9 +21,16 @@ namespace Scenario
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "AddLayerModelToSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
+                // Use this constructor when the process already exists
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
                     Path<Process>&& process);
+
+                // Use this constructor when the process isn't created yet
+                AddLayerModelToSlot(
+                    Path<SlotModel>&& slot,
+                    Path<Process>&& process,
+                    const QString& processName);
 
                 void undo() const override;
                 void redo() const override;

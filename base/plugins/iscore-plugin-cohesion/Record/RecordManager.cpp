@@ -10,7 +10,7 @@
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/ChangeAddress.hpp"
 #include "Commands/InitAutomation.hpp"
-#include "Commands/Scenario/ShowRackInViewModel.hpp"
+#include <Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Commands/Constraint/AddRackToConstraint.hpp>
 #include <Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>

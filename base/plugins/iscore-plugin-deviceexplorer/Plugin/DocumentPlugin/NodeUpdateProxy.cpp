@@ -247,7 +247,10 @@ void NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
 
     auto val = dev.refresh(addr);
     if(val)
+    {
+        auto& n = iscore::getNodeFromAddress(m_devModel.rootNode(), addr);
         n.get<iscore::AddressSettings>().value = *val;
+    }
 }
 
 void rec_refreshRemoteValues(iscore::Node& n, DeviceInterface& dev)

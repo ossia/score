@@ -25,7 +25,7 @@ Process::Process(
 }
 
 
-QByteArray Process::makeViewModelConstructionData() const { return {}; }
+QByteArray Process::makeLayerConstructionData() const { return {}; }
 
 
 LayerModel*Process::makeLayer(

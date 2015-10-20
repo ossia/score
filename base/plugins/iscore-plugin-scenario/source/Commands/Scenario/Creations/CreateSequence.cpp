@@ -24,8 +24,8 @@ CreateSequence::CreateSequence(
     auto& scenar = m_command.scenarioPath().find();
     auto messages = scenar.state(startState).messages().flatten();
 
-    const auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
-    const auto& rootNode = devPlugin.rootNode();
+    auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& rootNode = devPlugin.rootNode();
 
     auto it = messages.begin();
     while(it != messages.end())

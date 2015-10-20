@@ -55,7 +55,7 @@ class Process: public IdentifiedObject<Process>
         // we have to generate some data (like ids...) before making a new view model.
         // This data is valid for construction only for the current state
         // of the scenario.
-        virtual QByteArray makeViewModelConstructionData() const;
+        virtual QByteArray makeLayerConstructionData() const;
 
         // TODO pass the name of the view model to be created
         // (e.g. temporal / logical...).

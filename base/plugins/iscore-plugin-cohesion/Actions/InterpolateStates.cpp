@@ -32,16 +32,17 @@ void InterpolateStates(iscore::Document* doc)
         }
     }
 
+    if(selected_constraints.empty())
+        return;
+
     // For each constraint, interpolate between the states in its start event and end event.
 
-    // TODO maybe template it instead?
-    MacroCommandDispatcher macro{new InterpolateMacro,
-                doc->commandStack()};
+    auto macroCmd = new InterpolateMacro{*selected_constraints.first()};
+    MacroCommandDispatcher macro{macroCmd, doc->commandStack()};
+
     // They should all be in the same scenario so we can select the first.
-    ScenarioModel* scenar =
-            selected_constraints.empty()
-            ? nullptr
-            : dynamic_cast<ScenarioModel*>(selected_constraints.first()->parent());
+    ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
+                                selected_constraints.first()->parent());
 
     for(auto& constraint : selected_constraints)
     {
@@ -81,10 +82,11 @@ void InterpolateStates(iscore::Document* doc)
 
                 auto cmd = new CreateCurveFromStates{
                         *constraint,
+                        macroCmd->slotsToUse,
                         message.address,
                         iscore::convert::value<double>(message.value),
                         iscore::convert::value<double>((*it).value)};
-                macro.submitCommand(cmd);
+                macroCmd->addCommand(cmd);
             }
         }
     }

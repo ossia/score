@@ -13,8 +13,12 @@ AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
                          description()},
     m_path {rackPath}
 {
-    auto& rack = m_path.find();
-    m_createdSlotId = getStrongId(rack.slotmodels);
+    auto rack = m_path.try_find(); // Because we use this in a macro, the rack may not be there yet
+
+    if(rack)
+        m_createdSlotId = getStrongId(rack->slotmodels);
+    else
+        m_createdSlotId = Id<SlotModel>{getNextId()};
 }
 
 void AddSlotToRack::undo() const

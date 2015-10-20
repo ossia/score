@@ -61,7 +61,7 @@ ScenarioModel* ScenarioModel::clone(
     return new ScenarioModel {*this, newId, newParent};
 }
 
-QByteArray ScenarioModel::makeViewModelConstructionData() const
+QByteArray ScenarioModel::makeLayerConstructionData() const
 {
     // For all existing constraints we need to generate corresponding
     // view models ids. One day we may need to do this for events / time nodes too.

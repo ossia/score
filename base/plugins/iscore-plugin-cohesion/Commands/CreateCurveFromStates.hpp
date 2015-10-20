@@ -1,6 +1,7 @@
 #pragma once
 #include <Commands/IScoreCohesionCommandFactory.hpp>
-#include "base/plugins/iscore-plugin-scenario/source/Commands/Constraint/AddProcessToConstraint.hpp"
+#include <Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
@@ -13,6 +14,7 @@ class CreateCurveFromStates : public iscore::SerializableCommand
     public:
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,
+                const std::vector<Path<SlotModel>>& slotList,
                 const iscore::Address &address,
                 double start,
                 double end);
@@ -25,7 +27,8 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         void deserializeImpl(QDataStream&) override;
 
     private:
-        Scenario::Command::AddProcessToConstraint m_addProcessCmd;
+        AddOnlyProcessToConstraint m_addProcessCmd;
+        std::vector<Scenario::Command::AddLayerModelToSlot> m_slotsCmd;
 
         iscore::Address m_address;
 

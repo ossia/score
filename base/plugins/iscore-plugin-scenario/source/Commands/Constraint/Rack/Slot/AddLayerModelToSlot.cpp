@@ -5,9 +5,11 @@
 #include "ProcessInterface/LayerModel.hpp"
 #include "ProcessInterfaceSerialization/LayerModelSerialization.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-
+#include <ProcessInterface/ProcessFactory.hpp>
+#include <ProcessInterface/ProcessList.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
+
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
@@ -18,9 +20,36 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_slotPath {slotPath},
     m_processPath {processPath}
 {
-    auto& slot = m_slotPath.find();
-    m_createdLayerId = getStrongId(slot.layers);
-    m_processData = m_processPath.find().makeViewModelConstructionData();
+    auto slot = m_slotPath.try_find();
+    if(slot)
+        m_createdLayerId = getStrongId(slot->layers);
+    else
+        m_createdLayerId = Id<LayerModel>{getNextId()};
+
+    m_processData = m_processPath.find().makeLayerConstructionData();
+}
+
+
+AddLayerModelToSlot::AddLayerModelToSlot(
+        Path<SlotModel>&& slotPath,
+        Path<Process>&& processPath,
+        const QString& processName) :
+    SerializableCommand {factoryName(),
+                         commandName(),
+                         description()},
+    m_slotPath {slotPath},
+    m_processPath {processPath}
+{
+    auto slot = m_slotPath.try_find();
+    if(slot)
+        m_createdLayerId = getStrongId(slot->layers);
+    else
+        m_createdLayerId = Id<LayerModel>{getNextId()};
+
+    auto fact = ProcessList::getFactory(processName);
+    ISCORE_ASSERT(fact);
+
+    m_processData = fact->makeStaticLayerConstructionData();
 }
 
 void AddLayerModelToSlot::undo() const

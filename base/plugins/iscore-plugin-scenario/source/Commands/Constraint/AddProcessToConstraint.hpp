@@ -68,6 +68,9 @@ class AddOnlyProcessToConstraint : public iscore::SerializableCommand
         void undo() const override;
         void redo() const override;
 
+        const Path<ConstraintModel>& constraintPath() const
+        { return m_path; }
+
         const Id<Process>& processId() const
         { return m_createdProcessId; }
 

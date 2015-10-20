@@ -86,7 +86,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     AddLayerModelToSlot cmd6
     {
         iscore::IDocument::path(*m_baseScenario->baseConstraint().racks.begin()->slotmodels.begin()),
-        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes.begin()),
+        iscore::IDocument::path(*m_baseScenario->baseConstraint().processes.begin())
     };
     cmd6.redo();
 }

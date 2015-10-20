@@ -30,6 +30,8 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
 
         iscore::Node& rootNode()
         { return m_rootNode; }
+        const iscore::Node& rootNode() const
+        { return m_rootNode; }
 
         DeviceList& list()
         { return m_list; }

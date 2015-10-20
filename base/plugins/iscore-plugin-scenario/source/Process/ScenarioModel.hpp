@@ -52,7 +52,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
                 QObject* newParent) const override;
 
         //// ProcessModel specifics ////
-        QByteArray makeViewModelConstructionData() const override;
+        QByteArray makeLayerConstructionData() const override;
         LayerModel* makeLayer_impl(
                 const Id<LayerModel>& viewModelId,
                 const QByteArray& constructionData,

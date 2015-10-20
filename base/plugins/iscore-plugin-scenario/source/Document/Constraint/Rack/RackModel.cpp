@@ -3,10 +3,11 @@
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Slot/SlotModel.hpp"
 
+const char RackModel::className[];
 
 
 RackModel::RackModel(const Id<RackModel>& id, QObject* parent) :
-    IdentifiedObject<RackModel> {id, "RackModel", parent}
+    IdentifiedObject<RackModel> {id, className, parent}
 {
     initConnections();
 }
@@ -15,7 +16,7 @@ RackModel::RackModel(const RackModel& source,
                    const Id<RackModel>& id,
                    std::function<void(const SlotModel&, SlotModel&)> lmCopyMethod,
                    QObject *parent) :
-    IdentifiedObject<RackModel> {id, "RackModel", parent}
+    IdentifiedObject<RackModel> {id, className, parent}
 {
     initConnections();
     for(const auto& slot : source.slotmodels)
