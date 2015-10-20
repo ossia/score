@@ -3,14 +3,11 @@
 #include "Record/RecordManager.hpp"
 
 #include "Actions/CreateCurves.hpp"
-#include "Actions/InterpolateStates.hpp"
 #include "Actions/SnapshotParameters.hpp"
 
-#include "Commands/CreateCurveFromStates.hpp"
 #include "Commands/CreateCurvesFromAddresses.hpp"
 #include "Commands/CreateCurvesFromAddressesInConstraints.hpp"
 #include "Commands/CreateStatesFromParametersInEvents.hpp"
-#include "Commands/InterpolateMacro.hpp"
 #include "Commands/Record.hpp"
 
 
@@ -56,15 +53,6 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
         SnapshotParametersInStates(currentDocument());
     });
 
-    m_interp = new QAction {tr("Interpolate states"), this};
-    m_interp->setShortcutContext(Qt::ApplicationShortcut);
-    m_interp->setShortcut(tr("Ctrl+K"));
-    m_interp->setToolTip(tr("Ctrl+K"));
-    connect(m_interp, &QAction::triggered,
-            this, [&] () {
-        InterpolateStates(currentDocument());
-    });
-
     m_curves = new QAction {tr("Create Curves"), this};
     m_curves->setShortcutContext(Qt::ApplicationShortcut);
     m_curves->setShortcut(tr("Ctrl+L"));
@@ -88,14 +76,12 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
                                        m_snapshot);
 
-    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
-                                       m_interp);
 }
 
 QList<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
-    bar->addActions({m_curves, m_snapshot, m_interp});
+    bar->addActions({m_curves, m_snapshot});
     return QList<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
 }
 
@@ -114,7 +100,6 @@ void IScoreCohesionControl::setupCommands()
             boost::mpl::list<
             CreateCurvesFromAddresses,
             CreateCurvesFromAddressesInConstraints,
-            InterpolateMacro,
             Record,
             CreateStatesFromParametersInEvents
             >,

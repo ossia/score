@@ -27,6 +27,9 @@
 #include "ClearSelection.hpp"
 #include "ResizeBaseConstraint.hpp"
 
+#include "Cohesion/CreateCurveFromStates.hpp"
+#include "Cohesion/InterpolateMacro.hpp"
+
 #include "Scenario/Creations/CreateStateMacro.hpp"
 #include "Scenario/Creations/CreateState.hpp"
 #include "Scenario/Creations/CreateEvent_State.hpp"
@@ -97,7 +100,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list69<
+            boost::mpl::list71<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -142,6 +145,9 @@ void ScenarioControl::setupCommands()
             CreateConstraint_State_Event_TimeNode,
             CreateSequence,
             CreationMetaCommand,
+
+            CreateCurveFromStates,
+            InterpolateMacro,
 
             ShowRackInViewModel,
             HideRackInViewModel,

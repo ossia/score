@@ -73,19 +73,13 @@ void TransportActions::fillMenuBar(iscore::MenubarManager *menu)
 
 void TransportActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
 {
-    /*
-    auto tool = menu->addMenu("Tool");
-    tool->addActions(toolActions());
-    tool->addAction(m_shiftAction);
-    auto resize_mode = menu->addMenu("Resize mode");
-    resize_mode->addActions(modeActions());
-    m_scenarioToolActionGroup->setDisabled(false);
-    */
+
 }
 
-void TransportActions::makeToolBar(QToolBar *bar)
+bool TransportActions::populateToolBar(QToolBar *bar)
 {
     bar->addActions(actions());
+    return true;
 }
 
 void TransportActions::setEnabled(bool)

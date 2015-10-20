@@ -147,7 +147,12 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
     }
 }
 
-void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
+void ToolMenuActions::fillContextMenu(
+        QMenu *menu,
+        const Selection& sel,
+        LayerPresenter* pres,
+        const QPoint&,
+        const QPointF&)
 {
     auto tool = menu->addMenu("Tool");
     tool->addActions(toolActions());
@@ -157,12 +162,14 @@ void ToolMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPr
     m_scenarioToolActionGroup->setDisabled(false);
 }
 
-void ToolMenuActions::makeToolBar(QToolBar *bar)
+bool ToolMenuActions::populateToolBar(QToolBar *bar)
 {
     bar->addActions(toolActions());
     bar->addAction(m_shiftAction);
     bar->addSeparator();
     bar->addActions(modeActions());
+
+    return true;
 }
 
 void ToolMenuActions::setEnabled(bool arg)

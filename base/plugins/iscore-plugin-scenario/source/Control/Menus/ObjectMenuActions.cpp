@@ -20,6 +20,7 @@
 #include "Commands/TimeNode/RemoveTrigger.hpp"
 
 #include "Control/ScenarioControl.hpp"
+#include <Commands/Cohesion/InterpolateStates.hpp>
 
 #include <QJsonDocument>
 #include <QApplication>
@@ -125,6 +126,17 @@ ObjectMenuActions::ObjectMenuActions(
         m_addProcessDialog->launchWindow();
     });
 
+
+    m_interp = new QAction {tr("Interpolate states"), this};
+    m_interp->setShortcutContext(Qt::ApplicationShortcut);
+    m_interp->setShortcut(tr("Ctrl+K"));
+    m_interp->setToolTip(tr("Ctrl+K"));
+    connect(m_interp, &QAction::triggered,
+            this, [&] () {
+        InterpolateStates(m_parent->currentDocument());
+    });
+
+
     // ADD TRIGGER
     m_addTrigger = new QAction{tr("Add Trigger"), this};
     connect(m_addTrigger, &QAction::triggered,
@@ -148,6 +160,9 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
     menu->insertActionIntoToplevelMenu(m_menuElt, m_copyContent);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_cutContent);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_pasteContent);
+
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
+                                       m_interp);
 }
 
 void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
@@ -160,6 +175,7 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, Layer
                    [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); }))
     {
         menu->addAction(m_addProcess);
+        menu->addAction(m_interp);
         menu->addSeparator();
     }
 
@@ -182,9 +198,10 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, Layer
     menu->addAction(m_pasteContent);
 }
 
-void ObjectMenuActions::makeToolBar(QToolBar *)
+bool ObjectMenuActions::populateToolBar(QToolBar * b)
 {
-    // nothing to do
+    b->addAction(m_interp);
+    return true;
 }
 
 void ObjectMenuActions::setEnabled(bool b)

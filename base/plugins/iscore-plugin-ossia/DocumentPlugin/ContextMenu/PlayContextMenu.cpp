@@ -117,10 +117,6 @@ void PlayContextMenu::fillContextMenu(
     }
 }
 
-void PlayContextMenu::makeToolBar(QToolBar *)
-{
-    // nothing to do
-}
 
 void PlayContextMenu::setEnabled(bool b)
 {

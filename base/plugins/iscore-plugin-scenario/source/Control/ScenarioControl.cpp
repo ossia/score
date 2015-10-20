@@ -156,10 +156,11 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
         if(dynamic_cast<TransportActions*>(act))
             continue;
 
-        act->makeToolBar(bar);
-
-        if(i < m_pluginActions.size() - 1)
-            bar->addSeparator();
+        if(act->populateToolBar(bar))
+        {
+            if(i < m_pluginActions.size() - 1)
+                bar->addSeparator();
+        }
 
         i++;
     }

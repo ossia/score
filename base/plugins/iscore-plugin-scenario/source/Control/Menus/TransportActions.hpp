@@ -18,7 +18,7 @@ class TransportActions : public ScenarioActions
                 LayerPresenter* pres,
                 const QPoint&, const QPointF&) override;
 
-        void makeToolBar(
+        bool populateToolBar(
                 QToolBar* bar) override;
 
         void setEnabled(bool) override;

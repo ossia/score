@@ -8,11 +8,9 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml PrintSupport Test)
 # Files & main target
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/CreateCurvesFromAddresses.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Actions/CreateCurves.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Actions/InterpolateStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Actions/SnapshotParameters.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Record/RecordManager.cpp"

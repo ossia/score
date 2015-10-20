@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/command/AggregateCommand.hpp>
-#include <Commands/IScoreCohesionCommandFactory.hpp>
+#include <Commands/ScenarioCommandFactory.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>
 #include <Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
@@ -9,7 +9,7 @@
 #include <Commands/Constraint/Rack/AddSlotToRack.hpp>
 class InterpolateMacro : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                       InterpolateMacro,
                                       "InterpolateMacro")
 

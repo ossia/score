@@ -8,7 +8,7 @@ class ToolMenuActions : public ScenarioActions
         ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&sel, LayerPresenter* pres, const QPoint&, const QPointF&) override;
-        void makeToolBar(QToolBar* bar) override;
+        bool populateToolBar(QToolBar* bar) override;
         void setEnabled(bool) override;
 
         QList<QAction*> modeActions();

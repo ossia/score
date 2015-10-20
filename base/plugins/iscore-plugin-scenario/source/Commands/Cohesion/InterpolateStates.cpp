@@ -1,7 +1,7 @@
 #include "InterpolateStates.hpp"
 
-#include <Commands/CreateCurveFromStates.hpp>
-#include <Commands/InterpolateMacro.hpp>
+#include <Commands/Cohesion/CreateCurveFromStates.hpp>
+#include <Commands/Cohesion/InterpolateMacro.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Document/Constraint/ConstraintModel.hpp>

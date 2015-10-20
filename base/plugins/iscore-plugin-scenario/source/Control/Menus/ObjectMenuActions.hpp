@@ -11,7 +11,7 @@ class ObjectMenuActions : public ScenarioActions
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&, LayerPresenter* pres, const QPoint&, const QPointF&) override;
-        void makeToolBar(QToolBar*) override;
+        bool populateToolBar(QToolBar*) override;
         void setEnabled(bool) override;
 
         QList<QAction*> actions() const override;
@@ -35,6 +35,7 @@ class ObjectMenuActions : public ScenarioActions
         QAction *m_addProcess;
         QAction *m_addTrigger;
         QAction *m_removeTrigger;
+        QAction *m_interp;
 
         AddProcessDialog* m_addProcessDialog;
 };
