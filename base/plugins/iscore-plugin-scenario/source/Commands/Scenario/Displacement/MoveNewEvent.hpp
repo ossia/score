@@ -39,7 +39,7 @@ namespace Scenario
                         const double y,
                         bool yLocked)
                 {
-                    m_cmd.update(path, id, date, ExpandMode::Fixed);
+                    m_cmd.update(path, id, date, ExpandMode::Scale);
                     m_y = y;
                     m_yLocked = yLocked;
                 }

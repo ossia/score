@@ -32,7 +32,7 @@ using namespace Scenario;
 
 BaseElementModel::BaseElementModel(QObject* parent) :
     iscore::DocumentDelegateModelInterface {
-        Id<iscore::DocumentDelegateModelInterface>(iscore::id_generator::getNextId()),
+        Id<iscore::DocumentDelegateModelInterface>(iscore::id_generator::getFirstId()),
         "BaseElementModel",
         parent},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}

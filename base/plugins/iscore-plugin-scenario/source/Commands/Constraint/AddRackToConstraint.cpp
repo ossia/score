@@ -22,7 +22,7 @@ AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath)
     }
     else
     {
-        m_createdRackId = Id<RackModel>{iscore::id_generator::getNextId()};
+        m_createdRackId = Id<RackModel>{iscore::id_generator::getFirstId()};
     }
 }
 

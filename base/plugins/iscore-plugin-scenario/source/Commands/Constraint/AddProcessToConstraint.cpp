@@ -34,8 +34,8 @@ AddProcessToConstraint::AddProcessToConstraint(
     if(m_noRackes)
     {
         m_createdRackId = iscore::id_generator::getStrongId(constraint.racks);
-        m_createdSlotId = Id<SlotModel>(iscore::id_generator::getNextId());
-        m_createdLayerId = Id<LayerModel> (iscore::id_generator::getNextId());
+        m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
+        m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
         m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
     }
     else if (m_notBaseConstraint)

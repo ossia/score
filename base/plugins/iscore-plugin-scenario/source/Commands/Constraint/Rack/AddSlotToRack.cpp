@@ -18,7 +18,7 @@ AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     if(rack)
         m_createdSlotId = iscore::id_generator::getStrongId(rack->slotmodels);
     else
-        m_createdSlotId = Id<SlotModel>{iscore::id_generator::getNextId()};
+        m_createdSlotId = Id<SlotModel>{iscore::id_generator::getFirstId()};
 }
 
 void AddSlotToRack::undo() const

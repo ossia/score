@@ -19,7 +19,7 @@ MoveNewEvent::MoveNewEvent(
                          description()},
     m_path {scenarioPath},
     m_constraintId {constraintId},
-    m_cmd{std::move(scenarioPath), eventId, date, ExpandMode::Fixed},
+    m_cmd{std::move(scenarioPath), eventId, date, ExpandMode::Scale},
     m_y{y},
     m_yLocked{yLocked}
 {
