@@ -19,7 +19,7 @@ SplitEvent::SplitEvent(const Path<ScenarioModel> &scenario,
     iscore::SerializableCommand{"ScenarioConstrol", commandName(), description()},
     m_scenarioPath{scenario},
     m_originalEvent{event},
-    m_newEvent{getStrongId(m_scenarioPath.find().events)},
+    m_newEvent{iscore::id_generator::getStrongId(m_scenarioPath.find().events)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_movingStates{movingstates}
 {

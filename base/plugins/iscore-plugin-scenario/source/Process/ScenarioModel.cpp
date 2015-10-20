@@ -69,7 +69,7 @@ QByteArray ScenarioModel::makeLayerConstructionData() const
     QVector<Id<ConstraintViewModel>> vec;
     for(const auto& constraint : constraints)
     {
-        auto id = getStrongId(vec);
+        auto id = iscore::id_generator::getStrongId(vec);
         vec.push_back(id);
         map.insert(constraint.id(), id);
     }

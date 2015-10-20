@@ -22,9 +22,9 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
     auto slot = m_slotPath.try_find();
     if(slot)
-        m_createdLayerId = getStrongId(slot->layers);
+        m_createdLayerId = iscore::id_generator::getStrongId(slot->layers);
     else
-        m_createdLayerId = Id<LayerModel>{getNextId()};
+        m_createdLayerId = Id<LayerModel>{iscore::id_generator::getNextId()};
 
     m_processData = m_processPath.find().makeLayerConstructionData();
 }
@@ -42,9 +42,9 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
     auto slot = m_slotPath.try_find();
     if(slot)
-        m_createdLayerId = getStrongId(slot->layers);
+        m_createdLayerId = iscore::id_generator::getStrongId(slot->layers);
     else
-        m_createdLayerId = Id<LayerModel>{getNextId()};
+        m_createdLayerId = Id<LayerModel>{iscore::id_generator::getNextId()};
 
     auto fact = ProcessList::getFactory(processName);
     ISCORE_ASSERT(fact);

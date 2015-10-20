@@ -110,16 +110,19 @@ void CreateSequence::redo() const
     auto& endstate = scenar.state(m_command.createdState());
 
     endstate.messages() = m_stateData;
+
+    m_interpolations.redo();
 }
 
 void CreateSequence::serializeImpl(QDataStream& s) const
 {
-    s << m_command.serialize() << m_stateData;
+    s << m_command.serialize() << m_interpolations.serialize() << m_stateData;
 }
 
 void CreateSequence::deserializeImpl(QDataStream& s)
 {
-    QByteArray b;
-    s >> b >> m_stateData;
-    m_command.deserialize(b);
+    QByteArray command, interp;
+    s >> command >> interp >> m_stateData;
+    m_command.deserialize(command);
+    m_interpolations.deserialize(interp);
 }

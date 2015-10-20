@@ -203,7 +203,7 @@ void DocumentModel::loadDocumentAsJson(
 DocumentModel::DocumentModel(const QVariant& data,
                              DocumentDelegateFactoryInterface* fact,
                              QObject* parent) :
-    IdentifiedObject {Id<DocumentModel>(getNextId()), "DocumentModel", parent}
+    IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getNextId()), "DocumentModel", parent}
 {
     using namespace std;
     if(data.canConvert(QMetaType::QByteArray))

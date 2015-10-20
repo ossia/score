@@ -11,7 +11,7 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
         const TimeValue& date,
         double stateY):
     iscore::SerializableCommand{factoryName(), commandName(), description()},
-    m_newTimeNode{getStrongId(scenario.timeNodes)},
+    m_newTimeNode{iscore::id_generator::getStrongId(scenario.timeNodes)},
     m_date{date},
     m_command{scenario,
               m_newTimeNode,

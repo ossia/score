@@ -36,14 +36,14 @@ void CurveModel::addSortedSegment(CurveSegmentModel* m)
     // Add points if necessary
     // If there is an existing previous segment, its end point also exists
     auto createStartPoint = [&] () {
-        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        auto pt = new CurvePointModel{iscore::id_generator::getStrongId(m_points), this};
         pt->setFollowing(m->id());
         pt->setPos(m->start());
         addPoint(pt);
         return pt;
     };
     auto createEndPoint = [&] () {
-        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        auto pt = new CurvePointModel{iscore::id_generator::getStrongId(m_points), this};
         pt->setPrevious(m->id());
         pt->setPos(m->end());
         addPoint(pt);
@@ -71,14 +71,14 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     // Add points if necessary
     // If there is an existing previous segment, its end point also exists
     auto createStartPoint = [&] () {
-        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        auto pt = new CurvePointModel{iscore::id_generator::getStrongId(m_points), this};
         pt->setFollowing(m->id());
         pt->setPos(m->start());
         addPoint(pt);
         return pt;
     };
     auto createEndPoint = [&] () {
-        auto pt = new CurvePointModel{getStrongId(m_points), this};
+        auto pt = new CurvePointModel{iscore::id_generator::getStrongId(m_points), this};
         pt->setPrevious(m->id());
         pt->setPos(m->end());
         addPoint(pt);

@@ -1,15 +1,17 @@
 #include "SettableIdentifierGeneration.hpp"
 
 #include <random>
+namespace iscore
+{
 #ifdef ISCORE_VALGRIND_IDS
-int32_t getNextId()
+int32_t random_id_generation::getNextId()
 {
     static int x = 15;
     return x++;
 }
 
 #else
-int32_t getNextId()
+int32_t random_id_generator::getNextId()
 {
     using namespace std;
     static random_device rd;
@@ -22,3 +24,5 @@ int32_t getNextId()
 }
 
 #endif
+}
+

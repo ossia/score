@@ -17,7 +17,7 @@ DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
     auto& rack = m_rackPath.find<RackModel>();
     const auto& constraint = rack.constraint();
 
-    m_newRackId = getStrongId(constraint.racks);
+    m_newRackId = iscore::id_generator::getStrongId(constraint.racks);
 }
 
 void DuplicateRack::undo() const

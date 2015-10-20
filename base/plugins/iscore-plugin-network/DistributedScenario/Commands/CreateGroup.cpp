@@ -11,7 +11,7 @@ CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
     m_name{groupName}
 {
     auto& mgr = m_path.find<GroupManager>();
-    m_newGroupId = getStrongId(mgr.groups());
+    m_newGroupId = iscore::id_generator::getStrongId(mgr.groups());
 }
 
 void CreateGroup::undo() const

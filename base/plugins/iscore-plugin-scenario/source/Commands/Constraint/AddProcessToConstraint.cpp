@@ -27,15 +27,15 @@ AddProcessToConstraint::AddProcessToConstraint(
     m_processName {process}
 {
     auto& constraint = m_path.find();
-    m_createdProcessId = getStrongId(constraint.processes);
+    m_createdProcessId = iscore::id_generator::getStrongId(constraint.processes);
     m_noRackes = (constraint.racks.empty() && constraint.objectName() != "BaseConstraintModel" );
     m_notBaseConstraint = (constraint.objectName() != "BaseConstraintModel");
 
     if(m_noRackes)
     {
-        m_createdRackId = getStrongId(constraint.racks);
-        m_createdSlotId = Id<SlotModel>(getNextId());
-        m_createdLayerId = Id<LayerModel> (getNextId());
+        m_createdRackId = iscore::id_generator::getStrongId(constraint.racks);
+        m_createdSlotId = Id<SlotModel>(iscore::id_generator::getNextId());
+        m_createdLayerId = Id<LayerModel> (iscore::id_generator::getNextId());
         m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
     }
     else if (m_notBaseConstraint)
@@ -47,7 +47,7 @@ AddProcessToConstraint::AddProcessToConstraint(
             const auto& firstSlotModel = *firstRack.slotmodels.begin();
 
             m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
-            m_createdLayerId = getStrongId(firstSlotModel.layers);
+            m_createdLayerId = iscore::id_generator::getStrongId(firstSlotModel.layers);
         }
     }
     else
@@ -163,8 +163,11 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
     m_path{std::move(constraintPath)},
     m_processName{process}
 {
-    auto& constraint = m_path.find();
-    m_createdProcessId = getStrongId(constraint.processes);
+    auto constraint = m_path.try_find();
+    if(constraint)
+        m_createdProcessId = iscore::id_generator::getStrongId(constraint->processes);
+    else
+        m_createdProcessId = Id<Process>{iscore::id_generator::getFirstId()};
 }
 
 void AddOnlyProcessToConstraint::undo() const

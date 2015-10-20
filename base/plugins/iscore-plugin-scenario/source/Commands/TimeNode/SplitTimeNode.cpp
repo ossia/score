@@ -27,7 +27,7 @@ SplitTimeNode::SplitTimeNode(
     m_originalTimeNodeId = originalTN.id();
 
     auto scenar = static_cast<ScenarioModel*>(originalTN.parent());
-    m_newTimeNodeId = getStrongId(scenar->timeNodes);
+    m_newTimeNodeId = iscore::id_generator::getStrongId(scenar->timeNodes);
 }
 
 void SplitTimeNode::undo() const

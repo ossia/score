@@ -16,7 +16,7 @@ CopySlot::CopySlot(Path<SlotModel>&& slotToCopy,
     m_targetRackPath {targetRackPath}
 {
     auto& rack = m_targetRackPath.find();
-    m_newSlotId = getStrongId(rack.slotmodels);
+    m_newSlotId = iscore::id_generator::getStrongId(rack.slotmodels);
 }
 
 void CopySlot::undo() const

@@ -42,10 +42,10 @@ class RemoveProcessFromConstraintTest: public QObject
 
             auto s0 = static_cast<ScenarioModel*>(int_model2->processes().front());
 
-            auto int_0_id = getStrongId(s0->constraints());
-            auto ev_0_id = getStrongId(s0->events());
+            auto int_0_id = iscore::id_generator::getStrongId(s0->constraints());
+            auto ev_0_id = iscore::id_generator::getStrongId(s0->events());
             auto fv_0_id = Id<ConstraintViewModel> {234};
-            auto tb_0_id = getStrongId(s0->timeNodes());
+            auto tb_0_id = iscore::id_generator::getStrongId(s0->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
             s0->constraint(int_0_id)->createRack(Id<RackModel> {5676});
             QCOMPARE((int) s0->constraints().size(), 1);

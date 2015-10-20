@@ -26,7 +26,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 
     if(constraint.racks.empty())
     {
-        m_createdRackId = getStrongId(constraint.racks);
+        m_createdRackId = iscore::id_generator::getStrongId(constraint.racks);
         m_existingRack = false;
     }
     else
@@ -35,8 +35,8 @@ AddLayerInNewSlot::AddLayerInNewSlot(
         m_existingRack = true;
     }
 
-    m_createdSlotId = Id<SlotModel> (getNextId());
-    m_createdLayerId = Id<LayerModel> (getNextId());
+    m_createdSlotId = Id<SlotModel> (iscore::id_generator::getNextId());
+    m_createdLayerId = Id<LayerModel> (iscore::id_generator::getNextId());
     m_processData = constraint.processes.at(m_sharedProcessModelId).makeLayerConstructionData();
 }
 

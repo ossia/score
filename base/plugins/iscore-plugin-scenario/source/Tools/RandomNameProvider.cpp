@@ -34,8 +34,8 @@ QString RandomNameProvider::generateRandomName()
         initWordList();
 
     return
-            words.at(std::abs(getNextId() % (words.size() - 1))) +
-            QString::number(std::abs(getNextId() % 99)) +
-            words.at(std::abs(getNextId() % (words.size() - 1))) +
-            QString::number(std::abs(getNextId() % 99));
+            words.at(std::abs(iscore::id_generator::getNextId() % (words.size() - 1))) +
+            QString::number(std::abs(iscore::id_generator::getNextId() % 99)) +
+            words.at(std::abs(iscore::id_generator::getNextId() % (words.size() - 1))) +
+            QString::number(std::abs(iscore::id_generator::getNextId() % 99));
 }

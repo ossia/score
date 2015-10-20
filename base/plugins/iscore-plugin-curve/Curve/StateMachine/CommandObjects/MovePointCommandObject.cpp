@@ -373,7 +373,7 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
                     seg_closest_from_left = segment;
                 }
             }
-            auto newSegment = new LinearCurveSegmentModel{getStrongId(segments), nullptr};
+            auto newSegment = new LinearCurveSegmentModel{iscore::id_generator::getStrongId(segments), nullptr};
             newSegment->setEnd(m_state->currentPoint);
 
             if(seg_closest_from_left)

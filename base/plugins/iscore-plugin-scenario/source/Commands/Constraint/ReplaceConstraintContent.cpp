@@ -36,7 +36,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
 
     for(const auto& rack : src_constraint.racks)
     {
-        auto newId = getStrongId(target_rackes_ids);
+        auto newId = iscore::id_generator::getStrongId(target_rackes_ids);
         m_rackIds.insert(rack.id(), newId);
         target_rackes_ids.append(newId);
     }
@@ -50,7 +50,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
 
     for(const auto& proc : src_constraint.processes)
     {
-        auto newId = getStrongId(target_processes_ids);
+        auto newId = iscore::id_generator::getStrongId(target_processes_ids);
         m_processIds.insert(proc.id(), newId);
         target_processes_ids.append(newId);
     }

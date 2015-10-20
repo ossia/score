@@ -25,7 +25,7 @@ AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
     m_dimensionToVarMap{dimMap},
     m_symbolToAddressMap{addrMap}
 {
-    m_createdAreaId = getStrongId(m_path.find().areas());
+    m_createdAreaId = iscore::id_generator::getStrongId(m_path.find().areas());
 }
 
 void AddArea::undo() const

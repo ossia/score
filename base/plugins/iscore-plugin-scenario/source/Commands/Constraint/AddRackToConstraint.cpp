@@ -18,11 +18,11 @@ AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath)
 
     if(constraint)
     {
-        m_createdRackId = getStrongId(constraint->racks);
+        m_createdRackId = iscore::id_generator::getStrongId(constraint->racks);
     }
     else
     {
-        m_createdRackId = Id<RackModel>{getNextId()};
+        m_createdRackId = Id<RackModel>{iscore::id_generator::getNextId()};
     }
 }
 

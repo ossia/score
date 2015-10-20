@@ -2,11 +2,17 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <boost/range/algorithm.hpp>
 
+namespace iscore
+{
+struct random_id_generator
+{
 /**
  * @brief getNextId
  * @return a random int32
  */
-int32_t getNextId();
+static int32_t getNextId();
+
+static int32_t getFirstId() { return getNextId(); }
 
 /**
  * @brief getNextId
@@ -15,7 +21,7 @@ int32_t getNextId();
  * @return A new id not in the vector.
  */
 template<typename Vector>
-int getNextId(const Vector& ids)
+static int getNextId(const Vector& ids)
 {
     using namespace boost::range;
     int id {};
@@ -35,7 +41,7 @@ int getNextId(const Vector& ids)
  */
 
 template<typename Container>
-auto getStrongIdFromIdContainer(const Container& v)
+static auto getStrongIdFromIdContainer(const Container& v)
 {
     using namespace boost::range;
     typename Container::value_type id;
@@ -50,13 +56,13 @@ auto getStrongIdFromIdContainer(const Container& v)
 }
 
 template<typename T>
-auto getStrongId(const std::vector<Id<T>>& v)
+static auto getStrongId(const std::vector<Id<T>>& v)
 {
     return getStrongIdFromIdContainer(v);
 }
 
 template<typename T>
-auto getStrongId(const QVector<Id<T>>& v)
+static auto getStrongId(const QVector<Id<T>>& v)
 {
     return getStrongIdFromIdContainer(v);
 }
@@ -67,7 +73,7 @@ template<typename Container,
                       typename Container::value_type
                     >::value
                   >* = nullptr>
-auto getStrongId(const Container& v)
+static auto getStrongId(const Container& v)
     -> Id<typename std::remove_pointer<typename Container::value_type>::type>
 {
     using namespace std;
@@ -91,7 +97,7 @@ template<typename Container,
                       typename Container::value_type
                     >::value
                   >* = nullptr>
-auto getStrongId(const Container& v) ->
+static auto getStrongId(const Container& v) ->
     Id<typename Container::value_type>
 {
     using namespace std;
@@ -106,4 +112,11 @@ auto getStrongId(const Container& v) ->
     });
 
     return Id<typename Container::value_type>{getNextId(ids)};
+}
+
+};
+
+
+using id_generator = iscore::random_id_generator;
+
 }
