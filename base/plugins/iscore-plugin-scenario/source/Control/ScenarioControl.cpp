@@ -184,9 +184,6 @@ void ScenarioControl::createContextMenu(const QPoint& pos, const QPointF& scenep
 {
     QMenu contextMenu;
 
-    contextMenu.addAction(m_selectAll);
-    contextMenu.addAction(m_deselectAll);
-    contextMenu.addSeparator();
 
     if(auto scenario = focusedScenarioModel())
     {
@@ -200,6 +197,10 @@ void ScenarioControl::createContextMenu(const QPoint& pos, const QPointF& scenep
             contextMenu.addSeparator();
         }
     }
+
+    contextMenu.addSeparator();
+    contextMenu.addAction(m_selectAll);
+    contextMenu.addAction(m_deselectAll);
     contextMenu.exec(pos);
 
     contextMenu.close();
