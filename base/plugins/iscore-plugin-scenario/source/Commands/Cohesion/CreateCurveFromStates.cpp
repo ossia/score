@@ -5,6 +5,7 @@
 #include "base/plugins/iscore-plugin-curve/Curve/CurveModel.hpp"
 #include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
         const std::vector<Path<SlotModel>>& slotList,
@@ -48,7 +49,7 @@ void CreateCurveFromStates::redo() const
     autom.curve().clear();
 
     // Add a segment
-    auto segment = new LinearCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve());
+    auto segment = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve());
 
     if(m_start != m_end)
     {

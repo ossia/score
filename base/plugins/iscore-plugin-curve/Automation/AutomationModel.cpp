@@ -4,6 +4,7 @@
 
 #include "Curve/CurveModel.hpp"
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 #include "Curve/Point/CurvePointModel.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -22,7 +23,7 @@ AutomationModel::AutomationModel(
     // Named shall be enough ?
     setCurve(new CurveModel{Id<CurveModel>(45345), this});
 
-    auto s1 = new LinearCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
+    auto s1 = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(1), m_curve);
     s1->setStart({0., 0.0});
     s1->setEnd({1., 1.});
 

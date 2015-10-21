@@ -50,18 +50,28 @@ void PowerCurveSegmentModel::updateData(int numInterp) const
         m_valid = false;
     if(!m_valid)
     {
-        numInterp = 75;
-        m_data.resize(numInterp + 1);
-        double start_x = start().x();
-        double start_y = start().y();
-        double end_x = end().x();
-        double end_y = end().y();
-
-        for(int j = 0; j <= numInterp; j++)
+        if(gamma == 12.05)
         {
-            QPointF& pt = m_data[j];
-            pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
-            pt.setY(start_y + std::pow(double(j) / numInterp, 12.05 - gamma) * (end_y - start_y));
+            if(m_data.size() != 2)
+                m_data.resize(2);
+            m_data[0] = start();
+            m_data[1] = end();
+        }
+        else
+        {
+            numInterp = 75;
+            m_data.resize(numInterp + 1);
+            double start_x = start().x();
+            double start_y = start().y();
+            double end_x = end().x();
+            double end_y = end().y();
+
+            for(int j = 0; j <= numInterp; j++)
+            {
+                QPointF& pt = m_data[j];
+                pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
+                pt.setY(start_y + std::pow(double(j) / numInterp, 12.05 - gamma) * (end_y - start_y));
+            }
         }
     }
 }

@@ -44,5 +44,5 @@ class PowerCurveSegmentModel final : public CurveSegmentModel
             return QVariant::fromValue(PowerCurveSegmentData{gamma});
         }
 
-        double gamma = 0.5; // TODO private
+        double gamma = 12.05; // TODO private
 };

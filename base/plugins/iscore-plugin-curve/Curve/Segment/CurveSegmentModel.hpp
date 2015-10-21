@@ -101,3 +101,8 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
     private:
         Id<CurveSegmentModel> m_previous, m_following;
 };
+
+
+class LinearCurveSegmentModel;
+class PowerCurveSegmentModel;
+using DefaultCurveSegmentModel = PowerCurveSegmentModel;
