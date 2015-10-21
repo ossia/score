@@ -59,13 +59,15 @@ void CreateCurveFromStates::redo() const
     }
     else
     {
-        segment->setStart({0., m_start});
-        segment->setEnd({1., m_start});
+        segment->setStart({0., 0.5});
+        segment->setEnd({1., 0.5});
         autom.setMin(m_start);
         autom.setMax(m_start);
     }
 
     autom.curve().addSegment(segment);
+
+    emit autom.curve().changed();
 
     for(const auto& cmd : m_slotsCmd)
         cmd.redo();

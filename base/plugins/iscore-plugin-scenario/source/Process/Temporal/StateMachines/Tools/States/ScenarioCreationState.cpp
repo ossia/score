@@ -107,6 +107,17 @@ void ScenarioCreationState::makeSnapshot()
     if(createdStates.empty())
         return;
 
+    if(!createdConstraints.empty())
+    {
+        const auto& cst = m_parentSM.model().constraints.at(createdConstraints.last());
+        if(!cst.processes.empty())
+        {
+            // In case of the presence of a sequence, we
+            // only use the sequence's namespace, hence we don't need to make a snapshot at the end..
+            return;
+        }
+    }
+
     auto doc = iscore::IDocument::documentFromObject(m_parentSM.model());
     auto device_explorer = doc->model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
 

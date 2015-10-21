@@ -197,8 +197,11 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
 
         for(auto conn : m_nextConnections)
             QObject::disconnect(conn);
+
         m_nextConnections.clear();
+        m_nextProcesses.clear();
     }
+
     m_nextConstraint = id;
 
     if(!m_nextConstraint)
@@ -232,7 +235,9 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 
         for(auto conn : m_prevConnections)
             QObject::disconnect(conn);
+
         m_prevConnections.clear();
+        m_previousProcesses.clear();
     }
 
     m_previousConstraint = id;
