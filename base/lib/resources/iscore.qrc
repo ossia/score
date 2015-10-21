@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Ubuntu-R.ttf</file>
+        <file>APCCourierBold.otf</file>
         <file>iscore.png</file>
         <file>stylesheet.qss</file>
     </qresource>

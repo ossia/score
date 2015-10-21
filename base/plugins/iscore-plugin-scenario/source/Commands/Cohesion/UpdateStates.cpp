@@ -43,10 +43,7 @@ void RefreshStates(
         auto messages = state.messages().flatten();
         for(auto& elt : messages)
         {
-            if(auto val = proxy.refreshRemoteValue(elt.address))
-            {
-                elt.value = *val;
-            }
+            elt.value = proxy.refreshRemoteValue(elt.address);
         }
         macro->addCommand(new AddMessagesToState{state.messages(), messages});
     }

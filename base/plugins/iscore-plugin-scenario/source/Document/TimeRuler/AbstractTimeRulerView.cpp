@@ -18,7 +18,7 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
 
 void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    static const QFont TimeRulerFont("Courier", 8, QFont::Light);
+    static const QFont TimeRulerFont("APCCourier-Bold", 8);
 
     const auto brush = QBrush(m_color);
     painter->setPen(QPen(brush, 2, Qt::SolidLine));

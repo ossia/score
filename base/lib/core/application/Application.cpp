@@ -107,7 +107,8 @@ void Application::init()
         splash.show();
 #endif
 
-    QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");
+    QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
+    QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
     m_app->setFont(QFont{"Ubuntu", 10, QFont::Normal});
     this->setParent(m_app);
     this->setObjectName("Application");
