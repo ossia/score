@@ -28,7 +28,7 @@ class CurveSegmentView final : public QGraphicsObject
         void disable();
 
     signals:
-        void contextMenuRequested(const QPoint&);
+        void contextMenuRequested(const QPoint&, const QPointF&);
 
     protected:
         void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;

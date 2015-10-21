@@ -130,5 +130,5 @@ QPainterPath CurveSegmentView::shape() const
 
 void CurveSegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-    emit contextMenuRequested(ev->screenPos());
+    emit contextMenuRequested(ev->screenPos(), ev->scenePos());
 }

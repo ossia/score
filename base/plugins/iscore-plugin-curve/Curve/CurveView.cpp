@@ -72,7 +72,7 @@ void CurveView::keyReleaseEvent(QKeyEvent* ev)
 
 void CurveView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-    emit contextMenuRequested(ev->screenPos());
+    emit contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 
 void CurveView::setRect(const QRectF& theRect)

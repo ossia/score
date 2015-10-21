@@ -67,6 +67,14 @@ class CurvePresenter : public QObject
         { return *m_sm; }
 
 
+        void fillContextMenu(
+                QMenu*,
+                const QPoint&,
+                const QPointF&);
+
+    signals:
+        void contextMenuRequested(const QPoint&, const QPointF&);
+
     private:
         // Context menu actions
         void removeSelection();
@@ -78,7 +86,6 @@ class CurvePresenter : public QObject
         void setupSignals();
         void setupView();
         void setupStateMachine();
-        void setupContextMenu();
 
         // Adding
         void addPoint(CurvePointView*);

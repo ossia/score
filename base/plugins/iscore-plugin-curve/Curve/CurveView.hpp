@@ -29,7 +29,7 @@ class CurveView final : public QGraphicsObject
         void keyPressed(int);
         void keyReleased(int);
 
-        void contextMenuRequested(const QPoint&);
+        void contextMenuRequested(const QPoint&, const QPointF&);
 
     protected:
         void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

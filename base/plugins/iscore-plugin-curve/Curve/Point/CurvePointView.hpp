@@ -24,7 +24,7 @@ class CurvePointView final : public QGraphicsObject
         void setModel(const CurvePointModel* model);
 
     signals:
-        void contextMenuRequested(const QPoint&);
+        void contextMenuRequested(const QPoint&, const QPointF&);
 
     protected:
         void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;

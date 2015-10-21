@@ -32,10 +32,12 @@ CurvePresenter::CurvePresenter(const CurveModel& model, CurveView* view, QObject
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
     setupView();
-    setupContextMenu();
     setupSignals();
 
     m_sm = new CurveStateMachine{*this, this};
+
+    connect(m_view, &CurveView::contextMenuRequested,
+            this, &CurvePresenter::contextMenuRequested);
 }
 
 CurvePresenter::~CurvePresenter()
@@ -229,10 +231,12 @@ void CurvePresenter::setupStateMachine()
 {
 }
 
-void CurvePresenter::setupContextMenu()
+void CurvePresenter::fillContextMenu(
+        QMenu* menu,
+        const QPoint& pos,
+        const QPointF& scenepos)
 {
-    m_contextMenu = new QMenu;
-
+    menu->addSeparator();
     auto selectAct = new QAction{tr("Select"), this};
 
     selectAct->setCheckable(true);
@@ -246,13 +250,19 @@ void CurvePresenter::setupContextMenu()
     });
 
     auto removeAct = new QAction{tr("Remove"), this};
-    removeAct->setData(2); // Small identifier for segments actions...
+    connect(removeAct, &QAction::triggered,
+            [&] () {
+        removeSelection();
+    });
 
-    auto typeMenu = m_contextMenu->addMenu(tr("Type"));
+    auto typeMenu = menu->addMenu(tr("Type"));
     for(const auto& seg : SingletonCurveSegmentList::instance().nameList())
     {
         auto act = typeMenu->addAction(seg);
-        act->setData(1);
+        connect(act, &QAction::triggered,
+                this, [=] () {
+            updateSegmentsType(act->text());
+        });
     }
 
     auto lockAction = new QAction{tr("Lock between points"), this};
@@ -268,30 +278,10 @@ void CurvePresenter::setupContextMenu()
     suppressAction->setCheckable(true);
     suppressAction->setChecked(false);
 
-    m_contextMenu->addAction(selectAct);
-    m_contextMenu->addAction(removeAct);
-    m_contextMenu->addAction(lockAction);
-    m_contextMenu->addAction(suppressAction);
-
-    connect(m_view, &CurveView::contextMenuRequested,
-            this, [&] (const QPoint& pt)
-    {
-        auto act = m_contextMenu->exec(pt, nullptr);
-        m_contextMenu->close();
-
-        if(!act)
-        {
-            return;
-        }
-        else if(act->data().value<int>() == 1)
-        {
-            updateSegmentsType(act->text());
-        }
-        else if(act->data().value<int>() == 2)
-        {
-            removeSelection();
-        }
-    });
+    menu->addAction(selectAct);
+    menu->addAction(removeAct);
+    menu->addAction(lockAction);
+    menu->addAction(suppressAction);
 }
 
 void CurvePresenter::addPoint(CurvePointView * pt_view)

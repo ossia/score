@@ -35,6 +35,8 @@ AutomationPresenter::AutomationPresenter(
     {
         m_focusDispatcher.focus(this);
     });
+    connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,
+            this, &LayerPresenter::contextMenuRequested);
 
     con(m_viewModel.model(), &Process::execution,
         this, [&] (bool b) {
@@ -125,9 +127,12 @@ const Id<Process>& AutomationPresenter::modelId() const
     return m_viewModel.model().id();
 }
 
-void AutomationPresenter::fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const
+void AutomationPresenter::fillContextMenu(
+        QMenu* app,
+        const QPoint& pos,
+        const QPointF& scenepos) const
 {
-
+    m_curvepresenter->fillContextMenu(app, pos, scenepos);
 }
 
 void AutomationPresenter::on_focusChanged()
