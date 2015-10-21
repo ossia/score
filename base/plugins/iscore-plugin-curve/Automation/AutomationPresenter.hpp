@@ -31,8 +31,9 @@ class AutomationPresenter : public LayerPresenter
         const LayerModel& layerModel() const override;
         const Id<Process>& modelId() const override;
 
-   // public slots:
-        // From model
+        void fillContextMenu(QMenu*,
+                             const QPoint& pos,
+                             const QPointF& scenepos) const override;
 
     private:
         const AutomationLayerModel& m_viewModel;

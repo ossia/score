@@ -16,7 +16,12 @@ class ScenarioActions : public QObject
         explicit ScenarioActions(iscore::ToplevelMenuElement, ScenarioControl *);
 
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
-        virtual void fillContextMenu(QMenu*, const Selection& s, LayerPresenter* pres, const QPoint&, const QPointF&) = 0;
+        virtual void fillContextMenu(
+                QMenu*,
+                const Selection& s,
+                const LayerPresenter& pres,
+                const QPoint&,
+                const QPointF&) = 0;
         virtual bool populateToolBar(QToolBar* ) { return false; }
         virtual void setEnabled(bool) = 0;
 

@@ -180,30 +180,60 @@ QList<QAction*> ScenarioControl::actions()
     return act;
 }
 
-void ScenarioControl::createContextMenu(const QPoint& pos, const QPointF& scenepos)
+#include <Document/Constraint/Rack/Slot/SlotPresenter.hpp>
+#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <ViewCommands/PutLayerModelToFront.hpp>
+void ScenarioControl::createContextMenu(
+        const QPoint& pos,
+        const QPointF& scenepos,
+        const LayerPresenter& pres)
 {
-    QMenu contextMenu;
+    QMenu menu;
 
+    // Fill with slot actions
 
-    if(auto scenario = focusedScenarioModel())
+    if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
-        auto selected = scenario->selectedChildren();
-
-        for(ScenarioActions*& elt : m_pluginActions)
+        auto& slotm = slotp->model();
+        auto processes_submenu = menu.addMenu(tr("Focus process"));
+        for(const LayerModel& proc : slotm.layers)
         {
-            // TODO make a class to encapsulate all the data
-            // required to set-up a context menu in a scenario.
-            elt->fillContextMenu(&contextMenu, selected, focusedPresenter(), pos, scenepos);
-            contextMenu.addSeparator();
+            QAction* procAct = new QAction{proc.processModel().metadata.name(), processes_submenu};
+            connect(procAct, &QAction::triggered, this, [&] () {
+                PutLayerModelToFront cmd{slotm, proc.id()};
+                cmd.redo();
+            } );
+            processes_submenu->addAction(procAct);
         }
     }
 
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_selectAll);
-    contextMenu.addAction(m_deselectAll);
-    contextMenu.exec(pos);
+    // Then the process-specific part
+    pres.fillContextMenu(&menu, pos, scenepos);
 
-    contextMenu.close();
+    menu.exec(pos);
+    menu.close();
+}
+
+void ScenarioControl::createScenarioContextMenu(
+        QMenu& menu,
+        const QPoint& pos,
+        const QPointF& scenepos,
+        const TemporalScenarioPresenter& pres)
+{
+    auto selected = pres.layerModel().processModel().selectedChildren();
+
+    for(ScenarioActions*& elt : m_pluginActions)
+    {
+        // TODO make a class to encapsulate all the data
+        // required to set-up a context menu in a scenario.
+        elt->fillContextMenu(&menu, selected, pres, pos, scenepos);
+        menu.addSeparator();
+    }
+
+    menu.addSeparator();
+    menu.addAction(m_selectAll);
+    menu.addAction(m_deselectAll);
+
 }
 
 void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
@@ -222,12 +252,29 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
     {
         s_pres->stateMachine().changeTool((int)ScenarioToolKind::Select);
     }
+
+    disconnect(m_contextMenuConnection);
 }
 
 
 void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
 {
-    // Get the scenario presenter
+    // Generic stuff
+    if(focusedPresenter())
+    {
+        disconnect(m_contextMenuConnection);
+    }
+    if(pres)
+    {
+        m_contextMenuConnection = connect(pres, &LayerPresenter::contextMenuRequested,
+                this, [=] (const QPoint& pt1, const QPointF& pt2) {
+            createContextMenu(pt1, pt2, *pres);
+        } );
+    }
+
+
+    // Case specific to the scenario process.
+    // First get the scenario presenter
     auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
 
     for(ScenarioActions*& elt : m_pluginActions)
@@ -235,11 +282,6 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
         elt->setEnabled(bool(s_pres));
     }
 
-    if(auto currentlyFocused = focusedPresenter())
-    {
-        disconnect(currentlyFocused, &TemporalScenarioPresenter::contextMenuAsked,
-                   this, &ScenarioControl::createContextMenu);
-    }
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::keyPressed,
@@ -248,8 +290,6 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
         connect(s_pres, &TemporalScenarioPresenter::keyReleased,
                 this,  &ScenarioControl::keyReleased);
 
-        connect(focusedPresenter(), &TemporalScenarioPresenter::contextMenuAsked,
-                this, &ScenarioControl::createContextMenu);
 
         for(ScenarioActions* elt : m_pluginActions)
         {

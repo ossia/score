@@ -3,6 +3,7 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <ProcessInterface/ZoomHelper.hpp>
 
+class QMenu;
 class Process;
 class LayerModel;
 namespace iscore
@@ -34,5 +35,11 @@ class LayerPresenter : public NamedObject
 
         virtual const LayerModel& layerModel() const = 0;
         virtual const Id<Process>& modelId() const = 0;
+
+        virtual void fillContextMenu(QMenu*,
+                                     const QPoint& pos,
+                                     const QPointF& scenepos) const = 0;
+    signals:
+        void contextMenuRequested(const QPoint&, const QPointF&);
 
 };

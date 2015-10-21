@@ -125,6 +125,11 @@ const Id<Process>& AutomationPresenter::modelId() const
     return m_viewModel.model().id();
 }
 
+void AutomationPresenter::fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const
+{
+
+}
+
 void AutomationPresenter::on_focusChanged()
 {
     m_curvepresenter->enableActions(focused());

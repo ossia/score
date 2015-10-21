@@ -24,6 +24,7 @@
 #include "Document/State/StateModel.hpp"
 
 #include "ScenarioViewInterface.hpp"
+#include <Control/ScenarioControl.hpp>
 
 #include <QGraphicsScene>
 
@@ -107,7 +108,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
             this,   &TemporalScenarioPresenter::keyReleased);
 
     connect(m_view, &TemporalScenarioView::askContextMenu,
-            this,   &TemporalScenarioPresenter::contextMenuAsked);
+            this,   &TemporalScenarioPresenter::contextMenuRequested);
     connect(m_view, &TemporalScenarioView::dropReceived,
             this,   &TemporalScenarioPresenter::handleDrop);
 
@@ -174,6 +175,13 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
     }
 }
 
+void TemporalScenarioPresenter::fillContextMenu(
+        QMenu* menu,
+        const QPoint& pos,
+        const QPointF& scenepos) const
+{
+    ScenarioControl::instance()->createScenarioContextMenu(*menu, pos, scenepos, *this);
+}
 
 template<typename Map, typename Id>
 void TemporalScenarioPresenter::removeElement(

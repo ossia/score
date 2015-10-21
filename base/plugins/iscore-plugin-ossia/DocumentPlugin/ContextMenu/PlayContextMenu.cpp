@@ -67,15 +67,15 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
         if(!recdata.presenter)
             return;
 
-        TemporalScenarioPresenter* pres = safe_cast<TemporalScenarioPresenter*>(recdata.presenter);
-        auto proc = safe_cast<ScenarioModel*>(&pres->layerModel().processModel());
+        auto& pres = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
+        auto proc = safe_cast<ScenarioModel*>(&pres.layerModel().processModel());
 
         parent->startRecording(
                     *proc,
                     ConvertToScenarioPoint(
-                        pres->view().mapFromScene(recdata.point),
-                        pres->zoomRatio(),
-                        pres->view().boundingRect().height()));
+                        pres.view().mapFromScene(recdata.point),
+                        pres.zoomRatio(),
+                        pres.view().boundingRect().height()));
 
         m_recordAction->setData({});
     });
@@ -89,14 +89,14 @@ void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
 void PlayContextMenu::fillContextMenu(
         QMenu *menu,
         const Selection & s,
-        LayerPresenter* pres,
+        const LayerPresenter& pres,
         const QPoint& pt,
         const QPointF& scenept)
 {
     if(s.empty())
     {
         menu->addAction(m_recordAction);
-        m_recordAction->setData(QVariant::fromValue(ScenarioRecordInitData{pres, scenept}));
+        m_recordAction->setData(QVariant::fromValue(ScenarioRecordInitData{&pres, scenept}));
     }
     else
     {

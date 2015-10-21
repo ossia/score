@@ -21,13 +21,13 @@ class ScenarioActions;
 struct ScenarioRecordInitData
 {
         ScenarioRecordInitData() {}
-        ScenarioRecordInitData(LayerPresenter* lp, QPointF p):
+        ScenarioRecordInitData(const LayerPresenter* lp, QPointF p):
             presenter{lp},
             point{p}
         {
         }
 
-        LayerPresenter* presenter{};
+        const LayerPresenter* presenter{};
         QPointF point;
 };
 Q_DECLARE_METATYPE(ScenarioRecordInitData)
@@ -76,7 +76,15 @@ class ScenarioControl : public iscore::PluginControlInterface
         void stopRecording();
 
     public slots:
-        void createContextMenu(const QPoint &, const QPointF&);
+        void createContextMenu(
+                const QPoint &,
+                const QPointF&,
+                const LayerPresenter&);
+        void createScenarioContextMenu(
+                QMenu&,
+                const QPoint &,
+                const QPointF&,
+                const TemporalScenarioPresenter& pres);
 
     protected:
         virtual void on_documentChanged() override;
@@ -90,7 +98,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         ProcessList m_processList;
         MoveEventList m_moveEventList;
 
-        QMetaObject::Connection m_focusConnection, m_defocusConnection;
+        QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
 
         ObjectMenuActions* m_objectAction{};
         ToolMenuActions* m_toolActions{};
@@ -98,6 +106,7 @@ class ScenarioControl : public iscore::PluginControlInterface
 
         QAction *m_selectAll{};
         QAction *m_deselectAll{};
+
 
 
         ProcessFocusManager* processFocusManager() const;

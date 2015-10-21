@@ -178,7 +178,7 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
                                        m_updateStates);
 }
 
-void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
+void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, const LayerPresenter& pres, const QPoint&, const QPointF&)
 {
     if(sel.empty())
         return;

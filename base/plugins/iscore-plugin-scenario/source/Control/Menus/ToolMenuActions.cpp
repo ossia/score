@@ -150,7 +150,7 @@ void ToolMenuActions::fillMenuBar(iscore::MenubarManager *menu)
 void ToolMenuActions::fillContextMenu(
         QMenu *menu,
         const Selection& sel,
-        LayerPresenter* pres,
+        const LayerPresenter& pres,
         const QPoint&,
         const QPointF&)
 {

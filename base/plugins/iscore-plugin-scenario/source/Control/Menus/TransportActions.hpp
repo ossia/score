@@ -15,7 +15,7 @@ class TransportActions : public ScenarioActions
         void fillContextMenu(
                 QMenu* menu,
                 const Selection&sel,
-                LayerPresenter* pres,
+                const LayerPresenter& pres,
                 const QPoint&, const QPointF&) override;
 
         bool populateToolBar(

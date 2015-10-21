@@ -84,17 +84,20 @@ class TemporalScenarioPresenter : public LayerPresenter
         ScenarioStateMachine& stateMachine()
         { return m_sm; }
 
+        void fillContextMenu(
+                QMenu *,
+                const QPoint &pos,
+                const QPointF &scenepos) const override;
 
-        void handleDrop(const QPointF& pos, const QMimeData *mime);
-
+        void handleDrop(
+                const QPointF& pos,
+                const QMimeData *mime);
 
     signals:
         void linesExtremityScaled(int, int);
 
         void keyPressed(int);
         void keyReleased(int);
-
-        void contextMenuAsked(const QPoint&, const QPointF&);
 
     public:
         // Model -> view
