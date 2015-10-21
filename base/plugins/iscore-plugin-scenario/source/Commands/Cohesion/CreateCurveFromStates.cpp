@@ -60,7 +60,7 @@ void CreateCurveFromStates::redo() const
     else
     {
         segment->setStart({0., m_start});
-        segment->setStart({0., m_start});
+        segment->setEnd({1., m_start});
         autom.setMin(m_start);
         autom.setMax(m_start);
     }

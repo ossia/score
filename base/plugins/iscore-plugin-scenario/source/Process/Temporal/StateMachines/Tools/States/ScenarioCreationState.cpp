@@ -93,5 +93,28 @@ void ScenarioCreationState::createToNothing_base(const Id<StateModel> & original
                 currentPoint.date,
                 currentPoint.y});
     }
+}
 
+
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Commands/State/UpdateState.hpp>
+void ScenarioCreationState::makeSnapshot()
+{
+    if(createdStates.empty())
+        return;
+
+    auto doc = iscore::IDocument::documentFromObject(m_parentSM.model());
+    auto device_explorer = doc->model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
+
+    iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
+    if(messages.empty())
+        return;
+
+    m_dispatcher.submitCommand(new AddMessagesToState{
+               m_parentSM.model().states.at(createdStates.last()).messages(),
+               messages});
 }

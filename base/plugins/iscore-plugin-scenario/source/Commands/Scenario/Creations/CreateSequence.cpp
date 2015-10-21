@@ -51,14 +51,8 @@ CreateSequence::CreateSequence(
     updateTreeWithMessageList(m_stateData, endMessages);
 
     // We also create relevant curves.
-    // TODO refactor this with a new constructor to Path<> that takes an object identifier and an existing path.
-    Path<ScenarioModel> scenarioPath{scenario};
-    auto vec = scenarioPath.unsafePath().vec();
-    vec.push_back({ConstraintModel::className, m_command.createdConstraint()});
-    Path<ConstraintModel> constraint{ObjectPath{std::move(vec)}, Path<ConstraintModel>::UnsafeDynamicCreation{}};
-
-    m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
-
+    std::vector<std::pair<const iscore::Message*, const iscore::Message*>> matchingMessages;
+    // First we filter the messages
     for(auto& message : startMessages)
     {
         if(!message.value.val.isNumeric())
@@ -74,16 +68,32 @@ CreateSequence::CreateSequence(
 
         if(it != std::end(endMessages))
         {
-            auto cmd = new CreateCurveFromStates{
-                    Path<ConstraintModel>{constraint},
-                    m_interpolations.slotsToUse,
-                    message.address,
-                    iscore::convert::value<double>(message.value),
-                    iscore::convert::value<double>((*it).value)};
-            m_interpolations.addCommand(cmd);
+            matchingMessages.emplace_back(&message, &*it);
         }
     }
 
+    // Then, if there are correct messages we can actually do our interpolation.
+    if(!matchingMessages.empty())
+    {
+        // TODO refactor this with a new constructor to Path<> that takes an object identifier and an existing path.
+        Path<ScenarioModel> scenarioPath{scenario};
+        auto vec = scenarioPath.unsafePath().vec();
+        vec.push_back({ConstraintModel::className, m_command.createdConstraint()});
+        Path<ConstraintModel> constraint{ObjectPath{std::move(vec)}, Path<ConstraintModel>::UnsafeDynamicCreation{}};
+
+        m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
+
+        for(const auto& elt : matchingMessages)
+        {
+            auto cmd = new CreateCurveFromStates{
+                       Path<ConstraintModel>{constraint},
+                       m_interpolations.slotsToUse,
+                       elt.first->address,
+                       iscore::convert::value<double>(elt.first->value),
+                       iscore::convert::value<double>(elt.second->value)};
+            m_interpolations.addCommand(cmd);
+        }
+    }
 }
 
 CreateSequence::CreateSequence(
@@ -111,7 +121,8 @@ void CreateSequence::redo() const
 
     endstate.messages() = m_stateData;
 
-    m_interpolations.redo();
+    if(m_interpolations.count() > 0)
+        m_interpolations.redo();
 }
 
 void CreateSequence::serializeImpl(QDataStream& s) const

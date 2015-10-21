@@ -101,7 +101,7 @@ void IScoreCohesionControl::setupCommands()
             CreateCurvesFromAddresses,
             CreateCurvesFromAddressesInConstraints,
             Record,
-            CreateStatesFromParametersInEvents
+            SnapshotStatesMacro
             >,
             boost::type<boost::mpl::_>
             >(CommandGeneratorMapInserter<IScoreCohesionCommandFactory>());

@@ -54,7 +54,7 @@ DeviceExplorerModel::DeviceExplorerModel(
       m_cmdQ{nullptr}
 {
     this->setObjectName("DeviceExplorerModel");
-    m_devicePlugin->updateProxy.m_deviceExplorer = this;
+    m_devicePlugin->updateProxy.deviceExplorer = this;
 
     beginResetModel();
     endResetModel();
@@ -943,6 +943,7 @@ QMimeData*
 DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
     QMimeData* mimeData = new QMimeData;
+
     auto uniqueNodes = uniqueSelectedNodes(indexes);
 
     // Now we request an update to the device explorer.
@@ -1173,4 +1174,22 @@ DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
             std::cerr << " invalid index \n";
         }
     }
+}
+
+MessageList getSelectionSnapshot(DeviceExplorerModel& model)
+{
+    // Filter
+    auto uniqueNodes = model.uniqueSelectedNodes(model.selectedIndexes());
+
+    // Recursive refresh
+    model.deviceModel().updateProxy.refreshRemoteValues(uniqueNodes);
+
+    // Conversion
+    MessageList messages;
+    for(const auto& node : uniqueNodes)
+    {
+        messageList(*node, messages);
+    }
+
+    return messages;
 }

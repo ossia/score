@@ -11,6 +11,7 @@
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 
 void SnapshotParametersInStates(iscore::Document* doc)
 {
@@ -29,20 +30,13 @@ void SnapshotParametersInStates(iscore::Document* doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = doc->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto uniqueNodes = device_explorer->uniqueSelectedNodes(device_explorer->selectedIndexes());
-    device_explorer->deviceModel().updateProxy.refreshRemoteValues(uniqueNodes);
+    auto device_explorer = doc->model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
 
-    iscore::MessageList messages;
-    for(const auto& node : uniqueNodes)
-    {
-        iscore::messageList(*node, messages);
-    }
-
+    iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
     if(messages.empty())
         return;
 
-    MacroCommandDispatcher macro{new CreateStatesFromParametersInEvents,
+    MacroCommandDispatcher macro{new SnapshotStatesMacro,
                 doc->commandStack()};
     for(auto& state : selected_states)
     {

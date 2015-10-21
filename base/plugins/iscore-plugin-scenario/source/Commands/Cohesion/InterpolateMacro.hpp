@@ -7,6 +7,14 @@
 #include <Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Commands/Constraint/AddRackToConstraint.hpp>
 #include <Commands/Constraint/Rack/AddSlotToRack.hpp>
+
+class GenericInterpolateMacro : public iscore::AggregateCommand
+{
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                                      GenericInterpolateMacro,
+                                      "GenericInterpolateMacro")
+};
+
 class InterpolateMacro : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),

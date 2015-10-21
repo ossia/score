@@ -20,7 +20,6 @@ CreateConstraint_State::CreateConstraint_State(
     m_endEvent{endEvent},
     m_stateY{endStateY}
 {
-
 }
 
 CreateConstraint_State::CreateConstraint_State(

@@ -24,8 +24,8 @@ struct AddressSettings;
 class NodeUpdateProxy
 {
     public:
-        DeviceDocumentPlugin& m_devModel;
-        DeviceExplorerModel* m_deviceExplorer{};
+        DeviceDocumentPlugin& devModel;
+        DeviceExplorerModel* deviceExplorer{};
 
         explicit NodeUpdateProxy(DeviceDocumentPlugin& root);
 

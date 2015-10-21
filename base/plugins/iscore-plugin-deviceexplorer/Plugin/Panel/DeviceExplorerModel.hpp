@@ -249,3 +249,7 @@ class DeviceExplorerModel : public NodeBasedItemModel
 
         DeviceExplorerCommandCreator* m_cmdCreator;
 };
+
+
+// Will update the tree and return the messages corresponding to the selected nodes.
+iscore::MessageList getSelectionSnapshot(DeviceExplorerModel& model);

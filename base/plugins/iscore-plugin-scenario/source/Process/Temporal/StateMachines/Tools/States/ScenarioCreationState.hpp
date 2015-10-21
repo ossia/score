@@ -43,6 +43,8 @@ class ScenarioCreationState : public CreationState
 
         void createToNothing_base(const Id<StateModel> &);
 
+        void makeSnapshot();
+
 
         template<typename DestinationState, typename Function>
         void add_transition(QState* from, DestinationState* to, Function&& fun)

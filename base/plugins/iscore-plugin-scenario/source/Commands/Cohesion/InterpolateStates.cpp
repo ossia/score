@@ -43,13 +43,11 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 {
     // For each constraint, interpolate between the states in its start event and end event.
 
-    auto macro = new InterpolateMacro{*selected_constraints.first()};
-
-
     // They should all be in the same scenario so we can select the first.
     ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
+    auto big_macro = new GenericInterpolateMacro;
     for(auto& constraint : selected_constraints)
     {
         const auto& startState = scenar->state(constraint->startState());
@@ -57,6 +55,8 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
 
         iscore::MessageList startMessages = startState.messages().flatten();
         iscore::MessageList endMessages = endState.messages().flatten();
+
+        std::vector<std::pair<const iscore::Message*, const iscore::Message*>> matchingMessages;
 
         for(auto& message : startMessages)
         {
@@ -87,17 +87,27 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                 if(has_existing_curve != constraint->processes.end())
                     continue;
 
-                auto cmd = new CreateCurveFromStates{
-                        *constraint,
-                        macro->slotsToUse,
-                        message.address,
-                        iscore::convert::value<double>(message.value),
-                        iscore::convert::value<double>((*it).value)};
-                macro->addCommand(cmd);
+                matchingMessages.emplace_back(&message, &*it);
             }
+        }
+
+        if(!matchingMessages.empty())
+        {
+            Path<ConstraintModel> constraintPath{*constraint};
+            auto macro = new InterpolateMacro{*constraint}; // The constraint already exists
+            for(const auto& elt : matchingMessages)
+            {
+                macro->addCommand(new CreateCurveFromStates{
+                           Path<ConstraintModel>{constraintPath},
+                           macro->slotsToUse,
+                           elt.first->address,
+                           iscore::convert::value<double>(elt.first->value),
+                           iscore::convert::value<double>(elt.second->value)});
+            }
+            big_macro->addCommand(macro);
         }
     }
 
     CommandDispatcher<> disp{stack};
-    disp.submitCommand(macro);
+    disp.submitCommand(big_macro);
 }

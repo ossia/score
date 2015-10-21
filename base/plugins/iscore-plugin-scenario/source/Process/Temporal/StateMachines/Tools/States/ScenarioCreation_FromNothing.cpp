@@ -187,6 +187,7 @@ ScenarioCreation_FromNothing::ScenarioCreation_FromNothing(
 
         QObject::connect(released, &QState::entered, [&] ()
         {
+            this->makeSnapshot();
             m_dispatcher.commit<Scenario::Command::CreationMetaCommand>();
         });
     }
