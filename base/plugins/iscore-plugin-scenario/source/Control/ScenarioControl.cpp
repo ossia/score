@@ -183,6 +183,9 @@ QList<QAction*> ScenarioControl::actions()
 #include <Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <ViewCommands/PutLayerModelToFront.hpp>
+
+#include <Automation/AutomationModel.hpp>
+#include <Automation/AutomationPresenter.hpp>
 void ScenarioControl::createContextMenu(
         const QPoint& pos,
         const QPointF& scenepos,
@@ -198,7 +201,14 @@ void ScenarioControl::createContextMenu(
         auto processes_submenu = menu.addMenu(tr("Focus process"));
         for(const LayerModel& proc : slotm.layers)
         {
-            QAction* procAct = new QAction{proc.processModel().metadata.name(), processes_submenu};
+            auto name = proc.processModel().metadata.name();
+            // TODO instead have a displayName() virtual method on models.
+            if(auto autom = dynamic_cast<const AutomationPresenter*>(&pres))
+            {
+                auto autom_model = dynamic_cast<AutomationModel*>(&autom->layerModel().processModel());
+                name += " : " + autom_model->address().toString();
+            }
+            QAction* procAct = new QAction{name, processes_submenu};
             connect(procAct, &QAction::triggered, this, [&] () {
                 PutLayerModelToFront cmd{slotm, proc.id()};
                 cmd.redo();
