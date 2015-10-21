@@ -357,6 +357,7 @@ void TemporalScenarioPresenter::updateAllElements()
     }
 }
 
+#include <Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
 void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *mime)
 {
     // If the mime data has states in it we can handle it.
@@ -369,17 +370,46 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
                     new  Scenario::Command::CreateStateMacro,
                     iscore::IDocument::commandStack(m_layer.processModel()));
 
-        auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
-                       static_cast<ScenarioModel&>(layerModel().processModel()),
-                       TimeValue::fromMsecs(pos.x() * zoomRatio()),
-                       pos.y() / (m_view->boundingRect().size().height() + 150)); // TODO center it properly
-        m.submitCommand(cmd);
+        const auto& scenar = ::model(m_layer);
+        Id<StateModel> createdState;
+        auto t = TimeValue::fromMsecs(pos.x() * zoomRatio());
+        auto y = pos.y() / (m_view->boundingRect().size().height() + 150);
+        if(auto state = furthestSelectedState(scenar))
+        {
+            if(state->nextConstraint())
+            {
+                // We create from the event instead
+                auto cmd1 = new Scenario::Command::CreateState{scenar, state->eventId(), y};
+                m.submitCommand(cmd1);
 
-        auto vecpath = cmd->scenarioPath().unsafePath().vec();
-        vecpath.append({"StateModel", cmd->createdState()});
+                auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+                                   scenar, cmd1->createdState(), t, y};
+                m.submitCommand(cmd2);
+                createdState = cmd2->createdState();
+            }
+            else
+            {
+                auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+                                   scenar, state->id(), t, state->heightPercentage()};
+                m.submitCommand(cmd);
+                createdState = cmd->createdState();
+            }
+        }
+        else
+        {
+            // We create in the emptiness
+            auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
+                           scenar, t, y);
+            m.submitCommand(cmd);
+            createdState = cmd->createdState();
+        }
+
+
+        Path<ScenarioModel> scenario_path{scenar};
+        auto vecpath = scenario_path.unsafePath().vec();
+        vecpath.append({"StateModel", createdState});
         vecpath.append({"MessageItemModel", {}});
         Path<MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
-
 
         auto cmd2 = new AddMessagesToState{
                    std::move(state_path),

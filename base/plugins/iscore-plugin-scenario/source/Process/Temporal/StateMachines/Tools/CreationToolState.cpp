@@ -22,6 +22,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 
+
 CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     ScenarioTool{sm, &sm}
 {
@@ -114,69 +115,25 @@ void CreationToolState::on_pressed()
     {
         // Here we have the logic for the creation in nothing
         // where we instead choose the latest state if selected
-        auto& scenar = m_parentSM.model();
-
-        const StateModel* furthest_state{};
+        if(auto state = furthestSelectedState(m_parentSM.model()))
         {
-            TimeValue max_t = TimeValue::zero();
-            double max_y = 0;
-            for(StateModel& state : scenar.states)
+            if(state->nextConstraint())
             {
-                if(state.selection.get())
-                {
-                    auto date = scenar.events.at(state.eventId()).date();
-                    if(!furthest_state || date > max_t)
-                    {
-                        max_t = date;
-                        max_y = state.heightPercentage();
-                        furthest_state = &state;
-                    }
-                    else if(date == max_t && state.heightPercentage() > max_y)
-                    {
-                        max_y = state.heightPercentage();
-                        furthest_state = &state;
-                    }
-                }
+                localSM().postEvent(new ClickOnState_Event{
+                                        state->id(),
+                                        m_parentSM.scenarioPoint});
             }
-            if(furthest_state)
+            else
             {
-                localSM().postEvent(new ClickOnState_Event{furthest_state->id(), m_parentSM.scenarioPoint});
-                return;
+                localSM().postEvent(new ClickOnEvent_Event{
+                                        state->eventId(),
+                                        m_parentSM.scenarioPoint});
             }
         }
-
-        const ConstraintModel* furthest_constraint{};
+        else
         {
-            TimeValue max_t = TimeValue::zero();
-            double max_y = 0;
-            // If there is no furthest state, we instead go for a constraint
-            for(ConstraintModel& cst : scenar.constraints)
-            {
-                if(cst.selection.get())
-                {
-                    auto date = cst.duration.defaultDuration();
-                    if(!furthest_constraint || date > max_t)
-                    {
-                        max_t = date;
-                        max_y = cst.heightPercentage();
-                        furthest_constraint = &cst;
-                    }
-                    else if (date == max_t && cst.heightPercentage() > max_y)
-                    {
-                        max_y = cst.heightPercentage();
-                        furthest_constraint = &cst;
-                    }
-                }
-            }
-
-            if (furthest_constraint)
-            {
-                localSM().postEvent(new ClickOnState_Event{furthest_constraint->endState(), m_parentSM.scenarioPoint});
-                return;
-            }
+            localSM().postEvent(new ClickOnNothing_Event{m_parentSM.scenarioPoint});
         }
-
-        localSM().postEvent(new ClickOnNothing_Event{m_parentSM.scenarioPoint});
     });
 }
 

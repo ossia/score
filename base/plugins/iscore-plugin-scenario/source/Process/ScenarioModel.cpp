@@ -310,3 +310,133 @@ void ScenarioModel::makeLayer_impl(AbstractScenarioLayerModel* scen)
     connect(this, &ScenarioModel::constraintMoved,
             scen, &AbstractScenarioLayerModel::constraintMoved);
 }
+
+const StateModel* furthestSelectedState(const ScenarioModel& scenar)
+{
+    const StateModel* furthest_state{};
+    {
+        TimeValue max_t = TimeValue::zero();
+        double max_y = 0;
+        for(StateModel& state : scenar.states)
+        {
+            if(state.selection.get())
+            {
+                auto date = scenar.events.at(state.eventId()).date();
+                if(!furthest_state || date > max_t)
+                {
+                    max_t = date;
+                    max_y = state.heightPercentage();
+                    furthest_state = &state;
+                }
+                else if(date == max_t && state.heightPercentage() > max_y)
+                {
+                    max_y = state.heightPercentage();
+                    furthest_state = &state;
+                }
+            }
+        }
+        if(furthest_state)
+        {
+            return furthest_state;
+        }
+    }
+
+    // If there is no furthest state, we instead go for a constraint
+    const ConstraintModel* furthest_constraint{};
+    {
+        TimeValue max_t = TimeValue::zero();
+        double max_y = 0;
+        for(ConstraintModel& cst : scenar.constraints)
+        {
+            if(cst.selection.get())
+            {
+                auto date = cst.duration.defaultDuration();
+                if(!furthest_constraint || date > max_t)
+                {
+                    max_t = date;
+                    max_y = cst.heightPercentage();
+                    furthest_constraint = &cst;
+                }
+                else if (date == max_t && cst.heightPercentage() > max_y)
+                {
+                    max_y = cst.heightPercentage();
+                    furthest_constraint = &cst;
+                }
+            }
+        }
+
+        if (furthest_constraint)
+        {
+            return &scenar.states.at(furthest_constraint->endState());
+        }
+    }
+
+    return nullptr;
+}
+
+const StateModel*furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenar)
+{
+    const StateModel* furthest_state{};
+    {
+        TimeValue max_t = TimeValue::zero();
+        double max_y = 0;
+        for(StateModel& state : scenar.states)
+        {
+            if(state.selection.get() && !state.nextConstraint())
+            {
+                auto date = scenar.events.at(state.eventId()).date();
+                if(!furthest_state || date > max_t)
+                {
+                    max_t = date;
+                    max_y = state.heightPercentage();
+                    furthest_state = &state;
+                }
+                else if(date == max_t && state.heightPercentage() > max_y)
+                {
+                    max_y = state.heightPercentage();
+                    furthest_state = &state;
+                }
+            }
+        }
+        if(furthest_state)
+        {
+            return furthest_state;
+        }
+    }
+
+    // If there is no furthest state, we instead go for a constraint
+    const ConstraintModel* furthest_constraint{};
+    {
+        TimeValue max_t = TimeValue::zero();
+        double max_y = 0;
+        for(ConstraintModel& cst : scenar.constraints)
+        {
+            if(cst.selection.get())
+            {
+                const auto& state = scenar.states.at(cst.endState());
+                if(state.nextConstraint())
+                    continue;
+
+                auto date = cst.duration.defaultDuration();
+                if(!furthest_constraint || date > max_t)
+                {
+                    max_t = date;
+                    max_y = cst.heightPercentage();
+                    furthest_constraint = &cst;
+                }
+                else if (date == max_t && cst.heightPercentage() > max_y)
+                {
+                    max_y = cst.heightPercentage();
+                    furthest_constraint = &cst;
+                }
+            }
+        }
+
+        if (furthest_constraint)
+        {
+            return &scenar.states.at(furthest_constraint->endState());
+        }
+    }
+
+    return nullptr;
+}

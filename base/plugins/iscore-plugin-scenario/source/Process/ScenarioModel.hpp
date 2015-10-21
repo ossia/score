@@ -238,3 +238,6 @@ auto selectedElements(const Vector& in)
     return out;
 }
 
+
+const StateModel* furthestSelectedState(const ScenarioModel& scenario);
+const StateModel* furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenario);
