@@ -37,11 +37,6 @@ static auto getNextId(const Vector& ids)
 
 struct linear_id_generator
 {
-        /**
-         * @brief getNextId
-         * @return a random int32
-         */
-        static int32_t getRandomId() { return 1; }
         static int32_t getFirstId() { return 1; }
 
         template<typename Vector>
@@ -68,12 +63,6 @@ using id_generator = iscore::linear_id_generator;
 }
 template<typename T>
 auto getStrongId(const std::vector<Id<T>>& v)
-{
-    return Id<T>{iscore::id_generator::getNextId(v)};
-}
-
-template<typename T>
-auto getStrongId(const QVector<Id<T>>& v)
 {
     return Id<T>{iscore::id_generator::getNextId(v)};
 }

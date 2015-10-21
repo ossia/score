@@ -66,7 +66,8 @@ QByteArray ScenarioModel::makeLayerConstructionData() const
     // For all existing constraints we need to generate corresponding
     // view models ids. One day we may need to do this for events / time nodes too.
     QMap<Id<ConstraintModel>, Id<ConstraintViewModel>> map;
-    QVector<Id<ConstraintViewModel>> vec;
+    std::vector<Id<ConstraintViewModel>> vec;
+    vec.reserve(constraints.size());
     for(const auto& constraint : constraints)
     {
         auto id = getStrongId(vec);
