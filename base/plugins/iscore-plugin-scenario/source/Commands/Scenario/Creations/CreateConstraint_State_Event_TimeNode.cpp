@@ -13,7 +13,7 @@ CreateConstraint_State_Event_TimeNode::CreateConstraint_State_Event_TimeNode(
         const TimeValue& date,
         double endStateY):
     iscore::SerializableCommand{factoryName(), commandName(), description()},
-    m_newTimeNode{iscore::id_generator::getStrongId(scenario.timeNodes)},
+    m_newTimeNode{getStrongId(scenario.timeNodes)},
     m_createdName{RandomNameProvider::generateRandomName()},
     m_command{scenario,
               startState,

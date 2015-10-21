@@ -4,14 +4,14 @@
 namespace iscore
 {
 #ifdef ISCORE_VALGRIND_IDS
-int32_t random_id_generation::getNextId()
+int32_t random_id_generation::getRandomId()
 {
     static int x = 15;
     return x++;
 }
 
 #else
-int32_t random_id_generator::getNextId()
+int32_t random_id_generator::getRandomId()
 {
     using namespace std;
     static random_device rd;

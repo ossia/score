@@ -68,7 +68,7 @@ class CurveCommandObjectBase
 
             do
             {
-                id = Id<CurveSegmentModel>{iscore::id_generator::getNextId()};
+                id = Id<CurveSegmentModel>{iscore::id_generator::getRandomId()};
             }
             while(ids.find(id) != ids.end());
 
@@ -81,7 +81,7 @@ class CurveCommandObjectBase
 
             do
             {
-                id = Id<CurveSegmentModel>{iscore::id_generator::getNextId()};
+                id = Id<CurveSegmentModel>{iscore::id_generator::getRandomId()};
             }
             while(std::find_if(ids.begin(),
                                ids.end(),

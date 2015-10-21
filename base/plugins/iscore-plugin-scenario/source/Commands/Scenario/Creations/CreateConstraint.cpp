@@ -27,17 +27,17 @@ CreateConstraint::CreateConstraint(
     m_endStateId{endState}
 {
     auto& scenar = m_path.find();
-    m_createdConstraintId = iscore::id_generator::getStrongId(scenar.constraints);
+    m_createdConstraintId = getStrongId(scenar.constraints);
 
     // For each ScenarioViewModel of the scenario we are applying this command in,
     // we have to generate ConstraintViewModels, too
     for(const auto& viewModel : layers(scenar))
     {
-        m_createdConstraintViewModelIDs[*viewModel] = iscore::id_generator::getStrongId(viewModel->constraints());
+        m_createdConstraintViewModelIDs[*viewModel] = getStrongId(viewModel->constraints());
     }
 
     // Finally, the id of the full view
-    m_createdConstraintFullViewId = iscore::id_generator::getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
+    m_createdConstraintFullViewId = getStrongId(m_createdConstraintViewModelIDs.values().toVector().toStdVector());
 }
 
 void CreateConstraint::undo() const

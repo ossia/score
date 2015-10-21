@@ -29,30 +29,32 @@ ReplaceConstraintContent::ReplaceConstraintContent(
 
     // For all rackes in source, generate new id's
     const auto& target_rackes = trg_constraint.racks;
-    QVector<Id<RackModel>> target_rackes_ids;
+    std::vector<Id<RackModel>> target_rackes_ids;
+    target_rackes_ids.reserve(target_rackes.size());
     std::transform(target_rackes.begin(), target_rackes.end(),
                    std::back_inserter(target_rackes_ids),
                    [] (const auto& rack) { return rack.id(); });
 
     for(const auto& rack : src_constraint.racks)
     {
-        auto newId = iscore::id_generator::getStrongId(target_rackes_ids);
+        auto newId = getStrongId(target_rackes_ids);
         m_rackIds.insert(rack.id(), newId);
-        target_rackes_ids.append(newId);
+        target_rackes_ids.push_back(newId);
     }
 
     // Same for processes
     const auto& target_processes = trg_constraint.processes;
-    QVector<Id<Process>> target_processes_ids;
+    std::vector<Id<Process>> target_processes_ids;
+    target_processes_ids.reserve(target_processes.size());
     std::transform(target_processes.begin(), target_processes.end(),
                    std::back_inserter(target_processes_ids),
                    [] (const auto& proc) { return proc.id(); });
 
     for(const auto& proc : src_constraint.processes)
     {
-        auto newId = iscore::id_generator::getStrongId(target_processes_ids);
+        auto newId = getStrongId(target_processes_ids);
         m_processIds.insert(proc.id(), newId);
-        target_processes_ids.append(newId);
+        target_processes_ids.push_back(newId);
     }
 }
 

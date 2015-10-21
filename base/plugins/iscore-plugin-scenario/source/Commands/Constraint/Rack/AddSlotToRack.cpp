@@ -16,7 +16,7 @@ AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
     auto rack = m_path.try_find(); // Because we use this in a macro, the rack may not be there yet
 
     if(rack)
-        m_createdSlotId = iscore::id_generator::getStrongId(rack->slotmodels);
+        m_createdSlotId = getStrongId(rack->slotmodels);
     else
         m_createdSlotId = Id<SlotModel>{iscore::id_generator::getFirstId()};
 }

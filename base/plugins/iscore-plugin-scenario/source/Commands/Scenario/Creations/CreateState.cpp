@@ -12,7 +12,7 @@ CreateState::CreateState(const ScenarioModel &scenario, const Id<EventModel> &ev
                         commandName(),
                         description()},
     m_path {scenario},
-    m_newState{iscore::id_generator::getStrongId(scenario.states)},
+    m_newState{getStrongId(scenario.states)},
     m_event{event},
     m_stateY{stateY}
 {

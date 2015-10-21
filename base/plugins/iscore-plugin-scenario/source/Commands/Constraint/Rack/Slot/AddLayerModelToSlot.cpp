@@ -22,7 +22,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
     auto slot = m_slotPath.try_find();
     if(slot)
-        m_createdLayerId = iscore::id_generator::getStrongId(slot->layers);
+        m_createdLayerId = getStrongId(slot->layers);
     else
         m_createdLayerId = Id<LayerModel>{iscore::id_generator::getFirstId()};
 
@@ -42,7 +42,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
     auto slot = m_slotPath.try_find();
     if(slot)
-        m_createdLayerId = iscore::id_generator::getStrongId(slot->layers);
+        m_createdLayerId = getStrongId(slot->layers);
     else
         m_createdLayerId = Id<LayerModel>{iscore::id_generator::getFirstId()};
 

@@ -26,7 +26,7 @@ AddLayerInNewSlot::AddLayerInNewSlot(
 
     if(constraint.racks.empty())
     {
-        m_createdRackId = iscore::id_generator::getStrongId(constraint.racks);
+        m_createdRackId = getStrongId(constraint.racks);
         m_existingRack = false;
     }
     else

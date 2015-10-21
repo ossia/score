@@ -24,11 +24,11 @@ class MoveConstraintTest: public QObject
         {
             ScenarioModel* scenar = new ScenarioModel(std::chrono::seconds(15), Id<ProcessModel> {0}, qApp);
 
-            auto int_0_id = iscore::id_generator::getStrongId(scenar->constraints());
-            auto ev_0_id = iscore::id_generator::getStrongId(scenar->events());
+            auto int_0_id = getStrongId(scenar->constraints());
+            auto ev_0_id = getStrongId(scenar->events());
 
             auto fv_0_id = Id<ConstraintViewModel> {234};
-            auto tb_0_id = iscore::id_generator::getStrongId(scenar->timeNodes());
+            auto tb_0_id = getStrongId(scenar->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*scenar, scenar->startEvent()->id(), std::chrono::milliseconds {34}, 0.5, int_0_id, fv_0_id, ev_0_id);
 
             ConstraintData data {};

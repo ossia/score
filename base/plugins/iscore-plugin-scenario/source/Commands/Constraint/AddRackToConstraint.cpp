@@ -18,7 +18,7 @@ AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath)
 
     if(constraint)
     {
-        m_createdRackId = iscore::id_generator::getStrongId(constraint->racks);
+        m_createdRackId = getStrongId(constraint->racks);
     }
     else
     {

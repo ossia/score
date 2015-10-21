@@ -10,9 +10,8 @@ struct random_id_generator
  * @brief getNextId
  * @return a random int32
  */
-static int32_t getNextId();
-
-static int32_t getFirstId() { return getNextId(); }
+static int32_t getRandomId();
+static int32_t getFirstId() { return getRandomId(); }
 
 /**
  * @brief getNextId
@@ -21,50 +20,62 @@ static int32_t getFirstId() { return getNextId(); }
  * @return A new id not in the vector.
  */
 template<typename Vector>
-static int getNextId(const Vector& ids)
+static auto getNextId(const Vector& ids)
 {
     using namespace boost::range;
-    int id {};
+    typename Vector::value_type id {};
 
     do
     {
-        id = getNextId();
+        id = typename Vector::value_type{getRandomId()};
     }
     while(find(ids, id) != std::end(ids));
 
     return id;
 }
+};
 
-/**
- * The following functions all generate ids
- * with type safety using different containers.
- */
-
-template<typename Container>
-static auto getStrongIdFromIdContainer(const Container& v)
+struct linear_id_generator
 {
-    using namespace boost::range;
-    typename Container::value_type id;
+        /**
+         * @brief getNextId
+         * @return a random int32
+         */
+        static int32_t getRandomId() { return 1; }
+        static int32_t getFirstId() { return 1; }
 
-    do
-    {
-        id = typename Container::value_type{getNextId()};
-    }
-    while(find(v, id) != std::end(v));
+        template<typename Vector>
+        static auto getNextId(const Vector& ids)
+        {
+            using namespace boost::range;
 
-    return id;
+            auto it = std::max_element(ids.begin(), ids.end());
+            if(it != ids.end())
+                return typename Vector::value_type{getId(*it) + 1};
+            else
+                return typename Vector::value_type{getFirstId()};
+        }
+
+    private:
+        template<typename T>
+        static int32_t getId(const Id<T>& other) { return *other.val(); }
+        static int32_t getId(const boost::optional<int32_t>& i) { return *i; }
+        static int32_t getId(int32_t i) { return i; }
+};
+
+
+using id_generator = iscore::linear_id_generator;
+}
+template<typename T>
+auto getStrongId(const std::vector<Id<T>>& v)
+{
+    return Id<T>{iscore::id_generator::getNextId(v)};
 }
 
 template<typename T>
-static auto getStrongId(const std::vector<Id<T>>& v)
+auto getStrongId(const QVector<Id<T>>& v)
 {
-    return getStrongIdFromIdContainer(v);
-}
-
-template<typename T>
-static auto getStrongId(const QVector<Id<T>>& v)
-{
-    return getStrongIdFromIdContainer(v);
+    return Id<T>{iscore::id_generator::getNextId(v)};
 }
 
 template<typename Container,
@@ -73,12 +84,12 @@ template<typename Container,
                       typename Container::value_type
                     >::value
                   >* = nullptr>
-static auto getStrongId(const Container& v)
+auto getStrongId(const Container& v)
     -> Id<typename std::remove_pointer<typename Container::value_type>::type>
 {
     using namespace std;
     using local_id_t = Id<typename std::remove_pointer<typename Container::value_type>::type>;
-    vector<int> ids(v.size());   // Map reduce
+    vector<int32_t> ids(v.size());   // Map reduce
 
     transform(v.begin(),
               v.end(),
@@ -88,7 +99,7 @@ static auto getStrongId(const Container& v)
         return * (elt->id().val());
     });
 
-    return local_id_t{getNextId(ids)};
+    return local_id_t{iscore::id_generator::getNextId(ids)};
 }
 
 template<typename Container,
@@ -97,11 +108,11 @@ template<typename Container,
                       typename Container::value_type
                     >::value
                   >* = nullptr>
-static auto getStrongId(const Container& v) ->
+auto getStrongId(const Container& v) ->
     Id<typename Container::value_type>
 {
     using namespace std;
-    vector<int> ids(v.size());   // Map reduce
+    vector<int32_t> ids(v.size());   // Map reduce
 
     transform(v.begin(),
               v.end(),
@@ -111,12 +122,6 @@ static auto getStrongId(const Container& v) ->
         return * (elt.id().val());
     });
 
-    return Id<typename Container::value_type>{getNextId(ids)};
+    return Id<typename Container::value_type>{iscore::id_generator::getNextId(ids)};
 }
 
-};
-
-
-using id_generator = iscore::random_id_generator;
-
-}

@@ -24,12 +24,12 @@ class ConstraintModelTests: public QObject
         void CreateSlotTest()
         {
             ConstraintModel model {Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, this};
-            auto content_id = iscore::id_generator::getStrongId(model.rackes());
+            auto content_id = getStrongId(model.rackes());
             model.createRack(content_id);
             auto rack = model.rack(content_id);
             QVERIFY(rack != nullptr);
 
-            auto slot_id = iscore::id_generator::getStrongId(rack->getSlots());
+            auto slot_id = getStrongId(rack->getSlots());
             rack->addSlot(new SlotModel
             {
                 slot_id,
@@ -44,11 +44,11 @@ class ConstraintModelTests: public QObject
             /////
             {
                 ConstraintModel model {Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, this};
-                auto content_id = iscore::id_generator::getStrongId(model.rackes());
+                auto content_id = getStrongId(model.rackes());
                 model.createRack(content_id);
                 auto rack = model.rack(content_id);
 
-                auto slot_id = iscore::id_generator::getStrongId(rack->getSlots());
+                auto slot_id = getStrongId(rack->getSlots());
                 rack->addSlot(new SlotModel
                 {
                     slot_id,
@@ -63,25 +63,25 @@ class ConstraintModelTests: public QObject
                 ConstraintModel model {Id<ConstraintModel>{0},
                                        Id<ConstraintViewModel>{0}, this
                                       };
-                auto content_id = iscore::id_generator::getStrongId(model.rackes());
+                auto content_id = getStrongId(model.rackes());
                 model.createRack(content_id);
                 auto rack = model.rack(content_id);
 
                 rack->addSlot(new SlotModel
                 {
-                    iscore::id_generator::getStrongId(rack->getSlots()),
+                    getStrongId(rack->getSlots()),
                     rack
                 });
 
                 rack->addSlot(new SlotModel
                 {
-                    iscore::id_generator::getStrongId(rack->getSlots()),
+                    getStrongId(rack->getSlots()),
                     rack
                 });
 
                 rack->addSlot(new SlotModel
                 {
-                    iscore::id_generator::getStrongId(rack->getSlots()),
+                    getStrongId(rack->getSlots()),
                     rack
                 });
 
@@ -97,16 +97,16 @@ class ConstraintModelTests: public QObject
             i0.setObjectName("OriginalConstraint");
             auto s0 = new ScenarioModel {std::chrono::seconds(15), Id<ProcessModel>{0}, &i0};
 
-            auto int_0_id = iscore::id_generator::getStrongId(s0->constraints());
-            auto ev_0_id = iscore::id_generator::getStrongId(s0->events());
+            auto int_0_id = getStrongId(s0->constraints());
+            auto ev_0_id = getStrongId(s0->events());
             auto fv_0_id = Id<ConstraintViewModel> {234};
-            auto tb_0_id = iscore::id_generator::getStrongId(s0->timeNodes());
+            auto tb_0_id = getStrongId(s0->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {34}, 10, int_0_id, fv_0_id, ev_0_id);
 
-            auto int_2_id = iscore::id_generator::getStrongId(s0->constraints());
+            auto int_2_id = getStrongId(s0->constraints());
             auto fv_2_id = Id<ConstraintViewModel> {454};
-            auto ev_2_id = iscore::id_generator::getStrongId(s0->events());
-            auto tb_2_id = iscore::id_generator::getStrongId(s0->timeNodes());
+            auto ev_2_id = getStrongId(s0->events());
+            auto tb_2_id = getStrongId(s0->timeNodes());
             StandardCreationPolicy::createConstraintAndEndEventFromEvent(*s0, s0->startEvent()->id(), std::chrono::milliseconds {46}, 10, int_2_id, fv_2_id, ev_2_id);
 
             auto i1 = s0->constraint(int_0_id);

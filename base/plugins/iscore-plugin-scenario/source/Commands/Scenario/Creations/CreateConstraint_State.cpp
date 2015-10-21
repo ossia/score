@@ -13,7 +13,7 @@ CreateConstraint_State::CreateConstraint_State(
         const Id<EventModel>& endEvent,
         double endStateY):
     iscore::SerializableCommand{factoryName(), commandName(), description()},
-    m_newState{iscore::id_generator::getStrongId(scenario.states)},
+    m_newState{getStrongId(scenario.states)},
     m_command{scenario,
               startState,
               m_newState},
