@@ -54,7 +54,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
         make_transition<ReleaseOnAnything_Transition>(mainState, released);
 
         // Pressed -> ...
-        add_transition(pressed, move_state, [&] () { createToNothing(); });
+        make_transition<MoveOnNothing_Transition>(pressed, move_state, *this);
         make_transition<MoveOnNothing_Transition>(pressed, move_nothing, *this);
 
         /// MoveOnNothing -> ...
@@ -136,6 +136,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
                          [&] ()
         {
             m_clickedPoint = currentPoint;
+            createToNothing();
         });
 
         QObject::connect(move_nothing, &QState::entered, [&] ()
@@ -223,7 +224,7 @@ void ScenarioCreation_FromState::creationCheck(Fun&& fun)
     }
     else
     {
-        const auto& st = scenar.state(clickedState);
+        const auto& st = scenar.states.at(clickedState);
         if(!st.nextConstraint()) // TODO & deltaY < deltaX
         {
             currentPoint.y = st.heightPercentage();
