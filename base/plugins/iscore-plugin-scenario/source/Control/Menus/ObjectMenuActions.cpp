@@ -21,6 +21,7 @@
 
 #include "Control/ScenarioControl.hpp"
 #include <Commands/Cohesion/InterpolateStates.hpp>
+#include <Commands/Cohesion/UpdateStates.hpp>
 
 #include <QJsonDocument>
 #include <QApplication>
@@ -137,6 +138,16 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
 
+    m_updateStates = new QAction {tr("Refresh states"), this};
+    m_updateStates->setShortcutContext(Qt::ApplicationShortcut);
+    m_updateStates->setShortcut(tr("Ctrl+U"));
+    m_updateStates->setToolTip(tr("Ctrl+U"));
+    connect(m_updateStates, &QAction::triggered,
+            this, [&] () {
+        RefreshStates(m_parent->currentDocument());
+    });
+
+
     // ADD TRIGGER
     m_addTrigger = new QAction{tr("Add Trigger"), this};
     connect(m_addTrigger, &QAction::triggered,
@@ -163,6 +174,8 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 
     menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
                                        m_interp);
+    menu->insertActionIntoToplevelMenu(iscore::ToplevelMenuElement::ObjectMenu,
+                                       m_updateStates);
 }
 
 void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, LayerPresenter* pres, const QPoint&, const QPointF&)
@@ -185,6 +198,14 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, Layer
     {
         menu->addAction(m_addTrigger);
         menu->addAction(m_removeTrigger);
+        menu->addSeparator();
+    }
+
+    if(std::any_of(sel.cbegin(),
+                   sel.cend(),
+                   [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
+    {
+        menu->addAction(m_updateStates);
         menu->addSeparator();
     }
 

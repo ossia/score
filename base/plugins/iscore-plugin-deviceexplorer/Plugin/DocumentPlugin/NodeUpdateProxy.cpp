@@ -239,18 +239,22 @@ void NodeUpdateProxy::updateRemoteValue(
     }
 }
 
-void NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
+iscore::Value NodeUpdateProxy::refreshRemoteValue(const iscore::Address& addr)
 {
+    // TODO here and in the following function, we should still update
+    // the device explorer.
     auto& dev = devModel.list().device(addr.device);
-    if(!dev.canRefresh())
-        return;
 
-    auto val = dev.refresh(addr);
-    if(val)
+    auto& n = iscore::getNodeFromAddress(devModel.rootNode(), addr).get<iscore::AddressSettings>();
+    if(dev.canRefresh())
     {
-        auto& n = iscore::getNodeFromAddress(devModel.rootNode(), addr);
-        n.get<iscore::AddressSettings>().value = *val;
+        if(auto val = dev.refresh(addr))
+        {
+            n.value = *val;
+        }
     }
+
+    return n.value;
 }
 
 void rec_refreshRemoteValues(iscore::Node& n, DeviceInterface& dev)

@@ -238,6 +238,25 @@ auto selectedElements(const Vector& in)
     return out;
 }
 
+template<typename T>
+QList<const T*> filterSelectionByType(const Selection& sel)
+{
+    QList<const T*> selected_elements;
+    for(auto obj : sel)
+    {
+        // TODO replace with a virtual Element::type() which will be faster.
+        if(auto casted_obj = dynamic_cast<const T*>(obj.data()))
+        {
+            if(casted_obj->selection.get() && dynamic_cast<ScenarioModel*>(casted_obj->parent()))
+            {
+                selected_elements.push_back(casted_obj);
+            }
+        }
+    }
+
+    return selected_elements;
+}
+
 
 const StateModel* furthestSelectedState(const ScenarioModel& scenario);
 const StateModel* furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenario);

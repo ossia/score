@@ -38,7 +38,7 @@
 #include "Scenario/Creations/CreateConstraint_State.hpp"
 #include "Scenario/Creations/CreateConstraint_State_Event.hpp"
 #include "Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
-
+#include "Cohesion/RefreshStatesMacro.hpp"
 #include "Scenario/Creations/CreationMetaCommand.hpp"
 #include "Scenario/Deletions/ClearConstraint.hpp"
 #include "Scenario/Deletions/ClearEvent.hpp"
@@ -100,7 +100,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list73<
+            boost::mpl::list74<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -178,6 +178,8 @@ void ScenarioControl::setupCommands()
 
             MoveBaseEvent,
             ResizeSlotVertically,
+
+            RefreshStatesMacro,
 
             SetCondition,
             SetTrigger,

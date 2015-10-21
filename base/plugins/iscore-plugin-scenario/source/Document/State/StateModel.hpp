@@ -111,4 +111,3 @@ class StateModel : public IdentifiedObject<StateModel>
         std::vector<QMetaObject::Connection> m_prevConnections;
         std::vector<QMetaObject::Connection> m_nextConnections;
 };
-

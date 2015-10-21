@@ -26,16 +26,24 @@ class ObjectMenuActions : public ScenarioActions
         CommandDispatcher<> dispatcher();
 
 
-        QAction* m_removeElements;
-        QAction *m_clearElements;
-        QAction *m_copyContent;
-        QAction *m_cutContent;
-        QAction *m_pasteContent;
-        QAction *m_elementsToJson;
-        QAction *m_addProcess;
-        QAction *m_addTrigger;
-        QAction *m_removeTrigger;
-        QAction *m_interp;
+        QAction* m_removeElements{};
+        QAction *m_clearElements{};
+        QAction *m_copyContent{};
+        QAction *m_cutContent{};
+        QAction *m_pasteContent{};
+        QAction *m_elementsToJson{};
 
-        AddProcessDialog* m_addProcessDialog;
+        // TODO separate classes for these
+        // Constraint
+        QAction *m_addProcess{};
+        QAction *m_interp{};
+
+        // Event
+        QAction *m_addTrigger{};
+        QAction *m_removeTrigger{};
+
+        // State
+        QAction* m_updateStates{};
+
+        AddProcessDialog* m_addProcessDialog{};
 };

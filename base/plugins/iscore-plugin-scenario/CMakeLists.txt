@@ -142,6 +142,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Cohesion/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Cohesion/InterpolateStates.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Cohesion/UpdateStates.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/UpdateState.cpp"

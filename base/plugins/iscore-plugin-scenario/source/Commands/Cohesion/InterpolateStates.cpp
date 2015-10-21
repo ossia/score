@@ -14,23 +14,9 @@
 void InterpolateStates(iscore::Document* doc)
 {
     using namespace std;
-    // Fetch the selected constraints
-    auto sel = doc->
-            selectionStack().
-            currentSelection();
 
-    QList<const ConstraintModel*> selected_constraints;
-    for(auto obj : sel)
-    {
-        // TODO replace with a virtual Element::type() which will be faster.
-        if(auto cst = dynamic_cast<const ConstraintModel*>(obj.data()))
-        {
-            if(cst->selection.get() && dynamic_cast<ScenarioModel*>(cst->parent()))
-            {
-                selected_constraints.push_back(cst);
-            }
-        }
-    }
+    // Fetch the selected constraints
+    auto selected_constraints = filterSelectionByType<ConstraintModel>(doc->selectionStack().currentSelection());
 
     if(selected_constraints.empty())
         return;
