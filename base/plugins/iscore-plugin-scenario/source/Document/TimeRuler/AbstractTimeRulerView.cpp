@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 #include <Document/TimeRuler/AbstractTimeRuler.hpp>
 
+
 AbstractTimeRulerView::AbstractTimeRulerView() :
     m_width{800},
     m_graduationsSpacing{10},
@@ -12,11 +13,13 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
     m_intervalsBeetwenMark{1},
     m_graduationHeight{-10}
 {
-    setY(-50);
+    setY(-25);
 }
 
 void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    static const QFont TimeRulerFont("Courier", 8, QFont::Light);
+
     const auto brush = QBrush(m_color);
     painter->setPen(QPen(brush, 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
@@ -24,11 +27,13 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->setPen(QPen(brush, 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
+    painter->setFont(TimeRulerFont);
+
     if (m_width > 0)
     {
         for (const auto& mark : m_marks)
         {
-            painter->drawText(m_marks.key(mark) + 2 , m_textPosition, mark.toString(m_timeFormat));
+            painter->drawText(m_marks.key(mark) + 6 , m_textPosition, mark.toString(m_timeFormat));
         }
     }
 }
@@ -86,8 +91,8 @@ void AbstractTimeRulerView::createRulerPath()
 
     while (t < m_width + 1)
     {
+        /*
         gradSize = 0.5;
-
         if (m_intervalsBeetwenMark % 2 == 0)
         {
             if (i % (m_intervalsBeetwenMark / 2) == 0)
@@ -95,13 +100,13 @@ void AbstractTimeRulerView::createRulerPath()
                 gradSize = 1;
             }
         }
-
+        */
         if (i % m_intervalsBeetwenMark == 0)
         {
             m_marks[t] = time;
-            gradSize = 1.5;
+            gradSize = 3;
+            path.addRect(t, 0, 1, m_graduationHeight * gradSize);
         }
-        path.addRect(t, 0, 1, m_graduationHeight * gradSize);
 
         t += m_graduationsSpacing;
         time = time.addMSecs(m_graduationDelta);

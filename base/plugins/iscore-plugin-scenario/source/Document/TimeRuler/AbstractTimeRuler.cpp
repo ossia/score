@@ -49,7 +49,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
     double gradSpace = pixPerSec;
 
     int deltaTime = 100;
-    QString format = "m''ss''''";
+    QString format = "m:ss";
     int loop = 5;
 
     int i = 0;
@@ -64,7 +64,7 @@ void AbstractTimeRuler::computeGraduationSpacing()
     }
     if (i > 5)
     {
-        format = "m''ss''''z";
+        format = "m:ss.z";
         loop = 10;
     }
 

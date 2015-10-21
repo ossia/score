@@ -6,7 +6,7 @@ TimeRulerView::TimeRulerView() :
     AbstractTimeRulerView{}
 {
     m_height = -3 * m_graduationHeight;
-    m_textPosition = 1.05 * m_graduationHeight;
+    m_textPosition = 1.15 * m_graduationHeight;
     m_color = ScenarioStyle::instance().TimeRuler;
 }
 
