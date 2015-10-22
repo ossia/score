@@ -124,10 +124,10 @@ CreateSequence::CreateSequence(
             auto start = iscore::convert::value<double>(elt.first->value);
             auto end = iscore::convert::value<double>(elt.second->value);
             double min = (elt.second->domain.min.val.which() != iscore::ValueType::NoValue)
-                           ? iscore::convert::value<double>(elt.second->domain.min)
+                           ? std::min(iscore::convert::value<double>(elt.second->domain.min), std::min(start, end))
                            : std::min(start, end);
             double max = (elt.second->domain.max.val.which() != iscore::ValueType::NoValue)
-                         ? iscore::convert::value<double>(elt.second->domain.max)
+                         ? std::max(iscore::convert::value<double>(elt.second->domain.max), std::max(start, end))
                          : std::max(start, end);
 
             auto cmd = new CreateCurveFromStates{
@@ -139,6 +139,7 @@ CreateSequence::CreateSequence(
             i++;
         }
     }
+
 }
 
 CreateSequence::CreateSequence(

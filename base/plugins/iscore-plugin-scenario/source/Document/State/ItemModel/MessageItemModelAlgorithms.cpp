@@ -97,6 +97,11 @@ bool nodePruneAction_impl(
         {
             return true;
         }
+        else
+        {
+            vec.clear();
+            return false;
+        }
     }
 
     return false;
