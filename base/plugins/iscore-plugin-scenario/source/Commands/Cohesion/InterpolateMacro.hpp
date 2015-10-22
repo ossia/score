@@ -44,9 +44,9 @@ class InterpolateMacro : public iscore::AggregateCommand
             auto unsafeSlotPath = createdRackPath.unsafePath().vec();
             unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
 
-            slotsToUse.push_back(Path<SlotModel>{
+            slotsToUse.push_back({Path<SlotModel>{
                             ObjectPath{std::move(unsafeSlotPath)},
-                            Path<SlotModel>::UnsafeDynamicCreation{}});
+                                      Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
 
             addCommand(new ShowRackInAllViewModels{Path<ConstraintModel>{cstpath}, cmd_rack->createdRack()});
         }
@@ -63,6 +63,8 @@ class InterpolateMacro : public iscore::AggregateCommand
                 addCommand(cmd_rack);
 
                 auto unsaferackPath = cstpath.unsafePath().vec();
+                // TODO when refactoring this, if we pass the id we can reuse the type to keep something strong
+
                 unsaferackPath.push_back({RackModel::className, cmd_rack->createdRack()});
 
                 Path<RackModel> createdRackPath{
@@ -75,9 +77,9 @@ class InterpolateMacro : public iscore::AggregateCommand
                 auto unsafeSlotPath = createdRackPath.unsafePath().vec();
                 unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
 
-                slotsToUse.push_back(Path<SlotModel>{
+                slotsToUse.push_back({Path<SlotModel>{
                                 ObjectPath{std::move(unsafeSlotPath)},
-                                Path<SlotModel>::UnsafeDynamicCreation{}});
+                                          Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
 
                 for(const auto& vm : constraint.viewModels())
                 {
@@ -126,9 +128,9 @@ class InterpolateMacro : public iscore::AggregateCommand
                     auto unsafeSlotPath = createdRackPath.unsafePath().vec();
                     unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
 
-                    slotsToUse.push_back(Path<SlotModel>{
+                    slotsToUse.push_back({Path<SlotModel>{
                                     ObjectPath{std::move(unsafeSlotPath)},
-                                    Path<SlotModel>::UnsafeDynamicCreation{}});
+                                    Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
                 }
 
                 for(const ConstraintViewModel* vm : constraint.viewModels())
@@ -139,15 +141,15 @@ class InterpolateMacro : public iscore::AggregateCommand
                         if(rack.slotmodels.size() > 0)
                         {
                             // Check if the rack / slot has already been added
-                            for(const auto& path : slotsToUse)
+                            for(const auto& elt : slotsToUse)
                             {
-                                const ObjectIdentifierVector& vec = path.unsafePath().vec();
+                                const ObjectIdentifierVector& vec = elt.first.unsafePath().vec();
                                 if(vec[vec.size() - 2].id() == rackId.val())
                                     continue;
                             }
 
                             // If not, we add it to the list
-                            slotsToUse.push_back(rack.slotmodels.at(rack.slotsPositions()[0]));
+                            slotsToUse.push_back({rack.slotmodels.at(rack.slotsPositions()[0]), {}});
                         }
                         else
                         {
@@ -158,9 +160,9 @@ class InterpolateMacro : public iscore::AggregateCommand
                             auto unsafeSlotPath = rackPath.unsafePath().vec();
                             unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
 
-                            slotsToUse.push_back(Path<SlotModel>{
+                            slotsToUse.push_back({Path<SlotModel>{
                                             ObjectPath{std::move(unsafeSlotPath)},
-                                            Path<SlotModel>::UnsafeDynamicCreation{}});
+                                                      Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
                         }
                     }
                     else
@@ -178,5 +180,5 @@ class InterpolateMacro : public iscore::AggregateCommand
             }
         }
 
-        std::vector<Path<SlotModel>> slotsToUse; // No need to save this, it is useful only for construction.
+        std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotsToUse; // No need to save this, it is useful only for construction.
 };

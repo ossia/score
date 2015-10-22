@@ -8,6 +8,7 @@
 #include <Process/ScenarioModel.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -81,14 +82,43 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
         {
             Path<ConstraintModel> constraintPath{*constraint};
             auto macro = new InterpolateMacro{*constraint}; // The constraint already exists
+
+            // Generate brand new ids for the processes
+            auto process_ids = getStrongIdRange<Process>(matchingMessages.size(), constraint->processes);
+
+            std::vector<std::pair<Path<SlotModel>, std::vector<Id<LayerModel>>>> slotVec;
+            slotVec.reserve(macro->slotsToUse.size());
+            // For each slot we have to generate matchingMessages.size() ids.
+            for(const auto& elt : macro->slotsToUse)
+            {
+                if(auto slot = elt.first.try_find())
+                {
+                    slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(matchingMessages.size(), slot->layers)});
+                }
+                else
+                {
+                    slotVec.push_back({elt.first, getStrongIdRange<LayerModel>(matchingMessages.size())});
+                }
+            }
+
+            int i = 0;
             for(const auto& elt : matchingMessages)
             {
+                std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layerVec;
+                layerVec.reserve(macro->slotsToUse.size());
+                std::transform(slotVec.begin(), slotVec.end(), std::back_inserter(layerVec),
+                               [&] (const auto& slotVecElt) {
+                   return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
+                });
+
                 macro->addCommand(new CreateCurveFromStates{
-                           Path<ConstraintModel>{constraintPath},
-                           macro->slotsToUse,
-                           elt.first->address,
-                           iscore::convert::value<double>(elt.first->value),
-                           iscore::convert::value<double>(elt.second->value)});
+                                      Path<ConstraintModel>{constraintPath},
+                                      layerVec,
+                                      process_ids[i],
+                                      elt.first->address,
+                                      iscore::convert::value<double>(elt.first->value),
+                                      iscore::convert::value<double>(elt.second->value)});
+                i++;
             }
             big_macro->addCommand(macro);
         }

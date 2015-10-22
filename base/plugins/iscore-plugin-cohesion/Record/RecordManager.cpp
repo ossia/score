@@ -170,7 +170,8 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
                 cmd_end->createdEvent(),
                 default_end_date,
                 0,
-                true);
+                true,
+                ExpandMode::Fixed);
     m_dispatcher->submitCommand(cmd_move);
 
     auto cmd_rack = new Scenario::Command::AddRackToConstraint{cstr};
@@ -195,6 +196,8 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
     {
         for(const auto& addr : vec)
         {
+            // Note : since we directly create the IDs here, we don't have to worry
+            // about their generation.
             auto cmd_proc = new AddOnlyProcessToConstraint{
                     Path<ConstraintModel>(cstr_path),
                     "Automation"};
@@ -245,12 +248,10 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
             // Move end event by the current duration.
             int msecs = std::chrono::duration_cast<std::chrono::milliseconds>(current_time_pt - start_time_pt).count();
 
-            auto newval = val.val.impl().target<float>();
-            if(!newval)
-                return;
+            auto newval = iscore::convert::value<float>(val.val);
 
             const auto& proc_data = records.at(addr);
-            proc_data.segment.addPoint(msecs, *newval);
+            proc_data.segment.addPoint(msecs, newval);
 
             static_cast<AutomationModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
         }));

@@ -114,3 +114,33 @@ auto getStrongId(const Container& v) ->
     return Id<typename Container::value_type>{iscore::id_generator::getNextId(ids)};
 }
 
+template<typename T>
+auto getStrongIdRange(std::size_t s)
+{
+    std::vector<Id<T>> vec;
+    vec.reserve(s);
+    vec.emplace_back(iscore::id_generator::getFirstId());
+
+    s--;
+    for(; s --> 0 ;)
+    {
+        vec.push_back(getStrongId(vec));
+    }
+
+    return vec;
+}
+template<typename T, typename Vector>
+auto getStrongIdRange(std::size_t s, const Vector& existing)
+{
+    std::vector<Id<T>> vec;
+    vec.reserve(s + existing.size());
+    std::transform(existing.begin(), existing.end(), std::back_inserter(vec),
+                   [] (const auto& elt) { return elt.id(); });
+
+    for(; s --> 0 ;)
+    {
+        vec.push_back(getStrongId(vec));
+    }
+
+    return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
+}

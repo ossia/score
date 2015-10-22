@@ -17,9 +17,11 @@
 
 using namespace iscore;
 using namespace Scenario::Command;
+
+
 AddProcessToConstraint::AddProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        QString process) :
+        const QString& process) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
@@ -153,21 +155,31 @@ void AddProcessToConstraint::deserializeImpl(QDataStream& s)
       >> m_notBaseConstraint;
 }
 
+
+
 // MOVEME
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        QString process):
+        const QString& process) :
+    AddOnlyProcessToConstraint{
+        std::move(constraintPath),
+        getStrongId(constraintPath.find().processes),
+        process}
+{
+
+}
+
+AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
+        Path<ConstraintModel>&& constraintPath,
+        const Id<Process>& processId,
+        const QString& process):
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
     m_path{std::move(constraintPath)},
-    m_processName{process}
+    m_processName{process},
+    m_createdProcessId{processId}
 {
-    auto constraint = m_path.try_find();
-    if(constraint)
-        m_createdProcessId = getStrongId(constraint->processes);
-    else
-        m_createdProcessId = Id<Process>{iscore::id_generator::getFirstId()};
 }
 
 void AddOnlyProcessToConstraint::undo() const

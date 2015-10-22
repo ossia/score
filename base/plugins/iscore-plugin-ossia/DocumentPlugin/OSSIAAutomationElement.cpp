@@ -163,7 +163,6 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
         {
             auto linearSegment = CurveSegmentLinear<T>::create(curve);
             curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
-            //TODO ??curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
         }
         else if(auto segt = dynamic_cast<const PowerCurveSegmentModel*>(&iscore_segment))
         {
@@ -178,7 +177,6 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
                 powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
                 curve->addPoint(segt->end().x(), scale(segt->end().y()), powSegment);
             }
-            //curve->addPoint(segt->end().x(), scale(segt->end().y()), powSegment);
         }
 
         if(iscore_segment.start().x() == 0.)
@@ -187,7 +185,6 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
         }
     }
 
-    //curve->setInitialValue((*m_iscore_autom->curve().segments().begin()).start().y());
     m_ossia_curve = curve;
     return m_ossia_curve;
 }

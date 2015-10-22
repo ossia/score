@@ -6,9 +6,11 @@
 #include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 
 #include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
-        const std::vector<Path<SlotModel>>& slotList,
+        const std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>& slotList,
+        const Id<Process>& curveId,
         const iscore::Address& address,
         double start,
         double end):
@@ -18,18 +20,22 @@ CreateCurveFromStates::CreateCurveFromStates(
         description()},
     m_addProcessCmd{
         std::move(constraint),
+        curveId,
         "Automation"},
     m_address(address),
     m_start{start},
     m_end{end}
 {
+    // TODO REFACTORME (grep for UnsafeDynamicCreation)
     auto vec = m_addProcessCmd.constraintPath().unsafePath().vec();
-    vec.push_back({"Automation", m_addProcessCmd.processId()});
+    vec.push_back({"Automation", curveId});
     Path<Process> proc{ObjectPath{std::move(vec)}, Path<Process>::UnsafeDynamicCreation{}};
+
     m_slotsCmd.reserve(slotList.size());
+
     for(const auto& elt : slotList)
     {
-        m_slotsCmd.emplace_back(Path<SlotModel>(elt), Path<Process>(proc), "Automation");
+        m_slotsCmd.emplace_back(Path<SlotModel>(elt.first), elt.second, Path<Process>(proc), "Automation");
     }
 }
 

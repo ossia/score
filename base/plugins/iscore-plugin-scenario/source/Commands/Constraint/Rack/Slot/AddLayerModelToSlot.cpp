@@ -17,16 +17,11 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
-    m_slotPath {slotPath},
-    m_processPath {processPath}
+    m_slotPath {std::move(slotPath)},
+    m_processPath {std::move(processPath)},
+    m_processData{m_processPath.find().makeLayerConstructionData()},
+    m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    auto slot = m_slotPath.try_find();
-    if(slot)
-        m_createdLayerId = getStrongId(slot->layers);
-    else
-        m_createdLayerId = Id<LayerModel>{iscore::id_generator::getFirstId()};
-
-    m_processData = m_processPath.find().makeLayerConstructionData();
 }
 
 
@@ -37,18 +32,29 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
-    m_slotPath {slotPath},
-    m_processPath {processPath}
+    m_slotPath {std::move(slotPath)},
+    m_processPath {std::move(processPath)},
+    m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    auto slot = m_slotPath.try_find();
-    if(slot)
-        m_createdLayerId = getStrongId(slot->layers);
-    else
-        m_createdLayerId = Id<LayerModel>{iscore::id_generator::getFirstId()};
-
     auto fact = ProcessList::getFactory(processName);
     ISCORE_ASSERT(fact);
+    m_processData = fact->makeStaticLayerConstructionData();
+}
 
+AddLayerModelToSlot::AddLayerModelToSlot(
+        Path<SlotModel>&& slot,
+        const Id<LayerModel>& layerid,
+        Path<Process>&& process,
+        const QString& processName):
+    SerializableCommand {factoryName(),
+                         commandName(),
+                         description()},
+    m_slotPath{std::move(slot)},
+    m_processPath{std::move(process)},
+    m_createdLayerId{layerid}
+{
+    auto fact = ProcessList::getFactory(processName);
+    ISCORE_ASSERT(fact);
     m_processData = fact->makeStaticLayerConstructionData();
 }
 

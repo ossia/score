@@ -6,6 +6,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Commands/Cohesion/CreateCurveFromStates.hpp>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 using namespace Scenario::Command;
 
 CreateSequence::CreateSequence(
@@ -62,7 +63,6 @@ CreateSequence::CreateSequence(
                                std::end(endMessages),
                                [&] (const iscore::Message& arg) {
             return message.address == arg.address
-                    && arg.value.val.isNumeric()
                     && message.value.val.impl().which() == arg.value.val.impl().which()
                     && message.value != arg.value; });
 
@@ -83,15 +83,30 @@ CreateSequence::CreateSequence(
 
         m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
 
+        // Generate brand new ids for the processes
+        auto process_ids = getStrongIdRange<Process>(matchingMessages.size());
+        auto layers_ids = getStrongIdRange<LayerModel>(matchingMessages.size());
+
+        int i = 0;
+        // Here we know that there is nothing yet, so we can just assign
+        // ids 1, 2, 3, 4 to each process and each process view in each slot
         for(const auto& elt : matchingMessages)
         {
+            std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layer_vect;
+            for(const auto& elt : m_interpolations.slotsToUse)
+            {
+                layer_vect.push_back(std::make_pair(elt.first, layers_ids[i]));
+            }
+
             auto cmd = new CreateCurveFromStates{
                        Path<ConstraintModel>{constraint},
-                       m_interpolations.slotsToUse,
+                       layer_vect,
+                       process_ids[i],
                        elt.first->address,
                        iscore::convert::value<double>(elt.first->value),
                        iscore::convert::value<double>(elt.second->value)};
             m_interpolations.addCommand(cmd);
+            i++;
         }
     }
 }

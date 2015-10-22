@@ -14,7 +14,8 @@ class CreateCurveFromStates : public iscore::SerializableCommand
     public:
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,
-                const std::vector<Path<SlotModel>>& slotList,
+                const std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>>& slotList,
+                const Id<Process>& curveId,
                 const iscore::Address &address,
                 double start,
                 double end);

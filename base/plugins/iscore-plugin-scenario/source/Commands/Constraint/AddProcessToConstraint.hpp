@@ -27,7 +27,7 @@ namespace Scenario
             public:
                 AddProcessToConstraint(
                     Path<ConstraintModel>&& constraintPath,
-                    QString process);
+                    const QString& process);
 
                 void undo() const override;
                 void redo() const override;
@@ -63,7 +63,12 @@ class AddOnlyProcessToConstraint : public iscore::SerializableCommand
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddOnlyProcessToConstraint, "AddOnlyProcessToConstraint")
     public:
         AddOnlyProcessToConstraint(
-            Path<ConstraintModel>&& constraint, QString process);
+            Path<ConstraintModel>&& constraint,
+                const QString& process);
+        AddOnlyProcessToConstraint(
+                Path<ConstraintModel>&& constraint,
+                const Id<Process>& idToUse,
+                const QString& process);
 
         void undo() const override;
         void redo() const override;

@@ -27,6 +27,14 @@ namespace Scenario
                     const TimeValue& date,
                     const double y,
                     bool yLocked);
+                MoveNewEvent(
+                        Path<ScenarioModel>&& scenarioPath,
+                        const Id<ConstraintModel>& constraintId,
+                        const Id<EventModel>& eventId,
+                        const TimeValue& date,
+                        const double y,
+                        bool yLocked,
+                        ExpandMode);
 
                 void undo() const override;
                 void redo() const override;

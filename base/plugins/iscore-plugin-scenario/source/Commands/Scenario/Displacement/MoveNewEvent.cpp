@@ -26,6 +26,26 @@ MoveNewEvent::MoveNewEvent(
 
 }
 
+MoveNewEvent::MoveNewEvent(
+        Path<ScenarioModel>&& scenarioPath,
+        const Id<ConstraintModel>& constraintId,
+        const Id<EventModel>& eventId,
+        const TimeValue& date,
+        const double y,
+        bool yLocked,
+        ExpandMode mode) :
+    SerializableCommand {factoryName(),
+                         commandName(),
+                         description()},
+    m_path {scenarioPath},
+    m_constraintId {constraintId},
+    m_cmd{std::move(scenarioPath), eventId, date, mode},
+    m_y{y},
+    m_yLocked{yLocked}
+{
+
+}
+
 void MoveNewEvent::undo() const
 {
     m_cmd.undo();
