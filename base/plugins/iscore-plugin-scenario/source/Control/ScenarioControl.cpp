@@ -559,8 +559,6 @@ void ScenarioControl::initColors()
         instance.TimeRulerBackground = fromColor("TimeRulerBackground");
         instance.TimeRuler = fromColor("TimeRuler");
         instance.LocalTimeRuler = fromColor("LocalTimeRuler");
-
-        qDebug() << instance.Background;
     }
 }
 

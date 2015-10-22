@@ -74,7 +74,11 @@ LoopingProcessWrapper::~LoopingProcessWrapper()
 void LoopingProcessWrapper::setDuration(const OSSIA::TimeValue& val)
 {
     m_fixed_cst->setDuration(val);
+    m_fixed_cst->setDurationMin(val);
+    m_fixed_cst->setDurationMax(val);
     m_looping_impl->getPatternTimeConstraint()->setDuration(val);
+    m_looping_impl->getPatternTimeConstraint()->setDurationMin(val);
+    m_looping_impl->getPatternTimeConstraint()->setDurationMax(val);
 }
 
 void LoopingProcessWrapper::setLooping(bool b)

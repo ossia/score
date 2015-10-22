@@ -112,30 +112,6 @@ void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
                 address,
                 new Behavior(m_ossia_curve));
 
-
-    // TODO Fetch from the State in i-score
-    // TODO continue for other types
-    if(m_addressType == OSSIA::Value::Type::FLOAT)
-    {
-        auto first_start_message = Message::create(address, new Float(0.));
-        new_autom->getStartState()->stateElements().push_back(first_start_message);
-
-        auto first_end_message = Message::create(address, new Float(1.));
-        new_autom->getEndState()->stateElements().push_back(first_end_message);
-    }
-    else if(m_addressType == OSSIA::Value::Type::INT)
-    {
-        auto first_start_message = Message::create(address, new Int(0.));
-        new_autom->getStartState()->stateElements().push_back(first_start_message);
-
-        auto first_end_message = Message::create(address, new Int(1.));
-        new_autom->getEndState()->stateElements().push_back(first_end_message);
-    }
-    else
-    {
-        ISCORE_TODO;
-    }
-
     update(new_autom);
 
     return;
