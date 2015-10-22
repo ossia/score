@@ -31,4 +31,15 @@ namespace iscore
 
         return as;
     }
+
+    FullAddressSettings FullAddressSettings::make(
+            const iscore::Message& mess)
+    {
+        FullAddressSettings as;
+
+        as.address = mess.address;
+        as.value = mess.value;
+
+        return as;
+    }
 }

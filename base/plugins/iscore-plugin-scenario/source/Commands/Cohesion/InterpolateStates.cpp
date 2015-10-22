@@ -111,13 +111,16 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                    return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
                 });
 
+                double start = iscore::convert::value<double>(elt.first->value);
+                double end = iscore::convert::value<double>(elt.second->value);
                 macro->addCommand(new CreateCurveFromStates{
                                       Path<ConstraintModel>{constraintPath},
                                       layerVec,
                                       process_ids[i],
                                       elt.first->address,
-                                      iscore::convert::value<double>(elt.first->value),
-                                      iscore::convert::value<double>(elt.second->value)});
+                                      start, end, std::min(start, end), std::max(start, end) // TODO compute them from the device tree.
+                                  });
+
                 i++;
             }
             big_macro->addCommand(macro);

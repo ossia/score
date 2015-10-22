@@ -13,7 +13,8 @@ CreateCurveFromStates::CreateCurveFromStates(
         const Id<Process>& curveId,
         const iscore::Address& address,
         double start,
-        double end):
+        double end,
+        double min, double max):
     iscore::SerializableCommand{
         factoryName(),
         commandName(),
@@ -24,7 +25,9 @@ CreateCurveFromStates::CreateCurveFromStates(
         "Automation"},
     m_address(address),
     m_start{start},
-    m_end{end}
+    m_end{end},
+    m_min{min},
+    m_max{max}
 {
     // TODO REFACTORME (grep for UnsafeDynamicCreation)
     auto vec = m_addProcessCmd.constraintPath().unsafePath().vec();
@@ -55,22 +58,13 @@ void CreateCurveFromStates::redo() const
     autom.curve().clear();
 
     // Add a segment
-    auto segment = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve());
+    auto segment = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve()); // TODO use getFirstId instead.
 
-    if(m_start != m_end)
-    {
-        segment->setStart({0., qreal(m_start > m_end)}); // Biggest is 1
-        segment->setEnd({1., qreal(m_end > m_start)});
-        autom.setMin(std::min(m_start, m_end));
-        autom.setMax(std::max(m_start, m_end));
-    }
-    else
-    {
-        segment->setStart({0., 0.5});
-        segment->setEnd({1., 0.5});
-        autom.setMin(m_start);
-        autom.setMax(m_start);
-    }
+    segment->setStart({0., (m_start - m_min) / (m_max - m_min) });
+    segment->setEnd({1., (m_end - m_min) / (m_max - m_min) });
+
+    autom.setMin(m_min);
+    autom.setMax(m_max);
 
     autom.curve().addSegment(segment);
 
@@ -82,13 +76,30 @@ void CreateCurveFromStates::redo() const
 
 void CreateCurveFromStates::serializeImpl(QDataStream& s) const
 {
-    s << m_addProcessCmd.serialize() << m_address << m_start << m_end;
+    s << m_addProcessCmd.serialize();
+    s << (int)m_slotsCmd.size();
+    for(const auto& elt : m_slotsCmd)
+    {
+        s << elt.serialize();
+    }
+    s << m_address << m_start << m_end << m_min << m_max;
 }
 
 void CreateCurveFromStates::deserializeImpl(QDataStream& s)
 {
     QByteArray a;
-    s >> a >> m_address >> m_start >> m_end;
-
+    s >> a;
     m_addProcessCmd.deserialize(a);
+
+    int n = 0;
+    s >> n;
+    m_slotsCmd.resize(n);
+    for(int i = 0; i < n; i++)
+    {
+        QByteArray b;
+        s >> b;
+        m_slotsCmd.at(n).deserialize(b);
+    }
+
+    s >> m_address >> m_start >> m_end >> m_min >> m_max;
 }

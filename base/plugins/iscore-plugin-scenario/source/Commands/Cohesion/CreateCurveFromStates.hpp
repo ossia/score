@@ -18,7 +18,8 @@ class CreateCurveFromStates : public iscore::SerializableCommand
                 const Id<Process>& curveId,
                 const iscore::Address &address,
                 double start,
-                double end);
+                double end,
+                double min, double max);
 
         void undo() const override;
         void redo() const override;
@@ -34,5 +35,6 @@ class CreateCurveFromStates : public iscore::SerializableCommand
         iscore::Address m_address;
 
         double m_start{}, m_end{};
+        double m_min{}, m_max{};
 
 };

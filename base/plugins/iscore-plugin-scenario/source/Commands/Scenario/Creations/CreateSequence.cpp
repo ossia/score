@@ -9,6 +9,18 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 using namespace Scenario::Command;
 
+// MOVEME
+QDebug operator<<(QDebug s, const iscore::Message& mess)
+{
+    s << mess.toString();
+    return s;
+}
+QDebug operator<<(QDebug s, const iscore::Value& val)
+{
+    s << iscore::convert::toPrettyString(val);
+    return s;
+}
+
 CreateSequence::CreateSequence(
         const ScenarioModel& scenario,
         const Id<StateModel>& startState,
@@ -26,12 +38,16 @@ CreateSequence::CreateSequence(
     auto& scenar = m_command.scenarioPath().find();
     const auto& startMessages = scenar.state(startState).messages().flatten();
 
-    auto endMessages = startMessages;
+    std::vector<iscore::FullAddressSettings> endAddresses;
+    endAddresses.reserve(startMessages.size());
+    std::transform(startMessages.begin(), startMessages.end(), std::back_inserter(endAddresses),
+                   [] (const auto& mess) { return iscore::FullAddressSettings::make(mess); });
+
     auto& devPlugin = *iscore::IDocument::documentFromObject(scenario)->model().pluginModel<DeviceDocumentPlugin>();
     auto& rootNode = devPlugin.rootNode();
 
-    auto it = endMessages.begin();
-    while(it != endMessages.end())
+    auto it = endAddresses.begin();
+    while(it != endAddresses.end())
     {
         auto& mess = *it;
 
@@ -40,33 +56,39 @@ CreateSequence::CreateSequence(
         if(node && node->is<iscore::AddressSettings>())
         {
             devPlugin.updateProxy.refreshRemoteValue(mess.address);
-            mess.value = node->get<iscore::AddressSettings>().value;
+            const auto& nodeImpl = node->get<iscore::AddressSettings>();
+            static_cast<iscore::AddressSettingsCommon&>(mess) = static_cast<const iscore::AddressSettingsCommon&>(nodeImpl);
             ++it;
         }
         else
         {
-            it = endMessages.erase(it);
+            it = endAddresses.erase(it);
         }
     }
+
+    QList<iscore::Message> endMessages;
+    endMessages.reserve(endAddresses.size());
+    std::transform(endAddresses.begin(), endAddresses.end(), std::back_inserter(endMessages),
+                   [] (const auto& addr) { return iscore::Message{addr.address, addr.value}; });
 
     updateTreeWithMessageList(m_stateData, endMessages);
 
     // We also create relevant curves.
-    std::vector<std::pair<const iscore::Message*, const iscore::Message*>> matchingMessages;
+    std::vector<std::pair<const iscore::Message*, const iscore::FullAddressSettings*>> matchingMessages;
     // First we filter the messages
     for(auto& message : startMessages)
     {
         if(!message.value.val.isNumeric())
             continue;
 
-        auto it = std::find_if(std::begin(endMessages),
-                               std::end(endMessages),
-                               [&] (const iscore::Message& arg) {
+        auto it = std::find_if(std::begin(endAddresses),
+                               std::end(endAddresses),
+                               [&] (const auto& arg) {
             return message.address == arg.address
                     && message.value.val.impl().which() == arg.value.val.impl().which()
                     && message.value != arg.value; });
 
-        if(it != std::end(endMessages))
+        if(it != std::end(endAddresses))
         {
             matchingMessages.emplace_back(&message, &*it);
         }
@@ -98,13 +120,21 @@ CreateSequence::CreateSequence(
                 layer_vect.push_back(std::make_pair(elt.first, layers_ids[i]));
             }
 
+
+            auto start = iscore::convert::value<double>(elt.first->value);
+            auto end = iscore::convert::value<double>(elt.second->value);
+            double min = (elt.second->domain.min.val.which() != iscore::ValueType::NoValue)
+                           ? iscore::convert::value<double>(elt.second->domain.min)
+                           : std::min(start, end);
+            double max = (elt.second->domain.max.val.which() != iscore::ValueType::NoValue)
+                         ? iscore::convert::value<double>(elt.second->domain.max)
+                         : std::max(start, end);
+
             auto cmd = new CreateCurveFromStates{
                        Path<ConstraintModel>{constraint},
                        layer_vect,
                        process_ids[i],
-                       elt.first->address,
-                       iscore::convert::value<double>(elt.first->value),
-                       iscore::convert::value<double>(elt.second->value)};
+                       elt.first->address, start, end, min, max};
             m_interpolations.addCommand(cmd);
             i++;
         }

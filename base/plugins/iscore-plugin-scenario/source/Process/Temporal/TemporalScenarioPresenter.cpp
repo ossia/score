@@ -378,11 +378,14 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
                     new  Scenario::Command::CreateStateMacro,
                     iscore::IDocument::commandStack(m_layer.processModel()));
 
-        const auto& scenar = ::model(m_layer);
+        const ScenarioModel& scenar = ::model(m_layer);
         Id<StateModel> createdState;
         auto t = TimeValue::fromMsecs(pos.x() * zoomRatio());
         auto y = pos.y() / (m_view->boundingRect().size().height() + 150);
-        if(auto state = furthestSelectedState(scenar))
+
+
+        auto state = furthestSelectedState(scenar);
+        if(state && (scenar.events.at(state->eventId()).date() < t))
         {
             if(state->nextConstraint())
             {
@@ -391,14 +394,14 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
                 m.submitCommand(cmd1);
 
                 auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                                   scenar, cmd1->createdState(), t, y};
+                            scenar, cmd1->createdState(), t, y};
                 m.submitCommand(cmd2);
                 createdState = cmd2->createdState();
             }
             else
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
-                                   scenar, state->id(), t, state->heightPercentage()};
+                           scenar, state->id(), t, state->heightPercentage()};
                 m.submitCommand(cmd);
                 createdState = cmd->createdState();
             }

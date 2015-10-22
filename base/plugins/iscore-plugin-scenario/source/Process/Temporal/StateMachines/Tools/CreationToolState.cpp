@@ -118,23 +118,17 @@ void CreationToolState::on_pressed()
         // where we instead choose the latest state if selected
         if(auto state = furthestSelectedState(m_parentSM.model()))
         {
-            //if(!state->nextConstraint())
+            if(m_parentSM.model().events.at(state->eventId()).date() < m_parentSM.scenarioPoint.date)
             {
                 localSM().postEvent(new ClickOnState_Event{
                                         state->id(),
                                         m_parentSM.scenarioPoint});
-            }/*
-            else
-            {
-                localSM().postEvent(new ClickOnEvent_Event{
-                                        state->eventId(),
-                                        m_parentSM.scenarioPoint});
-            }*/
+                return;
+            }
         }
-        else
-        {
-            localSM().postEvent(new ClickOnNothing_Event{m_parentSM.scenarioPoint});
-        }
+
+        localSM().postEvent(new ClickOnNothing_Event{m_parentSM.scenarioPoint});
+
     });
 }
 

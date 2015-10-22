@@ -2,11 +2,10 @@
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
 #include "IOType.hpp"
 #include "ClipMode.hpp"
 #include "Domain.hpp"
+#include <State/Message.hpp>
 namespace iscore
 {
 using RefreshRate = int;
@@ -46,6 +45,9 @@ struct FullAddressSettings : public iscore::AddressSettingsCommon
         static FullAddressSettings make(
                 const iscore::AddressSettings& other,
                 const iscore::Address& addr);
+
+        static FullAddressSettings make(
+                const iscore::Message& mess);
         // Specializations are in FullAddressSettings.cpp
 };
 
