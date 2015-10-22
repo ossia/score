@@ -162,15 +162,28 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
         if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
         {
             auto linearSegment = CurveSegmentLinear<T>::create(curve);
-            curve->addPoint(segt->start().x(), scale(segt->start().y()), linearSegment);
+            curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
             //TODO ??curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
         }
         else if(auto segt = dynamic_cast<const PowerCurveSegmentModel*>(&iscore_segment))
         {
-            auto powSegment = CurveSegmentPower<T>::create(curve);
-            powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
-            curve->addPoint(segt->start().x(), scale(segt->start().y()), powSegment);
+            if(segt->gamma == 12.05)
+            {
+                auto linearSegment = CurveSegmentLinear<T>::create(curve);
+                curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
+            }
+            else
+            {
+                auto powSegment = CurveSegmentPower<T>::create(curve);
+                powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
+                curve->addPoint(segt->end().x(), scale(segt->end().y()), powSegment);
+            }
             //curve->addPoint(segt->end().x(), scale(segt->end().y()), powSegment);
+        }
+
+        if(iscore_segment.start().x() == 0.)
+        {
+            curve->setInitialValue(iscore_segment.start().y());
         }
     }
 
