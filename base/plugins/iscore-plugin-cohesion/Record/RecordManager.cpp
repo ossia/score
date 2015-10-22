@@ -68,13 +68,14 @@ void RecordManager::stopRecording()
             const auto& proc_data = records.at(addr);
             proc_data.segment.addPoint(msecs, newval);
 
-            segt.addPoint(0, newval);
+            segt.addPoint(0, newval); // TODO why????
             static_cast<AutomationModel*>(proc_data.curveModel.parent())->setDuration(TimeValue::fromMsecs(msecs));
         }
 
         // Conversion of the piecewise to segments, and
         // serialization.
         recorded.second.segment.simplify();
+        // TODO if there is no remaining segment or an invalid segment, don't add it.
 
         // Add a point with the last state.
         auto initCurveCmd = new InitAutomation{
@@ -88,7 +89,6 @@ void RecordManager::stopRecording()
         m_dispatcher->submitCommand(recorded.second.addProcCmd);
         m_dispatcher->submitCommand(recorded.second.addLayCmd);
         m_dispatcher->submitCommand(initCurveCmd);
-        //initCurveCmd->redo();
     }
 
     // Commit
@@ -104,7 +104,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
 
     // Get all the selected nodes
     m_explorer = doc.findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto indices = m_explorer->selectedIndexes();
+    auto indices = m_explorer->selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
 
     // Disable listening for everything
     m_savedListening = m_explorer->deviceModel().pauseListening();
@@ -114,7 +114,8 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
     for(auto& index : indices)
     {
         // TODO use address settings instead.
-        auto addr = DeviceExplorer::addressFromModelIndex(index);
+        auto& node = m_explorer->nodeFromModelIndex(index);
+        auto addr = iscore::address(node);
         // TODO shall we check if the address is in, out, recordable ?
         // Recording an automation of strings would actually have a meaning
         // here (for instance recording someone typing).
@@ -125,13 +126,18 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
                                    [&] (const auto& vec)
         { return vec.front().device == addr.device; });
 
-        if(dev_it != m_recordListening.end())
+
+        if(node.get<iscore::AddressSettings>().value.val.isNumeric()
+        && node.get<iscore::AddressSettings>().ioType == IOType::InOut)
         {
-            dev_it->push_back(addr);
-        }
-        else
-        {
-            m_recordListening.push_back({addr});
+            if(dev_it != m_recordListening.end())
+            {
+                dev_it->push_back(addr);
+            }
+            else
+            {
+                m_recordListening.push_back({addr});
+            }
         }
     }
 
