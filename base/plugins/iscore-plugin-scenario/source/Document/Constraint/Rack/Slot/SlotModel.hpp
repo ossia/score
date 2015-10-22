@@ -40,6 +40,8 @@ class SlotModel : public IdentifiedObject<SlotModel>
                   const Id<SlotModel>& id,
                   RackModel* parent);
 
+        RackModel& rack() const;
+
         static void copyViewModelsInSameConstraint(const SlotModel&, SlotModel&);
 
         template<typename Impl>

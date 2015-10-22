@@ -49,6 +49,8 @@ class AutomationModel : public Process
         //// ProcessModel ////
         QString processName() const override;
 
+        QString userFriendlyDescription() const override;
+
         LayerModel* makeLayer_impl(
                 const Id<LayerModel>& viewModelId,
                 const QByteArray& constructionData,

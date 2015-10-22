@@ -26,7 +26,7 @@ namespace Scenario
             public:
                 AddLayerInNewSlot(
                     Path<ConstraintModel>&& constraintPath,
-                    Id<Process> process);
+                    const Id<Process>& process);
 
                 void undo() const override;
                 void redo() const override;

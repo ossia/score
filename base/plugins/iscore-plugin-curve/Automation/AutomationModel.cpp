@@ -64,6 +64,11 @@ QString AutomationModel::processName() const
     return "Automation";
 }
 
+QString AutomationModel::userFriendlyDescription() const
+{
+    return metadata.name() + " : " + address().toString();
+}
+
 void AutomationModel::setDurationAndScale(const TimeValue& newDuration)
 {
     // We only need to change the duration.

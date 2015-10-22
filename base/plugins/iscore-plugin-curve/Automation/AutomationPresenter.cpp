@@ -53,18 +53,12 @@ AutomationPresenter::AutomationPresenter(
     });
 
     con(m_viewModel.model(), &AutomationModel::addressChanged,
-        this, [&] (iscore::Address add)
+        this, [&] (const auto&)
     {
-        QString name = m_viewModel.model().metadata.name();
-        name += " : ";
-        name += add.toString();
-        m_view->setDisplayedName(name);
+        m_view->setDisplayedName(m_viewModel.model().userFriendlyDescription());
     });
 
-    QString name = m_viewModel.model().metadata.name();
-    name += " : ";
-    name += m_viewModel.model().address().toString();
-    m_view->setDisplayedName(name);
+    m_view->setDisplayedName(m_viewModel.model().userFriendlyDescription());
     m_view->showName(true);
 
     parentGeometryChanged();

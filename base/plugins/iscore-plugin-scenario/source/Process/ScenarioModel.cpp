@@ -110,6 +110,11 @@ LayerModel* ScenarioModel::cloneLayer_impl(
     return scen;
 }
 
+QString ScenarioModel::userFriendlyDescription() const
+{
+    return metadata.name();
+}
+
 void ScenarioModel::setDurationAndScale(const TimeValue& newDuration)
 {
     double scale =  newDuration / duration();

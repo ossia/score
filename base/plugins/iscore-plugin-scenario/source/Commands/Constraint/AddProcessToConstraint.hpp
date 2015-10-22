@@ -84,3 +84,21 @@ class AddOnlyProcessToConstraint : public iscore::SerializableCommand
 
         Id<Process> m_createdProcessId {};
 };
+
+
+#include <iscore/command/AggregateCommand.hpp>
+// MOVEME
+// TODO commandnmaes.
+class CreateProcessInExistingSlot : public iscore::AggregateCommand
+{
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                                      CreateProcessInExistingSlot,
+                                      "CreateProcessInExistingSlot")
+};
+// MOVEME
+class CreateProcessInNewSlot : public iscore::AggregateCommand
+{
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                                      CreateProcessInNewSlot,
+                                      "CreateProcessInNewSlot")
+};

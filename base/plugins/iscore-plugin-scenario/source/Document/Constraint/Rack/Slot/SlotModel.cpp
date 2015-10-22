@@ -29,6 +29,9 @@ SlotModel::SlotModel(
     lmCopyMethod(source, *this);
 }
 
+RackModel&SlotModel::rack() const
+{ return *static_cast<RackModel*>(parent()); }
+
 void SlotModel::copyViewModelsInSameConstraint(
         const SlotModel &source,
         SlotModel &target)

@@ -183,9 +183,13 @@ QList<QAction*> ScenarioControl::actions()
 #include <Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <ViewCommands/PutLayerModelToFront.hpp>
-
+#include <Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationPresenter.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 void ScenarioControl::createContextMenu(
         const QPoint& pos,
         const QPointF& scenepos,
@@ -198,23 +202,118 @@ void ScenarioControl::createContextMenu(
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
         auto& slotm = slotp->model();
-        auto processes_submenu = menu.addMenu(tr("Focus process"));
+
+        // First changing the process in the current slot
+        auto processes_submenu = menu.addMenu(tr("Focus process in slot"));
         for(const LayerModel& proc : slotm.layers)
         {
-            auto name = proc.processModel().metadata.name();
-            // TODO instead have a displayName() virtual method on models.
-            if(auto autom = dynamic_cast<const AutomationPresenter*>(&pres))
-            {
-                auto autom_model = dynamic_cast<AutomationModel*>(&autom->layerModel().processModel());
-                name += " : " + autom_model->address().toString();
-            }
-            QAction* procAct = new QAction{name, processes_submenu};
+            QAction* procAct = new QAction{proc.processModel().userFriendlyDescription(), processes_submenu};
             connect(procAct, &QAction::triggered, this, [&] () {
                 PutLayerModelToFront cmd{slotm, proc.id()};
                 cmd.redo();
             } );
             processes_submenu->addAction(procAct);
         }
+
+        // Then creation of a new slot with existing processes
+
+        // Then removal of slot
+        auto removeSlotAct = new QAction{tr("Remove this slot"), nullptr};
+        connect(removeSlotAct, &QAction::triggered,
+                this, [&] () {
+            auto cmd = new Scenario::Command::RemoveSlotFromRack{slotm};
+            CommandDispatcher<>{currentDocument()->commandStack()}.submitCommand(cmd);
+        });
+        menu.addAction(removeSlotAct);
+
+        menu.addSeparator();
+
+        // Then Add process in this slot
+        auto existing_processes_submenu = menu.addMenu(tr("Add existing process in this slot"));
+        for(const Process& proc : slotm.parentConstraint().processes)
+        {
+            // OPTIMIZEME by filtering before.
+            if(std::none_of(slotm.layers.begin(), slotm.layers.end(), [&] (const LayerModel& layer) {
+                    return &layer.processModel() == &proc;
+                }))
+            {
+                QAction* procAct = new QAction{proc.userFriendlyDescription(), existing_processes_submenu};
+                connect(procAct, &QAction::triggered, this, [&] () {
+
+                    auto cmd2 = new Scenario::Command::AddLayerModelToSlot{
+                                slotm,
+                                proc};
+                    CommandDispatcher<>{currentDocument()->commandStack()}.submitCommand(cmd2);
+                } );
+                existing_processes_submenu->addAction(procAct);
+            }
+        }
+
+        auto addNewProcessInExistingSlot = new QAction{tr("Add new process in this slot"), &menu};
+        connect(addNewProcessInExistingSlot, &QAction::triggered,
+                this, [&] () {
+            AddProcessDialog dialog(qApp->activeWindow());
+
+            con(dialog, &AddProcessDialog::okPressed,
+                    this, [&] (const QString& proc) {
+                auto& constraint = slotm.parentConstraint();
+                QuietMacroCommandDispatcher disp{
+                            new CreateProcessInExistingSlot,
+                            currentDocument()->commandStack()};
+
+                auto cmd1 = new AddOnlyProcessToConstraint{constraint, proc};
+                cmd1->redo();
+                disp.submitCommand(cmd1);
+
+                auto cmd2 = new Scenario::Command::AddLayerModelToSlot{
+                            slotm,
+                            constraint.processes.at(cmd1->processId())};
+                cmd2->redo();
+                disp.submitCommand(cmd2);
+
+                disp.commit();
+            });
+
+            dialog.launchWindow();
+        });
+        menu.addAction(addNewProcessInExistingSlot);
+
+        // Then Add process in a new slot
+        auto addNewProcessInNewSlot = new QAction{tr("Add process in a new slot"), &menu};
+        connect(addNewProcessInNewSlot, &QAction::triggered,
+                this, [&] () {
+            AddProcessDialog dialog(qApp->activeWindow());
+
+            con(dialog, &AddProcessDialog::okPressed,
+                    this, [&] (const QString& proc) {
+                auto& constraint = slotm.parentConstraint();
+                QuietMacroCommandDispatcher disp{
+                            new CreateProcessInNewSlot,
+                            currentDocument()->commandStack()};
+
+                auto cmd1 = new AddOnlyProcessToConstraint{constraint, proc};
+                cmd1->redo();
+                disp.submitCommand(cmd1);
+
+                auto& rack = slotm.rack();
+                auto cmd2 = new Scenario::Command::AddSlotToRack{rack};
+                cmd2->redo();
+                disp.submitCommand(cmd2);
+
+                auto cmd3 = new Scenario::Command::AddLayerModelToSlot{
+                            rack.slotmodels.at(cmd2->createdSlot()),
+                            constraint.processes.at(cmd1->processId())};
+                cmd3->redo();
+                disp.submitCommand(cmd3);
+
+                disp.commit();
+            });
+
+            dialog.launchWindow();
+        });
+        menu.addAction(addNewProcessInNewSlot);
+
+        menu.addSeparator();
     }
 
     // Then the process-specific part

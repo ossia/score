@@ -63,6 +63,8 @@ class ScenarioModel final : public Process, public ScenarioInterface
                 const LayerModel& source,
                 QObject* parent) override;
 
+        QString userFriendlyDescription() const override;
+
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
         void setDurationAndShrink(const TimeValue& newDuration) override;

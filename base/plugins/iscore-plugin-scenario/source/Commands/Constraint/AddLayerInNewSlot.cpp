@@ -15,7 +15,7 @@ using namespace Scenario::Command;
 
 AddLayerInNewSlot::AddLayerInNewSlot(
         Path<ConstraintModel>&& constraintPath,
-        Id<Process> process) :
+        const Id<Process>& process) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},

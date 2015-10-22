@@ -50,6 +50,9 @@ class Process: public IdentifiedObject<Process>
 
         virtual QString processName() const = 0; // Needed for serialization.
 
+        // A user-friendly text to show to the users
+        virtual QString userFriendlyDescription() const = 0;
+
         //// View models interface
         // For deterministic operation in a command,
         // we have to generate some data (like ids...) before making a new view model.
