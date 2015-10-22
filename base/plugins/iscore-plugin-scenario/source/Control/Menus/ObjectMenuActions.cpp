@@ -191,6 +191,8 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, const
         menu->addAction(m_interp);
         menu->addSeparator();
     }
+    // TODO if there is a single constraint selected, we also show the Racks submenu
+
 
     if(std::any_of(sel.cbegin(),
                    sel.cend(),

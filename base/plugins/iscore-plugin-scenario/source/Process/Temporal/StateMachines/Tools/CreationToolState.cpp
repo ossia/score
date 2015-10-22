@@ -113,22 +113,23 @@ void CreationToolState::on_pressed()
     // Click on the background
     [&] ()
     {
+
         // Here we have the logic for the creation in nothing
         // where we instead choose the latest state if selected
         if(auto state = furthestSelectedState(m_parentSM.model()))
         {
-            if(state->nextConstraint())
+            //if(!state->nextConstraint())
             {
                 localSM().postEvent(new ClickOnState_Event{
                                         state->id(),
                                         m_parentSM.scenarioPoint});
-            }
+            }/*
             else
             {
                 localSM().postEvent(new ClickOnEvent_Event{
                                         state->eventId(),
                                         m_parentSM.scenarioPoint});
-            }
+            }*/
         }
         else
         {
