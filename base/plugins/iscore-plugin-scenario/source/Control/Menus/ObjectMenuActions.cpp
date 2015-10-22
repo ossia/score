@@ -178,20 +178,53 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
                                        m_updateStates);
 }
 
+#include <Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Commands/Scenario/HideRackInViewModel.hpp>
+#include <Process/Temporal/TemporalScenarioLayerModel.hpp>
 void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, const LayerPresenter& pres, const QPoint&, const QPointF&)
 {
     if(sel.empty())
         return;
 
-    if(std::any_of(sel.cbegin(),
-                   sel.cend(),
-                   [] (const QObject* obj) { return dynamic_cast<const ConstraintModel*>(obj); }))
+    QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
+    if(selectedConstraints.size() == 1)
+    {
+        auto rackMenu = menu->addMenu(tr("Rack"));
+        auto& cst = *selectedConstraints.front();
+
+        // We have to find the constraint view model of this layer.
+        auto presenter = dynamic_cast<const TemporalScenarioPresenter*>(&pres);
+        auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&presenter->layerModel())->constraint(cst.id());
+
+        for(const RackModel& rack : cst.racks)
+        {
+            auto act = new QAction{rack.objectName(), rackMenu};
+            connect(act, &QAction::triggered,
+                    this, [&] () {
+                auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+                dispatcher.submitCommand(cmd);
+            });
+
+            rackMenu->addAction(act);
+        }
+
+        auto hideAct = new QAction{tr("Hide"), rackMenu};
+        connect(hideAct, &QAction::triggered,
+                this, [&] () {
+            auto cmd = new Scenario::Command::HideRackInViewModel{vm};
+            CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+            dispatcher.submitCommand(cmd);
+        });
+        rackMenu->addAction(hideAct);
+    }
+
+    if(selectedConstraints.size() >= 1)
     {
         menu->addAction(m_addProcess);
         menu->addAction(m_interp);
         menu->addSeparator();
     }
-    // TODO if there is a single constraint selected, we also show the Racks submenu
 
 
     if(std::any_of(sel.cbegin(),
