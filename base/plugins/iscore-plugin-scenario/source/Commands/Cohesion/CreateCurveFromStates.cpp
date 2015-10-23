@@ -6,6 +6,7 @@
 #include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 
 #include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
@@ -58,7 +59,9 @@ void CreateCurveFromStates::redo() const
     autom.curve().clear();
 
     // Add a segment
-    auto segment = new DefaultCurveSegmentModel(Id<CurveSegmentModel>(0), &autom.curve()); // TODO use getFirstId instead.
+    auto segment = new DefaultCurveSegmentModel{
+                       Id<CurveSegmentModel>{iscore::id_generator::getFirstId()},
+                       &autom.curve()};
 
     segment->setStart({0., (m_start - m_min) / (m_max - m_min) });
     segment->setEnd({1., (m_end - m_min) / (m_max - m_min) });

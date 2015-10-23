@@ -7,10 +7,11 @@
 #include <Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
-
+#include "Menus/ContextMenuDispatcher.hpp"
 class QActionGroup;
 class ScenarioModel;
 class ScenarioStateMachine;
+class SlotPresenter;
 class TemporalScenarioPresenter;
 
 class ObjectMenuActions;
@@ -37,7 +38,10 @@ Q_DECLARE_METATYPE(ScenarioRecordInitData)
 class ScenarioControl : public iscore::PluginControlInterface
 {
         Q_OBJECT
+        friend class ScenarioContextMenuManager;
     public:
+        ScenarioContextMenuManager contextMenuDispatcher;
+
         static ScenarioControl* instance(iscore::Presenter* = nullptr);
 
         virtual void populateMenus(iscore::MenubarManager*) override;
@@ -74,17 +78,6 @@ class ScenarioControl : public iscore::PluginControlInterface
 
         void startRecording(ScenarioModel&, ScenarioPoint);
         void stopRecording();
-
-    public slots:
-        void createContextMenu(
-                const QPoint &,
-                const QPointF&,
-                const LayerPresenter&);
-        void createScenarioContextMenu(
-                QMenu&,
-                const QPoint &,
-                const QPointF&,
-                const TemporalScenarioPresenter& pres);
 
     protected:
         virtual void on_documentChanged() override;

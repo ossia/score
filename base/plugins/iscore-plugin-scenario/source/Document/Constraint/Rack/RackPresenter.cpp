@@ -117,6 +117,7 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
     auto slotPres = new SlotPresenter {slotModel,
                                        m_view,
                                        this};
+
     m_slots.insert(slotPres);
     slotPres->on_zoomRatioChanged(m_zoomRatio);
 

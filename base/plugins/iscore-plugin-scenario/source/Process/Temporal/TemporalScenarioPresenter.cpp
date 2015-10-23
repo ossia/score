@@ -180,7 +180,7 @@ void TemporalScenarioPresenter::fillContextMenu(
         const QPoint& pos,
         const QPointF& scenepos) const
 {
-    ScenarioControl::instance()->createScenarioContextMenu(*menu, pos, scenepos, *this);
+    ScenarioControl::instance()->contextMenuDispatcher.createScenarioContextMenu(*menu, pos, scenepos, *this);
 }
 
 template<typename Map, typename Id>

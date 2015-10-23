@@ -100,7 +100,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list74<
+            boost::mpl::list76<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -130,6 +130,9 @@ void ScenarioControl::setupCommands()
 
             ClearConstraint,
             ClearState,
+
+            CreateProcessInExistingSlot,
+            CreateProcessInNewSlot,
 
             DuplicateRack,
             ReplaceConstraintContent,

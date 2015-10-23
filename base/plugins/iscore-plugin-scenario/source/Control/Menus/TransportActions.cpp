@@ -15,6 +15,8 @@ TransportActions::TransportActions(
 
     m_stop = new QAction{tr("⬛ Stop"), parent};
     m_stop->setObjectName("Stop");
+    m_stop->setShortcut(Qt::Key_Return);
+    m_stop->setShortcutContext(Qt::ApplicationShortcut);
     m_goToStart = new QAction{tr("⏮ Start"), parent};
     m_goToStart->setObjectName("Start");
     m_goToEnd = new QAction{tr("⏭ End"), parent};

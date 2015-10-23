@@ -33,7 +33,12 @@ class SlotView final : public QGraphicsObject
 
         void setFrontProcessName(const QString&);
 
+    signals:
+        void askContextMenu(const QPoint&, const QPointF&);
+
     private:
+        void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+
         qreal m_height {};
         qreal m_width {};
         SlotOverlay* m_overlay{};

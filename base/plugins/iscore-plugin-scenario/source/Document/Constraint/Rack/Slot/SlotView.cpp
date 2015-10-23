@@ -102,3 +102,10 @@ void SlotView::setFrontProcessName(const QString& s)
 {
     m_frontProcessName = s;
 }
+
+#include <QGraphicsSceneContextMenuEvent>
+void SlotView::contextMenuEvent(
+        QGraphicsSceneContextMenuEvent* event)
+{
+    emit askContextMenu(event->screenPos(), event->scenePos());
+}
