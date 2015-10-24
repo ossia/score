@@ -41,27 +41,6 @@ MessageItemModel &MessageItemModel::operator=(node_type && n)
     return *this;
 }
 
-// TESTME
-static void flatten_rec(iscore::MessageList& ml, const MessageItemModel::node_type& node)
-{
-    if(node.hasValue())
-    {
-        ml.append(message(node));
-    }
-
-    for(const auto& child : node)
-    {
-        flatten_rec(ml, child);
-    }
-}
-
-MessageList MessageItemModel::flatten() const
-{
-    iscore::MessageList ml;
-    flatten_rec(ml, m_rootNode);
-    return ml;
-}
-
 int MessageItemModel::columnCount(const QModelIndex &parent) const
 {
     return (int)Column::Count;

@@ -35,9 +35,6 @@ class MessageItemModel : public TreeNodeBasedItemModel<MessageNode>
         MessageItemModel& operator=(const node_type&);
         MessageItemModel& operator=(node_type&&);
 
-        // Returns a flattened list of all the messages in the tree.
-        iscore::MessageList flatten() const;
-
         const node_type& rootNode() const override
         { return m_rootNode; }
         node_type& rootNode() override

@@ -135,7 +135,7 @@ void ScenarioControl::setupCommands()
             CreateProcessInNewSlot,
 
             DuplicateRack,
-            ReplaceConstraintContent,
+            InsertContentInConstraint,
             CopySlot,
 
             CreateStateMacro,

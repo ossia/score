@@ -294,7 +294,7 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
         base["Constraints"] = arrayToJson(selectedElements(sm->constraints));
         base["Events"] = arrayToJson(selectedElements(sm->events));
         base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes));
-        base["TimeNodes"] = arrayToJson(selectedElements(sm->states));
+        base["States"] = arrayToJson(selectedElements(sm->states));
     }
     else
     {
@@ -325,6 +325,75 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
     return obj;
 }
 
+#include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
+// MOVEME
+// TODO add me to command lists
+class ScenarioPaste : public iscore::AggregateCommand
+{
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                                      ScenarioPaste,
+                                      "ScenarioPaste")
+};
+
+// MOVEME
+class InsertContentInState : public iscore::SerializableCommand
+{
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInState, "InsertContentInState")
+
+    public:
+       InsertContentInState(
+                const QJsonObject& stateData,
+                Path<StateModel>&& targetState):
+          iscore::SerializableCommand{factoryName(), commandName(), description()},
+          m_state{std::move(targetState)}
+        {
+          // TODO ask what should be copied ? the state due to the processes ? the user state ?
+          // For now we copy the whole value.
+          // First recreate the tree
+
+          // TODO we should update the processes here, and provide an API to do this
+          // properly.
+
+          auto& state = m_state.find();
+
+          m_oldNode = state.messages().rootNode();
+          m_newNode = m_oldNode;
+          updateTreeWithMessageList(
+                      m_newNode,
+                      flatten(unmarshall<MessageNode>(stateData["Messages"].toObject()))
+                  );
+        }
+
+        void undo() const override
+        {
+            auto& state = m_state.find();
+            state.messages() = m_oldNode;
+        }
+
+        void redo() const override
+        {
+            auto& state = m_state.find();
+            state.messages() = m_newNode;
+        }
+
+    protected:
+        void serializeImpl(QDataStream& s) const override
+        {
+            s << m_oldNode << m_newNode << m_state;
+        }
+
+        void deserializeImpl(QDataStream& s) override
+        {
+            s >> m_oldNode >> m_newNode >> m_state;
+        }
+
+        private:
+        MessageNode m_oldNode;
+        MessageNode m_newNode;
+        Path<StateModel> m_state;
+};
+
 void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 {
     auto pres = m_parent->focusedPresenter();
@@ -333,20 +402,35 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 
     auto sm = m_parent->focusedScenarioModel();
 
+    MacroCommandDispatcher dispatcher{new ScenarioPaste, this->dispatcher().stack()};
     auto selectedConstraints = selectedElements(sm->constraints);
     for(const auto& json_vref : obj["Constraints"].toArray())
     {
         for(const auto& constraint : selectedConstraints)
         {
-            auto cmd = new Scenario::Command::ReplaceConstraintContent{
+            auto cmd = new Scenario::Command::InsertContentInConstraint{
                        json_vref.toObject(),
                        *constraint,
                        pres->stateMachine().expandMode()};
 
-            CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
             dispatcher.submitCommand(cmd);
         }
     }
+
+    auto selectedStates = selectedElements(sm->states);
+    for(const auto& json_vref : obj["States"].toArray())
+    {
+        for(const auto& state : selectedStates)
+        {
+            auto cmd = new InsertContentInState{
+                       json_vref.toObject(),
+                       *state};
+
+            dispatcher.submitCommand(cmd);
+        }
+    }
+
+    dispatcher.commit();
 }
 
 void ObjectMenuActions::addProcessInConstraint(QString processName)

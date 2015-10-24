@@ -13,12 +13,13 @@ namespace Scenario
 {
     namespace Command
     {
-        class ReplaceConstraintContent : public iscore::SerializableCommand
+    // TODO Rename file
+        class InsertContentInConstraint : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ReplaceConstraintContent, "ReplaceConstraintContent")
+                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "InsertContentInConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
-                ReplaceConstraintContent(
+                InsertContentInConstraint(
                     QJsonObject&& sourceConstraint,
                     Path<ConstraintModel>&&  targetConstraint,
                     ExpandMode mode);

@@ -38,7 +38,7 @@ CreateSequence::CreateSequence(
 
     // We get the device explorer, and we fetch the new states.
     auto& scenar = m_command.scenarioPath().find();
-    const auto& startMessages = scenar.state(startState).messages().flatten();
+    const auto& startMessages = flatten(scenar.state(startState).messages().rootNode());
 
     std::vector<iscore::FullAddressSettings> endAddresses;
     endAddresses.reserve(startMessages.size());

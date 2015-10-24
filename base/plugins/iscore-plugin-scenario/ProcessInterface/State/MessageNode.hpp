@@ -130,3 +130,5 @@ using MessageNodePath = TreePath<MessageNode>;
 iscore::Address address(const MessageNode& treeNode);
 iscore::Message message(const MessageNode& node);
 QStringList toStringList(const iscore::Address& addr);
+
+iscore::MessageList flatten(const MessageNode&);

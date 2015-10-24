@@ -40,7 +40,7 @@ void RefreshStates(
     for(auto st : states)
     {
         const auto& state = *st;
-        auto messages = state.messages().flatten();
+        auto messages = flatten(state.messages().rootNode());
         for(auto& elt : messages)
         {
             elt.value = proxy.refreshRemoteValue(elt.address);

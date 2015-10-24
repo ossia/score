@@ -33,3 +33,25 @@ QStringList toStringList(const iscore::Address& addr)
     l.append(addr.device);
     return l + addr.path;
 }
+
+// TESTME
+static void flatten_rec(iscore::MessageList& ml, const MessageNode& node)
+{
+    if(node.hasValue())
+    {
+        ml.append(message(node));
+    }
+
+    for(const auto& child : node)
+    {
+        flatten_rec(ml, child);
+    }
+}
+
+
+iscore::MessageList flatten(const MessageNode& n)
+{
+    iscore::MessageList ml;
+    flatten_rec(ml, n);
+    return ml;
+}

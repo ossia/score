@@ -11,7 +11,7 @@
 using namespace iscore;
 using namespace Scenario::Command;
 
-ReplaceConstraintContent::ReplaceConstraintContent(
+InsertContentInConstraint::InsertContentInConstraint(
         QJsonObject&& sourceConstraint,
         Path<ConstraintModel>&& targetConstraint,
         ExpandMode mode) :
@@ -58,7 +58,7 @@ ReplaceConstraintContent::ReplaceConstraintContent(
     }
 }
 
-void ReplaceConstraintContent::undo() const
+void InsertContentInConstraint::undo() const
 {
     // We just have to remove what we added
     auto& trg_constraint = m_target.find();
@@ -75,7 +75,7 @@ void ReplaceConstraintContent::undo() const
 }
 
 
-void ReplaceConstraintContent::redo() const
+void InsertContentInConstraint::redo() const
 {
     auto& trg_constraint = m_target.find();
     ConstraintModel src_constraint{
@@ -131,12 +131,12 @@ void ReplaceConstraintContent::redo() const
     }
 }
 
-void ReplaceConstraintContent::serializeImpl(QDataStream& s) const
+void InsertContentInConstraint::serializeImpl(QDataStream& s) const
 {
     s << m_source << m_target << m_rackIds << m_processIds << (int) m_mode;
 }
 
-void ReplaceConstraintContent::deserializeImpl(QDataStream& s)
+void InsertContentInConstraint::deserializeImpl(QDataStream& s)
 {
     int mode;
     s >> m_source >> m_target >> m_rackIds >> m_processIds >> mode;

@@ -49,8 +49,8 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
         const auto& startState = scenar->state(constraint->startState());
         const auto& endState = scenar->state(constraint->endState());
 
-        iscore::MessageList startMessages = startState.messages().flatten();
-        iscore::MessageList endMessages = endState.messages().flatten();
+        iscore::MessageList startMessages = flatten(startState.messages().rootNode());
+        iscore::MessageList endMessages = flatten(endState.messages().rootNode());
 
         std::vector<std::pair<const iscore::Message*, const iscore::Message*>> matchingMessages;
 
