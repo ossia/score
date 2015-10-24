@@ -58,7 +58,7 @@ class SlotModel : public IdentifiedObject<SlotModel>
          // the edited process when the interface is clicked.
         void putToFront(
                 const Id<LayerModel>& layerId);
-        const LayerModel& frontLayerModel() const;
+        const LayerModel* frontLayerModel() const;
 
         // A slot is always in a constraint
         ConstraintModel& parentConstraint() const;

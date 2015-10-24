@@ -128,7 +128,6 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
     connect(slotPres, &SlotPresenter::moved, this, &RackPresenter::moved);
     connect(slotPres, &SlotPresenter::released, this, &RackPresenter::released);
 
-
     // Set the correct view for the slot graphically if we're in a scenario
     auto scenario = dynamic_cast<TemporalScenarioPresenter*>(this->parent()->parent());
     if(!scenario)

@@ -35,15 +35,15 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
     }
 
     con(m_model.layers, &NotifyingMap<LayerModel>::added,
-            this, &SlotPresenter::on_layerModelCreated);
+        this, &SlotPresenter::on_layerModelCreated);
     con(m_model.layers, &NotifyingMap<LayerModel>::removed,
-            this, &SlotPresenter::on_layerModelDeleted);
+        this, &SlotPresenter::on_layerModelDeleted);
 
     con(m_model, &SlotModel::layerModelPutToFront,
-            this, &SlotPresenter::on_layerModelPutToFront);
+        this, &SlotPresenter::on_layerModelPutToFront);
 
     con(m_model, &SlotModel::heightChanged,
-            this, &SlotPresenter::on_heightChanged);
+        this, &SlotPresenter::on_heightChanged);
 
     con(m_model, &SlotModel::focusChanged,
             m_view,  &SlotView::setFocus);
@@ -60,6 +60,9 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
         menu.exec(pos);
         menu.close();
     });
+
+    if(auto frontLayer = m_model.frontLayerModel())
+        on_layerModelPutToFront(*frontLayer);
 }
 
 SlotPresenter::~SlotPresenter()
@@ -106,7 +109,9 @@ void SlotPresenter::enable()
         for(auto& pair : elt.processes)
             pair.first->parentGeometryChanged();
     }
-    on_layerModelPutToFront(m_model.frontLayerModel());
+
+    if(auto frontLayer = m_model.frontLayerModel())
+        on_layerModelPutToFront(*frontLayer);
 
     m_enabled = true;
 }
@@ -252,7 +257,8 @@ void SlotPresenter::on_layerModelCreated_impl(
     else
         m_view->disable();
 
-    if(m_model.frontLayerModel().id() == proc_vm.id())
+    auto frontLayer = m_model.frontLayerModel();
+    if(frontLayer && (frontLayer->id() == proc_vm.id()))
     {
         on_layerModelPutToFront(proc_vm);
     }
@@ -295,7 +301,8 @@ void SlotPresenter::updateProcesses()
                     pair.first->on_zoomRatioChanged(m_zoomRatio);
                 }
 
-                if(m_model.frontLayerModel().id() == proc.model->id())
+                auto frontLayer = m_model.frontLayerModel();
+                if(frontLayer && (frontLayer->id() == proc.model->id()))
                 {
                     on_layerModelPutToFront(*proc.model);
                 }

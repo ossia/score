@@ -11,6 +11,12 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 #include <core/document/Document.hpp>
+#include <DeviceExplorer/Address/AddressSettings.hpp>
+
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 void InterpolateStates(iscore::Document* doc)
 {
@@ -34,6 +40,9 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
     ScenarioModel* scenar = dynamic_cast<ScenarioModel*>(
                                 selected_constraints.first()->parent());
 
+    auto& devPlugin = *iscore::IDocument::documentFromObject(*scenar)->model().pluginModel<DeviceDocumentPlugin>();
+    auto& rootNode = devPlugin.rootNode();
+
     auto big_macro = new GenericInterpolateMacro;
     for(auto& constraint : selected_constraints)
     {
@@ -55,7 +64,7 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                                    [&] (const iscore::Message& arg) {
                 return message.address == arg.address
                         && arg.value.val.isNumeric()
-                        && message.value.val.impl().which() == arg.value.val.impl().which()
+                        // TODO see CreateSequence (and refactor this) && message.value.val.impl().which() == arg.value.val.impl().which()
                         && message.value != arg.value; });
 
             if(it != std::end(endMessages))
@@ -111,14 +120,28 @@ void InterpolateStates(const QList<const ConstraintModel*>& selected_constraints
                    return std::make_pair(slotVecElt.first, slotVecElt.second[i]);
                 });
 
+
                 double start = iscore::convert::value<double>(elt.first->value);
                 double end = iscore::convert::value<double>(elt.second->value);
+
+                double min = std::min(start, end);
+                double max = std::max(start, end);
+                if(auto node = iscore::try_getNodeFromAddress(rootNode, elt.first->address))
+                {
+                    const iscore::AddressSettings& as = node->get<iscore::AddressSettings>();
+                    if(as.domain.min.val.isNumeric())
+                        min = std::min(min, iscore::convert::value<double>(as.domain.min));
+
+                    if(as.domain.max.val.isNumeric())
+                        max = std::max(max, iscore::convert::value<double>(as.domain.max));
+                }
+
                 macro->addCommand(new CreateCurveFromStates{
                                       Path<ConstraintModel>{constraintPath},
                                       layerVec,
                                       process_ids[i],
                                       elt.first->address,
-                                      start, end, std::min(start, end), std::max(start, end) // TODO compute them from the device tree.
+                                      start, end, min, max
                                   });
 
                 i++;

@@ -305,7 +305,7 @@ void ScenarioControl::on_documentChanged()
                     const auto& slot_processes = first.processes();
                     if(!slot_processes.empty())
                     {
-                        const auto& front_proc = first.model().frontLayerModel();
+                        const auto& front_proc = *first.model().frontLayerModel(); // Won't crash because not empty
                         auto it = std::find_if(slot_processes.begin(), slot_processes.end(),
                                                [&] (const auto& proc_elt) {
                             return proc_elt.model == &front_proc;

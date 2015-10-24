@@ -7,6 +7,8 @@
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+
+#include <iostream>
 using namespace Scenario::Command;
 
 // MOVEME
@@ -85,7 +87,9 @@ CreateSequence::CreateSequence(
                                std::end(endAddresses),
                                [&] (const auto& arg) {
             return message.address == arg.address
-                    && message.value.val.impl().which() == arg.value.val.impl().which()
+                  //  && message.value.val.impl().which() == arg.value.val.impl().which()
+                  // TODO this does not work because of the int -> float conversion that happens after a curve.
+                    // Investigate more and comment the other uses.
                     && message.value != arg.value; });
 
         if(it != std::end(endAddresses))

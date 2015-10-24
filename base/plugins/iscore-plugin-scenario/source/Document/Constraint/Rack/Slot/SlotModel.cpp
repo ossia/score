@@ -78,9 +78,11 @@ void SlotModel::putToFront(
     }
 }
 
-const LayerModel& SlotModel::frontLayerModel() const
+const LayerModel* SlotModel::frontLayerModel() const
 {
-    return layers.at(m_frontLayerModelId);
+    if(!m_frontLayerModelId)
+        return nullptr;
+    return &layers.at(m_frontLayerModelId);
 }
 
 void SlotModel::on_deleteSharedProcessModel(
