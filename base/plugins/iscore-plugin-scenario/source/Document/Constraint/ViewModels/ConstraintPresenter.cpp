@@ -79,7 +79,7 @@ ConstraintPresenter::ConstraintPresenter(
             this, [&] (const auto&) {
         if(m_viewModel.model().racks.size() == 0)
         {
-            on_noRacks();
+            this->on_noRacks();
         }
     });
 
