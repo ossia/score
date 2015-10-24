@@ -33,6 +33,7 @@ ConstraintPresenter::ConstraintPresenter(
     m_header{header}
 {
     m_header->setParentItem(m_view);
+    m_header->setConstraintView(m_view);
 
     con(m_viewModel.model().selection, &Selectable::changed,
             m_view, &ConstraintView::setSelected);

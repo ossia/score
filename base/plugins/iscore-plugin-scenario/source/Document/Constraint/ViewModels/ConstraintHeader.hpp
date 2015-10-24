@@ -13,6 +13,12 @@ class ConstraintHeader : public QGraphicsObject
         };
 
         using QGraphicsObject::QGraphicsObject;
+
+        void setConstraintView(ConstraintView* view)
+        {
+            m_view = view;
+        }
+
         static constexpr int headerHeight() { return 20; }
         static const QFont font;
 
@@ -33,7 +39,13 @@ class ConstraintHeader : public QGraphicsObject
             update();
         }
 
+     protected:
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
     protected:
+        ConstraintView* m_view{};
         State m_state{};
         double m_width{};
         QString m_text;
