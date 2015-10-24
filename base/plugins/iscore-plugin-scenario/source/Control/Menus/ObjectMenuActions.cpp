@@ -342,10 +342,49 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
     return obj;
 }
 
+
+class ScenarioPasteElements : public iscore::SerializableCommand
+{
+        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                                         ScenarioPasteElements,
+                                         "ScenarioPasteElements")
+
+        public:
+        ScenarioPasteElements(
+                Path<TemporalScenarioLayerModel>&& dest,
+                const QJsonObject& obj,
+                const ScenarioPoint& pt):
+        iscore::SerializableCommand{factoryName(), commandName(), description()}
+        {
+        }
+            void undo() const override
+        {
+        }
+        void redo() const override
+        {
+        }
+
+    protected:
+        void serializeImpl(QDataStream&) const override
+        {
+        }
+        void deserializeImpl(QDataStream&) override
+        {
+        }
+
+    private:
+        std::vector<TimeNodeModel> m_timenodes;
+        std::vector<ConstraintModel> m_constraints;
+        std::vector<EventModel> m_events;
+        std::vector<StateModel> m_states;
+};
 void ObjectMenuActions::pasteElements(
         const QJsonObject& obj,
         const ScenarioPoint& origin)
 {
+    // To do this, we paste all the elements with a position relative to the origin (or maybe we should center ?)
+
+    // Elements that were linked in the copy shall be linked in the paste, by replacing the ids.
 
 }
 
@@ -358,12 +397,6 @@ class ScenarioPasteContent : public iscore::AggregateCommand
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                       ScenarioPasteContent,
                                       "ScenarioPasteContent")
-};
-class ScenarioPasteElements : public iscore::AggregateCommand
-{
-        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      ScenarioPasteElements,
-                                      "ScenarioPasteElements")
 };
 
 // MOVEME
