@@ -73,7 +73,7 @@ void TransportActions::fillMenuBar(iscore::MenubarManager *menu)
     }
 }
 
-void TransportActions::fillContextMenu(QMenu *menu, const Selection& sel, const LayerPresenter& pres, const QPoint&, const QPointF&)
+void TransportActions::fillContextMenu(QMenu *menu, const Selection& sel, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&)
 {
 
 }

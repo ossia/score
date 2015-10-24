@@ -1,5 +1,5 @@
 #pragma once
-
+#include <Process/Temporal/StateMachines/ScenarioPoint.hpp>
 #include "ScenarioActions.hpp"
 
 #include "DialogWidget/AddProcessDialog.hpp"
@@ -10,7 +10,7 @@ class ObjectMenuActions : public ScenarioActions
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
-        void fillContextMenu(QMenu* menu, const Selection&, const LayerPresenter& pres, const QPoint&, const QPointF&) override;
+        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
         bool populateToolBar(QToolBar*) override;
         void setEnabled(bool) override;
 
@@ -18,6 +18,7 @@ class ObjectMenuActions : public ScenarioActions
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
+        void pasteElements(const QJsonObject& obj, const ScenarioPoint& origin);
         void writeJsonToSelectedElements(const QJsonObject &obj);
         void addProcessInConstraint(QString);
         void addTriggerToTimeNode();

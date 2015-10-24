@@ -5,7 +5,7 @@ class PlayContextMenu : public ScenarioActions
     public:
         PlayContextMenu(ScenarioControl* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
-        void fillContextMenu(QMenu* menu, const Selection&, const LayerPresenter& pres, const QPoint&, const QPointF&) override;
+        void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
 
         void setEnabled(bool) override;
 

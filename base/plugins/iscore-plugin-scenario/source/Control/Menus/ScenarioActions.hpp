@@ -8,6 +8,7 @@
 
 class QAction;
 class ScenarioControl;
+class TemporalScenarioPresenter;
 class ScenarioActions : public QObject
 {
         Q_OBJECT
@@ -19,7 +20,7 @@ class ScenarioActions : public QObject
         virtual void fillContextMenu(
                 QMenu*,
                 const Selection& s,
-                const LayerPresenter& pres,
+                const TemporalScenarioPresenter& pres,
                 const QPoint&,
                 const QPointF&) = 0;
         virtual bool populateToolBar(QToolBar* ) { return false; }

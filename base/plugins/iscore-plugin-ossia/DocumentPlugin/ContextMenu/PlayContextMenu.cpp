@@ -89,7 +89,7 @@ void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
 void PlayContextMenu::fillContextMenu(
         QMenu *menu,
         const Selection & s,
-        const LayerPresenter& pres,
+        const TemporalScenarioPresenter& pres,
         const QPoint& pt,
         const QPointF& scenept)
 {

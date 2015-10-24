@@ -13,6 +13,7 @@
 #include "Document/Event/EventModel.hpp"
 #include "Document/TimeNode/TimeNodeModel.hpp"
 #include "Document/TimeNode/Trigger/TriggerModel.hpp"
+#include "Process/Temporal/TemporalScenarioView.hpp"
 
 #include "Commands/Constraint/ReplaceConstraintContent.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
@@ -89,8 +90,8 @@ ObjectMenuActions::ObjectMenuActions(
         clippy->setText(doc.toJson(QJsonDocument::Indented));
     });
 
-    m_pasteContent = new QAction{tr("Paste"), this};
-    m_pasteContent->setShortcut(QKeySequence::Paste);
+    m_pasteContent = new QAction{tr("Paste content"), this};
+    //m_pasteContent->setShortcut(QKeySequence::Paste);
     m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_pasteContent, &QAction::triggered,
             [this]()
@@ -181,7 +182,12 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 #include <Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Commands/Scenario/HideRackInViewModel.hpp>
 #include <Process/Temporal/TemporalScenarioLayerModel.hpp>
-void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, const LayerPresenter& pres, const QPoint&, const QPointF&)
+void ObjectMenuActions::fillContextMenu(
+        QMenu *menu,
+        const Selection& sel,
+        const TemporalScenarioPresenter& pres,
+        const QPoint&,
+        const QPointF& scenePoint)
 {
     if(sel.empty())
         return;
@@ -193,8 +199,7 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, const
         auto& cst = *selectedConstraints.front();
 
         // We have to find the constraint view model of this layer.
-        auto presenter = dynamic_cast<const TemporalScenarioPresenter*>(&pres);
-        auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&presenter->layerModel())->constraint(cst.id());
+        auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
 
         for(const RackModel& rack : cst.racks)
         {
@@ -251,7 +256,19 @@ void ObjectMenuActions::fillContextMenu(QMenu *menu, const Selection& sel, const
 
     menu->addAction(m_copyContent);
     menu->addAction(m_cutContent);
+
+    auto pasteElements = new QAction{tr("Paste here"), this};
+    pasteElements->setShortcut(QKeySequence::Paste);
+    pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    connect(pasteElements, &QAction::triggered,
+            [&,scenePoint]()
+    {
+        this->pasteElements(QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
+                      ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
+    });
+    menu->addAction(pasteElements);
     menu->addAction(m_pasteContent);
+
 }
 
 bool ObjectMenuActions::populateToolBar(QToolBar * b)
@@ -325,15 +342,28 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
     return obj;
 }
 
+void ObjectMenuActions::pasteElements(
+        const QJsonObject& obj,
+        const ScenarioPoint& origin)
+{
+
+}
+
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 // MOVEME
 // TODO add me to command lists
-class ScenarioPaste : public iscore::AggregateCommand
+class ScenarioPasteContent : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      ScenarioPaste,
-                                      "ScenarioPaste")
+                                      ScenarioPasteContent,
+                                      "ScenarioPasteContent")
+};
+class ScenarioPasteElements : public iscore::AggregateCommand
+{
+        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                                      ScenarioPasteElements,
+                                      "ScenarioPasteElements")
 };
 
 // MOVEME
@@ -402,7 +432,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 
     auto sm = m_parent->focusedScenarioModel();
 
-    MacroCommandDispatcher dispatcher{new ScenarioPaste, this->dispatcher().stack()};
+    MacroCommandDispatcher dispatcher{new ScenarioPasteContent, this->dispatcher().stack()};
     auto selectedConstraints = selectedElements(sm->constraints);
     for(const auto& json_vref : obj["Constraints"].toArray())
     {
