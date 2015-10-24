@@ -66,7 +66,7 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel, &ConstraintViewModel::rackHidden,
             this,         &ConstraintPresenter::on_rackHidden);
     con(m_viewModel, &ConstraintViewModel::rackRemoved,
-            this,         &ConstraintPresenter::on_rackRemoved);
+            this,         &ConstraintPresenter::on_noRacks);
 
 
     con(m_viewModel.model().consistency, &ModelConsistency::validChanged,
@@ -74,6 +74,13 @@ ConstraintPresenter::ConstraintPresenter(
     con(m_viewModel.model().consistency,   &ModelConsistency::warningChanged,
             m_view, &ConstraintView::setWarning);
 
+    con(m_viewModel.model().racks, &NotifyingMap<RackModel>::removed,
+            this, [&] (const auto&) {
+        if(m_viewModel.model().racks.size() == 0)
+        {
+            on_noRacks();
+        }
+    });
 
     if(m_viewModel.isRackShown())
     {
@@ -85,7 +92,7 @@ ConstraintPresenter::ConstraintPresenter(
     }
     else
     {
-        on_rackRemoved();
+        on_noRacks();
     }
 }
 
@@ -206,13 +213,20 @@ void ConstraintPresenter::on_rackShown(const Id<RackModel>& rackId)
 
 void ConstraintPresenter::on_rackHidden()
 {
-    clearRackPresenter();
+    if(model().racks.size() > 0)
+    {
+        clearRackPresenter();
 
-    m_header->setState(ConstraintHeader::State::RackHidden);
-    updateHeight();
+        m_header->setState(ConstraintHeader::State::RackHidden);
+        updateHeight();
+    }
+    else
+    {
+        on_noRacks();
+    }
 }
 
-void ConstraintPresenter::on_rackRemoved()
+void ConstraintPresenter::on_noRacks()
 {
     m_header->hide();
     clearRackPresenter();

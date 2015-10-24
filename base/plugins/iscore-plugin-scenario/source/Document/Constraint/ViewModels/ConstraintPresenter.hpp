@@ -65,7 +65,7 @@ class ConstraintPresenter : public NamedObject
 
         void on_rackShown(const Id<RackModel>&);
         void on_rackHidden();
-        void on_rackRemoved();
+        void on_noRacks();
 
         void updateHeight();
 
