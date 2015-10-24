@@ -212,8 +212,11 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     if(pres)
     {
         m_contextMenuConnection = connect(pres, &LayerPresenter::contextMenuRequested,
-                this, [=] (const QPoint& pt1, const QPointF& pt2) {
-            contextMenuDispatcher.createLayerContextMenu(pt1, pt2, *pres);
+                this, [=] (const QPoint& pos, const QPointF& pt2) {
+            QMenu menu;
+            contextMenuDispatcher.createLayerContextMenu(menu, pos, pt2, *pres);
+            menu.exec(pos);
+            menu.close();
         } );
     }
 
@@ -258,6 +261,7 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
 #include <Document/BaseElement/BaseElementView.hpp>
 void ScenarioControl::on_documentChanged()
 {
+    // TODO the context menu connection should be reviewed, too.
     this->disconnect(m_focusConnection);
     this->disconnect(m_defocusConnection);
 

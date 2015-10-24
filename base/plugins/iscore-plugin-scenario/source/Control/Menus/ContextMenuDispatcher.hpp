@@ -18,16 +18,6 @@ class ScenarioContextMenuManager : public QObject
 
         }
 
-        void dispatch(
-                const QPoint& pos,
-                const QPointF& scenepos,
-                LayerPresenter& pres);
-
-        void dispatch(
-                const QPoint& pos,
-                const QPointF& scenepos,
-                SlotPresenter& pres);
-
         void createSlotContextMenu(
                 QMenu& menu,
                 const SlotPresenter& slotp);
@@ -39,6 +29,7 @@ class ScenarioContextMenuManager : public QObject
                 const TemporalScenarioPresenter& pres);
 
         void createLayerContextMenu(
+                QMenu& menu,
                 const QPoint& pos,
                 const QPointF& scenepos,
                 const LayerPresenter& pres);

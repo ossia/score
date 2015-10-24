@@ -27,22 +27,6 @@
 
 #include <QMenu>
 
-void ScenarioContextMenuManager::dispatch(
-        const QPoint& pos,
-        const QPointF& scenepos,
-        LayerPresenter& pres)
-{
-
-}
-
-void ScenarioContextMenuManager::dispatch(
-        const QPoint& pos,
-        const QPointF& scenepos,
-        SlotPresenter& pres)
-{
-
-}
-
 void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPresenter& slotp)
 {
     auto& slotm = slotp.model();
@@ -163,12 +147,11 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(
+        QMenu& menu,
         const QPoint& pos,
         const QPointF& scenepos,
         const LayerPresenter& pres)
 {
-    QMenu menu;
-
     // Fill with slot actions
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
@@ -177,9 +160,6 @@ void ScenarioContextMenuManager::createLayerContextMenu(
 
     // Then the process-specific part
     pres.fillContextMenu(&menu, pos, scenepos);
-
-    menu.exec(pos);
-    menu.close();
 }
 
 void ScenarioContextMenuManager::createScenarioContextMenu(

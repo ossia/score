@@ -4,6 +4,7 @@
 #include "Document/Constraint/Rack/Slot/SlotView.hpp"
 #include "Document/Constraint/ConstraintModel.hpp"
 #include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
+#include "Control/ScenarioControl.hpp"
 
 #include "ProcessInterface/ProcessList.hpp"
 #include "ProcessInterface/LayerPresenter.hpp"
@@ -51,6 +52,14 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
     m_looping = m_model.parentConstraint().looping();
     con(m_model.parentConstraint(), &ConstraintModel::loopingChanged,
         this, &SlotPresenter::on_loopingChanged);
+
+    connect(m_view, &SlotView::askContextMenu,
+            this, [&] (const QPoint& pos, const QPointF& scenept) {
+        QMenu menu;
+        ScenarioControl::instance()->contextMenuDispatcher.createSlotContextMenu(menu, *this);
+        menu.exec(pos);
+        menu.close();
+    });
 }
 
 SlotPresenter::~SlotPresenter()

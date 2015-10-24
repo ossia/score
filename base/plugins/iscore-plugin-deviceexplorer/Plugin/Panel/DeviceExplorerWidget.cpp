@@ -33,6 +33,8 @@
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
 #include "ExplorationWorkerWrapper.hpp"
+#include "Singletons/SingletonProtocolList.hpp"
+#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 #include <QMessageBox>
 
 #include <QProgressIndicator>
@@ -619,9 +621,6 @@ void DeviceExplorerWidget::refreshValue()
 
     m_cmdDispatcher->submitCommand(cmd);
 }
-
-#include "Singletons/SingletonProtocolList.hpp"
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 
 void
 DeviceExplorerWidget::addDevice()
