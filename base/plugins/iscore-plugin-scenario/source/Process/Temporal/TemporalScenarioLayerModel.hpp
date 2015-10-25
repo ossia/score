@@ -40,13 +40,13 @@ class TemporalScenarioLayerModel : public AbstractScenarioLayerModel
             vis.writeTo(*this);
         }
 
-        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 
-        virtual ~TemporalScenarioLayerModel() = default;
+        ~TemporalScenarioLayerModel() = default;
 
-        virtual void serialize(const VisitorVariant&) const override;
+        void serialize(const VisitorVariant&) const override;
 
-        virtual void makeConstraintViewModel(
+        void makeConstraintViewModel(
                 const Id<ConstraintModel>& constraintModelId,
                 const Id<ConstraintViewModel>& constraintViewModelId) override;
 

@@ -163,13 +163,13 @@ class Process: public IdentifiedObject<Process>
 };
 
 template<typename T>
-QVector<typename T::layer_type*> layers(const T& processModel)
+std::vector<typename T::layer_type*> layers(const T& processModel)
 {
-    QVector<typename T::layer_type*> v;
+    std::vector<typename T::layer_type*> v;
 
     for(auto& elt : processModel.layers())
     {
-        v.push_back(static_cast<typename T::layer_type*>(elt));
+        v.push_back(safe_cast<typename T::layer_type*>(elt));
     }
 
     return v;

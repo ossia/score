@@ -48,14 +48,14 @@ class LayerModel: public IdentifiedObject<LayerModel>
  * @return a pointer of the correct type.
  */
 template<typename T>
-const typename T::model_type* model(const T* viewModel)
+typename T::model_type* model(const T* viewModel)
 {
-    return static_cast<const typename T::model_type*>(viewModel->processModel());
+    return static_cast<typename T::model_type*>(viewModel->processModel());
 }
 
 
 template<typename T>
-const typename T::model_type& model(const T& viewModel)
+typename T::model_type& model(const T& viewModel)
 {
-    return static_cast<const typename T::model_type&>(viewModel.processModel());
+    return static_cast<typename T::model_type&>(viewModel.processModel());
 }

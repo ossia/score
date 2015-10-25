@@ -48,9 +48,13 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             return *m_id.val();
         }
 
-        void setId(Id<model>&& id)
+        void setId(const Id<model>& id)
         {
             m_id = id;
+        }
+        void setId(Id<model>&& id)
+        {
+            m_id = std::move(id);
         }
 
         mutable Path<model> m_path_cache; // TODO see stackoverflow to put in private

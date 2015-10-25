@@ -189,73 +189,74 @@ void ObjectMenuActions::fillContextMenu(
         const QPoint&,
         const QPointF& scenePoint)
 {
-    if(sel.empty())
-        return;
-
-    QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
-    if(selectedConstraints.size() == 1)
+    if(!sel.empty())
     {
-        auto rackMenu = menu->addMenu(tr("Rack"));
-        auto& cst = *selectedConstraints.front();
-
-        // We have to find the constraint view model of this layer.
-        auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
-
-        for(const RackModel& rack : cst.racks)
+        QList<const ConstraintModel*> selectedConstraints = filterSelectionByType<ConstraintModel>(sel);
+        if(selectedConstraints.size() == 1)
         {
-            auto act = new QAction{rack.objectName(), rackMenu};
-            connect(act, &QAction::triggered,
+            auto rackMenu = menu->addMenu(tr("Rack"));
+            auto& cst = *selectedConstraints.front();
+
+            // We have to find the constraint view model of this layer.
+            auto& vm = dynamic_cast<const TemporalScenarioLayerModel*>(&pres.layerModel())->constraint(cst.id());
+
+            for(const RackModel& rack : cst.racks)
+            {
+                auto act = new QAction{rack.objectName(), rackMenu};
+                connect(act, &QAction::triggered,
+                        this, [&] () {
+                    auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                    CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
+                    dispatcher.submitCommand(cmd);
+                });
+
+                rackMenu->addAction(act);
+            }
+
+            auto hideAct = new QAction{tr("Hide"), rackMenu};
+            connect(hideAct, &QAction::triggered,
                     this, [&] () {
-                auto cmd = new Scenario::Command::ShowRackInViewModel{vm, rack.id()};
+                auto cmd = new Scenario::Command::HideRackInViewModel{vm};
                 CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
                 dispatcher.submitCommand(cmd);
             });
-
-            rackMenu->addAction(act);
+            rackMenu->addAction(hideAct);
         }
 
-        auto hideAct = new QAction{tr("Hide"), rackMenu};
-        connect(hideAct, &QAction::triggered,
-                this, [&] () {
-            auto cmd = new Scenario::Command::HideRackInViewModel{vm};
-            CommandDispatcher<> dispatcher{m_parent->currentDocument()->commandStack()};
-            dispatcher.submitCommand(cmd);
-        });
-        rackMenu->addAction(hideAct);
-    }
+        if(selectedConstraints.size() >= 1)
+        {
+            menu->addAction(m_addProcess);
+            menu->addAction(m_interp);
+            menu->addSeparator();
+        }
 
-    if(selectedConstraints.size() >= 1)
-    {
-        menu->addAction(m_addProcess);
-        menu->addAction(m_interp);
+
+        if(std::any_of(sel.cbegin(),
+                       sel.cend(),
+                       [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
+        {
+            menu->addAction(m_addTrigger);
+            menu->addAction(m_removeTrigger);
+            menu->addSeparator();
+        }
+
+        if(std::any_of(sel.cbegin(),
+                       sel.cend(),
+                       [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
+        {
+            menu->addAction(m_updateStates);
+            menu->addSeparator();
+        }
+
+        menu->addAction(m_elementsToJson);
+        menu->addAction(m_removeElements);
+        menu->addAction(m_clearElements);
         menu->addSeparator();
+
+        menu->addAction(m_copyContent);
+        menu->addAction(m_cutContent);
+        menu->addAction(m_pasteContent);
     }
-
-
-    if(std::any_of(sel.cbegin(),
-                   sel.cend(),
-                   [] (const QObject* obj) { return dynamic_cast<const EventModel*>(obj); })) // TODO : event or timenode ?
-    {
-        menu->addAction(m_addTrigger);
-        menu->addAction(m_removeTrigger);
-        menu->addSeparator();
-    }
-
-    if(std::any_of(sel.cbegin(),
-                   sel.cend(),
-                   [] (const QObject* obj) { return dynamic_cast<const StateModel*>(obj); })) // TODO : event or timenode ?
-    {
-        menu->addAction(m_updateStates);
-        menu->addSeparator();
-    }
-
-    menu->addAction(m_elementsToJson);
-    menu->addAction(m_removeElements);
-    menu->addAction(m_clearElements);
-    menu->addSeparator();
-
-    menu->addAction(m_copyContent);
-    menu->addAction(m_cutContent);
 
     auto pasteElements = new QAction{tr("Paste here"), this};
     pasteElements->setShortcut(QKeySequence::Paste);
@@ -267,7 +268,6 @@ void ObjectMenuActions::fillContextMenu(
                       ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
     });
     menu->addAction(pasteElements);
-    menu->addAction(m_pasteContent);
 
 }
 
@@ -308,10 +308,107 @@ QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 
     if (auto sm = m_parent->focusedScenarioModel())
     {
-        base["Constraints"] = arrayToJson(selectedElements(sm->constraints));
-        base["Events"] = arrayToJson(selectedElements(sm->events));
-        base["TimeNodes"] = arrayToJson(selectedElements(sm->timeNodes));
-        base["States"] = arrayToJson(selectedElements(sm->states));
+        auto selectedConstraints = selectedElements(sm->constraints);
+        auto selectedEvents = selectedElements(sm->events);
+        auto selectedTimeNodes = selectedElements(sm->timeNodes);
+        auto selectedStates = selectedElements(sm->states);
+
+        for(const ConstraintModel* constraint : selectedConstraints)
+        {
+            auto start_it = std::find_if(selectedStates.begin(), selectedStates.end(), [&] (const StateModel* state) { return state->id() == constraint->startState();});
+            if(start_it == selectedStates.end())
+            {
+                selectedStates.push_back(&sm->states.at(constraint->startState()));
+            }
+
+            auto end_it = std::find_if(selectedStates.begin(), selectedStates.end(), [&] (const StateModel* state) { return state->id() == constraint->endState();});
+            if(end_it == selectedStates.end())
+            {
+                selectedStates.push_back(&sm->states.at(constraint->endState()));
+            }
+        }
+
+        for(const StateModel* state : selectedStates)
+        {
+            auto ev_it = std::find_if(selectedEvents.begin(), selectedEvents.end(), [&] (const EventModel* event) { return state->eventId() == event->id(); });
+            if(ev_it == selectedEvents.end())
+            {
+                selectedEvents.push_back(&sm->events.at(state->eventId()));
+            }
+
+            // If the previous or next constraint is not here, we set it to null in a copy.
+        }
+        for(const EventModel* event : selectedEvents)
+        {
+            auto tn_it = std::find_if(selectedTimeNodes.begin(), selectedTimeNodes.end(), [&] (const TimeNodeModel* tn) { return tn->id() == event->timeNode(); });
+            if(tn_it == selectedTimeNodes.end())
+            {
+                selectedTimeNodes.push_back(&sm->timeNodes.at(event->timeNode()));
+            }
+
+            // If some events aren't there, we set them to null in a copy.
+        }
+
+        std::vector<TimeNodeModel*> copiedTimeNodes;
+        copiedTimeNodes.reserve(selectedTimeNodes.size());
+        for(const auto& tn : selectedTimeNodes)
+        {
+            auto clone_tn = new TimeNodeModel(*tn, tn->id(), sm->parent());
+            auto events = clone_tn->events();
+            for(const auto& event : events)
+            {
+                auto absent = std::none_of(selectedEvents.begin(), selectedEvents.end(), [&] (const EventModel* ev) { return ev->id() == event; });
+                if(absent)
+                    clone_tn->removeEvent(event);
+            }
+
+            copiedTimeNodes.push_back(clone_tn);
+        }
+
+
+        std::vector<EventModel*> copiedEvents;
+        copiedEvents.reserve(selectedEvents.size());
+        for(const auto& ev : selectedEvents)
+        {
+            auto clone_ev = new EventModel(*ev, ev->id(), sm->parent());
+            auto states = clone_ev->states();
+            for(const auto& state : states)
+            {
+                auto absent = std::none_of(selectedStates.begin(), selectedStates.end(), [&] (const StateModel* st) { return st->id() == state; });
+                if(absent)
+                    clone_ev->removeState(state);
+            }
+
+            copiedEvents.push_back(clone_ev);
+        }
+
+        std::vector<StateModel*> copiedStates;
+        copiedStates.reserve(selectedStates.size());
+        for(const auto& st : selectedStates)
+        {
+            auto clone_st = new StateModel(*st, st->id(), sm->parent());
+            auto prev_absent = std::none_of(selectedConstraints.begin(), selectedConstraints.end(), [&] (const ConstraintModel* cst) { return cst->id() == st->previousConstraint(); });
+            if(prev_absent)
+                clone_st->setPreviousConstraint(Id<ConstraintModel>{});
+            auto next_absent = std::none_of(selectedConstraints.begin(), selectedConstraints.end(), [&] (const ConstraintModel* cst) { return cst->id() == st->nextConstraint(); });
+            if(next_absent)
+                clone_st->setNextConstraint(Id<ConstraintModel>{});
+
+            copiedStates.push_back(clone_st);
+        }
+
+
+        base["Constraints"] = arrayToJson(selectedConstraints);
+        base["Events"] = arrayToJson(copiedEvents);
+        base["TimeNodes"] = arrayToJson(copiedTimeNodes);
+        base["States"] = arrayToJson(copiedStates);
+
+        for(auto elt : copiedTimeNodes)
+            delete elt;
+        for(auto elt : copiedEvents)
+            delete elt;
+        for(auto elt : copiedStates)
+            delete elt;
     }
     else
     {
@@ -343,25 +440,239 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 }
 
 
+// MOVEME
+// TODO add me to command lists
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
+// Needed for copy since we want to generate IDs that are neither
+// in the scenario in which we are copying into, nor in the elements
+// that we copied because it may cause conflicts.
+template<typename T, typename Vector1, typename Vector2>
+auto getStrongIdRange2(std::size_t s, const Vector1& existing1, const Vector2& existing2)
+{
+    std::vector<Id<T>> vec;
+    vec.reserve(s + existing1.size() + existing2.size());
+    std::transform(existing1.begin(), existing1.end(), std::back_inserter(vec),
+                   [] (const auto& elt) { return elt.id(); });
+    std::transform(existing2.begin(), existing2.end(), std::back_inserter(vec),
+                   [] (const auto& elt) { return elt->id(); });
+
+    for(; s --> 0 ;)
+    {
+        vec.push_back(getStrongId(vec));
+    }
+
+    return std::vector<Id<T>>(vec.begin() + existing1.size() + existing2.size(), vec.end());
+}
+
 class ScenarioPasteElements : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                          ScenarioPasteElements,
                                          "ScenarioPasteElements")
 
-        public:
+    public:
         ScenarioPasteElements(
-                Path<TemporalScenarioLayerModel>&& dest,
+                Path<TemporalScenarioLayerModel>&& path,
                 const QJsonObject& obj,
                 const ScenarioPoint& pt):
-        iscore::SerializableCommand{factoryName(), commandName(), description()}
+            iscore::SerializableCommand{factoryName(), commandName(), description()},
+            m_ts{std::move(path)}
         {
+
+            // We assign new ids WRT the elements of the scenario - these ids can
+            // be easily mapped.
+            const auto& tsModel = m_ts.find();
+            const ScenarioModel& scenario = ::model(tsModel);
+
+            // TODO the elements are child of the document
+            // because else the State cannot be constructed properly
+            // (it calls iscore::IDocument::commandStack...). This is ugly.
+            auto doc = iscore::IDocument::documentFromObject(scenario);
+
+            // We deserialize everything
+            {
+                auto json_arr = obj["Constraints"].toArray();
+                m_constraints.reserve(json_arr.size());
+                for(const auto& element : json_arr)
+                {
+                    m_constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, doc});
+                }
+            }
+            {
+                auto json_arr = obj["TimeNodes"].toArray();
+                m_timenodes.reserve(json_arr.size());
+                for(const auto& element : json_arr)
+                {
+                    m_timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, doc});
+                }
+            }
+            {
+                auto json_arr = obj["Events"].toArray();
+                m_events.reserve(json_arr.size());
+                for(const auto& element : json_arr)
+                {
+                    m_events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, doc});
+                }
+            }
+            {
+                auto json_arr = obj["States"].toArray();
+                m_states.reserve(json_arr.size());
+                for(const auto& element : json_arr)
+                {
+                    m_states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, doc});
+                }
+            }
+
+
+
+            auto constraint_ids = getStrongIdRange2<ConstraintModel>(m_constraints.size(), scenario.constraints, m_constraints);
+            auto timenode_ids = getStrongIdRange2<TimeNodeModel>(m_timenodes.size(), scenario.timeNodes, m_timenodes);
+            auto event_ids = getStrongIdRange2<EventModel>(m_events.size(), scenario.events, m_events);
+            auto state_ids = getStrongIdRange2<StateModel>(m_states.size(), scenario.states, m_states);
+
+            {
+                int i = 0;
+                for(TimeNodeModel* timenode : m_timenodes)
+                {
+                    for(EventModel* event : m_events)
+                    {
+                        if(event->timeNode() == timenode->id())
+                        {
+                            event->changeTimeNode(timenode_ids[i]);
+                        }
+                    }
+
+                    timenode->setId(timenode_ids[i]);
+                    i++;
+                }
+            }
+
+            {
+                int i = 0;
+                for(EventModel* event : m_events)
+                {
+                    {
+                        auto it = std::find_if(m_timenodes.begin(),
+                                               m_timenodes.end(),
+                                               [&] (TimeNodeModel* tn) { return tn->id() == event->timeNode(); });
+                        ISCORE_ASSERT(it != m_timenodes.end());
+                        auto timenode = *it;
+                        timenode->removeEvent(event->id());
+                        timenode->addEvent(event_ids[i]);
+                    }
+
+                    for(StateModel* state : m_states)
+                    {
+                        if(state->eventId() == event->id())
+                        {
+                            state->setEventId(event_ids[i]);
+                        }
+                    }
+
+                    event->setId(event_ids[i]);
+                    i++;
+                }
+            }
+
+            {
+                int i = 0;
+                for(StateModel* state : m_states)
+                {
+                    {
+                        auto it = std::find_if(m_events.begin(),
+                                               m_events.end(),
+                                               [&] (EventModel* event) { return event->id() == state->eventId(); });
+                        ISCORE_ASSERT(it != m_events.end());
+                        auto event = *it;
+                        event->removeState(state->id());
+                        event->addState(state_ids[i]);
+                    }
+
+                    for(ConstraintModel* constraint : m_constraints)
+                    {
+                        if(constraint->startState() == state->id())
+                            constraint->setStartState(state_ids[i]);
+                        else if(constraint->endState() == state->id())
+                            constraint->setEndState(state_ids[i]);
+                    }
+
+                    state->setId(state_ids[i]);
+                    i++;
+                }
+            }
+
+            {
+                int i = 0;
+                for(ConstraintModel* constraint : m_constraints)
+                {
+                    for(StateModel* state : m_states)
+                    {
+                        if(state->id() == constraint->startState())
+                        {
+                            state->setNextConstraint(constraint_ids[i]);
+                        }
+                        else if(state->id() == constraint->endState())
+                        {
+                            state->setPreviousConstraint(constraint_ids[i]);
+                        }
+                    }
+
+                    constraint->setId(constraint_ids[i]);
+                    i++;
+                }
+            }
+
+
+            // Then we have to create default constraint views... everywhere...
+            for(ConstraintModel* constraint : m_constraints)
+            {
+                auto res = m_constraintViewModels.insert(std::make_pair(constraint->id(), ConstraintViewModelIdMap{}));
+                ISCORE_ASSERT(res.second);
+
+                for(const auto& viewModel : layers(scenario))
+                {
+                    res.first->second[*viewModel] = getStrongId(viewModel->constraints());
+                }
+            }
+            // Set the correct positions / dates.
+            // Take the earliest constraint and compute the delta; apply the delta everywhere.
+
+            // Same for y.
+
+            // TODO if a constraint does not have its beginning / end state
+            // selected, it should have a new one created.
         }
-            void undo() const override
+
+        void undo() const override
         {
+
         }
+
         void redo() const override
         {
+            auto& tsModel = m_ts.find();
+            ScenarioModel& scenario = ::model(tsModel);
+            for(const auto& timenode : m_timenodes)
+            {
+                scenario.timeNodes.add(new TimeNodeModel(*timenode, timenode->id(), &scenario));
+            }
+            for(const auto& event : m_events)
+            {
+                scenario.events.add(new EventModel(*event, event->id(), &scenario));
+            }
+            for(const auto& state : m_states)
+            {
+                scenario.states.add(new StateModel(*state, state->id(), &scenario));
+            }
+            for(const auto& constraint : m_constraints)
+            {
+                scenario.constraints.add(new ConstraintModel(*constraint, constraint->id(), &scenario));
+
+                createConstraintViewModels(m_constraintViewModels.at(constraint->id()),
+                                           constraint->id(),
+                                           scenario);
+            }
         }
 
     protected:
@@ -373,19 +684,30 @@ class ScenarioPasteElements : public iscore::SerializableCommand
         }
 
     private:
-        std::vector<TimeNodeModel> m_timenodes;
-        std::vector<ConstraintModel> m_constraints;
-        std::vector<EventModel> m_events;
-        std::vector<StateModel> m_states;
+        Path<TemporalScenarioLayerModel> m_ts;
+        std::vector<TimeNodeModel*> m_timenodes;
+        std::vector<ConstraintModel*> m_constraints;
+        std::vector<EventModel*> m_events;
+        std::vector<StateModel*> m_states;
+
+        std::map<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };
+
+
 void ObjectMenuActions::pasteElements(
         const QJsonObject& obj,
         const ScenarioPoint& origin)
 {
-    // To do this, we paste all the elements with a position relative to the origin (or maybe we should center ?)
+    // TODO check for unnecessary uses of focusedProcessModel after focusedPresenter.
+    auto pres = m_parent->focusedPresenter();
+    if(!pres)
+        return;
 
-    // Elements that were linked in the copy shall be linked in the paste, by replacing the ids.
+    auto& sm = static_cast<const TemporalScenarioLayerModel&>(pres->layerModel());
+    // TODO check json validity
+    auto cmd = new ScenarioPasteElements(sm, obj, origin);
 
+    dispatcher().submitCommand(cmd);
 }
 
 #include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>

@@ -207,9 +207,13 @@ void StateModel::setNextConstraint(const Id<ConstraintModel> & id)
     if(!m_nextConstraint)
         return;
 
+    auto scenar = parentScenario();
+    if(!scenar)
+        return;
+
     // The constraints might not be present in a scenario
     // for instance when restoring removed elements.
-    auto cstr = parentScenario()->findConstraint(m_nextConstraint);
+    auto cstr = scenar->findConstraint(m_nextConstraint);
     if(cstr)
     {
         for(const auto& proc : cstr->processes)
@@ -245,7 +249,11 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
     if(!m_previousConstraint)
         return;
 
-    auto cstr = parentScenario()->findConstraint(m_previousConstraint);
+    auto scenar = parentScenario();
+    if(!scenar)
+        return;
+
+    auto cstr = scenar->findConstraint(m_previousConstraint);
     if(cstr)
     {
         for(const auto& proc : cstr->processes)

@@ -28,6 +28,7 @@ InsertContentInConstraint::InsertContentInConstraint(
             &trg_constraint}; // Temporary parent
 
     // For all rackes in source, generate new id's
+    // TODO we can use SettableIdentifierGeneration here.
     const auto& target_rackes = trg_constraint.racks;
     std::vector<Id<RackModel>> target_rackes_ids;
     target_rackes_ids.reserve(target_rackes.size());

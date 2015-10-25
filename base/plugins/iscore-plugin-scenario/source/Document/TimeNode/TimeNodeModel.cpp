@@ -50,7 +50,11 @@ void TimeNodeModel::addEvent(const Id<EventModel>& eventId)
     m_events.push_back(eventId);
     emit newEvent(eventId);
 
-    auto& theEvent = parentScenario()->event(eventId);
+    auto scenar = parentScenario();
+    if(!scenar)
+        return;
+
+    auto& theEvent = scenar->event(eventId);
     theEvent.changeTimeNode(this->id());
 }
 
