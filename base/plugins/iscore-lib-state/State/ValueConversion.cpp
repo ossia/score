@@ -315,8 +315,18 @@ QString toPrettyString(const iscore::Value& val)
     static const constexpr struct {
             QString operator()(const iscore::no_value_t&) const { return {}; }
             QString operator()(const iscore::impulse_t&) const { return {}; }
-            QString operator()(int i) const { return QLocale::c().toString(i); }
-            QString operator()(float f) const { return QLocale::c().toString(f); }
+            QString operator()(int i) const {
+                const auto& loc = QLocale::c();
+                auto str = loc.toString(i);
+                str.remove(loc.groupSeparator());
+                return str;
+            }
+            QString operator()(float f) const {
+                const auto& loc = QLocale::c();
+                auto str = loc.toString(f);
+                str.remove(loc.groupSeparator());
+                return str;
+            }
             QString operator()(bool b) const {
                 static const QString tr = "true";
                 static const QString f = "false";
