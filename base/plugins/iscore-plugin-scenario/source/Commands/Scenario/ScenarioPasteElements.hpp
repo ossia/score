@@ -31,15 +31,18 @@ class ScenarioPasteElements : public iscore::SerializableCommand
 
     private:
         Path<TemporalScenarioLayerModel> m_ts;
-        std::vector<TimeNodeModel*> m_timenodes;
-        std::vector<ConstraintModel*> m_constraints;
-        std::vector<EventModel*> m_events;
-        std::vector<StateModel*> m_states;
-/*
-        std::vector<QJsonObject> m_json_timenodes;
-        std::vector<QJsonObject> m_json_constraints;
-        std::vector<QJsonObject> m_json_events;
-        std::vector<QJsonObject> m_json_states;
-*/
-        std::map<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
+
+        // TODO std::vector...
+        QVector<Id<TimeNodeModel>> m_ids_timenodes;
+        QVector<Id<ConstraintModel>> m_ids_constraints;
+        QVector<Id<EventModel>> m_ids_events;
+        QVector<Id<StateModel>> m_ids_states;
+
+        QVector<QJsonObject> m_json_timenodes;
+        QVector<QJsonObject> m_json_constraints;
+        QVector<QJsonObject> m_json_events;
+        QVector<QJsonObject> m_json_states;
+
+        // TODO std::map...
+        QMap<Id<ConstraintModel>, ConstraintViewModelIdMap> m_constraintViewModels;
 };

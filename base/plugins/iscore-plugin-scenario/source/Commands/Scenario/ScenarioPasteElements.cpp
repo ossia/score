@@ -9,6 +9,7 @@
 #include <Process/ScenarioModel.hpp>
 #include <Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <core/document/Document.hpp>
+#include <Process/Algorithms/VerticalMovePolicy.hpp>
 
 #include <iscore/tools/Clamp.hpp>
 
@@ -50,52 +51,58 @@ ScenarioPasteElements::ScenarioPasteElements(
     // (it calls iscore::IDocument::commandStack...). This is ugly.
     auto doc = iscore::IDocument::documentFromObject(scenario);
 
+
+    std::vector<TimeNodeModel*> timenodes;
+    std::vector<ConstraintModel*> constraints;
+    std::vector<EventModel*> events;
+    std::vector<StateModel*> states;
+
     // We deserialize everything
     {
         auto json_arr = obj["Constraints"].toArray();
-        m_constraints.reserve(json_arr.size());
+        constraints.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            m_constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            constraints.emplace_back(new ConstraintModel{Deserializer<JSONObject>{element.toObject()}, doc});
         }
     }
     {
         auto json_arr = obj["TimeNodes"].toArray();
-        m_timenodes.reserve(json_arr.size());
+        timenodes.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            m_timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            timenodes.emplace_back(new TimeNodeModel{Deserializer<JSONObject>{element.toObject()}, doc});
         }
     }
     {
         auto json_arr = obj["Events"].toArray();
-        m_events.reserve(json_arr.size());
+        events.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            m_events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            events.emplace_back(new EventModel{Deserializer<JSONObject>{element.toObject()}, doc});
         }
     }
     {
         auto json_arr = obj["States"].toArray();
-        m_states.reserve(json_arr.size());
+        states.reserve(json_arr.size());
         for(const auto& element : json_arr)
         {
-            m_states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, doc});
+            states.emplace_back(new StateModel{Deserializer<JSONObject>{element.toObject()}, doc});
         }
     }
 
     // We generate identifiers for the forthcoming elements
-    auto constraint_ids = getStrongIdRange2<ConstraintModel>(m_constraints.size(), scenario.constraints, m_constraints);
-    auto timenode_ids = getStrongIdRange2<TimeNodeModel>(m_timenodes.size(), scenario.timeNodes, m_timenodes);
-    auto event_ids = getStrongIdRange2<EventModel>(m_events.size(), scenario.events, m_events);
-    auto state_ids = getStrongIdRange2<StateModel>(m_states.size(), scenario.states, m_states);
+    auto constraint_ids = getStrongIdRange2<ConstraintModel>(constraints.size(), scenario.constraints, constraints);
+    auto timenode_ids = getStrongIdRange2<TimeNodeModel>(timenodes.size(), scenario.timeNodes, timenodes);
+    auto event_ids = getStrongIdRange2<EventModel>(events.size(), scenario.events, events);
+    auto state_ids = getStrongIdRange2<StateModel>(states.size(), scenario.states, states);
 
     // We set the new ids everywhere
     {
         int i = 0;
-        for(TimeNodeModel* timenode : m_timenodes)
+        for(TimeNodeModel* timenode : timenodes)
         {
-            for(EventModel* event : m_events)
+            for(EventModel* event : events)
             {
                 if(event->timeNode() == timenode->id())
                 {
@@ -110,19 +117,19 @@ ScenarioPasteElements::ScenarioPasteElements(
 
     {
         int i = 0;
-        for(EventModel* event : m_events)
+        for(EventModel* event : events)
         {
             {
-                auto it = std::find_if(m_timenodes.begin(),
-                                       m_timenodes.end(),
+                auto it = std::find_if(timenodes.begin(),
+                                       timenodes.end(),
                                        [&] (TimeNodeModel* tn) { return tn->id() == event->timeNode(); });
-                ISCORE_ASSERT(it != m_timenodes.end());
+                ISCORE_ASSERT(it != timenodes.end());
                 auto timenode = *it;
                 timenode->removeEvent(event->id());
                 timenode->addEvent(event_ids[i]);
             }
 
-            for(StateModel* state : m_states)
+            for(StateModel* state : states)
             {
                 if(state->eventId() == event->id())
                 {
@@ -137,19 +144,19 @@ ScenarioPasteElements::ScenarioPasteElements(
 
     {
         int i = 0;
-        for(StateModel* state : m_states)
+        for(StateModel* state : states)
         {
             {
-                auto it = std::find_if(m_events.begin(),
-                                       m_events.end(),
+                auto it = std::find_if(events.begin(),
+                                       events.end(),
                                        [&] (EventModel* event) { return event->id() == state->eventId(); });
-                ISCORE_ASSERT(it != m_events.end());
+                ISCORE_ASSERT(it != events.end());
                 auto event = *it;
                 event->removeState(state->id());
                 event->addState(state_ids[i]);
             }
 
-            for(ConstraintModel* constraint : m_constraints)
+            for(ConstraintModel* constraint : constraints)
             {
                 if(constraint->startState() == state->id())
                     constraint->setStartState(state_ids[i]);
@@ -164,9 +171,9 @@ ScenarioPasteElements::ScenarioPasteElements(
 
     {
         int i = 0;
-        for(ConstraintModel* constraint : m_constraints)
+        for(ConstraintModel* constraint : constraints)
         {
-            for(StateModel* state : m_states)
+            for(StateModel* state : states)
             {
                 if(state->id() == constraint->startState())
                 {
@@ -185,38 +192,36 @@ ScenarioPasteElements::ScenarioPasteElements(
 
 
     // Then we have to create default constraint views... everywhere...
-    for(ConstraintModel* constraint : m_constraints)
+    for(const ConstraintModel* constraint : constraints)
     {
-        auto res = m_constraintViewModels.insert(std::make_pair(constraint->id(), ConstraintViewModelIdMap{}));
-        ISCORE_ASSERT(res.second);
-
+        auto res = m_constraintViewModels.insert(constraint->id(), ConstraintViewModelIdMap{});
         for(const auto& viewModel : layers(scenario))
         {
-            res.first->second[*viewModel] = getStrongId(viewModel->constraints());
+            (*res)[*viewModel] = getStrongId(viewModel->constraints());
         }
     }
 
     // Set the correct positions / dates.
     // Take the earliest constraint or timenode and compute the delta; apply the delta everywhere.
-    if(m_constraints.size() > 0 || m_timenodes.size() > 0) // Should always be the case.
+    if(constraints.size() > 0 || timenodes.size() > 0) // Should always be the case.
     {
         auto earliestTime =
-                m_constraints.size() > 0
-                ? m_constraints.front()->startDate()
-                : m_timenodes.front()->date();
-        for(const ConstraintModel* constraint : m_constraints)
+                constraints.size() > 0
+                ? constraints.front()->startDate()
+                : timenodes.front()->date();
+        for(const ConstraintModel* constraint : constraints)
         {
             const auto& t = constraint->startDate();
             if(t < earliestTime)
                 earliestTime = t;
         }
-        for(const TimeNodeModel* tn : m_timenodes)
+        for(const TimeNodeModel* tn : timenodes)
         {
             const auto& t = tn->date();
             if(t < earliestTime)
                 earliestTime = t;
         }
-        for(const EventModel* ev : m_events)
+        for(const EventModel* ev : events)
         {
             const auto& t = ev->date();
             if(t < earliestTime)
@@ -224,15 +229,15 @@ ScenarioPasteElements::ScenarioPasteElements(
         }
 
         auto delta_t = pt.date - earliestTime;
-        for(ConstraintModel* constraint : m_constraints)
+        for(ConstraintModel* constraint : constraints)
         {
             constraint->setStartDate(constraint->startDate() + delta_t);
         }
-        for(TimeNodeModel* tn : m_timenodes)
+        for(TimeNodeModel* tn : timenodes)
         {
             tn->setDate(tn->date() + delta_t);
         }
-        for(EventModel* ev : m_events)
+        for(EventModel* ev : events)
         {
             ev->setDate(ev->date() + delta_t);
         }
@@ -241,7 +246,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     // Same for y.
     // Note : due to the coordinates system, the highest y is the one closest to 0.
     auto highest_y = std::numeric_limits<double>::max();
-    for(const StateModel* state : m_states)
+    for(const StateModel* state : states)
     {
         auto y = state->heightPercentage();
         if(y < highest_y)
@@ -251,57 +256,115 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
 
     auto delta_y = pt.y - highest_y;
-    for(ConstraintModel* cst: m_constraints)
+    for(ConstraintModel* cst: constraints)
     {
         cst->setHeightPercentage(clamp(cst->heightPercentage() + delta_y, 0., 1.));
     }
-    for(StateModel* state : m_states)
+    for(StateModel* state : states)
     {
         state->setHeightPercentage(clamp(state->heightPercentage() + delta_y, 0., 1.));
+    }
+
+    // We reserialize here in order to not have dangling pointers and bad cache in the ids.
+    m_ids_constraints.reserve(constraints.size());
+    m_json_constraints.reserve(constraints.size());
+    for(auto elt : constraints)
+    {
+        m_ids_constraints.push_back(elt->id());
+        m_json_constraints.push_back(marshall<JSONObject>(*elt));
+
+        delete elt;
+    }
+
+    m_ids_timenodes.reserve(timenodes.size());
+    m_json_timenodes.reserve(timenodes.size());
+    for(auto elt : timenodes)
+    {
+        m_ids_timenodes.push_back(elt->id());
+        m_json_timenodes.push_back(marshall<JSONObject>(*elt));
+
+        delete elt;
+    }
+
+    m_json_events.reserve(events.size());
+    m_ids_events.reserve(events.size());
+    for(auto elt : events)
+    {
+        m_ids_events.push_back(elt->id());
+        m_json_events.push_back(marshall<JSONObject>(*elt));
+
+        delete elt;
+    }
+
+    m_json_states.reserve(states.size());
+    m_ids_states.reserve(states.size());
+    for(auto elt : states)
+    {
+        m_ids_states.push_back(elt->id());
+        m_json_states.push_back(marshall<JSONObject>(*elt));
+
+        delete elt;
     }
 }
 
 void ScenarioPasteElements::undo() const
 {
-    ISCORE_TODO;
+    auto& tsModel = m_ts.find();
+    ScenarioModel& scenario = ::model(tsModel);
+
+    for(const auto& elt : m_ids_timenodes)
+    {
+        scenario.timeNodes.remove(elt);
+    }
+    for(const auto& elt : m_ids_events)
+    {
+        scenario.events.remove(elt);
+    }
+    for(const auto& elt : m_ids_states)
+    {
+        scenario.states.remove(elt);
+    }
+    for(const auto& elt : m_ids_constraints)
+    {
+        scenario.constraints.remove(elt);
+    }
 }
 
-#include <Process/Algorithms/VerticalMovePolicy.hpp>
 void ScenarioPasteElements::redo() const
 {
     auto& tsModel = m_ts.find();
     ScenarioModel& scenario = ::model(tsModel);
 
     std::vector<TimeNodeModel*> addedTimeNodes;
-    addedTimeNodes.reserve(m_timenodes.size());
+    addedTimeNodes.reserve(m_json_timenodes.size());
     std::vector<EventModel*> addedEvents;
-    addedEvents.reserve(m_events.size());
-    for(const auto& timenode : m_timenodes)
+    addedEvents.reserve(m_json_events.size());
+    for(const auto& timenode : m_json_timenodes)
     {
-        auto tn = new TimeNodeModel(*timenode, timenode->id(), &scenario);
+        auto tn = new TimeNodeModel(Deserializer<JSONObject>{timenode}, &scenario);
         scenario.timeNodes.add(tn);
         addedTimeNodes.push_back(tn);
     }
 
-    for(const auto& event : m_events)
+    for(const auto& event : m_json_events)
     {
-        auto ev = new EventModel(*event, event->id(), &scenario);
+        auto ev = new EventModel(Deserializer<JSONObject>{event}, &scenario);
         scenario.events.add(ev);
         addedEvents.push_back(ev);
     }
 
-    for(const auto& state : m_states)
+    for(const auto& state : m_json_states)
     {
-        scenario.states.add(new StateModel(*state, state->id(), &scenario));
+        scenario.states.add(new StateModel(Deserializer<JSONObject>{state}, &scenario));
     }
 
-    for(const auto& constraint : m_constraints)
+    for(const auto& constraint : m_json_constraints)
     {
-        auto cst = new ConstraintModel(*constraint, constraint->id(), &scenario);
+        auto cst = new ConstraintModel(Deserializer<JSONObject>{constraint}, &scenario);
         scenario.constraints.add(cst);
 
-        createConstraintViewModels(m_constraintViewModels.at(constraint->id()),
-                                   constraint->id(),
+        createConstraintViewModels(m_constraintViewModels[cst->id()],
+                                   cst->id(),
                                    scenario);
 
         if(cst->racks.size() > 0)
@@ -325,12 +388,36 @@ void ScenarioPasteElements::redo() const
     }
 }
 
-void ScenarioPasteElements::serializeImpl(QDataStream&) const
+void ScenarioPasteElements::serializeImpl(QDataStream& s) const
 {
-    ISCORE_TODO;
+    s << m_ts
+
+      << m_ids_timenodes
+      << m_ids_events
+      << m_ids_states
+      << m_ids_constraints
+
+      << m_json_timenodes
+      << m_json_events
+      << m_json_states
+      << m_json_constraints
+
+      << m_constraintViewModels;
 }
 
-void ScenarioPasteElements::deserializeImpl(QDataStream&)
+void ScenarioPasteElements::deserializeImpl(QDataStream& s)
 {
-    ISCORE_TODO;
+    s >> m_ts
+
+      >> m_ids_timenodes
+      >> m_ids_events
+      >> m_ids_states
+      >> m_ids_constraints
+
+      >> m_json_timenodes
+      >> m_json_events
+      >> m_json_states
+      >> m_json_constraints
+
+      >> m_constraintViewModels;
 }
