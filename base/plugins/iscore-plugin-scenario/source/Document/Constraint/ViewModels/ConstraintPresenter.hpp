@@ -44,6 +44,7 @@ class ConstraintPresenter : public NamedObject
         ConstraintView* view() const;
 
         void on_zoomRatioChanged(ZoomRatio val);
+        ZoomRatio zoomRatio() const { return m_zoomRatio; }
 
         const Id<ConstraintModel>& id() const;
 

@@ -64,15 +64,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
         m_parent->m_selectionDispatcher.setAndCommit({&m_endStatePresenter->model()});
     });
 
-    ISCORE_TODO;
-    /*
-    m_mainTimeRuler->setStartPoint(- m_displayedConstraintPresenter->model().startDate());
-    m_localTimeRuler->setDuration(TimeValue{std::chrono::milliseconds(0)});
-    m_localTimeRuler->setStartPoint(TimeValue{std::chrono::milliseconds(0)});
-    */
-
     connect(m_constraintPresenter,	&FullViewConstraintPresenter::askUpdate,
-            m_parent,                       &BaseElementPresenter::on_askUpdate);
+            m_parent,               &BaseElementPresenter::on_askUpdate);
     connect(m_constraintPresenter, &FullViewConstraintPresenter::heightChanged,
             this, [&] () { m_parent->updateRect({0, 0,
                                        m.duration.defaultDuration().toPixels(m_parent->zoomRatio()),
@@ -86,6 +79,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
             m_parent, &BaseElementPresenter::displayedConstraintReleased);
 
     showConstraint();
+
+    on_zoomRatioChanged(m_constraintPresenter->zoomRatio());
 }
 
 void DisplayedElementsPresenter::showConstraint()

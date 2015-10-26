@@ -243,6 +243,7 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
     QRectF new_visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
 
+    // TODO should call displayedElementsPresenter instead??
     displayedConstraint().fullView()->setZoom(m_zoomRatio);
     displayedConstraint().fullView()->setCenter(new_visible_scene_rect.center());
 }
