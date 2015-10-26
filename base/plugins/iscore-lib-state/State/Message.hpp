@@ -31,6 +31,7 @@ struct Message
     {
         return address == m.address && value == m.value;
     }
+
     bool operator!=(const Message& m) const
     {
         return address != m.address && value != m.value;
@@ -43,6 +44,12 @@ struct Message
 
     QString toString() const
     { return address.toString() + " " + iscore::convert::toPrettyString(value); }
+
+    friend QDebug operator<<(QDebug s, const iscore::Message& mess)
+    {
+        s << mess.toString();
+        return s;
+    }
 
     Address address;
     Value value;

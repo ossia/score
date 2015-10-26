@@ -240,7 +240,7 @@ void CurvePresenter::fillContextMenu(
     auto selectAct = new QAction{tr("Select"), this};
 
     selectAct->setCheckable(true);
-    selectAct->setChecked(false);
+    selectAct->setChecked(false); // TODO setChecked selection mode
     connect(selectAct, &QAction::toggled, this,
             [&] (bool b) {
         if(b)
@@ -269,14 +269,14 @@ void CurvePresenter::fillContextMenu(
     connect(lockAction, &QAction::toggled,
             this, [&] (bool b) { setLockBetweenPoints(b); });
     lockAction->setCheckable(true);
-    lockAction->setChecked(true);
+    lockAction->setChecked(m_lockBetweenPoints);
 
     auto suppressAction = new QAction{tr("Suppress on overlap"), this};
     connect(suppressAction, &QAction::toggled,
             this, [&] (bool b) { setSuppressOnOverlap(b); });
 
     suppressAction->setCheckable(true);
-    suppressAction->setChecked(false);
+    suppressAction->setChecked(m_suppressOnOverlap);
 
     menu->addAction(selectAct);
     menu->addAction(removeAct);

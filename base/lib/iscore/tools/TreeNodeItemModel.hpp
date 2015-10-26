@@ -1,6 +1,6 @@
 #pragma once
 #include <QAbstractItemModel>
-
+#include <iscore/tools/Todo.hpp>
 /**
  * @brief The TreeNodeBasedItemModel class
  *

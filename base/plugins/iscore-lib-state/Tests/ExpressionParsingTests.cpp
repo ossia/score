@@ -68,12 +68,6 @@ QDebug operator<<(QDebug dbg, const iscore::Address& a)
     return dbg;
 }
 
-QDebug operator<<(QDebug dbg, const iscore::Value& v)
-{
-    dbg << v.val;
-    return dbg;
-}
-
 QDebug operator<<(QDebug dbg, const iscore::RelationMember& v)
 {
     using namespace eggs::variants;

@@ -2,7 +2,7 @@
 #include <iscore/command/AggregateCommand.hpp>
 #include <Commands/IScoreCohesionCommandFactory.hpp>
 
-// MOVEME
+// TODO rename file
 class SnapshotStatesMacro : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),

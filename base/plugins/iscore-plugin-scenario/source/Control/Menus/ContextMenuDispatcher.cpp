@@ -13,6 +13,9 @@
 #include <Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Commands/Constraint/AddOnlyProcessToConstraint.hpp>
+#include <Commands/Constraint/CreateProcessInExistingSlot.hpp>
+#include <Commands/Constraint/CreateProcessInNewSlot.hpp>
 
 #include <DialogWidget/AddProcessDialog.hpp>
 

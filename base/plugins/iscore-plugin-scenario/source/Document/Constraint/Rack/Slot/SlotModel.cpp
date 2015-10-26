@@ -33,7 +33,6 @@ SlotModel::SlotModel(
     // one we have cloned, hence instead of just copying the id, we ask the corresponding
     // layer model to give us its id.
     // TODO this is fucking ugly - mostly because two objects exist with the same id...
-
 }
 
 RackModel&SlotModel::rack() const

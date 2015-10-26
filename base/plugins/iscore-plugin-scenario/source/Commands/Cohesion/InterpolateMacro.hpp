@@ -5,9 +5,11 @@
 #include <Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Commands/Scenario/ShowRackInAllViewModels.hpp>
 #include <Commands/Constraint/AddRackToConstraint.hpp>
 #include <Commands/Constraint/Rack/AddSlotToRack.hpp>
 
+// One InterpolateMacro per constraint
 class GenericInterpolateMacro : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),

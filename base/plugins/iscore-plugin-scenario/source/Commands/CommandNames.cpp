@@ -59,7 +59,13 @@
 #include "Event/SplitEvent.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
-
+#include "Constraint/AddOnlyProcessToConstraint.hpp"
+#include "Constraint/CreateProcessInExistingSlot.hpp"
+#include "Constraint/CreateProcessInNewSlot.hpp"
+#include "State/InsertContentInState.hpp"
+#include "Scenario/ScenarioPasteContent.hpp"
+#include "Scenario/ScenarioPasteElements.hpp"
+#include "Scenario/ShowRackInAllViewModels.hpp"
 
 #include <boost/mpl/list/list50.hpp>
 #include <boost/mpl/aux_/config/ctps.hpp>
@@ -100,7 +106,7 @@ void ScenarioControl::setupCommands()
 {
     using namespace Scenario::Command;
     boost::mpl::for_each<
-            boost::mpl::list76<
+            boost::mpl::list80<
 
             AddRackToConstraint,
             AddSlotToRack,
@@ -153,6 +159,8 @@ void ScenarioControl::setupCommands()
             GenericInterpolateMacro,
             InterpolateMacro,
 
+            InsertContentInState,
+
             ShowRackInViewModel,
             ShowRackInAllViewModels,
             HideRackInViewModel,
@@ -176,8 +184,13 @@ void ScenarioControl::setupCommands()
             RemoveLayerModelFromSlot,
             //RemoveStateFromStateModel,
 
+            ScenarioPasteContent,
+            ScenarioPasteElements,
+
             SetLooping,
             SetProcessDuration,
+
+            ShowRackInAllViewModels,
 
             MoveBaseEvent,
             ResizeSlotVertically,

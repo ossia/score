@@ -2,8 +2,10 @@
 
 #include "Plugin/Panel/DeviceExplorerModel.hpp"
 #include "AddressEditWidget.hpp"
+#include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
+#include <State/Widgets/Values/CharValueWidget.hpp>
 #include <State/Widgets/Values/BoolValueWidget.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Message.hpp>
@@ -63,7 +65,6 @@ void MessageEditDialog::initTypeCombo()
     m_typeCombo->setCurrentIndex(m_message.value.val.impl().which());
 }
 
-#include <State/ValueConversion.hpp>
 void MessageEditDialog::on_typeChanged(int t)
 {
     // TODO refactor these widgets with the various address settings widgets

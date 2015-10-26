@@ -44,3 +44,9 @@ QString prettyType(const iscore::Value& val); // For display to the user, transl
 const QStringList& ValuePrettyTypesList(); // For display to the user, translated
 }
 }
+
+inline QDebug operator<<(QDebug s, const iscore::Value& val)
+{
+    s << iscore::convert::toPrettyString(val);
+    return s;
+}

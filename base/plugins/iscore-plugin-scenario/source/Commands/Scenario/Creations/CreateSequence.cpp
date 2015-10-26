@@ -11,18 +11,6 @@
 #include <iostream>
 using namespace Scenario::Command;
 
-// MOVEME
-QDebug operator<<(QDebug s, const iscore::Message& mess)
-{
-    s << mess.toString();
-    return s;
-}
-QDebug operator<<(QDebug s, const iscore::Value& val)
-{
-    s << iscore::convert::toPrettyString(val);
-    return s;
-}
-
 CreateSequence::CreateSequence(
         const ScenarioModel& scenario,
         const Id<StateModel>& startState,

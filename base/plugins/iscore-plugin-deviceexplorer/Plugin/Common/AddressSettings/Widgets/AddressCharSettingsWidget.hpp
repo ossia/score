@@ -1,14 +1,10 @@
 #pragma once
 
 #include "AddressSettingsWidget.hpp"
-
-class QComboBox;
-class QLineEdit;
-class QSpinBox;
-class AddressStringSettingsWidget : public AddressSettingsWidget
+class AddressCharSettingsWidget : public AddressSettingsWidget
 {
     public:
-        explicit AddressStringSettingsWidget(QWidget* parent = nullptr);
+        explicit AddressCharSettingsWidget(QWidget* parent = nullptr);
 
         virtual iscore::AddressSettings getSettings() const override;
         virtual void setSettings(const iscore::AddressSettings& settings) override;
@@ -17,3 +13,4 @@ class AddressStringSettingsWidget : public AddressSettingsWidget
         QLineEdit* m_valueEdit;
 
 };
+

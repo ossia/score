@@ -8,6 +8,8 @@ class LayerPresenter;
 class ScenarioControl;
 class TemporalScenarioPresenter;
 class QMenu;
+
+// TODO rename file
 class ScenarioContextMenuManager : public QObject
 {
         ScenarioControl& m_control;

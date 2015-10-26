@@ -108,6 +108,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/Rack/SwapSlots.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddRackToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddProcessToConstraint.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddOnlyProcessToConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/AddLayerInNewSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/ReplaceConstraintContent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Constraint/DuplicateRack.cpp"
@@ -139,6 +140,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInAllViewModels.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ScenarioPasteContent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ScenarioPasteElements.cpp"
 

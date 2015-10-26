@@ -6,6 +6,7 @@
 #include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
 #include "Commands/Constraint/AddProcessToConstraint.hpp"
+#include "Commands/Constraint/AddOnlyProcessToConstraint.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
 #include "Commands/ChangeAddress.hpp"

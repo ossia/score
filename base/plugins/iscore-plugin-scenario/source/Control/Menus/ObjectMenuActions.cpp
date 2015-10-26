@@ -25,7 +25,13 @@
 #include <Commands/Cohesion/UpdateStates.hpp>
 #include <Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Commands/Scenario/HideRackInViewModel.hpp>
+#include <Commands/State/InsertContentInState.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
+#include "ScenarioCopy.hpp"
+#include <Process/Temporal/TemporalScenarioLayerModel.hpp>
 
 #include <QJsonDocument>
 #include <QApplication>
@@ -188,9 +194,6 @@ void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
                                        m_updateStates);
 }
 
-#include <Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Commands/Scenario/HideRackInViewModel.hpp>
-#include <Process/Temporal/TemporalScenarioLayerModel.hpp>
 void ObjectMenuActions::fillContextMenu(
         QMenu *menu,
         const Selection& sel,
@@ -294,8 +297,6 @@ void ObjectMenuActions::setEnabled(bool b)
     }
 }
 
-
-#include "ScenarioCopy.hpp"
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
     if (auto sm = m_parent->focusedScenarioModel())
@@ -345,75 +346,6 @@ void ObjectMenuActions::pasteElements(
 
     dispatcher().submitCommand(cmd);
 }
-
-#include <Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-// MOVEME
-// TODO add me to command lists
-class ScenarioPasteContent : public iscore::AggregateCommand
-{
-        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      ScenarioPasteContent,
-                                      "ScenarioPasteContent")
-};
-
-// MOVEME
-class InsertContentInState : public iscore::SerializableCommand
-{
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInState, "InsertContentInState")
-
-    public:
-       InsertContentInState(
-                const QJsonObject& stateData,
-                Path<StateModel>&& targetState):
-          iscore::SerializableCommand{factoryName(), commandName(), description()},
-          m_state{std::move(targetState)}
-        {
-          // TODO ask what should be copied ? the state due to the processes ? the user state ?
-          // For now we copy the whole value.
-          // First recreate the tree
-
-          // TODO we should update the processes here, and provide an API to do this
-          // properly.
-
-          auto& state = m_state.find();
-
-          m_oldNode = state.messages().rootNode();
-          m_newNode = m_oldNode;
-          updateTreeWithMessageList(
-                      m_newNode,
-                      flatten(unmarshall<MessageNode>(stateData["Messages"].toObject()))
-                  );
-        }
-
-        void undo() const override
-        {
-            auto& state = m_state.find();
-            state.messages() = m_oldNode;
-        }
-
-        void redo() const override
-        {
-            auto& state = m_state.find();
-            state.messages() = m_newNode;
-        }
-
-    protected:
-        void serializeImpl(QDataStream& s) const override
-        {
-            s << m_oldNode << m_newNode << m_state;
-        }
-
-        void deserializeImpl(QDataStream& s) override
-        {
-            s >> m_oldNode >> m_newNode >> m_state;
-        }
-
-        private:
-        MessageNode m_oldNode;
-        MessageNode m_newNode;
-        Path<StateModel> m_state;
-};
 
 void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 {

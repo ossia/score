@@ -3,6 +3,7 @@
 //value types
 #include "Widgets/AddressNumericSettingsWidget.hpp"
 #include "Widgets/AddressStringSettingsWidget.hpp"
+#include "Widgets/AddressCharSettingsWidget.hpp"
 #include "Widgets/AddressTupleSettingsWidget.hpp"
 #include "Widgets/AddressBoolSettingsWidget.hpp"
 #include "Widgets/AddressNoneSettingsWidget.hpp"
