@@ -139,6 +139,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/Displacement/MoveNewState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ShowRackInViewModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ScenarioPasteContent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Scenario/ScenarioPasteElements.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Cohesion/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/Cohesion/InterpolateStates.cpp"
@@ -146,6 +148,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/RemoveMessageNodes.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/UpdateState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/State/InsertContentInState.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/SwitchStatePosition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/TimeNode/AddTrigger.cpp"
@@ -161,6 +164,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ToolMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ScenarioCopy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/ObjectMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TransportActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/Menus/TextDialog.cpp"

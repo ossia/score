@@ -92,6 +92,8 @@ class AbstractScenarioLayerModel : public LayerModel
         QVector<ConstraintViewModel*> m_constraints;
 };
 
+
+// TODO these methods should go in another file.
 template<typename T>
 typename T::constraint_layer_type& constraintViewModel(
         const T& scenarioViewModel,
@@ -118,3 +120,8 @@ QVector<typename T::constraint_layer_type*> constraintsViewModels(const T& scena
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraint,
                                 const ScenarioModel& scenario);
+
+// Note : the view models can also be more easily accessed using the viewModels methods of ConstraintModel
+std::vector<ConstraintViewModel*> getConstraintViewModels(
+        const Id<ConstraintModel>& constraintId,
+        const ScenarioModel& scenario);

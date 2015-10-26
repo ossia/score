@@ -22,11 +22,18 @@ SlotModel::SlotModel(
         const Id<SlotModel>& id,
         RackModel *parent):
     IdentifiedObject<SlotModel> {id, "SlotModel", parent},
-    m_frontLayerModelId {source.m_frontLayerModelId}, // Keep the same id.
+    m_frontLayerModelId{Id<LayerModel>{source.m_frontLayerModelId.val()}},
     m_height {source.height() }
 {
     initConnections();
     lmCopyMethod(source, *this);
+
+    // Note: we have a small trick for the layer model id.
+    // Since we're cloning, we want the pointer cached in the layer model to be the
+    // one we have cloned, hence instead of just copying the id, we ask the corresponding
+    // layer model to give us its id.
+    // TODO this is fucking ugly - mostly because two objects exist with the same id...
+
 }
 
 RackModel&SlotModel::rack() const

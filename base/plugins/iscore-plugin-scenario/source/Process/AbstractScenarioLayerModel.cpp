@@ -77,7 +77,7 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
     return **it;
 }
 
-#include "Process/ScenarioModel.hpp"
+#include <Process/ScenarioModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraintId,
@@ -98,4 +98,22 @@ void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
            ISCORE_ABORT;
         }
     }
+}
+
+std::vector<ConstraintViewModel*> getConstraintViewModels(
+        const Id<ConstraintModel>& constraintId,
+        const ScenarioModel& scenario)
+{
+    const auto& lays = layers(scenario);
+
+    std::vector<ConstraintViewModel*> vec;
+    vec.reserve(lays.size());
+
+    // Creation of all the constraint view models
+    for(auto viewModel : lays)
+    {
+        vec.push_back(&viewModel->constraint(constraintId));
+    }
+
+    return vec;
 }
