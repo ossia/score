@@ -91,6 +91,9 @@ class CurvePresenter : public QObject
         void addPoint(CurvePointView*);
         void addSegment(CurveSegmentView*);
 
+        void addPoint_impl(CurvePointView*);
+        void addSegment_impl(CurveSegmentView*);
+
         void setupPointConnections(CurvePointView*);
         void setupSegmentConnections(CurveSegmentView*);
 
@@ -117,4 +120,6 @@ class CurvePresenter : public QObject
 
         QMenu* m_contextMenu{};
         QActionGroup* m_actions{};
+
+        bool m_enabled = true;
 };

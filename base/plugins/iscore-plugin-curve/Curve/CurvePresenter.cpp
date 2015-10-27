@@ -287,17 +287,29 @@ void CurvePresenter::fillContextMenu(
 void CurvePresenter::addPoint(CurvePointView * pt_view)
 {
     setupPointConnections(pt_view);
-
-    m_points.insert(pt_view);
-    setPos(*pt_view);
+    addPoint_impl(pt_view);
 }
 
 void CurvePresenter::addSegment(CurveSegmentView * seg_view)
 {
     setupSegmentConnections(seg_view);
+    addSegment_impl(seg_view);
+}
 
+void CurvePresenter::addPoint_impl(CurvePointView* pt_view)
+{
+    m_points.insert(pt_view);
+    setPos(*pt_view);
+
+    m_enabled ? pt_view->enable() : pt_view->disable();
+}
+
+void CurvePresenter::addSegment_impl(CurveSegmentView* seg_view)
+{
     m_segments.insert(seg_view);
     setPos(*seg_view);
+
+    m_enabled ? seg_view->enable() : seg_view->disable();
 }
 
 void CurvePresenter::setupPointConnections(CurvePointView* pt_view)
@@ -404,13 +416,11 @@ void CurvePresenter::modelReset()
 
     for(const auto& pt_view : points)
     {
-        m_points.insert(pt_view);
-        setPos(*pt_view);
+        addPoint_impl(pt_view);
     }
     for(const auto& seg_view : segments)
     {
-        m_segments.insert(seg_view);
-        setPos(*seg_view);
+        addSegment_impl(seg_view);
     }
 }
 
@@ -439,6 +449,8 @@ void CurvePresenter::enable()
     {
         point.enable();
     }
+
+    m_enabled = true;
 }
 
 void CurvePresenter::disable()
@@ -451,6 +463,8 @@ void CurvePresenter::disable()
     {
         point.disable();
     }
+
+    m_enabled = false;
 }
 
 // TESTME

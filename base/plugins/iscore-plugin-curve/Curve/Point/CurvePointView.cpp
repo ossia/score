@@ -54,9 +54,10 @@ void CurvePointView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    auto& style = CurveStyle::instance();
     if(!m_enabled)
         return;
+
+    auto& style = CurveStyle::instance();
 
     QPen pen;
     QColor c = m_selected
