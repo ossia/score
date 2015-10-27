@@ -10,7 +10,7 @@ namespace iscore
     class Document;
 }
 
-
+// MOVEME
 class ListeningState
 {
     public:
@@ -48,6 +48,7 @@ class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
         NodeUpdateProxy updateProxy{*this};
 
         ListeningState pauseListening();
+        // Note : if the tree has changed in between, we should make a new ListeningState
         void resumeListening(const ListeningState&);
 
     private:

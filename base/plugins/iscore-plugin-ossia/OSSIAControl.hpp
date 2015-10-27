@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 namespace OSSIA
 {
     class Device;
@@ -45,4 +45,6 @@ class OSSIAControl : public iscore::PluginControlInterface
         std::shared_ptr<OSSIA::Device> m_remoteDevice;
 
         bool m_playing{false};
+
+        ListeningState m_savedListening;
 };

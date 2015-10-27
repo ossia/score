@@ -121,8 +121,18 @@ ListeningState DeviceDocumentPlugin::pauseListening()
     ListeningState l;
     for(auto device : m_list.devices())
     {
-        l.listened.push_back(device->listening());
+        auto vec = device->listening();
+        for(const auto& elt : vec)
+            device->setListening(elt, false);
+
+        l.listened.push_back(std::move(vec));
     }
+
+    // Note : here we do not prevent new listening connections
+    // to be created. Else for instance recording would not work.
+
+    // The clients have to take care to not open new listening connections.
+    // Maybe find something better for this ?
 
     return l;
 }

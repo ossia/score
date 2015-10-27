@@ -133,6 +133,9 @@ void OSSIAControl::on_documentChanged()
     ISCORE_TODO;
 }
 
+#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <core/document/Document.hpp>
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 void OSSIAControl::on_play(bool b)
 {
     if(b)
@@ -140,7 +143,17 @@ void OSSIAControl::on_play(bool b)
         if(m_playing)
             baseConstraint().OSSIAConstraint()->resume();
         else
+        {
             baseConstraint().play();
+
+            // Here we stop the listening when we start playing the scenario.
+            // Get all the selected nodes
+            auto explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+
+            // Disable listening for everything
+            if(explorer)
+                m_savedListening = explorer->deviceModel().pauseListening();
+        }
 
         m_playing = true;
     }
@@ -154,6 +167,11 @@ void OSSIAControl::on_stop()
 {
     baseConstraint().stop();
     m_playing = false;
+
+    // If we can we resume listening
+    auto explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    if(explorer)
+        explorer->deviceModel().resumeListening(m_savedListening);
 }
 
 void OSSIAControl::setupOSSIACallbacks()
