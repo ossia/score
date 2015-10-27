@@ -88,6 +88,11 @@ namespace iscore
                 act->setObjectName(MenuInterface::name(menu));
             }
 
+            const auto& menuAt(ToplevelMenuElement i) const
+            {
+                return m_menusMap.at(i);
+            }
+
         signals:
 
         public slots:

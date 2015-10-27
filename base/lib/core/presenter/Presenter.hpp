@@ -9,6 +9,7 @@
 #include <iscore/tools/ObjectPath.hpp>
 
 #include <iscore/widgets/OrderedToolbar.hpp>
+#include <QRecentFilesMenu.h>
 
 namespace iscore
 {
@@ -139,5 +140,7 @@ namespace iscore
             QList<OrderedToolbar> m_toolbars;
 
             DocumentBuilder m_builder{*this};
+
+            QRecentFilesMenu* m_recentFiles{};
     };
 }

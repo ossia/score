@@ -108,6 +108,7 @@ const std::map<FileMenuElement, QString> MenuInterface::m_fileMap
     {FileMenuElement::New, QObject::tr("New") },
     {FileMenuElement::Separator_Load, QObject::tr("Separator_Load") },
     {FileMenuElement::Load, QObject::tr("Open") },
+    {FileMenuElement::Recent, QObject::tr("Recent files") },
     {FileMenuElement::Save, QObject::tr("Save") },
     {FileMenuElement::SaveAs, QObject::tr("Save As") },
     {FileMenuElement::Separator_Export, QObject::tr("Separator_Export") },

@@ -23,6 +23,7 @@ namespace iscore
         New,
         Separator_Load,
         Load,
+        Recent,
         Save,
         SaveAs,
         Separator_Export,

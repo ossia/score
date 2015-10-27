@@ -75,7 +75,7 @@ set(SRCS
 )
 
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
-target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets Qt5::Svg)
+target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets Qt5::Svg QRecentFilesMenu)
 
 setup_iscore_library(iscore_lib_base)
 setup_iscore_tests(tests)

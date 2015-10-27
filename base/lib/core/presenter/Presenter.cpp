@@ -24,6 +24,7 @@
 #include <QMessageBox>
 #include <QToolBar>
 #include <QJsonDocument>
+#include <QSettings>
 
 using namespace iscore;
 
@@ -50,6 +51,9 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
 
 Presenter::~Presenter()
 {
+    QSettings settings("OSSIA", "i-score");
+    settings.setValue("RecentFiles", m_recentFiles->saveState());
+
     // The documents have to be deleted before the plug-in controls.
     // This is because the Local device has to be deleted last in OSSIAControl.
     for(auto document : m_documents)
@@ -268,25 +272,26 @@ Document* Presenter::loadFile()
     return loadFile(loadname);
 }
 
-Document* Presenter::loadFile(const QString& loadname)
+Document* Presenter::loadFile(const QString& fileName)
 {
     Document* doc{};
-    if(!loadname.isEmpty())
+    if(!fileName.isEmpty())
     {
-        QFile f {loadname};
+        QFile f {fileName};
         if(f.open(QIODevice::ReadOnly))
         {
-            if (loadname.indexOf(".scorebin") != -1)
+            if (fileName.indexOf(".scorebin") != -1)
             {
                 doc = loadDocument(f.readAll(), m_availableDocuments.front());
             }
-            else if (loadname.indexOf(".scorejson") != -1)
+            else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
                 doc = loadDocument(json.object(), m_availableDocuments.front());
             }
         }
-        m_currentDocument->setDocFileName(loadname);
+        m_currentDocument->setDocFileName(fileName);
+        m_recentFiles->addRecentFile(fileName);
     }
 
     return doc;
@@ -352,6 +357,14 @@ void Presenter::setupMenus()
                                                        FileMenuElement::SaveAs,
                                                        [this]() { saveDocumentAs(currentDocument()); });
     saveAsAct->setShortcut(QKeySequence::SaveAs);
+
+    QMenu* fileMenu = m_menubar.menuAt(ToplevelMenuElement::FileMenu);
+    m_recentFiles = new QRecentFilesMenu(tr("Recent files"), fileMenu);
+    fileMenu->addMenu(m_recentFiles);
+    QSettings settings("OSSIA", "i-score");
+    m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
+    connect(m_recentFiles, &QRecentFilesMenu::recentFileTriggered,
+            this, [&] (const QString& f) { loadFile(f); });
 
     // ----------
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,

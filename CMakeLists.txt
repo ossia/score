@@ -54,18 +54,19 @@ set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${ISCORE_ROOT_BINARY_DIR}")
 include_directories("${3RDPARTY_FOLDER}/variant/include")
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator")
+add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu")
 
 set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
 
 add_subdirectory(base)
 
-if(INTEGRATION_TESTING)
+#if(INTEGRATION_TESTING)
 
-        include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
-        file(GLOB_RECURSE TESTS_HDRS
-                "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
-        add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
-    setup_iscore_tests(Tests/Integration)
-endif()
+ #       include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
+ #       file(GLOB_RECURSE TESTS_HDRS
+ #               "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
+  #      add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
+  #  setup_iscore_tests(Tests/Integration)
+#endif()
 
-include(CTest)
+#include(CTest)

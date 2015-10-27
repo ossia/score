@@ -10,3 +10,6 @@
 [submodule "3rdparty/kiwi"]
 	path = 3rdparty/kiwi
 	url = https://github.com/nucleic/kiwi.git
+[submodule "3rdparty/QRecentFilesMenu"]
+	path = 3rdparty/QRecentFilesMenu
+	url = https://github.com/jcelerier/QRecentFilesMenu.git
