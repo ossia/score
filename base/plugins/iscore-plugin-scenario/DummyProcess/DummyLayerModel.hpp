@@ -1,9 +1,37 @@
 #pragma once
 #include <ProcessInterface/LayerModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
 
-class DummyLayerModel : public LayerModel
+class DummyLayerModel final : public LayerModel
 {
+        ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(DummyLayerModel, JSONObject)
+
     public:
-        void serialize(const VisitorVariant&) const;
-        LayerModelPanelProxy*make_panelProxy(QObject* parent) const;
+        explicit DummyLayerModel(
+                Process& model,
+                const Id<LayerModel>& id,
+                QObject* parent);
+
+        // Copy
+        explicit DummyLayerModel(
+                const DummyLayerModel& source,
+                Process& model,
+                const Id<LayerModel>& id,
+                QObject* parent);
+
+        // Load
+        template<typename Impl>
+        explicit DummyLayerModel(
+                Deserializer<Impl>& vis,
+                Process& model,
+                QObject* parent) :
+            LayerModel {vis, model, parent}
+        {
+            vis.writeTo(*this);
+        }
+
+        void serialize(const VisitorVariant&) const override;
+        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
 };

@@ -18,6 +18,7 @@ set(DUMMYPROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyLayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyLayerView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DummyLayerPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyState.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyLayerModelSerialization.cpp"

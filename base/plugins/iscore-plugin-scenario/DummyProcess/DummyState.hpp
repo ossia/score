@@ -1,12 +1,16 @@
 #pragma once
 #include <ProcessInterface/State/ProcessStateDataInterface.hpp>
 
-class DummyState : public ProcessStateDataInterface
+class DummyState final : public ProcessStateDataInterface
 {
     public:
-        QString stateName() const;
-        ProcessStateDataInterface*clone(QObject* parent) const;
-        std::vector<iscore::Address> matchingAddresses();
-        iscore::MessageList messages() const;
-        iscore::MessageList setMessages(const iscore::MessageList& newMessages, const MessageNode& currentState);
+        DummyState(Process& model, QObject* parent);
+        QString stateName() const override;
+        ProcessStateDataInterface* clone(QObject* parent) const override;
+
+        std::vector<iscore::Address> matchingAddresses() override;
+        iscore::MessageList messages() const override;
+        iscore::MessageList setMessages(
+                const iscore::MessageList& newMessages,
+                const MessageNode& currentState) override;
 };

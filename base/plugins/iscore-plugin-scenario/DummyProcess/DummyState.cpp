@@ -1,21 +1,37 @@
 #include "DummyState.hpp"
 
-QString DummyState::stateName() const
+DummyState::DummyState(
+        Process& model,
+        QObject* parent):
+    ProcessStateDataInterface{model, parent}
 {
+
 }
 
-ProcessStateDataInterface*DummyState::clone(QObject* parent) const
+QString DummyState::stateName() const
 {
+    return "Dummy";
+}
+
+ProcessStateDataInterface* DummyState::clone(
+        QObject* parent) const
+{
+    return new DummyState{process(), parent};
 }
 
 std::vector<iscore::Address> DummyState::matchingAddresses()
 {
+    return {};
 }
 
 iscore::MessageList DummyState::messages() const
 {
+    return {};
 }
 
-iscore::MessageList DummyState::setMessages(const iscore::MessageList& newMessages, const MessageNode& currentState)
+iscore::MessageList DummyState::setMessages(
+        const iscore::MessageList&,
+        const MessageNode&)
 {
+    return {};
 }

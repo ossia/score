@@ -1,16 +1,32 @@
 #pragma once
 #include <ProcessInterface/LayerPresenter.hpp>
 
-class DummyLayerPresenter : public LayerPresenter
+class LayerView;
+class DummyLayerPresenter final : public LayerPresenter
 {
     public:
-        void setWidth(int width);
-        void setHeight(int height);
-        void putToFront();
-        void putBehind();
-        void on_zoomRatioChanged(ZoomRatio);
-        void parentGeometryChanged();
-        const LayerModel&layerModel() const;
-        const Id<Process>&modelId() const;
-        void fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const;
+        explicit DummyLayerPresenter(
+                const LayerModel& model,
+                QObject* parent);
+
+        void setWidth(int width) override;
+        void setHeight(int height) override;
+
+        void putToFront() override;
+        void putBehind() override;
+
+        void on_zoomRatioChanged(ZoomRatio) override;
+
+        void parentGeometryChanged() override;
+
+        const LayerModel& layerModel() const override;
+        const Id<Process>& modelId() const override;
+
+        void fillContextMenu(
+                QMenu*,
+                const QPoint& pos,
+                const QPointF& scenepos) const override;
+
+    private:
+        const LayerModel& m_layer;
 };

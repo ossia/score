@@ -9,5 +9,4 @@ class LayerModelPanelProxy : public QObject
 
         // Can return the same view model, or a new one.
         virtual const LayerModel& layer() = 0;
-
 };

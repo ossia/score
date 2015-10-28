@@ -7,6 +7,7 @@
 // TODO rename me in ProcessState
 class ProcessStateDataInterface : public QObject
 {
+        Q_OBJECT
     public:
         ProcessStateDataInterface(Process& model, QObject* parent):
             QObject{parent},
@@ -14,8 +15,6 @@ class ProcessStateDataInterface : public QObject
         {
         }
 
-        Q_OBJECT
-    public:
         virtual QString stateName() const = 0;
 
         virtual ProcessStateDataInterface* clone(QObject* parent) const = 0;

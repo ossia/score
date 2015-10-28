@@ -3,7 +3,6 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 /////// ViewModel
-// TODO id's should be saved.
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const AutomationLayerModel& lm)
 {
