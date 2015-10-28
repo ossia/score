@@ -1,11 +1,11 @@
 #include "TriggerModel.hpp"
 
+constexpr const char TriggerModel::className[];
 TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
-    IdentifiedObject<TriggerModel>{id, "TriggerModel", parent}
+    IdentifiedObject<TriggerModel>{id, className, parent}
 {
 
 }
-
 
 Trigger TriggerModel::expression() const
 {

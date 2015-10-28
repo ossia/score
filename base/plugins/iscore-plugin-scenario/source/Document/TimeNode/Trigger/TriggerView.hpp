@@ -1,8 +1,10 @@
 #pragma once
 #include <QGraphicsItem>
+class QGraphicsSvgItem;
 
-class TriggerView : public QGraphicsItem
+class TriggerView : public QGraphicsObject
 {
+        Q_OBJECT
     public:
         TriggerView(QGraphicsItem* parent);
         QRectF boundingRect() const override;
@@ -12,4 +14,13 @@ class TriggerView : public QGraphicsItem
 
         int type() const override
         { return QGraphicsItem::UserType + 7; }
+
+    signals:
+        void pressed();
+
+    protected:
+        void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+
+    private:
+        QGraphicsSvgItem* m_item{};
 };

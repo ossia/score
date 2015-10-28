@@ -273,7 +273,7 @@ void OSSIAScenarioElement::eventCallback(
         OSSIA::TimeEvent::Status newStatus)
 {
     auto the_event = const_cast<EventModel*>(&ev.iscoreEvent());
-    the_event->setStatus(static_cast<EventStatus>(newStatus));
+    the_event->setStatus(static_cast<ExecutionStatus>(newStatus));
 
     for(auto& state : the_event->states())
     {

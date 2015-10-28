@@ -1,17 +1,17 @@
 #include "ExecutionStatus.hpp"
 #include <ProcessInterface/Style/ScenarioStyle.hpp>
 
-const QColor& eventStatusColor(EventStatus e)
+const QColor& eventStatusColor(ExecutionStatus e)
 {
     static const QColor error = Qt::magenta;
     const auto& col = ScenarioStyle::instance();
     switch(e)
     {
-        case EventStatus::Editing:  return col.EventDefault;
-        case EventStatus::Waiting:  return col.EventWaiting;
-        case EventStatus::Pending:  return col.EventPending;
-        case EventStatus::Happened: return col.EventHappened;
-        case EventStatus::Disposed: return col.EventDisposed;
+        case ExecutionStatus::Editing:  return col.EventDefault;
+        case ExecutionStatus::Waiting:  return col.EventWaiting;
+        case ExecutionStatus::Pending:  return col.EventPending;
+        case ExecutionStatus::Happened: return col.EventHappened;
+        case ExecutionStatus::Disposed: return col.EventDisposed;
         default: return error;
     }
 }

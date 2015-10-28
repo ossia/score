@@ -79,7 +79,7 @@ class EventModel : public IdentifiedObject<EventModel>
         const TimeValue& date() const;
         void translate(const TimeValue& deltaTime);
 
-        EventStatus status() const;
+        ExecutionStatus status() const;
         void reset();
 
     public slots:
@@ -88,7 +88,7 @@ class EventModel : public IdentifiedObject<EventModel>
         void setExtent(const VerticalExtent &extent);
         void setDate(const TimeValue& date);
 
-        void setStatus(EventStatus status);
+        void setStatus(ExecutionStatus status);
 
     signals:
         void extentChanged(const VerticalExtent&);
@@ -98,7 +98,7 @@ class EventModel : public IdentifiedObject<EventModel>
 
         void statesChanged();
 
-        void statusChanged(EventStatus status);
+        void statusChanged(ExecutionStatus status);
 
     private:
         Id<TimeNodeModel> m_timeNode;
@@ -110,5 +110,5 @@ class EventModel : public IdentifiedObject<EventModel>
         VerticalExtent m_extent;
         TimeValue m_date{TimeValue::zero()};
 
-        EventStatus m_status{EventStatus::Editing};
+        ExecutionStatus m_status{ExecutionStatus::Editing};
 };

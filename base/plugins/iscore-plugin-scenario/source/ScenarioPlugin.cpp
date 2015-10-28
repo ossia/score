@@ -38,7 +38,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     qRegisterMetaTypeStreamOperators<iscore::ValueList>();
 
     qRegisterMetaTypeStreamOperators<TimeValue>();
-    qRegisterMetaType<EventStatus>();
+    qRegisterMetaType<ExecutionStatus>();
 }
 
 // Interfaces implementations :

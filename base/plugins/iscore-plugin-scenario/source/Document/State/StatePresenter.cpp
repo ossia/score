@@ -33,7 +33,7 @@ StatePresenter::StatePresenter(
             this, &StatePresenter::updateStateView);
 
     con(m_model, &StateModel::statusChanged,
-        this, [&] (EventStatus e)
+        this, [&] (ExecutionStatus e)
     {
         m_view->changeColor(eventStatusColor(e));
     });

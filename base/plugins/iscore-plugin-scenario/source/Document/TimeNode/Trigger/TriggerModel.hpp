@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <Document/Event/ExecutionStatus.hpp>
 
 #include "State/Expression.hpp"
 
@@ -8,10 +9,11 @@ using namespace iscore;
 
 class TriggerModel : public IdentifiedObject<TriggerModel>
 {
-    Q_OBJECT
+        Q_OBJECT
+        ISCORE_METADATA("TriggerModel")
 
     public:
-        TriggerModel(const Id<TriggerModel>& id, QObject* parent = 0);
+        TriggerModel(const Id<TriggerModel>& id, QObject* parent);
 
         iscore::Trigger expression() const;
         void setExpression(const iscore::Trigger& expression);
@@ -20,11 +22,15 @@ class TriggerModel : public IdentifiedObject<TriggerModel>
         bool active() const;
         void setActive(bool active);
 
+        // Note : this is for API -> UI communication.
+        // To trigger by hand we have the triggered() signal.
+        ExecutionStatusProperty executionStatus; // TODO serialize me
+
     signals:
         void triggerChanged(const iscore::Trigger&);
         void activeChanged();
 
-    public slots:
+        void triggered() const;
 
     private:
         iscore::Trigger m_expression;

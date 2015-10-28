@@ -38,7 +38,7 @@ class EventView final : public QGraphicsObject
         void setExtent(const VerticalExtent& extent);
         void setExtent(VerticalExtent&& extent);
 
-        void setStatus(EventStatus s);
+        void setStatus(ExecutionStatus s);
 
     signals:
         void eventHoverEnter();
@@ -66,7 +66,7 @@ class EventView final : public QGraphicsObject
         QPointF m_clickedPoint;
         QColor m_color;
 
-        EventStatus m_status{EventStatus::Editing};
+        ExecutionStatus m_status{ExecutionStatus::Editing};
         bool m_selected{};
 
         VerticalExtent m_extent;

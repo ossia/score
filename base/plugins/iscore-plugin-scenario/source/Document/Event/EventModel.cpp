@@ -67,7 +67,7 @@ void EventModel::setDate(const TimeValue& date)
     }
 }
 
-void EventModel::setStatus(EventStatus status)
+void EventModel::setStatus(ExecutionStatus status)
 {
     if (m_status == status)
         return;
@@ -87,14 +87,14 @@ void EventModel::translate(const TimeValue& deltaTime)
     setDate(m_date + deltaTime);
 }
 
-EventStatus EventModel::status() const
+ExecutionStatus EventModel::status() const
 {
     return m_status;
 }
 
 void EventModel::reset()
 {
-    setStatus(EventStatus::Editing);
+    setStatus(ExecutionStatus::Editing);
 }
 
 

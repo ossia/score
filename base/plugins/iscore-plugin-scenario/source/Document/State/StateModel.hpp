@@ -74,14 +74,14 @@ class StateModel : public IdentifiedObject<StateModel>
         const auto& followingProcesses() const
         { return m_nextProcesses; }
 
-        void setStatus(EventStatus);
-        EventStatus status() const
+        void setStatus(ExecutionStatus);
+        ExecutionStatus status() const
         { return m_status; }
 
     signals:
         void sig_statesUpdated();
         void heightPercentageChanged();
-        void statusChanged(EventStatus);
+        void statusChanged(ExecutionStatus);
 
     public slots:
         void setHeightPercentage(double y);
@@ -106,7 +106,7 @@ class StateModel : public IdentifiedObject<StateModel>
         double m_heightPercentage{0.5}; // In the whole scenario
 
         ptr<MessageItemModel> m_messageItemModel;
-        EventStatus m_status{EventStatus::Editing};
+        ExecutionStatus m_status{ExecutionStatus::Editing};
 
         std::vector<QMetaObject::Connection> m_prevConnections;
         std::vector<QMetaObject::Connection> m_nextConnections;

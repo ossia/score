@@ -16,7 +16,7 @@ TimeNodePresenter::TimeNodePresenter(const TimeNodeModel& model,
     m_model {model},
     m_view {new TimeNodeView{*this, parentview}}
 {
-    m_triggerPres = new TriggerPresenter{m_model.trigger(), m_view, this };
+    m_triggerPres = new TriggerPresenter{*m_model.trigger(), m_view, this };
 
     con(m_model.selection, &Selectable::changed,
             m_view, &TimeNodeView::setSelected);

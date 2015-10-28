@@ -70,7 +70,7 @@ void EventView::paint(QPainter* painter,
                       QWidget* widget)
 {
     QPen eventPen;
-    if(m_status == EventStatus::Editing)
+    if(m_status == ExecutionStatus::Editing)
         eventPen = QPen(m_color);
     else
         eventPen = QPen(eventStatusColor(m_status));
@@ -107,7 +107,7 @@ void EventView::setExtent(VerticalExtent &&extent)
     this->update();
 }
 
-void EventView::setStatus(EventStatus s)
+void EventView::setStatus(ExecutionStatus s)
 {
     m_status = s;
     update();

@@ -18,6 +18,10 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
     connect(m_iscore_node.trigger(), &TriggerModel::triggerChanged,
         this, &OSSIATimeNodeElement::on_triggerChanged);
 
+    connect(m_iscore_node.trigger(), &TriggerModel::triggered,
+            this, [&] () {
+        m_ossia_node->happen();
+    });
     on_triggerChanged(m_iscore_node.trigger()->expression());
 }
 

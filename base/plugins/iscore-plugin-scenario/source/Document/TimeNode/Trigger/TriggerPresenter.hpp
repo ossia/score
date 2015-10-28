@@ -8,12 +8,11 @@ class TriggerPresenter : public QObject
 {
         Q_OBJECT
     public:
-        // TODO const TriggerModel&
-        TriggerPresenter(TriggerModel*, QGraphicsObject*, QObject* parent = 0);
+        TriggerPresenter(const TriggerModel&, QGraphicsObject*, QObject* parent = 0);
 
-        TriggerModel* model() { return m_model;}
+        const TriggerModel& model() const { return m_model;}
 
     private:
-        TriggerModel* m_model{};
+        const TriggerModel& m_model;
         TriggerView* m_view{};
 };

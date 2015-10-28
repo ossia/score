@@ -280,7 +280,7 @@ MessageItemModel& StateModel::messages()
 }
 
 
-void StateModel::setStatus(EventStatus status)
+void StateModel::setStatus(ExecutionStatus status)
 {
     if (m_status == status)
         return;
