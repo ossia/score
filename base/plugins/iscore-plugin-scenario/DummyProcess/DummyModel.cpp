@@ -45,17 +45,17 @@ QByteArray DummyModel::makeLayerConstructionData() const
 
 void DummyModel::setDurationAndScale(const TimeValue& newDuration)
 {
-    (void)newDuration;
+    setDuration(newDuration);
 }
 
 void DummyModel::setDurationAndGrow(const TimeValue& newDuration)
 {
-    (void)newDuration;
+    setDuration(newDuration);
 }
 
 void DummyModel::setDurationAndShrink(const TimeValue& newDuration)
 {
-    (void)newDuration;
+    setDuration(newDuration);
 }
 
 void DummyModel::startExecution()
@@ -72,12 +72,12 @@ void DummyModel::reset()
 
 ProcessStateDataInterface* DummyModel::startState() const
 {
-    return nullptr;
+    return &m_startState;
 }
 
 ProcessStateDataInterface* DummyModel::endState() const
 {
-    return nullptr;
+    return &m_endState;
 }
 
 Selection DummyModel::selectableChildren() const

@@ -1,5 +1,6 @@
 #pragma once
 #include <DocumentPlugin/OSSIAProcessElement.hpp>
+#include <DocumentPlugin/OSSIAConstraintElement.hpp>
 #include "OSSIAProcessModel.hpp"
 
 class OSSIAProcessModelElement : public OSSIAProcessElement
@@ -12,7 +13,7 @@ class OSSIAProcessModelElement : public OSSIAProcessElement
             OSSIAProcessElement{cst, parent},
             m_process{proc}
         {
-
+            m_process.process()->setParentConstraint(cst.OSSIAConstraint());
         }
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override

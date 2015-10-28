@@ -13,7 +13,16 @@ if(NOT ${Jamoma_FOUND})
 endif()
 
 # Files & main target
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+file(GLOB HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/*.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/*.hpp"
+)
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
@@ -41,8 +50,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.cpp"
-
 )
+
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
@@ -51,3 +60,6 @@ target_link_libraries(${PROJECT_NAME}
                         OSSIAHeadersLib APIJamoma)
 
 setup_iscore_plugin(${PROJECT_NAME})
+
+
+add_subdirectory(SimpleProcess)

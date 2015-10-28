@@ -3,7 +3,8 @@
 
 class DummyLayerView final : public LayerView
 {
-    protected:
+    public:
         explicit DummyLayerView(QGraphicsItem* parent);
+    protected:
         void paint_impl(QPainter*) const override;
 };
