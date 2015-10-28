@@ -57,7 +57,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id = std::move(id);
         }
 
-        mutable Path<model> m_path_cache; // TODO see stackoverflow to put in private
+        mutable Path<model> m_path_cache; // TODO see http://stackoverflow.com/questions/32987869/befriending-of-function-template-with-enable-if to put in private
     private:
         Id<model> m_id {};
 };

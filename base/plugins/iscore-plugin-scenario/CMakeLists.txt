@@ -8,6 +8,7 @@ if(DEFINE_ISCORE_SCENARIO_DEBUG_RECTS)
 endif()
 
 # Packages
+# TODO make a check to see what libs aren't necessary
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
 if(ISCORE_OPENGL)
 find_package(Qt5 5.3 REQUIRED COMPONENTS OpenGL)
@@ -48,7 +49,10 @@ target_link_libraries(iscore_lib_process
 
 setup_iscore_library(iscore_lib_process)
 
-### Plugin ###
+### Dummy process ###
+add_subdirectory(DummyProcess)
+
+### Scenario plugin ###
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/source/Commands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/source/Control/*.hpp"

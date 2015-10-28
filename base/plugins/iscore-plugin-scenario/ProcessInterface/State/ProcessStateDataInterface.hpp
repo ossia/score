@@ -4,6 +4,7 @@
 #include <ProcessInterface/Process.hpp>
 #include <ProcessInterface/State/MessageNode.hpp>
 
+// TODO rename me in ProcessState
 class ProcessStateDataInterface : public QObject
 {
     public:
