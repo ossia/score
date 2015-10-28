@@ -78,9 +78,10 @@ Process& OSSIAScenarioElement::iscoreProcess() const
 void OSSIAScenarioElement::stop()
 {
     m_executingConstraints.clear();
+    // FIXME should this call OSSIAProcessElement::stop() ???
 }
 
-std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::process() const
+std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::OSSIAProcess() const
 {
     return scenario();
 }

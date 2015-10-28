@@ -1,4 +1,5 @@
 #include "DummyModel.hpp"
+#include "DummyLayerModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 
 
@@ -98,7 +99,6 @@ void DummyModel::serialize(const VisitorVariant& s) const
     serialize_dyn(s, *this);
 }
 
-#include "DummyLayerModel.hpp"
 LayerModel* DummyModel::makeLayer_impl(
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,

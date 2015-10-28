@@ -41,6 +41,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.cpp"
+
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})

@@ -1,15 +1,18 @@
 #include "OSSIAConstraintElement.hpp"
-#include <API/Headers/Editor/TimeConstraint.h>
-#include <API/Headers/Editor/TimeProcess.h>
-#include "../iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
-#include "OSSIAScenarioElement.hpp"
-
-#include <boost/range/algorithm.hpp>
-#include "../iscore-plugin-curve/Automation/AutomationModel.hpp"
 #include "OSSIAAutomationElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 #include "iscore2OSSIA.hpp"
 #include "OSSIA2iscore.hpp"
+
+#include <ProcessModel/OSSIAProcessModel.hpp>
+#include <ProcessModel/OSSIAProcessModelElement.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Document/Constraint/ConstraintModel.hpp>
+
+#include <API/Headers/Editor/TimeConstraint.h>
+#include <API/Headers/Editor/TimeProcess.h>
+
+#include <boost/range/algorithm.hpp>
 
 #include <sstream>
 
@@ -135,6 +138,10 @@ void OSSIAConstraintElement::on_processAdded(
     {
         plug = new OSSIAAutomationElement{*this, *autom, proc};
     }
+    else if(auto generic = dynamic_cast<OSSIAProcessModel*>(proc))
+    {
+        plug = new OSSIAProcessModelElement{*this, *generic, proc};
+    }
 
     if(plug)
     {
@@ -143,7 +150,7 @@ void OSSIAConstraintElement::on_processAdded(
                             OSSIAProcess(plug,
                              std::make_unique<ProcessWrapper>(
                                  m_ossia_constraint,
-                                 plug->process(),
+                                 plug->OSSIAProcess(),
                                  iscore::convert::time(plug->iscoreProcess().duration()),
                                  m_iscore_constraint.looping()
                              )

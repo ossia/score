@@ -47,7 +47,7 @@ OSSIAAutomationElement::OSSIAAutomationElement(
     on_addressChanged(m_iscore_autom.address());
 }
 
-std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::process() const
+std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::OSSIAProcess() const
 {
     return m_ossia_autom;
 }

@@ -21,7 +21,7 @@ class OSSIAProcessElement : public QObject
 
         }
 
-        virtual std::shared_ptr<OSSIA::TimeProcess> process() const = 0;
+        virtual std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const = 0;
         virtual Process& iscoreProcess() const = 0;
         virtual void stop()
         {
