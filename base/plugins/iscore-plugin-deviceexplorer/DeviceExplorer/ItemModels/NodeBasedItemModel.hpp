@@ -24,7 +24,7 @@ class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
                 ISCORE_ASSERT(parent);
                 ISCORE_ASSERT(parent != &rootNode());
 
-                return createIndex(n.parent()->indexOfChild(&n), column, &n);
+                return createIndex(parent->indexOfChild(&n), column, &n);
             }
         }
 
