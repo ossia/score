@@ -79,10 +79,11 @@ ObjectMenuActions::ObjectMenuActions(
     // COPY/CUT
     m_copyContent = new QAction{tr("Copy"), this};
     m_copyContent->setShortcut(QKeySequence::Copy);
-    m_copyContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_copyContent->setShortcutContext(Qt::ApplicationShortcut);
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
+        qDebug("da");
         auto obj = copySelectedElementsToJson();
         if(obj.empty())
             return;
@@ -93,7 +94,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     m_cutContent = new QAction{tr("Cut"), this};
     m_cutContent->setShortcut(QKeySequence::Cut);
-    m_cutContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
     connect(m_cutContent, &QAction::triggered,
             [this]()
     {
@@ -106,7 +107,6 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     m_pasteContent = new QAction{tr("Paste content"), this};
-    //m_pasteContent->setShortcut(QKeySequence::Paste);
     m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(m_pasteContent, &QAction::triggered,
             [this]()
