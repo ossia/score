@@ -226,6 +226,7 @@ void SlotPresenter::on_layerModelCreated_impl(
     auto procname = proc_vm.processModel().processName();
 
     auto factory = ProcessList::getFactory(procname);
+    ISCORE_ASSERT(factory);
 
     int numproc = m_looping
                   ? m_view->width() / proc_vm.processModel().duration().toPixels(m_zoomRatio) + 1

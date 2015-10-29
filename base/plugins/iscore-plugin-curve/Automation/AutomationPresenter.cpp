@@ -40,16 +40,7 @@ AutomationPresenter::AutomationPresenter(
 
     con(m_viewModel.model(), &Process::execution,
         this, [&] (bool b) {
-        if(b)
-        {
-            if(m_curvepresenter->stateMachine().isRunning())
-                m_curvepresenter->stateMachine().stop();
-        }
-        else
-        {
-            if(!m_curvepresenter->stateMachine().isRunning())
-                m_curvepresenter->stateMachine().start();
-        }
+        setCurveStateMachineStatus(!b);
     });
 
     con(m_viewModel.model(), &AutomationModel::addressChanged,
@@ -129,7 +120,27 @@ void AutomationPresenter::fillContextMenu(
     m_curvepresenter->fillContextMenu(app, pos, scenepos);
 }
 
+void AutomationPresenter::setCurveStateMachineStatus(bool run)
+{
+    auto& sm = m_curvepresenter->stateMachine();
+    if(run)
+    {
+        if(!sm.isRunning())
+            sm.start();
+    }
+    else
+    {
+        if(sm.isRunning())
+        {
+            sm.stop();
+            sm.setMoveState();
+        }
+    }
+}
+
 void AutomationPresenter::on_focusChanged()
 {
-    m_curvepresenter->enableActions(focused());
+    bool b = focused();
+    m_curvepresenter->enableActions(b);
+    setCurveStateMachineStatus(b);
 }

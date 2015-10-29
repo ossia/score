@@ -65,7 +65,6 @@ ScenarioStateMachine::ScenarioStateMachine(
 
                 changeTool(1);
             }
-
         });
 
 

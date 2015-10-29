@@ -18,11 +18,12 @@ class LayerPresenter : public NamedObject
     public:
         using NamedObject::NamedObject;
 
+        virtual ~LayerPresenter() = default;
+
         bool focused() const;
         void setFocus(bool focus);
         virtual void on_focusChanged();
 
-        virtual ~LayerPresenter() = default;
 
         virtual void setWidth(int width) = 0;
         virtual void setHeight(int height) = 0;

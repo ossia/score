@@ -249,7 +249,9 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 void TemporalScenarioPresenter::on_focusChanged()
 {
+    // TODO lefuck ?
     m_view->setFocus();
+    m_sm.setMoveState();
 }
 
 /////////////////////////////////////////////////////////////////////

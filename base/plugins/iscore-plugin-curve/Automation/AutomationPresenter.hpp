@@ -35,6 +35,8 @@ class AutomationPresenter : public LayerPresenter
                              const QPoint& pos,
                              const QPointF& scenepos) const override;
 
+        void setCurveStateMachineStatus(bool);
+
     private:
         const AutomationLayerModel& m_viewModel;
         AutomationView* m_view {};
