@@ -5,7 +5,6 @@
 #include "Actions/CreateCurves.hpp"
 #include "Actions/SnapshotParameters.hpp"
 
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <Control/ScenarioControl.hpp>
 

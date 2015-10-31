@@ -1,5 +1,5 @@
 #pragma once
-#include <Commands/AutomationCommandFactory.hpp>
+#include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <iscore/command/PropertyCommand.hpp>
 
 class AutomationModel;

@@ -1,5 +1,5 @@
 #pragma once
-#include <Commands/AutomationCommandFactory.hpp>
+#include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
 
 #include <iscore/tools/ModelPath.hpp>

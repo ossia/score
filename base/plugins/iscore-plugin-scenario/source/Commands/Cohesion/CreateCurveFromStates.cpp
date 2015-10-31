@@ -1,11 +1,12 @@
 #include "CreateCurveFromStates.hpp"
 
-#include "base/plugins/iscore-plugin-scenario/source/Document/Constraint/ConstraintModel.hpp"
-#include "base/plugins/iscore-plugin-curve/Automation/AutomationModel.hpp"
-#include "base/plugins/iscore-plugin-curve/Curve/CurveModel.hpp"
-#include "base/plugins/iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
+#include <Document/Constraint/ConstraintModel.hpp>
 
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include <Automation/AutomationModel.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 CreateCurveFromStates::CreateCurveFromStates(

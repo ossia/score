@@ -27,11 +27,10 @@
  *
  * Base class for command instantiation. Allows a polymorphic use.
  */
-class CommandGenerator
+class CommandFactory
 {
     public:
-        virtual ~CommandGenerator() = default;
-        virtual iscore::SerializableCommand* operator()() const = 0; // TODO REMOVE
+        virtual ~CommandFactory() = default;
         virtual iscore::SerializableCommand* operator()(const QByteArray& data) const = 0;
 };
 
@@ -41,14 +40,9 @@ class CommandGenerator
  * Factory that covers the standard use case for command instantiation.
  */
 template<typename T>
-class CommandGeneratorImpl : public CommandGenerator
+class GenericCommandFactory : public CommandFactory
 {
     public:
-        iscore::SerializableCommand* operator()() const override
-        {
-            return new T;
-        }
-
         iscore::SerializableCommand* operator()(const QByteArray& data) const override
         {
             auto t = new T;
@@ -62,7 +56,7 @@ class CommandGeneratorImpl : public CommandGenerator
  *
  * A map between command names and corresponding factories.
  */
-using CommandGeneratorMap = std::unordered_map<std::string, std::unique_ptr<CommandGenerator>>;
+using CommandGeneratorMap = std::unordered_map<std::string, std::unique_ptr<CommandFactory>>;
 
 /**
  * @brief The CommandGeneratorMapInserter struct
@@ -71,14 +65,14 @@ using CommandGeneratorMap = std::unordered_map<std::string, std::unique_ptr<Comm
  * a boost::mpl::for_each.
  */
 
-struct CommandGeneratorMapInserter2
+struct CommandGeneratorMapInserter
 {
         CommandGeneratorMap& fact;
         template< typename TheCommand > void operator()(boost::type<TheCommand>)
         {
-            fact.insert(std::pair<const std::string, std::unique_ptr<CommandGenerator>>{
+            fact.insert(std::pair<const std::string, std::unique_ptr<CommandFactory>>{
                                 TheCommand::commandName(),
-                                std::unique_ptr<CommandGenerator>(new CommandGeneratorImpl<TheCommand>)
+                                std::unique_ptr<CommandFactory>(new GenericCommandFactory<TheCommand>)
                         }
             );
         }

@@ -9,8 +9,8 @@
 #include "Commands/Constraint/AddOnlyProcessToConstraint.hpp"
 #include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
 #include "Commands/Scenario/Displacement/MoveEvent.hpp"
-#include "Commands/ChangeAddress.hpp"
-#include "Commands/InitAutomation.hpp"
+#include "Automation/Commands/ChangeAddress.hpp"
+#include "Automation/Commands/InitAutomation.hpp"
 #include <Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Commands/Constraint/AddRackToConstraint.hpp>
 #include <Commands/Constraint/Rack/AddSlotToRack.hpp>

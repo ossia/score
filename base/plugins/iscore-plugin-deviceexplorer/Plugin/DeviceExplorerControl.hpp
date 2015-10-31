@@ -14,7 +14,4 @@ class DeviceExplorerControl : public iscore::PluginControlInterface
     protected:
         void on_newDocument(iscore::Document* doc) override;
         void on_documentChanged() override;
-
-    private:
-        void setupCommands();
 };

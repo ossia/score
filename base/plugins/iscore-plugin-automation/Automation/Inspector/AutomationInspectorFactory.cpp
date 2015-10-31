@@ -1,6 +1,6 @@
 #include "AutomationInspectorFactory.hpp"
 #include "AutomationInspectorWidget.hpp"
-#include "../Automation/AutomationModel.hpp"
+#include <Automation/AutomationModel.hpp>
 
 //using namespace iscore;
 

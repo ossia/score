@@ -1,5 +1,5 @@
 #include "AutomationStateInspector.hpp"
-#include "State/AutomationState.hpp"
+#include "Automation/State/AutomationState.hpp"
 #include <QLabel>
 #include <QHBoxLayout>
 

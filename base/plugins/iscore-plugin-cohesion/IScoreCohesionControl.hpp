@@ -16,8 +16,6 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void stopRecord();
 
     private:
-        void setupCommands();
-
         QAction* m_snapshot{};
         QAction* m_curves{};
 

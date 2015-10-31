@@ -56,7 +56,7 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_deviceexplorer
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
                         OSSIAHeadersLib APIJamoma)
 
 setup_iscore_plugin(${PROJECT_NAME})

@@ -1,5 +1,5 @@
 #pragma once
-#include <Commands/AutomationCommandFactory.hpp>
+#include <Curve/Commands/CurveCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
@@ -8,7 +8,7 @@ class CurveSegmentModel;
 using SegmentParameterMap = QMap<Id<CurveSegmentModel>, QPair<double, double>>;
 class SetSegmentParameters : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), SetSegmentParameters, "SetSegmentParameters")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(CurveCommandFactoryName(), SetSegmentParameters, "SetSegmentParameters")
     public:
         SetSegmentParameters(Path<CurveModel>&& model, SegmentParameterMap&& parameters);
 

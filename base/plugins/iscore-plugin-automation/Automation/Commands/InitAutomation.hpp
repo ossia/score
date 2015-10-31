@@ -1,5 +1,5 @@
 #pragma once
-#include <Commands/AutomationCommandFactory.hpp>
+#include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <State/Address.hpp>

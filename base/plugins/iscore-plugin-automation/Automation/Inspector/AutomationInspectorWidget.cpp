@@ -1,16 +1,16 @@
 #include "AutomationInspectorWidget.hpp"
 #include "Automation/AutomationModel.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
-#include "Commands/ChangeAddress.hpp"
-#include "Commands/SetCurveMin.hpp"
-#include "Commands/SetCurveMax.hpp"
+#include "Automation/Commands/ChangeAddress.hpp"
+#include "Automation/Commands/SetCurveMin.hpp"
+#include "Automation/Commands/SetCurveMax.hpp"
 
 #include <Singletons/DeviceExplorerInterface.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/AddressEditWidget.hpp>
-#include <DeviceExplorer/../Plugin/Panel/DeviceExplorerModel.hpp>
-#include <DeviceExplorer/../Plugin/PanelBase/DeviceExplorerPanelModel.hpp>
+#include <Plugin/Widgets/DeviceCompleter.hpp>
+#include <Plugin/Widgets/DeviceExplorerMenuButton.hpp>
+#include <Plugin/Widgets/AddressEditWidget.hpp>
+#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Plugin/PanelBase/DeviceExplorerPanelModel.hpp>
 
 #include <State/Widgets/AddressLineEdit.hpp>
 

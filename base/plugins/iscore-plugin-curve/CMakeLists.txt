@@ -24,27 +24,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArrayCurveSegmentSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModelSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPanelProxy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerModel.cpp"
-
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerSerialization.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Commands/InitAutomation.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/SetSegmentParameters.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/UpdateCurve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointModel.cpp"
@@ -75,25 +55,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveStyle.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_curve.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/AutomationState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.cpp"
 )
-
-if(TARGET iscore_lib_inspector)
-    set(INSPECTOR_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationStateInspector.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationStateInspectorFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Inspector/AutomationInspectorWidget.cpp"
-    )
-
-    set(SRCS ${SRCS} ${INSPECTOR_SRCS})
-
-    file(GLOB_RECURSE INSPECTOR_HDRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/*.hpp")
-
-    set(HDRS ${HDRS} ${INSPECTOR_HDRS})
-endif()
 
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Curve/resources/AutomationResources.qrc")
 

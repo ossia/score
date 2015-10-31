@@ -69,7 +69,7 @@ std::pair<const std::string, CommandGeneratorMap> iscore_plugin_deviceexplorer::
             UpdateAddressesValues
             >,
             boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter2{cmds.second});
+            >(CommandGeneratorMapInserter{cmds.second});
 
     return cmds;
 }

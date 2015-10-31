@@ -11,7 +11,7 @@
 #include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
 #include <Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
-#include "../iscore-plugin-curve/Automation/AutomationModel.hpp"
+#include <Automation/AutomationModel.hpp>
 
 
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel &doc, QObject* parent):

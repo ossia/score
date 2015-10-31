@@ -4,7 +4,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
-#include <State/AutomationState.hpp>
+#include <Automation/State/AutomationState.hpp>
 #include <State/Address.hpp>
 
 /**

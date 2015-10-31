@@ -9,6 +9,5 @@ class AutomationControl : public iscore::PluginControlInterface
         virtual ~AutomationControl() = default;
 
     private:
-        void setupCommands();
         void initColors();
 };

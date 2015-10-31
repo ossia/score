@@ -1,6 +1,6 @@
 #include "AutomationStateInspectorFactory.hpp"
 #include "AutomationStateInspector.hpp"
-#include "State/AutomationState.hpp"
+#include <Automation/State/AutomationState.hpp>
 
 InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
         const QObject& sourceElement,

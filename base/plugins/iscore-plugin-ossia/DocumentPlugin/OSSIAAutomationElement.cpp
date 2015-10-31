@@ -4,7 +4,7 @@
 #include <API/Headers/Editor/State.h>
 #include <API/Headers/Editor/Message.h>
 #include <API/Headers/Editor/Value.h>
-#include "../iscore-plugin-curve/Automation/AutomationModel.hpp"
+#include <Automation/AutomationModel.hpp>
 #include "iscore2OSSIA.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
