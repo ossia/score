@@ -174,8 +174,6 @@ void AutomationModel::setCurve_impl()
         m_startState->messagesChanged(m_startState->messages());
         m_endState->messagesChanged(m_endState->messages());
     });
-
-    emit m_curve->changed();
 }
 
 

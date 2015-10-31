@@ -60,6 +60,8 @@ class CurveProcessModel : public Process
             m_curve = newCurve;
 
             setCurve_impl();
+
+            emit m_curve->changed();
         }
 
         virtual void setCurve_impl() { }

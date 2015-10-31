@@ -1,0 +1,114 @@
+#pragma once
+
+#include <Curve/Process/CurveProcessModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
+#include <State/Address.hpp>
+
+/**
+ * @brief The MappingModel class
+ *
+ * Points are in relative coordinates :
+ *	x is between  0 and 1,
+ *  y is between -1 and 1.
+ *
+ * The duration is the time between x=0 and x=1.
+ *
+ */
+class CurveModel;
+class MappingModel : public CurveProcessModel
+{
+        ISCORE_SERIALIZE_FRIENDS(MappingModel, DataStream)
+        ISCORE_SERIALIZE_FRIENDS(MappingModel, JSONObject)
+
+        Q_OBJECT
+
+    public:
+        MappingModel(const TimeValue& duration,
+                        const Id<Process>& id,
+                        QObject* parent);
+        Process* clone(const Id<Process>& newId,
+                                           QObject* newParent) const override;
+
+        template<typename Impl>
+        MappingModel(Deserializer<Impl>& vis, QObject* parent) :
+            CurveProcessModel{vis, parent}
+        {
+            vis.writeTo(*this);
+        }
+
+        //// ProcessModel ////
+        QString processName() const override;
+
+        QString userFriendlyDescription() const override;
+
+        LayerModel* makeLayer_impl(
+                const Id<LayerModel>& viewModelId,
+                const QByteArray& constructionData,
+                QObject* parent) override;
+        LayerModel* loadLayer_impl(
+                const VisitorVariant&,
+                QObject* parent) override;
+
+        void setDurationAndScale(const TimeValue& newDuration) override;
+        void setDurationAndGrow(const TimeValue& newDuration) override;
+        void setDurationAndShrink(const TimeValue& newDuration) override;
+
+        void serialize(const VisitorVariant& vis) const override;
+
+        /// States
+        ProcessStateDataInterface* startState() const override;
+        ProcessStateDataInterface* endState() const override;
+
+
+        //// MappingModel specifics ////
+        //// Source stuff
+        iscore::Address sourceAddress() const;
+        double sourceMin() const;
+        double sourceMax() const;
+
+        void setSourceAddress(const iscore::Address& arg);
+        void setSourceMin(double arg);
+        void setSourceMax(double arg);
+
+    signals:
+        void sourceAddressChanged(const iscore::Address& arg);
+        void sourceMinChanged(double arg);
+        void sourceMaxChanged(double arg);
+
+        //// Target stuff
+    public:
+        iscore::Address targetAddress() const;
+        double targetMin() const;
+        double targetMax() const;
+
+        void setTargetAddress(const iscore::Address& arg);
+        void setTargetMin(double arg);
+        void setTargetMax(double arg);
+
+    signals:
+        void targetAddressChanged(const iscore::Address& arg);
+        void targetMinChanged(double arg);
+        void targetMaxChanged(double arg);
+
+
+    protected:
+        MappingModel(const MappingModel& source,
+                        const Id<Process>& id,
+                        QObject* parent);
+        LayerModel* cloneLayer_impl(
+                const Id<LayerModel>& newId,
+                const LayerModel& source,
+                QObject* parent) override;
+
+    private:
+        iscore::Address m_sourceAddress;
+        iscore::Address m_targetAddress;
+
+        double m_sourceMin{};
+        double m_sourceMax{};
+
+        double m_targetMin{};
+        double m_targetMax{};
+};
