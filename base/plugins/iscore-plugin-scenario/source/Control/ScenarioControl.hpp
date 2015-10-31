@@ -48,10 +48,6 @@ class ScenarioControl : public iscore::PluginControlInterface
         virtual QList<iscore::OrderedToolbar> makeToolbars() override;
         QList<QAction*> actions() override;
 
-        virtual iscore::SerializableCommand* instantiateUndoCommand(
-                const QString& name,
-                const QByteArray& data) override;
-
         ProcessList* processList()
         { return &m_processList; }
 

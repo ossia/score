@@ -11,6 +11,9 @@
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <QRecentFilesMenu.h>
 
+#include <iscore/command/CommandGeneratorMap.hpp>
+#include <unordered_map>
+
 namespace iscore
 {
     class SerializableCommand;
@@ -98,8 +101,8 @@ namespace iscore
              * Ownership of the command is transferred to the caller, and he must delete it.
              */
             iscore::SerializableCommand*
-            instantiateUndoCommand(const QString& parent_name,
-                                   const QString& name,
+            instantiateUndoCommand(const std::string& parent_name,
+                                   const std::string& name,
                                    const QByteArray& data);
 
             QList<PanelFactory*> panelFactories() const
@@ -142,5 +145,7 @@ namespace iscore
             DocumentBuilder m_builder{*this};
 
             QRecentFilesMenu* m_recentFiles{};
+
+            std::unordered_map<std::string, CommandGeneratorMap> m_commands;
     };
 }

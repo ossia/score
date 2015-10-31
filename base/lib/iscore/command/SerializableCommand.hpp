@@ -35,8 +35,8 @@ class SerializableCommand : public Command
     public:
         ~SerializableCommand();
 
-        const QString& name() const;
-        const QString& parentName() const; // Note: factoryName() is the constexpr one.
+        const std::string& name() const;
+        const std::string& parentName() const; // Note: factoryName() is the constexpr one.
         const QString& text() const;
         void setText(const QString& t);
 
@@ -45,7 +45,7 @@ class SerializableCommand : public Command
         std::size_t uid() const
         {
             std::hash<std::string> fn;
-            return fn(this->name().toStdString());
+            return fn(this->name());
         }
 
         QByteArray serialize() const;
@@ -73,8 +73,8 @@ class SerializableCommand : public Command
         virtual void deserializeImpl(QDataStream&) = 0;
 
     private:
-        QString m_name;
-        QString m_parentName;
+        std::string m_name;
+        std::string m_parentName;
         QString m_text;
 };
 }

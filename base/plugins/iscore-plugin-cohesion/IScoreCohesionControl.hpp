@@ -12,10 +12,6 @@ class IScoreCohesionControl : public iscore::PluginControlInterface
         void populateMenus(iscore::MenubarManager*) override;
         QList<iscore::OrderedToolbar> makeToolbars() override;
 
-        iscore::SerializableCommand* instantiateUndoCommand(
-                const QString& name,
-                const QByteArray& data) override;
-
         void record(ScenarioModel&, ScenarioPoint pt);
         void stopRecord();
 

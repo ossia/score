@@ -32,14 +32,20 @@ namespace iscore
     class AggregateCommand : public iscore::SerializableCommand
     {
         public:
-            AggregateCommand(QString parname, QString cmdname, QString text) :
+            AggregateCommand(
+                    const std::string& parname,
+                    const std::string& cmdname,
+                    const QString& text) :
                 iscore::SerializableCommand {parname, cmdname, text}
             {
             }
 
             template<typename T, typename... Args>
-            AggregateCommand(QString parname, QString cmdname, QString text,
-                             const T& cmd, Args&& ... remaining) :
+            AggregateCommand(
+                    const std::string& parname,
+                    const std::string& cmdname,
+                    const QString& text,
+                    const T& cmd, Args&& ... remaining) :
                 AggregateCommand {parname, cmdname, text, std::forward<Args> (remaining)...}
             {
                 m_cmds.push_front(cmd);

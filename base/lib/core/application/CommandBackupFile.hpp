@@ -33,6 +33,6 @@ namespace iscore
             QTemporaryFile m_file;
 
             int m_previousIndex{};
-            QStack<QPair <QPair <QString,QString>, QByteArray> > m_savedUndo, m_savedRedo;
+            QStack<QPair <QPair <std::string, std::string>, QByteArray> > m_savedUndo, m_savedRedo;
     };
 }

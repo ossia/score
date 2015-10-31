@@ -25,7 +25,6 @@ DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
 {
     setupCommands();
 }
-
 namespace {
 struct DeviceExplorerCommandFactory
 {
@@ -59,13 +58,14 @@ void DeviceExplorerControl::setupCommands()
     >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());
 }
 
+/*
 iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
         const QString& name,
         const QByteArray& data)
 {
     return PluginControlInterface::instantiateUndoCommand<DeviceExplorerCommandFactory>(name, data);
 }
-
+*/
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
     doc->model().addPluginModel(new DeviceDocumentPlugin(doc));

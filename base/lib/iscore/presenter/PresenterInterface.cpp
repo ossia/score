@@ -4,14 +4,16 @@
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
 iscore::SerializableCommand*
-iscore::IPresenter::instantiateUndoCommand(const QString& parent_name,
-        const QString& name,
+iscore::IPresenter::instantiateUndoCommand(
+        const std::string& parent_name,
+        const std::string& name,
         const QByteArray& data)
 {
     auto presenter = qApp->findChild<iscore::Presenter*> ("Presenter");
-    return presenter->instantiateUndoCommand(parent_name,
-            name,
-            data);
+    return presenter->instantiateUndoCommand(
+                parent_name,
+                name,
+                data);
 }
 
 

@@ -7,12 +7,12 @@ SerializableCommand::~SerializableCommand()
     // and reduce binary size.
 }
 
-const QString& SerializableCommand::name() const
+const std::string& SerializableCommand::name() const
 {
     return m_name;
 }
 
-const QString& SerializableCommand::parentName() const
+const std::string& SerializableCommand::parentName() const
 {
     return m_parentName;
 }

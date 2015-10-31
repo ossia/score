@@ -307,20 +307,26 @@ void Presenter::restoreDocuments()
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(
-        const QString& parent_name,
-        const QString& name,
+        const std::string& parent_name,
+        const std::string& name,
         const QByteArray& data)
 {
-    for(auto& ccmd : m_controls)
+    auto it = m_commands.find(parent_name);
+    if(it != m_commands.end())
     {
-        if(ccmd->objectName() == parent_name)
+        auto it2 = it->second.find(name);
+        if(it2 != it->second.end())
         {
-            return ccmd->instantiateUndoCommand(name, data);
+            return (*it2->second)(data);
         }
     }
 
 #if defined(ISCORE_DEBUG)
-    qDebug() << "ALERT: Command" << parent_name << "::" << name << "could not be instantiated.";
+    qDebug() << "ALERT: Command"
+             << QString::fromStdString(parent_name)
+             << "::"
+             << QString::fromStdString(name)
+             << "could not be instantiated.";
     ISCORE_ABORT;
 #else
     throw MissingCommandException(parent_name, name);

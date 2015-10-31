@@ -213,12 +213,3 @@ void ScenarioControl::setupCommands()
             boost::type<boost::mpl::_>
     >(CommandGeneratorMapInserter<ScenarioCommandFactory>());
 }
-
-
-
-iscore::SerializableCommand *ScenarioControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
-{
-    return PluginControlInterface::instantiateUndoCommand<ScenarioCommandFactory>(name, data);
-}

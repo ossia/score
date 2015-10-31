@@ -24,8 +24,8 @@ namespace iscore
          * This will throw a MissingCommandException if not found.
          */
         iscore::SerializableCommand*
-        instantiateUndoCommand(const QString& parent_name,
-                               const QString& name,
+        instantiateUndoCommand(const std::string& parent_name,
+                               const std::string& name,
                                const QByteArray& data);
 
         QList<iscore::PanelFactory*> panelFactories();

@@ -249,6 +249,26 @@ void writeTo_vector_obj_impl(
     writer.checkDelimiter();
 }
 
+inline QDataStream& operator<< (QDataStream& stream, const std::string& obj)
+{
+    stream << (uint32_t)obj.size();
+    stream.writeBytes(obj.data(), obj.size());
+    return stream;
+}
+
+inline QDataStream& operator>> (QDataStream& stream, std::string& obj)
+{
+    uint32_t n = 0;
+    stream >> n;
+    obj.resize(n);
+    if(n > 0)
+    {
+        auto addr = &obj[0];
+        stream.readBytes(addr, n);
+    }
+    return stream;
+}
+
 // TODO instead why not add a iscore_serializable tag to our classes ?
 template<typename T,
          std::enable_if_t<

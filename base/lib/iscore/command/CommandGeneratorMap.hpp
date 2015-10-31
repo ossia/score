@@ -30,7 +30,8 @@ class CommandGenerator
 {
     public:
         virtual ~CommandGenerator() = default;
-        virtual iscore::SerializableCommand* operator()() const = 0;
+        virtual iscore::SerializableCommand* operator()() const = 0; // TODO REMOVE
+        virtual iscore::SerializableCommand* operator()(const QByteArray& data) const = 0;
 };
 
 /**
@@ -46,6 +47,13 @@ class CommandGeneratorImpl : public CommandGenerator
         {
             return new T;
         }
+
+        iscore::SerializableCommand* operator()(const QByteArray& data) const override
+        {
+            auto t = new T;
+            t->deserialize(data);
+            return t;
+        }
 };
 
 /**
@@ -53,7 +61,7 @@ class CommandGeneratorImpl : public CommandGenerator
  *
  * A map between command names and corresponding factories.
  */
-using CommandGeneratorMap = std::map<QString, std::unique_ptr<CommandGenerator>>;
+using CommandGeneratorMap = std::unordered_map<std::string, std::unique_ptr<CommandGenerator>>;
 
 /**
  * @brief The CommandGeneratorMapInserter struct
@@ -70,7 +78,7 @@ struct CommandGeneratorMapInserter
         {
             CommandFactory::map.insert(
                         std::move(
-                            std::pair<QString, std::unique_ptr<CommandGenerator>>{
+                            std::pair<std::string, std::unique_ptr<CommandGenerator>>{
                                 TheCommand::commandName(),
                                 std::unique_ptr<CommandGenerator>(new CommandGeneratorImpl<TheCommand>)
                             }

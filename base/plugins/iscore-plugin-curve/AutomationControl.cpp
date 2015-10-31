@@ -10,6 +10,10 @@
 #include "Commands/InitAutomation.hpp"
 
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <Curve/CurveStyle.hpp>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 AutomationControl::AutomationControl(
         iscore::Presenter* pres) :
     PluginControlInterface {pres, "AutomationControl", nullptr}
@@ -27,6 +31,13 @@ struct AutomationCommandFactory
 CommandGeneratorMap AutomationCommandFactory::map;
 }
 
+
+template<typename Factory, typename Args>
+void setupCommands()
+{
+
+}
+
 void AutomationControl::setupCommands()
 {
     boost::mpl::for_each<
@@ -42,17 +53,6 @@ void AutomationControl::setupCommands()
     >(CommandGeneratorMapInserter<AutomationCommandFactory>());
 }
 
-iscore::SerializableCommand* AutomationControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
-{
-    return PluginControlInterface::instantiateUndoCommand<AutomationCommandFactory>(name, data);
-}
-
-#include <Curve/CurveStyle.hpp>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 void AutomationControl::initColors()
 {
     CurveStyle& instance = CurveStyle::instance();

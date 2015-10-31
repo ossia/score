@@ -25,8 +25,8 @@ void AggregateCommand::serializeImpl(QDataStream& s) const
     QList<
             QPair<
                 QPair<
-                    QString,
-                    QString
+            std::string,
+            std::string
                 >,
                 QByteArray
             >
@@ -45,8 +45,8 @@ void AggregateCommand::deserializeImpl(QDataStream& s)
     QList<
             QPair<
                 QPair<
-                    QString,
-                    QString
+                    std::string,
+                    std::string
                 >,
                 QByteArray
             >

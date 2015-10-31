@@ -8,7 +8,7 @@ using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
 {
-    QList<QPair <QPair <QString,QString>, QByteArray> > undoStack, redoStack;
+    QList<QPair <QPair <std::string, std::string>, QByteArray> > undoStack, redoStack;
     for(const auto& cmd : stack.m_undoable)
     {
         undoStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
@@ -26,7 +26,7 @@ void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
 {
-    QList<QPair <QPair <QString,QString>, QByteArray> > undoStack, redoStack;
+    QList<QPair <QPair <std::string, std::string>, QByteArray> > undoStack, redoStack;
     m_stream >> undoStack >> redoStack;
 
     checkDelimiter();

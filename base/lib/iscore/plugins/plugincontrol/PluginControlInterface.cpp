@@ -49,14 +49,6 @@ Presenter*PluginControlInterface::presenter() const
     return m_presenter;
 }
 
-SerializableCommand*PluginControlInterface::instantiateUndoCommand(
-        const QString&,
-        const QByteArray&)
-{
-    return nullptr;
-}
-
-
 Document*PluginControlInterface::currentDocument() const
 {
     return m_presenter->currentDocument();

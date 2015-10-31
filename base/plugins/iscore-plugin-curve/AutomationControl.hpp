@@ -8,8 +8,6 @@ class AutomationControl : public iscore::PluginControlInterface
         explicit AutomationControl(iscore::Presenter* pres);
         virtual ~AutomationControl() = default;
 
-        virtual iscore::SerializableCommand* instantiateUndoCommand(const QString& name,
-                                                                    const QByteArray& data) override;
     private:
         void setupCommands();
         void initColors();

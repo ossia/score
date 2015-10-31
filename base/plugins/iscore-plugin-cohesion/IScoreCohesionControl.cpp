@@ -107,13 +107,6 @@ void IScoreCohesionControl::setupCommands()
             >(CommandGeneratorMapInserter<IScoreCohesionCommandFactory>());
 }
 
-iscore::SerializableCommand* IScoreCohesionControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
-{
-    return PluginControlInterface::instantiateUndoCommand<IScoreCohesionCommandFactory>(name, data);
-}
-
 void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
 {
     m_recManager = std::make_unique<RecordManager>();
