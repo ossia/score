@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ProcessInterface/Process.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 
@@ -19,7 +19,7 @@
  */
 class CurveModel;
 class AutomationState;
-class AutomationModel : public Process
+class AutomationModel : public CurveProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)
@@ -39,7 +39,7 @@ class AutomationModel : public Process
 
         template<typename Impl>
         AutomationModel(Deserializer<Impl>& vis, QObject* parent) :
-            Process{vis, parent},
+            CurveProcessModel{vis, parent},
             m_startState{new AutomationState{*this, 0., this}},
             m_endState{new AutomationState{*this, 1., this}}
         {
@@ -80,9 +80,6 @@ class AutomationModel : public Process
         //// AutomationModel specifics ////
         iscore::Address address() const;
 
-        CurveModel& curve() const
-        { return *m_curve; }
-
         double value(const TimeValue& time);
 
         double min() const;
@@ -90,7 +87,6 @@ class AutomationModel : public Process
 
     signals:
         void addressChanged(const iscore::Address& arg);
-        void curveChanged();
 
         void minChanged(double arg);
 
@@ -112,9 +108,8 @@ class AutomationModel : public Process
                 QObject* parent) override;
 
     private:
-        void setCurve(CurveModel* newCurve);
+        void setCurve_impl() override;
         iscore::Address m_address;
-        CurveModel* m_curve{};
 
         double m_min{};
         double m_max{};

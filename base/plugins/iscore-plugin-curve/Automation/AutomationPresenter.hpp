@@ -1,50 +1,28 @@
 #pragma once
-#include <ProcessInterface/LayerPresenter.hpp>
-#include <ProcessInterface/Focus/FocusDispatcher.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <Curve/Process/CurveProcessPresenter.hpp>
 
-class CurvePresenter;
-class QCPGraph;
-class LayerView;
-class AutomationLayerModel;
-class AutomationView;
-
-class AutomationPresenter : public LayerPresenter
+#include "AutomationModel.hpp"
+#include "AutomationLayerModel.hpp"
+#include "AutomationView.hpp"
+class AutomationPresenter :
+        public CurveProcessPresenter<
+            AutomationLayerModel,
+            AutomationView>
 {
-        Q_OBJECT
     public:
-        AutomationPresenter(const LayerModel& model,
-                            LayerView* view,
-                            QObject* parent);
-        ~AutomationPresenter();
+AutomationPresenter(
+        const AutomationLayerModel& layer,
+        AutomationView* view,
+        QObject* parent):
+    CurveProcessPresenter{layer, view, parent}
+{
+    con(m_layer.model(), &AutomationModel::addressChanged,
+        this, [&] (const auto&)
+    {
+        m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
+    });
 
-        void on_focusChanged() override;
-
-        void setWidth(int width) override;
-        void setHeight(int height) override;
-
-        void putToFront() override;
-        void putBehind() override;
-        void on_zoomRatioChanged(ZoomRatio) override;
-        void parentGeometryChanged() override;
-
-        const LayerModel& layerModel() const override;
-        const Id<Process>& modelId() const override;
-
-        void fillContextMenu(QMenu*,
-                             const QPoint& pos,
-                             const QPointF& scenepos) const override;
-
-        void setCurveStateMachineStatus(bool);
-
-    private:
-        const AutomationLayerModel& m_viewModel;
-        AutomationView* m_view {};
-
-        CurvePresenter* m_curvepresenter{};
-
-        CommandDispatcher<> m_commandDispatcher;
-        FocusDispatcher m_focusDispatcher;
-
-        ZoomRatio m_zoomRatio {};
+    m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
+    m_view->showName(true);
+}
 };

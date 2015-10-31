@@ -14,7 +14,7 @@ AutomationModel::AutomationModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent) :
-    Process {duration, id, processName(), parent},
+    CurveProcessModel {duration, id, processName(), parent},
     m_startState{new AutomationState{*this, 0., this}},
     m_endState{new AutomationState{*this, 1., this}}
 {
@@ -38,7 +38,7 @@ AutomationModel::AutomationModel(
         const AutomationModel& source,
         const Id<Process>& id,
         QObject* parent):
-    Process{source, id,  processName(), parent},
+    CurveProcessModel{source, id,  processName(), parent},
     m_address(source.address()),
     m_min{source.min()},
     m_max{source.max()},
@@ -200,11 +200,8 @@ LayerModel* AutomationModel::cloneLayer_impl(
     return vm;
 }
 
-void AutomationModel::setCurve(CurveModel* newCurve)
+void AutomationModel::setCurve_impl()
 {
-    delete m_curve;
-    m_curve = newCurve;
-
     connect(m_curve, &CurveModel::changed,
             this, [&] () {
         emit curveChanged();
@@ -234,6 +231,8 @@ iscore::Address AutomationModel::address() const
 
 double AutomationModel::value(const TimeValue& time)
 {
+    ISCORE_TODO;
+    // TODO instead get a State or at least a MessageList.
     return -1;
 }
 

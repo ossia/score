@@ -13,7 +13,7 @@ Process* AutomationFactory::makeModel(
 }
 
 LayerView* AutomationFactory::makeLayerView(
-        const LayerModel& view,
+        const LayerModel&,
         QGraphicsItem* parent)
 {
     return new AutomationView{parent};
@@ -25,7 +25,10 @@ LayerPresenter* AutomationFactory::makeLayerPresenter(
         LayerView* view,
         QObject* parent)
 {
-    return new AutomationPresenter {viewModel, view, parent};
+    return new AutomationPresenter {
+        safe_cast<const AutomationLayerModel&>(viewModel),
+                safe_cast<AutomationView*>(view),
+                parent};
 }
 
 
