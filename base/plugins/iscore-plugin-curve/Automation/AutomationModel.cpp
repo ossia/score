@@ -146,41 +146,6 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     m_curve->changed();
 }
 
-void AutomationModel::startExecution()
-{
-    emit execution(true);
-}
-
-void AutomationModel::stopExecution()
-{
-    emit execution(false);
-}
-
-void AutomationModel::reset()
-{
-
-}
-
-Selection AutomationModel::selectableChildren() const
-{
-    Selection s;
-    for(auto& segment : m_curve->segments())
-        s.append(&segment);
-    for(auto& point : m_curve->points())
-        s.append(point);
-    return s;
-}
-
-Selection AutomationModel::selectedChildren() const
-{
-    return m_curve->selectedChildren();
-}
-
-void AutomationModel::setSelection(const Selection & s) const
-{
-    m_curve->setSelection(s);
-}
-
 LayerModel* AutomationModel::makeLayer_impl(
         const Id<LayerModel>& viewModelId,
         const QByteArray& constructionData,

@@ -10,19 +10,19 @@ class AutomationPresenter :
             AutomationView>
 {
     public:
-AutomationPresenter(
-        const AutomationLayerModel& layer,
-        AutomationView* view,
-        QObject* parent):
-    CurveProcessPresenter{layer, view, parent}
-{
-    con(m_layer.model(), &AutomationModel::addressChanged,
-        this, [&] (const auto&)
-    {
-        m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
-    });
+        AutomationPresenter(
+                const AutomationLayerModel& layer,
+                AutomationView* view,
+                QObject* parent):
+            CurveProcessPresenter{layer, view, parent}
+        {
+            con(m_layer.model(), &AutomationModel::addressChanged,
+                this, [&] (const auto&)
+            {
+                m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
+            });
 
-    m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
-    m_view->showName(true);
-}
+            m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
+            m_view->showName(true);
+        }
 };
