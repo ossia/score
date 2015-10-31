@@ -96,10 +96,7 @@ class ScenarioControl : public iscore::PluginControlInterface
         QAction *m_selectAll{};
         QAction *m_deselectAll{};
 
-
-
         ProcessFocusManager* processFocusManager() const;
         void on_presenterFocused(LayerPresenter* lm);
         void on_presenterDefocused(LayerPresenter* lm);
-        void setupCommands();
 };

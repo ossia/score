@@ -21,6 +21,14 @@ DEFINE_CURVE_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
 DEFINE_CURVE_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
 
 
+#include "Curve/Commands/UpdateCurve.hpp"
+#include "Curve/Commands/SetSegmentParameters.hpp"
+
+#include "Commands/ChangeAddress.hpp"
+#include "Commands/SetCurveMin.hpp"
+#include "Commands/SetCurveMax.hpp"
+#include "Commands/InitAutomation.hpp"
+
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
 {
@@ -63,4 +71,23 @@ QVector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
              [&] (iscore::FactoryInterface* fact)
              { SingletonCurveSegmentList::instance().registerFactory(safe_cast<CurveSegmentFactory*>(fact)); }
            }};
+}
+
+
+std::pair<const std::string, CommandGeneratorMap> iscore_plugin_curve::make_commands()
+{
+    std::pair<const std::string, CommandGeneratorMap> cmds;
+    boost::mpl::for_each<
+            boost::mpl::list<
+                UpdateCurve,
+                SetSegmentParameters,
+                ChangeAddress,
+                SetCurveMin,
+                SetCurveMax,
+                InitAutomation
+            >,
+            boost::type<boost::mpl::_>
+            >(CommandGeneratorMapInserter2{cmds.second});
+
+    return cmds;
 }

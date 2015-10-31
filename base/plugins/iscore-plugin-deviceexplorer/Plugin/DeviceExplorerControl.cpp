@@ -1,20 +1,5 @@
 #include "DeviceExplorerControl.hpp"
 
-#include "Commands/Add/AddAddress.hpp"
-#include "Commands/Add/AddDevice.hpp"
-#include "Commands/Add/LoadDevice.hpp"
-#include "Commands/Cut.hpp"
-#include "Commands/Insert.hpp"
-#include "Commands/Move.hpp"
-#include "Commands/Paste.hpp"
-#include "Commands/Remove/RemoveAddress.hpp"
-#include "Commands/Remove.hpp"
-#include "Commands/RemoveNodes.hpp"
-#include "Commands/ReplaceDevice.hpp"
-#include "Commands/UpdateAddresses.hpp"
-#include "Commands/Update/UpdateAddressSettings.hpp"
-#include "Commands/Update/UpdateDeviceSettings.hpp"
-
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
@@ -23,49 +8,9 @@
 DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     PluginControlInterface {pres, "DeviceExplorerControl", nullptr}
 {
-    setupCommands();
-}
-namespace {
-struct DeviceExplorerCommandFactory
-{
-        static CommandGeneratorMap map;
-};
 
-CommandGeneratorMap DeviceExplorerCommandFactory::map;
 }
 
-void DeviceExplorerControl::setupCommands()
-{
-    using namespace DeviceExplorer::Command;
-    boost::mpl::for_each<
-            boost::mpl::list<
-            AddAddress,
-            AddDevice,
-            LoadDevice,
-            UpdateAddressSettings,
-            UpdateDeviceSettings,
-            Cut,
-//            Insert,
-            Move,
-            Paste,
-            Remove,
-            RemoveAddress,
-            RemoveNodes,
-            ReplaceDevice,
-            UpdateAddressesValues
-            >,
-            boost::type<boost::mpl::_>
-    >(CommandGeneratorMapInserter<DeviceExplorerCommandFactory>());
-}
-
-/*
-iscore::SerializableCommand* DeviceExplorerControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
-{
-    return PluginControlInterface::instantiateUndoCommand<DeviceExplorerCommandFactory>(name, data);
-}
-*/
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
     doc->model().addPluginModel(new DeviceDocumentPlugin(doc));

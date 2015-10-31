@@ -1,15 +1,5 @@
 #include "AutomationControl.hpp"
 
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/Commands/SetSegmentParameters.hpp"
-
-#include "Commands/ChangeAddress.hpp"
-#include "Commands/SetCurveMin.hpp"
-#include "Commands/SetCurveMax.hpp"
-
-#include "Commands/InitAutomation.hpp"
-
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <Curve/CurveStyle.hpp>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -18,39 +8,7 @@ AutomationControl::AutomationControl(
         iscore::Presenter* pres) :
     PluginControlInterface {pres, "AutomationControl", nullptr}
 {
-    setupCommands();
     initColors();
-}
-
-namespace {
-struct AutomationCommandFactory
-{
-        static CommandGeneratorMap map;
-};
-
-CommandGeneratorMap AutomationCommandFactory::map;
-}
-
-
-template<typename Factory, typename Args>
-void setupCommands()
-{
-
-}
-
-void AutomationControl::setupCommands()
-{
-    boost::mpl::for_each<
-            boost::mpl::list<
-                UpdateCurve,
-                SetSegmentParameters,
-                ChangeAddress,
-                SetCurveMin,
-                SetCurveMax,
-                InitAutomation
-            >,
-            boost::type<boost::mpl::_>
-    >(CommandGeneratorMapInserter<AutomationCommandFactory>());
 }
 
 void AutomationControl::initColors()

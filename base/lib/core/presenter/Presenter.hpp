@@ -41,6 +41,10 @@ namespace iscore
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactory*);
             void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
+            void registerCommands(std::unordered_map<std::string, CommandGeneratorMap>&& cmds)
+            {
+                m_commands = std::move(cmds);
+            }
 
             // Getters for plugin-registered things
             const std::vector<PluginControlInterface*>& pluginControls() const;
@@ -135,6 +139,7 @@ namespace iscore
 
             std::vector<PluginControlInterface*> m_controls;
             std::vector<DocumentDelegateFactoryInterface*> m_availableDocuments;
+            std::unordered_map<std::string, CommandGeneratorMap> m_commands;
 
             // TODO instead put the factory as a member function?
             QList<QPair<PanelPresenter*,
@@ -146,6 +151,5 @@ namespace iscore
 
             QRecentFilesMenu* m_recentFiles{};
 
-            std::unordered_map<std::string, CommandGeneratorMap> m_commands;
     };
 }

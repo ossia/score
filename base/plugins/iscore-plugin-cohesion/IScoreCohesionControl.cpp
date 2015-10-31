@@ -5,12 +5,6 @@
 #include "Actions/CreateCurves.hpp"
 #include "Actions/SnapshotParameters.hpp"
 
-#include "Commands/CreateCurvesFromAddresses.hpp"
-#include "Commands/CreateCurvesFromAddressesInConstraints.hpp"
-#include "Commands/CreateStatesFromParametersInEvents.hpp"
-#include "Commands/Record.hpp"
-
-
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/menu/MenuInterface.hpp>
 #include <Control/ScenarioControl.hpp>
@@ -41,8 +35,6 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
             });
         }
     }
-
-    setupCommands();
 
     m_snapshot = new QAction {tr("Snapshot in Event"), this};
     m_snapshot->setShortcutContext(Qt::ApplicationShortcut);
@@ -83,28 +75,6 @@ QList<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
     QToolBar* bar = new QToolBar;
     bar->addActions({m_curves, m_snapshot});
     return QList<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
-}
-
-namespace {
-struct IScoreCohesionCommandFactory
-{
-        static CommandGeneratorMap map;
-};
-
-CommandGeneratorMap IScoreCohesionCommandFactory::map;
-}
-
-void IScoreCohesionControl::setupCommands()
-{
-    boost::mpl::for_each<
-            boost::mpl::list<
-            CreateCurvesFromAddresses,
-            CreateCurvesFromAddressesInConstraints,
-            Record,
-            SnapshotStatesMacro
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter<IScoreCohesionCommandFactory>());
 }
 
 void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)

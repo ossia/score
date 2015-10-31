@@ -12,16 +12,18 @@
  *
  */
 class iscore_plugin_cohesion:
-    public QObject,
-    public iscore::PluginControlInterface_QtInterface,
-    public iscore::PluginRequirementslInterface_QtInterface
+        public QObject,
+        public iscore::PluginControlInterface_QtInterface,
+        public iscore::CommandFactory_QtInterface,
+        public iscore::PluginRequirementslInterface_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID PluginControlInterface_QtInterface_iid)
         Q_INTERFACES(
-            iscore::PluginControlInterface_QtInterface
-            iscore::PluginRequirementslInterface_QtInterface
-        )
+                iscore::PluginControlInterface_QtInterface
+                iscore::CommandFactory_QtInterface
+                iscore::PluginRequirementslInterface_QtInterface
+                )
 
     public:
         iscore_plugin_cohesion();
@@ -29,6 +31,8 @@ class iscore_plugin_cohesion:
 
         iscore::PluginControlInterface* make_control(
                 iscore::Presenter* pres) override;
+
+        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
 
         QStringList required() const override;
 };

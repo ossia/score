@@ -5,6 +5,7 @@
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/command/CommandGeneratorMap.hpp>
 
 namespace iscore
 {
@@ -82,5 +83,7 @@ namespace iscore
             SettingsList m_settingsList;
 
             QVector<QVector<FactoryInterface*>> m_factoriesInterfaces;
+
+            std::unordered_map<std::string, CommandGeneratorMap> m_commands;
     };
 }

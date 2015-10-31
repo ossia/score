@@ -218,6 +218,7 @@ void PluginManager::dispatch(QObject* plugin)
     auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
     auto panel_plugin = qobject_cast<PanelFactory_QtInterface*> (plugin);
     auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
+    auto commands_plugin = qobject_cast<CommandFactory_QtInterface*> (plugin);
     auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
 
     if(settings_plugin)
@@ -233,6 +234,11 @@ void PluginManager::dispatch(QObject* plugin)
     if(docpanel_plugin)
     {
         m_documentPanelList += docpanel_plugin->documents();
+    }
+
+    if(commands_plugin)
+    {
+        m_commands.insert(commands_plugin->make_commands());
     }
 
     if(factories_plugin)

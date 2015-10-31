@@ -92,19 +92,11 @@ namespace boost { namespace mpl {
 #include <Commands/State/UpdateState.hpp>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
-
-namespace {
-struct ScenarioCommandFactory
-{
-        static CommandGeneratorMap map;
-};
-// Instantiation is in CommandNames.cpp
-
-CommandGeneratorMap ScenarioCommandFactory::map;
-}
-void ScenarioControl::setupCommands()
+#include <ScenarioPlugin.hpp>
+std::pair<const std::string, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
 {
     using namespace Scenario::Command;
+    std::pair<const std::string, CommandGeneratorMap> cmds;
     boost::mpl::for_each<
             boost::mpl::list80<
 
@@ -211,5 +203,7 @@ void ScenarioControl::setupCommands()
             SwitchStatePosition
             >,
             boost::type<boost::mpl::_>
-    >(CommandGeneratorMapInserter<ScenarioCommandFactory>());
+            >(CommandGeneratorMapInserter2{cmds.second});
+
+    return cmds;
 }

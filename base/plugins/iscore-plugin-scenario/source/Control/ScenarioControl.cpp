@@ -79,8 +79,6 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     m_processList{this},
     m_moveEventList{this}
 {
-    setupCommands();
-
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);
 

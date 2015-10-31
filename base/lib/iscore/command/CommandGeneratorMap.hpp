@@ -7,6 +7,7 @@
 #include <boost/mpl/for_each.hpp>
 
 #include <unordered_map>
+#include <memory>
 /**
  * This file contains utility classes to instantiate commands
  * when they are received from the network.
@@ -68,21 +69,17 @@ using CommandGeneratorMap = std::unordered_map<std::string, std::unique_ptr<Comm
  *
  * A functor that will instantiate all the command factories when passed to
  * a boost::mpl::for_each.
- *
- * The CommandFactory is a singleton.
  */
-template<typename CommandFactory>
-struct CommandGeneratorMapInserter
+
+struct CommandGeneratorMapInserter2
 {
+        CommandGeneratorMap& fact;
         template< typename TheCommand > void operator()(boost::type<TheCommand>)
         {
-            CommandFactory::map.insert(
-                        std::move(
-                            std::pair<std::string, std::unique_ptr<CommandGenerator>>{
+            fact.insert(std::pair<const std::string, std::unique_ptr<CommandGenerator>>{
                                 TheCommand::commandName(),
                                 std::unique_ptr<CommandGenerator>(new CommandGeneratorImpl<TheCommand>)
-                            }
-                        )
+                        }
             );
         }
 };

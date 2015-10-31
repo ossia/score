@@ -220,5 +220,7 @@ void Application::loadPluginData()
     {
         m_presenter->registerDocumentDelegate(pnl);
     }
+
+    m_presenter->registerCommands(std::move(m_pluginManager.m_commands));
 }
 
