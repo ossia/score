@@ -5,30 +5,33 @@
 class AutomationModel;
 class AutomationLayerModel : public LayerModel
 {
-        Q_OBJECT
+        ISCORE_METADATA("AutomationLayerModel")
     public:
-        AutomationLayerModel(AutomationModel& model,
-                            const Id<LayerModel>& id,
-                            QObject* parent);
+        AutomationLayerModel(
+                AutomationModel& model,
+                const Id<LayerModel>& id,
+                QObject* parent);
 
         // Copy
-        AutomationLayerModel(const AutomationLayerModel& source,
-                            AutomationModel& model,
-                            const Id<LayerModel>& id,
-                            QObject* parent);
+        AutomationLayerModel(
+                const AutomationLayerModel& source,
+                AutomationModel& model,
+                const Id<LayerModel>& id,
+                QObject* parent);
 
         // Load
         template<typename Impl>
-        AutomationLayerModel(Deserializer<Impl>& vis,
-                            AutomationModel& model,
-                            QObject* parent) :
+        AutomationLayerModel(
+                Deserializer<Impl>& vis,
+                AutomationModel& model,
+                QObject* parent) :
             LayerModel {vis, model, parent}
         {
             vis.writeTo(*this);
         }
 
-        virtual LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
-        virtual void serialize(const VisitorVariant&) const override;
+        LayerModelPanelProxy* make_panelProxy(QObject* parent) const override;
+        void serialize(const VisitorVariant&) const override;
 
         const AutomationModel& model() const;
 };

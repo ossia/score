@@ -2,6 +2,8 @@
 #include "AutomationModel.hpp"
 #include "AutomationPanelProxy.hpp"
 
+// TODO refactor with mapping ?
+constexpr const char AutomationLayerModel::className[];
 AutomationLayerModel::AutomationLayerModel(AutomationModel& model,
                                          const Id<LayerModel>& id,
                                          QObject* parent) :

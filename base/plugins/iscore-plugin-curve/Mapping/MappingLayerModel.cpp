@@ -2,19 +2,28 @@
 #include "MappingModel.hpp"
 #include "MappingPanelProxy.hpp"
 
-MappingLayerModel::MappingLayerModel(MappingModel& model,
-                                         const Id<LayerModel>& id,
-                                         QObject* parent) :
-    LayerModel {id, MappingLayerModel::staticMetaObject.className(), model, parent}
+constexpr const char MappingLayerModel::className[];
+MappingLayerModel::MappingLayerModel(
+        MappingModel& model,
+        const Id<LayerModel>& id,
+        QObject* parent) :
+    LayerModel {id,
+                className,
+                model,
+                parent}
 {
 
 }
 
-MappingLayerModel::MappingLayerModel(const MappingLayerModel& source,
-                                         MappingModel& model,
-                                         const Id<LayerModel>& id,
-                                         QObject* parent) :
-    LayerModel {id, MappingLayerModel::staticMetaObject.className(), model, parent}
+MappingLayerModel::MappingLayerModel(
+        const MappingLayerModel& source,
+        MappingModel& model,
+        const Id<LayerModel>& id,
+        QObject* parent) :
+    LayerModel {id,
+                className,
+                model,
+                parent}
 {
     // Nothing to copy
 }
