@@ -19,7 +19,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/MappingControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingColors.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_mapping.cpp"
 )
 
@@ -37,6 +38,7 @@ if(TARGET iscore_lib_inspector)
     set(HDRS ${HDRS} ${INSPECTOR_HDRS})
 endif()
 
+qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Resources/MappingResources.qrc")
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 target_link_libraries(${PROJECT_NAME}

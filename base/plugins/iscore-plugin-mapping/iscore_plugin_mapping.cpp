@@ -1,7 +1,6 @@
 #include "iscore_plugin_mapping.hpp"
 
 #include "Mapping/MappingFactory.hpp"
-#include "MappingControl.hpp"
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include "Mapping/Inspector/MappingInspectorFactory.hpp"
@@ -11,12 +10,6 @@
 iscore_plugin_mapping::iscore_plugin_mapping() :
     QObject {}
 {
-}
-
-iscore::PluginControlInterface* iscore_plugin_mapping::make_control(
-        iscore::Presenter* pres)
-{
-    return new MappingControl{pres};
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QString& factoryName)

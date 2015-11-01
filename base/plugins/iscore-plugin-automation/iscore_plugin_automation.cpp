@@ -1,7 +1,6 @@
 #include "iscore_plugin_automation.hpp"
 
 #include "Automation/AutomationFactory.hpp"
-#include "AutomationControl.hpp"
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include "Automation/Inspector/AutomationInspectorFactory.hpp"
@@ -16,12 +15,6 @@
 iscore_plugin_automation::iscore_plugin_automation() :
     QObject {}
 {
-}
-
-iscore::PluginControlInterface* iscore_plugin_automation::make_control(
-        iscore::Presenter* pres)
-{
-    return new AutomationControl{pres};
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_automation::factories(const QString& factoryName)

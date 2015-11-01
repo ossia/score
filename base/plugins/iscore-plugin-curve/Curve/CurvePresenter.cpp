@@ -22,12 +22,17 @@ static QPointF myscale(QPointF first, QSizeF second)
     return {first.x() * second.width(), (1. - first.y()) * second.height()};
 }
 
-CurvePresenter::CurvePresenter(const CurveModel& model, CurveView* view, QObject* parent):
+CurvePresenter::CurvePresenter(
+        const CurveStyle& style,
+        const CurveModel& model,
+        CurveView* view,
+        QObject* parent):
     QObject{parent},
     m_model{model},
     m_view{view},
     m_commandDispatcher{iscore::IDocument::commandStack(model)},
-    m_selectionDispatcher{iscore::IDocument::selectionStack(model)}
+    m_selectionDispatcher{iscore::IDocument::selectionStack(model)},
+    m_style{style}
 {
     // For each segment in the model, create a segment and relevant points in the view.
     // If the segment is linked to another, the point is shared.
@@ -94,13 +99,13 @@ void CurvePresenter::setupSignals()
     con(m_model, &CurveModel::segmentAdded, this,
             [&] (const CurveSegmentModel& segment)
     {
-        addSegment(new CurveSegmentView{&segment, m_view});
+        addSegment(new CurveSegmentView{&segment, m_style, m_view});
     });
 
     con(m_model, &CurveModel::pointAdded, this,
             [&] (const CurvePointModel& point)
     {
-        addPoint(new CurvePointView{&point, m_view});
+        addPoint(new CurvePointView{&point, m_style, m_view});
     });
 
     con(m_model, &CurveModel::pointRemoved, this,
@@ -145,12 +150,12 @@ void CurvePresenter::setupView()
     // Initialize the elements
     for(const auto& segment : m_model.segments())
     {
-        addSegment(new CurveSegmentView{&segment, m_view});
+        addSegment(new CurveSegmentView{&segment, m_style, m_view});
     }
 
     for(CurvePointModel* pt : m_model.points())
     {
-        addPoint(new CurvePointView{pt, m_view});
+        addPoint(new CurvePointView{pt, m_style, m_view});
     }
 
     // Setup the actions
@@ -343,7 +348,7 @@ void CurvePresenter::modelReset()
             points.reserve(points.size() + diff_points);
             for(;diff_points --> 0;)
             {
-                auto pt = new CurvePointView{nullptr, m_view};
+                auto pt = new CurvePointView{nullptr, m_style, m_view};
                 points.push_back(pt);
                 newPoints.push_back(pt);
             }
@@ -367,7 +372,7 @@ void CurvePresenter::modelReset()
             segments.reserve(segments.size() + diff_segts);
             for(;diff_segts --> 0;)
             {
-                auto seg = new CurveSegmentView{nullptr, m_view};
+                auto seg = new CurveSegmentView{nullptr, m_style, m_view};
                 segments.push_back(seg);
                 newSegments.push_back(seg);
             }

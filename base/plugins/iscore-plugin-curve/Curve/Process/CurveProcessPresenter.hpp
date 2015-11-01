@@ -27,9 +27,11 @@ template<typename LayerModel_T, typename LayerView_T>
 class CurveProcessPresenter : public LayerPresenter
 {
     public:
-        CurveProcessPresenter(const LayerModel_T& lm,
-                              LayerView_T* view,
-                              QObject* parent) :
+        CurveProcessPresenter(
+                const CurveStyle& style,
+                const LayerModel_T& lm,
+                LayerView_T* view,
+                QObject* parent) :
             LayerPresenter {"CurveProcessPresenter", parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
@@ -40,7 +42,7 @@ class CurveProcessPresenter : public LayerPresenter
                 this, &CurveProcessPresenter::parentGeometryChanged);
 
             auto cv = new CurveView{m_view};
-            m_curvepresenter = new CurvePresenter{m_layer.model().curve(), cv, this};
+            m_curvepresenter = new CurvePresenter{style, m_layer.model().curve(), cv, this};
 
             connect(cv, &CurveView::pressed,
                     this, [&] (const QPointF&)

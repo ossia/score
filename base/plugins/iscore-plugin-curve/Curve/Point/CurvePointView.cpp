@@ -10,8 +10,10 @@
 static const qreal radius = 2.5;
 CurvePointView::CurvePointView(
         const CurvePointModel* model,
+        const CurveStyle& style,
         QGraphicsItem* parent):
-    QGraphicsObject{parent}
+    QGraphicsObject{parent},
+    m_style{style}
 {
     this->setZValue(2);
     this->setCursor(Qt::CrossCursor);
@@ -57,12 +59,10 @@ void CurvePointView::paint(
     if(!m_enabled)
         return;
 
-    auto& style = CurveStyle::instance();
-
     QPen pen;
     QColor c = m_selected
-               ? style.PointSelected
-               : style.Point;
+               ? m_style.PointSelected
+               : m_style.Point;
 
     pen.setColor(c);
     pen.setWidth(1);

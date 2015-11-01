@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>MappingColors.json</file>
+        <file>MappingColors-IEEE.json</file>
+    </qresource>
+</RCC>

@@ -7,8 +7,10 @@
 #include <QCursor>
 CurveSegmentView::CurveSegmentView(
         const CurveSegmentModel* model,
+        const CurveStyle& style,
         QGraphicsItem *parent):
-    QGraphicsObject{parent}
+    QGraphicsObject{parent},
+    m_style{style}
 {
     this->setZValue(1);
     this->setFlag(ItemIsFocusable, false);
@@ -56,14 +58,13 @@ void CurveSegmentView::paint(
         const QStyleOptionGraphicsItem *option,
         QWidget *widget)
 {
-    auto& style = CurveStyle::instance();
     QPen pen;
     pen.setWidth(m_enabled ? 2 : 1);
     pen.setColor(m_enabled
                     ? (m_selected
-                        ? style.SegmentSelected
-                        : style.Segment)
-                    : style.SegmentDisabled);
+                        ? m_style.SegmentSelected
+                        : m_style.Segment)
+                    : m_style.SegmentDisabled);
 
     painter->setPen(pen);
     painter->drawPath(m_unstrockedShape);

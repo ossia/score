@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-
+#include <Automation/AutomationColors.hpp>
 class AutomationFactory : public ProcessFactory
 {
     public:
@@ -28,4 +28,7 @@ class AutomationFactory : public ProcessFactory
                 const LayerModel&,
                 LayerView*,
                 QObject* parent) override;
+
+    private:
+        AutomationColors m_colors;
 };

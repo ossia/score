@@ -3,7 +3,6 @@
 #include "AutomationView.hpp"
 #include "AutomationPresenter.hpp"
 
-
 Process* AutomationFactory::makeModel(
         const TimeValue& duration,
         const Id<Process>& id,
@@ -26,11 +25,11 @@ LayerPresenter* AutomationFactory::makeLayerPresenter(
         QObject* parent)
 {
     return new AutomationPresenter {
+        m_colors.style(),
         safe_cast<const AutomationLayerModel&>(viewModel),
-                safe_cast<AutomationView*>(view),
-                parent};
+        safe_cast<AutomationView*>(view),
+        parent};
 }
-
 
 QByteArray AutomationFactory::makeStaticLayerConstructionData() const
 {

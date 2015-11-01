@@ -25,7 +25,11 @@ class CurvePresenter : public QObject
     public:
         enum class AddPointBehaviour
         { LinearBefore, LinearAfter, DuplicateSegment };
-        CurvePresenter(const CurveModel&, CurveView*, QObject* parent);
+        CurvePresenter(
+                const CurveStyle&,
+                const CurveModel&,
+                CurveView*,
+                QObject* parent);
         virtual ~CurvePresenter();
 
         const auto& points() const
@@ -117,6 +121,8 @@ class CurvePresenter : public QObject
         // Required dispatchers
         CommandDispatcher<> m_commandDispatcher;
         iscore::SelectionDispatcher m_selectionDispatcher;
+
+        const CurveStyle& m_style;
 
         QMenu* m_contextMenu{};
         QActionGroup* m_actions{};

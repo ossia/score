@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>CurveColors.json</file>
-        <file>CurveColors-IEEE.json</file>
+        <file>AutomationColors.json</file>
+        <file>AutomationColors-IEEE.json</file>
     </qresource>
 </RCC>

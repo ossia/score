@@ -11,10 +11,11 @@ class AutomationPresenter :
 {
     public:
         AutomationPresenter(
+                const CurveStyle& style,
                 const AutomationLayerModel& layer,
                 AutomationView* view,
                 QObject* parent):
-            CurveProcessPresenter{layer, view, parent}
+            CurveProcessPresenter{style, layer, view, parent}
         {
             con(m_layer.model(), &AutomationModel::addressChanged,
                 this, [&] (const auto&)

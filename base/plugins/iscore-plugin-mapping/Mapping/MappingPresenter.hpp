@@ -1,5 +1,7 @@
 #pragma once
 #include <Curve/Process/CurveProcessPresenter.hpp>
+#include <Curve/CurveStyle.hpp>
+
 
 #include "MappingModel.hpp"
 #include "MappingLayerModel.hpp"
@@ -14,7 +16,7 @@ class MappingPresenter :
                 const MappingLayerModel& layer,
                 MappingView* view,
                 QObject* parent):
-            CurveProcessPresenter{layer, view, parent}
+            CurveProcessPresenter{CurveStyle{}, layer, view, parent}
         {
           ISCORE_TODO;
           /*

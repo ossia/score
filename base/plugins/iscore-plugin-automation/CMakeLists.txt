@@ -24,7 +24,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/State/AutomationState.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationColors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_automation.cpp"
 )
 

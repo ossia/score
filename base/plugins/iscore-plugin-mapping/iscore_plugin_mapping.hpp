@@ -7,24 +7,18 @@ class MappingControl;
 class iscore_plugin_mapping:
         public QObject,
         public iscore::FactoryInterface_QtInterface,
-        public iscore::PluginControlInterface_QtInterface,
         public iscore::CommandFactory_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
         Q_INTERFACES(
                 iscore::FactoryInterface_QtInterface
-                iscore::PluginControlInterface_QtInterface
                 iscore::CommandFactory_QtInterface
                 )
 
     public:
         iscore_plugin_mapping();
         virtual ~iscore_plugin_mapping() = default;
-
-        // Plugin control interface
-        iscore::PluginControlInterface* make_control(
-                iscore::Presenter*) override;
 
         // Process & inspector
         QVector<iscore::FactoryInterface*> factories(
