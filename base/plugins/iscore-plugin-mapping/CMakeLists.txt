@@ -8,7 +8,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
 
 # Files & main target
 file(GLOB_RECURSE HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Automation/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/*.hpp"
 )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingSerialization.cpp"
