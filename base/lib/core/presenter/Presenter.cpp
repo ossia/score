@@ -329,7 +329,9 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(
              << "could not be instantiated.";
     ISCORE_ABORT;
 #else
-    throw MissingCommandException(parent_name, name);
+    throw MissingCommandException(
+                QString::fromStdString(parent_name),
+                QString::fromStdString(name));
 #endif
     return nullptr;
 }
