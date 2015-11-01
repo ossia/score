@@ -27,6 +27,6 @@ class MappingInspectorFactory final : public InspectorWidgetFactory
 
         QList<QString> correspondingObjectsNames() const override
         {
-            return {"Automation"};
+            return {"Mapping"};
         }
 };

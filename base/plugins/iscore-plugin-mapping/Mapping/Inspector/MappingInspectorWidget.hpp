@@ -8,6 +8,7 @@ class DeviceExplorerModel;
 class MappingModel;
 class QDoubleSpinBox;
 class AddressEditWidget;
+
 class MappingInspectorWidget : public InspectorWidgetBase
 {
         Q_OBJECT
@@ -21,13 +22,20 @@ class MappingInspectorWidget : public InspectorWidgetBase
         void createViewInNewSlot(QString);
 
     public slots:
-        void on_addressChange(const iscore::Address& newText);
-        void on_minValueChanged();
-        void on_maxValueChanged();
+        void on_sourceAddressChange(const iscore::Address& newText);
+        void on_sourceMinValueChanged();
+        void on_sourceMaxValueChanged();
 
+        void on_targetAddressChange(const iscore::Address& newText);
+        void on_targetMinValueChanged();
+        void on_targetMaxValueChanged();
     private:
         DeviceExplorerModel* m_explorer{};
-        AddressEditWidget* m_lineEdit{};
-        QDoubleSpinBox* m_minsb{}, *m_maxsb{};
+        AddressEditWidget* m_sourceLineEdit{};
+        QDoubleSpinBox* m_sourceMin{}, *m_sourceMax{};
+
+        AddressEditWidget* m_targetLineEdit{};
+        QDoubleSpinBox* m_targetMin{}, *m_targetMax{};
+
         const MappingModel& m_model;
 };
