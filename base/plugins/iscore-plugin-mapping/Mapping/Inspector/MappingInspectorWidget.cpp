@@ -86,6 +86,8 @@ MappingInspectorWidget::MappingInspectorWidget(
                 this, &MappingInspectorWidget::on_sourceMinValueChanged);
         connect(m_sourceMax, &QAbstractSpinBox::editingFinished,
                 this, &MappingInspectorWidget::on_sourceMaxValueChanged);
+
+        // TODO in AutomationInspectorWidget, remove all Qt4-style connects.
     }
 
     {

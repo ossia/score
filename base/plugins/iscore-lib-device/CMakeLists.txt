@@ -39,5 +39,5 @@ target_link_libraries(iscore_lib_device
                       Qt5::Core Qt5::Widgets Qt5::Xml
                       iscore_lib_base iscore_lib_state)
 
-setup_iscore_plugin(iscore_lib_device)
+setup_iscore_library(iscore_lib_device)
 
