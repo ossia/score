@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/LayerModel.hpp>
+#include <Process/LayerModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 

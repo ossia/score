@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/Process.hpp>
+#include <Process/Process.hpp>
 #include "TimeProcessWithConstraint.hpp"
 #include <memory>
 

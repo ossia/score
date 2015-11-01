@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/ProcessFactory.hpp>
+#include <Process/ProcessFactory.hpp>
 
 class MappingFactory : public ProcessFactory
 {

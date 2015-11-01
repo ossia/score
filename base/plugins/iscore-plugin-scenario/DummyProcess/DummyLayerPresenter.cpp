@@ -1,6 +1,6 @@
 #include "DummyLayerPresenter.hpp"
-#include <ProcessInterface/Process.hpp>
-#include <ProcessInterface/LayerModel.hpp>
+#include <Process/Process.hpp>
+#include <Process/LayerModel.hpp>
 
 DummyLayerPresenter::DummyLayerPresenter(
         const LayerModel& model,

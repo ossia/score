@@ -1,6 +1,6 @@
 #include "CSPDocumentPlugin.hpp"
 
-#include <Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <core/document/DocumentModel.hpp>
 
 CSPDocumentPlugin::CSPDocumentPlugin(iscore::DocumentModel &doc, QObject* parent):

@@ -1,5 +1,5 @@
 #include <QtTest/QtTest>
-#include "Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp"
+#include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
 
 class AutomationModel;

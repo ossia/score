@@ -1,12 +1,12 @@
 #include "OSSIABaseScenarioElement.hpp"
 
-#include <Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeNode.h>
 
-#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include "iscore2OSSIA.hpp"
 #include <QTimer>
 #include <iscore/document/DocumentInterface.hpp>

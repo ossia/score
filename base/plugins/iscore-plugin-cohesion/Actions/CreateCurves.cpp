@@ -3,7 +3,7 @@
 #include <Commands/CreateCurvesFromAddresses.hpp>
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
 
-#include <Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include <Plugin/Panel/DeviceExplorerModel.hpp>
 

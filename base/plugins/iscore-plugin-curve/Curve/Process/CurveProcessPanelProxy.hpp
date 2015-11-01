@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/LayerModelPanelProxy.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
 
 template<typename LayerModel_T>
 class CurveProcessPanelProxy : public LayerModelPanelProxy

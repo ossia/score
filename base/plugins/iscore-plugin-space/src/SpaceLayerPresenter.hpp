@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/LayerPresenter.hpp>
+#include <Process/LayerPresenter.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include "Area/AreaModel.hpp"

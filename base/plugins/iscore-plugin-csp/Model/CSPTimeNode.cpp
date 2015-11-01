@@ -2,7 +2,7 @@
 #include "CSPScenario.hpp"
 
 #include <kiwi/kiwi.h>
-#include <Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 
 
 CSPTimeNode::CSPTimeNode(CSPScenario& cspScenario, const Id<TimeNodeModel>& timeNodeId)

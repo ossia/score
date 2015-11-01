@@ -2,8 +2,8 @@
 #include "CSPDocumentPlugin.hpp"
 #include <core/document/DocumentModel.hpp>
 
-#include <ProcessInterface/Process.hpp>
-#include "Document/Constraint/Rack/RackModel.hpp"
+#include <Process/Process.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
 #if defined(ISCORE_STATIC_PLUGINS) && defined(ISCORE_COMPILER_IS_AppleClang)
 // This part is somewhat similar to what moc does

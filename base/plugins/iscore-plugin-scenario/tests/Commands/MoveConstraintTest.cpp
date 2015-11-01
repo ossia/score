@@ -1,14 +1,14 @@
 #include <QtTest/QtTest>
 
-#include <Commands/Scenario/Displacement/MoveConstraint.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
 
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Constraint/ConstraintData.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintData.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
-#include <Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Process/ScenarioModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

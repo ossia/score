@@ -1,8 +1,8 @@
 #include "OSSIATimeNodeElement.hpp"
 
 #include <API/Headers/Editor/TimeNode.h>
-#include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Document/TimeNode/Trigger/TriggerModel.hpp"
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include "iscore2OSSIA.hpp"
 
 OSSIATimeNodeElement::OSSIATimeNodeElement(

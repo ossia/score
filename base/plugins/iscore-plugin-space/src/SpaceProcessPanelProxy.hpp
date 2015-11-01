@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/LayerModelPanelProxy.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
 #include "SpaceProcessProxyLayerModel.hpp"
 
 class SpaceProcessProxyLayerModel;

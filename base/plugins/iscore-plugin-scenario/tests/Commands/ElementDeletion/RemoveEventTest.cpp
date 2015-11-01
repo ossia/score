@@ -1,11 +1,11 @@
 #include <QtTest/QTest>
 
-#include "Commands/Scenario/Deletions/RemoveEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
+#include <Scenario/Commands/Scenario/Deletions/RemoveEvent.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 
-#include "Document/Event/EventModel.hpp"
-#include <Document/Event/EventData.hpp>
-#include "Process/ScenarioModel.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

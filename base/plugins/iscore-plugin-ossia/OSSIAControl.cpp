@@ -2,7 +2,7 @@
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
 #include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
 
-#include "Control/ScenarioControl.hpp"
+#include <Scenario/Control/ScenarioControl.hpp>
 
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Node.h>

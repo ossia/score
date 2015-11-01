@@ -2,8 +2,6 @@
 #include "DeviceExplorerView.hpp"
 #include "DeviceExplorerCommandCreator.hpp"
 
-#include "Commands/Insert.hpp"
-
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Update/UpdateAddressSettings.hpp"
 

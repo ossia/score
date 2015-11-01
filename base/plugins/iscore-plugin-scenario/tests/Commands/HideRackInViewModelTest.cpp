@@ -1,25 +1,25 @@
 #include <QtTest/QtTest>
-#include "Commands/Scenario/HideRackInViewModel.hpp"
+#include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Constraint/ViewModels/ConstraintViewModel.hpp"
-#include "Document/Constraint/Rack/RackModel.hpp"
-#include "Document/Constraint/Rack/Slot/SlotModel.hpp"
-#include "Document/Event/EventModel.hpp"
-#include "Document/Event/EventData.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventData.hpp>
 
-#include "Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
-#include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddRackToConstraint.hpp"
-#include "Commands/Constraint/Rack/AddSlotToRack.hpp"
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
-#include "Commands/Scenario/ShowRackInViewModel.hpp"
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
+#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 
-#include "Process/ScenarioFactory.hpp"
-#include "Process/ScenarioModel.hpp"
-#include "Process/AbstractScenarioLayerModel.hpp"
+#include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/AbstractScenarioLayerModel.hpp>
 
-#include "ProcessInterface/ProcessList.hpp"
+#include <Process/ProcessList.hpp>
 #include "iscore/document/DocumentInterface.hpp"
 #include <core/command/CommandStack.hpp>
 using namespace iscore;

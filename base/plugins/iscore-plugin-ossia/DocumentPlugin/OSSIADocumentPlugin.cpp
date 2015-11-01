@@ -8,8 +8,8 @@
 #include "OSSIABaseScenarioElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 
-#include "Document/BaseElement/BaseScenario/BaseScenario.hpp"
-#include <Process/ScenarioModel.hpp>
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Automation/AutomationModel.hpp>
 

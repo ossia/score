@@ -6,7 +6,7 @@
 #include "Actions/SnapshotParameters.hpp"
 
 #include <iscore/menu/MenuInterface.hpp>
-#include <Control/ScenarioControl.hpp>
+#include <Scenario/Control/ScenarioControl.hpp>
 
 #include <QApplication>
 #include <QToolBar>

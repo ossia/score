@@ -27,16 +27,16 @@
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Commands/ChangeAddress.hpp>
 
-#include <Document/BaseElement/BaseElementModel.hpp>
-#include <Document/BaseElement/BaseScenario/BaseScenario.hpp>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
-#include <Document/State/StateModel.hpp>
-#include <Process/ScenarioModel.hpp>
-#include <Commands/Scenario/Creations/CreateState.hpp>
-#include <Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
-#include <Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 
 QT_BEGIN_NAMESPACE
 QTEST_ADD_GPU_BLACKLIST_SUPPORT_DEFS

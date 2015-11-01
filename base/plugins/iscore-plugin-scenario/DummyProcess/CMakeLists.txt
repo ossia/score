@@ -27,8 +27,6 @@ set(DUMMYPROCESS_SRCS
 if(TARGET iscore_lib_inspector)
     set(DUMMYPROCESS_HDRS ${DUMMYPROCESS_HDRS}
             "${CMAKE_CURRENT_SOURCE_DIR}/DummyInspectorWidget.hpp")
-    set(DUMMYPROCESS_SRCS ${DUMMYPROCESS_SRCS}
-            "${CMAKE_CURRENT_SOURCE_DIR}/DummyInspectorWidget.cpp")
 endif()
 
 add_library(iscore_lib_dummyprocess ${DUMMYPROCESS_HDRS} ${DUMMYPROCESS_SRCS} )

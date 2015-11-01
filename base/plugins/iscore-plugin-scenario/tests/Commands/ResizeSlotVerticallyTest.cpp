@@ -1,5 +1,5 @@
 #include <QtTest/QtTest>
-#include "Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp"
+#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

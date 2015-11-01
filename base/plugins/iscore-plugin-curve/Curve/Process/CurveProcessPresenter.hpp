@@ -1,6 +1,6 @@
 #pragma once
-#include <ProcessInterface/LayerPresenter.hpp>
-#include <ProcessInterface/Focus/FocusDispatcher.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 
 #include "CurveProcessModel.hpp"

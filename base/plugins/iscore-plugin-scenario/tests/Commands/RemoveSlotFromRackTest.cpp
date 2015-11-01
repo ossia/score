@@ -1,11 +1,11 @@
 #include <QtTest/QtTest>
-#include "Commands/Constraint/Rack/RemoveSlotFromRack.hpp"
-#include "Commands/Constraint/Rack/AddSlotToRack.hpp"
-#include "Commands/Constraint/AddRackToConstraint.hpp"
+#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Constraint/Rack/RackModel.hpp>
-#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 
 using namespace iscore;

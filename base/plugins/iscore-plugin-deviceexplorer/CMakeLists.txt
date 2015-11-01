@@ -33,7 +33,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/Address/FullAddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeDisplayMethods.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/ItemModels/NodeBasedItemModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/QMenuView/qmenuview.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorer/XML/XMLDeviceLoader.cpp"
@@ -47,7 +46,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Cut.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Move.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Paste.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Insert.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/ReplaceDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Commands/UpdateAddresses.cpp"

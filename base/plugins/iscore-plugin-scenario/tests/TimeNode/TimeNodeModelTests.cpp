@@ -1,9 +1,9 @@
 #include <QtTest/QtTest>
-#include "Document/TimeNode/TimeNodeModel.hpp"
-#include "Document/Event/EventModel.hpp"
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 
-#include "Process/ScenarioModel.hpp"
-#include "ProcessInterface/TimeValue.hpp"
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/TimeValue.hpp>
 
 #include "iscore/tools/ModelPath.hpp"
 

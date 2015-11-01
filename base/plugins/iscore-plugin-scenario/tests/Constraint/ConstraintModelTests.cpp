@@ -1,14 +1,14 @@
 #include <QtTest/QtTest>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/Constraint/Rack/RackModel.hpp>
-#include <Process/ScenarioModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
-#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 
 #include <iscore/tools/ModelPath.hpp>
-#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 
 
 class ConstraintModelTests: public QObject

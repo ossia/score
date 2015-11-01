@@ -2,9 +2,9 @@
 #include "Repartition/session/Session.hpp"
 #include "DistributedScenario/GroupManager.hpp"
 
-#include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Event/EventModel.hpp"
-#include "source/Document/TimeNode/TimeNodeModel.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
+#include "Scenario/Document/TimeNode/TimeNodeModel.hpp"
 
 #include <core/document/DocumentModel.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>

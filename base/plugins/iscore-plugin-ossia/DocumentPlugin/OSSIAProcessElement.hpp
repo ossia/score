@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <ProcessInterface/Process.hpp>
+#include <Process/Process.hpp>
 #include <memory>
 
 class OSSIAConstraintElement;

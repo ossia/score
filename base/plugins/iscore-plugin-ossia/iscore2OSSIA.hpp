@@ -9,12 +9,12 @@
 #include <API/Headers/Editor/Message.h>
 
 #include <API/Headers/Editor/TimeValue.h>
-#include <ProcessInterface/TimeValue.hpp>
+#include <Process/TimeValue.hpp>
 #include <State/Message.hpp>
 #include <State/Expression.hpp>
 
 #include <DeviceExplorer/Protocol/DeviceList.hpp>
-#include <ProcessInterface/State/MessageNode.hpp>
+#include <Process/State/MessageNode.hpp>
 namespace iscore
 {
 namespace convert

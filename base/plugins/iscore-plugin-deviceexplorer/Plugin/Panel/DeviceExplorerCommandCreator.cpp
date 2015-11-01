@@ -6,7 +6,6 @@
 #include <core/document/Document.hpp>
 
 #include "Commands/Move.hpp"
-#include "Commands/Insert.hpp"
 #include "Commands/Cut.hpp"
 #include "Commands/Paste.hpp"
 

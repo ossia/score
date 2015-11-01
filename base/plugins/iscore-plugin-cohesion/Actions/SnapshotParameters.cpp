@@ -2,8 +2,8 @@
 
 #include <Commands/CreateStatesFromParametersInEvents.hpp>
 
-#include <Commands/State/UpdateState.hpp>
-#include <Document/State/StateModel.hpp>
+#include <Scenario/Commands/State/UpdateState.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Plugin/Panel/DeviceExplorerModel.hpp>
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>

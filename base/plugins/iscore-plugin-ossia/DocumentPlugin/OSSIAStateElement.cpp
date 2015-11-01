@@ -1,7 +1,7 @@
 #include "OSSIAStateElement.hpp"
 #include <iscore/tools/Todo.hpp>
 #include "iscore2OSSIA.hpp"
-#include "Document/State/StateModel.hpp"
+#include <Scenario/Document/State/StateModel.hpp>
 #include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 OSSIAStateElement::OSSIAStateElement(

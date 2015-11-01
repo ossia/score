@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/LayerModelPanelProxy.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
 
 class DummyLayerPanelProxy final : public LayerModelPanelProxy
 {

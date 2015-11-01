@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/Process.hpp>
+#include <Process/Process.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 

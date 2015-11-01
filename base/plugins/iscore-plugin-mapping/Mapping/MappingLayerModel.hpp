@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ProcessInterface/LayerModel.hpp>
+#include <Process/LayerModel.hpp>
 
 class MappingModel;
 class MappingLayerModel : public LayerModel

@@ -1,12 +1,12 @@
 #include <QtTest/QTest>
 
-#include "Commands/TimeNode/SplitTimeNode.hpp"
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
+#include <Scenario/Commands/TimeNode/SplitTimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 
-#include "Document/Event/EventModel.hpp"
-#include "Document/TimeNode/TimeNodeModel.hpp"
-#include <Document/Event/EventData.hpp>
-#include "Process/ScenarioModel.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include "iscore/document/DocumentInterface.hpp"
 
 using namespace iscore;

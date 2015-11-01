@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ProcessInterface/ProcessFactory.hpp>
+#include <Process/ProcessFactory.hpp>
 #include "SimpleProcessModel.hpp"
 #include <DummyProcess/DummyLayerPresenter.hpp>
 #include <DummyProcess/DummyLayerView.hpp>

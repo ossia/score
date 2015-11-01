@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ProcessInterface/TimeValue.hpp>
-#include <Document/TimeNode/TimeNodeModel.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Model/tools/CSPConstraintHolder.hpp>
 

@@ -1,17 +1,17 @@
 #include <QtTest/QtTest>
 
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Constraint/Rack/RackModel.hpp>
-#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <ProcessInterface/LayerModel.hpp>
-#include <ProcessInterface/Process.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Process/LayerModel.hpp>
+#include <Process/Process.hpp>
 
-#include "Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp"
-#include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddRackToConstraint.hpp"
-#include "Commands/Constraint/Rack/AddSlotToRack.hpp"
-#include <Process/ScenarioFactory.hpp>
-#include "ProcessInterface/ProcessList.hpp"
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
+#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Process/ScenarioFactory.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <core/command/CommandStack.hpp>
 

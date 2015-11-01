@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/State/ProcessStateDataInterface.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
 
 class DummyState final : public ProcessStateDataInterface
 {

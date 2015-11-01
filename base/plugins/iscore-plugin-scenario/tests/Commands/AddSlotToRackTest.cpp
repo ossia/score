@@ -1,8 +1,8 @@
 #include <QtTest/QtTest>
-#include <Document/Constraint/Rack/RackModel.hpp>
-#include <Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
-#include "Commands/Constraint/Rack/AddSlotToRack.hpp"
+#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

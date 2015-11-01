@@ -1,6 +1,6 @@
 #include <MoveEventCSPFactory.hpp>
 #include <CSPDisplacementPolicy.hpp>
-#include <Commands/Scenario/Displacement/MoveEvent.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 
 SerializableMoveEvent* MoveEventCSPFactory::make(
         Path<ScenarioModel> &&scenarioPath,

@@ -1,13 +1,13 @@
 #include "QtTest/QTest"
 
-#include "Commands/Scenario/Deletions/RemoveConstraint.hpp"
-#include "Commands/Scenario/Creations/CreateEvent.hpp"
-#include "Commands/Scenario/Creations/CreateEventAfterEvent.hpp"
+#include <Scenario/Commands/Scenario/Deletions/RemoveConstraint.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateEventAfterEvent.hpp>
 
-#include "Document/Event/EventModel.hpp"
-#include <Document/Event/EventData.hpp>
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Process/ScenarioModel.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

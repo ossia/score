@@ -1,8 +1,8 @@
 #include "CSPTimeRelation.hpp"
 #include "CSPScenario.hpp"
-#include <Process/ScenarioInterface.hpp>
-#include <Process/ScenarioModel.hpp>
-#include <Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Model/CSPTimeNode.hpp>
 #include <kiwi/kiwi.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 /*
 #include "Group.hpp"
-#include <source/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <unordered_map>
 // The distribution algorithm must take into account the choices
 // that are to be applied either to the whole group,

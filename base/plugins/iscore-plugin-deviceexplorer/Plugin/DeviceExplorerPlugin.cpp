@@ -9,7 +9,6 @@ using namespace iscore;
 #include "Commands/Add/AddDevice.hpp"
 #include "Commands/Add/LoadDevice.hpp"
 #include "Commands/Cut.hpp"
-#include "Commands/Insert.hpp"
 #include "Commands/Move.hpp"
 #include "Commands/Paste.hpp"
 #include "Commands/Remove/RemoveAddress.hpp"

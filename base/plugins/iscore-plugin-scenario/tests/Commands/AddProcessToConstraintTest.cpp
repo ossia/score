@@ -1,14 +1,14 @@
 #include <QtTest/QtTest>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Event/EventModel.hpp>
-#include <Document/Constraint/Rack/RackModel.hpp>
-#include <Process/ScenarioModel.hpp>
-#include "ProcessInterface/ProcessList.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Process/ProcessList.hpp>
 
-#include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/RemoveProcessFromConstraint.hpp"
-#include "Commands/Constraint/AddRackToConstraint.hpp"
-#include <Process/ScenarioFactory.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
+#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
+#include <Scenario/Process/ScenarioFactory.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

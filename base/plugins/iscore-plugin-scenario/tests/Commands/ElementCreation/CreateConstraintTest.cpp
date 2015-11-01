@@ -1,11 +1,11 @@
 #include "QtTest/QTest"
 
-#include "Commands/Scenario/Creations/CreateConstraint.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
 
-#include "Document/Constraint/ConstraintModel.hpp"
-#include "Document/Event/EventModel.hpp"
-#include <Document/Event/EventData.hpp>
-#include "Process/ScenarioModel.hpp"
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 
 using namespace iscore;

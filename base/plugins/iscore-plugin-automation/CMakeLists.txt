@@ -17,8 +17,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPanelProxy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationLayerModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"

@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/Process.hpp>
+#include <Process/Process.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include "Area/AreaModel.hpp"
 #include "Computation/ComputationModel.hpp"

@@ -1,6 +1,6 @@
 #include "ChangeGroup.hpp"
-#include "source/Document/Constraint/ConstraintModel.hpp"
-#include "source/Document/Event/EventModel.hpp"
+#include "Scenario/Document/Constraint/ConstraintModel.hpp"
+#include "Scenario/Document/Event/EventModel.hpp"
 #include <boost/range/algorithm/find_if.hpp>
 GroupMetadata* getGroupMetadata(QObject* obj)
 {

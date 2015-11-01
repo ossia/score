@@ -2,7 +2,7 @@
 #include "RecordData.hpp"
 
 #include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <unordered_map>

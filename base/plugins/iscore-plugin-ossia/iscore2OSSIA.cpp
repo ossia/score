@@ -1,6 +1,6 @@
 #include "iscore2OSSIA.hpp"
 
-#include <ProcessInterface/State/MessageNode.hpp>
+#include <Process/State/MessageNode.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/int.hpp>

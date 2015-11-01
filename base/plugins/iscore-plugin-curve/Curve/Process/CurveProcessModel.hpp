@@ -1,5 +1,5 @@
 #pragma once
-#include <ProcessInterface/Process.hpp>
+#include <Process/Process.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 

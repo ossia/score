@@ -3,7 +3,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 #include <memory>
 
-#include <Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include "OSSIAProcessElement.hpp"
 #include "OSSIAConstraintElement.hpp"

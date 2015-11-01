@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
-#include <Commands/Scenario/Displacement/MoveEventList.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 
 class MoveEventCSPFactory : public MoveEventFactoryInterface

@@ -7,7 +7,7 @@
 #include <ProcessModel/OSSIAProcessModel.hpp>
 #include <ProcessModel/OSSIAProcessModelElement.hpp>
 #include <Automation/AutomationModel.hpp>
-#include <Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeProcess.h>

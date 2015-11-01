@@ -1,8 +1,8 @@
 #include <QtTest/QtTest>
-#include <Document/Constraint/ConstraintModel.hpp>
-#include <Document/Constraint/Rack/RackModel.hpp>
+#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 
-#include "Commands/Constraint/AddRackToConstraint.hpp"
+#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;

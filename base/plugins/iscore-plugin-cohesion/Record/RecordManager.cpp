@@ -3,18 +3,18 @@
 
 #include "Commands/Record.hpp"
 
-#include "Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp"
-#include "Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp"
-#include "Commands/Constraint/AddProcessToConstraint.hpp"
-#include "Commands/Constraint/AddOnlyProcessToConstraint.hpp"
-#include "Commands/Scenario/Displacement/MoveNewEvent.hpp"
-#include "Commands/Scenario/Displacement/MoveEvent.hpp"
+#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 #include "Automation/Commands/ChangeAddress.hpp"
 #include "Automation/Commands/InitAutomation.hpp"
-#include <Commands/Scenario/ShowRackInViewModel.hpp>
-#include <Commands/Constraint/AddRackToConstraint.hpp>
-#include <Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
+#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
 #include "Automation/AutomationModel.hpp"
 #include "Curve/CurveModel.hpp"

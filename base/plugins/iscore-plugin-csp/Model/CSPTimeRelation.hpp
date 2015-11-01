@@ -3,7 +3,7 @@
 #include <kiwi/kiwi.h>
 #include <QVector>
 #include <iscore/tools/SettableIdentifier.hpp>
-#include <ProcessInterface/TimeValue.hpp>
+#include <Process/TimeValue.hpp>
 #include <Model/tools/CSPConstraintHolder.hpp>
 
 #include <Model/CSPScenario.hpp>

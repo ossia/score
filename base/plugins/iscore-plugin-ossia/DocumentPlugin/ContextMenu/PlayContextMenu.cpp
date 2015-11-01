@@ -1,8 +1,8 @@
 #include "PlayContextMenu.hpp"
-#include "source/Control/ScenarioControl.hpp"
+#include "Scenario/Control/ScenarioControl.hpp"
 #include "DocumentPlugin/OSSIAStateElement.hpp"
-#include "Process/ScenarioModel.hpp"
-#include "Document/State/StateModel.hpp"
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include "DocumentPlugin/OSSIAScenarioElement.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
@@ -10,8 +10,8 @@
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <core/document/DocumentModel.hpp>
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
-#include "Process/Temporal/TemporalScenarioPresenter.hpp"
-#include "Process/Temporal/TemporalScenarioView.hpp"
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
     ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {

@@ -2,7 +2,7 @@
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include <QTemporaryFile>
 #include <QTimer>
-#include "Process/Temporal/StateMachines/ScenarioPoint.hpp"
+#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class RecordManager;
 class ScenarioModel;
 class IScoreCohesionControl : public iscore::PluginControlInterface

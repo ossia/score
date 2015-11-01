@@ -7,7 +7,7 @@
 #include <API/Headers/Editor/Domain.h>
 
 #include <API/Headers/Editor/TimeValue.h>
-#include <ProcessInterface/TimeValue.hpp>
+#include <Process/TimeValue.hpp>
 
 // Utility functions to convert from one node to another.
 namespace OSSIA
