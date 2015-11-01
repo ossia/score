@@ -52,7 +52,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_automation::factories(const QSt
 
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_automation::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds;
+    std::pair<const std::string, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
                 ChangeAddress,

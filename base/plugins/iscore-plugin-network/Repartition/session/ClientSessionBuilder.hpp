@@ -16,7 +16,7 @@ class ClientSessionBuilder : public QObject
         void initiateConnection();
         ClientSession* builtSession() const;
         QByteArray documentData() const;
-        const QList<QPair<QPair<QString, QString>, QByteArray> >& commandStackData() const;
+        const QList<QPair<QPair<std::string, std::string>, QByteArray> >& commandStackData() const;
 
     public slots:
         void on_messageReceived(const NetworkMessage& m);
@@ -31,7 +31,7 @@ class ClientSessionBuilder : public QObject
         NetworkSocket* m_mastersocket{};
 
 
-        QList<QPair <QPair <QString,QString>, QByteArray> > m_commandStack;
+        QList<QPair <QPair <std::string, std::string>, QByteArray> > m_commandStack;
         QByteArray m_documentData;
 
         ClientSession* m_session{};

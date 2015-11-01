@@ -31,3 +31,29 @@ QList<iscore::PanelFactory*> iscore_plugin_network::panels()
     return {new GroupPanelFactory};
 }
 
+
+
+#include "DistributedScenario/Commands/AddClientToGroup.hpp"
+#include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
+
+#include "DistributedScenario/Commands/CreateGroup.hpp"
+#include "DistributedScenario/Commands/RemoveGroup.hpp"
+
+#include "DistributedScenario/Commands/ChangeGroup.hpp"
+#include <iscore/command/CommandGeneratorMap.hpp>
+std::pair<const std::string, CommandGeneratorMap> iscore_plugin_network::make_commands()
+{
+    std::pair<const std::string, CommandGeneratorMap> cmds{DistributedScenarioCommandFactoryName(), CommandGeneratorMap{}};
+    boost::mpl::for_each<
+            boost::mpl::list<
+            AddClientToGroup,
+            RemoveClientFromGroup,
+            CreateGroup,
+            ChangeGroup
+            // TODO RemoveGroup;
+            >,
+            boost::type<boost::mpl::_>
+            >(CommandGeneratorMapInserter{cmds.second});
+
+    return cmds;
+}

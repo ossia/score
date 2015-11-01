@@ -49,7 +49,7 @@ PluginControlInterface *iscore_plugin_deviceexplorer::make_control(Presenter* pr
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_deviceexplorer::make_commands()
 {
     using namespace DeviceExplorer::Command;
-    std::pair<const std::string, CommandGeneratorMap> cmds;
+    std::pair<const std::string, CommandGeneratorMap> cmds{DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             AddAddress,

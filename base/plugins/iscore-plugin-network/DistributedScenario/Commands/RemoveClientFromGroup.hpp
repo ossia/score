@@ -1,4 +1,5 @@
 #pragma once
+#include <DistributedScenario/Commands/DistributedScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -7,7 +8,11 @@ class Client;
 class Group;
 class RemoveClientFromGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("NetworkControl", RemoveClientFromGroup, "RemoveClientFromGroup")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(
+                DistributedScenarioCommandFactoryName(),
+                RemoveClientFromGroup,
+                "RemoveClientFromGroup")
+
     public:
         RemoveClientFromGroup(
                 ObjectPath&& groupMgrPath,

@@ -45,7 +45,7 @@ QVector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
 
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_curve::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds;
+    std::pair<const std::string, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
                 UpdateCurve,

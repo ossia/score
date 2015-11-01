@@ -26,7 +26,8 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
         {
             QDataStream s(&idOffer.data, QIODevice::WriteOnly);
 
-            int32_t id = iscore::id_generator::getNextId();
+            // TODO make a strong id with the client array!!!!!!
+            int32_t id = iscore::random_id_generator::getRandomId();
             m_clientId = Id<Client>(id);
             s << id;
         }
@@ -42,7 +43,7 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
 
         // Data is the serialized command stack, and the document models.
         auto& cq = m_session.document()->commandStack();
-        QList<QPair <QPair <QString,QString>, QByteArray> > commandStack;
+        QList<QPair <QPair <std::string, std::string>, QByteArray> > commandStack; // TODO use a strong SerializedCommandStack for this
         for(int i = 0; i < cq.size(); i++)
         {
             auto cmd = cq.command(i);

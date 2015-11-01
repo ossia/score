@@ -21,8 +21,6 @@ NetworkControl::NetworkControl(Presenter* pres) :
     connect(m_zeroconfBrowser, SIGNAL(sessionSelected(QString,int)),
             this, SLOT(setupClientConnection(QString, int)));
 #endif
-
-    setupCommands();
 }
 
 void NetworkControl::populateMenus(MenubarManager* menu)
@@ -112,8 +110,9 @@ void NetworkControl::on_sessionBuilt(
         // recreate it ?
         doc->commandStack().pushQuiet(cmd);
     }
-
     np->setPolicy(new ClientNetworkPolicy{builtSession, doc});
+
+
     delete sessionBuilder;
 }
 
@@ -127,44 +126,3 @@ DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &n
 
     return new NetworkDocumentPlugin{var, parent};
 }
-
-
-#include "DistributedScenario/Commands/AddClientToGroup.hpp"
-#include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
-
-#include "DistributedScenario/Commands/CreateGroup.hpp"
-#include "DistributedScenario/Commands/RemoveGroup.hpp"
-
-#include "DistributedScenario/Commands/ChangeGroup.hpp"
-#include <iscore/command/CommandGeneratorMap.hpp>
-
-namespace {
-struct NetworkCommandFactory
-{
-        static CommandGeneratorMap map;
-};
-
-CommandGeneratorMap NetworkCommandFactory::map;
-}
-
-void NetworkControl::setupCommands()
-{
-    boost::mpl::for_each<
-            boost::mpl::list<
-                AddClientToGroup,
-                RemoveClientFromGroup,
-                CreateGroup,
-                ChangeGroup
-                // TODO RemoveGroup;
-            >,
-            boost::type<boost::mpl::_>
-    >(CommandGeneratorMapInserter<NetworkCommandFactory>());
-}
-
-SerializableCommand* NetworkControl::instantiateUndoCommand(
-        const QString& name,
-        const QByteArray& data)
-{
-    return PluginControlInterface::instantiateUndoCommand<NetworkCommandFactory>(name, data);
-}
-

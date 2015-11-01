@@ -19,16 +19,12 @@ class NetworkControl : public iscore::PluginControlInterface
     public:
         NetworkControl(iscore::Presenter* pres);
         virtual void populateMenus(iscore::MenubarManager*) override;
-        iscore::SerializableCommand* instantiateUndoCommand(
-                const QString&,
-                const QByteArray&) override;
 
     public slots:
         void setupClientConnection(QString ip, int port);
         void on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession);
 
     private:
-        void setupCommands();
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,

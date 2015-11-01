@@ -46,7 +46,8 @@ QVector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QStrin
 
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_mapping::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds;
+    /*
+    std::pair<const std::string, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             >,
@@ -54,4 +55,6 @@ std::pair<const std::string, CommandGeneratorMap> iscore_plugin_mapping::make_co
             >(CommandGeneratorMapInserter{cmds.second});
 
     return cmds;
+    */
+    return {};
 }

@@ -93,7 +93,7 @@ namespace boost { namespace mpl {
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
 {
     using namespace Scenario::Command;
-    std::pair<const std::string, CommandGeneratorMap> cmds;
+    std::pair<const std::string, CommandGeneratorMap> cmds{ScenarioCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list80<
 

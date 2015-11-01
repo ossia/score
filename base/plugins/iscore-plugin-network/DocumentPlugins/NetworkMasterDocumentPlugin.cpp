@@ -49,7 +49,7 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     /////////////////////////////////////////////////////////////////////////////
     s->mapper().addHandler("/command", [&] (NetworkMessage m)
     {
-        QString parentName; QString name; QByteArray data;
+        std::string parentName; std::string name; QByteArray data;
         QDataStream s{m.data};
         s >> parentName >> name >> data;
 

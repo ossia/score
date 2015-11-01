@@ -6,7 +6,7 @@
 
 
 CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
-    iscore::SerializableCommand{"NetworkControl", "CreateGroup", "CreateGroup_desc"},
+    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{groupMgrPath},
     m_name{groupName}
 {

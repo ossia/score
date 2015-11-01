@@ -8,11 +8,15 @@ class MoveEventCSPFlexFactory : public MoveEventFactoryInterface
 {
         // MoveEventFactory interface
     public:
-        SerializableMoveEvent* make(Path<ScenarioModel> &&scenarioPath, const Id<EventModel> &eventId, const TimeValue &newDate, ExpandMode mode);
+        SerializableMoveEvent* make(
+                Path<ScenarioModel> &&scenarioPath,
+                const Id<EventModel> &eventId,
+                const TimeValue &newDate,
+                ExpandMode mode) override;
 
-        SerializableMoveEvent* make();
+        SerializableMoveEvent* make() override;
 
-        virtual int priority(MoveEventList::Strategy strategy)
+        int priority(MoveEventList::Strategy strategy) override
         {
             switch(strategy)
             {

@@ -26,16 +26,16 @@ setup_iscore_library(iscore_lib_inspector)
 
 # Inspector panel plug-in
 file(GLOB_RECURSE PLUGIN_HDRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/*.hpp")
 set(PLUGIN_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/InspectorControl.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/InspectorPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/Implementation/SelectionStackWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/Implementation/InspectorPanel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/InspectorPanelFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/InspectorPanelModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/InspectorPanelPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Plugin/Panel/InspectorPanelView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/InspectorControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/InspectorPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/SelectionStackWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/InspectorPanel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelView.cpp"
 )
 
 add_library(iscore_plugin_inspector ${PLUGIN_HDRS} ${PLUGIN_SRCS})

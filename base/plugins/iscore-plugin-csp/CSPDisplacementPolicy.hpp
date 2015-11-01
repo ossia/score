@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Tools/dataStructures.hpp>
+#include <Scenario/Tools/dataStructures.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
 class CSPScenario;

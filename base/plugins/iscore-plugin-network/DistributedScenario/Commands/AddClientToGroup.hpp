@@ -1,4 +1,5 @@
 #pragma once
+#include <DistributedScenario/Commands/DistributedScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
@@ -7,7 +8,10 @@ class Client;
 class Group;
 class AddClientToGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("NetworkControl", AddClientToGroup, "AddClientToGroup")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(
+                DistributedScenarioCommandFactoryName(),
+                AddClientToGroup,
+                "AddClientToGroup")
     public:
         AddClientToGroup(ObjectPath&& groupMgrPath,
                          Id<Client> client,

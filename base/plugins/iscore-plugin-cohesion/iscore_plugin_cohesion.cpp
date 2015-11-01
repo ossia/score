@@ -25,7 +25,7 @@ QStringList iscore_plugin_cohesion::required() const
 
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_cohesion::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds;
+    std::pair<const std::string, CommandGeneratorMap> cmds{IScoreCohesionCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             CreateCurvesFromAddresses,
