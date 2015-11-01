@@ -48,7 +48,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveStyle.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_curve.cpp"
 )

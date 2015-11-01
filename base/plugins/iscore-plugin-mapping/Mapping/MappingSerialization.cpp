@@ -1,5 +1,4 @@
 #include "MappingModel.hpp"
-#include "MappingFactory.hpp"
 #include "MappingLayerModel.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 
@@ -93,14 +92,6 @@ void Visitor<Writer<JSONObject>>::writeTo(MappingModel& autom)
 void MappingModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
-}
-
-Process* MappingFactory::loadModel(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new MappingModel{deserializer, parent};});
 }
 
 LayerModel* MappingModel::loadLayer_impl(

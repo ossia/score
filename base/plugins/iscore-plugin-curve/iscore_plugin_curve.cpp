@@ -7,10 +7,10 @@
 #include "Curve/Segment/Sin/SinCurveSegmentModel.hpp"
 #include "Curve/Segment/Gamma/GammaCurveSegmentModel.hpp"
 
-DEFINE_CURVE_FACTORY(LinearCurveSegmentFactory, "Linear", LinearCurveSegmentModel)
-DEFINE_CURVE_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmentModel)
-DEFINE_CURVE_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
-DEFINE_CURVE_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
+DEFINE_CURVE_SEGMENT_FACTORY(LinearCurveSegmentFactory, "Linear", LinearCurveSegmentModel)
+DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmentModel)
+DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
+DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
 
 
 #include "Curve/Commands/UpdateCurve.hpp"

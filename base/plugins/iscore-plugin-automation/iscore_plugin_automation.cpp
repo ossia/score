@@ -1,6 +1,12 @@
 #include "iscore_plugin_automation.hpp"
 
-#include "Automation/AutomationFactory.hpp"
+#include <Curve/Process/CurveProcessFactory.hpp>
+
+#include <Automation/AutomationColors.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Automation/AutomationView.hpp>
+#include <Automation/AutomationLayerModel.hpp>
+#include <Automation/AutomationPresenter.hpp>
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include "Automation/Inspector/AutomationInspectorFactory.hpp"
@@ -12,9 +18,19 @@
 #include "Automation/Commands/SetCurveMax.hpp"
 #include "Automation/Commands/InitAutomation.hpp"
 
+DEFINE_CURVE_PROCESS_FACTORY(
+        AutomationFactory,
+        "Automation",
+        AutomationModel,
+        AutomationLayerModel,
+        AutomationPresenter,
+        AutomationView,
+        AutomationColors)
+
 iscore_plugin_automation::iscore_plugin_automation() :
     QObject {}
 {
+    AutomationFactory f;
 }
 
 QVector<iscore::FactoryInterface*> iscore_plugin_automation::factories(const QString& factoryName)

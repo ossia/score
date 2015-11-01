@@ -1,6 +1,5 @@
 #include "AutomationModel.hpp"
 #include "AutomationLayerModel.hpp"
-#include "AutomationFactory.hpp"
 #include "Curve/CurveModel.hpp"
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -69,18 +68,9 @@ void Visitor<Writer<JSONObject>>::writeTo(AutomationModel& autom)
 
 
 // Dynamic stuff
-#include <iscore/serialization/VisitorCommon.hpp>
 void AutomationModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
-}
-
-Process* AutomationFactory::loadModel(
-        const VisitorVariant& vis,
-        QObject* parent)
-{
-    return deserialize_dyn(vis, [&] (auto&& deserializer)
-    { return new AutomationModel{deserializer, parent};});
 }
 
 LayerModel* AutomationModel::loadLayer_impl(

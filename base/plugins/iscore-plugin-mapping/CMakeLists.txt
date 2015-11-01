@@ -14,7 +14,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
@@ -26,7 +25,6 @@ set(SRCS
 
 if(TARGET iscore_lib_inspector)
     set(INSPECTOR_SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Inspector/MappingInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Inspector/MappingInspectorWidget.cpp"
     )
 

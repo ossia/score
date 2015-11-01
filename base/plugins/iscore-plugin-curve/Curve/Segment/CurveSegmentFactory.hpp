@@ -68,7 +68,7 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
         { return QVariant::fromValue(deserialize_dyn<typename T::data_type>(vis)); }
 };
 
-#define DEFINE_CURVE_FACTORY(Name, DynName, Model) \
+#define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
     class Name final : public CurveSegmentFactory_T<Model> \
 { \
     QString name() const override { return DynName; } \
