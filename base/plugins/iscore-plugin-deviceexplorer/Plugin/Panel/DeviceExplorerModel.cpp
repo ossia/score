@@ -2,8 +2,8 @@
 #include "DeviceExplorerView.hpp"
 #include "DeviceExplorerCommandCreator.hpp"
 
-#include "Commands/Add/LoadDevice.hpp"
-#include "Commands/Update/UpdateAddressSettings.hpp"
+#include <Plugin/Commands/Add/LoadDevice.hpp>
+#include <Plugin/Commands/Update/UpdateAddressSettings.hpp>
 
 #include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
 
@@ -12,7 +12,7 @@
 
 #include <DeviceExplorer/Node/DeviceExplorerNodeSerialization.hpp>
 #include "DeviceExplorerMimeTypes.hpp"
-#include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 
 #include <DeviceExplorer/Node/DeviceExplorerNode.hpp>

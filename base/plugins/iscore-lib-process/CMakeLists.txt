@@ -11,8 +11,6 @@ endif()
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 ### Library ###
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
-
 file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Process/*.hpp")
 set(PROCESS_SRCS
 # TODO move these files bak in Process.

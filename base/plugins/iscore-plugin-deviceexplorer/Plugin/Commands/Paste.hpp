@@ -1,10 +1,10 @@
 #pragma once
-#include <Commands/DeviceExplorerCommandFactory.hpp>
+#include <Plugin/Commands/DeviceExplorerCommandFactory.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include "Panel/DeviceExplorerModel.hpp"
+#include <Plugin/Panel/DeviceExplorerModel.hpp>
 
 
 namespace DeviceExplorer

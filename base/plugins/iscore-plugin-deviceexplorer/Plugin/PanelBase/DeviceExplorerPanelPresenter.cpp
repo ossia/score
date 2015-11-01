@@ -3,8 +3,8 @@
 #include "DeviceExplorerPanelView.hpp"
 #include "DeviceExplorerPanelModel.hpp"
 
-#include "Panel/DeviceExplorerModel.hpp"
-#include "Panel/DeviceExplorerWidget.hpp"
+#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Plugin/Panel/DeviceExplorerWidget.hpp>
 
 #include "DeviceExplorerPanelId.hpp"
 

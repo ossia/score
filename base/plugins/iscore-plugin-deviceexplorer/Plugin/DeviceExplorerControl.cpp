@@ -3,7 +3,7 @@
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-#include "DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
 DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     PluginControlInterface {pres, "DeviceExplorerControl", nullptr}

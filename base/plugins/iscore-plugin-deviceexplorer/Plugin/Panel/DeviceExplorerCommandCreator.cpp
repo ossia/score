@@ -5,9 +5,9 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
-#include "Commands/Move.hpp"
-#include "Commands/Cut.hpp"
-#include "Commands/Paste.hpp"
+#include <Plugin/Commands/Move.hpp>
+#include <Plugin/Commands/Cut.hpp>
+#include <Plugin/Commands/Paste.hpp>
 
 using namespace DeviceExplorer::Command;
 

@@ -3,7 +3,7 @@
 #include <QList>
 #include <QString>
 #include <DeviceExplorer/Address/AddressSettings.hpp>
-#include "Widgets/ValueWrapper.hpp"
+#include <Plugin/Widgets/ValueWrapper.hpp>
 
 class QComboBox;
 class QFormLayout;

@@ -8,7 +8,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 # Files & main target
 ### Plugin ###
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Plugin")
 file(GLOB_RECURSE HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/Plugin/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Singletons/*.hpp"

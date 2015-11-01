@@ -5,19 +5,19 @@ using namespace iscore;
 #include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
 
 
-#include "Commands/Add/AddAddress.hpp"
-#include "Commands/Add/AddDevice.hpp"
-#include "Commands/Add/LoadDevice.hpp"
-#include "Commands/Cut.hpp"
-#include "Commands/Move.hpp"
-#include "Commands/Paste.hpp"
+#include <Plugin/Commands/Add/AddAddress.hpp>
+#include <Plugin/Commands/Add/AddDevice.hpp>
+#include <Plugin/Commands/Add/LoadDevice.hpp>
+#include <Plugin/Commands/Cut.hpp>
+#include <Plugin/Commands/Move.hpp>
+#include <Plugin/Commands/Paste.hpp>
 #include "Commands/Remove/RemoveAddress.hpp"
-#include "Commands/Remove.hpp"
-#include "Commands/RemoveNodes.hpp"
-#include "Commands/ReplaceDevice.hpp"
-#include "Commands/UpdateAddresses.hpp"
-#include "Commands/Update/UpdateAddressSettings.hpp"
-#include "Commands/Update/UpdateDeviceSettings.hpp"
+#include <Plugin/Commands/Remove.hpp>
+#include <Plugin/Commands/RemoveNodes.hpp>
+#include <Plugin/Commands/ReplaceDevice.hpp>
+#include <Plugin/Commands/UpdateAddresses.hpp>
+#include <Plugin/Commands/Update/UpdateAddressSettings.hpp>
+#include <Plugin/Commands/Update/UpdateDeviceSettings.hpp>
 
 
 iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer() :

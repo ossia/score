@@ -4,8 +4,6 @@ iscore_common_setup()
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/source")
-
 set(DUMMYPROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DummyLayerModel.hpp"

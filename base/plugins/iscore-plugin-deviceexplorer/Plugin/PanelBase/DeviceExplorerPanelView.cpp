@@ -1,5 +1,5 @@
 #include "DeviceExplorerPanelView.hpp"
-#include "Panel/DeviceExplorerWidget.hpp"
+#include <Plugin/Panel/DeviceExplorerWidget.hpp>
 
 #include <core/view/View.hpp>
 static const iscore::DefaultPanelStatus status{true, Qt::LeftDockWidgetArea, 10, QObject::tr("Devices")};

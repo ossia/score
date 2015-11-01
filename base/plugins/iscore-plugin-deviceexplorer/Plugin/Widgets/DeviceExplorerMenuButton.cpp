@@ -1,5 +1,5 @@
 #include "DeviceExplorerMenuButton.hpp"
-#include "../../iscore-plugin-deviceexplorer/Plugin/Panel/DeviceExplorerModel.hpp"
+#include <Plugin/Panel/DeviceExplorerModel.hpp>
 #include <Singletons/DeviceExplorerInterface.hpp>
 #include <DeviceExplorer/QMenuView/qmenuview.h>
 #include <QPushButton>
