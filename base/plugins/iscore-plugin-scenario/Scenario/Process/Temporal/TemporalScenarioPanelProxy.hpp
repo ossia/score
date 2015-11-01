@@ -2,7 +2,7 @@
 #include <Process/LayerModelPanelProxy.hpp>
 #include "TemporalScenarioLayerModel.hpp"
 
-class TemporalScenarioPanelProxy : public LayerModelPanelProxy
+class TemporalScenarioPanelProxy final : public LayerModelPanelProxy
 {
     public:
         TemporalScenarioPanelProxy(

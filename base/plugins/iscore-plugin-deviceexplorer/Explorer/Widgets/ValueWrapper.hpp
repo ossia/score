@@ -11,7 +11,7 @@
  * so that the ValueWidget can be replaced without clearing all the layout.
  */
 template<typename Widget>
-class WidgetWrapper : public QWidget
+class WidgetWrapper final : public QWidget
 {
     public:
         explicit WidgetWrapper(QWidget* parent):

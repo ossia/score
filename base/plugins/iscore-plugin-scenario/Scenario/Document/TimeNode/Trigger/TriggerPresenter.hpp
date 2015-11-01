@@ -4,7 +4,7 @@ class TriggerModel;
 class TriggerView;
 class QGraphicsObject;
 
-class TriggerPresenter : public QObject
+class TriggerPresenter final : public QObject
 {
         Q_OBJECT
     public:

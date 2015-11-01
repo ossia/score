@@ -12,7 +12,7 @@
  *
  * Removes an address and its child in the device explorer.
  */
-class RemoveAddress : public iscore::SerializableCommand
+class RemoveAddress final : public iscore::SerializableCommand
 {
     ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "RemoveAddress")
     public:

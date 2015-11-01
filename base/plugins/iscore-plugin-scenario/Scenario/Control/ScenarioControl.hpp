@@ -35,7 +35,7 @@ Q_DECLARE_METATYPE(ScenarioRecordInitData)
 
 
 
-class ScenarioControl : public iscore::PluginControlInterface
+class ScenarioControl final : public iscore::PluginControlInterface
 {
         Q_OBJECT
         friend class ScenarioContextMenuManager;

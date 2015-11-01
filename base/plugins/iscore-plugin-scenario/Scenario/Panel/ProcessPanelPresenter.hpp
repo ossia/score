@@ -7,7 +7,7 @@ class BaseElementModel;
 class LayerView;
 class LayerPresenter;
 class LayerModel;
-class ProcessPanelPresenter : public iscore::PanelPresenter
+class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
         Q_OBJECT
     public:

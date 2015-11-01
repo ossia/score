@@ -8,7 +8,7 @@
 #include "Segment/CurveSegmentModel.hpp"
 class CurvePointModel;
 
-class CurveModel : public IdentifiedObject<CurveModel>
+class CurveModel final : public IdentifiedObject<CurveModel>
 {
         ISCORE_SERIALIZE_FRIENDS(CurveModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(CurveModel, JSONObject)

@@ -14,7 +14,7 @@ namespace iscore
      * This way, if there is a crash, the document can be restored from the
      * last successful command and only the latest user action is lost.
      */
-    class CommandBackupFile : public QObject
+    class CommandBackupFile final : public QObject
     {
         public:
             CommandBackupFile(const iscore::CommandStack& stack, QObject* parent);

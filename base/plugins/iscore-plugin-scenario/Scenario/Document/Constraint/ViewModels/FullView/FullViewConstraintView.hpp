@@ -4,7 +4,7 @@
 class FullViewConstraintViewModel;
 class FullViewConstraintPresenter;
 
-class FullViewConstraintView : public ConstraintView
+class FullViewConstraintView final : public ConstraintView
 {
         Q_OBJECT
 

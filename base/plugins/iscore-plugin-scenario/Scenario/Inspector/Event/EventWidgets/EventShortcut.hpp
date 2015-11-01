@@ -5,7 +5,7 @@ class QPushButton;
 class QCheckBox;
 
 // TODO refactor with SelectableButton
-class EventShortCut: public QWidget
+class EventShortCut final : public QWidget
 {
         Q_OBJECT
     public:

@@ -18,7 +18,7 @@ namespace iscore
     class SerializableCommand;
 }
 
-class RackPresenter : public NamedObject
+class RackPresenter final : public NamedObject
 {
         Q_OBJECT
 

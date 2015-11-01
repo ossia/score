@@ -10,7 +10,7 @@
  * A basic, type-unsafe dispatcher for a commands
  * that have continuous edition capabilities.
  */
-class OngoingCommandDispatcher : public ICommandDispatcher
+class OngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
         OngoingCommandDispatcher(iscore::CommandStack& stack):

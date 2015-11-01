@@ -31,7 +31,7 @@ namespace Command
     * This class use the new Displacement policy class
     */
 template<class DisplacementPolicy>
-class MoveEvent : public SerializableMoveEvent
+class MoveEvent final : public SerializableMoveEvent
 {
         // No ISCORE_COMMAND here since it's a template.
 

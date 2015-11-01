@@ -15,7 +15,7 @@ enum class Tool {
 };
 }
 
-class CurveStateMachine : public BaseStateMachine
+class CurveStateMachine final : public BaseStateMachine
 {
         Q_OBJECT
     public:

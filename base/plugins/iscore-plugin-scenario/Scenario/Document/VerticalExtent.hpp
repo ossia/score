@@ -13,7 +13,7 @@
  * instead.
  *
  */
-struct VerticalExtent : public QPointF
+struct VerticalExtent final : public QPointF
 {
         Q_DECL_CONSTEXPR VerticalExtent() = default;
         Q_DECL_CONSTEXPR VerticalExtent(qreal x, qreal y): QPointF{x, y} {}

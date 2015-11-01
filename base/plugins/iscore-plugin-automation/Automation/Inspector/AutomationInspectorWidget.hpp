@@ -8,7 +8,7 @@ class DeviceExplorerModel;
 class AutomationModel;
 class QDoubleSpinBox;
 class AddressEditWidget;
-class AutomationInspectorWidget : public InspectorWidgetBase
+class AutomationInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

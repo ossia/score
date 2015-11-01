@@ -4,7 +4,7 @@
 #include <Process/TimeValue.hpp>
 
 
-class TimeRulerView : public AbstractTimeRulerView
+class TimeRulerView final : public AbstractTimeRulerView
 {
     public:
         TimeRulerView();

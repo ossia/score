@@ -6,7 +6,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 class AutomationModel;
-class ChangeAddress : public iscore::SerializableCommand
+class ChangeAddress final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), ChangeAddress, "ChangeAddress")
     public:

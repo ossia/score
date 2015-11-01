@@ -15,7 +15,7 @@ namespace iscore
      * Mostly equivalent to QUndoStack, but has added signals / slots.
      * They are used to send & receive the commands to the network, for instance.
      */
-    class CommandStack : public QObject
+    class CommandStack final : public QObject
     {
             Q_OBJECT
             ISCORE_SERIALIZE_FRIENDS(CommandStack, DataStream)

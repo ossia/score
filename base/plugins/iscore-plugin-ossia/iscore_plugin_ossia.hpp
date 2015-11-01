@@ -4,7 +4,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-class iscore_plugin_ossia:
+class iscore_plugin_ossia final :
     public QObject,
     public iscore::PluginControlInterface_QtInterface,
     public iscore::FactoryInterface_QtInterface,

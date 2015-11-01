@@ -2,7 +2,7 @@
 #include <QWidget>
 
 class RackInspectorSection;
-class AddSlotWidget : public QWidget
+class AddSlotWidget final : public QWidget
 {
         Q_OBJECT
 

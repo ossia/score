@@ -8,7 +8,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class ClearState : public iscore::SerializableCommand
+        class ClearState final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "ClearState")
             public:

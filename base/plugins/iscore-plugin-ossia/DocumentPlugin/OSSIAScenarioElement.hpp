@@ -27,7 +27,7 @@ namespace OSSIA
 }
 
 // TODO see if this can be used for the base scenario model too.
-class OSSIAScenarioElement : public OSSIAProcessElement
+class OSSIAScenarioElement final : public OSSIAProcessElement
 {
     public:
         OSSIAScenarioElement(

@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class TimeNodeInspectorFactory : public InspectorWidgetFactory
+class TimeNodeInspectorFactory final : public InspectorWidgetFactory
 {
     public:
         TimeNodeInspectorFactory() :

@@ -1,7 +1,7 @@
 #pragma once
 #include "CurveCommandObjectBase.hpp"
 
-class MovePointCommandObject : public CurveCommandObjectBase
+class MovePointCommandObject final : public CurveCommandObjectBase
 {
     public:
         MovePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);

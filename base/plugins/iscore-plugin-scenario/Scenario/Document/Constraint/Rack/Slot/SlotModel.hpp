@@ -13,7 +13,7 @@ class Process;
 class LayerModel;
 
 // Note : the SlotModel is assumed to be in a Rack, itself in a Constraint.
-class SlotModel : public IdentifiedObject<SlotModel>
+class SlotModel final : public IdentifiedObject<SlotModel>
 {
         Q_OBJECT
         ISCORE_METADATA("SlotModel")

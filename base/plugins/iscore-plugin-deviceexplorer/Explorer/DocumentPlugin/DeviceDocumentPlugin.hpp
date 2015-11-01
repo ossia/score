@@ -18,7 +18,7 @@ class ListeningState
 };
 
 
-class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
+class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
     public:

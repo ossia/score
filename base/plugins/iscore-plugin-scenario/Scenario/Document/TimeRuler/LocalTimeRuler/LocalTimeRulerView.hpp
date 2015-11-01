@@ -2,7 +2,7 @@
 
 #include <Scenario/Document/TimeRuler/AbstractTimeRulerView.hpp>
 
-class LocalTimeRulerView : public AbstractTimeRulerView
+class LocalTimeRulerView final : public AbstractTimeRulerView
 {
     public:
         LocalTimeRulerView();

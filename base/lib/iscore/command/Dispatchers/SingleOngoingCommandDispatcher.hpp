@@ -12,7 +12,7 @@
  * if an incorrect command is sent.
  */
 template<typename TheCommand>
-class SingleOngoingCommandDispatcher : public ICommandDispatcher
+class SingleOngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
         SingleOngoingCommandDispatcher(iscore::CommandStack& stack):

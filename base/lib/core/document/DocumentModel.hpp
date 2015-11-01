@@ -14,7 +14,7 @@ namespace iscore
      * Drawbridge between the application and a model given by a plugin.
      * Contains all the "saveable" data.
      */
-    class DocumentModel : public IdentifiedObject<DocumentModel>
+    class DocumentModel final : public IdentifiedObject<DocumentModel>
     {
             Q_OBJECT
         public:

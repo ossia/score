@@ -17,7 +17,7 @@ namespace Scenario
         *
         * Tries to remove what is selected in a scenario.
         */
-        class RemoveSelection : public iscore::SerializableCommand
+        class RemoveSelection final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "RemoveSelection")
             public:

@@ -44,8 +44,8 @@ class PropertyCommand : public SerializableCommand
             m_old = m_path.find<QObject>().property(m_property.toUtf8().constData());
         }
 
-        void undo() const override;
-        void redo() const override;
+        void undo() const final override;
+        void redo() const final override;
 
         template<typename Path_T>
         void update(const Path_T&, const QVariant& newval)
@@ -54,8 +54,8 @@ class PropertyCommand : public SerializableCommand
         }
 
     protected:
-        void serializeImpl(QDataStream &) const override;
-        void deserializeImpl(QDataStream &) override;
+        void serializeImpl(QDataStream &) const final override;
+        void deserializeImpl(QDataStream &) final override;
 
     private:
         ObjectPath m_path;

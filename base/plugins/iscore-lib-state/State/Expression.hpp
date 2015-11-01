@@ -47,7 +47,7 @@ template<>
  *
  * TODO enforce the invariant of children.size <= 2 (since it's a binary tree)
  */
-class TreeNode<ExprData> : public ExprData
+class TreeNode<ExprData> final : public ExprData
 {
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, DataStream)
         ISCORE_SERIALIZE_FRIENDS(TreeNode<ExprData>, JSONObject)

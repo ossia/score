@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 
 class AutomationState;
-class AutomationStateInspector : public InspectorWidgetBase
+class AutomationStateInspector final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

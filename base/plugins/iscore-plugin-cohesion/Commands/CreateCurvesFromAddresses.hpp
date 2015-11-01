@@ -5,7 +5,7 @@
 #include <State/Address.hpp>
 
 class ConstraintModel;
-class CreateCurvesFromAddresses : public iscore::SerializableCommand
+class CreateCurvesFromAddresses final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), CreateCurvesFromAddresses, "CreateCurvesFromAddresses")
     public:

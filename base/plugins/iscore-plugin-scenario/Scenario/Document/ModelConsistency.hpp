@@ -3,7 +3,7 @@
 
 
 
-class ModelConsistency : public QObject
+class ModelConsistency final : public QObject
 {
         Q_OBJECT
 

@@ -4,7 +4,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
-class iscore_plugin_curve:
+class iscore_plugin_curve final :
         public QObject,
         public iscore::FactoryInterface_QtInterface,
         public iscore::CommandFactory_QtInterface,

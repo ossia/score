@@ -17,7 +17,7 @@ class TriggerInspectorWidget;
  * \brief The EventInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an Event (Timebox) element.
  */
-class EventInspectorWidget : public InspectorWidgetBase
+class EventInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

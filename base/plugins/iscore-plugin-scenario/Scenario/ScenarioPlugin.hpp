@@ -9,7 +9,7 @@
 
 class ScenarioControl;
 // TODO rename file
-class iscore_plugin_scenario :
+class iscore_plugin_scenario final :
         public QObject,
         public iscore::PluginControlInterface_QtInterface,
         public iscore::CommandFactory_QtInterface,

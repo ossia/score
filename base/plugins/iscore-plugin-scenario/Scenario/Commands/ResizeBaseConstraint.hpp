@@ -14,6 +14,7 @@ class RackModel;
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 
+// TODO rename file
 /*
  * Command to change a constraint duration by moving event. Vertical move is not allowed.
  */
@@ -22,7 +23,7 @@ namespace Scenario
 {
 namespace Command
 {
-class MoveBaseEvent : public iscore::SerializableCommand
+class MoveBaseEvent final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveBaseEvent, "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>

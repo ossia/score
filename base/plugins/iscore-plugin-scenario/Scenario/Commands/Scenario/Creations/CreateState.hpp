@@ -10,7 +10,7 @@ namespace Scenario
 {
 namespace Command
 {
-class CreateState : public iscore::SerializableCommand
+class CreateState final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
                 ScenarioCommandFactoryName(),

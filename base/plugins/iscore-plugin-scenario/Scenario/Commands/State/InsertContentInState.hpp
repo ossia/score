@@ -4,7 +4,7 @@
 
 #include <Process/State/MessageNode.hpp>
 
-class InsertContentInState : public iscore::SerializableCommand
+class InsertContentInState final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
                 ScenarioCommandFactoryName(),

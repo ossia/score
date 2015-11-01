@@ -14,7 +14,7 @@ namespace Scenario
          *
          * Removes a slot. All the function views will be deleted.
          */
-        class RemoveSlotFromRack : public iscore::SerializableCommand
+        class RemoveSlotFromRack final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSlotFromRack, "RemoveSlotFromRack")
             public:

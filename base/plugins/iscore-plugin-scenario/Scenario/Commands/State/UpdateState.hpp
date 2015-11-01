@@ -7,7 +7,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 // TODO rename file
-class AddMessagesToState : public iscore::SerializableCommand
+class AddMessagesToState final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "AddMessagesToState")
         public:

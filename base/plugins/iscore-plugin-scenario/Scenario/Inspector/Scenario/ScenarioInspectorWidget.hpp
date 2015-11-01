@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 
 class ScenarioModel;
-class ScenarioInspectorWidget : public InspectorWidgetBase
+class ScenarioInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

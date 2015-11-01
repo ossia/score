@@ -6,7 +6,7 @@ class QState;
 namespace Curve
 {
 class SelectionState;
-class SelectionTool : public CurveTool
+class SelectionTool final : public CurveTool
 {
     public:
         explicit SelectionTool(CurveStateMachine& sm);

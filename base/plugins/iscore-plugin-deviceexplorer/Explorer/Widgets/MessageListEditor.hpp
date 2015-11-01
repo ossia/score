@@ -15,7 +15,7 @@ class QGridLayout;
  * the modified messages are in m_messages and can be
  * used for a Command for instance.
  */
-class MessageListEditor : public QDialog
+class MessageListEditor final : public QDialog
 {
     public:
         MessageListEditor(

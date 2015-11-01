@@ -9,7 +9,7 @@ class DeviceExplorerWidget;
  * Utility class to get a node from the DeviceExplorerWidget.
  */
 template<typename OnSuccess>
-class ExplorationWorkerWrapper : public QObject
+class ExplorationWorkerWrapper final : public QObject
 {
         QThread* thread = new QThread;
         ExplorationWorker* worker{};

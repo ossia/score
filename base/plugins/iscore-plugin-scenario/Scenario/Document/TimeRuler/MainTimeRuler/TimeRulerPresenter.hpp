@@ -5,7 +5,7 @@
 
 class TimeRulerView;
 
-class TimeRulerPresenter : public AbstractTimeRuler
+class TimeRulerPresenter final : public AbstractTimeRuler
 {
         Q_OBJECT
     public:

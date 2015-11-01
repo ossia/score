@@ -6,7 +6,7 @@ class CommandStack;
 class UndoListWidget;
 }
 
-class UndoView : public iscore::PanelView
+class UndoView final : public iscore::PanelView
 {
     public:
         const iscore::DefaultPanelStatus& defaultPanelStatus() const override;

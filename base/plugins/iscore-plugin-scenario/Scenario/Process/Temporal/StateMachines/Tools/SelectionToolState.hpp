@@ -8,7 +8,7 @@ class MoveConstraintState;
 class MoveEventState;
 class MoveTimeNodeState;
 
-class SelectionTool : public ScenarioTool
+class SelectionTool final : public ScenarioTool
 {
     public:
         SelectionTool(ScenarioStateMachine& sm);

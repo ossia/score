@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsObject>
 
-class ProgressBar : public QGraphicsObject
+class ProgressBar final : public QGraphicsObject
 {
     public:
         using QGraphicsObject::QGraphicsObject;

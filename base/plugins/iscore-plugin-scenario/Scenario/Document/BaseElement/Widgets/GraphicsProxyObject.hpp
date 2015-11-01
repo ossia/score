@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QBrush>
 #include <QPainter>
-class GraphicsProxyObject : public QGraphicsItem
+class GraphicsProxyObject final : public QGraphicsItem
 {
     public:
         using QGraphicsItem::QGraphicsItem;

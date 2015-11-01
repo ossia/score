@@ -9,7 +9,7 @@
 #include <QCoreApplication>
 namespace iscore
 {
-    class SettingsModel : public QObject
+    class SettingsModel final : public QObject
     {
         public:
             using QObject::QObject;

@@ -4,7 +4,7 @@
 #include <State/Message.hpp>
 
 class AutomationModel;
-class AutomationState : public ProcessStateDataInterface
+class AutomationState final : public ProcessStateDataInterface
 {
     public:
         // watchedPoint : something between 0 and 1

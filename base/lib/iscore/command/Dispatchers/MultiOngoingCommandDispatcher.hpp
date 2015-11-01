@@ -29,7 +29,7 @@ namespace RollbackStrategy
  *
  * When a new command is encoutered, it is put in a new place in the array.
  */
-class MultiOngoingCommandDispatcher : public ICommandDispatcher
+class MultiOngoingCommandDispatcher final : public ICommandDispatcher
 {
     public:
         MultiOngoingCommandDispatcher(iscore::CommandStack& stack):

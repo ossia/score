@@ -15,7 +15,7 @@ namespace Scenario
          *
          * Adds an empty slot at the end of a Rack.
          */
-        class AddSlotToRack : public iscore::SerializableCommand
+        class AddSlotToRack final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "AddSlotToRack")
 #include <tests/helpers/FriendDeclaration.hpp>

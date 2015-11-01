@@ -4,7 +4,7 @@ class DeviceExplorerModel;
 namespace iscore{
 struct Address;
 }
-class DeviceExplorerMenuButton : public QWidget
+class DeviceExplorerMenuButton final : public QWidget
 {
         Q_OBJECT
     public:

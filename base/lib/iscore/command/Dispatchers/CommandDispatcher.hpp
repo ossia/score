@@ -8,7 +8,7 @@ template<typename SendStrategy = SendStrategy::Simple>
  *
  * Most basic dispatcher that will commit a command at once.
  */
-class CommandDispatcher : public ICommandDispatcher
+class CommandDispatcher final : public ICommandDispatcher
 {
     public:
         template<typename... Args>

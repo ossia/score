@@ -4,7 +4,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 class Process;
-class SetProcessDuration : public iscore::SerializableCommand
+class SetProcessDuration final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "SetProcessDuration")
 

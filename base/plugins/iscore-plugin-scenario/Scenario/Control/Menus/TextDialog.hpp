@@ -2,7 +2,7 @@
 #include <QDialog>
 
 // Has a big selectable text area.
-class TextDialog : public QDialog
+class TextDialog final : public QDialog
 {
     public:
         TextDialog(const QString& s, QWidget* parent);

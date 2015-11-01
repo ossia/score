@@ -23,7 +23,7 @@ class ValueWidget;
  *
  * A device explorer model is used for completion of the address.
  */
-class MessageEditDialog : public QDialog
+class MessageEditDialog final : public QDialog
 {
     public:
         MessageEditDialog(

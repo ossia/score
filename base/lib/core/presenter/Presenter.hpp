@@ -30,7 +30,7 @@ namespace iscore
      * It is also able to instantiate a Command from serialized Undo/Redo data.
      * (this should go in the DocumentPresenter maybe ?)
      */
-    class Presenter : public NamedObject
+    class Presenter final : public NamedObject
     {
             Q_OBJECT
         public:

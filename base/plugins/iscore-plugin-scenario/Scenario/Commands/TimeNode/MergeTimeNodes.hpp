@@ -13,7 +13,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class MergeTimeNodes : public iscore::SerializableCommand
+        class MergeTimeNodes final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "MergeTimeNodes")
             public:

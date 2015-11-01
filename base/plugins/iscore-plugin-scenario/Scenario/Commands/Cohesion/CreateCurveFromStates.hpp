@@ -8,7 +8,7 @@
 
 class ConstraintModel;
 
-class CreateCurveFromStates : public iscore::SerializableCommand
+class CreateCurveFromStates final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
                 ScenarioCommandFactoryName(),

@@ -24,7 +24,7 @@ namespace iscore
      * An exemple is given in the network plugin.
      *
      */
-    class Settings : public QObject
+    class Settings final : public QObject
     {
         public:
             Settings(QObject* parent);

@@ -4,7 +4,7 @@
 namespace iscore
 {
 class CommandStack;
-class UndoListWidget : public QListWidget
+class UndoListWidget final : public QListWidget
 {
         Q_OBJECT
     public:

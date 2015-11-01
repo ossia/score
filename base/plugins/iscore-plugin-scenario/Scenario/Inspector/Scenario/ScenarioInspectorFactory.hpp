@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class ScenarioInspectorFactory : public InspectorWidgetFactory
+class ScenarioInspectorFactory final : public InspectorWidgetFactory
 {
     public:
         ScenarioInspectorFactory() :

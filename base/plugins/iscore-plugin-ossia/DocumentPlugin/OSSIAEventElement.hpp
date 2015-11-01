@@ -8,7 +8,7 @@ namespace OSSIA
 {
     class TimeEvent;
 }
-class OSSIAEventElement : public QObject
+class OSSIAEventElement final : public QObject
 {
     public:
         OSSIAEventElement(

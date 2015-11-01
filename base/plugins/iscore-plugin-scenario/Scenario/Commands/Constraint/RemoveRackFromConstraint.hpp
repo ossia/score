@@ -17,7 +17,7 @@ namespace Scenario
          *
          * Removes a rack : all the slots and function views will be removed.
          */
-        class RemoveRackFromConstraint : public iscore::SerializableCommand
+        class RemoveRackFromConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveRackFromConstraint, "RemoveRackFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>

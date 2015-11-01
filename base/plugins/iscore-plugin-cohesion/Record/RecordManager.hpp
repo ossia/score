@@ -14,7 +14,7 @@ using RecordCommandDispatcher = GenericMacroCommandDispatcher<
 
 // TODO for some reason we have to undo redo
 // to be able to send the curve at execution. Investigate why.
-class RecordManager : public QObject
+class RecordManager final : public QObject
 {
     public:
         RecordManager();

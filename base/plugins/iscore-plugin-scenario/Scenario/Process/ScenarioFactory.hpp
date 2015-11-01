@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 
-class ScenarioFactory : public ProcessFactory
+class ScenarioFactory final : public ProcessFactory
 {
     public:
         QString name() const override;

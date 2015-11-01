@@ -13,7 +13,7 @@ namespace DeviceExplorer
     namespace Command
     {
     // TODO Moveme
-        class UpdateAddressesValues : public iscore::SerializableCommand
+        class UpdateAddressesValues final : public iscore::SerializableCommand
         {
             ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "UpdateAddressesValues")
             public:

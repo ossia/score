@@ -11,7 +11,7 @@
 #include <State/ValueConversion.hpp>
 
 template<typename T>
-class AddressNumericSettingsWidget : public AddressSettingsWidget
+class AddressNumericSettingsWidget final : public AddressSettingsWidget
 {
     public:
         explicit AddressNumericSettingsWidget(QWidget* parent = nullptr)

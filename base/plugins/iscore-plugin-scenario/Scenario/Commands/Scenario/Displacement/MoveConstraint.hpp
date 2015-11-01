@@ -18,7 +18,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class MoveConstraint : public iscore::SerializableCommand
+        class MoveConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveConstraint, "MoveConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>

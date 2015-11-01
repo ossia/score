@@ -11,7 +11,7 @@ namespace iscore
 {
     class SettingsModel;
     class SettingsView;
-    class SettingsPresenter : public QObject
+    class SettingsPresenter final : public QObject
     {
             Q_OBJECT
         public:

@@ -9,7 +9,7 @@
 #include <QGraphicsScene>
 
 
-class WebSocketView : public QObject
+class WebSocketView final : public QObject
 {
         Q_OBJECT
     public:

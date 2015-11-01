@@ -22,7 +22,7 @@ class ConstraintModel;
 class TimeNodeModel;
 class ScenarioInterface;
 
-class EventModel : public IdentifiedObject<EventModel>
+class EventModel final : public IdentifiedObject<EventModel>
 {
         Q_OBJECT
         ISCORE_METADATA("EventModel")

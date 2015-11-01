@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class EventInspectorFactory : public InspectorWidgetFactory
+class EventInspectorFactory final : public InspectorWidgetFactory
 {
     public:
         EventInspectorFactory() :

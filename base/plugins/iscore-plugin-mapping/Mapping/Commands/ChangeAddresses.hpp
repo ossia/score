@@ -6,7 +6,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 class MappingModel;
-class ChangeSourceAddress : public iscore::SerializableCommand
+class ChangeSourceAddress final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
     public:
@@ -27,7 +27,7 @@ class ChangeSourceAddress : public iscore::SerializableCommand
         iscore::FullAddressSettings m_old, m_new;
 };
 
-class ChangeTargetAddress : public iscore::SerializableCommand
+class ChangeTargetAddress final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
     public:

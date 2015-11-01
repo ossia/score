@@ -7,7 +7,7 @@
 class QGraphicsScene;
 class BaseStateMachine;
 class SlotModel;
-class BaseMoveSlot : public QState
+class BaseMoveSlot final : public QState
 {
     public:
         BaseMoveSlot(

@@ -21,7 +21,7 @@ class Document;
  * Maybe we should keep the previous document saves somewhere and reload from the
  * correct document save according to our position in the command stack.
  */
-class DocumentBackupManager : public QObject
+class DocumentBackupManager final : public QObject
 {
     public:
         explicit DocumentBackupManager(Document& doc);

@@ -12,7 +12,7 @@ class DeviceExplorerModel;
  * A device explorer model is used for completion.
  *
  */
-class AddressEditWidget : public QWidget
+class AddressEditWidget final : public QWidget
 {
         Q_OBJECT
     public:

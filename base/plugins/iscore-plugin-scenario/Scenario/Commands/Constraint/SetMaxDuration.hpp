@@ -18,7 +18,7 @@ namespace Command
  *
  * Sets the Max duration of a Constraint
 */
-class SetMaxDuration : public iscore::SerializableCommand
+class SetMaxDuration final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMaxDuration, "Set constraint maximum")
     public:

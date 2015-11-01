@@ -13,7 +13,7 @@
 class EventModel;
 class TriggerModel;
 class ScenarioInterface;
-class TimeNodeModel : public IdentifiedObject<TimeNodeModel>
+class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
 {
         Q_OBJECT
         ISCORE_METADATA("TimeNodeModel")

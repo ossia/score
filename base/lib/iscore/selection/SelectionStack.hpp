@@ -13,7 +13,7 @@ namespace iscore
  * it should be added to this stack using SelectionDispatcher.
  * This way, the user will be able to browse through his previous selections.
  */
-class SelectionStack : public QObject
+class SelectionStack final : public QObject
 {
         Q_OBJECT
     public:

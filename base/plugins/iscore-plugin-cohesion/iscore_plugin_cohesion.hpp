@@ -11,7 +11,7 @@
  * it should certainly be implemented here.
  *
  */
-class iscore_plugin_cohesion:
+class iscore_plugin_cohesion final :
         public QObject,
         public iscore::PluginControlInterface_QtInterface,
         public iscore::CommandFactory_QtInterface,

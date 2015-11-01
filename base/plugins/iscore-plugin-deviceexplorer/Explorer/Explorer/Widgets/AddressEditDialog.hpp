@@ -9,7 +9,7 @@ class QComboBox;
 class QFormLayout;
 class QLineEdit;
 class AddressSettingsWidget;
-class AddressEditDialog : public QDialog
+class AddressEditDialog final : public QDialog
 {
         Q_OBJECT
 

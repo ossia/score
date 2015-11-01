@@ -24,7 +24,7 @@ namespace iscore
     class Document;
 }
 
-class ScenarioStateMachine : public BaseStateMachine
+class ScenarioStateMachine final : public BaseStateMachine
 {
         Q_OBJECT
     public:

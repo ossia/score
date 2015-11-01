@@ -15,7 +15,7 @@ namespace iscore
      *
      * A wrapper between the model and the view.
      */
-    class DocumentPresenter : public NamedObject
+    class DocumentPresenter final : public NamedObject
     {
             Q_OBJECT
         public:

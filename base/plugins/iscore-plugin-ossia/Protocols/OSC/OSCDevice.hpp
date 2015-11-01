@@ -2,7 +2,7 @@
 #include "Protocols/OSSIADevice.hpp"
 #include "OSCSpecificSettings.hpp"
 
-class OSCDevice : public OSSIADevice
+class OSCDevice final : public OSSIADevice
 {
     public:
         OSCDevice(const iscore::DeviceSettings& stngs);

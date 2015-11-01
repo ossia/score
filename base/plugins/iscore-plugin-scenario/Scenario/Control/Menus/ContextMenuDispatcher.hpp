@@ -10,7 +10,7 @@ class TemporalScenarioPresenter;
 class QMenu;
 
 // TODO rename file
-class ScenarioContextMenuManager : public QObject
+class ScenarioContextMenuManager final : public QObject
 {
         ScenarioControl& m_control;
     public:

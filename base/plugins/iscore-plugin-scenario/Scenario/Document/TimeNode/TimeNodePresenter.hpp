@@ -12,7 +12,7 @@ class EventModel;
 class QGraphicsObject;
 class TriggerPresenter;
 
-class TimeNodePresenter :  public NamedObject
+class TimeNodePresenter final :  public NamedObject
 {
         Q_OBJECT
     public:

@@ -11,7 +11,7 @@ class TemporalScenarioPresenter;
 class ConstraintModel;
 class ScenarioStateMachine;
 
-class TemporalScenarioLayerModel : public AbstractScenarioLayerModel
+class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT
     public:

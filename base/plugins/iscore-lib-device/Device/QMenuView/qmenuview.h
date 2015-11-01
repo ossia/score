@@ -47,36 +47,36 @@ class QMenuViewPrivate;
 
 class ClickableMenu : public QMenu
 {
-		Q_OBJECT
-	public:
-		using QMenu::QMenu;
-		virtual ~ClickableMenu() = default;
-		virtual void mouseReleaseEvent(QMouseEvent *event) override;
+        Q_OBJECT
+    public:
+        using QMenu::QMenu;
+        virtual ~ClickableMenu() = default;
+        virtual void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
-class QMenuView : public ClickableMenu
+class QMenuView final : public ClickableMenu
 {
-		Q_OBJECT
-	public:
-		QMenuView(QWidget * parent = 0);
-		virtual ~QMenuView();
+        Q_OBJECT
+    public:
+        QMenuView(QWidget * parent = 0);
+        virtual ~QMenuView();
 
-		virtual void setModel(QAbstractItemModel * model);
-		QAbstractItemModel * model() const;
+        virtual void setModel(QAbstractItemModel * model);
+        QAbstractItemModel * model() const;
 
-		virtual void setRootIndex(const QModelIndex & index);
-		QModelIndex rootIndex() const;
+        virtual void setRootIndex(const QModelIndex & index);
+        QModelIndex rootIndex() const;
 
-	protected:
-		virtual bool prePopulated();
-		virtual void postPopulated();
-		void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = 0);
+    protected:
+        virtual bool prePopulated();
+        virtual void postPopulated();
+        void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = 0);
 
-	signals:
-		void hovered(const QString &text) const;
-		void triggered(const QModelIndex & index) const;
+    signals:
+        void hovered(const QString &text) const;
+        void triggered(const QModelIndex & index) const;
 
-	private:
-		QScopedPointer<QMenuViewPrivate> d;
-		friend class QMenuViewPrivate;
+    private:
+        QScopedPointer<QMenuViewPrivate> d;
+        friend class QMenuViewPrivate;
 };

@@ -5,7 +5,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class ScenarioBaseGraphicsView;
 class DoubleSlider;
-class ProcessPanelView : public iscore::PanelView
+class ProcessPanelView final : public iscore::PanelView
 {
         Q_OBJECT
         static const iscore::DefaultPanelStatus m_status;

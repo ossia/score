@@ -10,7 +10,7 @@ namespace DeviceExplorer
 {
 namespace Command
 {
-class UpdateDeviceSettings : public iscore::SerializableCommand
+class UpdateDeviceSettings final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateDeviceSettings, "UpdateDeviceSettings")
         public:

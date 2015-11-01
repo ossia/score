@@ -5,7 +5,7 @@
 class StateModel;
 class DeviceExplorerModel;
 class MessageItemModel;
-class MessageTreeView :  public QTreeView
+class MessageTreeView final : public QTreeView
 {
     public:
         MessageTreeView(

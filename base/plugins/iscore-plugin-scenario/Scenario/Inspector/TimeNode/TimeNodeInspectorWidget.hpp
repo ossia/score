@@ -14,7 +14,7 @@ class TriggerInspectorWidget;
  * \brief The TimeNodeInspectorWidget class
  *      Inherits from InspectorWidgetInterface. Manages an inteface for an TimeNode (Timebox) element.
  */
-class TimeNodeInspectorWidget : public InspectorWidgetBase
+class TimeNodeInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
-class DeviceExplorerControl : public iscore::PluginControlInterface
+class DeviceExplorerControl final : public iscore::PluginControlInterface
 {
     public:
         DeviceExplorerControl(iscore::Presenter*);

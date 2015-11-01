@@ -11,7 +11,7 @@ namespace iscore
 class FactoryInterface;
 }
 
-class MoveEventList : public NamedObject
+class MoveEventList final : public NamedObject
 {
     Q_OBJECT
 public:

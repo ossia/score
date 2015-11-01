@@ -3,7 +3,7 @@
 #include <Commands/IScoreCohesionCommandFactory.hpp>
 
 // TODO rename file
-class SnapshotStatesMacro : public iscore::AggregateCommand
+class SnapshotStatesMacro final : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
                                       SnapshotStatesMacro,

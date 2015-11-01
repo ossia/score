@@ -12,7 +12,7 @@ class TimeRulerView;
 class LocalTimeRulerView;
 class TimeRuler2;
 
-class BaseElementView : public iscore::DocumentDelegateViewInterface
+class BaseElementView final : public iscore::DocumentDelegateViewInterface
 {
         Q_OBJECT
 

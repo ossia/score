@@ -8,7 +8,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class SetCondition : public iscore::SerializableCommand
+        class SetCondition final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "SetCondition")
             public:

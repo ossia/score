@@ -10,7 +10,7 @@ class EventModel;
 class TimeNodeModel;
 class StateModel;
 
-class ScenarioPasteElements : public iscore::SerializableCommand
+class ScenarioPasteElements final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                          ScenarioPasteElements,

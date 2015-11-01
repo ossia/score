@@ -17,7 +17,7 @@ namespace Scenario
          * For a given constraint view model,
          * select the rack that is to be shown, and show it.
          */
-        class ShowRackInViewModel : public iscore::SerializableCommand
+        class ShowRackInViewModel final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRackInViewModel, "ShowRackInViewModel")
             public:

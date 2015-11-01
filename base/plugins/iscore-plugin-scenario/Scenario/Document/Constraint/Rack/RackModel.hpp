@@ -15,7 +15,7 @@ class Process;
  * A Rack is a slot container.
  * A Rack is always found in a Constraint.
  */
-class RackModel : public IdentifiedObject<RackModel>
+class RackModel final : public IdentifiedObject<RackModel>
 {
         Q_OBJECT
         ISCORE_METADATA("RackModel") // TODO use this everywhere.

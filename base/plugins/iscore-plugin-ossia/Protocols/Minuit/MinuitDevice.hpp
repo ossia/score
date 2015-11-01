@@ -7,7 +7,7 @@ namespace OSSIA
 {
 class Device;
 }
-class MinuitDevice : public OSSIADevice
+class MinuitDevice final : public OSSIADevice
 {
     public:
         MinuitDevice(const iscore::DeviceSettings& settings);

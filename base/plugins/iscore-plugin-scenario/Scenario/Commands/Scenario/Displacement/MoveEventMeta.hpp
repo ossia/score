@@ -3,7 +3,7 @@
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 
-class MoveEventMeta : public SerializableMoveEvent
+class MoveEventMeta final : public SerializableMoveEvent
 {
     // Command interface
 public:

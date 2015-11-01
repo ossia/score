@@ -9,7 +9,7 @@ namespace OSSIA
     class State;
 }
 
-class OSSIAStateElement : public QObject
+class OSSIAStateElement final : public QObject
 {
     public:
         OSSIAStateElement(

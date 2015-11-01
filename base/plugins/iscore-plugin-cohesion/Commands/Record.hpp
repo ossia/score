@@ -2,7 +2,7 @@
 #include <iscore/command/AggregateCommand.hpp>
 #include <Commands/IScoreCohesionCommandFactory.hpp>
 
-class Record : public iscore::AggregateCommand
+class Record final : public iscore::AggregateCommand
 {
          ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
                                        Record,

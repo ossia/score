@@ -2,7 +2,7 @@
 #include <QWidget>
 class QSlider;
 
-class DoubleSlider : public QWidget
+class DoubleSlider final : public QWidget
 {
         Q_OBJECT
     public:

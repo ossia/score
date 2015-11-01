@@ -10,7 +10,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class DuplicateRack : public iscore::SerializableCommand
+        class DuplicateRack final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), DuplicateRack, "DuplicateRack")
 #include <tests/helpers/FriendDeclaration.hpp>

@@ -3,7 +3,7 @@
 
 #include <iscore/command/AggregateCommand.hpp>
 
-class RemoveNodes : public iscore::AggregateCommand
+class RemoveNodes final : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveNodes, "RemoveNodes")
 };

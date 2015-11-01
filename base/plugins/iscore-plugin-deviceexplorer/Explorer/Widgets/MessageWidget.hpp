@@ -15,7 +15,7 @@ class DeviceExplorerModel;
  * A button with a message. When clicked, opens a MessageEditDialog
  * that allows editing of the message.
  */
-class MessageWidget : public QPushButton
+class MessageWidget final : public QPushButton
 {
     public:
         MessageWidget(

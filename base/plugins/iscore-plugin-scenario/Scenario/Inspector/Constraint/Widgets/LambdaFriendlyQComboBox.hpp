@@ -1,7 +1,7 @@
 #pragma once
 #include <QComboBox>
 #include <QDebug>
-class LambdaFriendlyQComboBox : public QWidget
+class LambdaFriendlyQComboBox final : public QWidget
 {
         Q_OBJECT
     public:

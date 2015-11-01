@@ -9,7 +9,7 @@ class ConstraintInspectorWidget;
 class SlotInspectorSection;
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
-class RackInspectorSection : public InspectorSectionWidget
+class RackInspectorSection final : public InspectorSectionWidget
 {
     public:
         RackInspectorSection(

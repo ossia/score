@@ -2,7 +2,7 @@
 
 #include <iscore/plugins/panel/PanelFactory.hpp>
 
-class UndoPanelFactory : public iscore::PanelFactory
+class UndoPanelFactory final : public iscore::PanelFactory
 {
     public:
         int panelId() const override;

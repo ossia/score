@@ -3,7 +3,7 @@
 #include <iscore/command/PropertyCommand.hpp>
 
 class MappingModel;
-class SetMappingSourceMin : public iscore::PropertyCommand
+class SetMappingSourceMin final : public iscore::PropertyCommand
 {
         ISCORE_PROPERTY_COMMAND_DECL(MappingCommandFactoryName(), SetMappingSourceMin, "Set mapping source minimum")
     public:
@@ -14,7 +14,7 @@ class SetMappingSourceMin : public iscore::PropertyCommand
         }
 };
 
-class SetMappingSourceMax : public iscore::PropertyCommand
+class SetMappingSourceMax final : public iscore::PropertyCommand
 {
         ISCORE_PROPERTY_COMMAND_DECL(MappingCommandFactoryName(), SetMappingSourceMax, "Set mapping source Maximum")
     public:
@@ -25,7 +25,7 @@ class SetMappingSourceMax : public iscore::PropertyCommand
         }
 };
 
-class SetMappingTargetMin : public iscore::PropertyCommand
+class SetMappingTargetMin final : public iscore::PropertyCommand
 {
         ISCORE_PROPERTY_COMMAND_DECL(MappingCommandFactoryName(), SetMappingTargetMin, "Set mapping Target minimum")
     public:
@@ -36,7 +36,7 @@ class SetMappingTargetMin : public iscore::PropertyCommand
         }
 };
 
-class SetMappingTargetMax : public iscore::PropertyCommand
+class SetMappingTargetMax final : public iscore::PropertyCommand
 {
         ISCORE_PROPERTY_COMMAND_DECL(MappingCommandFactoryName(), SetMappingTargetMax, "Set mapping Target Maximum")
     public:

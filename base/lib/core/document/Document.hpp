@@ -20,7 +20,7 @@ namespace iscore
      * It is similar to the opened file in Word for instance, this is the
      * data on which i-score operates, further defined by the plugins.
      */
-    class Document : public NamedObject
+    class Document final : public NamedObject
     {
             Q_OBJECT
             friend class DocumentBuilder;

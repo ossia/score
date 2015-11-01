@@ -10,7 +10,7 @@ namespace OSSIA
     class TimeNode;
 }
 
-class OSSIATimeNodeElement : public QObject
+class OSSIATimeNodeElement final : public QObject
 {
     public:
         OSSIATimeNodeElement(

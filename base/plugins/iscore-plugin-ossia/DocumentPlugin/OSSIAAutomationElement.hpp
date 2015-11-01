@@ -14,7 +14,7 @@ class DeviceList;
 class OSSIAConstraintElement;
 
 
-class OSSIAAutomationElement : public OSSIAProcessElement
+class OSSIAAutomationElement final : public OSSIAProcessElement
 {
     public:
         OSSIAAutomationElement(

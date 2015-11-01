@@ -28,7 +28,7 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
             return *n;
         }
 
-        QModelIndex parent(const QModelIndex &index) const override
+        QModelIndex parent(const QModelIndex &index) const final override
         {
             const auto& node = nodeFromModelIndex(index);
             auto parentNode = node.parent();
@@ -48,7 +48,7 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
 
         QModelIndex index(int row,
                           int column,
-                          const QModelIndex &parent) const override
+                          const QModelIndex &parent) const final override
         {
             if (!hasIndex(row, column, parent))
                 return QModelIndex();
@@ -61,7 +61,7 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
                 return QModelIndex();
         }
 
-        int rowCount(const QModelIndex &parent) const override
+        int rowCount(const QModelIndex &parent) const final override
         {
             if(parent.column() > 0)
                 return 0;
@@ -70,7 +70,7 @@ class TreeNodeBasedItemModel : public QAbstractItemModel
             return parentNode.childCount();
         }
 
-        bool hasChildren(const QModelIndex &parent) const override
+        bool hasChildren(const QModelIndex &parent) const final override
         {
             const auto& parentNode = nodeFromModelIndex(parent);
             return parentNode.childCount() > 0;

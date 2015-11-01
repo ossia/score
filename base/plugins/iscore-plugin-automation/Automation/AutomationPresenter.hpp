@@ -4,7 +4,7 @@
 #include "AutomationModel.hpp"
 #include "AutomationLayerModel.hpp"
 #include "AutomationView.hpp"
-class AutomationPresenter :
+class AutomationPresenter final :
         public CurveProcessPresenter<
             AutomationLayerModel,
             AutomationView>

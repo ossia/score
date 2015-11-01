@@ -7,7 +7,7 @@
 
 //TODO : total refactor => unused now
 
-class LocalTimeRulerPresenter : public AbstractTimeRuler
+class LocalTimeRulerPresenter final : public AbstractTimeRuler
 {
     public:
         LocalTimeRulerPresenter(LocalTimeRulerView* view, QObject *parent);

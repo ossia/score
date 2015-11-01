@@ -2,7 +2,7 @@
 #include <Scenario/Control/Menus/ScenarioActions.hpp>
 
 class QToolBar;
-class TransportActions : public ScenarioActions
+class TransportActions final : public ScenarioActions
 {
     public:
         TransportActions(

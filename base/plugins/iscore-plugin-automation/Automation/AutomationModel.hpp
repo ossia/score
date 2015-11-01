@@ -19,7 +19,7 @@
  */
 class CurveModel;
 class AutomationState;
-class AutomationModel : public CurveProcessModel
+class AutomationModel final : public CurveProcessModel
 {
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, DataStream)
         ISCORE_SERIALIZE_FRIENDS(AutomationModel, JSONObject)

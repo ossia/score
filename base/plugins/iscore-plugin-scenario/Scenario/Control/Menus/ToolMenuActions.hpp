@@ -2,7 +2,7 @@
 #include <Scenario/Control/Menus/ScenarioActions.hpp>
 
 class QToolBar;
-class ToolMenuActions : public ScenarioActions
+class ToolMenuActions final : public ScenarioActions
 {
     public:
         ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent);

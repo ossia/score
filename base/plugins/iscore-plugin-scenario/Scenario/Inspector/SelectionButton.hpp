@@ -5,8 +5,7 @@ class QPushButton;
 namespace iscore {
 class SelectionDispatcher;
 }
-class
-        SelectionButton : public QWidget
+class SelectionButton final : public QWidget
 {
     public:
         SelectionButton(const QString& text,

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AddressSettingsWidget.hpp"
-class AddressCharSettingsWidget : public AddressSettingsWidget
+class AddressCharSettingsWidget final : public AddressSettingsWidget
 {
     public:
         explicit AddressCharSettingsWidget(QWidget* parent = nullptr);

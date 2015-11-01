@@ -16,7 +16,7 @@ namespace iscore
      *
      * The main display of the application.
      */
-    class View : public QMainWindow
+    class View final : public QMainWindow
     {
             Q_OBJECT
         public:

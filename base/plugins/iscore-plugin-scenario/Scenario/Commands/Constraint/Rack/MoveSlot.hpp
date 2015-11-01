@@ -14,7 +14,7 @@ namespace Scenario
          * Moves a Slot from a Rack to another (should not be the same :) )
          * Note : this must be in the same constraint.
          */
-        class MoveSlot : public iscore::AggregateCommand
+        class MoveSlot final : public iscore::AggregateCommand
         {
                 ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "MoveSlot")
 #include <tests/helpers/FriendDeclaration.hpp>

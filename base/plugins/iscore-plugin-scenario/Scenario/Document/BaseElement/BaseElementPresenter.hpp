@@ -27,7 +27,7 @@ class BaseScenarioStateMachine;
  * A bit special because we connect it to the presenter of the content model
  * inside the constraint model of the base element model.
  */
-class BaseElementPresenter : public iscore::DocumentDelegatePresenterInterface
+class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInterface
 {
         Q_OBJECT
     friend class DisplayedElementsPresenter;

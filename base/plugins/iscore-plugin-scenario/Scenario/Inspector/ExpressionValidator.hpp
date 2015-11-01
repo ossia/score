@@ -4,7 +4,7 @@
 #include <State/Expression.hpp>
 
 template<typename T>
-class ExpressionValidator : public QValidator
+class ExpressionValidator final : public QValidator
 {
     public:
     State validate(QString& str, int&) const override

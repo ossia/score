@@ -4,7 +4,7 @@
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
 class AutomationControl;
-class iscore_plugin_automation:
+class iscore_plugin_automation final :
         public QObject,
         public iscore::FactoryInterface_QtInterface,
         public iscore::CommandFactory_QtInterface

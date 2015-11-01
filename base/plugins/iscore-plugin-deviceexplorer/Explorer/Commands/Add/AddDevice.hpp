@@ -5,7 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 
 class DeviceDocumentPlugin;
-class AddDevice : public iscore::SerializableCommand
+class AddDevice final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "AddDevice")
         public:

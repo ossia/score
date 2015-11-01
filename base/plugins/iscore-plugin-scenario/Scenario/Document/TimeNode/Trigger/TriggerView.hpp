@@ -2,7 +2,7 @@
 #include <QGraphicsItem>
 class QGraphicsSvgItem;
 
-class TriggerView : public QGraphicsObject
+class TriggerView final : public QGraphicsObject
 {
         Q_OBJECT
     public:

@@ -23,7 +23,7 @@ namespace Scenario
         * This Command creates a constraint and another event in a scenario,
         * starting from an event selected by the user.
         */
-        class CreateConstraint : public iscore::SerializableCommand
+        class CreateConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"CreateConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>

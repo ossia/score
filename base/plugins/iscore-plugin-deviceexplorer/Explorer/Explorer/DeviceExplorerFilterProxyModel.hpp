@@ -2,7 +2,7 @@
 
 #include <QSortFilterProxyModel>
 
-class DeviceExplorerFilterProxyModel : public QSortFilterProxyModel
+class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
 {
     public:
         explicit DeviceExplorerFilterProxyModel(QObject* parent = nullptr);

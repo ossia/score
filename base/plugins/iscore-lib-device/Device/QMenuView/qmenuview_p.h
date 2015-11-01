@@ -46,20 +46,20 @@ J'ai apporté quelques modifications en plus.
 #include "qmenuview.h"
 
 //! \private
-class QMenuViewPrivate : public QObject
+class QMenuViewPrivate final : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	QMenuViewPrivate(QMenuView * menu);
-	virtual ~QMenuViewPrivate() = default;
+    QMenuViewPrivate(QMenuView * menu);
+    virtual ~QMenuViewPrivate() = default;
 
-	QAction *makeAction(const QModelIndex &index);
+    QAction *makeAction(const QModelIndex &index);
 
-	QMenuView * _menu{};
-	QAbstractItemModel * m_model{};
-	QPersistentModelIndex m_root;
+    QMenuView * _menu{};
+    QAbstractItemModel * m_model{};
+    QPersistentModelIndex m_root;
 public slots:
-	void aboutToShow();
-	void triggered(QAction *action);
-	void hovered(QAction *action);
+    void aboutToShow();
+    void triggered(QAction *action);
+    void hovered(QAction *action);
 };

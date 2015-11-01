@@ -7,7 +7,7 @@
 #include <Device/Protocol/SingletonProtocolList.hpp>
 
 // TODO rename file
-class iscore_plugin_deviceexplorer :
+class iscore_plugin_deviceexplorer final :
         public QObject,
         public iscore::PanelFactory_QtInterface,
         public iscore::FactoryFamily_QtInterface,

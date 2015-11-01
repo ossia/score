@@ -8,7 +8,7 @@ namespace iscore
  * A mixin that removes the margin of a layout.
  */
 template<typename Layout>
-class MarginLess : public Layout
+class MarginLess final : public Layout
 {
     public:
         MarginLess()

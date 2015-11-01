@@ -12,7 +12,7 @@
  */
 
 template<typename RedoStrategy_T, typename SendStrategy_T>
-class GenericMacroCommandDispatcher : public ICommandDispatcher
+class GenericMacroCommandDispatcher final : public ICommandDispatcher
 {
     public:
         template<typename... Args>

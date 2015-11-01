@@ -39,7 +39,7 @@ class variant;
 }
 }
 template<>
-class Visitor<Reader<DataStream>> : public AbstractVisitor
+class Visitor<Reader<DataStream>> final : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;

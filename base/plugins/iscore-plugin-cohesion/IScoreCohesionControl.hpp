@@ -5,7 +5,7 @@
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class RecordManager;
 class ScenarioModel;
-class IScoreCohesionControl : public iscore::PluginControlInterface
+class IScoreCohesionControl final : public iscore::PluginControlInterface
 {
     public:
         IScoreCohesionControl(iscore::Presenter* pres);

@@ -5,7 +5,7 @@
 class DeviceExplorerModel;
 class DeviceExplorerFilterProxyModel;
 
-class DeviceExplorerView : public QTreeView
+class DeviceExplorerView final : public QTreeView
 {
         Q_OBJECT
 

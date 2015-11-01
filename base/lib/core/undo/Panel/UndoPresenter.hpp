@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
-class UndoPresenter : public iscore::PanelPresenter
+class UndoPresenter final : public iscore::PanelPresenter
 {
     public:
     UndoPresenter(iscore::Presenter *parent_presenter,

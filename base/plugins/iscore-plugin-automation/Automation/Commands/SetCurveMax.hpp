@@ -4,7 +4,7 @@
 
 // TODO RENAMEME
 class AutomationModel;
-class SetAutomationMax : public iscore::PropertyCommand
+class SetAutomationMax final : public iscore::PropertyCommand
 {
         ISCORE_PROPERTY_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMax, "Set curve maximum")
         public:

@@ -1,7 +1,7 @@
 #include <QWidget>
 #pragma once
 
-class AddProcessDialog : public QWidget
+class AddProcessDialog final : public QWidget
 {
         Q_OBJECT
 

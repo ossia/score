@@ -16,7 +16,7 @@ namespace Scenario
          *
          * Adds a process view to a slot.
          */
-        class AddLayerModelToSlot : public iscore::SerializableCommand
+        class AddLayerModelToSlot final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "AddLayerModelToSlot")
 #include <tests/helpers/FriendDeclaration.hpp>

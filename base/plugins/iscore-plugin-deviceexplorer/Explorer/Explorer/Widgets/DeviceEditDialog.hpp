@@ -9,7 +9,7 @@ class QGridLayout;
 #include <QString>
 
 
-class DeviceEditDialog : public QDialog
+class DeviceEditDialog final : public QDialog
 {
         Q_OBJECT
 

@@ -6,7 +6,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
-class RemoveMessageNodes : public iscore::SerializableCommand
+class RemoveMessageNodes final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveMessageNodes, "RemoveMessageNodes")
 

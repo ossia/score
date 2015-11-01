@@ -5,7 +5,7 @@
 
 class ConstraintModel;
 // A container class to separate management of the duration of a constraint.
-class ConstraintDurations : public QObject
+class ConstraintDurations final : public QObject
 {
         // These dates are relative to the beginning of the constraint.
         Q_PROPERTY(TimeValue minDuration

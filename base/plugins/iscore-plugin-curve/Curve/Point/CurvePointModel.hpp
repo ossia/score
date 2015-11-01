@@ -5,7 +5,7 @@
 
 class CurveSegmentModel;
 
-class CurvePointModel : public IdentifiedObject<CurvePointModel>
+class CurvePointModel final : public IdentifiedObject<CurvePointModel>
 {
         Q_OBJECT
     public:

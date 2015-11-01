@@ -13,7 +13,7 @@ namespace DeviceExplorer
 {
 namespace Command
 {
-class UpdateAddressSettings : public iscore::SerializableCommand
+class UpdateAddressSettings final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressSettings, "UpdateAddressSettings")
         public:

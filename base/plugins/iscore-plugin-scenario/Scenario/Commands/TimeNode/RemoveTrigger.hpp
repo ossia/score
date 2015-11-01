@@ -14,7 +14,7 @@ namespace Scenario
 {
     namespace Command
     {
-    class RemoveTrigger : public iscore::SerializableCommand
+    class RemoveTrigger final : public iscore::SerializableCommand
     {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveTrigger, "RemoveTrigger")
     public:

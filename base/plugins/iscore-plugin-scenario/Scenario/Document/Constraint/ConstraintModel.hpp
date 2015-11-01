@@ -33,7 +33,7 @@ class EventModel;
 class TimeRack;
 class ScenarioInterface;
 
-class ConstraintModel : public IdentifiedObject<ConstraintModel>
+class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 {
         Q_OBJECT
         ISCORE_METADATA("ConstraintModel")

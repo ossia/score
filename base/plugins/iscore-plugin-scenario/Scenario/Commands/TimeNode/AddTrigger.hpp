@@ -14,7 +14,7 @@ namespace Scenario
 {
     namespace Command
     {
-    class AddTrigger : public iscore::SerializableCommand
+    class AddTrigger final : public iscore::SerializableCommand
     {
             ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddTrigger, "AddTrigger")
         public:

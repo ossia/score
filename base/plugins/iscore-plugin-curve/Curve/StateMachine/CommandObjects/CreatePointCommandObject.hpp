@@ -1,7 +1,7 @@
 #pragma once
 #include "Curve/StateMachine/CommandObjects/CurveCommandObjectBase.hpp"
 
-class CreatePointCommandObject : public CurveCommandObjectBase
+class CreatePointCommandObject final : public CurveCommandObjectBase
 {
     public:
         CreatePointCommandObject(CurvePresenter* presenter, iscore::CommandStack& stack);

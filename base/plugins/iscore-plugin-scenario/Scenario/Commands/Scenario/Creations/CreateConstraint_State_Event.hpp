@@ -6,7 +6,7 @@ namespace Scenario
 {
 namespace Command
 {
-class CreateConstraint_State_Event : public iscore::SerializableCommand
+class CreateConstraint_State_Event final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event, "CreateConstraint_State_Event")
         public:

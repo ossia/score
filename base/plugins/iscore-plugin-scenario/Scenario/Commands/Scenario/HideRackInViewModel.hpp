@@ -17,7 +17,7 @@ namespace Scenario
          * For a given constraint view model, hides the rack.
          * Can only be called if a rack was being displayed.
          */
-        class HideRackInViewModel : public iscore::SerializableCommand
+        class HideRackInViewModel final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRackInViewModel, "HideRackInViewModel")
 #include <tests/helpers/FriendDeclaration.hpp>

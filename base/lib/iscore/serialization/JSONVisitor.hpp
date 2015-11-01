@@ -43,7 +43,7 @@ class variant;
 }
 
 template<>
-class Visitor<Reader<JSONObject>> : public AbstractVisitor
+class Visitor<Reader<JSONObject>> final : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;

@@ -5,7 +5,7 @@
 class BaseStateMachine;
 class QGraphicsScene;
 
-class DragSlotState : public SlotState
+class DragSlotState final : public SlotState
 {
     public:
         DragSlotState(

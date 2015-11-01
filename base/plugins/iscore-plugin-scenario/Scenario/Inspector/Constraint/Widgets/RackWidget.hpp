@@ -11,7 +11,7 @@ class ConstraintModel;
 class ConstraintViewModel;
 class LambdaFriendlyQComboBox;
 
-class RackWidget : public QWidget
+class RackWidget final : public QWidget
 {
         Q_OBJECT
 

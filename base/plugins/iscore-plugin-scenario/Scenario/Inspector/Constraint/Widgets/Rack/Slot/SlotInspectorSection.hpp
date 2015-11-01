@@ -11,7 +11,7 @@ class RackInspectorSection;
 class Process;
 
 // Contains a single rack which can contain multiple slots and a Add Slot button.
-class SlotInspectorSection : public InspectorSectionWidget
+class SlotInspectorSection final : public InspectorSectionWidget
 {
     public:
         SlotInspectorSection(

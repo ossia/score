@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 
-class ConstraintInspectorFactory : public InspectorWidgetFactory
+class ConstraintInspectorFactory final : public InspectorWidgetFactory
 {
     public:
         ConstraintInspectorFactory() :

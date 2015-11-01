@@ -4,7 +4,7 @@
 
 class ConstraintModel;
 class Process;
-class AddOnlyProcessToConstraint : public iscore::SerializableCommand
+class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
                 ScenarioCommandFactoryName(),

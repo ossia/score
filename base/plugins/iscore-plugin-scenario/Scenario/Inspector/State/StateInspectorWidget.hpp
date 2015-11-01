@@ -4,7 +4,7 @@
 class StateModel;
 class QFormLayout;
 class StateWidget;
-class StateInspectorWidget : public InspectorWidgetBase
+class StateInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

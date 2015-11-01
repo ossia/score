@@ -4,7 +4,7 @@
 #include <Process/TimeValue.hpp>
 
 class ConstraintModel;
-class SetLooping : public iscore::SerializableCommand
+class SetLooping final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "SetLooping")
 

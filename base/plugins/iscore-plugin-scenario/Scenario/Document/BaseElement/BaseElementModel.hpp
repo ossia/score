@@ -14,7 +14,7 @@ class Process;
 class LayerModel;
 class ConstraintModel;
 
-class BaseElementModel : public iscore::DocumentDelegateModelInterface
+class BaseElementModel final : public iscore::DocumentDelegateModelInterface
 {
         Q_OBJECT
         ISCORE_SERIALIZE_FRIENDS(BaseElementModel, DataStream)

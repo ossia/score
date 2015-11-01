@@ -8,7 +8,7 @@
 class QLineEdit;
 class QPushButton;
 
-class TriggerInspectorWidget : public QWidget
+class TriggerInspectorWidget final : public QWidget
 {
     public:
         TriggerInspectorWidget(const TimeNodeModel& object, InspectorWidgetBase* parent);

@@ -3,7 +3,7 @@
 #include <Process/LayerModel.hpp>
 
 class AutomationModel;
-class AutomationLayerModel : public LayerModel
+class AutomationLayerModel final : public LayerModel
 {
         ISCORE_METADATA("AutomationLayerModel")
     public:

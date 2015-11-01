@@ -10,7 +10,7 @@ class TemporalScenarioPresenter;
 class QMimeData;
 class ConstraintModel;
 
-class StatePresenter : public NamedObject
+class StatePresenter final : public NamedObject
 {
         Q_OBJECT
 

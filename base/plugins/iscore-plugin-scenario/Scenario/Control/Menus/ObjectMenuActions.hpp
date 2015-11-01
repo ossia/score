@@ -5,7 +5,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-class ObjectMenuActions : public ScenarioActions
+class ObjectMenuActions final : public ScenarioActions
 {
     public:
         ObjectMenuActions(iscore::ToplevelMenuElement, ScenarioControl* parent);

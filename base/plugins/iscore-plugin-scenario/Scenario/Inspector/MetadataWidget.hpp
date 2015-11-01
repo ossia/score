@@ -18,7 +18,7 @@ class CommentEdit;
 class QPushButton;
 class ModelMetadata;
 
-class MetadataWidget : public QWidget
+class MetadataWidget final : public QWidget
 {
         Q_OBJECT
 

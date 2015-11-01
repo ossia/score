@@ -6,7 +6,7 @@ class ConstraintModel;
 class RackModel;
 class ConstraintViewModel;
 
-class ShowRackInAllViewModels : public iscore::SerializableCommand
+class ShowRackInAllViewModels final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
                 ScenarioCommandFactoryName(),

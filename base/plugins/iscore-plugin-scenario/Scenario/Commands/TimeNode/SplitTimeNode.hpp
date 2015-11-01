@@ -12,7 +12,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class SplitTimeNode : public iscore::SerializableCommand
+        class SplitTimeNode final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitTimeNode, "SplitTimeNode")
             public:

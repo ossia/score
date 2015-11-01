@@ -9,7 +9,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class AddStateWithData: public iscore::AggregateCommand
+        class AddStateWithData final : public iscore::AggregateCommand
         {
                 ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "AddStateWithData")
             public:

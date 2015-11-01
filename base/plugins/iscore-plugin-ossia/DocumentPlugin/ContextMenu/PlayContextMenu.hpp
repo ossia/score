@@ -1,6 +1,6 @@
 #pragma once
 #include "Scenario/Control/Menus/ScenarioActions.hpp"
-class PlayContextMenu : public ScenarioActions
+class PlayContextMenu final : public ScenarioActions
 {
     public:
         PlayContextMenu(ScenarioControl* parent);

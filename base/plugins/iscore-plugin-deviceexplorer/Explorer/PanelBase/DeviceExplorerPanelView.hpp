@@ -6,7 +6,7 @@ namespace iscore
     class View;
 }
 class DeviceExplorerWidget;
-class DeviceExplorerPanelView : public iscore::PanelView
+class DeviceExplorerPanelView final : public iscore::PanelView
 {
         friend class DeviceExplorerPanelPresenter;
     public:

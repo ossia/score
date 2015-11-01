@@ -8,7 +8,7 @@
 #include <QDebug>
 #include "SceneGraduations.hpp"
 
-class ScenarioBaseGraphicsView : public QGraphicsView
+class ScenarioBaseGraphicsView final : public QGraphicsView
 {
         Q_OBJECT
     public:

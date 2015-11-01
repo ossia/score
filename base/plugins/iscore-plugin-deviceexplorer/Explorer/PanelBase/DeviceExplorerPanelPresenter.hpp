@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
-class DeviceExplorerPanelPresenter : public iscore::PanelPresenter
+class DeviceExplorerPanelPresenter final : public iscore::PanelPresenter
 {
     public:
         DeviceExplorerPanelPresenter(iscore::Presenter* parent,

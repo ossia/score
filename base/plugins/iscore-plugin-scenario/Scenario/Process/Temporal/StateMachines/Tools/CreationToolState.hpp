@@ -7,7 +7,7 @@ class ScenarioCreation_FromNothing;
 class ScenarioCreation_FromEvent;
 class ScenarioCreation_FromState;
 class ScenarioCreation_FromTimeNode;
-class CreationToolState : public ScenarioTool
+class CreationToolState final : public ScenarioTool
 {
     public:
         CreationToolState(ScenarioStateMachine& sm);

@@ -12,7 +12,7 @@ namespace iscore
 }
 class LayerPresenter;
 
-class TemporalConstraintPresenter : public ConstraintPresenter
+class TemporalConstraintPresenter final : public ConstraintPresenter
 {
         Q_OBJECT
 

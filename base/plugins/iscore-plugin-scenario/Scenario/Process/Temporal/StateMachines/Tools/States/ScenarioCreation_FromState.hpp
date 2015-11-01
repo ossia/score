@@ -1,6 +1,6 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
-class ScenarioCreation_FromState : public ScenarioCreationState
+class ScenarioCreation_FromState final : public ScenarioCreationState
 {
     public:
         ScenarioCreation_FromState(

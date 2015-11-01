@@ -2,7 +2,7 @@
 #include <QGraphicsItem>
 class SlotView;
 class SlotHandle;
-class SlotOverlay : public QGraphicsItem
+class SlotOverlay final : public QGraphicsItem
 {
     public:
         SlotOverlay(SlotView* parent);

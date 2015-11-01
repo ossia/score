@@ -13,7 +13,7 @@ class OSSIABaseScenarioElement;
 // One would be the "distributed" policy which provides the
 // same functionalities but for scenario executing on different computers.
 
-class OSSIAControl : public iscore::PluginControlInterface
+class OSSIAControl final : public iscore::PluginControlInterface
 {
     public:
         OSSIAControl(iscore::Presenter* pres);

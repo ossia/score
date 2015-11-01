@@ -11,7 +11,7 @@ class BaseElementPresenter;
 
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
-class DisplayedElementsPresenter : public QObject
+class DisplayedElementsPresenter final : public QObject
 {
     public:
         DisplayedElementsPresenter(BaseElementPresenter* parent);

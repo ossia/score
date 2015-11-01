@@ -23,7 +23,7 @@ class GenericStateBase : public QState
 };
 
 class SlotModel;
-class MoveSlotToolState : public GenericStateBase
+class MoveSlotToolState final : public GenericStateBase
 {
     public:
         MoveSlotToolState(const ScenarioStateMachine &sm);

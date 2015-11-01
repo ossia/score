@@ -12,7 +12,7 @@ class ConstraintModel;
  *
  * In addition if it's the base constraint, it should be extensible.
  */
-class FullViewConstraintViewModel : public ConstraintViewModel
+class FullViewConstraintViewModel final : public ConstraintViewModel
 {
         Q_OBJECT
 

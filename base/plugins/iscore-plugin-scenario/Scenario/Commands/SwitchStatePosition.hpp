@@ -6,7 +6,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class SwitchStatePosition : public iscore::SerializableCommand
+        class SwitchStatePosition final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SwitchStatePosition, "SwitchStatePosition")
             public:

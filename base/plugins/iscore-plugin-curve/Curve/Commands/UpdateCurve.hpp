@@ -6,7 +6,7 @@
 class CurveModel;
 class CurveSegmentModel;
 
-class UpdateCurve : public iscore::SerializableCommand
+class UpdateCurve final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
                 CurveCommandFactoryName(),

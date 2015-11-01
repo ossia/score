@@ -10,7 +10,7 @@ namespace iscore
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class UndoControl : public iscore::PluginControlInterface
+class UndoControl final : public iscore::PluginControlInterface
 {
     public:
         UndoControl(Presenter* pres, QObject* parent);

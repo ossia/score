@@ -43,7 +43,7 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             return m_id;
         }
 
-        virtual int32_t id_val() const override
+        int32_t id_val() const final override
         {
             return *m_id.val();
         }

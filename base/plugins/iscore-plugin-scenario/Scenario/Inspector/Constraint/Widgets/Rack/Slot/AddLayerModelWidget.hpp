@@ -2,7 +2,7 @@
 #include <QWidget>
 
 class SlotInspectorSection;
-class AddLayerModelWidget : public QWidget
+class AddLayerModelWidget final : public QWidget
 {
         Q_OBJECT
 

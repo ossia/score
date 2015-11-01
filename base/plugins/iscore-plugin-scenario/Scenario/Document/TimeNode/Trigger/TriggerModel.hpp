@@ -7,7 +7,7 @@
 
 using namespace iscore;
 
-class TriggerModel : public IdentifiedObject<TriggerModel>
+class TriggerModel final : public IdentifiedObject<TriggerModel>
 {
         Q_OBJECT
         ISCORE_METADATA("TriggerModel")

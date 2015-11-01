@@ -1,7 +1,7 @@
 #pragma once
 #include <QTextEdit>
 
-class CommentEdit : public QTextEdit
+class CommentEdit final : public QTextEdit
 {
     Q_OBJECT
     public:

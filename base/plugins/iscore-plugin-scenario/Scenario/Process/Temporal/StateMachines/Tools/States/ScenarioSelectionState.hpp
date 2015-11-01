@@ -4,7 +4,7 @@
 class ScenarioStateMachine;
 class TemporalScenarioView;
 
-class ScenarioSelectionState : public CommonSelectionState
+class ScenarioSelectionState final : public CommonSelectionState
 {
     private:
         QPointF m_initialPoint;

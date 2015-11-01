@@ -9,7 +9,7 @@ class EventView;
 class TemporalScenarioPresenter;
 class QMimeData;
 class ConstraintModel;
-class EventPresenter : public NamedObject
+class EventPresenter final : public NamedObject
 {
         Q_OBJECT
 

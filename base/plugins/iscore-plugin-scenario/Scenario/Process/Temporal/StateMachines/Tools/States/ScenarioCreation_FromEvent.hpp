@@ -1,7 +1,7 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-class ScenarioCreation_FromEvent : public ScenarioCreationState
+class ScenarioCreation_FromEvent final : public ScenarioCreationState
 {
     public:
         ScenarioCreation_FromEvent(

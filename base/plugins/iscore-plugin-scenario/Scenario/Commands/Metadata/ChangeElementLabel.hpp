@@ -9,7 +9,7 @@ namespace Scenario
     namespace Command
     {
         template<class T>
-        class ChangeElementLabel : public iscore::SerializableCommand
+        class ChangeElementLabel final : public iscore::SerializableCommand
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:

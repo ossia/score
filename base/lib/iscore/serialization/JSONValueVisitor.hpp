@@ -26,7 +26,7 @@ class JSONValue
 };
 
 template<>
-class Visitor<Reader<JSONValue>> : public AbstractVisitor
+class Visitor<Reader<JSONValue>> final : public AbstractVisitor
 {
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;

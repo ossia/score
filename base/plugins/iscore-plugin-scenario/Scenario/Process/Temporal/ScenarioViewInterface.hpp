@@ -12,7 +12,7 @@ class TimeNodeModel;
 class TimeNodePresenter;
 class StatePresenter;
 
-class ScenarioViewInterface : public QObject
+class ScenarioViewInterface final : public QObject
 {
     public:
         ScenarioViewInterface(TemporalScenarioPresenter* presenter);

@@ -9,7 +9,7 @@ class ConstraintModel;
  *
  * The ViewModel of a Constraint shown inside a temporal view of a scenario
  */
-class TemporalConstraintViewModel : public ConstraintViewModel
+class TemporalConstraintViewModel final : public ConstraintViewModel
 {
         Q_OBJECT
 

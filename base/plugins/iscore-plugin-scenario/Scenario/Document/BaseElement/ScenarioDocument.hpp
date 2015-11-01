@@ -1,7 +1,8 @@
 #pragma once
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
-class ScenarioDocument : public iscore::DocumentDelegateFactoryInterface
+// TODO ScenarioDocumentFactory instead?
+class ScenarioDocument final : public iscore::DocumentDelegateFactoryInterface
 {
     public:
         iscore::DocumentDelegateViewInterface* makeView(

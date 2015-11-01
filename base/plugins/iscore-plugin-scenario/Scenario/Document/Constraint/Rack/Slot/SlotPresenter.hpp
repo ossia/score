@@ -35,7 +35,7 @@ struct SlotProcessData
         std::vector<ProcessPair> processes;
 };
 
-class SlotPresenter : public NamedObject
+class SlotPresenter final : public NamedObject
 {
         Q_OBJECT
 

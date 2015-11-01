@@ -9,7 +9,7 @@ class DeviceExplorerModel;
  * It is used to input addresses for instance, and will complete with
  * existing ones.
  */
-class DeviceCompleter : public QCompleter
+class DeviceCompleter final : public QCompleter
 {
     public:
         DeviceCompleter(DeviceExplorerModel* model, QObject* parent);

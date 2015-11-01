@@ -5,7 +5,7 @@
 /**
  * A selection is a set of objects.
  */
-class Selection : private QList<QPointer<const QObject>>
+class Selection final : private QList<QPointer<const QObject>>
 {
         using base_type = QList<QPointer<const QObject>>;
     public:

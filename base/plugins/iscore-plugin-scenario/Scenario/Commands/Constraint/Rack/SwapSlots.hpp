@@ -11,7 +11,7 @@ namespace Scenario
 {
     namespace Command
     {
-        class SwapSlots : public iscore::SerializableCommand
+        class SwapSlots final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "SwapSlots")
             public:

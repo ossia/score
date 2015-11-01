@@ -13,7 +13,7 @@
 #include <QStackedWidget>
 namespace iscore
 {
-    class SettingsView : public QDialog
+    class SettingsView final : public QDialog
     {
             Q_OBJECT
         public:

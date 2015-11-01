@@ -7,7 +7,7 @@
 // Keeps the focused elements in memory for use by the scenario control.
 // Note : focus should not be lost when switching documents. Hence, this
 // should more be part of the per-document part.
-class ProcessFocusManager : public QObject
+class ProcessFocusManager final : public QObject
 {
         Q_OBJECT
 

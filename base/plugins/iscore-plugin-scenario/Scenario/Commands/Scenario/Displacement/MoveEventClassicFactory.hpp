@@ -2,7 +2,7 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
-class MoveEventClassicFactory : public MoveEventFactoryInterface
+class MoveEventClassicFactory final : public MoveEventFactoryInterface
 {
     // MoveEventFactory interface
 public:

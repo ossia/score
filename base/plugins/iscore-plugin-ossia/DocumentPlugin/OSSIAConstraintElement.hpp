@@ -18,7 +18,7 @@ class TimeNode;
 class TimeProcess;
 }
 
-class OSSIAConstraintElement : public QObject
+class OSSIAConstraintElement final : public QObject
 {
     public:
         OSSIAConstraintElement(

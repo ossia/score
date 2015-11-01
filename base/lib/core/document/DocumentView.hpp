@@ -14,7 +14,7 @@ namespace iscore
      * It displays a @c{DocumentDelegateViewInterface}, in
      * the central widget.
      */
-    class DocumentView : public QWidget
+    class DocumentView final : public QWidget
     {
         public:
             DocumentView(DocumentDelegateFactoryInterface* viewDelegate,

@@ -7,7 +7,7 @@
 /** Note : this command is for internal use only, in recording **/
 
 class AutomationModel;
-class InitAutomation : public iscore::SerializableCommand
+class InitAutomation final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")
     public:

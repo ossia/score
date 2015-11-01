@@ -22,7 +22,7 @@ class MetadataWidget;
  *
  * Inherits from InspectorWidgetInterface. Manages an inteface for an Constraint (Timerack) element.
  */
-class ConstraintInspectorWidget : public InspectorWidgetBase
+class ConstraintInspectorWidget final : public InspectorWidgetBase
 {
         Q_OBJECT
     public:

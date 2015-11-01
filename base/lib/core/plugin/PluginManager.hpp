@@ -24,7 +24,7 @@ namespace iscore
     /**
      * @brief The PluginManager class loads and keeps track of the plug-ins.
      */
-    class PluginManager : public QObject
+    class PluginManager final : public QObject
     {
             Q_OBJECT
             friend class iscore::Application;

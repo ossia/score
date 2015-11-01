@@ -13,7 +13,7 @@
  * the Qt way.
  *
  */
-class MessageItemModel : public TreeNodeBasedItemModel<MessageNode>
+class MessageItemModel final : public TreeNodeBasedItemModel<MessageNode>
 {
         Q_OBJECT
 

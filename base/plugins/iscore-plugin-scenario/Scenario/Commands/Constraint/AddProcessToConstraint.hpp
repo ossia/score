@@ -20,7 +20,7 @@ namespace Scenario
         /**
         * @brief The AddProcessToConstraint class
         */
-        class AddProcessToConstraint : public iscore::SerializableCommand
+        class AddProcessToConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddProcessToConstraint, "AddProcessToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>

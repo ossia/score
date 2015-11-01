@@ -13,7 +13,7 @@ namespace Command
  * For instance creating a StateModel and adding data inside.
  *
  */
-class CreateStateMacro : public iscore::AggregateCommand
+class CreateStateMacro final : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateStateMacro, "CreateStateMacro")
     public:

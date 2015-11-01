@@ -4,7 +4,7 @@
 
 // TODO RENAMEME
 class AutomationModel;
-class SetAutomationMin : public iscore::PropertyCommand
+class SetAutomationMin final : public iscore::PropertyCommand
 {
         ISCORE_PROPERTY_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMin, "Set curve minimum")
     public:

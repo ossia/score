@@ -5,7 +5,7 @@
 class QComboBox;
 class QLineEdit;
 class QSpinBox;
-class AddressStringSettingsWidget : public AddressSettingsWidget
+class AddressStringSettingsWidget final : public AddressSettingsWidget
 {
     public:
         explicit AddressStringSettingsWidget(QWidget* parent = nullptr);

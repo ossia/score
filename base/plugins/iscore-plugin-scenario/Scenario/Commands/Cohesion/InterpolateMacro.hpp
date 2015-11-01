@@ -10,14 +10,14 @@
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
 // One InterpolateMacro per constraint
-class GenericInterpolateMacro : public iscore::AggregateCommand
+class GenericInterpolateMacro final : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                       GenericInterpolateMacro,
                                       "GenericInterpolateMacro")
 };
 
-class InterpolateMacro : public iscore::AggregateCommand
+class InterpolateMacro final : public iscore::AggregateCommand
 {
         ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                       InterpolateMacro,

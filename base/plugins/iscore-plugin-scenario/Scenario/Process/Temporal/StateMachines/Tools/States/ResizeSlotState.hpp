@@ -6,7 +6,7 @@
 class BaseStateMachine;
 class QGraphicsScene;
 
-class ResizeSlotState : public SlotState
+class ResizeSlotState final : public SlotState
 {
     public:
         ResizeSlotState(

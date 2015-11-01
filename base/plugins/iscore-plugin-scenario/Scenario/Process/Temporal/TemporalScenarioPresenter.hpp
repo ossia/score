@@ -39,7 +39,7 @@ class ScenarioSelectionManager;
 class ScenarioViewInterface;
 class SelectionDispatcher;
 
-class TemporalScenarioPresenter : public LayerPresenter
+class TemporalScenarioPresenter final : public LayerPresenter
 {
         Q_OBJECT
 

@@ -18,7 +18,7 @@ namespace iscore {
 struct AddressSettings;
 }
 
-class DeviceExplorerModel : public NodeBasedItemModel
+class DeviceExplorerModel final : public NodeBasedItemModel
 {
         Q_OBJECT
 

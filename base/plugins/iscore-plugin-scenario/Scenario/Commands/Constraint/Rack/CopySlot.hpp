@@ -18,7 +18,7 @@ namespace Scenario
          * The process view models are recursively copied.
          * The Slot is put at the end.
          */
-        class CopySlot : public iscore::SerializableCommand
+        class CopySlot final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "CopySlot")
 #include <tests/helpers/FriendDeclaration.hpp>

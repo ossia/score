@@ -8,7 +8,7 @@
 
 namespace Curve
 {
-class OngoingState : public Curve::StateBase
+class OngoingState final : public Curve::StateBase
 {
     public:
         template<typename CommandObject>

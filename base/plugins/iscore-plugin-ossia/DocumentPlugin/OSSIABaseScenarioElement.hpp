@@ -19,7 +19,7 @@ namespace OSSIA
     class TimeProcess;
 }
 
-class OSSIABaseScenarioElement : public QObject
+class OSSIABaseScenarioElement final : public QObject
 {
     public:
         OSSIABaseScenarioElement(

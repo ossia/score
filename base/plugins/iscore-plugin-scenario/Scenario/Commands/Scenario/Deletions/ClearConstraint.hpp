@@ -17,7 +17,7 @@ namespace Scenario
          *
          * Removes all the processes and the rackes of a constraint.
          */
-        class ClearConstraint : public iscore::SerializableCommand
+        class ClearConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "ClearConstraint")
             public:

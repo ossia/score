@@ -6,7 +6,7 @@ class DocumentModel;
 }
 
 class OSSIABaseScenarioElement;
-class OSSIADocumentPlugin : public iscore::DocumentDelegatePluginModel
+class OSSIADocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
     public:

@@ -2,7 +2,7 @@
 #include <QGraphicsItem>
 #include <QPen>
 class SlotView;
-class SlotHandle : public QGraphicsItem
+class SlotHandle final : public QGraphicsItem
 {
     public:
         SlotHandle(const SlotView& slotView,

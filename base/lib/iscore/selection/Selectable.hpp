@@ -6,7 +6,7 @@
  *
  * A component that allows a class to be selected (or not).
  */
-class Selectable : public QObject
+class Selectable final : public QObject
 {
         Q_OBJECT
     public:

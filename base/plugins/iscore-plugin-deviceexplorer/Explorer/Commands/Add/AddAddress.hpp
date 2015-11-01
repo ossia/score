@@ -12,7 +12,7 @@ namespace DeviceExplorer
 {
     namespace Command
     {
-        class AddAddress : public iscore::SerializableCommand
+        class AddAddress final : public iscore::SerializableCommand
         {
             ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "AddAddress")
             public:

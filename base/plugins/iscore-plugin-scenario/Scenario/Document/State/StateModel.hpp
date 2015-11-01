@@ -20,7 +20,7 @@ class Process;
 class ProcessStateDataInterface;
 
 // Model for the graphical state in a scenario.
-class StateModel : public IdentifiedObject<StateModel>
+class StateModel final : public IdentifiedObject<StateModel>
 {
         Q_OBJECT
         ISCORE_METADATA("StateModel")

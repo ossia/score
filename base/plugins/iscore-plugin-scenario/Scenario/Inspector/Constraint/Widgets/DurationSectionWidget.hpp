@@ -11,7 +11,7 @@ class QCheckBox;
 class QGridLayout;
 class QHBoxLayout;
 
-class DurationSectionWidget : public InspectorSectionWidget
+class DurationSectionWidget final : public InspectorSectionWidget
 {
         Q_OBJECT
     public:

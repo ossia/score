@@ -21,7 +21,7 @@ class QComboBox;
 class QLineEdit;
 
 
-class DeviceExplorerWidget : public QWidget
+class DeviceExplorerWidget final : public QWidget
 {
         Q_OBJECT
 

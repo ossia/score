@@ -15,7 +15,7 @@ namespace Scenario
          *
          * Adds an empty rack, with no slots, to a constraint.
          */
-        class AddRackToConstraint : public iscore::SerializableCommand
+        class AddRackToConstraint final : public iscore::SerializableCommand
         {
                 ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "AddRackToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>

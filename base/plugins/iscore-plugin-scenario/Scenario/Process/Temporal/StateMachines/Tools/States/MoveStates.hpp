@@ -7,7 +7,7 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 class ScenarioStateMachine;
 
-class MoveConstraintState : public ScenarioStateBase
+class MoveConstraintState final : public ScenarioStateBase
 {
     public:
         MoveConstraintState(const ScenarioStateMachine& stateMachine,
@@ -23,7 +23,7 @@ class MoveConstraintState : public ScenarioStateBase
         TimeValue m_constraintInitialStartDate;
 };
 
-class MoveEventState : public ScenarioStateBase
+class MoveEventState final : public ScenarioStateBase
 {
     public:
         MoveEventState(const ScenarioStateMachine& stateMachine,
@@ -35,7 +35,7 @@ class MoveEventState : public ScenarioStateBase
         SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
 };
 
-class MoveTimeNodeState : public ScenarioStateBase
+class MoveTimeNodeState final : public ScenarioStateBase
 {
     public:
         MoveTimeNodeState(const ScenarioStateMachine& stateMachine,

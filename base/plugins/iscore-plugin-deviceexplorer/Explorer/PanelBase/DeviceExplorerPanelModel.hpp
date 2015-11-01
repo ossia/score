@@ -7,7 +7,7 @@ namespace iscore
 }
 class DeviceExplorerModel;
 
-class DeviceExplorerPanelModel : public iscore::PanelModel
+class DeviceExplorerPanelModel final : public iscore::PanelModel
 {
         friend class DeviceExplorerPanelPresenter;
     public:
