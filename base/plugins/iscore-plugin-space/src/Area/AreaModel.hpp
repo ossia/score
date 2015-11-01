@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <Space/area.hpp>
-#include <DeviceExplorer/Address/AddressSettings.hpp>
+#include <Device/Address/AddressSettings.hpp>
 class SpaceModel;
 class QGraphicsItem;
 

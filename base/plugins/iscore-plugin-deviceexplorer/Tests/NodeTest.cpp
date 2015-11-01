@@ -1,7 +1,7 @@
 #include <QtTest/QtTest>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <Device/Node/DeviceNode.hpp>
 class NodeTest: public QObject
 {
         Q_OBJECT

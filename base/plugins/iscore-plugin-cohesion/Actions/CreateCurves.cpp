@@ -4,8 +4,7 @@
 #include <Commands/CreateCurvesFromAddressesInConstraints.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Singletons/DeviceExplorerInterface.hpp>
-#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
@@ -38,7 +37,7 @@ void CreateCurves(iscore::Document* doc)
         QList<iscore::Address> l;
         for(const auto& index : addresses)
         {
-            l.push_back(DeviceExplorer::addressFromModelIndex(index));
+            l.push_back(iscore::address(device_explorer->nodeFromModelIndex(index)));
         }
 
         // TODO skip the ones that can't send messages or aren't int / double / float

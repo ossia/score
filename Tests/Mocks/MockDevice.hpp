@@ -1,8 +1,8 @@
 #pragma once
-#include <DeviceExplorer/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Singletons/SingletonProtocolList.hpp>
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
-#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 class MockDevice : public DeviceInterface
 {

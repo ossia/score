@@ -3,7 +3,7 @@
 class QLineEdit;
 class QSpinBox;
 
-#include <DeviceExplorer/Protocol/ProtocolSettingsWidget.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 class MinuitProtocolSettingsWidget : public ProtocolSettingsWidget
 {

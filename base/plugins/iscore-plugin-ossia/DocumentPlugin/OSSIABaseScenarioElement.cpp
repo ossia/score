@@ -12,7 +12,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include "Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 static void statusCallback(
         OSSIA::TimeEvent::Status newStatus)

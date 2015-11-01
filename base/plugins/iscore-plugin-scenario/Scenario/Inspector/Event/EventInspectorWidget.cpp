@@ -16,10 +16,9 @@
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 
-#include "base/plugins/iscore-plugin-deviceexplorer/Plugin/Panel/DeviceExplorerModel.hpp"
-#include <DeviceExplorer/../Plugin/Widgets/DeviceCompleter.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/DeviceExplorerMenuButton.hpp>
-#include <Singletons/DeviceExplorerInterface.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/Widgets/DeviceCompleter.hpp>
+#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
 
 #include <QLabel>
 #include <QLineEdit>
@@ -34,7 +33,7 @@
 #include <iscore/widgets/MarginLess.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include "core/document/DocumentModel.hpp"
+#include <core/document/DocumentModel.hpp>
 
 EventInspectorWidget::EventInspectorWidget(
         const EventModel& object,

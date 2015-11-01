@@ -1,0 +1,58 @@
+#pragma once
+#include <iscore/plugins/documentdelegate/plugin/DocumentDelegatePluginModel.hpp>
+
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <Device/Protocol/DeviceList.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include "NodeUpdateProxy.hpp"
+namespace iscore
+{
+    class Document;
+}
+
+// MOVEME
+class ListeningState
+{
+    public:
+        std::vector<std::vector<iscore::Address>> listened;
+};
+
+
+class DeviceDocumentPlugin : public iscore::DocumentDelegatePluginModel
+{
+        Q_OBJECT
+    public:
+        explicit DeviceDocumentPlugin(QObject* parent);
+        DeviceDocumentPlugin(const VisitorVariant& loader,
+                             QObject* parent);
+
+        void serialize(const VisitorVariant&) const override;
+
+        iscore::Node& rootNode()
+        { return m_rootNode; }
+        const iscore::Node& rootNode() const
+        { return m_rootNode; }
+
+        DeviceList& list()
+        { return m_list; }
+
+        const DeviceList& list() const
+        { return m_list; }
+
+        // TODO make functions that take an address and call list().device(...).TheRelevantMethod
+
+        static void addNodeToDevice(DeviceInterface& dev, const iscore::Node& node);
+        iscore::Node createDeviceFromNode(const iscore::Node&);
+        iscore::Node loadDeviceFromNode(const iscore::Node&);
+
+        NodeUpdateProxy updateProxy{*this};
+
+        ListeningState pauseListening();
+        // Note : if the tree has changed in between, we should make a new ListeningState
+        void resumeListening(const ListeningState&);
+
+    private:
+        iscore::Node m_rootNode;
+        DeviceList m_list;
+};
+

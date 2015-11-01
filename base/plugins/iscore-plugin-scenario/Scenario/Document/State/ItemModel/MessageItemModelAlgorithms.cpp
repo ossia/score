@@ -1,6 +1,6 @@
 #include "MessageItemModelAlgorithms.hpp"
 #include <Process/State/MessageNode.hpp>
-#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <Device/Node/DeviceNode.hpp>
 
 bool match(MessageNode& node, const iscore::Message& mess)
 {

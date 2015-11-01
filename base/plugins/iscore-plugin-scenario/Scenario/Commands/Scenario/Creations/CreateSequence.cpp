@@ -1,7 +1,7 @@
 #include "CreateSequence.hpp"
 
 #include  <Scenario/Process/ScenarioModel.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>

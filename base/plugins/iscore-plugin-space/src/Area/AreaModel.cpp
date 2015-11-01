@@ -2,7 +2,7 @@
 #include "AreaPresenter.hpp"
 #include <sstream>
 
-#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <Device/Node/DeviceNode.hpp>
 AreaModel::AreaModel(
         std::unique_ptr<spacelib::area>&& area,
         const SpaceModel& space,

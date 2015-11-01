@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 namespace OSSIA
 {
     class Device;

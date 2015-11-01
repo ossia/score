@@ -1,5 +1,5 @@
 #pragma once
-#include <DeviceExplorer/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <API/Headers/Network/Protocol.h>
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Address.h>
@@ -13,7 +13,7 @@
 #include <State/Message.hpp>
 #include <State/Expression.hpp>
 
-#include <DeviceExplorer/Protocol/DeviceList.hpp>
+#include <Device/Protocol/DeviceList.hpp>
 #include <Process/State/MessageNode.hpp>
 namespace iscore
 {

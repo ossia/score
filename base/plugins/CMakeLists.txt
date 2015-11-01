@@ -5,6 +5,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/plugins/)
 
 add_subdirectory(iscore-lib-state)
 add_subdirectory(iscore-lib-process)
+add_subdirectory(iscore-lib-device)
 
 add_subdirectory(iscore-plugin-pluginsettings)
 add_subdirectory(iscore-plugin-inspector)

@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
-#include <DeviceExplorer/Address/AddressSettings.hpp>
+#include <Device/Address/AddressSettings.hpp>
 
 class SpaceProcess;
 class AreaModel;

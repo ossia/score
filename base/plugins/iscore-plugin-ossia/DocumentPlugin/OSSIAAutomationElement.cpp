@@ -10,7 +10,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include "../iscore-plugin-deviceexplorer/Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include "Protocols/OSSIADevice.hpp"
 #include "OSSIAConstraintElement.hpp"
 
@@ -18,7 +18,7 @@
 #include "../iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "../iscore-plugin-curve/Curve/Segment/Power/PowerCurveSegmentModel.hpp"
 
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include "iscore2OSSIA.hpp"

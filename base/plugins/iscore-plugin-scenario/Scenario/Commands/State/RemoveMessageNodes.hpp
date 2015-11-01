@@ -3,7 +3,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 
-#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
 class RemoveMessageNodes : public iscore::SerializableCommand

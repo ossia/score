@@ -11,12 +11,12 @@
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 #include <core/document/Document.hpp>
-#include <DeviceExplorer/Address/AddressSettings.hpp>
+#include <Device/Address/AddressSettings.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 void InterpolateStates(iscore::Document* doc)
 {

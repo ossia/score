@@ -1,5 +1,5 @@
 #pragma once
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include "OSCDevice.hpp"
 #include "OSCProtocolSettingsWidget.hpp"
 

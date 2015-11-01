@@ -1,5 +1,4 @@
 #include "RecordManager.hpp"
-#include "Singletons/DeviceExplorerInterface.hpp"
 
 #include "Commands/Record.hpp"
 
@@ -23,7 +22,7 @@
 #include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
 
-#include "Plugin/Panel/DeviceExplorerModel.hpp"
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>

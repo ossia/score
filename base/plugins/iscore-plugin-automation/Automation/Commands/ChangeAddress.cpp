@@ -1,8 +1,8 @@
 #include "ChangeAddress.hpp"
-#include <DeviceExplorer/Node/DeviceExplorerNode.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-#include "Plugin/Panel/DeviceExplorerModel.hpp"
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include "Automation/AutomationModel.hpp"
 ChangeAddress::ChangeAddress(
         Path<AutomationModel> &&path,

@@ -4,9 +4,8 @@
 
 #include <Scenario/Commands/State/UpdateState.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Plugin/Panel/DeviceExplorerModel.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Singletons/DeviceExplorerInterface.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 

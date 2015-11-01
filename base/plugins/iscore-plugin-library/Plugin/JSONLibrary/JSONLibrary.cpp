@@ -6,7 +6,7 @@
 
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
-#include <DeviceExplorer/../Plugin/Panel/DeviceExplorerMimeTypes.hpp>
+#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
 enum class LibraryColumns
 {
     Name, Category, Tags, Json

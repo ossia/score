@@ -133,9 +133,9 @@ void OSSIAControl::on_documentChanged()
     ISCORE_TODO;
 }
 
-#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <core/document/Document.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 void OSSIAControl::on_play(bool b)
 {
     if(b)

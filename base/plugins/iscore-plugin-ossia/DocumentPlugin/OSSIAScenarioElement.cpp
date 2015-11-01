@@ -12,7 +12,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <API/Toolkit/DebugVisitor.h>
-#include "../iscore-plugin-deviceexplorer/Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include "../iscore-plugin-deviceexplorer/Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
 
 OSSIAScenarioElement::OSSIAScenarioElement(
         OSSIAConstraintElement& parentConstraint,

@@ -22,9 +22,9 @@
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
 
-#include <Plugin/Commands/Add/LoadDevice.hpp>
-#include <DeviceExplorer/XML/XMLDeviceLoader.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Device/XML/XMLDeviceLoader.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Commands/ChangeAddress.hpp>
 
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>

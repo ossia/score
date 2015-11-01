@@ -99,8 +99,8 @@ void ScenarioCreationState::createToNothing_base(const Id<StateModel> & original
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <Plugin/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/State/UpdateState.hpp>
 void ScenarioCreationState::makeSnapshot()
 {

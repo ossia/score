@@ -1,5 +1,5 @@
 #pragma once
-#include <DeviceExplorer/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Network/Address.h>
 #include <unordered_map>
 namespace OSSIA

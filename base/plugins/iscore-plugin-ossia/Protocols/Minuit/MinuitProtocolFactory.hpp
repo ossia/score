@@ -1,5 +1,5 @@
 #pragma once
-#include <DeviceExplorer/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include "MinuitDevice.hpp"
 #include "MinuitProtocolSettingsWidget.hpp"
 

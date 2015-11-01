@@ -5,12 +5,11 @@
 #include "Automation/Commands/SetCurveMin.hpp"
 #include "Automation/Commands/SetCurveMax.hpp"
 
-#include <Singletons/DeviceExplorerInterface.hpp>
-#include <Plugin/Widgets/DeviceCompleter.hpp>
-#include <Plugin/Widgets/DeviceExplorerMenuButton.hpp>
-#include <Plugin/Widgets/AddressEditWidget.hpp>
-#include <Plugin/Panel/DeviceExplorerModel.hpp>
-#include <Plugin/PanelBase/DeviceExplorerPanelModel.hpp>
+#include <Explorer/Widgets/DeviceCompleter.hpp>
+#include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
+#include <Explorer/Widgets/AddressEditWidget.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
 
 #include <State/Widgets/AddressLineEdit.hpp>
 

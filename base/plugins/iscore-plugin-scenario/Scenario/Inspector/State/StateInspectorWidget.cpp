@@ -5,7 +5,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <core/document/Document.hpp>
-#include <Plugin/Panel/DeviceExplorerModel.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/DialogWidget/MessageTreeView.hpp>
 #include <iscore/widgets/MarginLess.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>

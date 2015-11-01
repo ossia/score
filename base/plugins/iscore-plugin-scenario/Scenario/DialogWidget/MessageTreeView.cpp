@@ -1,7 +1,7 @@
 #include "MessageTreeView.hpp"
 
 #include <Scenario/Document/State/StateModel.hpp>
-#include <DeviceExplorer/../Plugin/Widgets/MessageListEditor.hpp>
+#include <Explorer/Widgets/MessageListEditor.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <core/document/Document.hpp>
