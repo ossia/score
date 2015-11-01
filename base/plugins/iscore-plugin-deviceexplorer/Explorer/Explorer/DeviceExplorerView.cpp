@@ -280,12 +280,6 @@ DeviceExplorerView::selectedIndexes() const
     return l0;
 }
 
-bool
-DeviceExplorerView::hasCut() const
-{
-    ISCORE_ASSERT(const_cast<DeviceExplorerView*>(this)->model());
-    return const_cast<DeviceExplorerView*>(this)->model()->hasCut();
-}
 
 //REM: use selectedIndex() & setSelectedIndex()
 // instead of currentIndex() & setCurrentIndex()
@@ -316,50 +310,3 @@ DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
         return setCurrentIndex(static_cast<const QAbstractProxyModel*>(QTreeView::model())->mapFromSource(index));
     }
 }
-
-void
-DeviceExplorerView::copy()
-{
-    ISCORE_ASSERT(model());
-    setSelectedIndex(model()->cmdCreator()->copy(selectedIndex()));
-}
-
-void
-DeviceExplorerView::cut()
-{
-    ISCORE_ASSERT(model());
-    setSelectedIndex(model()->cmdCreator()->cut(selectedIndex()));
-}
-
-void
-DeviceExplorerView::paste()
-{
-    ISCORE_ASSERT(model());
-    setSelectedIndex(model()->cmdCreator()->paste(selectedIndex()));
-}
-
-void
-DeviceExplorerView::moveUp()
-{
-    setSelectedIndex(model()->cmdCreator()->moveUp(selectedIndex()));
-    //model()->moveUp(selectedIndex());
-}
-
-void
-DeviceExplorerView::moveDown()
-{
-    setSelectedIndex(model()->cmdCreator()->moveDown(selectedIndex()));
-}
-
-void
-DeviceExplorerView::promote()
-{
-    setSelectedIndex(model()->cmdCreator()->promote(selectedIndex()));
-}
-
-void
-DeviceExplorerView::demote()
-{
-    setSelectedIndex(model()->cmdCreator()->demote(selectedIndex()));
-}
-

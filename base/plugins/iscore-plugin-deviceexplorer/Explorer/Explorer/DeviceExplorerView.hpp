@@ -19,16 +19,6 @@ class DeviceExplorerView : public QTreeView
         DeviceExplorerModel* model();
         const DeviceExplorerModel* model() const;
 
-        bool hasCut() const;
-        void copy();
-        void cut();
-        void paste();
-
-        void moveUp();
-        void moveDown();
-        void promote();
-        void demote();
-
         void setSelectedIndex(const QModelIndex& index);
 
         QModelIndexList selectedIndexes() const override;

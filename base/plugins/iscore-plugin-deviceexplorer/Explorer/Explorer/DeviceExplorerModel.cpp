@@ -55,9 +55,6 @@ DeviceExplorerModel::DeviceExplorerModel(
 
     beginResetModel();
     endResetModel();
-
-
-    m_cmdCreator = new DeviceExplorerCommandCreator{this};
 }
 
 DeviceExplorerModel::~DeviceExplorerModel()
@@ -102,7 +99,6 @@ void
 DeviceExplorerModel::setCommandQueue(iscore::CommandStack* q)
 {
     m_cmdQ = q;
-    m_cmdCreator->setCommandQueue(q);
 }
 
 QStringList
@@ -645,253 +641,6 @@ DeviceExplorerModel::hasCut() const
     return (! m_cutNodes.isEmpty());
 }
 
-
-DeviceExplorer::Result
-DeviceExplorerModel::cut_aux(const QModelIndex& index)
-{
-    ISCORE_TODO;
-    return false;
-    /*
-    if(!index.isValid())
-    {
-        return DeviceExplorer::Result(false, index);
-    }
-
-
-    Node* cutNode = nodeFromModelIndex(index);
-    ISCORE_ASSERT(cutNode);
-
-    const bool cutNodeIsDevice = cutNode->is<DeviceSettings>();
-
-
-    if(! m_cutNodes.isEmpty() && m_lastCutNodeIsCopied)
-    {
-        //necessary to avoid that several successive copies fill m_cutNodes (copy is not a command)
-        Node* prevCopiedNode = m_cutNodes.pop().first;
-        delete prevCopiedNode;
-    }
-
-    m_cutNodes.push(CutElt(cutNode, cutNodeIsDevice));
-    m_lastCutNodeIsCopied = false;
-
-    Node* parent = cutNode->parent();
-    ISCORE_ASSERT(parent);
-
-    int row = parent->indexOfChild(cutNode);
-    ISCORE_ASSERT(row == index.row());
-
-    beginRemoveRows(index.parent(), row, row);
-
-    Node* child = parent->takeChild(row);
-    ISCORE_ASSERT(child == cutNode);
-
-    endRemoveRows();
-
-    //TODO: we should emit a signal to indicate that a paste is now possible !?!
-
-    if(row > 0)
-    {
-        --row;
-        return DeviceExplorer::Result(createIndex(row, 0, &parent->childAt(row)));
-    }
-
-    if(parent != &m_rootNode)
-    {
-        Node* grandParent = parent->parent();
-        ISCORE_ASSERT(grandParent);
-        return DeviceExplorer::Result(createIndex(grandParent->indexOfChild(parent), 0, parent));
-    }
-
-    return DeviceExplorer::Result(QModelIndex());
-    */
-}
-
-
-/*
-  Paste behavior.
-
-  We always paste as a sibling of the selected index.
-  We provide two methods pasteBefore() & pasteAfter().
-
-  pasteAfter() inserts the pasted node after the selected node in its parent list.
-  Thus it means that we can never paste the item as first child.
-
-  pasteBefore() inserts the pasted node before the selected node in its parent list.
-  Thus we can paste as first child but we can not paste as last child.
-
-*/
-
-DeviceExplorer::Result
-DeviceExplorerModel::paste_aux(const QModelIndex& index, bool after)
-{
-    ISCORE_TODO;
-    return {false};
-    /*
-    if(m_cutNodes.isEmpty())
-    {
-        return DeviceExplorer::Result(false, index);
-    }
-
-    if(! index.isValid() && ! m_cutNodes.top().second)  //we can not pass addresses at top level
-    {
-        return DeviceExplorer::Result(false, index);
-    }
-
-
-    //REM: we always paste as sibling
-
-
-    Node* parent = nullptr;
-    int row = 0;
-    QModelIndex parentIndex;
-
-    const bool cutNodeIsDevice = m_cutNodes.top().second;
-    Node* cutNode = m_cutNodes.top().first;
-    m_cutNodes.pop();
-
-    if(index.isValid())
-    {
-        Node* n = nodeFromModelIndex(index);
-        ISCORE_ASSERT(n);
-
-        parent = n->parent();
-        ISCORE_ASSERT(parent);
-
-        parentIndex = index.parent();
-
-        if(cutNodeIsDevice)
-        {
-            //we can only paste devices at the top-level
-            while(parent != &m_rootNode)
-            {
-                ISCORE_ASSERT(parent);
-                n = parent;
-                parent = parent->parent();
-            }
-
-            ISCORE_ASSERT(parent->indexOfChild(n) != -1);
-
-            parentIndex = QModelIndex(); //invalid on purpose
-
-        }
-
-        row = parent->indexOfChild(n) + (after ? 1 : 0);
-
-    }
-    else
-    {
-        ISCORE_ASSERT(! index.isValid() && cutNodeIsDevice);
-        parent = &m_rootNode;
-        row = m_rootNode.childCount();
-        parentIndex = QModelIndex(); //invalid on purpose
-    }
-
-    ISCORE_ASSERT(parent);
-
-    ISCORE_ASSERT(cutNode);
-
-    beginInsertRows(parentIndex, row, row);
-
-    parent->insertChild(row, cutNode);
-
-    Node* child = cutNode;
-
-    endInsertRows();
-
-    return DeviceExplorer::Result(createIndex(row, 0, child));
-    */
-}
-
-DeviceExplorer::Result
-DeviceExplorerModel::pasteAfter_aux(const QModelIndex& index)
-{
-    return paste_aux(index, true);
-}
-
-DeviceExplorer::Result
-DeviceExplorerModel::pasteBefore_aux(const QModelIndex& index)
-{
-    return paste_aux(index, false);
-}
-
-bool
-DeviceExplorerModel::moveRows(const QModelIndex& srcParentIndex, int srcRow, int count,
-                              const QModelIndex& dstParentIndex, int dstRow)
-{
-    ISCORE_TODO;
-    return false;
-    /*
-    if(!srcParentIndex.isValid() || !dstParentIndex.isValid())
-    {
-        return false;
-    }
-
-    if(srcParentIndex == dstParentIndex && (srcRow <= dstRow && dstRow <= srcRow + count - 1))
-    {
-        return false;
-    }
-
-    Node* srcParent = nodeFromModelIndex(srcParentIndex);
-    ISCORE_ASSERT(srcParent);
-
-    if(srcRow + count > srcParent->childCount())
-    {
-        return false;
-    }
-
-
-    beginMoveRows(srcParentIndex, srcRow, srcRow + count - 1, dstParentIndex, dstRow);
-
-    if(srcParentIndex == dstParentIndex)
-    {
-        //move up or down inside the same parent
-
-        Node* parent = srcParent;
-        ISCORE_ASSERT(parent);
-
-        if(srcRow > dstRow)
-        {
-            for(int i = 0; i < count; ++i)
-            {
-                Node* n = parent->takeChild(srcRow + i);
-                parent->insertChild(dstRow + i, n);
-            }
-        }
-        else
-        {
-            ISCORE_ASSERT(srcRow < dstRow);
-
-            for(int i = 0; i < count; ++i)
-            {
-                Node* n = parent->takeChild(srcRow);
-                parent->insertChild(dstRow - 1, n);
-            }
-        }
-
-    }
-    else
-    {
-        //different parents
-
-        Node* dstParent = nodeFromModelIndex(dstParentIndex);
-        ISCORE_ASSERT(dstParent);
-        ISCORE_ASSERT(dstParent != srcParent);
-
-        for(int i = 0; i < count; ++i)
-        {
-            Node* n = srcParent->takeChild(srcRow);
-            dstParent->insertChild(dstRow + i, n);
-        }
-
-    }
-
-    endMoveRows();
-
-    return true;
-    */
-}
-
-
 /*
 Drag and drop works by deleting the dragged items and creating a new set of dropped items that match those dragged.
 I will/may call insertRows(), removeRows(), dropMimeData(), ...
@@ -1103,12 +852,6 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
     return false;
 }
 
-void
-DeviceExplorerModel::setCachedResult(DeviceExplorer::Result r)
-{
-    m_cmdCreator->setCachedResult(r);
-}
-
 QModelIndex
 DeviceExplorerModel::convertPathToIndex(const iscore::NodePath& path)
 {
@@ -1121,11 +864,6 @@ DeviceExplorerModel::convertPathToIndex(const iscore::NodePath& path)
     }
 
     return iter;
-}
-
-DeviceExplorerCommandCreator *DeviceExplorerModel::cmdCreator()
-{
-    return m_cmdCreator;
 }
 
 void

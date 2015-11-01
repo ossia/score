@@ -74,62 +74,26 @@ DeviceExplorerWidget::buildGUI()
 
     m_refreshValueAction = new QAction(tr("Refresh value"), this);
 
-    m_copyAction = new QAction(QIcon(":/resources/images/copy.png"), tr("Copy"), this);
-    m_copyAction->setShortcut(QKeySequence::Copy);
-    m_cutAction = new QAction(QIcon(":/resources/images/cut.png"), tr("Cut"), this);
-    m_cutAction->setShortcut(QKeySequence::Cut);
-    m_pasteAction = new QAction(QIcon(":/resources/images/paste.png"), tr("Paste"), this);
-    m_pasteAction->setShortcut(QKeySequence::Paste);
     m_removeNodeAction = new QAction(tr("Remove"), this);
 #ifdef __APPLE__
     m_removeNodeAction->setShortcut(QKeySequence(tr("Ctrl+Backspace")));
 #else
     m_removeNodeAction->setShortcut(QKeySequence::Delete);
 #endif
-    m_moveUpAction = new QAction(QIcon(":/resources/images/up.png"), tr("Move up"), this);
-    m_moveUpAction->setShortcut(QKeySequence(tr("Alt+Up")));
-    m_moveDownAction = new QAction(QIcon(":/resources/images/down.png"), tr("Move down"), this);
-    m_moveDownAction->setShortcut(QKeySequence(tr("Alt+Down")));
-    m_promoteAction = new QAction(QIcon(":/resources/images/promote.png"), tr("Promote"), this);
-    m_promoteAction->setShortcut(QKeySequence(tr("Alt+Left")));
-    m_demoteAction = new QAction(QIcon(":/resources/images/demote.png"), tr("Demote"), this);
-    m_demoteAction->setShortcut(QKeySequence(tr("Alt+Right")));
 
     m_editAction->setEnabled(false);
     m_refreshAction->setEnabled(false);
     m_refreshValueAction->setEnabled(false);
     m_removeNodeAction->setEnabled(false);
-    m_copyAction->setEnabled(false);
-    m_cutAction->setEnabled(false);
-    m_pasteAction->setEnabled(false);
-    m_moveUpAction->setEnabled(false);
-    m_moveDownAction->setEnabled(false);
-    m_promoteAction->setEnabled(false);
-    m_demoteAction->setEnabled(false);
 
     m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_refreshValueAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_removeNodeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_copyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_cutAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_pasteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_moveUpAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_moveDownAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_promoteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    m_demoteAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
     connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
     connect(m_refreshValueAction, &QAction::triggered, this, &DeviceExplorerWidget::refreshValue);
-    connect(m_copyAction, &QAction::triggered, this, &DeviceExplorerWidget::copy);
-    connect(m_cutAction, &QAction::triggered, this, &DeviceExplorerWidget::cut);
-    connect(m_pasteAction, &QAction::triggered, this, &DeviceExplorerWidget::paste);
-    connect(m_moveUpAction, &QAction::triggered, this, &DeviceExplorerWidget::moveUp);
-    connect(m_moveDownAction, &QAction::triggered, this, &DeviceExplorerWidget::moveDown);
-    connect(m_promoteAction, &QAction::triggered, this, &DeviceExplorerWidget::promote);
-    connect(m_demoteAction, &QAction::triggered, this, &DeviceExplorerWidget::demote);
-    connect(m_removeNodeAction, &QAction::triggered, this, &DeviceExplorerWidget::removeNodes);
 
     QPushButton* addButton = new QPushButton(this);
     addButton->setIcon(QIcon(":/resources/images/add.png"));
@@ -160,16 +124,6 @@ DeviceExplorerWidget::buildGUI()
     addButton->setMenu(addMenu);
 
     QMenu* editMenu = new QMenu(this);
-    editMenu->addAction(m_copyAction);
-    editMenu->addAction(m_cutAction);
-    editMenu->addAction(m_pasteAction);
-    editMenu->addSeparator();
-    editMenu->addAction(m_moveUpAction);
-    editMenu->addAction(m_moveDownAction);
-    editMenu->addAction(m_promoteAction);
-    editMenu->addAction(m_demoteAction);
-    editMenu->addSeparator();
-
     QPushButton* editButton = new QPushButton(this);
     editButton->setIcon(QIcon(":/resources/images/edit.png"));
     editButton->setMaximumSize(QSize(32, 32));
@@ -187,15 +141,6 @@ DeviceExplorerWidget::buildGUI()
         this->addAction(m_refreshValueAction);
 
         this->addAction(m_removeNodeAction);
-
-        this->addAction(m_copyAction);
-        this->addAction(m_cutAction);
-        this->addAction(m_pasteAction);
-
-        this->addAction(m_moveUpAction);
-        this->addAction(m_moveDownAction);
-        this->addAction(m_promoteAction);
-        this->addAction(m_demoteAction);
     }
 
 
@@ -296,15 +241,6 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu.addAction(m_addSiblingAction);
     contextMenu.addAction(m_addChildAction);
     contextMenu.addSeparator();
-    contextMenu.addAction(m_copyAction);
-    contextMenu.addAction(m_cutAction);
-    contextMenu.addAction(m_pasteAction);
-    contextMenu.addSeparator();
-    contextMenu.addAction(m_moveUpAction);
-    contextMenu.addAction(m_moveDownAction);
-    contextMenu.addAction(m_promoteAction);
-    contextMenu.addAction(m_demoteAction);
-    contextMenu.addSeparator();
     contextMenu.addAction(m_removeNodeAction);
 
     contextMenu.exec(event->globalPos());
@@ -369,22 +305,12 @@ DeviceExplorerWidget::updateActions()
             m_editAction->setEnabled(false);
             m_refreshAction->setEnabled(false);
             m_refreshValueAction->setEnabled(false);
-            m_copyAction->setEnabled(false);
-            m_cutAction->setEnabled(false);
-            m_promoteAction->setEnabled(false);
-            m_demoteAction->setEnabled(false);
-            m_moveUpAction->setEnabled(false);
-            m_moveDownAction->setEnabled(false);
             m_removeNodeAction->setEnabled(false);
         }
         else
         {
             m_refreshAction->setEnabled(true);
             m_refreshValueAction->setEnabled(true);
-            m_copyAction->setEnabled(true);
-            m_cutAction->setEnabled(true);
-//            m_moveUpAction->setEnabled(true);
-//            m_moveDownAction->setEnabled(true);
         }
 
         if(selection.size() == 1)
@@ -394,19 +320,11 @@ DeviceExplorerWidget::updateActions()
             if(! aDeviceIsSelected)
             {
                 m_addSiblingAction->setEnabled(true);
-                m_promoteAction->setEnabled(true);
-                m_demoteAction->setEnabled(true);
-                m_moveUpAction->setEnabled(true);
-                m_moveDownAction->setEnabled(true);
             }
             else
             {
                 m_addSiblingAction->setEnabled(false);
-                m_promoteAction->setEnabled(false);
-                m_demoteAction->setEnabled(false);
                 m_removeNodeAction->setEnabled(false);
-                m_moveUpAction->setEnabled(false);
-                m_moveDownAction->setEnabled(false);
             }
             m_removeNodeAction->setEnabled(true);
             m_editAction->setEnabled(true);
@@ -419,19 +337,10 @@ DeviceExplorerWidget::updateActions()
         m_editAction->setEnabled(false);
         m_refreshAction->setEnabled(false);
         m_refreshValueAction->setEnabled(false);
-        m_copyAction->setEnabled(false);
-        m_cutAction->setEnabled(false);
-        m_promoteAction->setEnabled(false);
-        m_demoteAction->setEnabled(false);
-        m_moveUpAction->setEnabled(false);
-        m_moveDownAction->setEnabled(false);
         m_removeNodeAction->setEnabled(false);
         m_addSiblingAction->setEnabled(false);
         m_addChildAction->setEnabled(false);
     }
-
-
-    m_pasteAction->setEnabled(model()->hasCut());
 }
 
 void DeviceExplorerWidget::setListening_rec(const iscore::Node& node, bool b)
@@ -744,60 +653,6 @@ DeviceExplorerWidget::addAddress(InsertMode insert)
                             stgs});
         updateActions();
     }
-}
-
-void
-DeviceExplorerWidget::copy()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->copy();
-    m_pasteAction->setEnabled(m_ntView->hasCut());   //updateActions(); //TODO???
-}
-
-void
-DeviceExplorerWidget::cut()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->cut();
-    m_pasteAction->setEnabled(m_ntView->hasCut());   //updateActions(); //TODO???
-}
-
-void
-DeviceExplorerWidget::paste()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->paste();
-    m_pasteAction->setEnabled(m_ntView->hasCut());   //updateActions(); //TODO???
-}
-
-
-
-void
-DeviceExplorerWidget::moveUp()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->moveUp();
-}
-
-void
-DeviceExplorerWidget::moveDown()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->moveDown();
-}
-
-void
-DeviceExplorerWidget::promote()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->promote();
-}
-
-void
-DeviceExplorerWidget::demote()
-{
-    ISCORE_ASSERT(m_ntView);
-    m_ntView->demote();
 }
 
 void

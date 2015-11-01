@@ -39,15 +39,6 @@ class DeviceExplorerWidget : public QWidget
         void edit();
         void refresh();
         void refreshValue();
-        void copy();
-        void cut();
-        void paste();
-
-        void moveUp();
-        void moveDown();
-        void promote();
-        void demote();
-
 
         void addAddress(InsertMode insertType);
         void addDevice();
@@ -96,14 +87,6 @@ class DeviceExplorerWidget : public QWidget
         QAction* m_addDeviceAction{};
         QAction* m_addSiblingAction{};
         QAction* m_addChildAction{};
-
-        QAction* m_copyAction{};
-        QAction* m_cutAction{};
-        QAction* m_pasteAction{};
-        QAction* m_moveUpAction{};
-        QAction* m_moveDownAction{};
-        QAction* m_promoteAction{};
-        QAction* m_demoteAction{};
 
         QAction* m_removeNodeAction{};
 

@@ -10,16 +10,8 @@ namespace iscore
 {
     class CommandStack;
 }
-namespace DeviceExplorer {
-    namespace Command {
-        class Insert;
-        class Cut;
-        class Paste;
-    }
-}
 
 class DeviceExplorerView;
-class DeviceExplorerCommandCreator;
 class DeviceDocumentPlugin;
 class DeviceEditDialog;
 namespace iscore {
@@ -29,11 +21,6 @@ struct AddressSettings;
 class DeviceExplorerModel : public NodeBasedItemModel
 {
         Q_OBJECT
-
-        friend class DeviceExplorer::Command::Insert;
-        friend class DeviceExplorer::Command::Cut;
-        friend class DeviceExplorer::Command::Paste;
-        friend class DeviceExplorerCommandCreator;
 
     public:
         enum class Column : int
@@ -131,31 +118,18 @@ class DeviceExplorerModel : public NodeBasedItemModel
 
         void editData(const iscore::NodePath &path, Column column, const iscore::Value& value, int role);
 
-        virtual bool moveRows(const QModelIndex& srcParent, int srcRow, int count, const QModelIndex& dstParent, int dstChild) override;
-
-
-        virtual Qt::DropActions supportedDropActions() const override;
-        virtual Qt::DropActions supportedDragActions() const override;
-        virtual QStringList mimeTypes() const override;
-        virtual QMimeData* mimeData(const QModelIndexList& indexes) const override;
-        virtual bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
-        virtual bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
+        Qt::DropActions supportedDropActions() const override;
+        Qt::DropActions supportedDragActions() const override;
+        QStringList mimeTypes() const override;
+        QMimeData* mimeData(const QModelIndexList& indexes) const override;
+        bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
+        bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
 
         QModelIndex convertPathToIndex(const iscore::NodePath& path);
 
-        DeviceExplorerCommandCreator* cmdCreator();
-        void setCachedResult(DeviceExplorer::Result r);
-
-        void beginReset() { beginResetModel(); }
-        void endReset() { endResetModel(); }
         QList<iscore::Node*> uniqueSelectedNodes(const QModelIndexList& indexes) const; // Note : filters so that only parents are given.
 
     protected:
-        DeviceExplorer::Result cut_aux(const QModelIndex& index);
-        DeviceExplorer::Result paste_aux(const QModelIndex& index, bool after);
-        DeviceExplorer::Result pasteBefore_aux(const QModelIndex& index);
-        DeviceExplorer::Result pasteAfter_aux(const QModelIndex& index);
-
         void debug_printPath(const iscore::NodePath& path);
 
         typedef QPair<iscore::Node*, bool> CutElt;
@@ -172,8 +146,6 @@ class DeviceExplorerModel : public NodeBasedItemModel
         iscore::CommandStack* m_cmdQ;
 
         DeviceExplorerView* m_view {};
-
-        DeviceExplorerCommandCreator* m_cmdCreator;
 };
 
 
