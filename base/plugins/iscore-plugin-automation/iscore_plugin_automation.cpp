@@ -56,8 +56,8 @@ std::pair<const std::string, CommandGeneratorMap> iscore_plugin_automation::make
     boost::mpl::for_each<
             boost::mpl::list<
                 ChangeAddress,
-                SetCurveMin,
-                SetCurveMax,
+                SetAutomationMin,
+                SetAutomationMax,
                 InitAutomation
             >,
             boost::type<boost::mpl::_>

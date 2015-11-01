@@ -5,4 +5,4 @@ namespace iscore
 class Document;
 }
 
-void SnapshotParametersInStates(iscore::Document* doc);
+void SnapshotParametersInStates(iscore::Document& doc);

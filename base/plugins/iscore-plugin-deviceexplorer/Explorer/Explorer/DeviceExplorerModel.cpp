@@ -927,3 +927,19 @@ MessageList getSelectionSnapshot(DeviceExplorerModel& model)
 
     return messages;
 }
+
+
+#include <core/document/DocumentModel.hpp>
+#include <Explorer/PanelBase/DeviceExplorerPanelModel.hpp>
+
+DeviceExplorerModel* try_deviceExplorerFromObject(const QObject& obj)
+{
+    return iscore::IDocument::documentFromObject(obj)->model().panel<DeviceExplorerPanelModel>()->deviceExplorer();
+}
+
+DeviceExplorerModel& deviceExplorerFromObject(const QObject& obj)
+{
+    auto expl = try_deviceExplorerFromObject(obj);
+    ISCORE_ASSERT(expl);
+    return *expl;
+}

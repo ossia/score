@@ -24,6 +24,13 @@ class MappingModel : public CurveProcessModel
 
         Q_OBJECT
 
+        Q_PROPERTY(iscore::Address sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
+        Q_PROPERTY(double sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
+        Q_PROPERTY(double sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
+
+        Q_PROPERTY(iscore::Address targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
+        Q_PROPERTY(double targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
+        Q_PROPERTY(double targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
     public:
         MappingModel(const TimeValue& duration,
                         const Id<Process>& id,

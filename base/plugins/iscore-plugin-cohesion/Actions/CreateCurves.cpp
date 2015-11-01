@@ -10,11 +10,11 @@
 
 #include <core/document/Document.hpp>
 
-void CreateCurves(iscore::Document* doc)
+void CreateCurves(iscore::Document& doc)
 {
     using namespace std;
     // Fetch the selected constraints
-    auto sel = doc->
+    auto sel = doc.
             selectionStack().
             currentSelection();
 
@@ -27,17 +27,17 @@ void CreateCurves(iscore::Document* doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = doc->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    auto addresses = device_explorer->selectedIndexes();
+    auto& device_explorer = deviceExplorerFromObject(doc);
+    auto addresses = device_explorer.selectedIndexes();
 
     MacroCommandDispatcher macro{new CreateCurvesFromAddressesInConstraints,
-                doc->commandStack()};
+                doc.commandStack()};
     for(auto constraint : selected_constraints)
     {
         QList<iscore::Address> l;
         for(const auto& index : addresses)
         {
-            l.push_back(iscore::address(device_explorer->nodeFromModelIndex(index)));
+            l.push_back(iscore::address(device_explorer.nodeFromModelIndex(index)));
         }
 
         // TODO skip the ones that can't send messages or aren't int / double / float

@@ -118,7 +118,7 @@ void AutomationInspectorWidget::on_minValueChanged()
     auto newVal = m_minsb->value();
     if(newVal != m_model.min())
     {
-        auto cmd = new SetCurveMin{m_model, newVal};
+        auto cmd = new SetAutomationMin{m_model, newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }
@@ -129,7 +129,7 @@ void AutomationInspectorWidget::on_maxValueChanged()
     auto newVal = m_maxsb->value();
     if(newVal != m_model.max())
     {
-        auto cmd = new SetCurveMax{m_model, newVal};
+        auto cmd = new SetAutomationMax{m_model, newVal};
 
         commandDispatcher()->submitCommand(cmd);
     }

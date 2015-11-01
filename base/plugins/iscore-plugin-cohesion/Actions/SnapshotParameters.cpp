@@ -12,11 +12,11 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
-void SnapshotParametersInStates(iscore::Document* doc)
+void SnapshotParametersInStates(iscore::Document& doc)
 {
     using namespace std;
     // Fetch the selected events
-    auto sel = doc->
+    auto sel = doc.
             selectionStack().
             currentSelection();
 
@@ -29,14 +29,14 @@ void SnapshotParametersInStates(iscore::Document* doc)
     }
 
     // Fetch the selected DeviceExplorer elements
-    auto device_explorer = doc->model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
+    auto device_explorer = doc.model().pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
 
     iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
     if(messages.empty())
         return;
 
     MacroCommandDispatcher macro{new SnapshotStatesMacro,
-                doc->commandStack()};
+                doc.commandStack()};
     for(auto& state : selected_states)
     {
         auto cmd = new AddMessagesToState{

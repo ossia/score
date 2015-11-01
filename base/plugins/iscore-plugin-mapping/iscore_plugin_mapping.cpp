@@ -8,6 +8,9 @@
 #include <Mapping/MappingLayerModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
 
+#include <Mapping/Commands/ChangeAddresses.hpp>
+#include <Mapping/Commands/MinMaxCommands.hpp>
+
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
         "Mapping",
@@ -46,15 +49,18 @@ QVector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QStrin
 
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_mapping::make_commands()
 {
-    /*
     std::pair<const std::string, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
+            ChangeSourceAddress,
+            ChangeTargetAddress,
+            SetMappingSourceMin,
+            SetMappingSourceMax,
+            SetMappingTargetMin,
+            SetMappingTargetMax
             >,
             boost::type<boost::mpl::_>
             >(CommandGeneratorMapInserter{cmds.second});
 
     return cmds;
-    */
-    return {};
 }

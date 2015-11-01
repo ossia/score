@@ -12,33 +12,21 @@ ChangeAddress::ChangeAddress(
     m_path{path}
 {
     auto& autom = m_path.find();
-    auto deviceexplorer = iscore::IDocument::documentFromObject(autom)
-                          ->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    auto& deviceexplorer = deviceExplorerFromObject(autom);
 
     // Note : since we change the address, we also have to update the min / max if possible.
     // To do this, we must go and check into the device explorer.
     // If the node isn't found, we fallback on common values.
 
     // Get the current data.
-    auto oldpath = autom.address().path;
-    oldpath.prepend(autom.address().device);
-    auto old_n = iscore::try_getNodeFromString(deviceexplorer->rootNode(), std::move(oldpath));
-    if(old_n)
-    {
-        ISCORE_ASSERT(!old_n->is<iscore::DeviceSettings>());
-        m_old = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_child>(old_n->get<iscore::AddressSettings>(), autom.address());
-    }
-    else
-    {
-        m_old.address = autom.address();
-        m_old.domain.min.val = autom.min();
-        m_old.domain.max.val = autom.max();
-    }
+    m_old.address = autom.address();
+    m_old.domain.min.val = autom.min();
+    m_old.domain.max.val = autom.max();
 
     // Get the new data.
     auto newpath = newval.path;
     newpath.prepend(newval.device);
-    auto new_n = iscore::try_getNodeFromString(deviceexplorer->rootNode(), std::move(newpath));
+    auto new_n = iscore::try_getNodeFromString(deviceexplorer.rootNode(), std::move(newpath));
     if(new_n)
     {
         ISCORE_ASSERT(!new_n->is<iscore::DeviceSettings>());

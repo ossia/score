@@ -103,7 +103,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
     //// Device tree management ////
 
     // Get all the selected nodes
-    m_explorer = doc.findChild<DeviceExplorerModel*>("DeviceExplorerModel");
+    m_explorer = &deviceExplorerFromObject(doc);
     auto indices = m_explorer->selectedIndexes(); // TODO maybe filterUniqueParents and then recurse on the listening ??
 
     // Disable listening for everything

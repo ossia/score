@@ -138,40 +138,46 @@ void OSSIAControl::on_documentChanged()
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 void OSSIAControl::on_play(bool b)
 {
-    if(b)
+    if(auto doc = currentDocument())
     {
-        if(m_playing)
-            baseConstraint().OSSIAConstraint()->resume();
+        auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
+        if(b)
+        {
+            if(m_playing)
+                cstr.OSSIAConstraint()->resume();
+            else
+            {
+                cstr.play();
+
+                // Here we stop the listening when we start playing the scenario.
+                // Get all the selected nodes
+                auto explorer = try_deviceExplorerFromObject(*doc);
+                // Disable listening for everything
+                if(explorer)
+                    m_savedListening = explorer->deviceModel().pauseListening();
+            }
+
+            m_playing = true;
+        }
         else
         {
-            baseConstraint().play();
-
-            // Here we stop the listening when we start playing the scenario.
-            // Get all the selected nodes
-            auto explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-
-            // Disable listening for everything
-            if(explorer)
-                m_savedListening = explorer->deviceModel().pauseListening();
+            cstr.OSSIAConstraint()->pause();
         }
-
-        m_playing = true;
-    }
-    else
-    {
-        baseConstraint().OSSIAConstraint()->pause();
     }
 }
 
 void OSSIAControl::on_stop()
 {
-    baseConstraint().stop();
-    m_playing = false;
+    if(auto doc = currentDocument())
+    {
+        baseConstraint().stop();
+        m_playing = false;
 
-    // If we can we resume listening
-    auto explorer = currentDocument()->findChild<DeviceExplorerModel*>("DeviceExplorerModel");
-    if(explorer)
-        explorer->deviceModel().resumeListening(m_savedListening);
+        // If we can we resume listening
+        auto explorer = try_deviceExplorerFromObject(*doc);
+        if(explorer)
+            explorer->deviceModel().resumeListening(m_savedListening);
+    }
 }
 
 void OSSIAControl::setupOSSIACallbacks()

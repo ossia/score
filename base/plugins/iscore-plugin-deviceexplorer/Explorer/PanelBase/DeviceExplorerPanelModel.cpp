@@ -13,7 +13,7 @@ DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent
 {
 }
 
-DeviceExplorerModel*DeviceExplorerPanelModel::deviceExplorer()
+DeviceExplorerModel* DeviceExplorerPanelModel::deviceExplorer()
 {
     return m_model;
 }

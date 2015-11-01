@@ -41,7 +41,8 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
     m_snapshot->setToolTip(tr("Ctrl+J"));
     connect(m_snapshot, &QAction::triggered,
             this, [&] () {
-        SnapshotParametersInStates(currentDocument());
+        if(auto doc = currentDocument())
+            SnapshotParametersInStates(*doc);
     });
 
     m_curves = new QAction {tr("Create Curves"), this};
@@ -50,7 +51,8 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
     m_curves->setToolTip(tr("Ctrl+L"));
     connect(m_curves, &QAction::triggered,
             this, [&] () {
-        CreateCurves(currentDocument());
+        if(auto doc = currentDocument())
+            CreateCurves(*doc);
     });
 
 }

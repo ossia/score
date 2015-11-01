@@ -18,6 +18,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/ChangeAddresses.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingColors.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_mapping.cpp"
