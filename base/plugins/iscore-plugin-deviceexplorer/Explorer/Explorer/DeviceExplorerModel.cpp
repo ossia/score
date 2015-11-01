@@ -1,6 +1,5 @@
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerView.hpp"
-#include "DeviceExplorerCommandCreator.hpp"
 
 #include <Explorer/Commands/Add/LoadDevice.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>

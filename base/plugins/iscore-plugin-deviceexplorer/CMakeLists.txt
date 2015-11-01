@@ -19,9 +19,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove/RemoveAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateAddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateDeviceSettings.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Cut.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Move.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Paste.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/ReplaceDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/UpdateAddresses.cpp"
@@ -34,9 +32,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressCharSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressStringSettingsWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorerControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorerPanelFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorerPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/DeviceDocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DocumentPlugin/NodeUpdateProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerFilterProxyModel.cpp"
@@ -44,7 +40,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorationWorker.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/DeviceEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/AddressEditDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerCommandCreator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/PanelBase/DeviceExplorerPanelModel.cpp"
@@ -56,6 +51,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_deviceexplorer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerControl.cpp"
 
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/dynamictreemodel.cpp"
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/modeltest.cpp"

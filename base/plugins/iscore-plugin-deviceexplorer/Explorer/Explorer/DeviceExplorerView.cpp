@@ -6,7 +6,6 @@
 #include <QSettings>
 
 #include "DeviceExplorerModel.hpp"
-#include "DeviceExplorerCommandCreator.hpp"
 #include "DeviceExplorerFilterProxyModel.hpp"
 
 #ifdef MODEL_TEST

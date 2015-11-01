@@ -1,5 +1,5 @@
-#include "DeviceExplorerPlugin.hpp"
-#include "DeviceExplorerPanelFactory.hpp"
+#include "iscore_plugin_deviceexplorer.hpp"
+#include <Explorer/DeviceExplorerPanelFactory.hpp>
 using namespace iscore;
 #include "DeviceExplorerControl.hpp"
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
@@ -8,10 +8,7 @@ using namespace iscore;
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
-#include <Explorer/Commands/Cut.hpp>
-#include <Explorer/Commands/Move.hpp>
-#include <Explorer/Commands/Paste.hpp>
-#include "Commands/Remove/RemoveAddress.hpp"
+#include <Explorer/Commands/Remove/RemoveAddress.hpp>
 #include <Explorer/Commands/Remove.hpp>
 #include <Explorer/Commands/RemoveNodes.hpp>
 #include <Explorer/Commands/ReplaceDevice.hpp>
@@ -57,7 +54,6 @@ std::pair<const std::string, CommandGeneratorMap> iscore_plugin_deviceexplorer::
             LoadDevice,
             UpdateAddressSettings,
             UpdateDeviceSettings,
-//            Insert,
             Remove,
             RemoveAddress,
             RemoveNodes,

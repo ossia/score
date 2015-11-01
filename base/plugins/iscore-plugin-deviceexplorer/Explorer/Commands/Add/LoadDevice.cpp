@@ -1,5 +1,4 @@
 #include "LoadDevice.hpp"
-#include <Explorer/DeviceExplorerPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 LoadDevice::LoadDevice(

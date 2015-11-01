@@ -13,7 +13,6 @@
 
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerView.hpp"
-#include "IOTypeDelegate.hpp"
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>

@@ -5,9 +5,8 @@
 #include <QGridLayout>
 #include <QLabel>
 
-#include <Explorer/DeviceExplorerPlugin.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-
+#include <Device/Protocol/SingletonProtocolList.hpp>
 DeviceEditDialog::DeviceEditDialog(QWidget* parent)
     : QDialog(parent),
       m_protocolWidget(nullptr), m_index(-1)
