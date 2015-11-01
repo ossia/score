@@ -18,7 +18,7 @@
 #include <Scenario/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/StateTransitions.hpp>
 
-#include "../ScenarioRollbackStrategy.hpp"
+#include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.hpp>
 #include <QFinalState>
 
 using namespace Scenario::Command;

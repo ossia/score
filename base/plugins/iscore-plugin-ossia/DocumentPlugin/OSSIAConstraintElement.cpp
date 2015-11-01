@@ -1,5 +1,6 @@
 #include "OSSIAConstraintElement.hpp"
 #include "OSSIAAutomationElement.hpp"
+#include "OSSIAMappingElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 #include "iscore2OSSIA.hpp"
 #include "OSSIA2iscore.hpp"
@@ -7,6 +8,7 @@
 #include <ProcessModel/OSSIAProcessModel.hpp>
 #include <ProcessModel/OSSIAProcessModelElement.hpp>
 #include <Automation/AutomationModel.hpp>
+#include <Mapping/MappingModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <API/Headers/Editor/TimeConstraint.h>
@@ -137,6 +139,10 @@ void OSSIAConstraintElement::on_processAdded(
     else if(auto autom = dynamic_cast<AutomationModel*>(proc))
     {
         plug = new OSSIAAutomationElement{*this, *autom, proc};
+    }
+    else if(auto autom = dynamic_cast<MappingModel*>(proc))
+    {
+        plug = new OSSIAMappingElement{*this, *autom, proc};
     }
     else if(auto generic = dynamic_cast<OSSIAProcessModel*>(proc))
     {

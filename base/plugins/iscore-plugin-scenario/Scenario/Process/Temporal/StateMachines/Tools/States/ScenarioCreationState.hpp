@@ -1,8 +1,8 @@
 #pragma once
 #include <iscore/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreationMetaCommand.hpp>
-#include "../ScenarioRollbackStrategy.hpp"
+#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
 template<int Value>

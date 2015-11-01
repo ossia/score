@@ -5,40 +5,41 @@
 #include <API/Headers/Editor/Value.h>
 namespace OSSIA
 {
-    class Automation;
+    class Mapper;
     class CurveAbstract;
 }
 
-class AutomationModel;
+class MappingModel;
 class DeviceList;
 class OSSIAConstraintElement;
 
 
-class OSSIAAutomationElement final : public OSSIAProcessElement
+class OSSIAMappingElement final : public OSSIAProcessElement
 {
     public:
-        OSSIAAutomationElement(
+        OSSIAMappingElement(
                 OSSIAConstraintElement& parentConstraint,
-                AutomationModel& element,
+                MappingModel& element,
                 QObject* parent);
 
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
         Process& iscoreProcess() const override;
 
-    public slots:
-        void rebuild();
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged();
-
     private:
-        OSSIA::Value::Type m_addressType{OSSIA::Value::Type(-1)};
+        std::shared_ptr<OSSIA::CurveAbstract> rebuildCurve();
+
+        void rebuild();
+
+        OSSIA::Value::Type m_sourceAddressType{OSSIA::Value::Type(-1)};
+        OSSIA::Value::Type m_targetAddressType{OSSIA::Value::Type(-1)};
 
         template<typename T>
         std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();
 
-        std::shared_ptr<OSSIA::Automation> m_ossia_autom;
+        std::shared_ptr<OSSIA::Mapper> m_ossia_mapping;
         std::shared_ptr<OSSIA::CurveAbstract> m_ossia_curve;
 
-        AutomationModel& m_iscore_autom;
+        MappingModel& m_iscore_mapping;
 
         const DeviceList& m_deviceList;
 };

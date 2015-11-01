@@ -10,13 +10,13 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include "../iscore-plugin-deviceexplorer/Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "Protocols/OSSIADevice.hpp"
 #include "OSSIAConstraintElement.hpp"
 
-#include "../iscore-plugin-curve/Curve/CurveModel.hpp"
-#include "../iscore-plugin-curve/Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "../iscore-plugin-curve/Curve/Segment/Power/PowerCurveSegmentModel.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
@@ -37,14 +37,12 @@ OSSIAAutomationElement::OSSIAAutomationElement(
 {
     using namespace iscore::convert;
 
-    con(element, &AutomationModel::addressChanged,
-        this, &OSSIAAutomationElement::on_addressChanged);
     con(element, &AutomationModel::curveChanged,
         this, [&] () {
-        on_addressChanged(m_iscore_autom.address());
+        rebuild();
     }); // We have to recreate the automation in all cases
 
-    on_addressChanged(m_iscore_autom.address());
+    rebuild();
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::OSSIAProcess() const
@@ -57,8 +55,9 @@ Process& OSSIAAutomationElement::iscoreProcess() const
     return m_iscore_autom;
 }
 
-void OSSIAAutomationElement::on_addressChanged(const iscore::Address& addr)
+void OSSIAAutomationElement::rebuild()
 {
+    auto addr = m_iscore_autom.address();
     std::shared_ptr<OSSIA::Automation> new_autom;
     std::shared_ptr<OSSIA::Address> address;
     OSSIA::Node* node{};
@@ -121,43 +120,44 @@ curve_cleanup_label:
     return;
 }
 
-template<typename T>
+template<typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_impl()
 {
     using namespace OSSIA;
-    auto curve = Curve<T>::create();
+    using X_T = float;
+    auto curve = Curve<X_T, Y_T>::create();
 
     const double min = m_iscore_autom.min();
     const double max = m_iscore_autom.max();
 
-    auto scale = [=] (double val) -> T { return val * (max - min) + min; };
+    auto scale = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
     // For now we will assume that every segment is dynamic
     for(const auto& iscore_segment : m_iscore_autom.curve().segments())
     {
         if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
         {
-            auto linearSegment = CurveSegmentLinear<T>::create(curve);
-            curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
+            auto linearSegment = CurveSegmentLinear<Y_T>::create(curve);
+            curve->addPoint(linearSegment, X_T(segt->end().x()), scale(segt->end().y()));
         }
         else if(auto segt = dynamic_cast<const PowerCurveSegmentModel*>(&iscore_segment))
         {
             if(segt->gamma == 12.05)
             {
-                auto linearSegment = CurveSegmentLinear<T>::create(curve);
-                curve->addPoint(segt->end().x(), scale(segt->end().y()), linearSegment);
+                auto linearSegment = CurveSegmentLinear<Y_T>::create(curve);
+                curve->addPoint(linearSegment, X_T(segt->end().x()), scale(segt->end().y()));
             }
             else
             {
-                auto powSegment = CurveSegmentPower<T>::create(curve);
+                auto powSegment = CurveSegmentPower<Y_T>::create(curve);
                 powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
-                curve->addPoint(segt->end().x(), scale(segt->end().y()), powSegment);
+                curve->addPoint(powSegment, X_T(segt->end().x()), scale(segt->end().y()));
             }
         }
 
         if(iscore_segment.start().x() == 0.)
         {
-            curve->setInitialValue(iscore_segment.start().y());
+            curve->setInitialValue(scale(iscore_segment.start().y()));
         }
     }
 

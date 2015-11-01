@@ -1,6 +1,6 @@
 #pragma once
 #include "ScenarioToolState.hpp"
-#include "../ScenarioStateMachineBaseStates.hpp"
+#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp>
 class EventPresenter;
 class TimeNodePresenter;
 class ScenarioCreation_FromNothing;

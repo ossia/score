@@ -12,21 +12,21 @@ namespace OSSIA
 class OSSIADevice : public DeviceInterface
 {
     public:
-        void addAddress(const iscore::FullAddressSettings& settings) override;
-        void updateAddress(const iscore::FullAddressSettings& address) override;
-        void removeNode(const iscore::Address& path) override;
+        void addAddress(const iscore::FullAddressSettings& settings) final override;
+        void updateAddress(const iscore::FullAddressSettings& address) final override;
+        void removeNode(const iscore::Address& path) final override;
 
-        iscore::Node refresh() override;
+        iscore::Node refresh() final override;
 
         // throws std::runtime_error
-        boost::optional<iscore::Value> refresh(const iscore::Address&) override;
+        boost::optional<iscore::Value> refresh(const iscore::Address&) final override;
 
-        void setListening(const iscore::Address&, bool) override;
-        std::vector<iscore::Address> listening() const override;
-        void replaceListening(const std::vector<iscore::Address>&) override;
+        void setListening(const iscore::Address&, bool) final override;
+        std::vector<iscore::Address> listening() const final override;
+        void replaceListening(const std::vector<iscore::Address>&) final override;
 
-        void sendMessage(iscore::Message mess) override;
-        bool check(const QString& str) override;
+        void sendMessage(iscore::Message mess) final override;
+        bool check(const QString& str) final override;
 
         OSSIA::Device& impl() const;
         std::shared_ptr<OSSIA::Device> impl_ptr() const

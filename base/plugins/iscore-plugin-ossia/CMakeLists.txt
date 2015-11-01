@@ -43,6 +43,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
@@ -56,7 +57,7 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_mapping iscore_plugin_deviceexplorer
                         OSSIAHeadersLib APIJamoma)
 
 setup_iscore_plugin(${PROJECT_NAME})
