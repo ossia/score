@@ -151,7 +151,7 @@ void OSSIAMappingElement::rebuild()
         // Look for the real node in the device
         auto dev_it = std::find_if(devices.begin(), devices.end(),
                                    [&] (DeviceInterface* dev) {
-            return dev->settings().name == iscore_source_addr.device;
+            return dev->settings().name == addr.device;
         });
 
         if(dev_it == devices.end())
@@ -161,7 +161,7 @@ void OSSIAMappingElement::rebuild()
         if(!dev)
             return {};
 
-        auto node = iscore::convert::findNodeFromPath(iscore_source_addr.path, &dev->impl());
+        auto node = iscore::convert::findNodeFromPath(addr.path, &dev->impl());
         if(!node)
             return {};
 

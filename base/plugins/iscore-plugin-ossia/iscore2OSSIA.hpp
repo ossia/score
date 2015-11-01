@@ -57,7 +57,7 @@ OSSIA::Value* toValue(
 inline OSSIA::TimeValue time(const TimeValue& t)
 {
     return t.isInfinite()
-            ? OSSIA::TimeValue{t.isInfinite()}
+            ? OSSIA::Infinite
             : OSSIA::TimeValue{t.msec()};
 }
 
