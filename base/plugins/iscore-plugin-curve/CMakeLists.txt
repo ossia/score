@@ -8,11 +8,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
 
 # Files & main target
 file(GLOB_RECURSE HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Automation/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Commands/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Curve/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/State/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/AutomationControl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/CurvePlugin.hpp"
 )
 set(SRCS
@@ -57,9 +53,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_curve.cpp"
 )
 
-qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Curve/resources/AutomationResources.qrc")
-
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::PrintSupport
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state)

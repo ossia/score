@@ -1,8 +1,7 @@
 #pragma once
 #include "CurveSegmentFactory.hpp"
 
-// Template this
-class AutomationControl;
+// TODO Template this
 class CurveSegmentList
 {
     public:
