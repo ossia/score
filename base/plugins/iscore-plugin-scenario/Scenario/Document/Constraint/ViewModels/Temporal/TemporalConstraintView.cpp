@@ -32,12 +32,13 @@ TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &pres
 
 void TemporalConstraintView::paint(
         QPainter* painter,
-        const QStyleOptionGraphicsItem* option,
-        QWidget* widget)
+        const QStyleOptionGraphicsItem*,
+        QWidget*)
 {
-    int min_w = static_cast<int>(minWidth());
-    int max_w = static_cast<int>(maxWidth());
-    int def_w = static_cast<int>(defaultWidth());
+    qreal min_w = minWidth();
+    qreal max_w = maxWidth();
+    qreal def_w = defaultWidth();
+    qreal play_w = playWidth();
 
     // Draw the stuff present if there is a rack *in the model* ?
     if(presenter().rack())
@@ -62,7 +63,7 @@ void TemporalConstraintView::paint(
     // Paths
     if(infinite())
     {
-        if(min_w != 0)
+        if(min_w != 0.)
         {
             solidPath.lineTo(min_w, 0);
 
@@ -80,23 +81,26 @@ void TemporalConstraintView::paint(
     }
     else
     {
-        if(min_w != 0)
+        if(min_w != 0.)
             solidPath.lineTo(min_w, 0);
 
         dashedPath.moveTo(min_w, 0);
         dashedPath.lineTo(max_w, 0);
 
-        leftBrace.moveTo(min_w, -10);
-        leftBrace.arcTo(min_w - 10, -10, 20, 20, 90, 180);
+        leftBrace.moveTo(min_w + 10, -10);
+        leftBrace.arcTo(min_w, -10, 20, 20, 90, 180);
+        leftBrace.closeSubpath();
 
         rightBrace.moveTo(max_w, 10);
         rightBrace.arcTo(max_w - 10, -10, 20, 20, 270, 180);
+        rightBrace.closeSubpath();
+        rightBrace.translate(-10, 0); // TODO bleh.
     }
 
     QPainterPath playedPath;
-    if(playWidth() != 0)
+    if(play_w != 0.)
     {
-        playedPath.lineTo(playWidth(), 0);
+        playedPath.lineTo(play_w, 0);
     }
 
     // Colors
