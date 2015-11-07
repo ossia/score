@@ -16,8 +16,7 @@ void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
     // Create the node. It is added into the device.
     OSSIA::Node* node = createNodeFromPath(settings.address.path, m_dev.get());
 
-    // Populate the node with an address. Won't add one if IOType == Invalid.
-    // TODO instead use the no_value_t.
+    // Populate the node with an address (if it isn't a no_value_t).
     createOSSIAAddress(settings, node);
 }
 

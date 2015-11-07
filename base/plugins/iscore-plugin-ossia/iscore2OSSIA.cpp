@@ -193,10 +193,9 @@ void createOSSIAAddress(
         const iscore::FullAddressSettings &settings,
         OSSIA::Node *node)
 {
-    if(settings.ioType == IOType::Invalid)
-        return;
-
     using namespace OSSIA;
+    if(settings.value.val.is<no_value_t>())
+        return;
 
     static const constexpr struct {
         public:
