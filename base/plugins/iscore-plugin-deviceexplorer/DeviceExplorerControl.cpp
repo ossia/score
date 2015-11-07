@@ -4,7 +4,9 @@
 #include <iscore/command/SerializableCommand.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+
 DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
     PluginControlInterface {pres, "DeviceExplorerControl", nullptr}
 {
@@ -28,9 +30,28 @@ iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
     return plug;
 }
 
-void DeviceExplorerControl::on_documentChanged()
+void DeviceExplorerControl::on_documentChanged(
+        iscore::Document* olddoc,
+        iscore::Document* newdoc)
 {
-    // disconnect ...
-    // connect(device explorer widget, document->device plugin
+    if(olddoc)
+    {
+        auto doc_plugin = olddoc->model().pluginModel<DeviceDocumentPlugin>();
+        doc_plugin->setConnection(false);
+    }
+
+    if(newdoc)
+    {
+        auto doc_plugin = newdoc->model().pluginModel<DeviceDocumentPlugin>();
+        doc_plugin->setConnection(true);
+        for(const auto& elt : doc_plugin->rootNode())
+        {
+            auto& dev = doc_plugin->list().device(elt.get<iscore::DeviceSettings>().name);
+            for(const auto& nodes : elt)
+            {
+                dev.addNode(nodes);
+            }
+        }
+    }
 }
 

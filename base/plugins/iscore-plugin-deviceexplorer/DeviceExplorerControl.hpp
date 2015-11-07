@@ -13,5 +13,7 @@ class DeviceExplorerControl final : public iscore::PluginControlInterface
 
     protected:
         void on_newDocument(iscore::Document* doc) override;
-        void on_documentChanged() override;
+        void on_documentChanged(
+                iscore::Document* olddoc,
+                iscore::Document* newdoc) override;
 };

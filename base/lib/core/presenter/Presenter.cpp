@@ -131,6 +131,7 @@ Document *Presenter::currentDocument() const
 
 void Presenter::setCurrentDocument(Document* doc)
 {
+    auto old = m_currentDocument;
     m_currentDocument = doc;
 
     for(auto& pair : m_panelPresenters)
@@ -143,7 +144,7 @@ void Presenter::setCurrentDocument(Document* doc)
 
     for(auto& ctrl : m_controls)
     {
-        emit ctrl->documentChanged();
+        emit ctrl->documentChanged(old, m_currentDocument);
     }
 
     emit currentDocumentChanged(doc);

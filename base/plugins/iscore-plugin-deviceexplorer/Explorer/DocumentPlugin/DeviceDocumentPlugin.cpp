@@ -55,7 +55,7 @@ iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & nod
         {
             for(auto& child : node)
             {
-                addNodeToDevice(*newdev, child);
+                newdev->addNode(child);
             }
             return node;
         }
@@ -83,7 +83,7 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
         newdev->setParent(this);
         for(auto& child : node)
         {
-            addNodeToDevice(*newdev, child);
+            newdev->addNode(child);
         }
 
         return node;
@@ -98,20 +98,7 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
     return node;
 }
 
-void DeviceDocumentPlugin::addNodeToDevice(DeviceInterface &dev, const iscore::Node& node)
-{
-    using namespace iscore;
-    auto full = FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
-                    node.get<AddressSettings>(), address(*node.parent()));
 
-    // Add in the device implementation
-    dev.addAddress(full);
-
-    for(auto& child : node)
-    {
-        addNodeToDevice(dev, child);
-    }
-}
 
 
 
@@ -146,5 +133,16 @@ void DeviceDocumentPlugin::resumeListening(const ListeningState& st)
 
         auto& dev = m_list.device(vec.front().device);
         dev.replaceListening(vec);
+    }
+}
+
+void DeviceDocumentPlugin::setConnection(bool b)
+{
+    for(auto& dev : m_list.devices())
+    {
+        if(b)
+            dev->reconnect();
+        else
+            dev->disconnect();
     }
 }

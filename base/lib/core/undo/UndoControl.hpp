@@ -20,7 +20,9 @@ class UndoControl final : public iscore::PluginControlInterface
         QList<OrderedToolbar> makeToolbars() override;
 
     private slots:
-        void on_documentChanged() override;
+        void on_documentChanged(
+                iscore::Document* olddoc,
+                iscore::Document* newdoc) override;
 
     private:
         // Connections to keep for the running document.

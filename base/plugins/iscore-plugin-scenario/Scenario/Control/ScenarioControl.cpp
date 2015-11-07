@@ -257,14 +257,15 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
 #include <core/document/DocumentView.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
-void ScenarioControl::on_documentChanged()
+void ScenarioControl::on_documentChanged(
+        iscore::Document* olddoc,
+        iscore::Document* newdoc)
 {
     // TODO the context menu connection should be reviewed, too.
     this->disconnect(m_focusConnection);
     this->disconnect(m_defocusConnection);
 
-    auto doc = currentDocument();
-    if(!doc)
+    if(!newdoc)
     {
         return;
     }
@@ -291,7 +292,7 @@ void ScenarioControl::on_documentChanged()
         {
             // We focus by default the first process of the constraint in full view we're in
             // TODO this snippet is useful, put it somewhere in some Toolkit file.
-            auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*doc);
+            auto& pres = IDocument::presenterDelegate<BaseElementPresenter>(*newdoc);
             auto& cst = pres.displayedConstraint();
             if(!cst.processes.empty())
             {
@@ -322,7 +323,7 @@ void ScenarioControl::on_documentChanged()
         }
 
         // Finally we focus the View widget.
-        auto bev = dynamic_cast<BaseElementView*>(doc->view().viewDelegate());
+        auto bev = dynamic_cast<BaseElementView*>(newdoc->view().viewDelegate());
         if(bev)
             bev->view()->setFocus();
     }

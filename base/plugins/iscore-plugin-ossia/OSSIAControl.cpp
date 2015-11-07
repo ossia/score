@@ -128,7 +128,9 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
     }
 }
 
-void OSSIAControl::on_documentChanged()
+void OSSIAControl::on_documentChanged(
+        iscore::Document* olddoc,
+        iscore::Document* newdoc)
 {
     ISCORE_TODO;
 }

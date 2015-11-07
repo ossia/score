@@ -17,6 +17,20 @@ class DeviceInterface : public QObject
 
         const iscore::DeviceSettings& settings() const;
 
+        virtual void addNode(const iscore::Node& n)
+        {
+            auto full = iscore::FullAddressSettings::make<iscore::FullAddressSettings::as_parent>(
+                            n.get<iscore::AddressSettings>(), iscore::address(*n.parent()));
+
+            // Add in the device implementation
+            addAddress(full);
+
+            for(const auto& child : n)
+            {
+                addNode(child);
+            }
+        }
+
         virtual void disconnect() = 0;
         virtual bool reconnect() = 0;
         virtual bool connected() const = 0;
@@ -37,7 +51,7 @@ class DeviceInterface : public QObject
         virtual void removeNode(const iscore::Address&) = 0;
 
         // Execution API... Maybe we don't need it here.
-        virtual void sendMessage(iscore::Message mess) = 0;
+        virtual void sendMessage(const iscore::Message& mess) = 0;
         virtual bool check(const QString& str) = 0;
 
     signals:

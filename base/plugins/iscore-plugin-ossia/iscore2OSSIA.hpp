@@ -57,8 +57,12 @@ void updateOSSIAValue(
         const iscore::ValueImpl& data,
         OSSIA::Value& val);
 
-OSSIA::Value* toValue(
+OSSIA::Value* toOSSIAValue(
         const iscore::Value&);
+
+void setValue(
+        OSSIA::Address& addr,
+        const iscore::Value& val);
 
 //// Other conversions
 inline OSSIA::TimeValue time(const TimeValue& t)

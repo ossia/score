@@ -34,7 +34,9 @@ class OSSIAControl final : public iscore::PluginControlInterface
         std::shared_ptr<OSSIA::Device> localDevice() const
         { return m_localDevice; }
     protected:
-        void on_documentChanged() override;
+        void on_documentChanged(
+                iscore::Document* olddoc,
+                iscore::Document* newdoc) override;
 
     private:
         void on_play(bool);

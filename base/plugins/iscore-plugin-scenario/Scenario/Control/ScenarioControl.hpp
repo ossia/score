@@ -76,7 +76,9 @@ class ScenarioControl final : public iscore::PluginControlInterface
         void stopRecording();
 
     protected:
-        virtual void on_documentChanged() override;
+        virtual void on_documentChanged(
+                iscore::Document* olddoc,
+                iscore::Document* newdoc) override;
 
     private:
         void initColors();

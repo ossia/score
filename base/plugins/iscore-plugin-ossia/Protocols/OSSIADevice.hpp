@@ -14,7 +14,6 @@ class OSSIADevice : public DeviceInterface
     public:
         virtual ~OSSIADevice();
         void disconnect() override;
-        bool reconnect() override;
         bool connected() const override;
 
         void addAddress(const iscore::FullAddressSettings& settings) final override;
@@ -30,7 +29,7 @@ class OSSIADevice : public DeviceInterface
         std::vector<iscore::Address> listening() const final override;
         void replaceListening(const std::vector<iscore::Address>&) final override;
 
-        void sendMessage(iscore::Message mess) final override;
+        void sendMessage(const iscore::Message& mess) final override;
         bool check(const QString& str) final override;
 
         OSSIA::Device& impl() const;

@@ -157,6 +157,25 @@ OSSIA::Node* getNodeFromPath(
 }
 
 
+void setValue(OSSIA::Address& addr, const iscore::Value& val)
+{
+    if(auto orig_val = addr.getValue())
+    {
+        auto clone = orig_val->clone();
+        updateOSSIAValue(val.val, *clone);
+        addr.pushValue(clone);
+        delete clone;
+    }
+    else
+    {
+        OSSIA::Value* newval = iscore::convert::toOSSIAValue(val);
+        addr.setValueType(newval->getType());
+        addr.pushValue(newval);
+        delete newval;
+    }
+
+}
+
 void updateOSSIAAddress(
         const iscore::FullAddressSettings &settings,
         const std::shared_ptr<OSSIA::Address> &addr)
@@ -178,15 +197,7 @@ void updateOSSIAAddress(
             break;
     }
 
-    auto ossia_val = addr->getValue();
-    if(ossia_val)
-    {
-        auto val = addr->getValue()->clone();
-
-        updateOSSIAValue(settings.value.val,*val);
-        addr->pushValue(val);
-        delete val;
-    }
+    setValue(*addr, settings.value);
 }
 
 void createOSSIAAddress(
@@ -285,7 +296,7 @@ OSSIA::Value* createOSSIAValue(const T& val)
     return new typename boost::mpl::at<OSSIATypeMap, T>::type(val);
 }
 
-static OSSIA::Value* toValue(const iscore::ValueImpl& val)
+static OSSIA::Value* toOSSIAValue(const iscore::ValueImpl& val)
 {
     static const constexpr struct {
         public:
@@ -311,10 +322,10 @@ static OSSIA::Value* toValue(const iscore::ValueImpl& val)
     return eggs::variants::apply(visitor, val.impl());
 }
 
-OSSIA::Value* toValue(
+OSSIA::Value* toOSSIAValue(
         const iscore::Value& value)
 {
-    return toValue(value.val);
+    return toOSSIAValue(value.val);
 }
 
 std::shared_ptr<OSSIA::Message> message(
@@ -339,7 +350,7 @@ std::shared_ptr<OSSIA::Message> message(
 
         return OSSIA::Message::create(
                     ossia_node->getAddress(),
-                    iscore::convert::toValue(mess.value));
+                    iscore::convert::toOSSIAValue(mess.value));
     }
 
     return {};
@@ -427,7 +438,7 @@ OSSIA::Value* expressionOperand(
         }
         case 1:
         {
-            return toValue( get<iscore::Value>(relm));
+            return toOSSIAValue( get<iscore::Value>(relm));
             break;
         }
         default:

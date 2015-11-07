@@ -29,6 +29,7 @@ class DeviceExplorerWidget final : public QWidget
         explicit DeviceExplorerWidget(QWidget* parent);
 
         void setModel(DeviceExplorerModel* model);
+        DeviceExplorerModel* model() const;
 
         // Will block the GUI when refreshing.
         void blockGUI(bool);
@@ -68,7 +69,6 @@ class DeviceExplorerWidget final : public QWidget
 
 
         // Utilities
-        DeviceExplorerModel* model();
         DeviceExplorerFilterProxyModel* proxyModel();
 
         void buildGUI();

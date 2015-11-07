@@ -12,6 +12,8 @@ class MinuitDevice final : public OSSIADevice
     public:
         MinuitDevice(const iscore::DeviceSettings& settings);
 
+        bool reconnect() override;
+
         void updateSettings(const iscore::DeviceSettings&) override;
         bool canRefresh() const override;
 

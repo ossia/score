@@ -18,13 +18,10 @@ bool OSSIADevice::connected() const
     return m_connected;
 }
 
-bool OSSIADevice::reconnect()
-{
-    return false;
-}
-
 void OSSIADevice::disconnect()
 {
+    m_dev.reset();
+    m_connected = false;
 }
 
 void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
@@ -179,15 +176,13 @@ void OSSIADevice::replaceListening(const std::vector<iscore::Address>& addresses
 }
 
 
-void OSSIADevice::sendMessage(iscore::Message mess)
+void OSSIADevice::sendMessage(const iscore::Message& mess)
 {
     auto node = getNodeFromPath(mess.address.path, m_dev.get());
 
     auto addr = node->getAddress();
-    auto val = addr->getValue()->clone();
-    updateOSSIAValue(mess.value.val, *val);
-    addr->pushValue(val);
-    delete val;
+    if(addr)
+        iscore::convert::setValue(*addr, mess.value);
 }
 
 

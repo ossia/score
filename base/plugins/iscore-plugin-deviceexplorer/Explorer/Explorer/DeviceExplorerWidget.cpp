@@ -402,7 +402,7 @@ void DeviceExplorerWidget::setListening(const QModelIndex& idx, bool b)
 }
 
 DeviceExplorerModel*
-DeviceExplorerWidget::model()
+DeviceExplorerWidget::model() const
 {
     return m_ntView->model();
 }

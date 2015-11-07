@@ -55,10 +55,11 @@ QList<iscore::OrderedToolbar> iscore::UndoControl::makeToolbars()
     return QList<OrderedToolbar>{OrderedToolbar(3, bar)};
 }
 
-void iscore::UndoControl::on_documentChanged()
+void iscore::UndoControl::on_documentChanged(
+        iscore::Document* olddoc,
+        iscore::Document* newDoc)
 {
     using namespace iscore;
-    auto newDoc = currentDocument();
 
     // Cleanup
     for(auto& connection : m_connections)

@@ -1,30 +1,26 @@
 #include "OSCDevice.hpp"
-#include <API/Headers/Network/Protocol/OSC.h>
 #include <API/Headers/Network/Device.h>
 
-OSCDevice::OSCDevice(const iscore::DeviceSettings &stngs):
-    OSSIADevice{stngs}
+OSCDevice::OSCDevice(const iscore::DeviceSettings &settings):
+    OSSIADevice{settings},
+    m_oscSettings{[&] () {
+    auto stgs = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
+    return OSSIA::OSC::create(stgs.host.toStdString(),
+                              stgs.inputPort,
+                              stgs.outputPort);
+}()}
 {
     using namespace OSSIA;
 
-    auto settings = stngs.deviceSpecificSettings.value<OSCSpecificSettings>();
-    auto oscDeviceParameter = OSSIA::OSC::create(
-                                  settings.host.toStdString(),
-                                  settings.inputPort,
-                                  settings.outputPort);
-
-    try {
-        m_dev = OSSIA::Device::create(oscDeviceParameter, stngs.name.toStdString());
-        m_connected = true;
-    }
-    catch(...)
-    {
-        m_connected = false;
-    }
+    reconnect();
 }
 
 void OSCDevice::updateSettings(const iscore::DeviceSettings& settings)
 {
+    // TODO save the node, else we lose it.
+    ISCORE_TODO;
+    disconnect();
+
     m_settings = settings;
     m_dev->setName(m_settings.name.toStdString());
     auto stgs = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
@@ -35,4 +31,23 @@ void OSCDevice::updateSettings(const iscore::DeviceSettings& settings)
     prot->setInPort(stgs.inputPort);
     prot->setOutPort(stgs.outputPort);
     prot->setIp(stgs.host.toStdString());
+
+    reconnect();
+}
+
+bool OSCDevice::reconnect()
+{
+    m_dev.reset();
+    m_connected = false;
+
+    try {
+        m_dev = OSSIA::Device::create(m_oscSettings, settings().name.toStdString());
+        m_connected = true;
+    }
+    catch(...)
+    {
+        ISCORE_TODO;
+    }
+
+    return m_connected;
 }

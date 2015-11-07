@@ -55,7 +55,9 @@ Document*PluginControlInterface::currentDocument() const
 }
 
 
-void PluginControlInterface::on_documentChanged()
+void PluginControlInterface::on_documentChanged(
+        iscore::Document* olddoc,
+        iscore::Document* newdoc)
 {
 
 }

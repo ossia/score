@@ -41,7 +41,6 @@ class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
 
         // TODO make functions that take an address and call list().device(...).TheRelevantMethod
 
-        static void addNodeToDevice(DeviceInterface& dev, const iscore::Node& node);
         iscore::Node createDeviceFromNode(const iscore::Node&);
         iscore::Node loadDeviceFromNode(const iscore::Node&);
 
@@ -50,6 +49,8 @@ class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
         ListeningState pauseListening();
         // Note : if the tree has changed in between, we should make a new ListeningState
         void resumeListening(const ListeningState&);
+
+        void setConnection(bool);
 
     private:
         iscore::Node m_rootNode;
