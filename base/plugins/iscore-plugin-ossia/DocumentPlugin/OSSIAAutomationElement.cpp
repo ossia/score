@@ -124,44 +124,18 @@ template<typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_impl()
 {
     using namespace OSSIA;
-    using X_T = float;
-    auto curve = Curve<X_T, Y_T>::create();
 
     const double min = m_iscore_autom.min();
     const double max = m_iscore_autom.max();
 
-    auto scale = [=] (double val) -> Y_T { return val * (max - min) + min; };
+    auto scale_x = [=] (double val) -> float { return val; };
+    auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
-    // For now we will assume that every segment is dynamic
-    for(const auto& iscore_segment : m_iscore_autom.curve().segments())
-    {
-        if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
-        {
-            auto linearSegment = CurveSegmentLinear<Y_T>::create(curve);
-            curve->addPoint(linearSegment, X_T(segt->end().x()), scale(segt->end().y()));
-        }
-        else if(auto segt = dynamic_cast<const PowerCurveSegmentModel*>(&iscore_segment))
-        {
-            if(segt->gamma == 12.05)
-            {
-                auto linearSegment = CurveSegmentLinear<Y_T>::create(curve);
-                curve->addPoint(linearSegment, X_T(segt->end().x()), scale(segt->end().y()));
-            }
-            else
-            {
-                auto powSegment = CurveSegmentPower<Y_T>::create(curve);
-                powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
-                curve->addPoint(powSegment, X_T(segt->end().x()), scale(segt->end().y()));
-            }
-        }
+    auto segt_data = m_iscore_autom.curve().toCurveData();
+    std::sort(segt_data.begin(), segt_data.end());
 
-        if(iscore_segment.start().x() == 0.)
-        {
-            curve->setInitialValue(scale(iscore_segment.start().y()));
-        }
-    }
+    m_ossia_curve = iscore::convert::curve<float, Y_T>(scale_x, scale_y, segt_data);
 
-    m_ossia_curve = curve;
     return m_ossia_curve;
 }
 

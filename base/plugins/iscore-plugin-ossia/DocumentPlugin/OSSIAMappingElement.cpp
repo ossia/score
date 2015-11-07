@@ -53,11 +53,12 @@ Process& OSSIAMappingElement::iscoreProcess() const
     return m_iscore_mapping;
 }
 
+
 template<typename X_T, typename Y_T>
 std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl2()
 {
-    using namespace OSSIA;
-    auto curve = Curve<X_T, Y_T>::create();
+    if(m_iscore_mapping.curve().segments().size() == 0)
+        return {};
 
     const double xmin = m_iscore_mapping.sourceMin();
     const double xmax = m_iscore_mapping.sourceMax();
@@ -68,36 +69,10 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl2
     auto scale_x = [=] (double val) -> X_T { return val * (xmax - xmin) + xmin; };
     auto scale_y = [=] (double val) -> Y_T { return val * (ymax - ymin) + ymin; };
 
-    // For now we will assume that every segment is dynamic
-    for(const auto& iscore_segment : m_iscore_mapping.curve().segments())
-    {
-        if(auto segt = dynamic_cast<const LinearCurveSegmentModel*>(&iscore_segment))
-        {
-            auto linearSegment = CurveSegmentLinear<Y_T>::create(curve);
-            curve->addPoint(linearSegment, scale_x(segt->end().x()), scale_y(segt->end().y()));
-        }
-        else if(auto segt = dynamic_cast<const PowerCurveSegmentModel*>(&iscore_segment))
-        {
-            if(segt->gamma == 12.05)
-            {
-                auto linearSegment = CurveSegmentLinear<Y_T>::create(curve);
-                curve->addPoint(linearSegment, scale_x(segt->end().x()), scale_y(segt->end().y()));
-            }
-            else
-            {
-                auto powSegment = CurveSegmentPower<Y_T>::create(curve);
-                powSegment->setPower(12.05 - segt->gamma); // TODO document this somewhere.
-                curve->addPoint(powSegment, scale_x(segt->end().x()), scale_y(segt->end().y()));
-            }
-        }
+    auto segt_data = m_iscore_mapping.curve().toCurveData();
+    std::sort(segt_data.begin(), segt_data.end());
 
-        if(iscore_segment.start().x() == 0.)
-        {
-            curve->setInitialValue(scale_y(iscore_segment.start().y()));
-        }
-    }
-
-    m_ossia_curve = curve;
+    m_ossia_curve = iscore::convert::curve<X_T, Y_T>(scale_x, scale_y, segt_data);
     return m_ossia_curve;
 }
 

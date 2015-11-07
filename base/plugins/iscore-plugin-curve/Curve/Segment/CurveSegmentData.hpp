@@ -83,11 +83,18 @@ struct CurveSegmentData
         double x() const {
             return start.x();
         }
-        bool operator<(const CurveSegmentData& other) const
-        { return x() < other.x(); }
-        bool operator<=(const CurveSegmentData& other) const
-        { return x() <= other.x(); }
 };
+
+inline bool operator<(const CurveSegmentData& lhs, const CurveSegmentData& rhs)
+{
+    return lhs.x() < rhs.x();
+}
+
+inline bool operator<=(const CurveSegmentData& lhs, const CurveSegmentData& rhs)
+{
+    return lhs.x() <= rhs.x();
+}
+
 
 
 Q_DECLARE_METATYPE(CurveSegmentData)
