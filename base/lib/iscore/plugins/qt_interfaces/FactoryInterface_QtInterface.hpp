@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <vector>
 
 namespace iscore
 {
@@ -10,7 +11,7 @@ namespace iscore
     {
         public:
             virtual ~FactoryInterface_QtInterface() = default;
-            virtual QVector<FactoryInterface*> factories(const QString& matchingName) = 0;
+            virtual std::vector<FactoryInterface*> factories(const QString& matchingName) = 0;
     };
 }
 

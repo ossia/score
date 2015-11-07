@@ -6,9 +6,15 @@
 #include <core/document/Document.hpp>
 
 #include <QApplication>
+#include <core/application/Application.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <InspectorPlugin/InspectorControl.hpp>
+
+static InspectorWidgetList* inspector_widget_list_instance{};
 InspectorWidgetList::InspectorWidgetList(QObject* parent):
     NamedObject{"InspectorWidgetList", parent}
 {
+    inspector_widget_list_instance = this; // TODO Bleh....
 }
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
@@ -16,14 +22,17 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QObject& model,
         QWidget* parent)
 {
-    auto iwl = qApp->findChild<InspectorWidgetList*>("InspectorWidgetList");
     auto& doc = *iscore::IDocument::documentFromObject(model);
 
-    for(InspectorWidgetFactory* factory : iwl->m_factories)
+    auto iwl = inspector_widget_list_instance;
+    if(iwl)
     {
-        if(factory->correspondingObjectsNames().contains(name))
+        for(InspectorWidgetFactory* factory : iwl->m_factories)
         {
-            return factory->makeWidget(model, doc, parent);
+            if(factory->correspondingObjectsNames().contains(name))
+            {
+                return factory->makeWidget(model, doc, parent);
+            }
         }
     }
 

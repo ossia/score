@@ -31,7 +31,7 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 {
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QString& factoryName)
 {
     if(factoryName == ProcessFactory::factoryName())
     {

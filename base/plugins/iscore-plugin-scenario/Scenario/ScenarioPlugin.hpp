@@ -49,7 +49,7 @@ class iscore_plugin_scenario final :
 
         // Crée les objets correspondant aux factories passées en argument.
         // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
-        QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 
         QStringList required() const override;
         QStringList offered() const override;

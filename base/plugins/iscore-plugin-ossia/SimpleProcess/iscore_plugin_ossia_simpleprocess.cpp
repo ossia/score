@@ -14,7 +14,7 @@ iscore_plugin_ossia_simpleprocess::~iscore_plugin_ossia_simpleprocess()
 }
 
 
-QVector<iscore::FactoryInterface*> iscore_plugin_ossia_simpleprocess::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_ossia_simpleprocess::factories(const QString& factoryName)
 {
     if(factoryName == ProcessFactory::factoryName())
     {

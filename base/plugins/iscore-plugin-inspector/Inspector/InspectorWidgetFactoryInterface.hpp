@@ -27,6 +27,8 @@ class Document;
 class InspectorWidgetFactory : public iscore::FactoryInterface
 {
     public:
+        virtual ~InspectorWidgetFactory();
+
         static QString factoryName();
         /**
         * @brief correspondingObjectName

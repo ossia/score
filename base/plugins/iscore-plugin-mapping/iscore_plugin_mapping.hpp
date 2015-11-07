@@ -21,7 +21,7 @@ class iscore_plugin_mapping:
         virtual ~iscore_plugin_mapping() = default;
 
         // Process & inspector
-        QVector<iscore::FactoryInterface*> factories(
+        std::vector<iscore::FactoryInterface*> factories(
                 const QString& factoryName) override;
 
         // CommandFactory_QtInterface interface

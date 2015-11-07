@@ -6,7 +6,7 @@ namespace iscore
     class FactoryInterface
     {
         public:
-            virtual ~FactoryInterface() = default;
+            virtual ~FactoryInterface();
             // TODO maybe factoryName should be here ?
     };
 }

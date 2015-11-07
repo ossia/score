@@ -23,7 +23,7 @@ class iscore_plugin_curve final :
         virtual ~iscore_plugin_curve() = default;
 
         // Process & inspector
-        QVector<iscore::FactoryInterface*> factories(
+        std::vector<iscore::FactoryInterface*> factories(
                 const QString& factoryName) override;
 
         // Curve segment factory family

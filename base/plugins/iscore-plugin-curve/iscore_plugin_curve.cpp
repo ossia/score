@@ -21,7 +21,7 @@ iscore_plugin_curve::iscore_plugin_curve() :
 {
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)
 {
     if(factoryName == CurveSegmentFactory::factoryName())
     {

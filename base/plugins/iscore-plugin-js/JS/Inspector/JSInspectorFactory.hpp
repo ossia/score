@@ -7,11 +7,8 @@
 class JSInspectorFactory final : public InspectorWidgetFactory
 {
     public:
-        JSInspectorFactory() :
-            InspectorWidgetFactory {}
-        {
-
-        }
+        JSInspectorFactory();
+        virtual ~JSInspectorFactory();
 
         InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,

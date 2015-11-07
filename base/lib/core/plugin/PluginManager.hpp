@@ -82,7 +82,7 @@ namespace iscore
             DocumentPanelList m_documentPanelList;
             SettingsList m_settingsList;
 
-            QVector<QVector<FactoryInterface*>> m_factoriesInterfaces;
+            std::vector<std::vector<FactoryInterface*>> m_factoriesInterfaces;
 
             std::unordered_map<std::string, CommandGeneratorMap> m_commands;
     };

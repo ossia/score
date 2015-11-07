@@ -11,7 +11,7 @@ iscore_plugin_js::iscore_plugin_js() :
 {
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString& factoryName)
 {
     if(factoryName == ProcessFactory::factoryName())
     {
@@ -22,6 +22,7 @@ QVector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString& fa
     {
         return {new JSInspectorFactory};
     }
+
     return {};
 }
 

@@ -84,7 +84,7 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
            };
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
 {
     if(factoryName == ProcessFactory::factoryName())
     {

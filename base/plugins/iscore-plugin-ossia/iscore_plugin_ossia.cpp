@@ -19,7 +19,7 @@ iscore::PluginControlInterface* iscore_plugin_ossia::make_control(iscore::Presen
 
 
 
-QVector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString& factoryName)
 {
     if(factoryName == ProtocolFactory::factoryName())
     {

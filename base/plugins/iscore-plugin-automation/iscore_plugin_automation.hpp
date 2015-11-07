@@ -21,7 +21,7 @@ class iscore_plugin_automation final :
         virtual ~iscore_plugin_automation() = default;
 
         // Process & inspector
-        QVector<iscore::FactoryInterface*> factories(
+        std::vector<iscore::FactoryInterface*> factories(
                 const QString& factoryName) override;
 
         // CommandFactory_QtInterface interface

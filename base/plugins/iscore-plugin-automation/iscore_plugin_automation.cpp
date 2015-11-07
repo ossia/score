@@ -33,7 +33,8 @@ iscore_plugin_automation::iscore_plugin_automation() :
     AutomationFactory f;
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_automation::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_automation::factories(
+        const QString& factoryName)
 {
     if(factoryName == ProcessFactory::factoryName())
     {

@@ -4,6 +4,17 @@
 
 //using namespace iscore;
 
+JSInspectorFactory::JSInspectorFactory() :
+    InspectorWidgetFactory {}
+{
+
+}
+
+JSInspectorFactory::~JSInspectorFactory()
+{
+
+}
+
 InspectorWidgetBase* JSInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
