@@ -1,12 +1,13 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
 
-class LayerView;
+class DummyLayerView;
 class DummyLayerPresenter final : public LayerPresenter
 {
     public:
         explicit DummyLayerPresenter(
                 const LayerModel& model,
+                DummyLayerView* view,
                 QObject* parent);
 
         void setWidth(int width) override;
@@ -29,4 +30,5 @@ class DummyLayerPresenter final : public LayerPresenter
 
     private:
         const LayerModel& m_layer;
+        DummyLayerView* m_view{};
 };

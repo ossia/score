@@ -36,10 +36,10 @@ class SimpleProcessFactory : public ProcessFactory
 
         LayerPresenter* makeLayerPresenter(
                 const LayerModel& model,
-                LayerView*,
+                LayerView* v,
                 QObject* parent) override
         {
-            return new DummyLayerPresenter{model, parent};
+            return new DummyLayerPresenter{model, dynamic_cast<DummyLayerView*>(v), parent};
         }
 
         LayerView* makeLayerView(

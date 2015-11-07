@@ -17,7 +17,9 @@ JSProcessModel::JSProcessModel(
     OSSIAProcessModel{duration, id, processName(), parent},
     m_ossia_process{makeProcess()}
 {
-
+    pluginModelList = new iscore::ElementPluginModelList{
+                      iscore::IDocument::documentFromObject(parent),
+                      this};
 }
 
 JSProcessModel::JSProcessModel(
@@ -26,6 +28,9 @@ JSProcessModel::JSProcessModel(
         QObject* parent):
     JSProcessModel{source.duration(), id, parent}
 {
+    pluginModelList = new iscore::ElementPluginModelList{
+                      *source.pluginModelList,
+                      this};
 
 }
 

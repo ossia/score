@@ -8,7 +8,9 @@ SimpleProcessModel::SimpleProcessModel(
     OSSIAProcessModel{duration, id, processName(), parent},
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
-
+    pluginModelList = new iscore::ElementPluginModelList{
+                      iscore::IDocument::documentFromObject(parent),
+                      this};
 }
 
 SimpleProcessModel::SimpleProcessModel(
@@ -17,7 +19,9 @@ SimpleProcessModel::SimpleProcessModel(
         QObject* parent):
     SimpleProcessModel{source.duration(), id, parent}
 {
-
+    pluginModelList = new iscore::ElementPluginModelList{
+                      *source.pluginModelList,
+                      this};
 }
 
 SimpleProcessModel* SimpleProcessModel::clone(

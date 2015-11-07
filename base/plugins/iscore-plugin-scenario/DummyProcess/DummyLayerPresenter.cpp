@@ -1,30 +1,39 @@
 #include "DummyLayerPresenter.hpp"
+#include "DummyLayerView.hpp"
 #include <Process/Process.hpp>
 #include <Process/LayerModel.hpp>
 
+
 DummyLayerPresenter::DummyLayerPresenter(
         const LayerModel& model,
+        DummyLayerView* view,
         QObject* parent):
     LayerPresenter{"DummyLayerPresenter", parent},
-    m_layer{model}
+    m_layer{model},
+    m_view{view}
 {
+    putToFront();
 
 }
 
-void DummyLayerPresenter::setWidth(int)
+void DummyLayerPresenter::setWidth(int val)
 {
+    m_view->setWidth(val);
 }
 
-void DummyLayerPresenter::setHeight(int)
+void DummyLayerPresenter::setHeight(int val)
 {
+    m_view->setHeight(val);
 }
 
 void DummyLayerPresenter::putToFront()
 {
+    m_view->setText(m_layer.processModel().userFriendlyDescription());
 }
 
 void DummyLayerPresenter::putBehind()
 {
+    m_view->setText({});
 }
 
 void DummyLayerPresenter::on_zoomRatioChanged(ZoomRatio)
