@@ -53,11 +53,10 @@ Process& OSSIAMappingElement::iscoreProcess() const
     return m_iscore_mapping;
 }
 
-template<typename Y_T>
-std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl()
+template<typename X_T, typename Y_T>
+std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl2()
 {
     using namespace OSSIA;
-    using X_T = float;
     auto curve = Curve<X_T, Y_T>::create();
 
     const double xmin = m_iscore_mapping.sourceMin();
@@ -102,9 +101,29 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl(
     return m_ossia_curve;
 }
 
-std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::rebuildCurve()
+template<typename X_T>
+std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl()
 {
     switch(m_targetAddressType)
+    {
+        case OSSIA::Value::Type::INT:
+            on_curveChanged_impl2<X_T, int>();
+            break;
+        case OSSIA::Value::Type::FLOAT:
+            on_curveChanged_impl2<X_T, float>();
+            break;
+        default:
+            m_ossia_curve.reset();
+            qDebug() << "Unsupported target address type: " << (int)m_targetAddressType;
+            ISCORE_TODO;
+    }
+
+    return m_ossia_curve;
+}
+
+std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::rebuildCurve()
+{
+    switch(m_sourceAddressType)
     {
         case OSSIA::Value::Type::INT:
             on_curveChanged_impl<int>();
@@ -114,7 +133,7 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::rebuildCurve()
             break;
         default:
             m_ossia_curve.reset();
-            qDebug() << "Unsupported curve type: " << (int)m_targetAddressType;
+            qDebug() << "Unsupported source address type: " << (int)m_sourceAddressType;
             ISCORE_TODO;
     }
 
