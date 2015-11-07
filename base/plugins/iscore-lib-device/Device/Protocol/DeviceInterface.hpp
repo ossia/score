@@ -13,7 +13,13 @@ class DeviceInterface : public QObject
 
     public:
         explicit DeviceInterface(const iscore::DeviceSettings& s);
+        virtual ~DeviceInterface();
+
         const iscore::DeviceSettings& settings() const;
+
+        virtual void disconnect() = 0;
+        virtual bool reconnect() = 0;
+        virtual bool connected() const = 0;
 
         virtual void updateSettings(const iscore::DeviceSettings&) = 0;
 

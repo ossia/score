@@ -7,6 +7,11 @@ DeviceInterface::DeviceInterface(const iscore::DeviceSettings &s):
 
 }
 
+DeviceInterface::~DeviceInterface()
+{
+
+}
+
 const iscore::DeviceSettings &DeviceInterface::settings() const
 {
     return m_settings;

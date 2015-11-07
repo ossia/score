@@ -8,6 +8,24 @@
 using namespace iscore::convert;
 using namespace OSSIA::convert;
 
+OSSIADevice::~OSSIADevice()
+{
+
+}
+
+bool OSSIADevice::connected() const
+{
+    return m_connected;
+}
+
+bool OSSIADevice::reconnect()
+{
+    return false;
+}
+
+void OSSIADevice::disconnect()
+{
+}
 
 void OSSIADevice::addAddress(const iscore::FullAddressSettings &settings)
 {

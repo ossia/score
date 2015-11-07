@@ -12,6 +12,11 @@ namespace OSSIA
 class OSSIADevice : public DeviceInterface
 {
     public:
+        virtual ~OSSIADevice();
+        void disconnect() override;
+        bool reconnect() override;
+        bool connected() const override;
+
         void addAddress(const iscore::FullAddressSettings& settings) final override;
         void updateAddress(const iscore::FullAddressSettings& address) final override;
         void removeNode(const iscore::Address& path) final override;
@@ -47,4 +52,6 @@ class OSSIADevice : public DeviceInterface
                 OSSIA::CallbackContainer<OSSIA::ValueCallback>::iterator
             >
         > m_callbacks;
+
+        bool m_connected = false;
 };

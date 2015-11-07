@@ -20,7 +20,14 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
 {
     using namespace OSSIA;
 
+    try {
     m_dev = Device::create(m_minuitSettings, settings.name.toStdString());
+    m_connected = true;
+    }
+    catch(...)
+    {
+        m_connected = false;
+    }
 }
 
 void MinuitDevice::updateSettings(const iscore::DeviceSettings& settings)

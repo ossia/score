@@ -8,7 +8,14 @@ MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
     auto stgs = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
     auto parameters = OSSIA::MIDI::create();
 
+    try {
     m_dev = Device::create(parameters, settings.name.toStdString());
+    m_connected = true;
+    }
+    catch(...)
+    {
+        m_connected = false;
+    }
 }
 
 
