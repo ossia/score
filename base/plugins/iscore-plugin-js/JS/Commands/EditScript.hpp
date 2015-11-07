@@ -2,7 +2,7 @@
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 
-class JSProcess;
+class JSProcessModel;
 class EditScript final : public iscore::SerializableCommand
 {
         ISCORE_SERIALIZABLE_COMMAND_DECL(
@@ -11,7 +11,8 @@ class EditScript final : public iscore::SerializableCommand
                 "EditScript")
     public:
         EditScript(
-                Path<JSProcess>&& model, const QString& text);
+                Path<JSProcessModel>&& model,
+                const QString& text);
 
         void undo() const override;
         void redo() const override;
@@ -21,6 +22,6 @@ class EditScript final : public iscore::SerializableCommand
         void deserializeImpl(QDataStream & s) override;
 
     private:
-        Path<JSProcess> m_model;
+        Path<JSProcessModel> m_model;
         QString m_old, m_new;
 };

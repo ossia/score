@@ -13,7 +13,12 @@ file(GLOB_RECURSE HDRS
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_js.cpp"
 )
 

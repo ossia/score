@@ -3,6 +3,7 @@
 #include <JS/JSProcessModel.hpp>
 #include <JS/JSProcessFactory.hpp>
 
+#include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/Commands/EditScript.hpp>
 
 iscore_plugin_js::iscore_plugin_js() :
@@ -17,12 +18,10 @@ QVector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString& fa
         return {new JSProcessFactory};
     }
 
-    /*
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new JSInspectorFactory};
     }
-    */
     return {};
 }
 

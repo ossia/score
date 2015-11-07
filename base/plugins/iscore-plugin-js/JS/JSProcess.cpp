@@ -218,7 +218,6 @@ std::shared_ptr<OSSIA::StateElement> JSProcess::state(
     auto st = OSSIA::State::create();
     for(const auto& mess : messages)
     {
-        qDebug() << mess.toString();
         st->stateElements().push_back(iscore::convert::message(mess, m_devices));
     }
 

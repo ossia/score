@@ -48,7 +48,7 @@ class InspectorWidgetBase : public QWidget
         { return m_document; }
 
     public slots:
-        void updateSectionsView(QVBoxLayout* layout, QVector<QWidget*>& contents);
+        void updateSectionsView(QVBoxLayout* layout, const QVector<QWidget*>& contents);
         void updateAreaLayout(QVector<QWidget*>& contents);
 
         void addHeader(QWidget* header);

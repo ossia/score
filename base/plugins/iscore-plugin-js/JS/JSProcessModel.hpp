@@ -32,6 +32,10 @@ class JSProcessModel final : public OSSIAProcessModel
             vis.writeTo(*this);
         }
 
+        void setScript(const QString& script);
+        const QString& script() const
+        { return m_scriptText; }
+
         // Process interface
         JSProcessModel* clone(
                 const Id<Process>& newId,
@@ -73,4 +77,6 @@ class JSProcessModel final : public OSSIAProcessModel
     private:
         std::shared_ptr<JSProcess> makeProcess() const;
         std::shared_ptr<JSProcess> m_ossia_process;
+
+        QString m_scriptText;
 };

@@ -50,7 +50,7 @@ QString InspectorWidgetBase::tabName()
 }
 
 void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
-                                             QVector<QWidget*>& contents)
+                                             const QVector<QWidget*>& contents)
 {
     while(! layout->isEmpty())
     {

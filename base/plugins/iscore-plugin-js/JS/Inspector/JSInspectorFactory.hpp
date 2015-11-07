@@ -1,0 +1,25 @@
+#pragma once
+#include <QObject>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <JS/JSProcessModel.hpp>
+
+
+class JSInspectorFactory final : public InspectorWidgetFactory
+{
+    public:
+        JSInspectorFactory() :
+            InspectorWidgetFactory {}
+        {
+
+        }
+
+        InspectorWidgetBase* makeWidget(
+                const QObject& sourceElement,
+                iscore::Document& doc,
+                QWidget* parent) override;
+
+        QList<QString> correspondingObjectsNames() const override
+        {
+            return {JSProcessModel::staticProcessName()}; // TODO use this everywhere. (automation, mapping ...)
+        }
+};
