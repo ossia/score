@@ -5,7 +5,7 @@
 
 mkdir build
 cd build
-export CMAKE_COMMON_FLAGS="-DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT -DISCORE_COTIRE:Bool=True"
+export CMAKE_COMMON_FLAGS="-GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT -DISCORE_COTIRE:Bool=True"
 export CTEST_OUTPUT_ON_FAILURE=1
 
 if [[ "$USE_COVERITY" = "False" ]];
@@ -17,15 +17,15 @@ then
 
       if [[ "$DEPLOYMENT_BUILD" = "True" ]];
       then
-        make package -j2
+        ninja package -j2
       else
-        make -j2
+        ninja -j2
       fi
     ;;
     osx)
-      cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.1_1/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
+      cmake -GNinja -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.1_1/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
-      make install/strip -j2
+      ninja install/strip -j2
     ;;
   esac
 else
