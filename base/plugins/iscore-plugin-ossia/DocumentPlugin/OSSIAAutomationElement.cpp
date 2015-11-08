@@ -132,13 +132,13 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
     const double min = m_iscore_autom.min();
     const double max = m_iscore_autom.max();
 
-    auto scale_x = [=] (double val) -> float { return val; };
+    auto scale_x = [=] (double val) -> double { return val; };
     auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
     auto segt_data = m_iscore_autom.curve().toCurveData();
     std::sort(segt_data.begin(), segt_data.end());
 
-    m_ossia_curve = iscore::convert::curve<float, Y_T>(scale_x, scale_y, segt_data);
+    m_ossia_curve = iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data);
 
     return m_ossia_curve;
 }
