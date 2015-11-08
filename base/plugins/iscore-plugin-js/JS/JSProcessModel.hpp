@@ -34,14 +34,14 @@ class JSProcessModel final : public OSSIAProcessModel
 
         void setScript(const QString& script);
         const QString& script() const
-        { return m_scriptText; }
+        { return m_script; }
 
         // Process interface
         JSProcessModel* clone(
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
-        static QString staticProcessName() { return "JSProcessModel"; }
+        static QString staticProcessName() { return "Javascript"; }
         QString processName() const override;
         QString userFriendlyDescription() const override;
         QByteArray makeLayerConstructionData() const override;
@@ -78,5 +78,5 @@ class JSProcessModel final : public OSSIAProcessModel
         std::shared_ptr<JSProcess> makeProcess() const;
         std::shared_ptr<JSProcess> m_ossia_process;
 
-        QString m_scriptText;
+        QString m_script;
 };

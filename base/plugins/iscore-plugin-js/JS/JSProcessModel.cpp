@@ -14,30 +14,38 @@ JSProcessModel::JSProcessModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, processName(), parent},
+    OSSIAProcessModel{duration, id, staticProcessName(), parent},
     m_ossia_process{makeProcess()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       iscore::IDocument::documentFromObject(parent),
                       this};
+
+    m_script = "(function(t) { \n"
+               "     var obj = new Object; \n"
+               "     obj[\"address\"] = 'OSCdevice:/millumin/layer/x/instance'; \n"
+               "     obj[\"value\"] = t + iscore.value('OSCdevice:/millumin/layer/y/instance'); \n"
+               "     return [ obj ]; \n"
+               "});";
 }
 
 JSProcessModel::JSProcessModel(
         const JSProcessModel& source,
         const Id<Process>& id,
         QObject* parent):
-    JSProcessModel{source.duration(), id, parent}
+    OSSIAProcessModel{source.duration(), id, staticProcessName(), parent},
+    m_ossia_process{makeProcess()},
+    m_script{source.m_script}
 {
     pluginModelList = new iscore::ElementPluginModelList{
                       *source.pluginModelList,
                       this};
-
 }
 
 void JSProcessModel::setScript(const QString& script)
 {
-    m_scriptText = script;
-    m_ossia_process->setTickFun(m_scriptText);
+    m_script = script;
+    m_ossia_process->setTickFun(m_script);
 }
 
 JSProcessModel* JSProcessModel::clone(
@@ -155,7 +163,7 @@ void Visitor<Reader<DataStream>>::readFrom(const JSProcessModel& proc)
 {
     readFrom(*proc.pluginModelList);
 
-    m_stream << proc.m_scriptText;
+    m_stream << proc.m_script;
 
     insertDelimiter();
 }

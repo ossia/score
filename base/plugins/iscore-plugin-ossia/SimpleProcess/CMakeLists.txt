@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(iscore_plugin_ossia_simpleprocess)
+
+if(DEPLOYMENT_BUILD)
+return()
+endif()
+
 iscore_common_setup()
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)

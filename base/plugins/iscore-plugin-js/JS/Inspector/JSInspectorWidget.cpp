@@ -26,7 +26,7 @@ JSInspectorWidget::JSInspectorWidget(
     setObjectName("JSInspectorWidget");
     setParent(parent);
 
-    m_edit = new QPlainTextEdit;
+    m_edit = new QPlainTextEdit{JSModel.script()};
     connect(m_edit, &QPlainTextEdit::textChanged,
             this, [&] () {
         on_textChange(m_edit->toPlainText()); // TODO timer before validating ? TimerCommandDispatcher ?

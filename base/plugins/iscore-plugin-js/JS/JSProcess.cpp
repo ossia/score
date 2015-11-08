@@ -14,12 +14,6 @@ JSProcess::JSProcess(DeviceDocumentPlugin& devices):
     m_end{OSSIA::State::create()}
 {
     m_engine.globalObject().setProperty("iscore", m_engine.newQObject(new JSAPIWrapper{devices}));
-    setTickFun(" (function(t) { "
-               "      var obj = new Object; "
-               "      obj[\"address\"] = 'OSCdevice:/millumin/layer/x/instance'; "
-               "      obj[\"value\"] = t + iscore.value('OSCdevice:/millumin/layer/y/instance'); "
-               "      return [ obj ]; "
-               "  });");
 }
 
 void JSProcess::setTickFun(const QString& val)
@@ -45,8 +39,10 @@ std::shared_ptr<OSSIA::StateElement> JSProcess::state(
     auto st = OSSIA::State::create();
     for(const auto& mess : messages)
     {
-        qDebug() << mess.toString();
-        st->stateElements().push_back(iscore::convert::message(mess, m_devices));
+        //qDebug() << mess.toString();
+        auto ossia_mess = iscore::convert::message(mess, m_devices);
+        if(ossia_mess)
+            st->stateElements().push_back(ossia_mess);
     }
 
     // 3. Convert our value back
