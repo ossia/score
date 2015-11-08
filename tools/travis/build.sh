@@ -23,7 +23,7 @@ then
       fi
     ;;
     osx)
-      cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.1/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
+      cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.1_1/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
       make install/strip -j2
     ;;
