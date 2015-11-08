@@ -18,6 +18,9 @@ OSCDevice::OSCDevice(const iscore::DeviceSettings &settings):
 void OSCDevice::updateSettings(const iscore::DeviceSettings& settings)
 {
     // TODO save the node, else we lose it.
+    // Also, we have to maintain the prior connection state
+    // if we were disconnected, we stay disconnected
+    // else we reconnect. See in Minuit / MIDI also.
     ISCORE_TODO;
     disconnect();
 

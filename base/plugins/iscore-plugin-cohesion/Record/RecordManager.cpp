@@ -239,10 +239,13 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
         }
     }
 
+    const auto& devicelist = m_explorer->deviceModel().list();
     //// Setup listening on the curves ////
     for(const auto& vec : m_recordListening)
     {
-        auto& dev = m_explorer->deviceModel().list().device(vec.front().device);
+        auto& dev = devicelist.device(vec.front().device);
+        if(!dev.connected())
+            continue;
 
         dev.replaceListening(vec);
         // Add a custom callback.
