@@ -38,9 +38,7 @@ OSSIAMappingElement::OSSIAMappingElement(
     using namespace iscore::convert;
 
     con(element, &MappingModel::curveChanged,
-        this, &OSSIAMappingElement::rebuild); // We have to recreate the Mapping in all cases
-
-    rebuild();
+        this, &OSSIAMappingElement::recreate); // We have to recreate the Mapping in all cases
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAMappingElement::OSSIAProcess() const
@@ -115,7 +113,16 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::rebuildCurve()
     return m_ossia_curve;
 }
 
-void OSSIAMappingElement::rebuild()
+
+void OSSIAMappingElement::clear()
+{
+    m_ossia_curve.reset();
+    auto old = m_ossia_mapping;
+    m_ossia_mapping = {};
+    emit changed(old, m_ossia_mapping);
+}
+
+void OSSIAMappingElement::recreate()
 {
     auto iscore_source_addr = m_iscore_mapping.sourceAddress();
     auto iscore_target_addr = m_iscore_mapping.targetAddress();
@@ -135,9 +142,7 @@ void OSSIAMappingElement::rebuild()
     m_ossia_curve.reset(); // It will be remade after.
 
     // Get the device list to obtain the nodes.
-    auto doc = iscore::IDocument::documentFromObject(m_iscore_mapping);
-    auto plug = doc->model().pluginModel<DeviceDocumentPlugin>();
-    const auto& devices = plug->list().devices();
+    const auto& devices = m_deviceList.devices();
 
     // TODO use this in automation
     auto getAddress = [&] (const iscore::Address& addr) -> std::shared_ptr<OSSIA::Address>

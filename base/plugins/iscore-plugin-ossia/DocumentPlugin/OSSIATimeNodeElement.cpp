@@ -22,12 +22,21 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
             this, [&] () {
         m_ossia_node->happen();
     });
-    on_triggerChanged(m_iscore_node.trigger()->expression());
 }
 
 std::shared_ptr<OSSIA::TimeNode> OSSIATimeNodeElement::OSSIATimeNode() const
 {
     return m_ossia_node;
+}
+
+void OSSIATimeNodeElement::recreate()
+{
+    on_triggerChanged(m_iscore_node.trigger()->expression());
+}
+
+void OSSIATimeNodeElement::clear()
+{
+    m_ossia_node->setExpression({});
 }
 
 void OSSIATimeNodeElement::on_triggerChanged(const iscore::Trigger& c)

@@ -25,12 +25,13 @@ class OSSIAAutomationElement final : public OSSIAProcessElement
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
         Process& iscoreProcess() const override;
 
-    public slots:
-        void rebuild();
-        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged();
+        void recreate() override;
+        void clear() override;
 
     private:
         OSSIA::Value::Type m_addressType{OSSIA::Value::Type(-1)};
+
+        std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged();
 
         template<typename T>
         std::shared_ptr<OSSIA::CurveAbstract> on_curveChanged_impl();

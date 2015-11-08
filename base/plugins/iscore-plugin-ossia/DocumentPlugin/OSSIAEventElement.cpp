@@ -16,14 +16,21 @@ OSSIAEventElement::OSSIAEventElement(
 {
     con(m_iscore_event, &EventModel::conditionChanged,
         this, &OSSIAEventElement::on_conditionChanged);
-
-    on_conditionChanged(m_iscore_event.condition());
-
 }
 
 std::shared_ptr<OSSIA::TimeEvent> OSSIAEventElement::OSSIAEvent() const
 {
     return m_ossia_event;
+}
+
+void OSSIAEventElement::recreate()
+{
+    on_conditionChanged(m_iscore_event.condition());
+}
+
+void OSSIAEventElement::clear()
+{
+    m_ossia_event->setExpression({});
 }
 
 void OSSIAEventElement::on_conditionChanged(const iscore::Condition& c)

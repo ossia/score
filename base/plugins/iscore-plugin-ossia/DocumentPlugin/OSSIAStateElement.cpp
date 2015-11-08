@@ -16,8 +16,6 @@ OSSIAStateElement::OSSIAStateElement(
 {
     con(m_iscore_state, &StateModel::sig_statesUpdated, this,
         &OSSIAStateElement::on_stateUpdated);
-
-    on_stateUpdated();
 }
 
 const StateModel &OSSIAStateElement::iscoreState() const
@@ -25,11 +23,22 @@ const StateModel &OSSIAStateElement::iscoreState() const
     return m_iscore_state;
 }
 
-void OSSIAStateElement::on_stateUpdated()
+void OSSIAStateElement::recreate()
 {
-    m_ossia_state->stateElements().clear();
     iscore::convert::state(
                 m_ossia_state,
                 m_iscore_state.messages().rootNode(),
                 m_deviceList);
+}
+
+void OSSIAStateElement::clear()
+{
+    m_ossia_state->stateElements().clear();
+
+}
+
+void OSSIAStateElement::on_stateUpdated()
+{
+    clear();
+    recreate();
 }

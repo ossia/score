@@ -81,6 +81,46 @@ void OSSIAScenarioElement::stop()
     // FIXME should this call OSSIAProcessElement::stop() ???
 }
 
+void OSSIAScenarioElement::recreate()
+{
+    for(const auto& elt : m_ossia_states)
+    {
+        elt.second->recreate();
+    }
+    for(const auto& elt : m_ossia_timeevents)
+    {
+        elt.second->recreate();
+    }
+    for(const auto& elt : m_ossia_timenodes)
+    {
+        elt.second->recreate();
+    }
+    for(const auto& elt : m_ossia_constraints)
+    {
+        elt.second->recreate();
+    }
+}
+
+void OSSIAScenarioElement::clear()
+{
+    for(const auto& elt : m_ossia_states)
+    {
+        elt.second->clear();
+    }
+    for(const auto& elt : m_ossia_timeevents)
+    {
+        elt.second->clear();
+    }
+    for(const auto& elt : m_ossia_timenodes)
+    {
+        elt.second->clear();
+    }
+    for(const auto& elt : m_ossia_constraints)
+    {
+        elt.second->clear();
+    }
+}
+
 std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::OSSIAProcess() const
 {
     return scenario();

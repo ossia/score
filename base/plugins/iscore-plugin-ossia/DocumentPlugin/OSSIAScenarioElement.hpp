@@ -51,6 +51,9 @@ class OSSIAScenarioElement final : public OSSIAProcessElement
 
         void stop() override;
 
+        void recreate() override;
+        void clear() override;
+
     private:
         void on_constraintCreated(const ConstraintModel&);
         void on_stateCreated(const StateModel&);

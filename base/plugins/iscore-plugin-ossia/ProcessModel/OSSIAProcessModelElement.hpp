@@ -26,6 +26,16 @@ class OSSIAProcessModelElement : public OSSIAProcessElement
             return m_process;
         }
 
+        void recreate() override
+        {
+            m_process.recreate();
+        }
+
+        void clear() override
+        {
+            m_process.clear();
+        }
+
     private:
         OSSIAProcessModel& m_process;
 };

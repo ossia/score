@@ -28,6 +28,9 @@ class OSSIAProcessElement : public QObject
             iscoreProcess().stopExecution();
         }
 
+        virtual void recreate() = 0;
+        virtual void clear() = 0;
+
     signals:
         // Is emitted whenever the implementaton has changed
         // and needs to be put again in the constraint

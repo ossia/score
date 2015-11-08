@@ -24,6 +24,8 @@ class OSSIAEventElement final : public QObject
 
         bool event(QEvent* ev) override { return QObject::event(ev); }
 
+        void recreate();
+        void clear();
     private:
         void on_conditionChanged(const iscore::Condition& c);
 

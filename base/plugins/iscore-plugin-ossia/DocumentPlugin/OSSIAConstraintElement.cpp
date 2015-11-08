@@ -124,6 +124,22 @@ void OSSIAConstraintElement::executionStopped()
     }
 }
 
+void OSSIAConstraintElement::clear()
+{
+    for(auto& proc : m_processes)
+    {
+        proc.second.element->clear();
+    }
+}
+
+void OSSIAConstraintElement::recreate()
+{
+    for(auto& proc : m_processes)
+    {
+        proc.second.element->recreate();
+    }
+}
+
 void OSSIAConstraintElement::on_processAdded(
         const Process& iscore_proc) // TODO ProcessExecutionView
 {

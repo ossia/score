@@ -22,6 +22,11 @@ class OSSIAStateElement final : public QObject
         std::shared_ptr<OSSIA::State> OSSIAState() const
         { return m_ossia_state; }
 
+
+        void recreate();
+
+        void clear();
+
     private:
         void on_stateUpdated();
 

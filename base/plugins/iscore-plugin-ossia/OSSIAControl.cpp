@@ -142,6 +142,7 @@ void OSSIAControl::on_play(bool b)
                 cstr.OSSIAConstraint()->resume();
             else
             {
+                cstr.recreate();
                 cstr.play();
 
                 // Here we stop the listening when we start playing the scenario.
@@ -165,7 +166,9 @@ void OSSIAControl::on_stop()
 {
     if(auto doc = currentDocument())
     {
-        baseConstraint().stop();
+        auto& cstr = baseConstraint();
+        cstr.stop();
+        cstr.clear();
         m_playing = false;
 
         // If we can we resume listening

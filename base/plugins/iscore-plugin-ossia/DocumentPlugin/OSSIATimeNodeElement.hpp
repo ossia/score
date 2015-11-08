@@ -21,6 +21,9 @@ class OSSIATimeNodeElement final : public QObject
 
         std::shared_ptr<OSSIA::TimeNode> OSSIATimeNode() const;
 
+        void recreate();
+        void clear();
+
     private:
         void on_triggerChanged(const iscore::Trigger& c);
 

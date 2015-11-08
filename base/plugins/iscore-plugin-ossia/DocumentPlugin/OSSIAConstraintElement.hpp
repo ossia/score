@@ -35,6 +35,9 @@ class OSSIAConstraintElement final : public QObject
         void executionStarted();
         void executionStopped();
 
+        void recreate();
+        void clear();
+
     private:
         void on_processAdded(const Process& id);
         void on_processRemoved(const Process& id);

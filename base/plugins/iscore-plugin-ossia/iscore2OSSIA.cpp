@@ -338,6 +338,8 @@ std::shared_ptr<OSSIA::Message> message(
     // OPTIMIZEME by sorting by device prior
     // to this.
     const auto& dev = deviceList.device(mess.address.device);
+    if(!dev.connected())
+        return {};
 
     if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&dev))
     {
@@ -416,6 +418,10 @@ OSSIA::Value* expressionOperand(
             }
 
             auto& device = devlist.device(addr.device);
+            if(!device.connected())
+            {
+                throw NodeNotFoundException(addr);
+            }
 
             if(auto casted_dev = dynamic_cast<const OSSIADevice*>(&device))
             {

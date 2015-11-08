@@ -25,10 +25,11 @@ class OSSIAMappingElement final : public OSSIAProcessElement
         std::shared_ptr<OSSIA::TimeProcess> OSSIAProcess() const override;
         Process& iscoreProcess() const override;
 
+        void recreate() override;
+        void clear() override;
+
     private:
         std::shared_ptr<OSSIA::CurveAbstract> rebuildCurve();
-
-        void rebuild();
 
         OSSIA::Value::Type m_sourceAddressType{OSSIA::Value::Type(-1)};
         OSSIA::Value::Type m_targetAddressType{OSSIA::Value::Type(-1)};

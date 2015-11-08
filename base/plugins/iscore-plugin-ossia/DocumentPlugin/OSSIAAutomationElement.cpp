@@ -39,10 +39,8 @@ OSSIAAutomationElement::OSSIAAutomationElement(
 
     con(element, &AutomationModel::curveChanged,
         this, [&] () {
-        rebuild();
+        recreate();
     }); // We have to recreate the automation in all cases
-
-    rebuild();
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::OSSIAProcess() const
@@ -55,7 +53,15 @@ Process& OSSIAAutomationElement::iscoreProcess() const
     return m_iscore_autom;
 }
 
-void OSSIAAutomationElement::rebuild()
+void OSSIAAutomationElement::clear()
+{
+    m_ossia_curve.reset();
+    auto old_autom = m_ossia_autom;
+    m_ossia_autom = {};
+    emit changed(old_autom, m_ossia_autom);
+}
+
+void OSSIAAutomationElement::recreate()
 {
     auto addr = m_iscore_autom.address();
     std::shared_ptr<OSSIA::Automation> new_autom;
@@ -72,9 +78,7 @@ void OSSIAAutomationElement::rebuild()
     m_ossia_curve.reset(); // It will be remade after.
 
     // Get the device list to obtain the nodes.
-    auto doc = iscore::IDocument::documentFromObject(m_iscore_autom);
-    auto plug = doc->model().pluginModel<DeviceDocumentPlugin>();
-    const auto& devices = plug->list().devices();
+    const auto& devices = m_deviceList.devices();
 
     // Look for the real node in the device
     auto dev_it = std::find_if(devices.begin(), devices.end(),
