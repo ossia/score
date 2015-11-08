@@ -1,6 +1,7 @@
 function(iscore_cotire TheTarget)
 if(ISCORE_COTIRE)
     set_property(TARGET ${TheTarget} PROPERTY CXX_STANDARD 14)
+    set_property(TARGET ${TheTarget} PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_SOURCE_DIR}/base/lib/iscore/prefix.hpp")
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
