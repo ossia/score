@@ -19,7 +19,7 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
     auto scen = ScenarioControl::instance();
     connect(scen, &ScenarioControl::startRecording,
             this, &IScoreCohesionControl::record);
-    connect(scen, &ScenarioControl::stopRecording,
+    connect(scen, &ScenarioControl::stopRecording, // TODO this seems useless
             this, &IScoreCohesionControl::stopRecord);
 
 
@@ -28,7 +28,8 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
     {
         if(act->objectName() == "Stop")
         {
-            connect(act, &QAction::triggered,
+            m_stopAction = act;
+            connect(m_stopAction, &QAction::triggered,
                     this, [&] {
                 stopRecord();
             });
@@ -92,4 +93,3 @@ void IScoreCohesionControl::stopRecord()
         m_recManager.release();
     }
 }
-

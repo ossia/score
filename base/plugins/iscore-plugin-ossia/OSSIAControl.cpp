@@ -128,13 +128,6 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
     }
 }
 
-void OSSIAControl::on_documentChanged(
-        iscore::Document* olddoc,
-        iscore::Document* newdoc)
-{
-    ISCORE_TODO;
-}
-
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

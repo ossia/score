@@ -56,16 +56,21 @@ namespace iscore
             template<typename... Args>
             void newDocument(Args&&... args)
             {
+                emit prepareNewDocument();
                 setupDocument(m_builder.newDocument(std::forward<Args>(args)...));
             }
+
             template<typename... Args>
             Document* loadDocument(Args&&... args)
             {
+                emit prepareNewDocument();
                 return setupDocument(m_builder.loadDocument(std::forward<Args>(args)...));
             }
+
             template<typename... Args>
             void restoreDocument(Args&&... args)
             {
+                emit prepareNewDocument();
                 setupDocument(m_builder.restoreDocument(std::forward<Args>(args)...));
             }
 
@@ -127,6 +132,7 @@ namespace iscore
             View* view() const;
 
         signals:
+            void prepareNewDocument();
             void currentDocumentChanged(Document* newDoc);
 
         private:

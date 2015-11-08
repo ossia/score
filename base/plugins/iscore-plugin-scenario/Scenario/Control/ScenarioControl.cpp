@@ -418,6 +418,18 @@ void ScenarioControl::reinit_tools()
     emit keyReleased(Qt::Key_Shift);
 }
 
+void ScenarioControl::on_prepareNewDocument()
+{
+    for(const auto& action : pluginActions())
+    {
+        if(auto trsprt = dynamic_cast<TransportActions*>(action))
+        {
+            trsprt->stop();
+            return;
+        }
+    }
+}
+
 ProcessFocusManager* ScenarioControl::processFocusManager() const
 {
     if(auto doc = currentDocument())

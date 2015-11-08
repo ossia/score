@@ -33,6 +33,8 @@ namespace iscore
                                    const QString& name,
                                    QObject* parent);
 
+            virtual ~PluginControlInterface();
+
             virtual void populateMenus(iscore::MenubarManager*);
             virtual QList<iscore::OrderedToolbar> makeToolbars();
             virtual QList<QAction*> actions();
@@ -60,6 +62,7 @@ namespace iscore
             void focused();
 
         protected:
+            virtual void on_prepareNewDocument();
             virtual void on_documentChanged(
                     iscore::Document* olddoc,
                     iscore::Document* newdoc);

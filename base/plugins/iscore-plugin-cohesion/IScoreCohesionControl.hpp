@@ -19,5 +19,7 @@ class IScoreCohesionControl final : public iscore::PluginControlInterface
         QAction* m_snapshot{};
         QAction* m_curves{};
 
+        QAction* m_stopAction{};
+
         std::unique_ptr<RecordManager> m_recManager;
 };

@@ -100,3 +100,8 @@ QList<QAction*> TransportActions::actions() const
     };
 }
 
+void TransportActions::stop()
+{
+    m_stop->trigger();
+}
+

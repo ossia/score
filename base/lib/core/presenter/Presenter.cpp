@@ -41,7 +41,10 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
     connect(m_view, &View::activeDocumentChanged,
-            this,   &Presenter::setCurrentDocument);
+            this,   [&] (Document* doc) {
+        prepareNewDocument();
+        setCurrentDocument(doc);
+    });
 
     connect(m_view, &View::closeRequested,
             this,   &Presenter::closeDocument);
@@ -276,7 +279,9 @@ Document* Presenter::loadFile()
 Document* Presenter::loadFile(const QString& fileName)
 {
     Document* doc{};
-    if(!fileName.isEmpty())
+    if(!fileName.isEmpty()
+    && (fileName.indexOf(".scorebin") != -1
+     || fileName.indexOf(".scorejson") != -1 ))
     {
         QFile f {fileName};
         if(f.open(QIODevice::ReadOnly))
@@ -290,9 +295,10 @@ Document* Presenter::loadFile(const QString& fileName)
                 auto json = QJsonDocument::fromJson(f.readAll());
                 doc = loadDocument(json.object(), m_availableDocuments.front());
             }
+
+            m_currentDocument->setDocFileName(fileName);
+            m_recentFiles->addRecentFile(fileName);
         }
-        m_currentDocument->setDocFileName(fileName);
-        m_recentFiles->addRecentFile(fileName);
     }
 
     return doc;
@@ -343,7 +349,9 @@ void Presenter::setupMenus()
     ////// File //////
     auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
                                                       FileMenuElement::New,
-                                                      [&] () { newDocument(m_availableDocuments.front()); });
+                                                      [&] () {
+        newDocument(m_availableDocuments.front());
+    });
 
     newAct->setShortcut(QKeySequence::New);
 

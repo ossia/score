@@ -25,6 +25,8 @@ class TransportActions final : public ScenarioActions
 
         QList<QAction*> actions() const override;
 
+        void stop();
+
     private:
         QAction* m_play{};
         QAction* m_stop{};
