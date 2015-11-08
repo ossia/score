@@ -311,7 +311,17 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
     switch((Column)col)
     {
         case Column::Name:
-            return DeviceExplorer::nameColumnData(n, role);
+        {
+            if(n.is<iscore::AddressSettings>())
+                return DeviceExplorer::nameColumnData(n, role);
+            else
+            {
+                return DeviceExplorer::deviceNameColumnData(
+                            n,
+                            deviceModel().list().device(n.get<iscore::DeviceSettings>().name),
+                            role);
+            }
+        }
 
         case Column::Value:
             return DeviceExplorer::valueColumnData(n, role);

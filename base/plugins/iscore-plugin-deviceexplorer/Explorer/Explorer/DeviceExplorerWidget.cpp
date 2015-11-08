@@ -71,6 +71,9 @@ DeviceExplorerWidget::buildGUI()
     m_refreshAction = new QAction(tr("Refresh namespace"), this);
     m_refreshAction->setShortcut(QKeySequence::Refresh);
 
+    m_disconnect = new QAction{tr("Disconnect"), this};
+    m_reconnect = new QAction{tr("Reconnect"), this};
+
     m_refreshValueAction = new QAction(tr("Refresh value"), this);
 
     m_removeNodeAction = new QAction(tr("Remove"), this);
@@ -84,15 +87,22 @@ DeviceExplorerWidget::buildGUI()
     m_refreshAction->setEnabled(false);
     m_refreshValueAction->setEnabled(false);
     m_removeNodeAction->setEnabled(false);
+    m_disconnect->setEnabled(false);
+    m_reconnect->setEnabled(false);
 
     m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_refreshValueAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_removeNodeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_disconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    m_reconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     connect(m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
     connect(m_refreshAction, &QAction::triggered, this, &DeviceExplorerWidget::refresh);
     connect(m_refreshValueAction, &QAction::triggered, this, &DeviceExplorerWidget::refreshValue);
+    connect(m_disconnect, &QAction::triggered, this, &DeviceExplorerWidget::disconnect);
+    connect(m_reconnect, &QAction::triggered, this, &DeviceExplorerWidget::reconnect);
+
 
     QPushButton* addButton = new QPushButton(this);
     addButton->setIcon(QIcon(":/resources/images/add.png"));
@@ -235,6 +245,10 @@ DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
     contextMenu.addAction(m_editAction);
     contextMenu.addAction(m_refreshAction);
     contextMenu.addAction(m_refreshValueAction);
+
+    contextMenu.addAction(m_disconnect);
+    contextMenu.addAction(m_reconnect);
+
     contextMenu.addSeparator();
     contextMenu.addAction(m_addDeviceAction);
     contextMenu.addAction(m_addSiblingAction);
@@ -299,6 +313,9 @@ DeviceExplorerWidget::updateActions()
         m_addSiblingAction->setEnabled(false);
         m_addChildAction->setEnabled(false);
 
+        m_reconnect->setEnabled(false);
+        m_disconnect->setEnabled(false);
+
         if(selection.isEmpty())
         {
             m_editAction->setEnabled(false);
@@ -322,6 +339,8 @@ DeviceExplorerWidget::updateActions()
             }
             else
             {
+                m_reconnect->setEnabled(true);
+                m_disconnect->setEnabled(true);
                 m_addSiblingAction->setEnabled(false);
                 m_removeNodeAction->setEnabled(false);
             }
@@ -467,21 +486,22 @@ void DeviceExplorerWidget::edit()
 
 void DeviceExplorerWidget::refresh()
 {
-    if(!model())
+    auto m = model();
+    if(!m)
         return;
 
-    const auto& select = model()->nodeFromModelIndex(m_ntView->selectedIndex());
-    if ( model()->isDevice(m_ntView->selectedIndex()))
+    const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
+    if (select.is<iscore::DeviceSettings>())
     {
         // Create a thread, ask the device, when it is done put a command on the chain.
-        auto& dev = model()->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
+        auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
         if(!dev.canRefresh())
             return;
 
         auto wrkr = make_worker(
             [=] (iscore::Node&& node) {
                 auto cmd = new DeviceExplorer::Command::ReplaceDevice{
-                    *model(),
+                    *m,
                     m_ntView->selectedIndex().row(),
                     std::move(node)};
 
@@ -528,6 +548,34 @@ void DeviceExplorerWidget::refreshValue()
             lst};
 
     m_cmdDispatcher->submitCommand(cmd);
+}
+
+void DeviceExplorerWidget::disconnect()
+{
+    auto m = model();
+    if(!m)
+        return;
+
+    const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
+    if (select.is<iscore::DeviceSettings>())
+    {
+        auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
+        dev.disconnect();
+    }
+}
+
+void DeviceExplorerWidget::reconnect()
+{
+    auto m = model();
+    if(!m)
+        return;
+
+    const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
+    if (select.is<iscore::DeviceSettings>())
+    {
+        auto& dev = m->deviceModel().list().device(select.get<iscore::DeviceSettings>().name);
+        dev.reconnect();
+    }
 }
 
 void

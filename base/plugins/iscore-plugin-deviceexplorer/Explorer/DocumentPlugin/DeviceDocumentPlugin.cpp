@@ -141,7 +141,19 @@ void DeviceDocumentPlugin::setConnection(bool b)
     for(auto& dev : m_list.devices())
     {
         if(b)
+        {
             dev->reconnect();
+            auto it = std::find_if(m_rootNode.cbegin(), m_rootNode.cend(), [&] (const auto& dev_node) {
+                return dev_node.template get<iscore::DeviceSettings>().name == dev->settings().name;
+            });
+
+            ISCORE_ASSERT(it != m_rootNode.cend());
+
+            for(const auto& nodes : *it)
+            {
+                dev->addNode(nodes);
+            }
+        }
         else
             dev->disconnect();
     }

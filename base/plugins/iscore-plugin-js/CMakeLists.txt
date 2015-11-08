@@ -5,6 +5,9 @@ iscore_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Qml)
+if(NOT TARGET iscore_plugin_ossia)
+  return()
+endif()
 
 # Files & main target
 file(GLOB_RECURSE HDRS

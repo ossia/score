@@ -1,48 +1,61 @@
 #include "NodeDisplayMethods.hpp"
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <QFont>
 #include <QBrush>
 namespace DeviceExplorer
 {
 // TODO boost::visitor ?
+
 QVariant nameColumnData(const iscore::Node& node, int role)
 {
+    static const QFont italicFont{[] () { QFont f; f.setItalic(true); return f; }()};
+
     using namespace iscore;
-    if(node.is<DeviceSettings>())
+
+    const IOType ioType = node.get<AddressSettings>().ioType;
+    switch(role)
     {
-        if(role == Qt::DisplayRole || role == Qt::EditRole)
-        {
-            return node.get<DeviceSettings>().name;
-        }
-    }
-    else
-    {
-        if(role == Qt::DisplayRole || role == Qt::EditRole)
-        {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
             return node.displayName();
-        }
-        else if(role == Qt::FontRole)
+        case Qt::FontRole:
         {
-            const IOType ioType = node.get<AddressSettings>().ioType;
-
             if(ioType == IOType::In || ioType == IOType::Out)
             {
-                QFont f; // = QAbstractItemModel::data(index, role); //B: how to get current font ?
-                f.setItalic(true);
-                return f;
+                return italicFont;
             }
         }
-        else if(role == Qt::ForegroundRole)
+        case Qt::ForegroundRole:
         {
-            const IOType ioType = node.get<AddressSettings>().ioType;
-
             if(ioType == IOType::In || ioType == IOType::Out)
             {
-                return QBrush(Qt::black);
+                return QBrush(Qt::lightGray);
             }
         }
+        default:
+            return {};
     }
+}
 
-    return {};
+QVariant deviceNameColumnData(const iscore::Node& node, DeviceInterface& dev, int role)
+{
+    static const QFont italicFont{[] () { QFont f; f.setItalic(true); return f; }()};
+
+    using namespace iscore;
+
+    switch(role)
+    {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+            return node.get<DeviceSettings>().name;
+        case Qt::FontRole:
+        {
+            if(!dev.connected())
+                return italicFont;
+        }
+        default:
+            return {};
+    }
 }
 
 QVariant valueColumnData(const iscore::Node& node, int role)

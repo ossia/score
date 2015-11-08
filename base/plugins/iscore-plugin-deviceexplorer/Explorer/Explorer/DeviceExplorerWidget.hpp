@@ -41,6 +41,9 @@ class DeviceExplorerWidget final : public QWidget
         void refresh();
         void refreshValue();
 
+        void disconnect();
+        void reconnect();
+
         void addAddress(InsertMode insertType);
         void addDevice();
         void addChild();
@@ -80,6 +83,9 @@ class DeviceExplorerWidget final : public QWidget
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};
         DeviceEditDialog* m_deviceDialog{};
+
+        QAction* m_disconnect{};
+        QAction* m_reconnect{};
 
         QAction* m_editAction{};
         QAction* m_refreshAction{};

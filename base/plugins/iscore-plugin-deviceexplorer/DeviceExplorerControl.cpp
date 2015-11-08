@@ -44,14 +44,6 @@ void DeviceExplorerControl::on_documentChanged(
     {
         auto doc_plugin = newdoc->model().pluginModel<DeviceDocumentPlugin>();
         doc_plugin->setConnection(true);
-        for(const auto& elt : doc_plugin->rootNode())
-        {
-            auto& dev = doc_plugin->list().device(elt.get<iscore::DeviceSettings>().name);
-            for(const auto& nodes : elt)
-            {
-                dev.addNode(nodes);
-            }
-        }
     }
 }
 
