@@ -25,8 +25,8 @@ case "$TRAVIS_OS_NAME" in
     # work around a homebrew bug
     set +e
     brew update; brew update 
-    brew install wget
-    wget https://www.dropbox.com/s/n3dsifakgzjbsnh/JamomaDarwin20151108.zip?dl=0 -O JamomaDarwin20151108.zip
+    brew install wget https://www.dropbox.com/s/t155m8wt2cp075k/JamomaDarwin20151108.zip?dl=0
+    wget https://www.dropbox.com/s/t155m8wt2cp075k/JamomaDarwin20151108.zip?dl=1 -O JamomaDarwin20151108.zip
     unzip JamomaDarwin20151108.zip
     mv JamomaDarwin20151108 Jamoma
     brew install cmake qt5 boost ninja
