@@ -14,6 +14,15 @@ class DeviceList
         DeviceList& operator=(DeviceList&&) = delete;
 
         bool hasDevice(const QString& name) const;
+
+        auto find(const QString &name) const
+        {
+            return std::find_if(m_devices.cbegin(),
+                                m_devices.cend(),
+                                [&] (DeviceInterface* d) { return d->settings().name == name; });
+        }
+
+
         DeviceInterface& device(const QString& name) const;
 
         void addDevice(DeviceInterface* dev);

@@ -2,11 +2,12 @@
 #include <ProcessModel/TimeProcessWithConstraint.hpp>
 #include <State/Value.hpp>
 #include <QJSEngine>
+class DeviceDocumentPlugin;
 class DeviceList;
 class JSProcess : public TimeProcessWithConstraint
 {
     public:
-        JSProcess(DeviceList& devices);
+        JSProcess(DeviceDocumentPlugin& devices);
 
         void setTickFun(const QString& val);
 

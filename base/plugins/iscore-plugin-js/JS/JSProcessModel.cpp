@@ -7,7 +7,7 @@
 
 std::shared_ptr<JSProcess> JSProcessModel::makeProcess() const
 {
-    return std::make_shared<JSProcess>(iscore::IDocument::documentFromObject(*this)->model().pluginModel<DeviceDocumentPlugin>()->list());
+    return std::make_shared<JSProcess>(*iscore::IDocument::documentFromObject(*this)->model().pluginModel<DeviceDocumentPlugin>());
 }
 
 JSProcessModel::JSProcessModel(
