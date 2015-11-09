@@ -19,6 +19,7 @@ case "$TRAVIS_OS_NAME" in
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
 
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 1000
   ;;
   osx)
     # work around a homebrew bug
