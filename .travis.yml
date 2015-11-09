@@ -70,7 +70,7 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/i-score-$TRAVIS_TAG-Ubuntu-14.04.deb
+    file: build/i-score-$TRAVIS_TAG-Ubuntu-14.04-amd64.deb
     skip_cleanup: true
     on:
       tags: true

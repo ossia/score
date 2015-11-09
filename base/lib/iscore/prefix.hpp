@@ -125,7 +125,6 @@
 #include <QTableWidgetItem>
 #include <QTabWidget>
 #include <QtAlgorithms>
-#include <QtCore>
 #include <QtCore/QByteArray>
 #include <QtCore/QDebug>
 #include <QtCore/QHash>
@@ -136,7 +135,6 @@
 #include <QTemporaryFile>
 #include <QTextBlock>
 #include <QTextEdit>
-#include <QtGui>
 #include <QtGui/QtGui>
 #include <QThread>
 #include <QTime>
