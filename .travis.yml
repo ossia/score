@@ -1,10 +1,12 @@
 language: cpp
-
 os:
   - osx
   - linux
 
 osx_image: xcode6.4
+
+dist: trusty
+sudo: required
 
 env:
   global:
@@ -22,23 +24,23 @@ matrix:
   exclude:
     - os: linux
     - os: osx
-    
+
   include:
 
     - os: osx
       env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
     - os: osx
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: osx 
+    - os: osx
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
     - os: osx
       env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
 
     - os: linux
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux 
+    - os: linux
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux 
+    - os: linux
       env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
     - os: linux
       env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
