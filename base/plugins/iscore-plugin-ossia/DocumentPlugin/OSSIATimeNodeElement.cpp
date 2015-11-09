@@ -17,7 +17,13 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
 {
     connect(m_iscore_node.trigger(), &TriggerModel::triggered,
             this, [&] () {
+        try {
         m_ossia_node->happen();
+        }
+        catch(...)
+        {
+
+        }
     });
 }
 
