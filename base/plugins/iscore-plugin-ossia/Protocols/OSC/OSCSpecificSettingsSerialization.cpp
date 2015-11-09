@@ -6,6 +6,8 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const OSCSpecificSettings& n)
 {
+    // TODO put it in the right order before 1.0 final.
+    // TODO same for minuit, etc..
     m_stream << n.outputPort
              << n.inputPort
              << n.host;

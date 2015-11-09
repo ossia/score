@@ -13,8 +13,10 @@ class OSSIADevice : public DeviceInterface
 {
     public:
         virtual ~OSSIADevice();
-        void disconnect() override;
-        bool connected() const override;
+        void disconnect() final override;
+        bool connected() const final override;
+
+        void updateSettings(const iscore::DeviceSettings& settings) final override;
 
         void addAddress(const iscore::FullAddressSettings& settings) final override;
         void updateAddress(const iscore::FullAddressSettings& address) final override;
@@ -36,6 +38,8 @@ class OSSIADevice : public DeviceInterface
         std::shared_ptr<OSSIA::Device> impl_ptr() const
         { return m_dev; }
 
+        virtual void updateOSSIASettings() = 0;
+
     protected:
         using DeviceInterface::DeviceInterface;
 
@@ -51,6 +55,4 @@ class OSSIADevice : public DeviceInterface
                 OSSIA::CallbackContainer<OSSIA::ValueCallback>::iterator
             >
         > m_callbacks;
-
-        bool m_connected = false;
 };

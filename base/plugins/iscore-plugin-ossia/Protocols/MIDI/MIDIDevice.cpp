@@ -10,7 +10,7 @@ MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
 }
 
 
-void MIDIDevice::updateSettings(const iscore::DeviceSettings&)
+void MIDIDevice::updateOSSIASettings()
 {
     ISCORE_TODO;
 }
@@ -18,15 +18,13 @@ void MIDIDevice::updateSettings(const iscore::DeviceSettings&)
 bool MIDIDevice::reconnect()
 {
     m_dev.reset();
-    m_connected = false;
 
     try {
         m_dev = OSSIA::Device::create(OSSIA::MIDI::create(), settings().name.toStdString());
-        m_connected = true;
     }
     catch(...)
     {
     }
 
-    return m_connected;
+    return connected();
 }

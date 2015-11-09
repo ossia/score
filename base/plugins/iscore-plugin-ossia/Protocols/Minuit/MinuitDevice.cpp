@@ -13,8 +13,8 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
     m_minuitSettings{[&] () {
     auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
     return OSSIA::Minuit::create(stgs.host.toStdString(),
-                                 stgs.inPort,
-                                 stgs.outPort);
+                                 stgs.inputPort,
+                                 stgs.outputPort);
 }()
 }
 {
@@ -24,37 +24,26 @@ MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
 bool MinuitDevice::reconnect()
 {
     m_dev.reset();
-    m_connected = false;
 
     try {
         m_dev = OSSIA::Device::create(m_minuitSettings, settings().name.toStdString());
-        m_connected = true;
     }
     catch(...)
     {
         // TODO save the reason of the non-connection.
     }
 
-    return m_connected;
+    return connected();
 }
 
-void MinuitDevice::updateSettings(const iscore::DeviceSettings& settings)
+void MinuitDevice::updateOSSIASettings()
 {
-    ISCORE_TODO;
-    disconnect();
+    auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
 
-    m_settings = settings;
-    m_dev->setName(m_settings.name.toStdString());
-    auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-
-    // TODO m_dev->setName(m_settings.name.toStdString());
-
-    auto prot = dynamic_cast<OSSIA::Minuit*>(m_dev->getProtocol().get());
-    prot->setInPort(stgs.inPort);
-    prot->setOutPort(stgs.outPort);
+    auto prot = dynamic_cast<OSSIA::Minuit*>(m_minuitSettings.get());
+    prot->setInPort(stgs.inputPort);
+    prot->setOutPort(stgs.outputPort);
     prot->setIp(stgs.host.toStdString());
-
-    reconnect();
 }
 
 bool MinuitDevice::canRefresh() const

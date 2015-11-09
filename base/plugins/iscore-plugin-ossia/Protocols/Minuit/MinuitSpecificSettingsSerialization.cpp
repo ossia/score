@@ -6,29 +6,29 @@
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const MinuitSpecificSettings& n)
 {
-    m_stream << n.host <<  n.inPort << n.outPort;
+    m_stream << n.host <<  n.inputPort << n.outputPort;
     insertDelimiter();
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(MinuitSpecificSettings& n)
 {
-    m_stream >> n.host >> n.inPort >> n.outPort;
+    m_stream >> n.host >> n.inputPort >> n.outputPort;
     checkDelimiter();
 }
 
 template<>
 void Visitor<Reader<JSONObject>>::readFrom(const MinuitSpecificSettings& n)
 {
-    m_obj["InPort"] = n.inPort;
-    m_obj["OutPort"] = n.outPort;
+    m_obj["InPort"] = n.inputPort;
+    m_obj["OutPort"] = n.outputPort;
     m_obj["Host"] = n.host;
 }
 
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(MinuitSpecificSettings& n)
 {
-    n.inPort = m_obj["InPort"].toInt();
-    n.outPort = m_obj["OutPort"].toInt();
+    n.inputPort = m_obj["InPort"].toInt();
+    n.outputPort = m_obj["OutPort"].toInt();
     n.host = m_obj["Host"].toString();
 }
