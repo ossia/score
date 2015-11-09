@@ -42,7 +42,7 @@ else()
 endif()
 
 install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/i-score.sh"
-        DESTINATION "."
+        DESTINATION bin
         COMPONENT DynamicRuntimeHelper)
 
 set(CPACK_PACKAGE_FILE_NAME "i-score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")

@@ -12,6 +12,8 @@ option(ISCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Fas
 option(ISCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
+option(ISCORE_BUILD_FOR_PACKAGE_MANAGER "Set FHS-friendly install paths" OFF)
+
 option(ISCORE_OPENGL "Use OpenGL for rendering" OFF)
 option(ISCORE_IEEE "Use a graphical skin adapted to publication" OFF)
 option(ISCORE_WEBSOCKETS "Run a websocket server in the scenario" OFF)

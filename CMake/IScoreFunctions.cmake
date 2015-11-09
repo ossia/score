@@ -61,10 +61,17 @@ endfunction()
 function(setup_iscore_library PluginName)
   setup_iscore_common_lib_features("${PluginName}")
 
+  if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
+  install(TARGETS "${PluginName}"
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          COMPONENT DynamicRuntime)
+  else()
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION .
           ARCHIVE DESTINATION static_lib/
           COMPONENT DynamicRuntime)
+  endif()
 endfunction()
 
 
@@ -73,10 +80,18 @@ function(setup_iscore_plugin PluginName)
   setup_iscore_common_lib_features("${PluginName}")
 
   set(ISCORE_PLUGINS_LIST ${ISCORE_PLUGINS_LIST} "${PluginName}" CACHE INTERNAL "List of plugins")
+
+  if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
   install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION plugins/
-          ARCHIVE DESTINATION static_plugins/
+          LIBRARY DESTINATION bin/i-score
+          ARCHIVE DESTINATION bin/i-score
           COMPONENT DynamicRuntime)
+  else()
+  install(TARGETS "${PluginName}"
+          LIBRARY DESTINATION plugins
+          ARCHIVE DESTINATION static_plugins
+          COMPONENT DynamicRuntime)
+  endif()
 endfunction()
 
 
