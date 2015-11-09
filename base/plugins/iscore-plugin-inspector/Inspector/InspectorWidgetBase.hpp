@@ -47,7 +47,6 @@ class InspectorWidgetBase : public QWidget
         iscore::Document& doc()
         { return m_document; }
 
-    public slots:
         void updateSectionsView(QVBoxLayout* layout, const QVector<QWidget*>& contents);
         void updateAreaLayout(QVector<QWidget*>& contents);
 

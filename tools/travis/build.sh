@@ -13,12 +13,13 @@ then
   case "$TRAVIS_OS_NAME" in
     linux)
       source /opt/qt55/bin/qt55-env.sh
-      /usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
 
       if [[ "$DEPLOYMENT_BUILD" = "True" ]];
       then
-        ninja package -j2
+        /usr/local/bin/cmake -DCMAKE_INSTALL_PREFIX=iscore_install $CMAKE_COMMON_FLAGS -DGENERIC_LINUX_DEPLOYMENT_BUILD:Bool=True -DCMAKE_PREFIX_PATH="$(pwd)/../Jamoma/usr/share/cmake/Jamoma" ..
+        ninja install -j2
       else
+        /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
         ninja -j2
       fi
     ;;
