@@ -36,7 +36,7 @@ void OSSIATimeNodeElement::recreate()
 
 void OSSIATimeNodeElement::clear()
 {
-    m_ossia_node->setExpression({});
+    m_ossia_node->setExpression(OSSIA::ExpressionTrue);
 }
 
 void OSSIATimeNodeElement::on_triggerChanged(const iscore::Trigger& c)

@@ -30,7 +30,7 @@ void OSSIAEventElement::recreate()
 
 void OSSIAEventElement::clear()
 {
-    m_ossia_event->setExpression({});
+    m_ossia_event->setExpression(OSSIA::ExpressionTrue);
 }
 
 void OSSIAEventElement::on_conditionChanged(const iscore::Condition& c)
