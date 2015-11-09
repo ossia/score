@@ -83,8 +83,8 @@ function(setup_iscore_plugin PluginName)
 
   if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
   install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION bin/i-score
-          ARCHIVE DESTINATION bin/i-score
+          LIBRARY DESTINATION bin/i-score-plugins
+          ARCHIVE DESTINATION bin/i-score-plugins
           COMPONENT DynamicRuntime)
   else()
   install(TARGETS "${PluginName}"
