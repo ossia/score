@@ -45,6 +45,9 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Xml${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5PrintSupport${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
+  "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
+  "${QT_DLL_DIR}/Qt5OpenGL${DEBUG_CHAR}.dll"
+  "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Test${DEBUG_CHAR}.dll"
   DESTINATION ${ISCORE_BIN_INSTALL_DIR})
 

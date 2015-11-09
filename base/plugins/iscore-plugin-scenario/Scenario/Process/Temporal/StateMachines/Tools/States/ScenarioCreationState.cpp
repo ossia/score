@@ -9,6 +9,13 @@
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/State/UpdateState.hpp>
+
 using namespace Scenario::Command;
 void ScenarioCreationState::createToState_base(const Id<StateModel> & originalState)
 {
@@ -95,13 +102,6 @@ void ScenarioCreationState::createToNothing_base(const Id<StateModel> & original
     }
 }
 
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/Commands/State/UpdateState.hpp>
 void ScenarioCreationState::makeSnapshot()
 {
     if(createdStates.empty())

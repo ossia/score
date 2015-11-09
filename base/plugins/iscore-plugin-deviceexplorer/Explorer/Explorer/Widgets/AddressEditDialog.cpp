@@ -8,6 +8,8 @@
 
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+
+#include <State/ValueConversion.hpp>
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):
     AddressEditDialog{makeDefaultSettings(), parent}
@@ -116,7 +118,6 @@ void AddressEditDialog::setNodeSettings()
     m_nameEdit->setText(name);
 }
 
-#include <State/ValueConversion.hpp>
 void AddressEditDialog::setValueSettings()
 {
     const int index = m_valueTypeCBox->findText(iscore::convert::prettyType(m_originalSettings.value));

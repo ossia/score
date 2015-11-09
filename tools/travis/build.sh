@@ -5,7 +5,7 @@
 
 mkdir build
 cd build
-export CMAKE_COMMON_FLAGS="-GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT -DISCORE_COTIRE:Bool=True"
+export CMAKE_COMMON_FLAGS="-GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DISCORE_STATIC_PLUGINS:Bool=$STATIC_PLUGINS -DDEPLOYMENT_BUILD:Bool=$DEPLOYMENT -DISCORE_COTIRE:Bool=False"
 export CTEST_OUTPUT_ON_FAILURE=1
 
 if [[ "$USE_COVERITY" = "False" ]];
@@ -13,12 +13,13 @@ then
   case "$TRAVIS_OS_NAME" in
     linux)
       source /opt/qt55/bin/qt55-env.sh
-      /usr/local/bin/cmake -DISCORE_COTIRE:Bool=False $CMAKE_COMMON_FLAGS ..
 
       if [[ "$DEPLOYMENT_BUILD" = "True" ]];
       then
-        ninja package -j2
+        /usr/local/bin/cmake -DCMAKE_INSTALL_PREFIX=iscore_install $CMAKE_COMMON_FLAGS -DGENERIC_LINUX_DEPLOYMENT_BUILD:Bool=True -DCMAKE_PREFIX_PATH="$(pwd)/../Jamoma/usr/share/cmake/Jamoma" ..
+        ninja install -j2
       else
+        /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
         ninja -j2
       fi
     ;;

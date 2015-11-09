@@ -1,11 +1,9 @@
 #include "TimeNodeModel.hpp"
-#include <iscore/document/DocumentInterface.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <iscore/tools/NotifyingMap.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
 TimeNodeModel::TimeNodeModel(

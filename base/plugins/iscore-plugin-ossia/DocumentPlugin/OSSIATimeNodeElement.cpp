@@ -15,9 +15,6 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
     m_iscore_node{element},
     m_deviceList{devlist}
 {
-    connect(m_iscore_node.trigger(), &TriggerModel::triggerChanged,
-        this, &OSSIATimeNodeElement::on_triggerChanged);
-
     connect(m_iscore_node.trigger(), &TriggerModel::triggered,
             this, [&] () {
         m_ossia_node->happen();
