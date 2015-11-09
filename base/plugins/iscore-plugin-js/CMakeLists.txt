@@ -32,6 +32,3 @@ target_link_libraries(${PROJECT_NAME}
                      iscore_lib_base iscore_plugin_ossia iscore_lib_dummyprocess)
 
 setup_iscore_plugin(${PROJECT_NAME})
-
-set_property(TARGET ${PROJECT_NAME} APPEND
-             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")

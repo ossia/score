@@ -1,7 +1,8 @@
-function(iscore_cotire TheTarget)
+function(iscore_cotire_pre TheTarget)
 if(ISCORE_COTIRE)
     set_property(TARGET ${TheTarget} PROPERTY CXX_STANDARD 14)
     set_property(TARGET ${TheTarget} PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_SOURCE_DIR}/base/lib/iscore/prefix.hpp")
+    set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
@@ -9,11 +10,14 @@ if(ISCORE_COTIRE)
     # FIXME on windows
     set_target_properties(${TheTarget} PROPERTIES
                           COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
-
-   cotire(${TheTarget})
 endif()
 endfunction()
 
+function(iscore_cotire_post TheTarget)
+if(ISCORE_COTIRE)
+   cotire(${TheTarget})
+endif()
+endfunction()
 
 ### Call at the beginning of a plug-in cmakelists ###
 function(iscore_common_setup)
@@ -31,7 +35,7 @@ endfunction()
 
 ### Initialization of most common stuff ###
 function(setup_iscore_common_features TheTarget)
-  iscore_cotire(${TheTarget})
+  iscore_cotire_pre(${TheTarget})
 
   if(ENABLE_LTO)
     set_property(TARGET ${TheTarget}
@@ -72,6 +76,7 @@ function(setup_iscore_library PluginName)
           ARCHIVE DESTINATION static_lib/
           COMPONENT DynamicRuntime)
   endif()
+  iscore_cotire_post("${PluginName}")
 endfunction()
 
 
@@ -92,6 +97,7 @@ function(setup_iscore_plugin PluginName)
           ARCHIVE DESTINATION static_plugins
           COMPONENT DynamicRuntime)
   endif()
+  iscore_cotire_post("${PluginName}")
 endfunction()
 
 

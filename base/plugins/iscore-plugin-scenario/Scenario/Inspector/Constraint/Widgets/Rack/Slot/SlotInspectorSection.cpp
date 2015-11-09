@@ -18,7 +18,6 @@
 #include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
 
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-#include <QtWidgets>
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>

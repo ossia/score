@@ -6,6 +6,7 @@
 #include <boost/spirit/include/phoenix_operator.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 #include <boost/fusion/adapted.hpp>
+#include <iscore/prefix.hpp>
 #endif
 /*
 Here is the grammar used. The grammar itself is split in multiple classes where

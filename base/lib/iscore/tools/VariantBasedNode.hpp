@@ -1,5 +1,4 @@
 #pragma once
-#include <QtCore>
 #include <eggs/variant.hpp>
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
