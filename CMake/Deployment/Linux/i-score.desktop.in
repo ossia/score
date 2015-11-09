@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=${ISCORE_VERSION}
+Name=i-score
+Comment=An interactive sequencer for the intermedia arts
+Exec=i-score.sh
+Icon=i-score
+Terminal=false
+Categories=Sound
