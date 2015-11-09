@@ -36,11 +36,6 @@ OSSIAAutomationElement::OSSIAAutomationElement(
     m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
     using namespace iscore::convert;
-
-    con(element, &AutomationModel::curveChanged,
-        this, [&] () {
-        recreate();
-    }); // We have to recreate the automation in all cases
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAAutomationElement::OSSIAProcess() const
@@ -136,25 +131,29 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged_im
     auto scale_y = [=] (double val) -> Y_T { return val * (max - min) + min; };
 
     auto segt_data = m_iscore_autom.curve().toCurveData();
-    std::sort(segt_data.begin(), segt_data.end());
-
-    m_ossia_curve = iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data);
-
-    return m_ossia_curve;
+    if(segt_data.size() != 0)
+    {
+        std::sort(segt_data.begin(), segt_data.end());
+        return iscore::convert::curve<double, Y_T>(scale_x, scale_y, segt_data);
+    }
+    else
+    {
+        return {};
+    }
 }
 
 std::shared_ptr<OSSIA::CurveAbstract> OSSIAAutomationElement::on_curveChanged()
 {
+    m_ossia_curve.reset();
     switch(m_addressType)
     {
         case OSSIA::Value::Type::INT:
-            on_curveChanged_impl<int>();
+            m_ossia_curve = on_curveChanged_impl<int>();
             break;
         case OSSIA::Value::Type::FLOAT:
-            on_curveChanged_impl<float>();
+            m_ossia_curve = on_curveChanged_impl<float>();
             break;
         default:
-            m_ossia_curve.reset();
             qDebug() << "Unsupported curve type: " << (int)m_addressType;
             ISCORE_TODO;
     }
