@@ -16,7 +16,7 @@ case "$TRAVIS_OS_NAME" in
     #wget https://www.dropbox.com/s/zvfaiylxh6ecp0w/gcc_5.2.0-1_amd64.deb?dl=1 -O gcc.deb
     #sudo dpkg --force-overwrite -i  gcc.deb
 
-    wget https://www.dropbox.com/s/w0vngwurefrayg3/JamomaCore-0.6-dev-12.04-amd64-release.deb?dl=1 -O jamoma.deb
+    wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
 
   ;;

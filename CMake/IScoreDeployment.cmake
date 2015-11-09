@@ -2,8 +2,8 @@ if(NOT DEPLOYMENT_BUILD)
     return()
 endif()
 
-set(JAMOMA_LIBS "Score;Modular;Foundation;DSP")
-set(JAMOMA_PLUGINS "Minuit;OSC;Automation;Scenario;Interval;Loop;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
+set(JAMOMA_LIBS "Modular;Foundation;DSP")
+set(JAMOMA_PLUGINS "Minuit;OSC;AnalysisLib;DataspaceLib;FunctionLib;System;NetworkLib")
 
 set(CPACK_PACKAGE_NAME "i-score")
 set(CPACK_PACKAGE_VENDOR "i-score")
