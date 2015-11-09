@@ -15,6 +15,8 @@ namespace iscore
                                                DocumentDelegateModelInterface* model,
                                                DocumentDelegateViewInterface* view);
 
+            virtual ~DocumentDelegatePresenterInterface();
+
         protected:
             DocumentDelegateModelInterface* m_model;
             DocumentDelegateViewInterface* m_view;

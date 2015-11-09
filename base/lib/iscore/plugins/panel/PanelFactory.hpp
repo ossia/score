@@ -22,7 +22,7 @@ namespace iscore
             virtual QString panelName() const = 0;
             virtual int panelId() const = 0;
 
-            virtual ~PanelFactory() = default;
+            virtual ~PanelFactory();
             virtual PanelView* makeView(
                     View* parent) = 0;
 

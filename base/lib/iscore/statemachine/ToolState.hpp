@@ -11,6 +11,7 @@ class QGraphicsScene;
 class ToolState : public QState
 {
     public:
+        virtual ~ToolState();
         void start();
         void stop();
 

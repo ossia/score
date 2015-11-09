@@ -93,3 +93,8 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
         }
     }
 }
+
+CommonSelectionState::~CommonSelectionState()
+{
+
+}

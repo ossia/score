@@ -8,7 +8,7 @@ class Presenter;
     class PluginControlInterface_QtInterface
     {
         public:
-            virtual ~PluginControlInterface_QtInterface() = default;
+            virtual ~PluginControlInterface_QtInterface();
 
             virtual PluginControlInterface* make_control(Presenter* parent) = 0;
     };

@@ -10,7 +10,7 @@ namespace iscore
     class PluginRequirementslInterface_QtInterface
     {
         public:
-            virtual ~PluginRequirementslInterface_QtInterface() = default;
+            virtual ~PluginRequirementslInterface_QtInterface();
 
             virtual QStringList required() const { return {}; }
             virtual QStringList offered() const { return {}; }

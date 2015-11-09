@@ -15,3 +15,8 @@ DocumentDelegatePresenterInterface::DocumentDelegatePresenterInterface(
 {
 
 }
+
+iscore::DocumentDelegatePresenterInterface::~DocumentDelegatePresenterInterface()
+{
+
+}

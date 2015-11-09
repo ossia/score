@@ -44,6 +44,8 @@ class PropertyCommand : public SerializableCommand
             m_old = m_path.find<QObject>().property(m_property.toUtf8().constData());
         }
 
+        virtual ~PropertyCommand();
+
         void undo() const final override;
         void redo() const final override;
 

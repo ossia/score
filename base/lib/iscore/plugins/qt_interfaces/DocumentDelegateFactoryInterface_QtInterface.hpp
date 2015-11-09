@@ -7,7 +7,7 @@ namespace iscore
     class DocumentDelegateFactoryInterface_QtInterface
     {
         public:
-            virtual ~DocumentDelegateFactoryInterface_QtInterface() = default;
+            virtual ~DocumentDelegateFactoryInterface_QtInterface();
             virtual QList<DocumentDelegateFactoryInterface*> documents() = 0;
     };
 }

@@ -24,6 +24,8 @@ namespace iscore
         public:
             using QObject::QObject;
 
+            virtual ~PanelView();
+
             virtual QWidget* getWidget() = 0;
 
             virtual const DefaultPanelStatus& defaultPanelStatus() const = 0;

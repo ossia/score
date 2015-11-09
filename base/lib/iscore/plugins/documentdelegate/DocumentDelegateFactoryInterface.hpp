@@ -19,7 +19,7 @@ namespace iscore
     class DocumentDelegateFactoryInterface
     {
         public:
-            virtual ~DocumentDelegateFactoryInterface() = default;
+            virtual ~DocumentDelegateFactoryInterface();
             virtual DocumentDelegateViewInterface* makeView(
                     DocumentView* parent) = 0;
             virtual DocumentDelegatePresenterInterface* makePresenter(

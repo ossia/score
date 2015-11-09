@@ -11,6 +11,7 @@ namespace iscore
             Q_OBJECT
         public:
             using NamedObject::NamedObject;
+            virtual ~PanelModel();
 
             virtual int panelId() const = 0;
 

@@ -32,3 +32,8 @@ Presenter*PanelPresenter::presenter() const
 {
     return m_parentPresenter;
 }
+
+iscore::PanelPresenter::~PanelPresenter()
+{
+
+}

@@ -39,3 +39,8 @@ void ToolState::stop()
     if(localSM().isRunning())
         localSM().stop();
 }
+
+ToolState::~ToolState()
+{
+
+}

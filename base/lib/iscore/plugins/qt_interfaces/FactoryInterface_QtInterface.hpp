@@ -10,7 +10,7 @@ namespace iscore
     class FactoryInterface_QtInterface
     {
         public:
-            virtual ~FactoryInterface_QtInterface() = default;
+            virtual ~FactoryInterface_QtInterface();
             virtual std::vector<FactoryInterface*> factories(const QString& matchingName) = 0;
     };
 }

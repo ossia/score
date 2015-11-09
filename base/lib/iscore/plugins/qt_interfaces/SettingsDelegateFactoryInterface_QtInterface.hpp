@@ -8,7 +8,7 @@ namespace iscore
     class SettingsDelegateFactoryInterface_QtInterface
     {
         public:
-            virtual ~SettingsDelegateFactoryInterface_QtInterface() = default;
+            virtual ~SettingsDelegateFactoryInterface_QtInterface();
             virtual SettingsDelegateFactoryInterface* settings_make() = 0;
     };
 }
