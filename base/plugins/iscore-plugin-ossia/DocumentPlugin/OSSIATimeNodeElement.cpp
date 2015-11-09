@@ -46,4 +46,5 @@ try
 catch(std::exception& e)
 {
     qDebug() << e.what();
+    m_ossia_node->setExpression(OSSIA::Expression::create(true));
 }

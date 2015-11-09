@@ -41,4 +41,5 @@ try
 catch(std::exception& e)
 {
     qDebug() << e.what();
+    m_ossia_event->setExpression(OSSIA::Expression::create(true));
 }
