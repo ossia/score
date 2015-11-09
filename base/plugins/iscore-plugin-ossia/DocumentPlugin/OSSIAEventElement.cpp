@@ -14,8 +14,6 @@ OSSIAEventElement::OSSIAEventElement(
     m_ossia_event{event},
     m_deviceList{deviceList}
 {
-    con(m_iscore_event, &EventModel::conditionChanged,
-        this, &OSSIAEventElement::on_conditionChanged);
 }
 
 std::shared_ptr<OSSIA::TimeEvent> OSSIAEventElement::OSSIAEvent() const

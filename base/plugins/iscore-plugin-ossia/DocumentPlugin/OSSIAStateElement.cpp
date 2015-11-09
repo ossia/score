@@ -14,8 +14,6 @@ OSSIAStateElement::OSSIAStateElement(
     m_ossia_state{root},
     m_deviceList{deviceList}
 {
-    con(m_iscore_state, &StateModel::sig_statesUpdated, this,
-        &OSSIAStateElement::on_stateUpdated);
 }
 
 const StateModel &OSSIAStateElement::iscoreState() const
@@ -34,7 +32,6 @@ void OSSIAStateElement::recreate()
 void OSSIAStateElement::clear()
 {
     m_ossia_state->stateElements().clear();
-
 }
 
 void OSSIAStateElement::on_stateUpdated()
