@@ -22,6 +22,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 
+#include <QPushButton>
+#include <QLabel>
 using namespace Scenario::Command;
 
 SlotInspectorSection::SlotInspectorSection(

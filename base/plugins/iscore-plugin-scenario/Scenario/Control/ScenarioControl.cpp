@@ -10,7 +10,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
+#include <QJsonDocument>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 #include <iscore/command/CommandGeneratorMap.hpp>

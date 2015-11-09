@@ -2,6 +2,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/MimeVisitor.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <QJsonDocument>
 
 namespace iscore
 {

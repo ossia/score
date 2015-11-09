@@ -26,7 +26,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
-
+#include <QApplication>
 
 RecordManager::RecordManager()
 {

@@ -23,6 +23,7 @@
 #include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
 
+#include <QAbstractProxyModel>
 #include <QApplication>
 #include <QJsonDocument>
 #include <iostream>
