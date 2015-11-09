@@ -16,8 +16,8 @@ then
 
       if [[ "$DEPLOYMENT_BUILD" = "True" ]];
       then
-        /usr/local/bin/cmake -DCMAKE_INSTALL_PREFIX=iscore_install $CMAKE_COMMON_FLAGS -DGENERIC_LINUX_DEPLOYMENT_BUILD:Bool=True -DCMAKE_PREFIX_PATH="$(pwd)/../Jamoma/usr/share/cmake/Jamoma" ..
-        ninja install -j2
+        /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
+        ninja package -j2
       else
         /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
         ninja -j2

@@ -5,7 +5,7 @@ git submodule init
 case "$TRAVIS_OS_NAME" in
   linux)
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    sudo add-apt-repository --yes ppa:beineri/opt-qt55
+    sudo add-apt-repository --yes ppa:beineri/opt-qt55-trusty
 
     sudo apt-get update -qq
     sudo apt-get install -qq g++-5 qt55-meta-full libboost1.55-dev libavahi-compat-libdnssd-dev libportmidi-dev ninja-build
