@@ -1,7 +1,6 @@
 #include "RackModel.hpp"
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include "Slot/SlotModel.hpp"
 
 constexpr const char RackModel::className[];
 

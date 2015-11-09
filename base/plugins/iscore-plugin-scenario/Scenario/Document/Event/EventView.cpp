@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QCursor>
+#include <QMimeData>
 #include <QGraphicsSceneMouseEvent>
 #include "EventPresenter.hpp"
 #include "EventModel.hpp"
@@ -159,7 +160,6 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent *h)
     emit eventHoverLeave();
 }
 
-#include <QMimeData>
 void EventView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->scenePos(), event->mimeData());

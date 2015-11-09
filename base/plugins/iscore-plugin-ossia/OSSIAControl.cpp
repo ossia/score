@@ -2,6 +2,9 @@
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
 #include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
 
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <core/document/Document.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
 
 #include <API/Headers/Network/Device.h>
@@ -128,9 +131,6 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
     }
 }
 
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <core/document/Document.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 void OSSIAControl::on_play(bool b)
 {
     if(auto doc = currentDocument())

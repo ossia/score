@@ -338,6 +338,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         case Column::Max:
             return DeviceExplorer::maxColumnData(n, role);
 
+        case Column::Count:
         default :
             ISCORE_ABORT;
             return {};

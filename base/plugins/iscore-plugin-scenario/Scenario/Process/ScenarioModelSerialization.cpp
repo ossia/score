@@ -4,6 +4,8 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include "ScenarioModel.hpp"
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/serialization/VisitorCommon.hpp>
+#include "ScenarioFactory.hpp"
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ScenarioModel& scenario)
@@ -182,13 +184,11 @@ void Visitor<Writer<JSONObject>>::writeTo(ScenarioModel& scenario)
 }
 
 
-#include <iscore/serialization/VisitorCommon.hpp>
 void ScenarioModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);
 }
 
-#include "ScenarioFactory.hpp"
 Process* ScenarioFactory::loadModel(
         const VisitorVariant& vis,
         QObject* parent)

@@ -6,6 +6,8 @@
 #include <QKeyEvent>
 #include <QMenu>
 
+#include <QMimeData>
+
 #include "TemporalScenarioPresenter.hpp"
 
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent) :
@@ -88,8 +90,6 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent *event)
     }
 }
 
-
-#include <QMimeData>
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent *event)
 {
     emit dropReceived(event->scenePos(), event->mimeData());
