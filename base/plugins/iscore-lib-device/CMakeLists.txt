@@ -22,11 +22,13 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/SingletonProtocolList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceList.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/ClipMode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/FullAddressSettings.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeBasedItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeDisplayMethods.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.cpp" # TODO move in 3rdparty

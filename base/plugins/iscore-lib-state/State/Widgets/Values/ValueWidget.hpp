@@ -16,5 +16,6 @@ class ValueWidget : public QWidget
 {
     public:
         using QWidget::QWidget;
+        virtual ~ValueWidget();
         virtual iscore::Value value() const = 0;
 };

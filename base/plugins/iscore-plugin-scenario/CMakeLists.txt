@@ -104,6 +104,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/RemoveSelection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveConstraint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventMeta.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.cpp"

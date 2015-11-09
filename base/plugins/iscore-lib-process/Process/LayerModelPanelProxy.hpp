@@ -5,7 +5,7 @@ class LayerModelPanelProxy : public QObject
 {
     public:
         using QObject::QObject;
-        virtual ~LayerModelPanelProxy() = default;
+        virtual ~LayerModelPanelProxy();
 
         // Can return the same view model, or a new one.
         virtual const LayerModel& layer() = 0;

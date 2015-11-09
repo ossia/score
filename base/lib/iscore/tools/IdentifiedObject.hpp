@@ -38,6 +38,8 @@ class IdentifiedObject : public IdentifiedObjectAbstract
             m_id.m_ptr = this;
         }
 
+        virtual ~IdentifiedObject() = default;
+
         const Id<model>& id() const
         {
             return m_id;

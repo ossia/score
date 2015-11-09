@@ -4,7 +4,7 @@
 #include <QJSEngine>
 class DeviceDocumentPlugin;
 class DeviceList;
-class JSProcess : public TimeProcessWithConstraint
+class JSProcess final : public TimeProcessWithConstraint
 {
     public:
         JSProcess(DeviceDocumentPlugin& devices);

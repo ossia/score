@@ -15,6 +15,7 @@ class ScenarioActions : public QObject
 
     public:
         explicit ScenarioActions(iscore::ToplevelMenuElement, ScenarioControl *);
+        virtual ~ScenarioActions();
 
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
         virtual void fillContextMenu(

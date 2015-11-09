@@ -1,5 +1,10 @@
 #include "LayerPresenter.hpp"
 
+LayerPresenter::~LayerPresenter()
+{
+
+}
+
 bool LayerPresenter::focused() const
 {
     return m_focus;

@@ -26,11 +26,13 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"
 )
 
 add_library(iscore_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS} )

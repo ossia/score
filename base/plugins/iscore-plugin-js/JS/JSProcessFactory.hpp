@@ -7,7 +7,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 
-class JSProcessFactory : public ProcessFactory
+class JSProcessFactory final : public ProcessFactory
 {
     public:
         QString name() const override

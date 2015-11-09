@@ -44,6 +44,8 @@ class Process: public IdentifiedObject<Process>
             vis.writeTo(*this);
         }
 
+        virtual ~Process();
+
         virtual Process* clone(
                 const Id<Process>& newId,
                 QObject* newParent) const = 0;

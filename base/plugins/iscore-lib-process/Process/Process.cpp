@@ -13,6 +13,11 @@ Process::Process(
     metadata.setName(QString("Process.%1").arg(*this->id().val()));
 }
 
+Process::~Process()
+{
+
+}
+
 Process::Process(
         const Process& source,
         const Id<Process>& id,

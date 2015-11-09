@@ -11,6 +11,7 @@ class ProtocolSettingsWidget : public QWidget
     public:
         explicit ProtocolSettingsWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
+        virtual ~ProtocolSettingsWidget();
         virtual iscore::DeviceSettings getSettings() const = 0;
         virtual QString getPath() const
         {

@@ -13,6 +13,7 @@ class LayerModel: public IdentifiedObject<LayerModel>
 {
         ISCORE_METADATA("LayerModel")
     public:
+        virtual ~LayerModel();
         Process& processModel() const;
 
         virtual void serialize(const VisitorVariant&) const = 0;

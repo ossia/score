@@ -5,6 +5,7 @@ class LayerView : public QGraphicsObject
 {
     public:
         using QGraphicsObject::QGraphicsObject;
+        virtual ~LayerView();
 
         QRectF boundingRect() const final override;
         void paint(QPainter *painter,

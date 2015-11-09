@@ -14,6 +14,8 @@ class CurveProcessPanelProxy : public LayerModelPanelProxy
 
         }
 
+        virtual ~CurveProcessPanelProxy() = default;
+
         const LayerModel_T& layer() override
         { return m_viewModel; }
 
