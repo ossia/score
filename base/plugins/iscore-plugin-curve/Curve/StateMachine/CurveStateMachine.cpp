@@ -47,7 +47,7 @@ iscore::ObjectLocker& CurveStateMachine::locker() const
 void CurveStateMachine::setupStates()
 {
     m_transitionState = new QState{this};
-    m_selectTool = new Curve::SelectionTool(*this);
+    m_selectTool = new Curve::SelectionAndMoveTool(*this);
 
     m_createTool = new Curve::CreateTool(*this);
     m_moveTool = new Curve::MoveTool(*this);

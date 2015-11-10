@@ -38,7 +38,7 @@ ScenarioStateMachine::ScenarioStateMachine(
         createState = new CreationToolState{*this};
         createState->setParent(toolState);
 
-        selectState = new SelectionTool{*this};
+        selectState = new Scenario::SelectionAndMoveTool{*this};
         selectState->setParent(toolState);
         toolState->setInitialState(selectState);
 

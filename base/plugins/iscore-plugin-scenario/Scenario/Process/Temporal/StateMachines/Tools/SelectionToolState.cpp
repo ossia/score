@@ -38,7 +38,9 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/SlotTransitions.hpp>
 
-SelectionTool::SelectionTool(ScenarioStateMachine& sm):
+namespace Scenario
+{
+SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
     ScenarioTool{sm, &sm}
 {
     this->setObjectName("SelectionTool");
@@ -128,7 +130,7 @@ SelectionTool::SelectionTool(ScenarioStateMachine& sm):
 }
 
 
-void SelectionTool::on_pressed()
+void SelectionAndMoveTool::on_pressed()
 {
     using namespace std;
     m_prev = std::chrono::steady_clock::now();
@@ -166,7 +168,7 @@ void SelectionTool::on_pressed()
     });
 }
 
-void SelectionTool::on_moved()
+void SelectionAndMoveTool::on_moved()
 {
     // TODO same on creation tool
     auto t = std::chrono::steady_clock::now();
@@ -199,7 +201,7 @@ void SelectionTool::on_moved()
     m_prev = t;
 }
 
-void SelectionTool::on_released()
+void SelectionAndMoveTool::on_released()
 {
     if(m_nothingPressed)
     {
@@ -261,5 +263,5 @@ void SelectionTool::on_released()
     } );
 
 }
-
+}
 

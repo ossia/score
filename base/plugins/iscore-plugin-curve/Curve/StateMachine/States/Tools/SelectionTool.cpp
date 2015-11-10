@@ -141,7 +141,7 @@ class SelectionState : public CommonSelectionState
         }
 };
 
-SelectionTool::SelectionTool(CurveStateMachine& sm):
+SelectionAndMoveTool::SelectionAndMoveTool(CurveStateMachine& sm):
     CurveTool{sm, &sm}
 {
     m_state = new Curve::SelectionState{
@@ -155,18 +155,18 @@ SelectionTool::SelectionTool(CurveStateMachine& sm):
     localSM().start();
 }
 
-void SelectionTool::on_pressed()
+void SelectionAndMoveTool::on_pressed()
 {
     using namespace std;
     localSM().postEvent(new Press_Event);
 }
 
-void SelectionTool::on_moved()
+void SelectionAndMoveTool::on_moved()
 {
     localSM().postEvent(new Move_Event);
 }
 
-void SelectionTool::on_released()
+void SelectionAndMoveTool::on_released()
 {
     localSM().postEvent(new Release_Event);
 }

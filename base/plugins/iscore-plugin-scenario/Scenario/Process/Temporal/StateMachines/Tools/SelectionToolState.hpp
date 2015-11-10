@@ -8,10 +8,13 @@ class MoveConstraintState;
 class MoveEventState;
 class MoveTimeNodeState;
 
-class SelectionTool final : public ScenarioTool
+// TODO rename file.
+namespace Scenario
+{
+class SelectionAndMoveTool final : public ScenarioTool
 {
     public:
-        SelectionTool(ScenarioStateMachine& sm);
+        SelectionAndMoveTool(ScenarioStateMachine& sm);
 
         void on_pressed() override;
         void on_moved() override;
@@ -25,3 +28,4 @@ class SelectionTool final : public ScenarioTool
 
         bool m_nothingPressed{true};
 };
+}
