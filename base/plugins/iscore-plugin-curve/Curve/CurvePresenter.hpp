@@ -76,12 +76,13 @@ class CurvePresenter : public QObject
                 const QPoint&,
                 const QPointF&);
 
+        void removeSelection();
+
     signals:
         void contextMenuRequested(const QPoint&, const QPointF&);
 
     private:
         // Context menu actions
-        void removeSelection();
         void updateSegmentsType(const QString& segment);
 
         // Setup utilities

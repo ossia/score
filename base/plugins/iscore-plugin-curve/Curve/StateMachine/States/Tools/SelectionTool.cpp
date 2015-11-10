@@ -80,12 +80,12 @@ class SelectionState : public CommonSelectionState
 
         void on_delete() override
         {
-            qDebug() << "1";
+            m_parentSM.presenter().removeSelection();
         }
 
         void on_deleteContent() override
         {
-            qDebug() << "2";
+            m_parentSM.presenter().removeSelection();
         }
 
     private:
