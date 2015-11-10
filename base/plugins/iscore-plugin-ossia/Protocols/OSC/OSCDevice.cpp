@@ -4,13 +4,7 @@
 #include <OSSIA2iscore.hpp>
 
 OSCDevice::OSCDevice(const iscore::DeviceSettings &settings):
-    OSSIADevice{settings},
-    m_oscSettings{[&] () {
-    auto stgs = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
-    return OSSIA::OSC::create(stgs.host.toStdString(),
-                              stgs.inputPort,
-                              stgs.outputPort);
-}()}
+    OSSIADevice{settings}
 {
     using namespace OSSIA;
 
@@ -22,7 +16,11 @@ bool OSCDevice::reconnect()
     m_dev.reset();
 
     try {
-        m_dev = OSSIA::Device::create(m_oscSettings, settings().name.toStdString());
+        auto stgs = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
+        auto ossia_settings = OSSIA::OSC::create(stgs.host.toStdString(),
+                                      stgs.inputPort,
+                                      stgs.outputPort);
+        m_dev = OSSIA::Device::create(ossia_settings, settings().name.toStdString());
     }
     catch(...)
     {
@@ -30,13 +28,4 @@ bool OSCDevice::reconnect()
     }
 
     return connected();
-}
-
-void OSCDevice::updateOSSIASettings()
-{
-    auto stgs = settings().deviceSpecificSettings.value<OSCSpecificSettings>();
-    auto prot = dynamic_cast<OSSIA::OSC*>(m_oscSettings.get());
-    prot->setInPort(stgs.inputPort);
-    prot->setOutPort(stgs.outputPort);
-    prot->setIp(stgs.host.toStdString());
 }

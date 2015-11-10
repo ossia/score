@@ -26,22 +26,20 @@ void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
     if(connected())
     {
         // First we save the existing nodes.
-        iscore::Node iscore_device;
-        iscore_device.children().reserve(m_dev->children().size());
+        iscore::Node iscore_device{settings(), nullptr};
 
         // Recurse on the children
         auto& ossia_children = m_dev->children();
-        iscore_device.children().reserve(ossia_children.size());
+        iscore_device.reserve(ossia_children.size());
         for(const auto& node : ossia_children)
         {
-            iscore_device.children().push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
+            iscore_device.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
         }
 
         // We change the settings safely
         disconnect();
 
         m_settings = newsettings;
-        updateOSSIASettings();
 
         if(reconnect())
         {
@@ -56,12 +54,13 @@ void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
     {
         // We're already disconnected
         m_settings = newsettings;
-        updateOSSIASettings();
     }
 }
 
 void OSSIADevice::disconnect()
 {
+    m_callbacks.clear();
+
     m_dev.reset();
 }
 
@@ -125,7 +124,7 @@ iscore::Node OSSIADevice::refresh()
 
         // Recurse on the children
         auto& children = m_dev->children();
-        device_node.children().reserve(children.size());
+        device_node.reserve(children.size());
         for(const auto& node : children)
         {
             device_node.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));

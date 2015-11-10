@@ -5,14 +5,8 @@ MIDIDevice::MIDIDevice(const iscore::DeviceSettings &settings):
     OSSIADevice{settings}
 {
     using namespace OSSIA;
-    //auto stgs = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+
     reconnect();
-}
-
-
-void MIDIDevice::updateOSSIASettings()
-{
-    ISCORE_TODO;
 }
 
 bool MIDIDevice::reconnect()

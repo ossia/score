@@ -9,15 +9,9 @@ using namespace iscore::convert;
 using namespace OSSIA::convert;
 
 MinuitDevice::MinuitDevice(const iscore::DeviceSettings &settings):
-    OSSIADevice{settings},
-    m_minuitSettings{[&] () {
-    auto stgs = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-    return OSSIA::Minuit::create(stgs.host.toStdString(),
-                                 stgs.inputPort,
-                                 stgs.outputPort);
-}()
-}
+    OSSIADevice{settings}
 {
+
     reconnect();
 }
 
@@ -26,7 +20,13 @@ bool MinuitDevice::reconnect()
     m_dev.reset();
 
     try {
-        m_dev = OSSIA::Device::create(m_minuitSettings, settings().name.toStdString());
+        auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
+        auto ossia_settings = OSSIA::Minuit::create(
+                               stgs.host.toStdString(),
+                               stgs.inputPort,
+                               stgs.outputPort);
+
+        m_dev = OSSIA::Device::create(ossia_settings, settings().name.toStdString());
     }
     catch(...)
     {
@@ -34,16 +34,6 @@ bool MinuitDevice::reconnect()
     }
 
     return connected();
-}
-
-void MinuitDevice::updateOSSIASettings()
-{
-    auto stgs = settings().deviceSpecificSettings.value<MinuitSpecificSettings>();
-
-    auto prot = dynamic_cast<OSSIA::Minuit*>(m_minuitSettings.get());
-    prot->setInPort(stgs.inputPort);
-    prot->setOutPort(stgs.outputPort);
-    prot->setIp(stgs.host.toStdString());
 }
 
 bool MinuitDevice::canRefresh() const

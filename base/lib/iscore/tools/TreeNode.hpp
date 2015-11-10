@@ -171,8 +171,8 @@ class TreeNode : public DataType
 
         const auto& children() const
         { return m_children;  }
-        auto& children()
-        { return m_children;  }
+        void reserve(std::size_t s)
+        { m_children.reserve(s); }
 
         void swapChildren(int oldIndex, int newIndex)
         {

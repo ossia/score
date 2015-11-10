@@ -38,8 +38,6 @@ class OSSIADevice : public DeviceInterface
         std::shared_ptr<OSSIA::Device> impl_ptr() const
         { return m_dev; }
 
-        virtual void updateOSSIASettings() = 0;
-
     protected:
         using DeviceInterface::DeviceInterface;
 

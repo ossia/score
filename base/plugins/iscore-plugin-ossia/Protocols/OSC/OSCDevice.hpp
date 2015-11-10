@@ -9,9 +9,4 @@ class OSCDevice final : public OSSIADevice
         OSCDevice(const iscore::DeviceSettings& stngs);
 
         bool reconnect() override;
-
-        void updateOSSIASettings() override;
-
-    private:
-        std::shared_ptr<OSSIA::OSC> m_oscSettings;
 };
