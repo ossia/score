@@ -128,7 +128,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt)
 
 
         if(node.get<iscore::AddressSettings>().value.val.isNumeric()
-        && node.get<iscore::AddressSettings>().ioType == IOType::InOut)
+        && hasInput(node.get<iscore::AddressSettings>().ioType))
         {
             if(dev_it != m_recordListening.end())
             {

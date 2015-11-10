@@ -74,7 +74,7 @@ void messageList(const Node& n,
     {
         const auto& stgs = n.get<AddressSettings>();
 
-        if(stgs.ioType == IOType::InOut)
+        if(hasOutput(stgs.ioType))
         {
             ml.push_back(message(n));
         }
