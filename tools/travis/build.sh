@@ -15,7 +15,7 @@ then
       source /opt/qt55/bin/qt55-env.sh
       /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
 
-      if [[ "$DEPLOYMENT_BUILD" = "True" ]];
+      if [[ "$DEPLOYMENT" = "True" ]];
       then
         ninja package -j2
       else
