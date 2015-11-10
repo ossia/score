@@ -145,7 +145,7 @@ class CurveProcessPresenter : public LayerPresenter
                 if(sm.isRunning())
                 {
                     sm.stop();
-                    sm.setMoveState();
+                    sm.setSelectionState();
                 }
             }
         }

@@ -41,11 +41,6 @@ const Id<CurvePointModel>& CurvePointView::id() const
     return m_model->id();
 }
 
-int CurvePointView::type() const
-{
-    return QGraphicsItem::UserType + 10;
-}
-
 QRectF CurvePointView::boundingRect() const
 {
     return {-radius, -radius, 2 * radius, 2 * radius};

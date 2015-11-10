@@ -13,6 +13,9 @@ namespace iscore
  *
  * A generic state to handle traditional rectangular selection in a
  * QGraphicsScene.
+ *
+ * NOTE : the posted events must have the same id as Press / Move / Release event,
+ * e.g. PressOnNothing_Event, etc.
  */
 class CommonSelectionState : public QState
 {

@@ -21,13 +21,15 @@ void MovePointCommandObject::on_press()
 {
     // Save the start data.
     // Firts we take the exact position of the point we clicked.
-    auto clickedCurvePoint = *std::find_if(
+    auto clickedCurvePoint_it = std::find_if(
                                  m_presenter->model().points().begin(),
                                  m_presenter->model().points().end(),
                                  [&] (CurvePointModel* pt)
     { return pt->previous()  == m_state->clickedPointId.previous
           && pt->following() == m_state->clickedPointId.following; });
 
+    ISCORE_ASSERT(clickedCurvePoint_it != m_presenter->model().points().end());
+    auto clickedCurvePoint = *clickedCurvePoint_it;
     m_originalPress = clickedCurvePoint->pos();
 
     // Compute xmin, xmax

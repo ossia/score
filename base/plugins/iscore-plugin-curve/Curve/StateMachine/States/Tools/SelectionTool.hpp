@@ -5,17 +5,26 @@ class QState;
 
 namespace Curve
 {
+class OngoingState;
 class SelectionState;
 class SelectionAndMoveTool final : public CurveTool
 {
     public:
         explicit SelectionAndMoveTool(CurveStateMachine& sm);
 
-        void on_pressed() override;
-        void on_moved() override;
-        void on_released() override;
+    protected:
 
+        void on_pressed();
+
+        void on_moved();
+
+        void on_released();
     private:
         Curve::SelectionState* m_state{};
+        Curve::OngoingState* m_moveState{};
+
+        std::chrono::steady_clock::time_point m_prev;
+
+        bool m_nothingPressed = false;
 };
 }

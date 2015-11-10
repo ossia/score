@@ -12,6 +12,9 @@
 #include "Curve/Segment/CurveSegmentModel.hpp"
 #include "Curve/Segment/CurveSegmentView.hpp"
 
+#include "Curve/StateMachine/OngoingState.hpp"
+#include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
+
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/SelectionStack.hpp>
@@ -22,6 +25,7 @@
 
 namespace Curve
 {
+// TODO MOVEME
 class SelectionState : public CommonSelectionState
 {
     private:
@@ -51,21 +55,16 @@ class SelectionState : public CommonSelectionState
         void on_pressAreaSelection() override
         {
             m_initialPoint = m_parentSM.scenePoint;
-
-            auto item = m_parentSM.scene().itemAt(m_parentSM.scenePoint, QTransform());
-            if(!item)
-                return;
-
-            setSelection(item);
         }
 
         void on_moveAreaSelection() override
         {
             m_movePoint = m_parentSM.scenePoint;
-            m_view.setSelectionArea(
-                        QRectF{m_view.mapFromScene(m_initialPoint),
-                               m_view.mapFromScene(m_movePoint)}.normalized());
-            setSelectionArea(QRectF{m_initialPoint, m_movePoint}.normalized());
+            auto rect = QRectF{m_view.mapFromScene(m_initialPoint),
+                               m_view.mapFromScene(m_movePoint)}.normalized();
+
+            m_view.setSelectionArea(rect);
+            setSelectionArea(rect);
         }
 
         void on_releaseAreaSelection() override
@@ -81,57 +80,33 @@ class SelectionState : public CommonSelectionState
 
         void on_delete() override
         {
+            qDebug() << "1";
         }
 
         void on_deleteContent() override
         {
+            qDebug() << "2";
         }
 
     private:
-        void setSelection(QGraphicsItem* item)
-        {
-            Selection sel;
-            switch(item->type())
-            {
-                case QGraphicsItem::UserType + 10:
-                    sel = filterSelections(&safe_cast<CurvePointView*>(item)->model(),
-                                           m_parentSM.model().selectedChildren(),
-                                           multiSelection());
-                    break;
-                case QGraphicsItem::UserType + 11:
-                    sel = filterSelections(&safe_cast<CurveSegmentView*>(item)->model(),
-                                           m_parentSM.model().selectedChildren(),
-                                           multiSelection());
-                    break;
-                default:
-                    // deselect ?
-                    break;
-            }
-
-            dispatcher.setAndCommit(sel);
-        }
-
-        void setSelectionArea(const QRectF& area)
+        void setSelectionArea(QRectF scene_area)
         {
             using namespace std;
-            QPainterPath path;
-            path.addRect(area);
             Selection sel;
 
-            auto items = m_parentSM.scene().items(path);
-
-            for (const auto& item : items)
+            for(const auto& point : m_parentSM.presenter().points())
             {
-                switch(item->type())
+                if(point.shape().translated(point.pos()).intersects(scene_area))
                 {
-                    case QGraphicsItem::UserType + 10:
-                        sel.append(&safe_cast<CurvePointView*>(item)->model());
-                        break;
-                    case QGraphicsItem::UserType + 11:
-                        sel.append(&safe_cast<CurveSegmentView*>(item)->model());
-                        break;
-                    default:
-                        break;
+                    sel.append(&point.model());
+                }
+            }
+
+            for(const auto& segment : m_parentSM.presenter().segments())
+            {
+                if(segment.shape().translated(segment.pos()).intersects(scene_area))
+                {
+                    sel.append(&segment.model());
                 }
             }
 
@@ -152,23 +127,113 @@ SelectionAndMoveTool::SelectionAndMoveTool(CurveStateMachine& sm):
 
     localSM().setInitialState(m_state);
 
+    {
+        auto co = new MovePointCommandObject(&sm.presenter(), sm.commandStack());
+        m_moveState = new Curve::OngoingState{*co, nullptr};
+
+        m_moveState->setObjectName("MovePointState");
+
+        make_transition<ClickOnPoint_Transition>(m_state,
+                                                 m_moveState,
+                                                 *m_moveState);
+
+        m_moveState->addTransition(m_moveState,
+                                  SIGNAL(finished()),
+                                  m_state);
+
+        localSM().addState(m_moveState);
+    }
+
     localSM().start();
 }
 
 void SelectionAndMoveTool::on_pressed()
 {
-    using namespace std;
-    localSM().postEvent(new Press_Event);
+    m_prev = std::chrono::steady_clock::now();
+    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+               [&] (const CurvePointView* point)
+    {
+        localSM().postEvent(new ClickOnPoint_Event(m_parentSM.curvePoint, point));
+        m_nothingPressed = false;
+    },
+    [&] (const CurveSegmentView* segment)
+    {
+        localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
+        m_nothingPressed = false;
+    },
+    [&] ()
+    {
+        localSM().postEvent(new Press_Event);
+        m_nothingPressed = true;
+    });
 }
 
 void SelectionAndMoveTool::on_moved()
 {
-    localSM().postEvent(new Move_Event);
+    auto t = std::chrono::steady_clock::now();
+    if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
+    {
+        return;
+    }
+
+    if (m_nothingPressed)
+    {
+        localSM().postEvent(new Move_Event);
+    }
+    else
+    {
+        mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+                   [&] (const CurvePointView* point)
+        {
+            localSM().postEvent(new MoveOnPoint_Event(m_parentSM.curvePoint, point));
+        },
+        [&] (const CurveSegmentView* segment)
+        {
+            localSM().postEvent(new MoveOnSegment_Event(m_parentSM.curvePoint, segment));
+        },
+        [&] ()
+        {
+            localSM().postEvent(new MoveOnNothing_Event(m_parentSM.curvePoint, nullptr));
+        });
+    }
+    m_prev = t;
 }
 
 void SelectionAndMoveTool::on_released()
 {
-    localSM().postEvent(new Release_Event);
+    if(m_nothingPressed)
+    {
+        localSM().postEvent(new Release_Event); // select
+        m_nothingPressed = false;
+
+        return;
+    }
+
+    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+               [&] (const CurvePointView* point)
+    {
+        m_state->dispatcher.setAndCommit(
+                    filterSelections(&point->model(),
+                                     m_parentSM.model().selectedChildren(),
+                                     m_state->multiSelection()));
+
+
+        localSM().postEvent(new ReleaseOnPoint_Event(m_parentSM.curvePoint, point));
+    },
+    [&] (const CurveSegmentView* segment)
+    {
+        m_state->dispatcher.setAndCommit(
+                    filterSelections(&segment->model(),
+                                     m_parentSM.model().selectedChildren(),
+                                     m_state->multiSelection()));
+
+        localSM().postEvent(new ReleaseOnSegment_Event(m_parentSM.curvePoint, segment));
+    },
+    [&] ()
+    {
+        localSM().postEvent(new ReleaseOnNothing_Event(m_parentSM.curvePoint, nullptr));
+    });
 }
+
 
 }

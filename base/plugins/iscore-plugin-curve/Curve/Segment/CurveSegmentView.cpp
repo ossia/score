@@ -5,6 +5,14 @@
 #include <Curve/CurveStyle.hpp>
 
 #include <QCursor>
+
+static const QPainterPathStroker CurveSegmentStroker{
+    [] () {
+        QPen p;
+        p.setWidth(3);
+        return p;
+    }()
+};
 CurveSegmentView::CurveSegmentView(
         const CurveSegmentModel* model,
         const CurveStyle& style,
@@ -36,11 +44,6 @@ const Id<CurveSegmentModel>& CurveSegmentView::id() const
     return m_model->id();
 }
 
-int CurveSegmentView::type() const
-{
-    return QGraphicsItem::UserType + 11;
-}
-
 void CurveSegmentView::setRect(const QRectF& theRect)
 {
     prepareGeometryChange();
@@ -67,7 +70,9 @@ void CurveSegmentView::paint(
                     : m_style.SegmentDisabled);
 
     painter->setPen(pen);
-    painter->drawPath(m_unstrockedShape);
+    painter->drawPath(m_unstrokedShape);
+
+    //painter->fillPath(m_strokedShape, QBrush{Qt::blue});
 }
 
 
@@ -110,24 +115,23 @@ void CurveSegmentView::updatePoints()
                 first.x() * scalex - startx,
                 (1. - first.y()) * m_rect.height()};
 
-        m_unstrockedShape = QPainterPath{first_scaled};
+        m_unstrokedShape = QPainterPath{first_scaled};
         for(std::size_t i = 1; i < pts.size(); i++)
         {
             auto next = pts.at(i);
-            m_unstrockedShape.lineTo(QPointF{
+            m_unstrokedShape.lineTo(QPointF{
                                          next.x() * scalex - startx,
                                          (1. - next.y()) * m_rect.height()});
         }
     }
 
+    m_strokedShape = CurveSegmentStroker.createStroke(m_unstrokedShape);
+
     update();
 }
 
 
-QPainterPath CurveSegmentView::shape() const
-{
-    return m_unstrockedShape;
-}
+
 
 void CurveSegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {

@@ -6,7 +6,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 class ScenarioStateMachine;
-
+// TODO rename in MoveConstraint_State for hmoegeneity with ClickOnConstraint_Transition,  etc.
 class MoveConstraintState final : public ScenarioStateBase
 {
     public:

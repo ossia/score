@@ -13,9 +13,28 @@ class CurveSegmentView final : public QGraphicsObject
                 QGraphicsItem* parent);
 
         const Id<CurveSegmentModel>& id() const;
-        int type() const override;
+
+        int type() const override
+        { return QGraphicsItem::UserType + 11; }
+
+
         QRectF boundingRect() const override;
-        QPainterPath shape() const override;
+
+        QPainterPath shape() const override
+        {
+            return m_strokedShape;
+        }
+
+        QPainterPath opaqueArea() const override
+        {
+            return m_strokedShape;
+        }
+
+        bool contains(const QPointF& pt) const override
+        {
+            return m_strokedShape.contains(pt);
+        }
+
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
         void setModel(const CurveSegmentModel*);
@@ -45,7 +64,8 @@ class CurveSegmentView final : public QGraphicsObject
         const CurveStyle& m_style;
         bool m_selected{};
 
-        QPainterPath m_unstrockedShape;
+        QPainterPath m_unstrokedShape;
+        QPainterPath m_strokedShape;
 
         bool m_enabled{true};
 };

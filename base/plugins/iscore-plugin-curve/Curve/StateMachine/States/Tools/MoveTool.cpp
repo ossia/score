@@ -1,27 +1,34 @@
 #include "MoveTool.hpp"
 #include "Curve/CurveModel.hpp"
 #include "Curve/StateMachine/OngoingState.hpp"
+#include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <QSignalTransition>
-#include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
 #include "Curve/StateMachine/CommandObjects/CreatePointCommandObject.hpp"
 #include "Curve/StateMachine/CommandObjects/SetSegmentParametersCommandObject.hpp"
-using namespace Curve;
-EditionTool::EditionTool(CurveStateMachine& sm):
+
+namespace Curve
+{
+
+
+
+
+
+EditionToolForCreate::EditionToolForCreate(CurveStateMachine& sm):
     CurveTool{sm, &sm}
 {
 }
 
-void EditionTool::on_pressed()
+void EditionToolForCreate::on_pressed()
 {
     m_prev = std::chrono::steady_clock::now();
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-               [&] (const QGraphicsItem* point)
+               [&] (const CurvePointView* point)
     {
         localSM().postEvent(new ClickOnPoint_Event(m_parentSM.curvePoint, point));
     },
-    [&] (const QGraphicsItem* segment)
+    [&] (const CurveSegmentView* segment)
     {
         localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
     },
@@ -31,7 +38,7 @@ void EditionTool::on_pressed()
     });
 }
 
-void EditionTool::on_moved()
+void EditionToolForCreate::on_moved()
 {
     auto t = std::chrono::steady_clock::now();
     if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
@@ -40,11 +47,11 @@ void EditionTool::on_moved()
     }
 
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-               [&] (const QGraphicsItem* point)
+               [&] (const CurvePointView* point)
     {
         localSM().postEvent(new MoveOnPoint_Event(m_parentSM.curvePoint, point));
     },
-    [&] (const QGraphicsItem* segment)
+    [&] (const CurveSegmentView* segment)
     {
         localSM().postEvent(new MoveOnSegment_Event(m_parentSM.curvePoint, segment));
     },
@@ -56,14 +63,14 @@ void EditionTool::on_moved()
     m_prev = t;
 }
 
-void EditionTool::on_released()
+void EditionToolForCreate::on_released()
 {
     mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
-               [&] (const QGraphicsItem* point)
+               [&] (const CurvePointView* point)
     {
         localSM().postEvent(new ReleaseOnPoint_Event(m_parentSM.curvePoint, point));
     },
-    [&] (const QGraphicsItem* segment)
+    [&] (const CurveSegmentView* segment)
     {
         localSM().postEvent(new ReleaseOnSegment_Event(m_parentSM.curvePoint, segment));
     },
@@ -74,27 +81,8 @@ void EditionTool::on_released()
 }
 
 
-MoveTool::MoveTool(CurveStateMachine &sm):
-    EditionTool{sm}
-{
-    QState* waitState = new QState{&localSM()};
-
-    auto co = new MovePointCommandObject(&sm.presenter(), sm.commandStack());
-    auto state = new OngoingState(*co, &localSM());
-    state->setObjectName("MovePointState");
-    make_transition<ClickOnPoint_Transition>(waitState, state, *state);
-    state->addTransition(state, SIGNAL(finished()), waitState);
-
-    localSM().setObjectName("MoveToolSM");
-
-    localSM().setInitialState(waitState);
-
-    localSM().start();
-}
-
-
 SetSegmentTool::SetSegmentTool(CurveStateMachine &sm):
-    EditionTool{sm}
+    EditionToolForCreate{sm}
 {
     QState* waitState = new QState{&localSM()};
 
@@ -111,7 +99,7 @@ SetSegmentTool::SetSegmentTool(CurveStateMachine &sm):
 
 
 CreateTool::CreateTool(CurveStateMachine &sm):
-    EditionTool{sm}
+    EditionToolForCreate{sm}
 {
     this->setObjectName("CreateTool");
     localSM().setObjectName("CreateToolLocalSM");
@@ -128,4 +116,6 @@ CreateTool::CreateTool(CurveStateMachine &sm):
     localSM().setInitialState(waitState);
 
     localSM().start();
+}
+
 }

@@ -43,7 +43,7 @@ namespace Scenario
 SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
     ScenarioTool{sm, &sm}
 {
-    this->setObjectName("SelectionTool");
+    this->setObjectName("SelectionAndMoveTool");
 
     m_state = new ScenarioSelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
@@ -255,7 +255,7 @@ void SelectionAndMoveTool::on_released()
     [&] (const SlotModel& slot) // Slot handle
     {
         localSM().postEvent(new Release_Event); // select
-        m_nothingPressed = false;
+        m_nothingPressed = false; // TODO useless ???
     },
     [&] ()
     {

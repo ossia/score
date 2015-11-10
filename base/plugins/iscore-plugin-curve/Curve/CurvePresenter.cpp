@@ -161,10 +161,6 @@ void CurvePresenter::setupView()
     // Setup the actions
     m_actions = new QActionGroup{this};
     m_actions->setExclusive(true);
-    auto moveact = new QAction{m_actions};
-    moveact->setCheckable(true);
-    moveact->setChecked(true);
-    m_actions->addAction(moveact);
 
     auto shiftact = new QAction{m_actions};
     shiftact->setCheckable(true);
@@ -176,12 +172,6 @@ void CurvePresenter::setupView()
 
     m_actions->setEnabled(true);
 
-    connect(moveact, &QAction::toggled, this, [&] (bool b) {
-        if(b)
-        {
-            m_sm->changeTool((int)Curve::Tool::Move);
-        }
-    });
     connect(shiftact, &QAction::toggled, this, [&] (bool b) {
         if(b)
         {
@@ -189,7 +179,7 @@ void CurvePresenter::setupView()
         }
         else
         {
-            m_sm->changeTool((int)Curve::Tool::Move);
+            m_sm->changeTool((int)Curve::Tool::Selection);
         }
     });
     connect(ctrlact, &QAction::toggled, this, [&] (bool b) {
@@ -199,15 +189,12 @@ void CurvePresenter::setupView()
         }
         else
         {
-            m_sm->changeTool((int)Curve::Tool::Move);
+            m_sm->changeTool((int)Curve::Tool::Selection);
         }
     });
 
     connect(m_view, &CurveView::keyPressed, this, [=] (int key)
     {
-        if(key == Qt::Key_L)
-            m_sm->changeTool(!m_sm->tool());
-
         if(key == Qt::Key_Shift)
         {
             shiftact->setChecked(true);
@@ -222,11 +209,13 @@ void CurvePresenter::setupView()
     {
         if(key == Qt::Key_Shift)
         {
-            moveact->setChecked(true);
+            shiftact->setChecked(false);
+            m_sm->changeTool((int)Curve::Tool::Selection);
         }
         if(key == Qt::Key_Control)
         {
-            moveact->setChecked(true);
+            ctrlact->setChecked(false);
+            m_sm->changeTool((int)Curve::Tool::Selection);
         }
     });
 
@@ -242,17 +231,6 @@ void CurvePresenter::fillContextMenu(
         const QPointF& scenepos)
 {
     menu->addSeparator();
-    auto selectAct = new QAction{tr("Select"), this};
-
-    selectAct->setCheckable(true);
-    selectAct->setChecked(false); // TODO setChecked selection mode
-    connect(selectAct, &QAction::toggled, this,
-            [&] (bool b) {
-        if(b)
-            m_sm->changeTool(int(Curve::Tool::Selection));
-        else
-            m_sm->changeTool(int(Curve::Tool::Move));
-    });
 
     auto removeAct = new QAction{tr("Remove"), this};
     connect(removeAct, &QAction::triggered,
@@ -283,7 +261,6 @@ void CurvePresenter::fillContextMenu(
     suppressAction->setCheckable(true);
     suppressAction->setChecked(m_suppressOnOverlap);
 
-    menu->addAction(selectAct);
     menu->addAction(removeAct);
     menu->addAction(lockAction);
     menu->addAction(suppressAction);
