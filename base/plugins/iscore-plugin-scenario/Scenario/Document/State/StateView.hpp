@@ -32,11 +32,11 @@ class StateView final : public QGraphicsObject
         void dropReceived(const QMimeData*);
 
     protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
-        virtual void dropEvent(QGraphicsSceneDragDropEvent *event) override;
+        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
     private:
         StatePresenter& m_presenter;
 
