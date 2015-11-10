@@ -28,7 +28,7 @@ namespace iscore
 class CommandFactory_QtInterface
 {
     public:
-        virtual ~CommandFactory_QtInterface() = default;
+        virtual ~CommandFactory_QtInterface();
 
         virtual std::pair<const std::string, CommandGeneratorMap> make_commands() = 0;
 };

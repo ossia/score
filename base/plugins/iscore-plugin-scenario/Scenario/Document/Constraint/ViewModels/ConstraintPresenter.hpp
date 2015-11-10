@@ -31,7 +31,7 @@ class ConstraintPresenter : public NamedObject
                 ConstraintView* view,
                 ConstraintHeader* header,
                 QObject* parent);
-        virtual ~ConstraintPresenter() = default;
+        virtual ~ConstraintPresenter();
         virtual void updateScaling();
 
         bool isSelected() const;

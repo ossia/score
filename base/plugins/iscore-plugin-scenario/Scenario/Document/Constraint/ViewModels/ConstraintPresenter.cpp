@@ -97,6 +97,11 @@ ConstraintPresenter::ConstraintPresenter(
     }
 }
 
+ConstraintPresenter::~ConstraintPresenter()
+{
+
+}
+
 void ConstraintPresenter::updateScaling()
 {
     const auto& cm = m_viewModel.model();

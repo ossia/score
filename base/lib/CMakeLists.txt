@@ -25,6 +25,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelListSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/AggregateCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Command.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandGeneratorMap.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/SerializableCommand.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
