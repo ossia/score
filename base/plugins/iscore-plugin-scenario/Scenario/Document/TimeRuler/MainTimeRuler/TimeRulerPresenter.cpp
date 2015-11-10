@@ -12,3 +12,8 @@ TimeRulerPresenter::~TimeRulerPresenter()
 {
 
 }
+
+TimeRulerView* TimeRulerPresenter::view()
+{
+    return static_cast<TimeRulerView*>(m_view);
+}

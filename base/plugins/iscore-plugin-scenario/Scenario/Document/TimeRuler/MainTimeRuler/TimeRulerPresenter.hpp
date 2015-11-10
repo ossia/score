@@ -12,4 +12,6 @@ class TimeRulerPresenter final : public AbstractTimeRuler
         explicit TimeRulerPresenter(TimeRulerView* view, QObject *parent = 0);
         ~TimeRulerPresenter();
 
+        TimeRulerView* view();
+
 };

@@ -67,6 +67,12 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::focusMe,
             this,    [&] () { view()->view()->setFocus(); });
 
+    connect(m_mainTimeRuler->view(), &TimeRulerView::drag,
+            this, [&] (QPointF click, QPointF current) {
+
+        on_zoomOnWheelEvent((current - click).toPoint(), current);
+
+    });
     // Setup of the state machine.
     m_stateMachine = new BaseScenarioStateMachine{this};
 

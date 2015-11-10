@@ -20,6 +20,7 @@ class AbstractTimeRuler : public QObject
         const QVector<QPair<double, TimeValue>>& graduationsSpacing() const;
 
     signals:
+        void drag(QPointF origin, QPointF current);
 
     public slots:
         virtual void setStartPoint(TimeValue dur);

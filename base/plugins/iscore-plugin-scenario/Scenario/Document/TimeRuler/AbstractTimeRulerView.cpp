@@ -3,6 +3,7 @@
 #include <cmath>
 #include <QPainter>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <Scenario/Document/TimeRuler/AbstractTimeRuler.hpp>
 
 
@@ -66,6 +67,11 @@ void AbstractTimeRulerView::setFormat(QString format)
     m_timeFormat = format;
 }
 
+void AbstractTimeRulerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
+{
+    ev->accept();
+}
+
 void AbstractTimeRulerView::createRulerPath()
 {
     m_marks.clear();
@@ -117,3 +123,14 @@ void AbstractTimeRulerView::createRulerPath()
 }
 
 
+
+void AbstractTimeRulerView::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
+{
+    emit drag(ev->buttonDownScenePos(Qt::LeftButton), ev->scenePos());
+    ev->accept();
+}
+
+void AbstractTimeRulerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+{
+    ev->accept();
+}

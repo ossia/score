@@ -10,10 +10,4 @@ class TimeRulerView final : public AbstractTimeRulerView
         TimeRulerView();
         QRectF boundingRect() const override;
 
-    signals:
-
-    public slots:
-
-    private:
-
 };

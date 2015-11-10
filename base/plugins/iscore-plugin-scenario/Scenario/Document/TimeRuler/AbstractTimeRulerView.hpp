@@ -6,6 +6,7 @@ class QPainterPath;
 class AbstractTimeRuler;
 class AbstractTimeRulerView : public QGraphicsObject
 {
+        Q_OBJECT
         AbstractTimeRuler* m_pres{};
     public:
         AbstractTimeRulerView();
@@ -24,11 +25,18 @@ class AbstractTimeRulerView : public QGraphicsObject
             return m_width;
         }
 
+    signals:
+        void drag(QPointF, QPointF);
+
     public slots:
         void setGraduationsStyle(double size, int delta, QString format, int mark);
         void setFormat(QString);
 
+
     protected:
+        void mousePressEvent(QGraphicsSceneMouseEvent*) final override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent*) final override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent*) final override;
         void createRulerPath();
 
         qreal m_height {};
