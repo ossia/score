@@ -95,6 +95,10 @@ BaseElementView::BaseElementView(QObject* parent) :
         if(auto trsprt = dynamic_cast<TransportActions*>(action))
         {
             trsprt->populateToolBar(transportButtons);
+            for(auto act : trsprt->actions())
+            {
+                m_view->addAction(act);
+            }
             break;
         }
     }

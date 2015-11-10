@@ -8,7 +8,7 @@ namespace iscore
     class PanelFactory_QtInterface
     {
         public:
-            virtual ~PanelFactory_QtInterface() = default;
+            virtual ~PanelFactory_QtInterface();
 
             virtual QList<PanelFactory*> panels() = 0;
     };

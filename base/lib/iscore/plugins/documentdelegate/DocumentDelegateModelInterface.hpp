@@ -8,6 +8,7 @@ namespace iscore
             Q_OBJECT
         public:
             using IdentifiedObject::IdentifiedObject;
+            virtual ~DocumentDelegateModelInterface();
 
             virtual void serialize(const VisitorVariant&) const = 0;
 

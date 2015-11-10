@@ -6,7 +6,7 @@
 
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <unordered_map>
-
+#include <QTimer>
 
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
     RedoStrategy::Quiet,

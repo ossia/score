@@ -40,6 +40,8 @@ namespace iscore
             {
             }
 
+            virtual ~AggregateCommand();
+
             template<typename T, typename... Args>
             AggregateCommand(
                     const std::string& parname,

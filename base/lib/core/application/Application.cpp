@@ -101,7 +101,7 @@ Application::~Application()
 void Application::init()
 {
 #if !defined(ISCORE_DEBUG)
-    QPixmap logo{":/iscore.png"};
+    QPixmap logo{":/i-score.png"};
     QSplashScreen splash{logo, Qt::FramelessWindowHint};
     if(m_applicationSettings.gui)
         splash.show();

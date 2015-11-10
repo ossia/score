@@ -74,7 +74,7 @@ void messageList(const Node& n,
     {
         const auto& stgs = n.get<AddressSettings>();
 
-        if(stgs.ioType == IOType::InOut)
+        if(hasOutput(stgs.ioType))
         {
             ml.push_back(message(n));
         }
@@ -115,14 +115,13 @@ void merge(
     ptr<Node> node = &base;
     for(int i = 0; i < path.size(); i++)
     {
-        auto& children = node->children();
         auto it = std::find_if(
-                    children.begin(), children.end(),
+                    node->begin(), node->end(),
                     [&] (const auto& cur_node) {
             return cur_node.displayName() == path[i];
         });
 
-        if(it == children.end())
+        if(it == node->end())
         {
             // We have to start adding sub-nodes from here.
             ptr<Node> parentnode{node};

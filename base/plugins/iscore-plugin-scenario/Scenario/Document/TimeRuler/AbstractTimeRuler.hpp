@@ -10,7 +10,7 @@ class AbstractTimeRuler : public QObject
         Q_OBJECT
     public:
         explicit AbstractTimeRuler(AbstractTimeRulerView* view, QObject *parent = 0);
-        virtual ~AbstractTimeRuler() = default;
+        virtual ~AbstractTimeRuler();
 
         AbstractTimeRulerView* view() { return m_view; }
         int totalScroll() {return m_totalScroll;}

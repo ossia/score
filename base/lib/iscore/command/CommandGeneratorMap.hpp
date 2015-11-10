@@ -30,7 +30,7 @@
 class CommandFactory
 {
     public:
-        virtual ~CommandFactory() = default;
+        virtual ~CommandFactory();
         virtual iscore::SerializableCommand* operator()(const QByteArray& data) const = 0;
 };
 

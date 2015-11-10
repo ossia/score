@@ -4,6 +4,7 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QSettings>
+#include <QFile>
 
 #include "DeviceExplorerModel.hpp"
 #include "DeviceExplorerFilterProxyModel.hpp"

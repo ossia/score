@@ -4,8 +4,8 @@
 
 struct OSCSpecificSettings
 {
-    int outputPort{};
     int inputPort{};
+    int outputPort{};
     QString host;
 };
 Q_DECLARE_METATYPE(OSCSpecificSettings)

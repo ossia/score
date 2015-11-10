@@ -14,6 +14,8 @@ namespace iscore
             PanelPresenter(Presenter* parent_presenter,
                                     PanelView* view);
 
+            virtual ~PanelPresenter();
+
             virtual int panelId() const = 0;
 
             void setModel(PanelModel* model);

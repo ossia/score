@@ -3,6 +3,9 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+
 ConstraintViewModel& AbstractScenarioLayerModel::constraint(
         const Id<ConstraintViewModel>& id) const
 {
@@ -77,8 +80,6 @@ ConstraintViewModel& AbstractScenarioLayerModel::constraint(
     return **it;
 }
 
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 void createConstraintViewModels(const ConstraintViewModelIdMap& idMap,
                                 const Id<ConstraintModel>& constraintId,
                                 const ScenarioModel& scenario)

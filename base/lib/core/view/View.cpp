@@ -10,6 +10,9 @@
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
+#include <QCloseEvent>
+#include <core/presenter/Presenter.hpp>
+
 using namespace iscore;
 
 View::View(QObject* parent) :
@@ -119,8 +122,6 @@ void View::closeDocument(DocumentView *doc)
     }
 }
 
-#include <QCloseEvent>
-#include <core/presenter/Presenter.hpp>
 void iscore::View::closeEvent(QCloseEvent* ev)
 {
     if(m_presenter->exit())

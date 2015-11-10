@@ -61,7 +61,7 @@ class CurveProcessPresenter : public LayerPresenter
             parentGeometryChanged();
         }
 
-        ~CurveProcessPresenter()
+        virtual ~CurveProcessPresenter()
         {
             deleteGraphicsObject(m_view);
         }

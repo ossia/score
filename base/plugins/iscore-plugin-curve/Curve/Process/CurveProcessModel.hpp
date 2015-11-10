@@ -12,6 +12,8 @@ class CurveProcessModel : public Process
         CurveModel& curve() const
         { return *m_curve; }
 
+        virtual ~CurveProcessModel();
+
 
         void startExecution() final override
         {

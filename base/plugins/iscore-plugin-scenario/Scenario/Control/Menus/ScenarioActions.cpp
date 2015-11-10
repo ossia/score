@@ -8,6 +8,11 @@ ScenarioActions::ScenarioActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
 
 }
 
+ScenarioActions::~ScenarioActions()
+{
+
+}
+
 QList<QAction*> ScenarioActions::actions() const
 {
     return {};

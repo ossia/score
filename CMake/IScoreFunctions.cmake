@@ -1,7 +1,8 @@
-function(iscore_cotire TheTarget)
+function(iscore_cotire_pre TheTarget)
 if(ISCORE_COTIRE)
     set_property(TARGET ${TheTarget} PROPERTY CXX_STANDARD 14)
     set_property(TARGET ${TheTarget} PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_SOURCE_DIR}/base/lib/iscore/prefix.hpp")
+    set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
     endif()
@@ -9,11 +10,14 @@ if(ISCORE_COTIRE)
     # FIXME on windows
     set_target_properties(${TheTarget} PROPERTIES
                           COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
-
-   cotire(${TheTarget})
 endif()
 endfunction()
 
+function(iscore_cotire_post TheTarget)
+if(ISCORE_COTIRE)
+   cotire(${TheTarget})
+endif()
+endfunction()
 
 ### Call at the beginning of a plug-in cmakelists ###
 function(iscore_common_setup)
@@ -31,7 +35,7 @@ endfunction()
 
 ### Initialization of most common stuff ###
 function(setup_iscore_common_features TheTarget)
-  iscore_cotire(${TheTarget})
+  iscore_cotire_pre(${TheTarget})
 
   if(ENABLE_LTO)
     set_property(TARGET ${TheTarget}
@@ -61,10 +65,18 @@ endfunction()
 function(setup_iscore_library PluginName)
   setup_iscore_common_lib_features("${PluginName}")
 
+  if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
+  install(TARGETS "${PluginName}"
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          COMPONENT DynamicRuntime)
+  else()
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION .
           ARCHIVE DESTINATION static_lib/
           COMPONENT DynamicRuntime)
+  endif()
+  iscore_cotire_post("${PluginName}")
 endfunction()
 
 
@@ -73,10 +85,19 @@ function(setup_iscore_plugin PluginName)
   setup_iscore_common_lib_features("${PluginName}")
 
   set(ISCORE_PLUGINS_LIST ${ISCORE_PLUGINS_LIST} "${PluginName}" CACHE INTERNAL "List of plugins")
+
+  if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
   install(TARGETS "${PluginName}"
-          LIBRARY DESTINATION plugins/
-          ARCHIVE DESTINATION static_plugins/
+          LIBRARY DESTINATION lib/i-score
+          ARCHIVE DESTINATION lib/i-score
           COMPONENT DynamicRuntime)
+  else()
+  install(TARGETS "${PluginName}"
+          LIBRARY DESTINATION plugins
+          ARCHIVE DESTINATION static_plugins
+          COMPONENT DynamicRuntime)
+  endif()
+  iscore_cotire_post("${PluginName}")
 endfunction()
 
 

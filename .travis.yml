@@ -1,10 +1,12 @@
 language: cpp
-
 os:
   - osx
   - linux
 
 osx_image: xcode6.4
+
+dist: trusty
+sudo: required
 
 env:
   global:
@@ -22,26 +24,27 @@ matrix:
   exclude:
     - os: linux
     - os: osx
-    
+
   include:
 
     - os: osx
       env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+    - os: linux
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+
     - os: osx
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: osx 
+    - os: osx
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
     - os: osx
       env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
 
     - os: linux
       env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux 
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
-    - os: linux 
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
     - os: linux
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+    - os: linux
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
   # Coverity
 #    - os: linux
 #      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
@@ -64,4 +67,11 @@ deploy:
     on:
       tags: true
       condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = osx
-
+  - provider: releases
+    api_key:
+      secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
+    file: build/i-score-$TRAVIS_TAG-Ubuntu-14.04-amd64.deb
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = linux

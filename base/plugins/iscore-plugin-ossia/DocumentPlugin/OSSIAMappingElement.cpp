@@ -36,9 +36,6 @@ OSSIAMappingElement::OSSIAMappingElement(
     m_deviceList{iscore::IDocument::documentFromObject(element)->model().pluginModel<DeviceDocumentPlugin>()->list()}
 {
     using namespace iscore::convert;
-
-    con(element, &MappingModel::curveChanged,
-        this, &OSSIAMappingElement::recreate); // We have to recreate the Mapping in all cases
 }
 
 std::shared_ptr<OSSIA::TimeProcess> OSSIAMappingElement::OSSIAProcess() const
@@ -68,10 +65,16 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl2
     auto scale_y = [=] (double val) -> Y_T { return val * (ymax - ymin) + ymin; };
 
     auto segt_data = m_iscore_mapping.curve().toCurveData();
-    std::sort(segt_data.begin(), segt_data.end());
 
-    m_ossia_curve = iscore::convert::curve<X_T, Y_T>(scale_x, scale_y, segt_data);
-    return m_ossia_curve;
+    if(segt_data.size() != 0)
+    {
+        std::sort(segt_data.begin(), segt_data.end());
+        return iscore::convert::curve<X_T, Y_T>(scale_x, scale_y, segt_data);
+    }
+    else
+    {
+        return {};
+    }
 }
 
 template<typename X_T>
@@ -80,32 +83,31 @@ std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::on_curveChanged_impl(
     switch(m_targetAddressType)
     {
         case OSSIA::Value::Type::INT:
-            on_curveChanged_impl2<X_T, int>();
+            return on_curveChanged_impl2<X_T, int>();
             break;
         case OSSIA::Value::Type::FLOAT:
-            on_curveChanged_impl2<X_T, float>();
+            return on_curveChanged_impl2<X_T, float>();
             break;
         default:
-            m_ossia_curve.reset();
             qDebug() << "Unsupported target address type: " << (int)m_targetAddressType;
             ISCORE_TODO;
     }
 
-    return m_ossia_curve;
+    return {};
 }
 
 std::shared_ptr<OSSIA::CurveAbstract> OSSIAMappingElement::rebuildCurve()
 {
+    m_ossia_curve.reset();
     switch(m_sourceAddressType)
     {
         case OSSIA::Value::Type::INT:
-            on_curveChanged_impl<int>();
+            m_ossia_curve = on_curveChanged_impl<int>();
             break;
         case OSSIA::Value::Type::FLOAT:
-            on_curveChanged_impl<float>();
+            m_ossia_curve = on_curveChanged_impl<float>();
             break;
         default:
-            m_ossia_curve.reset();
             qDebug() << "Unsupported source address type: " << (int)m_sourceAddressType;
             ISCORE_TODO;
     }

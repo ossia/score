@@ -13,6 +13,7 @@ class ElementPluginModel : public QObject
         using QObject::QObject;
 
     public:
+        virtual ~ElementPluginModel();
         virtual ElementPluginModel* clone(
                 const QObject* element,
                 QObject* parent) const = 0;

@@ -7,6 +7,7 @@ namespace iscore
     {
         public:
             using QObject::QObject;
+            virtual ~DocumentDelegateViewInterface();
 
             virtual QWidget* getWidget() = 0;
     };

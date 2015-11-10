@@ -11,12 +11,12 @@ TransportActions::TransportActions(
     m_play = new QAction{tr("▶ Play"), parent};
     m_play->setObjectName("Play");
     m_play->setShortcut(Qt::Key_Space);
-    m_play->setShortcutContext(Qt::ApplicationShortcut);
+    m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
     m_stop = new QAction{tr("⬛ Stop"), parent};
     m_stop->setObjectName("Stop");
     m_stop->setShortcut(Qt::Key_Return);
-    m_stop->setShortcutContext(Qt::ApplicationShortcut);
+    m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     m_goToStart = new QAction{tr("⏮ Start"), parent};
     m_goToStart->setObjectName("Start");
     m_goToEnd = new QAction{tr("⏭ End"), parent};

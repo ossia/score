@@ -33,8 +33,10 @@ class MinuitProtocolFactory : public ProtocolFactory
                 const iscore::DeviceSettings& a,
                 const iscore::DeviceSettings& b) const override
         {
+            // TODO we should check also for other devices.  Devices should have a "open ports" method that
+            // returns the ports they use.
             auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
             auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();
-            return a.name != b.name && a_p.inPort != b_p.inPort && a_p.outPort != b_p.outPort;
+            return a.name != b.name && a_p.inputPort != b_p.inputPort && a_p.outputPort != b_p.outputPort;
         }
 };

@@ -6,6 +6,7 @@ class NodeBasedItemModel : public TreeNodeBasedItemModel<iscore::Node>
 {
     public:
         using TreeNodeBasedItemModel<iscore::Node>::TreeNodeBasedItemModel;
+        virtual ~NodeBasedItemModel();
 
         QModelIndex modelIndexFromNode(node_type& n, int column) const
         {

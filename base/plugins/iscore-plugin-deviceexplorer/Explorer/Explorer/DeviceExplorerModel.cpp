@@ -23,6 +23,7 @@
 #include <State/StateMimeTypes.hpp>
 #include <State/MessageListSerialization.hpp>
 
+#include <QAbstractProxyModel>
 #include <QApplication>
 #include <QJsonDocument>
 #include <iostream>
@@ -338,6 +339,7 @@ DeviceExplorerModel::data(const QModelIndex& index, int role) const
         case Column::Max:
             return DeviceExplorer::maxColumnData(n, role);
 
+        case Column::Count:
         default :
             ISCORE_ABORT;
             return {};

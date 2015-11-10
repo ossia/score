@@ -9,7 +9,7 @@ namespace iscore
     class FactoryFamily_QtInterface
     {
         public:
-            virtual ~FactoryFamily_QtInterface() = default;
+            virtual ~FactoryFamily_QtInterface();
             virtual QVector<FactoryFamily> factoryFamilies() = 0;
     };
 }

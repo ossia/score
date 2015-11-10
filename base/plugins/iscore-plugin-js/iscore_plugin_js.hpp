@@ -3,7 +3,7 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 
-class iscore_plugin_js:
+class iscore_plugin_js final:
         public QObject,
         public iscore::FactoryInterface_QtInterface,
         public iscore::CommandFactory_QtInterface

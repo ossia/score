@@ -5,3 +5,8 @@ void PanelModel::setNewSelection(const Selection&)
 {
 
 }
+
+iscore::PanelModel::~PanelModel()
+{
+
+}

@@ -1,8 +1,9 @@
 #include "MinuitProtocolSettingsWidget.hpp"
+#include "MinuitSpecificSettings.hpp"
+#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QGridLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QSpinBox>
 
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
@@ -15,7 +16,7 @@ void
 MinuitProtocolSettingsWidget::buildGUI()
 {
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
-    m_deviceNameEdit = new QLineEdit(this);
+    m_deviceNameEdit = new AddressFragmentLineEdit;
 
     QLabel* portInputLabel = new QLabel(tr("Port (input)"), this);
     m_portInputSBox = new QSpinBox(this);
@@ -61,7 +62,6 @@ MinuitProtocolSettingsWidget::setDefaults()
     m_localHostEdit->setText("127.0.0.1");
 }
 
-#include "MinuitSpecificSettings.hpp"
 iscore::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 {
     ISCORE_ASSERT(m_deviceNameEdit);
@@ -71,8 +71,8 @@ iscore::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
 
     MinuitSpecificSettings minuit;
     minuit.host = m_localHostEdit->text();
-    minuit.inPort = m_portInputSBox->value();
-    minuit.outPort = m_portOutputSBox->value();
+    minuit.inputPort = m_portInputSBox->value();
+    minuit.outputPort = m_portOutputSBox->value();
 
     s.deviceSpecificSettings = QVariant::fromValue(minuit);
     return s;
@@ -86,8 +86,8 @@ MinuitProtocolSettingsWidget::setSettings(const iscore::DeviceSettings &settings
     if(settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
     {
         minuit = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
-        m_portInputSBox->setValue(minuit.inPort);
-        m_portOutputSBox->setValue(minuit.outPort);
+        m_portInputSBox->setValue(minuit.inputPort);
+        m_portOutputSBox->setValue(minuit.outputPort);
         m_localHostEdit->setText(minuit.host);
     }
 }

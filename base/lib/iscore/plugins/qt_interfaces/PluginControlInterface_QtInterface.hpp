@@ -8,7 +8,7 @@ class Presenter;
     class PluginControlInterface_QtInterface
     {
         public:
-            virtual ~PluginControlInterface_QtInterface() = default;
+            virtual ~PluginControlInterface_QtInterface();
 
             virtual PluginControlInterface* make_control(Presenter* parent) = 0;
     };
@@ -28,7 +28,7 @@ namespace iscore
 class CommandFactory_QtInterface
 {
     public:
-        virtual ~CommandFactory_QtInterface() = default;
+        virtual ~CommandFactory_QtInterface();
 
         virtual std::pair<const std::string, CommandGeneratorMap> make_commands() = 0;
 };

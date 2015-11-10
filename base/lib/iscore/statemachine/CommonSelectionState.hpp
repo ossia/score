@@ -19,6 +19,8 @@ class CommonSelectionState : public QState
     public:
         iscore::SelectionDispatcher dispatcher;
 
+        virtual ~CommonSelectionState();
+
         virtual void on_pressAreaSelection() = 0;
         virtual void on_moveAreaSelection() = 0;
         virtual void on_releaseAreaSelection() = 0;

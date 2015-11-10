@@ -26,9 +26,10 @@ struct Address
         // Check that the given string is a valid address
         // Note: a "maybe" concept would help here.
         static bool validateString(const QString& str);
+        static bool validateFragment(const QString& s);
 
         // Make an address from a valid address string
-        static Address fromString(const QString& str);
+        static Address fromString(const QString& str); // TODO return optional
         static Address rootAddress();
 
         // Utility

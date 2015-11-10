@@ -14,9 +14,5 @@ class MinuitDevice final : public OSSIADevice
 
         bool reconnect() override;
 
-        void updateSettings(const iscore::DeviceSettings&) override;
         bool canRefresh() const override;
-
-    private:
-        std::shared_ptr<OSSIA::Minuit> m_minuitSettings;
 };

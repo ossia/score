@@ -13,7 +13,6 @@ class TemporalScenarioPresenter;
 class ScenarioModel;
 class CreationToolState;
 class MoveToolState;
-class SelectionTool;
 class MoveSlotToolState;
 class QGraphicsScene;
 
@@ -24,6 +23,11 @@ namespace iscore
     class Document;
 }
 
+namespace Scenario
+{
+// TODO namespace Scenario everywhere.
+class SelectionAndMoveTool;
+}
 class ScenarioStateMachine final : public BaseStateMachine
 {
         Q_OBJECT
@@ -68,7 +72,7 @@ class ScenarioStateMachine final : public BaseStateMachine
 
         CreationToolState* createState{};
         MoveToolState* moveState{};
-        SelectionTool* selectState{};
+        Scenario::SelectionAndMoveTool* selectState{};
         MoveSlotToolState* moveSlotState{};
         QState* playState{};
         QState* transitionState{};

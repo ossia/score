@@ -12,6 +12,7 @@ class ProtocolFactory : public iscore::FactoryInterface
 {
     public:
         static QString factoryName();
+        virtual ~ProtocolFactory();
         virtual QString name() const = 0;
 
         virtual DeviceInterface* makeDevice(

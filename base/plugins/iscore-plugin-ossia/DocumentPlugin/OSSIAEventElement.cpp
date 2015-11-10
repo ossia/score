@@ -14,8 +14,6 @@ OSSIAEventElement::OSSIAEventElement(
     m_ossia_event{event},
     m_deviceList{deviceList}
 {
-    con(m_iscore_event, &EventModel::conditionChanged,
-        this, &OSSIAEventElement::on_conditionChanged);
 }
 
 std::shared_ptr<OSSIA::TimeEvent> OSSIAEventElement::OSSIAEvent() const
@@ -30,7 +28,7 @@ void OSSIAEventElement::recreate()
 
 void OSSIAEventElement::clear()
 {
-    m_ossia_event->setExpression({});
+    m_ossia_event->setExpression(OSSIA::ExpressionTrue);
 }
 
 void OSSIAEventElement::on_conditionChanged(const iscore::Condition& c)
@@ -43,4 +41,5 @@ try
 catch(std::exception& e)
 {
     qDebug() << e.what();
+    m_ossia_event->setExpression(OSSIA::Expression::create(true));
 }

@@ -2,6 +2,11 @@
 #include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
 
+LayerView::~LayerView()
+{
+
+}
+
 QRectF LayerView::boundingRect() const
 {
     return {0, 0, m_width, m_height};

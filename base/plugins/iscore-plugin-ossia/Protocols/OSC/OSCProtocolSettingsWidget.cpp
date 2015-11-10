@@ -1,9 +1,9 @@
 #include "OSCProtocolSettingsWidget.hpp"
+#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
 
@@ -18,7 +18,7 @@ void
 OSCProtocolSettingsWidget::buildGUI()
 {
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
-    m_deviceNameEdit = new QLineEdit(this);
+    m_deviceNameEdit = new AddressFragmentLineEdit;
 
     QLabel* portOutputLabel = new QLabel(tr("Port (destination)"), this);
     m_portOutputSBox = new QSpinBox(this);

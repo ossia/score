@@ -8,6 +8,7 @@
 
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include "iscore2OSSIA.hpp"
+#include <OSSIA2iscore.hpp>
 #include <QTimer>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>

@@ -56,8 +56,7 @@ void rec_delete(MessageNode& node)
             auto it = std::find_if(parent->begin(), parent->end(), [&] (const auto& other) { return &node == &other; });
             if(it != parent->end())
             {
-                parent->children().erase(it);
-                //parent->removeChild(parent->begin() + parent->indexOfChild(&node));
+                parent->removeChild(it);
                 rec_delete(*parent);
             }
         }
@@ -229,14 +228,13 @@ void merge_impl(
     ptr<MessageNode> node = &base;
     for(int i = 0; i < path.size(); i++)
     {
-        auto& children = node->children();
         auto it = std::find_if(
-                    children.begin(), children.end(),
+                    node->begin(), node->end(),
                     [&] (const auto& cur_node) {
             return cur_node.displayName() == path[i];
         });
 
-        if(it == children.end())
+        if(it == node->end())
         {
             // We have to start adding sub-nodes from here.
             ptr<MessageNode> parentnode{node};

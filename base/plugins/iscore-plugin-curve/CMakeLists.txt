@@ -21,6 +21,8 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveModelSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Process/CurveProcessModel.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/SetSegmentParameters.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/UpdateCurve.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointModel.cpp"

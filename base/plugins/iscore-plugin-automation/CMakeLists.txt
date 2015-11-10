@@ -55,6 +55,3 @@ if(TARGET iscore_lib_inspector)
 endif()
 
 setup_iscore_plugin(${PROJECT_NAME})
-
-set_property(TARGET ${PROJECT_NAME} APPEND
-             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")

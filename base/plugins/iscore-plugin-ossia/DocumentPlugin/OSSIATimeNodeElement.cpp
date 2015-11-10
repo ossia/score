@@ -15,12 +15,15 @@ OSSIATimeNodeElement::OSSIATimeNodeElement(
     m_iscore_node{element},
     m_deviceList{devlist}
 {
-    connect(m_iscore_node.trigger(), &TriggerModel::triggerChanged,
-        this, &OSSIATimeNodeElement::on_triggerChanged);
-
     connect(m_iscore_node.trigger(), &TriggerModel::triggered,
             this, [&] () {
+        try {
         m_ossia_node->happen();
+        }
+        catch(...)
+        {
+
+        }
     });
 }
 
@@ -36,7 +39,7 @@ void OSSIATimeNodeElement::recreate()
 
 void OSSIATimeNodeElement::clear()
 {
-    m_ossia_node->setExpression({});
+    m_ossia_node->setExpression(OSSIA::ExpressionTrue);
 }
 
 void OSSIATimeNodeElement::on_triggerChanged(const iscore::Trigger& c)
@@ -49,4 +52,5 @@ try
 catch(std::exception& e)
 {
     qDebug() << e.what();
+    m_ossia_node->setExpression(OSSIA::Expression::create(true));
 }

@@ -21,7 +21,7 @@ class QGraphicsItem;
 class ProcessFactory : public iscore::FactoryInterface
 {
     public:
-        virtual ~ProcessFactory() = default;
+        virtual ~ProcessFactory();
         static QString factoryName();
 
         // The process name

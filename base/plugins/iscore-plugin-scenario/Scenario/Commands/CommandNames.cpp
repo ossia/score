@@ -10,11 +10,9 @@
 #include "Constraint/Rack/Slot/ResizeSlotVertically.hpp"
 #include "Constraint/Rack/MoveSlot.hpp"
 #include "Constraint/Rack/SwapSlots.hpp"
-#include "Constraint/Rack/RemoveSlotFromRack.hpp"
 #include "Constraint/ReplaceConstraintContent.hpp"
 #include "Constraint/DuplicateRack.hpp"
 #include "Constraint/MergeRackes.hpp"
-#include "Constraint/RemoveRackFromConstraint.hpp"
 #include "Constraint/RemoveProcessFromConstraint.hpp"
 #include "Constraint/SetMaxDuration.hpp"
 #include "Constraint/SetMinDuration.hpp"
@@ -28,7 +26,6 @@
 #include "Cohesion/InterpolateMacro.hpp"
 
 #include "Scenario/Creations/CreateStateMacro.hpp"
-#include "Scenario/Creations/CreateState.hpp"
 #include "Scenario/Creations/CreateEvent_State.hpp"
 #include "Scenario/Creations/CreateTimeNode_Event_State.hpp"
 #include "Scenario/Creations/CreateConstraint.hpp"
@@ -43,10 +40,8 @@
 #include "Scenario/Displacement/MoveConstraint.hpp"
 #include "Scenario/Displacement/MoveNewEvent.hpp"
 #include "Scenario/Displacement/MoveEventMeta.hpp"
-#include "Scenario/Displacement/MoveEventOnCreationMeta.hpp"
 #include "Scenario/Displacement/MoveNewState.hpp"
 #include "Scenario/HideRackInViewModel.hpp"
-#include "Scenario/ShowRackInViewModel.hpp"
 #include "SwitchStatePosition.hpp"
 #include "TimeNode/AddTrigger.hpp"
 #include "TimeNode/MergeTimeNodes.hpp"
@@ -54,15 +49,11 @@
 #include "TimeNode/SetTrigger.hpp"
 #include "TimeNode/SplitTimeNode.hpp"
 #include "Event/SplitEvent.hpp"
-#include "Scenario/Displacement/MoveNewEvent.hpp"
-#include "Scenario/Displacement/MoveNewState.hpp"
-#include "Constraint/AddOnlyProcessToConstraint.hpp"
 #include "Constraint/CreateProcessInExistingSlot.hpp"
 #include "Constraint/CreateProcessInNewSlot.hpp"
 #include "State/InsertContentInState.hpp"
 #include "Scenario/ScenarioPasteContent.hpp"
 #include "Scenario/ScenarioPasteElements.hpp"
-#include "Scenario/ShowRackInAllViewModels.hpp"
 
 #include <boost/mpl/list/list50.hpp>
 #include <boost/mpl/aux_/config/ctps.hpp>
@@ -75,20 +66,12 @@ namespace boost { namespace mpl {
 #include BOOST_PP_ITERATE()
 }}
 #include <iscore/command/CommandGeneratorMap.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
-
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include "Metadata/ChangeElementColor.hpp"
 #include "Metadata/ChangeElementComments.hpp"
 #include "Metadata/ChangeElementLabel.hpp"
 #include "Metadata/ChangeElementName.hpp"
 
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
-#include <Scenario/Commands/State/UpdateState.hpp>
-
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <Scenario/ScenarioPlugin.hpp>
 std::pair<const std::string, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
 {

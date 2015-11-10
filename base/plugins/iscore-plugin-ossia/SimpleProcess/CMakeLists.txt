@@ -28,6 +28,3 @@ target_link_libraries(iscore_plugin_ossia_simpleprocess
     Qt5::Core Qt5::Widgets iscore_plugin_ossia iscore_lib_dummyprocess)
 
 setup_iscore_plugin(iscore_plugin_ossia_simpleprocess)
-
-set_property(TARGET iscore_plugin_ossia_simpleprocess APPEND
-             PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")

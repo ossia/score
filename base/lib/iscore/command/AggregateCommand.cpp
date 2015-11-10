@@ -3,6 +3,11 @@
 #include <QApplication>
 using namespace iscore;
 
+AggregateCommand::~AggregateCommand()
+{
+
+}
+
 void AggregateCommand::undo() const
 {
     for(int i = m_cmds.size() - 1; i >= 0; --i)

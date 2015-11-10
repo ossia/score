@@ -7,6 +7,7 @@
 
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <numeric>
 
 CurveModel::CurveModel(const Id<CurveModel>& id, QObject* parent):
     IdentifiedObject<CurveModel>(id, "CurveModel", parent)
@@ -152,7 +153,6 @@ void CurveModel::addSegment(CurveSegmentModel* m)
     }
 }
 
-#include <numeric>
 
 void CurveModel::insertSegment(CurveSegmentModel* m)
 {

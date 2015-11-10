@@ -18,7 +18,7 @@ class LayerPresenter : public NamedObject
     public:
         using NamedObject::NamedObject;
 
-        virtual ~LayerPresenter() = default;
+        virtual ~LayerPresenter();
 
         bool focused() const;
         void setFocus(bool focus);

@@ -6,10 +6,37 @@ namespace iscore
     {
         auto firstcolon = str.indexOf(":");
         auto firstslash = str.indexOf("/");
-        return str == QString(str.toUtf8())
-                && (firstcolon > 0)
-                && (firstslash == (firstcolon + 1)
-                && !str.contains("//"));
+
+        bool valid = str == QString(str.toUtf8())
+                      && (firstcolon > 0)
+                      && (firstslash == (firstcolon + 1)
+                      && !str.contains("//"));
+
+        QStringList path = str.split("/");
+        valid &= path.size() > 0;
+
+        path.first().remove(":");
+
+        for(const auto& str : path)
+            valid &= validateFragment(str);
+
+        return valid;
+    }
+
+    bool Address::validateFragment(const QString& s)
+    {
+        // TODO refactor with ExpressionParser.cpp (auto base = +qi::char_("a-zA-Z0-9_~().");)
+        return std::all_of(s.cbegin(), s.cend(), [] (auto uc) {
+            auto c = uc.toLatin1();
+            return (c >= 'a' && c <= 'z')
+                    || (c >= 'A' && c <= 'Z')
+                    || (c >= '0' && c <= '9')
+                    || (c == '.')
+                    || (c == '~')
+                    || (c == '_')
+                    || (c == '(')
+                    || (c == ')');
+        });
     }
 
 

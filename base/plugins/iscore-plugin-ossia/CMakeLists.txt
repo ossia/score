@@ -61,6 +61,4 @@ target_link_libraries(${PROJECT_NAME}
                         APIJamoma)
 
 setup_iscore_plugin(${PROJECT_NAME})
-
-
 add_subdirectory(SimpleProcess)

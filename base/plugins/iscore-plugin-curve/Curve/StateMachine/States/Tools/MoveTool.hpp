@@ -11,17 +11,6 @@ class EditionTool : public CurveTool
         Q_OBJECT
     public:
         explicit EditionTool(CurveStateMachine& sm);
-        enum class Mode { Create, Move, SetSegment };
-
-        void changeMode(int state);
-        int mode() const;
-
-    signals:
-        void setCreationState();
-        void setMoveState();
-        void setSetSegmentState();
-
-        void exitState();
 
     protected:
         void on_pressed() final override;

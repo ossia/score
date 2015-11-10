@@ -10,7 +10,7 @@ class DocumentDelegatePluginModel : public NamedObject
         Q_OBJECT
     public:
         using NamedObject::NamedObject;
-        virtual ~DocumentDelegatePluginModel() = default;
+        virtual ~DocumentDelegatePluginModel();
 
         virtual QList<ElementPluginModelType> elementPlugins() const { return {}; }
         virtual ElementPluginModel* makeElementPlugin(

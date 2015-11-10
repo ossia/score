@@ -25,7 +25,7 @@ public:
 
     virtual SerializableMoveEvent* make() = 0;
 
-    virtual ~MoveEventFactoryInterface() = default;
+    virtual ~MoveEventFactoryInterface();
 
      /**
      * @brief priority

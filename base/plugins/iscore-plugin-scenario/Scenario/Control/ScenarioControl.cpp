@@ -10,7 +10,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
+#include <QJsonDocument>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 #include <iscore/command/CommandGeneratorMap.hpp>
@@ -24,6 +24,13 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QApplication>
+
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
+#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
+#include <core/document/DocumentView.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
+#include <Scenario/Document/BaseElement/BaseElementView.hpp>
 
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
@@ -250,13 +257,6 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     }
 }
 
-#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <core/document/DocumentView.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
-#include <Scenario/Document/BaseElement/BaseElementView.hpp>
 void ScenarioControl::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)

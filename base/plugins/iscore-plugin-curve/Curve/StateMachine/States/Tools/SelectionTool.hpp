@@ -6,10 +6,10 @@ class QState;
 namespace Curve
 {
 class SelectionState;
-class SelectionTool final : public CurveTool
+class SelectionAndMoveTool final : public CurveTool
 {
     public:
-        explicit SelectionTool(CurveStateMachine& sm);
+        explicit SelectionAndMoveTool(CurveStateMachine& sm);
 
         void on_pressed() override;
         void on_moved() override;

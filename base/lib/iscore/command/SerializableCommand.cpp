@@ -3,8 +3,6 @@ using namespace iscore;
 
 SerializableCommand::~SerializableCommand()
 {
-    // This is here in order to have the vtable emitted only in this file
-    // and reduce binary size.
 }
 
 const std::string& SerializableCommand::name() const
