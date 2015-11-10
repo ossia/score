@@ -28,14 +28,16 @@ AddLayerInNewSlot::AddLayerInNewSlot(
     {
         m_createdRackId = getStrongId(constraint.racks);
         m_existingRack = false;
+        m_createdSlotId = Id<SlotModel> (iscore::id_generator::getFirstId());
     }
     else
     {
-        m_createdRackId = (*constraint.racks.begin()).id();
+        auto& rack = (*constraint.racks.begin());
+        m_createdRackId = rack.id();
         m_existingRack = true;
+        m_createdSlotId = getStrongId(rack.slotmodels);
     }
 
-    m_createdSlotId = Id<SlotModel> (iscore::id_generator::getFirstId());
     m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
     m_processData = constraint.processes.at(m_sharedProcessModelId).makeLayerConstructionData();
 }

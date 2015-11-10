@@ -16,6 +16,7 @@
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/CreateProcessInExistingSlot.hpp>
 #include <Scenario/Commands/Constraint/CreateProcessInNewSlot.hpp>
+#include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 
@@ -35,7 +36,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
     auto& slotm = slotp.model();
 
     // First changing the process in the current slot
-    auto processes_submenu = menu.addMenu(tr("Focus process in slot"));
+    auto processes_submenu = menu.addMenu(tr("Focus process in this slot"));
     for(const LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
@@ -49,6 +50,20 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
     }
 
     // Then creation of a new slot with existing processes
+    auto new_processes_submenu = menu.addMenu(tr("Show process in new slot"));
+    for(const LayerModel& proc : slotm.layers)
+    {
+        QAction* procAct = new QAction{
+                           proc.processModel().userFriendlyDescription(),
+                           new_processes_submenu};
+        connect(procAct, &QAction::triggered, this, [&] () {
+            auto cmd = new Scenario::Command::AddLayerInNewSlot{
+                       slotm.parentConstraint(),
+                       proc.processModel().id()};
+            CommandDispatcher<>{m_control.currentDocument()->commandStack()}.submitCommand(cmd);
+        } );
+        new_processes_submenu->addAction(procAct);
+    }
 
     // Then removal of slot
     auto removeSlotAct = new QAction{tr("Remove this slot"), nullptr};
