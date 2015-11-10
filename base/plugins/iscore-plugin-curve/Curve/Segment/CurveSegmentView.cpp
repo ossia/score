@@ -9,7 +9,7 @@
 static const QPainterPathStroker CurveSegmentStroker{
     [] () {
         QPen p;
-        p.setWidth(3);
+        p.setWidth(12);
         return p;
     }()
 };

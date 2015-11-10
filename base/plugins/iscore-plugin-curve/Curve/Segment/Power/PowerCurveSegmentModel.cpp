@@ -85,7 +85,10 @@ double PowerCurveSegmentModel::valueAt(double x) const
 
 void PowerCurveSegmentModel::setVerticalParameter(double p)
 {
-    gamma = (p + 1) * 6.;
+    if(start().y() < end().y())
+        gamma = (p + 1) * 6.;
+    else
+        gamma = (1 - p) * 6.;
     emit dataChanged();
 }
 
