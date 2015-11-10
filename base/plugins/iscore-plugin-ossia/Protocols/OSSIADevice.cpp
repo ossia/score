@@ -26,16 +26,15 @@ void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
     if(connected())
     {
         // First we save the existing nodes.
-        std::vector<iscore::Node> children;
-        children.reserve(m_dev->children().size());
-
-        iscore::Address addr;
-        addr.device = settings().name;
+        iscore::Node iscore_device;
+        iscore_device.children().reserve(m_dev->children().size());
 
         // Recurse on the children
-        for(const auto& node : m_dev->children())
+        auto& ossia_children = m_dev->children();
+        iscore_device.children().reserve(ossia_children.size());
+        for(const auto& node : ossia_children)
         {
-            children.push_back(OSSIAToDeviceExplorer(*node.get(), addr));
+            iscore_device.children().push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
         }
 
         // We change the settings safely
@@ -47,7 +46,7 @@ void OSSIADevice::updateSettings(const iscore::DeviceSettings& newsettings)
         if(reconnect())
         {
             // We can recreate our stuff.
-            for(const auto& n : children)
+            for(const auto& n : iscore_device.children())
             {
                 addNode(n);
             }
@@ -124,13 +123,12 @@ iscore::Node OSSIADevice::refresh()
         // Make a device explorer node from the current state of the device.
         // First make the node corresponding to the root node.
 
-        iscore::Address addr;
-        addr.device = settings().name;
-
         // Recurse on the children
-        for(const auto& node : m_dev->children())
+        auto& children = m_dev->children();
+        device_node.children().reserve(children.size());
+        for(const auto& node : children)
         {
-            device_node.push_back(OSSIAToDeviceExplorer(*node.get(), addr));
+            device_node.push_back(OSSIA::convert::ToDeviceExplorer(*node.get()));
         }
     }
 
@@ -265,37 +263,5 @@ OSSIA::Device& OSSIADevice::impl() const
 {
     ISCORE_ASSERT(connected());
     return *m_dev;
-}
-
-iscore::Node OSSIADevice::OSSIAToDeviceExplorer(const OSSIA::Node& node, iscore::Address currentAddr)
-{
-    iscore::Node n{ToAddressSettings(node), nullptr};
-
-    currentAddr.path += n.get<iscore::AddressSettings>().name;
-
-    /*
-    // 2. Add a callback
-    if(n.get<iscore::AddressSettings>().ioType != iscore::IOType::Invalid)
-    {
-        if(auto ossia_addr = node.getAddress())
-        {
-            m_callbacks.insert({
-                        currentAddr,
-                        ossia_addr->addCallback([=] (const OSSIA::Value* val) {
-                emit valueUpdated(currentAddr, OSSIA::convert::ToValue(val));
-            })});
-        }
-    }
-    */
-
-    // 3. Recurse on the children
-    for(const auto& ossia_child : node.children())
-    {
-        auto child_n = OSSIAToDeviceExplorer(*ossia_child.get(), currentAddr);
-        child_n.setParent(&n);
-        n.push_back(std::move(child_n));
-    }
-
-    return n;
 }
 

@@ -43,9 +43,6 @@ class OSSIADevice : public DeviceInterface
     protected:
         using DeviceInterface::DeviceInterface;
 
-        iscore::Node OSSIAToDeviceExplorer(const OSSIA::Node& node,
-                                           iscore::Address currentAddr);
-
         std::shared_ptr<OSSIA::Device> m_dev;
 
         std::unordered_map<
