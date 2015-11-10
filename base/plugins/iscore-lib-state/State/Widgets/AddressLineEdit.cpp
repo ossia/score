@@ -7,13 +7,13 @@ AddressLineEdit::AddressLineEdit(QWidget* parent):
             this, [&] (const QString& str) {
         QString s = str;
         int i = 0;
-        if(m_validator.validate(s, i) == 2)
+        if(m_validator.validate(s, i) == QValidator::State::Acceptable)
         {
-            this->setStyleSheet("QLineEdit { background: white; }");
+            this->setStyleSheet("QLineEdit { background: black; }");
         }
         else
         {
-            this->setStyleSheet("QLineEdit { background: #f6dbd9; }");
+            this->setStyleSheet("QLineEdit { background: #660000; }");
         }
     });
 }

@@ -9,6 +9,8 @@
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 
+#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <State/ValueConversion.hpp>
 AddressEditDialog::AddressEditDialog(
         QWidget* parent):
@@ -26,7 +28,7 @@ AddressEditDialog::AddressEditDialog(
     setLayout(m_layout);
 
     // Name
-    m_nameEdit = new QLineEdit(this);
+    m_nameEdit = new AddressFragmentLineEdit;
     m_layout->addRow(tr("Name"), m_nameEdit);
 
     setNodeSettings();

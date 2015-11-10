@@ -1,9 +1,9 @@
 #include "MinuitProtocolSettingsWidget.hpp"
 #include "MinuitSpecificSettings.hpp"
+#include <Explorer/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QGridLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QSpinBox>
 
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
@@ -16,7 +16,7 @@ void
 MinuitProtocolSettingsWidget::buildGUI()
 {
     QLabel* deviceNameLabel = new QLabel(tr("Device name"), this);
-    m_deviceNameEdit = new QLineEdit(this);
+    m_deviceNameEdit = new AddressFragmentLineEdit;
 
     QLabel* portInputLabel = new QLabel(tr("Port (input)"), this);
     m_portInputSBox = new QSpinBox(this);
