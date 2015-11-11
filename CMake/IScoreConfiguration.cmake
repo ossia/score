@@ -1,7 +1,7 @@
 # Options
 
-option(ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
-option(ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
+option(ISCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
+option(ISCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
 
 option(OSSIA_NO_EXAMPLES "Don't build OSSIA examples" True)
 option(OSSIA_NO_TESTS "Don't build OSSIA tests" True)
@@ -117,7 +117,7 @@ else()
 
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
-  if(ENABLE_OPTIMIZE_CUSTOM)
+  if(ISCORE_ENABLE_OPTIMIZE_CUSTOM)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
   endif()
 
@@ -128,12 +128,31 @@ else()
     if (GCC_VERSION VERSION_LESS 4.9)
       message(FATAL_ERROR "i-score requires at least g++-4.9 to build")
     endif()
+
     if (GCC_VERSION VERSION_GREATER 5.2 OR GCC_VERSION VERSION_EQUAL 5.2)
       # -Wcast-qual is nice but requires more work...
       # -Wzero-as-null-pointer-constant  is garbage
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wno-div-by-zero -Wsuggest-final-types -Wsuggest-final-methods -Wsuggest-override -Wpointer-arith -Wsuggest-attribute=noreturn -Wno-missing-braces -Wformat=2 -Wno-format-nonliteral -Wpedantic")
       # Too much clutter :set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wsuggest-attribute=const  -Wsuggest-attribute=pure ")
     endif()
+
+
+    # Note : http://stackoverflow.com/questions/31355692/cmake-support-for-gccs-link-time-optimization-lto
+    if(ISCORE_ENABLE_LTO)
+      find_program(CMAKE_GCC_AR NAMES ${_CMAKE_TOOLCHAIN_PREFIX}gcc-ar${_CMAKE_TOOLCHAIN_SUFFIX} HINTS ${_CMAKE_TOOLCHAIN_LOCATION})
+      find_program(CMAKE_GCC_NM NAMES ${_CMAKE_TOOLCHAIN_PREFIX}gcc-nm HINTS ${_CMAKE_TOOLCHAIN_LOCATION})
+      find_program(CMAKE_GCC_RANLIB NAMES ${_CMAKE_TOOLCHAIN_PREFIX}gcc-ranlib HINTS ${_CMAKE_TOOLCHAIN_LOCATION})
+
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto -fuse-linker-plugin -fno-fat-lto-objects")
+      # set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CMAKE_STATIC_LINKER_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE}")
+      set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE}")
+      set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE}")
+      set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS_RELEASE}")
+      set(CMAKE_AR "${CMAKE_GCC_AR}")
+      set(CMAKE_NM "${CMAKE_GCC_NM}")
+      set(CMAKE_RANLIB "${CMAKE_GCC_RANLIB}")
+    endif()
+
   endif()
 endif()
 
