@@ -39,23 +39,19 @@ find_library(Qt5XcbQpa_LIBRARY NAMES Qt5XcbQpa libQt5XcbQpa HINTS /opt/qt5-stati
 find_library(Qt5PlatformSupport_LIBRARY NAMES Qt5PlatformSupport libQt5PlatformSupport HINTS /opt/qt5-static/lib)
 find_library(qtharfbuzzng_LIBRARY NAMES qtharfbuzzng libqtharfbuzzng HINTS /opt/qt5-static/lib)
 find_library(qtpcre_LIBRARY NAMES qtpcre libqtpcre HINTS /opt/qt5-static/lib)
-find_library(xcb_static_LIBRARY NAMES xcb-static libxcb-static HINTS /opt/qt5-static/lib)
-
-find_library(qxcb_glx_integration_LIBRARY NAMES qxcb-glx-integration libqxcb-glx-integration HINTS /opt/qt5-static/plugins/xcbglintegrations)
-
-find_library(qminimal_LIBRARY NAMES qminimal libqminimal HINTS /opt/qt5-static/plugins/platforms)
-find_library(qxcb_LIBRARY NAMES qxcb libqxcb HINTS /opt/qt5-static/plugins/platforms)
 
 find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS /opt/qt5-static/plugins/imageformats)
-
 target_link_libraries(
     ${APPNAME}
     Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml
     Qt5::PrintSupport Qt5::Test
-    ${Qt5Gui_PLUGINS} ${qxcb_LIBRARY} ${Qt5XcbQpa_LIBRARY} ${Qt5PlatformSupport_LIBRARY}
-    ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qminimal_LIBRARY}  ${qtfreetype_LIBRARY}
-    ${GLIB2_LIBRARY} GL
-    Xi xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util X11-xcb xcb  Xrender Xext X11 z m dl rt pthread
+    Qt5::QXcbIntegrationPlugin ${Qt5XcbQpa_LIBRARY} ${Qt5PlatformSupport_LIBRARY}
+    ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qtfreetype_LIBRARY}
+    GL
+    Xi
+    xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb  
+    X11-xcb Xrender Xext X11
+    z m dl rt pthread
 )
 endif()
 
