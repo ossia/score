@@ -3,12 +3,14 @@
 #include <iscore/tools/ModelPath.hpp>
 #include <Device/Address/AddressSettings.hpp>
 
+inline constexpr const char * SpaceCommandFactoryName() { return "ScenarioControl"; }
+
 class SpaceProcess;
 class AreaModel;
 class DimensionModel;
 class AddArea : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL("SpaceControl", AddArea, "AddArea")
+        ISCORE_SERIALIZABLE_COMMAND_DECL(SpaceCommandFactoryName(), AddArea, "AddArea")
     public:
 
           AddArea(Path<SpaceProcess>&& spacProcess,

@@ -45,7 +45,7 @@ spacelib::valued_area AreaModel::valuedArea() const
     {
         if(elt.second.address.device.isEmpty()) // We use the value
         {
-            mapping[elt.first] = elt.second.value.val.toDouble();
+            mapping[elt.first] = iscore::convert::value<double>(elt.second.value);
         }
         else // We fetch it from the device tree
         {

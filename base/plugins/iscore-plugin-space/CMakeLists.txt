@@ -29,7 +29,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/ViewportModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Space/SpaceModel.cpp"
 
-iscore_common_setup()
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaPresenter.cpp"

@@ -8,10 +8,12 @@ class SpaceProcess : public Process
 {
         Q_OBJECT
     public:
-        SpaceProcess(const Id<Process> &id, QObject *parent);
+        SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent);
         Process *clone(const Id<Process> &newId, QObject *newParent) const;
 
         QString processName() const;
+        QString userFriendlyDescription() const override
+        { return tr("Space process"); }
 
         void setDurationAndScale(const TimeValue &newDuration);
         void setDurationAndGrow(const TimeValue &newDuration);

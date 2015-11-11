@@ -19,7 +19,7 @@ iscore::PluginControlInterface* iscore_plugin_space::make_control(iscore::Presen
     return new SpaceControl{pres};
 }
 
-QVector<iscore::FactoryInterface*> iscore_plugin_space::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterface*> iscore_plugin_space::factories(const QString& factoryName)
 {
     if(factoryName == ProcessFactory::factoryName())
     {

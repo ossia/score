@@ -9,7 +9,7 @@ QString SpaceProcessFactory::name() const
 
 Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const Id<Process> &id, QObject *parent)
 {
-    return new SpaceProcess{id, parent};
+    return new SpaceProcess{duration, id, parent};
 }
 
 QByteArray SpaceProcessFactory::makeStaticLayerConstructionData() const

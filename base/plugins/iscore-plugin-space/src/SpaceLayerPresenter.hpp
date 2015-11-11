@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include "Area/AreaModel.hpp"
@@ -18,6 +19,8 @@ class SpaceLayerPresenter : public LayerPresenter
 
         void setWidth(int width);
         void setHeight(int height);
+
+        void on_focusChanged();
 
         void putToFront();
         void putBehind();
@@ -38,4 +41,10 @@ class SpaceLayerPresenter : public LayerPresenter
 
         QMainWindow* m_spaceWindowView{};
         IdContainer<AreaPresenter, AreaModel> m_areas;
+        FocusDispatcher m_focusDispatcher;
+
+
+        // LayerPresenter interface
+    public:
+        void fillContextMenu(QMenu*, const QPoint& pos, const QPointF& scenepos) const override;
 };

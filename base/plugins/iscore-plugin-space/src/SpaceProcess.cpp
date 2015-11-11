@@ -4,7 +4,7 @@
 #include "Space/SpaceModel.hpp"
 #include "Area/Circle/CircleAreaModel.hpp"
 
-SpaceProcess::SpaceProcess(const Id<Process> &id, QObject *parent):
+SpaceProcess::SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent):
     Process{id, "SpaceProcessModel", parent}
 {
     using namespace GiNaC;
@@ -72,11 +72,13 @@ SpaceProcess::SpaceProcess(const Id<Process> &id, QObject *parent):
         addArea(new CircleAreaModel(*m_space,Id<AreaModel>(2), this));
     }
     */
+
+    setDuration(duration);
 }
 
 Process *SpaceProcess::clone(const Id<Process> &newId, QObject *newParent) const
 {
-    return new SpaceProcess{newId, newParent};
+    return new SpaceProcess{this->duration(), newId, newParent};
 }
 
 QString SpaceProcess::processName() const
@@ -86,16 +88,19 @@ QString SpaceProcess::processName() const
 
 void SpaceProcess::setDurationAndScale(const TimeValue &newDuration)
 {
+    setDuration(newDuration);
     ISCORE_TODO;
 }
 
 void SpaceProcess::setDurationAndGrow(const TimeValue &newDuration)
 {
+    setDuration(newDuration);
     ISCORE_TODO;
 }
 
 void SpaceProcess::setDurationAndShrink(const TimeValue &newDuration)
 {
+    setDuration(newDuration);
     ISCORE_TODO;
 }
 

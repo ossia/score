@@ -121,7 +121,7 @@ void AreaWidget::setActiveArea(const AreaModel *area)
             }
 
             // Storing a value
-            param_widg->defaultValue()->setValue((*param_it).second.value.val.toDouble());
+            param_widg->defaultValue()->setValue(iscore::convert::value<double>((*param_it).second.value));
 
             // Storing an address
             param_widg->address()->setText((*param_it).second.address.toString());
@@ -234,7 +234,7 @@ void AreaWidget::validate()
         {
             addr.address = iscore::Address::fromString(param_widg->address()->text());
         }
-        addr.value = iscore::Value::fromVariant(param_widg->defaultValue()->value());
+        addr.value = iscore::convert::toValue(param_widg->defaultValue()->value());
         param_map.insert(label->text(), addr);
     }
 
@@ -247,8 +247,8 @@ void AreaWidget::validate()
     {
 
         m_dispatcher.submitCommand(
-					new AddArea{
-						m_space,
+                    new AddArea{
+                        m_space,
                         m_selectionWidget->comboBox()->currentData().toInt(),
                         m_selectionWidget->lineEdit()->text(),
                         dim_map,

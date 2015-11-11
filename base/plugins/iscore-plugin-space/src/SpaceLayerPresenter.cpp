@@ -2,6 +2,7 @@
 #include "SpaceLayerModel.hpp"
 #include "SpaceLayerView.hpp"
 #include "SpaceProcess.hpp"
+#include <iscore/widgets/GraphicsItem.hpp>
 
 #include <QGraphicsScene>
 #include "Widgets/SpaceGuiWindow.hpp"
@@ -11,7 +12,8 @@
 SpaceLayerPresenter::SpaceLayerPresenter(const LayerModel& model, LayerView* view, QObject* parent):
     LayerPresenter{"LayerPresenter", parent},
     m_model{static_cast<const SpaceLayerModel&>(model)},
-    m_view{static_cast<SpaceLayerView*>(view)}
+    m_view{static_cast<SpaceLayerView*>(view)},
+    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_model.processModel())}
 {
     const SpaceProcess& procmodel = static_cast<SpaceProcess&>(m_model.processModel());
     m_spaceWindowView = new QMainWindow;
@@ -21,28 +23,24 @@ SpaceLayerPresenter::SpaceLayerPresenter(const LayerModel& model, LayerView* vie
                     procmodel,
                     m_spaceWindowView});
 
-    connect(m_view, SIGNAL(guiRequested()), m_spaceWindowView, SLOT(show()));
+    connect(m_view, &SpaceLayerView::guiRequested, m_spaceWindowView, &QWidget::show);
+
+    connect(m_view, &SpaceLayerView::contextMenuRequested,
+            this, &LayerPresenter::contextMenuRequested);
     for(const auto& area : ::model(m_model).areas())
     {
         on_areaAdded(area);
     }
 
     con(procmodel, &SpaceProcess::areaAdded, this, &SpaceLayerPresenter::on_areaAdded);
+    m_view->setEnabled(true);
+
+    parentGeometryChanged();
 }
 
 SpaceLayerPresenter::~SpaceLayerPresenter()
 {
-    if(m_view)
-    {
-        auto sc = m_view->scene();
-
-        if(sc)
-        {
-            sc->removeItem(m_view);
-        }
-
-        m_view->deleteLater();
-    }
+    deleteGraphicsObject(m_view);
 }
 
 void SpaceLayerPresenter::setWidth(int width)
@@ -56,7 +54,10 @@ void SpaceLayerPresenter::setHeight(int height)
     m_view->setHeight(height);
     update();
 }
+void SpaceLayerPresenter::on_focusChanged()
+{
 
+}
 
 void SpaceLayerPresenter::putToFront()
 {
@@ -116,4 +117,16 @@ void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
     m_areas.insert(pres);
     pres->on_areaChanged();
     update();
+}
+
+
+void SpaceLayerPresenter::fillContextMenu(
+        QMenu* menu,
+        const QPoint& pos,
+        const QPointF& scenepos) const
+{
+    auto act = menu->addAction(tr("Show"));
+    connect(act, &QAction::triggered, this, [&] () {
+       m_spaceWindowView->show();
+    });
 }

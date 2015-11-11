@@ -11,9 +11,9 @@ CircleAreaPresenter::CircleAreaPresenter(CircleAreaView *view, const CircleAreaM
 void CircleAreaPresenter::on_areaChanged()
 {
     const AreaModel::ParameterMap& pm = model(this).parameterMapping();
-    auto x0 = pm["x0"].second.value.val.toDouble();
-    auto y0 = pm["y0"].second.value.val.toDouble();
-    auto r = pm["r"].second.value.val.toDouble();
+    auto x0 = iscore::convert::value<double>(pm["x0"].second.value);
+    auto y0 = iscore::convert::value<double>(pm["y0"].second.value);
+    auto r = iscore::convert::value<double>(pm["r"].second.value);
 
     view(this).update(x0, y0, r);
 }
