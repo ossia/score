@@ -74,6 +74,6 @@ install(FILES
 
 install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
         DESTINATION "."
-        COMPONENT DynamicRuntimeHelper)
+        CONFIGURATIONS DynamicRelease)
 
 endif()

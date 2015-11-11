@@ -49,7 +49,7 @@ target_link_libraries(
     ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qtfreetype_LIBRARY}
     GL
     Xi
-    xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb  
+    xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb
     X11-xcb Xrender Xext X11
     z m dl rt pthread
 )
@@ -59,15 +59,14 @@ setup_iscore_common_features(${APPNAME})
 
 install(TARGETS ${APPNAME}
         BUNDLE DESTINATION .
-        RUNTIME DESTINATION bin
-        COMPONENT Runtime)
+        RUNTIME DESTINATION bin)
 
 if(INTEGRATION_TESTING)
     add_library(iscore_integration_lib INTERFACE)
 
     target_link_libraries(iscore_integration_lib INTERFACE
       ${ISCORE_PLUGINS_LIST}
-	  Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::PrintSupport Qt5::Svg Qt5::Test)
+      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::PrintSupport Qt5::Svg Qt5::Test)
 endif()
 
 include(IScoreDeployment)

@@ -43,12 +43,20 @@ endif()
 
 install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
         DESTINATION bin
-        COMPONENT DynamicRuntimeHelper)
+        CONFIGURATIONS DynamicRelease)
 
+if(ISCORE_STATIC_QT)
+configure_file (
+  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/i-score.static.desktop.in"
+  "${PROJECT_BINARY_DIR}/i-score.desktop"
+  )
+else()
 configure_file (
   "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/i-score.desktop.in"
   "${PROJECT_BINARY_DIR}/i-score.desktop"
   )
+
+endif()
 
 install(FILES "${PROJECT_BINARY_DIR}/i-score.desktop"
         DESTINATION share/applications)
@@ -58,7 +66,11 @@ install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/i-score.png"
 set(CPACK_PACKAGE_FILE_NAME "i-score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
 set(CPACK_PACKAGING_INSTALL_PREFIX "")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "i-score devs <i-score-devs@lists.sourceforge.net>")
-#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5, libqt5printsupport5, jamomacore, ")
+if(ISCORE_STATIC_QT)
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libjamomacore")
+else()
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5, libqt5printsupport5, jamomacore, ")
+endif()
 set(CPACK_DEBIAN_PACKAGE_SECTION "sound")
 
 

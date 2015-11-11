@@ -55,6 +55,7 @@ QStringList PluginManager::pluginsOnSystem() const
 
 void PluginManager::loadPlugin(const QString &fileName)
 {
+#if !defined(ISCORE_STATIC_QT)
     auto blacklist = pluginsBlacklist();
     QPluginLoader loader {fileName};
 
@@ -92,6 +93,7 @@ void PluginManager::loadPlugin(const QString &fileName)
         if(!s.contains("Plugin verification data mismatch") && !s.contains("is not a Qt plugin"))
             qDebug() << "Error while loading" << fileName << ": " << loader.errorString();
     }
+#endif
 }
 
 void PluginManager::loadControls(QObject* plugin)
@@ -115,6 +117,7 @@ void PluginManager::reloadPlugins()
         m_availablePlugins += plugin;
     }
 
+#if !defined(ISCORE_STATIC_QT)
     // Load dynamic plug-ins
     for(const QString& pluginsFolder : folders)
     {
@@ -124,6 +127,7 @@ void PluginManager::reloadPlugins()
             loadPlugin(pluginsDir.absoluteFilePath(fileName));
         }
     }
+#endif
 
     // Here, it is important not to collapse all the for-loops
     // because for instance a control from plugin B might require the factory

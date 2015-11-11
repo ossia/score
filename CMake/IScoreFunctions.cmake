@@ -69,12 +69,12 @@ function(setup_iscore_library PluginName)
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib
-          COMPONENT DynamicRuntime)
+          CONFIGURATIONS DynamicRelease)
   else()
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION .
           ARCHIVE DESTINATION static_lib/
-          COMPONENT DynamicRuntime)
+          CONFIGURATIONS DynamicRelease)
   endif()
   iscore_cotire_post("${PluginName}")
 endfunction()
@@ -90,12 +90,12 @@ function(setup_iscore_plugin PluginName)
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION lib/i-score
           ARCHIVE DESTINATION lib/i-score
-          COMPONENT DynamicRuntime)
+          CONFIGURATIONS DynamicRelease)
   else()
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION plugins
           ARCHIVE DESTINATION static_plugins
-          COMPONENT DynamicRuntime)
+          CONFIGURATIONS DynamicRelease)
   endif()
   iscore_cotire_post("${PluginName}")
 endfunction()
