@@ -30,12 +30,11 @@ The previous version source is located at : http://github.com/i-score/i-score
 
 Installation of some dependencies is required :
 
-    sudo add-apt-repository --yes ppa:beineri/opt-qt55-trusty
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
 
     sudo apt-get update -qq
     sudo apt-get dist-upgrade
-    sudo apt-get install -qq qt55-meta-full libxml2 libportmidi0 libportaudio2 libsndfile1 
+    sudo apt-get install -qq g++-5 libxml2 libportmidi0 libportaudio2 libsndfile1 
 
     wget https://www.dropbox.com/s/0pmy14zlpqpyaq6/JamomaCore-0.6-dev-Linux.deb?dl=1 -O jamoma.deb
     sudo dpkg -i jamoma.deb
