@@ -9,6 +9,7 @@ option(OSSIA_NO_TESTS "Don't build OSSIA tests" True)
 option(ISCORE_COTIRE "Use cotire. Will make the build faster." OFF)
 option(ISCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Faster for CI but slower for development" OFF)
 
+option(ISCORE_STATIC_QT "Try to link with a static Qt" OFF)
 option(ISCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
@@ -33,6 +34,12 @@ if(ISCORE_IEEE)
   add_definitions(-DISCORE_IEEE_SKIN)
 endif()
 
+if(ISCORE_STATIC_QT)
+  set(ISCORE_STATIC_PLUGINS True)
+  add_definitions(-DQT_STATIC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+endif()
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5

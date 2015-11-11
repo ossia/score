@@ -3,6 +3,10 @@
 #if defined(ISCORE_STATIC_PLUGINS)
 #include <iscore_static_plugins.hpp>
 #endif
+#if defined(ISCORE_STATIC_QT)
+#include <QtPlugin>
+Q_IMPORT_PLUGIN (QXcbIntegrationPlugin);
+#endif
 
 #include <QSurfaceFormat>
 
