@@ -10,6 +10,7 @@ option(ISCORE_COTIRE "Use cotire. Will make the build faster." OFF)
 option(ISCORE_COTIRE_ALL_HEADERS "All headers will be put in prefix headers. Faster for CI but slower for development" OFF)
 
 option(ISCORE_STATIC_QT "Try to link with a static Qt" OFF)
+option(ISCORE_STATIC_EVERYTHING "Try to link with everything static" OFF)
 option(ISCORE_USE_DEV_PLUGINS "Build the prototypal plugins" OFF)
 option(INTEGRATION_TESTING "Run integration tests" OFF)
 
@@ -34,12 +35,49 @@ if(ISCORE_IEEE)
   add_definitions(-DISCORE_IEEE_SKIN)
 endif()
 
+if(ISCORE_STATIC_EVERYTHING)
+  set(ISCORE_STATIC_QT True)
+  if(UNIX AND NOT APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+  endif()
+endif()
+
 if(ISCORE_STATIC_QT)
   set(ISCORE_STATIC_PLUGINS True)
   add_definitions(-DQT_STATIC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++ -static")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+  add_definitions(-DISCORE_STATIC_QT)
 endif()
+
+if(ANDROID)
+  set(ISCORE_STATIC_PLUGINS True)
+  set(Boost_FOUND True)
+  include_directories("/opt/android-toolchain/arm-linux-androideabi/include")
+else()
+  find_package(Boost REQUIRED)
+  include_directories("${Boost_INCLUDE_DIRS}")
+endif()
+
+if(APPLE AND DEPLOYMENT_BUILD)
+  set(ISCORE_STATIC_PLUGINS True)
+endif()
+if(UNIX AND NOT APPLE AND DEPLOYMENT_BUILD)
+  set(ISCORE_BUILD_FOR_PACKAGE_MANAGER ON)
+endif()
+
+if(INTEGRATION_TESTING)
+  set(ISCORE_STATIC_PLUGINS True)
+endif()
+
+if(ISCORE_STATIC_PLUGINS)
+    set(BUILD_SHARED_LIBS OFF)
+    add_definitions(-DISCORE_STATIC_PLUGINS)
+    add_definitions(-DQT_STATICPLUGIN)
+else()
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
+
 # Note : if building with a Qt installed in e.g. /home/myuser/Qt/ or /Users/Qt or c:\Qt\
 # keep in mind that you have to call CMake with :
 # $ cmake -DCMAKE_MODULE_PATH={path/to/qt/5.3}/{gcc64,clang,msvc2013...}/lib/cmake/Qt5

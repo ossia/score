@@ -23,33 +23,6 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 #     endif()
 # endif()
 
-if(ANDROID)
-  set(ISCORE_STATIC_PLUGINS True)
-  set(Boost_FOUND True)
-  include_directories("/opt/android-toolchain/arm-linux-androideabi/include")
-else()
-  find_package(Boost REQUIRED)
-  include_directories("${Boost_INCLUDE_DIRS}")
-endif()
-
-if(APPLE AND DEPLOYMENT_BUILD)
-  set(ISCORE_STATIC_PLUGINS True)
-endif()
-if(UNIX AND NOT APPLE AND DEPLOYMENT_BUILD)
-  set(ISCORE_BUILD_FOR_PACKAGE_MANAGER ON)
-endif()
-
-if(INTEGRATION_TESTING)
-  set(ISCORE_STATIC_PLUGINS True)
-endif()
-
-if(ISCORE_STATIC_PLUGINS)
-    set(BUILD_SHARED_LIBS OFF)
-    add_definitions(-DQT_STATICPLUGIN)
-else()
-    set(BUILD_SHARED_LIBS ON)
-endif()
-
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test Qml WebSockets OpenGL)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
