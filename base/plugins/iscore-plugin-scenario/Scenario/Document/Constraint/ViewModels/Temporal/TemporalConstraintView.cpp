@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
 #include <Scenario/Document/State/StateView.hpp>
-
+#include <Process/Style/ProcessFonts.hpp>
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -170,7 +170,8 @@ void TemporalConstraintView::paint(
 
     static const int fontSize = 12;
     QRectF labelRect{0,0, defaultWidth(), (-fontSize - 2.)};
-    static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
+    auto f = ProcessFonts::Sans();
+    f.setPointSize(fontSize);
 
     painter->setFont(f);
     painter->setPen(m_labelColor);

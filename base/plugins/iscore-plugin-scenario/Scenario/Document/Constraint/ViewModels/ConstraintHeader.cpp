@@ -1,6 +1,5 @@
 #include "ConstraintHeader.hpp"
 #include "ConstraintView.hpp"
-const QFont ConstraintHeader::font("Ubuntu", 10, QFont::Bold);
 void ConstraintHeader::setWidth(double width)
 {
     prepareGeometryChange();

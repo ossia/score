@@ -1,11 +1,15 @@
 #include "ClickableLabelItem.hpp"
+#include <Process/Style/ProcessFonts.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintHeader.hpp>
 #include <QBrush>
 
 SeparatorItem::SeparatorItem(QGraphicsItem *parent):
     QGraphicsSimpleTextItem{"/", parent}
 {
-    this->setFont(ConstraintHeader::font);
+    auto font = ProcessFonts::Sans();
+    font.setPointSize(10);
+    font.setBold(true);
+    this->setFont(font);
     this->setBrush(Qt::white);
 }
 
@@ -17,7 +21,10 @@ ClickableLabelItem::ClickableLabelItem(
     QGraphicsSimpleTextItem{text, parent},
     m_onClick{std::move(onClick)}
 {
-    this->setFont(ConstraintHeader::font);
+    auto font = ProcessFonts::Sans();
+    font.setPointSize(10);
+    font.setBold(true);
+    this->setFont(font);
     this->setBrush(Qt::white);
 
     this->setAcceptHoverEvents(true);

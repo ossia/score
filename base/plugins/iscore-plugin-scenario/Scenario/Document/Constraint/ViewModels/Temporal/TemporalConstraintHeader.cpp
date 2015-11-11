@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QApplication>
+#include <Process/Style/ProcessFonts.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <cmath>
 QRectF TemporalConstraintHeader::boundingRect() const
@@ -30,7 +31,12 @@ void TemporalConstraintHeader::paint(
         painter->drawLine(rect.topRight(), rect.bottomRight());
         painter->drawLine(rect.bottomLeft(), rect.bottomRight());
     }
+
     // Header
+    auto font = ProcessFonts::Sans();
+    font.setPointSize(10);
+    font.setBold(true);
+
     painter->setFont(font);
     painter->setPen(ScenarioStyle::instance().ConstraintHeaderText);
 

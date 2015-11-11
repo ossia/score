@@ -1,5 +1,7 @@
 #include "DummyLayerView.hpp"
 #include <QPainter>
+#include <Process/Style/ProcessFonts.hpp>
+
 DummyLayerView::DummyLayerView(QGraphicsItem* parent):
     LayerView{parent}
 {
@@ -8,11 +10,10 @@ DummyLayerView::DummyLayerView(QGraphicsItem* parent):
 
 void DummyLayerView::paint_impl(QPainter* painter) const
 {
-    static const int fontSize = 30;
-    static const QFont f{[] () { QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
-    static const QColor c = Qt::lightGray;
-
+    auto f = ProcessFonts::Sans();
+    f.setPointSize(30);
     painter->setFont(f);
-    painter->setPen(c);
+    painter->setPen(Qt::lightGray);
+
     painter->drawText(boundingRect(), Qt::AlignCenter, m_text);
 }

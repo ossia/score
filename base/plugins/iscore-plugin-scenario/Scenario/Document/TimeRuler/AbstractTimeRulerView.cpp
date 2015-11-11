@@ -1,5 +1,6 @@
 #include "AbstractTimeRulerView.hpp"
 
+#include <Process/Style/ProcessFonts.hpp>
 #include <cmath>
 #include <QPainter>
 #include <QGraphicsScene>
@@ -19,8 +20,6 @@ AbstractTimeRulerView::AbstractTimeRulerView() :
 
 void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    static const QFont TimeRulerFont("APCCourier-Bold", 8);
-
     const auto brush = QBrush(m_color);
     painter->setPen(QPen(brush, 2, Qt::SolidLine));
     painter->drawLine(0, 0, m_width, 0);
@@ -28,7 +27,7 @@ void AbstractTimeRulerView::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->setPen(QPen(brush, 1, Qt::SolidLine));
     painter->drawPath(m_path);
 
-    painter->setFont(TimeRulerFont);
+    painter->setFont(ProcessFonts::Mono());
 
     if (m_width > 0)
     {

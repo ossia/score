@@ -1,12 +1,9 @@
 #include "MappingView.hpp"
 
+#include <Process/Style/ProcessFonts.hpp>
 #include <QPainter>
 #include <QKeyEvent>
 #include <QDebug>
-
-static const int fontSize = 10;
-static const QFont f{[] () { static QFont _f_("Ubuntu"); _f_.setPixelSize(fontSize); return _f_;}()};
-static const QColor c = Qt::lightGray;
 
 MappingView::MappingView(QGraphicsItem* parent) :
     LayerView {parent}
@@ -17,12 +14,15 @@ MappingView::MappingView(QGraphicsItem* parent) :
 
 void MappingView::paint_impl(QPainter* painter) const
 {
+    static const int fontSize = 10;
     QRectF processNameRect{0, this->height() - 2*fontSize, 0.95 * this->width(), fontSize + 2 };
 
     if(m_showName)
     {
+        auto f = ProcessFonts::Sans();
+        f.setPointSize(fontSize);
         painter->setFont(f);
-        painter->setPen(c);
+        painter->setPen(Qt::lightGray);
         painter->drawText(processNameRect, Qt::AlignRight, m_source + m_dest); // TODO
     }
 }
