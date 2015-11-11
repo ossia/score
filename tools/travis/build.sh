@@ -12,20 +12,26 @@ if [[ "$USE_COVERITY" = "False" ]];
 then
   case "$TRAVIS_OS_NAME" in
     linux)
-      source /opt/qt55/bin/qt55-env.sh
-      /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
-
-      if [[ "$DEPLOYMENT" = "True" ]];
+      if [[ "$STATIC_QT" = "True" ]];
       then
-        ninja package -j2
+        /usr/local/bin/cmake $CMAKE_COMMON_FLAGS -DISCORE_STATIC_QT:Bool=True -DCMAKE_PREFIX_PATH="/usr/local/jamoma/share/cmake/Jamoma;/opt/qt5-static/lib/cmake/Qt5"  ..
+        cmake --build . --target package
       else
-        ninja -j2
+        source /opt/qt55/bin/qt55-env.sh
+        /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
+
+        if [[ "$DEPLOYMENT" = "True" ]];
+        then
+          cmake --build . --target package --config DynamicRelease
+        else
+          ninja
+        fi
       fi
     ;;
     osx)
       cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.1_1/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
-      ninja install/strip -j2
+      cmake --build . --target install/strip --config DynamicRelease
     ;;
   esac
 else

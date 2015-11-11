@@ -28,26 +28,26 @@ matrix:
   include:
 
     - os: osx
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=False
     - os: linux
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=True  DEPLOYMENT=True  CAN_DEPLOY=True  USE_COVERITY=False STATIC_QT=True
 
     - os: osx
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
     - os: osx
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
     - os: osx
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
 
     - os: linux
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
     - os: linux
-      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False
+      env: BUILD_TYPE=Debug     STATIC_PLUGINS=True  DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
     - os: linux
-      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False
+      env: BUILD_TYPE=Release   STATIC_PLUGINS=False DEPLOYMENT=True  CAN_DEPLOY=False USE_COVERITY=False STATIC_QT=False
   # Coverity
 #    - os: linux
-#      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True
+#      env: BUILD_TYPE=Debug     STATIC_PLUGINS=False DEPLOYMENT=False CAN_DEPLOY=False USE_COVERITY=True STATIC_QT=False
 
 before_install:
 - "./tools/travis/deps.sh"
