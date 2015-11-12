@@ -33,29 +33,31 @@ if(ISCORE_STATIC_PLUGINS)
     target_link_libraries(${APPNAME} ${ISCORE_PLUGINS_LIST})
 endif()
 
+
 if(ISCORE_STATIC_QT)
-get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
-get_property(QT_LIB_FOLDER TARGET Qt5::Core PROPERTY LOCATION_RELEASE)
-find_library(qtfreetype_LIBRARY NAMES qtfreetype libqtfreetype HINTS ${QT_LIB_FOLDER})
-find_library(Qt5XcbQpa_LIBRARY NAMES Qt5XcbQpa libQt5XcbQpa HINTS ${QT_LIB_FOLDER})
-find_library(Qt5PlatformSupport_LIBRARY NAMES Qt5PlatformSupport libQt5PlatformSupport HINTS ${QT_LIB_FOLDER})
-find_library(qtharfbuzzng_LIBRARY NAMES qtharfbuzzng libqtharfbuzzng HINTS ${QT_LIB_FOLDER})
-find_library(qtpcre_LIBRARY NAMES qtpcre libqtpcre HINTS ${QT_LIB_FOLDER})
+    get_target_property(QtCore_LIB Qt5::Core LOCATION)
+    get_filename_component(QT_LIB_FOLDER ${QtCore_LIB} DIRECTORY)
 
-find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS ${QT_LIB_FOLDER}/../plugins/imageformats)
+    find_library(qtfreetype_LIBRARY NAMES qtfreetype libqtfreetype HINTS ${QT_LIB_FOLDER})
+    find_library(Qt5XcbQpa_LIBRARY NAMES Qt5XcbQpa libQt5XcbQpa HINTS ${QT_LIB_FOLDER})
+    find_library(Qt5PlatformSupport_LIBRARY NAMES Qt5PlatformSupport libQt5PlatformSupport HINTS ${QT_LIB_FOLDER})
+    find_library(qtharfbuzzng_LIBRARY NAMES qtharfbuzzng libqtharfbuzzng HINTS ${QT_LIB_FOLDER})
+    find_library(qtpcre_LIBRARY NAMES qtpcre libqtpcre HINTS ${QT_LIB_FOLDER})
 
-target_link_libraries(
-    ${APPNAME}
-    Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml
-    Qt5::PrintSupport Qt5::Test
-    Qt5::QXcbIntegrationPlugin ${Qt5XcbQpa_LIBRARY} ${Qt5PlatformSupport_LIBRARY}
-    ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qtfreetype_LIBRARY} ${qsvg_LIBRARY}
-    GL
-    Xi
-    xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb
-    X11-xcb Xrender Xext X11
-    z m dl rt pthread
-)
+    find_library(qsvg_LIBRARY NAMES qsvg libqsvg HINTS ${QT_LIB_FOLDER}/../plugins/imageformats)
+
+    target_link_libraries(
+        ${APPNAME}
+        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml
+        Qt5::PrintSupport Qt5::Test
+        Qt5::QXcbIntegrationPlugin ${Qt5XcbQpa_LIBRARY} ${Qt5PlatformSupport_LIBRARY}
+        ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qtfreetype_LIBRARY} ${qsvg_LIBRARY}
+        GL
+        Xi
+        xcb-render xcb-image xcb-icccm xcb-sync xcb-xfixes xcb-shm xcb-randr xcb-shape xcb-keysyms xcb-xkb xcb-render-util  xcb
+        X11-xcb Xrender Xext X11
+        z m dl rt pthread
+        )
 endif()
 
 setup_iscore_common_features(${APPNAME})
