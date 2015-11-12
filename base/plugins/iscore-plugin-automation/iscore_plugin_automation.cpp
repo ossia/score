@@ -50,9 +50,9 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
     return {};
 }
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_automation::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_automation::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
                 ChangeAddress,

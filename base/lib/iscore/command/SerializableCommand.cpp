@@ -5,12 +5,12 @@ SerializableCommand::~SerializableCommand()
 {
 }
 
-const std::string& SerializableCommand::name() const
+const CommandFactoryKey& SerializableCommand::name() const
 {
     return m_name;
 }
 
-const std::string& SerializableCommand::parentName() const
+const CommandParentFactoryKey& SerializableCommand::parentName() const
 {
     return m_parentName;
 }

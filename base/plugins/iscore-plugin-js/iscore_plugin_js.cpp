@@ -26,9 +26,9 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_js::factories(const isc
     return {};
 }
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_js::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             EditScript

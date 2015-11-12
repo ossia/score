@@ -25,5 +25,5 @@ class iscore_plugin_mapping:
                 const iscore::FactoryBaseKey& factoryName) const override;
 
         // CommandFactory_QtInterface interface
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

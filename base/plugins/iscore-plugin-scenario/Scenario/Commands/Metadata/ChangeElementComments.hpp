@@ -13,14 +13,14 @@ namespace Scenario
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
-                static const char * factoryName()
+                static const CommandParentFactoryKey& factoryName()
                 {
                     return ScenarioCommandFactoryName();
                 }
-                static const char * commandName()
+                static CommandFactoryKey commandName()
                 {
                     static QByteArray name = QString{"ChangeElementComments_%1"}.arg(T::staticMetaObject.className()).toUtf8();
-                    return name.constData();
+                    return CommandFactoryKey{name.constData()};
                 }
                 static QString description()
                 {

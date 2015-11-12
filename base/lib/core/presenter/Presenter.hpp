@@ -41,7 +41,7 @@ namespace iscore
             void registerPluginControl(PluginControlInterface*);
             void registerPanel(PanelFactory*);
             void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
-            void registerCommands(std::unordered_map<std::string, CommandGeneratorMap>&& cmds)
+            void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds)
             {
                 m_commands = std::move(cmds);
             }
@@ -110,8 +110,8 @@ namespace iscore
              * Ownership of the command is transferred to the caller, and he must delete it.
              */
             iscore::SerializableCommand*
-            instantiateUndoCommand(const std::string& parent_name,
-                                   const std::string& name,
+            instantiateUndoCommand(const CommandParentFactoryKey& parent_name,
+                                   const CommandFactoryKey& name,
                                    const QByteArray& data);
 
             QList<PanelFactory*> panelFactories() const
@@ -145,7 +145,7 @@ namespace iscore
 
             std::vector<PluginControlInterface*> m_controls;
             std::vector<DocumentDelegateFactoryInterface*> m_availableDocuments;
-            std::unordered_map<std::string, CommandGeneratorMap> m_commands;
+            std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> m_commands;
 
             // TODO instead put the factory as a member function?
             QList<QPair<PanelPresenter*,

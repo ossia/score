@@ -41,9 +41,9 @@ QList<iscore::PanelFactory*> iscore_plugin_network::panels()
 
 #include "DistributedScenario/Commands/ChangeGroup.hpp"
 #include <iscore/command/CommandGeneratorMap.hpp>
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_network::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_network::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{DistributedScenarioCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DistributedScenarioCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             AddClientToGroup,

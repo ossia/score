@@ -32,7 +32,7 @@ class iscore_plugin_cohesion final :
         iscore::PluginControlInterface* make_control(
                 iscore::Presenter* pres) override;
 
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
         QStringList required() const override;
 };

@@ -30,5 +30,5 @@ class iscore_plugin_curve final :
         std::vector<iscore::FactoryFamily> factoryFamilies() override;
 
         // CommandFactory_QtInterface interface
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

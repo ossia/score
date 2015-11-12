@@ -5,8 +5,8 @@
 
 iscore::SerializableCommand*
 iscore::IPresenter::instantiateUndoCommand(
-        const std::string& parent_name,
-        const std::string& name,
+        const CommandParentFactoryKey& parent_name,
+        const CommandFactoryKey& name,
         const QByteArray& data)
 {
     auto presenter = qApp->findChild<iscore::Presenter*> ("Presenter");

@@ -5,14 +5,14 @@
 #define ISCORE_PROPERTY_COMMAND_DECL(facName, name, desc) \
     public: \
         name (): iscore::PropertyCommand{ factoryName() , commandName(), description() } { } \
-        static constexpr const char* factoryName() { return facName; } \
-        static constexpr const char* commandName() { return #name; } \
+        static const CommandParentFactoryKey& factoryName() { return facName; } \
+        static CommandFactoryKey commandName() { return CommandFactoryKey{#name}; } \
         static QString description() { return QObject::tr(desc); }  \
     static auto static_uid() \
     { \
         using namespace std; \
-        hash<string> fn; \
-        return fn(std::string(commandName())); \
+        hash<CommandFactoryKey> fn; \
+        return fn(commandName()); \
     } \
     private:
 

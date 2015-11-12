@@ -56,7 +56,7 @@ class GenericCommandFactory : public CommandFactory
  *
  * A map between command names and corresponding factories.
  */
-using CommandGeneratorMap = std::unordered_map<std::string, std::unique_ptr<CommandFactory>>;
+using CommandGeneratorMap = std::unordered_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
 
 /**
  * @brief The CommandGeneratorMapInserter struct
@@ -70,7 +70,7 @@ struct CommandGeneratorMapInserter
         CommandGeneratorMap& fact;
         template< typename TheCommand > void operator()(boost::type<TheCommand>)
         {
-            fact.insert(std::pair<const std::string, std::unique_ptr<CommandFactory>>{
+            fact.insert(std::pair<const CommandFactoryKey, std::unique_ptr<CommandFactory>>{
                                 TheCommand::commandName(),
                                 std::unique_ptr<CommandFactory>(new GenericCommandFactory<TheCommand>)
                         }

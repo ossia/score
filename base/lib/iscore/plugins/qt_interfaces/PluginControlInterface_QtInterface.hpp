@@ -30,7 +30,7 @@ class CommandFactory_QtInterface
     public:
         virtual ~CommandFactory_QtInterface();
 
-        virtual std::pair<const std::string, CommandGeneratorMap> make_commands() = 0;
+        virtual std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() = 0;
 };
 }
 

@@ -1,17 +1,19 @@
 #include <core/application/Application.hpp>
 
-#include <QtPlugin>
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
 #endif
 
 #if defined(ISCORE_STATIC_QT)
   #if defined(__linux__)
+    #include <QtPlugin>
     Q_IMPORT_PLUGIN (QXcbIntegrationPlugin)
   #endif
 #endif
 
+#if defined(ISCORE_OPENGL)
 #include <QSurfaceFormat>
+#endif
 
 int main(int argc, char** argv)
 {

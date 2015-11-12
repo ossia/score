@@ -20,6 +20,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/AutomationCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/State/AutomationState.cpp"
 

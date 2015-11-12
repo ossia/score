@@ -40,7 +40,7 @@ class iscore_plugin_scenario final :
         iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
 
         // NOTE : implementation is in CommandNames.cpp
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
         QList<iscore::PanelFactory*> panels() override;
 

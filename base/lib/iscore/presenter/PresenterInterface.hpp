@@ -1,7 +1,7 @@
 #pragma once
 #include <QString>
 #include <vector>
-
+#include <iscore/command/SerializableCommand.hpp>
 namespace iscore
 {
     class SerializableCommand;
@@ -24,8 +24,8 @@ namespace iscore
          * This will throw a MissingCommandException if not found.
          */
         iscore::SerializableCommand*
-        instantiateUndoCommand(const std::string& parent_name,
-                               const std::string& name,
+        instantiateUndoCommand(const CommandParentFactoryKey& parent_name,
+                               const CommandFactoryKey& name,
                                const QByteArray& data);
 
         QList<iscore::PanelFactory*> panelFactories();

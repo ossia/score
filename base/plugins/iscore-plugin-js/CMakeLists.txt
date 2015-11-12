@@ -19,6 +19,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.cpp"

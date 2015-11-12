@@ -29,6 +29,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/RemoveClientFromGroup.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/CreateGroup.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/ChangeGroup.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Commands/DistributedScenarioCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/Group.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DistributedScenario/GroupMetadata.cpp"

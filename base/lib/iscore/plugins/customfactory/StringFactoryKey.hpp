@@ -2,7 +2,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
 #include <iscore/tools/opaque/OpaqueString.hpp>
-
+#include <iscore/tools/std/StdlibWrapper.hpp>
 // TODO rename file.
 template<typename Tag>
 class StringKey : OpaqueString
@@ -17,6 +17,12 @@ class StringKey : OpaqueString
         friend void Visitor<Reader< JSONValue >>::readFrom (const StringKey<U> &);
         template<typename U>
         friend void Visitor<Writer< JSONValue >>::writeTo (StringKey<U> &);
+
+        friend QDebug operator<< (QDebug debug, const StringKey& obj)
+        {
+            debug << obj.impl;
+            return debug;
+        }
 
         friend struct std::hash<this_type>;
         friend bool operator==(const this_type& lhs, const this_type& rhs) {

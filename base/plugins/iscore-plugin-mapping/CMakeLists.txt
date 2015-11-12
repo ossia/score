@@ -19,6 +19,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/ChangeAddresses.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/MappingCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingColors.cpp"
 

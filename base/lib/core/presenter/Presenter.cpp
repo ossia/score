@@ -314,8 +314,8 @@ void Presenter::restoreDocuments()
 }
 
 iscore::SerializableCommand* Presenter::instantiateUndoCommand(
-        const std::string& parent_name,
-        const std::string& name,
+        const CommandParentFactoryKey& parent_name,
+        const CommandFactoryKey& name,
         const QByteArray& data)
 {
     auto it = m_commands.find(parent_name);
@@ -330,9 +330,9 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(
 
 #if defined(ISCORE_DEBUG)
     qDebug() << "ALERT: Command"
-             << QString::fromStdString(parent_name)
+             << parent_name
              << "::"
-             << QString::fromStdString(name)
+             << name
              << "could not be instantiated.";
     ISCORE_ABORT;
 #else

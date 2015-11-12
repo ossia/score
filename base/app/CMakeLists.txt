@@ -24,7 +24,7 @@ target_link_libraries(${APPNAME} iscore_lib_base)
 
 if(ISCORE_STATIC_PLUGINS)
     set(ISCORE_PLUGINS_FILE "${ISCORE_ROOT_BINARY_DIR}/iscore_static_plugins.hpp")
-    file(WRITE "${ISCORE_PLUGINS_FILE}" "#pragma once\n")
+    file(WRITE "${ISCORE_PLUGINS_FILE}" "#pragma once\n#include <QtPlugin>\n")
     foreach(plugin ${ISCORE_PLUGINS_LIST})
         message("Linking statically with i-score plugin : ${plugin}")
         file(APPEND "${ISCORE_PLUGINS_FILE}" "Q_IMPORT_PLUGIN(${plugin})\n")

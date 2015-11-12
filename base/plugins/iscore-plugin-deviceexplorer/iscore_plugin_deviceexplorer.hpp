@@ -34,5 +34,5 @@ class iscore_plugin_deviceexplorer final :
         // Control
         iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

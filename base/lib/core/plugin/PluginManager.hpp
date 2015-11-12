@@ -84,6 +84,6 @@ class PluginManager final : public QObject
 
         std::vector<std::vector<iscore::FactoryInterfaceBase*>> m_factoriesInterfaces;
 
-        std::unordered_map<std::string, CommandGeneratorMap> m_commands;
+        std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> m_commands;
 };
 }

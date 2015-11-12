@@ -46,9 +46,9 @@ std::vector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
            }};
 }
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_curve::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curve::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
                 UpdateCurve,

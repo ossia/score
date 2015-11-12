@@ -1,2 +1,4 @@
 #pragma once
-inline constexpr const char * JSCommandFactoryName() { return "JS"; }
+#include <iscore/command/SerializableCommand.hpp>
+
+const CommandParentFactoryKey& JSCommandFactoryName();
