@@ -37,7 +37,6 @@ void writeTo_vector_obj_impl(
 
 inline QDataStream& operator<< (QDataStream& stream, const std::string& obj)
 {
-    //stream << QString::fromStdString(obj);
     uint32_t size = obj.size();
     stream << size;
 

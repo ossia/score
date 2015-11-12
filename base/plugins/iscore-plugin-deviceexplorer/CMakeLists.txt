@@ -69,7 +69,7 @@ add_library(iscore_plugin_deviceexplorer
       ${EXPLORER_RESOURCES_RCC})
 
 target_link_libraries(iscore_plugin_deviceexplorer
-                      Qt5::Core Qt5::Widgets Qt5::Test
+                      Qt5::Core Qt5::Widgets
                       iscore_lib_base iscore_lib_state iscore_lib_device
                       QProgressIndicator)
 

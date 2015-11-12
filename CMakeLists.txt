@@ -23,7 +23,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API")
 #     endif()
 # endif()
 
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml PrintSupport Svg Test Qml WebSockets OpenGL)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets OpenGL)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")

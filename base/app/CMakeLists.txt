@@ -49,7 +49,6 @@ if(ISCORE_STATIC_QT)
     target_link_libraries(
         ${APPNAME}
         Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WebSockets Qt5::Xml
-        Qt5::PrintSupport Qt5::Test
         Qt5::QXcbIntegrationPlugin ${Qt5XcbQpa_LIBRARY} ${Qt5PlatformSupport_LIBRARY}
         ${qtharfbuzzng_LIBRARY} ${qtpcre_LIBRARY} ${qtfreetype_LIBRARY} ${qsvg_LIBRARY}
         GL
@@ -71,7 +70,7 @@ if(INTEGRATION_TESTING)
 
     target_link_libraries(iscore_integration_lib INTERFACE
       ${ISCORE_PLUGINS_LIST}
-      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::PrintSupport Qt5::Svg Qt5::Test)
+      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 endif()
 
 include(IScoreDeployment)

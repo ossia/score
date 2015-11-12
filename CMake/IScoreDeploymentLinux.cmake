@@ -69,7 +69,7 @@ set(CPACK_DEBIAN_PACKAGE_MAINTAINER "i-score devs <i-score-devs@lists.sourceforg
 if(ISCORE_STATIC_QT)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "jamomacore")
 else()
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5, libqt5printsupport5, jamomacore, ")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5, jamomacore, ")
 endif()
 set(CPACK_DEBIAN_PACKAGE_SECTION "sound")
 

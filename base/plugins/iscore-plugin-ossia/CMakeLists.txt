@@ -4,7 +4,7 @@ project(iscore_plugin_ossia)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml PrintSupport Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 find_package(Jamoma 0.6)
 if(NOT ${Jamoma_FOUND})

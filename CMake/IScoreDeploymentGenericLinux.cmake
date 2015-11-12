@@ -32,6 +32,7 @@ endif()
 
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_SO_DIR ${QtCore_LOCATION} PATH)
+# TODO Same than for windows deployment
 file(GLOB ICU_SOS "${QT_SO_DIR}/libicu*.so*")
 file(GLOB QT_SOS
   "${QT_SO_DIR}/libQt5Core.so*"
@@ -39,7 +40,6 @@ file(GLOB QT_SOS
   "${QT_SO_DIR}/libQt5Widgets.so*"
   "${QT_SO_DIR}/libQt5Network.so*"
   "${QT_SO_DIR}/libQt5Xml.so*"
-  "${QT_SO_DIR}/libQt5PrintSupport.so*"
   "${QT_SO_DIR}/libQt5Svg.so*"
   "${QT_SO_DIR}/libQt5Qml.so*"
   "${QT_SO_DIR}/libQt5OpenGL.so*"

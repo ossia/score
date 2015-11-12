@@ -4,7 +4,7 @@ project(iscore_plugin_automation)
 iscore_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets PrintSupport Xml Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 file(GLOB_RECURSE HDRS
@@ -49,7 +49,7 @@ qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Resources/Automat
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 target_link_libraries(${PROJECT_NAME}
-                     Qt5::Core Qt5::Widgets Qt5::PrintSupport
+                     Qt5::Core Qt5::Widgets
                      iscore_lib_base iscore_plugin_deviceexplorer iscore_lib_process iscore_lib_state iscore_plugin_curve)
 
 if(TARGET iscore_lib_inspector)

@@ -3,7 +3,7 @@ project(iscore_plugin_cohesion)
 
 iscore_common_setup()
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml PrintSupport Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")

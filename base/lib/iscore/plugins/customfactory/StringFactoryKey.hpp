@@ -35,6 +35,11 @@ class StringKey : OpaqueString
 
     public:
         using OpaqueString::OpaqueString;
+
+        const auto& toString() const
+        {
+            return impl;
+        }
 };
 
 namespace std
