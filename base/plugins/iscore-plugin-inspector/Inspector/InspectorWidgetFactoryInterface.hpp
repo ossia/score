@@ -39,4 +39,6 @@ class InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QStr
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) = 0;
+
+        bool matches(const QString& objectName);
 };

@@ -40,7 +40,7 @@ void AggregateCommand::serializeImpl(QDataStream& s) const
 
     for(auto& cmd : m_cmds)
     {
-        serializedCommands.push_back({{cmd->parentName(), cmd->name() }, cmd->serialize()});
+        serializedCommands.push_back({{cmd->parentKey(), cmd->key() }, cmd->serialize()});
     }
 
     s << serializedCommands;

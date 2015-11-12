@@ -20,7 +20,7 @@ namespace Scenario
 
         class MoveNewState final : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewState, "MoveNewState")
+            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewState, "MoveNewState")
             public:
             MoveNewState(
                 Path<ScenarioModel>&& scenarioPath,

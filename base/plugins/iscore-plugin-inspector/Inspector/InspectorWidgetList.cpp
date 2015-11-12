@@ -29,7 +29,7 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
     {
         for(InspectorWidgetFactory* factory : iwl->m_factories)
         {
-            if(factory->key_impl().contains(name))
+            if(factory->matches(name))
             {
                 return factory->makeWidget(model, doc, parent);
             }

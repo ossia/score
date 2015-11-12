@@ -4,7 +4,7 @@
 
 class Record final : public iscore::AggregateCommand
 {
-         ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
+         ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
                                        Record,
                                        "Record")
     public:

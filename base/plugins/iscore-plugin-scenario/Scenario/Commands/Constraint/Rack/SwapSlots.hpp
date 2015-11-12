@@ -13,7 +13,7 @@ namespace Scenario
     {
         class SwapSlots final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "SwapSlots")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "SwapSlots")
             public:
                 SwapSlots(
                     Path<RackModel>&& rack,

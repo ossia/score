@@ -17,5 +17,6 @@ class AutomationInspectorFactory final : public InspectorWidgetFactory
                 iscore::Document& doc,
                 QWidget* parent) override;
 
+    private:
         const QList<QString>& key_impl() const override;
 };

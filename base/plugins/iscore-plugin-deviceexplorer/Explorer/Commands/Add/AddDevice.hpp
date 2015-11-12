@@ -7,7 +7,7 @@
 class DeviceDocumentPlugin;
 class AddDevice final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "AddDevice")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddDevice, "AddDevice")
         public:
         AddDevice(Path<DeviceDocumentPlugin>&& device_tree,
                   const iscore::DeviceSettings& parameters);

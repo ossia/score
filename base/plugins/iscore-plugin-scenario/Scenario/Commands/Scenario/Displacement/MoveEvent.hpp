@@ -46,12 +46,6 @@ class MoveEvent final : public SerializableMoveEvent
         {
             return QObject::tr("Move Event With %1").arg(DisplacementPolicy::name());
         }
-        static auto static_uid()
-        {
-            using namespace std;
-            hash<string> fn;
-            return fn(std::string(commandName()));
-        }
 
         MoveEvent()
             :SerializableMoveEvent{}

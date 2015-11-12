@@ -66,7 +66,7 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
             else
             {
                 iscore::SerializableCommand* last = m_cmds.last();
-                if(last->uid() == TheCommand::static_uid())
+                if(last->key() == TheCommand::static_key())
                 {
                     safe_cast<TheCommand*>(last)->update(std::forward<Args>(args)...);
                     safe_cast<TheCommand*>(last)->redo();

@@ -13,7 +13,7 @@ namespace Command
 {
 class Remove final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
         public:
 
           Remove(

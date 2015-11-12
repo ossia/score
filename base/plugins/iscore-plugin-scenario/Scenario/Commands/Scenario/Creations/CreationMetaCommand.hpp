@@ -15,7 +15,7 @@ namespace Scenario
     {
         class CreationMetaCommand final : public iscore::AggregateCommand
         {
-                ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), CreationMetaCommand, "CreationMetaCommand")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreationMetaCommand, "CreationMetaCommand")
             public:
                 void undo() const override
         {
@@ -26,13 +26,13 @@ namespace Scenario
             for(int i = m_cmds.size() - 1; i >= 0; --i)
             {
                 if(
-                        m_cmds[i]->uid() == CreateConstraint::static_uid()
-                        || m_cmds[i]->uid() == CreateState::static_uid()
-                        || m_cmds[i]->uid() == CreateEvent_State::static_uid()
-                        || m_cmds[i]->uid() == CreateConstraint_State::static_uid()
-                        || m_cmds[i]->uid() == CreateConstraint_State_Event::static_uid()
-                        || m_cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_uid()
-                        || m_cmds[i]->uid() == CreateSequence::static_uid()
+                        m_cmds[i]->key() == CreateConstraint::static_key()
+                        || m_cmds[i]->uid() == CreateState::static_key()
+                        || m_cmds[i]->uid() == CreateEvent_State::static_key()
+                        || m_cmds[i]->uid() == CreateConstraint_State::static_key()
+                        || m_cmds[i]->uid() == CreateConstraint_State_Event::static_key()
+                        || m_cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_key()
+                        || m_cmds[i]->uid() == CreateSequence::static_key()
                         )
                 {
                     m_cmds[i]->undo();

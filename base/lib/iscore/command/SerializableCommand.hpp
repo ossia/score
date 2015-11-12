@@ -13,17 +13,15 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
  *  - command name
  *  - command description
  */
-#define ISCORE_SERIALIZABLE_COMMAND_DECL(parentNameFun, name, desc) \
+#define ISCORE_COMMAND_DECL(parentNameFun, name, desc) \
     public: \
-        name (): iscore::SerializableCommand{ factoryName() , commandName(), description() } { } \
-        static const CommandParentFactoryKey& factoryName() { return parentNameFun; } \
-        static CommandFactoryKey commandName() { return CommandFactoryKey{#name}; } \
-        static QString description() { return QObject::tr(desc); }  \
-    static auto static_uid() \
+        virtual const CommandParentFactoryKey& parentKey() const override { return parentNameFun; } \
+        virtual const CommandFactoryKey& key() const override { return static_key(); } \
+        virtual QString description() const override { return QObject::tr(desc); }  \
+    static const CommandFactoryKey& static_key() \
     { \
-        using namespace std; \
-        hash<CommandFactoryKey> fn; \
-        return fn(commandName()); \
+        static const CommandFactoryKey var{#name}; \
+        return var; \
     } \
     private:
 
@@ -42,46 +40,15 @@ class SerializableCommand : public Command
     public:
         ~SerializableCommand();
 
-        const CommandFactoryKey& name() const;
-        const CommandParentFactoryKey& parentName() const; // Note: factoryName() is the constexpr one.
-        const QString& text() const;
-        void setText(const QString& t);
-
-        SerializableCommand& operator=(const SerializableCommand& other) = default;
-
-        std::size_t uid() const
-        {
-            std::hash<CommandFactoryKey> fn;
-            return fn(this->name());
-        }
+        virtual const CommandParentFactoryKey& parentKey() const = 0;
+        virtual const CommandFactoryKey& key() const = 0;
+        virtual QString description() const = 0;
 
         QByteArray serialize() const;
         void deserialize(const QByteArray&);
 
     protected:
-        template<typename Str1, typename Str2, typename Str3>
-        SerializableCommand(Str1&& parname, Str2&& cmdname, Str3&& text) :
-            m_name {cmdname},
-            m_parentName {parname},
-            m_text{text}
-        {
-        }
-
-
-        template<typename T>
-        SerializableCommand(const T*) :
-            m_name {T::commandName()},
-            m_parentName {T::factoryName()},
-            m_text{T::description()}
-        {
-        }
-
         virtual void serializeImpl(QDataStream&) const = 0;
         virtual void deserializeImpl(QDataStream&) = 0;
-
-    private:
-        CommandFactoryKey m_name;
-        CommandParentFactoryKey m_parentName;
-        QString m_text;
 };
 }

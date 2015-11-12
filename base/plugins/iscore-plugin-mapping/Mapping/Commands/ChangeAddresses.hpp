@@ -8,7 +8,7 @@
 class MappingModel;
 class ChangeSourceAddress final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
+        ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
     public:
         ChangeSourceAddress(
                 Path<MappingModel>&& path,
@@ -29,7 +29,7 @@ class ChangeSourceAddress final : public iscore::SerializableCommand
 
 class ChangeTargetAddress final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
+        ISCORE_COMMAND_DECL(MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
     public:
         ChangeTargetAddress(
                 Path<MappingModel>&& path,

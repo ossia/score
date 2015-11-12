@@ -5,26 +5,6 @@ SerializableCommand::~SerializableCommand()
 {
 }
 
-const CommandFactoryKey& SerializableCommand::name() const
-{
-    return m_name;
-}
-
-const CommandParentFactoryKey& SerializableCommand::parentName() const
-{
-    return m_parentName;
-}
-
-const QString& SerializableCommand::text() const
-{
-    return m_text;
-}
-
-void SerializableCommand::setText(const QString &t)
-{
-    m_text = t;
-}
-
 QByteArray SerializableCommand::serialize() const
 {
     QByteArray arr;

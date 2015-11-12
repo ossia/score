@@ -17,7 +17,7 @@ namespace Scenario
          */
         class AddRackToConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "AddRackToConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddRackToConstraint, "AddRackToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
 
             public:

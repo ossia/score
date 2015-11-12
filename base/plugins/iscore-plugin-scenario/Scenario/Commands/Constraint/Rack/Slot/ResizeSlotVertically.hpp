@@ -16,7 +16,7 @@ namespace Scenario
          */
         class ResizeSlotVertically final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ResizeSlotVertically, "ResizeSlotVertically")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ResizeSlotVertically, "ResizeSlotVertically")
             public:
                 ResizeSlotVertically(
                     Path<SlotModel>&& slotPath,

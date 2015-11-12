@@ -10,7 +10,7 @@ namespace Scenario
     {
         class ClearState final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "ClearState")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "ClearState")
             public:
                 ClearState(Path<StateModel>&& path);
                 void undo() const override;

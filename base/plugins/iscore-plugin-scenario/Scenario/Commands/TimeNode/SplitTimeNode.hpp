@@ -14,7 +14,7 @@ namespace Scenario
     {
         class SplitTimeNode final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitTimeNode, "SplitTimeNode")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitTimeNode, "SplitTimeNode")
             public:
                 SplitTimeNode(
                     Path<TimeNodeModel>&& path,

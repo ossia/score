@@ -12,7 +12,7 @@ namespace Command
 {
 class CreateSequence final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence,"CreateSequence")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateSequence,"CreateSequence")
     public:
 
         CreateSequence(

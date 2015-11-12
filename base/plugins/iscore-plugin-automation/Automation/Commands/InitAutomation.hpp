@@ -9,7 +9,7 @@
 class AutomationModel;
 class InitAutomation final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")
+        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), InitAutomation, "InitAutomation")
     public:
            // Note : the segments shall be sorted from start to end.
         InitAutomation(

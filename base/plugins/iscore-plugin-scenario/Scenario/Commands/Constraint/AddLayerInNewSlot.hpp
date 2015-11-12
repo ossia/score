@@ -21,7 +21,7 @@ namespace Scenario
         */
         class AddLayerInNewSlot final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(
+                ISCORE_COMMAND_DECL(
                         ScenarioCommandFactoryName(),
                         AddLayerInNewSlot,
                         "AddLayerInNewSlot")

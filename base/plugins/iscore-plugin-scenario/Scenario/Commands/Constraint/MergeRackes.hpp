@@ -15,7 +15,7 @@ namespace Scenario
          */
         class MergeRackes final : public iscore::AggregateCommand
         {
-                ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeRackes, "MergeRackes")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeRackes, "MergeRackes")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MergeRackes(const Path<RackModel>& mergeSource,

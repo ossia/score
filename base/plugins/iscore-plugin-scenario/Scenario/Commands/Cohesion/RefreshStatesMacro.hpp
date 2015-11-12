@@ -4,7 +4,7 @@
 
 class RefreshStatesMacro final : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                       RefreshStatesMacro,
                                       "RefreshStatesMacro")
 };

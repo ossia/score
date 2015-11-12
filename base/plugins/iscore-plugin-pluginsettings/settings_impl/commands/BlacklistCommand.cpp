@@ -4,7 +4,6 @@ using namespace iscore;
 #include <QDebug>
 
 BlacklistCommand::BlacklistCommand(QString name, bool value) :
-    SerializableCommand {"", "", ""},
 m_blacklistedState {{name, value}}
 {
 
@@ -44,6 +43,10 @@ void BlacklistCommand::redo() const
     */
 }
 
+void BlacklistCommand::serializeImpl(QDataStream&) const { }
+
+void BlacklistCommand::deserializeImpl(QDataStream&) { }
+
 /*
 bool BlacklistCommand::mergeWith(const Command* other)
 {
@@ -64,3 +67,24 @@ bool BlacklistCommand::mergeWith(const Command* other)
     return true;
 }
 */
+
+
+const CommandParentFactoryKey& BlacklistCommand::parentKey() const
+{
+    static CommandParentFactoryKey& p;
+    ISCORE_TODO;
+    return p;
+}
+
+const CommandFactoryKey& BlacklistCommand::key() const
+{
+    static CommandFactoryKey& p;
+    ISCORE_TODO;
+    return p;
+}
+
+QString BlacklistCommand::description() const
+{
+    ISCORE_TODO;
+    return {};
+}

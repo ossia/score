@@ -10,7 +10,7 @@ class AreaModel;
 class DimensionModel;
 class AddArea : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(SpaceCommandFactoryName(), AddArea, "AddArea")
+        ISCORE_COMMAND_DECL(SpaceCommandFactoryName(), AddArea, "AddArea")
     public:
 
           AddArea(Path<SpaceProcess>&& spacProcess,

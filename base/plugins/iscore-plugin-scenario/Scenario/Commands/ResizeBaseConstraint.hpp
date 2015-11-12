@@ -25,7 +25,7 @@ namespace Command
 {
 class MoveBaseEvent final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveBaseEvent, "MoveBaseEvent")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveBaseEvent, "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
         public:
           MoveBaseEvent(

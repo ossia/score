@@ -14,7 +14,7 @@ namespace Scenario
     {
         class SplitEvent final : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitEvent, "SplitEvent")
+            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitEvent, "SplitEvent")
             public:
 
             SplitEvent(

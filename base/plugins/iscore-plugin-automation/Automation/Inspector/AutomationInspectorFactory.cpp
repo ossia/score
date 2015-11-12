@@ -15,7 +15,7 @@ InspectorWidgetBase* AutomationInspectorFactory::makeWidget(
                 parent};
 }
 
-const QList<QString>&AutomationInspectorFactory::key_impl() const
+const QList<QString>& AutomationInspectorFactory::key_impl() const
 {
     static const QList<QString> lst{AutomationProcessMetadata::processObjectName()};
     return lst;

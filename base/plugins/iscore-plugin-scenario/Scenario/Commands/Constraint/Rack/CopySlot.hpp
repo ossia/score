@@ -20,7 +20,7 @@ namespace Scenario
          */
         class CopySlot final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "CopySlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "CopySlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CopySlot(Path<SlotModel>&& slotToCopy,

@@ -26,6 +26,7 @@ class FactoryKeyInterface
 {
     public:
         virtual ~FactoryKeyInterface() = default;
+    protected:
         virtual const Key& key_impl() const = 0;
 };
 

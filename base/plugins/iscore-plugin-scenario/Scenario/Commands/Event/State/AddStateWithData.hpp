@@ -11,7 +11,7 @@ namespace Scenario
     {
         class AddStateWithData final : public iscore::AggregateCommand
         {
-                ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "AddStateWithData")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddStateWithData, "AddStateWithData")
             public:
                 AddStateWithData(
                          const ScenarioModel& scenario,

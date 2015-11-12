@@ -19,7 +19,7 @@ namespace Scenario
          */
         class ClearConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "ClearConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "ClearConstraint")
             public:
                 ClearConstraint(Path<ConstraintModel>&& constraintPath);
                 void undo() const override;

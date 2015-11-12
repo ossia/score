@@ -10,7 +10,7 @@ namespace Scenario
     {
         class SetCondition final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "SetCondition")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "SetCondition")
             public:
                 SetCondition(
                     Path<EventModel>&& eventPath,

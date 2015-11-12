@@ -12,7 +12,7 @@ class StateModel;
 
 class ScenarioPasteElements final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(),
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
                                          ScenarioPasteElements,
                                          "ScenarioPasteElements")
     public:

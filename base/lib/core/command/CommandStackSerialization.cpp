@@ -12,11 +12,11 @@ void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
     QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > undoStack, redoStack;
     for(const auto& cmd : stack.m_undoable)
     {
-        undoStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        undoStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
     }
     for(const auto& cmd : stack.m_redoable)
     {
-        redoStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        redoStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
     }
 
     m_stream << undoStack << redoStack;

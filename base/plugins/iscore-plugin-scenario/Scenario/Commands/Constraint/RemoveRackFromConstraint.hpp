@@ -19,7 +19,7 @@ namespace Scenario
          */
         class RemoveRackFromConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveRackFromConstraint, "RemoveRackFromConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveRackFromConstraint, "RemoveRackFromConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 RemoveRackFromConstraint(

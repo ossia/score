@@ -7,7 +7,7 @@
 class Group;
 class CreateGroup : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(
+        ISCORE_COMMAND_DECL(
                 DistributedScenarioCommandFactoryName(),
                 CreateGroup,
                 "CreateGroup")

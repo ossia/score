@@ -8,7 +8,7 @@
 class AutomationModel;
 class ChangeAddress final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(AutomationCommandFactoryName(), ChangeAddress, "ChangeAddress")
+        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), ChangeAddress, "ChangeAddress")
     public:
         ChangeAddress(
                 Path<AutomationModel>&& path,

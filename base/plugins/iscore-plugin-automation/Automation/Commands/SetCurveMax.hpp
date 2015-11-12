@@ -6,7 +6,7 @@
 class AutomationModel;
 class SetAutomationMax final : public iscore::PropertyCommand
 {
-        ISCORE_PROPERTY_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMax, "Set curve maximum")
+        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMax, "Set curve maximum")
         public:
 
         SetAutomationMax(Path<AutomationModel>&& path, double newval):

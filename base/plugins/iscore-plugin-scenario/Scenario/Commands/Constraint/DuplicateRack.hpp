@@ -12,7 +12,7 @@ namespace Scenario
     {
         class DuplicateRack final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), DuplicateRack, "DuplicateRack")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), DuplicateRack, "DuplicateRack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 DuplicateRack(ObjectPath&& rackToCopy);
