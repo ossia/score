@@ -188,5 +188,4 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/iscore_git_info.hpp" "
 #define ISCORE_VERSION_PATCH ${ISCORE_VERSION_PATCH}
 #define ISCORE_VERSION_EXTRA \"${ISCORE_VERSION_EXTRA}\"
 ")
-
 include(cotire)

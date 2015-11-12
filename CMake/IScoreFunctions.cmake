@@ -1,7 +1,6 @@
 function(iscore_cotire_pre TheTarget)
-if(ISCORE_COTIRE)
     set_property(TARGET ${TheTarget} PROPERTY CXX_STANDARD 14)
-    set_property(TARGET ${TheTarget} PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_SOURCE_DIR}/base/lib/iscore/prefix.hpp")
+if(ISCORE_COTIRE)
     set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
     if(ISCORE_COTIRE_ALL_HEADERS)
         set_target_properties(${TheTarget} PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH "")
@@ -10,6 +9,14 @@ if(ISCORE_COTIRE)
     # FIXME on windows
     set_target_properties(${TheTarget} PROPERTIES
                           COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
+
+    if(NOT ${TheTarget} STREQUAL "iscore_lib_base")
+        # We reuse the same prefix header
+
+        get_target_property(ISCORE_COMMON_PREFIX_HEADER iscore_lib_base COTIRE_CXX_PREFIX_HEADER)
+        set_target_properties(${TheTarget} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${ISCORE_COMMON_PREFIX_HEADER}")
+    endif()
+
 endif()
 endfunction()
 
