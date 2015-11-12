@@ -13,7 +13,7 @@
 
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
-        "Mapping",
+        MappingProcessMetadata,
         MappingModel,
         MappingLayerModel,
         MappingPresenter,

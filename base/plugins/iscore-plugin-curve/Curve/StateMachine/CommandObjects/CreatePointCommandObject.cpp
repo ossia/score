@@ -153,7 +153,7 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
             segments.push_back(newLeftSegment);
         }
         CurveSegmentData& newLeftSegment = segments.back();
-        newLeftSegment.type = "Power";
+        newLeftSegment.type = PowerCurveSegmentData::key();
         newLeftSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
         newLeftSegment.start = {seg_closest_from_left_x, 0.};
         newLeftSegment.end = m_state->currentPoint;
@@ -164,7 +164,7 @@ void CreatePointCommandObject::createPoint(std::vector<CurveSegmentData> &segmen
             segments.push_back(newRightSegment);
         }
         CurveSegmentData& newRightSegment = segments.back();
-        newRightSegment.type = "Power";
+        newRightSegment.type = PowerCurveSegmentData::key();
         newRightSegment.specificSegmentData = QVariant::fromValue(PowerCurveSegmentData{0});
         newRightSegment.start = m_state->currentPoint;
         newRightSegment.end = {seg_closest_from_right_x, 0.};

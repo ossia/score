@@ -1,21 +1,21 @@
 #pragma once
 #include <Process/ProcessFactoryKey.hpp>
 
-struct JSProcessMetadata
+struct ScenarioProcessMetadata
 {
         static const ProcessFactoryKey& factoryKey()
         {
-            static const ProcessFactoryKey name{"Javascript"};
+            static const ProcessFactoryKey name{"Scenario"};
             return name;
         }
 
         static QString processObjectName()
         {
-            return "Javascript";
+            return "Scenario";
         }
 
         static QString factoryPrettyName()
         {
-            return QObject::tr("Javascript");
+            return QObject::tr("Scenario");
         }
 };

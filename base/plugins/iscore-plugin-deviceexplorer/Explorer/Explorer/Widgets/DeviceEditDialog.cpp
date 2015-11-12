@@ -113,7 +113,7 @@ iscore::DeviceSettings DeviceEditDialog::getSettings() const
         settings = m_protocolWidget->getSettings();
     }
 
-    settings.protocol = m_protocolCBox->currentText().toStdString();
+    settings.protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
 
     return settings;
 }

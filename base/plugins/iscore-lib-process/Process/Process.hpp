@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
-#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessFactoryKey.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>

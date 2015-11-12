@@ -1,8 +1,8 @@
 #pragma once
 #include "Curve/Segment/CurveSegmentModel.hpp"
-class LinearCurveSegmentData
+struct LinearCurveSegmentData
 {
-
+        static const CurveSegmentFactoryKey& key();
 };
 
 Q_DECLARE_METATYPE(LinearCurveSegmentData)

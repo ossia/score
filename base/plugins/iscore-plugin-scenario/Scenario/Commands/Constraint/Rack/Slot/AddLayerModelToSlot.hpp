@@ -2,6 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <Process/ProcessFactoryKey.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class LayerModel;
@@ -30,13 +31,13 @@ namespace Scenario
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
                     Path<Process>&& process,
-                    const std::string& processName);
+                    const ProcessFactoryKey& processName);
 
                 AddLayerModelToSlot(
                         Path<SlotModel>&& slot,
                         const Id<LayerModel>& layerid,
                         Path<Process>&& process,
-                        const std::string& processName);
+                        const ProcessFactoryKey& processName);
 
                 void undo() const override;
                 void redo() const override;

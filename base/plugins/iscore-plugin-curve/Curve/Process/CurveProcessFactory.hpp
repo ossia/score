@@ -55,13 +55,13 @@ class CurveProcessFactory_T : public ProcessFactory
         CurveColors_T m_colors;
 };
 
-#define DEFINE_CURVE_PROCESS_FACTORY(Name, DynName, Model, Layer, Presenter, View, Colors) \
+// See AutomationProcessMetadata.
+#define DEFINE_CURVE_PROCESS_FACTORY(Name, ProcessMetadata, Model, Layer, Presenter, View, Colors) \
 class Name final : public CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
-    const ProcessFactoryKey& key_impl() const override { \
-        static const ProcessFactoryKey name{DynName}; \
-        return name; \
-    } \
+    const ProcessFactoryKey& key_impl() const override \
+    { return ProcessMetadata::factoryKey(); } \
+    \
     QString prettyName() const override \
-    { return QObject::tr(DynName); } \
+    { return ProcessMetadata::factoryPrettyName(); } \
 };

@@ -28,7 +28,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath,
-        const std::string& processkey) :
+        const ProcessFactoryKey& processkey) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
@@ -45,7 +45,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
         const Id<LayerModel>& layerid,
         Path<Process>&& process,
-        const std::string& processKey):
+        const ProcessFactoryKey& processKey):
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},

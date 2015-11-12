@@ -3,6 +3,8 @@
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <Mapping/MappingProcessMetadata.hpp>
+
 
 #include <State/Address.hpp>
 

@@ -1,4 +1,5 @@
 #include "PointArrayCurveSegmentModel.hpp"
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include "psimpl.h"
 
@@ -184,7 +185,7 @@ std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() co
     vec.emplace_back(Id<CurveSegmentModel>{0},
                      pts[0], pts[1],
                      Id<CurveSegmentModel>{}, Id<CurveSegmentModel>{},
-                     "Linear", QVariant::fromValue(LinearCurveSegmentData{}));
+                     LinearCurveSegmentData::key(), QVariant::fromValue(LinearCurveSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
@@ -194,7 +195,7 @@ std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() co
         vec.emplace_back(Id<CurveSegmentModel>{i},
                          pts[i], pts[i+1],
                          Id<CurveSegmentModel>{i-1}, Id<CurveSegmentModel>{},
-                         "Linear", QVariant::fromValue(LinearCurveSegmentData()));
+                         LinearCurveSegmentData::key(), QVariant::fromValue(LinearCurveSegmentData()));
     }
 
     return vec;

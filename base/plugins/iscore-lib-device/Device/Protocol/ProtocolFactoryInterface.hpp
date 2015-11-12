@@ -1,6 +1,5 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 

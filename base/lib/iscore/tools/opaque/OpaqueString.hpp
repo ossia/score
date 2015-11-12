@@ -16,9 +16,9 @@ class OpaqueString
 
     public:
         OpaqueString() = default;
-        OpaqueString(const char* str): impl{str} {}
-        OpaqueString(const std::string& str): impl{str} {}
-        OpaqueString(std::string&& str): impl{std::move(str)} {}
+        explicit OpaqueString(const char* str): impl{str} {}
+        explicit OpaqueString(const std::string& str): impl{str} {}
+        explicit OpaqueString(std::string&& str): impl{std::move(str)} {}
 
     protected:
         std::string impl;

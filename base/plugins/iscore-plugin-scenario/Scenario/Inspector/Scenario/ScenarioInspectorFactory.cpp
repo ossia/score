@@ -14,3 +14,9 @@ InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
                 doc,
                 parent};
 }
+
+const QList<QString>&ScenarioInspectorFactory::key_impl() const
+{
+    static const QList<QString> list{ScenarioProcessMetadata::processObjectName()};
+    return list;
+}

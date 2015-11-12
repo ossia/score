@@ -20,7 +20,7 @@
 
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
-        "Automation",
+        AutomationProcessMetadata,
         AutomationModel,
         AutomationLayerModel,
         AutomationPresenter,

@@ -5,6 +5,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 #include <Automation/State/AutomationState.hpp>
+#include <Automation/AutomationProcessMetadata.hpp>
 #include <State/Address.hpp>
 
 /**

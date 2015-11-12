@@ -18,7 +18,7 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses(
     {
         auto cmd = new Scenario::Command::AddProcessToConstraint{
                    Path<ConstraintModel>{m_path},
-                   "Automation"};
+                   AutomationProcessMetadata::factoryKey()};
         m_serializedCommands.push_back(cmd->serialize());
         delete cmd;
     }

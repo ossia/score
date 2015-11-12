@@ -27,7 +27,7 @@ class MappingInspectorFactory final : public InspectorWidgetFactory
 
         const QList<QString>& key_impl() const override
         {
-            static const QList<QString> list{"Mapping"};
+            static const QList<QString> list{MappingProcessMetadata::processObjectName()};
             return list;
         }
 };

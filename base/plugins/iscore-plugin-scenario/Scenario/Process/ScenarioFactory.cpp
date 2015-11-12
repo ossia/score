@@ -32,8 +32,12 @@ ScenarioFactory::makeLayerPresenter(
 
 const ProcessFactoryKey& ScenarioFactory::key_impl() const
 {
-    static const ProcessFactoryKey name{"Scenario"};
-    return name;
+    return ScenarioProcessMetadata::factoryKey();
+}
+
+QString ScenarioFactory::prettyName() const
+{
+    return ScenarioProcessMetadata::factoryPrettyName();
 }
 
 Process* ScenarioFactory::makeModel(

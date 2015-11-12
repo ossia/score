@@ -4,6 +4,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
 #include <Process/Process.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>

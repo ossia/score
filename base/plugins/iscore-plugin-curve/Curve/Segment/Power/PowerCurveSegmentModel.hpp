@@ -3,7 +3,8 @@
 
 struct PowerCurveSegmentData
 {
-    double gamma;
+        static const CurveSegmentFactoryKey& key();
+        double gamma;
 };
 
 Q_DECLARE_METATYPE(PowerCurveSegmentData)

@@ -14,7 +14,7 @@ AutomationModel::AutomationModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent) :
-    CurveProcessModel {duration, id, "Automation", parent},
+    CurveProcessModel {duration, id, AutomationProcessMetadata::processObjectName(), parent},
     m_startState{new AutomationState{*this, 0., this}},
     m_endState{new AutomationState{*this, 1., this}}
 {
@@ -38,7 +38,7 @@ AutomationModel::AutomationModel(
         const AutomationModel& source,
         const Id<Process>& id,
         QObject* parent):
-    CurveProcessModel{source, id, source.objectName(), parent},
+    CurveProcessModel{source, id, AutomationProcessMetadata::processObjectName(), parent},
     m_address(source.address()),
     m_min{source.min()},
     m_max{source.max()},
@@ -61,8 +61,7 @@ Process* AutomationModel::clone(
 
 const ProcessFactoryKey& AutomationModel::key() const
 {
-    static const ProcessFactoryKey name{"Automation"};
-    return name;
+    return AutomationProcessMetadata::factoryKey();
 }
 
 QString AutomationModel::prettyName() const

@@ -15,8 +15,7 @@ CurveSegmentModel* LinearCurveSegmentModel::clone(
 
 const CurveSegmentFactoryKey& LinearCurveSegmentModel::key() const
 {
-    static const CurveSegmentFactoryKey name{"Linear"};
-    return name;
+    return LinearCurveSegmentData::key();
 }
 
 void LinearCurveSegmentModel::serialize(const VisitorVariant& vis) const
@@ -53,4 +52,10 @@ double LinearCurveSegmentModel::valueAt(double x) const
 QVariant LinearCurveSegmentModel::toSegmentSpecificData() const
 {
     return QVariant::fromValue(data_type{});
+}
+
+const CurveSegmentFactoryKey& LinearCurveSegmentData::key()
+{
+    static const CurveSegmentFactoryKey name{"Linear"};
+    return name;
 }

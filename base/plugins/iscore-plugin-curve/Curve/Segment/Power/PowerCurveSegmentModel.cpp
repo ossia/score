@@ -26,8 +26,7 @@ CurveSegmentModel*PowerCurveSegmentModel::clone(
 
 const CurveSegmentFactoryKey& PowerCurveSegmentModel::key() const
 {
-    static const CurveSegmentFactoryKey name{"Power"};
-    return name;
+    return PowerCurveSegmentData::key();
 }
 
 void PowerCurveSegmentModel::serialize(const VisitorVariant& vis) const
@@ -97,4 +96,10 @@ void PowerCurveSegmentModel::setVerticalParameter(double p)
 boost::optional<double> PowerCurveSegmentModel::verticalParameter() const
 {
     return gamma / 6. - 1;
+}
+
+const CurveSegmentFactoryKey&PowerCurveSegmentData::key()
+{
+    static const CurveSegmentFactoryKey name{"Power"};
+    return name;
 }

@@ -2,7 +2,6 @@
 #include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-
 class ScenarioInspectorFactory final : public InspectorWidgetFactory
 {
     public:
@@ -17,10 +16,6 @@ class ScenarioInspectorFactory final : public InspectorWidgetFactory
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        const QList<QString>& key_impl() const override
-        {
-            static const QList<QString> list{"Scenario"};
-            return list;
-        }
+        const QList<QString>& key_impl() const override;
 
 };
