@@ -70,4 +70,4 @@ target_link_libraries(${PROJECT_NAME}
                      cln ginac)
 
 setup_iscore_plugin(${PROJECT_NAME})
-setup_iscore_tests(tests)
+#setup_iscore_tests(tests)

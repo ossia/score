@@ -1,10 +1,8 @@
 #pragma once
-#include "CurveSegmentFactory.hpp"
+#include <Curve/Segment/CurveSegmentFactory.hpp>
 
-// TODO Template this
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
-using CurveSegmentList = GenericFactoryList_T<CurveSegmentFactory>;
+using CurveSegmentList = GenericFactoryList_T<CurveSegmentFactory, CurveSegmentFactoryKey>;
 
 class SingletonCurveSegmentList
 {

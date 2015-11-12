@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QString>
 #include <QVariant>
@@ -8,8 +9,8 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 class DeviceInterface;
-
-ISCORE_STRING_FACTORY_KEY_DECL(ProtocolFactoryKey)
+class ProtocolTag{};
+using ProtocolFactoryKey = StringFactoryKey<ProtocolTag>;
 Q_DECLARE_METATYPE(ProtocolFactoryKey)
 
 class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>

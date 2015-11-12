@@ -1,6 +1,7 @@
 #include "CommandStack.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
+#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <iscore/presenter/PresenterInterface.hpp>
 #include <core/presenter/Presenter.hpp>
 

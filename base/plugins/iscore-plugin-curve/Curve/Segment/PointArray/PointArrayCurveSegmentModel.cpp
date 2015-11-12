@@ -32,9 +32,9 @@ CurveSegmentModel*PointArrayCurveSegmentModel::clone(
     return cs;
 }
 
-const std::string& PointArrayCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& PointArrayCurveSegmentModel::key() const
 {
-    static const std::string name{"PointArray"};
+    static const CurveSegmentFactoryKey name{"PointArray"};
     return name;
 }
 

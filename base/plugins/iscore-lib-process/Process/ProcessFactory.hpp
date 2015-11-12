@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QByteArray>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 
@@ -13,7 +14,9 @@ class LayerView;
 class LayerPresenter;
 class QGraphicsItem;
 
-ISCORE_STRING_FACTORY_KEY_DECL(ProcessFactoryKey)
+class ProcessTag{};
+using ProcessFactoryKey = StringFactoryKey<ProcessTag>;
+Q_DECLARE_METATYPE(ProcessFactoryKey)
 
 /**
      * @brief The ProcessFactory class

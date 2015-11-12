@@ -39,7 +39,7 @@ class GenericFactoryInterface_Base<Key, Keys...> :
 
 template<>
 class GenericFactoryInterface_Base<> :
-        public FactoryInterfaceBase
+        public iscore::FactoryInterfaceBase
 {
     public:
         virtual ~GenericFactoryInterface_Base() = default;
@@ -92,7 +92,7 @@ class GenericFactoryList_T
             }
         }
 
-        T* get(const std::string& str) const
+        T* get(const Key& str) const
         {
             auto it = m_factories.find(str);
             return (it != m_factories.end()) ? it->second : nullptr;
@@ -109,61 +109,3 @@ class GenericFactoryList_T
 };
 
 
-class StringFactoryKey
-{
-        friend struct std::hash<StringFactoryKey>;
-        friend bool operator==(const StringFactoryKey& lhs, const StringFactoryKey& rhs) {
-            return lhs.impl == rhs.impl;
-        }
-
-        friend bool operator<(const StringFactoryKey& lhs, const StringFactoryKey& rhs) {
-            return lhs.impl < rhs.impl;
-        }
-    public:
-        StringFactoryKey() = default;
-        StringFactoryKey(const char* str): impl{str} {}
-        StringFactoryKey(const std::string& str): impl{str} {}
-        StringFactoryKey(std::string&& str): impl{std::move(str)} {}
-    private:
-        std::string impl;
-};
-
-
-
-namespace std
-{
-template<>
-struct hash<StringFactoryKey>
-{
-        std::size_t operator()(const StringFactoryKey& kagi) const noexcept
-        {
-            return std::hash<std::string>()(kagi.impl);
-        }
-};
-}
-
-#define ISCORE_STRING_FACTORY_KEY_DECL(Type) \
-class Type : StringFactoryKey \
-{ \
-        friend struct std::hash<Type>; \
-        friend bool operator==(const Type& lhs, const Type& rhs) { \
-            return static_cast<const StringFactoryKey&>(lhs) == static_cast<const StringFactoryKey&>(rhs); \
-        } \
- \
-        friend bool operator<(const Type& lhs, const Type& rhs) { \
-            return static_cast<const StringFactoryKey&>(lhs) < static_cast<const StringFactoryKey&>(rhs); \
-        } \
- \
-    public: \
-        using StringFactoryKey::StringFactoryKey; \
-}; \
- \
-namespace std \
-{ \
-template<> \
-struct hash<Type> \
-{ \
-        std::size_t operator()(const Type& kagi) const noexcept \
-        { return std::hash<StringFactoryKey>()(static_cast<const StringFactoryKey&>(kagi)); } \
-}; \
-}

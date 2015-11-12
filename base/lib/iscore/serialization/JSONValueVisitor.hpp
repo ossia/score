@@ -6,6 +6,8 @@
 #include <QVector>
 #include <QMap>
 
+template<class>
+class StringFactoryKey;
 
 template<typename T>
 T fromJsonObject(QJsonValue&& json);
@@ -52,6 +54,9 @@ class Visitor<Reader<JSONValue>> final : public AbstractVisitor
             readFrom(obj.val());
         }
 
+        template<typename T>
+        void readFrom(const StringFactoryKey<T>&);
+
         QJsonValue val;
 };
 
@@ -81,6 +86,9 @@ class Visitor<Writer<JSONValue>> : public AbstractVisitor
         {
             elt = static_cast<T>(val.toInt());
         }
+
+        template<typename T>
+        void writeTo(StringFactoryKey<T>&);
 
         template<typename T>
         void writeTo(Id<T>& obj)

@@ -31,6 +31,8 @@ template<class>
 class TreeNode;
 template<class>
 class TreePath;
+template<class>
+class StringFactoryKey;
 
 namespace eggs{
 namespace variants {
@@ -95,6 +97,8 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
         void readFrom(const TreeNode<T>&);
         template<typename T>
         void readFrom(const TreePath<T>&);
+        template<typename T>
+        void readFrom(const StringFactoryKey<T>&);
 
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
@@ -185,6 +189,8 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         void writeTo(TreeNode<T>&);
         template<typename T>
         void writeTo(TreePath<T>&);
+        template<typename T>
+        void writeTo(StringFactoryKey<T>&);
 
         template<typename... Args>
         void writeTo(eggs::variants::variant<Args...>&);
@@ -226,7 +232,7 @@ template<typename T,
           && ! std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
-    Visitor<Reader<DataStream>> reader(stream.device());
+    Visitor<Reader<DataStream>> reader{stream.device()};
     reader.readFrom(obj);
     return stream;
 }
@@ -237,7 +243,7 @@ template<typename T,
           && ! std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>> (QDataStream& stream, T& obj)
 {
-    Visitor<Writer<DataStream>> writer(stream.device());
+    Visitor<Writer<DataStream>> writer{stream.device()};
     writer.writeTo(obj);
 
     return stream;

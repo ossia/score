@@ -1,5 +1,6 @@
 #include "AggregateCommand.hpp"
 #include <iscore/presenter/PresenterInterface.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QApplication>
 using namespace iscore;
 

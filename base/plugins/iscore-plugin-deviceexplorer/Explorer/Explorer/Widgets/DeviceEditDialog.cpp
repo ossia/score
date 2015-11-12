@@ -62,7 +62,7 @@ DeviceEditDialog::initAvailableProtocols()
 
     const auto& protocols = SingletonProtocolList::instance().get();
     for(const auto& prot : protocols)
-        m_protocolCBox->addItem(prot.second->prettyName(), prot.second->key<ProtocolFactoryKey>());
+        m_protocolCBox->addItem(prot.second->prettyName(), QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
 
     //initialize previous settings
     m_previousSettings.clear();
@@ -93,8 +93,8 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    const QString& protocol = m_protocolCBox->currentText();
-    m_protocolWidget = SingletonProtocolList::instance().get(protocol.toStdString())->makeSettingsWidget();
+    auto protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
+    m_protocolWidget = SingletonProtocolList::instance().get(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {

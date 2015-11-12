@@ -1,6 +1,7 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <Device/Protocol/SingletonProtocolList.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 #include "ProtocolFactoryInterface.hpp"
 #include "DeviceSettings.hpp"
 template<>

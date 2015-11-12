@@ -1,7 +1,7 @@
 #pragma once
 #include <Curve/StateMachine/CurvePoint.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
 class CurveSegmentModel;
 struct CurveSegmentData;
 /* TODO it would maybe faster to have them on the heap and use QPointer for
@@ -60,7 +60,7 @@ struct CurveSegmentData
                 const Id<CurveSegmentModel>& id,
                 CurvePoint start, CurvePoint end,
                 const Id<CurveSegmentModel>& prev, const Id<CurveSegmentModel>&  foll,
-                const std::string& type, const QVariant& data):
+                const CurveSegmentFactoryKey& type, const QVariant& data):
             id(id),
             start(start),
             end(end),
@@ -77,7 +77,7 @@ struct CurveSegmentData
         CurvePoint start, end;
         Id<CurveSegmentModel> previous, following;
 
-        std::string type;
+        CurveSegmentFactoryKey type;
         QVariant specificSegmentData;
 
         double x() const {

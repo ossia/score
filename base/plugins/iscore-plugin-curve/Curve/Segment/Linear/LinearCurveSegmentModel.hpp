@@ -24,7 +24,7 @@ class LinearCurveSegmentModel final : public CurveSegmentModel
                 const Id<CurveSegmentModel>& id,
                 QObject* parent) const override;
 
-        const std::string& name() const override;
+        const CurveSegmentFactoryKey& key() const override;
         void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

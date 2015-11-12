@@ -51,7 +51,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 {
     // To allow recration using createProcess
-    m_stream << segmt.name();
+    readFrom(segmt.key());
 
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
@@ -83,7 +83,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentModel& segmt)
 {
     // To allow recration using createProcess
-    m_obj["Name"] = QString::fromStdString(segmt.name());
+    m_obj["Name"] = toJsonValue(segmt.key());
 
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
@@ -114,7 +114,7 @@ CurveSegmentModel*createCurveSegment(
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    std::string name;
+    CurveSegmentFactoryKey name;
     deserializer.writeTo(name);
 
     auto& instance = SingletonCurveSegmentList::instance();
@@ -130,7 +130,7 @@ CurveSegmentModel*createCurveSegment(
         QObject* parent)
 {
     auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(deserializer.m_obj["Name"].toString().toStdString());
+    auto fact = instance.get(fromJsonValue<CurveSegmentFactoryKey>(deserializer.m_obj["Name"]));
     auto model = fact->load(deserializer.toVariant(), parent);
 
     return model;

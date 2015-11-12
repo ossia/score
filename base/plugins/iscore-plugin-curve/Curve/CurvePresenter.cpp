@@ -241,10 +241,10 @@ void CurvePresenter::fillContextMenu(
     auto typeMenu = menu->addMenu(tr("Type"));
     for(const auto& seg : SingletonCurveSegmentList::instance().get())
     {
-        auto act = typeMenu->addAction(QString::fromStdString(seg.first));
+        auto act = typeMenu->addAction(seg.second->prettyName());
         connect(act, &QAction::triggered,
                 this, [=] () {
-            updateSegmentsType(act->text().toStdString());
+            updateSegmentsType(seg.first);
         });
     }
 
@@ -497,10 +497,10 @@ void CurvePresenter::removeSelection()
                 });
 }
 
-void CurvePresenter::updateSegmentsType(const std::string& segmentName)
+void CurvePresenter::updateSegmentsType(const CurveSegmentFactoryKey& segment)
 {
     // They keep their start / end and previous / following but change type.
-    auto factory = SingletonCurveSegmentList::instance().get(segmentName);
+    auto factory = SingletonCurveSegmentList::instance().get(segment);
     auto this_type_base_data = factory->makeCurveSegmentData();
     auto newSegments = model().toCurveData();
 
@@ -508,7 +508,7 @@ void CurvePresenter::updateSegmentsType(const std::string& segmentName)
     {
         if(model().segments().at(seg_data.id).selection.get())
         {
-            seg_data.type = segmentName;
+            seg_data.type = segment;
             seg_data.specificSegmentData = this_type_base_data;
         }
     }

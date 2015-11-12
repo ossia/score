@@ -7,7 +7,11 @@ class SpaceModel;
 class AreaModel;
 class AreaPresenter;
 
-class AreaFactory : public iscore::GenericFactoryInterface<std::string>
+class AreaTag{};
+using AreaFactoryKey = StringFactoryKey<AreaTag>;
+Q_DECLARE_METATYPE(AreaFactoryKey)
+
+class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
 {
         ISCORE_FACTORY_DECL("Area")
     public:

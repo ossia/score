@@ -39,7 +39,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         virtual ~CurveSegmentModel();
 
 
-        virtual const std::string& name() const = 0;
+        virtual const CurveSegmentFactoryKey& key() const = 0;
         virtual void serialize(const VisitorVariant&) const = 0;
         virtual void updateData(int numInterp) const = 0; // Will interpolate.
         virtual double valueAt(double x) const = 0;
@@ -76,7 +76,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
                 id(),
                 start(), end(),
                 previous(), following(),
-                name(), toSegmentSpecificData()};
+                key(), toSegmentSpecificData()};
         }
 
     signals:

@@ -8,9 +8,9 @@ int CircleAreaFactory::type() const
     return CircleAreaModel::static_type();
 }
 
-const std::string& CircleAreaFactory::key_impl() const
+const AreaFactoryKey& CircleAreaFactory::key_impl() const
 {
-    static const std::string name{"Circle"};
+    static const AreaFactoryKey name{"Circle"};
     return name;
 }
 

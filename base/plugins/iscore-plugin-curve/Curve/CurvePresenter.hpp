@@ -1,16 +1,19 @@
 #pragma once
-#include <QStateMachine>
-#include <QPointF>
-#include <QVector>
+#include <Curve/Segment/CurveSegmentFactory.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+
+#include <Curve/Point/CurvePointView.hpp>
+#include <Curve/Segment/CurveSegmentView.hpp>
+
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
+#include <QStateMachine>
+#include <QPointF>
+#include <QVector>
 
-#include "Curve/Point/CurvePointView.hpp"
-#include "Curve/Segment/CurveSegmentView.hpp"
 class CurveModel;
 class CurveView;
 class CurvePointView;
@@ -83,7 +86,7 @@ class CurvePresenter : public QObject
 
     private:
         // Context menu actions
-        void updateSegmentsType(const std::string& segment);
+        void updateSegmentsType(const CurveSegmentFactoryKey& segment);
 
         // Setup utilities
         void setPos(CurvePointView&);

@@ -1,5 +1,4 @@
 #pragma once
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <src/Area/AreaFactory.hpp>
 
-class AreaFactory;
-using AreaFactoryList = GenericFactoryList_T<AreaFactory>;
+using AreaFactoryList = GenericFactoryList_T<AreaFactory, AreaFactoryKey>;

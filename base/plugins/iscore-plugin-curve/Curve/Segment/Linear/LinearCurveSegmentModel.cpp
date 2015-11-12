@@ -13,9 +13,9 @@ CurveSegmentModel* LinearCurveSegmentModel::clone(
     return cs;
 }
 
-const std::string& LinearCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& LinearCurveSegmentModel::key() const
 {
-    static const std::string name{"Linear"};
+    static const CurveSegmentFactoryKey name{"Linear"};
     return name;
 }
 

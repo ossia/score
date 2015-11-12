@@ -24,9 +24,9 @@ CurveSegmentModel*PowerCurveSegmentModel::clone(
     return cs;
 }
 
-const std::string& PowerCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& PowerCurveSegmentModel::key() const
 {
-    static const std::string name{"Power"};
+    static const CurveSegmentFactoryKey name{"Power"};
     return name;
 }
 

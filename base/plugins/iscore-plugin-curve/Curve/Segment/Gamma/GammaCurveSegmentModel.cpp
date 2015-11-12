@@ -24,9 +24,9 @@ CurveSegmentModel*GammaCurveSegmentModel::clone(
     return cs;
 }
 
-const std::string& GammaCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& GammaCurveSegmentModel::key() const
 {
-    static const std::string name{"Gamma"};
+    static const CurveSegmentFactoryKey name{"Gamma"};
     return name;
 }
 

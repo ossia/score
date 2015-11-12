@@ -1,18 +1,21 @@
 #pragma once
 #include <QString>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <Curve/Segment/CurveSegmentFactoryKey.hpp>
+
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 
 class CurveSegmentModel;
 
-class CurveSegmentFactory : public iscore::GenericFactoryInterface<std::string>
+class CurveSegmentFactory : public iscore::GenericFactoryInterface<CurveSegmentFactoryKey>
 {
         ISCORE_FACTORY_DECL("CurveSegment")
     public:
-
         virtual ~CurveSegmentFactory();
+
+        virtual QString prettyName() const = 0;
 
         virtual CurveSegmentModel* make(
                 const Id<CurveSegmentModel>&,
@@ -73,8 +76,12 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
 #define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
     class Name final : public CurveSegmentFactory_T<Model> \
 { \
-    const std::string& key_impl() const override { \
-        static const std::string name{DynName}; \
+    const CurveSegmentFactoryKey& key_impl() const override { \
+        static const CurveSegmentFactoryKey name{DynName}; \
         return name; \
-} \
+    } \
+    \
+    QString prettyName() const override { \
+        return QObject::tr(DynName); \
+    } \
 };

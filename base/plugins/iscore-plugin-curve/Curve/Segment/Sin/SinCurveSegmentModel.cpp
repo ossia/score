@@ -28,9 +28,9 @@ CurveSegmentModel*SinCurveSegmentModel::clone(
     return cs;
 }
 
-const std::string& SinCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& SinCurveSegmentModel::key() const
 {
-    static const std::string name{"Sin"};
+    static const CurveSegmentFactoryKey name{"Sin"};
     return name;
 }
 

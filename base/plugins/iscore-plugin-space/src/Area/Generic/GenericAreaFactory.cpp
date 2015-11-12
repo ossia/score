@@ -8,9 +8,9 @@ int GenericAreaFactory::type() const
     return GenericAreaModel::static_type();
 }
 
-const std::string& GenericAreaFactory::key_impl() const
+const AreaFactoryKey& GenericAreaFactory::key_impl() const
 {
-    static const std::string name{"Generic"};
+    static const AreaFactoryKey name{"Generic"};
     return name;
 }
 

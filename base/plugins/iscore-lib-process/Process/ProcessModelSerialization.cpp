@@ -3,6 +3,7 @@
 
 #include <Process/ProcessList.hpp>
 #include <Process/Process.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 
 template<>
@@ -39,7 +40,7 @@ Process* createProcess(Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
     std::string processName;
-    deserializer.writeTo(processName);
+    deserializer.m_stream >> processName;
 
     auto model = SingletonProcessList::instance().get(processName)
                  ->loadModel(deserializer.toVariant(),
