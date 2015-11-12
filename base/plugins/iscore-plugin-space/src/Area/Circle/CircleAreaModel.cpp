@@ -5,6 +5,17 @@
 #include "src/Space/SpaceModel.hpp"
 
 
+const AreaFactoryKey&CircleAreaModel::factoryKey() const
+{
+    static const AreaFactoryKey name{"Circle"};
+    return name;
+}
+
+QString CircleAreaModel::prettyName() const
+{
+    return tr("Circle");
+}
+
 QString CircleAreaModel::formula()
 {
     return "(xv-x0)^2 + (yv-y0)^2 <= r^2";

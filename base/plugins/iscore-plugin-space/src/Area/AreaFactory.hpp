@@ -1,15 +1,12 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <src/Area/AreaFactoryKey.hpp>
 #include <QObject>
 class QGraphicsItem;
 class SpaceModel;
 class AreaModel;
 class AreaPresenter;
-
-class AreaTag{};
-using AreaFactoryKey = StringKey<AreaTag>;
-Q_DECLARE_METATYPE(AreaFactoryKey)
 
 class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
 {

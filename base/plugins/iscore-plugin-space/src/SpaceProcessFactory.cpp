@@ -4,8 +4,12 @@
 #include "SpaceLayerView.hpp"
 const ProcessFactoryKey& SpaceProcessFactory::key_impl() const
 {
-    static const ProcessFactoryKey name{"Space"};
-    return name;
+    return SpaceProcessMetadata::factoryKey();
+}
+
+QString SpaceProcessFactory::prettyName() const
+{
+    return "Space Process";
 }
 
 Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const Id<Process> &id, QObject *parent)

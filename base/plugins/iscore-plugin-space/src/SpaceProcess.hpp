@@ -4,6 +4,26 @@
 #include "Area/AreaModel.hpp"
 #include "Computation/ComputationModel.hpp"
 class SpaceModel;
+
+struct SpaceProcessMetadata
+{
+        static const ProcessFactoryKey& factoryKey()
+        {
+            static const ProcessFactoryKey name{"Space"};
+            return name;
+        }
+
+        static QString processObjectName()
+        {
+            return "Space";
+        }
+
+        static QString factoryPrettyName()
+        {
+            return QObject::tr("Space");
+        }
+};
+
 class SpaceProcess : public Process
 {
         Q_OBJECT
@@ -11,9 +31,8 @@ class SpaceProcess : public Process
         SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent);
         Process *clone(const Id<Process> &newId, QObject *newParent) const override;
 
-        QString processName() const override;
-        QString userFriendlyDescription() const override
-        { return tr("Space process"); }
+        const ProcessFactoryKey& key() const override;
+        QString prettyName() const override;
 
         void setDurationAndScale(const TimeValue &newDuration) override;
         void setDurationAndGrow(const TimeValue &newDuration) override;

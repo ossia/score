@@ -5,6 +5,7 @@ class SpaceProcessFactory : public ProcessFactory
 {
     public:
         const ProcessFactoryKey& key_impl() const override;
+        QString prettyName() const override;
 
         Process* makeModel(
                 const TimeValue &duration,

@@ -9,12 +9,9 @@ class GenericAreaModel : public AreaModel
         static constexpr int static_type() { return 0; }
         int type() const override { return static_type(); }
 
-        const std::string& factoryName() const override {
-            static const std::string name{"Generic"};
-            return name;
-        }
+        const AreaFactoryKey& factoryKey() const override;
 
-        QString prettyName() const override { return tr("Generic"); }
+        QString prettyName() const override;
         static QString formula();
 
         GenericAreaModel(

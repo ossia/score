@@ -106,7 +106,7 @@ void SpaceLayerPresenter::update()
 #include "src/Area/SingletonAreaFactoryList.hpp"
 void SpaceLayerPresenter::on_areaAdded(const AreaModel & a)
 {
-    auto fact = SingletonAreaFactoryList::instance().get(a.factoryName());
+    auto fact = SingletonAreaFactoryList::instance().get(a.factoryKey());
 
     auto v = fact->makeView(m_view);
     // TODO call the factory list
