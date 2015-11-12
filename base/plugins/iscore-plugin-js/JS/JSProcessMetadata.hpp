@@ -3,19 +3,9 @@
 
 struct JSProcessMetadata
 {
-        static const ProcessFactoryKey& factoryKey()
-        {
-            static const ProcessFactoryKey name{"Javascript"};
-            return name;
-        }
+        static const ProcessFactoryKey& factoryKey();
 
-        static QString processObjectName()
-        {
-            return "Javascript";
-        }
+        static QString processObjectName();
 
-        static QString factoryPrettyName()
-        {
-            return QObject::tr("Javascript");
-        }
+        static QString factoryPrettyName();
 };

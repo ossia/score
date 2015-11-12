@@ -17,6 +17,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingLayerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingProcessMetadata.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/ChangeAddresses.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/MappingCommandFactory.cpp"

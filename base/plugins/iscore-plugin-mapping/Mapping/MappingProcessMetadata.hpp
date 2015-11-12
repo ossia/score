@@ -3,19 +3,9 @@
 
 struct MappingProcessMetadata
 {
-        static const ProcessFactoryKey& factoryKey()
-        {
-            static const ProcessFactoryKey name{"Mapping"};
-            return name;
-        }
+        static const ProcessFactoryKey& factoryKey();
 
-        static QString processObjectName()
-        {
-            return "Mapping";
-        }
+        static QString processObjectName();
 
-        static QString factoryPrettyName()
-        {
-            return QObject::tr("Mapping");
-        }
+        static QString factoryPrettyName();
 };

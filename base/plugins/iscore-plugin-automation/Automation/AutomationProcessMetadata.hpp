@@ -3,19 +3,9 @@
 
 struct AutomationProcessMetadata
 {
-        static const ProcessFactoryKey& factoryKey()
-        {
-            static const ProcessFactoryKey name{"Automation"};
-            return name;
-        }
+        static const ProcessFactoryKey& factoryKey();
 
-        static QString processObjectName()
-        {
-            return "Automation";
-        }
+        static QString processObjectName();
 
-        static QString factoryPrettyName()
-        {
-            return QObject::tr("Automation");
-        }
+        static QString factoryPrettyName();
 };
