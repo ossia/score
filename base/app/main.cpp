@@ -1,13 +1,13 @@
 #include <core/application/Application.hpp>
 
+#include <QtPlugin>
 #if defined(ISCORE_STATIC_PLUGINS)
   #include <iscore_static_plugins.hpp>
 #endif
 
 #if defined(ISCORE_STATIC_QT)
-  #include <QtPlugin>
   #if defined(__linux__)
-    Q_IMPORT_PLUGIN (QXcbIntegrationPlugin)  
+    Q_IMPORT_PLUGIN (QXcbIntegrationPlugin)
   #endif
 #endif
 
