@@ -1,6 +1,5 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-#include <QPluginLoader>
 #include <QMap>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>

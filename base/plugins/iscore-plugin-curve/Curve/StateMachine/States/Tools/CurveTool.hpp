@@ -6,7 +6,6 @@
 #include <Curve/Point/CurvePointView.hpp>
 
 #include <iscore/statemachine/ToolState.hpp>
-#include <QTimer>
 #include <QGraphicsItem>
 class CurveStateMachine;
 namespace Curve

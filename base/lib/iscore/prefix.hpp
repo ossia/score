@@ -20,8 +20,6 @@
 #include <QColor>
 #include <QColorDialog>
 #include <QComboBox>
-#include <QCommandLineOption>
-#include <QCommandLineParser>
 #include <QCompleter>
 #include <QContextMenuEvent>
 #include <QCoreApplication>
@@ -29,7 +27,6 @@
 #include <QCursor>
 #include <QDataStream>
 #include <QDebug>
-#include <QDesktopWidget>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
@@ -41,7 +38,6 @@
 #include <QFileInfo>
 #include <QFinalState>
 #include <QFont>
-#include <QFontDatabase>
 #include <QFormLayout>
 #include <QFrame>
 #include <QGraphicsItem>
@@ -90,7 +86,6 @@
 #include <QPair>
 #include <QPen>
 #include <QPlainTextEdit>
-#include <QPluginLoader>
 #include <QPointer>
 #include <QPointF>
 #include <QPushButton>
@@ -124,22 +119,17 @@
 #include <QTableView>
 #include <QTableWidgetItem>
 #include <QTabWidget>
-#include <QtAlgorithms>
 #include <QtCore/QByteArray>
 #include <QtCore/QDebug>
 #include <QtCore/QHash>
 #include <QtCore/QList>
 #include <QtCore/QObject>
-#include <QtCore/QtCore>
-#include <QtCore/QTimer>
 #include <QTemporaryFile>
 #include <QTextBlock>
 #include <QTextEdit>
-#include <QtGui/QtGui>
 #include <QThread>
 #include <QTime>
 #include <QTimeEdit>
-#include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 #include <QTreeView>
@@ -150,9 +140,7 @@
 #include <QtWidgets/QInputDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QToolButton>
-#include <QtWidgets/QtWidgets>
 #include <QtWidgets/QVBoxLayout>
-#include <QtXml/QtXml>
 #include <QValidator>
 #include <QVariant>
 #include <QVariantList>

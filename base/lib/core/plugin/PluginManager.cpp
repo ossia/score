@@ -15,6 +15,7 @@
 
 #include <QDir>
 #include <QSettings>
+#include <QPluginLoader>
 #include "PluginDependencyGraph.hpp"
 #include <boost/range/algorithm.hpp>
 

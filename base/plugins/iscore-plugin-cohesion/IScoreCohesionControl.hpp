@@ -1,7 +1,5 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <QTemporaryFile>
-#include <QTimer>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class RecordManager;
 class ScenarioModel;

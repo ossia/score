@@ -31,6 +31,7 @@
 RecordManager::RecordManager()
 {
     m_recordTimer.setInterval(8);
+    m_recordTimer.setTimerType(Qt::PreciseTimer);
 }
 
 void RecordManager::stopRecording()
