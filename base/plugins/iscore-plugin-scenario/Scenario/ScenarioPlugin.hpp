@@ -45,11 +45,11 @@ class iscore_plugin_scenario final :
         QList<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Process
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryFamily> factoryFamilies() override;
 
         // Crée les objets correspondant aux factories passées en argument.
         // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
-        std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(const std::string& factoryName) const override;
 
         QStringList required() const override;
         QStringList offered() const override;

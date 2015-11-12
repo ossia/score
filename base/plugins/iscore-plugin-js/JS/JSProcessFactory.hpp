@@ -5,15 +5,22 @@
 #include <DummyProcess/DummyLayerPresenter.hpp>
 #include <DummyProcess/DummyLayerView.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <JS/JSProcessMetadata.hpp>
 
 
 class JSProcessFactory final : public ProcessFactory
 {
     public:
-        QString name() const override
+        QString prettyName() const override
         { // In factory list
-            return JSProcessModel::staticProcessName();
+            return JSProcessMetadata::factoryPrettyName();
         }
+
+        const ProcessFactoryKey& key_impl() const override
+        {
+            return JSProcessMetadata::factoryKey();
+        }
+
 
         Process* makeModel(
                 const TimeValue& duration,

@@ -13,7 +13,7 @@ class OSCProtocolFactory : public ProtocolFactory
 
         const ProtocolFactoryKey& key_impl() const override
         {
-            static const std::string name{"OSC"};
+            static const ProtocolFactoryKey name{"OSC"};
             return name;
         }
 

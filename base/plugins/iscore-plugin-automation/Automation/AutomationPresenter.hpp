@@ -20,10 +20,10 @@ class AutomationPresenter final :
             con(m_layer.model(), &AutomationModel::addressChanged,
                 this, [&] (const auto&)
             {
-                m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
+                m_view->setDisplayedName(m_layer.model().prettyName());
             });
 
-            m_view->setDisplayedName(m_layer.model().userFriendlyDescription());
+            m_view->setDisplayedName(m_layer.model().prettyName());
             m_view->showName(true);
         }
 };

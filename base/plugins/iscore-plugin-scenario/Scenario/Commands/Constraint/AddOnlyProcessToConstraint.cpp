@@ -3,10 +3,11 @@
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const QString& process) :
+        const ProcessFactoryKey& process) :
     AddOnlyProcessToConstraint{
         std::move(constraintPath),
         getStrongId(constraintPath.find().processes),
@@ -18,7 +19,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process>& processId,
-        const QString& process):
+        const ProcessFactoryKey& process):
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
@@ -39,7 +40,7 @@ void AddOnlyProcessToConstraint::redo() const
     auto& constraint = m_path.find();
 
     // Create process model
-    auto proc = ProcessList::getFactory(m_processName)
+    auto proc = SingletonProcessList::instance().get(m_processName)
             ->makeModel(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?
                 m_createdProcessId,

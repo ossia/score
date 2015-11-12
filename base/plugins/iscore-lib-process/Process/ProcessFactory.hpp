@@ -30,6 +30,7 @@ class ProcessFactory :
         ISCORE_FACTORY_DECL("Process")
     public:
         virtual ~ProcessFactory();
+        virtual QString prettyName() const = 0;
 
         virtual Process* makeModel(
                 const TimeValue& duration,
@@ -55,5 +56,4 @@ class ProcessFactory :
         virtual LayerView* makeLayerView(
                 const LayerModel& view,
                 QGraphicsItem* parent) = 0;
-
 };

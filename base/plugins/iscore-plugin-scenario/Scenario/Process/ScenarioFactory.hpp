@@ -4,7 +4,9 @@
 class ScenarioFactory final : public ProcessFactory
 {
     public:
-        QString name() const override;
+        const ProcessFactoryKey& key_impl() const override;
+        QString prettyName() const override
+        { return QObject::tr("Scenario"); }
 
         Process* makeModel(
                 const TimeValue& duration,

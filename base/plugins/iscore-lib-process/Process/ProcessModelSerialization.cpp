@@ -10,7 +10,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 {
     // To allow recration using createProcess
-    m_stream << process.processName();
+    m_stream << process.key();
 
     readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
@@ -39,7 +39,7 @@ template<>
 Process* createProcess(Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    std::string processName;
+    ProcessFactoryKey processName;
     deserializer.m_stream >> processName;
 
     auto model = SingletonProcessList::instance().get(processName)
@@ -59,7 +59,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
 {
     // To allow recration using createProcess
-    m_obj["ProcessName"] = process.processName();
+    m_obj["ProcessName"] = toJsonValue(process.key());
 
     readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
@@ -83,7 +83,7 @@ Process* createProcess(Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
     auto model = SingletonProcessList::instance().get(
-                     deserializer.m_obj["ProcessName"].toString().toStdString())
+                     fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["ProcessName"]))
                         ->loadModel(
                             deserializer.toVariant(),
                             parent);

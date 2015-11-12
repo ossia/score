@@ -13,7 +13,7 @@ class MIDIProtocolFactory : public ProtocolFactory
 
         const ProtocolFactoryKey& key_impl() const override
         {
-            static const std::string name{"MIDI"};
+            static const ProtocolFactoryKey name{"MIDI"};
             return name;
         }
 

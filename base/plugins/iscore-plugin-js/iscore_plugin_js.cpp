@@ -11,14 +11,14 @@ iscore_plugin_js::iscore_plugin_js() :
 {
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_js::factories(const std::string& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryName())
     {
         return {new JSProcessFactory};
     }
 
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryName())
     {
         return {new JSInspectorFactory};
     }

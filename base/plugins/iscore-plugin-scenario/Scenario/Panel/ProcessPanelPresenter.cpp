@@ -68,7 +68,7 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
             return;
 
         auto& sharedmodel = m_layerModel->processModel();
-        auto fact = ProcessList::getFactory(sharedmodel.processName());
+        auto fact = SingletonProcessList::instance().get(sharedmodel.key());
 
         auto proxy = m_layerModel->make_panelProxy(this);
 

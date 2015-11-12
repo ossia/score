@@ -8,7 +8,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
         const TimeValue& newDate,
         ExpandMode mode)
     :SerializableMoveEvent{},
-     m_moveEventImplementation(MoveEventList::getFactory(MoveEventList::Strategy::MOVING)->make(std::move(scenarioPath), eventId, newDate, mode))
+     m_moveEventImplementation(SingletonMoveEventList::instance().get(MoveEventList::Strategy::MOVING)->make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
 
@@ -39,7 +39,7 @@ void MoveEventOnCreationMeta::deserializeImpl(QDataStream& qDataStream)
 
     qDataStream >> cmdData;
 
-    m_moveEventImplementation = MoveEventList::getFactory(MoveEventList::Strategy::MOVING)->make();
+    m_moveEventImplementation = SingletonMoveEventList::instance().get(MoveEventList::Strategy::MOVING)->make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }

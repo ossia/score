@@ -13,7 +13,7 @@ MappingModel::MappingModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent) :
-    CurveProcessModel {duration, id, processName(), parent}
+    CurveProcessModel {duration, id, "Mapping", parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
 
@@ -35,7 +35,7 @@ MappingModel::MappingModel(
         const MappingModel& source,
         const Id<Process>& id,
         QObject* parent):
-    CurveProcessModel{source, id,  processName(), parent},
+    CurveProcessModel{source, id,  source.objectName(), parent},
     m_sourceAddress(source.sourceAddress()),
     m_targetAddress(source.targetAddress()),
     m_sourceMin{source.sourceMin()},
@@ -57,12 +57,14 @@ Process* MappingModel::clone(
     return new MappingModel {*this, newId, newParent};
 }
 
-QString MappingModel::processName() const
+const ProcessFactoryKey& MappingModel::key() const
 {
-    return "Mapping";
+    static const ProcessFactoryKey name{"Mapping"};
+    return name;
 }
 
-QString MappingModel::userFriendlyDescription() const
+
+QString MappingModel::prettyName() const
 {
     return metadata.name() + " : " + sourceAddress().toString();
 }

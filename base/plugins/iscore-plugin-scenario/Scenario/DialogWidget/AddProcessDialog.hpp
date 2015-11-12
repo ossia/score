@@ -1,5 +1,6 @@
-#include <QWidget>
 #pragma once
+#include <QWidget>
+#include <Process/ProcessFactory.hpp>
 
 class AddProcessDialog final : public QWidget
 {
@@ -11,5 +12,5 @@ class AddProcessDialog final : public QWidget
         void launchWindow();
 
     signals:
-        void okPressed(QString);
+        void okPressed(const ProcessFactoryKey&);
 };

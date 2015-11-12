@@ -386,7 +386,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
     dispatcher.commit();
 }
 
-void ObjectMenuActions::addProcessInConstraint(QString processName)
+void ObjectMenuActions::addProcessInConstraint(const ProcessFactoryKey& processName)
 {
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
     if(selectedConstraints.isEmpty())

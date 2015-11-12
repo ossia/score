@@ -14,7 +14,7 @@ JSProcessModel::JSProcessModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, staticProcessName(), parent},
+    OSSIAProcessModel{duration, id, JSProcessMetadata::processObjectName(), parent},
     m_ossia_process{makeProcess()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -33,7 +33,7 @@ JSProcessModel::JSProcessModel(
         const JSProcessModel& source,
         const Id<Process>& id,
         QObject* parent):
-    OSSIAProcessModel{source.duration(), id, staticProcessName(), parent},
+    OSSIAProcessModel{source.duration(), id, JSProcessMetadata::processObjectName(), parent},
     m_ossia_process{makeProcess()},
     m_script{source.m_script}
 {
@@ -55,12 +55,7 @@ JSProcessModel* JSProcessModel::clone(
     return new JSProcessModel{*this, newId, newParent};
 }
 
-QString JSProcessModel::processName() const
-{
-    return staticProcessName();
-}
-
-QString JSProcessModel::userFriendlyDescription() const
+QString JSProcessModel::prettyName() const
 {
     return "Javascript Process";
 }

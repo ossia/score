@@ -63,7 +63,8 @@ class ScenarioModel final : public Process, public ScenarioInterface
                 const LayerModel& source,
                 QObject* parent) override;
 
-        QString userFriendlyDescription() const override;
+        const ProcessFactoryKey& key() const override;
+        QString prettyName() const override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
@@ -76,9 +77,6 @@ class ScenarioModel final : public Process, public ScenarioInterface
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
-
-        QString processName() const override
-        { return "Scenario"; }
 
         ProcessStateDataInterface* startState() const override;
         ProcessStateDataInterface* endState() const override;
@@ -226,6 +224,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
 };
 
 #include <iterator>
+// TODO this ought to go in Selection.hpp ?
 template<typename Vector>
 QList<const typename Vector::value_type*> selectedElements(const Vector& in)
 {

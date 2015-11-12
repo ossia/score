@@ -14,7 +14,8 @@ InspectorWidgetBase* EventInspectorFactory::makeWidget(
                 parentWidget};
 }
 
-QList<QString> EventInspectorFactory::key_impl() const
+const QList<QString>&EventInspectorFactory::key_impl() const
 {
-    return {"EventModel"};
+    static const QList<QString> list{"EventModel"};
+    return list;
 }

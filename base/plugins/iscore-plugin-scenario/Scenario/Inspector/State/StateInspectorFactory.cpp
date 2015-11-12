@@ -14,7 +14,8 @@ InspectorWidgetBase* StateInspectorFactory::makeWidget(
                 parentWidget};
 }
 
-QList<QString> StateInspectorFactory::key_impl() const
+const QList<QString>& StateInspectorFactory::key_impl() const
 {
-    return {"StateModel"};
+    static const QList<QString> list{"StateModel"};
+    return list;
 }

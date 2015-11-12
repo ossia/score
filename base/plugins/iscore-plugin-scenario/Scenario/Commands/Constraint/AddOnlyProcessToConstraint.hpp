@@ -1,6 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Process/ProcessFactory.hpp>
 
 class ConstraintModel;
 class Process;
@@ -13,11 +14,11 @@ class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,
-                const QString& process);
+                const ProcessFactoryKey& process);
         AddOnlyProcessToConstraint(
                 Path<ConstraintModel>&& constraint,
                 const Id<Process>& idToUse,
-                const QString& process);
+                const ProcessFactoryKey& process);
 
         void undo() const override;
         void redo() const override;
@@ -34,7 +35,7 @@ class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
 
     private:
         Path<ConstraintModel> m_path;
-        QString m_processName;
+        ProcessFactoryKey m_processName;
 
         Id<Process> m_createdProcessId {};
 };

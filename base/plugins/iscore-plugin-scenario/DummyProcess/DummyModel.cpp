@@ -7,7 +7,7 @@ DummyModel::DummyModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent):
-    Process{duration, id, processName(), parent}
+    Process{duration, id, "DummyModel", parent}
 {
 
 }
@@ -16,7 +16,7 @@ DummyModel::DummyModel(
         const DummyModel& source,
         const Id<Process>& id,
         QObject* parent):
-    Process{source.duration(), id, processName(), parent}
+    Process{source.duration(), id, source.objectName(), parent}
 {
 
 }
@@ -28,12 +28,13 @@ DummyModel* DummyModel::clone(
     return new DummyModel{*this, newId, newParent};
 }
 
-QString DummyModel::processName() const
+const ProcessFactoryKey& DummyModel::key() const
 {
-    return "Dummy";
+    static const ProcessFactoryKey key{"Dummy"};
+    return key;
 }
 
-QString DummyModel::userFriendlyDescription() const
+QString DummyModel::prettyName() const
 {
     return "Dummy process";
 }

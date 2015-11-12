@@ -223,9 +223,9 @@ void SlotPresenter::on_loopingChanged(bool b)
 void SlotPresenter::on_layerModelCreated_impl(
         const LayerModel& proc_vm)
 {
-    auto procname = proc_vm.processModel().processName();
+    auto& procKey = proc_vm.processModel().key();
 
-    auto factory = ProcessList::getFactory(procname);
+    auto factory = SingletonProcessList::instance().get(procKey);
     ISCORE_ASSERT(factory);
 
     int numproc = m_looping
@@ -286,8 +286,8 @@ void SlotPresenter::updateProcesses()
         {
             if(proc_size < numproc)
             {
-                auto procname = proc.model->processModel().processName();
-                auto factory = ProcessList::getFactory(procname);
+                auto procKey = proc.model->processModel().key();
+                auto factory = SingletonProcessList::instance().get(procKey);
 
                 for(int i = proc_size; i < numproc; i++)
                 {

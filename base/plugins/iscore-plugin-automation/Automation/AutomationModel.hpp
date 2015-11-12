@@ -47,9 +47,9 @@ class AutomationModel final : public CurveProcessModel
         }
 
         //// ProcessModel ////
-        QString processName() const override;
+        const ProcessFactoryKey& key() const override;
 
-        QString userFriendlyDescription() const override;
+        QString prettyName() const override;
 
         LayerModel* makeLayer_impl(
                 const Id<LayerModel>& viewModelId,

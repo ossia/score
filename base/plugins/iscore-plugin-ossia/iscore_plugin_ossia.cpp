@@ -19,16 +19,16 @@ iscore::PluginControlInterface* iscore_plugin_ossia::make_control(iscore::Presen
 
 
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_ossia::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia::factories(const std::string& factoryName) const
 {
-    if(factoryName == ProtocolFactory::factoryName())
+    if(factoryName == ProtocolFactory::staticFactoryName())
     {
         return {//new MIDIProtocolFactory,
                 new MinuitProtocolFactory,
                 new OSCProtocolFactory};
     }
 
-    if(factoryName == ScenarioActionsFactory::factoryName())
+    if(factoryName == ScenarioActionsFactory::staticFactoryName())
     {
         return {new PlayContextMenuFactory};
     }

@@ -20,8 +20,8 @@ class iscore_plugin_js final:
         virtual ~iscore_plugin_js() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterface*> factories(
-                const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(
+                const std::string& factoryName) const override;
 
         // CommandFactory_QtInterface interface
         std::pair<const std::string, CommandGeneratorMap> make_commands() override;

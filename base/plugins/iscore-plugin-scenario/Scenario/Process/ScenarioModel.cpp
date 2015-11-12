@@ -15,7 +15,7 @@
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :
-    Process {duration, id, "ScenarioModel", parent},
+    Process {duration, id, "Scenario", parent},
     m_startTimeNodeId{0},
     m_endTimeNodeId{1},
     m_startEventId{0},
@@ -35,7 +35,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
                              const Id<Process>& id,
                              QObject* parent) :
-    Process {source, id, "ScenarioModel", parent},
+    Process {source, id, "Scenario", parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},
     m_startEventId{source.m_startEventId},
@@ -110,7 +110,13 @@ LayerModel* ScenarioModel::cloneLayer_impl(
     return scen;
 }
 
-QString ScenarioModel::userFriendlyDescription() const
+const ProcessFactoryKey& ScenarioModel::key() const
+{
+    static const ProcessFactoryKey name{"Scenario"};
+    return name;
+}
+
+QString ScenarioModel::prettyName() const
 {
     return metadata.name();
 }

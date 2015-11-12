@@ -19,5 +19,5 @@ class iscore_plugin_ossia_simpleprocess:
         virtual ~iscore_plugin_ossia_simpleprocess();
 
         // Process & inspector
-        std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(const std::string& factoryName) const override;
 };

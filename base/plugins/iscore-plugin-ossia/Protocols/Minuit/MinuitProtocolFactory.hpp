@@ -13,7 +13,7 @@ class MinuitProtocolFactory : public ProtocolFactory
 
         const ProtocolFactoryKey& key_impl() const override
         {
-            static const std::string name{"Minuit"};
+            static const ProtocolFactoryKey name{"Minuit"};
             return name;
         }
 

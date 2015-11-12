@@ -60,19 +60,25 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
     };
 }
 
-QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
+std::vector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 {
     return {
-            {ProcessFactory::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
-             { ScenarioControl::instance()->processList()->registerProcess(fact); }
+            {ProcessFactory::staticFactoryName(),
+             [&] (iscore::FactoryInterfaceBase* fact)
+             {
+                if(auto pf = dynamic_cast<ProcessFactory*>(fact))
+                    SingletonProcessList::instance().inscribe(pf);
+             }
             },
-            {MoveEventFactoryInterface::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
-             { ScenarioControl::instance()->moveEventList()->registerMoveEventFactory(fact); }
+            {MoveEventFactoryInterface::staticFactoryName(),
+             [&] (iscore::FactoryInterfaceBase* fact)
+             {
+                if(auto mef = dynamic_cast<MoveEventFactoryInterface*>(fact))
+                    SingletonMoveEventList::instance().inscribe(mef);
+             }
             },
-            {ScenarioActionsFactory::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
+            {ScenarioActionsFactory::staticFactoryName(),
+             [&] (iscore::FactoryInterfaceBase* fact)
              {
                 auto context_menu_fact = static_cast<ScenarioActionsFactory*>(fact);
                 for(auto& act : context_menu_fact->make(ScenarioControl::instance()))
@@ -84,27 +90,27 @@ QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
            };
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(const std::string& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryName())
     {
         return {new ScenarioFactory};
     }
 
-    if(factoryName == ScenarioActionsFactory::factoryName())
+    if(factoryName == ScenarioActionsFactory::staticFactoryName())
     {
         // new ScenarioCommonActionsFactory is instantiated in Control
         // because other plug ins need it.
         return {};
     }
 
-    if(factoryName == MoveEventClassicFactory::factoryName())
+    if(factoryName == MoveEventClassicFactory::staticFactoryName())
     {
         return {new MoveEventClassicFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryName())
     {
         return {
                     new ConstraintInspectorFactory,

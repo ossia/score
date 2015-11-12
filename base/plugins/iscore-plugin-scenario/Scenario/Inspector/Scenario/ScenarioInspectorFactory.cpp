@@ -14,9 +14,3 @@ InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
                 doc,
                 parent};
 }
-
-
-QList<QString> ScenarioInspectorFactory::key_impl() const
-{
-    return {"Scenario"};
-}

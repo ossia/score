@@ -82,9 +82,7 @@ using namespace iscore;
 void test_parse_expr_full();
 ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     PluginControlInterface{pres, "ScenarioControl", nullptr},
-    contextMenuDispatcher{*this},
-    m_processList{this},
-    m_moveEventList{this}
+    contextMenuDispatcher{*this}
 {
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);

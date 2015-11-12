@@ -4,7 +4,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <JS/JSProcess.hpp>
-
+#include <JS/JSProcessMetadata.hpp>
 
 class JSProcessModel final : public OSSIAProcessModel
 {
@@ -41,9 +41,12 @@ class JSProcessModel final : public OSSIAProcessModel
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
-        static QString staticProcessName() { return "Javascript"; }
-        QString processName() const override;
-        QString userFriendlyDescription() const override;
+        const ProcessFactoryKey& key() const override
+        {
+            return JSProcessMetadata::factoryKey();
+        }
+
+        QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;

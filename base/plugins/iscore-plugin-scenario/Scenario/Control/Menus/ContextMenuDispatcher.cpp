@@ -28,6 +28,7 @@
 
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Control/Menus/ScenarioActions.hpp>
+#include <QApplication>
 
 #include <QMenu>
 
@@ -40,7 +41,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
     for(const LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
-                           proc.processModel().userFriendlyDescription(),
+                           proc.processModel().prettyName(),
                            processes_submenu};
         connect(procAct, &QAction::triggered, this, [&] () {
             PutLayerModelToFront cmd{slotm, proc.id()};
@@ -54,7 +55,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
     for(const LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
-                           proc.processModel().userFriendlyDescription(),
+                           proc.processModel().prettyName(),
                            new_processes_submenu};
         connect(procAct, &QAction::triggered, this, [&] () {
             auto cmd = new Scenario::Command::AddLayerInNewSlot{
@@ -85,7 +86,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
                         return &layer.processModel() == &proc;
     }))
         {
-            QAction* procAct = new QAction{proc.userFriendlyDescription(), existing_processes_submenu};
+            QAction* procAct = new QAction{proc.prettyName(), existing_processes_submenu};
             connect(procAct, &QAction::triggered, this, [&] () {
 
                 auto cmd2 = new Scenario::Command::AddLayerModelToSlot{
@@ -103,7 +104,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
         AddProcessDialog dialog(qApp->activeWindow());
 
         con(dialog, &AddProcessDialog::okPressed,
-            this, [&] (const QString& proc) {
+            this, [&] (const auto& proc) {
             auto& constraint = slotm.parentConstraint();
             QuietMacroCommandDispatcher disp{
                 new CreateProcessInExistingSlot,
@@ -133,7 +134,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
         AddProcessDialog dialog(qApp->activeWindow());
 
         con(dialog, &AddProcessDialog::okPressed,
-            this, [&] (const QString& proc) {
+            this, [&] (const auto& proc) {
             auto& constraint = slotm.parentConstraint();
             QuietMacroCommandDispatcher disp{
                 new CreateProcessInNewSlot,

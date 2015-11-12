@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/ProcessFactory.hpp>
 #include <unordered_map>
 
 class ConstraintModel;
@@ -37,7 +38,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         void updateDisplayedValues();
 
         // These methods ask for creation and the signals originate from other parts of the inspector
-        void createProcess(QString processName);
+        void createProcess(const ProcessFactoryKey& processName);
         void createRack();
         void createLayerInNewSlot(QString processName);
 

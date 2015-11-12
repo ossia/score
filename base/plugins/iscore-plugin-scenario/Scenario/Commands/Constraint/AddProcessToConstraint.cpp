@@ -13,6 +13,7 @@
 
 #include "iscore/document/DocumentInterface.hpp"
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 using namespace iscore;
@@ -86,7 +87,7 @@ void AddProcessToConstraint::redo() const
     auto& constraint = m_path.find();
 
     // Create process model
-    auto proc = ProcessList::getFactory(m_processName)
+    auto proc = SingletonProcessList::instance().get(m_processName)
             ->makeModel(
                 constraint.duration.defaultDuration(),
                 m_createdProcessId,

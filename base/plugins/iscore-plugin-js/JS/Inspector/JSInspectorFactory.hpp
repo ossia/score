@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <JS/JSProcessModel.hpp>
+#include <JS/JSProcessMetadata.hpp>
 
 
 class JSInspectorFactory final : public InspectorWidgetFactory
@@ -15,8 +15,9 @@ class JSInspectorFactory final : public InspectorWidgetFactory
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        QList<QString> key_impl() const override
+        const QList<QString>& key_impl() const override
         {
-            return {JSProcessModel::staticProcessName()}; // TODO use this everywhere. (automation, mapping ...)
+            static const QList<QString> list{JSProcessMetadata::processObjectName()};
+            return list;
         }
 };

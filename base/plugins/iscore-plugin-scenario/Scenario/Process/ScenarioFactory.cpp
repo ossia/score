@@ -5,11 +5,6 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
-QString ScenarioFactory::name() const
-{
-    return "Scenario";
-}
-
 LayerView* ScenarioFactory::makeLayerView(
         const LayerModel& viewmodel,
         QGraphicsItem* parent)
@@ -33,6 +28,12 @@ ScenarioFactory::makeLayerPresenter(
         return pres;
     }
     return nullptr;
+}
+
+const ProcessFactoryKey& ScenarioFactory::key_impl() const
+{
+    static const ProcessFactoryKey name{"Scenario"};
+    return name;
 }
 
 Process* ScenarioFactory::makeModel(

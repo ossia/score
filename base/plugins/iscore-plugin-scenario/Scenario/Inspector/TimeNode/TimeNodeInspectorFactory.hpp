@@ -12,10 +12,10 @@ class TimeNodeInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        virtual InspectorWidgetBase* makeWidget(
+        InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        virtual QList<QString> key_impl() const override;
+        const QList<QString>& key_impl() const override;
 };

@@ -48,12 +48,6 @@ class ScenarioControl final : public iscore::PluginControlInterface
         virtual QList<iscore::OrderedToolbar> makeToolbars() override;
         QList<QAction*> actions() override;
 
-        ProcessList* processList()
-        { return &m_processList; }
-
-        MoveEventList* moveEventList()
-        { return &m_moveEventList; }
-
         QVector<ScenarioActions*>& pluginActions()
         { return m_pluginActions; }
 
@@ -88,8 +82,6 @@ class ScenarioControl final : public iscore::PluginControlInterface
         ScenarioControl(iscore::Presenter* pres);
 
         ExpandMode m_expandMode{ExpandMode::Scale};
-        ProcessList m_processList;
-        MoveEventList m_moveEventList;
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
 

@@ -30,7 +30,6 @@ DEFINE_CURVE_PROCESS_FACTORY(
 iscore_plugin_automation::iscore_plugin_automation() :
     QObject {}
 {
-    AutomationFactory f;
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(

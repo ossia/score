@@ -34,8 +34,8 @@ class DummyModel final : public Process
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
-        QString processName() const override;
-        QString userFriendlyDescription() const override;
+        const ProcessFactoryKey& key() const override;
+        QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;

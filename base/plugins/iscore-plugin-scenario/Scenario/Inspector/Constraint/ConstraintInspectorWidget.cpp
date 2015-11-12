@@ -260,7 +260,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 }
 
-void ConstraintInspectorWidget::createProcess(QString processName)
+void ConstraintInspectorWidget::createProcess(const ProcessFactoryKey& processName)
 {
     auto cmd = new AddProcessToConstraint{model(), processName};
     commandDispatcher()->submitCommand(cmd);
@@ -314,7 +314,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 
     // Process
     auto processWidget = InspectorWidgetList::makeInspectorWidget(
-                             process.processName(), process, newProc);
+                             process.objectName(), process, newProc); // FIXME objectName BERK
     newProc->addContent(processWidget);
 
     // Start & end state

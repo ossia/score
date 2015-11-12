@@ -5,7 +5,7 @@ SimpleProcessModel::SimpleProcessModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent):
-    OSSIAProcessModel{duration, id, processName(), parent},
+    OSSIAProcessModel{duration, id, "SimpleProcessModel", parent},
     m_ossia_process{std::make_shared<SimpleProcess>()}
 {
     pluginModelList = new iscore::ElementPluginModelList{
@@ -31,12 +31,7 @@ SimpleProcessModel* SimpleProcessModel::clone(
     return new SimpleProcessModel{*this, newId, newParent};
 }
 
-QString SimpleProcessModel::processName() const
-{
-    return staticProcessName();
-}
-
-QString SimpleProcessModel::userFriendlyDescription() const
+QString SimpleProcessModel::prettyName() const
 {
     return "SimpleProcessModel process";
 }
