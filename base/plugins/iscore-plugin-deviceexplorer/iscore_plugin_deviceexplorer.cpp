@@ -30,11 +30,13 @@ QList<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 
 
 
-QVector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies()
+std::vector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies()
 {
-    return {{ProtocolFactory::factoryName(),
-            [] (iscore::FactoryInterface* f)
-            { SingletonProtocolList::instance().registerFactory(f); }}};
+    return {{ProtocolFactory::staticFactoryName(),
+            [] (iscore::FactoryInterfaceBase* f) {
+                if(auto prot = dynamic_cast<ProtocolFactory*>(f))
+                    SingletonProtocolList::instance().inscribe(prot);
+            }}};
 }
 
 PluginControlInterface *iscore_plugin_deviceexplorer::make_control(Presenter* pres)

@@ -2,20 +2,9 @@
 #include "CurveSegmentFactory.hpp"
 
 // TODO Template this
-class CurveSegmentList
-{
-    public:
-        CurveSegmentList() = default;
-        CurveSegmentList(const CurveSegmentList&) = delete;
-        CurveSegmentFactory* get(const QString& name) const;
-        void registerFactory(CurveSegmentFactory* fact);
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
-        QStringList nameList() const;
-
-    private:
-        QVector<CurveSegmentFactory*> factories;
-};
-
+using CurveSegmentList = GenericFactoryList_T<CurveSegmentFactory>;
 
 class SingletonCurveSegmentList
 {

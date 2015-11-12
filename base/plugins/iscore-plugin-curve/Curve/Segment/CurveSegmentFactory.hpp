@@ -7,11 +7,13 @@
 
 class CurveSegmentModel;
 
-class CurveSegmentFactory : public iscore::FactoryInterface
+class CurveSegmentFactory : public iscore::GenericFactoryInterface<std::string>
 {
+        ISCORE_FACTORY_DECL("CurveSegment")
     public:
-        static QString factoryName();
-        virtual QString name() const = 0;
+
+        virtual ~CurveSegmentFactory();
+
         virtual CurveSegmentModel* make(
                 const Id<CurveSegmentModel>&,
                 QObject* parent) = 0;
@@ -71,5 +73,8 @@ class CurveSegmentFactory_T : public CurveSegmentFactory
 #define DEFINE_CURVE_SEGMENT_FACTORY(Name, DynName, Model) \
     class Name final : public CurveSegmentFactory_T<Model> \
 { \
-    QString name() const override { return DynName; } \
+    const std::string& key_impl() const override { \
+        static const std::string name{DynName}; \
+        return name; \
+} \
 };

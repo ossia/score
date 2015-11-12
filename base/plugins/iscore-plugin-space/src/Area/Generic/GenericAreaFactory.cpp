@@ -8,9 +8,10 @@ int GenericAreaFactory::type() const
     return GenericAreaModel::static_type();
 }
 
-QString GenericAreaFactory::name() const
+const std::string& GenericAreaFactory::key_impl() const
 {
-    return "Generic";
+    static const std::string name{"Generic"};
+    return name;
 }
 
 QString GenericAreaFactory::prettyName() const

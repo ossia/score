@@ -18,12 +18,13 @@ QList<iscore::PanelFactory*> iscore_plugin_inspector::panels()
     return {new InspectorPanelFactory};
 }
 
-QVector<FactoryFamily> iscore_plugin_inspector::factoryFamilies()
+std::vector<FactoryFamily> iscore_plugin_inspector::factoryFamilies()
 {
-    return {{"Inspector",
-             [&] (iscore::FactoryInterface* fact)
+    return {{InspectorWidgetFactory::staticFactoryName(),
+             [&] (iscore::FactoryInterfaceBase* fact)
              {
-                m_inspectorControl->widgetList()->registerFactory(fact);
+                if(auto inspector = dynamic_cast<InspectorWidgetFactory*>(fact))
+                    m_inspectorControl->widgetList()->registerFactory(inspector);
              }
            }};
 }

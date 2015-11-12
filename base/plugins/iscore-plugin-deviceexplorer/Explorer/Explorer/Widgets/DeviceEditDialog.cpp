@@ -60,7 +60,9 @@ DeviceEditDialog::initAvailableProtocols()
 {
     ISCORE_ASSERT(m_protocolCBox);
 
-    m_protocolCBox->addItems(SingletonProtocolList::instance().protocols());
+    const auto& protocols = SingletonProtocolList::instance().get();
+    for(const auto& prot : protocols)
+        m_protocolCBox->addItem(prot.second->prettyName(), prot.second->key<ProtocolFactoryKey>());
 
     //initialize previous settings
     m_previousSettings.clear();
@@ -91,8 +93,8 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    const QString protocol = m_protocolCBox->currentText();
-    m_protocolWidget = SingletonProtocolList::instance().protocol(protocol)->makeSettingsWidget();
+    const QString& protocol = m_protocolCBox->currentText();
+    m_protocolWidget = SingletonProtocolList::instance().get(protocol.toStdString())->makeSettingsWidget();
 
     if(m_protocolWidget)
     {
@@ -111,7 +113,7 @@ iscore::DeviceSettings DeviceEditDialog::getSettings() const
         settings = m_protocolWidget->getSettings();
     }
 
-    settings.protocol = m_protocolCBox->currentText();
+    settings.protocol = m_protocolCBox->currentText().toStdString();
 
     return settings;
 }
@@ -124,8 +126,7 @@ QString DeviceEditDialog::getPath() const
 void
 DeviceEditDialog::setSettings(const iscore::DeviceSettings &settings)
 {
-
-    const QString protocol = settings.protocol;
+    const auto& protocol = QString::fromStdString(settings.protocol);
     const int index = m_protocolCBox->findText(protocol);
     ISCORE_ASSERT(index != -1);
     ISCORE_ASSERT(index < m_protocolCBox->count());

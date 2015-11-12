@@ -4,7 +4,7 @@
 
 namespace iscore
 {
-    class FactoryInterface;
+    class FactoryInterfaceBase;
 
     /**
      * @brief The FactoryFamily class
@@ -14,10 +14,10 @@ namespace iscore
     struct FactoryFamily
     {
         // Example : InspectorWidgetFactory
-        QString name;
+        std::string name;
 
         // This function is called whenever a new factory interface is added to this family.
-        std::function<void (iscore::FactoryInterface*)> onInstantiation;
+        std::function<void (iscore::FactoryInterfaceBase*)> onInstantiation;
 
         // The factories that correspond to this CustomFactoryInterface, and
         // are registered by subsequent plugins.

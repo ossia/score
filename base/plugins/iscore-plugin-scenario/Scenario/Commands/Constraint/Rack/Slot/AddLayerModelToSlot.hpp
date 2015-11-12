@@ -30,13 +30,13 @@ namespace Scenario
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
                     Path<Process>&& process,
-                    const QString& processName);
+                    const std::string& processName);
 
                 AddLayerModelToSlot(
                         Path<SlotModel>&& slot,
                         const Id<LayerModel>& layerid,
                         Path<Process>&& process,
-                        const QString& processName);
+                        const std::string& processName);
 
                 void undo() const override;
                 void redo() const override;

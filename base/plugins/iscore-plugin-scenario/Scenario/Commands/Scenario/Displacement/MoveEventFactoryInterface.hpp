@@ -14,8 +14,9 @@ class ScenarioModel;
 class EventModel;
 
 
-class MoveEventFactoryInterface : public iscore::FactoryInterface
+class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<std::string>
 {
+        ISCORE_FACTORY_DECL("MoveEvent")
 public:
     virtual SerializableMoveEvent* make(
             Path<ScenarioModel>&& scenarioPath,
@@ -37,11 +38,4 @@ public:
      */
     virtual int priority(MoveEventList::Strategy strategy) = 0;
 
-    static QString factoryName()
-
-    {
-        return "MoveEvent";
-    }
-
-    virtual QString name() const = 0;
 };

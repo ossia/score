@@ -14,7 +14,7 @@ public:
 
     SerializableMoveEvent* make() override;
 
-    virtual int priority(MoveEventList::Strategy strategy) override
+    int priority(MoveEventList::Strategy strategy) override
     {
         switch(strategy)
         {
@@ -27,6 +27,9 @@ public:
         }
     }
 
-    QString name() const override
-    { return "Classic"; }
+    const std::string& key_impl() const override
+    {
+        static std::string str{"Classic"};
+        return str;
+    }
 };

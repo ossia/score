@@ -24,9 +24,10 @@ CurveSegmentModel*PowerCurveSegmentModel::clone(
     return cs;
 }
 
-QString PowerCurveSegmentModel::name() const
+const std::string& PowerCurveSegmentModel::name() const
 {
-    return "Power";
+    static const std::string name{"Power"};
+    return name;
 }
 
 void PowerCurveSegmentModel::serialize(const VisitorVariant& vis) const

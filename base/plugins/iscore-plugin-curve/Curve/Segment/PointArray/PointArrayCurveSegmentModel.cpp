@@ -32,9 +32,10 @@ CurveSegmentModel*PointArrayCurveSegmentModel::clone(
     return cs;
 }
 
-QString PointArrayCurveSegmentModel::name() const
+const std::string& PointArrayCurveSegmentModel::name() const
 {
-    return "PointArray";
+    static const std::string name{"PointArray"};
+    return name;
 }
 
 void PointArrayCurveSegmentModel::serialize(const VisitorVariant& vis) const
@@ -183,7 +184,7 @@ std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() co
     vec.emplace_back(Id<CurveSegmentModel>{0},
                      pts[0], pts[1],
                      Id<CurveSegmentModel>{}, Id<CurveSegmentModel>{},
-                     QString{"Linear"}, QVariant::fromValue(LinearCurveSegmentData{}));
+                     "Linear", QVariant::fromValue(LinearCurveSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
@@ -193,7 +194,7 @@ std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() co
         vec.emplace_back(Id<CurveSegmentModel>{i},
                          pts[i], pts[i+1],
                          Id<CurveSegmentModel>{i-1}, Id<CurveSegmentModel>{},
-                         QString{"Linear"}, QVariant::fromValue(LinearCurveSegmentData()));
+                         "Linear", QVariant::fromValue(LinearCurveSegmentData()));
     }
 
     return vec;

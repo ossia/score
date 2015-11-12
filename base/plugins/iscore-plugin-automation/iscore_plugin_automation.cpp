@@ -33,16 +33,16 @@ iscore_plugin_automation::iscore_plugin_automation() :
     AutomationFactory f;
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_automation::factories(
-        const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
+        const std::string& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryName())
     {
         return {new AutomationFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryName())
     {
         return {new AutomationInspectorFactory,
                 new AutomationStateInspectorFactory};

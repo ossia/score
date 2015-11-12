@@ -3,11 +3,6 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <vector>
 
-namespace iscore
-{
-    class FactoryInterface;
-}
-
 class ScenarioActionsFactory;
 
 class ScenarioContextMenuPluginList
@@ -15,7 +10,7 @@ class ScenarioContextMenuPluginList
     public:
         const std::vector<ScenarioActionsFactory*>& contextMenus() const;
 
-        void registerContextMenu(iscore::FactoryInterface* f);
+        void registerContextMenu(ScenarioActionsFactory* f);
 
     private:
         std::vector<ScenarioActionsFactory*> m_factories;

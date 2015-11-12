@@ -4,8 +4,3 @@ InspectorWidgetFactory::~InspectorWidgetFactory()
 {
 
 }
-
-QString InspectorWidgetFactory::factoryName()
-{
-    return "Inspector";
-}

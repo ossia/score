@@ -213,7 +213,8 @@ void PluginManager::loadFactories(QObject* plugin)
 
     if(facfam_interface)
     {
-        m_customFamilies += facfam_interface->factoryFamilies();
+        auto other = facfam_interface->factoryFamilies();
+        m_customFamilies.insert(m_customFamilies.end(), other.begin(), other.end());
     }
 }
 

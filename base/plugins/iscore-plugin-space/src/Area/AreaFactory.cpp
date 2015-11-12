@@ -1,6 +1,6 @@
 #include "AreaFactory.hpp"
 
-QString AreaFactory::factoryName()
+AreaFactory::~AreaFactory()
 {
-    return "Area";
+
 }

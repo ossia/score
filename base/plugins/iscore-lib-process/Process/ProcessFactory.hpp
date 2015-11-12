@@ -13,19 +13,20 @@ class LayerView;
 class LayerPresenter;
 class QGraphicsItem;
 
+ISCORE_STRING_FACTORY_KEY_DECL(ProcessFactoryKey)
+
 /**
      * @brief The ProcessFactory class
      *
      * Interface to make processes, like Scenario, Automation...
      */
-class ProcessFactory : public iscore::FactoryInterface
+
+class ProcessFactory :
+        public iscore::GenericFactoryInterface<ProcessFactoryKey>
 {
+        ISCORE_FACTORY_DECL("Process")
     public:
         virtual ~ProcessFactory();
-        static QString factoryName();
-
-        // The process name
-        virtual QString name() const = 0;
 
         virtual Process* makeModel(
                 const TimeValue& duration,

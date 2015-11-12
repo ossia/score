@@ -16,7 +16,7 @@ InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
 }
 
 
-QList<QString> ScenarioInspectorFactory::correspondingObjectsNames() const
+QList<QString> ScenarioInspectorFactory::key_impl() const
 {
     return {"Scenario"};
 }

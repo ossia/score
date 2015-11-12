@@ -6,8 +6,16 @@
 class MinuitProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
-        QString name() const override
-        { return "Minuit"; }
+        QString prettyName() const override
+        {
+            return QObject::tr("Minuit");
+        }
+
+        const ProtocolFactoryKey& key_impl() const override
+        {
+            static const std::string name{"Minuit"};
+            return name;
+        }
 
         DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {

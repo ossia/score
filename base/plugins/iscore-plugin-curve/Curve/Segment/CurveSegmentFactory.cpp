@@ -1,5 +1,6 @@
 #include "CurveSegmentFactory.hpp"
-QString CurveSegmentFactory::factoryName()
+
+CurveSegmentFactory::~CurveSegmentFactory()
 {
-  return "CurveSegment";
+
 }

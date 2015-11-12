@@ -38,10 +38,10 @@ template<>
 Process* createProcess(Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    QString processName;
-    deserializer.m_stream >> processName;
+    std::string processName;
+    deserializer.writeTo(processName);
 
-    auto model = ProcessList::getFactory(processName)
+    auto model = SingletonProcessList::instance().get(processName)
                  ->loadModel(deserializer.toVariant(),
                              parent);
     // Calls the concrete process's factory
@@ -81,8 +81,8 @@ template<>
 Process* createProcess(Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
-    auto model = ProcessList::getFactory(
-                     deserializer.m_obj["ProcessName"].toString())
+    auto model = SingletonProcessList::instance().get(
+                     deserializer.m_obj["ProcessName"].toString().toStdString())
                         ->loadModel(
                             deserializer.toVariant(),
                             parent);

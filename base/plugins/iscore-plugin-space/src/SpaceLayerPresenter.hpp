@@ -17,19 +17,19 @@ class SpaceLayerPresenter : public LayerPresenter
                             QObject* parent);
         ~SpaceLayerPresenter();
 
-        void setWidth(int width);
-        void setHeight(int height);
+        void setWidth(int width) override;
+        void setHeight(int height) override;
 
-        void on_focusChanged();
+        void on_focusChanged() override;
 
-        void putToFront();
-        void putBehind();
+        void putToFront() override;
+        void putBehind() override;
 
-        void on_zoomRatioChanged(ZoomRatio);
-        void parentGeometryChanged();
+        void on_zoomRatioChanged(ZoomRatio) override;
+        void parentGeometryChanged() override;
 
-        const LayerModel &layerModel() const;
-        const Id<Process> &modelId() const;
+        const LayerModel &layerModel() const override;
+        const Id<Process> &modelId() const override;
 
         void update();
 

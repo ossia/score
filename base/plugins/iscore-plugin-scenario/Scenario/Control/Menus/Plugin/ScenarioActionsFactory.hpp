@@ -1,13 +1,14 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <QList>
 
 class ScenarioControl;
 class ScenarioActions;
 
-class ScenarioActionsFactory : public iscore::FactoryInterface
+class ScenarioActionsFactory : public iscore::FactoryInterfaceBase
 {
+        ISCORE_FACTORY_DECL("ScenarioContextMenu")
     public:
-        static QString factoryName() { return "ScenarioContextMenu"; }
         virtual QList<ScenarioActions*> make(ScenarioControl*) = 0;
 };
 

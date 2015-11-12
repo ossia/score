@@ -24,9 +24,10 @@ CurveSegmentModel*GammaCurveSegmentModel::clone(
     return cs;
 }
 
-QString GammaCurveSegmentModel::name() const
+const std::string& GammaCurveSegmentModel::name() const
 {
-    return "Gamma";
+    static const std::string name{"Gamma"};
+    return name;
 }
 
 void GammaCurveSegmentModel::serialize(const VisitorVariant& vis) const

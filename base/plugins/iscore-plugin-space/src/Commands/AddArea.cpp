@@ -38,13 +38,13 @@ void AddArea::redo() const
 {
     auto& proc = m_path.find();
 
-    auto facts = SingletonAreaFactoryList::instance().factories();
+    const auto& facts = SingletonAreaFactoryList::instance().get();
     auto it = boost::range::find_if(facts,
-                                    [&] (const AreaFactory* f) { return f->type() == m_areaType; });
+                                    [&] (const auto& f) { return f.second->type() == m_areaType; });
 
     ISCORE_ASSERT(it != facts.end());
 
-    auto ar = (*it)->makeModel(m_areaFormula, proc.space(), m_createdAreaId, &proc);
+    auto ar = it->second->makeModel(m_areaFormula, proc.space(), m_createdAreaId, &proc);
 
     GiNaC::exmap sym_map;
     const auto& syms = ar->area().symbols();

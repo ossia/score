@@ -21,7 +21,7 @@ using namespace Scenario::Command;
 
 AddProcessToConstraint::AddProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const QString& process) :
+        const ProcessFactoryKey& process) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
@@ -38,7 +38,7 @@ AddProcessToConstraint::AddProcessToConstraint(
         m_createdRackId = getStrongId(constraint.racks);
         m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
         m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
-        m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
+        m_layerConstructionData = SingletonProcessList::instance().get(m_processName)->makeStaticLayerConstructionData();
     }
     else if (m_notBaseConstraint)
     {
@@ -48,7 +48,7 @@ AddProcessToConstraint::AddProcessToConstraint(
         {
             const auto& firstSlotModel = *firstRack.slotmodels.begin();
 
-            m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
+            m_layerConstructionData = SingletonProcessList::instance().get(m_processName)->makeStaticLayerConstructionData();
             m_createdLayerId = getStrongId(firstSlotModel.layers);
         }
     }

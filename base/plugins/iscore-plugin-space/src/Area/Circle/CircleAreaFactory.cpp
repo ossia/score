@@ -8,9 +8,10 @@ int CircleAreaFactory::type() const
     return CircleAreaModel::static_type();
 }
 
-QString CircleAreaFactory::name() const
+const std::string& CircleAreaFactory::key_impl() const
 {
-    return "Circle";
+    static const std::string name{"Circle"};
+    return name;
 }
 
 QString CircleAreaFactory::prettyName() const

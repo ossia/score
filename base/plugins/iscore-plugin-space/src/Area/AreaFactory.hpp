@@ -7,14 +7,15 @@ class SpaceModel;
 class AreaModel;
 class AreaPresenter;
 
-class AreaFactory : public iscore::FactoryInterface
+class AreaFactory : public iscore::GenericFactoryInterface<std::string>
 {
+        ISCORE_FACTORY_DECL("Area")
     public:
-        static QString factoryName();
+        virtual ~AreaFactory();
 
         // Pretty name, id
         virtual int type() const = 0;
-        virtual QString name() const = 0;
+
         virtual QString prettyName() const = 0;
 
         // Model

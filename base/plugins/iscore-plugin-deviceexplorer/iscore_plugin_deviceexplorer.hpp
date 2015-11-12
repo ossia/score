@@ -29,7 +29,7 @@ class iscore_plugin_deviceexplorer final :
         QList<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryFamily> factoryFamilies() override;
 
         // Control
         iscore::PluginControlInterface* make_control(iscore::Presenter*) override;

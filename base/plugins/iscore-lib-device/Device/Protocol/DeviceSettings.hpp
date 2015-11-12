@@ -6,7 +6,7 @@
 namespace iscore {
 struct DeviceSettings
 {
-        QString protocol;
+        std::string protocol;
         QString name;
         QVariant deviceSpecificSettings;
 };

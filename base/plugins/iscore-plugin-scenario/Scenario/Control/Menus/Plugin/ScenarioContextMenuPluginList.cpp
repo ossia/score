@@ -7,7 +7,7 @@ const std::vector<ScenarioActionsFactory *> &ScenarioContextMenuPluginList::cont
 }
 
 void ScenarioContextMenuPluginList::registerContextMenu(
-        iscore::FactoryInterface *f)
+        ScenarioActionsFactory *f)
 {
-    m_factories.push_back(static_cast<ScenarioActionsFactory*>(f));
+    m_factories.push_back(f);
 }

@@ -199,7 +199,7 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
 {
     // Request from the protocol factory the protocol to see
     // if it is compatible.
-    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    auto prot = SingletonProtocolList::instance().get(n.protocol);
     if(!prot)
         return false;
 

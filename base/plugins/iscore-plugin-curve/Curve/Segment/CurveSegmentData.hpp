@@ -60,7 +60,7 @@ struct CurveSegmentData
                 const Id<CurveSegmentModel>& id,
                 CurvePoint start, CurvePoint end,
                 const Id<CurveSegmentModel>& prev, const Id<CurveSegmentModel>&  foll,
-                const QString& type, const QVariant& data):
+                const std::string& type, const QVariant& data):
             id(id),
             start(start),
             end(end),
@@ -77,7 +77,7 @@ struct CurveSegmentData
         CurvePoint start, end;
         Id<CurveSegmentModel> previous, following;
 
-        QString type;
+        std::string type;
         QVariant specificSegmentData;
 
         double x() const {

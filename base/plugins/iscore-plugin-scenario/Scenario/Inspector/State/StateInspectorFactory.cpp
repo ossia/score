@@ -14,7 +14,7 @@ InspectorWidgetBase* StateInspectorFactory::makeWidget(
                 parentWidget};
 }
 
-QList<QString> StateInspectorFactory::correspondingObjectsNames() const
+QList<QString> StateInspectorFactory::key_impl() const
 {
     return {"StateModel"};
 }

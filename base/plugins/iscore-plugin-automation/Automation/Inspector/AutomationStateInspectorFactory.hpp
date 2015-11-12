@@ -17,8 +17,9 @@ class AutomationStateInspectorFactory final : public InspectorWidgetFactory
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        virtual QList<QString> correspondingObjectsNames() const override
+        virtual const QList<QString>& key_impl() const override
         {
-            return {"AutomationState"};
+            static const QList<QString> lst{"AutomationState"};
+            return lst;
         }
 };

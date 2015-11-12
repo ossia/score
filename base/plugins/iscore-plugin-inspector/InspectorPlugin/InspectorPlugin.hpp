@@ -25,7 +25,7 @@ class iscore_plugin_inspector :
         QList<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Inspector
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryFamily> factoryFamilies() override;
 
         iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 

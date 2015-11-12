@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/ProcessFactory.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -27,7 +28,7 @@ namespace Scenario
             public:
                 AddProcessToConstraint(
                     Path<ConstraintModel>&& constraintPath,
-                    const QString& process);
+                    const ProcessFactoryKey& process);
 
                 void undo() const override;
                 void redo() const override;
@@ -43,7 +44,7 @@ namespace Scenario
 
             private:
                 Path<ConstraintModel> m_path;
-                QString m_processName;
+                ProcessFactoryKey m_processName;
 
                 Id<Process> m_createdProcessId {};
                 Id<RackModel> m_createdRackId {};

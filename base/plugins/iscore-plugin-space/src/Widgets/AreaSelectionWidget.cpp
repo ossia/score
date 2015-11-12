@@ -24,9 +24,9 @@ AreaSelectionWidget::AreaSelectionWidget(QWidget* parent):
             this, &AreaSelectionWidget::lineEditChanged);
 
     auto& fact = SingletonAreaFactoryList::instance();
-    for(auto& elt : fact.factories())
+    for(auto& elt : fact.get())
     {
-        m_comboBox->addItem(elt->prettyName(), elt->type());
+        m_comboBox->addItem(elt.second->prettyName(), QString::fromStdString(elt.second->key<std::string>()));
     }
     connect(m_comboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, [&] (int index) {
@@ -36,7 +36,7 @@ AreaSelectionWidget::AreaSelectionWidget(QWidget* parent):
         }
         else
         {
-            m_lineEdit->setText(fact.factory(m_comboBox->currentData().toInt())->generic_formula());
+            m_lineEdit->setText(fact.get(m_comboBox->currentData().toString().toStdString())->generic_formula());
             m_lineEdit->setEnabled(false);
             lineEditChanged();
         }

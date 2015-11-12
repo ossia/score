@@ -2,9 +2,10 @@
 #include "SpaceProcess.hpp"
 #include "SpaceLayerPresenter.hpp"
 #include "SpaceLayerView.hpp"
-QString SpaceProcessFactory::name() const
+const ProcessFactoryKey& SpaceProcessFactory::key_impl() const
 {
-    return "Space";
+    static const ProcessFactoryKey name{"Space"};
+    return name;
 }
 
 Process *SpaceProcessFactory::makeModel(const TimeValue &duration, const Id<Process> &id, QObject *parent)

@@ -6,8 +6,16 @@
 class MIDIProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
-        QString name() const override
-        { return "MIDI"; }
+        QString prettyName() const override
+        {
+            return QObject::tr("MIDI");
+        }
+
+        const ProtocolFactoryKey& key_impl() const override
+        {
+            static const std::string name{"MIDI"};
+            return name;
+        }
 
         DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {

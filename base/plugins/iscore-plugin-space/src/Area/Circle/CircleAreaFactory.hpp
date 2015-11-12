@@ -5,7 +5,7 @@ class CircleAreaFactory : public AreaFactory
 {
     public:
         int type() const override;
-        QString name() const override;
+        const std::string& key_impl() const override;
         QString prettyName() const override;
 
         QString generic_formula() const override;

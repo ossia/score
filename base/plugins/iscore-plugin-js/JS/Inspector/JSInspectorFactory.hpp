@@ -15,7 +15,7 @@ class JSInspectorFactory final : public InspectorWidgetFactory
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        QList<QString> correspondingObjectsNames() const override
+        QList<QString> key_impl() const override
         {
             return {JSProcessModel::staticProcessName()}; // TODO use this everywhere. (automation, mapping ...)
         }

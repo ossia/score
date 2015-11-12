@@ -8,12 +8,18 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 class DeviceInterface;
-class ProtocolFactory : public iscore::FactoryInterface
+
+ISCORE_STRING_FACTORY_KEY_DECL(ProtocolFactoryKey)
+Q_DECLARE_METATYPE(ProtocolFactoryKey)
+
+class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {
+        ISCORE_FACTORY_DECL("Protocol")
+
     public:
-        static QString factoryName();
         virtual ~ProtocolFactory();
-        virtual QString name() const = 0;
+
+        virtual QString prettyName() const = 0;
 
         virtual DeviceInterface* makeDevice(
                 const iscore::DeviceSettings& settings) = 0;

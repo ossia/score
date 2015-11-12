@@ -4,26 +4,26 @@
 class SpaceProcessFactory : public ProcessFactory
 {
     public:
-        QString name() const;
+        const ProcessFactoryKey& key_impl() const override;
 
         Process* makeModel(
                 const TimeValue &duration,
                 const Id<Process> &id,
-                QObject *parent);
+                QObject *parent) override;
 
         Process* loadModel(
                 const VisitorVariant &,
-                QObject *parent);
+                QObject *parent) override;
 
 
-        QByteArray makeStaticLayerConstructionData() const;
+        QByteArray makeStaticLayerConstructionData() const override;
 
         LayerPresenter* makeLayerPresenter(
                 const LayerModel &,
                 LayerView *,
-                QObject *parent);
+                QObject *parent) override;
 
         LayerView* makeLayerView(
                 const LayerModel &view,
-                QGraphicsItem *parent);
+                QGraphicsItem *parent) override;
 };

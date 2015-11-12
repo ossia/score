@@ -3,6 +3,7 @@
 #include "Value.hpp"
 #include <State/ValueConversion.hpp>
 #include <iscore/tools/VariantSerialization.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 using namespace iscore;
 // TODO clean this file
 template<>

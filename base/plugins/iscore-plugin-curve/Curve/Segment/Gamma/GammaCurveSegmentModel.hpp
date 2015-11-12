@@ -28,7 +28,7 @@ class GammaCurveSegmentModel final : public CurveSegmentModel
                 const Id<CurveSegmentModel>& id,
                 QObject* parent) const override;
 
-        QString name() const override;
+        const std::string& name() const override;
         void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

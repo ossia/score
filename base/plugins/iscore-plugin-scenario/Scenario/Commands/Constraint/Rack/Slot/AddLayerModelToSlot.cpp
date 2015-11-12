@@ -28,7 +28,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath,
-        const QString& processName) :
+        const std::string& processkey) :
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
@@ -36,7 +36,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processPath {std::move(processPath)},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    auto fact = ProcessList::getFactory(processName);
+    auto fact = SingletonProcessList::instance().get(processkey);
     ISCORE_ASSERT(fact);
     m_processData = fact->makeStaticLayerConstructionData();
 }
@@ -45,7 +45,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
         const Id<LayerModel>& layerid,
         Path<Process>&& process,
-        const QString& processName):
+        const std::string& processKey):
     SerializableCommand {factoryName(),
                          commandName(),
                          description()},
@@ -53,7 +53,7 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processPath{std::move(process)},
     m_createdLayerId{layerid}
 {
-    auto fact = ProcessList::getFactory(processName);
+    auto fact = SingletonProcessList::instance().get(processKey);
     ISCORE_ASSERT(fact);
     m_processData = fact->makeStaticLayerConstructionData();
 }

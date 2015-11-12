@@ -23,11 +23,10 @@ class iscore_plugin_space:
         virtual ~iscore_plugin_space() = default;
 
         // Plugin control interface
-        virtual iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
+        iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 
         // Process & inspector
-        virtual std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(const std::string& factoryName) const override;
 
-
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryFamily> factoryFamilies() override;
 };

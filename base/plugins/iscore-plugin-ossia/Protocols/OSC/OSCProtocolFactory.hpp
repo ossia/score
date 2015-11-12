@@ -6,8 +6,17 @@
 class OSCProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
-        QString name() const override
-        { return "OSC"; }
+        QString prettyName() const override
+        {
+            return QObject::tr("OSC");
+        }
+
+        const ProtocolFactoryKey& key_impl() const override
+        {
+            static const std::string name{"OSC"};
+            return name;
+        }
+
 
         DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
         {

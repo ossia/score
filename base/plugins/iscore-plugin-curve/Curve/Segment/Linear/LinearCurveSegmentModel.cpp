@@ -13,9 +13,10 @@ CurveSegmentModel* LinearCurveSegmentModel::clone(
     return cs;
 }
 
-QString LinearCurveSegmentModel::name() const
+const std::string& LinearCurveSegmentModel::name() const
 {
-    return "Linear";
+    static const std::string name{"Linear"};
+    return name;
 }
 
 void LinearCurveSegmentModel::serialize(const VisitorVariant& vis) const

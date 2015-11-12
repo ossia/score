@@ -28,9 +28,10 @@ CurveSegmentModel*SinCurveSegmentModel::clone(
     return cs;
 }
 
-QString SinCurveSegmentModel::name() const
+const std::string& SinCurveSegmentModel::name() const
 {
-    return "Sin";
+    static const std::string name{"Sin"};
+    return name;
 }
 
 void SinCurveSegmentModel::serialize(const VisitorVariant& vis) const

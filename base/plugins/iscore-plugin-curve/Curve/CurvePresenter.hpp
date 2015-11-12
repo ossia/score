@@ -83,7 +83,7 @@ class CurvePresenter : public QObject
 
     private:
         // Context menu actions
-        void updateSegmentsType(const QString& segment);
+        void updateSegmentsType(const std::string& segment);
 
         // Setup utilities
         void setPos(CurvePointView&);

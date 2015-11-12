@@ -1,7 +1,8 @@
 #include "CurveSegmentModelSerialization.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentList.hpp"
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
@@ -82,7 +83,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentModel& segmt)
 {
     // To allow recration using createProcess
-    m_obj["Name"] = segmt.name();
+    m_obj["Name"] = QString::fromStdString(segmt.name());
 
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
@@ -113,8 +114,8 @@ CurveSegmentModel*createCurveSegment(
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    QString name;
-    deserializer.m_stream >> name;
+    std::string name;
+    deserializer.writeTo(name);
 
     auto& instance = SingletonCurveSegmentList::instance();
     auto fact = instance.get(name);
@@ -129,7 +130,7 @@ CurveSegmentModel*createCurveSegment(
         QObject* parent)
 {
     auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(deserializer.m_obj["Name"].toString());
+    auto fact = instance.get(deserializer.m_obj["Name"].toString().toStdString());
     auto model = fact->load(deserializer.toVariant(), parent);
 
     return model;

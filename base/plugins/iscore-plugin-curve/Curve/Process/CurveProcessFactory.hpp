@@ -58,5 +58,8 @@ class CurveProcessFactory_T : public ProcessFactory
 #define DEFINE_CURVE_PROCESS_FACTORY(Name, DynName, Model, Layer, Presenter, View, Colors) \
 class Name final : public CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
-    QString name() const override { return DynName; } \
+    const ProcessFactoryKey& key_impl() const override { \
+    static const ProcessFactoryKey name{DynName}; \
+    return name; \
+} \
 };

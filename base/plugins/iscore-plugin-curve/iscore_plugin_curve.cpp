@@ -21,9 +21,9 @@ iscore_plugin_curve::iscore_plugin_curve() :
 {
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(const std::string& factoryName) const
 {
-    if(factoryName == CurveSegmentFactory::factoryName())
+    if(factoryName == CurveSegmentFactory::staticFactoryName())
     {
         // TODO make matching factories for OSSIA.
         return {new LinearCurveSegmentFactory,
@@ -35,11 +35,14 @@ std::vector<iscore::FactoryInterface*> iscore_plugin_curve::factories(const QStr
     return {};
 }
 
-QVector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
+std::vector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
 {
-    return {{CurveSegmentFactory::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
-             { SingletonCurveSegmentList::instance().registerFactory(safe_cast<CurveSegmentFactory*>(fact)); }
+    return {{CurveSegmentFactory::staticFactoryName(),
+             [&] (iscore::FactoryInterfaceBase* f)
+             {
+                if(auto curve = dynamic_cast<CurveSegmentFactory*>(f))
+                    SingletonCurveSegmentList::instance().inscribe(curve);
+            }
            }};
 }
 

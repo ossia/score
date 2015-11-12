@@ -29,7 +29,7 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
     {
         for(InspectorWidgetFactory* factory : iwl->m_factories)
         {
-            if(factory->correspondingObjectsNames().contains(name))
+            if(factory->key_impl().contains(name))
             {
                 return factory->makeWidget(model, doc, parent);
             }
@@ -40,7 +40,7 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
     return new InspectorWidgetBase{model, doc, nullptr};
 }
 
-void InspectorWidgetList::registerFactory(iscore::FactoryInterface* e)
+void InspectorWidgetList::registerFactory(iscore::FactoryInterfaceBase* e)
 {
     m_factories.push_back(
                 safe_cast<InspectorWidgetFactory*>(e));
