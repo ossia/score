@@ -1,101 +1,66 @@
 #pragma once
-#include <string>
-#include <functional>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONValueVisitor.hpp>
+#include <iscore/tools/opaque/OpaqueString.hpp>
 
-class StringFactoryKeyBase
-{
-        friend struct std::hash<StringFactoryKeyBase>;
-        friend bool operator==(const StringFactoryKeyBase& lhs, const StringFactoryKeyBase& rhs) {
-            return lhs.impl == rhs.impl;
-        }
-
-        friend bool operator<(const StringFactoryKeyBase& lhs, const StringFactoryKeyBase& rhs) {
-            return lhs.impl < rhs.impl;
-        }
-
-    public:
-        StringFactoryKeyBase() = default;
-        StringFactoryKeyBase(const char* str): impl{str} {}
-        StringFactoryKeyBase(const std::string& str): impl{str} {}
-        StringFactoryKeyBase(std::string&& str): impl{std::move(str)} {}
-
-    protected:
-        std::string impl;
-};
-
-
-
-namespace std
-{
-template<>
-struct hash<StringFactoryKeyBase>
-{
-        std::size_t operator()(const StringFactoryKeyBase& kagi) const noexcept
-        {
-            return std::hash<std::string>()(kagi.impl);
-        }
-};
-}
-
+// TODO rename file.
 template<typename Tag>
-class StringFactoryKey : StringFactoryKeyBase
+class StringKey : OpaqueString
 {
-        using this_type = StringFactoryKey<Tag>;
+        using this_type = StringKey<Tag>;
 
         template<typename U>
-        friend void Visitor<Reader< DataStream >>::readFrom (const StringFactoryKey<U> &);
+        friend void Visitor<Reader< DataStream >>::readFrom (const StringKey<U> &);
         template<typename U>
-        friend void Visitor<Writer< DataStream >>::writeTo (StringFactoryKey<U> &);
+        friend void Visitor<Writer< DataStream >>::writeTo (StringKey<U> &);
         template<typename U>
-        friend void Visitor<Reader< JSONValue >>::readFrom (const StringFactoryKey<U> &);
+        friend void Visitor<Reader< JSONValue >>::readFrom (const StringKey<U> &);
         template<typename U>
-        friend void Visitor<Writer< JSONValue >>::writeTo (StringFactoryKey<U> &);
+        friend void Visitor<Writer< JSONValue >>::writeTo (StringKey<U> &);
 
         friend struct std::hash<this_type>;
         friend bool operator==(const this_type& lhs, const this_type& rhs) {
-            return static_cast<const StringFactoryKeyBase&>(lhs) == static_cast<const StringFactoryKeyBase&>(rhs);
+            return static_cast<const OpaqueString&>(lhs) == static_cast<const OpaqueString&>(rhs);
         }
 
         friend bool operator<(const this_type& lhs, const this_type& rhs) {
-            return static_cast<const StringFactoryKeyBase&>(lhs) < static_cast<const StringFactoryKeyBase&>(rhs);
+            return static_cast<const OpaqueString&>(lhs) < static_cast<const OpaqueString&>(rhs);
         }
 
     public:
-        using StringFactoryKeyBase::StringFactoryKeyBase;
+        using OpaqueString::OpaqueString;
 };
 
 namespace std
 {
 template<typename T>
-struct hash<StringFactoryKey<T>>
+struct hash<StringKey<T>>
 {
-        std::size_t operator()(const StringFactoryKey<T>& kagi) const noexcept
-        { return std::hash<StringFactoryKeyBase>()(static_cast<const StringFactoryKeyBase&>(kagi)); }
+        std::size_t operator()(const StringKey<T>& kagi) const noexcept
+        { return std::hash<OpaqueString>()(static_cast<const OpaqueString&>(kagi)); }
 };
 }
 
 template<typename T>
-void Visitor<Reader<DataStream>>::readFrom(const StringFactoryKey<T>& key)
+void Visitor<Reader<DataStream>>::readFrom(const StringKey<T>& key)
 {
     m_stream << key.impl;
 }
 
 template<typename T>
-void Visitor<Writer<DataStream>>::writeTo(StringFactoryKey<T>& key)
+void Visitor<Writer<DataStream>>::writeTo(StringKey<T>& key)
 {
     m_stream >> key.impl;
 }
 
 template<typename T>
-void Visitor<Reader<JSONValue>>::readFrom(const StringFactoryKey<T>& key)
+void Visitor<Reader<JSONValue>>::readFrom(const StringKey<T>& key)
 {
     val = QString::fromStdString(key.impl);
 }
 
 template<typename T>
-void Visitor<Writer<JSONValue>>::writeTo(StringFactoryKey<T>& key)
+void Visitor<Writer<JSONValue>>::writeTo(StringKey<T>& key)
 {
     key.impl = val.toString().toStdString();
 }

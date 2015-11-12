@@ -14,9 +14,9 @@ iscore_plugin_ossia_simpleprocess::~iscore_plugin_ossia_simpleprocess()
 }
 
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia_simpleprocess::factories(const std::string& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia_simpleprocess::factories(const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::staticFactoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new SimpleProcessFactory};
     }

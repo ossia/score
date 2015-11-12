@@ -32,7 +32,7 @@ QList<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 
 std::vector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies()
 {
-    return {{ProtocolFactory::staticFactoryName(),
+    return {{ProtocolFactory::staticFactoryKey(),
             [] (iscore::FactoryInterfaceBase* f) {
                 if(auto prot = dynamic_cast<ProtocolFactory*>(f))
                     SingletonProtocolList::instance().inscribe(prot);

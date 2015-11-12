@@ -63,21 +63,21 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 std::vector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
 {
     return {
-            {ProcessFactory::staticFactoryName(),
+            {ProcessFactory::staticFactoryKey(),
              [&] (iscore::FactoryInterfaceBase* fact)
              {
                 if(auto pf = dynamic_cast<ProcessFactory*>(fact))
                     SingletonProcessList::instance().inscribe(pf);
              }
             },
-            {MoveEventFactoryInterface::staticFactoryName(),
+            {MoveEventFactoryInterface::staticFactoryKey(),
              [&] (iscore::FactoryInterfaceBase* fact)
              {
                 if(auto mef = dynamic_cast<MoveEventFactoryInterface*>(fact))
                     SingletonMoveEventList::instance().inscribe(mef);
              }
             },
-            {ScenarioActionsFactory::staticFactoryName(),
+            {ScenarioActionsFactory::staticFactoryKey(),
              [&] (iscore::FactoryInterfaceBase* fact)
              {
                 auto context_menu_fact = static_cast<ScenarioActionsFactory*>(fact);
@@ -90,27 +90,27 @@ std::vector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
            };
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(const std::string& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::staticFactoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new ScenarioFactory};
     }
 
-    if(factoryName == ScenarioActionsFactory::staticFactoryName())
+    if(factoryName == ScenarioActionsFactory::staticFactoryKey())
     {
         // new ScenarioCommonActionsFactory is instantiated in Control
         // because other plug ins need it.
         return {};
     }
 
-    if(factoryName == MoveEventClassicFactory::staticFactoryName())
+    if(factoryName == MoveEventClassicFactory::staticFactoryKey())
     {
         return {new MoveEventClassicFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::staticFactoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
         return {
                     new ConstraintInspectorFactory,

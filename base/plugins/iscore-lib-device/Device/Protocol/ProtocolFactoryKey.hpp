@@ -3,5 +3,5 @@
 #include <QMetaType>
 
 class ProtocolTag{};
-using ProtocolFactoryKey = StringFactoryKey<ProtocolTag>;
+using ProtocolFactoryKey = StringKey<ProtocolTag>;
 Q_DECLARE_METATYPE(ProtocolFactoryKey)

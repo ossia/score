@@ -19,13 +19,13 @@ iscore::PluginControlInterface* iscore_plugin_space::make_control(iscore::Presen
     return new SpaceControl{pres};
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_space::factories(const std::string& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_space::factories(const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::staticFactoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new SpaceProcessFactory};
     }
-    if(factoryName == AreaFactory::staticFactoryName())
+    if(factoryName == AreaFactory::staticFactoryKey())
     {
         return {
             new GenericAreaFactory,
@@ -39,7 +39,7 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_space::factories(const 
 
 std::vector<iscore::FactoryFamily> iscore_plugin_space::factoryFamilies()
 {
-    return {{AreaFactory::staticFactoryName(),
+    return {{AreaFactory::staticFactoryKey(),
                     [] (iscore::FactoryInterfaceBase* f)
             {
                 if(auto elt = dynamic_cast<AreaFactory*>(f))

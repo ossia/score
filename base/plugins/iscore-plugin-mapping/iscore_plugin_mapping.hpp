@@ -22,7 +22,7 @@ class iscore_plugin_mapping:
 
         // Process & inspector
         std::vector<iscore::FactoryInterfaceBase*> factories(
-                const std::string& factoryName) const override;
+                const iscore::FactoryBaseKey& factoryName) const override;
 
         // CommandFactory_QtInterface interface
         std::pair<const std::string, CommandGeneratorMap> make_commands() override;

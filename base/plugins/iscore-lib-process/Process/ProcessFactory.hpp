@@ -15,7 +15,7 @@ class LayerPresenter;
 class QGraphicsItem;
 
 class ProcessTag{};
-using ProcessFactoryKey = StringFactoryKey<ProcessTag>;
+using ProcessFactoryKey = StringKey<ProcessTag>;
 Q_DECLARE_METATYPE(ProcessFactoryKey)
 
 /**

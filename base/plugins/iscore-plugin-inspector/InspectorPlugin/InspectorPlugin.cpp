@@ -20,7 +20,7 @@ QList<iscore::PanelFactory*> iscore_plugin_inspector::panels()
 
 std::vector<FactoryFamily> iscore_plugin_inspector::factoryFamilies()
 {
-    return {{InspectorWidgetFactory::staticFactoryName(),
+    return {{InspectorWidgetFactory::staticFactoryKey(),
              [&] (iscore::FactoryInterfaceBase* fact)
              {
                 if(auto inspector = dynamic_cast<InspectorWidgetFactory*>(fact))

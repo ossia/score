@@ -1,8 +1,8 @@
 #pragma once
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
 
-using ProcessList = GenericFactoryList_T<ProcessFactory, ProcessFactoryKey>;
+using ProcessList = GenericFactoryMap_T<ProcessFactory, ProcessFactoryKey>;
 
 class SingletonProcessList
 {

@@ -1,6 +1,8 @@
 #pragma once
 #include <QObject>
 #include <functional>
+#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+
 
 namespace iscore
 {
@@ -14,7 +16,7 @@ namespace iscore
     struct FactoryFamily
     {
         // Example : InspectorWidgetFactory
-        std::string name;
+        iscore::FactoryBaseKey name;
 
         // This function is called whenever a new factory interface is added to this family.
         std::function<void (iscore::FactoryInterfaceBase*)> onInstantiation;

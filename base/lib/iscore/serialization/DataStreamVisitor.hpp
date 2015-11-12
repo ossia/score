@@ -32,7 +32,7 @@ class TreeNode;
 template<class>
 class TreePath;
 template<class>
-class StringFactoryKey;
+class StringKey;
 
 namespace eggs{
 namespace variants {
@@ -98,7 +98,7 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
         template<typename T>
         void readFrom(const TreePath<T>&);
         template<typename T>
-        void readFrom(const StringFactoryKey<T>&);
+        void readFrom(const StringKey<T>&);
 
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
@@ -190,7 +190,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         template<typename T>
         void writeTo(TreePath<T>&);
         template<typename T>
-        void writeTo(StringFactoryKey<T>&);
+        void writeTo(StringKey<T>&);
 
         template<typename... Args>
         void writeTo(eggs::variants::variant<Args...>&);

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
 
-using ProtocolList = GenericFactoryList_T<ProtocolFactory, ProtocolFactoryKey>;
+using ProtocolList = GenericFactoryMap_T<ProtocolFactory, ProtocolFactoryKey>;

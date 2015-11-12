@@ -31,15 +31,15 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_mapping::factories(const std::string& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_mapping::factories(const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::staticFactoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new MappingFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::staticFactoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
         return {new MappingInspectorFactory};
     }

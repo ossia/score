@@ -3,5 +3,5 @@
 #include <QMetaType>
 
 class CurveSegmentTag{};
-using CurveSegmentFactoryKey = StringFactoryKey<CurveSegmentTag>;
+using CurveSegmentFactoryKey = StringKey<CurveSegmentTag>;
 Q_DECLARE_METATYPE(CurveSegmentFactoryKey)

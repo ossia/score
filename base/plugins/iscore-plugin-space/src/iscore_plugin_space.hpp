@@ -26,7 +26,7 @@ class iscore_plugin_space:
         iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterfaceBase*> factories(const std::string& factoryName) const override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(const iscore::FactoryBaseKey& factoryName) const override;
 
         std::vector<iscore::FactoryFamily> factoryFamilies() override;
 };

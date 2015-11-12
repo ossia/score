@@ -8,7 +8,7 @@ class AreaModel;
 class AreaPresenter;
 
 class AreaTag{};
-using AreaFactoryKey = StringFactoryKey<AreaTag>;
+using AreaFactoryKey = StringKey<AreaTag>;
 Q_DECLARE_METATYPE(AreaFactoryKey)
 
 class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>

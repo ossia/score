@@ -7,7 +7,7 @@
 #include <QMap>
 
 template<class>
-class StringFactoryKey;
+class StringKey;
 
 template<typename T>
 T fromJsonObject(QJsonValue&& json);
@@ -55,7 +55,7 @@ class Visitor<Reader<JSONValue>> final : public AbstractVisitor
         }
 
         template<typename T>
-        void readFrom(const StringFactoryKey<T>&);
+        void readFrom(const StringKey<T>&);
 
         QJsonValue val;
 };
@@ -88,7 +88,7 @@ class Visitor<Writer<JSONValue>> : public AbstractVisitor
         }
 
         template<typename T>
-        void writeTo(StringFactoryKey<T>&);
+        void writeTo(StringKey<T>&);
 
         template<typename T>
         void writeTo(Id<T>& obj)

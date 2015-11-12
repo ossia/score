@@ -1,8 +1,9 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentFactory.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
 
 
-using CurveSegmentList = GenericFactoryList_T<CurveSegmentFactory, CurveSegmentFactoryKey>;
+using CurveSegmentList = GenericFactoryMap_T<CurveSegmentFactory, CurveSegmentFactoryKey>;
 
 class SingletonCurveSegmentList
 {

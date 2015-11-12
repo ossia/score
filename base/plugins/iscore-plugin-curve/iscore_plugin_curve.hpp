@@ -24,7 +24,7 @@ class iscore_plugin_curve final :
 
         // Process & inspector
         std::vector<iscore::FactoryInterfaceBase*> factories(
-                const std::string& factoryName) const override;
+                const iscore::FactoryBaseKey& factoryName) const override;
 
         // Curve segment factory family
         std::vector<iscore::FactoryFamily> factoryFamilies() override;
