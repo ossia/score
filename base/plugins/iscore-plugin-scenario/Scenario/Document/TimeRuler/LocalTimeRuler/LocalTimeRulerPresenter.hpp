@@ -15,5 +15,5 @@ class LocalTimeRulerPresenter final : public AbstractTimeRuler
         ~LocalTimeRulerPresenter();
 
     public slots:
-        virtual void setStartPoint(TimeValue dur) override;
+        void setStartPoint(TimeValue dur) override;
 };

@@ -57,12 +57,12 @@ namespace Scenario
                 }
 
             protected:
-                virtual void serializeImpl(QDataStream& s) const override
+                void serializeImpl(QDataStream& s) const override
                 {
                     s << m_path << m_oldName << m_newName;
                 }
 
-                virtual void deserializeImpl(QDataStream& s) override
+                void deserializeImpl(QDataStream& s) override
                 {
                     s >> m_path >> m_oldName >> m_newName;
                 }

@@ -11,10 +11,10 @@ class NetworkSettings : public iscore::SettingsDelegateFactoryInterface
 
         // SettingsGroup interface
     public:
-        virtual iscore::SettingsDelegateViewInterface* makeView() override;
-        virtual iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
+        iscore::SettingsDelegateViewInterface* makeView() override;
+        iscore::SettingsDelegatePresenterInterface* makePresenter(iscore::SettingsPresenter*,
                 iscore::SettingsDelegateModelInterface* m,
                 iscore::SettingsDelegateViewInterface* v) override;
-        virtual iscore::SettingsDelegateModelInterface* makeModel() override;
+        iscore::SettingsDelegateModelInterface* makeModel() override;
 };
 

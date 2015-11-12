@@ -15,15 +15,15 @@ class NetworkSettingsPresenter : public iscore::SettingsDelegatePresenterInterfa
                                  iscore::SettingsDelegateModelInterface* model,
                                  iscore::SettingsDelegateViewInterface* view);
 
-        virtual void on_accept() override;
-        virtual void on_reject() override;
+        void on_accept() override;
+        void on_reject() override;
 
-        virtual QString settingsName() override
+        QString settingsName() override
         {
             return tr("Network");
         }
 
-        virtual QIcon settingsIcon() override;
+        QIcon settingsIcon() override;
 
         void load();
         NetworkSettingsModel* model();

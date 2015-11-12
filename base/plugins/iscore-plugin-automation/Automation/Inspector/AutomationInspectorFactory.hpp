@@ -12,14 +12,10 @@ class AutomationInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        virtual InspectorWidgetBase* makeWidget(
+        InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        virtual const QList<QString>& key_impl() const override
-        {
-            static const QList<QString> lst{"Automation"};
-            return lst;
-        }
+        const QList<QString>& key_impl() const override;
 };

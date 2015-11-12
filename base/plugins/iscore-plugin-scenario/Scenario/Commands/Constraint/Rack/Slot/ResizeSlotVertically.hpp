@@ -31,8 +31,8 @@ namespace Scenario
                 }
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<SlotModel> m_path;

@@ -32,7 +32,7 @@ class GroupMetadata : public iscore::ElementPluginModel
         }
 
         int elementPluginId() const override;
-        virtual void serialize(const VisitorVariant&) const override;
+        void serialize(const VisitorVariant&) const override;
 
         const auto& group() const
         { return m_id; }

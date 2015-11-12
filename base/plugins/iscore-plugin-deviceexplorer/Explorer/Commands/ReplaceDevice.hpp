@@ -25,8 +25,8 @@ namespace DeviceExplorer
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<DeviceExplorerModel> m_deviceTree;

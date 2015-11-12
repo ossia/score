@@ -56,6 +56,6 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
         void constraintViewModelCreated(const TemporalConstraintViewModel&);
 
     public:
-        virtual void on_constraintRemoved(const ConstraintModel&) override;
+        void on_constraintRemoved(const ConstraintModel&) override;
 
 };

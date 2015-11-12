@@ -67,10 +67,10 @@ class FakeCommand : public SerializableCommand
 
         // SerializableCommand interface
     protected:
-        virtual void serializeImpl(QDataStream&) override
+        void serializeImpl(QDataStream&) override
         {
         }
-        virtual void deserializeImpl(QDataStream&) override
+        void deserializeImpl(QDataStream&) override
         {
         }
 };

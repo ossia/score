@@ -22,7 +22,7 @@ class MinuitProtocolFactory : public ProtocolFactory
             return new MinuitDevice{settings};
         }
 
-        virtual ProtocolSettingsWidget* makeSettingsWidget() override
+        ProtocolSettingsWidget* makeSettingsWidget() override
         {
             return new MinuitProtocolSettingsWidget;
         }

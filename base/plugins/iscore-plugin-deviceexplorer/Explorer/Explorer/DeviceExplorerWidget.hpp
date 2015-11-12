@@ -78,7 +78,7 @@ class DeviceExplorerWidget final : public QWidget
         void installStyleSheet();
         void populateColumnCBox();
 
-        virtual void contextMenuEvent(QContextMenuEvent* event) override;
+        void contextMenuEvent(QContextMenuEvent* event) override;
 
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};

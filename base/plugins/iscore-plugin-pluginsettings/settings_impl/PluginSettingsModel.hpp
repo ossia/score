@@ -20,7 +20,7 @@ class PluginSettingsModel : public iscore::SettingsDelegateModelInterface
             return m_plugins;
         }
 
-        virtual void setFirstTimeSettings() override;
+        void setFirstTimeSettings() override;
 
     signals:
         void blacklistCommand(BlacklistCommand*);

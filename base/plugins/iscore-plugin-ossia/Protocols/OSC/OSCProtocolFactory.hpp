@@ -23,7 +23,7 @@ class OSCProtocolFactory : public ProtocolFactory
             return new OSCDevice{settings};
         }
 
-        virtual ProtocolSettingsWidget* makeSettingsWidget() override
+        ProtocolSettingsWidget* makeSettingsWidget() override
         {
             return new OSCProtocolSettingsWidget;
         }

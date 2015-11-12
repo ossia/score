@@ -27,8 +27,8 @@ namespace DeviceExplorer
                 int createdNodeIndex() const;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<DeviceDocumentPlugin> m_devicesModel;

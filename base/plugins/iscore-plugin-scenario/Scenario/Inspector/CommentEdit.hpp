@@ -12,7 +12,7 @@ class CommentEdit final : public QTextEdit
             setMouseTracking(true);
         }
 
-        virtual void leaveEvent(QEvent* ev) override
+        void leaveEvent(QEvent* ev) override
         {
             QTextEdit::leaveEvent(ev);
             emit editingFinished();

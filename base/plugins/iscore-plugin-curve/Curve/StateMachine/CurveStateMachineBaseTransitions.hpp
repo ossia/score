@@ -27,7 +27,7 @@ class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent
         using MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>::MatchedCurveTransition;
 
     protected:
-        virtual void onTransition(QEvent * ev) override
+        void onTransition(QEvent * ev) override
         {
             auto qev = safe_cast<CurveEvent<Element_T, Modifier_T>*>(ev);
             this->state().currentPoint = qev->point;

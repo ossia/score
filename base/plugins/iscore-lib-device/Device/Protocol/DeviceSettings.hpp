@@ -3,10 +3,12 @@
 #include <QVariant>
 #include <iscore/tools/Todo.hpp>
 
+#include <Device/Protocol/ProtocolFactoryKey.hpp>
+
 namespace iscore {
 struct DeviceSettings
 {
-        std::string protocol;
+        ProtocolFactoryKey protocol;
         QString name;
         QVariant deviceSpecificSettings;
 };

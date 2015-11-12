@@ -60,10 +60,10 @@ class MatchedTransition : public QAbstractTransition
         using event_type = Event;
 
     protected:
-        virtual bool eventTest(QEvent *e) override
+        bool eventTest(QEvent *e) override
         { return e->type() == QEvent::Type(QEvent::User + Event::user_type); }
 
-        virtual void onTransition(QEvent *event) override { }
+        void onTransition(QEvent *event) override { }
 };
 
 template<typename State, typename T>

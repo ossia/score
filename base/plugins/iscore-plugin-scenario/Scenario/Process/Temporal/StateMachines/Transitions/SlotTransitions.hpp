@@ -9,7 +9,7 @@ class ClickOnSlotOverlay_Transition final : public MatchedTransition<ClickOnSlot
         SlotState& state() const;
 
     protected:
-        virtual void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override;
 
     private:
         SlotState& m_state;
@@ -23,7 +23,7 @@ class ClickOnSlotHandle_Transition final : public MatchedTransition<ClickOnSlotH
         SlotState& state() const;
 
     protected:
-        virtual void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override;
 
     private:
         SlotState& m_state;

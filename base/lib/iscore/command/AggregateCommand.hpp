@@ -67,8 +67,8 @@ namespace iscore
             { return m_cmds.size(); }
 
         protected:
-            virtual void serializeImpl(QDataStream&) const override;
-            virtual void deserializeImpl(QDataStream&) override;
+            void serializeImpl(QDataStream&) const override;
+            void deserializeImpl(QDataStream&) override;
 
             QList<iscore::SerializableCommand*> m_cmds;
     };

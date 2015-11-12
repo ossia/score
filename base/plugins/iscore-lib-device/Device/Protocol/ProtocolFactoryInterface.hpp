@@ -2,16 +2,13 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <QString>
-#include <QVariant>
 #include <Device/Protocol/DeviceSettings.hpp>
 
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QString>
+#include <QVariant>
 
 class DeviceInterface;
-class ProtocolTag{};
-using ProtocolFactoryKey = StringFactoryKey<ProtocolTag>;
-Q_DECLARE_METATYPE(ProtocolFactoryKey)
 
 class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {
@@ -53,6 +50,3 @@ class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKe
                 const iscore::DeviceSettings& a,
                 const iscore::DeviceSettings& b) const = 0;
 };
-
-
-

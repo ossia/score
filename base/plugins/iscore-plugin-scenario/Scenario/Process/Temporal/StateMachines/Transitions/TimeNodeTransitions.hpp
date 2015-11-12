@@ -35,7 +35,7 @@ class ScenarioTransition_T<ScenarioElement::TimeNode + Modifier::Release_tag::va
         using MatchedScenarioTransition::MatchedScenarioTransition;
 
     protected:
-        virtual void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override;
 };
 using ReleaseOnTimeNode_Transition = ScenarioTransition_T<ScenarioElement::TimeNode + Modifier::Release_tag::value>;
 

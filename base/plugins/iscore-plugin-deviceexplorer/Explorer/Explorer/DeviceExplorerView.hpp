@@ -30,7 +30,7 @@ class DeviceExplorerView final : public QTreeView
         void selectionChanged();
 
     protected slots:
-        virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
+        void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected) override;
 
         void headerMenuRequested(const QPoint& pos);
         void columnVisibilityChanged(bool shown);

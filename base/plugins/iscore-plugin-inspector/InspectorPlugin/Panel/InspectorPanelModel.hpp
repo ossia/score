@@ -21,6 +21,6 @@ class InspectorPanelModel : public iscore::PanelModel
         void selectionChanged(const Selection& s);
 
     public slots:
-        virtual void setNewSelection(const Selection& s) override;
+        void setNewSelection(const Selection& s) override;
 
 };

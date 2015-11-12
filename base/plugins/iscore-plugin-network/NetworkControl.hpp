@@ -18,11 +18,13 @@ class NetworkControl : public iscore::PluginControlInterface
 
     public:
         NetworkControl(iscore::Presenter* pres);
-        virtual void populateMenus(iscore::MenubarManager*) override;
+        void populateMenus(iscore::MenubarManager*) override;
 
     public slots:
         void setupClientConnection(QString ip, int port);
-        void on_sessionBuilt(ClientSessionBuilder* sessionBuilder, ClientSession* builtSession);
+        void on_sessionBuilt(
+                ClientSessionBuilder* sessionBuilder,
+                ClientSession* builtSession);
 
     private:
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(

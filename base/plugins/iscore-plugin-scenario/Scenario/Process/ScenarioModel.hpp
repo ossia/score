@@ -188,14 +188,14 @@ class ScenarioModel final : public Process, public ScenarioInterface
             vis.writeTo(*this);
         }
 
-        virtual LayerModel* loadLayer_impl(
+        LayerModel* loadLayer_impl(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 
-        virtual void serialize(const VisitorVariant&) const override;
+        void serialize(const VisitorVariant&) const override;
 
         // To prevent warnings in Clang
-        virtual bool event(QEvent* e) override
+        bool event(QEvent* e) override
         {
             return QObject::event(e);
         }

@@ -48,8 +48,8 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         { return m_path; }
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     private:
         Path<BaseScenario> m_path;

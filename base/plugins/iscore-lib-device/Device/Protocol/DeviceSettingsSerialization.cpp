@@ -12,11 +12,15 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 
     // TODO try to see if this pattern is refactorable with the similar thing
     // usef for CurveSegmentData.
-    if(!n.protocol.empty())
+
+    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    if(prot)
     {
-        auto prot = SingletonProtocolList::instance().get(n.protocol);
-        ISCORE_ASSERT(prot);
         prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
+    }
+    else
+    {
+        qDebug() << "Warning: could not serialize device " << n.name;
     }
 
     insertDelimiter();
@@ -28,11 +32,14 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
     m_stream >> n.name
              >> n.protocol;
 
-    if(!n.protocol.empty())
+    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    if(prot)
     {
-        auto prot = SingletonProtocolList::instance().get(n.protocol);
-        ISCORE_ASSERT(prot);
         n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
+    }
+    else
+    {
+        qDebug() << "Warning: could not load device " << n.name;
     }
 
     checkDelimiter();
@@ -41,13 +48,16 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const iscore::DeviceSettings& n)
 {
     m_obj["Name"] = n.name;
-    m_obj["Protocol"] = QString::fromStdString(n.protocol);
+    m_obj["Protocol"] = toJsonValue(n.protocol);
 
-    if(!n.protocol.empty())
+    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    if(prot)
     {
-        auto prot = SingletonProtocolList::instance().get(n.protocol);
-        ISCORE_ASSERT(prot);
         prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
+    }
+    else
+    {
+        qDebug() << "Warning: could not serialize device " << n.name;
     }
 }
 
@@ -55,12 +65,15 @@ template<>
 void Visitor<Writer<JSONObject>>::writeTo(iscore::DeviceSettings& n)
 {
     n.name = m_obj["Name"].toString();
-    n.protocol = m_obj["Protocol"].toString().toStdString();
+    n.protocol = fromJsonValue<ProtocolFactoryKey>(m_obj["Protocol"]);
 
-    if(!n.protocol.empty())
+    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    if(prot)
     {
-        auto prot = SingletonProtocolList::instance().get(n.protocol);
-        ISCORE_ASSERT(prot);
         n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
+    }
+    else
+    {
+        qDebug() << "Warning: could not load device " << n.name;
     }
 }

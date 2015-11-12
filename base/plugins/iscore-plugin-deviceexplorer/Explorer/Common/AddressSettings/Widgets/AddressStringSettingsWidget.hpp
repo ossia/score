@@ -10,8 +10,8 @@ class AddressStringSettingsWidget final : public AddressSettingsWidget
     public:
         explicit AddressStringSettingsWidget(QWidget* parent = nullptr);
 
-        virtual iscore::AddressSettings getSettings() const override;
-        virtual void setSettings(const iscore::AddressSettings& settings) override;
+        iscore::AddressSettings getSettings() const override;
+        void setSettings(const iscore::AddressSettings& settings) override;
 
     protected:
         QLineEdit* m_valueEdit;
