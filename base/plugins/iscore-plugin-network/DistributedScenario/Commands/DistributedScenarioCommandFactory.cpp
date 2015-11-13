@@ -1,4 +1,5 @@
 #include "DistributedScenarioCommandFactory.hpp"
 const CommandParentFactoryKey&DistributedScenarioCommandFactoryName() {
-    return CommandParentFactoryKey{"DistributedScenario"};
+    static const CommandParentFactoryKey key{"DistributedScenario"};
+    return key;
 }

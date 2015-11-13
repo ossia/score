@@ -43,11 +43,11 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
 
         // Data is the serialized command stack, and the document models.
         auto& cq = m_session.document()->commandStack();
-        QList<QPair <QPair <std::string, std::string>, QByteArray> > commandStack; // TODO use a strong SerializedCommandStack for this
+        QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > commandStack; // TODO use a strong SerializedCommandStack for this
         for(int i = 0; i < cq.size(); i++)
         {
             auto cmd = cq.command(i);
-            commandStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+            commandStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
         }
 
         // TODO also transmit the position in the command stack (else if somebody undoes and transmits it will crash).

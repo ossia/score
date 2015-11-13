@@ -62,6 +62,7 @@ T& get(const Document& d)
 
 
 // Model of a document plugin
+// First if we are sure
 DocumentDelegateModelInterface& modelDelegate_generic(const Document& d);
 
 template<typename T> T& modelDelegate(const Document& d)
@@ -74,6 +75,25 @@ template<typename T,
 T& get(const Document& d)
 {
     return modelDelegate<T> (d);
+}
+
+// And then if we are not
+DocumentDelegateModelInterface* try_modelDelegate_generic(const Document& d);
+
+template<typename T> T* try_modelDelegate(const Document& d)
+{
+    if(auto md = try_modelDelegate_generic(d))
+    {
+        return dynamic_cast<T*>(md);
+    }
+    return nullptr;
+}
+
+template<typename T,
+         std::enable_if_t<std::is_base_of<DocumentDelegateModelInterface, T>::value>* = nullptr>
+T* try_get(const Document& d)
+{
+    return try_modelDelegate<T> (d);
 }
 }
 }

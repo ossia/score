@@ -11,7 +11,6 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :

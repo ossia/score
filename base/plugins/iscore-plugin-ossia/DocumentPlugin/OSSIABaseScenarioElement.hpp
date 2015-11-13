@@ -23,7 +23,7 @@ class OSSIABaseScenarioElement final : public QObject
 {
     public:
         OSSIABaseScenarioElement(
-                const BaseScenario* element,
+                const BaseScenario& element,
                 QObject* parent);
 
         OSSIAConstraintElement* baseConstraint() const;

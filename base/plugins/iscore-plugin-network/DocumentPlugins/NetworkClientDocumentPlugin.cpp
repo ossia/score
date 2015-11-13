@@ -25,8 +25,8 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
     {
         m_session->master()->sendMessage(
                     m_session->makeMessage("/command",
-                                           cmd->parentName(),
-                                           cmd->name(),
+                                           cmd->parentKey(),
+                                           cmd->key(),
                                            cmd->serialize()));
     });
 
@@ -57,7 +57,9 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
     s->mapper().addHandler("/command",
     [&] (NetworkMessage m)
     {
-        std::string parentName; std::string name; QByteArray data;
+        CommandParentFactoryKey parentName;
+        CommandFactoryKey name;
+        QByteArray data;
         QDataStream s{m.data};
         s >> parentName >> name >> data;
 

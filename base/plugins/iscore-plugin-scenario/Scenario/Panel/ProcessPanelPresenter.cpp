@@ -40,8 +40,7 @@ void ProcessPanelPresenter::on_modelChanged()
         return;
     }
 
-    auto bem = iscore::IDocument::documentFromObject(model())
-                    ->findChild<BaseElementModel*>("BaseElementModel");
+    auto bem = iscore::IDocument::try_get<BaseElementModel>(*iscore::IDocument::documentFromObject(model()));
 
     if(!bem)
         return;

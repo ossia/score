@@ -33,7 +33,7 @@ QByteArray ClientSessionBuilder::documentData() const
     return m_documentData;
 }
 
-const QList<QPair<QPair<std::string, std::string>, QByteArray> >& ClientSessionBuilder::commandStackData() const
+const QList<QPair<QPair<CommandParentFactoryKey, CommandFactoryKey>, QByteArray> >& ClientSessionBuilder::commandStackData() const
 {
     return m_commandStack;
 }

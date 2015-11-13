@@ -12,6 +12,8 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Automation/AutomationModel.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 
 
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel &doc, QObject* parent):
@@ -22,7 +24,7 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::DocumentModel &doc, QObject* pa
 
 void OSSIADocumentPlugin::reload(iscore::DocumentModel &doc)
 {
-    auto baseElement = doc.findChild<BaseScenario*>("BaseScenario");
+    auto& baseElement = static_cast<BaseElementModel&>(*doc.modelDelegate()).baseScenario();
     m_base = new OSSIABaseScenarioElement{baseElement, this};
 }
 
