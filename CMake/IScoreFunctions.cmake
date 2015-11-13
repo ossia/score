@@ -72,6 +72,8 @@ endfunction()
 function(setup_iscore_library PluginName)
   setup_iscore_common_lib_features("${PluginName}")
 
+  set(ISCORE_LIBRARIES_LIST ${ISCORE_LIBRARIES_LIST} "${PluginName}" CACHE INTERNAL "List of libraries")
+
   if(ISCORE_BUILD_FOR_PACKAGE_MANAGER)
   install(TARGETS "${PluginName}"
           LIBRARY DESTINATION lib

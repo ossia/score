@@ -340,8 +340,7 @@ iscore::SerializableCommand* Presenter::instantiateUndoCommand(
 #endif
     return nullptr;
 }
-#define xstr(s) str(s)
-#define str(s) #s
+
 void Presenter::setupMenus()
 {
     ////// File //////
@@ -418,7 +417,7 @@ void Presenter::setupMenus()
                            .arg(ISCORE_VERSION_PATCH)
                            .arg(ISCORE_VERSION_EXTRA)
                            + tr("\n\nCommit: \n")
-                           + QString(xstr(GIT_COMMIT))); });
+                           + QString(ISCORE_XSTR(GIT_COMMIT))); });
 }
 
 bool Presenter::exit()

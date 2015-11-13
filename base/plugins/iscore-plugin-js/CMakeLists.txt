@@ -28,7 +28,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_js.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::Qml
                      iscore_lib_base iscore_plugin_ossia iscore_lib_dummyprocess)
