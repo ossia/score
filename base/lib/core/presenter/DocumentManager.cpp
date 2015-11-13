@@ -6,6 +6,11 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QFileDialog>
+#include <QSaveFile>
+#include <QMessageBox>
 #include <QSettings>
 namespace iscore
 {
