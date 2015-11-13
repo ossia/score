@@ -24,7 +24,7 @@ then
         then
           cmake --build . --target package --config DynamicRelease
         else
-          ninja
+          ninja all_unity
         fi
       fi
     ;;
