@@ -17,10 +17,6 @@ CreateCurveFromStates::CreateCurveFromStates(
         double start,
         double end,
         double min, double max):
-    iscore::SerializableCommand{
-        factoryName(),
-        commandName(),
-        description()},
     m_addProcessCmd{
         std::move(constraint),
         curveId,

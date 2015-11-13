@@ -19,10 +19,7 @@ namespace Scenario
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 MergeRackes(const Path<RackModel>& mergeSource,
-                           const Path<RackModel>& mergeTarget) :
-                    AggregateCommand{factoryName(),
-                                     commandName(),
-                                     description()}
+                           const Path<RackModel>& mergeTarget)
                 {
                     const auto& sourcerack = mergeSource.find();
 

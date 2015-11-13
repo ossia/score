@@ -1,9 +1,6 @@
 #include "SetProcessDuration.hpp"
 #include <Process/Process.hpp>
 SetProcessDuration::SetProcessDuration(Path<Process>&& path, const TimeValue& newVal) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(path)},
     m_new {newVal}
 {

@@ -10,9 +10,6 @@ using namespace Scenario::Command;
 SetRigidity::SetRigidity(
         Path<ConstraintModel>&& constraintPath,
         bool rigid) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {constraintPath},
     m_rigidity {rigid}
 {

@@ -4,8 +4,6 @@
 EditScript::EditScript(
     Path<JSProcessModel>&& model,
     const QString& text):
-  iscore::SerializableCommand{
-    factoryName(), commandName(), description()},
   m_model{std::move(model)},
   m_new{text}
 {

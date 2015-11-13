@@ -16,7 +16,6 @@ CreateSequence::CreateSequence(
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_command{scenario,
               startState,
               date,

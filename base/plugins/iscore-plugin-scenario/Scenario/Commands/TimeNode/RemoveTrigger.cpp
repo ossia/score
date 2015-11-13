@@ -8,8 +8,6 @@
 using namespace Scenario::Command;
 
 RemoveTrigger::RemoveTrigger(Path<TimeNodeModel>&& timeNodePath):
-    iscore::SerializableCommand{
-    factoryName(), commandName(), description()},
     m_path{std::move(timeNodePath)}
 {
 

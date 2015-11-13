@@ -9,9 +9,6 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 DuplicateRack::DuplicateRack(ObjectPath&& rackToCopy) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_rackPath {rackToCopy}
 {
     auto& rack = m_rackPath.find<RackModel>();

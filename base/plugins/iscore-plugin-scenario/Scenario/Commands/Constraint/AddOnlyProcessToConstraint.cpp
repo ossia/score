@@ -20,9 +20,6 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process>& processId,
         const ProcessFactoryKey& process):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path{std::move(constraintPath)},
     m_processName{process},
     m_createdProcessId{processId}

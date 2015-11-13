@@ -7,9 +7,6 @@ using namespace iscore;
 ReplaceDevice::ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                              int deviceIndex,
                              Node&& rootNode):
-    iscore::SerializableCommand{factoryName(),
-                                commandName(),
-                                description()},
     m_deviceTree{device_tree},
     m_deviceIndex(deviceIndex),
     m_deviceNode{std::move(rootNode)}

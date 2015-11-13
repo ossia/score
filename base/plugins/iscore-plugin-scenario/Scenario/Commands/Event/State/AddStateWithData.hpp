@@ -17,10 +17,7 @@ namespace Scenario
                          const ScenarioModel& scenario,
                          const Id<EventModel>& ev,
                          double ypos,
-                         iscore::MessageList&& stateData) :
-                    AggregateCommand {factoryName(),
-                                      commandName(),
-                                      description()}
+                         iscore::MessageList&& stateData)
                 {
                     auto createStateCmd =  new CreateState{scenario, ev, ypos};
 

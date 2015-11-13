@@ -15,6 +15,7 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
  */
 #define ISCORE_COMMAND_DECL(parentNameFun, name, desc) \
     public: \
+        name() = default; \
         virtual const CommandParentFactoryKey& parentKey() const override { return parentNameFun; } \
         virtual const CommandFactoryKey& key() const override { return static_key(); } \
         virtual QString description() const override { return QObject::tr(desc); }  \
@@ -38,6 +39,7 @@ namespace iscore
 class SerializableCommand : public Command
 {
     public:
+        SerializableCommand() = default;
         ~SerializableCommand();
 
         virtual const CommandParentFactoryKey& parentKey() const = 0;

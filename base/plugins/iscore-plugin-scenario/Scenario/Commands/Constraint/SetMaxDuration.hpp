@@ -24,8 +24,6 @@ class SetMaxDuration final : public iscore::SerializableCommand
     public:
 
         SetMaxDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
-            iscore::SerializableCommand{
-                factoryName(), commandName(), description()},
         m_path{std::move(path)},
         m_oldVal{m_path.find().duration.maxDuration()},
         m_newVal{newval}

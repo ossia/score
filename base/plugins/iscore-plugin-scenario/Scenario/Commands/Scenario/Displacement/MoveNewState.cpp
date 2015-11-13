@@ -6,9 +6,6 @@ Scenario::Command::MoveNewState::MoveNewState(
         Path<ScenarioModel>&& scenarioPath,
         const Id<StateModel>& stateId,
         const double y):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path(std::move(scenarioPath)),
     m_stateId{stateId},
     m_y{y}

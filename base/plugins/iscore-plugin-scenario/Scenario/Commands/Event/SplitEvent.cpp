@@ -16,7 +16,6 @@ using namespace Scenario::Command;
 SplitEvent::SplitEvent(const Path<ScenarioModel> &scenario,
                        const Id<EventModel> &event,
                        const QVector<Id<StateModel>> &movingstates):
-    iscore::SerializableCommand{"ScenarioConstrol", commandName(), description()},
     m_scenarioPath{scenario},
     m_originalEvent{event},
     m_newEvent{getStrongId(m_scenarioPath.find().events)},

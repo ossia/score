@@ -12,6 +12,7 @@ namespace iscore
     class AggregateCommand : public iscore::SerializableCommand
     {
         public:
+            AggregateCommand() = default;
             virtual ~AggregateCommand();
 
             template<typename T, typename... Args>

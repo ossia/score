@@ -6,10 +6,6 @@
 InsertContentInState::InsertContentInState(
         const QJsonObject& stateData,
         Path<StateModel>&& targetState):
-    iscore::SerializableCommand{
-        factoryName(),
-        commandName(),
-        description()},
     m_state{std::move(targetState)}
 {
     // TODO ask what should be copied ? the state due to the processes ? the user state ?

@@ -9,10 +9,7 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveRackFromConstraint::RemoveRackFromConstraint(
-        Path<RackModel>&& rackPath) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()}
+        Path<RackModel>&& rackPath)
 {
     auto constraintPath = rackPath.unsafePath().vec();
     auto lastId = constraintPath.takeLast();
@@ -37,9 +34,6 @@ RemoveRackFromConstraint::RemoveRackFromConstraint(
 RemoveRackFromConstraint::RemoveRackFromConstraint(
         Path<ConstraintModel>&& constraintPath,
         Id<RackModel> rackId) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {constraintPath},
     m_rackId {rackId}
 {

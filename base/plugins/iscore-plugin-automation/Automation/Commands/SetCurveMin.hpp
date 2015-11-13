@@ -10,7 +10,7 @@ class SetAutomationMin final : public iscore::PropertyCommand
     public:
 
         SetAutomationMin(Path<AutomationModel>&& path, double newval):
-            iscore::PropertyCommand{std::move(path), "min", newval, factoryName(), commandName(), description()}
+            iscore::PropertyCommand{std::move(path), "min", newval}
         {
 
         }

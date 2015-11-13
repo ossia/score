@@ -11,9 +11,6 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ClearState::ClearState(Path<StateModel>&& path) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(path) }
 {
     ISCORE_TODO;

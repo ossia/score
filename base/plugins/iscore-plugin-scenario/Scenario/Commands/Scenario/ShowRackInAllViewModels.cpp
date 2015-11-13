@@ -5,9 +5,6 @@
 ShowRackInAllViewModels::ShowRackInAllViewModels(
         Path<ConstraintModel>&& constraint_path,
         const Id<RackModel>& rackId) :
-    SerializableCommand{factoryName(),
-                        commandName(),
-                        description()},
     m_constraintPath {std::move(constraint_path)},
     m_rackId{rackId}
 {

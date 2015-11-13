@@ -8,9 +8,6 @@ using namespace Scenario::Command;
 
 HideRackInViewModel::HideRackInViewModel(
         Path<ConstraintViewModel>&& path) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_constraintViewPath {std::move(path) }
 {
     auto& constraint_vm = m_constraintViewPath.find();
@@ -19,9 +16,6 @@ HideRackInViewModel::HideRackInViewModel(
 
 HideRackInViewModel::HideRackInViewModel(
         const ConstraintViewModel& constraint_vm) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_constraintViewPath {constraint_vm}
 {
     m_constraintPreviousId = constraint_vm.shownRack();

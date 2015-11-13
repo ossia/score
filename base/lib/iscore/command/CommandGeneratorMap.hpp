@@ -71,7 +71,7 @@ struct CommandGeneratorMapInserter
         template< typename TheCommand > void operator()(boost::type<TheCommand>)
         {
             fact.insert(std::pair<const CommandFactoryKey, std::unique_ptr<CommandFactory>>{
-                                TheCommand::commandName(),
+                                TheCommand::static_key(),
                                 std::unique_ptr<CommandFactory>(new GenericCommandFactory<TheCommand>)
                         }
             );

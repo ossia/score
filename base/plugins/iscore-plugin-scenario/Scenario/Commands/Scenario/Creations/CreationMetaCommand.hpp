@@ -27,12 +27,12 @@ namespace Scenario
             {
                 if(
                         m_cmds[i]->key() == CreateConstraint::static_key()
-                        || m_cmds[i]->uid() == CreateState::static_key()
-                        || m_cmds[i]->uid() == CreateEvent_State::static_key()
-                        || m_cmds[i]->uid() == CreateConstraint_State::static_key()
-                        || m_cmds[i]->uid() == CreateConstraint_State_Event::static_key()
-                        || m_cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_key()
-                        || m_cmds[i]->uid() == CreateSequence::static_key()
+                        || m_cmds[i]->key() == CreateState::static_key()
+                        || m_cmds[i]->key() == CreateEvent_State::static_key()
+                        || m_cmds[i]->key() == CreateConstraint_State::static_key()
+                        || m_cmds[i]->key() == CreateConstraint_State_Event::static_key()
+                        || m_cmds[i]->key() == CreateConstraint_State_Event_TimeNode::static_key()
+                        || m_cmds[i]->key() == CreateSequence::static_key()
                         )
                 {
                     m_cmds[i]->undo();

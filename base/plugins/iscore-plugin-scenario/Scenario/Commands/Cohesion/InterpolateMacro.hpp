@@ -27,8 +27,7 @@ class InterpolateMacro final : public iscore::AggregateCommand
             InterpolateMacro& operator=(const InterpolateMacro& other) = default;
 
         // Use this constructor when the constraint does not exist yet.
-        InterpolateMacro(const Path<ConstraintModel>& cstpath):
-            iscore::AggregateCommand{factoryName(), commandName(), description()}
+        InterpolateMacro(const Path<ConstraintModel>& cstpath)
         {
             auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
             addCommand(cmd_rack);
@@ -54,8 +53,7 @@ class InterpolateMacro final : public iscore::AggregateCommand
         }
 
             // Use this constructor when the constraint already exists
-        InterpolateMacro(const ConstraintModel& constraint):
-          iscore::AggregateCommand{factoryName(), commandName(), description()}
+        InterpolateMacro(const ConstraintModel& constraint)
         {
             auto cstpath = iscore::IDocument::path(constraint);
 

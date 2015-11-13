@@ -11,9 +11,6 @@ using namespace Scenario::Command;
 RemoveLayerModelFromSlot::RemoveLayerModelFromSlot(
         Path<SlotModel>&& rackPath,
         const Id<LayerModel>& layerId) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {rackPath},
     m_layerId {layerId}
 {

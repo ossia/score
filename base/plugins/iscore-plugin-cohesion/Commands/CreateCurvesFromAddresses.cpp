@@ -8,9 +8,6 @@ using namespace iscore;
 CreateCurvesFromAddresses::CreateCurvesFromAddresses(
         Path<ConstraintModel>&& constraint,
         const QList<Address>& addresses):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {constraint},
     m_addresses {addresses}
 {

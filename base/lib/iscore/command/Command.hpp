@@ -27,6 +27,7 @@ namespace iscore
     class Command
     {
         public:
+            Command() = default;
             virtual ~Command();
 
             virtual void undo() const = 0;

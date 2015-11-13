@@ -7,9 +7,6 @@ SwapSlots::SwapSlots(
         Path<RackModel>&& rack,
         const Id<SlotModel>& first,
         const Id<SlotModel>& second):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_rackPath{std::move(rack)},
     m_first{first},
     m_second{second}

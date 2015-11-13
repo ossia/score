@@ -10,7 +10,6 @@ CreateTimeNode_Event_State::CreateTimeNode_Event_State(
         const ScenarioModel& scenario,
         const TimeValue& date,
         double stateY):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_newTimeNode{getStrongId(scenario.timeNodes)},
     m_date{date},
     m_command{scenario,

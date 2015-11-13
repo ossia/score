@@ -12,9 +12,6 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(constraintPath) }
 {
     auto& constraint = m_path.find();

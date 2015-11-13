@@ -4,9 +4,6 @@
 LoadDevice::LoadDevice(
         Path<DeviceDocumentPlugin>&& device_tree,
         iscore::Node&& node):
-    iscore::SerializableCommand{factoryName(),
-                                commandName(),
-                                description()},
     m_devicesModel{std::move(device_tree)},
     m_deviceNode(std::move(node))
 {

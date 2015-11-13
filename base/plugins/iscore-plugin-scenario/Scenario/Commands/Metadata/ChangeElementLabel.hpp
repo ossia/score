@@ -13,30 +13,28 @@ namespace Scenario
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
-                static const CommandParentFactoryKey& factoryName()
+                const CommandParentFactoryKey& parentKey() const override
                 {
                     return ScenarioCommandFactoryName();
                 }
-                static CommandFactoryKey commandName()
+                static const CommandFactoryKey& static_key()
                 {
-                    static QByteArray name = QString{"ChangeElementLabel_%1"}.arg(T::staticMetaObject.className()).toUtf8();
-                    return CommandFactoryKey{name.constData()};
+                    static const QByteArray name = QString{"ChangeElementLabel_%1"}.arg(T::staticMetaObject.className()).toUtf8();
+                    static const CommandFactoryKey kagi{name.constData()};
+                    return kagi;
                 }
-                static QString description()
+                const CommandFactoryKey& key() const override
+                {
+                    return static_key();
+                }
+                QString description() const override
                 {
                     return QObject::tr("Change %1 label").arg(T::prettyName());
                 }
 
-                ChangeElementLabel():
-                    SerializableCommand {factoryName(),
-                                         commandName(),
-                                         description()}
-                { }
+                ChangeElementLabel() = default;
 
                 ChangeElementLabel(Path<T>&& path, QString newLabel) :
-                    SerializableCommand{factoryName(),
-                                        commandName(),
-                                        description()},
                     m_path {std::move(path) },
                     m_newLabel {newLabel}
                 {

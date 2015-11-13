@@ -18,9 +18,6 @@ using namespace Scenario::Command;
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process>& processId) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(constraintPath) },
     m_processId {processId}
 {

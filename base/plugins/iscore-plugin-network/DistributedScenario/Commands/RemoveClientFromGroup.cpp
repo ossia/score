@@ -5,7 +5,6 @@
 
 
 RemoveClientFromGroup::RemoveClientFromGroup(ObjectPath&& groupMgrPath, Id<Client> client, Id<Group> group):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{std::move(groupMgrPath)},
     m_client{client},
     m_group{group}

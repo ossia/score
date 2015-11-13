@@ -38,7 +38,6 @@ ScenarioPasteElements::ScenarioPasteElements(
         Path<TemporalScenarioLayerModel>&& path,
         const QJsonObject& obj,
         const ScenarioPoint& pt):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_ts{std::move(path)}
 {
     // We assign new ids WRT the elements of the scenario - these ids can

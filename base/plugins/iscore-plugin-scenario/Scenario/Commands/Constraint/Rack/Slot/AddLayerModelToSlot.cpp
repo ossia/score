@@ -14,9 +14,6 @@ using namespace Scenario::Command;
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
     m_processData{m_processPath.find().makeLayerConstructionData()},
@@ -29,9 +26,6 @@ AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath,
         const ProcessFactoryKey& processkey) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
@@ -46,9 +40,6 @@ AddLayerModelToSlot::AddLayerModelToSlot(
         const Id<LayerModel>& layerid,
         Path<Process>&& process,
         const ProcessFactoryKey& processKey):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_slotPath{std::move(slot)},
     m_processPath{std::move(process)},
     m_createdLayerId{layerid}

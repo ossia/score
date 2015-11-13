@@ -18,7 +18,6 @@ AddArea::AddArea(Path<SpaceProcess> &&spacProcess,
                  const QString &area,
                  const QMap<Id<DimensionModel>, QString> &dimMap,
                  const QMap<QString, iscore::FullAddressSettings> &addrMap):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{std::move(spacProcess)},
     m_areaType{areatype},
     m_areaFormula{area},

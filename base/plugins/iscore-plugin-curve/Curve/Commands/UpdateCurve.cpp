@@ -5,8 +5,6 @@
 UpdateCurve::UpdateCurve(
         Path<CurveModel>&& model,
         std::vector<CurveSegmentData>&& segments):
-    iscore::SerializableCommand{
-        factoryName(), commandName(), description()},
     m_model{std::move(model)},
     m_newCurveData{std::move(segments)}
 {

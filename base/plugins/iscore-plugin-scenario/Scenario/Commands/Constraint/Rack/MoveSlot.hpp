@@ -22,10 +22,7 @@ namespace Scenario
 
                 MoveSlot(const Path<SlotModel>& slotToMove,
                          Path<RackModel>&& targetRack) :
-                    AggregateCommand {factoryName(),
-                                      commandName(),
-                                      description(),
-                                      new CopySlot{Path<SlotModel>{slotToMove}, std::move(targetRack) },
+                    AggregateCommand {new CopySlot{Path<SlotModel>{slotToMove}, std::move(targetRack) },
                                       new RemoveSlotFromRack{Path<SlotModel>{slotToMove}}}
                 {
 

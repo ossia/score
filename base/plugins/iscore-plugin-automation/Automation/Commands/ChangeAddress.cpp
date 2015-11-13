@@ -7,8 +7,6 @@
 ChangeAddress::ChangeAddress(
         Path<AutomationModel> &&path,
         const iscore::Address &newval):
-    iscore::SerializableCommand{
-        factoryName(), commandName(), description()},
     m_path{path}
 {
     auto& autom = m_path.find();

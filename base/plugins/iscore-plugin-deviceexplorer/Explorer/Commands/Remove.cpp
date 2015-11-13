@@ -6,10 +6,7 @@ using namespace DeviceExplorer::Command;
 
 Remove::Remove(
         Path<DeviceDocumentPlugin> device_tree,
-        const iscore::Node& node):
-    iscore::SerializableCommand{factoryName(),
-                            commandName(),
-                            description()}
+        const iscore::Node& node)
 {
     ISCORE_ASSERT(!node.is<InvisibleRootNodeTag>());
 

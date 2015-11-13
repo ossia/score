@@ -8,8 +8,6 @@
 ChangeSourceAddress::ChangeSourceAddress(
         Path<MappingModel> &&path,
         const iscore::Address &newval):
-    iscore::SerializableCommand{
-        factoryName(), commandName(), description()},
     m_path{path}
 {
     auto& mapping = m_path.find();
@@ -80,8 +78,6 @@ void ChangeSourceAddress::deserializeImpl(QDataStream & s)
 ChangeTargetAddress::ChangeTargetAddress(
         Path<MappingModel> &&path,
         const iscore::Address &newval):
-    iscore::SerializableCommand{
-        factoryName(), commandName(), description()},
     m_path{path}
 {
     auto& mapping = m_path.find();

@@ -10,8 +10,6 @@ InitAutomation::InitAutomation(
         double newmin,
         double newmax,
         std::vector<CurveSegmentData>&& segments):
-    iscore::SerializableCommand{
-        factoryName(), commandName(), description()},
     m_path{path},
     m_addr(newaddr),
     m_newMin{newmin},

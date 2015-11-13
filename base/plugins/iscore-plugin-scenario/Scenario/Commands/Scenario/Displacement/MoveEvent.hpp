@@ -37,12 +37,17 @@ class MoveEvent final : public SerializableMoveEvent
 
         //#include <tests/helpers/FriendDeclaration.hpp>
     public:
-        static const char * commandName()
+        const CommandParentFactoryKey& parentKey() const override
         {
-            static QByteArray name = QString{"MoveEvent_%1"}.arg(DisplacementPolicy::name()).toLatin1();
-            return name.constData();
+            return ScenarioCommandFactoryName();
         }
-        static QString description()
+        const CommandFactoryKey& key() const override
+        {
+            static const QByteArray name = QString{"MoveEvent_%1"}.arg(DisplacementPolicy::name()).toLatin1();
+            static const CommandFactoryKey kagi{name.constData()};
+            return kagi;
+        }
+        QString description() const override
         {
             return QObject::tr("Move Event With %1").arg(DisplacementPolicy::name());
         }

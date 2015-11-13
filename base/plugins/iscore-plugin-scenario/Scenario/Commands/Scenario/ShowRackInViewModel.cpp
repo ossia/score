@@ -9,9 +9,6 @@ using namespace Scenario::Command;
 ShowRackInViewModel::ShowRackInViewModel(
         Path<ConstraintViewModel>&& constraint_path,
         const Id<RackModel>& rackId) :
-    SerializableCommand{factoryName(),
-                        commandName(),
-                        description()},
     m_constraintViewPath {std::move(constraint_path) },
     m_rackId {rackId}
 {
@@ -22,9 +19,6 @@ ShowRackInViewModel::ShowRackInViewModel(
 ShowRackInViewModel::ShowRackInViewModel(
         const ConstraintViewModel& vm,
         const Id<RackModel>& rackId) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_constraintViewPath {vm},
     m_rackId {rackId}
 {

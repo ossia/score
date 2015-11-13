@@ -5,11 +5,9 @@
 
 class MoveEventMeta final : public SerializableMoveEvent
 {
-    // Command interface
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "MoveEventMeta")
+
 public:
-    MoveEventMeta()
-        :SerializableMoveEvent{}
-    {}
 
     MoveEventMeta(
             Path<ScenarioModel>&& scenarioPath,

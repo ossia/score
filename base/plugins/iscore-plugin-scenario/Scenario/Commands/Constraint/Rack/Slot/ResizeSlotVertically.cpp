@@ -8,9 +8,6 @@ using namespace Scenario::Command;
 ResizeSlotVertically::ResizeSlotVertically(
         Path<SlotModel>&& slotPath,
         double newSize) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {slotPath},
     m_newSize {newSize}
 {

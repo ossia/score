@@ -71,14 +71,14 @@ bool BlacklistCommand::mergeWith(const Command* other)
 
 const CommandParentFactoryKey& BlacklistCommand::parentKey() const
 {
-    static CommandParentFactoryKey& p;
+    static CommandParentFactoryKey p;
     ISCORE_TODO;
     return p;
 }
 
 const CommandFactoryKey& BlacklistCommand::key() const
 {
-    static CommandFactoryKey& p;
+    static CommandFactoryKey p;
     ISCORE_TODO;
     return p;
 }

@@ -8,9 +8,6 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddSlotToRack::AddSlotToRack(Path<RackModel>&& rackPath) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {rackPath}
 {
     auto rack = m_path.try_find(); // Because we use this in a macro, the rack may not be there yet

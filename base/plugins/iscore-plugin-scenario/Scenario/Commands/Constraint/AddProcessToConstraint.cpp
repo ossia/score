@@ -23,9 +23,6 @@ using namespace Scenario::Command;
 AddProcessToConstraint::AddProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         const ProcessFactoryKey& process) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(constraintPath) },
     m_processName {process}
 {

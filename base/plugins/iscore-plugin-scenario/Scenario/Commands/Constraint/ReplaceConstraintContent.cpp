@@ -15,9 +15,6 @@ InsertContentInConstraint::InsertContentInConstraint(
         QJsonObject&& sourceConstraint,
         Path<ConstraintModel>&& targetConstraint,
         ExpandMode mode) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_source{sourceConstraint},
     m_target{targetConstraint},
     m_mode{mode}

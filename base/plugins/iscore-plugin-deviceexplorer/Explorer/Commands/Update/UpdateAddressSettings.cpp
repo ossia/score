@@ -9,7 +9,6 @@ UpdateAddressSettings::UpdateAddressSettings(
         Path<DeviceDocumentPlugin>&& device_tree,
         const iscore::NodePath& node,
         const iscore::AddressSettings& parameters):
-    iscore::SerializableCommand(this),
     m_devicesModel{device_tree},
     m_node(node),
     m_newParameters(parameters)

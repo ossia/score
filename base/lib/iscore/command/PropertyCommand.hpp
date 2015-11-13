@@ -17,6 +17,8 @@ class PropertyCommand : public SerializableCommand
 {
     public:
         using SerializableCommand::SerializableCommand;
+        PropertyCommand() = default;
+
         template<typename Path_T, typename... Args>
         PropertyCommand(Path_T&& path,
                         const QString& property,

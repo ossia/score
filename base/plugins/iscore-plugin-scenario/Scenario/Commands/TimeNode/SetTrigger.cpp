@@ -14,9 +14,6 @@ using namespace Scenario::Command;
 
 SetTrigger::SetTrigger(Path<TimeNodeModel>&& timeNodePath,
                        Trigger trigger) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
 m_path {std::move(timeNodePath) },
 m_trigger(std::move(trigger))
 {
