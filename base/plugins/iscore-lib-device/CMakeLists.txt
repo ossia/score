@@ -14,6 +14,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/DomainSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/AddressSettingsSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/ClipMode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/FullAddressSettings.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNodeSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceInterface.cpp"
@@ -24,9 +28,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/ClipMode.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/FullAddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeBasedItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeDisplayMethods.cpp"

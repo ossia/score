@@ -7,7 +7,7 @@ TriggerModel::TriggerModel(const Id<TriggerModel>& id, QObject* parent):
 
 }
 
-Trigger TriggerModel::expression() const
+iscore::Trigger TriggerModel::expression() const
 {
     return m_expression;
 }

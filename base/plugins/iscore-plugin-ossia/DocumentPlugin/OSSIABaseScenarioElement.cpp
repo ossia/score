@@ -20,7 +20,7 @@ static void statusCallback(
 
 }
 
-static void constraintCallback(const OSSIA::TimeValue&,
+static void baseScenarioConstraintCallback(const OSSIA::TimeValue&,
                                const OSSIA::TimeValue&,
                                std::shared_ptr<OSSIA::StateElement> element)
 {
@@ -48,7 +48,7 @@ OSSIABaseScenarioElement::OSSIABaseScenarioElement(
     // TODO PlayDuration of base constraint.
     // TODO PlayDuration of FullView
     auto main_constraint = OSSIA::TimeConstraint::create(
-                               &constraintCallback,
+                               &baseScenarioConstraintCallback,
                                *main_start_event_it,
                                *main_end_event_it,
                                main_duration,

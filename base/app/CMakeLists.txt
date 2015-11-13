@@ -73,4 +73,5 @@ if(INTEGRATION_TESTING)
       Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 endif()
 
+cotire(${APPNAME})
 include(IScoreDeployment)

@@ -15,6 +15,7 @@ file(GLOB_RECURSE PROCESS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Process/*.hpp")
 set(PROCESS_SRCS
 # TODO move these files bak in Process.
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValueSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
@@ -28,7 +29,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadata.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/ModelMetadataSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ProcessFonts.cpp"
 
