@@ -1,6 +1,7 @@
 #include "PresenterInterface.hpp"
 #include <QApplication>
 #include <core/presenter/Presenter.hpp>
+#include <core/application/Application.hpp>
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
 iscore::SerializableCommand*
@@ -9,8 +10,7 @@ iscore::IPresenter::instantiateUndoCommand(
         const CommandFactoryKey& name,
         const QByteArray& data)
 {
-    auto presenter = qApp->findChild<iscore::Presenter*> ("Presenter");
-    return presenter->instantiateUndoCommand(
+    return Application::instance().presenter()->instantiateUndoCommand(
                 parent_name,
                 name,
                 data);
@@ -21,12 +21,12 @@ iscore::IPresenter::instantiateUndoCommand(
 QList<iscore::PanelFactory*>
 iscore::IPresenter::panelFactories()
 {
-    return qApp->findChild<iscore::Presenter*> ("Presenter")->panelFactories();
+    return Application::instance().presenter()->panelFactories();
 }
 
 
 
 const std::vector<iscore::PluginControlInterface*>& iscore::IPresenter::pluginControls()
 {
-    return qApp->findChild<iscore::Presenter*> ("Presenter")->pluginControls();
+    return Application::instance().presenter()->pluginControls();
 }
