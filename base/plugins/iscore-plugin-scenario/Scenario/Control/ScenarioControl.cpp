@@ -416,7 +416,7 @@ void ScenarioControl::reinit_tools()
     emit keyReleased(Qt::Key_Shift);
 }
 
-void ScenarioControl::on_prepareNewDocument()
+void ScenarioControl::prepareNewDocument()
 {
     for(const auto& action : pluginActions())
     {

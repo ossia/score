@@ -70,7 +70,7 @@ class ScenarioControl final : public iscore::PluginControlInterface
         void stopRecording();
 
     protected:
-        void on_prepareNewDocument() override;
+        void prepareNewDocument() override;
 
         void on_documentChanged(
                 iscore::Document* olddoc,

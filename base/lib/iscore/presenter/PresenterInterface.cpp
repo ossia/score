@@ -10,7 +10,7 @@ iscore::IPresenter::instantiateUndoCommand(
         const CommandFactoryKey& name,
         const QByteArray& data)
 {
-    return Application::instance().presenter()->instantiateUndoCommand(
+    return Application::instance().presenter()->applicationRegistrar().instantiateUndoCommand(
                 parent_name,
                 name,
                 data);
@@ -21,12 +21,12 @@ iscore::IPresenter::instantiateUndoCommand(
 QList<iscore::PanelFactory*>
 iscore::IPresenter::panelFactories()
 {
-    return Application::instance().presenter()->panelFactories();
+    return Application::instance().presenter()->applicationRegistrar().panelFactories();
 }
 
 
 
 const std::vector<iscore::PluginControlInterface*>& iscore::IPresenter::pluginControls()
 {
-    return Application::instance().presenter()->pluginControls();
+    return Application::instance().presenter()->applicationRegistrar().pluginControls();
 }

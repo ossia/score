@@ -21,7 +21,7 @@ Document* DocumentBuilder::newDocument(
     auto doc = new Document{doctype, m_presenter.view(), &m_presenter};
 
     m_backupManager = new DocumentBackupManager{*doc};
-    for(auto& control: m_presenter.controls())
+    for(auto& control: m_presenter.applicationRegistrar().controls())
     {
         control->on_newDocument(doc);
     }
@@ -51,7 +51,7 @@ Document* DocumentBuilder::loadDocument_impl(
         initfun(doc);
         m_backupManager =  new DocumentBackupManager{*doc};
 
-        for(auto& control: m_presenter.controls())
+        for(auto& control: m_presenter.applicationRegistrar().controls())
         {
             control->on_loadedDocument(doc);
         }

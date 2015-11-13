@@ -25,7 +25,7 @@ ScenarioStateMachine::ScenarioStateMachine(
     m_commandStack{doc.commandStack()},
     m_locker{doc.locker()},
     m_expandMode{[] () -> auto&& {
-        const auto& controls = iscore::Application::instance().presenter()->pluginControls();
+        const auto& controls = iscore::Application::instance().presenter()->applicationRegistrar().pluginControls();
         auto it = std::find_if(controls.begin(), controls.end(),
                             [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
         ISCORE_ASSERT(it != controls.end());

@@ -162,9 +162,9 @@ void Application::init()
     if(!m_applicationSettings.loadList.empty())
     {
         for(const auto& doc : m_applicationSettings.loadList)
-            m_presenter->loadFile(doc);
+            m_presenter->documentManager().loadFile(doc);
 
-        if(!m_presenter->documents().isEmpty())
+        if(!m_presenter->documentManager().documents().isEmpty())
         {
             if(m_applicationSettings.autoplay)
             {
@@ -179,12 +179,12 @@ void Application::init()
     // Try to reload if there was a crash
     if(m_applicationSettings.tryToRestore && DocumentBackups::canRestoreDocuments())
     {
-        m_presenter->restoreDocuments();
+        m_presenter->documentManager().restoreDocuments();
     }
     else
     {
         if(!m_pluginManager.m_documentPanelList.empty())
-            m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
+            m_presenter->documentManager().newDocument(m_pluginManager.m_documentPanelList.front());
     }
 }
 
@@ -202,7 +202,7 @@ void Application::loadPluginData()
 
     for(auto& cmd : m_pluginManager.m_controlList)
     {
-        m_presenter->registerPluginControl(cmd);
+        m_presenter->applicationRegistrar().registerPluginControl(cmd);
     }
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
@@ -213,14 +213,14 @@ void Application::loadPluginData()
 
     for(auto& pnl : m_pluginManager.m_panelList)
     {
-        m_presenter->registerPanel(pnl);
+        m_presenter->applicationRegistrar().registerPanel(pnl);
     }
 
     for(auto& pnl : m_pluginManager.m_documentPanelList)
     {
-        m_presenter->registerDocumentDelegate(pnl);
+        m_presenter->applicationRegistrar().registerDocumentDelegate(pnl);
     }
 
-    m_presenter->registerCommands(std::move(m_pluginManager.m_commands));
+    m_presenter->applicationRegistrar().registerCommands(std::move(m_pluginManager.m_commands));
 }
 

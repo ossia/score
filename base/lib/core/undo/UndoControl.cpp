@@ -11,7 +11,7 @@ iscore::UndoControl::UndoControl(Presenter* pres, QObject* parent):
     connect(m_undoAction, &QAction::triggered,
             [&] ()
     {
-        presenter()->currentDocument()->commandStack().undo();
+        presenter()->documentManager().currentDocument()->commandStack().undo();
     });
 
     m_redoAction->setShortcut(QKeySequence::Redo);
@@ -21,7 +21,7 @@ iscore::UndoControl::UndoControl(Presenter* pres, QObject* parent):
     connect(m_redoAction, &QAction::triggered,
             [&] ()
     {
-        presenter()->currentDocument()->commandStack().redo();
+        presenter()->documentManager().currentDocument()->commandStack().redo();
     });
 }
 

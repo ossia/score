@@ -5,6 +5,11 @@
 #include "DocumentPlugins/NetworkClientDocumentPlugin.hpp"
 #include "DocumentPlugins/NetworkMasterDocumentPlugin.hpp"
 
+#include "Repartition/session/ClientSessionBuilder.hpp"
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
 #ifdef USE_ZEROCONF
 #include "Zeroconf/ZeroconfBrowser.hpp"
 #endif
@@ -64,7 +69,6 @@ void NetworkControl::populateMenus(MenubarManager* menu)
                                        connectLocal);
 }
 
-#include "Repartition/session/ClientSessionBuilder.hpp"
 void NetworkControl::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = new ClientSessionBuilder{
@@ -76,9 +80,7 @@ void NetworkControl::setupClientConnection(QString ip, int port)
 
     m_sessionBuilder->initiateConnection();
 }
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
+
 void NetworkControl::on_sessionBuilt(
         ClientSessionBuilder* sessionBuilder,
         ClientSession* builtSession)
@@ -89,9 +91,9 @@ void NetworkControl::on_sessionBuilt(
     // in case somebody does undo, so that the computer who joined later can still
     // undo, too.
 
-    auto doc = presenter()->loadDocument(
+    auto doc = presenter()->documentManager().loadDocument(
                    m_sessionBuilder->documentData(),
-                   presenter()->availableDocuments().front());
+                   presenter()->applicationRegistrar().availableDocuments().front());
 
     if(!doc)
     {
@@ -102,7 +104,7 @@ void NetworkControl::on_sessionBuilt(
     auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
-        auto cmd = presenter()->instantiateUndoCommand(elt.first.first,
+        auto cmd = presenter()->applicationRegistrar().instantiateUndoCommand(elt.first.first,
                                                        elt.first.second,
                                                        elt.second);
 

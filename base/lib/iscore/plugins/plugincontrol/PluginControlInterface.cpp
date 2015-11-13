@@ -14,9 +14,6 @@ PluginControlInterface::PluginControlInterface(iscore::Presenter* presenter,
     connect(this, &PluginControlInterface::documentChanged,
             this, &PluginControlInterface::on_documentChanged);
 
-    connect(presenter, &iscore::Presenter::prepareNewDocument,
-            this, &PluginControlInterface::on_prepareNewDocument);
-
     connect(qApp, &QApplication::applicationStateChanged,
             this, &PluginControlInterface::on_focusChanged);
 }
@@ -59,10 +56,10 @@ Presenter*PluginControlInterface::presenter() const
 
 Document*PluginControlInterface::currentDocument() const
 {
-    return m_presenter->currentDocument();
+    return m_presenter->documentManager().currentDocument();
 }
 
-void PluginControlInterface::on_prepareNewDocument()
+void PluginControlInterface::prepareNewDocument()
 {
 
 }
