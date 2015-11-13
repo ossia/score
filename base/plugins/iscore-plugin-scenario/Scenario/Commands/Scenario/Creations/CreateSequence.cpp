@@ -88,11 +88,8 @@ CreateSequence::CreateSequence(
     // Then, if there are correct messages we can actually do our interpolation.
     if(!matchingMessages.empty())
     {
-        // TODO refactor this with a new constructor to Path<> that takes an object identifier and an existing path.
-        Path<ScenarioModel> scenarioPath{scenario};
-        auto vec = scenarioPath.unsafePath().vec();
-        vec.push_back({ConstraintModel::className, m_command.createdConstraint()});
-        Path<ConstraintModel> constraint{ObjectPath{std::move(vec)}, Path<ConstraintModel>::UnsafeDynamicCreation{}};
+        auto constraint = Path<ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
+
 
         m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
 

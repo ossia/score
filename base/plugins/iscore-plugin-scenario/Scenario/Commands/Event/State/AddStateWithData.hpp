@@ -22,14 +22,13 @@ namespace Scenario
                     auto createStateCmd =  new CreateState{scenario, ev, ypos};
 
                     // We create the path of the to-be state
-                    auto vecpath = createStateCmd->scenarioPath().unsafePath().vec();
-                    vecpath.append({"StateModel", createStateCmd->createdState()});
-                    vecpath.append({"MessageItemModel", {}});
-                    Path<MessageItemModel> Path{ObjectPath(std::move(vecpath)), {}};
+                    auto path = createStateCmd->scenarioPath()
+                            .extend(StateModel::className, createStateCmd->createdState())
+                            .extend("MessageItemModel", Id<MessageItemModel>{});
 
                     addCommand(createStateCmd);
                     addCommand(new AddMessagesToState{
-                                   std::move(Path),
+                                   std::move(path),
                                    stateData});
                 }
         };

@@ -10,6 +10,7 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+constexpr const char StateModel::className[];
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,

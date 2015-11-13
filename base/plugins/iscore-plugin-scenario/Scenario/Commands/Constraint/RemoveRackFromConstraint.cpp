@@ -11,11 +11,10 @@ using namespace Scenario::Command;
 RemoveRackFromConstraint::RemoveRackFromConstraint(
         Path<RackModel>&& rackPath)
 {
-    auto constraintPath = rackPath.unsafePath().vec();
-    auto lastId = constraintPath.takeLast();
-    m_path = Path<ConstraintModel>{ObjectPath{std::move(constraintPath)},
-              Path<ConstraintModel>::UnsafeDynamicCreation{}};
-    m_rackId = Id<RackModel> (lastId.id());
+    auto trimmedRackPath = std::move(rackPath).splitLast<ConstraintModel>();
+
+    m_path = std::move(trimmedRackPath.first);
+    m_rackId = Id<RackModel>{trimmedRackPath.second.id()};
 
     auto& constraint = m_path.find();
     // Save the rack

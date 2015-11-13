@@ -27,10 +27,7 @@ CreateCurveFromStates::CreateCurveFromStates(
     m_min{min},
     m_max{max}
 {
-    // TODO REFACTORME (grep for UnsafeDynamicCreation)
-    auto vec = m_addProcessCmd.constraintPath().unsafePath().vec();
-    vec.push_back({AutomationProcessMetadata::processObjectName(), curveId});
-    Path<Process> proc{ObjectPath{std::move(vec)}, Path<Process>::UnsafeDynamicCreation{}};
+    auto proc = m_addProcessCmd.constraintPath().extend(AutomationProcessMetadata::processObjectName(), curveId);
 
     m_slotsCmd.reserve(slotList.size());
 
@@ -39,7 +36,7 @@ CreateCurveFromStates::CreateCurveFromStates(
         m_slotsCmd.emplace_back(
                     Path<SlotModel>(elt.first),
                     elt.second,
-                    Path<Process>(proc),
+                    std::move(proc),
                     AutomationProcessMetadata::factoryKey());
     }
 }

@@ -8,12 +8,10 @@ using namespace Scenario::Command;
 
 RemoveSlotFromRack::RemoveSlotFromRack(Path<SlotModel>&& slotPath)
 {
-    auto rackPath = slotPath.unsafePath().vec();
-    auto lastId = rackPath.takeLast();
-    m_path = Path<RackModel>{
-            ObjectPath{std::move(rackPath)},
-            Path<RackModel>::UnsafeDynamicCreation{}};
-    m_slotId = Id<SlotModel> (lastId.id());
+    auto trimmedSlotPath = std::move(slotPath).splitLast<RackModel>();
+
+    m_path = std::move(trimmedSlotPath.first);
+    m_slotId = Id<SlotModel>{trimmedSlotPath.second.id()};
 
     auto& rack = m_path.find();
     m_position = rack.slotPosition(m_slotId);

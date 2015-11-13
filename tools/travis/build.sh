@@ -19,13 +19,12 @@ then
       else
         source /opt/qt55/bin/qt55-env.sh
         /usr/local/bin/cmake $CMAKE_COMMON_FLAGS ..
-        ninja all_unity
 
         if [[ "$DEPLOYMENT" = "True" ]];
         then
-          cmake --build . --target package/fast --config DynamicRelease
+          cmake --build . --target package --config DynamicRelease
         else
-          ninja all_unity
+          ninja
         fi
       fi
     ;;

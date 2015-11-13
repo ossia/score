@@ -70,11 +70,44 @@ class Path
     public:
         // Use this if it is not possible to get a path
         // (for instance because the object does not exist yet)
-        struct UnsafeDynamicCreation{};
+        struct UnsafeDynamicCreation{ explicit UnsafeDynamicCreation() = default; };
         Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
         Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
 
         Path(const Object& obj): Path(iscore::IDocument::path(obj)) { }
+
+
+        template<typename U>
+        auto extend(const QString& name, const Id<U>& id) const &
+        {
+            Path<U> p{this->m_impl};
+            p.m_impl.vec().push_back({name, id});
+            return p;
+        }
+
+        template<typename U>
+        auto extend(const QString& name, const Id<U>& id) &&
+        {
+            Path<U> p{std::move(this->m_impl)};
+            p.m_impl.vec().push_back({name, id});
+            return p;
+        }
+
+
+        template<typename U>
+        auto splitLast() const &
+        {
+            auto vec = m_impl.vec();
+            auto last = vec.takeLast();
+            return std::make_pair(Path<U>{ObjectPath{std::move(vec)}}, std::move(last));
+        }
+
+        template<typename U>
+        auto splitLast() &&
+        {
+            auto last = m_impl.vec().takeLast();
+            return std::make_pair(Path<U>{std::move(m_impl)}, std::move(last));
+        }
 
         // TODO do the same for ids
         // TODO make it work only for upcasts
@@ -111,6 +144,13 @@ class Path
         { return m_impl.vec().size() > 0; }
 
     private:
+        Path(const ObjectPath& path): m_impl{path} { }
         Path(ObjectPath&& path): m_impl{std::move(path)} { }
         ObjectPath m_impl;
 };
+
+template<typename T>
+Path<T> make_path(const T& t)
+{
+    return t;
+}
