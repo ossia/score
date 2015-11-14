@@ -20,9 +20,9 @@ class CurveView final : public QGraphicsObject
         void setSelectionArea(const QRectF&);
 
     signals:
-        void pressed(const QPointF&);
-        void moved(const QPointF&);
-        void released(const QPointF&);
+        void pressed(QPointF);
+        void moved(QPointF);
+        void released(QPointF);
 
         void escPressed();
 

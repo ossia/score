@@ -1,10 +1,13 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-class ScenarioEditionSettings;
+namespace Scenario
+{
+class EditionSettings;
+}
 class ScenarioFactory final : public ProcessFactory
 {
     public:
-        ScenarioFactory(ScenarioEditionSettings&);
+        ScenarioFactory(Scenario::EditionSettings&);
         const ProcessFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
@@ -29,6 +32,6 @@ class ScenarioFactory final : public ProcessFactory
                 QGraphicsItem* parent) override;
 
     private:
-        ScenarioEditionSettings& m_editionSettings;
+        Scenario::EditionSettings& m_editionSettings;
 
 };

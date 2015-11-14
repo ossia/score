@@ -48,7 +48,7 @@ void CurveCommandObjectBase::handleLocking()
         m_state->currentPoint.setY(1.);
 
     // And more specifically...
-    if(m_presenter->lockBetweenPoints())
+    if(m_presenter->editionSettings().lockBetweenPoints())
     {
         if(current_x <= m_xmin)
             m_state->currentPoint.setX(m_xmin + 0.000001);

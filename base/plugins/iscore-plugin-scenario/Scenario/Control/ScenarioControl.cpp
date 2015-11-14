@@ -198,7 +198,8 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
 
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
-        s_pres->stateMachine().changeTool(ScenarioToolKind::Select);
+        // TODO this may not be necessary anymore since this is duplicated in on_focused.
+        editionSettings().setTool(Scenario::Tool::Select);
     }
 
     disconnect(m_contextMenuConnection);

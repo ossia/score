@@ -37,35 +37,35 @@ ToolMenuActions::ToolMenuActions(
     m_selecttool = makeToolbarAction(
                      tr("Select and Move"),
                      m_scenarioToolActionGroup,
-                     ScenarioToolKind::Select,
+                     Scenario::Tool::Select,
                      tr("Alt+x"));
     m_selecttool->setObjectName("Select");
     m_selecttool->setChecked(true);
 
     connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
         if (b)
-            m_parent->editionSettings().setTool(ScenarioToolKind::Select);
+            m_parent->editionSettings().setTool(Scenario::Tool::Select);
     });
 
     // CREATE
     m_createtool = makeToolbarAction(
                           tr("Create"),
                           m_scenarioToolActionGroup,
-                          ScenarioToolKind::Create,
+                          Scenario::Tool::Create,
                           tr("Ctrl"));
     connect(m_createtool, &QAction::toggled, this, [=](bool b) {
         if(b)
-            m_parent->editionSettings().setTool(ScenarioToolKind::Create);
+            m_parent->editionSettings().setTool(Scenario::Tool::Create);
     });
 
     // MOVEDECK
     auto slotmovetool = makeToolbarAction(
                             tr("Move Slot"),
                             m_scenarioToolActionGroup,
-                            ScenarioToolKind::MoveSlot,
+                            Scenario::Tool::MoveSlot,
                             tr("Alt+b"));
     connect(slotmovetool, &QAction::triggered, this, [=]() {
-        m_parent->editionSettings().setTool(ScenarioToolKind::MoveSlot);
+        m_parent->editionSettings().setTool(Scenario::Tool::MoveSlot);
     });
 
     // SHIFT

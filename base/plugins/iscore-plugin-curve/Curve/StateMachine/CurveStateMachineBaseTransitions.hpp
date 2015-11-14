@@ -109,7 +109,7 @@ class ClickOnAnything_Transition final : public GenericCurveTransition<QAbstract
 
         void onTransition(QEvent* e) override
         {
-            auto qev = safe_cast<iscore::PositionedEvent<CurvePoint>*>(e);
+            auto qev = safe_cast<iscore::PositionedEvent<Curve::Point>*>(e);
 
             this->state().currentPoint = qev->point;
         }
@@ -133,7 +133,7 @@ class MoveOnAnything_Transition final : public GenericCurveTransition<QAbstractT
 
         void onTransition(QEvent* e) override
         {
-            auto qev = safe_cast<iscore::PositionedEvent<CurvePoint>*>(e);
+            auto qev = safe_cast<iscore::PositionedEvent<Curve::Point>*>(e);
 
             this->state().currentPoint = qev->point;
         }

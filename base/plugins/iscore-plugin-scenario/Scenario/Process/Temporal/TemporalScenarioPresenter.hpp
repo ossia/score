@@ -50,7 +50,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
     public:
         TemporalScenarioPresenter(
-                ScenarioEditionSettings&,
+                Scenario::EditionSettings&,
                 const TemporalScenarioLayerModel& model,
                 LayerView* view,
                 QObject* parent);
@@ -141,7 +141,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
         ScenarioViewInterface* m_viewInterface{};
 
-        ScenarioEditionSettings& m_editionSettings;
+        Scenario::EditionSettings& m_editionSettings;
         Scenario::ToolPalette m_sm;
 
         FocusDispatcher m_focusDispatcher;

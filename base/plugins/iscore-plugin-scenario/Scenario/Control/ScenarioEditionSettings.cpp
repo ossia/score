@@ -1,16 +1,16 @@
 #include "ScenarioEditionSettings.hpp"
 
-ExpandMode ScenarioEditionSettings::expandMode() const
+ExpandMode Scenario::EditionSettings::expandMode() const
 {
     return m_expandMode;
 }
 
-ScenarioToolKind ScenarioEditionSettings::tool() const
+Scenario::Tool Scenario::EditionSettings::tool() const
 {
     return m_tool;
 }
 
-void ScenarioEditionSettings::setExpandMode(ExpandMode expandMode)
+void Scenario::EditionSettings::setExpandMode(ExpandMode expandMode)
 {
     if (m_expandMode == expandMode)
         return;
@@ -19,7 +19,7 @@ void ScenarioEditionSettings::setExpandMode(ExpandMode expandMode)
     emit expandModeChanged(expandMode);
 }
 
-void ScenarioEditionSettings::setTool(ScenarioToolKind tool)
+void Scenario::EditionSettings::setTool(Scenario::Tool tool)
 {
     if (m_tool == tool)
         return;
@@ -28,12 +28,12 @@ void ScenarioEditionSettings::setTool(ScenarioToolKind tool)
     emit toolChanged(tool);
 }
 
-bool ScenarioEditionSettings::sequence() const
+bool Scenario::EditionSettings::sequence() const
 {
     return m_sequence;
 }
 
-void ScenarioEditionSettings::setSequence(bool sequence)
+void Scenario::EditionSettings::setSequence(bool sequence)
 {
     if (m_sequence == sequence)
         return;

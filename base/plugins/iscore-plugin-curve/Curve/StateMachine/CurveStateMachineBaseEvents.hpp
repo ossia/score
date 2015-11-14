@@ -15,11 +15,11 @@ namespace Curve
     }
 
 template<typename Element_T, typename Modifier_T>
-struct CurveEvent : public iscore::PositionedEvent<CurvePoint>
+struct CurveEvent : public iscore::PositionedEvent<Curve::Point>
 {
         static constexpr const int user_type = Element_T::value + Modifier_T::value;
-        CurveEvent(const CurvePoint& pt, const QGraphicsItem* theItem):
-            iscore::PositionedEvent<CurvePoint>{
+        CurveEvent(const Curve::Point& pt, const QGraphicsItem* theItem):
+            iscore::PositionedEvent<Curve::Point>{
                 pt,
                 QEvent::Type(QEvent::User + user_type)},
             item{theItem}

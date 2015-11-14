@@ -103,8 +103,8 @@ void Visitor<Writer<JSONObject>>::writeTo(CurveSegmentModel& segmt)
 {
     segmt.m_previous = fromJsonValue<Id<CurveSegmentModel>>(m_obj["Previous"]);
     segmt.m_following = fromJsonValue<Id<CurveSegmentModel>>(m_obj["Following"]);
-    segmt.m_start = fromJsonValue<CurvePoint>(m_obj["Start"]);
-    segmt.m_end = fromJsonValue<CurvePoint>(m_obj["End"]);
+    segmt.m_start = fromJsonValue<Curve::Point>(m_obj["Start"]);
+    segmt.m_end = fromJsonValue<Curve::Point>(m_obj["End"]);
 }
 
 

@@ -5,7 +5,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
-ScenarioFactory::ScenarioFactory(ScenarioEditionSettings& e):
+ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
     m_editionSettings{e}
 {
 

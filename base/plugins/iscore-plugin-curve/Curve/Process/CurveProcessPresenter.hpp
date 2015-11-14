@@ -28,6 +28,7 @@ class CurveProcessPresenter : public LayerPresenter
 {
     public:
         CurveProcessPresenter(
+                Curve::EditionSettings& set,
                 const CurveStyle& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,
@@ -42,21 +43,40 @@ class CurveProcessPresenter : public LayerPresenter
                 this, &CurveProcessPresenter::parentGeometryChanged);
 
             auto cv = new CurveView{m_view};
-            m_curvepresenter = new CurvePresenter{style, m_layer.model().curve(), cv, this};
+            m_curvepresenter = new CurvePresenter{set, style, m_layer.model().curve(), cv, this};
 
             connect(cv, &CurveView::pressed,
-                    this, [&] (const QPointF&)
+                    this, [&] (QPointF pt)
             {
                 m_focusDispatcher.focus(this);
+                m_curvepresenter->stateMachine().on_pressed(pt);
             });
+            connect(cv, &CurveView::moved,
+                    this, [&] (QPointF pt)
+            {
+                m_curvepresenter->stateMachine().on_moved(pt);
+            });
+            connect(cv, &CurveView::released,
+                    this, [&] (QPointF pt)
+            {
+                m_curvepresenter->stateMachine().on_released(pt);
+            });
+            connect(cv, &CurveView::escPressed,
+                    this, [&] ()
+            {
+                m_curvepresenter->stateMachine().on_cancel();
+            });
+
             connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,
                     this, &LayerPresenter::contextMenuRequested);
 
             con(m_layer.model(), &Process::execution,
                 this, [&] (bool b) {
-                setCurveStateMachineStatus(!b);
+                m_curvepresenter->editionSettings().setTool(
+                            b ? Curve::Tool::Playing
+                              : focused() ? Curve::Tool::Select
+                                          : Curve::Tool::Disabled);
             });
-
 
             parentGeometryChanged();
         }
@@ -69,10 +89,12 @@ class CurveProcessPresenter : public LayerPresenter
         void on_focusChanged() override
         {
             bool b = focused();
+            // TODO Same for Scenario please.
             m_curvepresenter->enableActions(b);
-            setCurveStateMachineStatus(b);
+            // TODO if playing() ?
+            m_curvepresenter->editionSettings().setTool(b ? Curve::Tool::Select
+                                                          : Curve::Tool::Disabled);
         }
-
 
         void setWidth(int width) override
         {
@@ -131,25 +153,6 @@ class CurveProcessPresenter : public LayerPresenter
         {
             m_curvepresenter->fillContextMenu(menu, pos, scenepos);
         }
-
-        void setCurveStateMachineStatus(bool run)
-        {
-            auto& sm = m_curvepresenter->stateMachine();
-            if(run)
-            {
-                if(!sm.isRunning())
-                    sm.start();
-            }
-            else
-            {
-                if(sm.isRunning())
-                {
-                    sm.stop();
-                    sm.setSelectionState();
-                }
-            }
-        }
-
     protected:
         const LayerModel_T& m_layer;
         LayerView_T* m_view{};

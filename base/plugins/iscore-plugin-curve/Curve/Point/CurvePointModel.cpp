@@ -16,12 +16,12 @@ void CurvePointModel::setFollowing(const Id<CurveSegmentModel> &following)
     m_following = following;
 }
 
-CurvePoint CurvePointModel::pos() const
+Curve::Point CurvePointModel::pos() const
 {
     return m_pos;
 }
 
-void CurvePointModel::setPos(const CurvePoint &pos)
+void CurvePointModel::setPos(const Curve::Point &pos)
 {
     m_pos = pos;
     emit posChanged();

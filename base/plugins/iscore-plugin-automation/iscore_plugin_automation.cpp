@@ -35,9 +35,10 @@ iscore_plugin_automation::iscore_plugin_automation() :
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
         const iscore::FactoryBaseKey& factoryName) const
 {
+    static Curve::EditionSettings set;
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new AutomationFactory};
+        return {new AutomationFactory{set}};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)

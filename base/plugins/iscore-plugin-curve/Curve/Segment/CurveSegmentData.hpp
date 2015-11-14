@@ -58,7 +58,7 @@ struct CurveSegmentData
 
         CurveSegmentData(
                 const Id<CurveSegmentModel>& id,
-                CurvePoint start, CurvePoint end,
+                Curve::Point start, Curve::Point end,
                 const Id<CurveSegmentModel>& prev, const Id<CurveSegmentModel>&  foll,
                 const CurveSegmentFactoryKey& type, const QVariant& data):
             id(id),
@@ -74,7 +74,7 @@ struct CurveSegmentData
 
         Id<CurveSegmentModel> id;
 
-        CurvePoint start, end;
+        Curve::Point start, end;
         Id<CurveSegmentModel> previous, following;
 
         CurveSegmentFactoryKey type;

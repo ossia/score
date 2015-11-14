@@ -48,12 +48,12 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         { return m_data; }
 
 
-        void setStart(const CurvePoint& pt);
-        CurvePoint start() const
+        void setStart(const Curve::Point& pt);
+        Curve::Point start() const
         { return m_start; }
 
-        void setEnd(const CurvePoint& pt);
-        CurvePoint end() const
+        void setEnd(const Curve::Point& pt);
+        Curve::Point end() const
         { return m_end; }
 
         void setPrevious(const Id<CurveSegmentModel>& previous);
@@ -96,7 +96,7 @@ class CurveSegmentModel : public IdentifiedObject<CurveSegmentModel>
         mutable bool m_valid{}; // Used to perform caching.
         // TODO it seems that m_valid is never true.
 
-        CurvePoint m_start, m_end;
+        Curve::Point m_start, m_end;
 
     private:
         Id<CurveSegmentModel> m_previous, m_following;

@@ -2,6 +2,10 @@
 #include <Process/ProcessFactory.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
+namespace Curve
+{
+class EditionSettings;
+}
 template<
         typename Model_T,
         typename LayerModel_T,
@@ -11,6 +15,14 @@ template<
 class CurveProcessFactory_T : public ProcessFactory
 {
     public:
+        CurveProcessFactory_T(Curve::EditionSettings& s):
+            m_editionSettings{s}
+        {
+
+        }
+
+        virtual ~CurveProcessFactory_T() = default;
+
         Model_T* makeModel(
                 const TimeValue& duration,
                 const Id<Process>& id,
@@ -45,6 +57,7 @@ class CurveProcessFactory_T : public ProcessFactory
                 QObject* parent) override
         {
             return new LayerPresenter_T {
+                m_editionSettings,
                 m_colors.style(),
                 safe_cast<const LayerModel_T&>(lm),
                 safe_cast<LayerView_T*>(v),
@@ -53,12 +66,14 @@ class CurveProcessFactory_T : public ProcessFactory
 
     private:
         CurveColors_T m_colors;
+        Curve::EditionSettings& m_editionSettings;
 };
 
 // See AutomationProcessMetadata.
 #define DEFINE_CURVE_PROCESS_FACTORY(Name, ProcessMetadata, Model, Layer, Presenter, View, Colors) \
 class Name final : public CurveProcessFactory_T<Model, Layer, Presenter, View, Colors> \
 { \
+    using CurveProcessFactory_T<Model, Layer, Presenter, View, Colors>::CurveProcessFactory_T; \
     const ProcessFactoryKey& key_impl() const override \
     { return ProcessMetadata::factoryKey(); } \
     \

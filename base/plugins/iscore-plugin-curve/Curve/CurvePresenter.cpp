@@ -6,7 +6,7 @@
 
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
 #include "Curve/StateMachine/States/Tools/MoveTool.hpp"
-
+#include <Curve/StateMachine/CurveStateMachine.hpp>
 #include "Curve/Commands/UpdateCurve.hpp"
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
@@ -23,11 +23,13 @@ static QPointF myscale(QPointF first, QSizeF second)
 }
 
 CurvePresenter::CurvePresenter(
+        Curve::EditionSettings& e,
         const CurveStyle& style,
         const CurveModel& model,
         CurveView* view,
         QObject* parent):
     QObject{parent},
+    m_editionSettings{e},
     m_model{model},
     m_view{view},
     m_commandDispatcher{iscore::IDocument::commandStack(model)},
@@ -39,7 +41,7 @@ CurvePresenter::CurvePresenter(
     setupView();
     setupSignals();
 
-    m_sm = new CurveStateMachine{*this, this};
+    m_sm = new Curve::ToolPalette{*this, this};
 
     connect(m_view, &CurveView::contextMenuRequested,
             this, &CurvePresenter::contextMenuRequested);
@@ -48,16 +50,6 @@ CurvePresenter::CurvePresenter(
 CurvePresenter::~CurvePresenter()
 {
     deleteGraphicsObject(m_view);
-}
-
-const CurveModel& CurvePresenter::model() const
-{
-    return m_model;
-}
-
-CurveView& CurvePresenter::view() const
-{
-    return *m_view;
 }
 
 void CurvePresenter::setRect(const QRectF& rect)
@@ -175,21 +167,21 @@ void CurvePresenter::setupView()
     connect(shiftact, &QAction::toggled, this, [&] (bool b) {
         if(b)
         {
-            m_sm->changeTool((int)Curve::Tool::SetSegment);
+            editionSettings().setTool(Curve::Tool::SetSegment);
         }
         else
         {
-            m_sm->changeTool((int)Curve::Tool::Selection);
+            editionSettings().setTool(Curve::Tool::Select);
         }
     });
     connect(ctrlact, &QAction::toggled, this, [&] (bool b) {
         if(b)
         {
-            m_sm->changeTool((int)Curve::Tool::Create);
+            editionSettings().setTool(Curve::Tool::Create);
         }
         else
         {
-            m_sm->changeTool((int)Curve::Tool::Selection);
+            editionSettings().setTool(Curve::Tool::Select);
         }
     });
 
@@ -210,19 +202,14 @@ void CurvePresenter::setupView()
         if(key == Qt::Key_Shift)
         {
             shiftact->setChecked(false);
-            m_sm->changeTool((int)Curve::Tool::Selection);
+            editionSettings().setTool(Curve::Tool::Select);
         }
         if(key == Qt::Key_Control)
         {
             ctrlact->setChecked(false);
-            m_sm->changeTool((int)Curve::Tool::Selection);
+            editionSettings().setTool(Curve::Tool::Select);
         }
     });
-
-}
-
-void CurvePresenter::setupStateMachine()
-{
 }
 
 void CurvePresenter::fillContextMenu(
@@ -250,16 +237,16 @@ void CurvePresenter::fillContextMenu(
 
     auto lockAction = new QAction{tr("Lock between points"), this};
     connect(lockAction, &QAction::toggled,
-            this, [&] (bool b) { setLockBetweenPoints(b); });
+            this, [&] (bool b) { m_editionSettings.setLockBetweenPoints(b); });
     lockAction->setCheckable(true);
-    lockAction->setChecked(m_lockBetweenPoints);
+    lockAction->setChecked(m_editionSettings.lockBetweenPoints());
 
     auto suppressAction = new QAction{tr("Suppress on overlap"), this};
     connect(suppressAction, &QAction::toggled,
-            this, [&] (bool b) { setSuppressOnOverlap(b); });
+            this, [&] (bool b) { m_editionSettings.setSuppressOnOverlap(b); });
 
     suppressAction->setCheckable(true);
-    suppressAction->setChecked(m_suppressOnOverlap);
+    suppressAction->setChecked(m_editionSettings.suppressOnOverlap());
 
     menu->addAction(removeAct);
     menu->addAction(lockAction);
@@ -406,16 +393,6 @@ void CurvePresenter::modelReset()
     }
 }
 
-CurvePresenter::AddPointBehaviour CurvePresenter::addPointBehaviour() const
-{
-    return m_addPointBehaviour;
-}
-
-void CurvePresenter::setAddPointBehaviour(const AddPointBehaviour &addPointBehaviour)
-{
-    m_addPointBehaviour = addPointBehaviour;
-}
-
 void CurvePresenter::enableActions(bool b)
 {
     m_actions->setEnabled(b);
@@ -518,34 +495,4 @@ void CurvePresenter::updateSegmentsType(const CurveSegmentFactoryKey& segment)
                     m_model,
                     std::move(newSegments)
                 });
-}
-
-bool CurvePresenter::stretchBothBounds() const
-{
-    return m_stretchBothBounds;
-}
-
-void CurvePresenter::setStretchBothBounds(bool stretchBothBounds)
-{
-    m_stretchBothBounds = stretchBothBounds;
-}
-
-bool CurvePresenter::suppressOnOverlap() const
-{
-    return m_suppressOnOverlap;
-}
-
-void CurvePresenter::setSuppressOnOverlap(bool suppressOnOverlap)
-{
-    m_suppressOnOverlap = suppressOnOverlap;
-}
-
-void CurvePresenter::setLockBetweenPoints(bool lockBetweenPoints)
-{
-    m_lockBetweenPoints = lockBetweenPoints;
-}
-
-bool CurvePresenter::lockBetweenPoints() const
-{
-    return m_lockBetweenPoints;
 }

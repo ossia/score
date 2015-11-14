@@ -41,7 +41,7 @@
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
-        ScenarioEditionSettings& e,
+        Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
         LayerView* view,
         QObject* parent) :
@@ -118,6 +118,13 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
             m_view,             &TemporalScenarioView::lock);
     con(model(m_layer), &ScenarioModel::unlocked,
             m_view,             &TemporalScenarioView::unlock);
+
+    connect(&layerModel().processModel(), &Process::execution,
+            this, [&] (bool b) {
+            editionSettings().setTool(
+                        b ? Scenario::Tool::Playing
+                          : Scenario::Tool::Select); // TODO see curvepresenter
+    });
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
@@ -252,7 +259,7 @@ void TemporalScenarioPresenter::on_focusChanged()
     // TODO why isn't m_focus checked ??
     m_view->setFocus();
 
-    editionSettings().setTool(ScenarioToolKind::Select);
+    editionSettings().setTool(Scenario::Tool::Select);
 }
 
 /////////////////////////////////////////////////////////////////////

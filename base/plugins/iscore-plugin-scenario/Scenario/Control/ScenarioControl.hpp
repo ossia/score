@@ -54,7 +54,7 @@ class ScenarioControl final : public iscore::PluginControlInterface
 
         void reinit_tools();
 
-        ScenarioEditionSettings& editionSettings()
+        Scenario::EditionSettings& editionSettings()
         { return m_editionSettings; }
 
     signals:
@@ -77,7 +77,7 @@ class ScenarioControl final : public iscore::PluginControlInterface
         ScenarioControl(iscore::Presenter* pres);
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
-        ScenarioEditionSettings m_editionSettings;
+        Scenario::EditionSettings m_editionSettings;
 
         ObjectMenuActions* m_objectAction{};
         ToolMenuActions* m_toolActions{};

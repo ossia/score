@@ -13,11 +13,12 @@ class MappingPresenter :
 {
     public:
         MappingPresenter(
+                Curve::EditionSettings& set,
                 const CurveStyle& style,
                 const MappingLayerModel& layer,
                 MappingView* view,
                 QObject* parent):
-            CurveProcessPresenter{style, layer, view, parent}
+            CurveProcessPresenter{set, style, layer, view, parent}
         {
           ISCORE_TODO;
         }

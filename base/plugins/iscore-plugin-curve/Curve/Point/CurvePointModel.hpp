@@ -18,8 +18,8 @@ class CurvePointModel final : public IdentifiedObject<CurvePointModel>
         const Id<CurveSegmentModel> &following() const;
         void setFollowing(const Id<CurveSegmentModel> &following);
 
-        CurvePoint pos() const;
-        void setPos(const CurvePoint &pos);
+        Curve::Point pos() const;
+        void setPos(const Curve::Point &pos);
 
     signals:
         void posChanged();
@@ -27,5 +27,5 @@ class CurvePointModel final : public IdentifiedObject<CurvePointModel>
     private:
         Id<CurveSegmentModel> m_previous, m_following;
 
-        CurvePoint m_pos;
+        Curve::Point m_pos;
 };

@@ -89,7 +89,7 @@ void AutomationModel::setDurationAndGrow(const TimeValue& newDuration)
     double scale = duration() / newDuration;
     for(auto& segment : m_curve->segments())
     {
-        CurvePoint pt = segment.start();
+        Curve::Point pt = segment.start();
         pt.setX(pt.x() * scale);
         segment.setStart(pt);
 
@@ -115,7 +115,7 @@ void AutomationModel::setDurationAndShrink(const TimeValue& newDuration)
     double scale = duration() / newDuration;
     for(auto& segment : m_curve->segments())
     {
-        CurvePoint pt = segment.start();
+        Curve::Point pt = segment.start();
         pt.setX(pt.x() * scale);
         segment.setStart(pt);
 

@@ -31,7 +31,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
 
         const TemporalScenarioPresenter& presenter() const
         { return m_presenter; }
-        const ScenarioEditionSettings& editionSettings() const;
+        const Scenario::EditionSettings& editionSettings() const;
 
         const ScenarioModel& model() const
         { return m_model; }
@@ -41,17 +41,17 @@ class ToolPalette final : public GraphicsSceneToolPalette
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
-        void changeTool(ScenarioToolKind);
 
     private:
+        void changeTool(Scenario::Tool);
         TemporalScenarioPresenter& m_presenter;
         const ScenarioModel& m_model;
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
 
-        CreationTool createTool;
-        SelectionAndMoveTool selectTool;
-        MoveSlotTool moveSlotTool;
+        CreationTool m_createTool;
+        SelectionAndMoveTool m_selectTool;
+        MoveSlotTool m_moveSlotTool;
 };
 
 }
