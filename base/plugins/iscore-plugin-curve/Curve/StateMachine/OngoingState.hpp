@@ -35,11 +35,11 @@ class OngoingState final : public Curve::StateBase
                 mainState->setInitialState(pressed);
 
                 // Also try with pressed, released
-                make_transition<MoveOnAnything_Transition>(pressed, moving, *this);
-                make_transition<ReleaseOnAnything_Transition>(pressed, released);
+                iscore::make_transition<MoveOnAnything_Transition>(pressed, moving, *this);
+                iscore::make_transition<ReleaseOnAnything_Transition>(pressed, released);
 
-                make_transition<MoveOnAnything_Transition>(moving, moving, *this);
-                make_transition<ReleaseOnAnything_Transition>(moving, released);
+                iscore::make_transition<MoveOnAnything_Transition>(moving, moving, *this);
+                iscore::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
                 connect(pressed, &QAbstractState::entered,
                         this, [&] () {
@@ -58,7 +58,7 @@ class OngoingState final : public Curve::StateBase
             mainState->addTransition(mainState, SIGNAL(finished()), finalState);
 
             auto cancelled = new QState{this};
-            make_transition<Cancel_Transition>(mainState, cancelled);
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, cancelled);
             cancelled->addTransition(finalState);
 
             connect(cancelled, &QAbstractState::entered,

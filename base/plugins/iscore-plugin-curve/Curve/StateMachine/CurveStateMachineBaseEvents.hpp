@@ -15,11 +15,11 @@ namespace Curve
     }
 
 template<typename Element_T, typename Modifier_T>
-struct CurveEvent : public PositionedEvent<CurvePoint>
+struct CurveEvent : public iscore::PositionedEvent<CurvePoint>
 {
         static constexpr const int user_type = Element_T::value + Modifier_T::value;
         CurveEvent(const CurvePoint& pt, const QGraphicsItem* theItem):
-            PositionedEvent<CurvePoint>{
+            iscore::PositionedEvent<CurvePoint>{
                 pt,
                 QEvent::Type(QEvent::User + user_type)},
             item{theItem}
@@ -29,15 +29,15 @@ struct CurveEvent : public PositionedEvent<CurvePoint>
         const QGraphicsItem* const item{};
 };
 
-using ClickOnNothing_Event = CurveEvent<Element::Nothing_tag, Modifier::Click_tag>;
-using ClickOnPoint_Event   = CurveEvent<Element::Point_tag,   Modifier::Click_tag>;
-using ClickOnSegment_Event = CurveEvent<Element::Segment_tag, Modifier::Click_tag>;
+using ClickOnNothing_Event = CurveEvent<Element::Nothing_tag, iscore::Modifier::Click_tag>;
+using ClickOnPoint_Event   = CurveEvent<Element::Point_tag,   iscore::Modifier::Click_tag>;
+using ClickOnSegment_Event = CurveEvent<Element::Segment_tag, iscore::Modifier::Click_tag>;
 
-using MoveOnNothing_Event = CurveEvent<Element::Nothing_tag, Modifier::Move_tag>;
-using MoveOnPoint_Event   = CurveEvent<Element::Point_tag,   Modifier::Move_tag>;
-using MoveOnSegment_Event = CurveEvent<Element::Segment_tag, Modifier::Move_tag>;
+using MoveOnNothing_Event = CurveEvent<Element::Nothing_tag, iscore::Modifier::Move_tag>;
+using MoveOnPoint_Event   = CurveEvent<Element::Point_tag,   iscore::Modifier::Move_tag>;
+using MoveOnSegment_Event = CurveEvent<Element::Segment_tag, iscore::Modifier::Move_tag>;
 
-using ReleaseOnNothing_Event = CurveEvent<Element::Nothing_tag, Modifier::Release_tag>;
-using ReleaseOnPoint_Event   = CurveEvent<Element::Point_tag,   Modifier::Release_tag>;
-using ReleaseOnSegment_Event = CurveEvent<Element::Segment_tag, Modifier::Release_tag>;
+using ReleaseOnNothing_Event = CurveEvent<Element::Nothing_tag, iscore::Modifier::Release_tag>;
+using ReleaseOnPoint_Event   = CurveEvent<Element::Point_tag,   iscore::Modifier::Release_tag>;
+using ReleaseOnSegment_Event = CurveEvent<Element::Segment_tag, iscore::Modifier::Release_tag>;
 }

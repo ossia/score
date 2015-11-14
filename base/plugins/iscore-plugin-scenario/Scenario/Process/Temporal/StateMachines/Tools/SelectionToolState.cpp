@@ -40,10 +40,10 @@
 
 namespace Scenario
 {
-SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
-    ScenarioTool{sm}
+SelectionAndMoveTool::SelectionAndMoveTool(ToolPalette& sm):
+    ToolBase{sm}
 {
-    m_state = new ScenarioSelectionState{
+    m_state = new SelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
             m_parentSM,
             m_parentSM.presenter().view(),
@@ -112,7 +112,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
 
 
     /// Slot resize
-    auto resizeSlot = new ResizeSlotState<ScenarioStateMachine>{
+    auto resizeSlot = new ResizeSlotState<ToolPalette>{
             m_parentSM.commandStack(),
             m_parentSM,
             &localSM()};
@@ -128,7 +128,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
 }
 
 
-void SelectionAndMoveTool::on_pressed(QPointF scene, ScenarioPoint sp)
+void SelectionAndMoveTool::on_pressed(QPointF scene, Scenario::Point sp)
 {
     using namespace std;
     m_prev = std::chrono::steady_clock::now();
@@ -166,7 +166,7 @@ void SelectionAndMoveTool::on_pressed(QPointF scene, ScenarioPoint sp)
     });
 }
 
-void SelectionAndMoveTool::on_moved(QPointF scene, ScenarioPoint sp)
+void SelectionAndMoveTool::on_moved(QPointF scene, Scenario::Point sp)
 {
     // TODO same on creation tool
     auto t = std::chrono::steady_clock::now();
@@ -199,7 +199,7 @@ void SelectionAndMoveTool::on_moved(QPointF scene, ScenarioPoint sp)
     m_prev = t;
 }
 
-void SelectionAndMoveTool::on_released(QPointF scene, ScenarioPoint sp)
+void SelectionAndMoveTool::on_released(QPointF scene, Scenario::Point sp)
 {
     if(m_nothingPressed)
     {

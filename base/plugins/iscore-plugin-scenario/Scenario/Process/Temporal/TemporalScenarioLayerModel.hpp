@@ -9,8 +9,11 @@ class TemporalConstraintViewModel;
 class TemporalScenarioPresenter;
 
 class ConstraintModel;
-class ScenarioStateMachine;
 
+namespace Scenario
+{
+class ToolPalette;
+}
 class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT

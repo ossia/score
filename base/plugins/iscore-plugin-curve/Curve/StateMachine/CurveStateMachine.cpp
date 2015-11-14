@@ -87,28 +87,28 @@ void CurveStateMachine::setupPostEvents()
             this, [=] (const QPointF& point)
     {
         updateData(point);
-        postEvent(new Press_Event);
+        postEvent(new iscore::Press_Event);
     });
 
     con(m_presenter.view(), &CurveView::moved,
             this, [=] (const QPointF& point)
     {
         updateData(point);
-        postEvent(new Move_Event);
+        postEvent(new iscore::Move_Event);
     });
 
     con(m_presenter.view(), &CurveView::released,
             this, [=] (const QPointF& point)
     {
         updateData(point);
-        postEvent(new Release_Event);
+        postEvent(new iscore::Release_Event);
     });
 
     // TODO generalize this.
     con(m_presenter.view(), &CurveView::escPressed,
             this, [&] ()
     {
-        this->postEvent(new Cancel_Event);
+        this->postEvent(new iscore::Cancel_Event);
     });
 }
 

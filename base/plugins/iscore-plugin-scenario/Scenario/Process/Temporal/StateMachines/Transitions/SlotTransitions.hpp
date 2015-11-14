@@ -1,30 +1,33 @@
 #pragma once
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
-class ClickOnSlotOverlay_Transition final : public MatchedTransition<ClickOnSlotOverlay_Event>
+namespace Scenario
+{
+class ClickOnSlotOverlay_Transition final : public iscore::MatchedTransition<ClickOnSlotOverlay_Event>
 {
     public:
-        ClickOnSlotOverlay_Transition(SlotState& state);
+        ClickOnSlotOverlay_Transition(Scenario::SlotState& state);
 
-        SlotState& state() const;
+        Scenario::SlotState& state() const;
 
     protected:
         void onTransition(QEvent * ev) override;
 
     private:
-        SlotState& m_state;
+        Scenario::SlotState& m_state;
 };
 
-class ClickOnSlotHandle_Transition final : public MatchedTransition<ClickOnSlotHandle_Event>
+class ClickOnSlotHandle_Transition final : public iscore::MatchedTransition<ClickOnSlotHandle_Event>
 {
     public:
-        ClickOnSlotHandle_Transition(SlotState& state);
+        ClickOnSlotHandle_Transition(Scenario::SlotState& state);
 
-        SlotState& state() const;
+        Scenario::SlotState& state() const;
 
     protected:
         void onTransition(QEvent * ev) override;
 
     private:
-        SlotState& m_state;
+        Scenario::SlotState& m_state;
 };
+}

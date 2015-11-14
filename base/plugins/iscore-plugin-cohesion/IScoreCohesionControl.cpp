@@ -79,7 +79,7 @@ QList<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
     return QList<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
 }
 
-void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
+void IScoreCohesionControl::record(ScenarioModel& scenar, Scenario::Point pt)
 {
     m_recManager = std::make_unique<RecordManager>();
     m_recManager->recordInNewBox(scenar, pt);

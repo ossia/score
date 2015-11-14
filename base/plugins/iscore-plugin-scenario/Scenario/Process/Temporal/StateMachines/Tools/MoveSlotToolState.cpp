@@ -19,7 +19,9 @@
 
 #include <QFinalState>
 #include <QGraphicsScene>
-MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
+namespace Scenario
+{
+MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
     m_sm{sm}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
@@ -30,9 +32,9 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the slot, one for resizing with the handle.
     {
-        auto dragSlot = new DragSlotState<ScenarioStateMachine>{m_sm.commandStack(), m_sm, m_sm.scene(), &m_localSM};
+        auto dragSlot = new DragSlotState<ToolPalette>{m_sm.commandStack(), m_sm, m_sm.scene(), &m_localSM};
         // Enter the state
-        make_transition<ClickOnSlotOverlay_Transition>(
+        iscore::make_transition<ClickOnSlotOverlay_Transition>(
                     m_waitState,
                     dragSlot,
                     *dragSlot);
@@ -41,8 +43,8 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     }
 
     {
-        auto resizeSlot = new ResizeSlotState<ScenarioStateMachine>{m_sm.commandStack(), m_sm, &m_localSM};
-        make_transition<ClickOnSlotHandle_Transition>(
+        auto resizeSlot = new ResizeSlotState<ToolPalette>{m_sm.commandStack(), m_sm, &m_localSM};
+        iscore::make_transition<ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,
                     *resizeSlot);
@@ -51,7 +53,7 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     }
 }
 
-void MoveSlotToolState::on_pressed(QPointF scenePoint)
+void MoveSlotTool::on_pressed(QPointF scenePoint)
 {
     auto item = m_sm.scene().itemAt(scenePoint, QTransform());
     if(auto overlay = dynamic_cast<SlotOverlay*>(item))
@@ -66,22 +68,22 @@ void MoveSlotToolState::on_pressed(QPointF scenePoint)
     }
 }
 
-void MoveSlotToolState::on_moved()
+void MoveSlotTool::on_moved()
 {
-    m_localSM.postEvent(new Move_Event);
+    m_localSM.postEvent(new iscore::Move_Event);
 }
 
-void MoveSlotToolState::on_released()
+void MoveSlotTool::on_released()
 {
-    m_localSM.postEvent(new Release_Event);
+    m_localSM.postEvent(new iscore::Release_Event);
 }
 
-void MoveSlotToolState::on_cancel()
+void MoveSlotTool::on_cancel()
 {
     ISCORE_TODO;
 }
 
-void MoveSlotToolState::start()
+void MoveSlotTool::start()
 {
     if(!m_localSM.isRunning())
         m_localSM.start();
@@ -93,7 +95,7 @@ void MoveSlotToolState::start()
     }
 }
 
-void MoveSlotToolState::stop()
+void MoveSlotTool::stop()
 {
     if(m_localSM.isRunning())
         m_localSM.stop();
@@ -105,3 +107,4 @@ void MoveSlotToolState::stop()
     }
 }
 
+}

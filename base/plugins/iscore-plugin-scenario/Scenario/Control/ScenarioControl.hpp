@@ -11,7 +11,6 @@
 #include "Menus/ContextMenuDispatcher.hpp"
 class QActionGroup;
 class ScenarioModel;
-class ScenarioStateMachine;
 class SlotPresenter;
 class TemporalScenarioPresenter;
 
@@ -62,7 +61,7 @@ class ScenarioControl final : public iscore::PluginControlInterface
         void keyPressed(int);
         void keyReleased(int);
 
-        void startRecording(ScenarioModel&, ScenarioPoint);
+        void startRecording(ScenarioModel&, Scenario::Point);
         void stopRecording();
 
     protected:

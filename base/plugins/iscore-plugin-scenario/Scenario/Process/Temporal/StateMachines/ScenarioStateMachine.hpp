@@ -7,14 +7,12 @@
 #include <QStateMachine>
 #include <QPointF>
 
-#include "Tools/CreationToolState.hpp"
-#include "Tools/SelectionToolState.hpp"
-#include "Tools/MoveSlotToolState.hpp"
+#include <Scenario/Process/Temporal/StateMachines/Tools/CreationToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.hpp>
 
 class TemporalScenarioPresenter;
 class ScenarioModel;
-class CreationToolState;
-class MoveSlotToolState;
 class QGraphicsScene;
 
 namespace iscore
@@ -26,13 +24,10 @@ namespace iscore
 
 namespace Scenario
 {
-// TODO namespace Scenario everywhere.
-class SelectionAndMoveTool;
-}
-class ScenarioStateMachine final : public GraphicsSceneToolPalette
+class ToolPalette final : public GraphicsSceneToolPalette
 {
     public:
-        ScenarioStateMachine(iscore::Document&, TemporalScenarioPresenter& presenter);
+        ToolPalette(iscore::Document&, TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const
         { return m_presenter; }
@@ -54,7 +49,9 @@ class ScenarioStateMachine final : public GraphicsSceneToolPalette
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
 
-        CreationToolState createTool;
-        Scenario::SelectionAndMoveTool selectTool;
-        MoveSlotToolState moveSlotTool;
+        CreationTool createTool;
+        SelectionAndMoveTool selectTool;
+        MoveSlotTool moveSlotTool;
 };
+
+}

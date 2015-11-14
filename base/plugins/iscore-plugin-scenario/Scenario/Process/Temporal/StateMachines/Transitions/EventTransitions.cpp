@@ -1,5 +1,7 @@
 #include "EventTransitions.hpp"
 
+namespace Scenario
+{
 void ClickOnEvent_Transition::onTransition(QEvent *ev)
 {
     auto qev = static_cast<ClickOnEvent_Event*>(ev);
@@ -23,4 +25,5 @@ void ReleaseOnEvent_Transition::onTransition(QEvent *ev)
 
     this->state().hoveredEvent = qev->id;
     this->state().currentPoint = qev->point;
+}
 }

@@ -47,7 +47,10 @@ class GraphicsSceneToolBase
         void stop()
         {
             if(localSM().isRunning())
+            {
+                on_cancel();
                 localSM().stop();
+            }
         }
 /*
         virtual void on_pressed(QPointF scene, Coordinates) = 0;
@@ -55,7 +58,7 @@ class GraphicsSceneToolBase
         virtual void on_released(QPointF scene, Coordinates) = 0;
 */        void on_cancel()
         {
-            localSM().postEvent(new Cancel_Event);
+            localSM().postEvent(new iscore::Cancel_Event);
         }
 
     protected:

@@ -1,5 +1,6 @@
 #include "ConstraintTransitions.hpp"
-
+namespace Scenario
+{
 void ClickOnConstraint_Transition::onTransition(QEvent *ev)
 {
     auto qev = static_cast<ClickOnConstraint_Event*>(ev);
@@ -16,4 +17,4 @@ void MoveOnConstraint_Transition::onTransition(QEvent *ev)
 
     this->state().hoveredConstraint= qev->id;
     this->state().currentPoint = qev->point;
-}
+}}

@@ -1,4 +1,6 @@
 #include "AnythingTransitions.hpp"
+namespace Scenario
+{
 bool MoveOnAnything_Transition::eventTest(QEvent *e)
 {
     using namespace std;
@@ -14,7 +16,7 @@ bool MoveOnAnything_Transition::eventTest(QEvent *e)
 
 void MoveOnAnything_Transition::onTransition(QEvent *event)
 {
-    auto qev = static_cast<PositionedEvent<ScenarioPoint>*>(event);
+    auto qev = static_cast<iscore::PositionedEvent<Scenario::Point>*>(event);
 
     this->state().currentPoint = qev->point;
 }
@@ -35,3 +37,4 @@ bool ReleaseOnAnything_Transition::eventTest(QEvent *e)
 
 
 void ReleaseOnAnything_Transition::onTransition(QEvent *event) { }
+}

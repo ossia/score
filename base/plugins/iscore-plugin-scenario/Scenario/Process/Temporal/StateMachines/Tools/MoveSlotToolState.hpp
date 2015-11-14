@@ -6,13 +6,15 @@
 #include <QStateMachine>
 #include <QPointF>
 
-class ScenarioStateMachine;
-
 class SlotModel;
-class MoveSlotToolState
+
+namespace Scenario
+{
+class ToolPalette;
+class MoveSlotTool
 {
     public:
-        MoveSlotToolState(const ScenarioStateMachine &sm);
+        MoveSlotTool(const Scenario::ToolPalette &sm);
 
         void on_pressed(QPointF scene);
         void on_moved();
@@ -29,5 +31,6 @@ class MoveSlotToolState
 
         QPointF m_originalPoint;
         QStateMachine m_localSM;
-        const ScenarioStateMachine& m_sm;
+        const Scenario::ToolPalette& m_sm;
 };
+}

@@ -16,18 +16,42 @@ class StrongQState : public QState
             this->setObjectName(debug_StateMachineIDs<Value>());
         }
 };
-class ScenarioStateMachine;
 
-// Here to prevent pollution of the CreationState header with the command dispatcher
-class ScenarioCreationState : public CreationState
+namespace Scenario
+{
+
+class ToolPalette;
+
+
+class CreationStateBase : public StateBase
 {
     public:
-        ScenarioCreationState(
-                const ScenarioStateMachine& sm,
+        using StateBase::StateBase;
+
+        QVector<Id<StateModel>> createdStates;
+        QVector<Id<EventModel>> createdEvents;
+        QVector<Id<TimeNodeModel>> createdTimeNodes;
+        QVector<Id<ConstraintModel>> createdConstraints;
+
+        void clearCreatedIds()
+        {
+            createdEvents.clear();
+            createdConstraints.clear();
+            createdTimeNodes.clear();
+            createdStates.clear();
+        }
+};
+
+// Here to prevent pollution of the CreationState header with the command dispatcher
+class CreationState : public CreationStateBase
+{
+    public:
+        CreationState(
+                const Scenario::ToolPalette& sm,
                 iscore::CommandStack& stack,
                 const Path<ScenarioModel>& scenarioPath,
                 QState* parent):
-            CreationState{scenarioPath, parent},
+            CreationStateBase{scenarioPath, parent},
             m_parentSM{sm},
             m_dispatcher{stack}
         {
@@ -49,8 +73,8 @@ class ScenarioCreationState : public CreationState
         template<typename DestinationState, typename Function>
         void add_transition(QState* from, DestinationState* to, Function&& fun)
         {
-            using transition_type = ScenarioTransition_T<DestinationState::value()>;
-            auto trans = make_transition<transition_type>(from, to, *this);
+            using transition_type = Transition_T<DestinationState::value()>;
+            auto trans = iscore::make_transition<transition_type>(from, to, *this);
             trans->setObjectName(QString::number(DestinationState::value()));
             connect(trans,
                     &transition_type::triggered,
@@ -59,8 +83,10 @@ class ScenarioCreationState : public CreationState
 
         void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
 
-        const ScenarioStateMachine& m_parentSM;
+        const Scenario::ToolPalette& m_parentSM;
         MultiOngoingCommandDispatcher m_dispatcher;
 
-        ScenarioPoint m_clickedPoint;
+        Scenario::Point m_clickedPoint;
 };
+
+}

@@ -41,12 +41,13 @@ QList<Id<typename PresenterContainer::model_type>>
 
     return colliding;
 }
-
-class ScenarioStateMachine;
-class ScenarioTool : public GraphicsSceneToolBase<ScenarioPoint>
+namespace Scenario
+{
+class ToolPalette;
+class ToolBase : public GraphicsSceneToolBase<Scenario::Point>
 {
     public:
-        ScenarioTool(const ScenarioStateMachine& sm);
+        ToolBase(const Scenario::ToolPalette& sm);
 
     protected:
         Id<EventModel> itemToEventId(const QGraphicsItem*) const;
@@ -127,7 +128,8 @@ class ScenarioTool : public GraphicsSceneToolBase<ScenarioPoint>
             }
         }
 
-        const ScenarioStateMachine& m_parentSM;
+        const Scenario::ToolPalette& m_parentSM;
 
         std::chrono::steady_clock::time_point m_prev;
 };
+}

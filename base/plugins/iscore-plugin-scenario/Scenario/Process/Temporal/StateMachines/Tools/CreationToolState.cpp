@@ -22,9 +22,10 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 
-
-CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
-    ScenarioTool{sm}
+namespace Scenario
+{
+CreationTool::CreationTool(ToolPalette& sm) :
+    ToolBase{sm}
 {
     m_waitState = new QState;
     localSM().addState(m_waitState);
@@ -33,36 +34,36 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
     Path<ScenarioModel> scenarioPath = m_parentSM.model();
 
     //// Create from nothing ////
-    m_createFromNothingState = new ScenarioCreation_FromNothing{
+    m_createFromNothingState = new Creation_FromNothing{
             m_parentSM,
             scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
-    make_transition<ClickOnNothing_Transition>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
+    iscore::make_transition<ClickOnNothing_Transition>(m_waitState, m_createFromNothingState, *m_createFromNothingState);
     m_createFromNothingState->addTransition(m_createFromNothingState, SIGNAL(finished()), m_waitState);
 
     localSM().addState(m_createFromNothingState);
 
 
     //// Create from an event ////
-    m_createFromEventState = new ScenarioCreation_FromEvent{
+    m_createFromEventState = new Creation_FromEvent{
             m_parentSM,
             scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
-    make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
+    iscore::make_transition<ClickOnEvent_Transition>(m_waitState, m_createFromEventState, *m_createFromEventState);
     m_createFromEventState->addTransition(m_createFromEventState, SIGNAL(finished()), m_waitState);
 
     localSM().addState(m_createFromEventState);
 
 
     //// Create from a timenode ////
-    m_createFromTimeNodeState = new ScenarioCreation_FromTimeNode{
+    m_createFromTimeNodeState = new Creation_FromTimeNode{
             m_parentSM,
             scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
-    make_transition<ClickOnTimeNode_Transition>(m_waitState,
+    iscore::make_transition<ClickOnTimeNode_Transition>(m_waitState,
                                                 m_createFromTimeNodeState,
                                                 *m_createFromTimeNodeState);
     m_createFromTimeNodeState->addTransition(m_createFromTimeNodeState, SIGNAL(finished()), m_waitState);
@@ -71,12 +72,12 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
 
 
     //// Create from a State ////
-    m_createFromStateState = new ScenarioCreation_FromState{
+    m_createFromStateState = new Creation_FromState{
             m_parentSM,
             scenarioPath,
             m_parentSM.commandStack(), nullptr};
 
-    make_transition<ClickOnState_Transition>(m_waitState,
+    iscore::make_transition<ClickOnState_Transition>(m_waitState,
                                              m_createFromStateState,
                                              *m_createFromStateState);
 
@@ -86,7 +87,7 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
 
 }
 
-void CreationToolState::on_pressed(QPointF scene, ScenarioPoint sp)
+void CreationTool::on_pressed(QPointF scene, Scenario::Point sp)
 {
     mapTopItem(itemUnderMouse(scene),
 
@@ -132,7 +133,7 @@ void CreationToolState::on_pressed(QPointF scene, ScenarioPoint sp)
     });
 }
 
-void CreationToolState::on_moved(QPointF scene, ScenarioPoint sp)
+void CreationTool::on_moved(QPointF scene, Scenario::Point sp)
 {
     if(auto cs = currentState())
     {
@@ -152,7 +153,7 @@ void CreationToolState::on_moved(QPointF scene, ScenarioPoint sp)
     }
 }
 
-void CreationToolState::on_released(QPointF scene, ScenarioPoint sp)
+void CreationTool::on_released(QPointF scene, Scenario::Point sp)
 {
     if(auto cs = currentState())
     {
@@ -171,7 +172,7 @@ void CreationToolState::on_released(QPointF scene, ScenarioPoint sp)
     }
 }
 
-QList<Id<StateModel> > CreationToolState::getCollidingStates(QPointF point, const QVector<Id<StateModel> > &createdStates)
+QList<Id<StateModel> > CreationTool::getCollidingStates(QPointF point, const QVector<Id<StateModel> > &createdStates)
 {
     return getCollidingModels(
                 m_parentSM.presenter().states(),
@@ -179,7 +180,7 @@ QList<Id<StateModel> > CreationToolState::getCollidingStates(QPointF point, cons
                 point);
 }
 
-QList<Id<EventModel>> CreationToolState::getCollidingEvents(QPointF point, const QVector<Id<EventModel>>& createdEvents)
+QList<Id<EventModel>> CreationTool::getCollidingEvents(QPointF point, const QVector<Id<EventModel>>& createdEvents)
 {
     return getCollidingModels(
                 m_parentSM.presenter().events(),
@@ -187,7 +188,7 @@ QList<Id<EventModel>> CreationToolState::getCollidingEvents(QPointF point, const
                 point);
 }
 
-QList<Id<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(QPointF point, const QVector<Id<TimeNodeModel>>& createdTimeNodes)
+QList<Id<TimeNodeModel>> CreationTool::getCollidingTimeNodes(QPointF point, const QVector<Id<TimeNodeModel>>& createdTimeNodes)
 {
     return getCollidingModels(
                 m_parentSM.presenter().timeNodes(),
@@ -195,7 +196,7 @@ QList<Id<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(QPointF point,
                 point);
 }
 
-CreationState* CreationToolState::currentState() const
+CreationState* CreationTool::currentState() const
 {
     if(isStateActive(m_createFromEventState))
         return m_createFromEventState;
@@ -206,4 +207,5 @@ CreationState* CreationToolState::currentState() const
     if(isStateActive(m_createFromTimeNodeState))
         return m_createFromTimeNodeState;
     return nullptr;
+}
 }

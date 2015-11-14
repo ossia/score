@@ -277,7 +277,7 @@ void ObjectMenuActions::fillContextMenu(
             [&,scenePoint]()
     {
         this->pasteElements(QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
-                      ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
+                      Scenario::ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
     });
     menu->addAction(pasteElements);
 
@@ -333,7 +333,7 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 
 void ObjectMenuActions::pasteElements(
         const QJsonObject& obj,
-        const ScenarioPoint& origin)
+        const Scenario::Point& origin)
 {
     // TODO check for unnecessary uses of focusedProcessModel after focusedPresenter.
     auto pres = m_parent->focusedPresenter();

@@ -3,25 +3,29 @@
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp>
 class EventPresenter;
 class TimeNodePresenter;
-class ScenarioCreation_FromNothing;
-class ScenarioCreation_FromEvent;
-class ScenarioCreation_FromState;
-class ScenarioCreation_FromTimeNode;
-class CreationToolState final : public ScenarioTool
+namespace Scenario
+{
+class CreationState;
+class Creation_FromNothing;
+class Creation_FromEvent;
+class Creation_FromState;
+class Creation_FromTimeNode;
+
+class CreationTool final : public ToolBase
 {
     public:
-        CreationToolState(ScenarioStateMachine& sm);
+        CreationTool(ToolPalette& sm);
 
-        void on_pressed(QPointF scene, ScenarioPoint sp);
-        void on_moved(QPointF scene, ScenarioPoint sp);
-        void on_released(QPointF scene, ScenarioPoint sp);
+        void on_pressed(QPointF scene, Scenario::Point sp);
+        void on_moved(QPointF scene, Scenario::Point sp);
+        void on_released(QPointF scene, Scenario::Point sp);
     private:
         // Return the colliding elements that were not created in the current commands
         QList<Id<StateModel>> getCollidingStates(QPointF, const QVector<Id<StateModel>>& createdStates);
         QList<Id<EventModel>> getCollidingEvents(QPointF, const QVector<Id<EventModel>>& createdEvents);
         QList<Id<TimeNodeModel>> getCollidingTimeNodes(QPointF, const QVector<Id<TimeNodeModel>>& createdTimeNodes);
 
-        CreationState* currentState() const;
+        Scenario::CreationState* currentState() const;
 
         template<typename StateFun,
                  typename EventFun,
@@ -61,9 +65,10 @@ class CreationToolState final : public ScenarioTool
             nothing_fun();
         }
 
-        ScenarioCreation_FromNothing* m_createFromNothingState{};
-        ScenarioCreation_FromEvent* m_createFromEventState{};
-        ScenarioCreation_FromTimeNode* m_createFromTimeNodeState{};
-        ScenarioCreation_FromState* m_createFromStateState{};
+        Creation_FromNothing* m_createFromNothingState{};
+        Creation_FromEvent* m_createFromEventState{};
+        Creation_FromTimeNode* m_createFromTimeNodeState{};
+        Creation_FromState* m_createFromStateState{};
         QState* m_waitState{};
 };
+}

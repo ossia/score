@@ -22,18 +22,16 @@
 #include <QFinalState>
 #include <QGraphicsScene>
 
-
-
-
 class BaseStateMachine;
 class QGraphicsScene;
-template<typename ToolPalette>
+namespace Scenario {
+template<typename ToolPalette_T>
 class ResizeSlotState final : public SlotState
 {
     public:
         ResizeSlotState(
                 iscore::CommandStack& stack,
-                const ToolPalette& sm,
+                const ToolPalette_T& sm,
                 QState* parent):
             SlotState{parent},
             m_ongoingDispatcher{stack},
@@ -44,10 +42,10 @@ class ResizeSlotState final : public SlotState
             auto move = new QState{this};
             auto release = new QFinalState{this};
 
-            make_transition<Move_Transition>(press, move);
-            make_transition<Move_Transition>(move, move);
-            make_transition<Release_Transition>(press, release);
-            make_transition<Release_Transition>(move, release);
+            iscore::make_transition<iscore::Move_Transition>(press, move);
+            iscore::make_transition<iscore::Move_Transition>(move, move);
+            iscore::make_transition<iscore::Release_Transition>(press, release);
+            iscore::make_transition<iscore::Release_Transition>(move, release);
 
             connect(press, &QAbstractState::entered, [=] ()
             {
@@ -74,5 +72,6 @@ class ResizeSlotState final : public SlotState
 
     private:
         SingleOngoingCommandDispatcher<Scenario::Command::ResizeSlotVertically> m_ongoingDispatcher;
-        const ToolPalette& m_sm;
+        const ToolPalette_T& m_sm;
 };
+}

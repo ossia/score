@@ -10,7 +10,7 @@ class IScoreCohesionControl final : public iscore::PluginControlInterface
         void populateMenus(iscore::MenubarManager*) override;
         QList<iscore::OrderedToolbar> makeToolbars() override;
 
-        void record(ScenarioModel&, ScenarioPoint pt);
+        void record(ScenarioModel&, Scenario::Point pt);
         void stopRecord();
 
     private:

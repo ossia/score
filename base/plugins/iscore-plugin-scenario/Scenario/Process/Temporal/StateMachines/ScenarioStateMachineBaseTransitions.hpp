@@ -2,15 +2,18 @@
 #include "ScenarioStateMachineBaseEvents.hpp"
 #include "ScenarioStateMachineBaseStates.hpp"
 
+namespace Scenario
+{
 template<typename T>
-using GenericScenarioTransition = StateAwareTransition<ScenarioStateBase, T>;
+using GenericTransition = iscore::StateAwareTransition<Scenario::StateBase, T>;
 
-template<typename Event>
-class MatchedScenarioTransition : public GenericScenarioTransition<MatchedTransition<Event>>
+template<typename Event_T>
+class MatchedTransition : public Scenario::GenericTransition<iscore::MatchedTransition<Event_T>>
 {
     public:
-        using GenericScenarioTransition<MatchedTransition<Event>>::GenericScenarioTransition;
+        using Scenario::GenericTransition<iscore::MatchedTransition<Event_T>>::GenericTransition;
 };
 
 template<int Value>
-class ScenarioTransition_T;
+class Transition_T;
+}

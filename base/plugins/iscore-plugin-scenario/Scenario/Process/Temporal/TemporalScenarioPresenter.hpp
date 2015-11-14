@@ -44,7 +44,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
 {
         Q_OBJECT
 
-        friend class ScenarioStateMachine;
+        friend class Scenario::ToolPalette;
         friend class ScenarioViewInterface;
         friend class ScenarioSelectionManager;
 
@@ -83,7 +83,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         const ZoomRatio& zoomRatio() const
         { return m_zoomRatio; }
 
-        ScenarioStateMachine& stateMachine()
+        Scenario::ToolPalette& stateMachine()
         { return m_sm; }
         auto& editionSettings() const
         { return m_editionSettings; }
@@ -142,7 +142,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         ScenarioViewInterface* m_viewInterface{};
 
         ScenarioEditionSettings& m_editionSettings;
-        ScenarioStateMachine m_sm;
+        Scenario::ToolPalette m_sm;
 
         FocusDispatcher m_focusDispatcher;
 };

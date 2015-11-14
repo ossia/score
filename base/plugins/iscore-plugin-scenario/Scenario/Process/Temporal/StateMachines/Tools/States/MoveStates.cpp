@@ -11,12 +11,14 @@
 #include <Scenario/Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp>
 
 // TODO a nice refactor is doable here between the three classes.
-MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
+namespace Scenario
+{
+MoveConstraintState::MoveConstraintState(const ToolPalette& stateMachine,
                                          const Path<ScenarioModel>& scenarioPath,
                                          iscore::CommandStack& stack,
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
-    ScenarioStateBase{scenarioPath, parent},
+    StateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     this->setObjectName("MoveConstraintState");
@@ -77,12 +79,12 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
 }
 
 
-MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
+MoveEventState::MoveEventState(const ToolPalette& stateMachine,
                                const Path<ScenarioModel>& scenarioPath,
                                iscore::CommandStack& stack,
                                iscore::ObjectLocker& locker,
                                QState* parent):
-    ScenarioStateBase{scenarioPath, parent},
+    StateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     this->setObjectName("MoveEventState");
@@ -143,12 +145,12 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
 }
 
 
-MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
+MoveTimeNodeState::MoveTimeNodeState(const ToolPalette &stateMachine,
                                      const Path<ScenarioModel>& scenarioPath,
                                      iscore::CommandStack& stack,
                                      iscore::ObjectLocker& locker,
                                      QState* parent):
-    ScenarioStateBase{scenarioPath, parent},
+    StateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     this->setObjectName("MoveTimeNodeState");
@@ -208,4 +210,5 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
     });
 
     setInitialState(mainState);
+}
 }

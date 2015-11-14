@@ -15,21 +15,21 @@ BaseScenarioStateMachine::BaseScenarioStateMachine(BaseElementPresenter* pres):
             [=] (const QPointF& point)
     {
         scenePoint = point;
-        this->postEvent(new Press_Event);
+        this->postEvent(new iscore::Press_Event);
     });
 
     connect(m_presenter, &BaseElementPresenter::displayedConstraintMoved,
             [=] (const QPointF& point)
     {
         scenePoint = point;
-        this->postEvent(new Move_Event);
+        this->postEvent(new iscore::Move_Event);
     });
 
     connect(m_presenter, &BaseElementPresenter::displayedConstraintReleased,
             [=] (const QPointF& point)
     {
         scenePoint = point;
-        this->postEvent(new Release_Event);
+        this->postEvent(new iscore::Release_Event);
     });
     // TODO cancel
 

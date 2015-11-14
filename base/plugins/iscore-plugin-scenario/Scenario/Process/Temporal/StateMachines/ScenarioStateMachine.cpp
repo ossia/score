@@ -12,7 +12,9 @@
 #include <QSignalTransition>
 #include <core/application/Application.hpp>
 
-ScenarioStateMachine::ScenarioStateMachine(
+namespace Scenario
+{
+ToolPalette::ToolPalette(
         iscore::Document& doc,
         TemporalScenarioPresenter& presenter):
     GraphicsSceneToolPalette{*presenter.view().scene()},
@@ -30,7 +32,7 @@ ScenarioStateMachine::ScenarioStateMachine(
                          : ScenarioToolKind::Select);
     });
 
-    auto QPointFToScenarioPoint = [&] (QPointF point) -> ScenarioPoint
+    auto QPointFToScenarioPoint = [&] (QPointF point) -> Scenario::Point
     {
         return ConvertToScenarioPoint(
                     point,
@@ -38,7 +40,7 @@ ScenarioStateMachine::ScenarioStateMachine(
                     m_presenter.view().boundingRect().height());
     };
     connect(m_presenter.m_view, &TemporalScenarioView::scenarioPressed,
-            [=] (const QPointF& point)
+            [=] (QPointF point)
     {
         scenePoint = point;
         auto scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
@@ -58,7 +60,7 @@ ScenarioStateMachine::ScenarioStateMachine(
         }
     });
     connect(m_presenter.m_view, &TemporalScenarioView::scenarioReleased,
-            [=] (const QPointF& point)
+            [=] (QPointF point)
     {
         scenePoint = point;
         auto scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
@@ -81,7 +83,7 @@ ScenarioStateMachine::ScenarioStateMachine(
         }
     });
     connect(m_presenter.m_view, &TemporalScenarioView::scenarioMoved,
-            [=] (const QPointF& point)
+            [=] (QPointF point)
     {
         scenePoint = point;
         auto scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
@@ -120,16 +122,16 @@ ScenarioStateMachine::ScenarioStateMachine(
     });
 
     connect(&editionSettings(), &ScenarioEditionSettings::toolChanged,
-            this, &ScenarioStateMachine::changeTool);
+            this, &ToolPalette::changeTool);
     changeTool(editionSettings().tool());
 }
 
-const ScenarioEditionSettings&ScenarioStateMachine::editionSettings() const
+const ScenarioEditionSettings&ToolPalette::editionSettings() const
 {
     return m_presenter.editionSettings();
 }
 
-void ScenarioStateMachine::changeTool(ScenarioToolKind state)
+void ToolPalette::changeTool(ScenarioToolKind state)
 {
     createTool.stop();
     selectTool.stop();
@@ -154,6 +156,7 @@ void ScenarioStateMachine::changeTool(ScenarioToolKind state)
         }
         case ScenarioToolKind::Play:
         {
+            break;
 
 
         }
@@ -161,4 +164,5 @@ void ScenarioStateMachine::changeTool(ScenarioToolKind state)
             ISCORE_ABORT;
             break;
     }
+}
 }

@@ -16,11 +16,13 @@ class ConstraintModel;
 class StateModel;
 class SlotModel;
 
+namespace Scenario
+{
 // OPTIMIZEME this when we have all the tools
-class ScenarioStateBase : public QState
+class StateBase : public QState
 {
     public:
-        ScenarioStateBase(const Path<ScenarioModel>& scenar, QState* parent):
+        StateBase(const Path<ScenarioModel>& scenar, QState* parent):
             QState{parent},
             m_scenarioPath{scenar}
         { }
@@ -32,7 +34,7 @@ class ScenarioStateBase : public QState
             clickedConstraint = Id<ConstraintModel>{};
             clickedState = Id<StateModel>{};
 
-            currentPoint = ScenarioPoint();
+            currentPoint = Scenario::Point();
         }
 
         Id<StateModel> clickedState;
@@ -45,29 +47,10 @@ class ScenarioStateBase : public QState
         Id<TimeNodeModel> hoveredTimeNode;
         Id<ConstraintModel> hoveredConstraint;
 
-        ScenarioPoint currentPoint;
+        Scenario::Point currentPoint;
 
     protected:
         Path<ScenarioModel> m_scenarioPath;
-};
-
-class CreationState : public ScenarioStateBase
-{
-    public:
-        using ScenarioStateBase::ScenarioStateBase;
-
-        QVector<Id<StateModel>> createdStates;
-        QVector<Id<EventModel>> createdEvents;
-        QVector<Id<TimeNodeModel>> createdTimeNodes;
-        QVector<Id<ConstraintModel>> createdConstraints;
-
-        void clearCreatedIds()
-        {
-            createdEvents.clear();
-            createdConstraints.clear();
-            createdTimeNodes.clear();
-            createdStates.clear();
-        }
 };
 
 class SlotState : public QState
@@ -82,3 +65,4 @@ class SlotState : public QState
         QPointF m_originalPoint;
         double m_originalHeight{};
 };
+}

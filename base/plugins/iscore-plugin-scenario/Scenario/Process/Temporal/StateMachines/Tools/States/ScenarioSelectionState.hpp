@@ -1,21 +1,23 @@
 #pragma once
 #include <iscore/statemachine/CommonSelectionState.hpp>
 #include <QPointF>
-class ScenarioStateMachine;
 class TemporalScenarioView;
 
-class ScenarioSelectionState final : public CommonSelectionState
+namespace Scenario
+{
+class ToolPalette;
+class SelectionState final : public CommonSelectionState
 {
     private:
         QPointF m_initialPoint;
         QPointF m_movePoint;
-        const ScenarioStateMachine& m_parentSM;
+        const Scenario::ToolPalette& m_parentSM;
         TemporalScenarioView& m_scenarioView;
 
     public:
-        ScenarioSelectionState(
+        SelectionState(
                 iscore::SelectionStack& stack,
-                const ScenarioStateMachine& parentSM,
+                const Scenario::ToolPalette& parentSM,
                 TemporalScenarioView& scenarioview,
                 QState* parent);
 
@@ -36,3 +38,4 @@ class ScenarioSelectionState final : public CommonSelectionState
 
         void setSelectionArea(const QRectF& area);
 };
+}

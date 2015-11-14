@@ -1,11 +1,13 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-class ScenarioCreation_FromNothing final : public ScenarioCreationState
+namespace Scenario
+{
+class Creation_FromNothing final : public CreationState
 {
     public:
-        ScenarioCreation_FromNothing(
-                const ScenarioStateMachine& stateMachine,
+        Creation_FromNothing(
+                const ToolPalette& stateMachine,
                 const Path<ScenarioModel>& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
@@ -18,3 +20,4 @@ class ScenarioCreation_FromNothing final : public ScenarioCreationState
         void createToEvent();
         void createToTimeNode();
 };
+}

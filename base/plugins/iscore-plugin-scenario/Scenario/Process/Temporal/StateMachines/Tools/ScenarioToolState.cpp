@@ -26,12 +26,14 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <iostream>
-ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm) :
-    GraphicsSceneToolBase<ScenarioPoint>{sm.scene()},
+namespace Scenario
+{
+ToolBase::ToolBase(const ToolPalette &sm) :
+    GraphicsSceneToolBase<Scenario::Point>{sm.scene()},
     m_parentSM{sm}
 {
 }
-Id<EventModel> ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) const
+Id<EventModel> ToolBase::itemToEventId(const QGraphicsItem * pressedItem) const
 {
     const auto& event = static_cast<const EventView*>(pressedItem)->presenter().model();
     return event.parentScenario() == &m_parentSM.model()
@@ -39,7 +41,7 @@ Id<EventModel> ScenarioTool::itemToEventId(const QGraphicsItem * pressedItem) co
             : Id<EventModel>{};
 }
 
-Id<TimeNodeModel> ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
+Id<TimeNodeModel> ToolBase::itemToTimeNodeId(const QGraphicsItem *pressedItem) const
 {
     const auto& timenode = static_cast<const TimeNodeView*>(pressedItem)->presenter().model();
     return timenode.parentScenario() == &m_parentSM.model()
@@ -47,7 +49,7 @@ Id<TimeNodeModel> ScenarioTool::itemToTimeNodeId(const QGraphicsItem *pressedIte
             : Id<TimeNodeModel>{};
 }
 
-Id<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *pressedItem) const
+Id<ConstraintModel> ToolBase::itemToConstraintId(const QGraphicsItem *pressedItem) const
 {
     const auto& constraint = static_cast<const ConstraintView*>(pressedItem)->presenter().abstractConstraintViewModel().model();
     return constraint.parentScenario() == &m_parentSM.model()
@@ -55,7 +57,7 @@ Id<ConstraintModel> ScenarioTool::itemToConstraintId(const QGraphicsItem *presse
             : Id<ConstraintModel>{};
 }
 
-Id<StateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem) const
+Id<StateModel> ToolBase::itemToStateId(const QGraphicsItem *pressedItem) const
 {
     const auto& state = static_cast<const StateView*>(pressedItem)->presenter().model();
 
@@ -64,11 +66,12 @@ Id<StateModel> ScenarioTool::itemToStateId(const QGraphicsItem *pressedItem) con
             : Id<StateModel>{};
 }
 
-const SlotModel* ScenarioTool::itemToSlotFromHandle(const QGraphicsItem *pressedItem) const
+const SlotModel* ToolBase::itemToSlotFromHandle(const QGraphicsItem *pressedItem) const
 {
     const auto& slot = static_cast<const SlotHandle*>(pressedItem)->slotView().presenter.model();
 
     return slot.parentConstraint().parentScenario() == &m_parentSM.model()
             ? &slot
             : nullptr;
+}
 }

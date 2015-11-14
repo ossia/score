@@ -19,7 +19,7 @@ class ScenarioPasteElements final : public iscore::SerializableCommand
         ScenarioPasteElements(
                 Path<TemporalScenarioLayerModel>&& path,
                 const QJsonObject& obj,
-                const ScenarioPoint& pt);
+                const Scenario::Point& pt);
 
         void undo() const override;
         void redo() const override;

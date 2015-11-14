@@ -133,7 +133,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(CurveStateMachine& sm):
 
         m_moveState->setObjectName("MovePointState");
 
-        make_transition<ClickOnPoint_Transition>(m_state,
+        iscore::make_transition<ClickOnPoint_Transition>(m_state,
                                                  m_moveState,
                                                  *m_moveState);
 
@@ -163,7 +163,7 @@ void SelectionAndMoveTool::on_pressed()
     },
     [&] ()
     {
-        localSM().postEvent(new Press_Event);
+        localSM().postEvent(new iscore::Press_Event);
         m_nothingPressed = true;
     });
 }
@@ -178,7 +178,7 @@ void SelectionAndMoveTool::on_moved()
 
     if (m_nothingPressed)
     {
-        localSM().postEvent(new Move_Event);
+        localSM().postEvent(new iscore::Move_Event);
     }
     else
     {
@@ -203,7 +203,7 @@ void SelectionAndMoveTool::on_released()
 {
     if(m_nothingPressed)
     {
-        localSM().postEvent(new Release_Event); // select
+        localSM().postEvent(new iscore::Release_Event); // select
         m_nothingPressed = false;
 
         return;

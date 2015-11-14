@@ -23,13 +23,15 @@
 
 class BaseStateMachine;
 class QGraphicsScene;
-template<typename ToolPalette>
+namespace Scenario
+{
+template<typename ToolPalette_T>
 class DragSlotState final : public SlotState
 {
     public:
         DragSlotState(
                 iscore::CommandStack& stack,
-                const ToolPalette& sm,
+                const ToolPalette_T& sm,
                 const QGraphicsScene& scene,
                 QState* parent):
             SlotState{parent},
@@ -43,9 +45,9 @@ class DragSlotState final : public SlotState
             auto move = new QState{this};
             auto release = new QFinalState{this};
 
-            make_transition<Move_Transition>(press, move);
-            make_transition<Release_Transition>(press, release);
-            make_transition<Release_Transition>(move, release);
+            iscore::make_transition<iscore::Move_Transition>(press, move);
+            iscore::make_transition<iscore::Release_Transition>(press, release);
+            iscore::make_transition<iscore::Release_Transition>(move, release);
 
             connect(release, &QAbstractState::entered, [=] ( )
             {
@@ -77,6 +79,7 @@ class DragSlotState final : public SlotState
 
     private:
         CommandDispatcher<> m_dispatcher;
-        const ToolPalette& m_sm;
+        const ToolPalette_T& m_sm;
         const QGraphicsScene& m_scene;
 };
+}

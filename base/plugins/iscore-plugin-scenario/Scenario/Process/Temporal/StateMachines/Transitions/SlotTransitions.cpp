@@ -1,5 +1,8 @@
 #include "SlotTransitions.hpp"
-ClickOnSlotOverlay_Transition::ClickOnSlotOverlay_Transition(SlotState &state):
+namespace Scenario
+{
+ClickOnSlotOverlay_Transition::ClickOnSlotOverlay_Transition(
+        SlotState &state):
     m_state{state}
 {
 
@@ -18,7 +21,8 @@ void ClickOnSlotOverlay_Transition::onTransition(QEvent *ev)
 }
 
 
-ClickOnSlotHandle_Transition::ClickOnSlotHandle_Transition(SlotState &state):
+ClickOnSlotHandle_Transition::ClickOnSlotHandle_Transition(
+        SlotState &state):
     m_state{state}
 {
 
@@ -36,4 +40,5 @@ void ClickOnSlotHandle_Transition::onTransition(QEvent *ev)
     auto qev = static_cast<event_type*>(ev);
 
     this->state().currentSlot = std::move(qev->path);
+}
 }
