@@ -36,7 +36,6 @@ class ToolPalette final : public GraphicsSceneToolPalette
         void on_cancel();
 
     private:
-        void changeTool(Curve::Tool);
         Curve::Point ScenePointToCurvePoint(const QPointF& point);
         void setupPostEvents();
         CurvePresenter& m_presenter;

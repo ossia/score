@@ -18,7 +18,6 @@ EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm):
 
 void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
-    qDebug("1");
     m_prev = std::chrono::steady_clock::now();
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
@@ -37,7 +36,6 @@ void EditionToolForCreate::on_pressed(QPointF scenePoint, Curve::Point curvePoin
 
 void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
-    qDebug("2");
     auto t = std::chrono::steady_clock::now();
     if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
     {
@@ -64,7 +62,6 @@ void EditionToolForCreate::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 
 void EditionToolForCreate::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
-    qDebug("3");
     mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
     {

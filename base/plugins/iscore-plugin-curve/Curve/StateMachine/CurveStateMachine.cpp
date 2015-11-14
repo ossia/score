@@ -21,9 +21,6 @@ ToolPalette::ToolPalette(
     m_createTool{*this},
     m_setSegmentTool{*this}
 {
-    con(m_presenter.editionSettings(), &Curve::EditionSettings::toolChanged,
-        this, &ToolPalette::changeTool);
-    changeTool(m_presenter.editionSettings().tool());
 }
 
 CurvePresenter& ToolPalette::presenter() const
@@ -46,32 +43,6 @@ iscore::ObjectLocker& ToolPalette::locker() const
     return m_locker;
 }
 
-void ToolPalette::changeTool(Curve::Tool state)
-{
-    m_selectTool.stop();
-    m_createTool.stop();
-    m_setSegmentTool.stop();
-    switch(state)
-    {
-        case Curve::Tool::Create:
-            m_createTool.start();
-            break;
-        case Curve::Tool::Select:
-            m_selectTool.start();
-            break;
-        case Curve::Tool::SetSegment:
-            m_setSegmentTool.start();
-            break;
-
-        case Curve::Tool::Disabled:
-        case Curve::Tool::Playing:
-            break;
-        default:
-            ISCORE_ABORT;
-            break;
-    }
-}
-
 void ToolPalette::on_pressed(QPointF point)
 {
     scenePoint = point;
@@ -79,15 +50,12 @@ void ToolPalette::on_pressed(QPointF point)
     switch(m_presenter.editionSettings().tool())
     {
         case Curve::Tool::Create:
-            m_createTool.start();
             m_createTool.on_pressed(point, curvePoint);
             break;
         case Curve::Tool::Select:
-            m_selectTool.start();
             m_selectTool.on_pressed(point, curvePoint);
             break;
         case Curve::Tool::SetSegment:
-            m_setSegmentTool.start();
             m_setSegmentTool.on_pressed(point, curvePoint);
             break;
         default:
@@ -121,13 +89,13 @@ void ToolPalette::on_released(QPointF point)
     switch(m_presenter.editionSettings().tool())
     {
         case Curve::Tool::Create:
-            m_createTool.on_moved(point, curvePoint);
+            m_createTool.on_released(point, curvePoint);
             break;
         case Curve::Tool::Select:
-            m_selectTool.on_moved(point, curvePoint);
+            m_selectTool.on_released(point, curvePoint);
             break;
         case Curve::Tool::SetSegment:
-            m_setSegmentTool.on_moved(point, curvePoint);
+            m_setSegmentTool.on_released(point, curvePoint);
             break;
         default:
             break;
