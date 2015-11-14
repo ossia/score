@@ -147,7 +147,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
                 return;
             }
 
-            if(m_parentSM.isShiftPressed())
+            if(m_parentSM.editionSettings().sequence())
             {
                 const auto&  st = m_parentSM.model().state(clickedState);
                 currentPoint.y = st.heightPercentage();
@@ -159,7 +159,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        stateMachine.isShiftPressed());
+                        stateMachine.editionSettings().sequence());
 
         });
 
@@ -214,7 +214,7 @@ template<typename Fun>
 void ScenarioCreation_FromState::creationCheck(Fun&& fun)
 {
     const auto& scenar = m_parentSM.model();
-    if(!m_parentSM.isShiftPressed())
+    if(!m_parentSM.editionSettings().sequence())
     {
         // Create new state at the beginning
         auto cmd = new Scenario::Command::CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};

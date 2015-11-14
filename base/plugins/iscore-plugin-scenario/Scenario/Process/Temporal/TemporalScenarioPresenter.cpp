@@ -41,6 +41,7 @@
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
+        ScenarioEditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
         LayerView* view,
         QObject* parent) :
@@ -48,6 +49,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
+    m_editionSettings{e},
     m_sm{*iscore::IDocument::documentFromObject(m_layer.processModel()), *this}, // OPTIMIZEME by passing document in parent
     m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.processModel())}
 {
@@ -201,7 +203,7 @@ void TemporalScenarioPresenter::removeElement(
 void TemporalScenarioPresenter::on_stateRemoved(
         const StateModel& state)
 {
-    removeElement(m_displayedStates.get(), state.id());
+    removeElement(m_states.get(), state.id());
 }
 
 
@@ -251,7 +253,7 @@ void TemporalScenarioPresenter::on_focusChanged()
 {
     // TODO lefuck ?
     m_view->setFocus();
-    m_sm.setMoveState();
+    editionSettings().setTool(ScenarioToolKind::Select);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -302,7 +304,7 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
 void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
 {
     auto st_pres = new StatePresenter{state, m_view, this};
-    m_displayedStates.insert(st_pres);
+    m_states.insert(st_pres);
 
     m_viewInterface->on_stateMoved(*st_pres);
 
@@ -361,7 +363,7 @@ void TemporalScenarioPresenter::updateAllElements()
         m_viewInterface->on_timeNodeMoved(timenode);
     }
 
-    for(auto& state : m_displayedStates)
+    for(auto& state : m_states)
     {
         m_viewInterface->on_stateMoved(state);
     }

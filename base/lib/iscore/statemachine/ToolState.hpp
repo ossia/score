@@ -1,7 +1,8 @@
 #pragma once
+#include <QGraphicsScene>
+#include <QGraphicsItem>
 #include <QStateMachine>
-class QGraphicsItem;
-class QGraphicsScene;
+#include <iscore/statemachine/StateMachineUtils.hpp>
 
 /**
  * @brief The ToolState class
@@ -23,6 +24,49 @@ class ToolState : public QState
         virtual void on_released() = 0;
 
         QGraphicsItem* itemUnderMouse(const QPointF& point) const;
+
+        const QGraphicsScene& scene() const { return m_scene; }
+        QStateMachine& localSM() { return m_localSM; }
+
+    private:
+        const QGraphicsScene& m_scene;
+        QStateMachine m_localSM;
+};
+
+template<typename Coordinates>
+class GraphicsSceneToolBase
+{
+    public:
+        virtual ~GraphicsSceneToolBase() = default;
+        void start()
+        {
+            if(!localSM().isRunning())
+                localSM().start();
+        }
+
+        void stop()
+        {
+            if(localSM().isRunning())
+                localSM().stop();
+        }
+
+        virtual void on_pressed(QPointF scene, Coordinates) = 0;
+        virtual void on_moved(QPointF scene, Coordinates) = 0;
+        virtual void on_released(QPointF scene, Coordinates) = 0;
+        void on_cancel()
+        {
+            localSM().postEvent(new Cancel_Event);
+        }
+
+    protected:
+        GraphicsSceneToolBase(const QGraphicsScene& scene):
+            m_scene{scene}
+        {
+
+        }
+
+        QGraphicsItem* itemUnderMouse(const QPointF& point) const
+        { return m_scene.itemAt(point, QTransform()); }
 
         const QGraphicsScene& scene() const { return m_scene; }
         QStateMachine& localSM() { return m_localSM; }

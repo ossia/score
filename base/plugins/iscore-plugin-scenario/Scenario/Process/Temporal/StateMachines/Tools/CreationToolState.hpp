@@ -12,15 +12,14 @@ class CreationToolState final : public ScenarioTool
     public:
         CreationToolState(ScenarioStateMachine& sm);
 
-        void on_pressed() override;
-        void on_moved() override;
-        void on_released() override;
-
+        void on_pressed(QPointF scene, ScenarioPoint sp) override;
+        void on_moved(QPointF scene, ScenarioPoint sp) override;
+        void on_released(QPointF scene, ScenarioPoint sp) override;
     private:
         // Return the colliding elements that were not created in the current commands
-        QList<Id<StateModel>> getCollidingStates(const QVector<Id<StateModel>>& createdStates);
-        QList<Id<EventModel>> getCollidingEvents(const QVector<Id<EventModel>>& createdEvents);
-        QList<Id<TimeNodeModel>> getCollidingTimeNodes(const QVector<Id<TimeNodeModel>>& createdTimeNodes);
+        QList<Id<StateModel>> getCollidingStates(QPointF, const QVector<Id<StateModel>>& createdStates);
+        QList<Id<EventModel>> getCollidingEvents(QPointF, const QVector<Id<EventModel>>& createdEvents);
+        QList<Id<TimeNodeModel>> getCollidingTimeNodes(QPointF, const QVector<Id<TimeNodeModel>>& createdTimeNodes);
 
         CreationState* currentState() const;
 
@@ -29,6 +28,7 @@ class CreationToolState final : public ScenarioTool
                  typename TimeNodeFun,
                  typename NothingFun>
         void mapWithCollision(
+                QPointF point,
                 StateFun st_fun,
                 EventFun ev_fun,
                 TimeNodeFun tn_fun,
@@ -37,21 +37,21 @@ class CreationToolState final : public ScenarioTool
                 const QVector<Id<EventModel>>& createdEvents,
                 const QVector<Id<TimeNodeModel>>& createdTimeNodes)
         {
-            auto collidingStates = getCollidingStates(createdStates);
+            auto collidingStates = getCollidingStates(point, createdStates);
             if(!collidingStates.empty())
             {
                 st_fun(collidingStates.first());
                 return;
             }
 
-            auto collidingEvents = getCollidingEvents(createdEvents);
+            auto collidingEvents = getCollidingEvents(point, createdEvents);
             if(!collidingEvents.empty())
             {
                 ev_fun(collidingEvents.first());
                 return;
             }
 
-            auto collidingTimeNodes = getCollidingTimeNodes(createdTimeNodes);
+            auto collidingTimeNodes = getCollidingTimeNodes(point, createdTimeNodes);
             if(!collidingTimeNodes.empty())
             {
                 tn_fun(collidingTimeNodes.first());

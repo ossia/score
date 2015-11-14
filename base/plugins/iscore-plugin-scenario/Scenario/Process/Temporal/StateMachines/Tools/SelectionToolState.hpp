@@ -16,9 +16,9 @@ class SelectionAndMoveTool final : public ScenarioTool
     public:
         SelectionAndMoveTool(ScenarioStateMachine& sm);
 
-        void on_pressed() override;
-        void on_moved() override;
-        void on_released() override;
+        void on_pressed(QPointF scene, ScenarioPoint sp) override;
+        void on_moved(QPointF scene, ScenarioPoint sp) override;
+        void on_released(QPointF scene, ScenarioPoint sp) override;
 
     private:
         ScenarioSelectionState* m_state{};

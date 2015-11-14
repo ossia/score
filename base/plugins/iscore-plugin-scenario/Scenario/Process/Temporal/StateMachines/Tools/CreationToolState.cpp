@@ -24,7 +24,7 @@
 
 
 CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
-    ScenarioTool{sm, &sm}
+    ScenarioTool{sm}
 {
     m_waitState = new QState;
     localSM().addState(m_waitState);
@@ -86,21 +86,21 @@ CreationToolState::CreationToolState(ScenarioStateMachine& sm) :
 
 }
 
-void CreationToolState::on_pressed()
+void CreationToolState::on_pressed(QPointF scene, ScenarioPoint sp)
 {
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    mapTopItem(itemUnderMouse(scene),
 
     // Press a state
     [&] (const Id<StateModel>& id)
-    { localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint}); },
+    { localSM().postEvent(new ClickOnState_Event{id, sp}); },
 
     // Press an event
     [&] (const Id<EventModel>& id)
-    { localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+    { localSM().postEvent(new ClickOnEvent_Event{id, sp}); },
 
     // Press a TimeNode
     [&] (const Id<TimeNodeModel>& id)
-    { localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+    { localSM().postEvent(new ClickOnTimeNode_Event{id, sp}); },
 
     // Press a Constraint
     [&] (const Id<ConstraintModel>&)
@@ -118,33 +118,33 @@ void CreationToolState::on_pressed()
         // where we instead choose the latest state if selected
         if(auto state = furthestSelectedState(m_parentSM.model()))
         {
-            if(m_parentSM.model().events.at(state->eventId()).date() < m_parentSM.scenarioPoint.date)
+            if(m_parentSM.model().events.at(state->eventId()).date() < sp.date)
             {
                 localSM().postEvent(new ClickOnState_Event{
                                         state->id(),
-                                        m_parentSM.scenarioPoint});
+                                        sp});
                 return;
             }
         }
 
-        localSM().postEvent(new ClickOnNothing_Event{m_parentSM.scenarioPoint});
+        localSM().postEvent(new ClickOnNothing_Event{sp});
 
     });
 }
 
-void CreationToolState::on_moved()
+void CreationToolState::on_moved(QPointF scene, ScenarioPoint sp)
 {
     if(auto cs = currentState())
     {
-        mapWithCollision(
-                    [&] (const Id<StateModel>& id)
-        { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
+        mapWithCollision(scene,
+        [&] (const Id<StateModel>& id)
+        { localSM().postEvent(new MoveOnState_Event{id, sp}); },
         [&] (const Id<EventModel>& id)
-        { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnEvent_Event{id, sp}); },
         [&] (const Id<TimeNodeModel>& id)
-        { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnTimeNode_Event{id, sp}); },
         [&] ()
-        { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnNothing_Event{sp}); },
         cs->createdStates,
         cs->createdEvents,
         cs->createdTimeNodes);
@@ -152,47 +152,47 @@ void CreationToolState::on_moved()
     }
 }
 
-void CreationToolState::on_released()
+void CreationToolState::on_released(QPointF scene, ScenarioPoint sp)
 {
     if(auto cs = currentState())
     {
-        mapWithCollision(
-                    [&] (const Id<StateModel>& id)
-        { localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint}); },
+        mapWithCollision(scene,
+        [&] (const Id<StateModel>& id)
+        { localSM().postEvent(new ReleaseOnState_Event{id, sp}); },
         [&] (const Id<EventModel>& id)
-        { localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new ReleaseOnEvent_Event{id, sp}); },
         [&] (const Id<TimeNodeModel>& id)
-        { localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new ReleaseOnTimeNode_Event{id, sp}); },
         [&] ()
-        { localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new ReleaseOnNothing_Event{sp}); },
         cs->createdStates,
         cs->createdEvents,
         cs->createdTimeNodes);
     }
 }
 
-QList<Id<StateModel> > CreationToolState::getCollidingStates(const QVector<Id<StateModel> > &createdStates)
+QList<Id<StateModel> > CreationToolState::getCollidingStates(QPointF point, const QVector<Id<StateModel> > &createdStates)
 {
     return getCollidingModels(
                 m_parentSM.presenter().states(),
                 createdStates,
-                m_parentSM.scenePoint);
+                point);
 }
 
-QList<Id<EventModel>> CreationToolState::getCollidingEvents(const QVector<Id<EventModel>>& createdEvents)
+QList<Id<EventModel>> CreationToolState::getCollidingEvents(QPointF point, const QVector<Id<EventModel>>& createdEvents)
 {
     return getCollidingModels(
                 m_parentSM.presenter().events(),
                 createdEvents,
-                m_parentSM.scenePoint);
+                point);
 }
 
-QList<Id<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(const QVector<Id<TimeNodeModel>>& createdTimeNodes)
+QList<Id<TimeNodeModel>> CreationToolState::getCollidingTimeNodes(QPointF point, const QVector<Id<TimeNodeModel>>& createdTimeNodes)
 {
     return getCollidingModels(
                 m_parentSM.presenter().timeNodes(),
                 createdTimeNodes,
-                m_parentSM.scenePoint);
+                point);
 }
 
 CreationState* CreationToolState::currentState() const

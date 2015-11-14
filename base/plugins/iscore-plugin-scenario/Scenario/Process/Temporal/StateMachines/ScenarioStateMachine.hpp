@@ -2,17 +2,18 @@
 #include "Tool.hpp"
 #include <Process/ExpandMode.hpp>
 #include "ScenarioStateMachineBaseEvents.hpp"
-
-
 #include <iscore/statemachine/BaseStateMachine.hpp>
-
+#include <Scenario/Control/ScenarioEditionSettings.hpp>
 #include <QStateMachine>
 #include <QPointF>
+
+#include "Tools/CreationToolState.hpp"
+#include "Tools/SelectionToolState.hpp"
+#include "Tools/MoveSlotToolState.hpp"
 
 class TemporalScenarioPresenter;
 class ScenarioModel;
 class CreationToolState;
-class MoveToolState;
 class MoveSlotToolState;
 class QGraphicsScene;
 
@@ -34,33 +35,24 @@ class ScenarioStateMachine final : public BaseStateMachine
     public:
         ScenarioStateMachine(iscore::Document&, TemporalScenarioPresenter& presenter);
 
-        const TemporalScenarioPresenter& presenter() const;
-        const ScenarioModel& model() const { return m_model; }
+        const TemporalScenarioPresenter& presenter() const
+        { return m_presenter; }
+        const ScenarioEditionSettings& editionSettings() const;
+
+        const ScenarioModel& model() const
+        { return m_model; }
 
         iscore::CommandStack& commandStack() const
         { return m_commandStack; }
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
-        ScenarioToolKind tool() const;
-        const ExpandMode& expandMode() const
-        { return m_expandMode; }
-        bool isShiftPressed() const;
-
-        void changeTool(int);
+        void changeTool(ScenarioToolKind);
 
         ScenarioPoint scenarioPoint;
 
     signals:
-        void setCreateState();
-        void setSelectState();
-        void setMoveState();
-        void setSlotMoveState();
-        void setPlayState();
         void exitState();
-
-        void shiftPressed();
-        void shiftReleased();
 
     private:
         TemporalScenarioPresenter& m_presenter;
@@ -68,12 +60,9 @@ class ScenarioStateMachine final : public BaseStateMachine
         iscore::CommandStack& m_commandStack;
         iscore::ObjectLocker& m_locker;
 
-        const ExpandMode& m_expandMode; // Reference to the one in ScenarioControl.
-
-        CreationToolState* createState{};
-        MoveToolState* moveState{};
-        Scenario::SelectionAndMoveTool* selectState{};
-        MoveSlotToolState* moveSlotState{};
+        CreationToolState createTool;
+        Scenario::SelectionAndMoveTool selectTool;
+        MoveSlotToolState moveSlotTool;
         QState* playState{};
         QState* transitionState{};
 
@@ -81,6 +70,4 @@ class ScenarioStateMachine final : public BaseStateMachine
         QState* scaleState{};
         QState* growState{};
         QState* fixedState{};
-        QState* shiftReleasedState{};
-        QState* shiftPressedState{};
 };

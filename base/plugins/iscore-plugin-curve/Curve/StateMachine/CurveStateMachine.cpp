@@ -77,7 +77,7 @@ void CurveStateMachine::setupPostEvents()
                     1. - point.y() / m_presenter.view().boundingRect().height()};
     };
 
-    auto updateData = [=] (const QPointF& point)
+    auto updateData = [=] (QPointF point)
     {
         scenePoint = point;
         curvePoint = QPointFToCurvePoint(m_presenter.view().mapFromScene(point));

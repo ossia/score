@@ -138,7 +138,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     auto it = std::find_if(controls.begin(), controls.end(),
                         [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
     ISCORE_ASSERT(it != controls.end());
-    auto expandmode = static_cast<ScenarioControl*>(*it)->expandMode();
+    auto expandmode = static_cast<ScenarioControl*>(*it)->editionSettings().expandMode();
 
     if(m_model.objectName() != "BaseConstraintModel")
     {

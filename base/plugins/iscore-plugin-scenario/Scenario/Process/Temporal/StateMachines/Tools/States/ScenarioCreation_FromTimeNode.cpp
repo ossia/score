@@ -18,7 +18,7 @@
 #include <Scenario/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.hpp>
-
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <QFinalState>
 
 using namespace Scenario::Command;
@@ -193,7 +193,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        stateMachine.isShiftPressed());
+                        stateMachine.editionSettings().sequence());
         });
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
@@ -208,7 +208,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                         Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
                         TimeValue::zero(),
-                        stateMachine.expandMode());
+                        stateMachine.editionSettings().expandMode());
         });
 
         QObject::connect(released, &QState::entered, [&] ()

@@ -23,7 +23,7 @@ class PropertyCommand : public SerializableCommand
         PropertyCommand(Path_T&& path,
                         const QString& property,
                         const QVariant& newval):
-            m_path{std::move(std::move(path).moveUnsafePath())},
+            m_path{std::move(path).unsafePath()},
             m_property{property},
             m_new{newval}
         {

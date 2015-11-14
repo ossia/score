@@ -1,9 +1,10 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-
+class ScenarioEditionSettings;
 class ScenarioFactory final : public ProcessFactory
 {
     public:
+        ScenarioFactory(ScenarioEditionSettings&);
         const ProcessFactoryKey& key_impl() const override;
         QString prettyName() const override;
 
@@ -26,5 +27,8 @@ class ScenarioFactory final : public ProcessFactory
         LayerView* makeLayerView(
                 const LayerModel& viewmodel,
                 QGraphicsItem* parent) override;
+
+    private:
+        ScenarioEditionSettings& m_editionSettings;
 
 };

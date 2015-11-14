@@ -357,6 +357,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 
     MacroCommandDispatcher dispatcher{new ScenarioPasteContent, this->dispatcher().stack()};
     auto selectedConstraints = selectedElements(sm->constraints);
+    auto expandMode = pres->editionSettings().expandMode();
     for(const auto& json_vref : obj["Constraints"].toArray())
     {
         for(const auto& constraint : selectedConstraints)
@@ -364,7 +365,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
             auto cmd = new Scenario::Command::InsertContentInConstraint{
                        json_vref.toObject(),
                        *constraint,
-                       pres->stateMachine().expandMode()};
+                       expandMode};
 
             dispatcher.submitCommand(cmd);
         }

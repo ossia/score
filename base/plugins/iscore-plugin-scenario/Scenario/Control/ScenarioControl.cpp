@@ -31,6 +31,7 @@
 #include <core/document/DocumentView.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
+#include "Menus/TransportActions.hpp"
 
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
@@ -103,7 +104,7 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 
 ScenarioControl* ScenarioControl::instance(Presenter* pres)
 {
-    static auto ctrl = new ScenarioControl(pres);
+    static auto ctrl = new ScenarioControl{pres};
     return ctrl;
 }
 
@@ -149,7 +150,6 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     }
 }
 
-#include "Menus/TransportActions.hpp"
 QList<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
@@ -198,7 +198,7 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
 
     if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
-        s_pres->stateMachine().changeTool((int)ScenarioToolKind::Select);
+        s_pres->stateMachine().changeTool(ScenarioToolKind::Select);
     }
 
     disconnect(m_contextMenuConnection);

@@ -105,8 +105,10 @@ class Path
         template<typename U>
         auto splitLast() &&
         {
+            // Note : we *must not* move directly m_impl
+            // because it carries a cache that becomes wrong.
             auto last = m_impl.vec().takeLast();
-            return std::make_pair(Path<U>{std::move(m_impl)}, std::move(last));
+            return std::make_pair(Path<U>{std::move(m_impl.vec())}, std::move(last));
         }
 
         // TODO do the same for ids
@@ -132,12 +134,11 @@ class Path
         Object* try_find() const
         { return m_impl.try_find<Object>(); }
 
-        const auto& unsafePath() const
+        const auto& unsafePath() const &
         { return m_impl; }
-        auto& unsafePath()
+        auto& unsafePath() &
         { return m_impl; }
-
-        auto&& moveUnsafePath()
+        auto&& unsafePath() &&
         { return std::move(m_impl); }
 
         bool valid() const
@@ -146,6 +147,7 @@ class Path
     private:
         Path(const ObjectPath& path): m_impl{path} { }
         Path(ObjectPath&& path): m_impl{std::move(path)} { }
+        Path(QVector<ObjectIdentifier>&& path): m_impl{std::move(path)} { }
         ObjectPath m_impl;
 };
 

@@ -18,6 +18,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
+#include <Scenario/Control/ScenarioEditionSettings.hpp>
 
 namespace iscore
 {
@@ -49,6 +50,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
     public:
         TemporalScenarioPresenter(
+                ScenarioEditionSettings&,
                 const TemporalScenarioLayerModel& model,
                 LayerView* view,
                 QObject* parent);
@@ -74,7 +76,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         const auto& constraints() const
         { return m_constraints; }
         const auto& states() const
-        { return m_displayedStates; }
+        { return m_states; }
 
         TemporalScenarioView& view() const
         { return *m_view; }
@@ -83,6 +85,9 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
         ScenarioStateMachine& stateMachine()
         { return m_sm; }
+        auto& editionSettings() const
+        { return m_editionSettings; }
+
 
         void fillContextMenu(
                 QMenu *,
@@ -115,8 +120,16 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
         void on_askUpdate();
 
-    protected:
-        IdContainer<StatePresenter, StateModel> m_displayedStates;
+    private:
+        void on_focusChanged() override;
+
+        template<typename Map, typename Id>
+        void removeElement(Map& map, const Id& id);
+
+        void updateAllElements();
+        void eventHasTrigger(const EventPresenter&, bool);
+
+        IdContainer<StatePresenter, StateModel> m_states;
         IdContainer<EventPresenter, EventModel> m_events;
         IdContainer<TimeNodePresenter, TimeNodeModel> m_timeNodes;
         IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
@@ -126,17 +139,9 @@ class TemporalScenarioPresenter final : public LayerPresenter
         const TemporalScenarioLayerModel& m_layer;
         TemporalScenarioView* m_view;
 
-    private:
-        void on_focusChanged() override;
-
-        template<typename Map, typename Id>
-        void removeElement(Map& map, const Id& id);
-
-
-        void updateAllElements();
-        void eventHasTrigger(const EventPresenter&, bool);
-
         ScenarioViewInterface* m_viewInterface{};
+
+        ScenarioEditionSettings& m_editionSettings;
         ScenarioStateMachine m_sm;
 
         FocusDispatcher m_focusDispatcher;

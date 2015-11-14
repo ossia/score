@@ -5,6 +5,12 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
+ScenarioFactory::ScenarioFactory(ScenarioEditionSettings& e):
+    m_editionSettings{e}
+{
+
+}
+
 LayerView* ScenarioFactory::makeLayerView(
         const LayerModel& viewmodel,
         QGraphicsItem* parent)
@@ -23,7 +29,7 @@ ScenarioFactory::makeLayerPresenter(
 {
     if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
     {
-        auto pres = new TemporalScenarioPresenter {*vm, view, parent};
+        auto pres = new TemporalScenarioPresenter {m_editionSettings, *vm, view, parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
     }

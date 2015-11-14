@@ -7,45 +7,25 @@
 #include <QPointF>
 
 class ScenarioStateMachine;
-// TODO refactor this one.
-class GenericStateBase : public QState
-{
-    public:
-        GenericStateBase(const ScenarioStateMachine& sm) :
-            m_sm{sm}
-        {
-        }
-
-
-    protected:
-        QStateMachine m_localSM;
-        const ScenarioStateMachine& m_sm;
-};
 
 class SlotModel;
-class MoveSlotToolState final : public GenericStateBase
+class MoveSlotToolState
 {
     public:
         MoveSlotToolState(const ScenarioStateMachine &sm);
 
-        void on_scenarioPressed();
-        void on_scenarioMoved();
-        void on_scenarioReleased();
+        void on_pressed();
+        void on_moved();
+        void on_released();
 
         // TODO refactor this with ToolState
-        void start()
-        {
-            if(!m_localSM.isRunning())
-                m_localSM.start();
-        }
-        void stop()
-        {
-            if(m_localSM.isRunning())
-                m_localSM.stop();
-        }
+        void start();
+        void stop();
 
     private:
         QState* m_waitState{};
 
         QPointF m_originalPoint;
+        QStateMachine m_localSM;
+        const ScenarioStateMachine& m_sm;
 };

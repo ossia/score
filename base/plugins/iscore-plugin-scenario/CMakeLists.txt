@@ -147,6 +147,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ContextMenuDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/ScenarioControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/ScenarioEditionSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"

@@ -20,27 +20,10 @@
 #include <QFinalState>
 #include <QGraphicsScene>
 MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
-    GenericStateBase{sm}
+    m_sm{sm}
 {
     /// 1. Set the scenario in the correct state with regards to this tool.
-    connect(this, &QState::entered,
-            [&] ()
-    {
-        for(const auto& constraint : m_sm.presenter().constraints())
-        {
-            if(!constraint.rack()) continue;
-            constraint.rack()->setDisabledSlotState();
-        }
-    });
-    connect(this, &QState::exited,
-            [&] ()
-    {
-        for(const auto& constraint : m_sm.presenter().constraints())
-        {
-            if(!constraint.rack()) continue;
-            constraint.rack()->setEnabledSlotState();
-        }
-    });
+    /// (done in start () / stop () )
 
     /// 2. Setup the sub-state machine.
     m_waitState = new QState{&m_localSM};
@@ -66,48 +49,54 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
 
         resizeSlot->addTransition(resizeSlot, SIGNAL(finished()), m_waitState);
     }
+}
 
-    // 3. Map the external events to internal transitions of this state machine.
-    auto on_press = new Press_Transition;
-    this->addTransition(on_press);
-    connect(on_press, &QAbstractTransition::triggered, [&] ()
+void MoveSlotToolState::on_pressed()
+{
+    auto item = m_sm.scene().itemAt(m_sm.scenePoint, QTransform());
+    if(auto overlay = dynamic_cast<SlotOverlay*>(item))
     {
-        auto item = m_sm.scene().itemAt(m_sm.scenePoint, QTransform());
-        if(auto overlay = dynamic_cast<SlotOverlay*>(item))
-        {
-            m_localSM.postEvent(new ClickOnSlotOverlay_Event{
-                                    overlay->slotView().presenter.model()});
-        }
-        else if(auto handle = dynamic_cast<SlotHandle*>(item))
-        {
-            m_localSM.postEvent(new ClickOnSlotHandle_Event{
-                                    handle->slotView().presenter.model()});
-        }
-    });
-
-    // Forward events
-    auto on_move = new Move_Transition;
-    this->addTransition(on_move);
-    connect(on_move, &QAbstractTransition::triggered, [&] ()
-    { m_localSM.postEvent(new Move_Event); });
-
-    auto on_release = new Release_Transition;
-    this->addTransition(on_release);
-    connect(on_release, &QAbstractTransition::triggered, [&] ()
-    { m_localSM.postEvent(new Release_Event); });
+        m_localSM.postEvent(new ClickOnSlotOverlay_Event{
+                                overlay->slotView().presenter.model()});
+    }
+    else if(auto handle = dynamic_cast<SlotHandle*>(item))
+    {
+        m_localSM.postEvent(new ClickOnSlotHandle_Event{
+                                handle->slotView().presenter.model()});
+    }
 }
 
-void MoveSlotToolState::on_scenarioPressed()
+void MoveSlotToolState::on_moved()
 {
+    m_localSM.postEvent(new Move_Event);
 }
 
-void MoveSlotToolState::on_scenarioMoved()
+void MoveSlotToolState::on_released()
 {
-
+     m_localSM.postEvent(new Release_Event);
 }
 
-void MoveSlotToolState::on_scenarioReleased()
+void MoveSlotToolState::start()
 {
+    if(!m_localSM.isRunning())
+        m_localSM.start();
 
+    for(const auto& constraint : m_sm.presenter().constraints())
+    {
+        if(!constraint.rack()) continue;
+        constraint.rack()->setDisabledSlotState();
+    }
+}
+
+void MoveSlotToolState::stop()
+{
+    if(m_localSM.isRunning())
+        m_localSM.stop();
+
+    for(const auto& constraint : m_sm.presenter().constraints())
+    {
+        if(!constraint.rack()) continue;
+        constraint.rack()->setEnabledSlotState();
+    }
 }
 

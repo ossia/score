@@ -84,7 +84,7 @@ void ScenarioCreationState::createToNothing_base(const Id<StateModel> & original
         createdConstraints.append(cmd->createdConstraint());
     };
 
-    if(!m_parentSM.isShiftPressed())
+    if(!m_parentSM.editionSettings().sequence())
     {
         create(new CreateConstraint_State_Event_TimeNode{
                 m_scenarioPath,

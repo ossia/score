@@ -4,6 +4,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 
 #include <QFinalState>
@@ -121,7 +122,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                             Path<ScenarioModel>{m_scenarioPath},
                             evId,
                             currentPoint.date,
-                            stateMachine.expandMode());
+                            stateMachine.editionSettings().expandMode());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -182,14 +183,14 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
             const auto& ev_id = tn.events().first();
             auto date = currentPoint.date;
 
-            if (!stateMachine.isShiftPressed())
+            if (!stateMachine.editionSettings().sequence())
                 date = tn.date();
 
             m_dispatcher.submitCommand(
                             Path<ScenarioModel>{m_scenarioPath},
                             ev_id,
                             date,
-                            stateMachine.expandMode());
+                            stateMachine.editionSettings().expandMode());
         });
 
         QObject::connect(released, &QState::entered, [&] ()

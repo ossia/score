@@ -26,8 +26,8 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 #include <iostream>
-ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm, QState* parent) :
-    ToolState{sm.scene(), parent},
+ScenarioTool::ScenarioTool(const ScenarioStateMachine &sm) :
+    GraphicsSceneToolBase<ScenarioPoint>{sm.scene()},
     m_parentSM{sm}
 {
 }

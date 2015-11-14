@@ -7,6 +7,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Control/ScenarioEditionSettings.hpp>
 #include "Menus/ContextMenuDispatcher.hpp"
 class QActionGroup;
 class ScenarioModel;
@@ -33,8 +34,6 @@ struct ScenarioRecordInitData
 };
 Q_DECLARE_METATYPE(ScenarioRecordInitData)
 
-
-
 class ScenarioControl final : public iscore::PluginControlInterface
 {
         Q_OBJECT
@@ -54,13 +53,10 @@ class ScenarioControl final : public iscore::PluginControlInterface
         const ScenarioModel* focusedScenarioModel() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
-        const ExpandMode& expandMode() const
-        { return m_expandMode; }
-
-        void setExpandMode(ExpandMode e)
-        { m_expandMode = e; }
-
         void reinit_tools();
+
+        ScenarioEditionSettings& editionSettings()
+        { return m_editionSettings; }
 
     signals:
         void keyPressed(int);
@@ -81,9 +77,8 @@ class ScenarioControl final : public iscore::PluginControlInterface
 
         ScenarioControl(iscore::Presenter* pres);
 
-        ExpandMode m_expandMode{ExpandMode::Scale};
-
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
+        ScenarioEditionSettings m_editionSettings;
 
         ObjectMenuActions* m_objectAction{};
         ToolMenuActions* m_toolActions{};
