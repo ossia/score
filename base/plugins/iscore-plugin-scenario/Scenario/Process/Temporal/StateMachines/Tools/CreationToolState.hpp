@@ -12,9 +12,9 @@ class CreationToolState final : public ScenarioTool
     public:
         CreationToolState(ScenarioStateMachine& sm);
 
-        void on_pressed(QPointF scene, ScenarioPoint sp) override;
-        void on_moved(QPointF scene, ScenarioPoint sp) override;
-        void on_released(QPointF scene, ScenarioPoint sp) override;
+        void on_pressed(QPointF scene, ScenarioPoint sp);
+        void on_moved(QPointF scene, ScenarioPoint sp);
+        void on_released(QPointF scene, ScenarioPoint sp);
     private:
         // Return the colliding elements that were not created in the current commands
         QList<Id<StateModel>> getCollidingStates(QPointF, const QVector<Id<StateModel>>& createdStates);

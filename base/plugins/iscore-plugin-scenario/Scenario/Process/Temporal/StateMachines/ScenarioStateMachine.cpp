@@ -15,7 +15,7 @@
 ScenarioStateMachine::ScenarioStateMachine(
         iscore::Document& doc,
         TemporalScenarioPresenter& presenter):
-    BaseStateMachine{*presenter.view().scene()},
+    GraphicsSceneToolPalette{*presenter.view().scene()},
     m_presenter{presenter},
     m_model{static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel())},
     m_commandStack{doc.commandStack()},
@@ -24,19 +24,10 @@ ScenarioStateMachine::ScenarioStateMachine(
     selectTool{*this},
     moveSlotTool{*this}
 {
-    connect(&editionSettings(), &ScenarioEditionSettings::toolChanged,
-            this, &ScenarioStateMachine::changeTool);
-
     connect(&model(), &Process::execution,
             this, [&] (bool b) {
-        if(b)
-        {
-            changeTool(ScenarioToolKind::Play);
-        }
-        else
-        {
-            changeTool(ScenarioToolKind::Select);
-        }
+            changeTool(b ? ScenarioToolKind::Play
+                         : ScenarioToolKind::Select);
     });
 
     auto QPointFToScenarioPoint = [&] (QPointF point) -> ScenarioPoint
@@ -50,7 +41,7 @@ ScenarioStateMachine::ScenarioStateMachine(
             [=] (const QPointF& point)
     {
         scenePoint = point;
-        scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+        auto scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
         switch(editionSettings().tool())
         {
             case ScenarioToolKind::Create:
@@ -60,7 +51,7 @@ ScenarioStateMachine::ScenarioStateMachine(
                 selectTool.on_pressed(point, scenarioPoint);
                 break;
             case ScenarioToolKind::MoveSlot:
-                selectTool.on_pressed(point, scenarioPoint);
+                moveSlotTool.on_pressed(point);
                 break;
             case ScenarioToolKind::Play:
                 break;
@@ -70,16 +61,19 @@ ScenarioStateMachine::ScenarioStateMachine(
             [=] (const QPointF& point)
     {
         scenePoint = point;
-        scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+        auto scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
         switch(editionSettings().tool())
         {
             case ScenarioToolKind::Create:
+                createTool.start();
                 createTool.on_released(point, scenarioPoint);
                 break;
             case ScenarioToolKind::Select:
+                selectTool.start();
                 selectTool.on_released(point, scenarioPoint);
                 break;
             case ScenarioToolKind::MoveSlot:
+                moveSlotTool.start();
                 moveSlotTool.on_released();
                 break;
             case ScenarioToolKind::Play:
@@ -90,7 +84,7 @@ ScenarioStateMachine::ScenarioStateMachine(
             [=] (const QPointF& point)
     {
         scenePoint = point;
-        scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+        auto scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
         switch(editionSettings().tool())
         {
             case ScenarioToolKind::Create:
@@ -107,7 +101,27 @@ ScenarioStateMachine::ScenarioStateMachine(
         }
     });
     connect(m_presenter.m_view, &TemporalScenarioView::escPressed,
-            [=] () { this->postEvent(new Cancel_Event); });
+            [=] ()
+    {
+        switch(editionSettings().tool())
+        {
+            case ScenarioToolKind::Create:
+                createTool.on_cancel();
+                break;
+            case ScenarioToolKind::Select:
+                selectTool.on_cancel();
+                break;
+            case ScenarioToolKind::MoveSlot:
+                moveSlotTool.on_cancel();
+                break;
+            case ScenarioToolKind::Play:
+                break;
+        }
+    });
+
+    connect(&editionSettings(), &ScenarioEditionSettings::toolChanged,
+            this, &ScenarioStateMachine::changeTool);
+    changeTool(editionSettings().tool());
 }
 
 const ScenarioEditionSettings&ScenarioStateMachine::editionSettings() const
@@ -128,14 +142,14 @@ void ScenarioStateMachine::changeTool(ScenarioToolKind state)
             createTool.start();
             break;
         }
-        case ScenarioToolKind::MoveSlot:
-        {
-            moveSlotTool.start();
-            break;
-        }
         case ScenarioToolKind::Select:
         {
             selectTool.start();
+            break;
+        }
+        case ScenarioToolKind::MoveSlot:
+        {
+            moveSlotTool.start();
             break;
         }
         case ScenarioToolKind::Play:

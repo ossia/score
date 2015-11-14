@@ -49,11 +49,11 @@ class GraphicsSceneToolBase
             if(localSM().isRunning())
                 localSM().stop();
         }
-
+/*
         virtual void on_pressed(QPointF scene, Coordinates) = 0;
         virtual void on_moved(QPointF scene, Coordinates) = 0;
         virtual void on_released(QPointF scene, Coordinates) = 0;
-        void on_cancel()
+*/        void on_cancel()
         {
             localSM().postEvent(new Cancel_Event);
         }

@@ -30,7 +30,7 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the slot, one for resizing with the handle.
     {
-        auto dragSlot = new DragSlotState{m_sm.commandStack(), m_sm, m_sm.scene(), &m_localSM};
+        auto dragSlot = new DragSlotState<ScenarioStateMachine>{m_sm.commandStack(), m_sm, m_sm.scene(), &m_localSM};
         // Enter the state
         make_transition<ClickOnSlotOverlay_Transition>(
                     m_waitState,
@@ -41,7 +41,7 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     }
 
     {
-        auto resizeSlot = new ResizeSlotState{m_sm.commandStack(), m_sm, &m_localSM};
+        auto resizeSlot = new ResizeSlotState<ScenarioStateMachine>{m_sm.commandStack(), m_sm, &m_localSM};
         make_transition<ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,
@@ -51,9 +51,9 @@ MoveSlotToolState::MoveSlotToolState(const ScenarioStateMachine& sm):
     }
 }
 
-void MoveSlotToolState::on_pressed()
+void MoveSlotToolState::on_pressed(QPointF scenePoint)
 {
-    auto item = m_sm.scene().itemAt(m_sm.scenePoint, QTransform());
+    auto item = m_sm.scene().itemAt(scenePoint, QTransform());
     if(auto overlay = dynamic_cast<SlotOverlay*>(item))
     {
         m_localSM.postEvent(new ClickOnSlotOverlay_Event{
@@ -73,7 +73,12 @@ void MoveSlotToolState::on_moved()
 
 void MoveSlotToolState::on_released()
 {
-     m_localSM.postEvent(new Release_Event);
+    m_localSM.postEvent(new Release_Event);
+}
+
+void MoveSlotToolState::on_cancel()
+{
+    ISCORE_TODO;
 }
 
 void MoveSlotToolState::start()

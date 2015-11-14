@@ -118,8 +118,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
             m_view,             &TemporalScenarioView::lock);
     con(model(m_layer), &ScenarioModel::unlocked,
             m_view,             &TemporalScenarioView::unlock);
-
-    m_sm.start();
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
@@ -251,8 +249,9 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 void TemporalScenarioPresenter::on_focusChanged()
 {
-    // TODO lefuck ?
+    // TODO why isn't m_focus checked ??
     m_view->setFocus();
+
     editionSettings().setTool(ScenarioToolKind::Select);
 }
 

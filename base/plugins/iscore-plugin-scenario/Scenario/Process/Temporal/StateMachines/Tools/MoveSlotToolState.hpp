@@ -14,9 +14,11 @@ class MoveSlotToolState
     public:
         MoveSlotToolState(const ScenarioStateMachine &sm);
 
-        void on_pressed();
+        void on_pressed(QPointF scene);
         void on_moved();
         void on_released();
+
+        void on_cancel();
 
         // TODO refactor this with ToolState
         void start();

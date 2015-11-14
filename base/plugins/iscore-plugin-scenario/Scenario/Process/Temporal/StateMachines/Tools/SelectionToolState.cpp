@@ -112,7 +112,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
 
 
     /// Slot resize
-    auto resizeSlot = new ResizeSlotState{
+    auto resizeSlot = new ResizeSlotState<ScenarioStateMachine>{
             m_parentSM.commandStack(),
             m_parentSM,
             &localSM()};

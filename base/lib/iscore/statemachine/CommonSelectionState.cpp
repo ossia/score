@@ -66,7 +66,6 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
                         this, &CommonSelectionState::on_pressAreaSelection);
                 connect(moveAreaSelection, &QState::entered,
                         this, &CommonSelectionState::on_moveAreaSelection);
-
                 connect(releaseAreaSelection, &QState::entered,
                         this, &CommonSelectionState::on_releaseAreaSelection);
             }

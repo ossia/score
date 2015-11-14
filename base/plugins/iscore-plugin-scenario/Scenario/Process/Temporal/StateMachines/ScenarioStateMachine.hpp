@@ -29,9 +29,8 @@ namespace Scenario
 // TODO namespace Scenario everywhere.
 class SelectionAndMoveTool;
 }
-class ScenarioStateMachine final : public BaseStateMachine
+class ScenarioStateMachine final : public GraphicsSceneToolPalette
 {
-        Q_OBJECT
     public:
         ScenarioStateMachine(iscore::Document&, TemporalScenarioPresenter& presenter);
 
@@ -49,11 +48,6 @@ class ScenarioStateMachine final : public BaseStateMachine
 
         void changeTool(ScenarioToolKind);
 
-        ScenarioPoint scenarioPoint;
-
-    signals:
-        void exitState();
-
     private:
         TemporalScenarioPresenter& m_presenter;
         const ScenarioModel& m_model;
@@ -63,11 +57,4 @@ class ScenarioStateMachine final : public BaseStateMachine
         CreationToolState createTool;
         Scenario::SelectionAndMoveTool selectTool;
         MoveSlotToolState moveSlotTool;
-        QState* playState{};
-        QState* transitionState{};
-
-
-        QState* scaleState{};
-        QState* growState{};
-        QState* fixedState{};
 };
