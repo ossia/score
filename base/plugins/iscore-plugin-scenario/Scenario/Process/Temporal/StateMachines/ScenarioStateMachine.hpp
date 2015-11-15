@@ -41,8 +41,13 @@ class ToolPalette final : public GraphicsSceneToolPalette
         iscore::ObjectLocker& locker() const
         { return m_locker; }
 
+        void on_pressed(QPointF);
+        void on_moved(QPointF);
+        void on_released(QPointF);
+        void on_cancel();
 
     private:
+        Scenario::Point ScenePointToScenarioPoint(QPointF point);
         void changeTool(Scenario::Tool);
         TemporalScenarioPresenter& m_presenter;
         const ScenarioModel& m_model;

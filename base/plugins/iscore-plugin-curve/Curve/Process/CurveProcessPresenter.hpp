@@ -49,22 +49,6 @@ class CurveProcessPresenter : public LayerPresenter
                     this, [&] (QPointF pt)
             {
                 m_focusDispatcher.focus(this);
-                m_curvepresenter->stateMachine().on_pressed(pt);
-            });
-            connect(cv, &CurveView::moved,
-                    this, [&] (QPointF pt)
-            {
-                m_curvepresenter->stateMachine().on_moved(pt);
-            });
-            connect(cv, &CurveView::released,
-                    this, [&] (QPointF pt)
-            {
-                m_curvepresenter->stateMachine().on_released(pt);
-            });
-            connect(cv, &CurveView::escPressed,
-                    this, [&] ()
-            {
-                m_curvepresenter->stateMachine().on_cancel();
             });
 
             connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,

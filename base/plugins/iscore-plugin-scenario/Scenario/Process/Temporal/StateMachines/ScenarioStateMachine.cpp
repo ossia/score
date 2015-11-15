@@ -26,101 +26,9 @@ ToolPalette::ToolPalette(
     m_selectTool{*this},
     m_moveSlotTool{*this}
 {
-    auto ScenePointToScenarioPoint = [&] (QPointF point) -> Scenario::Point
-    {
-        return ConvertToScenarioPoint(
-                    point,
-                    m_presenter.zoomRatio(),
-                    m_presenter.view().boundingRect().height());
-    };
-    connect(m_presenter.m_view, &TemporalScenarioView::scenarioPressed,
-            [=] (QPointF point)
-    {
-        scenePoint = point;
-        auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-        switch(editionSettings().tool())
-        {
-            case Scenario::Tool::Create:
-                m_createTool.start();
-                m_createTool.on_pressed(point, scenarioPoint);
-                break;
-            case Scenario::Tool::Select:
-                m_selectTool.start();
-                m_selectTool.on_pressed(point, scenarioPoint);
-                break;
-            case Scenario::Tool::MoveSlot:
-                m_moveSlotTool.start();
-                m_moveSlotTool.on_pressed(point);
-                break;
-            default:
-                break;
-        }
-    });
-
-    connect(m_presenter.m_view, &TemporalScenarioView::scenarioReleased,
-            [=] (QPointF point)
-    {
-        scenePoint = point;
-        auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-        switch(editionSettings().tool())
-        {
-            case Scenario::Tool::Create:
-                m_createTool.on_released(point, scenarioPoint);
-                break;
-            case Scenario::Tool::Select:
-                m_selectTool.on_released(point, scenarioPoint);
-                break;
-            case Scenario::Tool::MoveSlot:
-                m_moveSlotTool.on_released();
-                break;
-            default:
-                break;
-        }
-    });
-
-    connect(m_presenter.m_view, &TemporalScenarioView::scenarioMoved,
-            [=] (QPointF point)
-    {
-        scenePoint = point;
-        auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-        switch(editionSettings().tool())
-        {
-            case Scenario::Tool::Create:
-                m_createTool.on_moved(point, scenarioPoint);
-                break;
-            case Scenario::Tool::Select:
-                m_selectTool.on_moved(point, scenarioPoint);
-                break;
-            case Scenario::Tool::MoveSlot:
-                m_moveSlotTool.on_moved();
-                break;
-            default:
-                break;
-        }
-    });
-
-    connect(m_presenter.m_view, &TemporalScenarioView::escPressed,
-            [=] ()
-    {
-        switch(editionSettings().tool())
-        {
-            case Scenario::Tool::Create:
-                m_createTool.on_cancel();
-                break;
-            case Scenario::Tool::Select:
-                m_selectTool.on_cancel();
-                break;
-            case Scenario::Tool::MoveSlot:
-                m_moveSlotTool.on_cancel();
-                break;
-            default:
-                break;
-        }
-    });
-
-    con(editionSettings(), &Scenario::EditionSettings::toolChanged,
-            this, &ToolPalette::changeTool);
-    changeTool(editionSettings().tool());
+    m_createTool.start();
+    m_selectTool.start();
+    m_moveSlotTool.start();
 }
 
 const Scenario::EditionSettings&ToolPalette::editionSettings() const
@@ -128,29 +36,92 @@ const Scenario::EditionSettings&ToolPalette::editionSettings() const
     return m_presenter.editionSettings();
 }
 
-void ToolPalette::changeTool(Scenario::Tool state)
+void ToolPalette::on_pressed(QPointF point)
 {
-    m_createTool.stop();
-    m_selectTool.stop();
-    m_moveSlotTool.stop();
-
-    switch(state)
+    scenePoint = point;
+    auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+    switch(editionSettings().tool())
     {
         case Scenario::Tool::Create:
-            m_createTool.start();
+            m_createTool.on_pressed(point, scenarioPoint);
             break;
         case Scenario::Tool::Select:
-            m_selectTool.start();
+            m_selectTool.on_pressed(point, scenarioPoint);
             break;
         case Scenario::Tool::MoveSlot:
-            m_moveSlotTool.start();
-            break;
-        case Scenario::Tool::Disabled:
-        case Scenario::Tool::Playing:
+            m_moveSlotTool.on_pressed(point);
             break;
         default:
-            ISCORE_ABORT;
             break;
     }
+
+}
+
+void ToolPalette::on_moved(QPointF point)
+{
+    scenePoint = point;
+    auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+    switch(editionSettings().tool())
+    {
+        case Scenario::Tool::Create:
+            m_createTool.on_moved(point, scenarioPoint);
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_moved(point, scenarioPoint);
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_moved();
+            break;
+        default:
+            break;
+    }
+
+}
+
+void ToolPalette::on_released(QPointF point)
+{
+    scenePoint = point;
+    auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+    switch(editionSettings().tool())
+    {
+        case Scenario::Tool::Create:
+            m_createTool.on_released(point, scenarioPoint);
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_released(point, scenarioPoint);
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_released();
+            break;
+        default:
+            break;
+    }
+
+}
+
+void ToolPalette::on_cancel()
+{
+    switch(editionSettings().tool())
+    {
+        case Scenario::Tool::Create:
+            m_createTool.on_cancel();
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_cancel();
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_cancel();
+            break;
+        default:
+            break;
+    }
+}
+
+Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
+{
+    return ConvertToScenarioPoint(
+                point,
+                m_presenter.zoomRatio(),
+                m_presenter.view().boundingRect().height());
 }
 }

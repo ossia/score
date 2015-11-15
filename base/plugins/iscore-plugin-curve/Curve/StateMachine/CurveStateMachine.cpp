@@ -21,12 +21,16 @@ ToolPalette::ToolPalette(
     m_createTool{*this},
     m_setSegmentTool{*this}
 {
+    auto inputDisp = new ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, CurveView>(pres.view(), *this);
 }
 
 CurvePresenter& ToolPalette::presenter() const
 {
     return m_presenter;
 }
+
+Curve::EditionSettings& ToolPalette::editionSettings() const
+{ return m_presenter.editionSettings(); }
 
 const CurveModel& ToolPalette::model() const
 {
@@ -47,7 +51,7 @@ void ToolPalette::on_pressed(QPointF point)
 {
     scenePoint = point;
     auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-    switch(m_presenter.editionSettings().tool())
+    switch(editionSettings().tool())
     {
         case Curve::Tool::Create:
             m_createTool.on_pressed(point, curvePoint);
@@ -66,7 +70,7 @@ void ToolPalette::on_moved(QPointF point)
 {
     scenePoint = point;
     auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-    switch(m_presenter.editionSettings().tool())
+    switch(editionSettings().tool())
     {
         case Curve::Tool::Create:
             m_createTool.on_moved(point, curvePoint);
@@ -86,7 +90,7 @@ void ToolPalette::on_released(QPointF point)
 {
     scenePoint = point;
     auto curvePoint = ScenePointToCurvePoint(m_presenter.view().mapFromScene(point));
-    switch(m_presenter.editionSettings().tool())
+    switch(editionSettings().tool())
     {
         case Curve::Tool::Create:
             m_createTool.on_released(point, curvePoint);
@@ -104,7 +108,7 @@ void ToolPalette::on_released(QPointF point)
 
 void ToolPalette::on_cancel()
 {
-    switch(m_presenter.editionSettings().tool())
+    switch(editionSettings().tool())
     {
         case Curve::Tool::Create:
             m_createTool.on_cancel();
@@ -123,6 +127,6 @@ void ToolPalette::on_cancel()
 Point ToolPalette::ScenePointToCurvePoint(const QPointF& point)
 {
     return {point.x() / m_presenter.view().boundingRect().width(),
-                1. - point.y() / m_presenter.view().boundingRect().height()};
+            1. - point.y() / m_presenter.view().boundingRect().height()};
 }
 }
