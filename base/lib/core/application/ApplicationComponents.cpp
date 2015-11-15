@@ -1,4 +1,5 @@
 #include "ApplicationComponents.hpp"
+#include <iscore/tools/exceptions/MissingCommand.hpp>
 namespace iscore
 {
 iscore::SerializableCommand* ApplicationComponents::instantiateUndoCommand(

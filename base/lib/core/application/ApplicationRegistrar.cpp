@@ -4,7 +4,6 @@
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/tools/exceptions/MissingCommand.hpp>
 #include <core/application/ApplicationComponents.hpp>
 namespace iscore
 {
