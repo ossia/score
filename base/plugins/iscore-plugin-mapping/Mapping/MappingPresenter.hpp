@@ -2,10 +2,12 @@
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Curve/CurveStyle.hpp>
 
+#include <Mapping/MappingModel.hpp>
+#include <Mapping/MappingLayerModel.hpp>
+#include <Mapping/MappingView.hpp>
 
-#include "MappingModel.hpp"
-#include "MappingLayerModel.hpp"
-#include "MappingView.hpp"
+#include <Process/ProcessContext.hpp>
+
 class MappingPresenter :
         public CurveProcessPresenter<
             MappingLayerModel,
@@ -13,12 +15,13 @@ class MappingPresenter :
 {
     public:
         MappingPresenter(
+                iscore::DocumentContext& context,
                 Curve::EditionSettings& set,
-                const CurveStyle& style,
+                const Curve::Style& style,
                 const MappingLayerModel& layer,
                 MappingView* view,
                 QObject* parent):
-            CurveProcessPresenter{set, style, layer, view, parent}
+            CurveProcessPresenter{context, set, style, layer, view, parent}
         {
           ISCORE_TODO;
         }

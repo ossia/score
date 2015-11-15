@@ -15,8 +15,8 @@ class TemporalConstraintView final : public ConstraintView
         { return {0, -15, qreal(maxWidth()), qreal(constraintHeight()) }; }
 
         void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget) override;
+                   const QStyleOptionGraphicsItem* option,
+                   QWidget* widget) override;
 
         bool shadow() const;
         void setShadow(bool shadow);

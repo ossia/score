@@ -98,28 +98,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     con(m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
         this, &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
-    connect(m_view, &TemporalScenarioView::scenarioPressed,
-            this, [&] (QPointF pt)
-    {
-        m_focusDispatcher.focus(this);
-        stateMachine().on_pressed(pt);
-    });
-    connect(m_view, &TemporalScenarioView::scenarioMoved,
-            this, [&] (QPointF pt)
-    {
-        stateMachine().on_moved(pt);
-    });
-    connect(m_view, &TemporalScenarioView::scenarioReleased,
-            this, [&] (QPointF pt)
-    {
-        stateMachine().on_released(pt);
-    });
-    connect(m_view, &TemporalScenarioView::escPressed,
-            this, [&] ()
-    {
-        stateMachine().on_cancel();
-    });
-
     connect(m_view, &TemporalScenarioView::keyPressed,
             this,   &TemporalScenarioPresenter::keyPressed);
     connect(m_view, &TemporalScenarioView::keyReleased,

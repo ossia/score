@@ -93,7 +93,7 @@ void NetworkControl::on_sessionBuilt(
 
     auto doc = presenter()->documentManager().loadDocument(
                    m_sessionBuilder->documentData(),
-                   presenter()->applicationRegistrar().availableDocuments().front());
+                   presenter()->applicationComponents().availableDocuments().front());
 
     if(!doc)
     {
@@ -104,7 +104,7 @@ void NetworkControl::on_sessionBuilt(
     auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
-        auto cmd = presenter()->applicationRegistrar().instantiateUndoCommand(elt.first.first,
+        auto cmd = presenter()->applicationComponents().instantiateUndoCommand(elt.first.first,
                                                        elt.first.second,
                                                        elt.second);
 

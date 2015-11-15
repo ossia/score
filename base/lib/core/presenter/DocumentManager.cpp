@@ -57,7 +57,7 @@ Document* DocumentManager::setupDocument(Document* doc)
 {
     if(doc)
     {
-        for(auto& panel : m_presenter.applicationRegistrar().panelPresenters())
+        for(auto& panel : m_presenter.applicationComponents().panelPresenters())
         {
             doc->setupNewPanel(panel.second);
         }
@@ -84,7 +84,7 @@ void DocumentManager::setCurrentDocument(Document* doc)
     auto old = m_currentDocument;
     m_currentDocument = doc;
 
-    for(auto& pair : m_presenter.applicationRegistrar().panelPresenters())
+    for(auto& pair : m_presenter.applicationComponents().panelPresenters())
     {
         if(doc)
             m_currentDocument->bindPanelPresenter(pair.first);
@@ -92,7 +92,7 @@ void DocumentManager::setCurrentDocument(Document* doc)
             pair.first->setModel(nullptr);
     }
 
-    for(auto& ctrl : m_presenter.applicationRegistrar().controls())
+    for(auto& ctrl : m_presenter.applicationComponents().controls())
     {
         emit ctrl->documentChanged(old, m_currentDocument);
     }
@@ -235,12 +235,12 @@ Document* DocumentManager::loadFile(const QString& fileName)
         {
             if (fileName.indexOf(".scorebin") != -1)
             {
-                doc = loadDocument(f.readAll(), m_presenter.applicationRegistrar().availableDocuments().front());
+                doc = loadDocument(f.readAll(), m_presenter.applicationComponents().availableDocuments().front());
             }
             else if (fileName.indexOf(".scorejson") != -1)
             {
                 auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(json.object(), m_presenter.applicationRegistrar().availableDocuments().front());
+                doc = loadDocument(json.object(), m_presenter.applicationComponents().availableDocuments().front());
             }
 
             m_currentDocument->setDocFileName(fileName);
@@ -253,7 +253,7 @@ Document* DocumentManager::loadFile(const QString& fileName)
 
 void DocumentManager::prepareNewDocument()
 {
-    for(PluginControlInterface* control : m_presenter.applicationRegistrar().pluginControls())
+    for(PluginControlInterface* control : m_presenter.applicationComponents().pluginControls())
     {
         control->prepareNewDocument();
     }
@@ -277,7 +277,7 @@ void DocumentManager::restoreDocuments()
 {
     for(const auto& backup : DocumentBackups::restorableDocuments())
     {
-        restoreDocument(backup.first, backup.second, m_presenter.applicationRegistrar().availableDocuments().front());
+        restoreDocument(backup.first, backup.second, m_presenter.applicationComponents().availableDocuments().front());
     }
 }
 

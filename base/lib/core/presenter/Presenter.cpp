@@ -31,7 +31,6 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
     m_view {view},
     m_docManager{*this},
-    m_registrar{*this},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}
   #else
@@ -52,7 +51,7 @@ void Presenter::setupMenus()
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::New,
                 [&] () {
-        m_docManager.newDocument(applicationRegistrar().availableDocuments().front());
+        m_docManager.newDocument(applicationComponents().availableDocuments().front());
     });
 
     newAct->setShortcut(QKeySequence::New);

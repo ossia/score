@@ -3,6 +3,7 @@
 #include <iscore/selection/SelectionStack.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
 #include <core/command/CommandStack.hpp>
+#include <core/document/DocumentContext.hpp>
 
 #include <core/document/DocumentBackupManager.hpp>
 
@@ -35,6 +36,9 @@ namespace iscore
 
             ObjectLocker& locker()
             { return m_objectLocker; }
+
+            DocumentContext& context()
+            { return m_context; }
 
             DocumentModel& model() const
             { return *m_model; }
@@ -85,6 +89,10 @@ namespace iscore
             DocumentPresenter* m_presenter{};
 
             DocumentBackupManager* m_backupMgr{};
+
+            DocumentContext m_context;
     };
+
+
 
 }

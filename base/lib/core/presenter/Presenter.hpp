@@ -3,7 +3,6 @@
 
 #include <set>
 #include <core/document/Document.hpp>
-#include <core/application/ApplicationRegistrar.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
 #include <iscore/tools/NamedObject.hpp>
@@ -11,6 +10,7 @@
 
 #include <iscore/widgets/OrderedToolbar.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <unordered_map>
 
 
@@ -51,15 +51,17 @@ namespace iscore
 
             auto& documentManager()
             { return m_docManager; }
-            auto& applicationRegistrar()
-            { return m_registrar; }
+            ApplicationComponents applicationComponents()
+            { return m_components; }
 
+            auto& components()
+            { return m_components; }
         private:
             void setupMenus();
             View* m_view {};
 
             DocumentManager m_docManager;
-            ApplicationRegistrar m_registrar;
+            ApplicationComponentsData m_components;
 
             MenubarManager m_menubar;
 

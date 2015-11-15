@@ -196,7 +196,7 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
         elt->setEnabled(false);
     }
 
-    if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
+    if(dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
         // TODO this may not be necessary anymore since this is duplicated in on_focused.
         editionSettings().setTool(Scenario::Tool::Select);

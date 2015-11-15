@@ -1,5 +1,7 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
+#include <Process/Process.hpp>
+#include <Process/LayerModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 
 namespace Curve
@@ -57,6 +59,7 @@ class CurveProcessFactory_T : public ProcessFactory
                 QObject* parent) override
         {
             return new LayerPresenter_T {
+                iscore::IDocument::documentContext(lm.processModel()),
                 m_editionSettings,
                 m_colors.style(),
                 safe_cast<const LayerModel_T&>(lm),

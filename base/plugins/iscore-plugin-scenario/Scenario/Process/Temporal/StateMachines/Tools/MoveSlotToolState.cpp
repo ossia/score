@@ -51,6 +51,8 @@ MoveSlotTool::MoveSlotTool(const ToolPalette& sm):
 
         resizeSlot->addTransition(resizeSlot, SIGNAL(finished()), m_waitState);
     }
+
+    m_localSM.start();
 }
 
 void MoveSlotTool::on_pressed(QPointF scenePoint)

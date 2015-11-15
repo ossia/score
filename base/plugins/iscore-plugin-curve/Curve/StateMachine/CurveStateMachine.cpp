@@ -10,27 +10,29 @@
 
 namespace Curve
 {
+
 ToolPalette::ToolPalette(
-        CurvePresenter& pres,
-        QObject* parent):
+        LayerContext& f,
+        CurvePresenter& pres):
     GraphicsSceneToolPalette{*pres.view().scene()},
     m_presenter{pres},
     m_stack{iscore::IDocument::commandStack(m_presenter.model())},
     m_locker{iscore::IDocument::locker(m_presenter.model())},
     m_selectTool{*this},
     m_createTool{*this},
-    m_setSegmentTool{*this}
+    m_setSegmentTool{*this},
+    m_inputDisp{pres.view(), *this, f}
 {
-    auto inputDisp = new ToolPaletteInputDispatcher<Curve::Tool, ToolPalette, CurveView>(pres.view(), *this);
 }
-
 CurvePresenter& ToolPalette::presenter() const
 {
     return m_presenter;
 }
 
 Curve::EditionSettings& ToolPalette::editionSettings() const
-{ return m_presenter.editionSettings(); }
+{
+    return m_presenter.editionSettings();
+}
 
 const CurveModel& ToolPalette::model() const
 {
@@ -66,6 +68,7 @@ void ToolPalette::on_pressed(QPointF point)
             break;
     }
 }
+
 void ToolPalette::on_moved(QPointF point)
 {
     scenePoint = point;

@@ -1,9 +1,12 @@
 #pragma once
 #include <Curve/Process/CurveProcessPresenter.hpp>
 
-#include "AutomationModel.hpp"
-#include "AutomationLayerModel.hpp"
-#include "AutomationView.hpp"
+#include <Automation/AutomationModel.hpp>
+#include <Automation/AutomationLayerModel.hpp>
+#include <Automation/AutomationView.hpp>
+
+#include <Process/ProcessContext.hpp>
+
 class AutomationPresenter final :
         public CurveProcessPresenter<
             AutomationLayerModel,
@@ -11,12 +14,13 @@ class AutomationPresenter final :
 {
     public:
         AutomationPresenter(
+                iscore::DocumentContext& context,
                 Curve::EditionSettings& set,
-                const CurveStyle& style,
+                const Curve::Style& style,
                 const AutomationLayerModel& layer,
                 AutomationView* view,
                 QObject* parent):
-            CurveProcessPresenter{set, style, layer, view, parent}
+            CurveProcessPresenter{context, set, style, layer, view, parent}
         {
             con(m_layer.model(), &AutomationModel::addressChanged,
                 this, [&] (const auto&)

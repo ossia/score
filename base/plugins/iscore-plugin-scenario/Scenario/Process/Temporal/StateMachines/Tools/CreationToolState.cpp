@@ -85,6 +85,7 @@ CreationTool::CreationTool(ToolPalette& sm) :
 
     localSM().addState(m_createFromStateState);
 
+    localSM().start();
 }
 
 void CreationTool::on_pressed(QPointF scene, Scenario::Point sp)

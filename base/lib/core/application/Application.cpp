@@ -1,6 +1,7 @@
 #include <core/application/Application.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
 
+#include <core/application/ApplicationRegistrar.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
@@ -195,6 +196,8 @@ Application &Application::instance()
 
 void Application::loadPluginData()
 {
+    ApplicationRegistrar registrar{m_presenter->components(), *m_presenter};
+
     for(auto& set : m_pluginManager.m_settingsList)
     {
         m_settings->setupSettingsPlugin(set);
@@ -202,7 +205,7 @@ void Application::loadPluginData()
 
     for(auto& cmd : m_pluginManager.m_controlList)
     {
-        m_presenter->applicationRegistrar().registerPluginControl(cmd);
+        registrar.registerPluginControl(cmd);
     }
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
@@ -213,14 +216,14 @@ void Application::loadPluginData()
 
     for(auto& pnl : m_pluginManager.m_panelList)
     {
-        m_presenter->applicationRegistrar().registerPanel(pnl);
+        registrar.registerPanel(pnl);
     }
 
     for(auto& pnl : m_pluginManager.m_documentPanelList)
     {
-        m_presenter->applicationRegistrar().registerDocumentDelegate(pnl);
+        registrar.registerDocumentDelegate(pnl);
     }
 
-    m_presenter->applicationRegistrar().registerCommands(std::move(m_pluginManager.m_commands));
+    registrar.registerCommands(std::move(m_pluginManager.m_commands));
 }
 

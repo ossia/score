@@ -79,3 +79,8 @@ iscore::ObjectLocker &iscore::IDocument::locker(const QObject &obj)
 {
     return documentFromObject(obj)->locker();
 }
+
+iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
+{
+    return documentFromObject(obj)->context();
+}

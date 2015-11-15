@@ -24,12 +24,11 @@ static QPointF myscale(QPointF first, QSizeF second)
 
 CurvePresenter::CurvePresenter(
         Curve::EditionSettings& e,
-        const CurveStyle& style,
+        const Curve::Style& style,
         const CurveModel& model,
         CurveView* view,
         QObject* parent):
     QObject{parent},
-    m_editionSettings{e},
     m_model{model},
     m_view{view},
     m_commandDispatcher{iscore::IDocument::commandStack(model)},
@@ -40,8 +39,6 @@ CurvePresenter::CurvePresenter(
     // If the segment is linked to another, the point is shared.
     setupView();
     setupSignals();
-
-    m_sm = new Curve::ToolPalette{*this, this};
 
     connect(m_view, &CurveView::contextMenuRequested,
             this, &CurvePresenter::contextMenuRequested);

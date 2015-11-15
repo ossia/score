@@ -12,7 +12,7 @@ class CommandStack;
 class SelectionStack;
 class PanelModel;
 class ObjectLocker;
-
+struct DocumentContext;
 namespace IDocument
 {
 /**
@@ -23,6 +23,7 @@ namespace IDocument
  */
 Document* documentFromObject(const QObject* obj);
 Document* documentFromObject(const QObject& obj);
+DocumentContext& documentContext(const QObject& obj);
 
 iscore::CommandStack& commandStack(const QObject& obj);
 iscore::SelectionStack& selectionStack(const QObject& obj);

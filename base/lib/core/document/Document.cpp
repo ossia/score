@@ -16,12 +16,24 @@
 #include <QSettings>
 
 using namespace iscore;
+
+DocumentContext::DocumentContext(Document& d):
+    document{d},
+    commandStack{d.commandStack()},
+    selectionStack{d.selectionStack()},
+    objectLocker{d.locker()}
+{
+
+}
+
+
 Document::Document(DocumentDelegateFactoryInterface* factory,
                    QWidget* parentview,
                    QObject* parent) :
     NamedObject {"Document", parent},
     m_objectLocker{this},
-    m_backupMgr{new DocumentBackupManager{*this}}
+    m_backupMgr{new DocumentBackupManager{*this}},
+    m_context{*this}
 {
     /// Construction of the document model
 

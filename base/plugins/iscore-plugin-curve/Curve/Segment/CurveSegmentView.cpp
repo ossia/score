@@ -15,7 +15,7 @@ static const QPainterPathStroker CurveSegmentStroker{
 };
 CurveSegmentView::CurveSegmentView(
         const CurveSegmentModel* model,
-        const CurveStyle& style,
+        const Curve::Style& style,
         QGraphicsItem *parent):
     QGraphicsObject{parent},
     m_style{style}

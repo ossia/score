@@ -6,6 +6,7 @@
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 #include <Curve/StateMachine/CurveEditionSettings.hpp>
+#include <Curve/StateMachine/CurveStateMachine.hpp>
 
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
@@ -33,7 +34,7 @@ class CurvePresenter : public QObject
     public:
         CurvePresenter(
                 Curve::EditionSettings&,
-                const CurveStyle&,
+                const Curve::Style&,
                 const CurveModel&,
                 CurveView*,
                 QObject* parent);
@@ -62,9 +63,6 @@ class CurvePresenter : public QObject
 
         Curve::EditionSettings& editionSettings()
         { return m_editionSettings; }
-        Curve::ToolPalette& stateMachine()
-        { return *m_sm; }
-
 
         void fillContextMenu(
                 QMenu*,
@@ -99,9 +97,7 @@ class CurvePresenter : public QObject
 
         void modelReset();
 
-        Curve::EditionSettings& m_editionSettings;
-
-        Curve::ToolPalette* m_sm{};
+        Curve::EditionSettings m_editionSettings;
 
         const CurveModel& m_model;
         CurveView* m_view{};
@@ -113,7 +109,7 @@ class CurvePresenter : public QObject
         CommandDispatcher<> m_commandDispatcher;
         iscore::SelectionDispatcher m_selectionDispatcher;
 
-        const CurveStyle& m_style;
+        const Curve::Style& m_style;
 
         QMenu* m_contextMenu{};
         QActionGroup* m_actions{};

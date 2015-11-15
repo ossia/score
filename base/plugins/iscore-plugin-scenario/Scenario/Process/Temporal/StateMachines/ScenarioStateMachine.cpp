@@ -26,9 +26,6 @@ ToolPalette::ToolPalette(
     m_selectTool{*this},
     m_moveSlotTool{*this}
 {
-    m_createTool.start();
-    m_selectTool.start();
-    m_moveSlotTool.start();
 }
 
 const Scenario::EditionSettings&ToolPalette::editionSettings() const

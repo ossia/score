@@ -18,6 +18,13 @@ bool SelectionStack::canReselect() const
     return !m_reselectable.empty();
 }
 
+void SelectionStack::clear()
+{
+    m_unselectable.clear();
+    m_reselectable.clear();
+    m_unselectable.push(Selection{});
+}
+
 void SelectionStack::push(const Selection& s)
 {
     // TODO don't push "empty" selections, just add a "deselected" mode.

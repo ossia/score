@@ -125,6 +125,8 @@ SelectionAndMoveTool::SelectionAndMoveTool(ToolPalette& sm):
     resizeSlot->addTransition(resizeSlot,
                               SIGNAL(finished()),
                               m_state);
+
+    localSM().start();
 }
 
 

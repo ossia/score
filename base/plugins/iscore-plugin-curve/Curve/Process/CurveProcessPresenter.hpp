@@ -1,24 +1,24 @@
 #pragma once
+#include <Curve/Process/CurveProcessModel.hpp>
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveView.hpp>
+#include <Curve/StateMachine/CurveStateMachine.hpp>
+
 #include <Process/LayerPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
-
-#include "CurveProcessModel.hpp"
-
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
-#include "Curve/CurveModel.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/CurveView.hpp"
-#include "Curve/StateMachine/CurveStateMachine.hpp"
 
 
 class CurvePresenter;
-class QCPGraph;
 class LayerView;
 class CurveProcessView;
 
@@ -28,28 +28,23 @@ class CurveProcessPresenter : public LayerPresenter
 {
     public:
         CurveProcessPresenter(
+                iscore::DocumentContext& context,
                 Curve::EditionSettings& set,
-                const CurveStyle& style,
+                const Curve::Style& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,
                 QObject* parent) :
             LayerPresenter {"CurveProcessPresenter", parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_commandDispatcher{iscore::IDocument::commandStack(m_layer.processModel())},
-            m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.processModel())}
+            m_curvepresenter{new CurvePresenter{set, style, m_layer.model().curve(), new CurveView{m_view}, this}},
+            m_commandDispatcher{context.commandStack},
+            m_focusDispatcher{context.document},
+            m_context{context, *this, m_focusDispatcher},
+            m_sm{m_context, *m_curvepresenter}
         {
             con(m_layer.model(), &CurveProcessModel::curveChanged,
                 this, &CurveProcessPresenter::parentGeometryChanged);
-
-            auto cv = new CurveView{m_view};
-            m_curvepresenter = new CurvePresenter{set, style, m_layer.model().curve(), cv, this};
-
-            connect(cv, &CurveView::pressed,
-                    this, [&] (QPointF pt)
-            {
-                m_focusDispatcher.focus(this);
-            });
 
             connect(m_curvepresenter, &CurvePresenter::contextMenuRequested,
                     this, &LayerPresenter::contextMenuRequested);
@@ -147,5 +142,8 @@ class CurveProcessPresenter : public LayerPresenter
         FocusDispatcher m_focusDispatcher;
 
         ZoomRatio m_zoomRatio {};
+
+        LayerContext m_context;
+        Curve::ToolPalette m_sm;
 };
 

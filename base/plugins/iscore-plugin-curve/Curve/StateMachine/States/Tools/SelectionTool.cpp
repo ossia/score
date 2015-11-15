@@ -173,7 +173,7 @@ void SelectionAndMoveTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
     auto t = std::chrono::steady_clock::now();
     if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
     {
-        return;
+ //       return;
     }
 
     if (m_nothingPressed)

@@ -11,5 +11,5 @@ class AutomationColors
         { return m_style; }
 
     private:
-        CurveStyle m_style;
+        Curve::Style m_style;
 };

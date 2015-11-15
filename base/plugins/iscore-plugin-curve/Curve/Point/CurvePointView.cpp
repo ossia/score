@@ -10,7 +10,7 @@
 static const qreal radius = 2.5;
 CurvePointView::CurvePointView(
         const CurvePointModel* model,
-        const CurveStyle& style,
+        const Curve::Style& style,
         QGraphicsItem* parent):
     QGraphicsObject{parent},
     m_style{style}

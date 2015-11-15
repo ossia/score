@@ -113,9 +113,8 @@ void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
     updateSlotFocus(vm, false);
 
     // Deselect
-    iscore::SelectionDispatcher selectionDispatcher(
-                iscore::IDocument::documentFromObject(*this)->selectionStack());
-    selectionDispatcher.setAndCommit(Selection{});
+    vm->processModel().setSelection({});
+    iscore::IDocument::documentFromObject(*this)->selectionStack().clear();
 }
 
 void BaseElementModel::on_viewModelFocused(const LayerModel* process)
