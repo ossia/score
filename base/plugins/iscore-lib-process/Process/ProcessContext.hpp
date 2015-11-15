@@ -3,6 +3,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 
 class LayerPresenter;
+
 struct LayerContext : public iscore::DocumentContext
 {
         LayerContext(

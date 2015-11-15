@@ -57,6 +57,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         ToolPaletteInputDispatcher<
             Curve::Tool,
             ToolPalette,
+            LayerContext,
             CurveView> m_inputDisp;
 };
 }

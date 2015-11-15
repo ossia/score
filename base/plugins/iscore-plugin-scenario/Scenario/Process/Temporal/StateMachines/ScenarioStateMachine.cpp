@@ -15,16 +15,16 @@
 namespace Scenario
 {
 ToolPalette::ToolPalette(
-        iscore::Document& doc,
+        LayerContext& lay,
         TemporalScenarioPresenter& presenter):
     GraphicsSceneToolPalette{*presenter.view().scene()},
     m_presenter{presenter},
     m_model{static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel())},
-    m_commandStack{doc.commandStack()},
-    m_locker{doc.locker()},
+    m_context{lay},
     m_createTool{*this},
     m_selectTool{*this},
-    m_moveSlotTool{*this}
+    m_moveSlotTool{*this},
+    m_inputDisp{presenter.view(), *this, lay}
 {
 }
 

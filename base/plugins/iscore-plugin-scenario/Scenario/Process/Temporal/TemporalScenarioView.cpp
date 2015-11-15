@@ -45,23 +45,23 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
 void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if(event->button() == Qt::LeftButton)
-        emit scenarioPressed(event->scenePos());
+        emit pressed(event->scenePos());
 }
 
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit scenarioMoved(event->scenePos());
+    emit moved(event->scenePos());
 }
 
 void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-    emit scenarioReleased(event->scenePos());
+    emit released(event->scenePos());
 }
 
 void TemporalScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-    emit scenarioPressed(event->scenePos());
-    emit scenarioReleased(event->scenePos());
+    emit pressed(event->scenePos());
+    emit released(event->scenePos());
     emit askContextMenu(event->screenPos(), event->scenePos());
 }
 

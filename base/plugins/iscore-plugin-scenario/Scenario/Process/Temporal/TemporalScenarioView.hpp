@@ -28,9 +28,9 @@ class TemporalScenarioView final : public LayerView
         }
 
     signals:
-        void scenarioPressed(const QPointF&);
-        void scenarioReleased(const QPointF&);
-        void scenarioMoved(const QPointF&);
+        void pressed(const QPointF&);
+        void released(const QPointF&);
+        void moved(const QPointF&);
 
         void clearPressed();
         void escPressed();

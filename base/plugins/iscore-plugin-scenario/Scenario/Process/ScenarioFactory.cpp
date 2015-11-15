@@ -29,7 +29,12 @@ ScenarioFactory::makeLayerPresenter(
 {
     if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
     {
-        auto pres = new TemporalScenarioPresenter {m_editionSettings, *vm, view, parent};
+        auto pres = new TemporalScenarioPresenter {
+                iscore::IDocument::documentContext(lm.processModel()),
+                m_editionSettings,
+                *vm,
+                view,
+                parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
     }

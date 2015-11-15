@@ -11,7 +11,10 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.hpp>
 
+#include <Process/Tools/ToolPalette.hpp>
+
 class TemporalScenarioPresenter;
+class TemporalScenarioView;
 class ScenarioModel;
 class QGraphicsScene;
 
@@ -27,7 +30,7 @@ namespace Scenario
 class ToolPalette final : public GraphicsSceneToolPalette
 {
     public:
-        ToolPalette(iscore::Document&, TemporalScenarioPresenter& presenter);
+        ToolPalette(LayerContext&, TemporalScenarioPresenter& presenter);
 
         const TemporalScenarioPresenter& presenter() const
         { return m_presenter; }
@@ -37,9 +40,9 @@ class ToolPalette final : public GraphicsSceneToolPalette
         { return m_model; }
 
         iscore::CommandStack& commandStack() const
-        { return m_commandStack; }
+        { return m_context.commandStack; }
         iscore::ObjectLocker& locker() const
-        { return m_locker; }
+        { return m_context.objectLocker; }
 
         void on_pressed(QPointF);
         void on_moved(QPointF);
@@ -51,12 +54,17 @@ class ToolPalette final : public GraphicsSceneToolPalette
         void changeTool(Scenario::Tool);
         TemporalScenarioPresenter& m_presenter;
         const ScenarioModel& m_model;
-        iscore::CommandStack& m_commandStack;
-        iscore::ObjectLocker& m_locker;
+        LayerContext& m_context;
 
         CreationTool m_createTool;
         SelectionAndMoveTool m_selectTool;
         MoveSlotTool m_moveSlotTool;
+
+        ToolPaletteInputDispatcher<
+            Scenario::Tool,
+            ToolPalette,
+            LayerContext,
+            TemporalScenarioView> m_inputDisp;
 };
 
 }

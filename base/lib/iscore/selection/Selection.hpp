@@ -14,6 +14,8 @@ class Selection final : private QList<QPointer<const QObject>>
         using base_type::end;
         using base_type::cbegin;
         using base_type::cend;
+        using base_type::constBegin;
+        using base_type::constEnd;
         using base_type::erase;
         using base_type::empty;
         using base_type::clear;

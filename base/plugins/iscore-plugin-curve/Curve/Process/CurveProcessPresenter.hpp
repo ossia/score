@@ -132,6 +132,7 @@ class CurveProcessPresenter : public LayerPresenter
         {
             m_curvepresenter->fillContextMenu(menu, pos, scenepos);
         }
+
     protected:
         const LayerModel_T& m_layer;
         LayerView_T* m_view{};

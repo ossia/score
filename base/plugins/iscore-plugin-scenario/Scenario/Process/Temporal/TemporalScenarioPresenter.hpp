@@ -15,7 +15,9 @@
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
 
 #include <Process/LayerPresenter.hpp>
+#include <Process/ProcessContext.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <core/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include <Scenario/Control/ScenarioEditionSettings.hpp>
@@ -50,6 +52,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
     public:
         TemporalScenarioPresenter(
+                iscore::DocumentContext&,
                 Scenario::EditionSettings&,
                 const TemporalScenarioLayerModel& model,
                 LayerView* view,
@@ -142,7 +145,8 @@ class TemporalScenarioPresenter final : public LayerPresenter
         ScenarioViewInterface* m_viewInterface{};
 
         Scenario::EditionSettings& m_editionSettings;
-        Scenario::ToolPalette m_sm;
 
         FocusDispatcher m_focusDispatcher;
+        LayerContext m_context;
+        Scenario::ToolPalette m_sm;
 };

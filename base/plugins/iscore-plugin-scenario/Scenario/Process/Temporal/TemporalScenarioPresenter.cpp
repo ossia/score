@@ -41,6 +41,7 @@
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
+        iscore::DocumentContext& context,
         Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
         LayerView* view,
@@ -50,8 +51,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
     m_editionSettings{e},
-    m_sm{*iscore::IDocument::documentFromObject(m_layer.processModel()), *this}, // OPTIMIZEME by passing document in parent
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.processModel())}
+    m_focusDispatcher{context.document},
+    m_context{context, *this, m_focusDispatcher},
+    m_sm{m_context, *this}
 {
     const ScenarioModel& scenario = model(m_layer);
     /////// Setup of existing data
@@ -278,9 +280,9 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
             this, [=] () { m_viewInterface->on_hoverOnEvent(ev_pres->id(), false); });
 
     // For the state machine
-    connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode_model)
@@ -296,9 +298,9 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
             this, [=] (const TimeValue&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
 
     // For the state machine
-    connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
@@ -312,9 +314,9 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
             this, [=] () { m_viewInterface->on_stateMoved(*st_pres); });
 
     // For the state machine
-    connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalConstraintViewModel& constraint_view_model)
@@ -341,9 +343,9 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
             [=] () { m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), false); });
 
     // For the state machine
-    connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::updateAllElements()

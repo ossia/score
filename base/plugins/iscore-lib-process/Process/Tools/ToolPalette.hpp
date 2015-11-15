@@ -1,14 +1,14 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
 
-template<typename Tool_T, typename ToolPalette_T, typename Input_T>
+template<typename Tool_T, typename ToolPalette_T, typename Context_T, typename Input_T>
 class ToolPaletteInputDispatcher : public QObject
 {
     public:
         ToolPaletteInputDispatcher(
                 Input_T& input,
                 ToolPalette_T& palette,
-                LayerContext& context):
+                Context_T& context):
             m_palette{palette},
             m_context{context}
         {
@@ -63,7 +63,7 @@ class ToolPaletteInputDispatcher : public QObject
 
     private:
         ToolPalette_T& m_palette;
-        LayerContext& m_context;
+        Context_T& m_context;
         QPointF m_currentPoint;
         bool m_running = false;
 };
