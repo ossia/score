@@ -48,10 +48,12 @@ using namespace iscore;
 using namespace iscore::IDocument;
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
+        const InspectorWidgetList& widg,
         const ConstraintModel& object,
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase{object, doc, parent},
+    m_widgetList{widg},
     m_model{object}
 {
     setObjectName("Constraint");
@@ -313,7 +315,7 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process.metadata.name());
 
     // Process
-    auto processWidget = InspectorWidgetList::makeInspectorWidget(
+    auto processWidget = m_widgetList.makeInspectorWidget(
                              process.objectName(), process, newProc); // FIXME objectName BERK
     newProc->addContent(processWidget);
 
@@ -326,14 +328,14 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 
     if(auto start = process.startState())
     {
-        auto startWidg = InspectorWidgetList::makeInspectorWidget(
+        auto startWidg = m_widgetList.makeInspectorWidget(
                              start->stateName(), *start, newProc);
         stateLayout->addRow(tr("Start state"), startWidg);
     }
 
     if(auto end = process.endState())
     {
-        auto endWidg = InspectorWidgetList::makeInspectorWidget(
+        auto endWidg = m_widgetList.makeInspectorWidget(
                            end->stateName(), *end, newProc);
         stateLayout->addRow(tr("End state"), endWidg);
     }

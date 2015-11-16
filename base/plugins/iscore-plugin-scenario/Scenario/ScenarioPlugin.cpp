@@ -64,7 +64,7 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 
 std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamilies()
 {
-    return {new DynamicProcessList, new MoveEventList, new DynamicScenarioActionsList};
+    return {new DynamicProcessList, new MoveEventList, new ScenarioContextMenuPluginList};
     /*
             {ProcessFactory::staticFactoryKey(),
              [&] (iscore::FactoryInterfaceBase* fact)

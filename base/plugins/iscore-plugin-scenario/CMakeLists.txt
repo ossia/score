@@ -137,6 +137,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/Plugin/ScenarioActionsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ToolMenuActions.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioCopy.cpp"
