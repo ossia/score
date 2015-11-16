@@ -44,11 +44,11 @@ class CurveModel final : public IdentifiedObject<CurveModel>
 
         void clear();
 
-        const auto& segments() const
-        {
-            return m_segments;
-        }
+        const auto& segments() const { return m_segments;}
+        auto& segments() { return m_segments;}
+
         const QVector<CurvePointModel*>& points() const;
+        QVector<CurvePointModel*>& points() {return m_points;}
 
     signals:
         void segmentAdded(const CurveSegmentModel&);

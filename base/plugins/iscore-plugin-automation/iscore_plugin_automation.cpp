@@ -10,6 +10,7 @@
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include "Automation/Inspector/AutomationInspectorFactory.hpp"
+#include "Automation/Inspector/CurvePointInspectorFactory.hpp"
 #include "Automation/Inspector/AutomationStateInspectorFactory.hpp"
 #endif
 
@@ -45,7 +46,8 @@ std::vector<iscore::FactoryInterface*> iscore_plugin_automation::factories(
     if(factoryName == InspectorWidgetFactory::factoryName())
     {
         return {new AutomationInspectorFactory,
-                new AutomationStateInspectorFactory};
+                new AutomationStateInspectorFactory,
+                new CurvePointInspectorFactory};
     }
 #endif
     return {};

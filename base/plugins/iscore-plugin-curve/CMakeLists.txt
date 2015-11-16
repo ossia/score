@@ -25,6 +25,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/SetSegmentParameters.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/UpdateCurve.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/MovePoint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentList.cpp"
