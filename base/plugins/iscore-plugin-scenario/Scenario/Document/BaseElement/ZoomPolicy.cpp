@@ -12,7 +12,7 @@ ZoomRatio ZoomPolicy::sliderPosToZoomRatio(double sliderPos, double cstrMaxTime,
     auto mapZoom = [] (double val, double min, double max)
     { return (max - min) * val + min; };
 
-    auto zMin = cstrMaxTime * 0.00003;
+    auto zMin = cstrMaxTime * 0.000001;
     return mapZoom(1 - sliderPos, zMin, zMax);
 }
 
@@ -22,6 +22,6 @@ double ZoomPolicy::zoomRatioToSliderPos(ZoomRatio& z, double cstrMaxTime, int cs
     if(z == 0)
         z = zMax;
 
-    auto zMin = cstrMaxTime * 0.00003;
+    auto zMin = cstrMaxTime * 0.000001;
     return ((zMax - z) / (zMax - zMin));
 }
