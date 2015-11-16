@@ -37,7 +37,7 @@ class iscore_plugin_scenario final :
         QList<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
         // Plugin control interface
-        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
 
         // NOTE : implementation is in CommandNames.cpp
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

@@ -29,9 +29,10 @@ std::vector<FactoryFamily> iscore_plugin_inspector::factoryFamilies()
            }};
 }
 
-PluginControlInterface* iscore_plugin_inspector::make_control(Presenter* pres)
+PluginControlInterface* iscore_plugin_inspector::make_control(
+        iscore::Application& app)
 {
     delete m_inspectorControl;
-    m_inspectorControl = new InspectorControl{pres};
+    m_inspectorControl = new InspectorControl{app};
     return m_inspectorControl;
 }

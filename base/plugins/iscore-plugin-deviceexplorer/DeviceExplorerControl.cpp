@@ -7,8 +7,8 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
-DeviceExplorerControl::DeviceExplorerControl(iscore::Presenter* pres) :
-    PluginControlInterface {pres, "DeviceExplorerControl", nullptr}
+DeviceExplorerControl::DeviceExplorerControl(iscore::Application& app) :
+    PluginControlInterface {app, "DeviceExplorerControl", nullptr}
 {
 
 }

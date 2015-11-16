@@ -30,7 +30,7 @@ class iscore_plugin_cohesion final :
         ~iscore_plugin_cohesion() = default;
 
         iscore::PluginControlInterface* make_control(
-                iscore::Presenter* pres) override;
+                iscore::Application& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 

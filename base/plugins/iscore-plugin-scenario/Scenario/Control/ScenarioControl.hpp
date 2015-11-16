@@ -74,7 +74,7 @@ class ScenarioControl final : public iscore::PluginControlInterface
     private:
         void initColors();
 
-        ScenarioControl(iscore::Presenter* pres);
+        ScenarioControl(iscore::Application& app);
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;

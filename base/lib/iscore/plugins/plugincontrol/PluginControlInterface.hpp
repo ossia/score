@@ -8,7 +8,7 @@ namespace iscore
 {
     class DocumentDelegatePluginModel;
     class SerializableCommand;
-    class Presenter;
+    class Application;
     class MenubarManager;
 
     /**
@@ -29,7 +29,7 @@ namespace iscore
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
         Q_OBJECT
         public:
-            PluginControlInterface(iscore::Presenter* presenter,
+            PluginControlInterface(iscore::Application& presenter,
                                    const QString& name,
                                    QObject* parent);
 
@@ -44,7 +44,6 @@ namespace iscore
                     const VisitorVariant& var,
                     iscore::DocumentModel *parent);
 
-            Presenter* presenter() const;
             Document* currentDocument() const;
 
             virtual void on_newDocument(iscore::Document* doc);
@@ -68,7 +67,7 @@ namespace iscore
                     iscore::Document* newdoc);
 
         private:
-            Presenter* m_presenter{};
+            iscore::Application& m_application;
     };
 
 }

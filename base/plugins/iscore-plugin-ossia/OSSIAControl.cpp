@@ -31,8 +31,8 @@
 #include <core/document/Document.hpp>
 #include <core/application/Application.hpp>
 
-OSSIAControl::OSSIAControl(iscore::Presenter* pres):
-    iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
+OSSIAControl::OSSIAControl(iscore::Application& app):
+    iscore::PluginControlInterface {app, "OSSIAControl", nullptr}
 {
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)

@@ -16,7 +16,7 @@ class OSSIABaseScenarioElement;
 class OSSIAControl final : public iscore::PluginControlInterface
 {
     public:
-        OSSIAControl(iscore::Presenter* pres);
+        OSSIAControl(iscore::Application& app);
         ~OSSIAControl();
 
         void populateMenus(iscore::MenubarManager*) override;

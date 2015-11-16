@@ -4,7 +4,7 @@
 class DeviceExplorerControl final : public iscore::PluginControlInterface
 {
     public:
-        DeviceExplorerControl(iscore::Presenter*);
+        DeviceExplorerControl(iscore::Application& app);
 
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,

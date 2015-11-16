@@ -1,15 +1,14 @@
 #include "PluginControlInterface.hpp"
-
-#include <QApplication>
+#include <core/application/Application.hpp>
 
 using namespace iscore;
 
 
-PluginControlInterface::PluginControlInterface(iscore::Presenter* presenter,
+PluginControlInterface::PluginControlInterface(iscore::Application& app,
                                                const QString& name,
                                                QObject* parent):
     NamedObject{name, parent},
-    m_presenter{presenter}
+    m_application{app}
 {
     connect(this, &PluginControlInterface::documentChanged,
             this, &PluginControlInterface::on_documentChanged);
@@ -48,15 +47,9 @@ DocumentDelegatePluginModel*PluginControlInterface::loadDocumentPlugin(
     return nullptr;
 }
 
-
-Presenter*PluginControlInterface::presenter() const
-{
-    return m_presenter;
-}
-
 Document*PluginControlInterface::currentDocument() const
 {
-    return m_presenter->documentManager().currentDocument();
+    return m_application.presenter()->documentManager().currentDocument();
 }
 
 void PluginControlInterface::prepareNewDocument()

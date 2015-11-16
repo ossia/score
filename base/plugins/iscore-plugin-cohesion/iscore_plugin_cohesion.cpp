@@ -13,9 +13,10 @@ iscore_plugin_cohesion::iscore_plugin_cohesion() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_cohesion::make_control(iscore::Presenter* pres)
+iscore::PluginControlInterface* iscore_plugin_cohesion::make_control(
+        iscore::Application& app)
 {
-    return new IScoreCohesionControl {pres};
+    return new IScoreCohesionControl {app};
 }
 
 QStringList iscore_plugin_cohesion::required() const

@@ -29,6 +29,7 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <core/document/DocumentView.hpp>
+#include <core/application/Application.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
 #include "Menus/TransportActions.hpp"
@@ -81,8 +82,8 @@ using namespace iscore;
 #include <Scenario/Control/Menus/ScenarioCommonContextMenuFactory.hpp>
 
 void test_parse_expr_full();
-ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
-    PluginControlInterface{pres, "ScenarioControl", nullptr},
+ScenarioControl::ScenarioControl(iscore::Application& app) :
+    PluginControlInterface{app, "ScenarioControl", nullptr},
     contextMenuDispatcher{*this}
 {
     connect(this, &ScenarioControl::defocused,
@@ -104,7 +105,7 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
 
 ScenarioControl* ScenarioControl::instance(Presenter* pres)
 {
-    static auto ctrl = new ScenarioControl{pres};
+    static auto ctrl = new ScenarioControl{*static_cast<iscore::Application*>(pres->parent())};
     return ctrl;
 }
 

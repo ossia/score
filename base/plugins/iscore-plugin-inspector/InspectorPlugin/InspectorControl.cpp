@@ -1,8 +1,8 @@
 #include "InspectorControl.hpp"
 
 
-InspectorControl::InspectorControl(iscore::Presenter* pres) :
-    iscore::PluginControlInterface {pres, "InspectorControl", nullptr},
+InspectorControl::InspectorControl(iscore::Application& app) :
+    iscore::PluginControlInterface {app, "InspectorControl", nullptr},
     m_widgetList{new InspectorWidgetList{this}}
 {
 }

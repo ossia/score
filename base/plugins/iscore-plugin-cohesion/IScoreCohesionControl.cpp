@@ -11,8 +11,8 @@
 #include <QApplication>
 #include <QToolBar>
 
-IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
-    iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
+IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
+    iscore::PluginControlInterface {app, "IScoreCohesionControl", nullptr}
 {
     // Since we have declared the dependency, we can assume
     // that ScenarioControl is instantiated already.

@@ -144,7 +144,7 @@ void Application::init()
 
     // Plugins
     m_pluginManager.reloadPlugins();
-    m_pluginManager.addControl(new UndoControl{m_presenter, m_presenter});
+    m_pluginManager.addControl(new UndoControl{*this, m_presenter});
     m_pluginManager.addPanel(new UndoPanelFactory);
 
     loadPluginData();

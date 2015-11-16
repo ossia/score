@@ -102,7 +102,7 @@ void PluginManager::loadControls(QObject* plugin)
     auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
     if(ctrl_plugin)
     {
-        auto plug = ctrl_plugin->make_control(m_app->presenter());
+        auto plug = ctrl_plugin->make_control(*m_app);
         m_controlList.push_back(plug);
     }
 }

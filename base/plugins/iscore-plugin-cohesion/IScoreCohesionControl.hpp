@@ -6,7 +6,7 @@ class ScenarioModel;
 class IScoreCohesionControl final : public iscore::PluginControlInterface
 {
     public:
-        IScoreCohesionControl(iscore::Presenter* pres);
+        IScoreCohesionControl(iscore::Application& app);
         void populateMenus(iscore::MenubarManager*) override;
         QList<iscore::OrderedToolbar> makeToolbars() override;
 

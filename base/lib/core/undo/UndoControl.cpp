@@ -1,8 +1,8 @@
 #include "UndoControl.hpp"
 #include <core/document/DocumentPresenter.hpp>
 
-iscore::UndoControl::UndoControl(Presenter* pres, QObject* parent):
-    iscore::PluginControlInterface{pres, "UndoControl", parent}
+iscore::UndoControl::UndoControl(iscore::Application& app, QObject* parent):
+    iscore::PluginControlInterface{app, "UndoControl", parent}
 {
     m_undoAction->setShortcut(QKeySequence::Undo);
     m_undoAction->setEnabled(false);
@@ -11,7 +11,7 @@ iscore::UndoControl::UndoControl(Presenter* pres, QObject* parent):
     connect(m_undoAction, &QAction::triggered,
             [&] ()
     {
-        presenter()->documentManager().currentDocument()->commandStack().undo();
+        currentDocument()->commandStack().undo();
     });
 
     m_redoAction->setShortcut(QKeySequence::Redo);
@@ -21,7 +21,7 @@ iscore::UndoControl::UndoControl(Presenter* pres, QObject* parent):
     connect(m_redoAction, &QAction::triggered,
             [&] ()
     {
-        presenter()->documentManager().currentDocument()->commandStack().redo();
+        currentDocument()->commandStack().redo();
     });
 }
 

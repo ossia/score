@@ -9,6 +9,7 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
+#include <core/application/Application.hpp>
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
@@ -48,9 +49,10 @@ QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documen
     return {new ScenarioDocument};
 }
 
-iscore::PluginControlInterface* iscore_plugin_scenario::make_control(iscore::Presenter* pres)
+iscore::PluginControlInterface* iscore_plugin_scenario::make_control(
+        iscore::Application& app)
 {
-    return ScenarioControl::instance(pres);
+    return ScenarioControl::instance(app.presenter());
 }
 
 QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()

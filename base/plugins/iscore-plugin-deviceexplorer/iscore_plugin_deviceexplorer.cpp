@@ -39,9 +39,10 @@ std::vector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies
             }}};
 }
 
-PluginControlInterface *iscore_plugin_deviceexplorer::make_control(Presenter* pres)
+PluginControlInterface *iscore_plugin_deviceexplorer::make_control(
+        iscore::Application& app)
 {
-    return new DeviceExplorerControl{pres};
+    return new DeviceExplorerControl{app};
 }
 
 
