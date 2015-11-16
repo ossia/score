@@ -16,4 +16,6 @@ class PlayContextMenu final : public ScenarioActions
         QAction *m_playStates{};
         QAction *m_playEvents{};
         QAction *m_playConstraints{};
+
+        QAction* m_playFromHere{};
 };
