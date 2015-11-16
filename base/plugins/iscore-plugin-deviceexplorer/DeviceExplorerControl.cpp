@@ -15,18 +15,18 @@ DeviceExplorerControl::DeviceExplorerControl(iscore::Application& app) :
 
 void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
 {
-    doc->model().addPluginModel(new DeviceDocumentPlugin(doc));
+    doc->model().addPluginModel(new DeviceDocumentPlugin{*doc, &doc->model()});
 }
 
 iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
         const QString &name,
         const VisitorVariant &var,
-        iscore::DocumentModel *model)
+        iscore::Document* doc)
 {
     if(name != DeviceDocumentPlugin::staticMetaObject.className())
         return nullptr;
 
-    auto plug = new DeviceDocumentPlugin(var, model);
+    auto plug = new DeviceDocumentPlugin{*doc, var, &doc->model()};
     return plug;
 }
 

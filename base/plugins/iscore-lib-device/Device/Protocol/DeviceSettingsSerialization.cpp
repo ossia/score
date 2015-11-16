@@ -4,6 +4,8 @@
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include "ProtocolFactoryInterface.hpp"
 #include "DeviceSettings.hpp"
+#include <core/application/ApplicationComponents.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
 {
@@ -13,7 +15,10 @@ void Visitor<Reader<DataStream>>::readFrom(const iscore::DeviceSettings& n)
     // TODO try to see if this pattern is refactorable with the similar thing
     // usef for CurveSegmentData.
 
-    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    auto pl = context.components.factory<DynamicProtocolList>();
+    ISCORE_ASSERT(pl);
+
+    auto prot = pl->list().get(n.protocol);
     if(prot)
     {
         prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
@@ -32,7 +37,10 @@ void Visitor<Writer<DataStream>>::writeTo(iscore::DeviceSettings& n)
     m_stream >> n.name
              >> n.protocol;
 
-    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    auto pl = context.components.factory<DynamicProtocolList>();
+    ISCORE_ASSERT(pl);
+
+    auto prot = pl->list().get(n.protocol);
     if(prot)
     {
         n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());
@@ -50,7 +58,10 @@ void Visitor<Reader<JSONObject>>::readFrom(const iscore::DeviceSettings& n)
     m_obj["Name"] = n.name;
     m_obj["Protocol"] = toJsonValue(n.protocol);
 
-    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    auto pl = context.components.factory<DynamicProtocolList>();
+    ISCORE_ASSERT(pl);
+
+    auto prot = pl->list().get(n.protocol);
     if(prot)
     {
         prot->serializeProtocolSpecificSettings(n.deviceSpecificSettings, this->toVariant());
@@ -67,7 +78,10 @@ void Visitor<Writer<JSONObject>>::writeTo(iscore::DeviceSettings& n)
     n.name = m_obj["Name"].toString();
     n.protocol = fromJsonValue<ProtocolFactoryKey>(m_obj["Protocol"]);
 
-    auto prot = SingletonProtocolList::instance().get(n.protocol);
+    auto pl = context.components.factory<DynamicProtocolList>();
+    ISCORE_ASSERT(pl);
+
+    auto prot = pl->list().get(n.protocol);
     if(prot)
     {
         n.deviceSpecificSettings = prot->makeProtocolSpecificSettings(this->toVariant());

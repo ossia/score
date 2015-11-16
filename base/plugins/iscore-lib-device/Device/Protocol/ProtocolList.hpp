@@ -6,13 +6,5 @@ using ProtocolList = GenericFactoryMap_T<ProtocolFactory, ProtocolFactoryKey>;
 
 class DynamicProtocolList : public iscore::FactoryListInterface
 {
-    public:
-        iscore::FactoryBaseKey name() const override;
-        void insert(iscore::FactoryInterfaceBase* e) override;
-
-        const ProtocolList& list() const
-        { return m_list; }
-
-    private:
-        ProtocolList m_list;
+        ISCORE_FACTORY_LIST_DECL(ProtocolFactory)
 };

@@ -9,7 +9,7 @@ class DeviceExplorerControl final : public iscore::PluginControlInterface
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::DocumentModel *parent) override;
+                iscore::Document *parent) override;
 
     protected:
         void on_newDocument(iscore::Document* doc) override;

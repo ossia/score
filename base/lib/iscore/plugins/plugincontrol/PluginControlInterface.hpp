@@ -42,7 +42,7 @@ namespace iscore
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
                     const QString& name,
                     const VisitorVariant& var,
-                    iscore::DocumentModel *parent);
+                    iscore::Document *parent);
 
             ApplicationContext context() const;
             Document* currentDocument() const;

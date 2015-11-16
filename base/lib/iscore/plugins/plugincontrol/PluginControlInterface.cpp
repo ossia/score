@@ -42,7 +42,7 @@ QList<QAction*> PluginControlInterface::actions()
 DocumentDelegatePluginModel*PluginControlInterface::loadDocumentPlugin(
         const QString& name,
         const VisitorVariant& var,
-        DocumentModel* parent)
+        Document* parent)
 {
     return nullptr;
 }

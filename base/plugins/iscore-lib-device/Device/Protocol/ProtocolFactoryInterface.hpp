@@ -14,6 +14,7 @@ class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKe
         ISCORE_FACTORY_DECL("Protocol")
 
     public:
+            using factory_key_type = ProtocolFactoryKey;
         virtual ~ProtocolFactory();
 
         virtual QString prettyName() const = 0;

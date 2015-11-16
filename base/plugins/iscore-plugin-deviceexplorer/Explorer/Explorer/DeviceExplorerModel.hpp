@@ -35,7 +35,9 @@ class DeviceExplorerModel final : public NodeBasedItemModel
             Count //column count, always last
         };
 
-        explicit DeviceExplorerModel(DeviceDocumentPlugin*, QObject* parent = 0);
+        explicit DeviceExplorerModel(
+                DeviceDocumentPlugin&,
+                QObject* parent = 0);
 
         ~DeviceExplorerModel();
 
@@ -137,7 +139,7 @@ class DeviceExplorerModel final : public NodeBasedItemModel
         bool m_lastCutNodeIsCopied;
 
     private:
-        DeviceDocumentPlugin* m_devicePlugin{};
+        DeviceDocumentPlugin& m_devicePlugin;
 
         QModelIndex bottomIndex(const QModelIndex& index) const;
 

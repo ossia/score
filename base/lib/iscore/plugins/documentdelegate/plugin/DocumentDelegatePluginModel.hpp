@@ -2,6 +2,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <QJsonObject>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModel.hpp>
+#include <core/document/DocumentContext.hpp>
 
 namespace iscore
 {
@@ -9,7 +10,11 @@ class DocumentDelegatePluginModel : public NamedObject
 {
         Q_OBJECT
     public:
-        using NamedObject::NamedObject;
+        DocumentDelegatePluginModel(
+                const iscore::DocumentContext&,
+                const QString& name,
+                QObject* parent);
+
         virtual ~DocumentDelegatePluginModel();
 
         virtual QList<ElementPluginModelType> elementPlugins() const { return {}; }
@@ -32,6 +37,12 @@ class DocumentDelegatePluginModel : public NamedObject
                 QWidget* parent) const { return nullptr; }
 
         virtual void serialize(const VisitorVariant&) const {}
+
+        auto& context() const
+        { return m_context; }
+
+    protected:
+        const iscore::DocumentContext& m_context;
 };
 
 }

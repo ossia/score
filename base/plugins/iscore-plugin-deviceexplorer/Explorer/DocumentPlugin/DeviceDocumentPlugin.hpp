@@ -4,6 +4,7 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <core/document/DocumentContext.hpp>
 #include "NodeUpdateProxy.hpp"
 namespace iscore
 {
@@ -22,9 +23,14 @@ class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {
         Q_OBJECT
     public:
-        explicit DeviceDocumentPlugin(QObject* parent);
-        DeviceDocumentPlugin(const VisitorVariant& loader,
-                             QObject* parent);
+        explicit DeviceDocumentPlugin(
+                const iscore::DocumentContext& documentContext,
+                QObject* parent);
+
+        DeviceDocumentPlugin(
+                const iscore::DocumentContext&,
+                const VisitorVariant& loader,
+                QObject* parent);
 
         void serialize(const VisitorVariant&) const override;
 

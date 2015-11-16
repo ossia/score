@@ -6,10 +6,13 @@
 #include <QLabel>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <Device/Protocol/SingletonProtocolList.hpp>
-DeviceEditDialog::DeviceEditDialog(QWidget* parent)
+DeviceEditDialog::DeviceEditDialog(
+        const DynamicProtocolList& pl,
+        QWidget* parent)
     : QDialog(parent),
-      m_protocolWidget(nullptr), m_index(-1)
+      m_protocolList{pl},
+      m_protocolWidget{nullptr},
+      m_index(-1)
 {
     setModal(true);
     buildGUI();
@@ -60,8 +63,7 @@ DeviceEditDialog::initAvailableProtocols()
 {
     ISCORE_ASSERT(m_protocolCBox);
 
-    const auto& protocols = SingletonProtocolList::instance().get();
-    for(const auto& prot : protocols)
+    for(const auto& prot : m_protocolList.list().get())
         m_protocolCBox->addItem(prot.second->prettyName(), QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
 
     //initialize previous settings
@@ -94,7 +96,7 @@ DeviceEditDialog::updateProtocolWidget()
     m_index = m_protocolCBox->currentIndex();
 
     auto protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
-    m_protocolWidget = SingletonProtocolList::instance().get(protocol)->makeSettingsWidget();
+    m_protocolWidget = m_protocolList.list().get(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {

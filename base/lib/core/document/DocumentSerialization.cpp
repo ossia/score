@@ -158,7 +158,7 @@ void DocumentModel::loadDocumentAsByteArray(
             if(auto loaded_plug = control->loadDocumentPlugin(
                         plugin_raw.first,
                         plug_writer.toVariant(),
-                        this))
+                        safe_cast<iscore::Document*>(parent())))
             {
                 addPluginModel(loaded_plug);
             }
@@ -188,7 +188,7 @@ void DocumentModel::loadDocumentAsJson(
         JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
         for(iscore::PluginControlInterface* control : plugin_control)
         {
-            if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), this))
+            if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
             {
                 addPluginModel(loaded_plug);
             }
