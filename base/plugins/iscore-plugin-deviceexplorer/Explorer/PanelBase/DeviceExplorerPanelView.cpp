@@ -5,6 +5,7 @@
 #include <core/application/Application.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
+#include <core/application/Application.hpp>
 static const iscore::DefaultPanelStatus status{
     true,
     Qt::LeftDockWidgetArea,
@@ -17,8 +18,8 @@ const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() 
 DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
     iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{
-              *safe_cast<iscore::Application*>(parent->parent())
-                ->presenter()
+              *iscore::Application::instance()
+                .presenter()
                 ->applicationComponents().factory<DynamicProtocolList>(),
               parent}}
 {

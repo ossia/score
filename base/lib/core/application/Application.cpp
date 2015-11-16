@@ -198,6 +198,9 @@ void Application::loadPluginData()
 {
     ApplicationRegistrar registrar{m_presenter->components(), *m_presenter};
 
+    registrar.registerCommands(std::move(m_pluginManager.m_commands));
+    registrar.registerFactories(std::move(m_pluginManager.m_customFamilies));
+
     for(auto& set : m_pluginManager.m_settingsList)
     {
         m_settings->setupSettingsPlugin(set);
@@ -224,7 +227,5 @@ void Application::loadPluginData()
         registrar.registerDocumentDelegate(pnl);
     }
 
-    registrar.registerCommands(std::move(m_pluginManager.m_commands));
-    registrar.registerFactories(std::move(m_pluginManager.m_customFamilies));
 }
 
