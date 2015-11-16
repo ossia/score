@@ -21,6 +21,7 @@ iscore::PluginControlInterface* iscore_plugin_ossia::make_control(
 
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_ossia::factories(
+        const iscore::ApplicationContext&,
         const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProtocolFactory::staticFactoryKey())

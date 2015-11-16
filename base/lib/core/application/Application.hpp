@@ -45,8 +45,8 @@ namespace iscore
             int exec()
             { return m_app->exec(); }
 
-            Presenter* presenter() const
-            { return m_presenter; }
+            Presenter& presenter() const
+            { return *m_presenter; }
 
             View* view() const
             { return m_view; }

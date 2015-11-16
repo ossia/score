@@ -143,10 +143,6 @@ void Application::init()
     m_presenter = new Presenter{m_view, this};
 
     // Plugins
-    m_pluginManager.reloadPlugins();
-    m_pluginManager.addControl(new UndoControl{*this, m_presenter});
-    m_pluginManager.addPanel(new UndoPanelFactory);
-
     loadPluginData();
 
     // View
@@ -196,36 +192,17 @@ Application &Application::instance()
 
 void Application::loadPluginData()
 {
-    ApplicationRegistrar registrar{m_presenter->components(), *m_presenter};
+    // TODO finish to do this properly.
+    ApplicationRegistrar registrar{m_presenter->components(), *this};
 
-    registrar.registerCommands(std::move(m_pluginManager.m_commands));
-    registrar.registerFactories(std::move(m_pluginManager.m_customFamilies));
-
-    for(auto& set : m_pluginManager.m_settingsList)
-    {
-        m_settings->setupSettingsPlugin(set);
-    }
-
-    for(auto& cmd : m_pluginManager.m_controlList)
-    {
-        registrar.registerPluginControl(cmd);
-    }
+    m_pluginManager.reloadPlugins(registrar);
+    registrar.registerPluginControl(new UndoControl{*this, m_presenter});
+    registrar.registerPanel(new UndoPanelFactory);
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
     for(auto& toolbar : m_presenter->toolbars())
     {
         m_view->addToolBar(toolbar.bar);
     }
-
-    for(auto& pnl : m_pluginManager.m_panelList)
-    {
-        registrar.registerPanel(pnl);
-    }
-
-    for(auto& pnl : m_pluginManager.m_documentPanelList)
-    {
-        registrar.registerDocumentDelegate(pnl);
-    }
-
 }
 

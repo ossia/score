@@ -8,7 +8,7 @@ PluginControlInterface::PluginControlInterface(iscore::Application& app,
                                                const QString& name,
                                                QObject* parent):
     NamedObject{name, parent},
-    m_application{app}
+    m_appContext{app}
 {
     connect(this, &PluginControlInterface::documentChanged,
             this, &PluginControlInterface::on_documentChanged);
@@ -47,14 +47,14 @@ DocumentDelegatePluginModel*PluginControlInterface::loadDocumentPlugin(
     return nullptr;
 }
 
-ApplicationContext PluginControlInterface::context() const
+const ApplicationContext& PluginControlInterface::context() const
 {
-    return {m_application};
+    return m_appContext;
 }
 
 Document*PluginControlInterface::currentDocument() const
 {
-    return m_application.presenter()->documentManager().currentDocument();
+    return m_appContext.app.presenter().documentManager().currentDocument();
 }
 
 void PluginControlInterface::prepareNewDocument()

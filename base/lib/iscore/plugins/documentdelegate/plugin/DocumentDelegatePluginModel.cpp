@@ -1,7 +1,7 @@
 #include "DocumentDelegatePluginModel.hpp"
-
+#include <core/document/Document.hpp>
 iscore::DocumentDelegatePluginModel::DocumentDelegatePluginModel(
-        const iscore::DocumentContext& ctx,
+        iscore::Document& ctx,
         const QString& name,
         QObject* parent):
     NamedObject{name, parent},

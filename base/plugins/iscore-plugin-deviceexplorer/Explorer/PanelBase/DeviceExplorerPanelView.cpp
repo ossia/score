@@ -20,7 +20,7 @@ DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
     m_widget {new DeviceExplorerWidget{
               *iscore::Application::instance()
                 .presenter()
-                ->applicationComponents().factory<DynamicProtocolList>(),
+                .applicationComponents().factory<DynamicProtocolList>(),
               parent}}
 {
 }

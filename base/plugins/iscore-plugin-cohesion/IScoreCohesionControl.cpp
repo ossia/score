@@ -7,7 +7,7 @@
 
 #include <iscore/menu/MenuInterface.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
-
+#include <core/application/Application.hpp>
 #include <QApplication>
 #include <QToolBar>
 
@@ -16,7 +16,9 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
 {
     // Since we have declared the dependency, we can assume
     // that ScenarioControl is instantiated already.
-    auto scen = ScenarioControl::instance();
+
+    //TODO USEME (c_f dynamic_cast<ScenarioControl*>()
+    auto scen = app.presenter().applicationComponents().control<ScenarioControl>();
     connect(scen, &ScenarioControl::startRecording,
             this, &IScoreCohesionControl::record);
     connect(scen, &ScenarioControl::stopRecording, // TODO this seems useless

@@ -24,11 +24,11 @@ class DeviceDocumentPlugin final : public iscore::DocumentDelegatePluginModel
         Q_OBJECT
     public:
         explicit DeviceDocumentPlugin(
-                const iscore::DocumentContext& documentContext,
+                iscore::Document& documentContext,
                 QObject* parent);
 
         DeviceDocumentPlugin(
-                const iscore::DocumentContext&,
+                iscore::Document&,
                 const VisitorVariant& loader,
                 QObject* parent);
 

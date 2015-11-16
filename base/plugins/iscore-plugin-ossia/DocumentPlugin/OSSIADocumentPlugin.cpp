@@ -18,7 +18,7 @@
 
 
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::Document& doc, QObject* parent):
-    iscore::DocumentDelegatePluginModel{doc.context(), "OSSIADocumentPlugin", parent}
+    iscore::DocumentDelegatePluginModel{doc, "OSSIADocumentPlugin", parent}
 {
     reload(doc.model());
 }

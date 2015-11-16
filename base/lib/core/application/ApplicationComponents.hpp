@@ -14,6 +14,8 @@ class PanelPresenter;
 
 struct ApplicationComponentsData
 {
+        ~ApplicationComponentsData();
+
         std::vector<PluginControlInterface*> controls;
         std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
         std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*> factories;
@@ -33,6 +35,7 @@ class ApplicationComponents
 
         }
 
+
         // Getters for plugin-registered things
         const auto& pluginControls() const
         { return m_data.controls; }
@@ -40,6 +43,20 @@ class ApplicationComponents
         { return m_data.availableDocuments; }
         const auto& controls() const // TODO REMOVEME
         { return m_data.controls; }
+
+        template<typename T>
+        T* control() const
+        {
+            for(auto& elt : m_data.controls)
+            {
+                if(auto c = dynamic_cast<T*>(elt))
+                {
+                    return c;
+                }
+            }
+            ISCORE_ASSERT(false);
+            return nullptr;
+        }
         const auto& panelPresenters() const
         { return m_data.panelPresenters; }
         auto panelFactories() const

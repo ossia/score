@@ -21,12 +21,12 @@
 using namespace Scenario;
 
 SlotPresenter::SlotPresenter(
-        const DynamicProcessList& pl,
+        const iscore::DocumentContext& doc,
         const SlotModel& model,
         RackView *view,
         QObject* par) :
     NamedObject {"SlotPresenter", par},
-    m_processList{pl},
+    m_processList{*doc.app.components.factory<DynamicProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {
@@ -59,7 +59,7 @@ SlotPresenter::SlotPresenter(
     connect(m_view, &SlotView::askContextMenu,
             this, [&] (const QPoint& pos, const QPointF& scenept) {
         QMenu menu;
-        ScenarioControl::instance()->contextMenuDispatcher.createSlotContextMenu(menu, *this);
+        ScenarioContextMenuManager::createSlotContextMenu(doc, menu, *this);
         menu.exec(pos);
         menu.close();
     });

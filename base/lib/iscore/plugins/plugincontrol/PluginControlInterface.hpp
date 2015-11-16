@@ -44,7 +44,7 @@ namespace iscore
                     const VisitorVariant& var,
                     iscore::Document *parent);
 
-            ApplicationContext context() const;
+            const ApplicationContext& context() const;
             Document* currentDocument() const;
 
             virtual void on_newDocument(iscore::Document* doc);
@@ -68,7 +68,7 @@ namespace iscore
                     iscore::Document* newdoc);
 
         private:
-            iscore::Application& m_application;
+            ApplicationContext m_appContext;
     };
 
 }

@@ -10,6 +10,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <core/application/Application.hpp>
+#include <Scenario/Document/BaseElement/ScenarioDocument.hpp>
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
@@ -43,7 +44,6 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 }
 
 // Interfaces implementations :
-#include <Scenario/Document/BaseElement/ScenarioDocument.hpp>
 QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
 {
     return {new ScenarioDocument};
@@ -52,7 +52,7 @@ QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documen
 iscore::PluginControlInterface* iscore_plugin_scenario::make_control(
         iscore::Application& app)
 {
-    return ScenarioControl::instance(app.presenter());
+    return new ScenarioControl{app};
 }
 
 QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
@@ -65,40 +65,21 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamilies()
 {
     return {new DynamicProcessList, new MoveEventList, new ScenarioContextMenuPluginList};
-    /*
-            {ProcessFactory::staticFactoryKey(),
-             [&] (iscore::FactoryInterfaceBase* fact)
-             {
-                if(auto pf = dynamic_cast<ProcessFactory*>(fact))
-                    SingletonProcessList::instance().inscribe(pf);
-             }
-            },
-            {MoveEventFactoryInterface::staticFactoryKey(),
-             [&] (iscore::FactoryInterfaceBase* fact)
-             {
-                if(auto mef = dynamic_cast<MoveEventFactoryInterface*>(fact))
-                    SingletonMoveEventList::instance().inscribe(mef);
-             }
-            },
-            {ScenarioActionsFactory::staticFactoryKey(),
-             [&] (iscore::FactoryInterfaceBase* fact)
-             {
-                auto context_menu_fact = static_cast<ScenarioActionsFactory*>(fact);
-                for(auto& act : context_menu_fact->make(ScenarioControl::instance()))
-                {
-                    ScenarioControl::instance()->pluginActions().push_back(act);
-                }
-             }
-            }
-           };
-           */
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(const iscore::FactoryBaseKey& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new ScenarioFactory{ScenarioControl::instance()->editionSettings()}};
+        const auto& ctrls = ctx.components.controls();
+        for(const auto& ctrl : ctrls)
+        {
+            if(auto scenario = dynamic_cast<ScenarioControl*>(ctrl))
+                return {new ScenarioFactory{scenario->editionSettings()}};
+        }
+        return {};
     }
 
     if(factoryName == ScenarioActionsFactory::staticFactoryKey())

@@ -102,13 +102,6 @@ ScenarioControl::ScenarioControl(iscore::Application& app) :
     initColors();
 }
 
-
-ScenarioControl* ScenarioControl::instance(Presenter* pres)
-{
-    static auto ctrl = new ScenarioControl{*static_cast<iscore::Application*>(pres->parent())};
-    return ctrl;
-}
-
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
 {
     ///// Edit /////

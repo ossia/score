@@ -19,6 +19,7 @@
 #include "WebSocketView.hpp"
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
+#include <core/application/Application.hpp>
 #include <QSvgGenerator>
 #include <QApplication>
 #include <QAction>
@@ -90,14 +91,23 @@ BaseElementView::BaseElementView(QObject* parent) :
     // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
     transportButtons->setStyle(QStyleFactory::create("windows"));
 
-    for(const auto& action : ScenarioControl::instance()->pluginActions())
+    iscore::ApplicationContext ctx{iscore::Application::instance()};
+    const auto& ctrls = ctx.components.controls();
+    for(const auto& ctrl : ctrls)
     {
-        if(auto trsprt = dynamic_cast<TransportActions*>(action))
+        if(auto control = dynamic_cast<ScenarioControl*>(ctrl))
         {
-            trsprt->populateToolBar(transportButtons);
-            for(auto act : trsprt->actions())
+            for(const auto& action : control->pluginActions())
             {
-                m_view->addAction(act);
+                if(auto trsprt = dynamic_cast<TransportActions*>(action))
+                {
+                    trsprt->populateToolBar(transportButtons);
+                    for(auto act : trsprt->actions())
+                    {
+                        m_view->addAction(act);
+                    }
+                    break;
+                }
             }
             break;
         }

@@ -150,7 +150,9 @@ boost::optional<iscore::Value> OSSIADevice::refresh(const iscore::Address& addre
     return {};
 }
 
-void OSSIADevice::setListening(const iscore::Address& addr, bool b)
+void OSSIADevice::setListening(
+        const iscore::Address& addr,
+        bool b)
 {
     if(!connected())
         return;
@@ -170,6 +172,11 @@ void OSSIADevice::setListening(const iscore::Address& addr, bool b)
     else
     {
         ossia_addr = cb_it->second.first;
+        if(!ossia_addr)
+        {
+            m_callbacks.erase(cb_it);
+            return;
+        }
     }
 
     // If we want to enable listening

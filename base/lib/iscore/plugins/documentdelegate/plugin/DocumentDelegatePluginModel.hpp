@@ -11,7 +11,7 @@ class DocumentDelegatePluginModel : public NamedObject
         Q_OBJECT
     public:
         DocumentDelegatePluginModel(
-                const iscore::DocumentContext&,
+                iscore::Document&,
                 const QString& name,
                 QObject* parent);
 
@@ -42,7 +42,7 @@ class DocumentDelegatePluginModel : public NamedObject
         { return m_context; }
 
     protected:
-        const iscore::DocumentContext& m_context;
+        iscore::DocumentContext m_context;
 };
 
 }

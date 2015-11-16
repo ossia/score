@@ -10,6 +10,7 @@ namespace iscore
 {
 class FactoryInterfaceBase;
 class Application;
+class ApplicationRegistrar;
 class PluginControlInterface;
 class PanelFactory;
 class DocumentDelegateFactoryInterface;
@@ -34,7 +35,7 @@ class PluginLoader final : public QObject
              * Note: for now this is unsafe after the first loading.
              */
         void clearPlugins();
-        void reloadPlugins();
+        void reloadPlugins(iscore::ApplicationRegistrar&);
 
         /**
              * @brief pluginsOnSystem
@@ -59,8 +60,6 @@ class PluginLoader final : public QObject
 
         void loadPlugin(const QString& filename);
 
-        void loadControls(QObject* plugin);
-        void loadFactories(QObject* plugin);
 
         // Classify the plug-in element in the correct container.
         void dispatch(QObject* plugin);
@@ -71,7 +70,6 @@ class PluginLoader final : public QObject
         // Here, the plug-ins that are effectively loaded.
         QList<QObject*> m_availablePlugins;
 
-        std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*> m_customFamilies;
         QList<PluginControlInterface*>  m_controlList;
         QList<PanelFactory*>    m_panelList;
         QList<DocumentDelegateFactoryInterface*> m_documentPanelList;

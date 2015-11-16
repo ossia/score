@@ -116,10 +116,8 @@ void RackPresenter::on_slotCreated(const SlotModel& slot)
 
 void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 {
-    auto& context = iscore::IDocument::documentContext(slotModel).app;
-    auto fact = context.components.factory<DynamicProcessList>();
-    ISCORE_ASSERT(fact);
-    auto slotPres = new SlotPresenter {*fact, slotModel, m_view, this};
+    auto& context = iscore::IDocument::documentContext(slotModel);
+    auto slotPres = new SlotPresenter {context, slotModel, m_view, this};
 
     m_slots.insert(slotPres);
     slotPres->on_zoomRatioChanged(m_zoomRatio);

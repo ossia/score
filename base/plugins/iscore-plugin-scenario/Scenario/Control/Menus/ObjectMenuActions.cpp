@@ -83,7 +83,6 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
-        qDebug("da");
         auto obj = copySelectedElementsToJson();
         if(obj.empty())
             return;
@@ -129,7 +128,7 @@ ObjectMenuActions::ObjectMenuActions(
 
     // ADD PROCESS
 
-    const auto& appContext = parent->context();
+    auto appContext = parent->context();
     auto fact = appContext.components.factory<DynamicProcessList>();
     if(fact)
     {

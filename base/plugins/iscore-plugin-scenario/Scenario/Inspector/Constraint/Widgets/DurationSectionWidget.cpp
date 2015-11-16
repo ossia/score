@@ -134,7 +134,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
     auto scenario = m_model.parentScenario();
-    const auto& controls = iscore::Application::instance().presenter()->applicationComponents().pluginControls();
+    const auto& controls = iscore::Application::instance().presenter().applicationComponents().pluginControls();
     auto it = std::find_if(controls.begin(), controls.end(),
                         [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
     ISCORE_ASSERT(it != controls.end());

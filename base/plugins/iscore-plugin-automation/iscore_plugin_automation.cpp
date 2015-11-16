@@ -33,6 +33,7 @@ iscore_plugin_automation::iscore_plugin_automation() :
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
+        const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
     static Curve::EditionSettings set;

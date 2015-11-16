@@ -38,9 +38,9 @@ class ScenarioControl final : public iscore::PluginControlInterface
         Q_OBJECT
         friend class ScenarioContextMenuManager;
     public:
-        ScenarioContextMenuManager contextMenuDispatcher;
+        ScenarioControl(iscore::Application& app);
 
-        static ScenarioControl* instance(iscore::Presenter* = nullptr);
+        ScenarioContextMenuManager contextMenuDispatcher;
 
         void populateMenus(iscore::MenubarManager*) override;
         QList<iscore::OrderedToolbar> makeToolbars() override;
@@ -74,7 +74,6 @@ class ScenarioControl final : public iscore::PluginControlInterface
     private:
         void initColors();
 
-        ScenarioControl(iscore::Application& app);
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
         Scenario::EditionSettings m_editionSettings;

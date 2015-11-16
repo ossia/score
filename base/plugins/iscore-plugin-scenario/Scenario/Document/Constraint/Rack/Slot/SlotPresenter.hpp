@@ -42,7 +42,7 @@ class SlotPresenter final : public NamedObject
 
     public:
         SlotPresenter(
-                const DynamicProcessList& pl,
+                const iscore::DocumentContext& pl,
                 const SlotModel& model,
                 RackView* view,
                 QObject* parent);

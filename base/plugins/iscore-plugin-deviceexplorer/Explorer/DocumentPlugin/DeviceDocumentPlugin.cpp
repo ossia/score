@@ -10,7 +10,7 @@
 #include <QApplication>
 
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-        const iscore::DocumentContext& ctx,
+        iscore::Document& ctx,
         QObject* parent):
     iscore::DocumentDelegatePluginModel{ctx, "DeviceDocumentPlugin", parent}
 {
@@ -18,7 +18,7 @@ DeviceDocumentPlugin::DeviceDocumentPlugin(
 }
 
 DeviceDocumentPlugin::DeviceDocumentPlugin(
-        const iscore::DocumentContext& ctx,
+        iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
     iscore::DocumentDelegatePluginModel{ctx, "DeviceDocumentPlugin", parent}

@@ -21,7 +21,9 @@ iscore_plugin_curve::iscore_plugin_curve() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(const iscore::FactoryBaseKey& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == CurveSegmentFactory::staticFactoryKey())
     {

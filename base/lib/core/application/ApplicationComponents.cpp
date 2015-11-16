@@ -1,8 +1,28 @@
 #include "ApplicationComponents.hpp"
-#include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
+#include <iscore/plugins/panel/PanelFactory.hpp>
+#include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 namespace iscore
 {
+
+ApplicationComponentsData::~ApplicationComponentsData()
+{/*
+    for(auto& elt : settings)
+    {
+        delete elt;
+    }*/
+
+    for(auto& elt : panelPresenters)
+    {
+        delete elt.second;
+    }
+
+    for(auto& elt : availableDocuments)
+    {
+        delete elt;
+    }
+}
+
 iscore::SerializableCommand* ApplicationComponents::instantiateUndoCommand(
         const CommandParentFactoryKey& parent_name,
         const CommandFactoryKey& name,
