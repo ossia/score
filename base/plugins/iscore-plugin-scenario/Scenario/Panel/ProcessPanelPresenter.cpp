@@ -19,8 +19,12 @@
 #include <Scenario/Document/BaseElement/ProcessFocusManager.hpp>
 #include <Scenario/Document/BaseElement/Widgets/DoubleSlider.hpp>
 
-ProcessPanelPresenter::ProcessPanelPresenter(iscore::Presenter* parent_presenter, iscore::PanelView* view):
-    iscore::PanelPresenter{parent_presenter, view}
+ProcessPanelPresenter::ProcessPanelPresenter(
+        const DynamicProcessList& plist,
+        iscore::Presenter* parent_presenter,
+        iscore::PanelView* view):
+    iscore::PanelPresenter{parent_presenter, view},
+    m_processList{plist}
 {
     auto v = static_cast<ProcessPanelView*>(view);
     connect(v, &ProcessPanelView::horizontalZoomChanged,
@@ -67,7 +71,7 @@ void ProcessPanelPresenter::on_focusedViewModelChanged(const LayerModel* theLM)
             return;
 
         auto& sharedmodel = m_layerModel->processModel();
-        auto fact = SingletonProcessList::instance().get(sharedmodel.key());
+        auto fact = m_processList.list().get(sharedmodel.key());
 
         auto proxy = m_layerModel->make_panelProxy(this);
 

@@ -2,6 +2,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <Process/ProcessList.hpp>
 
 class SlotModel;
 class SlotView;
@@ -40,9 +41,11 @@ class SlotPresenter final : public NamedObject
         Q_OBJECT
 
     public:
-        SlotPresenter(const SlotModel& model,
-                      RackView* view,
-                      QObject* parent);
+        SlotPresenter(
+                const DynamicProcessList& pl,
+                const SlotModel& model,
+                RackView* view,
+                QObject* parent);
         virtual ~SlotPresenter();
 
         const Id<SlotModel>& id() const;
@@ -84,6 +87,7 @@ class SlotPresenter final : public NamedObject
         void updateProcessShape(const SlotProcessData&);
         void updateProcessesShape();
 
+        const DynamicProcessList& m_processList;
         const SlotModel& m_model;
         SlotView* m_view{};
         std::vector<SlotProcessData> m_processes;

@@ -13,6 +13,7 @@ class ScenarioModel;
 class Process;
 class TriggerInspectorWidget;
 class InspectorWidgetList;
+class DynamicProcessList;
 class RackWidget;
 class RackInspectorSection;
 class QFormLayout;
@@ -29,6 +30,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
     public:
         explicit ConstraintInspectorWidget(
                 const InspectorWidgetList& list,
+                const DynamicProcessList& pl,
                 const ConstraintModel& object,
                 iscore::Document& doc,
                 QWidget* parent = 0);
@@ -64,6 +66,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         QWidget* makeStatesWidget(ScenarioModel*);
 
         const InspectorWidgetList& m_widgetList;
+        const DynamicProcessList& m_processList;
         const ConstraintModel& m_model;
         QVector<QMetaObject::Connection> m_connections;
 

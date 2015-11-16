@@ -5,8 +5,11 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QInputDialog>
 #include <QApplication>
-AddProcessDialog::AddProcessDialog(QWidget *parent) :
-    QWidget {parent}
+AddProcessDialog::AddProcessDialog(
+        const DynamicProcessList& plist,
+        QWidget *parent) :
+    QWidget {parent},
+    m_factoryList{plist}
 {
     hide();
 }
@@ -14,10 +17,9 @@ AddProcessDialog::AddProcessDialog(QWidget *parent) :
 void AddProcessDialog::launchWindow()
 {
     bool ok = false;
-    const auto& factoryList = SingletonProcessList::instance().get();
 
     std::vector<std::pair<QString, ProcessFactoryKey>> sortedFactoryList;
-    for(const auto& factory : factoryList)
+    for(const auto& factory : m_factoryList.list().get())
     {
         sortedFactoryList.push_back(
                     std::make_pair(

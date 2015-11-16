@@ -55,6 +55,8 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/presenter/PresenterInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionStack.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/DataStreamVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/QtTypesJsonVisitors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObjectSerialization.cpp"

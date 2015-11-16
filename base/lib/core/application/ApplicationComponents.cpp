@@ -1,4 +1,5 @@
 #include "ApplicationComponents.hpp"
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
 namespace iscore
 {

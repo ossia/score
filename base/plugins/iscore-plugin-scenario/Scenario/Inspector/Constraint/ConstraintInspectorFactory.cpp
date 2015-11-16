@@ -4,6 +4,9 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <core/document/Document.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
+#include <core/application/ApplicationContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <Process/ProcessList.hpp>
 
 InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         const QObject& sourceElement,
@@ -11,11 +14,12 @@ InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         QWidget* parent)
 {
     auto& appContext = doc.context().app;
-    auto fact = appContext.components.factory<InspectorWidgetList>();
-    if(fact)
+    auto widgetFact = appContext.components.factory<InspectorWidgetList>();
+    auto processFact = appContext.components.factory<DynamicProcessList>();
+    if(widgetFact && processFact)
     {
         auto& constraint = static_cast<const ConstraintModel&>(sourceElement);
-        return new ConstraintInspectorWidget{*fact, constraint, doc, parent};
+        return new ConstraintInspectorWidget{*widgetFact, *processFact, constraint, doc, parent};
     }
     else
     {

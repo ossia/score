@@ -1,6 +1,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessModelSerialization.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintViewModel.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.hpp>
@@ -53,9 +54,11 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     int32_t process_count;
     m_stream >> process_count;
 
+    auto pl = context.components.factory<DynamicProcessList>();
+    ISCORE_ASSERT(pl);
     for(; process_count -- > 0;)
     {
-        constraint.processes.add(createProcess(*this, &constraint));
+        constraint.processes.add(createProcess(*pl, *this, &constraint));
     }
 
     // Rackes
@@ -124,11 +127,14 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
+    auto pl = context.components.factory<DynamicProcessList>();
+    ISCORE_ASSERT(pl);
+
     QJsonArray process_array = m_obj["Processes"].toArray();
     for(const auto& json_vref : process_array)
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
-        constraint.processes.add(createProcess(deserializer, &constraint));
+        constraint.processes.add(createProcess(*pl, deserializer, &constraint));
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();

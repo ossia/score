@@ -101,7 +101,10 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
     auto addNewProcessInExistingSlot = new QAction{tr("Add new process in this slot"), &menu};
     connect(addNewProcessInExistingSlot, &QAction::triggered,
             this, [&] () {
-        AddProcessDialog dialog(qApp->activeWindow());
+        const auto& appContext = m_control.context();
+        auto fact = appContext.components.factory<DynamicProcessList>();
+        ISCORE_ASSERT(fact);
+        AddProcessDialog dialog{*fact, qApp->activeWindow()};
 
         con(dialog, &AddProcessDialog::okPressed,
             this, [&] (const auto& proc) {
@@ -131,7 +134,10 @@ void ScenarioContextMenuManager::createSlotContextMenu(QMenu& menu, const SlotPr
     auto addNewProcessInNewSlot = new QAction{tr("Add process in a new slot"), &menu};
     connect(addNewProcessInNewSlot, &QAction::triggered,
             this, [&] () {
-        AddProcessDialog dialog(qApp->activeWindow());
+        const auto& appContext = m_control.context();
+        auto fact = appContext.components.factory<DynamicProcessList>();
+        ISCORE_ASSERT(fact);
+        AddProcessDialog dialog{*fact, qApp->activeWindow()};
 
         con(dialog, &AddProcessDialog::okPressed,
             this, [&] (const auto& proc) {

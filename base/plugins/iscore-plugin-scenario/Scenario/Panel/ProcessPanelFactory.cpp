@@ -3,6 +3,7 @@
 #include "ProcessPanelPresenter.hpp"
 #include "ProcessPanelView.hpp"
 #include "ProcessPanelId.hpp"
+#include <Process/ProcessFactory.hpp>
 
 #include <core/view/View.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -22,10 +23,13 @@ iscore::PanelView*ProcessPanelFactory::makeView(iscore::View* parent)
     return new ProcessPanelView{parent};
 }
 
-iscore::PanelPresenter*ProcessPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
-                                                                   iscore::PanelView* view)
+iscore::PanelPresenter*ProcessPanelFactory::makePresenter(
+        iscore::Presenter* parent_presenter,
+        iscore::PanelView* view)
 {
-    return new ProcessPanelPresenter{parent_presenter, view};
+    auto fact = parent_presenter->applicationComponents().factory<DynamicProcessList>();
+    ISCORE_ASSERT(fact);
+    return new ProcessPanelPresenter{*fact, parent_presenter, view};
 }
 
 iscore::PanelModel*ProcessPanelFactory::makeModel(iscore::DocumentModel* parent)

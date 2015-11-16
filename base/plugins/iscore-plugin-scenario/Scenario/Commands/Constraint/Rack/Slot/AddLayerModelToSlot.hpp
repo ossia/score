@@ -31,13 +31,13 @@ namespace Scenario
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
                     Path<Process>&& process,
-                    const ProcessFactoryKey& processName);
+                    const QByteArray& processConstructionData);
 
                 AddLayerModelToSlot(
                         Path<SlotModel>&& slot,
                         const Id<LayerModel>& layerid,
                         Path<Process>&& process,
-                        const ProcessFactoryKey& processName);
+                        const QByteArray& processConstructionData);
 
                 void undo() const override;
                 void redo() const override;

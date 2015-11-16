@@ -90,8 +90,11 @@ CreateSequence::CreateSequence(
     {
         auto constraint = Path<ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
 
-
-        m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
+        {
+            InterpolateMacro interpolateMacro{Path<ConstraintModel>{constraint}};
+            m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
+            m_interpolations.commands() = interpolateMacro.commands();
+        }
 
         // Generate brand new ids for the processes
         auto process_ids = getStrongIdRange<Process>(matchingMessages.size());

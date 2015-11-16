@@ -2,6 +2,7 @@
 #include <core/view/View.hpp>
 #include <core/document/Document.hpp>
 #include <QVBoxLayout>
+#include <core/application/ApplicationComponents.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 #include "Implementation/InspectorPanel.hpp"
 #include "Implementation/SelectionStackWidget.hpp"

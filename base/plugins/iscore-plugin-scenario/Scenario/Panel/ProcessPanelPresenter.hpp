@@ -1,5 +1,6 @@
 #pragma once
 #include <iscore/plugins/panel/PanelPresenter.hpp>
+#include <Process/ProcessList.hpp>
 #include "ProcessPanelGraphicsProxy.hpp"
 
 #include <Process/ZoomHelper.hpp>
@@ -11,8 +12,10 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
 {
         Q_OBJECT
     public:
-        ProcessPanelPresenter(iscore::Presenter* parent_presenter,
-                              iscore::PanelView* view);
+        ProcessPanelPresenter(
+                const DynamicProcessList& plist,
+                iscore::Presenter* parent_presenter,
+                iscore::PanelView* view);
 
         int panelId() const override;
         void on_modelChanged() override;
@@ -28,6 +31,7 @@ class ProcessPanelPresenter final : public iscore::PanelPresenter
     private:
         void cleanup();
 
+        const DynamicProcessList& m_processList;
         ProcessPanelGraphicsProxy* m_obj{};
         const LayerModel* m_layerModel{};
         LayerPresenter* m_processPresenter{};

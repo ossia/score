@@ -11,6 +11,7 @@
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/application/ApplicationComponents.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -43,7 +44,8 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    constraint.processes.add(createProcess(s, &constraint));
+    auto fact = context.components.factory<DynamicProcessList>();
+    constraint.processes.add(createProcess(*fact, s, &constraint));
 
     // Restore the view models
     for(const auto& it : m_serializedViewModels)

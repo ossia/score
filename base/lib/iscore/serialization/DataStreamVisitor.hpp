@@ -3,15 +3,13 @@
 #include <type_traits>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-
+#include <core/application/ApplicationContext.hpp>
 /**
  * This file contains facilities
  * to serialize an object using QDataStream.
  *
  * Generally, it is used with QByteArrays, but it works with any QIODevice.
  */
-
-
 class DataStream;
 template<> class Visitor<Reader<DataStream>>;
 template<> class Visitor<Writer<DataStream>>;
@@ -48,20 +46,12 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
 
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
-        Visitor<Reader<DataStream>>() = default;
-        Visitor<Reader<DataStream>>(const Visitor<Reader<DataStream>>&) = delete;
-        Visitor<Reader<DataStream>>& operator=(const Visitor<Reader<DataStream>>&) = delete;
+        Visitor();
+        Visitor(const Visitor&) = delete;
+        Visitor& operator=(const Visitor&) = delete;
 
-        Visitor<Reader<DataStream>> (QByteArray* array) :
-                                     m_stream {array, QIODevice::WriteOnly}
-        {
-            m_stream.setVersion(QDataStream::Qt_5_3);
-        }
-
-        Visitor<Reader<DataStream>> (QIODevice* dev) :
-                                     m_stream {dev}
-        {
-        }
+        Visitor(QByteArray* array);
+        Visitor(QIODevice* dev);
 
         template<typename T>
         static auto marshall(const T& t)
@@ -120,6 +110,7 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
         }
 
         QDataStream m_stream;
+        iscore::ApplicationContext context;
 };
 
 template<>
@@ -130,21 +121,12 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
-        Visitor<Writer<DataStream>>() = default;
-        Visitor<Writer<DataStream>>(const Visitor<Writer<DataStream>>&) = delete;
-        Visitor<Writer<DataStream>>& operator=(const Visitor<Writer<DataStream>>&) = delete;
+        Visitor();
+        Visitor(const Visitor&) = delete;
+        Visitor& operator=(const Visitor&) = delete;
 
-        Visitor<Writer<DataStream>> (const QByteArray& array) :
-                                     m_stream {array}
-        {
-            m_stream.setVersion(QDataStream::Qt_5_3);
-        }
-
-
-        Visitor<Writer<DataStream>> (QIODevice* dev) :
-                                     m_stream {dev}
-        {
-        }
+        Visitor(const QByteArray& array);
+        Visitor(QIODevice* dev);
 
 
         template<typename T>
@@ -222,6 +204,7 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         }
 
         QDataStream m_stream;
+        iscore::ApplicationContext context;
 };
 
 

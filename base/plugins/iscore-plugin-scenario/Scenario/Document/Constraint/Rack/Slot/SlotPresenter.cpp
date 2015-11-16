@@ -20,10 +20,13 @@
 
 using namespace Scenario;
 
-SlotPresenter::SlotPresenter(const SlotModel& model,
-                             RackView *view,
-                             QObject* par) :
+SlotPresenter::SlotPresenter(
+        const DynamicProcessList& pl,
+        const SlotModel& model,
+        RackView *view,
+        QObject* par) :
     NamedObject {"SlotPresenter", par},
+    m_processList{pl},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {
@@ -225,7 +228,7 @@ void SlotPresenter::on_layerModelCreated_impl(
 {
     auto& procKey = proc_vm.processModel().key();
 
-    auto factory = SingletonProcessList::instance().get(procKey);
+    auto factory = m_processList.list().get(procKey);
     ISCORE_ASSERT(factory);
 
     int numproc = m_looping
@@ -287,7 +290,8 @@ void SlotPresenter::updateProcesses()
             if(proc_size < numproc)
             {
                 auto procKey = proc.model->processModel().key();
-                auto factory = SingletonProcessList::instance().get(procKey);
+                auto factory = m_processList.list().get(procKey);
+                ISCORE_ASSERT(factory);
 
                 for(int i = proc_size; i < numproc; i++)
                 {

@@ -13,18 +13,18 @@
 class GenericInterpolateMacro final : public iscore::AggregateCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      GenericInterpolateMacro,
-                                      "GenericInterpolateMacro")
+                            GenericInterpolateMacro,
+                            "GenericInterpolateMacro")
 };
 
 class InterpolateMacro final : public iscore::AggregateCommand
 {
         ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      InterpolateMacro,
-                                      "InterpolateMacro")
+                            InterpolateMacro,
+                            "InterpolateMacro")
 
         public:
-            InterpolateMacro& operator=(const InterpolateMacro& other) = default;
+            auto& commands() { return m_cmds; }
 
         // Use this constructor when the constraint does not exist yet.
         InterpolateMacro(const Path<ConstraintModel>& cstpath)

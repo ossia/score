@@ -36,13 +36,15 @@ void Visitor<Writer<DataStream>>::writeTo(Process& process)
 }
 
 template<>
-Process* createProcess(Deserializer<DataStream>& deserializer,
+Process* createProcess(
+        const DynamicProcessList& pl,
+        Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
     ProcessFactoryKey processName;
     deserializer.m_stream >> processName;
 
-    auto model = SingletonProcessList::instance().get(processName)
+    auto model = pl.list().get(processName)
                  ->loadModel(deserializer.toVariant(),
                              parent);
     // Calls the concrete process's factory
@@ -79,10 +81,12 @@ void Visitor<Writer<JSONObject>>::writeTo(Process& process)
 }
 
 template<>
-Process* createProcess(Deserializer<JSONObject>& deserializer,
+Process* createProcess(
+        const DynamicProcessList& pl,
+        Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
-    auto model = SingletonProcessList::instance().get(
+    auto model = pl.list().get(
                      fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["ProcessName"]))
                         ->loadModel(
                             deserializer.toVariant(),

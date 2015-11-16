@@ -47,6 +47,11 @@ DocumentDelegatePluginModel*PluginControlInterface::loadDocumentPlugin(
     return nullptr;
 }
 
+ApplicationContext PluginControlInterface::context() const
+{
+    return {m_application};
+}
+
 Document*PluginControlInterface::currentDocument() const
 {
     return m_application.presenter()->documentManager().currentDocument();

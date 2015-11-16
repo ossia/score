@@ -73,5 +73,7 @@ namespace iscore
             PluginLoader m_pluginManager {this};
 
             ApplicationSettings m_applicationSettings;
+
+
     };
 }

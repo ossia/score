@@ -49,11 +49,13 @@ using namespace iscore::IDocument;
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const InspectorWidgetList& widg,
+        const DynamicProcessList& pl,
         const ConstraintModel& object,
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase{object, doc, parent},
     m_widgetList{widg},
+    m_processList{pl},
     m_model{object}
 {
     setObjectName("Constraint");
@@ -137,7 +139,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     addProcLayout->addWidget(addProcButton);
     addProcLayout->addWidget(addProcText);
-    auto addProcess = new AddProcessDialog {this};
+    auto addProcess = new AddProcessDialog {m_processList, this};
 
     connect(addProcButton,  &QToolButton::pressed,
             addProcess, &AddProcessDialog::launchWindow);

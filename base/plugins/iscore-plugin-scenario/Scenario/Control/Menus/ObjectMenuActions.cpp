@@ -128,21 +128,26 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     // ADD PROCESS
-    m_addProcessDialog = new AddProcessDialog(qApp->activeWindow());
 
-    connect(m_addProcessDialog, &AddProcessDialog::okPressed,
-            this, &ObjectMenuActions::addProcessInConstraint);
-
-    m_addProcess = new QAction{tr("Add Process in constraint"), this};
-    connect(m_addProcess, &QAction::triggered,
-            [this]()
+    const auto& appContext = parent->context();
+    auto fact = appContext.components.factory<DynamicProcessList>();
+    if(fact)
     {
-        auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
-        if(selectedConstraints.isEmpty())
-            return;
-        m_addProcessDialog->launchWindow();
-    });
+        m_addProcessDialog = new AddProcessDialog(*fact, qApp->activeWindow());
 
+        connect(m_addProcessDialog, &AddProcessDialog::okPressed,
+                this, &ObjectMenuActions::addProcessInConstraint);
+
+        m_addProcess = new QAction{tr("Add Process in constraint"), this};
+        connect(m_addProcess, &QAction::triggered,
+            [this]()
+        {
+            auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
+            if(selectedConstraints.isEmpty())
+                return;
+            m_addProcessDialog->launchWindow();
+        });
+    }
 
     m_interp = new QAction {tr("Interpolate states"), this};
     m_interp->setShortcutContext(Qt::ApplicationShortcut);
@@ -177,7 +182,8 @@ ObjectMenuActions::ObjectMenuActions(
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
+    if(m_addProcess)
+        menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
@@ -237,7 +243,8 @@ void ObjectMenuActions::fillContextMenu(
 
         if(selectedConstraints.size() >= 1)
         {
-            menu->addAction(m_addProcess);
+            if(m_addProcess)
+                menu->addAction(m_addProcess);
             menu->addAction(m_interp);
             menu->addSeparator();
         }
@@ -429,15 +436,19 @@ CommandDispatcher<> ObjectMenuActions::dispatcher()
 
 QList<QAction*> ObjectMenuActions::actions() const
 {
-    return {
+    QList<QAction*> lst{
             m_removeElements,
             m_clearElements,
             m_copyContent,
             m_cutContent,
             m_pasteContent,
             m_elementsToJson,
-            m_addProcess,
             m_addTrigger
         };
+    if(m_addProcess)
+    {
+        lst.push_back(m_addProcess);
+    }
+    return lst;
 }
 

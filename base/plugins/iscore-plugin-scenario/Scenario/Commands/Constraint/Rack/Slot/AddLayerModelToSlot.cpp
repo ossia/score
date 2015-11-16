@@ -21,32 +21,37 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
 }
 
-
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath,
-        const ProcessFactoryKey& processkey) :
+        const QByteArray& processData) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
+    m_processData{processData},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    auto fact = SingletonProcessList::instance().get(processkey);
+    /*
+    auto fact = list.get(processkey);
     ISCORE_ASSERT(fact);
     m_processData = fact->makeStaticLayerConstructionData();
+    */
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
         const Id<LayerModel>& layerid,
         Path<Process>&& process,
-        const ProcessFactoryKey& processKey):
+        const QByteArray& processData):
     m_slotPath{std::move(slot)},
     m_processPath{std::move(process)},
+    m_processData{processData},
     m_createdLayerId{layerid}
 {
+    /*
     auto fact = SingletonProcessList::instance().get(processKey);
     ISCORE_ASSERT(fact);
     m_processData = fact->makeStaticLayerConstructionData();
+    */
 }
 
 void AddLayerModelToSlot::undo() const

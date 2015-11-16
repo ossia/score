@@ -8,6 +8,8 @@
 
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <Process/ProcessList.hpp>
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
@@ -31,13 +33,17 @@ CreateCurveFromStates::CreateCurveFromStates(
 
     m_slotsCmd.reserve(slotList.size());
 
+    auto fact = context.components.factory<DynamicProcessList>()->list().get(AutomationProcessMetadata::factoryKey());
+    ISCORE_ASSERT(fact);
+    auto procData = fact->makeStaticLayerConstructionData();
+
     for(const auto& elt : slotList)
     {
         m_slotsCmd.emplace_back(
                     Path<SlotModel>(elt.first),
                     elt.second,
-                    std::move(proc),
-                    AutomationProcessMetadata::factoryKey());
+                    Path<Process>{proc},
+                    procData);
     }
 }
 
