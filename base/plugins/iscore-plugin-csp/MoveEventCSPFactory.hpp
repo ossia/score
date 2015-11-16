@@ -16,11 +16,11 @@ class MoveEventCSPFactory : public MoveEventFactoryInterface
 
         SerializableMoveEvent* make() override;
 
-        int priority(MoveEventList::Strategy strategy) override
+        int priority(MoveEventFactoryInterface::Strategy strategy) override
         {
             switch(strategy)
             {
-                case MoveEventList::Strategy::MOVING:
+                case MoveEventFactoryInterface::Strategy::MOVING:
                     return 10;
                     break;
                 default:

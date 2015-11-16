@@ -3,7 +3,6 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 //#include <iscore/command/SerializableCommand.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -18,6 +17,8 @@ class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<std::st
 {
         ISCORE_FACTORY_DECL("MoveEvent")
 public:
+            enum Strategy{ MOVING, CREATION, EXTRA };
+
     virtual SerializableMoveEvent* make(
             Path<ScenarioModel>&& scenarioPath,
             const Id<EventModel>& eventId,
@@ -36,6 +37,6 @@ public:
      * the strategy for which we need a displacement policy;
      * @return
      */
-    virtual int priority(MoveEventList::Strategy strategy) = 0;
+    virtual int priority(Strategy strategy) = 0;
 
 };
