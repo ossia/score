@@ -14,6 +14,8 @@ template<typename T, typename Key>
 class GenericFactoryMap_T
 {
     public:
+        using key_t = Key;
+        // TODO delete the factories in the end. Or unique_ptr ?
         void inscribe(T* reg)
         {
             auto it = m_factories.find(reg->template key<Key>());

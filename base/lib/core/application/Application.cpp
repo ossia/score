@@ -225,5 +225,6 @@ void Application::loadPluginData()
     }
 
     registrar.registerCommands(std::move(m_pluginManager.m_commands));
+    registrar.registerFactories(std::move(m_pluginManager.m_customFamilies));
 }
 

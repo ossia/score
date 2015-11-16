@@ -10,7 +10,7 @@
 class iscore_plugin_deviceexplorer final :
         public QObject,
         public iscore::PanelFactory_QtInterface,
-        public iscore::FactoryFamily_QtInterface,
+        public iscore::FactoryList_QtInterface,
         public iscore::PluginControlInterface_QtInterface,
         public iscore::CommandFactory_QtInterface
 {
@@ -18,7 +18,7 @@ class iscore_plugin_deviceexplorer final :
         Q_PLUGIN_METADATA(IID PanelFactory_QtInterface_iid)
         Q_INTERFACES(
                 iscore::PanelFactory_QtInterface
-                iscore::FactoryFamily_QtInterface
+                iscore::FactoryList_QtInterface
                 iscore::PluginControlInterface_QtInterface
                 iscore::CommandFactory_QtInterface)
 
@@ -29,7 +29,7 @@ class iscore_plugin_deviceexplorer final :
         QList<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
-        std::vector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
         // Control
         iscore::PluginControlInterface* make_control(iscore::Application& app) override;

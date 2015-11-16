@@ -13,6 +13,7 @@ class CurveSegmentFactory : public iscore::GenericFactoryInterface<CurveSegmentF
 {
         ISCORE_FACTORY_DECL("CurveSegment")
     public:
+            using factory_key_type = CurveSegmentFactoryKey;
         virtual ~CurveSegmentFactory();
 
         virtual QString prettyName() const = 0;

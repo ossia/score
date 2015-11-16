@@ -31,6 +31,8 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
     m_view {view},
     m_docManager{*this},
+    m_components{},
+    m_components_readonly{m_components},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}
   #else

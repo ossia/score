@@ -26,6 +26,7 @@ class ProcessFactory :
 {
         ISCORE_FACTORY_DECL("Process")
     public:
+            using factory_key_type = ProcessFactoryKey;
         virtual ~ProcessFactory();
         virtual QString prettyName() const = 0;
 

@@ -23,7 +23,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {},
         iscore::DocumentDelegateFactoryInterface_QtInterface {},
-        iscore::FactoryFamily_QtInterface {},
+        iscore::FactoryList_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
 {
     QMetaType::registerComparators<iscore::Value>();
@@ -62,9 +62,10 @@ QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
     };
 }
 
-std::vector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
+std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamilies()
 {
-    return {
+    return {new DynamicProcessList, new DynamicMoveEventList, new DynamicScenarioActionsList};
+    /*
             {ProcessFactory::staticFactoryKey(),
              [&] (iscore::FactoryInterfaceBase* fact)
              {
@@ -90,6 +91,7 @@ std::vector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
              }
             }
            };
+           */
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(const iscore::FactoryBaseKey& factoryName) const

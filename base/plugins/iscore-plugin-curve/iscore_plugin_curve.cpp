@@ -35,15 +35,11 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_curve::factories(const 
     return {};
 }
 
-std::vector<iscore::FactoryFamily> iscore_plugin_curve::factoryFamilies()
+
+
+std::vector<iscore::FactoryListInterface*> iscore_plugin_curve::factoryFamilies()
 {
-    return {{CurveSegmentFactory::staticFactoryKey(),
-             [&] (iscore::FactoryInterfaceBase* f)
-             {
-                if(auto curve = dynamic_cast<CurveSegmentFactory*>(f))
-                    SingletonCurveSegmentList::instance().inscribe(curve);
-            }
-           }};
+    return {new DynamicCurveSegmentList};
 }
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curve::make_commands()

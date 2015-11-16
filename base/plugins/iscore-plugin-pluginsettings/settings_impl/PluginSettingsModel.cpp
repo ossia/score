@@ -21,7 +21,7 @@ PluginSettingsModel::PluginSettingsModel() :
     return;
 
 
-    auto systemlist = qApp->findChild<PluginManager*> ("PluginManager")->pluginsOnSystem();
+    auto systemlist = qApp->findChild<PluginLoader*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 
     m_plugins = new QStandardItemModel(1, 1, this);

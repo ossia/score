@@ -3,6 +3,7 @@
 using namespace iscore;
 #include "DeviceExplorerControl.hpp"
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 
 
 #include <Explorer/Commands/Add/AddAddress.hpp>
@@ -30,13 +31,10 @@ QList<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 
 
 
-std::vector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies()
+std::vector<iscore::FactoryListInterface*> iscore_plugin_deviceexplorer::factoryFamilies()
 {
-    return {{ProtocolFactory::staticFactoryKey(),
-            [] (iscore::FactoryInterfaceBase* f) {
-                if(auto prot = dynamic_cast<ProtocolFactory*>(f))
-                    SingletonProtocolList::instance().inscribe(prot);
-            }}};
+    return {new DynamicProtocolList};
+
 }
 
 PluginControlInterface *iscore_plugin_deviceexplorer::make_control(

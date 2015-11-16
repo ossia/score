@@ -51,8 +51,8 @@ namespace iscore
 
             auto& documentManager()
             { return m_docManager; }
-            ApplicationComponents applicationComponents()
-            { return m_components; }
+            const ApplicationComponents& applicationComponents()
+            { return m_components_readonly; }
 
             auto& components()
             { return m_components; }
@@ -62,6 +62,7 @@ namespace iscore
 
             DocumentManager m_docManager;
             ApplicationComponentsData m_components;
+            ApplicationComponents m_components_readonly;
 
             MenubarManager m_menubar;
 

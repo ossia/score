@@ -6,13 +6,9 @@ namespace iscore
 class Application;
 struct ApplicationContext
 {
-        ApplicationContext(iscore::ApplicationComponents& c):
-            components{c}
-        {
-
-        }
+        ApplicationContext(iscore::Application& app);
 
         iscore::Application& app;
-        iscore::ApplicationComponents& components;
+        const iscore::ApplicationComponents& components;
 };
 }

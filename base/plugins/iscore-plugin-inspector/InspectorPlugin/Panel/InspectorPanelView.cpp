@@ -2,7 +2,7 @@
 #include <core/view/View.hpp>
 #include <core/document/Document.hpp>
 #include <QVBoxLayout>
-
+#include <Inspector/InspectorWidgetList.hpp>
 #include "Implementation/InspectorPanel.hpp"
 #include "Implementation/SelectionStackWidget.hpp"
 static const iscore::DefaultPanelStatus status{true, Qt::RightDockWidgetArea, 10, QObject::tr("Inspector")};
@@ -36,13 +36,18 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
 
     if(doc)
     {
-        m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
-        m_inspectorPanel = new InspectorPanel{doc->selectionStack(), m_widget};
+        auto& appContext = doc->context().app;
+        auto fact = appContext.components.factory<InspectorWidgetList>();
+        if(fact)
+        {
+            m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
+            m_inspectorPanel = new InspectorPanel{*fact, doc->selectionStack(), m_widget};
 
-        m_widget->layout()->addWidget(m_stack);
-        m_widget->layout()->addWidget(m_inspectorPanel);
+            m_widget->layout()->addWidget(m_stack);
+            m_widget->layout()->addWidget(m_inspectorPanel);
 
-        setNewSelection(doc->selectionStack().currentSelection());
+            setNewSelection(doc->selectionStack().currentSelection());
+        }
     }
 }
 

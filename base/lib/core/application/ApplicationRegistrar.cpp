@@ -53,6 +53,12 @@ void ApplicationRegistrar::registerCommands(
     m_components.commands = std::move(cmds);
 }
 
+void ApplicationRegistrar::registerFactories(
+        std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*>&& facts)
+{
+    m_components.factories = std::move(facts);
+}
+
 
 
 }

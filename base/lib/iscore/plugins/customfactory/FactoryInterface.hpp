@@ -76,5 +76,3 @@ class GenericFactoryInterface : public GenericFactoryInterface_Base<Keys...>
     } \
     private:
 
-
-

@@ -15,22 +15,17 @@ class PanelFactory;
 class DocumentDelegateFactoryInterface;
 class SettingsDelegateFactoryInterface;
 
-using FactoryFamilyList = std::vector<FactoryFamily>;
-using CommandList = QList<PluginControlInterface*>;
-using PanelList = QList<PanelFactory*>;
-using DocumentPanelList = QList<DocumentDelegateFactoryInterface*>;
-using SettingsList = QList<SettingsDelegateFactoryInterface*>;
 
 /**
      * @brief The PluginManager class loads and keeps track of the plug-ins.
      */
-class PluginManager final : public QObject
+class PluginLoader final : public QObject
 {
         Q_OBJECT
         friend class iscore::Application;
     public:
-        PluginManager(iscore::Application* app);
-        ~PluginManager();
+        PluginLoader(iscore::Application* app);
+        ~PluginLoader();
 
         /**
              * @brief reloadPlugins
@@ -38,6 +33,7 @@ class PluginManager final : public QObject
              * Reloads all the plug-ins.
              * Note: for now this is unsafe after the first loading.
              */
+        void clearPlugins();
         void reloadPlugins();
 
         /**
@@ -69,20 +65,17 @@ class PluginManager final : public QObject
         // Classify the plug-in element in the correct container.
         void dispatch(QObject* plugin);
 
-        void clearPlugins();
 
         QStringList pluginsBlacklist();
 
         // Here, the plug-ins that are effectively loaded.
         QList<QObject*> m_availablePlugins;
 
-        FactoryFamilyList m_customFamilies;
-        CommandList  m_controlList;
-        PanelList    m_panelList;
-        DocumentPanelList m_documentPanelList;
-        SettingsList m_settingsList;
-
-        std::vector<std::vector<iscore::FactoryInterfaceBase*>> m_factoriesInterfaces;
+        std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*> m_customFamilies;
+        QList<PluginControlInterface*>  m_controlList;
+        QList<PanelFactory*>    m_panelList;
+        QList<DocumentDelegateFactoryInterface*> m_documentPanelList;
+        QList<SettingsDelegateFactoryInterface*> m_settingsList;
 
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> m_commands;
 };

@@ -25,9 +25,8 @@ class MoveEventList
         void inscribe(MoveEventFactoryInterface* factoryInterface);
 
     private:
-        QVector<MoveEventFactoryInterface*> m_moveEventFactories;
+        QVector<MoveEventFactoryInterface*> m_list;
 };
-
 
 class SingletonMoveEventList
 {

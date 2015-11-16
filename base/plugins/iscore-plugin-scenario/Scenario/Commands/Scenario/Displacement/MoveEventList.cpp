@@ -3,7 +3,7 @@
 
 MoveEventFactoryInterface* MoveEventList::get(MoveEventList::Strategy strategy)
 {
-    QVectorIterator<MoveEventFactoryInterface*> factoriesIterator(m_moveEventFactories);
+    QVectorIterator<MoveEventFactoryInterface*> factoriesIterator(m_list);
 
     MoveEventFactoryInterface* bestFactory;
 
@@ -30,7 +30,7 @@ void MoveEventList::inscribe(MoveEventFactoryInterface* factoryInterface)
 {
     MoveEventFactoryInterface* moveEventFactoryInterface = static_cast<MoveEventFactoryInterface*>(factoryInterface);
 
-    m_moveEventFactories.push_back(moveEventFactoryInterface);
+    m_list.push_back(moveEventFactoryInterface);
 }
 
 MoveEventList& SingletonMoveEventList::instance()

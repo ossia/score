@@ -5,7 +5,7 @@ namespace iscore
 iscore::SerializableCommand* ApplicationComponents::instantiateUndoCommand(
         const CommandParentFactoryKey& parent_name,
         const CommandFactoryKey& name,
-        const QByteArray& data)
+        const QByteArray& data) const
 {
     auto it = m_data.commands.find(parent_name);
     if(it != m_data.commands.end())

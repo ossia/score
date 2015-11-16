@@ -70,7 +70,7 @@ namespace iscore
             Presenter* m_presenter {};
 
             // Data
-            PluginManager m_pluginManager {this};
+            PluginLoader m_pluginManager {this};
 
             ApplicationSettings m_applicationSettings;
     };

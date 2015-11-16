@@ -1,3 +1,4 @@
+#include <core/application/Application.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
@@ -18,6 +19,7 @@
 using namespace iscore;
 
 DocumentContext::DocumentContext(Document& d):
+    app{*safe_cast<iscore::Application*>(d.parent()->parent())},
     document{d},
     commandStack{d.commandStack()},
     selectionStack{d.selectionStack()},

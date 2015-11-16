@@ -15,7 +15,7 @@ class iscore_plugin_scenario final :
         public iscore::CommandFactory_QtInterface,
         public iscore::DocumentDelegateFactoryInterface_QtInterface,
         public iscore::PanelFactory_QtInterface,
-        public iscore::FactoryFamily_QtInterface,
+        public iscore::FactoryList_QtInterface,
         public iscore::FactoryInterface_QtInterface,
         public iscore::PluginRequirementslInterface_QtInterface
 {
@@ -26,7 +26,7 @@ class iscore_plugin_scenario final :
                 iscore::CommandFactory_QtInterface
                 iscore::DocumentDelegateFactoryInterface_QtInterface
                 iscore::PanelFactory_QtInterface
-                iscore::FactoryFamily_QtInterface
+                iscore::FactoryList_QtInterface
                 iscore::FactoryInterface_QtInterface
                 iscore::PluginRequirementslInterface_QtInterface)
 
@@ -45,7 +45,7 @@ class iscore_plugin_scenario final :
         QList<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Process
-        std::vector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
         // Crée les objets correspondant aux factories passées en argument.
         // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.

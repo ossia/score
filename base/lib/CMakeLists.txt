@@ -20,6 +20,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryFamily.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelListSerialization.cpp"
@@ -66,6 +67,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationComponents.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationSettings.cpp"
