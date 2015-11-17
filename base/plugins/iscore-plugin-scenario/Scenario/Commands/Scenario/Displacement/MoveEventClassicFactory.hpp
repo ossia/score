@@ -27,9 +27,5 @@ public:
         }
     }
 
-    const std::string& key_impl() const override
-    {
-        static std::string str{"Classic"};
-        return str;
-    }
+    const MoveEventFactoryKey& key_impl() const override;
 };

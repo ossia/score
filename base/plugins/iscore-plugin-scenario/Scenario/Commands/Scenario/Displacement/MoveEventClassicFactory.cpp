@@ -15,3 +15,9 @@ SerializableMoveEvent* MoveEventClassicFactory::make()
 {
     return new MoveEvent<GoodOldDisplacementPolicy>();
 }
+
+const MoveEventFactoryKey& MoveEventClassicFactory::key_impl() const
+{
+    static const MoveEventFactoryKey str{"Classic"};
+    return str;
+}

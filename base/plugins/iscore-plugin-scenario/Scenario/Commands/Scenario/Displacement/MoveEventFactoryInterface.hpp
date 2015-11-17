@@ -9,11 +9,17 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
 
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
+class MoveEventTag{};
+using MoveEventFactoryKey = StringKey<MoveEventTag>;
+Q_DECLARE_METATYPE(MoveEventFactoryKey)
+
 class ScenarioModel;
 class EventModel;
 
 
-class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<std::string>
+class MoveEventFactoryInterface : public iscore::GenericFactoryInterface<MoveEventFactoryKey>
 {
         ISCORE_FACTORY_DECL("MoveEvent")
 public:

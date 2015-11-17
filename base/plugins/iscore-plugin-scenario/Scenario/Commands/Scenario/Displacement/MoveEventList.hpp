@@ -35,16 +35,8 @@ class MoveEventList final : public iscore::FactoryListInterface
      * @return
      * the factory with the highest priority for the specified strategy
      */
-        MoveEventFactoryInterface* get(MoveEventFactoryInterface::Strategy strategy);
+        MoveEventFactoryInterface* get(MoveEventFactoryInterface::Strategy strategy) const;
 
     private:
         QVector<MoveEventFactoryInterface*> m_list;
 };
-
-class SingletonMoveEventList
-{
-    public:
-        SingletonMoveEventList() = delete;
-        static MoveEventList& instance();
-};
-

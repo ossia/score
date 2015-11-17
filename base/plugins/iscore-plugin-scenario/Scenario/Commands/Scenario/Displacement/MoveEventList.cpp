@@ -1,5 +1,5 @@
 #include "MoveEventList.hpp"
-MoveEventFactoryInterface* MoveEventList::get(MoveEventFactoryInterface::Strategy strategy)
+MoveEventFactoryInterface* MoveEventList::get(MoveEventFactoryInterface::Strategy strategy) const
 {
     QVectorIterator<MoveEventFactoryInterface*> factoriesIterator(m_list);
 
@@ -22,10 +22,4 @@ MoveEventFactoryInterface* MoveEventList::get(MoveEventFactoryInterface::Strateg
     }
 
     return bestFactory;
-}
-
-MoveEventList& SingletonMoveEventList::instance()
-{
-    static MoveEventList instance;
-    return instance;
 }
