@@ -21,7 +21,9 @@ int main(int argc, char** argv)
     Q_INIT_RESOURCE(iscore);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(AutomationResources);
+#if defined(ISCORE_PLUGIN_MAPPING)
     Q_INIT_RESOURCE(MappingResources);
+#endif
     Q_INIT_RESOURCE(DeviceExplorer);
 #endif
 #if defined(ISCORE_OPENGL)
