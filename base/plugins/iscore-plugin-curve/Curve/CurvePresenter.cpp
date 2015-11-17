@@ -11,6 +11,8 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <core/application/ApplicationComponents.hpp>
 
 #include <QGraphicsScene>
 #include <QActionGroup>
@@ -23,17 +25,17 @@ static QPointF myscale(QPointF first, QSizeF second)
 }
 
 CurvePresenter::CurvePresenter(
-        const DynamicCurveSegmentList& lst,
+        const iscore::DocumentContext& context,
         const Curve::Style& style,
         const CurveModel& model,
         CurveView* view,
         QObject* parent):
     QObject{parent},
-    m_curveSegments{lst},
+    m_curveSegments{context.app.components.factory<DynamicCurveSegmentList>()},
     m_model{model},
     m_view{view},
-    m_commandDispatcher{iscore::IDocument::commandStack(model)},
-    m_selectionDispatcher{iscore::IDocument::selectionStack(model)},
+    m_commandDispatcher{context.commandStack},
+    m_selectionDispatcher{context.selectionStack},
     m_style{style}
 {
     // For each segment in the model, create a segment and relevant points in the view.

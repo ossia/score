@@ -26,9 +26,6 @@ Document* documentFromObject(const QObject& obj);
 DocumentContext& documentContext(const QObject& obj);
 
 iscore::CommandStack& commandStack(const QObject& obj);
-iscore::SelectionStack& selectionStack(const QObject& obj);
-iscore::ObjectLocker& locker(const QObject& obj);
-
 
 /**
  * @brief pathFromDocument

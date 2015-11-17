@@ -16,8 +16,8 @@ ToolPalette::ToolPalette(
         CurvePresenter& pres):
     GraphicsSceneToolPalette{*pres.view().scene()},
     m_presenter{pres},
-    m_stack{iscore::IDocument::commandStack(m_presenter.model())},
-    m_locker{iscore::IDocument::locker(m_presenter.model())},
+    m_stack{f.commandStack},
+    m_locker{f.objectLocker},
     m_selectTool{*this},
     m_createTool{*this},
     m_setSegmentTool{*this},

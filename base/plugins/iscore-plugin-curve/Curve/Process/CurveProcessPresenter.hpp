@@ -37,7 +37,7 @@ class CurveProcessPresenter : public LayerPresenter
             LayerPresenter {"CurveProcessPresenter", parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_curvepresenter{new CurvePresenter{context.app.components.factory<DynamicCurveSegmentList>(), style, m_layer.model().curve(), new CurveView{m_view}, this}},
+            m_curvepresenter{new CurvePresenter{context, style, m_layer.model().curve(), new CurveView{m_view}, this}},
             m_commandDispatcher{context.commandStack},
             m_focusDispatcher{context.document},
             m_context{context, *this, m_focusDispatcher},

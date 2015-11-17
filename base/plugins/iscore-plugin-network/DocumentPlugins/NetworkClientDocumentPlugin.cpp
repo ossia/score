@@ -9,11 +9,12 @@
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentContext.hpp>
 
 
-
-ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
-                                                         iscore::Document *doc):
+ClientNetworkPolicy::ClientNetworkPolicy(
+        ClientSession* s,
+        iscore::Document *doc):
     m_session{s},
     m_document{doc}
 {
@@ -64,7 +65,7 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
         s >> parentName >> name >> data;
 
         m_document->commandStack().redoAndPushQuiet(
-                    iscore::IPresenter::instantiateUndoCommand(parentName, name, data));
+                    m_document->context().app.components.instantiateUndoCommand(parentName, name, data));
     });
 
     s->mapper().addHandler("/undo", [&] (NetworkMessage)

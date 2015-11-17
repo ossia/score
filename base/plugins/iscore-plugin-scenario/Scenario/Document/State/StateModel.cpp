@@ -270,16 +270,10 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 }
 
 
-const MessageItemModel& StateModel::messages() const
+MessageItemModel& StateModel::messages() const
 {
     return *m_messageItemModel;
 }
-
-MessageItemModel& StateModel::messages()
-{
-    return *m_messageItemModel;
-}
-
 
 void StateModel::setStatus(ExecutionStatus status)
 {

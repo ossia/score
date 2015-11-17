@@ -34,7 +34,7 @@ class CurvePresenter : public QObject
         Q_OBJECT
     public:
         CurvePresenter(
-                const DynamicCurveSegmentList&,
+                const iscore::DocumentContext& lst,
                 const Curve::Style&,
                 const CurveModel&,
                 CurveView*,

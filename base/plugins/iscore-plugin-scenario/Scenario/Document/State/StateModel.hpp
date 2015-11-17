@@ -55,8 +55,7 @@ class StateModel final : public IdentifiedObject<StateModel>
 
         double heightPercentage() const;
 
-        const MessageItemModel &messages() const;
-        MessageItemModel &messages();
+        MessageItemModel &messages() const;
 
         const Id<EventModel>& eventId() const;
         void setEventId(const Id<EventModel>&);

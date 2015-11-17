@@ -17,5 +17,5 @@ struct DocumentContext
         iscore::SelectionStack& selectionStack;
         iscore::ObjectLocker& objectLocker;
 };
-
+// TODO DocumentComponents : model, pluginmodels...
 }

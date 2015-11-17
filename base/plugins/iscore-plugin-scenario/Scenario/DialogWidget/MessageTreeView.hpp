@@ -21,7 +21,7 @@ class MessageTreeView final : public QTreeView
         void contextMenuEvent(QContextMenuEvent*) override;
 
         QAction* m_removeNodesAction{};
-        StateModel* m_model{};
+        const StateModel& m_model;
 
         CommandDispatcher<> m_dispatcher;
 };

@@ -70,16 +70,6 @@ iscore::CommandStack &iscore::IDocument::commandStack(const QObject &obj)
     return documentFromObject(obj)->commandStack();
 }
 
-iscore::SelectionStack &iscore::IDocument::selectionStack(const QObject &obj)
-{
-    return documentFromObject(obj)->selectionStack();
-}
-
-iscore::ObjectLocker &iscore::IDocument::locker(const QObject &obj)
-{
-    return documentFromObject(obj)->locker();
-}
-
 iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
 {
     return documentFromObject(obj)->context();

@@ -44,7 +44,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
         auto clt = new LocalClient(Id<Client>(0));
         clt->setName(tr("Master"));
         auto serv = new MasterSession(currentDocument(), clt, Id<Session>(1234));
-        auto policy = new MasterNetworkPolicy{serv, currentDocument()->commandStack(), currentDocument()->locker()};
+        auto policy = new MasterNetworkPolicy{serv, currentDocument()->context()};
         auto realplug = new NetworkDocumentPlugin{policy, *currentDocument()};
         currentDocument()->model().addPluginModel(realplug);
     });

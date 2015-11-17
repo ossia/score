@@ -107,7 +107,7 @@ Document::Document(const QVariant& data,
     m_model = allocator.allocate(1);
     try
     {
-        allocator.construct(m_model, data, factory, this);
+        allocator.construct(m_model, m_context.app, data, factory, this);
     }
     catch(...)
     {
@@ -124,6 +124,7 @@ Document::Document(const QVariant& data,
 }
 
 void DocumentModel::loadDocumentAsByteArray(
+        iscore::ApplicationContext& ctx,
         const QByteArray& data,
         DocumentDelegateFactoryInterface* fact)
 {
@@ -149,11 +150,10 @@ void DocumentModel::loadDocumentAsByteArray(
     // document that requires the plugin models to be loaded
     // in order to be deserialized. (e.g. the groups for the network)
     // First load the plugin models
-    auto plugin_control = iscore::IPresenter::pluginControls();
     for(const auto& plugin_raw : documentPluginModels)
     {
         DataStream::Deserializer plug_writer{plugin_raw.second};
-        for(iscore::PluginControlInterface* control : plugin_control)
+        for(iscore::PluginControlInterface* control : ctx.components.pluginControls())
         {
             if(auto loaded_plug = control->loadDocumentPlugin(
                         plugin_raw.first,
@@ -175,18 +175,18 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
+        iscore::ApplicationContext& ctx,
         const QJsonObject& json,
         DocumentDelegateFactoryInterface* fact)
 {
     this->setId(fromJsonValue<Id<DocumentModel>>(json["DocumentId"]));
 
     // Load the plug-in models
-    auto plugin_control = iscore::IPresenter::pluginControls();
     auto json_plugins = json["Plugins"].toObject();
     for(const auto& key : json_plugins.keys())
     {
         JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
-        for(iscore::PluginControlInterface* control : plugin_control)
+        for(iscore::PluginControlInterface* control : ctx.components.pluginControls())
         {
             if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
             {
@@ -201,19 +201,21 @@ void DocumentModel::loadDocumentAsJson(
 }
 
 // Load document model
-DocumentModel::DocumentModel(const QVariant& data,
-                             DocumentDelegateFactoryInterface* fact,
-                             QObject* parent) :
+DocumentModel::DocumentModel(
+        iscore::ApplicationContext& ctx,
+        const QVariant& data,
+        DocumentDelegateFactoryInterface* fact,
+        QObject* parent) :
     IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getFirstId()), "DocumentModel", parent}
 {
     using namespace std;
     if(data.canConvert(QMetaType::QByteArray))
     {
-        loadDocumentAsByteArray(data.toByteArray(), fact);
+        loadDocumentAsByteArray(ctx, data.toByteArray(), fact);
     }
     else if(data.canConvert(QMetaType::QJsonObject))
     {
-        loadDocumentAsJson(data.toJsonObject(), fact);
+        loadDocumentAsJson(ctx, data.toJsonObject(), fact);
     }
     else
     {

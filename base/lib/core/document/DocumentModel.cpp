@@ -7,8 +7,9 @@
 
 using namespace iscore;
 
-DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
-                             QObject* parent) :
+DocumentModel::DocumentModel(
+        DocumentDelegateFactoryInterface* fact,
+        QObject* parent) :
     IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getFirstId()), "DocumentModel", parent},
     m_model{fact->makeModel(this)}
 {
