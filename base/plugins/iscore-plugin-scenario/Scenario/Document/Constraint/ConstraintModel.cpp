@@ -9,6 +9,7 @@
 #include <Process/LayerModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
 constexpr const char ConstraintModel::className[];
 ConstraintModel::ConstraintModel(
@@ -23,6 +24,7 @@ ConstraintModel::ConstraintModel(
     initConnections();
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
+    metadata.setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
     setHeightPercentage(yPos);
 }
 
