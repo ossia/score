@@ -14,9 +14,9 @@ MoveNewEvent::MoveNewEvent(
         const TimeValue& date,
         const double y,
         bool yLocked) :
-    m_path {scenarioPath},
+    m_path {std::move(scenarioPath)},
     m_constraintId {constraintId},
-    m_cmd{std::move(scenarioPath), eventId, date, ExpandMode::Scale},
+    m_cmd{Path<ScenarioModel>{m_path}, eventId, date, ExpandMode::Scale},
     m_y{y},
     m_yLocked{yLocked}
 {

@@ -72,7 +72,7 @@ class Path
         // (for instance because the object does not exist yet)
         struct UnsafeDynamicCreation{ explicit UnsafeDynamicCreation() = default; };
         Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl{obj.vec()} { }
-        Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl{std::move(obj.vec())} { }
+        Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl{obj.vec()} { }
 
         Path(const Object& obj): Path(iscore::IDocument::path(obj)) { }
 
@@ -88,7 +88,7 @@ class Path
         template<typename U>
         auto extend(const QString& name, const Id<U>& id) &&
         {
-            Path<U> p{std::move(this->m_impl.vec())};
+            Path<U> p{this->m_impl.vec()};
             p.m_impl.vec().push_back({name, id});
             return p;
         }
@@ -101,7 +101,7 @@ class Path
             auto vec = m_impl.vec();
             auto last = vec.back();
             vec.pop_back();
-            return std::make_pair(Path<U>{ObjectPath{std::move(vec)}}, std::move(last));
+            return std::make_pair(Path<U>{ObjectPath{vec}}, std::move(last));
         }
 
         template<typename U>
@@ -112,7 +112,7 @@ class Path
             ISCORE_ASSERT(m_impl.vec().size() > 0);
             auto last = m_impl.vec().back();
             m_impl.vec().pop_back();
-            return std::make_pair(Path<U>{std::move(m_impl.vec())}, std::move(last));
+            return std::make_pair(Path<U>{m_impl.vec()}, std::move(last));
         }
 
         // TODO do the same for ids
@@ -120,7 +120,7 @@ class Path
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
         Path(const Path<U>& other): m_impl{other.m_impl.vec()} { }
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-        Path(Path<U>&& other): m_impl{std::move(other.m_impl.vec())} { }
+        Path(Path<U>&& other): m_impl{other.m_impl.vec()} { }
 
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
         Path& operator=(const Path<U>& other)
@@ -132,7 +132,7 @@ class Path
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
         Path& operator=(Path<U>&& other)
         {
-            m_impl = std::move(other.m_impl);
+            m_impl = other.m_impl;
             return *this;
         }
 
@@ -159,9 +159,9 @@ class Path
 
     private:
         Path(const ObjectPath& path): m_impl{path.vec()} { }
-        Path(ObjectPath&& path): m_impl{std::move(path.vec())} { }
+        Path(ObjectPath&& path): m_impl{path.vec()} { }
         Path(const std::vector<ObjectIdentifier>& vec): m_impl{vec} { }
-        Path(std::vector<ObjectIdentifier>&& vec): m_impl{std::move(vec)} { }
+        Path(std::vector<ObjectIdentifier>&& vec): m_impl{vec} { }
 
         ObjectPath m_impl;
 };
