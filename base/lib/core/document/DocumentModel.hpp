@@ -19,8 +19,10 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
 {
         Q_OBJECT
     public:
-        DocumentModel(DocumentDelegateFactoryInterface* fact,
-                      QObject* parent);
+        DocumentModel(
+                const Id<DocumentModel>& id,
+                DocumentDelegateFactoryInterface* fact,
+                QObject* parent);
         DocumentModel(
                 iscore::ApplicationContext& ctx,
                 const QVariant &data,

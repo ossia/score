@@ -9,89 +9,94 @@
 
 namespace iscore
 {
-    class DocumentModel;
-    class DocumentPresenter;
-    class DocumentView;
-    class DocumentDelegateFactoryInterface;
-    class PanelFactory;
-    class PanelPresenter;
-    /**
+class DocumentModel;
+class DocumentPresenter;
+class DocumentView;
+class DocumentDelegateFactoryInterface;
+class PanelFactory;
+class PanelPresenter;
+/**
      * @brief The Document class is the central part of the software.
      *
      * It is similar to the opened file in Word for instance, this is the
      * data on which i-score operates, further defined by the plugins.
      */
-    class Document final : public NamedObject
-    {
-            Q_OBJECT
-            friend class DocumentBuilder;
-        public:
-            ~Document();
+class Document final : public NamedObject
+{
+        Q_OBJECT
+        friend class DocumentBuilder;
+    public:
+        ~Document();
 
-            CommandStack& commandStack()
-            { return m_commandStack; }
+        const Id<DocumentModel>& id() const;
 
-            SelectionStack& selectionStack()
-            { return m_selectionStack; }
+        CommandStack& commandStack()
+        { return m_commandStack; }
 
-            ObjectLocker& locker()
-            { return m_objectLocker; }
+        SelectionStack& selectionStack()
+        { return m_selectionStack; }
 
-            DocumentContext& context()
-            { return m_context; }
+        ObjectLocker& locker()
+        { return m_objectLocker; }
 
-            DocumentModel& model() const
-            { return *m_model; }
+        DocumentContext& context()
+        { return m_context; }
 
-            DocumentPresenter& presenter() const
-            { return *m_presenter; }
+        DocumentModel& model() const
+        { return *m_model; }
 
-            DocumentView& view() const
-            { return *m_view; }
+        DocumentPresenter& presenter() const
+        { return *m_presenter; }
 
-            void setupNewPanel(PanelFactory* factory);
-            void bindPanelPresenter(PanelPresenter*);
+        DocumentView& view() const
+        { return *m_view; }
+
+        void setupNewPanel(PanelFactory* factory);
+        void bindPanelPresenter(PanelPresenter*);
 
 
-            QJsonObject saveDocumentModelAsJson();
-            QByteArray saveDocumentModelAsByteArray();
+        QJsonObject saveDocumentModelAsJson();
+        QByteArray saveDocumentModelAsByteArray();
 
-            QJsonObject saveAsJson();
-            QByteArray saveAsByteArray();
+        QJsonObject saveAsJson();
+        QByteArray saveAsByteArray();
 
-            DocumentBackupManager* backupManager() const
-            { return m_backupMgr; }
+        DocumentBackupManager* backupManager() const
+        { return m_backupMgr; }
 
-            void setBackupMgr(DocumentBackupManager* backupMgr);
+        void setBackupMgr(DocumentBackupManager* backupMgr);
 
-            QString docFileName() const;
-            void setDocFileName(const QString &docFileName);
+        QString docFileName() const;
+        void setDocFileName(const QString &docFileName);
 
     private:
-            // These are to be constructed by DocumentBuilder.
-            Document(DocumentDelegateFactoryInterface* type,
-                     QWidget* parentview,
-                     QObject* parent);
+        // These are to be constructed by DocumentBuilder.
+        Document(
+                const Id<DocumentModel>& id,
+                DocumentDelegateFactoryInterface* type,
+                QWidget* parentview,
+                QObject* parent);
 
-            Document(const QVariant& data,
-                     DocumentDelegateFactoryInterface* type,
-                     QWidget* parentview,
-                     QObject* parent);
+        Document(
+                const QVariant& data,
+                DocumentDelegateFactoryInterface* type,
+                QWidget* parentview,
+                QObject* parent);
 
-            void init();
+        void init();
 
-            CommandStack m_commandStack;
-            SelectionStack m_selectionStack;
-            ObjectLocker m_objectLocker;
+        CommandStack m_commandStack;
+        SelectionStack m_selectionStack;
+        ObjectLocker m_objectLocker;
 
-            DocumentModel* m_model{};
-            DocumentView* m_view{};
-            DocumentPresenter* m_presenter{};
+        DocumentModel* m_model{};
+        DocumentView* m_view{};
+        DocumentPresenter* m_presenter{};
 
-            DocumentBackupManager* m_backupMgr{};
+        DocumentBackupManager* m_backupMgr{};
 
-            DocumentContext m_context;
-    };
+        DocumentContext m_context;
+};
 
 
 

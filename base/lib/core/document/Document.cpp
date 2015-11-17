@@ -28,9 +28,11 @@ DocumentContext::DocumentContext(Document& d):
 }
 
 
-Document::Document(DocumentDelegateFactoryInterface* factory,
-                   QWidget* parentview,
-                   QObject* parent) :
+Document::Document(
+        const Id<DocumentModel>& id,
+        DocumentDelegateFactoryInterface* factory,
+        QWidget* parentview,
+        QObject* parent) :
     NamedObject {"Document", parent},
     m_objectLocker{this},
     m_backupMgr{new DocumentBackupManager{*this}},
@@ -43,7 +45,7 @@ Document::Document(DocumentDelegateFactoryInterface* factory,
     // which requires the pointer to m_model to be intialized.
     std::allocator<DocumentModel> allocator;
     m_model = allocator.allocate(1);
-    allocator.construct(m_model, factory, this);
+    allocator.construct(m_model, id, factory, this);
     m_view = new DocumentView{factory, this, parentview};
     m_presenter = new DocumentPresenter{factory,
             m_model,
@@ -91,6 +93,11 @@ Document::~Document()
 
     delete m_presenter;
     delete m_view;
+}
+
+const Id<DocumentModel>&Document::id() const
+{
+    return m_model->id();
 }
 
 void Document::setupNewPanel(PanelFactory* factory)

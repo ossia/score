@@ -9,7 +9,7 @@
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
-
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
@@ -46,6 +46,22 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     m_view->setPresenter(this);
 }
 
+auto getStrongId(const std::vector<Document*>& v)
+{
+    using namespace std;
+    vector<int32_t> ids(v.size());   // Map reduce
+
+    transform(v.begin(),
+              v.end(),
+              ids.begin(),
+              [](const auto elt)
+    {
+        return * (elt->id().val());
+    });
+
+    return Id<DocumentModel>{iscore::id_generator::getNextId(ids)};
+}
+
 void Presenter::setupMenus()
 {
     ////// File //////
@@ -53,7 +69,8 @@ void Presenter::setupMenus()
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::New,
                 [&] () {
-        m_docManager.newDocument(applicationComponents().availableDocuments().front());
+        m_docManager.newDocument(getStrongId(m_docManager.documents()),
+                    applicationComponents().availableDocuments().front());
     });
 
     newAct->setShortcut(QKeySequence::New);

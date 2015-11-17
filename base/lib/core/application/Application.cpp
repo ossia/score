@@ -15,6 +15,7 @@ using namespace iscore;
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QStyleFactory>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include "SafeQApplication.hpp"
 static Application* application_instance = nullptr;
 
@@ -181,7 +182,9 @@ void Application::init()
     else
     {
         if(!m_presenter->applicationComponents().availableDocuments().empty())
-            m_presenter->documentManager().newDocument(m_presenter->applicationComponents().availableDocuments().front());
+            m_presenter->documentManager().newDocument(
+                        Id<DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
+                        m_presenter->applicationComponents().availableDocuments().front());
     }
 }
 
