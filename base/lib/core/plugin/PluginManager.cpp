@@ -80,7 +80,7 @@ void PluginLoader::loadPlugin(const QString &fileName)
         // Check if it is blacklisted
         if(!blacklist.contains(fileName))
         {
-            m_availablePlugins += plugin;
+            m_availablePlugins.push_back(plugin);
             plugin->setParent(this);
         }
         else
@@ -107,7 +107,7 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
     {
-        m_availablePlugins += plugin;
+        m_availablePlugins.push_back(plugin);
     }
 
 #if !defined(ISCORE_STATIC_QT)

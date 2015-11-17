@@ -82,7 +82,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         RackWidget* m_rackWidget {};
         std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
 
-        QVector<QWidget*> m_properties;
+        std::list<QWidget*> m_properties;
 
         MetadataWidget* m_metadata {};
 

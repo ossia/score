@@ -17,7 +17,7 @@ ScenarioInspectorWidget::ScenarioInspectorWidget(
     setObjectName("ScenarioInspectorWidget");
     setParent(parent);
 
-    QVector<QWidget*> vec;
+    std::list<QWidget*> vec;
 
     QPushButton* displayBtn = new QPushButton {tr("Display in new Slot"), this};
     vec.push_back(displayBtn);

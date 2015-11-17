@@ -286,24 +286,24 @@ void CurveModel::clear()
 
 
 
-const QVector<CurvePointModel *> &CurveModel::points() const
+const std::vector<CurvePointModel *> &CurveModel::points() const
 {
     return m_points;
 }
 
 void CurveModel::addPoint(CurvePointModel *pt)
 {
-    m_points.append(pt);
+    m_points.push_back(pt);
 
     emit pointAdded(*pt);
 }
 
 void CurveModel::removePoint(CurvePointModel *pt)
 {
-    auto index = m_points.indexOf(pt);
-    if(index >= 0)
+    auto it = find(m_points, pt);
+    if(it != m_points.end())
     {
-        m_points.remove(index);
+        m_points.erase(it);
     }
 
     emit pointRemoved(pt->id());

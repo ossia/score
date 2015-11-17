@@ -45,8 +45,8 @@ namespace iscore
 
 
         private:
-            QList<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
-            QList<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
+            std::vector<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
+            std::vector<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
 
             Presenter* m_presenter{};
             QTabWidget* m_tabWidget{};

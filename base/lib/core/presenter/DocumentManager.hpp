@@ -44,7 +44,7 @@ class DocumentManager : public QObject
         // Restore documents after a crash
         void restoreDocuments();
 
-        const QList<Document*>& documents() const
+        const std::vector<Document*>& documents() const
         { return m_documents; }
 
         Document* currentDocument() const;
@@ -73,7 +73,7 @@ class DocumentManager : public QObject
 
         DocumentBuilder m_builder;
 
-        QList<Document*> m_documents;
+        std::vector<Document*> m_documents;
         Document* m_currentDocument{};
         QRecentFilesMenu* m_recentFiles{};
 

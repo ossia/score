@@ -2,6 +2,7 @@
 #include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QApplication>
+#include <boost/range/adaptor/reversed.hpp>
 using namespace iscore;
 
 AggregateCommand::~AggregateCommand()
@@ -11,15 +12,15 @@ AggregateCommand::~AggregateCommand()
 
 void AggregateCommand::undo() const
 {
-    for(int i = m_cmds.size() - 1; i >= 0; --i)
+    for (auto cmd : boost::adaptors::reverse(m_cmds))
     {
-        m_cmds[i]->undo();
+        cmd->undo();
     }
 }
 
 void AggregateCommand::redo() const
 {
-    for(auto& cmd : m_cmds)
+    for(auto cmd : m_cmds)
     {
         cmd->redo();
     }

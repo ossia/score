@@ -64,10 +64,10 @@ void OSSIAAutomationElement::recreate()
     OSSIA::Node* node{};
     OSSIADevice* dev{};
     // The updating routine
-    auto update_fun = [&] (auto new_autom) {
+    auto update_fun = [&] (auto new_autom_param) {
         auto old_autom = m_ossia_autom;
-        m_ossia_autom = new_autom;
-        emit changed(old_autom, new_autom);
+        m_ossia_autom = new_autom_param;
+        emit changed(old_autom, new_autom_param);
     };
 
     m_ossia_curve.reset(); // It will be remade after.

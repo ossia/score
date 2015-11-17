@@ -22,7 +22,7 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     setObjectName("CurvePointInspectorWidget");
     setParent(parent);
 
-    QVector<QWidget*> vec;
+    std::list<QWidget*> vec;
     auto cm = safe_cast<CurveModel*>(m_model.parent());
     auto& automModel = *safe_cast<AutomationModel*>(cm->parent());
     m_xFactor = automModel.duration().msec();

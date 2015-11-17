@@ -352,7 +352,7 @@ void CurvePresenter::modelReset()
         }
     }
 
-    ISCORE_ASSERT((int)points.size() == m_model.points().size());
+    ISCORE_ASSERT(points.size() == m_model.points().size());
     ISCORE_ASSERT(segments.size() == m_model.segments().size());
 
     // 3. We set the data

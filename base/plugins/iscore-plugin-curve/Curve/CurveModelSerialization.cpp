@@ -29,7 +29,6 @@ void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
     m_stream >> size;
 
     auto& csl = context.components.factory<DynamicCurveSegmentList>();
-    QVector<CurveSegmentModel*> v;
     for(; size --> 0;)
     {
         curve.addSegment(createCurveSegment(csl, *this, &curve));

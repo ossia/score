@@ -22,8 +22,7 @@ struct ApplicationComponentsData
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
 
         // TODO instead put the factory as a member function?
-        QList<QPair<PanelPresenter*,
-                    PanelFactory*>> panelPresenters;
+        std::vector<std::pair<PanelPresenter*, PanelFactory*>> panelPresenters;
 };
 
 class ApplicationComponents
@@ -62,12 +61,12 @@ class ApplicationComponents
         { return m_data.panelPresenters; }
         auto panelFactories() const
         {
-            QList<PanelFactory*> lst;
+            std::vector<PanelFactory*> lst;
             std::transform(
                         std::begin(m_data.panelPresenters),
                         std::end(m_data.panelPresenters),
                         std::back_inserter(lst),
-                [] (const QPair<PanelPresenter*, PanelFactory*>& elt) {
+                [] (const std::pair<PanelPresenter*, PanelFactory*>& elt) {
                     return elt.second;
                 }
             );

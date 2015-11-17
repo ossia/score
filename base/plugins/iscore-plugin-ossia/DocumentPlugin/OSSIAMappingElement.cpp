@@ -134,10 +134,10 @@ void OSSIAMappingElement::recreate()
     std::shared_ptr<OSSIA::Mapper> new_mapping;
 
     // The updating routine
-    auto update_fun = [&] (auto new_mapping) {
+    auto update_fun = [&] (auto new_mapping_param) {
         auto old_mapping = m_ossia_mapping;
-        m_ossia_mapping = new_mapping;
-        emit changed(old_mapping, new_mapping);
+        m_ossia_mapping = new_mapping_param;
+        emit changed(old_mapping, new_mapping_param);
     };
 
 

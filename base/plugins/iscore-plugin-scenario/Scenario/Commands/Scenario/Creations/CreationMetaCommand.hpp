@@ -9,6 +9,7 @@
 #include "CreateConstraint_State_Event.hpp"
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include "CreateSequence.hpp"
+#include <boost/range/adaptor/reversed.hpp>
 namespace Scenario
 {
     namespace Command
@@ -23,19 +24,19 @@ namespace Scenario
             // since the move ones perform unnecessary serialization / etc in this case
             // and don't bring anything to the table.
             // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
-            for(int i = m_cmds.size() - 1; i >= 0; --i)
+            for (auto cmd : boost::adaptors::reverse(m_cmds))
             {
                 if(
-                        m_cmds[i]->key() == CreateConstraint::static_key()
-                        || m_cmds[i]->key() == CreateState::static_key()
-                        || m_cmds[i]->key() == CreateEvent_State::static_key()
-                        || m_cmds[i]->key() == CreateConstraint_State::static_key()
-                        || m_cmds[i]->key() == CreateConstraint_State_Event::static_key()
-                        || m_cmds[i]->key() == CreateConstraint_State_Event_TimeNode::static_key()
-                        || m_cmds[i]->key() == CreateSequence::static_key()
+                        cmd->key() == CreateConstraint::static_key()
+                        || cmd->key() == CreateState::static_key()
+                        || cmd->key() == CreateEvent_State::static_key()
+                        || cmd->key() == CreateConstraint_State::static_key()
+                        || cmd->key() == CreateConstraint_State_Event::static_key()
+                        || cmd->key() == CreateConstraint_State_Event_TimeNode::static_key()
+                        || cmd->key() == CreateSequence::static_key()
                         )
                 {
-                    m_cmds[i]->undo();
+                    cmd->undo();
                 }
             }
         }

@@ -11,7 +11,7 @@ AutomationStateInspector::AutomationStateInspector(
     m_state{object},
     m_label{new QLabel}
 {
-    QVector<QWidget*> vec;
+    std::list<QWidget*> vec;
     vec.push_back(m_label);
 
 

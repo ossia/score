@@ -156,9 +156,9 @@ void OSSIAConstraintElement::on_processAdded(
     {
         plug = new OSSIAAutomationElement{*this, *autom, proc};
     }
-    else if(auto autom = dynamic_cast<MappingModel*>(proc))
+    else if(auto mapping = dynamic_cast<MappingModel*>(proc))
     {
-        plug = new OSSIAMappingElement{*this, *autom, proc};
+        plug = new OSSIAMappingElement{*this, *mapping, proc};
     }
     else if(auto generic = dynamic_cast<OSSIAProcessModel*>(proc))
     {
@@ -198,8 +198,8 @@ void OSSIAConstraintElement::on_processAdded(
 
         connect(&plug->iscoreProcess(), &Process::durationChanged,
                 this, [=] () {
-            auto& proc = m_processes.at(id);
-            proc.wrapper->setDuration(iscore::convert::time(proc.element->iscoreProcess().duration()));
+            auto& the_proc = m_processes.at(id);
+            the_proc.wrapper->setDuration(iscore::convert::time(the_proc.element->iscoreProcess().duration()));
         });
     }
 }

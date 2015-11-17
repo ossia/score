@@ -24,12 +24,12 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
         idOffer.sessionId = m_session.id().val().get();
         idOffer.clientId = m_session.localClient().id().val().get();
         {
-            QDataStream s(&idOffer.data, QIODevice::WriteOnly);
+            QDataStream stream(&idOffer.data, QIODevice::WriteOnly);
 
             // TODO make a strong id with the client array!!!!!!
             int32_t id = iscore::random_id_generator::getRandomId();
             m_clientId = Id<Client>(id);
-            s << id;
+            stream << id;
         }
 
         m_socket->sendMessage(idOffer);

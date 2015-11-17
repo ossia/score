@@ -31,7 +31,7 @@ class TimeNodeInspectorWidget final : public InspectorWidgetBase
 
 
     private:
-        QVector<QWidget*> m_properties;
+        std::list<QWidget*> m_properties;
         std::vector<EventShortCut*> m_events;
 
         const TimeNodeModel& m_model;

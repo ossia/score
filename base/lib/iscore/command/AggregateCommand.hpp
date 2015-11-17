@@ -19,15 +19,14 @@ namespace iscore
             AggregateCommand(T* cmd) :
                 AggregateCommand {}
             {
-                m_cmds.push_back(cmd);
-                std::reverse(m_cmds.begin(), m_cmds.end());
+                m_cmds.push_front(cmd);
             }
 
             template<typename T, typename... Args>
             AggregateCommand(T* cmd, Args&& ... remaining) :
                 AggregateCommand {std::forward<Args> (remaining)...}
             {
-                m_cmds.push_back(cmd);
+                m_cmds.push_front(cmd);
             }
 
             void undo() const override;
@@ -48,6 +47,6 @@ namespace iscore
             void serializeImpl(QDataStream&) const override;
             void deserializeImpl(QDataStream&) override;
 
-            std::vector<iscore::SerializableCommand*> m_cmds;
+            std::list<iscore::SerializableCommand*> m_cmds;
     };
 }

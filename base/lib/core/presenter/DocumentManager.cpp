@@ -68,7 +68,7 @@ Document* DocumentManager::setupDocument(Document* doc)
     }
     else
     {
-        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
+        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.front());
     }
 
     return doc;
@@ -131,9 +131,8 @@ bool DocumentManager::closeDocument(Document* doc)
 
     // Close operation
     m_presenter.view()->closeDocument(&doc->view());
-    m_documents.removeOne(doc);
-
-    setCurrentDocument(m_documents.size() > 0 ? m_documents.last() : nullptr);
+    remove_one(m_documents, doc);
+    setCurrentDocument(m_documents.size() > 0 ? m_documents.back() : nullptr);
 
     delete doc;
     return true;
@@ -263,7 +262,7 @@ bool DocumentManager::closeAllDocuments()
 {
     while(!m_documents.empty())
     {
-        bool b = closeDocument(m_documents.last());
+        bool b = closeDocument(m_documents.back());
         if(!b)
             return false;
     }

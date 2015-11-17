@@ -74,4 +74,14 @@ bool contains(Vector&& v, const Value& val)
     return find(v, val) != v.end();
 }
 
+template<typename Vector, typename Value>
+void remove_one(Vector&& v, const Value& val)
+{
+    auto it = find(v, val);
+    if(it != v.end())
+    {
+        v.erase(it);
+    }
+}
+
 

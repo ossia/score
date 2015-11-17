@@ -20,7 +20,7 @@ class CreateStateMacro final : public iscore::AggregateCommand
         void undo() const override
         {
             // We only need to undo the creation of the StateModel.
-            m_cmds[0]->undo();
+            m_cmds.front()->undo();
         }
 
 };

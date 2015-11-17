@@ -62,6 +62,6 @@ class PluginLoader final : public QObject
         QStringList pluginsBlacklist();
 
         // Here, the plug-ins that are effectively loaded.
-        QList<QObject*> m_availablePlugins;
+        std::vector<QObject*> m_availablePlugins;
 };
 }

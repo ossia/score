@@ -161,7 +161,7 @@ void Application::init()
         for(const auto& doc : m_applicationSettings.loadList)
             m_presenter->documentManager().loadFile(doc);
 
-        if(!m_presenter->documentManager().documents().isEmpty())
+        if(!m_presenter->documentManager().documents().empty())
         {
             if(m_applicationSettings.autoplay)
             {

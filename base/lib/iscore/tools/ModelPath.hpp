@@ -80,7 +80,7 @@ class Path
         template<typename U>
         auto extend(const QString& name, const Id<U>& id) const &
         {
-            Path<U> p{this->m_impl};
+            Path<U> p{this->m_impl.vec()};
             p.m_impl.vec().push_back({name, id});
             return p;
         }
@@ -88,7 +88,7 @@ class Path
         template<typename U>
         auto extend(const QString& name, const Id<U>& id) &&
         {
-            Path<U> p{std::move(this->m_impl)};
+            Path<U> p{std::move(this->m_impl.vec())};
             p.m_impl.vec().push_back({name, id});
             return p;
         }
@@ -151,6 +151,7 @@ class Path
     private:
         Path(const ObjectPath& path): m_impl{path} { }
         Path(ObjectPath&& path): m_impl{std::move(path)} { }
+        Path(const std::vector<ObjectIdentifier>& path): m_impl{path} { }
         Path(std::vector<ObjectIdentifier>&& path): m_impl{std::move(path)} { }
         ObjectPath m_impl;
 };

@@ -47,8 +47,8 @@ class InspectorWidgetBase : public QWidget
         iscore::Document& doc()
         { return m_document; }
 
-        void updateSectionsView(QVBoxLayout* layout, const QVector<QWidget*>& contents);
-        void updateAreaLayout(QVector<QWidget*>& contents);
+        void updateSectionsView(QVBoxLayout* layout, const std::list<QWidget*>& contents);
+        void updateAreaLayout(std::list<QWidget*>& contents);
 
         void addHeader(QWidget* header);
 
@@ -76,7 +76,7 @@ class InspectorWidgetBase : public QWidget
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;
         QVBoxLayout* m_scrollAreaLayout {};
 
-        QVector<QWidget*> m_sections {};
+        std::list<QWidget*> m_sections;
         QColor _currentColor {Qt::gray};
 
 
