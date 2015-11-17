@@ -21,9 +21,6 @@ void Scenario::EditionSettings::setExpandMode(ExpandMode expandMode)
 
 void Scenario::EditionSettings::setTool(Scenario::Tool tool)
 {
-    if (m_tool == tool)
-        return;
-
     m_tool = tool;
     emit toolChanged(tool);
 }

@@ -254,8 +254,10 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 void TemporalScenarioPresenter::on_focusChanged()
 {
-    // TODO why isn't m_focus checked ??
-    m_view->setFocus();
+    if(focused())
+    {
+        m_view->setFocus();
+    }
 
     editionSettings().setTool(Scenario::Tool::Select);
 }
