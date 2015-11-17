@@ -83,8 +83,7 @@ using namespace iscore;
 
 void test_parse_expr_full();
 ScenarioControl::ScenarioControl(iscore::Application& app) :
-    PluginControlInterface{app, "ScenarioControl", nullptr},
-    contextMenuDispatcher{*this}
+    PluginControlInterface{app, "ScenarioControl", nullptr}
 {
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);
@@ -212,7 +211,7 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
         m_contextMenuConnection = connect(pres, &LayerPresenter::contextMenuRequested,
                 this, [=] (const QPoint& pos, const QPointF& pt2) {
             QMenu menu;
-            contextMenuDispatcher.createLayerContextMenu(menu, pos, pt2, *pres);
+            ScenarioContextMenuManager::createLayerContextMenu(menu, pos, pt2, *pres);
             menu.exec(pos);
             menu.close();
         } );

@@ -92,22 +92,15 @@ BaseElementView::BaseElementView(QObject* parent) :
     transportButtons->setStyle(QStyleFactory::create("windows"));
 
     iscore::ApplicationContext ctx{iscore::Application::instance()};
-    const auto& ctrls = ctx.components.controls();
-    for(const auto& ctrl : ctrls)
+    auto control = ctx.components.control<ScenarioControl>();
+    for(const auto& action : control->pluginActions())
     {
-        if(auto control = dynamic_cast<ScenarioControl*>(ctrl))
+        if(auto trsprt = dynamic_cast<TransportActions*>(action))
         {
-            for(const auto& action : control->pluginActions())
+            trsprt->populateToolBar(transportButtons);
+            for(auto act : trsprt->actions())
             {
-                if(auto trsprt = dynamic_cast<TransportActions*>(action))
-                {
-                    trsprt->populateToolBar(transportButtons);
-                    for(auto act : trsprt->actions())
-                    {
-                        m_view->addAction(act);
-                    }
-                    break;
-                }
+                m_view->addAction(act);
             }
             break;
         }

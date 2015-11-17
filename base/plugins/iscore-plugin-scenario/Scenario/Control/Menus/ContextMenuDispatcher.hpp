@@ -16,14 +16,7 @@ struct DocumentContext;
 // TODO rename file
 class ScenarioContextMenuManager final : public QObject
 {
-        ScenarioControl& m_control;
     public:
-        ScenarioContextMenuManager(ScenarioControl& control):
-            m_control{control}
-        {
-
-        }
-
         static void createSlotContextMenu(
                 const iscore::DocumentContext& docContext,
                 QMenu& menu,
@@ -36,7 +29,7 @@ class ScenarioContextMenuManager final : public QObject
                 const QPointF& scenepos,
                 const TemporalScenarioPresenter& pres);
 
-        void createLayerContextMenu(
+        static void createLayerContextMenu(
                 QMenu& menu,
                 const QPoint& pos,
                 const QPointF& scenepos,

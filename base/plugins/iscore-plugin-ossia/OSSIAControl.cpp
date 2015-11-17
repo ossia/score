@@ -54,7 +54,8 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
 
-    auto ctrl = ScenarioControl::instance();
+    iscore::ApplicationContext ctx{app};
+    auto ctrl = ctx.components.control<ScenarioControl>();
     auto acts = ctrl->actions();
     for(const auto& act : acts)
     {

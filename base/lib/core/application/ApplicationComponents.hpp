@@ -54,7 +54,8 @@ class ApplicationComponents
                     return c;
                 }
             }
-            ISCORE_ASSERT(false);
+
+            ISCORE_ABORT;
             return nullptr;
         }
         const auto& panelPresenters() const

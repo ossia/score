@@ -40,8 +40,6 @@ class ScenarioControl final : public iscore::PluginControlInterface
     public:
         ScenarioControl(iscore::Application& app);
 
-        ScenarioContextMenuManager contextMenuDispatcher;
-
         void populateMenus(iscore::MenubarManager*) override;
         QList<iscore::OrderedToolbar> makeToolbars() override;
         QList<QAction*> actions() override;

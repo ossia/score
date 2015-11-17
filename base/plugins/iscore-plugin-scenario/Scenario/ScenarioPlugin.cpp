@@ -73,13 +73,8 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        const auto& ctrls = ctx.components.controls();
-        for(const auto& ctrl : ctrls)
-        {
-            if(auto scenario = dynamic_cast<ScenarioControl*>(ctrl))
-                return {new ScenarioFactory{scenario->editionSettings()}};
-        }
-        return {};
+        auto scen = ctx.components.control<ScenarioControl>();
+        return {new ScenarioFactory{scen->editionSettings()}};
     }
 
     if(factoryName == ScenarioActionsFactory::staticFactoryKey())

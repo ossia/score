@@ -181,7 +181,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
     if(auto slotp = dynamic_cast<SlotPresenter*>(pres.parent()))
     {
         auto& context = iscore::IDocument::documentContext(slotp->model());
-        createSlotContextMenu(context, menu, *slotp);
+        ScenarioContextMenuManager::createSlotContextMenu(context, menu, *slotp);
     }
 
     // Then the process-specific part
@@ -197,23 +197,16 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
 {
     auto selected = pres.layerModel().processModel().selectedChildren();
 
-    const auto& ctrls = ctx.app.components.controls();
-    for(const auto& ctrl : ctrls)
+    auto control = ctx.app.components.control<ScenarioControl>();
+    for(ScenarioActions* elt : control->pluginActions())
     {
-        if(ScenarioControl* control = dynamic_cast<ScenarioControl*>(ctrl))
-        {
-            for(ScenarioActions* elt : control->pluginActions())
-            {
-                // TODO make a class to encapsulate all the data
-                // required to set-up a context menu in a scenario.
-                elt->fillContextMenu(&menu, selected, pres, pos, scenepos);
-                menu.addSeparator();
-            }
-
-            menu.addSeparator();
-            menu.addAction(control->m_selectAll);
-            menu.addAction(control->m_deselectAll);
-            break;
-        }
+        // TODO make a class to encapsulate all the data
+        // required to set-up a context menu in a scenario.
+        elt->fillContextMenu(&menu, selected, pres, pos, scenepos);
+        menu.addSeparator();
     }
+
+    menu.addSeparator();
+    menu.addAction(control->m_selectAll);
+    menu.addAction(control->m_deselectAll);
 }

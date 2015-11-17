@@ -17,8 +17,8 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
     // Since we have declared the dependency, we can assume
     // that ScenarioControl is instantiated already.
 
-    //TODO USEME (c_f dynamic_cast<ScenarioControl*>()
-    auto scen = app.presenter().applicationComponents().control<ScenarioControl>();
+    iscore::ApplicationContext ctx{app};
+    auto scen = ctx.components.control<ScenarioControl>();
     connect(scen, &ScenarioControl::startRecording,
             this, &IScoreCohesionControl::record);
     connect(scen, &ScenarioControl::stopRecording, // TODO this seems useless
