@@ -17,7 +17,7 @@ class NetworkControl : public iscore::PluginControlInterface
         Q_OBJECT
 
     public:
-        NetworkControl(iscore::Presenter* pres);
+        NetworkControl(iscore::Application& app);
         void populateMenus(iscore::MenubarManager*) override;
 
     public slots:
@@ -30,7 +30,7 @@ class NetworkControl : public iscore::PluginControlInterface
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::DocumentModel *parent) override;
+                iscore::Document* parent) override;
 
         iscore::Presenter* m_presenter {};
         ClientSessionBuilder* m_sessionBuilder{};

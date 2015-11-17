@@ -39,7 +39,7 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
 
         for(const auto& elt : undoStack)
         {
-            auto cmd = IPresenter::instantiateUndoCommand(
+            auto cmd = context.components.instantiateUndoCommand(
                         elt.first.first,
                         elt.first.second,
                         elt.second);
@@ -50,7 +50,7 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
 
         for(const auto& elt : redoStack)
         {
-            auto cmd = IPresenter::instantiateUndoCommand(
+            auto cmd = context.components.instantiateUndoCommand(
                         elt.first.first,
                         elt.first.second,
                         elt.second);

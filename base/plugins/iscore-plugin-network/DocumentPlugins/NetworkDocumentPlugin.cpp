@@ -14,6 +14,8 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 
 
 // TODO refactor me
@@ -76,8 +78,8 @@ class ScenarioFindEventVisitor
 };
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
-                                             iscore::DocumentModel *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc},
+                                             iscore::Document& doc):
+    iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
     m_policy{policy},
     m_groups{new GroupManager{this}}
 {
@@ -90,7 +92,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    BaseElementModel* bem = static_cast<BaseElementModel*>(doc->modelDelegate());
+    BaseElementModel* bem = safe_cast<BaseElementModel*>(doc.model().modelDelegate());
     {
         ScenarioFindConstraintVisitor v;
         v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint
@@ -129,8 +131,8 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
 }
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(const VisitorVariant &loader,
-                                             iscore::DocumentModel *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc}
+                                             iscore::Document& doc):
+    iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()}
 {
     deserialize_dyn(loader, *this);
 }

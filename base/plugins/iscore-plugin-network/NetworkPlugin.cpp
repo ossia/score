@@ -1,6 +1,7 @@
 #include <NetworkPlugin.hpp>
 #include <NetworkControl.hpp>
 #include <settings_impl/NetworkSettings.hpp>
+#include <core/application/Application.hpp>
 #include "DistributedScenario/Panel/GroupPanelFactory.hpp"
 
 #include "DistributedScenario/Group.hpp"
@@ -21,9 +22,9 @@ iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
     return new NetworkSettings;
 }
 */
-iscore::PluginControlInterface* iscore_plugin_network::make_control(iscore::Presenter* pres)
+iscore::PluginControlInterface* iscore_plugin_network::make_control(iscore::Application& app)
 {
-    return new NetworkControl{pres};
+    return new NetworkControl{app};
 }
 
 QList<iscore::PanelFactory*> iscore_plugin_network::panels()

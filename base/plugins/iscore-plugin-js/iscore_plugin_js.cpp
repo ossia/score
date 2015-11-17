@@ -11,7 +11,9 @@ iscore_plugin_js::iscore_plugin_js() :
 {
 }
 
-std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_js::factories(const iscore::FactoryBaseKey& factoryName) const
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_js::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
     if(factoryName == ProcessFactory::staticFactoryKey())
     {

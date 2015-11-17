@@ -17,11 +17,11 @@ add_subdirectory(iscore-plugin-ossia)
 add_subdirectory(iscore-plugin-mapping)
 add_subdirectory(iscore-plugin-cohesion)
 
-if(ISCORE_USE_DEV_PLUGINS)
 add_subdirectory(iscore-plugin-js)
 
 add_subdirectory(iscore-plugin-space)
 add_subdirectory(iscore-plugin-network)
 add_subdirectory(iscore-plugin-library)
+if(ISCORE_USE_DEV_PLUGINS)
 add_subdirectory(iscore-plugin-csp)
 endif()

@@ -26,7 +26,7 @@ class iscore_plugin_network :
 
         //iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 

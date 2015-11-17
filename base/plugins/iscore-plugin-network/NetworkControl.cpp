@@ -9,6 +9,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <core/application/Application.hpp>
 
 #ifdef USE_ZEROCONF
 #include "Zeroconf/ZeroconfBrowser.hpp"
@@ -18,8 +19,8 @@
 #include <QApplication>
 using namespace iscore;
 
-NetworkControl::NetworkControl(Presenter* pres) :
-    PluginControlInterface {pres, "NetworkControl", nullptr}
+NetworkControl::NetworkControl(iscore::Application& app) :
+    PluginControlInterface {app, "NetworkControl", nullptr}
 {
 #ifdef USE_ZEROCONF
     m_zeroconfBrowser = new ZeroconfBrowser{"_iscore._tcp", qApp->activeWindow()};
@@ -44,7 +45,7 @@ void NetworkControl::populateMenus(MenubarManager* menu)
         clt->setName(tr("Master"));
         auto serv = new MasterSession(currentDocument(), clt, Id<Session>(1234));
         auto policy = new MasterNetworkPolicy{serv, currentDocument()->commandStack(), currentDocument()->locker()};
-        auto realplug = new NetworkDocumentPlugin{policy, &currentDocument()->model()};
+        auto realplug = new NetworkDocumentPlugin{policy, *currentDocument()};
         currentDocument()->model().addPluginModel(realplug);
     });
 
@@ -91,9 +92,9 @@ void NetworkControl::on_sessionBuilt(
     // in case somebody does undo, so that the computer who joined later can still
     // undo, too.
 
-    auto doc = presenter()->documentManager().loadDocument(
+    auto doc = context().app.presenter().documentManager().loadDocument(
                    m_sessionBuilder->documentData(),
-                   presenter()->applicationComponents().availableDocuments().front());
+                   context().components.availableDocuments().front());
 
     if(!doc)
     {
@@ -104,7 +105,7 @@ void NetworkControl::on_sessionBuilt(
     auto np = static_cast<NetworkDocumentPlugin*>(doc->model().pluginModel<NetworkDocumentPlugin>());
     for(const auto& elt : m_sessionBuilder->commandStackData())
     {
-        auto cmd = presenter()->applicationComponents().instantiateUndoCommand(elt.first.first,
+        auto cmd = context().components.instantiateUndoCommand(elt.first.first,
                                                        elt.first.second,
                                                        elt.second);
 
@@ -121,10 +122,10 @@ void NetworkControl::on_sessionBuilt(
 
 DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &name,
                                                                 const VisitorVariant &var,
-                                                                iscore::DocumentModel *parent)
+                                                                iscore::Document* parent)
 {
     if(name != NetworkDocumentPlugin::staticMetaObject.className())
         return nullptr;
 
-    return new NetworkDocumentPlugin{var, parent};
+    return new NetworkDocumentPlugin{var, *parent};
 }

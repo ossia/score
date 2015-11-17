@@ -1,5 +1,5 @@
 #include "AggregateCommand.hpp"
-#include <iscore/presenter/PresenterInterface.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QApplication>
 using namespace iscore;
@@ -61,7 +61,7 @@ void AggregateCommand::deserializeImpl(QDataStream& s)
 
     for(auto& cmd_pack : serializedCommands)
     {
-        auto cmd = IPresenter::instantiateUndoCommand(
+        auto cmd = context.components.instantiateUndoCommand(
                        cmd_pack.first.first,
                        cmd_pack.first.second,
                        cmd_pack.second);

@@ -1,6 +1,5 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Singletons/SingletonProtocolList.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 

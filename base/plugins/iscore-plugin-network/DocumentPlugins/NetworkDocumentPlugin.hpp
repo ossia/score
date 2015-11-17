@@ -31,11 +31,11 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         ISCORE_SERIALIZE_FRIENDS(NetworkDocumentPlugin, DataStream)
         ISCORE_SERIALIZE_FRIENDS(NetworkDocumentPlugin, JSONObject)
     public:
-        NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::DocumentModel *doc);
+        NetworkDocumentPlugin(NetworkPluginPolicy* policy, iscore::Document& doc);
 
         // Loading has to be in two steps since the plugin policy is different from the client
         // and server.
-        NetworkDocumentPlugin(const VisitorVariant& loader, iscore::DocumentModel* doc);
+        NetworkDocumentPlugin(const VisitorVariant& loader, iscore::Document& doc);
         void setPolicy(NetworkPluginPolicy*);
 
         QList<iscore::ElementPluginModelType> elementPlugins() const override;
