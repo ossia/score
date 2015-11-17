@@ -71,8 +71,8 @@ class Path
         // Use this if it is not possible to get a path
         // (for instance because the object does not exist yet)
         struct UnsafeDynamicCreation{ explicit UnsafeDynamicCreation() = default; };
-        Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl(obj) { }
-        Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl(std::move(obj)) { }
+        Path(const ObjectPath& obj, UnsafeDynamicCreation): m_impl{obj.vec()} { }
+        Path(ObjectPath&& obj, UnsafeDynamicCreation): m_impl{std::move(obj.vec())} { }
 
         Path(const Object& obj): Path(iscore::IDocument::path(obj)) { }
 
@@ -118,14 +118,23 @@ class Path
         // TODO do the same for ids
         // TODO make it work only for upcasts
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-        Path(const Path<U>& other): m_impl(other.m_impl) { }
+        Path(const Path<U>& other): m_impl{other.m_impl.vec()} { }
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-        Path(Path<U>&& other): m_impl(std::move(other.m_impl)) { }
+        Path(Path<U>&& other): m_impl{std::move(other.m_impl.vec())} { }
 
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-        Path& operator=(const Path<U>& other) { m_impl = other.m_impl; return *this; }
+        Path& operator=(const Path<U>& other)
+        {
+            m_impl = other.m_impl;
+            return *this;
+        }
+
         template<typename U, std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-        Path& operator=(Path<U>&& other) { m_impl = std::move(other.m_impl); return *this; }
+        Path& operator=(Path<U>&& other)
+        {
+            m_impl = std::move(other.m_impl);
+            return *this;
+        }
 
         Path() = default;
         Path(const Path&) = default;
@@ -149,10 +158,11 @@ class Path
         { return m_impl.vec().size() > 0; }
 
     private:
-        Path(const ObjectPath& path): m_impl{path} { }
-        Path(ObjectPath&& path): m_impl{std::move(path)} { }
-        Path(const std::vector<ObjectIdentifier>& path): m_impl{path} { }
-        Path(std::vector<ObjectIdentifier>&& path): m_impl{std::move(path)} { }
+        Path(const ObjectPath& path): m_impl{path.vec()} { }
+        Path(ObjectPath&& path): m_impl{std::move(path.vec())} { }
+        Path(const std::vector<ObjectIdentifier>& vec): m_impl{vec} { }
+        Path(std::vector<ObjectIdentifier>&& vec): m_impl{std::move(vec)} { }
+
         ObjectPath m_impl;
 };
 

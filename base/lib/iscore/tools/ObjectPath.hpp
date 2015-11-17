@@ -62,7 +62,6 @@ class ObjectPath
         ObjectPath(ObjectPath&& obj):
             m_objectIdentifiers{std::move(obj.m_objectIdentifiers)}
         {
-            m_objectIdentifiers = std::move(obj.m_objectIdentifiers);
         }
 
         ObjectPath& operator= (ObjectPath && obj)
