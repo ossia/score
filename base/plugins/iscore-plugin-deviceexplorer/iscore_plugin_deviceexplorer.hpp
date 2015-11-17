@@ -4,7 +4,6 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
-#include <Device/Protocol/SingletonProtocolList.hpp>
 
 // TODO rename file
 class iscore_plugin_deviceexplorer final :

@@ -45,15 +45,14 @@ ClearConstraint::ClearConstraint(Path<ConstraintModel>&& constraintPath) :
 
 void ClearConstraint::undo() const
 {
-    auto fact = context.components.factory<DynamicProcessList>();
-    ISCORE_ASSERT(fact);
+    auto& fact = context.components.factory<DynamicProcessList>();
 
     auto& constraint = m_path.find();
 
     for(auto& serializedProcess : m_serializedProcesses)
     {
         Deserializer<DataStream> s {serializedProcess};
-        constraint.processes.add(createProcess(*fact, s, &constraint));
+        constraint.processes.add(createProcess(fact, s, &constraint));
     }
 
     for(auto& serializedRack : m_serializedRackes)

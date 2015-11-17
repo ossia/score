@@ -35,10 +35,9 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_mapping::factories(
         const iscore::ApplicationContext& ctx,
         const iscore::FactoryBaseKey& factoryName) const
 {
-    static Curve::EditionSettings set;
     if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new MappingFactory{set}};
+        return {new MappingFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)

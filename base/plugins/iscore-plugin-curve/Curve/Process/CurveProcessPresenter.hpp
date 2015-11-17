@@ -13,7 +13,8 @@
 #include <iscore/widgets/GraphicsItem.hpp>
 
 #include <core/document/Document.hpp>
-
+#include <core/application/ApplicationComponents.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
 
@@ -29,7 +30,6 @@ class CurveProcessPresenter : public LayerPresenter
     public:
         CurveProcessPresenter(
                 iscore::DocumentContext& context,
-                Curve::EditionSettings& set,
                 const Curve::Style& style,
                 const LayerModel_T& lm,
                 LayerView_T* view,
@@ -37,7 +37,7 @@ class CurveProcessPresenter : public LayerPresenter
             LayerPresenter {"CurveProcessPresenter", parent},
             m_layer{lm},
             m_view{static_cast<LayerView_T*>(view)},
-            m_curvepresenter{new CurvePresenter{set, style, m_layer.model().curve(), new CurveView{m_view}, this}},
+            m_curvepresenter{new CurvePresenter{context.app.components.factory<DynamicCurveSegmentList>(), style, m_layer.model().curve(), new CurveView{m_view}, this}},
             m_commandDispatcher{context.commandStack},
             m_focusDispatcher{context.document},
             m_context{context, *this, m_focusDispatcher},

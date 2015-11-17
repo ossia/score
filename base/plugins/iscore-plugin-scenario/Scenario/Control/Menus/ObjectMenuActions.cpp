@@ -129,24 +129,21 @@ ObjectMenuActions::ObjectMenuActions(
     // ADD PROCESS
 
     auto appContext = parent->context();
-    auto fact = appContext.components.factory<DynamicProcessList>();
-    if(fact)
-    {
-        m_addProcessDialog = new AddProcessDialog(*fact, qApp->activeWindow());
+    auto& fact = appContext.components.factory<DynamicProcessList>();
+    m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
-        connect(m_addProcessDialog, &AddProcessDialog::okPressed,
-                this, &ObjectMenuActions::addProcessInConstraint);
+    connect(m_addProcessDialog, &AddProcessDialog::okPressed,
+            this, &ObjectMenuActions::addProcessInConstraint);
 
-        m_addProcess = new QAction{tr("Add Process in constraint"), this};
-        connect(m_addProcess, &QAction::triggered,
+    m_addProcess = new QAction{tr("Add Process in constraint"), this};
+    connect(m_addProcess, &QAction::triggered,
             [this]()
-        {
-            auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
-            if(selectedConstraints.isEmpty())
-                return;
-            m_addProcessDialog->launchWindow();
-        });
-    }
+    {
+        auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
+        if(selectedConstraints.isEmpty())
+            return;
+        m_addProcessDialog->launchWindow();
+    });
 
     m_interp = new QAction {tr("Interpolate states"), this};
     m_interp->setShortcutContext(Qt::ApplicationShortcut);

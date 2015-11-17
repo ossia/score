@@ -18,7 +18,7 @@ const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() 
 DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
     iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{
-              *iscore::Application::instance()
+              iscore::Application::instance()
                 .presenter()
                 .applicationComponents().factory<DynamicProtocolList>(),
               parent}}

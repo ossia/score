@@ -32,7 +32,6 @@
 #include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include <Device/XML/XMLDeviceLoader.hpp>
 #include "ExplorationWorkerWrapper.hpp"
-#include <Device/Protocol/SingletonProtocolList.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <QMessageBox>
 

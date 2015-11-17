@@ -54,11 +54,10 @@ template<> void Visitor<Writer<DataStream>>::writeTo(ConstraintModel& constraint
     int32_t process_count;
     m_stream >> process_count;
 
-    auto pl = context.components.factory<DynamicProcessList>();
-    ISCORE_ASSERT(pl);
+    auto& pl = context.components.factory<DynamicProcessList>();
     for(; process_count -- > 0;)
     {
-        constraint.processes.add(createProcess(*pl, *this, &constraint));
+        constraint.processes.add(createProcess(pl, *this, &constraint));
     }
 
     // Rackes
@@ -127,14 +126,13 @@ template<> void Visitor<Writer<JSONObject>>::writeTo(ConstraintModel& constraint
 {
     constraint.metadata = fromJsonObject<ModelMetadata>(m_obj["Metadata"].toObject());
 
-    auto pl = context.components.factory<DynamicProcessList>();
-    ISCORE_ASSERT(pl);
+    auto& pl = context.components.factory<DynamicProcessList>();
 
     QJsonArray process_array = m_obj["Processes"].toArray();
     for(const auto& json_vref : process_array)
     {
         Deserializer<JSONObject> deserializer{json_vref.toObject()};
-        constraint.processes.add(createProcess(*pl, deserializer, &constraint));
+        constraint.processes.add(createProcess(pl, deserializer, &constraint));
     }
 
     QJsonArray rack_array = m_obj["Rackes"].toArray();

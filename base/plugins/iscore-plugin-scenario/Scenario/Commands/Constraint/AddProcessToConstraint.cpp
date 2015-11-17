@@ -27,8 +27,7 @@ AddProcessToConstraint::AddProcessToConstraint(
     m_path {std::move(constraintPath) },
     m_processName {process}
 {
-    auto fact = context.components.factory<DynamicProcessList>();
-    ISCORE_ASSERT(fact);
+    auto& fact = context.components.factory<DynamicProcessList>();
 
     auto& constraint = m_path.find();
     m_createdProcessId = getStrongId(constraint.processes);
@@ -40,7 +39,7 @@ AddProcessToConstraint::AddProcessToConstraint(
         m_createdRackId = getStrongId(constraint.racks);
         m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
         m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
-        m_layerConstructionData = fact->list().get(m_processName)->makeStaticLayerConstructionData();
+        m_layerConstructionData = fact.list().get(m_processName)->makeStaticLayerConstructionData();
     }
     else if (m_notBaseConstraint)
     {
@@ -50,7 +49,7 @@ AddProcessToConstraint::AddProcessToConstraint(
         {
             const auto& firstSlotModel = *firstRack.slotmodels.begin();
 
-            m_layerConstructionData = fact->list().get(m_processName)->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.list().get(m_processName)->makeStaticLayerConstructionData();
             m_createdLayerId = getStrongId(firstSlotModel.layers);
         }
     }
@@ -85,14 +84,12 @@ void AddProcessToConstraint::undo() const
 
 void AddProcessToConstraint::redo() const
 {
-    auto fact = context.components.factory<DynamicProcessList>();
-    ISCORE_ASSERT(fact);
-
+    auto& fact = context.components.factory<DynamicProcessList>();
     auto& constraint = m_path.find();
 
     // Create process model
     auto proc =
-            fact->list().get(m_processName)
+            fact.list().get(m_processName)
               ->makeModel(
                 constraint.duration.defaultDuration(),
                 m_createdProcessId,

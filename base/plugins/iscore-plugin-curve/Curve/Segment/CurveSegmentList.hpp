@@ -8,13 +8,4 @@ using CurveSegmentList = GenericFactoryMap_T<CurveSegmentFactory, CurveSegmentFa
 class DynamicCurveSegmentList final : public iscore::FactoryListInterface
 {
         ISCORE_FACTORY_LIST_DECL(CurveSegmentFactory)
-
-};
-
-
-class SingletonCurveSegmentList
-{
-    public:
-        SingletonCurveSegmentList() = delete;
-        static CurveSegmentList& instance();
 };

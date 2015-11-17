@@ -15,12 +15,11 @@ class AutomationPresenter final :
     public:
         AutomationPresenter(
                 iscore::DocumentContext& context,
-                Curve::EditionSettings& set,
                 const Curve::Style& style,
                 const AutomationLayerModel& layer,
                 AutomationView* view,
                 QObject* parent):
-            CurveProcessPresenter{context, set, style, layer, view, parent}
+            CurveProcessPresenter{context, style, layer, view, parent}
         {
             con(m_layer.model(), &AutomationModel::addressChanged,
                 this, [&] (const auto&)

@@ -16,6 +16,7 @@
 #include <QPointF>
 #include <QVector>
 
+class DynamicCurveSegmentList;
 namespace Curve
 {
 class ToolPalette;
@@ -33,7 +34,7 @@ class CurvePresenter : public QObject
         Q_OBJECT
     public:
         CurvePresenter(
-                Curve::EditionSettings&,
+                const DynamicCurveSegmentList&,
                 const Curve::Style&,
                 const CurveModel&,
                 CurveView*,
@@ -97,6 +98,7 @@ class CurvePresenter : public QObject
 
         void modelReset();
 
+        const DynamicCurveSegmentList& m_curveSegments;
         Curve::EditionSettings m_editionSettings;
 
         const CurveModel& m_model;

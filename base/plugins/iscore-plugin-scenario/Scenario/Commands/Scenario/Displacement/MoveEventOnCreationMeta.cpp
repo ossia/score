@@ -11,7 +11,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
     :SerializableMoveEvent{},
      m_moveEventImplementation(
          context.components.factory<MoveEventList>()
-         ->get(MoveEventFactoryInterface::Strategy::MOVING)
+         .get(MoveEventFactoryInterface::Strategy::MOVING)
          ->make(std::move(scenarioPath), eventId, newDate, mode))
 {
 }
@@ -45,7 +45,7 @@ void MoveEventOnCreationMeta::deserializeImpl(QDataStream& qDataStream)
 
     m_moveEventImplementation =
             context.components.factory<MoveEventList>()
-            ->get(MoveEventFactoryInterface::Strategy::MOVING)->make();
+            .get(MoveEventFactoryInterface::Strategy::MOVING)->make();
 
     m_moveEventImplementation->deserialize(cmdData);
 }

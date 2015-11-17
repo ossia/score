@@ -3,7 +3,7 @@
 #include "CurveSegmentList.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 #include <iscore/tools/std/StdlibWrapper.hpp>
-
+#include <core/application/ApplicationComponents.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
 {
@@ -12,7 +12,9 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
              << segmt.previous << segmt.following
              << segmt.type;
 
-    auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto segmt_fact = csl.list().get(segmt.type);
+
     ISCORE_ASSERT(segmt_fact);
     segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
 
@@ -27,7 +29,8 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
              >> segmt.previous >> segmt.following
              >> segmt.type;
 
-    auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto segmt_fact = csl.list().get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 
@@ -111,14 +114,14 @@ void Visitor<Writer<JSONObject>>::writeTo(CurveSegmentModel& segmt)
 
 
 CurveSegmentModel*createCurveSegment(
+        const DynamicCurveSegmentList& csl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
     CurveSegmentFactoryKey name;
     deserializer.writeTo(name);
 
-    auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(name);
+    auto fact = csl.list().get(name);
     auto model = fact->load(deserializer.toVariant(), parent);
 
     deserializer.checkDelimiter();
@@ -126,21 +129,23 @@ CurveSegmentModel*createCurveSegment(
 }
 
 CurveSegmentModel*createCurveSegment(
+        const DynamicCurveSegmentList& csl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
-    auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(fromJsonValue<CurveSegmentFactoryKey>(deserializer.m_obj["Name"]));
+    auto fact = csl.list().get(fromJsonValue<CurveSegmentFactoryKey>(deserializer.m_obj["Name"]));
     auto model = fact->load(deserializer.toVariant(), parent);
 
     return model;
 }
 
 
-CurveSegmentModel*createCurveSegment(const CurveSegmentData& dat, QObject* parent)
+CurveSegmentModel*createCurveSegment(
+        const DynamicCurveSegmentList& csl,
+        const CurveSegmentData& dat,
+        QObject* parent)
 {
-    auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(dat.type);
+    auto fact = csl.list().get(dat.type);
     auto model = fact->load(dat, parent);
 
     return model;

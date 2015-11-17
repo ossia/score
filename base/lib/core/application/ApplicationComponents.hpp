@@ -75,14 +75,16 @@ class ApplicationComponents
         }
 
         template<typename T>
-        const T* factory() const
+        const T& factory() const
         {
             auto it = m_data.factories.find(T::staticFactoryKey());
             if(it != m_data.factories.end())
             {
-                return safe_cast<T*>(it->second);
+                return *safe_cast<T*>(it->second);
             }
-            return nullptr;
+
+            ISCORE_ABORT;
+            throw;
         }
 
         /**

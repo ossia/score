@@ -4,9 +4,11 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
 #include <numeric>
 
 CurveModel::CurveModel(const Id<CurveModel>& id, QObject* parent):
@@ -229,10 +231,13 @@ void CurveModel::fromCurveData(const std::vector<CurveSegmentData>& curve)
 {
     this->blockSignals(true);
     clear();
+
+    auto& context = iscore::IDocument::documentContext(*this).app;
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
     CurveSegmentOrderedMap map(curve.begin(), curve.end());
     for(const auto& elt : map.get<Segments::Ordered>())
     {
-        addSortedSegment(createCurveSegment(elt, this));
+        addSortedSegment(createCurveSegment(csl, elt, this));
     }
     this->blockSignals(false);
     emit curveReset();

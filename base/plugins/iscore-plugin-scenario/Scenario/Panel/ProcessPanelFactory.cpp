@@ -27,9 +27,8 @@ iscore::PanelPresenter*ProcessPanelFactory::makePresenter(
         iscore::Presenter* parent_presenter,
         iscore::PanelView* view)
 {
-    auto fact = parent_presenter->applicationComponents().factory<DynamicProcessList>();
-    ISCORE_ASSERT(fact);
-    return new ProcessPanelPresenter{*fact, parent_presenter, view};
+    auto& fact = parent_presenter->applicationComponents().factory<DynamicProcessList>();
+    return new ProcessPanelPresenter{fact, parent_presenter, view};
 }
 
 iscore::PanelModel*ProcessPanelFactory::makeModel(iscore::DocumentModel* parent)

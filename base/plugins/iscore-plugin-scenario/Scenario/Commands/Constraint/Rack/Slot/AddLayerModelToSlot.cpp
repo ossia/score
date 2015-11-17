@@ -30,11 +30,6 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processData{processData},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    /*
-    auto fact = list.get(processkey);
-    ISCORE_ASSERT(fact);
-    m_processData = fact->makeStaticLayerConstructionData();
-    */
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
@@ -47,11 +42,6 @@ AddLayerModelToSlot::AddLayerModelToSlot(
     m_processData{processData},
     m_createdLayerId{layerid}
 {
-    /*
-    auto fact = SingletonProcessList::instance().get(processKey);
-    ISCORE_ASSERT(fact);
-    m_processData = fact->makeStaticLayerConstructionData();
-    */
 }
 
 void AddLayerModelToSlot::undo() const

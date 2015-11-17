@@ -23,12 +23,13 @@ static QPointF myscale(QPointF first, QSizeF second)
 }
 
 CurvePresenter::CurvePresenter(
-        Curve::EditionSettings& e,
+        const DynamicCurveSegmentList& lst,
         const Curve::Style& style,
         const CurveModel& model,
         CurveView* view,
         QObject* parent):
     QObject{parent},
+    m_curveSegments{lst},
     m_model{model},
     m_view{view},
     m_commandDispatcher{iscore::IDocument::commandStack(model)},
@@ -223,7 +224,7 @@ void CurvePresenter::fillContextMenu(
     });
 
     auto typeMenu = menu->addMenu(tr("Type"));
-    for(const auto& seg : SingletonCurveSegmentList::instance().get())
+    for(const auto& seg : m_curveSegments.list().get())
     {
         auto act = typeMenu->addAction(seg.second->prettyName());
         connect(act, &QAction::triggered,
@@ -474,7 +475,7 @@ void CurvePresenter::removeSelection()
 void CurvePresenter::updateSegmentsType(const CurveSegmentFactoryKey& segment)
 {
     // They keep their start / end and previous / following but change type.
-    auto factory = SingletonCurveSegmentList::instance().get(segment);
+    auto factory = m_curveSegments.list().get(segment);
     auto this_type_base_data = factory->makeCurveSegmentData();
     auto newSegments = model().toCurveData();
 

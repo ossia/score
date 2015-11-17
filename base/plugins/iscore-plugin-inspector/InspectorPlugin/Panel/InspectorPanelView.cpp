@@ -38,17 +38,14 @@ void InspectorPanelView::setCurrentDocument(iscore::Document* doc)
     if(doc)
     {
         auto& appContext = doc->context().app;
-        auto fact = appContext.components.factory<InspectorWidgetList>();
-        if(fact)
-        {
-            m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
-            m_inspectorPanel = new InspectorPanel{*fact, doc->selectionStack(), m_widget};
+        auto& fact = appContext.components.factory<InspectorWidgetList>();
+        m_stack = new SelectionStackWidget{doc->selectionStack(), m_widget};
+        m_inspectorPanel = new InspectorPanel{fact, doc->selectionStack(), m_widget};
 
-            m_widget->layout()->addWidget(m_stack);
-            m_widget->layout()->addWidget(m_inspectorPanel);
+        m_widget->layout()->addWidget(m_stack);
+        m_widget->layout()->addWidget(m_inspectorPanel);
 
-            setNewSelection(doc->selectionStack().currentSelection());
-        }
+        setNewSelection(doc->selectionStack().currentSelection());
     }
 }
 

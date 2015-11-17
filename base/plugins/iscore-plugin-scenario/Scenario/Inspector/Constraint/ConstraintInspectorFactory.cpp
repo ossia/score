@@ -14,17 +14,11 @@ InspectorWidgetBase* ConstraintInspectorFactory::makeWidget(
         QWidget* parent)
 {
     auto& appContext = doc.context().app;
-    auto widgetFact = appContext.components.factory<InspectorWidgetList>();
-    auto processFact = appContext.components.factory<DynamicProcessList>();
-    if(widgetFact && processFact)
-    {
-        auto& constraint = static_cast<const ConstraintModel&>(sourceElement);
-        return new ConstraintInspectorWidget{*widgetFact, *processFact, constraint, doc, parent};
-    }
-    else
-    {
-        return nullptr;
-    }
+    auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
+    auto& processFact = appContext.components.factory<DynamicProcessList>();
+
+    auto& constraint = static_cast<const ConstraintModel&>(sourceElement);
+    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, doc, parent};
 }
 
 const QList<QString>&ConstraintInspectorFactory::key_impl() const

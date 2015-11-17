@@ -17,12 +17,6 @@ template<
 class CurveProcessFactory_T : public ProcessFactory
 {
     public:
-        CurveProcessFactory_T(Curve::EditionSettings& s):
-            m_editionSettings{s}
-        {
-
-        }
-
         virtual ~CurveProcessFactory_T() = default;
 
         Model_T* makeModel(
@@ -60,7 +54,6 @@ class CurveProcessFactory_T : public ProcessFactory
         {
             return new LayerPresenter_T {
                 iscore::IDocument::documentContext(lm.processModel()),
-                m_editionSettings,
                 m_colors.style(),
                 safe_cast<const LayerModel_T&>(lm),
                 safe_cast<LayerView_T*>(v),
@@ -69,7 +62,6 @@ class CurveProcessFactory_T : public ProcessFactory
 
     private:
         CurveColors_T m_colors;
-        Curve::EditionSettings& m_editionSettings;
 };
 
 // See AutomationProcessMetadata.
