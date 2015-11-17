@@ -105,7 +105,7 @@ void CreateCurveFromStates::deserializeImpl(QDataStream& s)
     {
         QByteArray b;
         s >> b;
-        m_slotsCmd.at(n).deserialize(b);
+        m_slotsCmd.at(i).deserialize(b);
     }
 
     s >> m_address >> m_start >> m_end >> m_min >> m_max;
