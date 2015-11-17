@@ -180,8 +180,8 @@ void Application::init()
     }
     else
     {
-        if(!m_pluginManager.m_documentPanelList.empty())
-            m_presenter->documentManager().newDocument(m_pluginManager.m_documentPanelList.front());
+        if(!m_presenter->applicationComponents().availableDocuments().empty())
+            m_presenter->documentManager().newDocument(m_presenter->applicationComponents().availableDocuments().front());
     }
 }
 

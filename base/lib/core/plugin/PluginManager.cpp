@@ -149,7 +149,7 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
         graph.addNode(plugin);
     }
 
-    graph.visit([&] (QObject* plugin) {        
+    graph.visit([&] (QObject* plugin) {
         auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
         if(ctrl_plugin)
         {
@@ -190,7 +190,7 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
         auto commands_plugin = qobject_cast<CommandFactory_QtInterface*> (plugin);
         if(commands_plugin)
         {
-            registrar.registerCommands(std::move(commands_plugin->make_commands()));
+            registrar.registerCommands(commands_plugin->make_commands());
         }
 
         ApplicationContext c{*m_app};

@@ -18,14 +18,14 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
     // that ScenarioControl is instantiated already.
 
     iscore::ApplicationContext ctx{app};
-    auto scen = ctx.components.control<ScenarioControl>();
-    connect(scen, &ScenarioControl::startRecording,
+    auto& control = ctx.components.control<ScenarioControl>();
+    connect(&control, &ScenarioControl::startRecording,
             this, &IScoreCohesionControl::record);
-    connect(scen, &ScenarioControl::stopRecording, // TODO this seems useless
+    connect(&control, &ScenarioControl::stopRecording, // TODO this seems useless
             this, &IScoreCohesionControl::stopRecord);
 
 
-    auto acts = scen->actions();
+    auto acts = control.actions();
     for(const auto& act : acts)
     {
         if(act->objectName() == "Stop")

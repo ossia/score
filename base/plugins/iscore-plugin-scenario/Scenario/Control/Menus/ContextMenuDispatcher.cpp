@@ -197,8 +197,8 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
 {
     auto selected = pres.layerModel().processModel().selectedChildren();
 
-    auto control = ctx.app.components.control<ScenarioControl>();
-    for(ScenarioActions* elt : control->pluginActions())
+    auto& control = ctx.app.components.control<ScenarioControl>();
+    for(ScenarioActions* elt : control.pluginActions())
     {
         // TODO make a class to encapsulate all the data
         // required to set-up a context menu in a scenario.
@@ -207,6 +207,6 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     }
 
     menu.addSeparator();
-    menu.addAction(control->m_selectAll);
-    menu.addAction(control->m_deselectAll);
+    menu.addAction(control.m_selectAll);
+    menu.addAction(control.m_deselectAll);
 }

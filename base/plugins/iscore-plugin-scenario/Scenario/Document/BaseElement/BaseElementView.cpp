@@ -92,8 +92,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     transportButtons->setStyle(QStyleFactory::create("windows"));
 
     iscore::ApplicationContext ctx{iscore::Application::instance()};
-    auto control = ctx.components.control<ScenarioControl>();
-    for(const auto& action : control->pluginActions())
+    auto& control = ctx.components.control<ScenarioControl>();
+    for(const auto& action : control.pluginActions())
     {
         if(auto trsprt = dynamic_cast<TransportActions*>(action))
         {

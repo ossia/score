@@ -45,12 +45,6 @@ class PluginLoader final : public QObject
              */
         QStringList pluginsOnSystem() const;
 
-        void addControl(PluginControlInterface* p)
-        { m_controlList.push_back(p); }
-
-        void addPanel(PanelFactory* p)
-        { m_panelList.push_back(p); }
-
     private:
         iscore::Application* m_app{};
 
@@ -69,12 +63,5 @@ class PluginLoader final : public QObject
 
         // Here, the plug-ins that are effectively loaded.
         QList<QObject*> m_availablePlugins;
-
-        QList<PluginControlInterface*>  m_controlList;
-        QList<PanelFactory*>    m_panelList;
-        QList<DocumentDelegateFactoryInterface*> m_documentPanelList;
-        QList<SettingsDelegateFactoryInterface*> m_settingsList;
-
-        std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> m_commands;
 };
 }

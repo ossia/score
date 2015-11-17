@@ -45,18 +45,18 @@ class ApplicationComponents
         { return m_data.controls; }
 
         template<typename T>
-        T* control() const
+        T& control() const
         {
             for(auto& elt : m_data.controls)
             {
                 if(auto c = dynamic_cast<T*>(elt))
                 {
-                    return c;
+                    return *c;
                 }
             }
 
             ISCORE_ABORT;
-            return nullptr;
+            throw;
         }
         const auto& panelPresenters() const
         { return m_data.panelPresenters; }

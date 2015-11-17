@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include <ProcesS/ProcessList.hpp>
+#include <Process/ProcessList.hpp>
 class Process;
 
 template<typename T>

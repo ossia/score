@@ -55,8 +55,8 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
     // to the Scenario plug-in with the OSSIA API.
 
     iscore::ApplicationContext ctx{app};
-    auto ctrl = ctx.components.control<ScenarioControl>();
-    auto acts = ctrl->actions();
+    auto& ctrl = ctx.components.control<ScenarioControl>();
+    auto acts = ctrl.actions();
     for(const auto& act : acts)
     {
         if(act->objectName() == "Play")
