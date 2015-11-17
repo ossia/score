@@ -72,7 +72,7 @@ class MoveEvent final : public SerializableMoveEvent
               SerializableMoveEvent{},
               m_path {std::move(scenarioPath)},
               m_mode{mode},
-              m_displacementPolicy{scenarioPath.find(), QVector<Id<TimeNodeModel>>({scenarioPath.find().event(eventId).timeNode()})}
+              m_displacementPolicy{m_path.find(), QVector<Id<TimeNodeModel>>({m_path.find().event(eventId).timeNode()})}
         {
             // we need to compute the new time delta and store this initial event id for recalculate the delta on updates
             // NOTE: in the future in would be better to give directly the delta value to this method ?,

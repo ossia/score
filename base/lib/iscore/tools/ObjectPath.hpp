@@ -45,7 +45,7 @@ class ObjectPath
         }
 
         explicit ObjectPath(std::vector<ObjectIdentifier>&& vec) :
-            m_objectIdentifiers {vec}
+            m_objectIdentifiers {std::move(vec)}
         {
         }
 
@@ -60,13 +60,13 @@ class ObjectPath
         }
 
         ObjectPath(ObjectPath&& obj):
-            m_objectIdentifiers{obj.m_objectIdentifiers}
+            m_objectIdentifiers{std::move(obj.m_objectIdentifiers)}
         {
         }
 
         ObjectPath& operator= (ObjectPath && obj)
         {
-            m_objectIdentifiers = obj.m_objectIdentifiers;
+            m_objectIdentifiers = std::move(obj.m_objectIdentifiers);
             m_cache.clear();
             return *this;
         }
