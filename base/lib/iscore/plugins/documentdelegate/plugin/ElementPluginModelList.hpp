@@ -41,11 +41,11 @@ namespace iscore
             bool canAdd(ElementPluginModelType pluginId) const;
             void add(iscore::ElementPluginModel* data);
 
-            const QList<iscore::ElementPluginModel*>& list() const
+            const std::vector<iscore::ElementPluginModel*>& list() const
             { return m_list; }
 
         private:
             QObject* m_parent{};
-            QList<iscore::ElementPluginModel*> m_list;
+            std::vector<iscore::ElementPluginModel*> m_list;
     };
 }

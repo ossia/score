@@ -5,7 +5,6 @@
 #include <core/application/ApplicationContext.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QVector>
 #include <QMap>
 
 /**
@@ -342,6 +341,17 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
     for(const auto& elt : json_arr)
     {
         T obj;
+        fromJsonObject(elt.toObject(), obj);
+        arr.push_back(obj);
+    }
+}
+
+template<template<typename U, typename V> class Container, typename T1, typename T2>
+void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
+{
+    for(const auto& elt : json_arr)
+    {
+        T1 obj;
         fromJsonObject(elt.toObject(), obj);
         arr.push_back(obj);
     }

@@ -35,8 +35,6 @@ class ToolPalette final : public GraphicsSceneToolPalette
         iscore::CommandStack& commandStack() const;
         iscore::ObjectLocker& locker() const;
 
-        Curve::Point curvePoint;
-
         void on_pressed(QPointF);
         void on_moved(QPointF);
         void on_released(QPointF);

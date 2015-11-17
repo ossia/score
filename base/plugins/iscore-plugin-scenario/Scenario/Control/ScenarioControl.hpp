@@ -41,8 +41,8 @@ class ScenarioControl final : public iscore::PluginControlInterface
         ScenarioControl(iscore::Application& app);
 
         void populateMenus(iscore::MenubarManager*) override;
-        QList<iscore::OrderedToolbar> makeToolbars() override;
-        QList<QAction*> actions() override;
+        std::vector<iscore::OrderedToolbar> makeToolbars() override;
+        std::vector<QAction*> actions() override;
 
         QVector<ScenarioActions*>& pluginActions()
         { return m_pluginActions; }

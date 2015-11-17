@@ -28,6 +28,7 @@ class CurveCommandObjectBase
 {
     public:
         CurveCommandObjectBase(CurvePresenter* pres, iscore::CommandStack&);
+        virtual ~CurveCommandObjectBase();
 
         void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
         void press();

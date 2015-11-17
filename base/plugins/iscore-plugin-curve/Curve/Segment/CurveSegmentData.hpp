@@ -57,16 +57,16 @@ struct CurveSegmentData
         CurveSegmentData& operator=(CurveSegmentData&&) = default;
 
         CurveSegmentData(
-                const Id<CurveSegmentModel>& id,
-                Curve::Point start, Curve::Point end,
+                const Id<CurveSegmentModel>& i,
+                Curve::Point s, Curve::Point e,
                 const Id<CurveSegmentModel>& prev, const Id<CurveSegmentModel>&  foll,
-                const CurveSegmentFactoryKey& type, const QVariant& data):
-            id(id),
-            start(start),
-            end(end),
+                const CurveSegmentFactoryKey& t, const QVariant& data):
+            id(i),
+            start(s),
+            end(e),
             previous(prev),
             following(foll),
-            type(type),
+            type(t),
             specificSegmentData(data)
         {
 

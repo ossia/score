@@ -36,7 +36,7 @@ class ObjectLocker : public QObject
         void lock_impl();
         void unlock_impl();
 
-        QList<ObjectPath> m_lockedObjects;
+        std::vector<ObjectPath> m_lockedObjects;
 };
 
 /**

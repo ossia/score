@@ -51,7 +51,7 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
 
         // Plugin models
         void addPluginModel(DocumentDelegatePluginModel* m);
-        const QList<DocumentDelegatePluginModel*>& pluginModels() { return m_pluginModels; }
+        const std::vector<DocumentDelegatePluginModel*>& pluginModels() { return m_pluginModels; }
 
         template<typename T>
         T* pluginModel() const
@@ -86,8 +86,8 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
 
         QString m_docFileName{tr("Untitled")};
 
-        QList<PanelModel*> m_panelModels;
-        QList<DocumentDelegatePluginModel*> m_pluginModels;
+        std::vector<PanelModel*> m_panelModels;
+        std::vector<DocumentDelegatePluginModel*> m_pluginModels;
         DocumentDelegateModelInterface* m_model{}; // note : this *has* to be last due to init order
 };
 }

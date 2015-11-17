@@ -70,18 +70,18 @@ CreateSequence::CreateSequence(
         if(!message.value.val.isNumeric())
             continue;
 
-        auto it = std::find_if(std::begin(endAddresses),
-                               std::end(endAddresses),
-                               [&] (const auto& arg) {
+        auto addr_it = std::find_if(std::begin(endAddresses),
+                                    std::end(endAddresses),
+                                    [&] (const auto& arg) {
             return message.address == arg.address
                   //  && message.value.val.impl().which() == arg.value.val.impl().which()
                   // TODO this does not work because of the int -> float conversion that happens after a curve.
                     // Investigate more and comment the other uses.
                     && message.value != arg.value; });
 
-        if(it != std::end(endAddresses))
+        if(addr_it != std::end(endAddresses))
         {
-            matchingMessages.emplace_back(&message, &*it);
+            matchingMessages.emplace_back(&message, &*addr_it);
         }
     }
 
@@ -106,9 +106,9 @@ CreateSequence::CreateSequence(
         for(const auto& elt : matchingMessages)
         {
             std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layer_vect;
-            for(const auto& elt : m_interpolations.slotsToUse)
+            for(const auto& slots_elt : m_interpolations.slotsToUse)
             {
-                layer_vect.push_back(std::make_pair(elt.first, layers_ids[i]));
+                layer_vect.push_back(std::make_pair(slots_elt.first, layers_ids[i]));
             }
 
 

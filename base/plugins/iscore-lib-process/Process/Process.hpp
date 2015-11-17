@@ -87,7 +87,7 @@ class Process: public IdentifiedObject<Process>
                 const LayerModel& source,
                 QObject* parent);
         // Do a copy.
-        QVector<LayerModel*> layers() const;
+        std::vector<LayerModel*> layers() const;
 
         //// Features of a process
         /// Duration
@@ -161,7 +161,7 @@ class Process: public IdentifiedObject<Process>
 
         // Ownership : the parent is the Slot or another widget, not the process.
         // A process view is never displayed alone, it is always in a view, which is in a rack.
-        QVector<LayerModel*> m_layers;
+        std::vector<LayerModel*> m_layers;
         TimeValue m_duration;
 };
 

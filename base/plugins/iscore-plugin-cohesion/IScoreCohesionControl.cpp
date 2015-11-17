@@ -74,11 +74,11 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
 }
 
-QList<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
+std::vector<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addActions({m_curves, m_snapshot});
-    return QList<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
+    return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
 }
 
 void IScoreCohesionControl::record(ScenarioModel& scenar, Scenario::Point pt)

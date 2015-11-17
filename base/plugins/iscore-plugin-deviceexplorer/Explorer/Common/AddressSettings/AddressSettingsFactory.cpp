@@ -67,3 +67,8 @@ AddressSettingsFactory::getValueTypeWidget(const QString& valueType) const
         return nullptr;
     }
 }
+
+AddressSettingsWidgetFactoryMethod::~AddressSettingsWidgetFactoryMethod()
+{
+
+}

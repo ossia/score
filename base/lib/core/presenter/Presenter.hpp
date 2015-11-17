@@ -40,7 +40,7 @@ namespace iscore
             bool exit();
 
             // Toolbars
-            QList<OrderedToolbar>& toolbars()
+            std::vector<OrderedToolbar>& toolbars()
             { return m_toolbars; }
 
 
@@ -66,7 +66,7 @@ namespace iscore
 
             MenubarManager m_menubar;
 
-            QList<OrderedToolbar> m_toolbars;
+            std::vector<OrderedToolbar> m_toolbars;
 
     };
 }

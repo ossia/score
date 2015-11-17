@@ -311,9 +311,9 @@ static OSSIA::Value* toOSSIAValue(const iscore::ValueImpl& val)
             return_type operator()(const tuple_t& v) const
             {
                 auto ossia_tuple = new OSSIA::Tuple;
-                for(const auto& val : v)
+                for(const auto& tuple_elt : v)
                 {
-                    ossia_tuple->value.push_back(eggs::variants::apply(*this, val.impl()));
+                    ossia_tuple->value.push_back(eggs::variants::apply(*this, tuple_elt.impl()));
                 }
                 return ossia_tuple;
             }

@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
-#include <QVector>
+#include <vector>
 #include <QPointer>
 
 /**
@@ -39,7 +39,7 @@ class ObjectPath
         ObjectPath() = default;
         QString toString() const;
 
-        explicit ObjectPath(QVector<ObjectIdentifier>&& vec) :
+        explicit ObjectPath(std::vector<ObjectIdentifier>&& vec) :
             m_objectIdentifiers {std::move(vec)}
         {
         }

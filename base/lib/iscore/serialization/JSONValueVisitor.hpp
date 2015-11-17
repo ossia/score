@@ -3,7 +3,6 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QVector>
 #include <QMap>
 
 template<class>

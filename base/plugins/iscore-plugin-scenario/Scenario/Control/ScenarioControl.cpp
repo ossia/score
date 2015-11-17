@@ -143,7 +143,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     }
 }
 
-QList<OrderedToolbar> ScenarioControl::makeToolbars()
+std::vector<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
@@ -163,16 +163,17 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     }
 
 
-    return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
+    return std::vector<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
 
-QList<QAction*> ScenarioControl::actions()
+std::vector<QAction*> ScenarioControl::actions()
 {
     // TODO add the others
-    QList<QAction*> act;
+    std::vector<QAction*> act;
     for(const auto& elt : m_pluginActions)
     {
-        act += elt->actions();
+        auto actions = elt->actions();
+        act.insert(act.end(), actions.begin(), actions.end());
     }
     return act;
 }

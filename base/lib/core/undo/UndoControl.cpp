@@ -46,13 +46,13 @@ void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
                                        m_redoAction);
 }
 
-QList<iscore::OrderedToolbar> iscore::UndoControl::makeToolbars()
+std::vector<iscore::OrderedToolbar> iscore::UndoControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addAction(m_undoAction);
     bar->addAction(m_redoAction);
 
-    return QList<OrderedToolbar>{OrderedToolbar(3, bar)};
+    return std::vector<OrderedToolbar>{OrderedToolbar(3, bar)};
 }
 
 void iscore::UndoControl::on_documentChanged(

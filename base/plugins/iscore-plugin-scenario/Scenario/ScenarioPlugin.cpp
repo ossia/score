@@ -44,7 +44,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 }
 
 // Interfaces implementations :
-QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
+std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
 {
     return {new ScenarioDocument};
 }
@@ -55,7 +55,7 @@ iscore::PluginControlInterface* iscore_plugin_scenario::make_control(
     return new ScenarioControl{app};
 }
 
-QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
+std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 {
     return {
         new ProcessPanelFactory

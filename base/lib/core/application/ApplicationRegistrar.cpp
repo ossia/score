@@ -26,7 +26,9 @@ void ApplicationRegistrar::registerPluginControl(
 
     // GUI Presenter stuff...
     ctrl->populateMenus(&m_app.presenter().menuBar());
-    m_app.presenter().toolbars() += ctrl->makeToolbars();
+    auto toolbars = ctrl->makeToolbars();
+    auto& currentToolbars = m_app.presenter().toolbars();
+    currentToolbars.insert(currentToolbars.end(), toolbars.begin(), toolbars.end());
 
     m_components.controls.push_back(ctrl);
 }

@@ -63,9 +63,9 @@ ConstraintModel::ConstraintModel(
         racks.add(new RackModel {
                    rack,
                    rack.id(),
-        [&] (const SlotModel& source, SlotModel& target)
+        [&] (const SlotModel& source_slot, SlotModel& target)
         {
-                   for(auto& lm : source.layers)
+                   for(auto& lm : source_slot.layers)
                    {
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&lm.processModel()];

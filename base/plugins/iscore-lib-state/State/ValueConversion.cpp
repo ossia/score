@@ -437,11 +437,11 @@ iscore::ValueImpl toValueImpl(const QVariant& val)
         case QMetaType::QVariantList:
         {
             auto list = val.value<QVariantList>();
-            tuple_t val;
-            val.reserve(list.size());
+            tuple_t tuple_val;
+            tuple_val.reserve(list.size());
             for(const auto& elt : list)
             {
-                val.push_back(toValueImpl(elt));
+                tuple_val.push_back(toValueImpl(elt));
             }
         }
         default:

@@ -41,7 +41,7 @@ ObjectPath unsafe_path(const QObject& obj);
 
 //// Various getters ////
 // Panel models
-const QList<PanelModel*>& panels(const Document* d);
+const std::vector<PanelModel*>& panels(const Document* d);
 
 // Presenter of a document plugin.
 DocumentDelegatePresenterInterface& presenterDelegate_generic(const Document& d);

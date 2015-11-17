@@ -67,7 +67,7 @@
     interface that operates on input and output iterators. Polylines can be of any dimension, and
     defined using floating point or signed integer data types.
 </pre><br>
-    
+
     \section sec_changelog changelog
 <pre>
     28-09-2010 - Initial version
@@ -987,7 +987,7 @@ namespace psimpl
                                    ? coordCount / DIM
                                    : 0;
             value_type tol2 = tol * tol;    // squared minimum distance tolerance
-            
+
             // validate input and check if simplification required
             if (coordCount % DIM || pointCount < 3 || look_ahead < 2 || tol2 == 0) {
                 return std::copy (first, last, result);
@@ -1325,9 +1325,9 @@ namespace psimpl
             util::scoped_array <double> errors (pointCount);
             PolylineSimplification <DIM, InputIterator, double*> ps;
 
-            diff_type errorCount = 
+            diff_type errorCount =
                 std::distance (
-                    errors.get (), 
+                    errors.get (),
                     ps.ComputePositionalErrors2 (original_first, original_last,
                                                  simplified_first, simplified_last,
                                                  errors.get (), valid));
@@ -1388,7 +1388,7 @@ namespace psimpl
         {
             std::advance (it, n * static_cast <diff_type> (DIM));
         }
-        
+
         /*!
             \brief Increments a copy of the iterator by n points.
 
@@ -1458,8 +1458,8 @@ namespace psimpl
         {
             //! \brief Defines a sub polyline.
             struct SubPoly {
-                SubPoly (ptr_diff_type first=0, ptr_diff_type last=0) :
-                    first (first), last (last) {}
+                SubPoly (ptr_diff_type frst=0, ptr_diff_type lst=0) :
+                    first (frst), last (lst) {}
 
                 ptr_diff_type first;    //! coord index of the first point
                 ptr_diff_type last;     //! coord index of the last point
@@ -1467,8 +1467,8 @@ namespace psimpl
 
             //! \brief Defines the key of a polyline.
             struct KeyInfo {
-                KeyInfo (ptr_diff_type index=0, value_type dist2=0) :
-                    index (index), dist2 (dist2) {}
+                KeyInfo (ptr_diff_type idx=0, value_type dst2=0) :
+                    index (idx), dist2 (dst2) {}
 
                 ptr_diff_type index;    //! coord index of the key
                 value_type dist2;       //! squared distance of the key to a segment
@@ -1476,8 +1476,8 @@ namespace psimpl
 
             //! \brief Defines a sub polyline including its key.
             struct SubPolyAlt {
-                SubPolyAlt (ptr_diff_type first=0, ptr_diff_type last=0) :
-                    first (first), last (last) {}
+                SubPolyAlt (ptr_diff_type frst=0, ptr_diff_type lst=0) :
+                    first (frst), last (lst) {}
 
                 ptr_diff_type first;    //! coord index of the first point
                 ptr_diff_type last;     //! coord index of the last point

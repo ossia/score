@@ -9,7 +9,7 @@ iscore_plugin_library::iscore_plugin_library() :
 {
 }
 
-QList<iscore::PanelFactory*> iscore_plugin_library::panels()
+std::vector<iscore::PanelFactory*> iscore_plugin_library::panels()
 {
     return {new LibraryPanelFactory};
 }

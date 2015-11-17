@@ -59,7 +59,7 @@ iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic
 }
 
 
-const QList<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Document* d)
+const std::vector<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Document* d)
 {
     return d->model().panels();
 }

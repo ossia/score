@@ -31,5 +31,5 @@ class iscore_plugin_network :
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
 
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 };

@@ -8,7 +8,7 @@ class IScoreCohesionControl final : public iscore::PluginControlInterface
     public:
         IScoreCohesionControl(iscore::Application& app);
         void populateMenus(iscore::MenubarManager*) override;
-        QList<iscore::OrderedToolbar> makeToolbars() override;
+        std::vector<iscore::OrderedToolbar> makeToolbars() override;
 
         void record(ScenarioModel&, Scenario::Point pt);
         void stopRecord();

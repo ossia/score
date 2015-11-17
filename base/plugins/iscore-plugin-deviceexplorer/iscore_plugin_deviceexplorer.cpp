@@ -24,7 +24,7 @@ iscore::PanelFactory_QtInterface {}
 {
 }
 
-QList<PanelFactory*> iscore_plugin_deviceexplorer::panels()
+std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 {
     return {new DeviceExplorerPanelFactory};
 }

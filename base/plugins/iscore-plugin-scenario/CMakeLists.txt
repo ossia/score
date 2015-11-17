@@ -254,6 +254,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/AbstractScenarioLayerModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioGlobalCommandManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioInterface.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/RandomNameProvider.cpp"

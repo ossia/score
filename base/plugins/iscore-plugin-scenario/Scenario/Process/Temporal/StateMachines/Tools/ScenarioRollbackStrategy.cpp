@@ -9,7 +9,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 
 
-void ScenarioRollbackStrategy::rollback(const QList<iscore::SerializableCommand *> &cmds)
+void ScenarioRollbackStrategy::rollback(const std::vector<iscore::SerializableCommand *> &cmds)
 {
     // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
     // REFACTOR THIS IN A LIST SOMEWHERE.

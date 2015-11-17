@@ -58,5 +58,5 @@ class ObjectIdentifier
 
 Q_DECLARE_METATYPE(ObjectIdentifier)
 
-typedef QVector<ObjectIdentifier> ObjectIdentifierVector;
+typedef std::vector<ObjectIdentifier> ObjectIdentifierVector;
 

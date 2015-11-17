@@ -13,7 +13,7 @@ iscore_plugin_inspector::iscore_plugin_inspector() :
 }
 
 
-QList<iscore::PanelFactory*> iscore_plugin_inspector::panels()
+std::vector<iscore::PanelFactory*> iscore_plugin_inspector::panels()
 {
     return {new InspectorPanelFactory};
 }

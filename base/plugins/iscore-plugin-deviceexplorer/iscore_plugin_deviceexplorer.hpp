@@ -25,7 +25,7 @@ class iscore_plugin_deviceexplorer final :
         iscore_plugin_deviceexplorer();
 
         // Panel interface
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
         std::vector<iscore::FactoryListInterface*> factoryFamilies() override;

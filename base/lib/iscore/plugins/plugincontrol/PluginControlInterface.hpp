@@ -36,8 +36,8 @@ namespace iscore
             virtual ~PluginControlInterface();
 
             virtual void populateMenus(iscore::MenubarManager*);
-            virtual QList<iscore::OrderedToolbar> makeToolbars();
-            virtual QList<QAction*> actions();
+            virtual std::vector<iscore::OrderedToolbar> makeToolbars();
+            virtual std::vector<QAction*> actions();
 
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
                     const QString& name,

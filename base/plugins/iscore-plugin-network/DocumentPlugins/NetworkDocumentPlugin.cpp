@@ -150,7 +150,7 @@ void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
     emit sessionChanged();
 }
 
-QList<iscore::ElementPluginModelType> NetworkDocumentPlugin::elementPlugins() const
+std::vector<iscore::ElementPluginModelType> NetworkDocumentPlugin::elementPlugins() const
 {
     return {GroupMetadata::staticPluginId()};
 }

@@ -97,8 +97,10 @@ class Path
         template<typename U>
         auto splitLast() const &
         {
+            ISCORE_ASSERT(m_impl.vec().size() > 0);
             auto vec = m_impl.vec();
-            auto last = vec.takeLast();
+            auto last = vec.back();
+            vec.pop_back();
             return std::make_pair(Path<U>{ObjectPath{std::move(vec)}}, std::move(last));
         }
 
@@ -107,7 +109,9 @@ class Path
         {
             // Note : we *must not* move directly m_impl
             // because it carries a cache that becomes wrong.
-            auto last = m_impl.vec().takeLast();
+            ISCORE_ASSERT(m_impl.vec().size() > 0);
+            auto last = m_impl.vec().back();
+            m_impl.vec().pop_back();
             return std::make_pair(Path<U>{std::move(m_impl.vec())}, std::move(last));
         }
 
@@ -147,7 +151,7 @@ class Path
     private:
         Path(const ObjectPath& path): m_impl{path} { }
         Path(ObjectPath&& path): m_impl{std::move(path)} { }
-        Path(QVector<ObjectIdentifier>&& path): m_impl{std::move(path)} { }
+        Path(std::vector<ObjectIdentifier>&& path): m_impl{std::move(path)} { }
         ObjectPath m_impl;
 };
 

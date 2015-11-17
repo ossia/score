@@ -38,7 +38,7 @@ class NetworkDocumentPlugin : public iscore::DocumentDelegatePluginModel
         NetworkDocumentPlugin(const VisitorVariant& loader, iscore::Document& doc);
         void setPolicy(NetworkPluginPolicy*);
 
-        QList<iscore::ElementPluginModelType> elementPlugins() const override;
+        std::vector<iscore::ElementPluginModelType> elementPlugins() const override;
 
         iscore::ElementPluginModel* makeElementPlugin(
                 const QObject* element,

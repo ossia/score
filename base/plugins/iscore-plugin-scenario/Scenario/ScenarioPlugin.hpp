@@ -34,7 +34,7 @@ class iscore_plugin_scenario final :
         iscore_plugin_scenario();
 
         // Docpanel interface
-        QList<iscore::DocumentDelegateFactoryInterface*> documents() override;
+        std::vector<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
         // Plugin control interface
         iscore::PluginControlInterface* make_control(iscore::Application& app) override;
@@ -42,7 +42,7 @@ class iscore_plugin_scenario final :
         // NOTE : implementation is in CommandNames.cpp
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Process
         std::vector<iscore::FactoryListInterface*> factoryFamilies() override;

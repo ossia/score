@@ -6,7 +6,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
         const QObject* const parent_obj,
         const QObject* target_object)
 {
-    QVector<ObjectIdentifier> v;
+    std::vector<ObjectIdentifier> v;
 
     auto current_obj = target_object;
     auto add_parent_to_vector = [&v](const QObject * ptr)
@@ -129,10 +129,10 @@ QObject* ObjectPath::find_impl() const
     {
         if(currentObjIdentifier.id())
         {
-            auto children = obj->findChildren<IdentifiedObjectAbstract*> (currentObjIdentifier.objectName(),
+            auto found_children = obj->findChildren<IdentifiedObjectAbstract*> (currentObjIdentifier.objectName(),
                             Qt::FindDirectChildrenOnly);
 
-            obj = findById_weak_safe(children,
+            obj = findById_weak_safe(found_children,
                            *currentObjIdentifier.id());
         }
         else
@@ -171,10 +171,10 @@ QObject* ObjectPath::find_impl_unsafe() const
     {
         if(currentObjIdentifier.id())
         {
-            auto children = obj->findChildren<IdentifiedObjectAbstract*> (currentObjIdentifier.objectName(),
+            auto found_children = obj->findChildren<IdentifiedObjectAbstract*> (currentObjIdentifier.objectName(),
                             Qt::FindDirectChildrenOnly);
 
-            obj = findById_weak_unsafe(children,
+            obj = findById_weak_unsafe(found_children,
                            *currentObjIdentifier.id());
 
             if(!obj)

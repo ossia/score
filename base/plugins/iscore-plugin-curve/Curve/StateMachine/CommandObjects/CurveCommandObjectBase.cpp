@@ -18,6 +18,11 @@ CurveCommandObjectBase::CurveCommandObjectBase(
 
 }
 
+CurveCommandObjectBase::~CurveCommandObjectBase()
+{
+
+}
+
 void CurveCommandObjectBase::press()
 {
     const auto& current = m_presenter->model();

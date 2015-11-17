@@ -4,7 +4,7 @@
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPluginModelList& elts)
 {
-    m_stream << elts.list().size();
+    m_stream << (int32_t)elts.list().size();
     for(const iscore::ElementPluginModel* plug : elts.list())
     {
         readFrom(*plug);
@@ -15,7 +15,7 @@ template<> void Visitor<Reader<DataStream>>::readFrom(const iscore::ElementPlugi
 
 template<> void Visitor<Writer<DataStream>>::writeTo(iscore::ElementPluginModelList& elts)
 {
-    int plugin_count;
+    int32_t plugin_count;
     m_stream >> plugin_count;
 
     for(; plugin_count -- > 0;)

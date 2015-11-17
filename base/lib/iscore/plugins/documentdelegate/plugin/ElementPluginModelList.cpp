@@ -37,7 +37,7 @@ iscore::ElementPluginModelList::ElementPluginModelList(
     {
         for(DocumentDelegatePluginModel* plugin : doc->model().pluginModels())
         {
-            if(plugin->elementPlugins().contains(elt->elementPluginId()))
+            if(contains(plugin->elementPlugins(), elt->elementPluginId()))
             {
                 add(plugin->cloneElementPlugin(m_parent, elt, m_parent)); // Note : QObject::parent() is dangerous
             }

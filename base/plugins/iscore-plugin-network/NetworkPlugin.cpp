@@ -27,7 +27,7 @@ iscore::PluginControlInterface* iscore_plugin_network::make_control(iscore::Appl
     return new NetworkControl{app};
 }
 
-QList<iscore::PanelFactory*> iscore_plugin_network::panels()
+std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()
 {
     return {new GroupPanelFactory};
 }

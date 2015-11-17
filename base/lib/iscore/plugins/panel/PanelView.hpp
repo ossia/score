@@ -6,11 +6,11 @@ namespace iscore
     class PanelPresenter;
     struct DefaultPanelStatus
     {
-            DefaultPanelStatus(bool shown, Qt::DockWidgetArea dock, int priority, QString prettyName):
-                shown{shown},
-                dock{dock},
-                priority{priority},
-                prettyName{prettyName}
+            DefaultPanelStatus(bool isShown, Qt::DockWidgetArea d, int prio, QString name):
+                shown{isShown},
+                dock{d},
+                priority{prio},
+                prettyName{name}
             {}
 
           const bool shown;

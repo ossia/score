@@ -1,7 +1,7 @@
 #pragma once
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
-#include <QList>
+#include <vector>
 #include <QPair>
 
 namespace iscore
@@ -15,11 +15,19 @@ namespace iscore
             AggregateCommand() = default;
             virtual ~AggregateCommand();
 
+            template<typename T>
+            AggregateCommand(T* cmd) :
+                AggregateCommand {}
+            {
+                m_cmds.push_back(cmd);
+                std::reverse(m_cmds.begin(), m_cmds.end());
+            }
+
             template<typename T, typename... Args>
-            AggregateCommand(const T& cmd, Args&& ... remaining) :
+            AggregateCommand(T* cmd, Args&& ... remaining) :
                 AggregateCommand {std::forward<Args> (remaining)...}
             {
-                m_cmds.push_front(cmd);
+                m_cmds.push_back(cmd);
             }
 
             void undo() const override;
@@ -40,6 +48,6 @@ namespace iscore
             void serializeImpl(QDataStream&) const override;
             void deserializeImpl(QDataStream&) override;
 
-            QList<iscore::SerializableCommand*> m_cmds;
+            std::vector<iscore::SerializableCommand*> m_cmds;
     };
 }

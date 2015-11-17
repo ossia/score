@@ -61,3 +61,17 @@ inline QDebug operator<< (QDebug debug, const std::string& obj)
     debug << obj.c_str();
     return debug;
 }
+
+template<typename Vector, typename Value>
+auto find(Vector&& v, const Value& val)
+{
+    return std::find(std::cbegin(v), std::cend(v), val);
+}
+
+template<typename Vector, typename Value>
+bool contains(Vector&& v, const Value& val)
+{
+    return find(v, val) != v.end();
+}
+
+

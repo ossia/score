@@ -77,7 +77,7 @@ LayerModel*Process::makeTemporaryLayer(
 
 
 
-QVector<LayerModel*> Process::layers() const
+std::vector<LayerModel*> Process::layers() const
 {
     return m_layers;
 }
@@ -122,11 +122,10 @@ void Process::addLayer(LayerModel* m)
 
 void Process::removeLayer(LayerModel* m)
 {
-    int index = m_layers.indexOf(m);
-
-    if(index != -1)
+    auto it = find(m_layers, m);
+    if(it != m_layers.end())
     {
-        m_layers.remove(index);
+        m_layers.erase(it);
     }
 }
 

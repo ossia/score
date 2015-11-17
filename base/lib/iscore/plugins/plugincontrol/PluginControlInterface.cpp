@@ -28,12 +28,12 @@ void PluginControlInterface::populateMenus(MenubarManager*)
 }
 
 
-QList<OrderedToolbar> PluginControlInterface::makeToolbars()
+std::vector<OrderedToolbar> PluginControlInterface::makeToolbars()
 {
     return {};
 }
 
-QList<QAction*> PluginControlInterface::actions()
+std::vector<QAction*> PluginControlInterface::actions()
 {
     return {};
 }

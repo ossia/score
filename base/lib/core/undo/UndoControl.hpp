@@ -17,7 +17,7 @@ class UndoControl final : public iscore::PluginControlInterface
         ~UndoControl();
 
         void populateMenus(MenubarManager*) override;
-        QList<OrderedToolbar> makeToolbars() override;
+        std::vector<OrderedToolbar> makeToolbars() override;
 
     private slots:
         void on_documentChanged(

@@ -60,8 +60,8 @@ ClientNetworkPolicy::ClientNetworkPolicy(
         CommandParentFactoryKey parentName;
         CommandFactoryKey name;
         QByteArray data;
-        QDataStream s{m.data};
-        s >> parentName >> name >> data;
+        QDataStream stream{m.data};
+        stream >> parentName >> name >> data;
 
         m_document->commandStack().redoAndPushQuiet(
                     m_document->context().app.components.instantiateUndoCommand(parentName, name, data));
@@ -75,17 +75,17 @@ ClientNetworkPolicy::ClientNetworkPolicy(
 
     s->mapper().addHandler("/lock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
+        stream >> data;
         m_document->locker().on_lock(data);
     });
 
     s->mapper().addHandler("/unlock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
+        stream >> data;
         m_document->locker().on_unlock(data);
     });
 }

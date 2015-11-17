@@ -56,8 +56,8 @@ void RemoveProcessFromConstraint::undo() const
                 .racks.at(Id<RackModel>(path.at(path.size() - 3).id()))
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
-        Deserializer<DataStream> s {it.second};
-        auto lm = createLayerModel(s,
+        Deserializer<DataStream> stream {it.second};
+        auto lm = createLayerModel(stream,
                                    slot.parentConstraint(),
                                    &slot);
         slot.layers.add(lm);

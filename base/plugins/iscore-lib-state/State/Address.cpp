@@ -17,8 +17,8 @@ namespace iscore
 
         path.first().remove(":");
 
-        for(const auto& str : path)
-            valid &= validateFragment(str);
+        for(const auto& fragment : path)
+            valid &= validateFragment(fragment);
 
         return valid;
     }

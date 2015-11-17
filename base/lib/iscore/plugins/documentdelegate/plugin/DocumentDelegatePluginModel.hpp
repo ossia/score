@@ -17,7 +17,7 @@ class DocumentDelegatePluginModel : public NamedObject
 
         virtual ~DocumentDelegatePluginModel();
 
-        virtual QList<ElementPluginModelType> elementPlugins() const { return {}; }
+        virtual std::vector<ElementPluginModelType> elementPlugins() const { return {}; }
         virtual ElementPluginModel* makeElementPlugin(
                 const QObject* element,
                 ElementPluginModelType type,

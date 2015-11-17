@@ -50,8 +50,8 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
         CommandParentFactoryKey parentName;
         CommandFactoryKey name;
         QByteArray data;
-        QDataStream s{m.data};
-        s >> parentName >> name >> data;
+        QDataStream stream{m.data};
+        stream >> parentName >> name >> data;
 
         c.commandStack.redoAndPushQuiet(
                     c.app.components.instantiateUndoCommand(parentName, name, data));
@@ -75,18 +75,18 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     // Lock-unlock
     s->mapper().addHandler("/lock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
+        stream >> data;
         c.objectLocker.on_lock(data);
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     s->mapper().addHandler("/unlock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
+        stream >> data;
         c.objectLocker.on_unlock(data);
         m_session->transmit(Id<Client>(m.clientId), m);
     });

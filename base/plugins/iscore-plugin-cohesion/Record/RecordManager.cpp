@@ -111,7 +111,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
     m_savedListening = m_explorer->deviceModel().pauseListening();
 
     // First get the addresses to listen.
-    std::vector<std::vector<iscore::Address>> m_recordListening;
+    std::vector<std::vector<iscore::Address>> recordListening;
     for(auto& index : indices)
     {
         // TODO use address settings instead.
@@ -122,8 +122,8 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
         // here (for instance recording someone typing).
 
         // We sort the addresses by device to optimize.
-        auto dev_it = std::find_if(m_recordListening.begin(),
-                                   m_recordListening.end(),
+        auto dev_it = std::find_if(recordListening.begin(),
+                                   recordListening.end(),
                                    [&] (const auto& vec)
         { return vec.front().device == addr.device; });
 
@@ -131,18 +131,18 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
         if(node.get<iscore::AddressSettings>().value.val.isNumeric()
         && hasInput(node.get<iscore::AddressSettings>().ioType))
         {
-            if(dev_it != m_recordListening.end())
+            if(dev_it != recordListening.end())
             {
                 dev_it->push_back(addr);
             }
             else
             {
-                m_recordListening.push_back({addr});
+                recordListening.push_back({addr});
             }
         }
     }
 
-    if(m_recordListening.empty())
+    if(recordListening.empty())
         return;
 
     m_dispatcher = std::make_unique<RecordCommandDispatcher>(new Record, doc.commandStack());
@@ -199,7 +199,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
 
     auto& slot = rack.slotmodels.at(cmd_slot->createdSlot());
     //// Creation of the curves ////
-    for(const auto& vec : m_recordListening)
+    for(const auto& vec : recordListening)
     {
         for(const auto& addr : vec)
         {
@@ -242,7 +242,7 @@ void RecordManager::recordInNewBox(ScenarioModel& scenar, Scenario::Point pt)
 
     const auto& devicelist = m_explorer->deviceModel().list();
     //// Setup listening on the curves ////
-    for(const auto& vec : m_recordListening)
+    for(const auto& vec : recordListening)
     {
         auto& dev = devicelist.device(vec.front().device);
         if(!dev.connected())
