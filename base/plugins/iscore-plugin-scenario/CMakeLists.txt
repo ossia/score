@@ -64,6 +64,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/TimeNode/TimeNodeModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Temporal/TemporalScenarioLayerSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioModelSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainerSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseScenario/BaseScenarioSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementModelSerialization.cpp"
 
@@ -168,6 +169,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseElement/BaseElementView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/RackView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Constraint/Rack/Slot/SlotHandle.cpp"

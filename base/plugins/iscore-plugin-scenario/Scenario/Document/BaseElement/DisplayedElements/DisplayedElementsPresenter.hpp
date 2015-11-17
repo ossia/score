@@ -32,7 +32,7 @@ class DisplayedElementsPresenter final : public QObject
         FullViewConstraintPresenter* m_constraintPresenter{};
         StatePresenter* m_startStatePresenter{};
         StatePresenter* m_endStatePresenter{};
-        EventPresenter* m_startEventPresenter{};
-        EventPresenter* m_endEventPresenter{};
+        //EventPresenter* m_startEventPresenter{};
+        //EventPresenter* m_endEventPresenter{};
 
 };

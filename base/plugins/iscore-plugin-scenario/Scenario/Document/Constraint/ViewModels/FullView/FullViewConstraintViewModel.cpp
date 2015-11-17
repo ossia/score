@@ -61,9 +61,11 @@ bool FullViewConstraintViewModel::isActive()
     while (scenar)
     {
         cstr = dynamic_cast<ConstraintModel*>(scenar->parent());
+        ISCORE_ASSERT(cstr);
         scenar = dynamic_cast<ScenarioModel*>(cstr->parentScenario());
     }
     auto baseScenar = dynamic_cast<BaseScenario*>(cstr->parentScenario());
+    ISCORE_ASSERT(cstr);
     auto baseElt = dynamic_cast<BaseElementModel*>(baseScenar->parent());
 
     return (this->model().id() == baseElt->displayedElements.displayedConstraint().id());

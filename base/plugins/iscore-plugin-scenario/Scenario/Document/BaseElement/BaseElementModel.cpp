@@ -37,6 +37,12 @@ BaseElementModel::BaseElementModel(QObject* parent) :
         parent},
     m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
+    m_baseScenario->baseConstraint().duration.setRigid(false);
+    ConstraintDurations::Algorithms::changeAllDurations(m_baseScenario->baseConstraint(), std::chrono::minutes{3});
+    m_baseScenario->endEvent().setDate(m_baseScenario->baseConstraint().duration.defaultDuration());
+    m_baseScenario->endTimeNode().setDate(m_baseScenario->baseConstraint().duration.defaultDuration());
+    m_baseScenario->baseConstraint().setObjectName("BaseConstraintModel");
+
     initializeNewDocument(m_baseScenario->baseConstraint().fullView());
 
     // Help for the FocusDispatcher.
@@ -90,6 +96,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     };
     cmd6.redo();
 }
+
 ConstraintModel& BaseElementModel::baseConstraint() const
 {
     return m_baseScenario->baseConstraint();

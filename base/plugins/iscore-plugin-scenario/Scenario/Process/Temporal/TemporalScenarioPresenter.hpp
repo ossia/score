@@ -1,6 +1,4 @@
 #pragma once
-#include <Scenario/Document/State/StatePresenter.hpp>
-
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 
@@ -11,6 +9,7 @@
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
 
@@ -21,6 +20,7 @@
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
 #include <Scenario/Control/ScenarioEditionSettings.hpp>
+#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 
 namespace iscore
 {
@@ -39,7 +39,6 @@ class TimeNodeModel;
 class TimeNodePresenter;
 class ConstraintModel;
 class ScenarioSelectionManager;
-class ScenarioViewInterface;
 class SelectionDispatcher;
 
 class TemporalScenarioPresenter final : public LayerPresenter
@@ -142,7 +141,7 @@ class TemporalScenarioPresenter final : public LayerPresenter
         const TemporalScenarioLayerModel& m_layer;
         TemporalScenarioView* m_view;
 
-        ScenarioViewInterface* m_viewInterface{};
+        ScenarioViewInterface m_viewInterface;
 
         Scenario::EditionSettings& m_editionSettings;
 

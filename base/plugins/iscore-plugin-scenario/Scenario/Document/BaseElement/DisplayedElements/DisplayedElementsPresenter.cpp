@@ -30,8 +30,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     delete m_constraintPresenter;
     delete m_startStatePresenter;
     delete m_endStatePresenter;
-    delete m_startEventPresenter;
-    delete m_endEventPresenter;
+    //delete m_startEventPresenter;
+    //delete m_endEventPresenter;
 
     m_constraintPresenter = new FullViewConstraintPresenter {
             *m.fullView(),
@@ -49,8 +49,8 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
     }
     else if(auto sm = dynamic_cast<ScenarioModel*>(m.parent()))
     {
-        m_startStatePresenter = new StatePresenter(sm->state(m.startState()), m_parent->view()->baseItem(), this);
-        m_endStatePresenter = new StatePresenter(sm->state(m.endState()), m_parent->view()->baseItem(), this);
+        m_startStatePresenter = new StatePresenter(sm->states.at(m.startState()), m_parent->view()->baseItem(), this);
+        m_endStatePresenter = new StatePresenter(sm->states.at(m.endState()), m_parent->view()->baseItem(), this);
     }
 
     // Manage the selection

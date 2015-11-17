@@ -5,10 +5,10 @@ TemporalConstraintViewModel::TemporalConstraintViewModel(
         const ConstraintModel& model,
         QObject* parent) :
     ConstraintViewModel {id,
-                                "TemporalConstraintViewModel",
-                                model,
-                                parent
-}
+                         "TemporalConstraintViewModel",
+                         model,
+                         parent
+                         }
 {
 
 }

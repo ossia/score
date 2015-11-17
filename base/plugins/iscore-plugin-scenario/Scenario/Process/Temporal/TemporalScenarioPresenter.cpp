@@ -49,7 +49,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     LayerPresenter {"TemporalScenarioPresenter", parent},
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
-    m_viewInterface{new ScenarioViewInterface{this}},
+    m_viewInterface{*this},
     m_editionSettings{e},
     m_focusDispatcher{context.document},
     m_context{context, *this, m_focusDispatcher},
@@ -125,8 +125,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
-    delete m_viewInterface;
-
     deleteGraphicsObject(m_view);
 }
 
@@ -271,17 +269,17 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
                            this};
     m_events.insert(ev_pres);
 
-    m_viewInterface->on_eventMoved(*ev_pres);
+    m_viewInterface.on_eventMoved(*ev_pres);
 
     con(event_model, &EventModel::extentChanged,
-            this, [=] (const VerticalExtent&) { m_viewInterface->on_eventMoved(*ev_pres); });
+            this, [=] (const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
     con(event_model, &EventModel::dateChanged,
-            this, [=] (const TimeValue&) { m_viewInterface->on_eventMoved(*ev_pres); });
+            this, [=] (const TimeValue&) { m_viewInterface.on_eventMoved(*ev_pres); });
 
     connect(ev_pres, &EventPresenter::eventHoverEnter,
-            this, [=] () { m_viewInterface->on_hoverOnEvent(ev_pres->id(), true); });
+            this, [=] () { m_viewInterface.on_hoverOnEvent(ev_pres->id(), true); });
     connect(ev_pres, &EventPresenter::eventHoverLeave,
-            this, [=] () { m_viewInterface->on_hoverOnEvent(ev_pres->id(), false); });
+            this, [=] () { m_viewInterface.on_hoverOnEvent(ev_pres->id(), false); });
 
     // For the state machine
     connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -294,12 +292,12 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
     auto tn_pres = new TimeNodePresenter {timeNode_model, m_view, this};
     m_timeNodes.insert(tn_pres);
 
-    m_viewInterface->on_timeNodeMoved(*tn_pres);
+    m_viewInterface.on_timeNodeMoved(*tn_pres);
 
     con(timeNode_model, &TimeNodeModel::extentChanged,
-            this, [=] (const VerticalExtent&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
+            this, [=] (const VerticalExtent&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
     con(timeNode_model, &TimeNodeModel::dateChanged,
-            this, [=] (const TimeValue&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
+            this, [=] (const TimeValue&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
 
     // For the state machine
     connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -312,10 +310,10 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
     auto st_pres = new StatePresenter{state, m_view, this};
     m_states.insert(st_pres);
 
-    m_viewInterface->on_stateMoved(*st_pres);
+    m_viewInterface.on_stateMoved(*st_pres);
 
     con(state, &StateModel::heightPercentageChanged,
-            this, [=] () { m_viewInterface->on_stateMoved(*st_pres); });
+            this, [=] () { m_viewInterface.on_stateMoved(*st_pres); });
 
     // For the state machine
     connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -332,19 +330,19 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
     m_constraints.insert(cst_pres);
     cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
-    m_viewInterface->on_constraintMoved(*cst_pres);
+    m_viewInterface.on_constraintMoved(*cst_pres);
 
     connect(cst_pres, &TemporalConstraintPresenter::heightPercentageChanged,
-            this, [=] () { m_viewInterface->on_constraintMoved(*cst_pres); });
+            this, [=] () { m_viewInterface.on_constraintMoved(*cst_pres); });
     con(constraint_view_model.model(), &ConstraintModel::startDateChanged,
-            this, [=] (const TimeValue&) { m_viewInterface->on_constraintMoved(*cst_pres); });
+            this, [=] (const TimeValue&) { m_viewInterface.on_constraintMoved(*cst_pres); });
     connect(cst_pres, &TemporalConstraintPresenter::askUpdate,
             this,     &TemporalScenarioPresenter::on_askUpdate);
 
     connect(cst_pres, &TemporalConstraintPresenter::constraintHoverEnter,
-            [=] () { m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), true); });
+            [=] () { m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), true); });
     connect(cst_pres, &TemporalConstraintPresenter::constraintHoverLeave,
-            [=] () { m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), false); });
+            [=] () { m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), false); });
 
     // For the state machine
     connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::pressed);
@@ -356,23 +354,25 @@ void TemporalScenarioPresenter::updateAllElements()
 {
     for(auto& constraint : m_constraints)
     {
-        m_viewInterface->on_constraintMoved(constraint);
+        m_viewInterface.on_constraintMoved(constraint);
     }
 
     for(auto& event : m_events)
     {
-        m_viewInterface->on_eventMoved(event);
+        m_viewInterface.on_eventMoved(event);
     }
 
     for(auto& timenode : m_timeNodes)
     {
-        m_viewInterface->on_timeNodeMoved(timenode);
+        m_viewInterface.on_timeNodeMoved(timenode);
     }
-
+/*
+    // They are updated by the event.
     for(auto& state : m_states)
     {
-        m_viewInterface->on_stateMoved(state);
+        m_viewInterface.on_stateMoved(state);
     }
+*/
 }
 
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
