@@ -52,7 +52,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/presenter/PresenterInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionStack.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/DataStreamVisitor.cpp"

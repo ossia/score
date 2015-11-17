@@ -27,7 +27,6 @@ using namespace Scenario;
 #include <core/document/Document.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
-#include <iscore/presenter/PresenterInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 

@@ -11,7 +11,6 @@
 
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <iscore/presenter/PresenterInterface.hpp>
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>

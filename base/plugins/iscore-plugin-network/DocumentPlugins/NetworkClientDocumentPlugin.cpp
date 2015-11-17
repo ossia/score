@@ -4,7 +4,6 @@
 #include <Repartition/session/ClientSessionBuilder.hpp>
 #include <Serialization/MessageMapper.hpp>
 
-#include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"

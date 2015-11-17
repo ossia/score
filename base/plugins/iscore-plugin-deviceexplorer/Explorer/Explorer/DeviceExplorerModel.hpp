@@ -2,8 +2,6 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 
-#include "Result.hpp"
-
 #include <QStack>
 
 namespace iscore

@@ -52,7 +52,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressFragmentLineEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_deviceexplorer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerControl.cpp"

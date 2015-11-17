@@ -1,6 +1,6 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <QObject>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 
 class PluginSettingsModel;
 class PluginSettingsView;

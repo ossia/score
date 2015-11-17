@@ -29,7 +29,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Commands/MovePoint.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Point/CurvePointView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/CurveSegmentView.cpp"

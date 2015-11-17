@@ -9,7 +9,6 @@
 #include <iscore/plugins/panel/PanelModel.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
 #include <core/application/OpenDocumentsFile.hpp>
 #include <QLayout>

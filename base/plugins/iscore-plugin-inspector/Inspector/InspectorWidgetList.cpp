@@ -7,8 +7,6 @@
 #include <QApplication>
 #include <core/application/Application.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <InspectorPlugin/InspectorControl.hpp>
-
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QString& name,
@@ -23,7 +21,6 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
             return factory->makeWidget(model, doc, parent);
         }
     }
-
 
     // When no factory is found.
     return new InspectorWidgetBase{model, doc, nullptr};

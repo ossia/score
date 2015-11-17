@@ -19,7 +19,6 @@ class MoveEventList final : public iscore::FactoryListInterface
      * register a moveEvent with a unique priority (higher the better),
      * WARNING, if the same priority is already there, it will be overriden
      * @param factoryInterface
-     * WARNING: this has to be of type MoveEventFactoryInterface unless it will crash
      */
         void insert(iscore::FactoryInterfaceBase* e) final override
         {
