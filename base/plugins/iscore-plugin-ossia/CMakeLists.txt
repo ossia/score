@@ -13,16 +13,42 @@ if(NOT ${Jamoma_FOUND})
 endif()
 
 # Files & main target
-file(GLOB HDRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/*.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/*.hpp"
-)
+set(HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModelElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/TimeProcessWithConstraint.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/LoopingProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAEventElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAScenarioElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAProcessElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/BasicProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ProcessWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIADocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAConstraintElement.hpp"
+    )
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
@@ -46,7 +72,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAStateElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIATimeNodeElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAAutomationElement.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIABaseScenarioElement.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"
@@ -56,12 +81,23 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore2OSSIA.cpp"
 )
 
+if(TARGET iscore_plugin_mapping)
+    set(SRCS ${SRCS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.cpp")
+    set(HDRS ${HDRS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/OSSIAMappingElement.hpp")
+endif()
+
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 target_link_libraries(${PROJECT_NAME}
                         Qt5::Core Qt5::Widgets
-                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_mapping iscore_plugin_deviceexplorer
+                        iscore_lib_base iscore_plugin_scenario iscore_plugin_curve iscore_plugin_automation iscore_plugin_deviceexplorer
                         APIJamoma)
+
+if(TARGET iscore_plugin_mapping)
+    target_link_libraries(${PROJECT_NAME} iscore_plugin_mapping)
+endif()
 
 setup_iscore_plugin(${PROJECT_NAME})
 add_subdirectory(SimpleProcess)

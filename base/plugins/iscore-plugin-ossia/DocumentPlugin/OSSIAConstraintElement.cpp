@@ -1,6 +1,5 @@
 #include "OSSIAConstraintElement.hpp"
 #include "OSSIAAutomationElement.hpp"
-#include "OSSIAMappingElement.hpp"
 #include "OSSIAScenarioElement.hpp"
 #include "iscore2OSSIA.hpp"
 #include "OSSIA2iscore.hpp"
@@ -8,7 +7,6 @@
 #include <ProcessModel/OSSIAProcessModel.hpp>
 #include <ProcessModel/OSSIAProcessModelElement.hpp>
 #include <Automation/AutomationModel.hpp>
-#include <Mapping/MappingModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
 #include <API/Headers/Editor/TimeConstraint.h>
@@ -17,6 +15,11 @@
 #include <boost/range/algorithm.hpp>
 
 #include <sstream>
+
+#if defined(ISCORE_PLUGIN_MAPPING)
+#include <Mapping/MappingModel.hpp>
+#include "OSSIAMappingElement.hpp"
+#endif
 
 OSSIAConstraintElement::OSSIAConstraintElement(
         std::shared_ptr<OSSIA::TimeConstraint> ossia_cst,
@@ -156,10 +159,12 @@ void OSSIAConstraintElement::on_processAdded(
     {
         plug = new OSSIAAutomationElement{*this, *autom, proc};
     }
+#if defined(ISCORE_PLUGIN_MAPPING)
     else if(auto mapping = dynamic_cast<MappingModel*>(proc))
     {
         plug = new OSSIAMappingElement{*this, *mapping, proc};
     }
+#endif
     else if(auto generic = dynamic_cast<OSSIAProcessModel*>(proc))
     {
         plug = new OSSIAProcessModelElement{*this, *generic, proc};
