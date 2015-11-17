@@ -121,7 +121,7 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
 
 void PointArrayCurveSegmentModel::simplify()
 {
-    double tolerance = (max_y - min_y) / 8.;
+    double tolerance = (max_y - min_y) / 10.;
 
     std::vector <double> orig;
     orig.reserve(m_points.size() * 2);
