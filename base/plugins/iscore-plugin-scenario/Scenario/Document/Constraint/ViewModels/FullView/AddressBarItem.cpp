@@ -72,7 +72,7 @@ void AddressBarItem::setTargetObject(ObjectPath && path)
 
 void AddressBarItem::on_elementClicked(ClickableLabelItem * clicked)
 {
-    int index = clicked->index();
+    std::size_t index = clicked->index();
 
     if(index < m_currentPath.vec().size())
     {
