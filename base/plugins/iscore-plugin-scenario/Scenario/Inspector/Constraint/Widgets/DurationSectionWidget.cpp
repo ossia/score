@@ -32,12 +32,14 @@ using namespace iscore;
 
 DurationSectionWidget::DurationSectionWidget(
         const Scenario::EditionSettings& set,
+        const ConstraintInspectorDelegate& delegate,
         ConstraintInspectorWidget* parent):
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
     m_dispatcher{parent->commandDispatcher()->stack()},
-    m_editionSettings{set}
+    m_editionSettings{set},
+    m_delegate{delegate}
 {
     auto widg = new QWidget{this};
     m_grid = new QGridLayout{widg};
@@ -136,25 +138,10 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
-    auto scenario = m_model.parentScenario();
-    auto expandmode = m_editionSettings.expandMode();
-
-    // TODO here too, have some virtual method.
-    if(m_model.objectName() != "BaseConstraintModel")
-    {
-        m_dispatcher.submitCommand<MoveEventMeta>(
-                *safe_cast<ScenarioModel*>(m_model.parent()),
-                scenario->state(m_model.endState()).eventId(),
-                m_model.startDate() + TimeValue::fromMsecs(val),
-                expandmode); // todo Take mode from scenario control
-    }
-    else
-    {
-        m_dispatcher.submitCommand<MoveBaseEvent>(
-                    *safe_cast<BaseScenario*>(m_model.parent()),
-                    std::chrono::milliseconds {val},
-                    expandmode);
-    }
+    m_delegate.on_defaultDurationChanged(
+                m_dispatcher,
+                TimeValue::fromMsecs(val),
+                m_editionSettings.expandMode());
 }
 
 void DurationSectionWidget::on_modelRigidityChanged(bool b)

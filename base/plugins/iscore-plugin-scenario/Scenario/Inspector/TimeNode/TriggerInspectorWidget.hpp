@@ -11,7 +11,9 @@ class QPushButton;
 class TriggerInspectorWidget final : public QWidget
 {
     public:
-        TriggerInspectorWidget(const TimeNodeModel& object, InspectorWidgetBase* parent);
+        TriggerInspectorWidget(
+                const TimeNodeModel& object,
+                InspectorWidgetBase* parent);
 
     public slots:
         void on_triggerChanged();

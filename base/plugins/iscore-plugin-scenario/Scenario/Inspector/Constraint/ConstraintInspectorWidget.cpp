@@ -25,7 +25,7 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
 
@@ -48,16 +48,19 @@ using namespace Scenario::Command;
 using namespace iscore;
 using namespace iscore::IDocument;
 
+
 ConstraintInspectorWidget::ConstraintInspectorWidget(
         const InspectorWidgetList& widg,
         const DynamicProcessList& pl,
         const ConstraintModel& object,
+        std::unique_ptr<ConstraintInspectorDelegate> del,
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase{object, doc, parent},
     m_widgetList{widg},
     m_processList{pl},
-    m_model{object}
+    m_model{object},
+    m_delegate{std::move(del)}
 {
     setObjectName("Constraint");
 
@@ -74,15 +77,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     addHeader(m_metadata);
 
-    if(m_model.objectName() == "BaseConstraintModel")
-    {
-        auto scenario = m_model.parentScenario();
-        auto& tn = scenario->timeNode(m_model.endTimeNode());
-        m_triggerLine = new TriggerInspectorWidget{tn, this};
-        m_triggerLine->HideRmButton();
-        m_properties.push_back(new QLabel(tr("Trigger")));
-        m_properties.push_back(m_triggerLine);
-    }
+    m_delegate->addWidgets_pre(m_properties, this);
 
     ////// BODY
     QPushButton* setAsDisplayedConstraint = new QPushButton {tr("Full view"), this};
@@ -107,7 +102,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     // Durations
     auto& ctx = iscore::IDocument::documentContext(object);
     auto& ctrl = ctx.app.components.control<ScenarioControl>();
-    m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), this};
+    m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), *m_delegate, this};
     m_properties.push_back(m_durationSection);
     auto loop = new QCheckBox{tr("Loop content"), this};
     loop->setChecked(m_model.looping());
@@ -181,18 +176,10 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     updateDisplayedValues();
 
+    m_delegate->addWidgets_post(m_properties, this);
+
     // Display data
     updateAreaLayout(m_properties);
-
-    if(m_model.objectName() == "BaseConstraintModel")
-    {
-        auto scenario = m_model.parentScenario();
-        auto& tn = scenario->timeNode(m_model.endTimeNode());
-        auto trWidg = new TriggerInspectorWidget{tn, this};
-        trWidg->HideRmButton();
-        m_properties.push_back(trWidg);
-    }
-
 }
 
 const ConstraintModel& ConstraintInspectorWidget::model() const
@@ -258,13 +245,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
         setupRack(rack);
     }
 
-    if(m_model.objectName() == "BaseConstraintModel")
-    {
-        auto scenario = m_model.parentScenario();
-        auto& tn = scenario->timeNode(m_model.endTimeNode());
-        m_triggerLine->updateExpression(tn.trigger()->expression().toString() );
-    }
-
+    m_delegate->updateElements();
 }
 
 void ConstraintInspectorWidget::createProcess(const ProcessFactoryKey& processName)

@@ -47,3 +47,22 @@ class FactoryListInterface
     { return m_list; }\
   private:
 
+
+#define ISCORE_STANDARD_FACTORY(FactorizedElementName) \
+class FactorizedElementName ## FactoryTag {}; \
+using FactorizedElementName ## FactoryKey = StringKey<FactorizedElementName ## FactoryTag>; \
+Q_DECLARE_METATYPE(FactorizedElementName ## FactoryKey) \
+\
+class FactorizedElementName ## Factory : \
+        public iscore::GenericFactoryInterface<FactorizedElementName ## FactoryKey> \
+{ \
+        ISCORE_FACTORY_DECL(#FactorizedElementName) \
+    public: \
+            using factory_key_type = FactorizedElementName ## FactoryKey; \
+        virtual std::unique_ptr<FactorizedElementName> make() = 0; \
+}; \
+class FactorizedElementName ## FactoryList final : public iscore::FactoryListInterface \
+{ \
+       ISCORE_FACTORY_LIST_DECL(FactorizedElementName ## Factory) \
+};
+

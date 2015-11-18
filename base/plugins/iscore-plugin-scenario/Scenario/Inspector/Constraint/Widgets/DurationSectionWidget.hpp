@@ -11,6 +11,7 @@ class ConstraintInspectorWidget;
 class QCheckBox;
 class QGridLayout;
 class QHBoxLayout;
+class ConstraintInspectorDelegate;
 
 class DurationSectionWidget final : public InspectorSectionWidget
 {
@@ -18,6 +19,7 @@ class DurationSectionWidget final : public InspectorSectionWidget
     public:
         DurationSectionWidget(
                 const Scenario::EditionSettings& set,
+                const ConstraintInspectorDelegate&,
                 ConstraintInspectorWidget* parent);
 
     virtual ~DurationSectionWidget();
@@ -59,4 +61,5 @@ class DurationSectionWidget final : public InspectorSectionWidget
         OngoingCommandDispatcher m_dispatcher;
 
         const Scenario::EditionSettings& m_editionSettings;
+        const ConstraintInspectorDelegate& m_delegate;
 };

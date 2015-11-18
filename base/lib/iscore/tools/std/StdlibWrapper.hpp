@@ -68,6 +68,12 @@ auto find(Vector&& v, const Value& val)
     return std::find(std::begin(v), std::end(v), val);
 }
 
+template<typename Vector, typename Fun>
+auto find_if(Vector&& v, Fun fun)
+{
+    return std::find_if(std::begin(v), std::end(v), fun);
+}
+
 template<typename Vector, typename Value>
 bool contains(Vector&& v, const Value& val)
 {

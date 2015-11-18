@@ -14,6 +14,8 @@
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Event/EventInspectorFactory.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/TimeNode/TimeNodeInspectorFactory.hpp>
@@ -64,33 +66,36 @@ std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 
 std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamilies()
 {
-    return {new DynamicProcessList, new MoveEventList, new ScenarioContextMenuPluginList};
+    return {new DynamicProcessList,
+            new MoveEventList,
+            new ScenarioContextMenuPluginList,
+            new ConstraintInspectorDelegateFactoryList};
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
         const iscore::ApplicationContext& ctx,
-        const iscore::FactoryBaseKey& factoryName) const
+        const iscore::FactoryBaseKey& key) const
 {
-    if(factoryName == ProcessFactory::staticFactoryKey())
+    if(key == ProcessFactory::staticFactoryKey())
     {
         auto& control = ctx.components.control<ScenarioControl>();
         return {new ScenarioFactory{control.editionSettings()}};
     }
 
-    if(factoryName == ScenarioActionsFactory::staticFactoryKey())
+    if(key == ScenarioActionsFactory::staticFactoryKey())
     {
         // new ScenarioCommonActionsFactory is instantiated in Control
         // because other plug ins need it.
         return {};
     }
 
-    if(factoryName == MoveEventClassicFactory::staticFactoryKey())
+    if(key == MoveEventClassicFactory::staticFactoryKey())
     {
         return {new MoveEventClassicFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
+    if(key == InspectorWidgetFactory::staticFactoryKey())
     {
         return {
                     new ConstraintInspectorFactory,
@@ -99,6 +104,13 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
                     new ScenarioInspectorFactory,
                     new TimeNodeInspectorFactory
         };
+    }
+
+    if(key == ConstraintInspectorDelegateFactory::staticFactoryKey())
+    {
+        return {
+            new ScenarioConstraintInspectorDelegateFactory,
+            new BaseConstraintInspectorDelegateFactory };
     }
 #endif
 

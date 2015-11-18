@@ -14,7 +14,10 @@
 
 using namespace Scenario::Command;
 
-TriggerInspectorWidget::TriggerInspectorWidget(const TimeNodeModel& object, InspectorWidgetBase* parent):
+TriggerInspectorWidget::TriggerInspectorWidget(
+        const TimeNodeModel& object,
+        InspectorWidgetBase* parent):
+    QWidget{parent},
      m_model {object},
      m_parent{parent}
 {

@@ -6,6 +6,7 @@
 #include <Process/ProcessList.hpp>
 #include <core/document/Document.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
 
 
 LoopInspectorFactory::LoopInspectorFactory() :
@@ -27,8 +28,9 @@ InspectorWidgetBase* LoopInspectorFactory::makeWidget(
     auto& appContext = doc.context().app;
     auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
     auto& processFact = appContext.components.factory<DynamicProcessList>();
+    auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
 
     auto& constraint = static_cast<const LoopProcessModel&>(sourceElement).baseConstraint();
-    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, doc, parent};
+    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, constraintWidgetFactory.make(constraint), doc, parent};
 
 }

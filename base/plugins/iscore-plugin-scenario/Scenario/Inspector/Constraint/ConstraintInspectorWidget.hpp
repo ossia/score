@@ -3,7 +3,7 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <unordered_map>
-
+#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 class ConstraintModel;
 class TemporalConstraintViewModel;
 class ConstraintViewModel;
@@ -32,6 +32,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
                 const InspectorWidgetList& list,
                 const DynamicProcessList& pl,
                 const ConstraintModel& object,
+                std::unique_ptr<ConstraintInspectorDelegate> del,
                 iscore::Document& doc,
                 QWidget* parent = 0);
 
@@ -76,8 +77,6 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         InspectorSectionWidget* m_processSection {};
         std::vector<InspectorSectionWidget*> m_processesSectionWidgets;
 
-        TriggerInspectorWidget* m_triggerLine{};
-
         InspectorSectionWidget* m_rackSection {};
         RackWidget* m_rackWidget {};
         std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
@@ -85,5 +84,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         std::list<QWidget*> m_properties;
 
         MetadataWidget* m_metadata {};
+
+        std::unique_ptr<ConstraintInspectorDelegate> m_delegate;
 
 };
