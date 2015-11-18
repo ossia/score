@@ -88,10 +88,18 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
     connect(m_playFromHere, &QAction::triggered,
             [=] ()
     {
-        auto baseScenar = parent->currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
+//        auto baseScenar = parent->currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
         auto t = m_playFromHere->data().value<TimeValue>();
+        auto doc = parent->currentDocument();
 
-        baseScenar->baseConstraint()->play(t);
+        auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+        plugmodel->reload(doc->model());
+
+        auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
+        cstr.recreate();
+        cstr.play(t);
+
     });
 }
 
@@ -108,7 +116,7 @@ void PlayContextMenu::fillContextMenu(
         const QPointF& scenept)
 {
     menu->addAction(m_playFromHere);
-    auto scenPoint = ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
+    auto scenPoint = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
     m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
 
     if(s.empty())
