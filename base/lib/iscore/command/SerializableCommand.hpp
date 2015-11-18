@@ -26,44 +26,6 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
     } \
     private:
 
-
-class DataStreamInput
-{
-        QDataStream& m_stream;
-    public:
-        DataStreamInput(QDataStream& s):
-            m_stream{s}
-        {
-
-        }
-
-        template<typename T>
-        friend DataStreamInput& operator<<(DataStreamInput& s, T&& obj)
-        {
-            s.m_stream << obj;
-            return s;
-        }
-};
-
-class DataStreamOutput
-{
-        QDataStream& m_stream;
-    public:
-        DataStreamOutput(QDataStream& s):
-            m_stream{s}
-        {
-
-        }
-
-        template<typename T>
-        friend DataStreamOutput& operator>>(DataStreamOutput& s, T&& obj)
-        {
-            s.m_stream >> obj;
-            return s;
-        }
-};
-
-
 namespace iscore
 {
 /**

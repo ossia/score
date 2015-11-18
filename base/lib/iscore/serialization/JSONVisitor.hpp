@@ -138,7 +138,7 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
             obj.setId(std::move(id));
         }
 
-        QJsonObject m_obj;
+        const QJsonObject m_obj;
         iscore::ApplicationContext context;
 };
 

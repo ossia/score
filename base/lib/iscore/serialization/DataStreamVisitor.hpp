@@ -4,6 +4,44 @@
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <core/application/ApplicationContext.hpp>
+
+class DataStreamInput
+{
+        QDataStream& m_stream;
+    public:
+        DataStreamInput(QDataStream& s):
+            m_stream{s}
+        {
+
+        }
+
+        template<typename T>
+        friend DataStreamInput& operator<<(DataStreamInput& s, T&& obj)
+        {
+            s.m_stream << obj;
+            return s;
+        }
+};
+
+class DataStreamOutput
+{
+        QDataStream& m_stream;
+    public:
+        DataStreamOutput(QDataStream& s):
+            m_stream{s}
+        {
+
+        }
+
+        template<typename T>
+        friend DataStreamOutput& operator>>(DataStreamOutput& s, T&& obj)
+        {
+            s.m_stream >> obj;
+            return s;
+        }
+};
+
+
 /**
  * This file contains facilities
  * to serialize an object using QDataStream.
@@ -109,8 +147,12 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
             m_stream << int32_t (0xDEADBEEF);
         }
 
-        QDataStream m_stream;
+    private:
+        QDataStream m_stream_impl;
+
+    public:
         iscore::ApplicationContext context;
+        DataStreamInput m_stream{m_stream_impl};
 };
 
 template<>
@@ -203,8 +245,12 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
             }
         }
 
-        QDataStream m_stream;
+    private:
+        QDataStream m_stream_impl;
+
+    public:
         iscore::ApplicationContext context;
+        DataStreamOutput m_stream{m_stream_impl};
 };
 
 
