@@ -68,12 +68,12 @@ void RemoveRackFromConstraint::redo() const
     constraint.racks.remove(m_rackId);
 }
 
-void RemoveRackFromConstraint::serializeImpl(QDataStream& s) const
+void RemoveRackFromConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_rackId << m_serializedRackData << m_rackMappings;
 }
 
-void RemoveRackFromConstraint::deserializeImpl(QDataStream& s)
+void RemoveRackFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_rackId >> m_serializedRackData >> m_rackMappings;
 }

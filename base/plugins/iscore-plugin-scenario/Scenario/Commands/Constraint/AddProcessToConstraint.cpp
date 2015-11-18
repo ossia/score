@@ -132,7 +132,7 @@ void AddProcessToConstraint::redo() const
     }
 }
 
-void AddProcessToConstraint::serializeImpl(QDataStream& s) const
+void AddProcessToConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path
       << m_processName
@@ -145,7 +145,7 @@ void AddProcessToConstraint::serializeImpl(QDataStream& s) const
       << m_notBaseConstraint;
 }
 
-void AddProcessToConstraint::deserializeImpl(QDataStream& s)
+void AddProcessToConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path
       >> m_processName

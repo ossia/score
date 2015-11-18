@@ -45,12 +45,12 @@ void ChangeGroup::redo() const
     getGroupMetadata(&m_path.find<QObject>())->setGroup(m_newGroup);
 }
 
-void ChangeGroup::serializeImpl(QDataStream &s) const
+void ChangeGroup::serializeImpl(DataStreamInput &s) const
 {
     s << m_path << m_newGroup << m_oldGroup;
 }
 
-void ChangeGroup::deserializeImpl(QDataStream &s)
+void ChangeGroup::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_path >> m_newGroup >> m_oldGroup;
 }

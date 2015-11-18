@@ -54,12 +54,12 @@ void CreateTimeNode_Event_State::redo() const
     m_command.redo();
 }
 
-void CreateTimeNode_Event_State::serializeImpl(QDataStream& s) const
+void CreateTimeNode_Event_State::serializeImpl(DataStreamInput& s) const
 {
     s << m_newTimeNode << m_date << m_command.serialize();
 }
 
-void CreateTimeNode_Event_State::deserializeImpl(QDataStream& s)
+void CreateTimeNode_Event_State::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray b;
     s >> m_newTimeNode >> m_date >> b;

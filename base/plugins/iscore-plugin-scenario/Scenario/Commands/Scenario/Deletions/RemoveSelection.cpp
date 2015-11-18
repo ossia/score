@@ -315,7 +315,7 @@ void RemoveSelection::redo() const
     }
 }
 
-void RemoveSelection::serializeImpl(QDataStream& s) const
+void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
     s << m_path
       << m_maybeRemovedTimeNodes
@@ -324,7 +324,7 @@ void RemoveSelection::serializeImpl(QDataStream& s) const
       << m_removedConstraints;
 }
 
-void RemoveSelection::deserializeImpl(QDataStream& s)
+void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path
       >> m_maybeRemovedTimeNodes

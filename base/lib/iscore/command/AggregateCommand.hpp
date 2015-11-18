@@ -44,8 +44,8 @@ namespace iscore
             { return m_cmds; }
 
         protected:
-            void serializeImpl(QDataStream&) const override;
-            void deserializeImpl(QDataStream&) override;
+            void serializeImpl(DataStreamInput&) const override;
+            void deserializeImpl(DataStreamOutput&) override;
 
             std::list<iscore::SerializableCommand*> m_cmds;
     };

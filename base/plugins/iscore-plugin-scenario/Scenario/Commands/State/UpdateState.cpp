@@ -78,7 +78,7 @@ void AddMessagesToState::redo() const
     model = m_newState;
 }
 
-void AddMessagesToState::serializeImpl(QDataStream &d) const
+void AddMessagesToState::serializeImpl(DataStreamInput &d) const
 {
     d << m_path
       << m_oldState
@@ -87,7 +87,7 @@ void AddMessagesToState::serializeImpl(QDataStream &d) const
       << m_followingBackup;
 }
 
-void AddMessagesToState::deserializeImpl(QDataStream &d)
+void AddMessagesToState::deserializeImpl(DataStreamOutput &d)
 {
     d >> m_path
       >> m_oldState

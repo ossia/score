@@ -31,12 +31,12 @@ void UpdateAddressesValues::redo() const
         explorer.editData(elt.first, DeviceExplorerModel::Column::Value, elt.second.second, Qt::EditRole);
 }
 
-void UpdateAddressesValues::serializeImpl(QDataStream& d) const
+void UpdateAddressesValues::serializeImpl(DataStreamInput& d) const
 {
     d << m_deviceTree << m_data;
 }
 
-void UpdateAddressesValues::deserializeImpl(QDataStream& d)
+void UpdateAddressesValues::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_deviceTree >> m_data;
 }

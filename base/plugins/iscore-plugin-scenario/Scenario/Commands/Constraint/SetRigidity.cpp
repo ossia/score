@@ -60,12 +60,12 @@ void SetRigidity::redo() const
 
 }
 
-void SetRigidity::serializeImpl(QDataStream& s) const
+void SetRigidity::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_rigidity << m_oldMinDuration << m_oldMaxDuration;
 }
 
-void SetRigidity::deserializeImpl(QDataStream& s)
+void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_rigidity >> m_oldMinDuration >> m_oldMaxDuration;
 }

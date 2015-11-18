@@ -32,12 +32,12 @@ void RemoveMessageNodes::redo() const
     model = m_newState;
 }
 
-void RemoveMessageNodes::serializeImpl(QDataStream &d) const
+void RemoveMessageNodes::serializeImpl(DataStreamInput &d) const
 {
     d << m_path << m_oldState << m_newState;
 }
 
-void RemoveMessageNodes::deserializeImpl(QDataStream &d)
+void RemoveMessageNodes::deserializeImpl(DataStreamOutput &d)
 {
     d >> m_path >> m_oldState >> m_newState;
 }

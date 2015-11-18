@@ -34,12 +34,12 @@ void CopySlot::redo() const
                                       &targetRack});
 }
 
-void CopySlot::serializeImpl(QDataStream& s) const
+void CopySlot::serializeImpl(DataStreamInput& s) const
 {
     s << m_slotPath << m_targetRackPath << m_newSlotId;
 }
 
-void CopySlot::deserializeImpl(QDataStream& s)
+void CopySlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_slotPath >> m_targetRackPath >> m_newSlotId;
 }

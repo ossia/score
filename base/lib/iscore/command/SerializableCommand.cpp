@@ -13,7 +13,8 @@ QByteArray SerializableCommand::serialize() const
         s.setVersion(QDataStream::Qt_5_3);
 
         s << timestamp();
-        serializeImpl(s);
+        DataStreamInput inp{s};
+        serializeImpl(inp);
     }
 
     return arr;
@@ -29,5 +30,6 @@ void SerializableCommand::deserialize(const QByteArray& arr)
 
     setTimestamp(stmp);
 
-    deserializeImpl(s);
+    DataStreamOutput outp{s};
+    deserializeImpl(outp);
 }

@@ -33,13 +33,13 @@ void HideRackInViewModel::redo() const
     vm.hideRack();
 }
 
-void HideRackInViewModel::serializeImpl(QDataStream& s) const
+void HideRackInViewModel::serializeImpl(DataStreamInput& s) const
 {
     s << m_constraintViewPath
       << m_constraintPreviousId;
 }
 
-void HideRackInViewModel::deserializeImpl(QDataStream& s)
+void HideRackInViewModel::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_constraintViewPath
             >> m_constraintPreviousId;

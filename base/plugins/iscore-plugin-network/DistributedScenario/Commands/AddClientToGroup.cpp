@@ -23,12 +23,12 @@ void AddClientToGroup::redo() const
     m_path.find<GroupManager>().group(m_group)->addClient(m_client);
 }
 
-void AddClientToGroup::serializeImpl(QDataStream& s) const
+void AddClientToGroup::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_client << m_group;
 }
 
-void AddClientToGroup::deserializeImpl(QDataStream& s)
+void AddClientToGroup::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_client >> m_group;
 }

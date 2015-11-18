@@ -416,7 +416,7 @@ void ScenarioPasteElements::redo() const
     }
 }
 
-void ScenarioPasteElements::serializeImpl(QDataStream& s) const
+void ScenarioPasteElements::serializeImpl(DataStreamInput& s) const
 {
     s << m_ts
 
@@ -433,7 +433,7 @@ void ScenarioPasteElements::serializeImpl(QDataStream& s) const
       << m_constraintViewModels;
 }
 
-void ScenarioPasteElements::deserializeImpl(QDataStream& s)
+void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_ts
 

@@ -36,12 +36,12 @@ void InitAutomation::redo() const
     autom.setAddress(m_addr);
 }
 
-void InitAutomation::serializeImpl(QDataStream& s) const
+void InitAutomation::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_addr << m_newMin << m_newMax << m_segments;
 }
 
-void InitAutomation::deserializeImpl(QDataStream& s)
+void InitAutomation::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_addr >> m_newMin >> m_newMax >> m_segments;
 }

@@ -32,12 +32,12 @@ void Scenario::Command::MoveNewState::redo() const
     updateEventExtent(state.eventId(), scenar);
 }
 
-void Scenario::Command::MoveNewState::serializeImpl(QDataStream & s) const
+void Scenario::Command::MoveNewState::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_stateId << m_oldy << m_y;
 }
 
-void Scenario::Command::MoveNewState::deserializeImpl(QDataStream & s)
+void Scenario::Command::MoveNewState::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_stateId >> m_oldy >> m_y;
 }

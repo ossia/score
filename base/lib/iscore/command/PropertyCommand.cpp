@@ -16,12 +16,12 @@ void iscore::PropertyCommand::redo() const
     m_path.find<QObject>().setProperty(m_property.toUtf8().constData(), m_new);
 }
 
-void iscore::PropertyCommand::serializeImpl(QDataStream & s) const
+void iscore::PropertyCommand::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_property << m_old << m_new;
 }
 
-void iscore::PropertyCommand::deserializeImpl(QDataStream & s)
+void iscore::PropertyCommand::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_property >> m_old >> m_new;
 }

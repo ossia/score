@@ -46,7 +46,7 @@ void RemoveTrigger::redo() const
     }
 }
 
-void RemoveTrigger::serializeImpl(QDataStream& s) const
+void RemoveTrigger::serializeImpl(DataStreamInput& s) const
 {
     s << m_path;
     s << m_cmds.count();
@@ -57,7 +57,7 @@ void RemoveTrigger::serializeImpl(QDataStream& s) const
     }
 }
 
-void RemoveTrigger::deserializeImpl(QDataStream& s)
+void RemoveTrigger::deserializeImpl(DataStreamOutput& s)
 {
     int n;
     s >> m_path;

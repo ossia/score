@@ -90,7 +90,7 @@ void AddLayerInNewSlot::redo() const
                                       &slot));
 }
 
-void AddLayerInNewSlot::serializeImpl(QDataStream& s) const
+void AddLayerInNewSlot::serializeImpl(DataStreamInput& s) const
 {
     s << m_path
       << m_existingRack
@@ -102,7 +102,7 @@ void AddLayerInNewSlot::serializeImpl(QDataStream& s) const
       << m_processData;
 }
 
-void AddLayerInNewSlot::deserializeImpl(QDataStream& s)
+void AddLayerInNewSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path
       >> m_existingRack

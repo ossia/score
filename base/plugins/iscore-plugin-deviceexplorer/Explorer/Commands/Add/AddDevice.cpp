@@ -25,13 +25,13 @@ void AddDevice::redo() const
     devplug.updateProxy.addDevice(m_parameters);
 }
 
-void AddDevice::serializeImpl(QDataStream& d) const
+void AddDevice::serializeImpl(DataStreamInput& d) const
 {
     d << m_devicesModel;
     d << m_parameters;
 }
 
-void AddDevice::deserializeImpl(QDataStream& d)
+void AddDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel;
     d >> m_parameters;

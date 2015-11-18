@@ -129,12 +129,12 @@ void InsertContentInConstraint::redo() const
     }
 }
 
-void InsertContentInConstraint::serializeImpl(QDataStream& s) const
+void InsertContentInConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_source << m_target << m_rackIds << m_processIds << (int) m_mode;
 }
 
-void InsertContentInConstraint::deserializeImpl(QDataStream& s)
+void InsertContentInConstraint::deserializeImpl(DataStreamOutput& s)
 {
     int mode;
     s >> m_source >> m_target >> m_rackIds >> m_processIds >> mode;

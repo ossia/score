@@ -21,12 +21,12 @@ void EditScript::redo() const
 
 }
 
-void EditScript::serializeImpl(QDataStream& s) const
+void EditScript::serializeImpl(DataStreamInput& s) const
 {
     s << m_model << m_old << m_new;
 }
 
-void EditScript::deserializeImpl(QDataStream& s)
+void EditScript::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_old >> m_new;
 }

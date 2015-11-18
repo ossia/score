@@ -40,8 +40,8 @@ namespace Scenario
                 }
 
             protected:
-                void serializeImpl(QDataStream&) const override;
-                void deserializeImpl(QDataStream&) override;
+                void serializeImpl(DataStreamInput&) const override;
+                void deserializeImpl(DataStreamOutput&) override;
 
             private:
                 Path<ConstraintModel> m_path;

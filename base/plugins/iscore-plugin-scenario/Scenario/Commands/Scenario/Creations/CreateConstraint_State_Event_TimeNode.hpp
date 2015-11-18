@@ -43,8 +43,8 @@ class CreateConstraint_State_Event_TimeNode final : public iscore::SerializableC
         void redo() const override;
 
     protected:
-        void serializeImpl(QDataStream&) const override;
-        void deserializeImpl(QDataStream&) override;
+        void serializeImpl(DataStreamInput&) const override;
+        void deserializeImpl(DataStreamOutput&) override;
 
     private:
         Id<TimeNodeModel> m_newTimeNode;

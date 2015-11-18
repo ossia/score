@@ -17,8 +17,8 @@ class CreateGroup : public iscore::SerializableCommand
         void undo() const override;
         void redo() const override;
 
-        void serializeImpl(QDataStream & s) const override;
-        void deserializeImpl(QDataStream & s) override;
+        void serializeImpl(DataStreamInput & s) const override;
+        void deserializeImpl(DataStreamOutput & s) override;
 
     private:
         ObjectPath m_path;

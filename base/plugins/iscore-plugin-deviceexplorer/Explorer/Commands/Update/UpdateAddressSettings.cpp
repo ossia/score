@@ -32,14 +32,14 @@ void UpdateAddressSettings::redo() const
     devplug.updateProxy.updateAddress(m_node, m_newParameters);
 }
 
-void UpdateAddressSettings::serializeImpl(QDataStream& d) const
+void UpdateAddressSettings::serializeImpl(DataStreamInput& d) const
 {
     d << m_devicesModel
       << m_oldParameters
       << m_newParameters;
 }
 
-void UpdateAddressSettings::deserializeImpl(QDataStream& d)
+void UpdateAddressSettings::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel
       >> m_oldParameters

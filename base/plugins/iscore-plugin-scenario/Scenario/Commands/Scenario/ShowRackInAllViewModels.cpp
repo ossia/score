@@ -43,14 +43,14 @@ void ShowRackInAllViewModels::redo() const
     }
 }
 
-void ShowRackInAllViewModels::serializeImpl(QDataStream& s) const
+void ShowRackInAllViewModels::serializeImpl(DataStreamInput& s) const
 {
     s << m_constraintPath
       << m_rackId
       << m_previousRacks;
 }
 
-void ShowRackInAllViewModels::deserializeImpl(QDataStream& s)
+void ShowRackInAllViewModels::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_constraintPath
             >> m_rackId
