@@ -30,9 +30,27 @@ static auto getStrongIdRange2(std::size_t s, const Vector1& existing1, const Vec
     {
         vec.push_back(getStrongId(vec));
     }
+    auto final = std::vector<Id<T>>(vec.begin() + existing1.size() + existing2.size(), vec.end());
 
-    return std::vector<Id<T>>(vec.begin() + existing1.size() + existing2.size(), vec.end());
+    return final;
 }
+
+template<typename T, typename Vector>
+auto getStrongIdRangePtr(std::size_t s, const Vector& existing)
+{
+    std::vector<Id<T>> vec;
+    vec.reserve(s + existing.size());
+    std::transform(existing.begin(), existing.end(), std::back_inserter(vec),
+                   [] (const auto& elt) { return elt->id(); });
+
+    for(; s --> 0 ;)
+    {
+        vec.push_back(getStrongId(vec));
+    }
+
+    return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
+}
+
 
 ScenarioPasteElements::ScenarioPasteElements(
         Path<TemporalScenarioLayerModel>&& path,
@@ -193,11 +211,22 @@ ScenarioPasteElements::ScenarioPasteElements(
     // Then we have to create default constraint views... everywhere...
     for(const ConstraintModel* constraint : constraints)
     {
-        auto res = m_constraintViewModels.insert(constraint->id(), ConstraintViewModelIdMap{});
-        for(const auto& viewModel : layers(scenario))
+        m_constraintViewModels.insert(constraint->id(), ConstraintViewModelIdMap{});
+    }
+    for(const auto& viewModel : layers(scenario))
+    {
+        // We generate size(constraints) new view model ids.
+        auto viewmodelconstraints = viewModel->constraints();
+
+        int i = 0;
+        auto range = getStrongIdRangePtr<ConstraintViewModel>(constraints.size(), viewmodelconstraints);
+        for(const ConstraintModel* constraint : constraints)
         {
-            (*res)[*viewModel] = getStrongId(viewModel->constraints());
+            auto& res = m_constraintViewModels[constraint->id()];
+            res[*viewModel] = range[i++];
         }
+        // We generate as many viewModel id as there are constraints to be added.
+
     }
 
     // Set the correct positions / dates.

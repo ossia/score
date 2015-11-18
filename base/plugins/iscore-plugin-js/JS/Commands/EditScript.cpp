@@ -7,7 +7,7 @@ EditScript::EditScript(
   m_model{std::move(model)},
   m_new{text}
 {
-    m_old = model.find().script();
+	m_old = m_model.find().script();
 }
 
 void EditScript::undo() const
