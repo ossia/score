@@ -10,7 +10,7 @@ InitAutomation::InitAutomation(
         double newmin,
         double newmax,
         std::vector<CurveSegmentData>&& segments):
-    m_path{path},
+    m_path{std::move(path)},
     m_addr(newaddr),
     m_newMin{newmin},
     m_newMax{newmax},
@@ -43,5 +43,5 @@ void InitAutomation::serializeImpl(QDataStream& s) const
 
 void InitAutomation::deserializeImpl(QDataStream& s)
 {
-    s << m_path << m_addr << m_newMin << m_newMax << m_segments;
+    s >> m_path >> m_addr >> m_newMin >> m_newMax >> m_segments;
 }
