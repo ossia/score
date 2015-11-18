@@ -39,6 +39,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
             m_parent};
 
     // Create states / events
+    // TODO this needs to be virtual instead and call ScenarioInterface...
     if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
     {
         m_startStatePresenter = new StatePresenter(bs->startState(), m_parent->view()->baseItem(), this);

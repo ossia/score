@@ -3,8 +3,10 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopProcessFactory.hpp>
 
+
 #include <Loop/Inspector/LoopInspectorFactory.hpp>
 #include <Loop/Commands/EditScript.hpp>
+#include <Loop/Commands/LoopCommandFactory.hpp>
 
 iscore_plugin_loop::iscore_plugin_loop() :
     QObject {}
@@ -33,7 +35,6 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_loop
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{LoopCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
-            EditScript
             >,
             boost::type<boost::mpl::_>
             >(CommandGeneratorMapInserter{cmds.second});

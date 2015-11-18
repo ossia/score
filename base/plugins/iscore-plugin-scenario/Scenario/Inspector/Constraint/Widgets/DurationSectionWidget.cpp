@@ -139,6 +139,7 @@ void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
     auto scenario = m_model.parentScenario();
     auto expandmode = m_editionSettings.expandMode();
 
+    // TODO here too, have some virtual method.
     if(m_model.objectName() != "BaseConstraintModel")
     {
         m_dispatcher.submitCommand<MoveEventMeta>(

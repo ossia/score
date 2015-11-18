@@ -1,8 +1,12 @@
 #include "LoopInspectorFactory.hpp"
 #include "LoopInspectorWidget.hpp"
 #include <Loop/LoopProcessModel.hpp>
+#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <Inspector/InspectorWidgetList.hpp>
+#include <Process/ProcessList.hpp>
+#include <core/document/Document.hpp>
+#include <core/application/ApplicationComponents.hpp>
 
-//using namespace iscore;
 
 LoopInspectorFactory::LoopInspectorFactory() :
     InspectorWidgetFactory {}
@@ -20,8 +24,11 @@ InspectorWidgetBase* LoopInspectorFactory::makeWidget(
         iscore::Document& doc,
         QWidget* parent)
 {
-    return new LoopInspectorWidget{
-                safe_cast<const LoopProcessModel&>(sourceElement),
-                doc,
-                parent};
+    auto& appContext = doc.context().app;
+    auto& widgetFact = appContext.components.factory<InspectorWidgetList>();
+    auto& processFact = appContext.components.factory<DynamicProcessList>();
+
+    auto& constraint = static_cast<const LoopProcessModel&>(sourceElement).baseConstraint();
+    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, doc, parent};
+
 }

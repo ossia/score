@@ -6,6 +6,7 @@ namespace iscore{
 struct Address;
 }
 class LoopProcessModel;
+class DynamicProcessList;
 
 class LoopInspectorWidget final : public InspectorWidgetBase
 {

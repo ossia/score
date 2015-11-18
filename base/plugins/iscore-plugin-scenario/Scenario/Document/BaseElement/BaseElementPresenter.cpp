@@ -119,7 +119,7 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 {
     m_scenarioPresenter->on_displayedConstraintChanged(displayedConstraint());
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
-            this,				  &BaseElementPresenter::setDisplayedObject);
+            this, &BaseElementPresenter::setDisplayedObject);
 
     // Set a new zoom ratio, such that the displayed constraint takes the whole screen.
 

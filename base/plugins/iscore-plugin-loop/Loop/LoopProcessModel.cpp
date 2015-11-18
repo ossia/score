@@ -26,6 +26,7 @@ LoopProcessModel::LoopProcessModel(
     endTimeNode().setDate(duration);
 
     baseConstraint().setHeightPercentage(0.05);
+    baseConstraint().metadata.setName("Loop pattern");
     BaseScenarioContainer::startState().setHeightPercentage(0.05);
     BaseScenarioContainer::endState().setHeightPercentage(0.05);
     BaseScenarioContainer::startEvent().setExtent({0.02, 0.2});
