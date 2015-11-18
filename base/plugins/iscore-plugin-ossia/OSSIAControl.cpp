@@ -142,7 +142,7 @@ void OSSIAControl::on_play(bool b)
                 auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
                 cstr.recreate();
-                cstr.play();
+                cstr.play(TimeValue::zero());
 
                 // Here we stop the listening when we start playing the scenario.
                 // Get all the selected nodes

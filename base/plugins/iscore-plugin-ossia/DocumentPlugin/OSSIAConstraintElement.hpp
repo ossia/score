@@ -3,6 +3,9 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include "ProcessWrapper.hpp"
 #include <memory>
+#include <Process/TimeValue.hpp>
+#include <Editor/TimeValue.h>
+
 
 class ConstraintModel;
 class Process;
@@ -11,7 +14,6 @@ namespace OSSIA
 {
 class Loop;
 class TimeConstraint;
-class TimeValue;
 class StateElement;
 class Scenario;
 class TimeNode;
@@ -29,7 +31,7 @@ class OSSIAConstraintElement final : public QObject
         std::shared_ptr<OSSIA::TimeConstraint> OSSIAConstraint() const;
         ConstraintModel& iscoreConstraint() const;
 
-        void play();
+        void play(TimeValue t = TimeValue::zero());
         void stop();
 
         void executionStarted();
@@ -55,4 +57,6 @@ class OSSIAConstraintElement final : public QObject
         std::map<Id<Process>, OSSIAProcess> m_processes;
 
         std::shared_ptr<OSSIA::Loop> m_loop;
+
+        OSSIA::TimeValue m_offset;
 };
