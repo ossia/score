@@ -28,13 +28,13 @@ void SwapSlots::redo() const
 }
 
 
-void SwapSlots::serializeImpl(QDataStream& s) const
+void SwapSlots::serializeImpl(DataStreamInput& s) const
 {
     s << m_rackPath << m_first << m_second;
 }
 
 
-void SwapSlots::deserializeImpl(QDataStream& s)
+void SwapSlots::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_rackPath >> m_first >> m_second;
 }

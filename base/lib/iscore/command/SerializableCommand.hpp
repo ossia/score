@@ -26,8 +26,6 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
     } \
     private:
 
-
-
 namespace iscore
 {
 /**
@@ -50,7 +48,7 @@ class SerializableCommand : public Command
         void deserialize(const QByteArray&);
 
     protected:
-        virtual void serializeImpl(QDataStream&) const = 0;
-        virtual void deserializeImpl(QDataStream&) = 0;
+        virtual void serializeImpl(DataStreamInput&) const = 0;
+        virtual void deserializeImpl(DataStreamOutput&) = 0;
 };
 }

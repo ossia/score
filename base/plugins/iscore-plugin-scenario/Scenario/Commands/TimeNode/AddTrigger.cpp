@@ -47,7 +47,7 @@ void AddTrigger::redo() const
     }
 }
 
-void AddTrigger::serializeImpl(QDataStream& s) const
+void AddTrigger::serializeImpl(DataStreamInput& s) const
 {
     s << m_path;
     s << m_cmds.count();
@@ -58,7 +58,7 @@ void AddTrigger::serializeImpl(QDataStream& s) const
     }
 }
 
-void AddTrigger::deserializeImpl(QDataStream& s)
+void AddTrigger::deserializeImpl(DataStreamOutput& s)
 {
     int n;
     s >> m_path;

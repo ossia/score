@@ -61,12 +61,12 @@ void CreateConstraint_State::redo() const
     updateEventExtent(m_endEvent, scenar);
 }
 
-void CreateConstraint_State::serializeImpl(QDataStream& s) const
+void CreateConstraint_State::serializeImpl(DataStreamInput& s) const
 {
     s << m_newState << m_command.serialize() << m_endEvent << m_stateY;
 }
 
-void CreateConstraint_State::deserializeImpl(QDataStream& s)
+void CreateConstraint_State::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray b;
     s >> m_newState >> b >> m_endEvent >> m_stateY;

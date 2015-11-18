@@ -26,7 +26,7 @@ void AggregateCommand::redo() const
     }
 }
 
-void AggregateCommand::serializeImpl(QDataStream& s) const
+void AggregateCommand::serializeImpl(DataStreamInput& s) const
 {
     // Meta-data : {{parent name, command name}, command data}
     QList<
@@ -47,7 +47,7 @@ void AggregateCommand::serializeImpl(QDataStream& s) const
     s << serializedCommands;
 }
 
-void AggregateCommand::deserializeImpl(QDataStream& s)
+void AggregateCommand::deserializeImpl(DataStreamOutput& s)
 {
     QList<
             QPair<

@@ -45,11 +45,11 @@ class SetMinDuration final : public iscore::SerializableCommand
         }
 
     protected:
-        void serializeImpl(QDataStream& s) const override
+        void serializeImpl(DataStreamInput& s) const override
         {
             s << m_path << m_oldVal << m_newVal;
         }
-        void deserializeImpl(QDataStream& s) override
+        void deserializeImpl(DataStreamOutput& s) override
         {
             s >> m_path >> m_oldVal >> m_newVal;
         }

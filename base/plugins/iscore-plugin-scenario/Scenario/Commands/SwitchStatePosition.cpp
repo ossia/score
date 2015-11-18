@@ -11,10 +11,10 @@ void SwitchStatePosition::redo() const
 {
 }
 
-void SwitchStatePosition::serializeImpl(QDataStream&) const
+void SwitchStatePosition::serializeImpl(DataStreamInput&) const
 {
 }
 
-void SwitchStatePosition::deserializeImpl(QDataStream&)
+void SwitchStatePosition::deserializeImpl(DataStreamOutput&)
 {
 }

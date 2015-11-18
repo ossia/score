@@ -43,14 +43,14 @@ void AddAddress::redo() const
                                    0);
 }
 
-void AddAddress::serializeImpl(QDataStream &s) const
+void AddAddress::serializeImpl(DataStreamInput &s) const
 {
     s << m_devicesModel
       << m_parentNodePath
       << m_addressSettings;
 }
 
-void AddAddress::deserializeImpl(QDataStream &s)
+void AddAddress::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_devicesModel
       >> m_parentNodePath

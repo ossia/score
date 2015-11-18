@@ -51,12 +51,12 @@ void SetSegmentParameters::update(Path<CurveModel>&& model, SegmentParameterMap 
     m_new = std::move(segments);
 }
 
-void SetSegmentParameters::serializeImpl(QDataStream& s) const
+void SetSegmentParameters::serializeImpl(DataStreamInput& s) const
 {
    s << m_model << m_old << m_new;
 }
 
-void SetSegmentParameters::deserializeImpl(QDataStream& s)
+void SetSegmentParameters::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_old >> m_new;
 }

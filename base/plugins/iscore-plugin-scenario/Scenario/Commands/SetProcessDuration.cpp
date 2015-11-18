@@ -17,12 +17,12 @@ void SetProcessDuration::redo() const
     m_path.find().setDuration(m_new);
 }
 
-void SetProcessDuration::serializeImpl(QDataStream& s) const
+void SetProcessDuration::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_old << m_new;
 }
 
-void SetProcessDuration::deserializeImpl(QDataStream& s)
+void SetProcessDuration::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_old >> m_new;
 }

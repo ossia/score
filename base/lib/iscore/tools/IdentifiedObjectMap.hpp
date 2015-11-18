@@ -45,7 +45,10 @@ class MapBase
         }
 
         void insert(value_type* t)
-        { map.insert(t); }
+        {
+            ISCORE_ASSERT(map.find(t->id()) == map.end());
+            map.insert(t);
+        }
 
         std::size_t size() const
         { return map.size(); }

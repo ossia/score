@@ -23,8 +23,8 @@ class AddArea : public iscore::SerializableCommand
         void redo() const override;
 
     protected:
-        void serializeImpl(QDataStream & s) const override;
-        void deserializeImpl(QDataStream & s) override;
+        void serializeImpl(DataStreamInput & s) const override;
+        void deserializeImpl(DataStreamOutput & s) override;
 
     private:
         Path<SpaceProcess> m_path;

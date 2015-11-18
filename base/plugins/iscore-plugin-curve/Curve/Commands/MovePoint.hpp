@@ -24,8 +24,8 @@ class MovePoint final : public iscore::SerializableCommand
                     const Curve::Point& newPoint);
 
     protected:
-        void serializeImpl(QDataStream & s) const override;
-        void deserializeImpl(QDataStream & s) override;
+        void serializeImpl(DataStreamInput & s) const override;
+        void deserializeImpl(DataStreamOutput & s) override;
 
     private:
         Path<CurveModel> m_model;

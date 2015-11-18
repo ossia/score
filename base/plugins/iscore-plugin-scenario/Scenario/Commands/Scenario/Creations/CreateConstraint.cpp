@@ -67,7 +67,7 @@ void CreateConstraint::redo() const
 
 
 
-void CreateConstraint::serializeImpl(QDataStream& s) const
+void CreateConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path
       << m_createdName
@@ -78,7 +78,7 @@ void CreateConstraint::serializeImpl(QDataStream& s) const
       << m_createdConstraintFullViewId;
 }
 
-void CreateConstraint::deserializeImpl(QDataStream& s)
+void CreateConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path
             >> m_createdName

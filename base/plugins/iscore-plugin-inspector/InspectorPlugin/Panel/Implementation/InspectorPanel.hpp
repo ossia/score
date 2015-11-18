@@ -23,7 +23,7 @@ using InspectorWidgetMap = bmi::multi_index_container<
         bmi::hashed_unique<
             bmi::const_mem_fun<
                 InspectorWidgetBase,
-                const QObject*,
+                const IdentifiedObjectAbstract*,
                 &InspectorWidgetBase::inspectedObject_addr
             >
         >
@@ -73,5 +73,5 @@ class InspectorPanel : public QWidget
 
         const InspectorWidgetList& m_list;
         iscore::SelectionDispatcher m_selectionDispatcher;
-        QList<const QObject*> m_currentSel;
+        QList<const IdentifiedObjectAbstract*> m_currentSel;
 };

@@ -21,13 +21,13 @@ void LoadDevice::redo() const
     devplug.updateProxy.loadDevice(m_deviceNode);
 }
 
-void LoadDevice::serializeImpl(QDataStream& d) const
+void LoadDevice::serializeImpl(DataStreamInput& d) const
 {
     d << m_devicesModel;
     d << m_deviceNode;
 }
 
-void LoadDevice::deserializeImpl(QDataStream& d)
+void LoadDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel;
     d >> m_deviceNode;

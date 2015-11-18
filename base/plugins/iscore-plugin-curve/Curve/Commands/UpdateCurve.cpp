@@ -33,14 +33,14 @@ void UpdateCurve::update(
 
 
 
-void UpdateCurve::serializeImpl(QDataStream& s) const
+void UpdateCurve::serializeImpl(DataStreamInput& s) const
 {
     s << m_model
       << m_oldCurveData
       << m_newCurveData;
 }
 
-void UpdateCurve::deserializeImpl(QDataStream& s)
+void UpdateCurve::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_oldCurveData >> m_newCurveData;
 }

@@ -25,6 +25,8 @@ class NamedType : public QType
             v.writeTo(*this);
             QType::setParent(parent);
         }
+
+        ~NamedType() = default;
 };
 
 
@@ -39,12 +41,3 @@ inline void debug_parentHierarchy(QObject* obj)
         obj = obj->parent();
     }
 }
-
-class IdentifiedObjectAbstract : public NamedObject
-{
-    public:
-        virtual int32_t id_val() const = 0;
-
-    protected:
-        using NamedObject::NamedObject;
-};

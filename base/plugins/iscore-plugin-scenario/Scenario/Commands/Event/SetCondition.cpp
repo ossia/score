@@ -28,12 +28,12 @@ void SetCondition::redo() const
     event.setCondition(m_condition);
 }
 
-void SetCondition::serializeImpl(QDataStream& s) const
+void SetCondition::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_condition << m_previousCondition;
 }
 
-void SetCondition::deserializeImpl(QDataStream& s)
+void SetCondition::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_condition >> m_previousCondition;
 }

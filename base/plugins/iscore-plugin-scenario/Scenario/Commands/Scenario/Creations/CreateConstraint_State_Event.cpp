@@ -63,7 +63,7 @@ void CreateConstraint_State_Event::redo() const
     m_command.redo();
 }
 
-void CreateConstraint_State_Event::serializeImpl(QDataStream& s) const
+void CreateConstraint_State_Event::serializeImpl(DataStreamInput& s) const
 {
     s << m_newEvent
       << m_createdName
@@ -71,7 +71,7 @@ void CreateConstraint_State_Event::serializeImpl(QDataStream& s) const
       << m_endTimeNode;
 }
 
-void CreateConstraint_State_Event::deserializeImpl(QDataStream& s)
+void CreateConstraint_State_Event::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray b;
     s >> m_newEvent >> m_createdName >> b >> m_endTimeNode;

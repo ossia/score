@@ -60,12 +60,12 @@ void MovePoint::update(
     m_newPoint = newPoint;
 }
 
-void MovePoint::serializeImpl(QDataStream& s) const
+void MovePoint::serializeImpl(DataStreamInput& s) const
 {
     s << m_model << m_pointId << m_newPoint << m_oldPoint;
 }
 
-void MovePoint::deserializeImpl(QDataStream& s)
+void MovePoint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_pointId >> m_newPoint >> m_oldPoint;
 }

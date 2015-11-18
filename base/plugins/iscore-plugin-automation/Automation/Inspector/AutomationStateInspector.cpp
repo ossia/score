@@ -16,7 +16,7 @@ AutomationStateInspector::AutomationStateInspector(
 
 
     con(m_state, &ProcessStateDataInterface::stateChanged,
-            this,    &AutomationStateInspector::on_stateChanged);
+        this,    &AutomationStateInspector::on_stateChanged);
 
     on_stateChanged();
 

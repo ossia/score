@@ -42,8 +42,8 @@ namespace Scenario
               { return m_path; }
 
             protected:
-              void serializeImpl(QDataStream&) const override;
-              void deserializeImpl(QDataStream&) override;
+              void serializeImpl(DataStreamInput&) const override;
+              void deserializeImpl(DataStreamOutput&) override;
 
             private:
               Path<ScenarioModel> m_path;

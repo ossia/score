@@ -78,9 +78,10 @@ void TemporalScenarioLayerModel::addConstraintViewModel(constraint_layer_type* c
 
 void TemporalScenarioLayerModel::on_constraintRemoved(const ConstraintModel& cstr)
 {
-    for(auto& constraint_view_model : constraintsViewModels(*this))
+    auto cvms = constraintsViewModels(*this);
+    for(auto& constraint_view_model : cvms)
     {
-        if(constraint_view_model->model().id() == cstr.id())
+        if(&constraint_view_model->model() == &cstr)
         {
             removeConstraintViewModel(constraint_view_model->id());
             return;

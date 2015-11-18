@@ -43,9 +43,9 @@ void BlacklistCommand::redo() const
     */
 }
 
-void BlacklistCommand::serializeImpl(QDataStream&) const { }
+void BlacklistCommand::serializeImpl(DataStreamInput&) const { }
 
-void BlacklistCommand::deserializeImpl(QDataStream&) { }
+void BlacklistCommand::deserializeImpl(DataStreamOutput&) { }
 
 /*
 bool BlacklistCommand::mergeWith(const Command* other)

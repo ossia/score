@@ -41,13 +41,13 @@ void Remove::redo() const
     m_device ? m_cmd->undo() : m_cmd->redo();
 }
 
-void Remove::serializeImpl(QDataStream& d) const
+void Remove::serializeImpl(DataStreamInput& d) const
 {
     d << m_device
       << m_cmd->serialize();
 }
 
-void Remove::deserializeImpl(QDataStream& d)
+void Remove::deserializeImpl(DataStreamOutput& d)
 {
     QByteArray cmd_data;
     d >> m_device

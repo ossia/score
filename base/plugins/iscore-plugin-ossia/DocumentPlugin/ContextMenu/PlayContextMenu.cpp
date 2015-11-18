@@ -4,14 +4,18 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include "DocumentPlugin/OSSIAScenarioElement.hpp"
+#include <DocumentPlugin/OSSIABaseScenarioElement.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <API/Headers/Editor/State.h>
 #include <API/Headers/Editor/TimeConstraint.h>
+#include <Editor/TimeNode.h>
 #include <core/document/DocumentModel.hpp>
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <iscore2OSSIA.hpp>
+
 PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
     ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {
@@ -79,6 +83,24 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
 
         m_recordAction->setData({});
     });
+
+    m_playFromHere = new QAction{tr("Play from here"), this};
+    connect(m_playFromHere, &QAction::triggered,
+            [=] ()
+    {
+//        auto baseScenar = parent->currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
+        auto t = m_playFromHere->data().value<TimeValue>();
+        auto doc = parent->currentDocument();
+
+        auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+        plugmodel->reload(doc->model());
+
+        auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
+        cstr.recreate();
+        cstr.play(t);
+
+    });
 }
 
 void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)
@@ -93,6 +115,10 @@ void PlayContextMenu::fillContextMenu(
         const QPoint& pt,
         const QPointF& scenept)
 {
+    menu->addAction(m_playFromHere);
+    auto scenPoint = Scenario::ConvertToScenarioPoint(scenept, pres.zoomRatio(), pres.view().height());
+    m_playFromHere->setData(QVariant::fromValue(scenPoint.date));
+
     if(s.empty())
     {
         menu->addAction(m_recordAction);

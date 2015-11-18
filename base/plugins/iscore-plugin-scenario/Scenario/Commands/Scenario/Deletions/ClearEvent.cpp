@@ -44,12 +44,12 @@ void ClearState::redo() const
     */
 }
 
-void ClearState::serializeImpl(QDataStream& s) const
+void ClearState::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_serializedStates;
 }
 
-void ClearState::deserializeImpl(QDataStream& s)
+void ClearState::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_serializedStates;
 }

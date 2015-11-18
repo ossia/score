@@ -11,6 +11,7 @@
 
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeProcess.h>
+#include <Editor/TimeNode.h>
 
 #include <boost/range/algorithm.hpp>
 
@@ -90,10 +91,11 @@ ConstraintModel&OSSIAConstraintElement::iscoreConstraint() const
     return m_iscore_constraint;
 }
 
-void OSSIAConstraintElement::play()
+void OSSIAConstraintElement::play(TimeValue t)
 {
+    m_offset = iscore::convert::time(t);
     m_iscore_constraint.duration.setPlayPercentage(0);
-    m_ossia_constraint->setOffset(0.);
+    m_ossia_constraint->setOffset(m_offset);
     m_ossia_constraint->start();
     executionStarted();
 }

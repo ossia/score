@@ -67,7 +67,7 @@ void SplitEvent::redo() const
     updateEventExtent(m_originalEvent, scenar);
 }
 
-void SplitEvent::serializeImpl(QDataStream & s) const
+void SplitEvent::serializeImpl(DataStreamInput & s) const
 {
     s << m_scenarioPath
       << m_originalEvent
@@ -76,7 +76,7 @@ void SplitEvent::serializeImpl(QDataStream & s) const
       << m_movingStates;
 }
 
-void SplitEvent::deserializeImpl(QDataStream & s)
+void SplitEvent::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_scenarioPath
       >> m_originalEvent

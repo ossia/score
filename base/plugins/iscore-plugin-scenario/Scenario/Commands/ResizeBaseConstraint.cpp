@@ -147,7 +147,7 @@ void MoveBaseEvent::redo() const
     });
 }
 
-void MoveBaseEvent::serializeImpl(QDataStream& s) const
+void MoveBaseEvent::serializeImpl(DataStreamInput& s) const
 {
     s << m_path
       << m_oldDate
@@ -156,7 +156,7 @@ void MoveBaseEvent::serializeImpl(QDataStream& s) const
       << m_savedConstraint;
 }
 
-void MoveBaseEvent::deserializeImpl(QDataStream& s)
+void MoveBaseEvent::deserializeImpl(DataStreamOutput& s)
 {
     int mode;
     s >> m_path

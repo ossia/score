@@ -30,8 +30,8 @@ class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
         { return m_createdProcessId; }
 
     protected:
-        void serializeImpl(QDataStream& s) const override;
-        void deserializeImpl(QDataStream& s) override;
+        void serializeImpl(DataStreamInput& s) const override;
+        void deserializeImpl(DataStreamOutput& s) override;
 
     private:
         Path<ConstraintModel> m_path;

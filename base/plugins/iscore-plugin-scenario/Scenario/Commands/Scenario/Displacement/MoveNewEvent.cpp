@@ -59,12 +59,12 @@ void MoveNewEvent::redo() const
     }
 }
 
-void MoveNewEvent::serializeImpl(QDataStream & s) const
+void MoveNewEvent::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_cmd.serialize() << m_constraintId << m_y << m_yLocked;
 }
 
-void MoveNewEvent::deserializeImpl(QDataStream & s)
+void MoveNewEvent::deserializeImpl(DataStreamOutput & s)
 {
     QByteArray a;
     s >> m_path >> a >> m_constraintId >> m_y >> m_yLocked;

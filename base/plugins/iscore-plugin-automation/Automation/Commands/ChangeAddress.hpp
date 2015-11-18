@@ -19,8 +19,8 @@ class ChangeAddress final : public iscore::SerializableCommand
         void redo() const override;
 
     protected:
-        void serializeImpl(QDataStream &) const override;
-        void deserializeImpl(QDataStream &) override;
+        void serializeImpl(DataStreamInput &) const override;
+        void deserializeImpl(DataStreamOutput &) override;
 
     private:
         Path<AutomationModel> m_path;

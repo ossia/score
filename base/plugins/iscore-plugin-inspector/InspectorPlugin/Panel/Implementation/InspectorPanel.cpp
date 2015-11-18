@@ -28,7 +28,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
     // Ignore items in both
     // Create items in objects and not in current
     // Delete items in current and not in objects
-    QList<const QObject*> toCreate, toDelete; // TODO not selection else with dead QPointers it will not work.
+    QList<const IdentifiedObjectAbstract*> toCreate, toDelete; // TODO not selection else with dead QPointers it will not work.
 
     // OPTIMIZEME (set_difference won't work due to unordered_set)
     for(auto& elt : objects)

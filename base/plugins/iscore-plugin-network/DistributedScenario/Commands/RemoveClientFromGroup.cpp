@@ -21,12 +21,12 @@ void RemoveClientFromGroup::redo() const
     m_path.find<GroupManager>().group(m_group)->removeClient(m_client);
 }
 
-void RemoveClientFromGroup::serializeImpl(QDataStream& s) const
+void RemoveClientFromGroup::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_client << m_group;
 }
 
-void RemoveClientFromGroup::deserializeImpl(QDataStream& s)
+void RemoveClientFromGroup::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_client >> m_group;
 }

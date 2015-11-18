@@ -50,13 +50,13 @@ void CreateState::redo() const
 }
 
 
-void CreateState::serializeImpl(QDataStream & s) const
+void CreateState::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_newState << m_event << m_stateY;
 }
 
 
-void CreateState::deserializeImpl(QDataStream & s)
+void CreateState::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_newState >> m_event >> m_stateY;
 }

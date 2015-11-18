@@ -58,12 +58,12 @@ void AddLayerModelToSlot::redo() const
     slot.layers.add(proc.makeLayer(m_createdLayerId, m_processData, &slot));
 }
 
-void AddLayerModelToSlot::serializeImpl(QDataStream& s) const
+void AddLayerModelToSlot::serializeImpl(DataStreamInput& s) const
 {
     s << m_slotPath << m_processPath << m_processData << m_createdLayerId;
 }
 
-void AddLayerModelToSlot::deserializeImpl(QDataStream& s)
+void AddLayerModelToSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_slotPath >> m_processPath >> m_processData >> m_createdLayerId;
 }

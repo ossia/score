@@ -46,12 +46,12 @@ void RemoveSlotFromRack::redo() const
     rack.slotmodels.remove(m_slotId);
 }
 
-void RemoveSlotFromRack::serializeImpl(QDataStream& s) const
+void RemoveSlotFromRack::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_slotId << m_position << m_serializedSlotData;
 }
 
-void RemoveSlotFromRack::deserializeImpl(QDataStream& s)
+void RemoveSlotFromRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_slotId >> m_position >> m_serializedSlotData;
 }

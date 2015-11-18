@@ -48,7 +48,7 @@ void MoveConstraint::redo() const
                 m_path.find());
 }
 
-void MoveConstraint::serializeImpl(QDataStream& s) const
+void MoveConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path
       << m_constraint
@@ -56,7 +56,7 @@ void MoveConstraint::serializeImpl(QDataStream& s) const
       << m_newHeight;
 }
 
-void MoveConstraint::deserializeImpl(QDataStream& s)
+void MoveConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path
       >> m_constraint

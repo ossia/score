@@ -89,12 +89,12 @@ void ClearConstraint::redo() const
     }
 }
 
-void ClearConstraint::serializeImpl(QDataStream& s) const
+void ClearConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_serializedRackes << m_serializedProcesses << m_rackMappings;
 }
 
-void ClearConstraint::deserializeImpl(QDataStream& s)
+void ClearConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_serializedRackes >> m_serializedProcesses >> m_rackMappings;
 }
