@@ -31,12 +31,12 @@ void AddSlotToRack::redo() const
                                &rack});
 }
 
-void AddSlotToRack::serializeImpl(QDataStream& s) const
+void AddSlotToRack::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_createdSlotId;
 }
 
-void AddSlotToRack::deserializeImpl(QDataStream& s)
+void AddSlotToRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_createdSlotId;
 }

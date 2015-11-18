@@ -36,14 +36,14 @@ void UpdateDeviceSettings::redo() const
     devplug.updateProxy.updateDevice(m_oldParameters.name, m_newParameters);
 }
 
-void UpdateDeviceSettings::serializeImpl(QDataStream& d) const
+void UpdateDeviceSettings::serializeImpl(DataStreamInput& d) const
 {
     d << m_devicesModel
       << m_oldParameters
       << m_newParameters;
 }
 
-void UpdateDeviceSettings::deserializeImpl(QDataStream& d)
+void UpdateDeviceSettings::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_devicesModel
       >> m_oldParameters

@@ -41,12 +41,12 @@ void ReplaceDevice::redo() const
     explorer.addDevice(m_deviceNode);
 }
 
-void ReplaceDevice::serializeImpl(QDataStream& d) const
+void ReplaceDevice::serializeImpl(DataStreamInput& d) const
 {
     d << m_deviceTree << m_deviceIndex << m_deviceNode << m_savedNode;
 }
 
-void ReplaceDevice::deserializeImpl(QDataStream& d)
+void ReplaceDevice::deserializeImpl(DataStreamOutput& d)
 {
     d >> m_deviceTree >> m_deviceIndex >> m_deviceNode >> m_savedNode;
 }

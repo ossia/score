@@ -54,12 +54,12 @@ namespace Scenario
                 }
 
             protected:
-                void serializeImpl(QDataStream& s) const override
+                void serializeImpl(DataStreamInput& s) const override
                 {
                     s << m_path << m_oldColor << m_newColor;
                 }
 
-                void deserializeImpl(QDataStream& s) override
+                void deserializeImpl(DataStreamOutput& s) override
                 {
                     s >> m_path >> m_oldColor >> m_newColor;
                 }

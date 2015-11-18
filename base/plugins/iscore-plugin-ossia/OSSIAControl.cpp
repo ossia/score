@@ -25,6 +25,7 @@
 #include <TTFoundationAPI.h>
 #include <TTModular.h>
 #endif
+#include <DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -70,6 +71,8 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
                     this, &OSSIAControl::on_stop);
         }
     }
+
+    ctrl.pluginActions().push_back(new PlayContextMenu{&ctrl});
 
     con(iscore::Application::instance(), &iscore::Application::autoplay,
         this, [&] () { on_play(true); });

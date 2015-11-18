@@ -16,12 +16,12 @@ void SetLooping::redo() const
     m_path.find().setLooping(m_looping);
 }
 
-void SetLooping::serializeImpl(QDataStream& s) const
+void SetLooping::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_looping;
 }
 
-void SetLooping::deserializeImpl(QDataStream& s)
+void SetLooping::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_looping;
 }

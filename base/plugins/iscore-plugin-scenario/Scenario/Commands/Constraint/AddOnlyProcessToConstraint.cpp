@@ -47,12 +47,12 @@ void AddOnlyProcessToConstraint::redo() const
     constraint.processes.add(proc);
 }
 
-void AddOnlyProcessToConstraint::serializeImpl(QDataStream& s) const
+void AddOnlyProcessToConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_processName << m_createdProcessId;
 }
 
-void AddOnlyProcessToConstraint::deserializeImpl(QDataStream& s)
+void AddOnlyProcessToConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_processName >> m_createdProcessId;
 }

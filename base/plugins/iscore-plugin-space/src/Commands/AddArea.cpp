@@ -74,12 +74,12 @@ void AddArea::redo() const
     proc.addArea(ar);
 }
 
-void AddArea::serializeImpl(QDataStream &s) const
+void AddArea::serializeImpl(DataStreamInput &s) const
 {
     s << m_path << m_createdAreaId << m_areaType << m_areaFormula << m_dimensionToVarMap << m_symbolToAddressMap;
 }
 
-void AddArea::deserializeImpl(QDataStream &s)
+void AddArea::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_path >> m_createdAreaId >> m_areaType >> m_areaFormula >> m_dimensionToVarMap >> m_symbolToAddressMap;
 }

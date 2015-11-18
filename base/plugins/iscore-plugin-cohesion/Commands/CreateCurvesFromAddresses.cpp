@@ -56,12 +56,12 @@ void CreateCurvesFromAddresses::redo() const
     }
 }
 
-void CreateCurvesFromAddresses::serializeImpl(QDataStream& s) const
+void CreateCurvesFromAddresses::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_addresses << m_serializedCommands;
 }
 
-void CreateCurvesFromAddresses::deserializeImpl(QDataStream& s)
+void CreateCurvesFromAddresses::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_addresses >> m_serializedCommands;
 }

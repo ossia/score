@@ -162,12 +162,12 @@ void CreateSequence::redo() const
         m_interpolations.redo();
 }
 
-void CreateSequence::serializeImpl(QDataStream& s) const
+void CreateSequence::serializeImpl(DataStreamInput& s) const
 {
     s << m_command.serialize() << m_interpolations.serialize() << m_stateData;
 }
 
-void CreateSequence::deserializeImpl(QDataStream& s)
+void CreateSequence::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray command, interp;
     s >> command >> interp >> m_stateData;

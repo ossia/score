@@ -1,5 +1,6 @@
 #pragma once
 #include <QList>
+#include <vector>
 
 namespace iscore
 {

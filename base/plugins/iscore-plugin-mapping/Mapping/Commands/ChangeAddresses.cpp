@@ -60,12 +60,12 @@ void ChangeSourceAddress::redo() const
     mapping.setSourceAddress(m_new.address);
 }
 
-void ChangeSourceAddress::serializeImpl(QDataStream & s) const
+void ChangeSourceAddress::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_old << m_new;
 }
 
-void ChangeSourceAddress::deserializeImpl(QDataStream & s)
+void ChangeSourceAddress::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_old >> m_new;
 }
@@ -130,12 +130,12 @@ void ChangeTargetAddress::redo() const
     mapping.setTargetAddress(m_new.address);
 }
 
-void ChangeTargetAddress::serializeImpl(QDataStream & s) const
+void ChangeTargetAddress::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_old << m_new;
 }
 
-void ChangeTargetAddress::deserializeImpl(QDataStream & s)
+void ChangeTargetAddress::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_old >> m_new;
 }

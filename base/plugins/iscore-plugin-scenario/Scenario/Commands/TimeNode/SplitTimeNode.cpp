@@ -67,12 +67,12 @@ void SplitTimeNode::redo() const
     updateTimeNodeExtent(tn.id(), scenar);
 }
 
-void SplitTimeNode::serializeImpl(QDataStream & s) const
+void SplitTimeNode::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_originalTimeNodeId << m_eventsInNewTimeNode << m_newTimeNodeId ;
 }
 
-void SplitTimeNode::deserializeImpl(QDataStream & s)
+void SplitTimeNode::deserializeImpl(DataStreamOutput & s)
 {
-    s >> m_path >> m_originalTimeNodeId >> m_eventsInNewTimeNode << m_newTimeNodeId ;
+    s >> m_path >> m_originalTimeNodeId >> m_eventsInNewTimeNode >> m_newTimeNodeId ;
 }

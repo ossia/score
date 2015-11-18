@@ -32,12 +32,12 @@ const Path<ScenarioModel>&MoveEventOnCreationMeta::path() const
     return m_moveEventImplementation->path();
 }
 
-void MoveEventOnCreationMeta::serializeImpl(QDataStream& qDataStream) const
+void MoveEventOnCreationMeta::serializeImpl(DataStreamInput& qDataStream) const
 {
     qDataStream << m_moveEventImplementation->serialize();
 }
 
-void MoveEventOnCreationMeta::deserializeImpl(QDataStream& qDataStream)
+void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 {
     QByteArray cmdData;
 

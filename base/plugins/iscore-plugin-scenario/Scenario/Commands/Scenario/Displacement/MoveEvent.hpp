@@ -138,7 +138,7 @@ class MoveEvent final : public SerializableMoveEvent
         { return m_path; }
 
     protected:
-        void serializeImpl(QDataStream& s) const override
+        void serializeImpl(DataStreamInput& s) const override
         {
             s << m_savedElementsProperties
               << m_path
@@ -147,7 +147,7 @@ class MoveEvent final : public SerializableMoveEvent
               << (int)m_mode;
         }
 
-        void deserializeImpl(QDataStream& s) override
+        void deserializeImpl(DataStreamOutput& s) override
         {
             // TODO how is saved DisplacementPolicy ?
             int mode;

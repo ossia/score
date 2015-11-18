@@ -37,12 +37,12 @@ void InsertContentInState::redo() const
     state.messages() = m_newNode;
 }
 
-void InsertContentInState::serializeImpl(QDataStream& s) const
+void InsertContentInState::serializeImpl(DataStreamInput& s) const
 {
     s << m_oldNode << m_newNode << m_state;
 }
 
-void InsertContentInState::deserializeImpl(QDataStream& s)
+void InsertContentInState::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_oldNode >> m_newNode >> m_state;
 }

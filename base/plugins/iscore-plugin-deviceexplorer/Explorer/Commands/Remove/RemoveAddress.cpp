@@ -34,14 +34,14 @@ void RemoveAddress::redo() const
                 m_savedNode.get<iscore::AddressSettings>());
 }
 
-void RemoveAddress::serializeImpl(QDataStream &s) const
+void RemoveAddress::serializeImpl(DataStreamInput &s) const
 {
     s << m_devicesModel
       << m_nodePath
       << m_savedNode;
 }
 
-void RemoveAddress::deserializeImpl(QDataStream &s)
+void RemoveAddress::deserializeImpl(DataStreamOutput &s)
 {
     s >> m_devicesModel
       >> m_nodePath

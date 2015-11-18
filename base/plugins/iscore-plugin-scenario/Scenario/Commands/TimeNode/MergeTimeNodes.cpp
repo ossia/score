@@ -82,12 +82,12 @@ void MergeTimeNodes::redo() const
     */
 }
 
-void MergeTimeNodes::serializeImpl(QDataStream & s) const
+void MergeTimeNodes::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_aimedTimeNodeId << m_movingTimeNodeId << m_serializedTimeNode;
 }
 
-void MergeTimeNodes::deserializeImpl(QDataStream & s)
+void MergeTimeNodes::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_aimedTimeNodeId >> m_movingTimeNodeId >> m_serializedTimeNode;
 }

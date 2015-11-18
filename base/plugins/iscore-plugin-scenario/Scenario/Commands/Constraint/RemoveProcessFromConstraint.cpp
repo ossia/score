@@ -72,12 +72,12 @@ void RemoveProcessFromConstraint::redo() const
     // The view models will be deleted accordingly.
 }
 
-void RemoveProcessFromConstraint::serializeImpl(QDataStream& s) const
+void RemoveProcessFromConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_processId << m_serializedProcessData << m_serializedViewModels;
 }
 
-void RemoveProcessFromConstraint::deserializeImpl(QDataStream& s)
+void RemoveProcessFromConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_processId >> m_serializedProcessData >> m_serializedViewModels;
 }

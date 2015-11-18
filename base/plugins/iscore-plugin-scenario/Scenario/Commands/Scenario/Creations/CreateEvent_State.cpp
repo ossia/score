@@ -58,7 +58,7 @@ void CreateEvent_State::redo() const
     m_command.redo();
 }
 
-void CreateEvent_State::serializeImpl(QDataStream& s) const
+void CreateEvent_State::serializeImpl(DataStreamInput& s) const
 {
     s << m_newEvent
       << m_createdName
@@ -66,7 +66,7 @@ void CreateEvent_State::serializeImpl(QDataStream& s) const
       << m_timeNode;
 }
 
-void CreateEvent_State::deserializeImpl(QDataStream& s)
+void CreateEvent_State::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray b;
     s >> m_newEvent

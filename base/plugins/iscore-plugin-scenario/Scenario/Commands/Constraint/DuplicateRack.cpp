@@ -35,12 +35,12 @@ void DuplicateRack::redo() const
                                     &constraint});
 }
 
-void DuplicateRack::serializeImpl(QDataStream& s) const
+void DuplicateRack::serializeImpl(DataStreamInput& s) const
 {
     s << m_rackPath << m_newRackId;
 }
 
-void DuplicateRack::deserializeImpl(QDataStream& s)
+void DuplicateRack::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_rackPath >> m_newRackId;
 }

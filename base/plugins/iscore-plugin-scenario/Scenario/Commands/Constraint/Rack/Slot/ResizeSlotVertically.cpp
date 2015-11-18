@@ -29,13 +29,13 @@ void ResizeSlotVertically::redo() const
 
 
 
-void ResizeSlotVertically::serializeImpl(QDataStream& s) const
+void ResizeSlotVertically::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_originalSize << m_newSize;
 }
 
 // Would be better in a ctor ?
-void ResizeSlotVertically::deserializeImpl(QDataStream& s)
+void ResizeSlotVertically::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_originalSize >> m_newSize;
 }

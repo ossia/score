@@ -45,12 +45,12 @@ void AddRackToConstraint::redo() const
     }
 }
 
-void AddRackToConstraint::serializeImpl(QDataStream& s) const
+void AddRackToConstraint::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_createdRackId;
 }
 
-void AddRackToConstraint::deserializeImpl(QDataStream& s)
+void AddRackToConstraint::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_createdRackId;
 }

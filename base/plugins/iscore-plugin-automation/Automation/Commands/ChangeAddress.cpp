@@ -59,12 +59,12 @@ void ChangeAddress::redo() const
     autom.setAddress(m_new.address);
 }
 
-void ChangeAddress::serializeImpl(QDataStream & s) const
+void ChangeAddress::serializeImpl(DataStreamInput & s) const
 {
     s << m_path << m_old << m_new;
 }
 
-void ChangeAddress::deserializeImpl(QDataStream & s)
+void ChangeAddress::deserializeImpl(DataStreamOutput & s)
 {
     s >> m_path >> m_old >> m_new;
 }

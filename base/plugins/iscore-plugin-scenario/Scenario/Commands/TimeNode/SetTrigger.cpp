@@ -38,12 +38,12 @@ void SetTrigger::redo() const
     tn.trigger()->setExpression(m_trigger);
 }
 
-void SetTrigger::serializeImpl(QDataStream& s) const
+void SetTrigger::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_trigger << m_previousTrigger;
 }
 
-void SetTrigger::deserializeImpl(QDataStream& s)
+void SetTrigger::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_trigger >> m_previousTrigger;
 }

@@ -81,7 +81,7 @@ void CreateCurveFromStates::redo() const
         cmd.redo();
 }
 
-void CreateCurveFromStates::serializeImpl(QDataStream& s) const
+void CreateCurveFromStates::serializeImpl(DataStreamInput& s) const
 {
     s << m_addProcessCmd.serialize();
     s << (int)m_slotsCmd.size();
@@ -92,7 +92,7 @@ void CreateCurveFromStates::serializeImpl(QDataStream& s) const
     s << m_address << m_start << m_end << m_min << m_max;
 }
 
-void CreateCurveFromStates::deserializeImpl(QDataStream& s)
+void CreateCurveFromStates::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray a;
     s >> a;

@@ -37,12 +37,12 @@ void RemoveLayerModelFromSlot::redo() const
     slot.layers.remove(m_layerId);
 }
 
-void RemoveLayerModelFromSlot::serializeImpl(QDataStream& s) const
+void RemoveLayerModelFromSlot::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_layerId << m_serializedLayerData;
 }
 
-void RemoveLayerModelFromSlot::deserializeImpl(QDataStream& s)
+void RemoveLayerModelFromSlot::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_layerId >> m_serializedLayerData;
 }

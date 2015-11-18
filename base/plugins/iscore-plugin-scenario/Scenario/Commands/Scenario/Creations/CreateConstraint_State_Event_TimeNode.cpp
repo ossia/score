@@ -60,7 +60,7 @@ void CreateConstraint_State_Event_TimeNode::redo() const
     m_command.redo();
 }
 
-void CreateConstraint_State_Event_TimeNode::serializeImpl(QDataStream& s) const
+void CreateConstraint_State_Event_TimeNode::serializeImpl(DataStreamInput& s) const
 {
     s << m_newTimeNode
       << m_createdName
@@ -68,7 +68,7 @@ void CreateConstraint_State_Event_TimeNode::serializeImpl(QDataStream& s) const
       << m_date;
 }
 
-void CreateConstraint_State_Event_TimeNode::deserializeImpl(QDataStream& s)
+void CreateConstraint_State_Event_TimeNode::deserializeImpl(DataStreamOutput& s)
 {
     QByteArray b;
     s >> m_newTimeNode

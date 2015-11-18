@@ -24,12 +24,12 @@ void CreateGroup::redo() const
     mgr.addGroup(new Group{m_name, m_newGroupId, &mgr});
 }
 
-void CreateGroup::serializeImpl(QDataStream& s) const
+void CreateGroup::serializeImpl(DataStreamInput& s) const
 {
     s << m_path << m_name << m_newGroupId;
 }
 
-void CreateGroup::deserializeImpl(QDataStream& s)
+void CreateGroup::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_path >> m_name >> m_newGroupId;
 }

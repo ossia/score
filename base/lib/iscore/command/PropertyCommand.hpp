@@ -42,8 +42,8 @@ class PropertyCommand : public SerializableCommand
         }
 
     protected:
-        void serializeImpl(QDataStream &) const final override;
-        void deserializeImpl(QDataStream &) final override;
+        void serializeImpl(DataStreamInput &) const final override;
+        void deserializeImpl(DataStreamOutput &) final override;
 
     private:
         ObjectPath m_path;
