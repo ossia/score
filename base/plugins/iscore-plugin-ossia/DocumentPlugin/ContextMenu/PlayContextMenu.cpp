@@ -85,22 +85,6 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
     });
 
     m_playFromHere = new QAction{tr("Play from here"), this};
-    connect(m_playFromHere, &QAction::triggered,
-            [=] ()
-    {
-//        auto baseScenar = parent->currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
-        auto t = m_playFromHere->data().value<TimeValue>();
-        auto doc = parent->currentDocument();
-
-        auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
-        plugmodel->reload(doc->model());
-
-        auto& cstr = *plugmodel->baseScenario()->baseConstraint();
-
-        cstr.recreate();
-        cstr.play(t);
-
-    });
 }
 
 void PlayContextMenu::fillMenuBar(iscore::MenubarManager *menu)

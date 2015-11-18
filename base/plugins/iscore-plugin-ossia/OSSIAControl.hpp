@@ -1,6 +1,9 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Process/TimeValue.hpp>
+
 namespace OSSIA
 {
     class Device;
@@ -34,7 +37,7 @@ class OSSIAControl final : public iscore::PluginControlInterface
         { return m_localDevice; }
 
     private:
-        void on_play(bool);
+        void on_play(bool, ::TimeValue t = ::TimeValue::zero() );
         void on_stop();
 
         void setupOSSIACallbacks();
