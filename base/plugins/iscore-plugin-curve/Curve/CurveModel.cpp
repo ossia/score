@@ -276,11 +276,13 @@ void CurveModel::clear()
 
     auto segs = m_segments;
     m_segments.clear();
-    qDeleteAll(segs.get());
+    for(auto& seg : segs)
+        seg.deleteLater();
 
     auto pts = m_points;
     m_points.clear();
-    qDeleteAll(pts);
+    for(auto pt : pts)
+        pt->deleteLater();
 }
 
 

@@ -10,7 +10,7 @@
 
 InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
         const QString& name,
-        const QObject& model,
+        const IdentifiedObjectAbstract& model,
         QWidget* parent) const
 {
     auto& doc = *iscore::IDocument::documentFromObject(model);

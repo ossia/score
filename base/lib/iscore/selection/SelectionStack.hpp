@@ -40,7 +40,7 @@ class SelectionStack final : public QObject
         void currentSelectionChanged(const Selection&);
 
     private slots:
-        void prune(QObject* p);
+        void prune(IdentifiedObjectAbstract* p);
 
     private:
         // Select new objects

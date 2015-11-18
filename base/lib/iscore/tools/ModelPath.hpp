@@ -1,6 +1,7 @@
 #pragma once
 #include <QDataStream>
 #include <iscore/document/DocumentInterface.hpp>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 
 template<typename T, typename U>
 struct in_relationship

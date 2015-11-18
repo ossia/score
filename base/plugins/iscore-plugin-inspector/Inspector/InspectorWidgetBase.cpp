@@ -8,7 +8,7 @@
 #include <QScrollArea>
 
 InspectorWidgetBase::InspectorWidgetBase(
-        const QObject& inspectedObj,
+        const IdentifiedObjectAbstract& inspectedObj,
         iscore::Document& doc,
         QWidget* parent) :
     QWidget(parent),
@@ -89,7 +89,7 @@ void InspectorWidgetBase::addHeader(QWidget* header)
     m_layout->insertWidget(0, header);
 }
 
-const QObject& InspectorWidgetBase::inspectedObject() const
+const IdentifiedObjectAbstract& InspectorWidgetBase::inspectedObject() const
 {
     return m_inspectedObject;
 }

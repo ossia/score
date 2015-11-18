@@ -1,16 +1,14 @@
 #pragma once
-#include <QObject>
 #include <State/Message.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
 
-// TODO rename me in ProcessState
-class ProcessStateDataInterface : public QObject
+class ProcessStateDataInterface : public IdentifiedObject<ProcessStateDataInterface>
 {
         Q_OBJECT
     public:
         ProcessStateDataInterface(Process& model, QObject* parent):
-            QObject{parent},
+            IdentifiedObject{Id<ProcessStateDataInterface>{}, "", parent},
             m_model{model}
         {
         }

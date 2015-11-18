@@ -1,4 +1,5 @@
 #include "SelectionStack.hpp"
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <algorithm>
 using namespace iscore;
 
@@ -37,9 +38,9 @@ void SelectionStack::push(const Selection& selection)
             if(*it) ++it;
             else it = s.erase(it);
         }
-        for(const QObject* obj : s)
+        for(const IdentifiedObjectAbstract* obj : s)
         {
-            connect(obj,  &QObject::destroyed,
+            connect(obj,  &IdentifiedObjectAbstract::identified_object_destroyed,
                     this, &SelectionStack::prune);
         }
         m_unselectable.push(s);
@@ -78,7 +79,7 @@ Selection SelectionStack::currentSelection() const
     return canUnselect()? m_unselectable.top() : Selection{};
 }
 
-void SelectionStack::prune(QObject* p)
+void SelectionStack::prune(IdentifiedObjectAbstract* p)
 {
     for(Selection& sel : m_unselectable)
     { // OPTIMIZEME should be removeOne
@@ -94,7 +95,9 @@ void SelectionStack::prune(QObject* p)
                 it = sel.erase(it);
             }
             else
+            {
                 ++it;
+            }
         }
     }
 
@@ -108,7 +111,9 @@ void SelectionStack::prune(QObject* p)
                 it = sel.erase(it);
             }
             else
+            {
                 ++it;
+            }
         }
     }
 

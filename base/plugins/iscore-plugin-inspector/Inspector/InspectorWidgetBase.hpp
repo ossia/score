@@ -36,7 +36,7 @@ class InspectorWidgetBase : public QWidget
          * \param parent The parent Widget
          */
         explicit InspectorWidgetBase(
-                const QObject&inspectedObj,
+                const IdentifiedObjectAbstract&inspectedObj,
                 iscore::Document& doc,
                 QWidget* parent);
         ~InspectorWidgetBase();
@@ -53,8 +53,8 @@ class InspectorWidgetBase : public QWidget
         void addHeader(QWidget* header);
 
         // Manage Values
-        const QObject& inspectedObject() const;
-        const QObject* inspectedObject_addr() const
+        const IdentifiedObjectAbstract& inspectedObject() const;
+        const IdentifiedObjectAbstract* inspectedObject_addr() const
         { return &inspectedObject(); }
 
         // getters
@@ -70,7 +70,7 @@ class InspectorWidgetBase : public QWidget
         { return *m_selectionDispatcher.get(); }
 
     private:
-        const QObject& m_inspectedObject;
+        const IdentifiedObjectAbstract& m_inspectedObject;
         iscore::Document& m_document;
         CommandDispatcher<>* m_commandDispatcher{};
         std::unique_ptr<iscore::SelectionDispatcher> m_selectionDispatcher;

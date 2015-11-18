@@ -30,7 +30,7 @@ class InspectorWidgetList final : public iscore::FactoryListInterface
 
         InspectorWidgetBase* makeInspectorWidget(
                 const QString& name,
-                const QObject& model,
+                const IdentifiedObjectAbstract& model,
                 QWidget* parent) const;
 
     private:

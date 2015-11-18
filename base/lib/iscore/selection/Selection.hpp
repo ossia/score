@@ -1,13 +1,13 @@
 #pragma once
-#include <QObject>
+#include <iscore/tools/IdentifiedObjectAbstract.hpp>
 #include <QPointer>
 
 /**
  * A selection is a set of objects.
  */
-class Selection final : private QList<QPointer<const QObject>>
+class Selection final : private QList<QPointer<const IdentifiedObjectAbstract>>
 {
-        using base_type = QList<QPointer<const QObject>>;
+        using base_type = QList<QPointer<const IdentifiedObjectAbstract>>;
     public:
         using base_type::base_type;
         using base_type::begin;
@@ -22,7 +22,7 @@ class Selection final : private QList<QPointer<const QObject>>
         using base_type::contains;
         using base_type::removeAll;
 
-        static Selection fromList(const QList<const QObject*> & other)
+        static Selection fromList(const QList<const IdentifiedObjectAbstract*> & other)
         {
             Selection s;
             for(auto elt : other)
@@ -48,9 +48,9 @@ class Selection final : private QList<QPointer<const QObject>>
             return base_type::operator !=(static_cast<const base_type&>(other));
         }
 
-        QList<const QObject*> toList() const
+        QList<const IdentifiedObjectAbstract*> toList() const
         {
-            QList<const QObject*> l;
+            QList<const IdentifiedObjectAbstract*> l;
             for(const auto& elt : *this)
                 l.push_back(elt);
             return l;
