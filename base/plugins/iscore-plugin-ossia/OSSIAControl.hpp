@@ -30,7 +30,6 @@ class OSSIAControl final : public iscore::PluginControlInterface
         void on_loadedDocument(iscore::Document* doc) override;
 
         OSSIAConstraintElement& baseConstraint() const;
-        OSSIABaseScenarioElement& baseScenario() const;
         std::shared_ptr<OSSIA::Device> localDevice() const
         { return m_localDevice; }
 

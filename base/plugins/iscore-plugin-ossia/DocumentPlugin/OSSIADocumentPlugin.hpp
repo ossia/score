@@ -13,6 +13,7 @@ class OSSIADocumentPlugin final : public iscore::DocumentDelegatePluginModel
         OSSIADocumentPlugin(iscore::Document& doc, QObject* parent);
 
         void reload(iscore::DocumentModel& doc);
+        void clear();
 
         OSSIABaseScenarioElement* baseScenario() const;
 

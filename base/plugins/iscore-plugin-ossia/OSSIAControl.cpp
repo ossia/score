@@ -97,11 +97,6 @@ OSSIAConstraintElement &OSSIAControl::baseConstraint() const
     return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
-OSSIABaseScenarioElement&OSSIAControl::baseScenario() const
-{
-    return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
-}
-
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 {
 }
@@ -122,27 +117,27 @@ void OSSIAControl::on_newDocument(iscore::Document* doc)
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 {
-    if(auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>())
-    {
-        plugmodel->reload(doc->model());
-    }
-    else
-    {
-        on_newDocument(doc);
-    }
+    on_newDocument(doc);
 }
 
 void OSSIAControl::on_play(bool b)
 {
     if(auto doc = currentDocument())
     {
-        auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
         if(b)
         {
             if(m_playing)
+            {
+                auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
                 cstr.OSSIAConstraint()->resume();
+            }
             else
             {
+                auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+                plugmodel->reload(doc->model());
+
+                auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
                 cstr.recreate();
                 cstr.play();
 
@@ -158,6 +153,7 @@ void OSSIAControl::on_play(bool b)
         }
         else
         {
+            auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
             cstr.OSSIAConstraint()->pause();
         }
     }
@@ -167,10 +163,16 @@ void OSSIAControl::on_stop()
 {
     if(auto doc = currentDocument())
     {
-        auto& cstr = baseConstraint();
-        cstr.stop();
-        cstr.clear();
-        m_playing = false;
+
+        auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+        if(plugmodel && plugmodel->baseScenario())
+        {
+            auto& cstr = baseConstraint();
+            cstr.stop();
+            cstr.clear();
+            m_playing = false;
+            plugmodel->clear();
+        }
 
         // If we can we resume listening
         auto explorer = try_deviceExplorerFromObject(*doc);

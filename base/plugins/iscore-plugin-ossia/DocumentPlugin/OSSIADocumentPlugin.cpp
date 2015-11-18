@@ -20,13 +20,19 @@
 OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::Document& doc, QObject* parent):
     iscore::DocumentDelegatePluginModel{doc, "OSSIADocumentPlugin", parent}
 {
-    reload(doc.model());
+    //reload(doc.model());
 }
 
 void OSSIADocumentPlugin::reload(iscore::DocumentModel &doc)
 {
     auto& baseElement = static_cast<BaseElementModel&>(*doc.modelDelegate()).baseScenario();
     m_base = new OSSIABaseScenarioElement{baseElement, this};
+}
+
+void OSSIADocumentPlugin::clear()
+{
+    delete m_base;
+    m_base = nullptr;
 }
 
 OSSIABaseScenarioElement *OSSIADocumentPlugin::baseScenario() const
