@@ -16,7 +16,7 @@ MessageTreeView::MessageTreeView(
         const StateModel& model,
         QWidget* parent):
     QTreeView{parent},
-    m_model{const_cast<StateModel*>(&model)}, // TODO sorry o lord for I have sinned
+    m_model{model}, // TODO sorry o lord for I have sinned
     m_dispatcher{iscore::IDocument::commandStack(model)}
 {
     setAllColumnsShowFocus(true);
@@ -32,7 +32,7 @@ MessageTreeView::MessageTreeView(
     setDragDropOverwriteMode(false);
     setUniformRowHeights(true);
 
-    this->setModel(&m_model->messages());
+    this->setModel(&m_model.messages());
 
     m_removeNodesAction = new QAction(tr("Remove Nodes"), this);
     m_removeNodesAction->setShortcut(QKeySequence::Delete);
@@ -42,7 +42,7 @@ MessageTreeView::MessageTreeView(
             this, &MessageTreeView::removeNodes);
 
     expandAll();
-    con(m_model->messages(), &MessageItemModel::modelReset,
+    con(m_model.messages(), &MessageItemModel::modelReset,
         this, &QTreeView::expandAll);
 
     header()->resizeSection((int)MessageItemModel::Column::Name, 300);
@@ -69,7 +69,7 @@ void MessageTreeView::removeNodes()
                       model(),
                       iscore::filterUniqueParents(nodes));
 
-    CommandDispatcher<> dispatcher{iscore::IDocument::commandStack(*m_model)};
+    CommandDispatcher<> dispatcher{iscore::IDocument::documentContext(m_model).commandStack};
     dispatcher.submitCommand(cmd);
 }
 

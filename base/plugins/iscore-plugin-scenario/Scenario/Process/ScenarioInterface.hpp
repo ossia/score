@@ -8,6 +8,7 @@ class StateModel;
 class ScenarioInterface
 {
     public:
+        virtual ~ScenarioInterface();
         virtual ConstraintModel* findConstraint(const Id<ConstraintModel>& constraintId) const = 0;
         virtual EventModel* findEvent(const Id<EventModel>& eventId) const = 0;
         virtual TimeNodeModel* findTimeNode(const Id<TimeNodeModel>& timeNodeId) const = 0;
@@ -21,3 +22,5 @@ class ScenarioInterface
         virtual TimeNodeModel& startTimeNode() const = 0;
         virtual TimeNodeModel& endTimeNode() const = 0;
 };
+
+

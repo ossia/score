@@ -40,12 +40,10 @@
 
 namespace Scenario
 {
-SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
-    ScenarioTool{sm, &sm}
+SelectionAndMoveTool::SelectionAndMoveTool(ToolPalette& sm):
+    ToolBase{sm}
 {
-    this->setObjectName("SelectionAndMoveTool");
-
-    m_state = new ScenarioSelectionState{
+    m_state = new SelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
             m_parentSM,
             m_parentSM.presenter().view(),
@@ -114,7 +112,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
 
 
     /// Slot resize
-    auto resizeSlot = new ResizeSlotState{
+    auto resizeSlot = new ResizeSlotState<ToolPalette>{
             m_parentSM.commandStack(),
             m_parentSM,
             &localSM()};
@@ -127,33 +125,35 @@ SelectionAndMoveTool::SelectionAndMoveTool(ScenarioStateMachine& sm):
     resizeSlot->addTransition(resizeSlot,
                               SIGNAL(finished()),
                               m_state);
+
+    localSM().start();
 }
 
 
-void SelectionAndMoveTool::on_pressed()
+void SelectionAndMoveTool::on_pressed(QPointF scene, Scenario::Point sp)
 {
     using namespace std;
     m_prev = std::chrono::steady_clock::now();
 
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    mapTopItem(itemUnderMouse(scene),
     [&] (const Id<StateModel>& id) // State
     {
-        localSM().postEvent(new ClickOnState_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ClickOnState_Event{id, sp});
         m_nothingPressed = false;
     },
     [&] (const Id<EventModel>& id) // Event
     {
-        localSM().postEvent(new ClickOnEvent_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ClickOnEvent_Event{id, sp});
         m_nothingPressed = false;
     },
     [&] (const Id<TimeNodeModel>& id) // TimeNode
     {
-        localSM().postEvent(new ClickOnTimeNode_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ClickOnTimeNode_Event{id, sp});
         m_nothingPressed = false;
     },
     [&] (const Id<ConstraintModel>& id) // Constraint
     {
-        localSM().postEvent(new ClickOnConstraint_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ClickOnConstraint_Event{id, sp});
         m_nothingPressed = false;
     },
     [&] (const SlotModel& slot) // Slot handle
@@ -168,7 +168,7 @@ void SelectionAndMoveTool::on_pressed()
     });
 }
 
-void SelectionAndMoveTool::on_moved()
+void SelectionAndMoveTool::on_moved(QPointF scene, Scenario::Point sp)
 {
     // TODO same on creation tool
     auto t = std::chrono::steady_clock::now();
@@ -183,25 +183,25 @@ void SelectionAndMoveTool::on_moved()
     }
     else
     {
-        mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+        mapTopItem(itemUnderMouse(scene),
         [&] (const Id<StateModel>& id)
-        { localSM().postEvent(new MoveOnState_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnState_Event{id, sp}); },
         [&] (const Id<EventModel>& id)
-        { localSM().postEvent(new MoveOnEvent_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnEvent_Event{id, sp}); },
         [&] (const Id<TimeNodeModel>& id)
-        { localSM().postEvent(new MoveOnTimeNode_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnTimeNode_Event{id, sp}); },
         [&] (const Id<ConstraintModel>& id)
-        { localSM().postEvent(new MoveOnConstraint_Event{id, m_parentSM.scenarioPoint}); },
+        { localSM().postEvent(new MoveOnConstraint_Event{id, sp}); },
         [&] (const SlotModel& slot) // Slot handle
         { /* do nothing, we aren't in this part but in m_nothingPressed == true part */ },
         [&] ()
-        { localSM().postEvent(new MoveOnNothing_Event{m_parentSM.scenarioPoint});});
+        { localSM().postEvent(new MoveOnNothing_Event{sp});});
     }
 
     m_prev = t;
 }
 
-void SelectionAndMoveTool::on_released()
+void SelectionAndMoveTool::on_released(QPointF scene, Scenario::Point sp)
 {
     if(m_nothingPressed)
     {
@@ -211,7 +211,7 @@ void SelectionAndMoveTool::on_released()
         return;
     }
 
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    mapTopItem(itemUnderMouse(scene),
     [&] (const Id<StateModel>& id) // State
     {
         const auto& elt = m_parentSM.presenter().states().at(id);
@@ -220,7 +220,7 @@ void SelectionAndMoveTool::on_released()
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 
-        localSM().postEvent(new ReleaseOnState_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ReleaseOnState_Event{id, sp});
     },
     [&] (const Id<EventModel>& id) // Event
     {
@@ -230,7 +230,7 @@ void SelectionAndMoveTool::on_released()
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 
-        localSM().postEvent(new ReleaseOnEvent_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ReleaseOnEvent_Event{id, sp});
     },
     [&] (const Id<TimeNodeModel>& id) // TimeNode
     {
@@ -240,7 +240,7 @@ void SelectionAndMoveTool::on_released()
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 
-        localSM().postEvent(new ReleaseOnTimeNode_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ReleaseOnTimeNode_Event{id, sp});
     },
     [&] (const Id<ConstraintModel>& id) // Constraint
     {
@@ -250,7 +250,7 @@ void SelectionAndMoveTool::on_released()
                                                    m_parentSM.model().selectedChildren(),
                                                    m_state->multiSelection()));
 
-        localSM().postEvent(new ReleaseOnConstraint_Event{id, m_parentSM.scenarioPoint});
+        localSM().postEvent(new ReleaseOnConstraint_Event{id, sp});
     },
     [&] (const SlotModel& slot) // Slot handle
     {
@@ -259,7 +259,7 @@ void SelectionAndMoveTool::on_released()
     },
     [&] ()
     {
-        localSM().postEvent(new ReleaseOnNothing_Event{m_parentSM.scenarioPoint}); // end of move
+        localSM().postEvent(new ReleaseOnNothing_Event{sp}); // end of move
     } );
 
 }

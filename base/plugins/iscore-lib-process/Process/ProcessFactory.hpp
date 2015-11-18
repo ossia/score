@@ -5,6 +5,7 @@
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/SettableIdentifier.hpp>
+#include <Process/ProcessFactoryKey.hpp>
 
 #include <Process/TimeValue.hpp>
 class LayerModel;
@@ -13,19 +14,21 @@ class LayerView;
 class LayerPresenter;
 class QGraphicsItem;
 
+
 /**
      * @brief The ProcessFactory class
      *
      * Interface to make processes, like Scenario, Automation...
      */
-class ProcessFactory : public iscore::FactoryInterface
-{
-    public:
-        virtual ~ProcessFactory();
-        static QString factoryName();
 
-        // The process name
-        virtual QString name() const = 0;
+class ProcessFactory :
+        public iscore::GenericFactoryInterface<ProcessFactoryKey>
+{
+        ISCORE_FACTORY_DECL("Process")
+    public:
+            using factory_key_type = ProcessFactoryKey;
+        virtual ~ProcessFactory();
+        virtual QString prettyName() const = 0;
 
         virtual Process* makeModel(
                 const TimeValue& duration,
@@ -51,5 +54,4 @@ class ProcessFactory : public iscore::FactoryInterface
         virtual LayerView* makeLayerView(
                 const LayerModel& view,
                 QGraphicsItem* parent) = 0;
-
 };

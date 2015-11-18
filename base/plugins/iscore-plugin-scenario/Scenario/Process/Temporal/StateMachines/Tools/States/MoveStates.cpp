@@ -4,18 +4,21 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 
 #include <QFinalState>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp>
 
 // TODO a nice refactor is doable here between the three classes.
-MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachine,
+namespace Scenario
+{
+MoveConstraintState::MoveConstraintState(const ToolPalette& stateMachine,
                                          const Path<ScenarioModel>& scenarioPath,
                                          iscore::CommandStack& stack,
                                          iscore::ObjectLocker& locker,
                                          QState* parent):
-    ScenarioStateBase{scenarioPath, parent},
+    StateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     this->setObjectName("MoveConstraintState");
@@ -76,12 +79,12 @@ MoveConstraintState::MoveConstraintState(const ScenarioStateMachine& stateMachin
 }
 
 
-MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
+MoveEventState::MoveEventState(const ToolPalette& stateMachine,
                                const Path<ScenarioModel>& scenarioPath,
                                iscore::CommandStack& stack,
                                iscore::ObjectLocker& locker,
                                QState* parent):
-    ScenarioStateBase{scenarioPath, parent},
+    StateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     this->setObjectName("MoveEventState");
@@ -121,7 +124,7 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
                             Path<ScenarioModel>{m_scenarioPath},
                             evId,
                             currentPoint.date,
-                            stateMachine.expandMode());
+                            stateMachine.editionSettings().expandMode());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -142,12 +145,12 @@ MoveEventState::MoveEventState(const ScenarioStateMachine& stateMachine,
 }
 
 
-MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
+MoveTimeNodeState::MoveTimeNodeState(const ToolPalette &stateMachine,
                                      const Path<ScenarioModel>& scenarioPath,
                                      iscore::CommandStack& stack,
                                      iscore::ObjectLocker& locker,
                                      QState* parent):
-    ScenarioStateBase{scenarioPath, parent},
+    StateBase{scenarioPath, parent},
     m_dispatcher{stack}
 {
     this->setObjectName("MoveTimeNodeState");
@@ -182,14 +185,14 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
             const auto& ev_id = tn.events().first();
             auto date = currentPoint.date;
 
-            if (!stateMachine.isShiftPressed())
+            if (!stateMachine.editionSettings().sequence())
                 date = tn.date();
 
             m_dispatcher.submitCommand(
                             Path<ScenarioModel>{m_scenarioPath},
                             ev_id,
                             date,
-                            stateMachine.expandMode());
+                            stateMachine.editionSettings().expandMode());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -207,4 +210,5 @@ MoveTimeNodeState::MoveTimeNodeState(const ScenarioStateMachine &stateMachine,
     });
 
     setInitialState(mainState);
+}
 }

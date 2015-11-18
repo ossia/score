@@ -1,6 +1,7 @@
 #pragma once
 #include <stdexcept>
-#include <QString>
+#include <iscore/command/SerializableCommand.hpp>
+
 namespace iscore
 {
 /**
@@ -11,8 +12,8 @@ namespace iscore
 class MissingCommandException : public std::runtime_error
 {
     public:
-        MissingCommandException(const QString& control, const QString& command):
-            std::runtime_error{("Could not find " + command + " in " + control).toStdString()}
+        MissingCommandException(const CommandParentFactoryKey& control, const CommandFactoryKey& command):
+            std::runtime_error{("Could not find " + command.toString() + " in " + control.toString())}
         {
 
         }

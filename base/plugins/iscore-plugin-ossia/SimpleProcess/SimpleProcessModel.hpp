@@ -37,10 +37,14 @@ class SimpleProcessModel final : public OSSIAProcessModel
                 const Id<Process>& newId,
                 QObject* newParent) const override;
 
-        static QString staticProcessName() { return "SimpleProcessModel"; }
-        QString processName() const override;
-        QString userFriendlyDescription() const override;
+        QString prettyName() const override;
         QByteArray makeLayerConstructionData() const override;
+
+        const ProcessFactoryKey& key() const override
+        {
+            static const ProcessFactoryKey name{"SimpleProcessModel"};
+            return name;
+        }
 
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;

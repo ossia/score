@@ -1,5 +1,11 @@
 #pragma once
 #include <iscore/command/Command.hpp>
+#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+
+class CommandTag{};
+using CommandFactoryKey = StringKey<CommandTag>;
+class CommandParentTag{};
+using CommandParentFactoryKey = StringKey<CommandParentTag>;
 
 /**
  * This macro is used to specify the common metadata of commands :
@@ -7,19 +13,19 @@
  *  - command name
  *  - command description
  */
-#define ISCORE_SERIALIZABLE_COMMAND_DECL(facName, name, desc) \
+#define ISCORE_COMMAND_DECL(parentNameFun, name, desc) \
     public: \
-        name (): iscore::SerializableCommand{ factoryName() , commandName(), description() } { } \
-        static constexpr const char* factoryName() { return facName; } \
-        static constexpr const char* commandName() { return #name; } \
-        static QString description() { return QObject::tr(desc); }  \
-    static auto static_uid() \
+        name() = default; \
+        virtual const CommandParentFactoryKey& parentKey() const override { return parentNameFun; } \
+        virtual const CommandFactoryKey& key() const override { return static_key(); } \
+        virtual QString description() const override { return QObject::tr(desc); }  \
+    static const CommandFactoryKey& static_key() \
     { \
-        using namespace std; \
-        hash<string> fn; \
-        return fn(std::string(commandName())); \
+        static const CommandFactoryKey var{#name}; \
+        return var; \
     } \
     private:
+
 
 
 namespace iscore
@@ -33,48 +39,18 @@ namespace iscore
 class SerializableCommand : public Command
 {
     public:
+        SerializableCommand() = default;
         ~SerializableCommand();
 
-        const std::string& name() const;
-        const std::string& parentName() const; // Note: factoryName() is the constexpr one.
-        const QString& text() const;
-        void setText(const QString& t);
-
-        SerializableCommand& operator=(const SerializableCommand& other) = default;
-
-        std::size_t uid() const
-        {
-            std::hash<std::string> fn;
-            return fn(this->name());
-        }
+        virtual const CommandParentFactoryKey& parentKey() const = 0;
+        virtual const CommandFactoryKey& key() const = 0;
+        virtual QString description() const = 0;
 
         QByteArray serialize() const;
         void deserialize(const QByteArray&);
 
     protected:
-        template<typename Str1, typename Str2, typename Str3>
-        SerializableCommand(Str1&& parname, Str2&& cmdname, Str3&& text) :
-            m_name {cmdname},
-            m_parentName {parname},
-            m_text{text}
-        {
-        }
-
-
-        template<typename T>
-        SerializableCommand(const T*) :
-            m_name {T::commandName()},
-            m_parentName {T::factoryName()},
-            m_text{T::description()}
-        {
-        }
-
         virtual void serializeImpl(QDataStream&) const = 0;
         virtual void deserializeImpl(QDataStream&) = 0;
-
-    private:
-        std::string m_name;
-        std::string m_parentName;
-        QString m_text;
 };
 }

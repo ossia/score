@@ -21,6 +21,7 @@ class SelectionStack final : public QObject
 
         bool canUnselect() const;
         bool canReselect() const;
+        void clear();
 
 
         // Go to the previous set of selections

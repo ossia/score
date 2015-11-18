@@ -37,8 +37,7 @@ static auto getStrongIdRange2(std::size_t s, const Vector1& existing1, const Vec
 ScenarioPasteElements::ScenarioPasteElements(
         Path<TemporalScenarioLayerModel>&& path,
         const QJsonObject& obj,
-        const ScenarioPoint& pt):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
+        const Scenario::Point& pt):
     m_ts{std::move(path)}
 {
     // We assign new ids WRT the elements of the scenario - these ids can

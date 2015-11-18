@@ -38,7 +38,7 @@ class EventInspectorWidget final : public InspectorWidgetBase
         void modelDateChanged();
 
     private:
-        QVector<QWidget*> m_properties;
+        std::list<QWidget*> m_properties;
 
         std::vector<QWidget*> m_states;
 

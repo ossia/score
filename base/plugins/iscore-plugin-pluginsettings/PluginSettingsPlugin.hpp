@@ -15,5 +15,5 @@ class iscore_plugin_pluginsettings :
         virtual ~iscore_plugin_pluginsettings() = default;
 
         // Settings interface
-        virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
+        iscore::SettingsDelegateFactoryInterface* settings_make() override;
 };

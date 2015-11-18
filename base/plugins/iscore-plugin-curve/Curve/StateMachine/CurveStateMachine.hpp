@@ -1,61 +1,61 @@
 #pragma once
-#include "CurveStateMachineData.hpp"
-#include "CurvePoint.hpp"
+#include <Curve/StateMachine/States/Tools/MoveTool.hpp>
+#include <Curve/StateMachine/States/Tools/SelectionTool.hpp>
+#include <Curve/StateMachine/CurveStateMachineData.hpp>
+#include <Curve/StateMachine/CurvePoint.hpp>
+#include <Curve/StateMachine/CurveEditionSettings.hpp>
+
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <iscore/statemachine/BaseStateMachine.hpp>
-#include <core/command/CommandStack.hpp>
 #include <iscore/locking/ObjectLocker.hpp>
+
+#include <core/command/CommandStack.hpp>
+#include <Process/Tools/ToolPalette.hpp>
+
 class CurvePresenter;
 class QGraphicsScene;
 class CurveModel;
+class CurveView;
+class FocusDispatcher;
 
-namespace Curve {
-    class EditionToolForSelection;
-enum class Tool {
-    Selection, Create, SetSegment, CreatePen, RemovePen
-};
-}
 
-class CurveStateMachine final : public BaseStateMachine
+namespace Curve
+{
+class ToolPalette final : public GraphicsSceneToolPalette
 {
         Q_OBJECT
     public:
-        CurveStateMachine(CurvePresenter& pres, QObject* parent);
+        ToolPalette(LayerContext& f, CurvePresenter& pres);
+
         CurvePresenter& presenter() const;
+        Curve::EditionSettings& editionSettings() const;
+
         const CurveModel& model() const;
 
         iscore::CommandStack& commandStack() const;
         iscore::ObjectLocker& locker() const;
 
-        CurvePoint curvePoint;
-
-        void changeTool(int state);
-        int tool() const;
-
-    signals:
-        void setCreateState();
-        void setSetSegmentState();
-        void setSelectionState();
-
-        void exitState();
+        void on_pressed(QPointF);
+        void on_moved(QPointF);
+        void on_released(QPointF);
+        void on_cancel();
 
     private:
-        void setupPostEvents();
-        void setupStates();
+        Curve::Point ScenePointToCurvePoint(const QPointF& point);
+
         CurvePresenter& m_presenter;
-
-        // Tools
-        QState* m_transitionState{};
-
-        QState* m_selectTool{};
-
-        QState* m_createTool{};
-        //QState* m_moveTool{};
-        QState* m_setSegmentTool{};
-        //Curve::EditionTool* m_editTool{};
-
-        QState* m_createPenTool{};
-        QState* m_removePenTool{};
 
         iscore::CommandStack& m_stack;
         iscore::ObjectLocker& m_locker;
+
+        SelectionAndMoveTool m_selectTool;
+        CreateTool m_createTool;
+        SetSegmentTool m_setSegmentTool;
+
+        ToolPaletteInputDispatcher<
+            Curve::Tool,
+            ToolPalette,
+            LayerContext,
+            CurveView> m_inputDisp;
 };
+}

@@ -8,6 +8,8 @@
 
 #include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <Process/ProcessList.hpp>
 
 CreateCurveFromStates::CreateCurveFromStates(
         Path<ConstraintModel>&& constraint,
@@ -17,30 +19,31 @@ CreateCurveFromStates::CreateCurveFromStates(
         double start,
         double end,
         double min, double max):
-    iscore::SerializableCommand{
-        factoryName(),
-        commandName(),
-        description()},
     m_addProcessCmd{
         std::move(constraint),
         curveId,
-        "Automation"},
+        AutomationProcessMetadata::factoryKey()},
     m_address(address),
     m_start{start},
     m_end{end},
     m_min{min},
     m_max{max}
 {
-    // TODO REFACTORME (grep for UnsafeDynamicCreation)
-    auto vec = m_addProcessCmd.constraintPath().unsafePath().vec();
-    vec.push_back({"Automation", curveId});
-    Path<Process> proc{ObjectPath{std::move(vec)}, Path<Process>::UnsafeDynamicCreation{}};
+    auto proc = m_addProcessCmd.constraintPath().extend(AutomationProcessMetadata::processObjectName(), curveId);
 
     m_slotsCmd.reserve(slotList.size());
 
+    auto fact = context.components.factory<DynamicProcessList>().list().get(AutomationProcessMetadata::factoryKey());
+    ISCORE_ASSERT(fact);
+    auto procData = fact->makeStaticLayerConstructionData();
+
     for(const auto& elt : slotList)
     {
-        m_slotsCmd.emplace_back(Path<SlotModel>(elt.first), elt.second, Path<Process>(proc), "Automation");
+        m_slotsCmd.emplace_back(
+                    Path<SlotModel>(elt.first),
+                    elt.second,
+                    Path<Process>{proc},
+                    procData);
     }
 }
 
@@ -102,7 +105,7 @@ void CreateCurveFromStates::deserializeImpl(QDataStream& s)
     {
         QByteArray b;
         s >> b;
-        m_slotsCmd.at(n).deserialize(b);
+        m_slotsCmd.at(i).deserialize(b);
     }
 
     s >> m_address >> m_start >> m_end >> m_min >> m_max;

@@ -32,7 +32,6 @@
 #include "Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp"
 #include <Device/XML/XMLDeviceLoader.hpp>
 #include "ExplorationWorkerWrapper.hpp"
-#include <Device/Protocol/SingletonProtocolList.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <QMessageBox>
 
@@ -43,8 +42,11 @@
 
 
 
-DeviceExplorerWidget::DeviceExplorerWidget(QWidget* parent)
+DeviceExplorerWidget::DeviceExplorerWidget(
+        const DynamicProtocolList& pl,
+        QWidget* parent)
     : QWidget(parent),
+      m_protocolList{pl},
       m_proxyModel(nullptr),
       m_deviceDialog(nullptr)
 {
@@ -439,7 +441,7 @@ void DeviceExplorerWidget::edit()
     {
         if(! m_deviceDialog)
         {
-            m_deviceDialog = new DeviceEditDialog(this);
+            m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
         }
         auto set = select.get<iscore::DeviceSettings>();
         m_deviceDialog->setSettings(set);
@@ -583,7 +585,7 @@ DeviceExplorerWidget::addDevice()
 {
     if(! m_deviceDialog)
     {
-        m_deviceDialog = new DeviceEditDialog(this);
+        m_deviceDialog = new DeviceEditDialog{m_protocolList, this};
     }
 
     QDialog::DialogCode code = static_cast<QDialog::DialogCode>(m_deviceDialog->exec());

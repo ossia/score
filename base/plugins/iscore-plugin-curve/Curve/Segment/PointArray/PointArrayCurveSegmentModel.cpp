@@ -1,4 +1,5 @@
 #include "PointArrayCurveSegmentModel.hpp"
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 #include <iscore/serialization/VisitorCommon.hpp>
 #include "psimpl.h"
 
@@ -32,9 +33,10 @@ CurveSegmentModel*PointArrayCurveSegmentModel::clone(
     return cs;
 }
 
-QString PointArrayCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& PointArrayCurveSegmentModel::key() const
 {
-    return "PointArray";
+    static const CurveSegmentFactoryKey name{"PointArray"};
+    return name;
 }
 
 void PointArrayCurveSegmentModel::serialize(const VisitorVariant& vis) const
@@ -119,7 +121,7 @@ void PointArrayCurveSegmentModel::addPoint(double x, double y)
 
 void PointArrayCurveSegmentModel::simplify()
 {
-    double tolerance = (max_y - min_y) / 8.;
+    double tolerance = (max_y - min_y) / 10.;
 
     std::vector <double> orig;
     orig.reserve(m_points.size() * 2);
@@ -183,7 +185,7 @@ std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() co
     vec.emplace_back(Id<CurveSegmentModel>{0},
                      pts[0], pts[1],
                      Id<CurveSegmentModel>{}, Id<CurveSegmentModel>{},
-                     QString{"Linear"}, QVariant::fromValue(LinearCurveSegmentData{}));
+                     LinearCurveSegmentData::key(), QVariant::fromValue(LinearCurveSegmentData{}));
 
     int size = pts.size();
     for(int i = 1; i < size - 1; i++)
@@ -193,7 +195,7 @@ std::vector<CurveSegmentData> PointArrayCurveSegmentModel::toLinearSegments() co
         vec.emplace_back(Id<CurveSegmentModel>{i},
                          pts[i], pts[i+1],
                          Id<CurveSegmentModel>{i-1}, Id<CurveSegmentModel>{},
-                         QString{"Linear"}, QVariant::fromValue(LinearCurveSegmentData()));
+                         LinearCurveSegmentData::key(), QVariant::fromValue(LinearCurveSegmentData()));
     }
 
     return vec;

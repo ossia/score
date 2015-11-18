@@ -14,7 +14,7 @@ namespace DeviceExplorer
     {
         class AddAddress final : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "AddAddress")
+            ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "AddAddress")
             public:
                 AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
                            const iscore::NodePath &nodePath,
@@ -27,8 +27,8 @@ namespace DeviceExplorer
                 int createdNodeIndex() const;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<DeviceDocumentPlugin> m_devicesModel;

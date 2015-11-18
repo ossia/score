@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
+#include <Process/ProcessFactoryKey.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
@@ -50,10 +51,10 @@ class Process: public IdentifiedObject<Process>
                 const Id<Process>& newId,
                 QObject* newParent) const = 0;
 
-        virtual QString processName() const = 0; // Needed for serialization.
+        virtual const ProcessFactoryKey& key() const = 0;
 
         // A user-friendly text to show to the users
-        virtual QString userFriendlyDescription() const = 0;
+        virtual QString prettyName() const = 0;
 
         //// View models interface
         // For deterministic operation in a command,
@@ -86,7 +87,7 @@ class Process: public IdentifiedObject<Process>
                 const LayerModel& source,
                 QObject* parent);
         // Do a copy.
-        QVector<LayerModel*> layers() const;
+        std::vector<LayerModel*> layers() const;
 
         //// Features of a process
         /// Duration
@@ -160,7 +161,7 @@ class Process: public IdentifiedObject<Process>
 
         // Ownership : the parent is the Slot or another widget, not the process.
         // A process view is never displayed alone, it is always in a view, which is in a rack.
-        QVector<LayerModel*> m_layers;
+        std::vector<LayerModel*> m_layers;
         TimeValue m_duration;
 };
 

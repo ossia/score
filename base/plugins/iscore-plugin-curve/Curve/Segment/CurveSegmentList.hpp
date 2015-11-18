@@ -1,25 +1,11 @@
 #pragma once
-#include "CurveSegmentFactory.hpp"
+#include <Curve/Segment/CurveSegmentFactory.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
-// TODO Template this
-class CurveSegmentList
+using CurveSegmentList = GenericFactoryMap_T<CurveSegmentFactory, CurveSegmentFactoryKey>;
+
+class DynamicCurveSegmentList final : public iscore::FactoryListInterface
 {
-    public:
-        CurveSegmentList() = default;
-        CurveSegmentList(const CurveSegmentList&) = delete;
-        CurveSegmentFactory* get(const QString& name) const;
-        void registerFactory(CurveSegmentFactory* fact);
-
-        QStringList nameList() const;
-
-    private:
-        QVector<CurveSegmentFactory*> factories;
-};
-
-
-class SingletonCurveSegmentList
-{
-    public:
-        SingletonCurveSegmentList() = delete;
-        static CurveSegmentList& instance();
+        ISCORE_FACTORY_LIST_DECL(CurveSegmentFactory)
 };

@@ -11,11 +11,17 @@ class BlacklistCommand : public iscore::SerializableCommand
 
         void undo() const override;
         void redo() const override;
-        //virtual bool mergeWith(const Command* other) override;
+        //bool mergeWith(const Command* other) override;
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override { }
-        virtual void deserializeImpl(QDataStream&) override { }
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
         QMap<QString, bool> m_blacklistedState;
+
+        // SerializableCommand interface
+    public:
+        const CommandParentFactoryKey&parentKey() const override;
+        const CommandFactoryKey& key() const override;
+        QString description() const override;
 };

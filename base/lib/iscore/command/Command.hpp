@@ -9,6 +9,7 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/tools/ModelPathSerialization.hpp>
+#include <core/application/ApplicationContext.hpp>
 
 namespace iscore
 {
@@ -27,6 +28,7 @@ namespace iscore
     class Command
     {
         public:
+            Command();
             virtual ~Command();
 
             virtual void undo() const = 0;
@@ -35,6 +37,8 @@ namespace iscore
         protected:
             quint32 timestamp() const;
             void setTimestamp(quint32 stmp);
+
+            iscore::ApplicationContext context;
 
         private:
             //TODO check if this is UTC

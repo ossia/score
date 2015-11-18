@@ -10,7 +10,9 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 #include <iscore/command/SerializableCommand.hpp>
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <QGraphicsScene>
 
 static const constexpr int slotSpacing = 0;
@@ -114,9 +116,8 @@ void RackPresenter::on_slotCreated(const SlotModel& slot)
 
 void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
 {
-    auto slotPres = new SlotPresenter {slotModel,
-                                       m_view,
-                                       this};
+    auto& context = iscore::IDocument::documentContext(slotModel);
+    auto slotPres = new SlotPresenter {context, slotModel, m_view, this};
 
     m_slots.insert(slotPres);
     slotPres->on_zoomRatioChanged(m_zoomRatio);
@@ -133,7 +134,7 @@ void RackPresenter::on_slotCreated_impl(const SlotModel& slotModel)
     if(!scenario)
         return;
 
-    if(scenario->stateMachine().tool() == ScenarioToolKind::MoveSlot)
+    if(scenario->editionSettings().tool() == Scenario::Tool::MoveSlot)
     {
         slotPres->disable();
     }

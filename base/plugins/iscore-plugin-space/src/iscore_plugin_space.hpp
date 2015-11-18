@@ -8,14 +8,14 @@ class iscore_plugin_space:
         public QObject,
         public iscore::FactoryInterface_QtInterface,
         public iscore::PluginControlInterface_QtInterface,
-        public iscore::FactoryFamily_QtInterface
+        public iscore::FactoryList_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
         Q_INTERFACES(
                 iscore::FactoryInterface_QtInterface
                 iscore::PluginControlInterface_QtInterface
-                iscore::FactoryFamily_QtInterface
+                iscore::FactoryList_QtInterface
                 )
 
     public:
@@ -23,11 +23,10 @@ class iscore_plugin_space:
         virtual ~iscore_plugin_space() = default;
 
         // Plugin control interface
-        virtual iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
+        iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
 
         // Process & inspector
-        virtual std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(const iscore::FactoryBaseKey& factoryName) const override;
 
-
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryFamily> factoryFamilies() override;
 };

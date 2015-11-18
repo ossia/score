@@ -13,11 +13,11 @@ namespace iscore
 class UndoControl final : public iscore::PluginControlInterface
 {
     public:
-        UndoControl(Presenter* pres, QObject* parent);
+        UndoControl(iscore::Application& app, QObject* parent);
         ~UndoControl();
 
         void populateMenus(MenubarManager*) override;
-        QList<OrderedToolbar> makeToolbars() override;
+        std::vector<OrderedToolbar> makeToolbars() override;
 
     private slots:
         void on_documentChanged(

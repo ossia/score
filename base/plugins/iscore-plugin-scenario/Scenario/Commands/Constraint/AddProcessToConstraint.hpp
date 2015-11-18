@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/ProcessFactory.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
@@ -22,12 +23,12 @@ namespace Scenario
         */
         class AddProcessToConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddProcessToConstraint, "AddProcessToConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddProcessToConstraint, "AddProcessToConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddProcessToConstraint(
                     Path<ConstraintModel>&& constraintPath,
-                    const QString& process);
+                    const ProcessFactoryKey& process);
 
                 void undo() const override;
                 void redo() const override;
@@ -38,12 +39,12 @@ namespace Scenario
                 { return m_createdProcessId; }
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<ConstraintModel> m_path;
-                QString m_processName;
+                ProcessFactoryKey m_processName;
 
                 Id<Process> m_createdProcessId {};
                 Id<RackModel> m_createdRackId {};

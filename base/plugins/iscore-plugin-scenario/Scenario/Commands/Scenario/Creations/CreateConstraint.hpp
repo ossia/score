@@ -25,7 +25,7 @@ namespace Scenario
         */
         class CreateConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"CreateConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint,"CreateConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CreateConstraint(
@@ -44,8 +44,8 @@ namespace Scenario
                 { return m_createdConstraintId; }
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<ScenarioModel> m_path;

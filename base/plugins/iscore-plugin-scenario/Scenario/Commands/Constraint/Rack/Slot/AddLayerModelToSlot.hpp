@@ -2,6 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <Process/ProcessFactoryKey.hpp>
 
 #include <tests/helpers/ForwardDeclaration.hpp>
 class LayerModel;
@@ -18,7 +19,7 @@ namespace Scenario
          */
         class AddLayerModelToSlot final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "AddLayerModelToSlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "AddLayerModelToSlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 // Use this constructor when the process already exists
@@ -30,20 +31,20 @@ namespace Scenario
                 AddLayerModelToSlot(
                     Path<SlotModel>&& slot,
                     Path<Process>&& process,
-                    const QString& processName);
+                    const QByteArray& processConstructionData);
 
                 AddLayerModelToSlot(
                         Path<SlotModel>&& slot,
                         const Id<LayerModel>& layerid,
                         Path<Process>&& process,
-                        const QString& processName);
+                        const QByteArray& processConstructionData);
 
                 void undo() const override;
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<SlotModel> m_slotPath;

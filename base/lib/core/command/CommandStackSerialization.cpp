@@ -1,21 +1,21 @@
 #include "CommandStack.hpp"
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
-#include <iscore/presenter/PresenterInterface.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <core/presenter/Presenter.hpp>
 
 using namespace iscore;
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
 {
-    QList<QPair <QPair <std::string, std::string>, QByteArray> > undoStack, redoStack;
+    QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > undoStack, redoStack;
     for(const auto& cmd : stack.m_undoable)
     {
-        undoStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        undoStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
     }
     for(const auto& cmd : stack.m_redoable)
     {
-        redoStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        redoStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
     }
 
     m_stream << undoStack << redoStack;
@@ -26,7 +26,7 @@ void Visitor<Reader<DataStream>>::readFrom(const CommandStack& stack)
 template<>
 void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
 {
-    QList<QPair <QPair <std::string, std::string>, QByteArray> > undoStack, redoStack;
+    QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > undoStack, redoStack;
     m_stream >> undoStack >> redoStack;
 
     checkDelimiter();
@@ -38,7 +38,7 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
 
         for(const auto& elt : undoStack)
         {
-            auto cmd = IPresenter::instantiateUndoCommand(
+            auto cmd = context.components.instantiateUndoCommand(
                         elt.first.first,
                         elt.first.second,
                         elt.second);
@@ -49,7 +49,7 @@ void Visitor<Writer<DataStream>>::writeTo(CommandStack& stack)
 
         for(const auto& elt : redoStack)
         {
-            auto cmd = IPresenter::instantiateUndoCommand(
+            auto cmd = context.components.instantiateUndoCommand(
                         elt.first.first,
                         elt.first.second,
                         elt.second);

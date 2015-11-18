@@ -13,3 +13,9 @@ QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioControl *ctr
         new TransportActions(iscore::ToplevelMenuElement::PlayMenu, ctrl)
     };
 }
+
+const ScenarioActionsFactoryKey&ScenarioCommonActionsFactory::key_impl() const
+{
+    static const ScenarioActionsFactoryKey fact{"ScenarioCommonActionsFactory"};
+    return fact;
+}

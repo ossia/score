@@ -31,8 +31,8 @@
 #include <core/document/Document.hpp>
 #include <core/application/Application.hpp>
 
-OSSIAControl::OSSIAControl(iscore::Presenter* pres):
-    iscore::PluginControlInterface {pres, "OSSIAControl", nullptr}
+OSSIAControl::OSSIAControl(iscore::Application& app):
+    iscore::PluginControlInterface {app, "OSSIAControl", nullptr}
 {
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
@@ -54,8 +54,9 @@ OSSIAControl::OSSIAControl(iscore::Presenter* pres):
     // Another part that, at execution time, creates structures corresponding
     // to the Scenario plug-in with the OSSIA API.
 
-    auto ctrl = ScenarioControl::instance();
-    auto acts = ctrl->actions();
+    iscore::ApplicationContext ctx{app};
+    auto& ctrl = ctx.components.control<ScenarioControl>();
+    auto acts = ctrl.actions();
     for(const auto& act : acts)
     {
         if(act->objectName() == "Play")
@@ -96,11 +97,6 @@ OSSIAConstraintElement &OSSIAControl::baseConstraint() const
     return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
-OSSIABaseScenarioElement&OSSIAControl::baseScenario() const
-{
-    return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario();
-}
-
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 {
 }
@@ -108,7 +104,7 @@ void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
 iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
         const QString& name,
         const VisitorVariant& var,
-        iscore::DocumentModel* model)
+        iscore::Document* model)
 {
     // We don't have anything to load; it's easier to just recreate.
     return nullptr;
@@ -116,32 +112,32 @@ iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
 
 void OSSIAControl::on_newDocument(iscore::Document* doc)
 {
-    doc->model().addPluginModel(new OSSIADocumentPlugin{doc->model(), &doc->model()});
+    doc->model().addPluginModel(new OSSIADocumentPlugin{*doc, &doc->model()});
 }
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 {
-    if(auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>())
-    {
-        plugmodel->reload(doc->model());
-    }
-    else
-    {
-        on_newDocument(doc);
-    }
+    on_newDocument(doc);
 }
 
 void OSSIAControl::on_play(bool b)
 {
     if(auto doc = currentDocument())
     {
-        auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
         if(b)
         {
             if(m_playing)
+            {
+                auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
                 cstr.OSSIAConstraint()->resume();
+            }
             else
             {
+                auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+                plugmodel->reload(doc->model());
+
+                auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
                 cstr.recreate();
                 cstr.play(TimeValue::zero());
 
@@ -157,6 +153,7 @@ void OSSIAControl::on_play(bool b)
         }
         else
         {
+            auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
             cstr.OSSIAConstraint()->pause();
         }
     }
@@ -166,10 +163,16 @@ void OSSIAControl::on_stop()
 {
     if(auto doc = currentDocument())
     {
-        auto& cstr = baseConstraint();
-        cstr.stop();
-        cstr.clear();
-        m_playing = false;
+
+        auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+        if(plugmodel && plugmodel->baseScenario())
+        {
+            auto& cstr = baseConstraint();
+            cstr.stop();
+            cstr.clear();
+            m_playing = false;
+            plugmodel->clear();
+        }
 
         // If we can we resume listening
         auto explorer = try_deviceExplorerFromObject(*doc);

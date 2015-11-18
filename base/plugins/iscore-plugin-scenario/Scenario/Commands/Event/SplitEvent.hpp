@@ -14,7 +14,7 @@ namespace Scenario
     {
         class SplitEvent final : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitEvent, "SplitEvent")
+            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SplitEvent, "SplitEvent")
             public:
 
             SplitEvent(
@@ -26,8 +26,8 @@ namespace Scenario
             void redo() const override;
 
             protected:
-            virtual void serializeImpl(QDataStream&) const override;
-            virtual void deserializeImpl(QDataStream&) override;
+            void serializeImpl(QDataStream&) const override;
+            void deserializeImpl(QDataStream&) override;
 
             private:
             Path<ScenarioModel> m_scenarioPath;

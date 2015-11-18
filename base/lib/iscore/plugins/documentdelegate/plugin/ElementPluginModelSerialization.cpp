@@ -35,7 +35,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
     iscore::ElementPluginModel* model{};
     for(auto& plugin : doc->model().pluginModels())
     {
-        if(plugin->elementPlugins().contains(pluginId))
+        if(contains(plugin->elementPlugins(), pluginId))
         {
             model = plugin->loadElementPlugin(
                         element,
@@ -66,7 +66,7 @@ iscore::ElementPluginModel* deserializeElementPluginModel(
     iscore::ElementPluginModel* model{};
     for(auto& plugin : doc->model().pluginModels())
     {
-        if(plugin->elementPlugins().contains(pluginId))
+        if(contains(plugin->elementPlugins(), pluginId))
         {
             model = plugin->loadElementPlugin(
                         element,

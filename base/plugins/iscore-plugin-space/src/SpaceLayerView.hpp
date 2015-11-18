@@ -7,7 +7,7 @@ class SpaceLayerView : public LayerView
     public:
         SpaceLayerView(QGraphicsItem* parent);
 
-        void paint_impl(QPainter *painter) const;
+        void paint_impl(QPainter *painter) const override;
 
     signals:
         void guiRequested();
@@ -15,6 +15,6 @@ class SpaceLayerView : public LayerView
         void contextMenuRequested(const QPoint&, const QPointF&);
 
     protected:
-        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+        void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
         void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
 };

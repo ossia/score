@@ -28,7 +28,7 @@ void DummyLayerPresenter::setHeight(int val)
 
 void DummyLayerPresenter::putToFront()
 {
-    m_view->setText(m_layer.processModel().userFriendlyDescription());
+    m_view->setText(m_layer.processModel().prettyName());
 }
 
 void DummyLayerPresenter::putBehind()

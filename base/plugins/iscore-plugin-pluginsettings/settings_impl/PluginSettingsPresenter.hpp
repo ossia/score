@@ -1,6 +1,6 @@
 #pragma once
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 #include <QObject>
+#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenterInterface.hpp>
 
 class PluginSettingsModel;
 class PluginSettingsView;
@@ -13,15 +13,15 @@ class PluginSettingsPresenter : public iscore::SettingsDelegatePresenterInterfac
                                 iscore::SettingsDelegateModelInterface* model,
                                 iscore::SettingsDelegateViewInterface* view);
 
-        virtual void on_accept() override;
-        virtual void on_reject() override;
+        void on_accept() override;
+        void on_reject() override;
 
-        virtual QString settingsName() override
+        QString settingsName() override
         {
             return tr("Plugin");
         }
 
-        virtual QIcon settingsIcon() override;
+        QIcon settingsIcon() override;
 
         void load();
         PluginSettingsModel* model();

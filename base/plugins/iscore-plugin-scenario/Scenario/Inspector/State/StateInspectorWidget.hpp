@@ -20,7 +20,7 @@ class StateInspectorWidget final : public InspectorWidgetBase
         void splitEvent();
 
     private:
-        QVector<QWidget*> m_properties;
+        std::list<QWidget*> m_properties;
 
         const StateModel& m_model;
 

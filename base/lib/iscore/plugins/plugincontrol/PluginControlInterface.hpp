@@ -8,7 +8,7 @@ namespace iscore
 {
     class DocumentDelegatePluginModel;
     class SerializableCommand;
-    class Presenter;
+    class Application;
     class MenubarManager;
 
     /**
@@ -29,26 +29,27 @@ namespace iscore
             // Fournir menus de base : Fichier Edition Affichage Objet Arrangement Devices Fenêtre Paramètres Aide
         Q_OBJECT
         public:
-            PluginControlInterface(iscore::Presenter* presenter,
+            PluginControlInterface(iscore::Application& presenter,
                                    const QString& name,
                                    QObject* parent);
 
             virtual ~PluginControlInterface();
 
             virtual void populateMenus(iscore::MenubarManager*);
-            virtual QList<iscore::OrderedToolbar> makeToolbars();
-            virtual QList<QAction*> actions();
+            virtual std::vector<iscore::OrderedToolbar> makeToolbars();
+            virtual std::vector<QAction*> actions();
 
             virtual DocumentDelegatePluginModel* loadDocumentPlugin(
                     const QString& name,
                     const VisitorVariant& var,
-                    iscore::DocumentModel *parent);
+                    iscore::Document *parent);
 
-            Presenter* presenter() const;
+            const ApplicationContext& context() const;
             Document* currentDocument() const;
 
             virtual void on_newDocument(iscore::Document* doc);
             virtual void on_loadedDocument(iscore::Document* doc);
+            virtual void prepareNewDocument();
 
         private slots:
             void on_focusChanged(Qt::ApplicationState st);
@@ -62,13 +63,12 @@ namespace iscore
             void focused();
 
         protected:
-            virtual void on_prepareNewDocument();
             virtual void on_documentChanged(
                     iscore::Document* olddoc,
                     iscore::Document* newdoc);
 
         private:
-            Presenter* m_presenter{};
+            ApplicationContext m_appContext;
     };
 
 }

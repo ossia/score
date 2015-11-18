@@ -11,14 +11,16 @@ iscore_plugin_js::iscore_plugin_js() :
 {
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_js::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new JSProcessFactory};
     }
 
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
         return {new JSInspectorFactory};
     }
@@ -26,9 +28,9 @@ std::vector<iscore::FactoryInterface*> iscore_plugin_js::factories(const QString
     return {};
 }
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_js::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_js::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{JSCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             EditScript

@@ -7,7 +7,7 @@
 class ConstraintModel;
 class CreateCurvesFromAddresses final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), CreateCurvesFromAddresses, "CreateCurvesFromAddresses")
+        ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), CreateCurvesFromAddresses, "CreateCurvesFromAddresses")
     public:
 
         CreateCurvesFromAddresses(

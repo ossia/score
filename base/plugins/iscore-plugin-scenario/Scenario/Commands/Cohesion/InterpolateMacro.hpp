@@ -12,76 +12,58 @@
 // One InterpolateMacro per constraint
 class GenericInterpolateMacro final : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      GenericInterpolateMacro,
-                                      "GenericInterpolateMacro")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                            GenericInterpolateMacro,
+                            "GenericInterpolateMacro")
 };
 
 class InterpolateMacro final : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      InterpolateMacro,
-                                      "InterpolateMacro")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
+                            InterpolateMacro,
+                            "InterpolateMacro")
 
         public:
-            InterpolateMacro& operator=(const InterpolateMacro& other) = default;
+            auto& commands() { return m_cmds; }
 
         // Use this constructor when the constraint does not exist yet.
-        InterpolateMacro(const Path<ConstraintModel>& cstpath):
-            iscore::AggregateCommand{factoryName(), commandName(), description()}
+        InterpolateMacro(const Path<ConstraintModel>& cstpath)
         {
+            // First create a new rack
             auto cmd_rack = new Scenario::Command::AddRackToConstraint{Path<ConstraintModel>{cstpath}};
             addCommand(cmd_rack);
 
-            auto unsaferackPath = cstpath.unsafePath().vec();
-            unsaferackPath.push_back({RackModel::className, cmd_rack->createdRack()});
+            auto createdRackPath = cstpath.extend(RackModel::className, cmd_rack->createdRack());
 
-            Path<RackModel> createdRackPath{
-                                   ObjectPath{std::move(unsaferackPath)},
-                                   Path<RackModel>::UnsafeDynamicCreation{}};
-
+            // Then create a slot in this rack
             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
             addCommand(cmd_slot);
 
-            auto unsafeSlotPath = createdRackPath.unsafePath().vec();
-            unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
+            auto createdSlotPath = createdRackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+            slotsToUse.push_back({std::move(createdSlotPath), {}});
 
-            slotsToUse.push_back({Path<SlotModel>{
-                            ObjectPath{std::move(unsafeSlotPath)},
-                                      Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
-
+            // Finally show the rack.
             addCommand(new ShowRackInAllViewModels{Path<ConstraintModel>{cstpath}, cmd_rack->createdRack()});
         }
 
-            // Use this constructor when the constraint already exists
-        InterpolateMacro(const ConstraintModel& constraint):
-          iscore::AggregateCommand{factoryName(), commandName(), description()}
+        // Use this constructor when the constraint already exists
+        InterpolateMacro(const ConstraintModel& constraint)
         {
-            auto cstpath = iscore::IDocument::path(constraint);
+            Path<ConstraintModel> cstpath{constraint};
 
             if(constraint.racks.size() == 0)
             {
                 auto cmd_rack = new Scenario::Command::AddRackToConstraint{constraint};
                 addCommand(cmd_rack);
 
-                auto unsaferackPath = cstpath.unsafePath().vec();
-                // TODO when refactoring this, if we pass the id we can reuse the type to keep something strong
-
-                unsaferackPath.push_back({RackModel::className, cmd_rack->createdRack()});
-
-                Path<RackModel> createdRackPath{
-                                       ObjectPath{std::move(unsaferackPath)},
-                                       Path<RackModel>::UnsafeDynamicCreation{}};
+                auto createdRackPath = cstpath.extend(RackModel::className, cmd_rack->createdRack());
 
                 auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
                 addCommand(cmd_slot);
 
-                auto unsafeSlotPath = createdRackPath.unsafePath().vec();
-                unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
+                auto createdSlotPath = createdRackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+                slotsToUse.push_back({std::move(createdSlotPath), {}});
 
-                slotsToUse.push_back({Path<SlotModel>{
-                                ObjectPath{std::move(unsafeSlotPath)},
-                                          Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
 
                 for(const auto& vm : constraint.viewModels())
                 {
@@ -90,7 +72,6 @@ class InterpolateMacro final : public iscore::AggregateCommand
                                             cmd_rack->createdRack()};
                     addCommand(cmd_showrack);
                 }
-
             }
             else
             {
@@ -117,22 +98,13 @@ class InterpolateMacro final : public iscore::AggregateCommand
                 {
                     addCommand(cmd_rack);
 
-                    auto unsaferackPath = cstpath.unsafePath().vec();
-                    unsaferackPath.push_back({RackModel::className, cmd_rack->createdRack()});
-
-                    auto createdRackPath = Path<RackModel>{
-                                    ObjectPath{std::move(unsaferackPath)},
-                                    Path<RackModel>::UnsafeDynamicCreation{}};
+                    auto createdRackPath = cstpath.extend(RackModel::className, cmd_rack->createdRack());
 
                     auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{createdRackPath}};
                     addCommand(cmd_slot);
 
-                    auto unsafeSlotPath = createdRackPath.unsafePath().vec();
-                    unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
-
-                    slotsToUse.push_back({Path<SlotModel>{
-                                    ObjectPath{std::move(unsafeSlotPath)},
-                                    Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
+                    auto createdSlotPath = createdRackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+                    slotsToUse.push_back({std::move(createdSlotPath), {}});
                 }
 
                 for(const ConstraintViewModel* vm : constraint.viewModels())
@@ -159,12 +131,8 @@ class InterpolateMacro final : public iscore::AggregateCommand
                             auto cmd_slot = new Scenario::Command::AddSlotToRack{Path<RackModel>{rackPath}};
                             addCommand(cmd_slot);
 
-                            auto unsafeSlotPath = rackPath.unsafePath().vec();
-                            unsafeSlotPath.push_back({SlotModel::className, cmd_slot->createdSlot()});
-
-                            slotsToUse.push_back({Path<SlotModel>{
-                                            ObjectPath{std::move(unsafeSlotPath)},
-                                                      Path<SlotModel>::UnsafeDynamicCreation{}}, {}});
+                            auto createdSlotPath = rackPath.extend(SlotModel::className, cmd_slot->createdSlot());
+                            slotsToUse.push_back({std::move(createdSlotPath), {}});
                         }
                     }
                     else

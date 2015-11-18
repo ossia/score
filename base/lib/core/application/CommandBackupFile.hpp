@@ -1,6 +1,7 @@
 #pragma once
 #include <QTemporaryFile>
 #include <QStack>
+#include <iscore/command/SerializableCommand.hpp>
 namespace iscore
 {
     class CommandStack;
@@ -33,6 +34,6 @@ namespace iscore
             QTemporaryFile m_file;
 
             int m_previousIndex{};
-            QStack<QPair <QPair <std::string, std::string>, QByteArray> > m_savedUndo, m_savedRedo;
+            QStack<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > m_savedUndo, m_savedRedo;
     };
 }

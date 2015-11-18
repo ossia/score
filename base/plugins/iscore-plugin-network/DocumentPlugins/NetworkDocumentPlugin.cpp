@@ -12,10 +12,74 @@
 #include "DistributedScenario/GroupMetadataWidget.hpp"
 
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+
+// TODO refactor me
+class ScenarioFindConstraintVisitor
+{
+    public:
+        std::vector<ConstraintModel*> constraints;
+
+        void visit(ScenarioModel& s)
+        {
+            constraints.reserve(constraints.size() + s.constraints.size());
+            for(auto& constraint : s.constraints)
+            {
+                constraints.push_back(&constraint);
+                visit(constraint);
+            }
+        }
+
+        void visit(ConstraintModel& c)
+        {
+            for(auto& proc : c.processes)
+            {
+                if(auto scenario = dynamic_cast<ScenarioModel*>(&proc))
+                {
+                    visit(*scenario);
+                }
+            }
+        }
+};
+
+
+class ScenarioFindEventVisitor
+{
+    public:
+        std::vector<EventModel*> events;
+
+        void visit(ConstraintModel& c)
+        {
+            for(auto& proc : c.processes)
+            {
+                if(auto scenario = dynamic_cast<ScenarioModel*>(&proc))
+                {
+                    visit(*scenario);
+                }
+            }
+        }
+
+        void visit(ScenarioModel& s)
+        {
+            events.reserve(events.size() + s.events.size());
+            for(auto& event : s.events)
+            {
+                events.push_back(&event);
+            }
+            for(auto& constraint : s.constraints)
+            {
+                visit(constraint);
+            }
+        }
+};
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
-                                             iscore::DocumentModel *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc},
+                                             iscore::Document& doc):
+    iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
     m_policy{policy},
     m_groups{new GroupManager{this}}
 {
@@ -28,40 +92,47 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    auto constraints = doc->findChildren<ConstraintModel*>("ConstraintModel");
-    for(ConstraintModel* constraint : constraints)
+    BaseElementModel* bem = safe_cast<BaseElementModel*>(doc.model().modelDelegate());
     {
-        for(const auto& plugid : elementPlugins())
+        ScenarioFindConstraintVisitor v;
+        v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint
+        for(ConstraintModel* constraint : v.constraints)
         {
-            if(constraint->pluginModelList.canAdd(plugid))
-                constraint->pluginModelList.add(
-                            makeElementPlugin(constraint,
-                                              plugid,
-                                              constraint));
-        }
-    }
-
-    auto events = doc->modelDelegate()->findChildren<EventModel*>("EventModel");
-    for(EventModel* event : events)
-    {
-        for(const auto& plugid : elementPlugins())
-        {
-            if(event->pluginModelList.canAdd(plugid))
+            for(const auto& plugid : elementPlugins())
             {
-                event->pluginModelList.add(
-                            makeElementPlugin(event,
-                                              plugid,
-                                              event));
+                if(constraint->pluginModelList.canAdd(plugid))
+                    constraint->pluginModelList.add(
+                                makeElementPlugin(constraint,
+                                                  plugid,
+                                                  constraint));
             }
         }
     }
 
+    {
+        ScenarioFindEventVisitor v;
+        v.visit(bem->baseConstraint());
+
+        for(EventModel* event : v.events)
+        {
+            for(const auto& plugid : elementPlugins())
+            {
+                if(event->pluginModelList.canAdd(plugid))
+                {
+                    event->pluginModelList.add(
+                                makeElementPlugin(event,
+                                                  plugid,
+                                                  event));
+                }
+            }
+        }
+    }
     // TODO here we have to instantiate Network "OSSIA" policies. OR does it go with GroupMetadata?
 }
 
 NetworkDocumentPlugin::NetworkDocumentPlugin(const VisitorVariant &loader,
-                                             iscore::DocumentModel *doc):
-    iscore::DocumentDelegatePluginModel{"NetworkDocumentPlugin", doc}
+                                             iscore::Document& doc):
+    iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()}
 {
     deserialize_dyn(loader, *this);
 }
@@ -79,7 +150,7 @@ void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
     emit sessionChanged();
 }
 
-QList<iscore::ElementPluginModelType> NetworkDocumentPlugin::elementPlugins() const
+std::vector<iscore::ElementPluginModelType> NetworkDocumentPlugin::elementPlugins() const
 {
     return {GroupMetadata::staticPluginId()};
 }

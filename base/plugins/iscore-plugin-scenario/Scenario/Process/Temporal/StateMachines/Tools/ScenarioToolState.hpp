@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/statemachine/ToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class EventModel;
 class TimeNodeModel;
 class ConstraintModel;
@@ -24,7 +25,7 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 
 template<typename PresenterContainer, typename IdToIgnore>
 QList<Id<typename PresenterContainer::model_type>>
-    getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnore>& ids, const QPointF& scenePoint)
+    getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnore>& ids, QPointF scenePoint)
 {
     using namespace std;
     QList<Id<typename PresenterContainer::model_type>> colliding;
@@ -40,12 +41,13 @@ QList<Id<typename PresenterContainer::model_type>>
 
     return colliding;
 }
-
-class ScenarioStateMachine;
-class ScenarioTool : public ToolState
+namespace Scenario
+{
+class ToolPalette;
+class ToolBase : public GraphicsSceneToolBase<Scenario::Point>
 {
     public:
-        ScenarioTool(const ScenarioStateMachine& sm, QState* parent);
+        ToolBase(const Scenario::ToolPalette& sm);
 
     protected:
         Id<EventModel> itemToEventId(const QGraphicsItem*) const;
@@ -126,7 +128,8 @@ class ScenarioTool : public ToolState
             }
         }
 
-        const ScenarioStateMachine& m_parentSM;
+        const Scenario::ToolPalette& m_parentSM;
 
         std::chrono::steady_clock::time_point m_prev;
 };
+}

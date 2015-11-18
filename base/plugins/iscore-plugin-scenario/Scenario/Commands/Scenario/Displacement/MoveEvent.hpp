@@ -37,20 +37,19 @@ class MoveEvent final : public SerializableMoveEvent
 
         //#include <tests/helpers/FriendDeclaration.hpp>
     public:
-        static const char * commandName()
+        const CommandParentFactoryKey& parentKey() const override
         {
-            static QByteArray name = QString{"MoveEvent_%1"}.arg(DisplacementPolicy::name()).toLatin1();
-            return name.constData();
+            return ScenarioCommandFactoryName();
         }
-        static QString description()
+        const CommandFactoryKey& key() const override
+        {
+            static const QByteArray name = QString{"MoveEvent_%1"}.arg(DisplacementPolicy::name()).toLatin1();
+            static const CommandFactoryKey kagi{name.constData()};
+            return kagi;
+        }
+        QString description() const override
         {
             return QObject::tr("Move Event With %1").arg(DisplacementPolicy::name());
-        }
-        static auto static_uid()
-        {
-            using namespace std;
-            hash<string> fn;
-            return fn(std::string(commandName()));
         }
 
         MoveEvent()
@@ -73,7 +72,7 @@ class MoveEvent final : public SerializableMoveEvent
               SerializableMoveEvent{},
               m_path {std::move(scenarioPath)},
               m_mode{mode},
-              m_displacementPolicy{scenarioPath.find(), QVector<Id<TimeNodeModel>>({scenarioPath.find().event(eventId).timeNode()})}
+              m_displacementPolicy{m_path.find(), QVector<Id<TimeNodeModel>>({m_path.find().event(eventId).timeNode()})}
         {
             // we need to compute the new time delta and store this initial event id for recalculate the delta on updates
             // NOTE: in the future in would be better to give directly the delta value to this method ?,

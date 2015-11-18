@@ -1,6 +1,7 @@
 #include <core/application/Application.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
 
+#include <core/application/ApplicationRegistrar.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
@@ -14,6 +15,7 @@ using namespace iscore;
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QStyleFactory>
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include "SafeQApplication.hpp"
 static Application* application_instance = nullptr;
 
@@ -142,10 +144,6 @@ void Application::init()
     m_presenter = new Presenter{m_view, this};
 
     // Plugins
-    m_pluginManager.reloadPlugins();
-    m_pluginManager.addControl(new UndoControl{m_presenter, m_presenter});
-    m_pluginManager.addPanel(new UndoPanelFactory);
-
     loadPluginData();
 
     // View
@@ -162,9 +160,9 @@ void Application::init()
     if(!m_applicationSettings.loadList.empty())
     {
         for(const auto& doc : m_applicationSettings.loadList)
-            m_presenter->loadFile(doc);
+            m_presenter->documentManager().loadFile(doc);
 
-        if(!m_presenter->documents().isEmpty())
+        if(!m_presenter->documentManager().documents().empty())
         {
             if(m_applicationSettings.autoplay)
             {
@@ -179,12 +177,14 @@ void Application::init()
     // Try to reload if there was a crash
     if(m_applicationSettings.tryToRestore && DocumentBackups::canRestoreDocuments())
     {
-        m_presenter->restoreDocuments();
+        m_presenter->documentManager().restoreDocuments();
     }
     else
     {
-        if(!m_pluginManager.m_documentPanelList.empty())
-            m_presenter->newDocument(m_pluginManager.m_documentPanelList.front());
+        if(!m_presenter->applicationComponents().availableDocuments().empty())
+            m_presenter->documentManager().newDocument(
+                        Id<DocumentModel>{iscore::random_id_generator::getRandomId()}, // TODO crashes if loaded twice by chance
+                        m_presenter->applicationComponents().availableDocuments().front());
     }
 }
 
@@ -195,32 +195,17 @@ Application &Application::instance()
 
 void Application::loadPluginData()
 {
-    for(auto& set : m_pluginManager.m_settingsList)
-    {
-        m_settings->setupSettingsPlugin(set);
-    }
+    // TODO finish to do this properly.
+    ApplicationRegistrar registrar{m_presenter->components(), *this};
 
-    for(auto& cmd : m_pluginManager.m_controlList)
-    {
-        m_presenter->registerPluginControl(cmd);
-    }
+    m_pluginManager.reloadPlugins(registrar);
+    registrar.registerPluginControl(new UndoControl{*this, m_presenter});
+    registrar.registerPanel(new UndoPanelFactory);
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());
     for(auto& toolbar : m_presenter->toolbars())
     {
         m_view->addToolBar(toolbar.bar);
     }
-
-    for(auto& pnl : m_pluginManager.m_panelList)
-    {
-        m_presenter->registerPanel(pnl);
-    }
-
-    for(auto& pnl : m_pluginManager.m_documentPanelList)
-    {
-        m_presenter->registerDocumentDelegate(pnl);
-    }
-
-    m_presenter->registerCommands(std::move(m_pluginManager.m_commands));
 }
 

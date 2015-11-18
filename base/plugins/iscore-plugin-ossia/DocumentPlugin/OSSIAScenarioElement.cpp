@@ -127,7 +127,7 @@ std::shared_ptr<OSSIA::TimeProcess> OSSIAScenarioElement::OSSIAProcess() const
 }
 
 
-static void constraintCallback(const OSSIA::TimeValue&,
+static void ScenarioConstraintCallback(const OSSIA::TimeValue&,
                                const OSSIA::TimeValue&,
                                std::shared_ptr<OSSIA::StateElement> element)
 {
@@ -145,7 +145,7 @@ void OSSIAScenarioElement::on_constraintCreated(const ConstraintModel& const_con
     auto& ossia_eev = m_ossia_timeevents.at(m_iscore_scenario.state(cst.endState()).eventId());
 
     auto ossia_cst = OSSIA::TimeConstraint::create(
-                constraintCallback,
+                ScenarioConstraintCallback,
                 ossia_sev->OSSIAEvent(),
                 ossia_eev->OSSIAEvent(),
                 iscore::convert::time(cst.duration.defaultDuration()),

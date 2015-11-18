@@ -1,22 +1,13 @@
 #pragma once
-#include <QStringList>
-#include <iscore/tools/NamedObject.hpp>
-#include <vector>
 
-namespace iscore
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
+#include <Scenario/Control/Menus/ScenarioActions.hpp>
+#include <iscore/plugins/customfactory/FactoryMap.hpp>
+#include <Scenario/Control/Menus/Plugin/ScenarioActionsFactory.hpp>
+
+class ScenarioContextMenuPluginList final : public iscore::FactoryListInterface
 {
-    class FactoryInterface;
-}
-
-class ScenarioActionsFactory;
-
-class ScenarioContextMenuPluginList
-{
-    public:
-        const std::vector<ScenarioActionsFactory*>& contextMenus() const;
-
-        void registerContextMenu(iscore::FactoryInterface* f);
-
-    private:
-        std::vector<ScenarioActionsFactory*> m_factories;
+        ISCORE_FACTORY_LIST_DECL(ScenarioActionsFactory)
 };
+
+

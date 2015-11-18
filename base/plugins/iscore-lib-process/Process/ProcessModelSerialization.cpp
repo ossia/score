@@ -3,13 +3,14 @@
 
 #include <Process/ProcessList.hpp>
 #include <Process/Process.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const Process& process)
 {
     // To allow recration using createProcess
-    m_stream << process.processName();
+    m_stream << process.key();
 
     readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
@@ -35,13 +36,15 @@ void Visitor<Writer<DataStream>>::writeTo(Process& process)
 }
 
 template<>
-Process* createProcess(Deserializer<DataStream>& deserializer,
+Process* createProcess(
+        const DynamicProcessList& pl,
+        Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    QString processName;
+    ProcessFactoryKey processName;
     deserializer.m_stream >> processName;
 
-    auto model = ProcessList::getFactory(processName)
+    auto model = pl.list().get(processName)
                  ->loadModel(deserializer.toVariant(),
                              parent);
     // Calls the concrete process's factory
@@ -58,7 +61,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const Process& process)
 {
     // To allow recration using createProcess
-    m_obj["ProcessName"] = process.processName();
+    m_obj["ProcessName"] = toJsonValue(process.key());
 
     readFrom(static_cast<const IdentifiedObject<Process>&>(process));
 
@@ -78,11 +81,13 @@ void Visitor<Writer<JSONObject>>::writeTo(Process& process)
 }
 
 template<>
-Process* createProcess(Deserializer<JSONObject>& deserializer,
+Process* createProcess(
+        const DynamicProcessList& pl,
+        Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
-    auto model = ProcessList::getFactory(
-                     deserializer.m_obj["ProcessName"].toString())
+    auto model = pl.list().get(
+                     fromJsonValue<ProcessFactoryKey>(deserializer.m_obj["ProcessName"]))
                         ->loadModel(
                             deserializer.toVariant(),
                             parent);

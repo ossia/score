@@ -5,5 +5,5 @@
 
 class RemoveNodes final : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveNodes, "RemoveNodes")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveNodes, "RemoveNodes")
 };

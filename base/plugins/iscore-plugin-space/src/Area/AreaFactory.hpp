@@ -1,20 +1,22 @@
 #pragma once
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <src/Area/AreaFactoryKey.hpp>
 #include <QObject>
 class QGraphicsItem;
 class SpaceModel;
 class AreaModel;
 class AreaPresenter;
 
-class AreaFactory : public iscore::FactoryInterface
+class AreaFactory : public iscore::GenericFactoryInterface<AreaFactoryKey>
 {
+        ISCORE_FACTORY_DECL("Area")
     public:
-        static QString factoryName();
+        virtual ~AreaFactory();
 
         // Pretty name, id
         virtual int type() const = 0;
-        virtual QString name() const = 0;
+
         virtual QString prettyName() const = 0;
 
         // Model

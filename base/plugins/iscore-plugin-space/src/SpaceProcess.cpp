@@ -5,7 +5,7 @@
 #include "Area/Circle/CircleAreaModel.hpp"
 
 SpaceProcess::SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent):
-    Process{id, "SpaceProcessModel", parent}
+    Process{id, SpaceProcessMetadata::processObjectName(), parent}
 {
     using namespace GiNaC;
     using namespace spacelib;
@@ -81,9 +81,14 @@ Process *SpaceProcess::clone(const Id<Process> &newId, QObject *newParent) const
     return new SpaceProcess{this->duration(), newId, newParent};
 }
 
-QString SpaceProcess::processName() const
+const ProcessFactoryKey& SpaceProcess::key() const
 {
-    return "Space";
+    return SpaceProcessMetadata::factoryKey();
+}
+
+QString SpaceProcess::prettyName() const
+{
+    return tr("Space process");
 }
 
 void SpaceProcess::setDurationAndScale(const TimeValue &newDuration)

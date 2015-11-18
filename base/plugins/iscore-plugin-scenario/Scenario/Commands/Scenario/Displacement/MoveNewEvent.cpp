@@ -14,12 +14,9 @@ MoveNewEvent::MoveNewEvent(
         const TimeValue& date,
         const double y,
         bool yLocked) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
-    m_path {scenarioPath},
+    m_path {std::move(scenarioPath)},
     m_constraintId {constraintId},
-    m_cmd{std::move(scenarioPath), eventId, date, ExpandMode::Scale},
+    m_cmd{Path<ScenarioModel>{m_path}, eventId, date, ExpandMode::Scale},
     m_y{y},
     m_yLocked{yLocked}
 {
@@ -34,9 +31,6 @@ MoveNewEvent::MoveNewEvent(
         const double y,
         bool yLocked,
         ExpandMode mode) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {scenarioPath},
     m_constraintId {constraintId},
     m_cmd{std::move(scenarioPath), eventId, date, mode},

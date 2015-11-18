@@ -22,9 +22,9 @@ struct Relation
         Operator op;
         RelationMember rhs;
 
-        friend bool operator==(const Relation& lhs, const Relation& rhs)
+        friend bool operator==(const Relation& eq_lhs, const Relation& eq_rhs)
         {
-            return lhs.lhs == rhs.lhs && lhs.rhs == rhs.rhs && lhs.op == rhs.op;
+            return eq_lhs.lhs == eq_rhs.lhs && eq_lhs.rhs == eq_rhs.rhs && eq_lhs.op == eq_rhs.op;
         }
 
         QString toString() const;

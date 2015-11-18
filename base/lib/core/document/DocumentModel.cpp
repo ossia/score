@@ -7,16 +7,18 @@
 
 using namespace iscore;
 
-DocumentModel::DocumentModel(DocumentDelegateFactoryInterface* fact,
-                             QObject* parent) :
-    IdentifiedObject {Id<DocumentModel>(iscore::id_generator::getFirstId()), "DocumentModel", parent},
+DocumentModel::DocumentModel(
+        const Id<DocumentModel>& id,
+        DocumentDelegateFactoryInterface* fact,
+        QObject* parent) :
+    IdentifiedObject {id, "DocumentModel", parent},
     m_model{fact->makeModel(this)}
 {
 }
 
 void DocumentModel::addPanel(PanelModel *m)
 {
-    m_panelModels.append(m);
+    m_panelModels.push_back(m);
 }
 
 
@@ -25,7 +27,7 @@ void DocumentModel::addPanel(PanelModel *m)
 void DocumentModel::addPluginModel(DocumentDelegatePluginModel *m)
 {
     m->setParent(this);
-    m_pluginModels.append(m);
+    m_pluginModels.push_back(m);
     emit pluginModelsChanged();
 }
 

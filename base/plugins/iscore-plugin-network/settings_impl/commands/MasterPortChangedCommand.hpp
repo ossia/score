@@ -21,7 +21,7 @@ class MasterPortChangedCommand : public iscore::Command
         */
 
         /*
-        virtual bool mergeWith(const Command* other) override
+        bool mergeWith(const Command* other) override
         {
             auto cmd = static_cast<const MasterPortChangedCommand*>(other);
             m_newval = cmd->m_newval;

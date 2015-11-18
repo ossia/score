@@ -10,7 +10,7 @@ namespace Scenario
     {
         class SetCondition final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "SetCondition")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetCondition, "SetCondition")
             public:
                 SetCondition(
                     Path<EventModel>&& eventPath,
@@ -19,8 +19,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<EventModel> m_path;

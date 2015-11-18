@@ -1,6 +1,6 @@
 #pragma once
 #include <iscore/tools/ObjectIdentifier.hpp>
-#include <QVector>
+#include <vector>
 #include <QPointer>
 
 /**
@@ -39,7 +39,12 @@ class ObjectPath
         ObjectPath() = default;
         QString toString() const;
 
-        explicit ObjectPath(QVector<ObjectIdentifier>&& vec) :
+        explicit ObjectPath(const std::vector<ObjectIdentifier>& vec) :
+            m_objectIdentifiers {vec}
+        {
+        }
+
+        explicit ObjectPath(std::vector<ObjectIdentifier>&& vec) :
             m_objectIdentifiers {std::move(vec)}
         {
         }
@@ -49,10 +54,29 @@ class ObjectPath
         {
         }
 
-        ObjectPath(const ObjectPath& obj) = default;
-        ObjectPath(ObjectPath&&) = default;
-        ObjectPath& operator= (ObjectPath &&) = default;
-        ObjectPath& operator= (const ObjectPath&) = default;
+        ObjectPath(const ObjectPath& obj):
+            m_objectIdentifiers{obj.m_objectIdentifiers}
+        {
+        }
+
+        ObjectPath(ObjectPath&& obj):
+            m_objectIdentifiers{std::move(obj.m_objectIdentifiers)}
+        {
+        }
+
+        ObjectPath& operator= (ObjectPath && obj)
+        {
+            m_objectIdentifiers = std::move(obj.m_objectIdentifiers);
+            m_cache.clear();
+            return *this;
+        }
+
+        ObjectPath& operator= (const ObjectPath& obj)
+        {
+            m_objectIdentifiers = obj.m_objectIdentifiers;
+            m_cache.clear();
+            return *this;
+        }
 
         static ObjectPath pathBetweenObjects(const QObject* const parent_obj,
                                              const QObject* target_object);

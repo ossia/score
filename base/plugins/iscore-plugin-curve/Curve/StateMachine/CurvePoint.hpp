@@ -2,4 +2,8 @@
 #include <QPointF>
 
 // Coordinates both between 0 and 1;
-using CurvePoint = QPointF;
+// TODO opacify
+namespace Curve
+{
+using Point = QPointF;
+}

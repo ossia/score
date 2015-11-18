@@ -10,7 +10,7 @@ namespace iscore
         public:
             virtual ~PanelFactory_QtInterface();
 
-            virtual QList<PanelFactory*> panels() = 0;
+            virtual std::vector<PanelFactory*> panels() = 0;
     };
 }
 

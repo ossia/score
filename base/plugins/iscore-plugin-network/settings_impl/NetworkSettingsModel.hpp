@@ -26,7 +26,7 @@ class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
         int getMasterPort() const;
 
         virtual void setPresenter(iscore::SettingsDelegatePresenterInterface* presenter) ;  // @todo remove this and the same for view
-        virtual void setFirstTimeSettings() override;
+        void setFirstTimeSettings() override;
 
     signals:
         void clientNameChanged();

@@ -48,13 +48,18 @@ iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate
 }
 
 
+iscore::DocumentDelegateModelInterface* iscore::IDocument::try_modelDelegate_generic(const Document& d)
+{
+    return d.model().modelDelegate();
+}
+
 iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic(const Document& d)
 {
-    return *d.model().modelDelegate();
+    return *try_modelDelegate_generic(d);
 }
 
 
-const QList<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Document* d)
+const std::vector<iscore::PanelModel*>& iscore::IDocument::panels(const iscore::Document* d)
 {
     return d->model().panels();
 }
@@ -65,12 +70,7 @@ iscore::CommandStack &iscore::IDocument::commandStack(const QObject &obj)
     return documentFromObject(obj)->commandStack();
 }
 
-iscore::SelectionStack &iscore::IDocument::selectionStack(const QObject &obj)
+iscore::DocumentContext&iscore::IDocument::documentContext(const QObject& obj)
 {
-    return documentFromObject(obj)->selectionStack();
-}
-
-iscore::ObjectLocker &iscore::IDocument::locker(const QObject &obj)
-{
-    return documentFromObject(obj)->locker();
+    return documentFromObject(obj)->context();
 }

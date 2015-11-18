@@ -14,6 +14,7 @@ class SelectionStackWidget;
 class QVBoxLayout;
 class InspectorWidgetBase;
 class QTabWidget;
+class InspectorWidgetList;
 
 namespace bmi = boost::multi_index;
 using InspectorWidgetMap = bmi::multi_index_container<
@@ -49,7 +50,10 @@ class InspectorPanel : public QWidget
         Q_OBJECT
 
     public:
-        explicit InspectorPanel(iscore::SelectionStack& s, QWidget* parent);
+        explicit InspectorPanel(
+                const InspectorWidgetList& list,
+                iscore::SelectionStack& s,
+                QWidget* parent);
 
     public slots:
         /*!
@@ -67,6 +71,7 @@ class InspectorPanel : public QWidget
         QTabWidget* m_tabWidget{};
         InspectorWidgetMap m_map;
 
+        const InspectorWidgetList& m_list;
         iscore::SelectionDispatcher m_selectionDispatcher;
         QList<const QObject*> m_currentSel;
 };

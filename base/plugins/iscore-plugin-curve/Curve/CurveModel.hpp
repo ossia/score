@@ -47,8 +47,8 @@ class CurveModel final : public IdentifiedObject<CurveModel>
         const auto& segments() const { return m_segments;}
         auto& segments() { return m_segments;}
 
-        const QVector<CurvePointModel*>& points() const;
-        QVector<CurvePointModel*>& points() {return m_points;}
+        const std::vector<CurvePointModel*>& points() const;
+        std::vector<CurvePointModel*>& points() {return m_points;}
 
     signals:
         void segmentAdded(const CurveSegmentModel&);
@@ -67,5 +67,5 @@ class CurveModel final : public IdentifiedObject<CurveModel>
         void removePoint(CurvePointModel* pt);
 
         IdContainer<CurveSegmentModel> m_segments;
-        QVector<CurvePointModel*> m_points; // Each between 0, 1
+        std::vector<CurvePointModel*> m_points; // Each between 0, 1
 };

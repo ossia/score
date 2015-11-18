@@ -11,11 +11,10 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
-
 ScenarioModel::ScenarioModel(const TimeValue& duration,
                              const Id<Process>& id,
                              QObject* parent) :
-    Process {duration, id, "ScenarioModel", parent},
+    Process {duration, id, ScenarioProcessMetadata::processObjectName(), parent},
     m_startTimeNodeId{0},
     m_endTimeNodeId{1},
     m_startEventId{0},
@@ -35,7 +34,7 @@ ScenarioModel::ScenarioModel(const TimeValue& duration,
 ScenarioModel::ScenarioModel(const ScenarioModel& source,
                              const Id<Process>& id,
                              QObject* parent) :
-    Process {source, id, "ScenarioModel", parent},
+    Process {source, id, ScenarioProcessMetadata::processObjectName(), parent},
     m_startTimeNodeId{source.m_startTimeNodeId},
     m_endTimeNodeId{source.m_endTimeNodeId},
     m_startEventId{source.m_startEventId},
@@ -110,7 +109,12 @@ LayerModel* ScenarioModel::cloneLayer_impl(
     return scen;
 }
 
-QString ScenarioModel::userFriendlyDescription() const
+const ProcessFactoryKey& ScenarioModel::key() const
+{
+    return ScenarioProcessMetadata::factoryKey();
+}
+
+QString ScenarioModel::prettyName() const
 {
     return metadata.name();
 }

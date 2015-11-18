@@ -9,8 +9,6 @@
 using namespace Scenario::Command;
 
 AddTrigger::AddTrigger(Path<TimeNodeModel>&& timeNodePath):
-    iscore::SerializableCommand{
-    factoryName(), commandName(), description()},
     m_path{std::move(timeNodePath)}
 {
 

@@ -5,7 +5,7 @@ InspectorWidgetFactory::~InspectorWidgetFactory()
 
 }
 
-QString InspectorWidgetFactory::factoryName()
+bool InspectorWidgetFactory::matches(const QString& objectName)
 {
-    return "Inspector";
+    return key_impl().contains(objectName);
 }

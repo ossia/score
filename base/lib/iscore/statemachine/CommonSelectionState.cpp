@@ -42,7 +42,7 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
             auto selectionAreaState = new QState{selectionState};
             selectionAreaState->setObjectName("selectionAreaState");
 
-            make_transition<Press_Transition>(m_waitState, selectionAreaState);
+            iscore::make_transition<iscore::Press_Transition>(m_waitState, selectionAreaState);
             selectionAreaState->addTransition(selectionAreaState, SIGNAL(finished()), m_waitState);
             {
                 // States
@@ -55,18 +55,17 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
                 releaseAreaSelection->setObjectName("releaseAreaSelection");
 
                 // Transitions
-                make_transition<Move_Transition>(pressAreaSelection, moveAreaSelection);
-                make_transition<Release_Transition>(pressAreaSelection, releaseAreaSelection);
+                iscore::make_transition<iscore::Move_Transition>(pressAreaSelection, moveAreaSelection);
+                iscore::make_transition<iscore::Release_Transition>(pressAreaSelection, releaseAreaSelection);
 
-                make_transition<Move_Transition>(moveAreaSelection, moveAreaSelection);
-                make_transition<Release_Transition>(moveAreaSelection, releaseAreaSelection);
+                iscore::make_transition<iscore::Move_Transition>(moveAreaSelection, moveAreaSelection);
+                iscore::make_transition<iscore::Release_Transition>(moveAreaSelection, releaseAreaSelection);
 
                 // Operations
                 connect(pressAreaSelection, &QState::entered,
                         this, &CommonSelectionState::on_pressAreaSelection);
                 connect(moveAreaSelection, &QState::entered,
                         this, &CommonSelectionState::on_moveAreaSelection);
-
                 connect(releaseAreaSelection, &QState::entered,
                         this, &CommonSelectionState::on_releaseAreaSelection);
             }
@@ -74,8 +73,8 @@ CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraph
             // Deselection
             auto deselectState = new QState{selectionState};
             deselectState->setObjectName("deselectState");
-            make_transition<Cancel_Transition>(selectionAreaState, deselectState);
-            make_transition<Cancel_Transition>(m_waitState, deselectState);
+            iscore::make_transition<iscore::Cancel_Transition>(selectionAreaState, deselectState);
+            iscore::make_transition<iscore::Cancel_Transition>(m_waitState, deselectState);
             deselectState->addTransition(m_waitState);
             connect(deselectState, &QAbstractState::entered,
                     this, &CommonSelectionState::on_deselect);

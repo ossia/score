@@ -15,7 +15,7 @@ namespace DeviceExplorer
     // TODO Moveme
         class UpdateAddressesValues final : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "UpdateAddressesValues")
+            ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateAddressesValues, "UpdateAddressesValues")
             public:
                 UpdateAddressesValues(Path<DeviceExplorerModel>&& device_tree,
                               const QList<QPair<const iscore::Node*, iscore::Value>>& nodes);
@@ -24,8 +24,8 @@ namespace DeviceExplorer
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<DeviceExplorerModel> m_deviceTree;

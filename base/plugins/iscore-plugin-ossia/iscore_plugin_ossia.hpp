@@ -22,10 +22,13 @@ class iscore_plugin_ossia final :
         iscore_plugin_ossia();
         virtual ~iscore_plugin_ossia() = default;
 
-        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::PluginControlInterface* make_control(
+                iscore::Application& app) override;
 
         // Contains the OSC, MIDI, Minuit factories
-        std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(
+                const iscore::ApplicationContext&,
+                const iscore::FactoryBaseKey& factoryName) const override;
 
         QStringList required() const override;
 };

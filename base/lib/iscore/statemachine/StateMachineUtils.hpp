@@ -11,6 +11,8 @@
  *
  * See the documentation for explanation of the general pattern
  */
+namespace iscore
+{
 
 template<int N>
 struct NumberedEvent : public QEvent
@@ -58,12 +60,13 @@ class MatchedTransition : public QAbstractTransition
 {
     public:
         using event_type = Event;
+        using QAbstractTransition::QAbstractTransition;
 
     protected:
-        virtual bool eventTest(QEvent *e) override
+        bool eventTest(QEvent *e) override
         { return e->type() == QEvent::Type(QEvent::User + Event::user_type); }
 
-        virtual void onTransition(QEvent *event) override { }
+        void onTransition(QEvent *event) override { }
 };
 
 template<typename State, typename T>
@@ -107,3 +110,4 @@ using Move_Transition = MatchedTransition<Move_Event>;
 using Release_Transition = MatchedTransition<Release_Event>;
 using Cancel_Transition = MatchedTransition<Cancel_Event>;
 using ShiftTransition = MatchedTransition<Shift_Event>;
+}

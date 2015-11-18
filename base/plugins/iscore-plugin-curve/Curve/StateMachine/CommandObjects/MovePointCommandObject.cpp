@@ -63,7 +63,7 @@ void MovePointCommandObject::move()
     handlePointOverlap(segments);
 
     // This handles what happens when we cross another point.
-    if(m_presenter->suppressOnOverlap())
+    if(m_presenter->editionSettings().suppressOnOverlap())
     {
         handleSuppressOnOverlap(segments);
     }

@@ -30,7 +30,7 @@ class OngoingCommandDispatcher final : public ICommandDispatcher
             }
             else
             {
-                ISCORE_ASSERT(m_cmd->uid() == TheCommand::static_uid());
+                ISCORE_ASSERT(m_cmd->key() == TheCommand::static_key());
                 safe_cast<TheCommand*>(m_cmd.get())->update(std::forward<Args>(args)...);
                 m_cmd->redo();
             }

@@ -13,7 +13,7 @@ class iscore_plugin_library :
     public:
         iscore_plugin_library();
 
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 
 
 };

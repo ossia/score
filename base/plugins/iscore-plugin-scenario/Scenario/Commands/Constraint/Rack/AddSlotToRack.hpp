@@ -17,7 +17,7 @@ namespace Scenario
          */
         class AddSlotToRack final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "AddSlotToRack")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "AddSlotToRack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddSlotToRack(Path<RackModel>&& rackPath);
@@ -29,8 +29,8 @@ namespace Scenario
                 { return m_createdSlotId; }
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<RackModel> m_path;

@@ -1,4 +1,7 @@
 #include "TimeNodeTransitions.hpp"
+
+namespace Scenario
+{
 void ClickOnTimeNode_Transition::onTransition(QEvent *ev)
 {
     auto qev = static_cast<ClickOnTimeNode_Event*>(ev);
@@ -24,4 +27,5 @@ void ReleaseOnTimeNode_Transition::onTransition(QEvent *ev)
 
     this->state().hoveredTimeNode = qev->id;
     this->state().currentPoint = qev->point;
+}
 }

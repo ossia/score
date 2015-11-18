@@ -1,6 +1,5 @@
 #pragma once
 #include <iscore/tools/NamedObject.hpp>
-#include <QPluginLoader>
 #include <QMap>
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
@@ -9,81 +8,60 @@
 
 namespace iscore
 {
-    class Application;
-    class PluginControlInterface;
-    class PanelFactory;
-    class DocumentDelegateFactoryInterface;
-    class SettingsDelegateFactoryInterface;
+class FactoryInterfaceBase;
+class Application;
+class ApplicationRegistrar;
+class PluginControlInterface;
+class PanelFactory;
+class DocumentDelegateFactoryInterface;
+class SettingsDelegateFactoryInterface;
 
-    using FactoryFamilyList = QVector<FactoryFamily>;
-    using CommandList = QList<PluginControlInterface*>;
-    using PanelList = QList<PanelFactory*>;
-    using DocumentPanelList = QList<DocumentDelegateFactoryInterface*>;
-    using SettingsList = QList<SettingsDelegateFactoryInterface*>;
 
-    /**
+/**
      * @brief The PluginManager class loads and keeps track of the plug-ins.
      */
-    class PluginManager final : public QObject
-    {
-            Q_OBJECT
-            friend class iscore::Application;
-        public:
-            PluginManager(iscore::Application* app);
-            ~PluginManager();
+class PluginLoader final : public QObject
+{
+        Q_OBJECT
+        friend class iscore::Application;
+    public:
+        PluginLoader(iscore::Application* app);
+        ~PluginLoader();
 
-            /**
+        /**
              * @brief reloadPlugins
              *
              * Reloads all the plug-ins.
              * Note: for now this is unsafe after the first loading.
              */
-            void reloadPlugins();
+        void clearPlugins();
+        void reloadPlugins(iscore::ApplicationRegistrar&);
 
-            /**
+        /**
              * @brief pluginsOnSystem
              * @return All the plugins available on the system
              *
              * Even plug-ins that were not loaded will be returned.
              */
-            QStringList pluginsOnSystem() const;
+        QStringList pluginsOnSystem() const;
 
-            void addControl(PluginControlInterface* p)
-            { m_controlList.push_back(p); }
+    private:
+        iscore::Application* m_app{};
 
-            void addPanel(PanelFactory* p)
-            { m_panelList.push_back(p); }
+        // We need a list for all the plug-ins present on the system even if we do not load them.
+        // Else we can't blacklist / unblacklist plug-ins.
+        QStringList m_pluginsOnSystem;
 
-        private:
-            iscore::Application* m_app{};
+        void loadPlugin(const QString& filename);
 
-            // We need a list for all the plug-ins present on the system even if we do not load them.
-            // Else we can't blacklist / unblacklist plug-ins.
-            QStringList m_pluginsOnSystem;
 
-            void loadPlugin(const QString& filename);
+        // Classify the plug-in element in the correct container.
+        void dispatch(QObject* plugin);
 
-            void loadControls(QObject* plugin);
-            void loadFactories(QObject* plugin);
 
-            // Classify the plug-in element in the correct container.
-            void dispatch(QObject* plugin);
+        QStringList pluginsBlacklist();
 
-            void clearPlugins();
-
-            QStringList pluginsBlacklist();
-
-            // Here, the plug-ins that are effectively loaded.
-            QList<QObject*> m_availablePlugins;
-
-            FactoryFamilyList m_customFamilies;
-            CommandList  m_controlList;
-            PanelList    m_panelList;
-            DocumentPanelList m_documentPanelList;
-            SettingsList m_settingsList;
-
-            std::vector<std::vector<FactoryInterface*>> m_factoriesInterfaces;
-
-            std::unordered_map<std::string, CommandGeneratorMap> m_commands;
-    };
+        // Here, the plug-ins that are effectively loaded.
+        std::vector<QObject*> m_availablePlugins;
+};
 }

@@ -6,46 +6,31 @@
 #include <QStateMachine>
 #include <QPointF>
 
-class ScenarioStateMachine;
-// TODO refactor this one.
-class GenericStateBase : public QState
-{
-    public:
-        GenericStateBase(const ScenarioStateMachine& sm) :
-            m_sm{sm}
-        {
-        }
-
-
-    protected:
-        QStateMachine m_localSM;
-        const ScenarioStateMachine& m_sm;
-};
-
 class SlotModel;
-class MoveSlotToolState final : public GenericStateBase
+
+namespace Scenario
+{
+class ToolPalette;
+class MoveSlotTool
 {
     public:
-        MoveSlotToolState(const ScenarioStateMachine &sm);
+        MoveSlotTool(const Scenario::ToolPalette &sm);
 
-        void on_scenarioPressed();
-        void on_scenarioMoved();
-        void on_scenarioReleased();
+        void on_pressed(QPointF scene);
+        void on_moved();
+        void on_released();
+
+        void on_cancel();
 
         // TODO refactor this with ToolState
-        void start()
-        {
-            if(!m_localSM.isRunning())
-                m_localSM.start();
-        }
-        void stop()
-        {
-            if(m_localSM.isRunning())
-                m_localSM.stop();
-        }
+        void start();
+        void stop();
 
     private:
         QState* m_waitState{};
 
         QPointF m_originalPoint;
+        QStateMachine m_localSM;
+        const Scenario::ToolPalette& m_sm;
 };
+}

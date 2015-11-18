@@ -25,7 +25,7 @@ namespace Command
 {
 class MoveBaseEvent final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveBaseEvent, "MoveBaseEvent")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveBaseEvent, "MoveBaseEvent")
 #include <tests/helpers/FriendDeclaration.hpp>
         public:
           MoveBaseEvent(
@@ -48,8 +48,8 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         { return m_path; }
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     private:
         Path<BaseScenario> m_path;

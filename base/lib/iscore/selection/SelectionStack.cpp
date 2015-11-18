@@ -18,11 +18,25 @@ bool SelectionStack::canReselect() const
     return !m_reselectable.empty();
 }
 
-void SelectionStack::push(const Selection& s)
+void SelectionStack::clear()
+{
+    m_unselectable.clear();
+    m_reselectable.clear();
+    m_unselectable.push(Selection{});
+}
+
+void SelectionStack::push(const Selection& selection)
 {
     // TODO don't push "empty" selections, just add a "deselected" mode.
-    if(s != m_unselectable.top())
+    if(selection != m_unselectable.top())
     {
+        auto s = selection;
+        auto it = s.begin();
+        while(it != s.end())
+        {
+            if(*it) ++it;
+            else it = s.erase(it);
+        }
         for(const QObject* obj : s)
         {
             connect(obj,  &QObject::destroyed,

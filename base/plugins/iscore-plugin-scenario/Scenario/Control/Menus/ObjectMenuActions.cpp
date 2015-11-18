@@ -83,7 +83,6 @@ ObjectMenuActions::ObjectMenuActions(
     connect(m_copyContent, &QAction::triggered,
             [this]()
     {
-        qDebug("da");
         auto obj = copySelectedElementsToJson();
         if(obj.empty())
             return;
@@ -128,7 +127,10 @@ ObjectMenuActions::ObjectMenuActions(
     });
 
     // ADD PROCESS
-    m_addProcessDialog = new AddProcessDialog(qApp->activeWindow());
+
+    auto appContext = parent->context();
+    auto& fact = appContext.components.factory<DynamicProcessList>();
+    m_addProcessDialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     connect(m_addProcessDialog, &AddProcessDialog::okPressed,
             this, &ObjectMenuActions::addProcessInConstraint);
@@ -142,7 +144,6 @@ ObjectMenuActions::ObjectMenuActions(
             return;
         m_addProcessDialog->launchWindow();
     });
-
 
     m_interp = new QAction {tr("Interpolate states"), this};
     m_interp->setShortcutContext(Qt::ApplicationShortcut);
@@ -177,7 +178,8 @@ ObjectMenuActions::ObjectMenuActions(
 
 void ObjectMenuActions::fillMenuBar(iscore::MenubarManager* menu)
 {
-    menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
+    if(m_addProcess)
+        menu->insertActionIntoToplevelMenu(m_menuElt, m_addProcess);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_addTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_removeTrigger);
     menu->insertActionIntoToplevelMenu(m_menuElt, m_elementsToJson);
@@ -237,7 +239,8 @@ void ObjectMenuActions::fillContextMenu(
 
         if(selectedConstraints.size() >= 1)
         {
-            menu->addAction(m_addProcess);
+            if(m_addProcess)
+                menu->addAction(m_addProcess);
             menu->addAction(m_interp);
             menu->addSeparator();
         }
@@ -277,7 +280,7 @@ void ObjectMenuActions::fillContextMenu(
             [&,scenePoint]()
     {
         this->pasteElements(QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8()).object(),
-                      ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
+                      Scenario::ConvertToScenarioPoint(scenePoint, pres.zoomRatio(), pres.view().boundingRect().height()));
     });
     menu->addAction(pasteElements);
 
@@ -333,7 +336,7 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 
 void ObjectMenuActions::pasteElements(
         const QJsonObject& obj,
-        const ScenarioPoint& origin)
+        const Scenario::Point& origin)
 {
     // TODO check for unnecessary uses of focusedProcessModel after focusedPresenter.
     auto pres = m_parent->focusedPresenter();
@@ -357,6 +360,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
 
     MacroCommandDispatcher dispatcher{new ScenarioPasteContent, this->dispatcher().stack()};
     auto selectedConstraints = selectedElements(sm->constraints);
+    auto expandMode = pres->editionSettings().expandMode();
     for(const auto& json_vref : obj["Constraints"].toArray())
     {
         for(const auto& constraint : selectedConstraints)
@@ -364,7 +368,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
             auto cmd = new Scenario::Command::InsertContentInConstraint{
                        json_vref.toObject(),
                        *constraint,
-                       pres->stateMachine().expandMode()};
+                       expandMode};
 
             dispatcher.submitCommand(cmd);
         }
@@ -386,7 +390,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject &obj)
     dispatcher.commit();
 }
 
-void ObjectMenuActions::addProcessInConstraint(QString processName)
+void ObjectMenuActions::addProcessInConstraint(const ProcessFactoryKey& processName)
 {
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
     if(selectedConstraints.isEmpty())
@@ -428,15 +432,19 @@ CommandDispatcher<> ObjectMenuActions::dispatcher()
 
 QList<QAction*> ObjectMenuActions::actions() const
 {
-    return {
+    QList<QAction*> lst{
             m_removeElements,
             m_clearElements,
             m_copyContent,
             m_cutContent,
             m_pasteContent,
             m_elementsToJson,
-            m_addProcess,
             m_addTrigger
         };
+    if(m_addProcess)
+    {
+        lst.push_back(m_addProcess);
+    }
+    return lst;
 }
 

@@ -1,10 +1,15 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-
+namespace Scenario
+{
+class EditionSettings;
+}
 class ScenarioFactory final : public ProcessFactory
 {
     public:
-        QString name() const override;
+        ScenarioFactory(Scenario::EditionSettings&);
+        const ProcessFactoryKey& key_impl() const override;
+        QString prettyName() const override;
 
         Process* makeModel(
                 const TimeValue& duration,
@@ -25,5 +30,8 @@ class ScenarioFactory final : public ProcessFactory
         LayerView* makeLayerView(
                 const LayerModel& viewmodel,
                 QGraphicsItem* parent) override;
+
+    private:
+        Scenario::EditionSettings& m_editionSettings;
 
 };

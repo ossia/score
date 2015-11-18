@@ -4,9 +4,6 @@
 RemoveAddress::RemoveAddress(
         Path<DeviceDocumentPlugin>&& device_tree,
         const iscore::NodePath& nodePath):
-    iscore::SerializableCommand{factoryName(),
-                                commandName(),
-                                description()},
     m_devicesModel{device_tree},
     m_nodePath{nodePath}
 {

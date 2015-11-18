@@ -2,18 +2,20 @@
 #include "Tool.hpp"
 #include <Process/ExpandMode.hpp>
 #include "ScenarioStateMachineBaseEvents.hpp"
-
-
 #include <iscore/statemachine/BaseStateMachine.hpp>
-
+#include <Scenario/Control/ScenarioEditionSettings.hpp>
 #include <QStateMachine>
 #include <QPointF>
 
+#include <Scenario/Process/Temporal/StateMachines/Tools/CreationToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.hpp>
+
+#include <Process/Tools/ToolPalette.hpp>
+
 class TemporalScenarioPresenter;
+class TemporalScenarioView;
 class ScenarioModel;
-class CreationToolState;
-class MoveToolState;
-class MoveSlotToolState;
 class QGraphicsScene;
 
 namespace iscore
@@ -25,62 +27,44 @@ namespace iscore
 
 namespace Scenario
 {
-// TODO namespace Scenario everywhere.
-class SelectionAndMoveTool;
-}
-class ScenarioStateMachine final : public BaseStateMachine
+class ToolPalette final : public GraphicsSceneToolPalette
 {
-        Q_OBJECT
     public:
-        ScenarioStateMachine(iscore::Document&, TemporalScenarioPresenter& presenter);
+        ToolPalette(LayerContext&, TemporalScenarioPresenter& presenter);
 
-        const TemporalScenarioPresenter& presenter() const;
-        const ScenarioModel& model() const { return m_model; }
+        const TemporalScenarioPresenter& presenter() const
+        { return m_presenter; }
+        const Scenario::EditionSettings& editionSettings() const;
+
+        const ScenarioModel& model() const
+        { return m_model; }
 
         iscore::CommandStack& commandStack() const
-        { return m_commandStack; }
+        { return m_context.commandStack; }
         iscore::ObjectLocker& locker() const
-        { return m_locker; }
+        { return m_context.objectLocker; }
 
-        ScenarioToolKind tool() const;
-        const ExpandMode& expandMode() const
-        { return m_expandMode; }
-        bool isShiftPressed() const;
-
-        void changeTool(int);
-
-        ScenarioPoint scenarioPoint;
-
-    signals:
-        void setCreateState();
-        void setSelectState();
-        void setMoveState();
-        void setSlotMoveState();
-        void setPlayState();
-        void exitState();
-
-        void shiftPressed();
-        void shiftReleased();
+        void on_pressed(QPointF);
+        void on_moved(QPointF);
+        void on_released(QPointF);
+        void on_cancel();
 
     private:
+        Scenario::Point ScenePointToScenarioPoint(QPointF point);
+        void changeTool(Scenario::Tool);
         TemporalScenarioPresenter& m_presenter;
         const ScenarioModel& m_model;
-        iscore::CommandStack& m_commandStack;
-        iscore::ObjectLocker& m_locker;
+        LayerContext& m_context;
 
-        const ExpandMode& m_expandMode; // Reference to the one in ScenarioControl.
+        CreationTool m_createTool;
+        SelectionAndMoveTool m_selectTool;
+        MoveSlotTool m_moveSlotTool;
 
-        CreationToolState* createState{};
-        MoveToolState* moveState{};
-        Scenario::SelectionAndMoveTool* selectState{};
-        MoveSlotToolState* moveSlotState{};
-        QState* playState{};
-        QState* transitionState{};
-
-
-        QState* scaleState{};
-        QState* growState{};
-        QState* fixedState{};
-        QState* shiftReleasedState{};
-        QState* shiftPressedState{};
+        ToolPaletteInputDispatcher<
+            Scenario::Tool,
+            ToolPalette,
+            LayerContext,
+            TemporalScenarioView> m_inputDisp;
 };
+
+}

@@ -9,7 +9,7 @@ namespace RollbackStrategy
 {
     struct Simple
     {
-            static void rollback(const QList<iscore::SerializableCommand*>& cmds)
+            static void rollback(const std::vector<iscore::SerializableCommand*>& cmds)
             {
                 for(int i = cmds.size() - 1; i >= 0; --i)
                 {
@@ -50,7 +50,7 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
         {
             stack().disableActions();
             cmd->redo();
-            m_cmds.append(cmd);
+            m_cmds.push_back(cmd);
         }
 
         template<typename TheCommand, typename... Args>
@@ -61,12 +61,12 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
                 stack().disableActions();
                 auto cmd = new TheCommand(std::forward<Args>(args)...);
                 cmd->redo();
-                m_cmds.append(cmd);
+                m_cmds.push_back(cmd);
             }
             else
             {
-                iscore::SerializableCommand* last = m_cmds.last();
-                if(last->uid() == TheCommand::static_uid())
+                iscore::SerializableCommand* last = m_cmds.back();
+                if(last->key() == TheCommand::static_key())
                 {
                     safe_cast<TheCommand*>(last)->update(std::forward<Args>(args)...);
                     safe_cast<TheCommand*>(last)->redo();
@@ -75,7 +75,7 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
                 {
                     auto cmd = new TheCommand(std::forward<Args>(args)...);
                     cmd->redo();
-                    m_cmds.append(cmd);
+                    m_cmds.push_back(cmd);
                 }
             }
         }
@@ -111,5 +111,5 @@ class MultiOngoingCommandDispatcher final : public ICommandDispatcher
         }
 
     private:
-        QList<iscore::SerializableCommand*> m_cmds;
+        std::vector<iscore::SerializableCommand*> m_cmds;
 };

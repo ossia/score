@@ -1,18 +1,16 @@
 #pragma once
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
-#include <QTemporaryFile>
-#include <QTimer>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class RecordManager;
 class ScenarioModel;
 class IScoreCohesionControl final : public iscore::PluginControlInterface
 {
     public:
-        IScoreCohesionControl(iscore::Presenter* pres);
+        IScoreCohesionControl(iscore::Application& app);
         void populateMenus(iscore::MenubarManager*) override;
-        QList<iscore::OrderedToolbar> makeToolbars() override;
+        std::vector<iscore::OrderedToolbar> makeToolbars() override;
 
-        void record(ScenarioModel&, ScenarioPoint pt);
+        void record(ScenarioModel&, Scenario::Point pt);
         void stopRecord();
 
     private:

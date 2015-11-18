@@ -36,7 +36,7 @@ MappingInspectorWidget::MappingInspectorWidget(
     setObjectName("MappingInspectorWidget");
     setParent(parent);
 
-    QVector<QWidget*> vec;
+    std::list<QWidget*> vec;
 
     // LineEdit
     // If there is a DeviceExplorer in the current document, use it

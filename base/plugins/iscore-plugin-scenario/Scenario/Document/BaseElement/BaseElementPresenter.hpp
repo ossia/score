@@ -1,12 +1,14 @@
 #pragma once
-#include <iscore/tools/NamedObject.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
-#include <iscore/selection/SelectionDispatcher.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/BaseElement/DisplayedElements/DisplayedElementsPresenter.hpp>
+
+#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
+#include <iscore/tools/NamedObject.hpp>
+#include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
+
 #include <QSize>
 #include <QRectF>
-#include "DisplayedElements/DisplayedElementsPresenter.hpp"
 class ProgressBar;
 namespace iscore
 {

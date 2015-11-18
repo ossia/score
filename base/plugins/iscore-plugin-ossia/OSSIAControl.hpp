@@ -16,7 +16,7 @@ class OSSIABaseScenarioElement;
 class OSSIAControl final : public iscore::PluginControlInterface
 {
     public:
-        OSSIAControl(iscore::Presenter* pres);
+        OSSIAControl(iscore::Application& app);
         ~OSSIAControl();
 
         void populateMenus(iscore::MenubarManager*) override;
@@ -24,13 +24,12 @@ class OSSIAControl final : public iscore::PluginControlInterface
         iscore::DocumentDelegatePluginModel*loadDocumentPlugin(
                 const QString& name,
                 const VisitorVariant& var,
-                iscore::DocumentModel* parent) override;
+                iscore::Document* parent) override;
 
         void on_newDocument(iscore::Document* doc) override;
         void on_loadedDocument(iscore::Document* doc) override;
 
         OSSIAConstraintElement& baseConstraint() const;
-        OSSIABaseScenarioElement& baseScenario() const;
         std::shared_ptr<OSSIA::Device> localDevice() const
         { return m_localDevice; }
 

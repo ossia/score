@@ -20,7 +20,7 @@ namespace Scenario
          */
         class CopySlot final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "CopySlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CopySlot, "CopySlot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 CopySlot(Path<SlotModel>&& slotToCopy,
@@ -30,8 +30,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<SlotModel> m_slotPath;

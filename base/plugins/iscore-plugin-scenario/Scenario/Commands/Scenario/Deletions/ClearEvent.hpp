@@ -10,15 +10,15 @@ namespace Scenario
     {
         class ClearState final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "ClearState")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "ClearState")
             public:
                 ClearState(Path<StateModel>&& path);
                 void undo() const override;
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<StateModel> m_path;

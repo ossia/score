@@ -13,7 +13,7 @@
 
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
-        "Mapping",
+        MappingProcessMetadata,
         MappingModel,
         MappingLayerModel,
         MappingPresenter,
@@ -31,15 +31,17 @@ iscore_plugin_mapping::iscore_plugin_mapping() :
 {
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_mapping::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new MappingFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
         return {new MappingInspectorFactory};
     }
@@ -47,9 +49,9 @@ std::vector<iscore::FactoryInterface*> iscore_plugin_mapping::factories(const QS
     return {};
 }
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_mapping::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapping::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             ChangeSourceAddress,

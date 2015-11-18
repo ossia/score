@@ -1,3 +1,4 @@
 #pragma once
+#include <iscore/command/SerializableCommand.hpp>
 
-inline constexpr const char * AutomationCommandFactoryName() { return "AutomationControl"; }
+const CommandParentFactoryKey& AutomationCommandFactoryName();

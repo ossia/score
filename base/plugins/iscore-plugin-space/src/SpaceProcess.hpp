@@ -4,31 +4,50 @@
 #include "Area/AreaModel.hpp"
 #include "Computation/ComputationModel.hpp"
 class SpaceModel;
+
+struct SpaceProcessMetadata
+{
+        static const ProcessFactoryKey& factoryKey()
+        {
+            static const ProcessFactoryKey name{"Space"};
+            return name;
+        }
+
+        static QString processObjectName()
+        {
+            return "Space";
+        }
+
+        static QString factoryPrettyName()
+        {
+            return QObject::tr("Space");
+        }
+};
+
 class SpaceProcess : public Process
 {
         Q_OBJECT
     public:
         SpaceProcess(const TimeValue &duration, const Id<Process> &id, QObject *parent);
-        Process *clone(const Id<Process> &newId, QObject *newParent) const;
+        Process *clone(const Id<Process> &newId, QObject *newParent) const override;
 
-        QString processName() const;
-        QString userFriendlyDescription() const override
-        { return tr("Space process"); }
+        const ProcessFactoryKey& key() const override;
+        QString prettyName() const override;
 
-        void setDurationAndScale(const TimeValue &newDuration);
-        void setDurationAndGrow(const TimeValue &newDuration);
-        void setDurationAndShrink(const TimeValue &newDuration);
+        void setDurationAndScale(const TimeValue &newDuration) override;
+        void setDurationAndGrow(const TimeValue &newDuration) override;
+        void setDurationAndShrink(const TimeValue &newDuration) override;
 
-        void reset();
+        void reset() override;
 
-        ProcessStateDataInterface *startState() const;
-        ProcessStateDataInterface* endState() const;
+        ProcessStateDataInterface *startState() const override;
+        ProcessStateDataInterface* endState() const override;
 
-        Selection selectableChildren() const;
-        Selection selectedChildren() const;
-        void setSelection(const Selection &s) const;
+        Selection selectableChildren() const override;
+        Selection selectedChildren() const override;
+        void setSelection(const Selection &s) const override;
 
-        void serialize(const VisitorVariant &vis) const;
+        void serialize(const VisitorVariant &vis) const override;
 
         const SpaceModel& space() const
         { return *m_space; }
@@ -51,14 +70,14 @@ class SpaceProcess : public Process
         LayerModel *makeLayer_impl(
                 const Id<LayerModel> &viewModelId,
                 const QByteArray &constructionData,
-                QObject *parent);
+                QObject *parent) override;
         LayerModel *loadLayer_impl(
                 const VisitorVariant &,
-                QObject *parent);
+                QObject *parent) override;
         LayerModel *cloneLayer_impl(
                 const Id<LayerModel> &newId,
                 const LayerModel &source,
-                QObject *parent);
+                QObject *parent) override;
 
     private:
         SpaceModel* m_space{};

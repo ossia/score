@@ -8,29 +8,28 @@ class LayerPresenter;
 class ScenarioControl;
 class TemporalScenarioPresenter;
 class QMenu;
+namespace iscore
+{
+struct DocumentContext;
+}
 
 // TODO rename file
 class ScenarioContextMenuManager final : public QObject
 {
-        ScenarioControl& m_control;
     public:
-        ScenarioContextMenuManager(ScenarioControl& control):
-            m_control{control}
-        {
-
-        }
-
-        void createSlotContextMenu(
+        static void createSlotContextMenu(
+                const iscore::DocumentContext& docContext,
                 QMenu& menu,
                 const SlotPresenter& slotp);
 
-        void createScenarioContextMenu(
+        static void createScenarioContextMenu(
+                const iscore::DocumentContext& ctx,
                 QMenu& menu,
                 const QPoint& pos,
                 const QPointF& scenepos,
                 const TemporalScenarioPresenter& pres);
 
-        void createLayerContextMenu(
+        static void createLayerContextMenu(
                 QMenu& menu,
                 const QPoint& pos,
                 const QPointF& scenepos,

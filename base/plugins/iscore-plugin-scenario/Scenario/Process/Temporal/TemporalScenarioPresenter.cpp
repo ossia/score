@@ -41,6 +41,8 @@
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
+        iscore::DocumentContext& context,
+        Scenario::EditionSettings& e,
         const TemporalScenarioLayerModel& process_view_model,
         LayerView* view,
         QObject* parent) :
@@ -48,8 +50,10 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     m_layer {process_view_model},
     m_view {static_cast<TemporalScenarioView*>(view)},
     m_viewInterface{new ScenarioViewInterface{this}},
-    m_sm{*iscore::IDocument::documentFromObject(m_layer.processModel()), *this}, // OPTIMIZEME by passing document in parent
-    m_focusDispatcher{*iscore::IDocument::documentFromObject(m_layer.processModel())}
+    m_editionSettings{e},
+    m_focusDispatcher{context.document},
+    m_context{context, *this, m_focusDispatcher},
+    m_sm{m_context, *this}
 {
     const ScenarioModel& scenario = model(m_layer);
     /////// Setup of existing data
@@ -96,12 +100,6 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     con(m_layer, &TemporalScenarioLayerModel::constraintViewModelRemoved,
         this, &TemporalScenarioPresenter::on_constraintViewModelRemoved);
 
-    connect(m_view, &TemporalScenarioView::scenarioPressed,
-            this, [&] (const QPointF&)
-    {
-        m_focusDispatcher.focus(this);
-    });
-
     connect(m_view, &TemporalScenarioView::keyPressed,
             this,   &TemporalScenarioPresenter::keyPressed);
     connect(m_view, &TemporalScenarioView::keyReleased,
@@ -117,7 +115,12 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     con(model(m_layer), &ScenarioModel::unlocked,
             m_view,             &TemporalScenarioView::unlock);
 
-    m_sm.start();
+    connect(&layerModel().processModel(), &Process::execution,
+            this, [&] (bool b) {
+            editionSettings().setTool(
+                        b ? Scenario::Tool::Playing
+                          : Scenario::Tool::Select); // TODO see curvepresenter
+    });
 }
 
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
@@ -180,7 +183,9 @@ void TemporalScenarioPresenter::fillContextMenu(
         const QPoint& pos,
         const QPointF& scenepos) const
 {
-    ScenarioControl::instance()->contextMenuDispatcher.createScenarioContextMenu(*menu, pos, scenepos, *this);
+    auto& context = iscore::IDocument::documentContext(m_layer.processModel());
+
+    ScenarioContextMenuManager::createScenarioContextMenu(context, *menu, pos, scenepos, *this);
 }
 
 template<typename Map, typename Id>
@@ -201,7 +206,7 @@ void TemporalScenarioPresenter::removeElement(
 void TemporalScenarioPresenter::on_stateRemoved(
         const StateModel& state)
 {
-    removeElement(m_displayedStates.get(), state.id());
+    removeElement(m_states.get(), state.id());
 }
 
 
@@ -249,9 +254,12 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 void TemporalScenarioPresenter::on_focusChanged()
 {
-    // TODO lefuck ?
-    m_view->setFocus();
-    m_sm.setMoveState();
+    if(focused())
+    {
+        m_view->setFocus();
+    }
+
+    editionSettings().setTool(Scenario::Tool::Select);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -276,9 +284,9 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
             this, [=] () { m_viewInterface->on_hoverOnEvent(ev_pres->id(), false); });
 
     // For the state machine
-    connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(ev_pres, &EventPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(ev_pres, &EventPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(ev_pres, &EventPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode_model)
@@ -294,15 +302,15 @@ void TemporalScenarioPresenter::on_timeNodeCreated(const TimeNodeModel& timeNode
             this, [=] (const TimeValue&) { m_viewInterface->on_timeNodeMoved(*tn_pres); });
 
     // For the state machine
-    connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(tn_pres, &TimeNodePresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(tn_pres, &TimeNodePresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(tn_pres, &TimeNodePresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
 {
     auto st_pres = new StatePresenter{state, m_view, this};
-    m_displayedStates.insert(st_pres);
+    m_states.insert(st_pres);
 
     m_viewInterface->on_stateMoved(*st_pres);
 
@@ -310,9 +318,9 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel &state)
             this, [=] () { m_viewInterface->on_stateMoved(*st_pres); });
 
     // For the state machine
-    connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(st_pres, &StatePresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(st_pres, &StatePresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(st_pres, &StatePresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalConstraintViewModel& constraint_view_model)
@@ -339,9 +347,9 @@ void TemporalScenarioPresenter::on_constraintViewModelCreated(const TemporalCons
             [=] () { m_viewInterface->on_hoverOnConstraint(cst_pres->model().id(), false); });
 
     // For the state machine
-    connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::scenarioPressed);
-    connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::scenarioMoved);
-    connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::scenarioReleased);
+    connect(cst_pres, &TemporalConstraintPresenter::pressed, m_view, &TemporalScenarioView::pressed);
+    connect(cst_pres, &TemporalConstraintPresenter::moved, m_view, &TemporalScenarioView::moved);
+    connect(cst_pres, &TemporalConstraintPresenter::released, m_view, &TemporalScenarioView::released);
 }
 
 void TemporalScenarioPresenter::updateAllElements()
@@ -361,7 +369,7 @@ void TemporalScenarioPresenter::updateAllElements()
         m_viewInterface->on_timeNodeMoved(timenode);
     }
 
-    for(auto& state : m_displayedStates)
+    for(auto& state : m_states)
     {
         m_viewInterface->on_stateMoved(state);
     }
@@ -378,7 +386,7 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
 
         MacroCommandDispatcher m(
                     new  Scenario::Command::CreateStateMacro,
-                    iscore::IDocument::commandStack(m_layer.processModel()));
+                    m_context.commandStack);
 
         const ScenarioModel& scenar = ::model(m_layer);
         Id<StateModel> createdState;
@@ -417,12 +425,9 @@ void TemporalScenarioPresenter::handleDrop(const QPointF &pos, const QMimeData *
             createdState = cmd->createdState();
         }
 
-
-        Path<ScenarioModel> scenario_path{scenar};
-        auto vecpath = scenario_path.unsafePath().vec();
-        vecpath.append({"StateModel", createdState});
-        vecpath.append({"MessageItemModel", {}});
-        Path<MessageItemModel> state_path{ObjectPath(std::move(vecpath)), {}};
+        auto state_path = make_path(scenar)
+                .extend(StateModel::className, createdState)
+                .extend("MessageItemModel", Id<MessageItemModel>{});
 
         auto cmd2 = new AddMessagesToState{
                    std::move(state_path),

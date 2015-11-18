@@ -10,7 +10,7 @@ class SlotOverlay final : public QGraphicsItem
         const SlotView& slotView() const
         { return m_slotView; }
 
-        virtual QRectF boundingRect() const override;
+        QRectF boundingRect() const override;
 
         void setHeight(qreal height);
         void setWidth(qreal height);
@@ -19,9 +19,9 @@ class SlotOverlay final : public QGraphicsItem
                            const QStyleOptionGraphicsItem *option,
                            QWidget *widget) override;
 
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
     private:
         const SlotView&m_slotView;

@@ -23,11 +23,11 @@ CommandBackupFile::CommandBackupFile(const iscore::CommandStack &stack, QObject 
     // Load initial state
     for(const auto& cmd : m_stack.m_undoable)
     {
-        m_savedUndo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        m_savedUndo.push({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
     }
     for(const auto& cmd : m_stack.m_redoable)
     {
-        m_savedRedo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+        m_savedRedo.push({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
     }
 
     // Initial backup so that the file is always in a loadable state.
@@ -44,7 +44,7 @@ void CommandBackupFile::on_push()
     // A new command is added to m_undoable
     // m_redoable should be cleared
     auto cmd = m_stack.m_undoable.last();
-    m_savedUndo.push({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+    m_savedUndo.push({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
 
     m_savedRedo.clear();
 

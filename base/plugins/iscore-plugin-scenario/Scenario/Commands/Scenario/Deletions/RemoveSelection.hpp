@@ -19,7 +19,7 @@ namespace Scenario
         */
         class RemoveSelection final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "RemoveSelection")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "RemoveSelection")
             public:
                 RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
 
@@ -27,8 +27,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<ScenarioModel> m_path;

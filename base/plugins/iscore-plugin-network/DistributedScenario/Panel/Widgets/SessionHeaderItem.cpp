@@ -2,9 +2,9 @@
 
 #include <client/Client.hpp>
 
-SessionHeaderItem::SessionHeaderItem(const Client& client):
-    QTableWidgetItem{client.name()},
-    client{client.id()}
+SessionHeaderItem::SessionHeaderItem(const Client& clt):
+    QTableWidgetItem{clt.name()},
+    client{clt.id()}
 {
 
 }

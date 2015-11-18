@@ -32,13 +32,13 @@ class SelectionState : public CommonSelectionState
         QPointF m_initialPoint;
         QPointF m_movePoint;
 
-        const CurveStateMachine& m_parentSM;
+        const Curve::ToolPalette& m_parentSM;
         CurveView& m_view;
 
     public:
         SelectionState(
                 iscore::SelectionStack& stack,
-                const CurveStateMachine& parentSM,
+                const Curve::ToolPalette& parentSM,
                 CurveView& view,
                 QState* parent):
             CommonSelectionState{stack, &view, parent},
@@ -116,8 +116,8 @@ class SelectionState : public CommonSelectionState
         }
 };
 
-SelectionAndMoveTool::SelectionAndMoveTool(CurveStateMachine& sm):
-    CurveTool{sm, &sm}
+SelectionAndMoveTool::SelectionAndMoveTool(Curve::ToolPalette& sm):
+    CurveTool{sm}
 {
     m_state = new Curve::SelectionState{
             iscore::IDocument::documentFromObject(m_parentSM.model())->selectionStack(),
@@ -133,7 +133,7 @@ SelectionAndMoveTool::SelectionAndMoveTool(CurveStateMachine& sm):
 
         m_moveState->setObjectName("MovePointState");
 
-        make_transition<ClickOnPoint_Transition>(m_state,
+        iscore::make_transition<ClickOnPoint_Transition>(m_state,
                                                  m_moveState,
                                                  *m_moveState);
 
@@ -147,69 +147,69 @@ SelectionAndMoveTool::SelectionAndMoveTool(CurveStateMachine& sm):
     localSM().start();
 }
 
-void SelectionAndMoveTool::on_pressed()
+void SelectionAndMoveTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
     m_prev = std::chrono::steady_clock::now();
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
     {
-        localSM().postEvent(new ClickOnPoint_Event(m_parentSM.curvePoint, point));
+        localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
         m_nothingPressed = false;
     },
     [&] (const CurveSegmentView* segment)
     {
-        localSM().postEvent(new ClickOnSegment_Event(m_parentSM.curvePoint, segment));
+        localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
         m_nothingPressed = false;
     },
     [&] ()
     {
-        localSM().postEvent(new Press_Event);
+        localSM().postEvent(new iscore::Press_Event);
         m_nothingPressed = true;
     });
 }
 
-void SelectionAndMoveTool::on_moved()
+void SelectionAndMoveTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
 {
     auto t = std::chrono::steady_clock::now();
     if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_prev).count() < 16)
     {
-        return;
+ //       return;
     }
 
     if (m_nothingPressed)
     {
-        localSM().postEvent(new Move_Event);
+        localSM().postEvent(new iscore::Move_Event);
     }
     else
     {
-        mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+        mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                    [&] (const CurvePointView* point)
         {
-            localSM().postEvent(new MoveOnPoint_Event(m_parentSM.curvePoint, point));
+            localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
         },
         [&] (const CurveSegmentView* segment)
         {
-            localSM().postEvent(new MoveOnSegment_Event(m_parentSM.curvePoint, segment));
+            localSM().postEvent(new MoveOnSegment_Event(curvePoint, segment));
         },
         [&] ()
         {
-            localSM().postEvent(new MoveOnNothing_Event(m_parentSM.curvePoint, nullptr));
+            localSM().postEvent(new MoveOnNothing_Event(curvePoint, nullptr));
         });
     }
     m_prev = t;
 }
 
-void SelectionAndMoveTool::on_released()
+void SelectionAndMoveTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
 {
     if(m_nothingPressed)
     {
-        localSM().postEvent(new Release_Event); // select
+        localSM().postEvent(new iscore::Release_Event); // select
         m_nothingPressed = false;
 
         return;
     }
 
-    mapTopItem(itemUnderMouse(m_parentSM.scenePoint),
+    mapTopItem(scenePoint, itemUnderMouse(scenePoint),
                [&] (const CurvePointView* point)
     {
         m_state->dispatcher.setAndCommit(
@@ -218,7 +218,7 @@ void SelectionAndMoveTool::on_released()
                                      m_state->multiSelection()));
 
 
-        localSM().postEvent(new ReleaseOnPoint_Event(m_parentSM.curvePoint, point));
+        localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
     },
     [&] (const CurveSegmentView* segment)
     {
@@ -227,11 +227,11 @@ void SelectionAndMoveTool::on_released()
                                      m_parentSM.model().selectedChildren(),
                                      m_state->multiSelection()));
 
-        localSM().postEvent(new ReleaseOnSegment_Event(m_parentSM.curvePoint, segment));
+        localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
     },
     [&] ()
     {
-        localSM().postEvent(new ReleaseOnNothing_Event(m_parentSM.curvePoint, nullptr));
+        localSM().postEvent(new ReleaseOnNothing_Event(curvePoint, nullptr));
     });
 }
 

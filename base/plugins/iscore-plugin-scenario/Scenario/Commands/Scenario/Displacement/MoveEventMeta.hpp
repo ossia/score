@@ -5,11 +5,9 @@
 
 class MoveEventMeta final : public SerializableMoveEvent
 {
-    // Command interface
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "MoveEventMeta")
+
 public:
-    MoveEventMeta()
-        :SerializableMoveEvent{}
-    {}
 
     MoveEventMeta(
             Path<ScenarioModel>&& scenarioPath,
@@ -32,5 +30,5 @@ private:
 
     // SerializableMoveEvent interface
 public:
-    virtual void update(const Path<ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
+    void update(const Path<ScenarioModel>& scenarioPath, const Id<EventModel>& eventId, const TimeValue& newDate, ExpandMode mode) override;
 };

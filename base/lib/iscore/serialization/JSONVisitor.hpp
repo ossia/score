@@ -2,9 +2,9 @@
 #include <iscore/serialization/JSONValueVisitor.hpp>
 
 #include <iscore/tools/IdentifiedObject.hpp>
+#include <core/application/ApplicationContext.hpp>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QVector>
 #include <QMap>
 
 /**
@@ -48,16 +48,16 @@ class Visitor<Reader<JSONObject>> final : public AbstractVisitor
     public:
         using is_visitor_tag = std::integral_constant<bool, true>;
 
-        Visitor<Reader<JSONObject>>() = default;
-        Visitor<Reader<JSONObject>>(const Visitor<Reader<JSONObject>>&) = delete;
-        Visitor<Reader<JSONObject>>& operator=(const Visitor<Reader<JSONObject>>&) = delete;
+        Visitor();
+        Visitor(const Visitor&) = delete;
+        Visitor& operator=(const Visitor&) = delete;
 
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
         template<typename T>
         static auto marshall(const T& t)
         {
-            Visitor<Reader<JSONObject>> reader;
+            Visitor reader;
             reader.readFrom(t);
             return reader.m_obj;
         }
@@ -81,6 +81,8 @@ class Visitor<Reader<JSONObject>> final : public AbstractVisitor
         }
 
         QJsonObject m_obj;
+
+        iscore::ApplicationContext context;
 };
 
 template<>
@@ -91,23 +93,18 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
 
         VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
-        Visitor<Writer<JSONObject>>() = default;
-        Visitor<Writer<JSONObject>>(const Visitor<Reader<JSONObject>>&) = delete;
-        Visitor<Writer<JSONObject>>& operator=(const Visitor<Writer<JSONObject>>&) = delete;
+        Visitor();
+        Visitor(const Visitor&) = delete;
+        Visitor& operator=(const Visitor&) = delete;
 
-        Visitor<Writer<JSONObject>> (const QJsonObject& obj) :
-                               m_obj {obj}
-        {}
-
-        Visitor<Writer<JSONObject>> (QJsonObject&& obj) :
-                               m_obj {std::move(obj) }
-        {}
+        Visitor(const QJsonObject& obj);
+        Visitor(QJsonObject&& obj);
 
         template<typename T>
         static auto unmarshall(const QJsonObject& obj)
         {
             T data;
-            Visitor<Writer<JSONObject>> wrt{obj};
+            Visitor wrt{obj};
             wrt.writeTo(data);
             return data;
         }
@@ -142,6 +139,7 @@ class Visitor<Writer<JSONObject>> : public AbstractVisitor
         }
 
         QJsonObject m_obj;
+        iscore::ApplicationContext context;
 };
 
 template<typename T>
@@ -343,6 +341,17 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
     for(const auto& elt : json_arr)
     {
         T obj;
+        fromJsonObject(elt.toObject(), obj);
+        arr.push_back(obj);
+    }
+}
+
+template<template<typename U, typename V> class Container, typename T1, typename T2>
+void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
+{
+    for(const auto& elt : json_arr)
+    {
+        T1 obj;
         fromJsonObject(elt.toObject(), obj);
         arr.push_back(obj);
     }

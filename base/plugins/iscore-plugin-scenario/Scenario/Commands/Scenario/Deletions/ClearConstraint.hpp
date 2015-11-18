@@ -19,15 +19,15 @@ namespace Scenario
          */
         class ClearConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "ClearConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearConstraint, "ClearConstraint")
             public:
                 ClearConstraint(Path<ConstraintModel>&& constraintPath);
                 void undo() const override;
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<ConstraintModel> m_path;

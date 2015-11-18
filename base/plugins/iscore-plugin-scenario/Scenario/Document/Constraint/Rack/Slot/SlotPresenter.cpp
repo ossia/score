@@ -20,10 +20,13 @@
 
 using namespace Scenario;
 
-SlotPresenter::SlotPresenter(const SlotModel& model,
-                             RackView *view,
-                             QObject* par) :
+SlotPresenter::SlotPresenter(
+        const iscore::DocumentContext& doc,
+        const SlotModel& model,
+        RackView *view,
+        QObject* par) :
     NamedObject {"SlotPresenter", par},
+    m_processList{doc.app.components.factory<DynamicProcessList>()},
     m_model {model},
     m_view {new SlotView{*this, view}}
 {
@@ -56,7 +59,7 @@ SlotPresenter::SlotPresenter(const SlotModel& model,
     connect(m_view, &SlotView::askContextMenu,
             this, [&] (const QPoint& pos, const QPointF& scenept) {
         QMenu menu;
-        ScenarioControl::instance()->contextMenuDispatcher.createSlotContextMenu(menu, *this);
+        ScenarioContextMenuManager::createSlotContextMenu(doc, menu, *this);
         menu.exec(pos);
         menu.close();
     });
@@ -223,9 +226,9 @@ void SlotPresenter::on_loopingChanged(bool b)
 void SlotPresenter::on_layerModelCreated_impl(
         const LayerModel& proc_vm)
 {
-    auto procname = proc_vm.processModel().processName();
+    auto& procKey = proc_vm.processModel().key();
 
-    auto factory = ProcessList::getFactory(procname);
+    auto factory = m_processList.list().get(procKey);
     ISCORE_ASSERT(factory);
 
     int numproc = m_looping
@@ -286,8 +289,9 @@ void SlotPresenter::updateProcesses()
         {
             if(proc_size < numproc)
             {
-                auto procname = proc.model->processModel().processName();
-                auto factory = ProcessList::getFactory(procname);
+                auto procKey = proc.model->processModel().key();
+                auto factory = m_processList.list().get(procKey);
+                ISCORE_ASSERT(factory);
 
                 for(int i = proc_size; i < numproc; i++)
                 {

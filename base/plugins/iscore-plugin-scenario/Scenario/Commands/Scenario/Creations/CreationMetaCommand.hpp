@@ -9,13 +9,14 @@
 #include "CreateConstraint_State_Event.hpp"
 #include "CreateConstraint_State_Event_TimeNode.hpp"
 #include "CreateSequence.hpp"
+#include <boost/range/adaptor/reversed.hpp>
 namespace Scenario
 {
     namespace Command
     {
         class CreationMetaCommand final : public iscore::AggregateCommand
         {
-                ISCORE_AGGREGATE_COMMAND_DECL(ScenarioCommandFactoryName(), CreationMetaCommand, "CreationMetaCommand")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreationMetaCommand, "CreationMetaCommand")
             public:
                 void undo() const override
         {
@@ -23,19 +24,19 @@ namespace Scenario
             // since the move ones perform unnecessary serialization / etc in this case
             // and don't bring anything to the table.
             // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
-            for(int i = m_cmds.size() - 1; i >= 0; --i)
+            for (auto cmd : boost::adaptors::reverse(m_cmds))
             {
                 if(
-                        m_cmds[i]->uid() == CreateConstraint::static_uid()
-                        || m_cmds[i]->uid() == CreateState::static_uid()
-                        || m_cmds[i]->uid() == CreateEvent_State::static_uid()
-                        || m_cmds[i]->uid() == CreateConstraint_State::static_uid()
-                        || m_cmds[i]->uid() == CreateConstraint_State_Event::static_uid()
-                        || m_cmds[i]->uid() == CreateConstraint_State_Event_TimeNode::static_uid()
-                        || m_cmds[i]->uid() == CreateSequence::static_uid()
+                        cmd->key() == CreateConstraint::static_key()
+                        || cmd->key() == CreateState::static_key()
+                        || cmd->key() == CreateEvent_State::static_key()
+                        || cmd->key() == CreateConstraint_State::static_key()
+                        || cmd->key() == CreateConstraint_State_Event::static_key()
+                        || cmd->key() == CreateConstraint_State_Event_TimeNode::static_key()
+                        || cmd->key() == CreateSequence::static_key()
                         )
                 {
-                    m_cmds[i]->undo();
+                    cmd->undo();
                 }
             }
         }

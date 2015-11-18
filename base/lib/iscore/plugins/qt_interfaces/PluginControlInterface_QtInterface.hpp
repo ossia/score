@@ -3,14 +3,14 @@
 
 namespace iscore
 {
-class Presenter;
+    class Application;
     class PluginControlInterface;
     class PluginControlInterface_QtInterface
     {
         public:
             virtual ~PluginControlInterface_QtInterface();
 
-            virtual PluginControlInterface* make_control(Presenter* parent) = 0;
+            virtual PluginControlInterface* make_control(iscore::Application& app) = 0;
     };
 }
 
@@ -30,7 +30,7 @@ class CommandFactory_QtInterface
     public:
         virtual ~CommandFactory_QtInterface();
 
-        virtual std::pair<const std::string, CommandGeneratorMap> make_commands() = 0;
+        virtual std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() = 0;
 };
 }
 

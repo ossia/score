@@ -31,6 +31,9 @@ class BaseElementModel final : public iscore::DocumentDelegateModelInterface
 
         virtual ~BaseElementModel() = default;
 
+        BaseScenario& baseScenario() const
+        { return *m_baseScenario; }
+
         ConstraintModel& baseConstraint() const;
 
         void serialize(const VisitorVariant&) const override;

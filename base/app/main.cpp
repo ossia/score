@@ -5,13 +5,15 @@
 #endif
 
 #if defined(ISCORE_STATIC_QT)
-  #include <QtPlugin>
   #if defined(__linux__)
-    Q_IMPORT_PLUGIN (QXcbIntegrationPlugin)  
+    #include <QtPlugin>
+    Q_IMPORT_PLUGIN (QXcbIntegrationPlugin)
   #endif
 #endif
 
+#if defined(ISCORE_OPENGL)
 #include <QSurfaceFormat>
+#endif
 
 int main(int argc, char** argv)
 {
@@ -19,7 +21,9 @@ int main(int argc, char** argv)
     Q_INIT_RESOURCE(iscore);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(AutomationResources);
+#if defined(ISCORE_PLUGIN_MAPPING)
     Q_INIT_RESOURCE(MappingResources);
+#endif
     Q_INIT_RESOURCE(DeviceExplorer);
 #endif
 #if defined(ISCORE_OPENGL)

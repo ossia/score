@@ -10,7 +10,6 @@ UpdateDeviceSettings::UpdateDeviceSettings(
         Path<DeviceDocumentPlugin>&& device_tree,
         const QString &name,
         const DeviceSettings& parameters):
-    iscore::SerializableCommand(this),
     m_devicesModel{device_tree},
     m_newParameters(parameters)
 {

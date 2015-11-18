@@ -27,24 +27,29 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     connect(::view(this), &TemporalConstraintView::constraintHoverLeave,
             this,       &TemporalConstraintPresenter::constraintHoverLeave);
 
-    ::view(this)->setLabel(cstr_model.model().metadata.label());
-
-    con(m_viewModel.model().metadata, &ModelMetadata::labelChanged,
+    const auto& metadata = m_viewModel.model().metadata;
+    con(metadata, &ModelMetadata::labelChanged,
             ::view(this), &TemporalConstraintView::setLabel);
-    con(m_viewModel.model().metadata,   &ModelMetadata::colorChanged,
+
+    con(metadata,   &ModelMetadata::colorChanged,
             ::view(this), [&] (const QColor& c) {
         ::view(this)->setLabelColor(c);
         ::view(this)->setColor(c);
     });
 
+    con(metadata, &ModelMetadata::nameChanged,
+        this, [&] (const QString& name) { m_header->setText(name); });
+
+
+    ::view(this)->setLabel(metadata.label());
+    ::view(this)->setLabelColor(metadata.color());
+    ::view(this)->setColor(metadata.color());
+    m_header->setText(metadata.name());
+
     con(m_viewModel.model().selection, &Selectable::changed,
         ::view(this), &TemporalConstraintView::setFocused);
     con(m_viewModel.model(), &ConstraintModel::focusChanged,
         ::view(this), &TemporalConstraintView::setFocused);
-
-    m_header->setText(m_viewModel.model().metadata.name());
-    con(m_viewModel.model().metadata, &ModelMetadata::nameChanged,
-            this, [&] (const QString& name) { m_header->setText(name); });
 
     // Change to full view when header is double-clicked
     connect(static_cast<TemporalConstraintHeader*>(m_header), &TemporalConstraintHeader::doubleClicked,

@@ -16,12 +16,13 @@ DocumentBuilder::DocumentBuilder(iscore::Presenter& pres):
 }
 
 Document* DocumentBuilder::newDocument(
+        const Id<DocumentModel>& id,
         DocumentDelegateFactoryInterface* doctype)
 {
-    auto doc = new Document{doctype, m_presenter.view(), &m_presenter};
+    auto doc = new Document{id, doctype, m_presenter.view(), &m_presenter};
 
     m_backupManager = new DocumentBackupManager{*doc};
-    for(auto& control: m_presenter.controls())
+    for(auto& control: m_presenter.applicationComponents().controls())
     {
         control->on_newDocument(doc);
     }
@@ -51,7 +52,7 @@ Document* DocumentBuilder::loadDocument_impl(
         initfun(doc);
         m_backupManager =  new DocumentBackupManager{*doc};
 
-        for(auto& control: m_presenter.controls())
+        for(auto& control: m_presenter.applicationComponents().controls())
         {
             control->on_loadedDocument(doc);
         }

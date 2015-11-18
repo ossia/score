@@ -19,6 +19,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove/RemoveAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateAddressSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateDeviceSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/DeviceExplorerCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/ReplaceDevice.cpp"
@@ -51,7 +52,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressFragmentLineEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_deviceexplorer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerControl.cpp"
@@ -68,7 +68,7 @@ add_library(iscore_plugin_deviceexplorer
       ${EXPLORER_RESOURCES_RCC})
 
 target_link_libraries(iscore_plugin_deviceexplorer
-                      Qt5::Core Qt5::Widgets Qt5::Test
+                      Qt5::Core Qt5::Widgets
                       iscore_lib_base iscore_lib_state iscore_lib_device
                       QProgressIndicator)
 

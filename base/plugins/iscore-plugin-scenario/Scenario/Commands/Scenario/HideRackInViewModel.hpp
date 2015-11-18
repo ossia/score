@@ -19,7 +19,7 @@ namespace Scenario
          */
         class HideRackInViewModel final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRackInViewModel, "HideRackInViewModel")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRackInViewModel, "HideRackInViewModel")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 HideRackInViewModel(Path<ConstraintViewModel>&& path);
@@ -37,8 +37,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<ConstraintViewModel> m_constraintViewPath;

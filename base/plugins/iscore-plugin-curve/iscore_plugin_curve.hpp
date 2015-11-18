@@ -8,14 +8,14 @@ class iscore_plugin_curve final :
         public QObject,
         public iscore::FactoryInterface_QtInterface,
         public iscore::CommandFactory_QtInterface,
-        public iscore::FactoryFamily_QtInterface
+        public iscore::FactoryList_QtInterface
 {
         Q_OBJECT
         Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
         Q_INTERFACES(
                 iscore::FactoryInterface_QtInterface
                 iscore::CommandFactory_QtInterface
-                iscore::FactoryFamily_QtInterface
+                iscore::FactoryList_QtInterface
                 )
 
     public:
@@ -23,12 +23,13 @@ class iscore_plugin_curve final :
         virtual ~iscore_plugin_curve() = default;
 
         // Process & inspector
-        std::vector<iscore::FactoryInterface*> factories(
-                const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(
+                const iscore::ApplicationContext& ctx,
+                const iscore::FactoryBaseKey& factoryName) const override;
 
         // Curve segment factory family
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
         // CommandFactory_QtInterface interface
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

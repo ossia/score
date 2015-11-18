@@ -13,8 +13,11 @@
 #include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
+#include <core/application/ApplicationRegistrar.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <QDir>
 #include <QSettings>
+#include <QPluginLoader>
 #include "PluginDependencyGraph.hpp"
 #include <boost/range/algorithm.hpp>
 
@@ -37,23 +40,23 @@ static QStringList pluginsDir()
 #endif
 }
 
-PluginManager::PluginManager(Application* app):
+PluginLoader::PluginLoader(Application* app):
     m_app{app}
 {
 }
 
-PluginManager::~PluginManager()
+PluginLoader::~PluginLoader()
 {
     clearPlugins();
 }
 
 
-QStringList PluginManager::pluginsOnSystem() const
+QStringList PluginLoader::pluginsOnSystem() const
 {
     return m_pluginsOnSystem;
 }
 
-void PluginManager::loadPlugin(const QString &fileName)
+void PluginLoader::loadPlugin(const QString &fileName)
 {
 #if !defined(ISCORE_STATIC_QT)
     auto blacklist = pluginsBlacklist();
@@ -77,7 +80,7 @@ void PluginManager::loadPlugin(const QString &fileName)
         // Check if it is blacklisted
         if(!blacklist.contains(fileName))
         {
-            m_availablePlugins += plugin;
+            m_availablePlugins.push_back(plugin);
             plugin->setParent(this);
         }
         else
@@ -96,17 +99,7 @@ void PluginManager::loadPlugin(const QString &fileName)
 #endif
 }
 
-void PluginManager::loadControls(QObject* plugin)
-{
-    auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
-    if(ctrl_plugin)
-    {
-        auto plug = ctrl_plugin->make_control(m_app->presenter());
-        m_controlList.push_back(plug);
-    }
-}
-
-void PluginManager::reloadPlugins()
+void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
 {
     clearPlugins();
     auto folders = pluginsDir();
@@ -114,7 +107,7 @@ void PluginManager::reloadPlugins()
     // Load static plug-ins
     for(QObject* plugin : QPluginLoader::staticInstances())
     {
-        m_availablePlugins += plugin;
+        m_availablePlugins.push_back(plugin);
     }
 
 #if !defined(ISCORE_STATIC_QT)
@@ -135,7 +128,16 @@ void PluginManager::reloadPlugins()
     // Load all the factories.
     for(QObject* plugin : m_availablePlugins)
     {
-        loadFactories(plugin);
+        auto facfam_interface = qobject_cast<FactoryList_QtInterface*> (plugin);
+
+        if(facfam_interface)
+        {
+            auto other = facfam_interface->factoryFamilies();
+            for(auto elt : other)
+            {
+                registrar.registerFactory(elt);
+            }
+        }
     }
 
     // Load all the plug-in controls (because all controls need to be initialized for the
@@ -148,18 +150,67 @@ void PluginManager::reloadPlugins()
     }
 
     graph.visit([&] (QObject* plugin) {
-        loadControls(plugin);
+        auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
+        if(ctrl_plugin)
+        {
+            auto plug = ctrl_plugin->make_control(*m_app);
+            registrar.registerPluginControl(plug);
+        }
     });
 
     // Load what the plug-ins have to offer.
     for(QObject* plugin : m_availablePlugins)
     {
-        dispatch(plugin);
+        auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
+        if(settings_plugin)
+        {// TODO change the name in the correct order.
+            registrar.registerSettings(settings_plugin->settings_make());
+        }
+
+        auto panel_plugin = qobject_cast<PanelFactory_QtInterface*> (plugin);
+        if(panel_plugin)
+        {
+            auto panels = panel_plugin->panels();
+            for(auto panel : panels)
+            {
+                registrar.registerPanel(panel);
+            }
+        }
+
+        auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
+        if(docpanel_plugin)
+        {
+            auto docs = docpanel_plugin->documents();
+            for(auto doc_del : docs)
+            {
+                registrar.registerDocumentDelegate(doc_del);
+            }
+        }
+
+        auto commands_plugin = qobject_cast<CommandFactory_QtInterface*> (plugin);
+        if(commands_plugin)
+        {
+            registrar.registerCommands(commands_plugin->make_commands());
+        }
+
+        ApplicationContext c{*m_app};
+        auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
+        if(factories_plugin)
+        {
+            for(auto factory_family : registrar.components().factories)
+            {
+                auto new_factories = factories_plugin->factories(c, factory_family.first);
+                for(auto new_factory : new_factories)
+                {
+                    factory_family.second->insert(new_factory);
+                }
+            }
+        }
     }
 }
 
 
-void PluginManager::clearPlugins()
+void PluginLoader::clearPlugins()
 {
     for(auto& elt : m_availablePlugins)
         if(elt)
@@ -168,95 +219,11 @@ void PluginManager::clearPlugins()
         }
 
     m_availablePlugins.clear();
-
-    for(auto& elt : m_settingsList)
-    {
-        delete elt;
-    }
-
-    for(auto& elt : m_panelList)
-    {
-        delete elt;
-    }
-
-    for(auto& elt : m_documentPanelList)
-    {
-        delete elt;
-    }
-
-    for(auto& vec : m_factoriesInterfaces)
-    {
-        for(auto& elt : vec)
-        {
-            delete elt;
-        }
-    }
-
-    m_customFamilies.clear();
-    m_controlList.clear();
-    m_panelList.clear();
-    m_documentPanelList.clear();
-    m_settingsList.clear();
-    m_factoriesInterfaces.clear();
 }
 
-QStringList PluginManager::pluginsBlacklist()
+QStringList PluginLoader::pluginsBlacklist()
 {
     QSettings s;
     return s.value("PluginSettings/Blacklist", QStringList {}).toStringList();
 }
 
-
-void PluginManager::loadFactories(QObject* plugin)
-{
-    auto facfam_interface = qobject_cast<FactoryFamily_QtInterface*> (plugin);
-
-    if(facfam_interface)
-    {
-        m_customFamilies += facfam_interface->factoryFamilies();
-    }
-}
-
-void PluginManager::dispatch(QObject* plugin)
-{
-    auto settings_plugin = qobject_cast<SettingsDelegateFactoryInterface_QtInterface*> (plugin);
-    auto panel_plugin = qobject_cast<PanelFactory_QtInterface*> (plugin);
-    auto docpanel_plugin = qobject_cast<DocumentDelegateFactoryInterface_QtInterface*> (plugin);
-    auto commands_plugin = qobject_cast<CommandFactory_QtInterface*> (plugin);
-    auto factories_plugin = qobject_cast<FactoryInterface_QtInterface*> (plugin);
-
-    if(settings_plugin)
-    {// TODO change the name in the correct order.
-        m_settingsList.push_back(settings_plugin->settings_make());
-    }
-
-    if(panel_plugin)
-    {
-        m_panelList += panel_plugin->panels();
-    }
-
-    if(docpanel_plugin)
-    {
-        m_documentPanelList += docpanel_plugin->documents();
-    }
-
-    if(commands_plugin)
-    {
-        m_commands.insert(commands_plugin->make_commands());
-    }
-
-    if(factories_plugin)
-    {
-        for(FactoryFamily& factory_family : m_customFamilies)
-        {
-            auto new_factories = factories_plugin->factories(factory_family.name);
-
-            for(auto new_factory : new_factories)
-            {
-                factory_family.onInstantiation(new_factory);
-            }
-
-            m_factoriesInterfaces.push_back(new_factories);
-        }
-    }
-}

@@ -14,9 +14,6 @@ using namespace Scenario::Command;
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
     m_processData{m_processPath.find().makeLayerConstructionData()},
@@ -24,38 +21,27 @@ AddLayerModelToSlot::AddLayerModelToSlot(
 {
 }
 
-
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slotPath,
         Path<Process>&& processPath,
-        const QString& processName) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
+        const QByteArray& processData) :
     m_slotPath {std::move(slotPath)},
     m_processPath {std::move(processPath)},
+    m_processData{processData},
     m_createdLayerId{getStrongId(m_slotPath.find().layers)}
 {
-    auto fact = ProcessList::getFactory(processName);
-    ISCORE_ASSERT(fact);
-    m_processData = fact->makeStaticLayerConstructionData();
 }
 
 AddLayerModelToSlot::AddLayerModelToSlot(
         Path<SlotModel>&& slot,
         const Id<LayerModel>& layerid,
         Path<Process>&& process,
-        const QString& processName):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
+        const QByteArray& processData):
     m_slotPath{std::move(slot)},
     m_processPath{std::move(process)},
+    m_processData{processData},
     m_createdLayerId{layerid}
 {
-    auto fact = ProcessList::getFactory(processName);
-    ISCORE_ASSERT(fact);
-    m_processData = fact->makeStaticLayerConstructionData();
 }
 
 void AddLayerModelToSlot::undo() const

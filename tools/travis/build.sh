@@ -29,7 +29,8 @@ then
       fi
     ;;
     osx)
-      cmake -DCMAKE_PREFIX_PATH="/usr/local/Cellar/qt5/5.5.1_1/lib/cmake;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
+      QT_PATH=$(dirname $(dirname $(find /usr/local/Cellar/qt5 -name Qt5Config.cmake) ) )
+      cmake -DCMAKE_PREFIX_PATH="$QT_PATH;$(pwd)/../Jamoma/share/cmake" -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle $CMAKE_COMMON_FLAGS ..
 
       cmake --build . --target install/strip --config DynamicRelease
     ;;

@@ -10,6 +10,7 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
+constexpr const char StateModel::className[];
 StateModel::StateModel(
         const Id<StateModel>& id,
         const Id<EventModel>& eventId,
@@ -99,9 +100,9 @@ void StateModel::on_previousProcessAdded(const Process& proc)
         updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
         *m_messageItemModel = std::move(node);
 
-        for(auto& proc : m_nextProcesses)
+        for(auto& next_proc : m_nextProcesses)
         {
-            proc->setMessages(ml, m_messageItemModel->rootNode());
+            next_proc->setMessages(ml, m_messageItemModel->rootNode());
         }
     };
     connect(state, &ProcessStateDataInterface::messagesChanged,
@@ -139,9 +140,9 @@ void StateModel::on_nextProcessAdded(const Process& proc)
         *m_messageItemModel = std::move(node);
 
         // TODO if(synchronize) ...
-        for(auto& proc : m_previousProcesses)
+        for(auto& prev_proc : m_previousProcesses)
         {
-            proc->setMessages(ml, m_messageItemModel->rootNode());
+            prev_proc->setMessages(ml, m_messageItemModel->rootNode());
         }
     };
 
@@ -269,16 +270,10 @@ void StateModel::setPreviousConstraint(const Id<ConstraintModel> & id)
 }
 
 
-const MessageItemModel& StateModel::messages() const
+MessageItemModel& StateModel::messages() const
 {
     return *m_messageItemModel;
 }
-
-MessageItemModel& StateModel::messages()
-{
-    return *m_messageItemModel;
-}
-
 
 void StateModel::setStatus(ExecutionStatus status)
 {

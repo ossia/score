@@ -17,7 +17,10 @@
 #include <Scenario/Commands/State/UpdateState.hpp>
 
 using namespace Scenario::Command;
-void ScenarioCreationState::createToState_base(const Id<StateModel> & originalState)
+
+namespace Scenario
+{
+void CreationState::createToState_base(const Id<StateModel> & originalState)
 {
     // make sure the hovered corresponding timenode dont have a date prior to original state date
     if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredState) )
@@ -34,7 +37,7 @@ void ScenarioCreationState::createToState_base(const Id<StateModel> & originalSt
 }
 
 
-void ScenarioCreationState::createToEvent_base(const Id<StateModel> & originalState)
+void CreationState::createToEvent_base(const Id<StateModel> & originalState)
 {
     // make sure the hovered corresponding timenode dont have a date prior to original state date
     if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredEvent) )
@@ -53,7 +56,7 @@ void ScenarioCreationState::createToEvent_base(const Id<StateModel> & originalSt
 }
 
 
-void ScenarioCreationState::createToTimeNode_base(const Id<StateModel> & originalState)
+void CreationState::createToTimeNode_base(const Id<StateModel> & originalState)
 {
     // make sure the hovered corresponding timenode dont have a date prior to original state date
     if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredTimeNode) )
@@ -73,7 +76,7 @@ void ScenarioCreationState::createToTimeNode_base(const Id<StateModel> & origina
 }
 
 
-void ScenarioCreationState::createToNothing_base(const Id<StateModel> & originalState)
+void CreationState::createToNothing_base(const Id<StateModel> & originalState)
 {
     auto create = [&] (auto cmd) {
         m_dispatcher.submitCommand(cmd);
@@ -84,7 +87,7 @@ void ScenarioCreationState::createToNothing_base(const Id<StateModel> & original
         createdConstraints.append(cmd->createdConstraint());
     };
 
-    if(!m_parentSM.isShiftPressed())
+    if(!m_parentSM.editionSettings().sequence())
     {
         create(new CreateConstraint_State_Event_TimeNode{
                 m_scenarioPath,
@@ -102,7 +105,7 @@ void ScenarioCreationState::createToNothing_base(const Id<StateModel> & original
     }
 }
 
-void ScenarioCreationState::makeSnapshot()
+void CreationState::makeSnapshot()
 {
     if(createdStates.empty())
         return;
@@ -128,4 +131,5 @@ void ScenarioCreationState::makeSnapshot()
     m_dispatcher.submitCommand(new AddMessagesToState{
                m_parentSM.model().states.at(createdStates.last()).messages(),
                messages});
+}
 }

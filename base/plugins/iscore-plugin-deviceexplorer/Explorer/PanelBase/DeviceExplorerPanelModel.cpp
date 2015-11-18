@@ -8,7 +8,7 @@
 DeviceExplorerPanelModel::DeviceExplorerPanelModel(iscore::DocumentModel* parent) :
     iscore::PanelModel {"DeviceExplorerPanelModel", parent},
     m_model {new DeviceExplorerModel{
-                parent->findChild<DeviceDocumentPlugin*>("DeviceDocumentPlugin"),
+                *parent->findChild<DeviceDocumentPlugin*>("DeviceDocumentPlugin"),
                 this}}
 {
 }

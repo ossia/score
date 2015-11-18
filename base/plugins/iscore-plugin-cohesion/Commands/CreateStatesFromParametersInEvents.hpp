@@ -5,7 +5,7 @@
 // TODO rename file
 class SnapshotStatesMacro final : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
+        ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
                                       SnapshotStatesMacro,
                                       "SnapshotStatesMacro")
 

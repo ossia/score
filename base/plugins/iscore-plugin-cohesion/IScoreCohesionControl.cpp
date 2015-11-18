@@ -7,23 +7,25 @@
 
 #include <iscore/menu/MenuInterface.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
-
+#include <core/application/Application.hpp>
 #include <QApplication>
 #include <QToolBar>
 
-IScoreCohesionControl::IScoreCohesionControl(iscore::Presenter* pres) :
-    iscore::PluginControlInterface {pres, "IScoreCohesionControl", nullptr}
+IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
+    iscore::PluginControlInterface {app, "IScoreCohesionControl", nullptr}
 {
     // Since we have declared the dependency, we can assume
     // that ScenarioControl is instantiated already.
-    auto scen = ScenarioControl::instance();
-    connect(scen, &ScenarioControl::startRecording,
+
+    iscore::ApplicationContext ctx{app};
+    auto& control = ctx.components.control<ScenarioControl>();
+    connect(&control, &ScenarioControl::startRecording,
             this, &IScoreCohesionControl::record);
-    connect(scen, &ScenarioControl::stopRecording, // TODO this seems useless
+    connect(&control, &ScenarioControl::stopRecording, // TODO this seems useless
             this, &IScoreCohesionControl::stopRecord);
 
 
-    auto acts = scen->actions();
+    auto acts = control.actions();
     for(const auto& act : acts)
     {
         if(act->objectName() == "Stop")
@@ -72,14 +74,14 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
 }
 
-QList<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
+std::vector<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addActions({m_curves, m_snapshot});
-    return QList<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
+    return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
 }
 
-void IScoreCohesionControl::record(ScenarioModel& scenar, ScenarioPoint pt)
+void IScoreCohesionControl::record(ScenarioModel& scenar, Scenario::Point pt)
 {
     m_recManager = std::make_unique<RecordManager>();
     m_recManager->recordInNewBox(scenar, pt);

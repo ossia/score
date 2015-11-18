@@ -9,6 +9,7 @@
 #include <Process/LayerModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 
 constexpr const char ConstraintModel::className[];
 ConstraintModel::ConstraintModel(
@@ -23,6 +24,7 @@ ConstraintModel::ConstraintModel(
     initConnections();
     setupConstraintViewModel(m_fullViewModel);
     metadata.setName(QString("Constraint.%1").arg(*this->id().val()));
+    metadata.setColor(ScenarioStyle::instance().ConstraintDefaultBackground);
     setHeightPercentage(yPos);
 }
 
@@ -63,9 +65,9 @@ ConstraintModel::ConstraintModel(
         racks.add(new RackModel {
                    rack,
                    rack.id(),
-        [&] (const SlotModel& source, SlotModel& target)
+        [&] (const SlotModel& source_slot, SlotModel& target)
         {
-                   for(auto& lm : source.layers)
+                   for(auto& lm : source_slot.layers)
                    {
                        // We can safely reuse the same id since it's in a different slot.
                        auto proc = processPairs[&lm.processModel()];

@@ -8,7 +8,7 @@ class ConstraintViewModel;
 
 class ShowRackInAllViewModels final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(
+        ISCORE_COMMAND_DECL(
                 ScenarioCommandFactoryName(),
                 ShowRackInAllViewModels,
                 "ShowRackInAllViewModels")

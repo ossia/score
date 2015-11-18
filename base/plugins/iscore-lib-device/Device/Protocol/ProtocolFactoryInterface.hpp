@@ -1,19 +1,23 @@
 #pragma once
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <QString>
-#include <QVariant>
 #include <Device/Protocol/DeviceSettings.hpp>
 
 #include <iscore/serialization/VisitorCommon.hpp>
+#include <QString>
+#include <QVariant>
 
 class DeviceInterface;
-class ProtocolFactory : public iscore::FactoryInterface
+
+class ProtocolFactory : public iscore::GenericFactoryInterface<ProtocolFactoryKey>
 {
+        ISCORE_FACTORY_DECL("Protocol")
+
     public:
-        static QString factoryName();
+            using factory_key_type = ProtocolFactoryKey;
         virtual ~ProtocolFactory();
-        virtual QString name() const = 0;
+
+        virtual QString prettyName() const = 0;
 
         virtual DeviceInterface* makeDevice(
                 const iscore::DeviceSettings& settings) = 0;
@@ -46,6 +50,3 @@ class ProtocolFactory : public iscore::FactoryInterface
                 const iscore::DeviceSettings& a,
                 const iscore::DeviceSettings& b) const = 0;
 };
-
-
-

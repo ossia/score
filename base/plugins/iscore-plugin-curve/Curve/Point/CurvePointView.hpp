@@ -2,14 +2,18 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QGraphicsItem>
 class CurvePointModel;
-struct CurveStyle;
+namespace Curve
+{
+struct Style;
+}
+
 class CurvePointView final : public QGraphicsObject
 {
         Q_OBJECT
     public:
         CurvePointView(
                 const CurvePointModel* model,
-                const CurveStyle& style,
+                const Curve::Style& style,
                 QGraphicsItem* parent);
 
         const CurvePointModel& model() const;
@@ -39,7 +43,7 @@ class CurvePointView final : public QGraphicsObject
 
     private:
         const CurvePointModel* m_model;
-        const CurveStyle& m_style;
+        const Curve::Style& m_style;
         bool m_selected{};
         bool m_enabled{true};
 };

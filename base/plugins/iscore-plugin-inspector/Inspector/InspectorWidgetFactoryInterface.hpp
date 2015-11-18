@@ -24,17 +24,11 @@ class Document;
      * in the inspector.
      *
      */
-class InspectorWidgetFactory : public iscore::FactoryInterface
+class InspectorWidgetFactory : public iscore::GenericFactoryInterface<QList<QString>>
 {
+        ISCORE_FACTORY_DECL("Inspector")
     public:
         virtual ~InspectorWidgetFactory();
-
-        static QString factoryName();
-        /**
-        * @brief correspondingObjectName
-        * @return the name of the object for which this inspector is meant to generate a widget.
-        */
-        virtual QList<QString> correspondingObjectsNames() const = 0;
 
         /**
         * @brief makeWidget Makes a widget for the inspector from an object
@@ -45,4 +39,6 @@ class InspectorWidgetFactory : public iscore::FactoryInterface
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) = 0;
+
+        bool matches(const QString& objectName);
 };

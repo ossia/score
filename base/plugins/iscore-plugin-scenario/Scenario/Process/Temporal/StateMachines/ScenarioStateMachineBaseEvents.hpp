@@ -11,11 +11,13 @@ class StateModel;
 class SlotModel;
 class TriggerModel;
 
+namespace iscore
+{
 template<>
-struct PositionedEvent<ScenarioPoint> : public QEvent
+struct PositionedEvent<Scenario::Point> : public QEvent
 {
         PositionedEvent(
-                const ScenarioPoint& pt,
+                const Scenario::Point& pt,
                 QEvent::Type type):
             QEvent{type},
             point(pt)
@@ -25,18 +27,19 @@ struct PositionedEvent<ScenarioPoint> : public QEvent
             point.y = clamp(point.y, 0.004, 0.99);
         }
 
-        ScenarioPoint point;
+        Scenario::Point point;
 };
+}
 
 // We avoid virtual inheritance (with Numbered event);
 // this replicates a tiny bit of code.
 template<int N>
-struct PositionedScenarioEvent : public PositionedEvent<ScenarioPoint>
+struct PositionedScenarioEvent : public iscore::PositionedEvent<Scenario::Point>
 {
         static constexpr const int user_type = N;
         PositionedScenarioEvent(
-                const ScenarioPoint& pt):
-            PositionedEvent<ScenarioPoint>{pt, QEvent::Type(QEvent::User + N)}
+                const Scenario::Point& pt):
+            PositionedEvent<Scenario::Point>{pt, QEvent::Type(QEvent::User + N)}
         {
         }
 };
@@ -46,7 +49,7 @@ struct PositionedWithId_ScenarioEvent final : public PositionedScenarioEvent<N>
 {
         PositionedWithId_ScenarioEvent(
                 const Id<Element>& tn_id,
-                const ScenarioPoint& sp):
+                const Scenario::Point& sp):
             PositionedScenarioEvent<N>{sp},
             id{tn_id}
         {
@@ -62,40 +65,40 @@ enum ScenarioElement {
 };
 
 /* click */
-using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Click_tag::value>;
-using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Click_tag::value>;
-using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Click_tag::value>;
-using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Click_tag::value>;
-using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier::Click_tag::value>;
+using ClickOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + iscore::Modifier::Click_tag::value>;
+using ClickOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + iscore::Modifier::Click_tag::value>;
+using ClickOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + iscore::Modifier::Click_tag::value>;
+using ClickOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + iscore::Modifier::Click_tag::value>;
+using ClickOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + iscore::Modifier::Click_tag::value>;
 
-using ClickOnSlotOverlay_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Click_tag::value>;
-using ClickOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Click_tag::value>;
+using ClickOnSlotOverlay_Event = iscore::NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + iscore::Modifier::Click_tag::value>;
+using ClickOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + iscore::Modifier::Click_tag::value>;
 
-using ClickOnTrigger_Event = NumberedWithPath_Event<TriggerModel, ScenarioElement::Trigger + Modifier::Click_tag::value>;
+using ClickOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ScenarioElement::Trigger + iscore::Modifier::Click_tag::value>;
 
 /* move on */
-using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Move_tag::value>;
-using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Move_tag::value>;
-using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Move_tag::value>;
-using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Move_tag::value>;
-using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier::Move_tag::value>;
+using MoveOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + iscore::Modifier::Move_tag::value>;
+using MoveOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + iscore::Modifier::Move_tag::value>;
+using MoveOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + iscore::Modifier::Move_tag::value>;
+using MoveOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + iscore::Modifier::Move_tag::value>;
+using MoveOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + iscore::Modifier::Move_tag::value>;
 
-using MoveOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Move_tag::value>;
-using MoveOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Move_tag::value>;
+using MoveOnSlot_Event = iscore::NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + iscore::Modifier::Move_tag::value>;
+using MoveOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + iscore::Modifier::Move_tag::value>;
 
-using MoveOnTrigger_Event = NumberedWithPath_Event<TriggerModel, ScenarioElement::Trigger + Modifier::Move_tag::value>;
+using MoveOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ScenarioElement::Trigger + iscore::Modifier::Move_tag::value>;
 
 /* release on */
-using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Release_tag::value>;
-using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + Modifier::Release_tag::value>;
-using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + Modifier::Release_tag::value>;
-using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + Modifier::Release_tag::value>;
-using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + Modifier::Release_tag::value>;
+using ReleaseOnNothing_Event = PositionedScenarioEvent<ScenarioElement::Nothing + iscore::Modifier::Release_tag::value>;
+using ReleaseOnTimeNode_Event = PositionedWithId_ScenarioEvent<TimeNodeModel, ScenarioElement::TimeNode + iscore::Modifier::Release_tag::value>;
+using ReleaseOnEvent_Event = PositionedWithId_ScenarioEvent<EventModel, ScenarioElement::Event + iscore::Modifier::Release_tag::value>;
+using ReleaseOnConstraint_Event = PositionedWithId_ScenarioEvent<ConstraintModel, ScenarioElement::Constraint + iscore::Modifier::Release_tag::value>;
+using ReleaseOnState_Event = PositionedWithId_ScenarioEvent<StateModel, ScenarioElement::State + iscore::Modifier::Release_tag::value>;
 
-using ReleaseOnSlot_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + Modifier::Release_tag::value>;
-using ReleaseOnSlotHandle_Event = NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + Modifier::Release_tag::value>;
+using ReleaseOnSlot_Event = iscore::NumberedWithPath_Event<SlotModel, ScenarioElement::SlotOverlay_e + iscore::Modifier::Release_tag::value>;
+using ReleaseOnSlotHandle_Event = iscore::NumberedWithPath_Event<SlotModel, ScenarioElement::SlotHandle_e + iscore::Modifier::Release_tag::value>;
 
-using ReleaseOnTrigger_Event = NumberedWithPath_Event<TriggerModel, ScenarioElement::Trigger + Modifier::Release_tag::value>;
+using ReleaseOnTrigger_Event = iscore::NumberedWithPath_Event<TriggerModel, ScenarioElement::Trigger + iscore::Modifier::Release_tag::value>;
 
 template<int N>
 QString debug_StateMachineIDs()
@@ -103,16 +106,16 @@ QString debug_StateMachineIDs()
     QString txt;
 
     auto object = static_cast<ScenarioElement>(N % 10);
-    auto modifier = static_cast<Modifier_tagme>((N - object) % 1000 / 100);
+    auto modifier = static_cast<iscore::Modifier_tagme>((N - object) % 1000 / 100);
     switch(modifier)
     {
-        case Modifier_tagme::Click:
+        case iscore::Modifier_tagme::Click:
             txt += "Click on";
             break;
-        case Modifier_tagme::Move:
+        case iscore::Modifier_tagme::Move:
             txt += "Move on";
             break;
-        case Modifier_tagme::Release:
+        case iscore::Modifier_tagme::Release:
             txt += "Release on";
             break;
     }

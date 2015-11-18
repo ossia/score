@@ -10,7 +10,7 @@ class DeviceExplorerFilterProxyModel final : public QSortFilterProxyModel
         void setColumn(int col);
 
     protected:
-        virtual bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
+        bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
 
         bool filterAcceptsRowItself(int sourceRow, const QModelIndex& sourceParent) const;
         bool hasAcceptedChildren(int sourceRow, const QModelIndex& sourceParent) const;

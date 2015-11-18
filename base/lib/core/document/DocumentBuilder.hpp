@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iscore/tools/SettableIdentifier.hpp>
 class QVariant;
 class QByteArray;
 namespace iscore
@@ -8,6 +8,7 @@ class Presenter;
 class Document;
 class DocumentDelegateFactoryInterface;
 class DocumentBackupManager;
+class DocumentModel;
 
 /**
  * @brief The DocumentBuilder class
@@ -24,6 +25,7 @@ class DocumentBuilder
         explicit DocumentBuilder(Presenter& pres);
 
         Document* newDocument(
+                const Id<DocumentModel>& id,
                 iscore::DocumentDelegateFactoryInterface* doctype);
         Document* loadDocument(
                 const QVariant &data,

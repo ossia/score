@@ -11,6 +11,7 @@
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/application/ApplicationComponents.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -18,9 +19,6 @@ using namespace Scenario::Command;
 RemoveProcessFromConstraint::RemoveProcessFromConstraint(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process>& processId) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(constraintPath) },
     m_processId {processId}
 {
@@ -46,7 +44,8 @@ void RemoveProcessFromConstraint::undo() const
 {
     auto& constraint = m_path.find();
     Deserializer<DataStream> s {m_serializedProcessData};
-    constraint.processes.add(createProcess(s, &constraint));
+    auto& fact = context.components.factory<DynamicProcessList>();
+    constraint.processes.add(createProcess(fact, s, &constraint));
 
     // Restore the view models
     for(const auto& it : m_serializedViewModels)
@@ -57,8 +56,8 @@ void RemoveProcessFromConstraint::undo() const
                 .racks.at(Id<RackModel>(path.at(path.size() - 3).id()))
                 .slotmodels.at(Id<SlotModel>(path.at(path.size() - 2).id()));
 
-        Deserializer<DataStream> s {it.second};
-        auto lm = createLayerModel(s,
+        Deserializer<DataStream> stream {it.second};
+        auto lm = createLayerModel(stream,
                                    slot.parentConstraint(),
                                    &slot);
         slot.layers.add(lm);

@@ -1,42 +1,43 @@
 #pragma once
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
+namespace Scenario
+{
 template<>
-class ScenarioTransition_T<ScenarioElement::Nothing + Modifier::Click_tag::value> final :
-        public MatchedScenarioTransition<PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Click_tag::value>>
+class Transition_T<ScenarioElement::Nothing + iscore::Modifier::Click_tag::value> final :
+        public MatchedTransition<PositionedScenarioEvent<ScenarioElement::Nothing + iscore::Modifier::Click_tag::value>>
 {
     public:
-        using MatchedScenarioTransition::MatchedScenarioTransition;
+        using MatchedTransition::MatchedTransition;
 
     protected:
         void onTransition(QEvent * ev) override;
 };
-using ClickOnNothing_Transition = ScenarioTransition_T<ScenarioElement::Nothing + Modifier::Click_tag::value>;
+using ClickOnNothing_Transition = Transition_T<ScenarioElement::Nothing + iscore::Modifier::Click_tag::value>;
 
 
 template<>
-class ScenarioTransition_T<ScenarioElement::Nothing + Modifier::Move_tag::value> final:
-        public MatchedScenarioTransition<PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Move_tag::value>>
+class Transition_T<ScenarioElement::Nothing + iscore::Modifier::Move_tag::value> final:
+        public MatchedTransition<PositionedScenarioEvent<ScenarioElement::Nothing + iscore::Modifier::Move_tag::value>>
 {
     public:
-        using MatchedScenarioTransition::MatchedScenarioTransition;
+        using MatchedTransition::MatchedTransition;
 
     protected:
         void onTransition(QEvent * ev) override;
 };
-using MoveOnNothing_Transition = ScenarioTransition_T<ScenarioElement::Nothing + Modifier::Move_tag::value>;
+using MoveOnNothing_Transition = Transition_T<ScenarioElement::Nothing + iscore::Modifier::Move_tag::value>;
 
 
 template<>
-class ScenarioTransition_T<ScenarioElement::Nothing + Modifier::Release_tag::value> final :
-        public MatchedScenarioTransition<PositionedScenarioEvent<ScenarioElement::Nothing + Modifier::Release_tag::value>>
+class Transition_T<ScenarioElement::Nothing + iscore::Modifier::Release_tag::value> final :
+        public MatchedTransition<PositionedScenarioEvent<ScenarioElement::Nothing + iscore::Modifier::Release_tag::value>>
 {
     public:
-        using MatchedScenarioTransition::MatchedScenarioTransition;
+        using MatchedTransition::MatchedTransition;
 
     protected:
-        virtual void onTransition(QEvent * ev) override;
+        void onTransition(QEvent * ev) override;
 };
-using ReleaseOnNothing_Transition = ScenarioTransition_T<ScenarioElement::Nothing + Modifier::Release_tag::value>;
-
-
+using ReleaseOnNothing_Transition = Transition_T<ScenarioElement::Nothing + iscore::Modifier::Release_tag::value>;
+}

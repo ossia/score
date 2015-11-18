@@ -8,9 +8,6 @@ AddAddress::AddAddress(
         const iscore::NodePath& nodePath,
         InsertMode insert,
         const iscore::AddressSettings &addressSettings):
-    iscore::SerializableCommand{factoryName(),
-                                commandName(),
-                                description()},
     m_devicesModel{device_tree}
 {
     m_addressSettings = addressSettings;

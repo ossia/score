@@ -45,8 +45,8 @@ namespace iscore
             int exec()
             { return m_app->exec(); }
 
-            Presenter* presenter() const
-            { return m_presenter; }
+            Presenter& presenter() const
+            { return *m_presenter; }
 
             View* view() const
             { return m_view; }
@@ -70,8 +70,10 @@ namespace iscore
             Presenter* m_presenter {};
 
             // Data
-            PluginManager m_pluginManager {this};
+            PluginLoader m_pluginManager {this};
 
             ApplicationSettings m_applicationSettings;
+
+
     };
 }

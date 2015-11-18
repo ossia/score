@@ -23,6 +23,6 @@ class StateBase : public QState
         Id<CurveSegmentModel> hoveredSegmentId;
         CurvePointId hoveredPointId;
 
-        CurvePoint currentPoint;
+        Curve::Point currentPoint;
 };
 }

@@ -23,7 +23,9 @@ QAction* makeToolbarAction(const QString& name,
 }
 
 
-ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent) :
+ToolMenuActions::ToolMenuActions(
+        iscore::ToplevelMenuElement menuElt,
+        ScenarioControl* parent) :
     ScenarioActions{menuElt, parent}
 {
     m_scenarioToolActionGroup = new QActionGroup{this};
@@ -35,39 +37,35 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
     m_selecttool = makeToolbarAction(
                      tr("Select and Move"),
                      m_scenarioToolActionGroup,
-                     ScenarioToolKind::Select,
+                     Scenario::Tool::Select,
                      tr("Alt+x"));
     m_selecttool->setObjectName("Select");
     m_selecttool->setChecked(true);
-    auto set_tool = [&] (ScenarioToolKind t) {
-        if(auto&& pres = m_parent->focusedPresenter())
-            pres->stateMachine().changeTool(static_cast<int>(t));
-    };
 
     connect(m_selecttool, &QAction::toggled, this, [=](bool b) {
         if (b)
-            set_tool(ScenarioToolKind::Select);
+            m_parent->editionSettings().setTool(Scenario::Tool::Select);
     });
 
     // CREATE
     m_createtool = makeToolbarAction(
                           tr("Create"),
                           m_scenarioToolActionGroup,
-                          ScenarioToolKind::Create,
+                          Scenario::Tool::Create,
                           tr("Ctrl"));
     connect(m_createtool, &QAction::toggled, this, [=](bool b) {
         if(b)
-            set_tool(ScenarioToolKind::Create);
+            m_parent->editionSettings().setTool(Scenario::Tool::Create);
     });
 
     // MOVEDECK
     auto slotmovetool = makeToolbarAction(
                             tr("Move Slot"),
                             m_scenarioToolActionGroup,
-                            ScenarioToolKind::MoveSlot,
+                            Scenario::Tool::MoveSlot,
                             tr("Alt+b"));
     connect(slotmovetool, &QAction::triggered, this, [=]() {
-        set_tool(ScenarioToolKind::MoveSlot);
+        m_parent->editionSettings().setTool(Scenario::Tool::MoveSlot);
     });
 
     // SHIFT
@@ -76,17 +74,9 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                             this,
                             ExpandMode::Fixed,
                             tr("Shift"));
-    connect(m_shiftAction, &QAction::toggled, this, [=] ()
+    connect(m_shiftAction, &QAction::toggled, this, [=] (bool val)
     {
-        if(m_parent->focusedPresenter())
-        {
-            auto& sm = m_parent->focusedPresenter()->stateMachine();
-
-            if (m_shiftAction->isChecked())
-                sm.shiftPressed();
-            else
-                sm.shiftReleased();
-        }
+        m_parent->editionSettings().setSequence(val);
     });
 
     // SCALEMODE
@@ -100,7 +90,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
     scale->setChecked(true);
     connect(scale, &QAction::triggered, this, [=]()
     {
-        m_parent->setExpandMode(ExpandMode::Scale);
+        m_parent->editionSettings().setExpandMode(ExpandMode::Scale);
     });
 
     auto grow = makeToolbarAction(
@@ -110,7 +100,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                     tr("Alt+D"));
     connect(grow, &QAction::triggered, this, [=]()
     {
-        m_parent->setExpandMode(ExpandMode::Grow);
+        m_parent->editionSettings().setExpandMode(ExpandMode::Grow);
     });
 
     auto fixed = makeToolbarAction(
@@ -120,7 +110,7 @@ ToolMenuActions::ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioCo
                     tr("Alt+F"));
     connect(fixed, &QAction::triggered, this, [=]()
     {
-        m_parent->setExpandMode(ExpandMode::Fixed);
+        m_parent->editionSettings().setExpandMode(ExpandMode::Fixed);
     });
 
     connect(parent, &ScenarioControl::keyPressed,

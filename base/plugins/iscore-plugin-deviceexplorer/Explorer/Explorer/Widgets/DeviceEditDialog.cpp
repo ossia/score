@@ -6,10 +6,13 @@
 #include <QLabel>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <Device/Protocol/SingletonProtocolList.hpp>
-DeviceEditDialog::DeviceEditDialog(QWidget* parent)
+DeviceEditDialog::DeviceEditDialog(
+        const DynamicProtocolList& pl,
+        QWidget* parent)
     : QDialog(parent),
-      m_protocolWidget(nullptr), m_index(-1)
+      m_protocolList{pl},
+      m_protocolWidget{nullptr},
+      m_index(-1)
 {
     setModal(true);
     buildGUI();
@@ -60,7 +63,8 @@ DeviceEditDialog::initAvailableProtocols()
 {
     ISCORE_ASSERT(m_protocolCBox);
 
-    m_protocolCBox->addItems(SingletonProtocolList::instance().protocols());
+    for(const auto& prot : m_protocolList.list().get())
+        m_protocolCBox->addItem(prot.second->prettyName(), QVariant::fromValue(prot.second->key<ProtocolFactoryKey>()));
 
     //initialize previous settings
     m_previousSettings.clear();
@@ -91,8 +95,8 @@ DeviceEditDialog::updateProtocolWidget()
 
     m_index = m_protocolCBox->currentIndex();
 
-    const QString protocol = m_protocolCBox->currentText();
-    m_protocolWidget = SingletonProtocolList::instance().protocol(protocol)->makeSettingsWidget();
+    auto protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
+    m_protocolWidget = m_protocolList.list().get(protocol)->makeSettingsWidget();
 
     if(m_protocolWidget)
     {
@@ -111,7 +115,7 @@ iscore::DeviceSettings DeviceEditDialog::getSettings() const
         settings = m_protocolWidget->getSettings();
     }
 
-    settings.protocol = m_protocolCBox->currentText();
+    settings.protocol = m_protocolCBox->currentData().value<ProtocolFactoryKey>();
 
     return settings;
 }
@@ -124,15 +128,21 @@ QString DeviceEditDialog::getPath() const
 void
 DeviceEditDialog::setSettings(const iscore::DeviceSettings &settings)
 {
+    //auto proto = SingletonProtocolList::instance().get(settings.protocol);
+    //if(proto)
+    {
+        const int index = m_protocolCBox->findData(QVariant::fromValue(settings.protocol));
+        ISCORE_ASSERT(index != -1);
+        ISCORE_ASSERT(index < m_protocolCBox->count());
 
-    const QString protocol = settings.protocol;
-    const int index = m_protocolCBox->findText(protocol);
-    ISCORE_ASSERT(index != -1);
-    ISCORE_ASSERT(index < m_protocolCBox->count());
+        m_protocolCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
 
-    m_protocolCBox->setCurrentIndex(index);  //will emit currentIndexChanged(int) & call slot
-
-    m_protocolWidget->setSettings(settings);
+        m_protocolWidget->setSettings(settings);
+    }
+    //else
+    {
+    //    ISCORE_TODO; // Make a default widget.
+    }
 }
 
 void DeviceEditDialog::setEditingInvalidState(bool st)

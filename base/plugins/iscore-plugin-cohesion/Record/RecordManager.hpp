@@ -19,7 +19,7 @@ class RecordManager final : public QObject
     public:
         RecordManager();
 
-        void recordInNewBox(ScenarioModel& scenar, ScenarioPoint pt);
+        void recordInNewBox(ScenarioModel& scenar, Scenario::Point pt);
         // TODO : recordInExstingBox; recordFromState.
         void stopRecording();
 
@@ -28,7 +28,6 @@ class RecordManager final : public QObject
     private:
         std::unique_ptr<RecordCommandDispatcher> m_dispatcher;
         ListeningState m_savedListening;
-        std::vector<std::vector<iscore::Address>> m_recordListening;
         std::vector<QMetaObject::Connection> m_recordCallbackConnections;
 
         DeviceExplorerModel* m_explorer{};

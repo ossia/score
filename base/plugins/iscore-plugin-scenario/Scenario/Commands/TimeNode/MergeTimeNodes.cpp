@@ -14,9 +14,6 @@ using namespace Scenario::Command;
 MergeTimeNodes::MergeTimeNodes( Path<ScenarioModel> &&path,
                                 Id<TimeNodeModel> aimedTimeNode,
                                 Id<TimeNodeModel> movingTimeNode):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(path) },
     m_aimedTimeNodeId{aimedTimeNode},
     m_movingTimeNodeId{movingTimeNode}

@@ -1,11 +1,12 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
-
-class ScenarioCreation_FromEvent final : public ScenarioCreationState
+namespace Scenario
+{
+class Creation_FromEvent final : public CreationState
 {
     public:
-        ScenarioCreation_FromEvent(
-                const ScenarioStateMachine& stateMachine,
+        Creation_FromEvent(
+                const ToolPalette& stateMachine,
                 const Path<ScenarioModel>& scenarioPath,
                 iscore::CommandStack& stack,
                 QState* parent);
@@ -18,3 +19,4 @@ class ScenarioCreation_FromEvent final : public ScenarioCreationState
         void createToEvent();
         void createToTimeNode();
 };
+}

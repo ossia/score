@@ -2,23 +2,25 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include <Device/Protocol/SingletonProtocolList.hpp>
 
+#include <core/application/ApplicationComponents.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 #include <QMessageBox>
 #include <QApplication>
 
-DeviceDocumentPlugin::DeviceDocumentPlugin(QObject* parent):
-    iscore::DocumentDelegatePluginModel{"DeviceDocumentPlugin", parent}
+DeviceDocumentPlugin::DeviceDocumentPlugin(
+        iscore::Document& ctx,
+        QObject* parent):
+    iscore::DocumentDelegatePluginModel{ctx, "DeviceDocumentPlugin", parent}
 {
 
 }
 
-
-
 DeviceDocumentPlugin::DeviceDocumentPlugin(
+        iscore::Document& ctx,
         const VisitorVariant& vis,
         QObject* parent):
-    iscore::DocumentDelegatePluginModel{"DeviceDocumentPlugin", parent}
+    iscore::DocumentDelegatePluginModel{ctx, "DeviceDocumentPlugin", parent}
 {
     deserialize_dyn(vis, m_rootNode);
 
@@ -38,8 +40,10 @@ void DeviceDocumentPlugin::serialize(const VisitorVariant& vis) const
 iscore::Node DeviceDocumentPlugin::createDeviceFromNode(const iscore::Node & node)
 {
     try {
+        auto& fact = m_context.app.components.factory<DynamicProtocolList>();
+
         // Instantiate a real device.
-        auto proto = SingletonProtocolList::instance().protocol(node.get<iscore::DeviceSettings>().protocol);
+        auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
         connect(newdev, &DeviceInterface::valueUpdated,
                 this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });
@@ -74,7 +78,8 @@ iscore::Node DeviceDocumentPlugin::loadDeviceFromNode(const iscore::Node & node)
 {
     try {
         // Instantiate a real device.
-        auto proto = SingletonProtocolList::instance().protocol(node.get<iscore::DeviceSettings>().protocol);
+        auto& fact = m_context.app.components.factory<DynamicProtocolList>();
+        auto proto = fact.list().get(node.get<iscore::DeviceSettings>().protocol);
         auto newdev = proto->makeDevice(node.get<iscore::DeviceSettings>());
         connect(newdev, &DeviceInterface::valueUpdated,
                 this, [&] (const iscore::Address& addr, const iscore::Value& v) { updateProxy.updateLocalValue(addr, v); });

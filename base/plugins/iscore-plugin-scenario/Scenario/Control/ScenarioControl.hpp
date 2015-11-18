@@ -7,10 +7,10 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
+#include <Scenario/Control/ScenarioEditionSettings.hpp>
 #include "Menus/ContextMenuDispatcher.hpp"
 class QActionGroup;
 class ScenarioModel;
-class ScenarioStateMachine;
 class SlotPresenter;
 class TemporalScenarioPresenter;
 
@@ -33,26 +33,16 @@ struct ScenarioRecordInitData
 };
 Q_DECLARE_METATYPE(ScenarioRecordInitData)
 
-
-
 class ScenarioControl final : public iscore::PluginControlInterface
 {
         Q_OBJECT
         friend class ScenarioContextMenuManager;
     public:
-        ScenarioContextMenuManager contextMenuDispatcher;
+        ScenarioControl(iscore::Application& app);
 
-        static ScenarioControl* instance(iscore::Presenter* = nullptr);
-
-        virtual void populateMenus(iscore::MenubarManager*) override;
-        virtual QList<iscore::OrderedToolbar> makeToolbars() override;
-        QList<QAction*> actions() override;
-
-        ProcessList* processList()
-        { return &m_processList; }
-
-        MoveEventList* moveEventList()
-        { return &m_moveEventList; }
+        void populateMenus(iscore::MenubarManager*) override;
+        std::vector<iscore::OrderedToolbar> makeToolbars() override;
+        std::vector<QAction*> actions() override;
 
         QVector<ScenarioActions*>& pluginActions()
         { return m_pluginActions; }
@@ -60,23 +50,20 @@ class ScenarioControl final : public iscore::PluginControlInterface
         const ScenarioModel* focusedScenarioModel() const;
         TemporalScenarioPresenter* focusedPresenter() const;
 
-        const ExpandMode& expandMode() const
-        { return m_expandMode; }
-
-        void setExpandMode(ExpandMode e)
-        { m_expandMode = e; }
-
         void reinit_tools();
+
+        Scenario::EditionSettings& editionSettings()
+        { return m_editionSettings; }
 
     signals:
         void keyPressed(int);
         void keyReleased(int);
 
-        void startRecording(ScenarioModel&, ScenarioPoint);
+        void startRecording(ScenarioModel&, Scenario::Point);
         void stopRecording();
 
     protected:
-        void on_prepareNewDocument() override;
+        void prepareNewDocument() override;
 
         void on_documentChanged(
                 iscore::Document* olddoc,
@@ -85,13 +72,9 @@ class ScenarioControl final : public iscore::PluginControlInterface
     private:
         void initColors();
 
-        ScenarioControl(iscore::Presenter* pres);
-
-        ExpandMode m_expandMode{ExpandMode::Scale};
-        ProcessList m_processList;
-        MoveEventList m_moveEventList;
 
         QMetaObject::Connection m_focusConnection, m_defocusConnection, m_contextMenuConnection;
+        Scenario::EditionSettings m_editionSettings;
 
         ObjectMenuActions* m_objectAction{};
         ToolMenuActions* m_toolActions{};

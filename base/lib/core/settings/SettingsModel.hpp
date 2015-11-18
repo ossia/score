@@ -24,7 +24,7 @@ namespace iscore
             }
 
         protected:
-            virtual void childEvent(QChildEvent* ev) override
+            void childEvent(QChildEvent* ev) override
             {
                 QCoreApplication::sendEvent(parent(), ev);
             }

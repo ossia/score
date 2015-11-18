@@ -1,9 +1,10 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
-#include "iscore/widgets/SpinBoxes.hpp"
+#include <Scenario/Control/ScenarioEditionSettings.hpp>
 
+#include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <iscore/widgets/SpinBoxes.hpp>
 class QLabel;
 class ConstraintModel;
 class ConstraintInspectorWidget;
@@ -15,8 +16,9 @@ class DurationSectionWidget final : public InspectorSectionWidget
 {
         Q_OBJECT
     public:
-        DurationSectionWidget(ConstraintInspectorWidget* parent);
-
+        DurationSectionWidget(
+                const Scenario::EditionSettings& set,
+                ConstraintInspectorWidget* parent);
 
     virtual ~DurationSectionWidget();
 
@@ -55,4 +57,6 @@ class DurationSectionWidget final : public InspectorSectionWidget
         TimeValue m_min;
 
         OngoingCommandDispatcher m_dispatcher;
+
+        const Scenario::EditionSettings& m_editionSettings;
 };

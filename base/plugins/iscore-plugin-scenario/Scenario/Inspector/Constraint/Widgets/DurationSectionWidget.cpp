@@ -30,11 +30,14 @@
 
 using namespace iscore;
 
-DurationSectionWidget::DurationSectionWidget(ConstraintInspectorWidget* parent):
+DurationSectionWidget::DurationSectionWidget(
+        const Scenario::EditionSettings& set,
+        ConstraintInspectorWidget* parent):
     InspectorSectionWidget {"Durations", parent},
     m_model {parent->model()},
     m_parent {parent}, // TODO parent should have a cref to commandStack ?
-    m_dispatcher{parent->commandDispatcher()->stack()}
+    m_dispatcher{parent->commandDispatcher()->stack()},
+    m_editionSettings{set}
 {
     auto widg = new QWidget{this};
     m_grid = new QGridLayout{widg};
@@ -134,11 +137,7 @@ void DurationSectionWidget::maxDurationSpinboxChanged(int val)
 void DurationSectionWidget::defaultDurationSpinboxChanged(int val)
 {
     auto scenario = m_model.parentScenario();
-    const auto& controls = iscore::Application::instance().presenter()->pluginControls();
-    auto it = std::find_if(controls.begin(), controls.end(),
-                        [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
-    ISCORE_ASSERT(it != controls.end());
-    auto expandmode = static_cast<ScenarioControl*>(*it)->expandMode();
+    auto expandmode = m_editionSettings.expandMode();
 
     if(m_model.objectName() != "BaseConstraintModel")
     {

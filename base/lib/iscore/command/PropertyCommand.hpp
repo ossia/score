@@ -2,20 +2,6 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ObjectPath.hpp>
 
-#define ISCORE_PROPERTY_COMMAND_DECL(facName, name, desc) \
-    public: \
-        name (): iscore::PropertyCommand{ factoryName() , commandName(), description() } { } \
-        static constexpr const char* factoryName() { return facName; } \
-        static constexpr const char* commandName() { return #name; } \
-        static QString description() { return QObject::tr(desc); }  \
-    static auto static_uid() \
-    { \
-        using namespace std; \
-        hash<string> fn; \
-        return fn(std::string(commandName())); \
-    } \
-    private:
-
 namespace iscore
 {
 /**
@@ -31,13 +17,13 @@ class PropertyCommand : public SerializableCommand
 {
     public:
         using SerializableCommand::SerializableCommand;
+        PropertyCommand() = default;
+
         template<typename Path_T, typename... Args>
         PropertyCommand(Path_T&& path,
                         const QString& property,
-                        const QVariant& newval,
-                        Args&&... args):
-            SerializableCommand{std::forward<Args>(args)...},
-            m_path{std::move(std::move(path).moveUnsafePath())},
+                        const QVariant& newval):
+            m_path{std::move(path).unsafePath()},
             m_property{property},
             m_new{newval}
         {

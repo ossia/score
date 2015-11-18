@@ -9,7 +9,7 @@
 // TODO rename file
 class AddMessagesToState final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "AddMessagesToState")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddMessagesToState, "AddMessagesToState")
         public:
 
           AddMessagesToState(

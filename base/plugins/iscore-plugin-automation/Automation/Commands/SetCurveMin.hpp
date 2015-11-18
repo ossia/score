@@ -6,11 +6,11 @@
 class AutomationModel;
 class SetAutomationMin final : public iscore::PropertyCommand
 {
-        ISCORE_PROPERTY_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMin, "Set curve minimum")
+        ISCORE_COMMAND_DECL(AutomationCommandFactoryName(), SetAutomationMin, "Set curve minimum")
     public:
 
         SetAutomationMin(Path<AutomationModel>&& path, double newval):
-            iscore::PropertyCommand{std::move(path), "min", newval, factoryName(), commandName(), description()}
+            iscore::PropertyCommand{std::move(path), "min", newval}
         {
 
         }

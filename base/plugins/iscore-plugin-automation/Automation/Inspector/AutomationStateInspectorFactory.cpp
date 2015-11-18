@@ -2,6 +2,12 @@
 #include "AutomationStateInspector.hpp"
 #include <Automation/State/AutomationState.hpp>
 
+AutomationStateInspectorFactory::AutomationStateInspectorFactory() :
+    InspectorWidgetFactory {}
+{
+
+}
+
 InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
         const QObject& sourceElement,
         iscore::Document& doc,
@@ -11,4 +17,10 @@ InspectorWidgetBase* AutomationStateInspectorFactory::makeWidget(
                 safe_cast<const AutomationState&>(sourceElement),
                 doc,
                 parent};
+}
+
+const QList<QString>&AutomationStateInspectorFactory::key_impl() const
+{
+    static const QList<QString> lst{"AutomationState"};
+    return lst;
 }

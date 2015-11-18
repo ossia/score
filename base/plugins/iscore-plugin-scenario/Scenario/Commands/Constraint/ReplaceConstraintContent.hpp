@@ -16,7 +16,7 @@ namespace Scenario
     // TODO Rename file
         class InsertContentInConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "InsertContentInConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "InsertContentInConstraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 InsertContentInConstraint(
@@ -28,8 +28,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 QJsonObject m_source;

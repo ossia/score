@@ -3,6 +3,7 @@
 using namespace iscore;
 #include "DeviceExplorerControl.hpp"
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 
 
 #include <Explorer/Commands/Add/AddAddress.hpp>
@@ -23,30 +24,30 @@ iscore::PanelFactory_QtInterface {}
 {
 }
 
-QList<PanelFactory*> iscore_plugin_deviceexplorer::panels()
+std::vector<PanelFactory*> iscore_plugin_deviceexplorer::panels()
 {
     return {new DeviceExplorerPanelFactory};
 }
 
 
 
-QVector<iscore::FactoryFamily> iscore_plugin_deviceexplorer::factoryFamilies()
+std::vector<iscore::FactoryListInterface*> iscore_plugin_deviceexplorer::factoryFamilies()
 {
-    return {{ProtocolFactory::factoryName(),
-            [] (iscore::FactoryInterface* f)
-            { SingletonProtocolList::instance().registerFactory(f); }}};
+    return {new DynamicProtocolList};
+
 }
 
-PluginControlInterface *iscore_plugin_deviceexplorer::make_control(Presenter* pres)
+PluginControlInterface *iscore_plugin_deviceexplorer::make_control(
+        iscore::Application& app)
 {
-    return new DeviceExplorerControl{pres};
+    return new DeviceExplorerControl{app};
 }
 
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_deviceexplorer::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_deviceexplorer::make_commands()
 {
     using namespace DeviceExplorer::Command;
-    std::pair<const std::string, CommandGeneratorMap> cmds{DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
             AddAddress,

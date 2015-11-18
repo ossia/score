@@ -9,7 +9,7 @@ class LibraryPanelPresenter : public iscore::PanelPresenter
 
         int panelId() const override;
 
-        virtual void on_modelChanged() override;
+        void on_modelChanged() override;
 
     private:
         QMetaObject::Connection m_mvConnection;

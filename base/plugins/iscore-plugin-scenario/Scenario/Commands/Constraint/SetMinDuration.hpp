@@ -19,12 +19,10 @@ namespace Command
  */
 class SetMinDuration final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMinDuration, "Set constraint minimum")
     public:
 
         SetMinDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
-            iscore::SerializableCommand{
-                factoryName(), commandName(), description()},
         m_path{std::move(path)},
         m_oldVal{m_path.find().duration.minDuration()},
         m_newVal{newval}
@@ -47,11 +45,11 @@ class SetMinDuration final : public iscore::SerializableCommand
         }
 
     protected:
-        virtual void serializeImpl(QDataStream& s) const override
+        void serializeImpl(QDataStream& s) const override
         {
             s << m_path << m_oldVal << m_newVal;
         }
-        virtual void deserializeImpl(QDataStream& s) override
+        void deserializeImpl(QDataStream& s) override
         {
             s >> m_path >> m_oldVal >> m_newVal;
         }

@@ -21,7 +21,7 @@
 
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
-        "Automation",
+        AutomationProcessMetadata,
         AutomationModel,
         AutomationLayerModel,
         AutomationPresenter,
@@ -31,19 +31,19 @@ DEFINE_CURVE_PROCESS_FACTORY(
 iscore_plugin_automation::iscore_plugin_automation() :
     QObject {}
 {
-    AutomationFactory f;
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_automation::factories(
-        const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
         return {new AutomationFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
         return {new AutomationInspectorFactory,
                 new AutomationStateInspectorFactory,
@@ -53,9 +53,9 @@ std::vector<iscore::FactoryInterface*> iscore_plugin_automation::factories(
     return {};
 }
 
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_automation::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_automation::make_commands()
 {
-    std::pair<const std::string, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list<
                 ChangeAddress,

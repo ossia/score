@@ -33,7 +33,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/src/Area/AreaFactoryList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/SingletonAreaFactoryList.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Area/Generic/GenericAreaFactory.cpp"
@@ -58,6 +57,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Widgets/SpaceGuiWindow.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddArea.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/SpaceCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceControl.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"
@@ -70,4 +70,4 @@ target_link_libraries(${PROJECT_NAME}
                      cln ginac)
 
 setup_iscore_plugin(${PROJECT_NAME})
-setup_iscore_tests(tests)
+#setup_iscore_tests(tests)

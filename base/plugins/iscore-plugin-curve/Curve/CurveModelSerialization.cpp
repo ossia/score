@@ -2,8 +2,10 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-#include "Curve/Segment/CurveSegmentModelSerialization.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
 
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveModel& curve)
@@ -26,10 +28,10 @@ void Visitor<Writer<DataStream>>::writeTo(CurveModel& curve)
     int32_t size;
     m_stream >> size;
 
-    QVector<CurveSegmentModel*> v;
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
     for(; size --> 0;)
     {
-        curve.addSegment(createCurveSegment(*this, &curve));
+        curve.addSegment(createCurveSegment(csl, *this, &curve));
     }
 
     curve.changed();
@@ -47,10 +49,11 @@ void Visitor<Reader<JSONObject>>::readFrom(const CurveModel& curve)
 template<>
 void Visitor<Writer<JSONObject>>::writeTo(CurveModel& curve)
 {
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
     for(const auto& segment : m_obj["Segments"].toArray())
     {
         Deserializer<JSONObject> segment_deser{segment.toObject()};
-        curve.addSegment(createCurveSegment(segment_deser, &curve));
+        curve.addSegment(createCurveSegment(csl, segment_deser, &curve));
     }
 
     curve.changed();

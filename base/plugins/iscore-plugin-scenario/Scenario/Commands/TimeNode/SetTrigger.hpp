@@ -15,7 +15,7 @@ namespace Scenario
     {
         class SetTrigger final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "SetTrigger")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "SetTrigger")
             public:
                 SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
                 ~SetTrigger();
@@ -24,8 +24,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<TimeNodeModel> m_path;

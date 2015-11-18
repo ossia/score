@@ -1,8 +1,9 @@
 #include "CurveSegmentModelSerialization.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentList.hpp"
-
+#include <iscore/serialization/VisitorCommon.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <core/application/ApplicationComponents.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
 {
@@ -11,7 +12,9 @@ void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentData& segmt)
              << segmt.previous << segmt.following
              << segmt.type;
 
-    auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto segmt_fact = csl.list().get(segmt.type);
+
     ISCORE_ASSERT(segmt_fact);
     segmt_fact->serializeCurveSegmentData(segmt.specificSegmentData, this->toVariant());
 
@@ -26,7 +29,8 @@ void Visitor<Writer<DataStream>>::writeTo(CurveSegmentData& segmt)
              >> segmt.previous >> segmt.following
              >> segmt.type;
 
-    auto segmt_fact = SingletonCurveSegmentList::instance().get(segmt.type);
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
+    auto segmt_fact = csl.list().get(segmt.type);
     ISCORE_ASSERT(segmt_fact);
     segmt.specificSegmentData = segmt_fact->makeCurveSegmentData(this->toVariant());
 
@@ -50,7 +54,7 @@ template<>
 void Visitor<Reader<DataStream>>::readFrom(const CurveSegmentModel& segmt)
 {
     // To allow recration using createProcess
-    m_stream << segmt.name();
+    readFrom(segmt.key());
 
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
@@ -82,7 +86,7 @@ template<>
 void Visitor<Reader<JSONObject>>::readFrom(const CurveSegmentModel& segmt)
 {
     // To allow recration using createProcess
-    m_obj["Name"] = segmt.name();
+    m_obj["Name"] = toJsonValue(segmt.key());
 
     // Save the parent class
     readFrom(static_cast<const IdentifiedObject<CurveSegmentModel>&>(segmt));
@@ -102,22 +106,22 @@ void Visitor<Writer<JSONObject>>::writeTo(CurveSegmentModel& segmt)
 {
     segmt.m_previous = fromJsonValue<Id<CurveSegmentModel>>(m_obj["Previous"]);
     segmt.m_following = fromJsonValue<Id<CurveSegmentModel>>(m_obj["Following"]);
-    segmt.m_start = fromJsonValue<CurvePoint>(m_obj["Start"]);
-    segmt.m_end = fromJsonValue<CurvePoint>(m_obj["End"]);
+    segmt.m_start = fromJsonValue<Curve::Point>(m_obj["Start"]);
+    segmt.m_end = fromJsonValue<Curve::Point>(m_obj["End"]);
 }
 
 
 
 
 CurveSegmentModel*createCurveSegment(
+        const DynamicCurveSegmentList& csl,
         Deserializer<DataStream>& deserializer,
         QObject* parent)
 {
-    QString name;
-    deserializer.m_stream >> name;
+    CurveSegmentFactoryKey name;
+    deserializer.writeTo(name);
 
-    auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(name);
+    auto fact = csl.list().get(name);
     auto model = fact->load(deserializer.toVariant(), parent);
 
     deserializer.checkDelimiter();
@@ -125,21 +129,23 @@ CurveSegmentModel*createCurveSegment(
 }
 
 CurveSegmentModel*createCurveSegment(
+        const DynamicCurveSegmentList& csl,
         Deserializer<JSONObject>& deserializer,
         QObject* parent)
 {
-    auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(deserializer.m_obj["Name"].toString());
+    auto fact = csl.list().get(fromJsonValue<CurveSegmentFactoryKey>(deserializer.m_obj["Name"]));
     auto model = fact->load(deserializer.toVariant(), parent);
 
     return model;
 }
 
 
-CurveSegmentModel*createCurveSegment(const CurveSegmentData& dat, QObject* parent)
+CurveSegmentModel*createCurveSegment(
+        const DynamicCurveSegmentList& csl,
+        const CurveSegmentData& dat,
+        QObject* parent)
 {
-    auto& instance = SingletonCurveSegmentList::instance();
-    auto fact = instance.get(dat.type);
+    auto fact = csl.list().get(dat.type);
     auto model = fact->load(dat, parent);
 
     return model;

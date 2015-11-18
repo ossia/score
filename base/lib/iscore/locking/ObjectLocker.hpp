@@ -36,7 +36,7 @@ class ObjectLocker : public QObject
         void lock_impl();
         void unlock_impl();
 
-        QList<ObjectPath> m_lockedObjects;
+        std::vector<ObjectPath> m_lockedObjects;
 };
 
 /**
@@ -48,39 +48,15 @@ class ObjectLocker : public QObject
 class LockHelper
 {
     public:
-        LockHelper(QObject& model, ObjectLocker& locker):
-            m_path{IDocument::unsafe_path(model)},
-            m_locker{locker}
-        {
-            Serializer<DataStream> ser {&m_serializedPath};
-            ser.readFrom(m_path);
-        }
+        LockHelper(QObject& model, ObjectLocker& locker);
 
-        LockHelper(ObjectPath&& path, ObjectLocker& locker):
-            m_path{std::move(path)},
-            m_locker{locker}
-        {
-            Serializer<DataStream> ser {&m_serializedPath};
-            ser.readFrom(m_path);
-        }
+        LockHelper(ObjectPath&& path, ObjectLocker& locker);
 
-        ~LockHelper()
-        {
-            if(m_locked)
-                unlock();
-        }
+        ~LockHelper();
 
-        void lock()
-        {
-            emit m_locker.lock(m_serializedPath);
-            m_locked = true;
-        }
+        void lock();
 
-        void unlock()
-        {
-            emit m_locker.unlock(m_serializedPath);
-            m_locked = false;
-        }
+        void unlock();
 
     private:
         ObjectPath m_path;

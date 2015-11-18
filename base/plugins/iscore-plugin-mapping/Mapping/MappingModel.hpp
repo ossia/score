@@ -3,6 +3,8 @@
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
+#include <Mapping/MappingProcessMetadata.hpp>
+
 
 #include <State/Address.hpp>
 
@@ -46,9 +48,9 @@ class MappingModel : public CurveProcessModel
         }
 
         //// ProcessModel ////
-        QString processName() const override;
+        const ProcessFactoryKey& key() const override;
 
-        QString userFriendlyDescription() const override;
+        QString prettyName() const override;
 
         LayerModel* makeLayer_impl(
                 const Id<LayerModel>& viewModelId,

@@ -20,12 +20,10 @@ namespace Command
 */
 class SetMaxDuration final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMaxDuration, "Set constraint maximum")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetMaxDuration, "Set constraint maximum")
     public:
 
         SetMaxDuration(Path<ConstraintModel>&& path, const TimeValue& newval):
-            iscore::SerializableCommand{
-                factoryName(), commandName(), description()},
         m_path{std::move(path)},
         m_oldVal{m_path.find().duration.maxDuration()},
         m_newVal{newval}
@@ -49,11 +47,11 @@ class SetMaxDuration final : public iscore::SerializableCommand
         }
 
     protected:
-        virtual void serializeImpl(QDataStream& s) const override
+        void serializeImpl(QDataStream& s) const override
         {
             s << m_path << m_oldVal << m_newVal;
         }
-        virtual void deserializeImpl(QDataStream& s) override
+        void deserializeImpl(QDataStream& s) override
         {
             s >> m_path >> m_oldVal >> m_newVal;
         }

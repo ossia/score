@@ -1,6 +1,6 @@
 #include "FactoryInterface.hpp"
 
-iscore::FactoryInterface::~FactoryInterface()
+iscore::FactoryInterfaceBase::~FactoryInterfaceBase()
 {
 
 }

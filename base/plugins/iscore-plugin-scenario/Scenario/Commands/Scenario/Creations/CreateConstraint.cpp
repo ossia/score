@@ -18,9 +18,6 @@ CreateConstraint::CreateConstraint(
         Path<ScenarioModel>&& scenarioPath,
         const Id<StateModel>& startState,
         const Id<StateModel>& endState) :
-    SerializableCommand{factoryName(),
-                        commandName(),
-                        description()},
     m_path {std::move(scenarioPath) },
     m_createdName{RandomNameProvider::generateRandomName()},
     m_startStateId{startState},

@@ -9,13 +9,12 @@
 #include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
 #include <iscore/tools/exceptions/MissingCommand.hpp>
-
+#include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
 #include <core/undo/UndoControl.hpp>
 
-#include <core/document/DocumentBackups.hpp>
 
 #include "iscore_git_info.hpp"
 
@@ -24,13 +23,16 @@
 #include <QMessageBox>
 #include <QToolBar>
 #include <QJsonDocument>
-#include <QSettings>
 
-using namespace iscore;
+namespace iscore
+{
 
 Presenter::Presenter(View* view, QObject* arg_parent) :
     NamedObject {"Presenter", arg_parent},
     m_view {view},
+    m_docManager{*this},
+    m_components{},
+    m_components_readonly{m_components},
     #ifdef __APPLE__
     m_menubar {new QMenuBar, this}
   #else
@@ -40,348 +42,66 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
-    connect(m_view, &View::activeDocumentChanged,
-            this,   [&] (Document* doc) {
-        prepareNewDocument();
-        setCurrentDocument(doc);
-    });
-
-    connect(m_view, &View::closeRequested,
-            this,   &Presenter::closeDocument);
 
     m_view->setPresenter(this);
 }
 
-Presenter::~Presenter()
+auto getStrongId(const std::vector<Document*>& v)
 {
-    QSettings settings("OSSIA", "i-score");
-    settings.setValue("RecentFiles", m_recentFiles->saveState());
+    using namespace std;
+    vector<int32_t> ids(v.size());   // Map reduce
 
-    // The documents have to be deleted before the plug-in controls.
-    // This is because the Local device has to be deleted last in OSSIAControl.
-    for(auto document : m_documents)
+    transform(v.begin(),
+              v.end(),
+              ids.begin(),
+              [](const auto elt)
     {
-        delete document;
-    }
+        return * (elt->id().val());
+    });
 
-    m_documents.clear();
-    m_currentDocument = nullptr;
+    return Id<DocumentModel>{iscore::id_generator::getNextId(ids)};
 }
 
-void Presenter::registerPluginControl(PluginControlInterface* ctrl)
-{
-    ctrl->setParent(this);
-
-    ctrl->populateMenus(&m_menubar);
-    m_toolbars += ctrl->makeToolbars();
-
-    m_controls.push_back(ctrl);
-}
-
-void Presenter::registerPanel(PanelFactory* factory)
-{
-    auto view = factory->makeView(m_view);
-    auto pres = factory->makePresenter(this, view);
-
-    m_panelPresenters.push_back({pres, factory});
-
-    m_view->setupPanelView(view);
-
-    for(auto doc : m_documents)
-        doc->setupNewPanel(factory);
-}
-
-void Presenter::registerDocumentDelegate(DocumentDelegateFactoryInterface* docpanel)
-{
-    m_availableDocuments.push_back(docpanel);
-}
-
-const std::vector<PluginControlInterface *> &Presenter::pluginControls() const
-{
-    return m_controls;
-}
-
-const std::vector<DocumentDelegateFactoryInterface *>& Presenter::availableDocuments() const
-{
-    return m_availableDocuments;
-}
-
-Document* Presenter::setupDocument(Document* doc)
-{
-    if(doc)
-    {
-        for(auto& panel : m_panelPresenters)
-        {
-            doc->setupNewPanel(panel.second);
-        }
-
-        m_documents.push_back(doc);
-        m_view->addDocumentView(&doc->view());
-        setCurrentDocument(doc);
-    }
-    else
-    {
-        setCurrentDocument(m_documents.empty() ? nullptr : m_documents.first());
-    }
-
-    return doc;
-}
-
-Document *Presenter::currentDocument() const
-{
-    return m_currentDocument;
-}
-
-void Presenter::setCurrentDocument(Document* doc)
-{
-    auto old = m_currentDocument;
-    m_currentDocument = doc;
-
-    for(auto& pair : m_panelPresenters)
-    {
-        if(doc)
-            m_currentDocument->bindPanelPresenter(pair.first);
-        else
-            pair.first->setModel(nullptr);
-    }
-
-    for(auto& ctrl : m_controls)
-    {
-        emit ctrl->documentChanged(old, m_currentDocument);
-    }
-
-    emit currentDocumentChanged(doc);
-}
-
-bool Presenter::closeDocument(Document* doc)
-{
-    // Warn the user if he might loose data
-    if(!doc->commandStack().isAtSavedIndex())
-    {
-        QMessageBox msgBox;
-        msgBox.setText(tr("The document has been modified."));
-        msgBox.setInformativeText(tr("Do you want to save your changes?"));
-        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::Save);
-        int ret = msgBox.exec();
-        switch (ret)
-        {
-            case QMessageBox::Save:
-                if(saveDocument(doc))
-                    break;
-                else
-                    return false;
-            case QMessageBox::Discard:
-                // Do nothing
-                break;
-            case QMessageBox::Cancel:
-                return false;
-                break;
-            default:
-                break;
-        }
-    }
-
-    // Close operation
-    m_view->closeDocument(&doc->view());
-    m_documents.removeOne(doc);
-
-    setCurrentDocument(m_documents.size() > 0 ? m_documents.last() : nullptr);
-
-    delete doc;
-    return true;
-}
-
-bool Presenter::saveDocument(Document * doc)
-{
-    auto savename = doc->docFileName();
-
-    if(savename == tr("Untitled"))
-    {
-        saveDocumentAs(doc);
-    }
-    else if (savename.size() != 0)
-    {
-        QSaveFile f{savename};
-        f.open(QIODevice::WriteOnly);
-        if(savename.indexOf(".scorebin") != -1)
-            f.write(doc->saveAsByteArray());
-        else
-        {
-            QJsonDocument json_doc;
-            json_doc.setObject(doc->saveAsJson());
-
-            f.write(json_doc.toJson());
-        }
-        f.commit();
-    }
-
-    return true;
-}
-
-bool Presenter::saveDocumentAs(Document * doc)
-{
-    QFileDialog d{m_view, tr("Save Document As")};
-    QString binFilter{tr("Binary (*.scorebin)")};
-    QString jsonFilter{tr("JSON (*.scorejson)")};
-    QStringList filters;
-    filters << jsonFilter
-            << binFilter;
-
-    d.setNameFilters(filters);
-    d.setConfirmOverwrite(true);
-    d.setFileMode(QFileDialog::AnyFile);
-    d.setAcceptMode(QFileDialog::AcceptSave);
-
-    if(d.exec())
-    {
-        QString savename = d.selectedFiles().first();
-        auto suf = d.selectedNameFilter();
-
-        if(!savename.isEmpty())
-        {
-            if(suf == binFilter)
-            {
-                if(!savename.contains(".scorebin"))
-                    savename += ".scorebin";
-            }
-            else
-            {
-                if(!savename.contains(".scorejson"))
-                    savename += ".scorejson";
-            }
-
-            QSaveFile f{savename};
-            f.open(QIODevice::WriteOnly);
-            doc->setDocFileName(savename);
-            if(savename.indexOf(".scorebin") != -1)
-                f.write(doc->saveAsByteArray());
-            else
-            {
-                QJsonDocument json_doc;
-                json_doc.setObject(doc->saveAsJson());
-
-                f.write(json_doc.toJson());
-            }
-            f.commit();
-        }
-        return true;
-    }
-    return false;
-}
-
-Document* Presenter::loadFile()
-{
-    QString loadname = QFileDialog::getOpenFileName(m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
-    return loadFile(loadname);
-}
-
-Document* Presenter::loadFile(const QString& fileName)
-{
-    Document* doc{};
-    if(!fileName.isEmpty()
-    && (fileName.indexOf(".scorebin") != -1
-     || fileName.indexOf(".scorejson") != -1 ))
-    {
-        QFile f {fileName};
-        if(f.open(QIODevice::ReadOnly))
-        {
-            if (fileName.indexOf(".scorebin") != -1)
-            {
-                doc = loadDocument(f.readAll(), m_availableDocuments.front());
-            }
-            else if (fileName.indexOf(".scorejson") != -1)
-            {
-                auto json = QJsonDocument::fromJson(f.readAll());
-                doc = loadDocument(json.object(), m_availableDocuments.front());
-            }
-
-            m_currentDocument->setDocFileName(fileName);
-            m_recentFiles->addRecentFile(fileName);
-        }
-    }
-
-    return doc;
-}
-
-
-void Presenter::restoreDocuments()
-{
-    for(const auto& backup : DocumentBackups::restorableDocuments())
-    {
-        restoreDocument(backup.first, backup.second, m_availableDocuments.front());
-    }
-}
-
-iscore::SerializableCommand* Presenter::instantiateUndoCommand(
-        const std::string& parent_name,
-        const std::string& name,
-        const QByteArray& data)
-{
-    auto it = m_commands.find(parent_name);
-    if(it != m_commands.end())
-    {
-        auto it2 = it->second.find(name);
-        if(it2 != it->second.end())
-        {
-            return (*it2->second)(data);
-        }
-    }
-
-#if defined(ISCORE_DEBUG)
-    qDebug() << "ALERT: Command"
-             << QString::fromStdString(parent_name)
-             << "::"
-             << QString::fromStdString(name)
-             << "could not be instantiated.";
-    ISCORE_ABORT;
-#else
-    throw MissingCommandException(
-                QString::fromStdString(parent_name),
-                QString::fromStdString(name));
-#endif
-    return nullptr;
-}
-#define xstr(s) str(s)
-#define str(s) #s
 void Presenter::setupMenus()
 {
     ////// File //////
-    auto newAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                                      FileMenuElement::New,
-                                                      [&] () {
-        newDocument(m_availableDocuments.front());
+    auto newAct = m_menubar.addActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::New,
+                [&] () {
+        m_docManager.newDocument(getStrongId(m_docManager.documents()),
+                    applicationComponents().availableDocuments().front());
     });
 
     newAct->setShortcut(QKeySequence::New);
 
     // ----------
-    m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                           FileMenuElement::Separator_Load);
+    m_menubar.addSeparatorIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::Separator_Load);
 
     //// Save and load
-    auto openAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                                       FileMenuElement::Load,
-                                                       [this]() { loadFile(); });
+    auto openAct = m_menubar.addActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::Load,
+                [this]() { m_docManager.loadFile(); });
     openAct->setShortcut(QKeySequence::Open);
 
-    auto saveAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                                       FileMenuElement::Save,
-                                                       [this]() { saveDocument(currentDocument()); });
+    auto saveAct = m_menubar.addActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::Save,
+                [this]() { m_docManager.saveDocument(m_docManager.currentDocument()); });
     saveAct->setShortcut(QKeySequence::Save);
 
-    auto saveAsAct = m_menubar.addActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
-                                                       FileMenuElement::SaveAs,
-                                                       [this]() { saveDocumentAs(currentDocument()); });
+    auto saveAsAct = m_menubar.addActionIntoToplevelMenu(
+                ToplevelMenuElement::FileMenu,
+                FileMenuElement::SaveAs,
+                [this]() { m_docManager.saveDocumentAs(m_docManager.currentDocument()); });
     saveAsAct->setShortcut(QKeySequence::SaveAs);
 
     QMenu* fileMenu = m_menubar.menuAt(ToplevelMenuElement::FileMenu);
-    m_recentFiles = new QRecentFilesMenu(tr("Recent files"), fileMenu);
-    fileMenu->addMenu(m_recentFiles);
-    QSettings settings("OSSIA", "i-score");
-    m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
-    connect(m_recentFiles, &QRecentFilesMenu::recentFileTriggered,
-            this, [&] (const QString& f) { loadFile(f); });
+
+    fileMenu->addMenu(m_docManager.recentFiles());
 
     // ----------
     m_menubar.addSeparatorIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -420,19 +140,12 @@ void Presenter::setupMenus()
                            .arg(ISCORE_VERSION_PATCH)
                            .arg(ISCORE_VERSION_EXTRA)
                            + tr("\n\nCommit: \n")
-                           + QString(xstr(GIT_COMMIT))); });
+                           + QString(ISCORE_XSTR(GIT_COMMIT))); });
 }
 
 bool Presenter::exit()
 {
-    while(!m_documents.empty())
-    {
-        bool b = closeDocument(m_documents.last());
-        if(!b)
-            return false;
-    }
-
-    return true;
+    return m_docManager.closeAllDocuments();
 }
 
 View* Presenter::view() const
@@ -440,8 +153,6 @@ View* Presenter::view() const
     return m_view;
 }
 
-const std::vector<iscore::PluginControlInterface*>& Presenter::controls() const
-{
-    return m_controls;
 }
+
 

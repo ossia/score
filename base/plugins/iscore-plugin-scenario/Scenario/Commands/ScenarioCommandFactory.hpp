@@ -1,3 +1,4 @@
 #pragma once
+#include <iscore/command/SerializableCommand.hpp>
 
-inline constexpr const char * ScenarioCommandFactoryName() { return "ScenarioControl"; }
+const CommandParentFactoryKey& ScenarioCommandFactoryName();

@@ -16,7 +16,7 @@ namespace Scenario
          */
         class RemoveLayerModelFromSlot final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveLayerModelFromSlot, "RemoveLayerModelFromSlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveLayerModelFromSlot, "RemoveLayerModelFromSlot")
             public:
 
                 RemoveLayerModelFromSlot(
@@ -27,8 +27,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<SlotModel> m_path;

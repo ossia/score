@@ -15,7 +15,7 @@ class PluginSettingsView : public iscore::SettingsDelegateViewInterface
             return m_listView;
         }
 
-        virtual QWidget* getWidget() override;
+        QWidget* getWidget() override;
         void load();
         void doConnections();
 

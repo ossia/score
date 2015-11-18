@@ -134,10 +134,10 @@ void OSSIAMappingElement::recreate()
     std::shared_ptr<OSSIA::Mapper> new_mapping;
 
     // The updating routine
-    auto update = [&] (auto new_mapping) {
+    auto update_fun = [&] (auto new_mapping_param) {
         auto old_mapping = m_ossia_mapping;
-        m_ossia_mapping = new_mapping;
-        emit changed(old_mapping, new_mapping);
+        m_ossia_mapping = new_mapping_param;
+        emit changed(old_mapping, new_mapping_param);
     };
 
 
@@ -196,12 +196,12 @@ void OSSIAMappingElement::recreate()
                 ossia_source_addr, ossia_target_addr,
                 new Behavior(m_ossia_curve));
 
-    update(new_mapping);
+    update_fun(new_mapping);
 
     return;
 
 curve_cleanup_label:
-    update(std::shared_ptr<OSSIA::Mapper>{}); // Cleanup
+    update_fun(std::shared_ptr<OSSIA::Mapper>{}); // Cleanup
     return;
 }
 

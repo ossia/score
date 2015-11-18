@@ -9,8 +9,11 @@ class TemporalConstraintViewModel;
 class TemporalScenarioPresenter;
 
 class ConstraintModel;
-class ScenarioStateMachine;
 
+namespace Scenario
+{
+class ToolPalette;
+}
 class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
 {
         Q_OBJECT
@@ -56,6 +59,6 @@ class TemporalScenarioLayerModel final : public AbstractScenarioLayerModel
         void constraintViewModelCreated(const TemporalConstraintViewModel&);
 
     public:
-        virtual void on_constraintRemoved(const ConstraintModel&) override;
+        void on_constraintRemoved(const ConstraintModel&) override;
 
 };

@@ -1,17 +1,17 @@
 #include "iscore/serialization/DataStreamVisitor.hpp"
 #include "iscore/serialization/JSONVisitor.hpp"
 #include "ObjectPath.hpp"
-
+#include <iscore/tools/std/StdlibWrapper.hpp>
 template<>
 void Visitor<Reader<DataStream>>::readFrom(const ObjectPath& path)
 {
-    m_stream << path.vec();
+    readFrom_vector_obj_impl(*this, path.vec());
 }
 
 template<>
 void Visitor<Writer<DataStream>>::writeTo(ObjectPath& path)
 {
-    m_stream >> path.vec();
+    writeTo_vector_obj_impl(*this, path.vec());
 }
 
 template<>

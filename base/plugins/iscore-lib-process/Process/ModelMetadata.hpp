@@ -45,6 +45,7 @@ class ModelMetadata : public QObject
             setName(other.name());
             setComment(other.comment());
             setColor(other.color());
+            setLabel(other.label());
         }
 
         ModelMetadata& operator= (const ModelMetadata& other)
@@ -52,6 +53,7 @@ class ModelMetadata : public QObject
             setName(other.name());
             setComment(other.comment());
             setColor(other.color());
+            setLabel(other.label());
 
             return *this;
         }

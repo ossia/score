@@ -8,8 +8,10 @@ class CircleAreaModel : public AreaModel
         static constexpr int static_type() { return 1; }
         int type() const override { return static_type(); }
 
-        QString factoryName() const override { return "Circle"; }
-        QString prettyName() const override { return tr("Circle"); }
+        const AreaFactoryKey& factoryKey() const override;
+
+        QString prettyName() const override;
+
         static QString formula();
 
         CircleAreaModel(

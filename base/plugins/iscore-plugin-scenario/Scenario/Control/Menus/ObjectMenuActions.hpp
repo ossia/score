@@ -18,9 +18,9 @@ class ObjectMenuActions final : public ScenarioActions
     private:
         QJsonObject copySelectedElementsToJson();
         QJsonObject cutSelectedElementsToJson();
-        void pasteElements(const QJsonObject& obj, const ScenarioPoint& origin);
+        void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
         void writeJsonToSelectedElements(const QJsonObject &obj);
-        void addProcessInConstraint(QString);
+        void addProcessInConstraint(const ProcessFactoryKey&);
         void addTriggerToTimeNode();
         void removeTriggerFromTimeNode();
 

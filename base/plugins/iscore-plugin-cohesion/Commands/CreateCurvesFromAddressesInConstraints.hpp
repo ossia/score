@@ -4,7 +4,7 @@
 
 class CreateCurvesFromAddressesInConstraints final : public iscore::AggregateCommand
 {
-        ISCORE_AGGREGATE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
+        ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
                                       CreateCurvesFromAddressesInConstraints,
                                       "CreateCurvesFromAddressesInConstraints")
 };

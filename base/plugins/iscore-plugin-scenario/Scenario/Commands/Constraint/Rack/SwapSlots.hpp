@@ -13,7 +13,7 @@ namespace Scenario
     {
         class SwapSlots final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "SwapSlots")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "SwapSlots")
             public:
                 SwapSlots(
                     Path<RackModel>&& rack,
@@ -24,8 +24,8 @@ namespace Scenario
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<RackModel> m_rackPath;

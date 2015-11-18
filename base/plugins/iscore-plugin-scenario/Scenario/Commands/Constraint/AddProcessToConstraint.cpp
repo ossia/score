@@ -11,8 +11,10 @@
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessFactory.hpp>
 
-#include "iscore/document/DocumentInterface.hpp"
+#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 
 using namespace iscore;
@@ -21,13 +23,12 @@ using namespace Scenario::Command;
 
 AddProcessToConstraint::AddProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const QString& process) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
+        const ProcessFactoryKey& process) :
     m_path {std::move(constraintPath) },
     m_processName {process}
 {
+    auto& fact = context.components.factory<DynamicProcessList>();
+
     auto& constraint = m_path.find();
     m_createdProcessId = getStrongId(constraint.processes);
     m_noRackes = (constraint.racks.empty() && constraint.objectName() != "BaseConstraintModel" );
@@ -38,7 +39,7 @@ AddProcessToConstraint::AddProcessToConstraint(
         m_createdRackId = getStrongId(constraint.racks);
         m_createdSlotId = Id<SlotModel>(iscore::id_generator::getFirstId());
         m_createdLayerId = Id<LayerModel> (iscore::id_generator::getFirstId());
-        m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
+        m_layerConstructionData = fact.list().get(m_processName)->makeStaticLayerConstructionData();
     }
     else if (m_notBaseConstraint)
     {
@@ -48,7 +49,7 @@ AddProcessToConstraint::AddProcessToConstraint(
         {
             const auto& firstSlotModel = *firstRack.slotmodels.begin();
 
-            m_layerConstructionData = ProcessList::getFactory(m_processName)->makeStaticLayerConstructionData();
+            m_layerConstructionData = fact.list().get(m_processName)->makeStaticLayerConstructionData();
             m_createdLayerId = getStrongId(firstSlotModel.layers);
         }
     }
@@ -83,11 +84,13 @@ void AddProcessToConstraint::undo() const
 
 void AddProcessToConstraint::redo() const
 {
+    auto& fact = context.components.factory<DynamicProcessList>();
     auto& constraint = m_path.find();
 
     // Create process model
-    auto proc = ProcessList::getFactory(m_processName)
-            ->makeModel(
+    auto proc =
+            fact.list().get(m_processName)
+              ->makeModel(
                 constraint.duration.defaultDuration(),
                 m_createdProcessId,
                 &constraint);

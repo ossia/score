@@ -8,14 +8,14 @@ namespace Scenario
     {
         class SwitchStatePosition final : public iscore::SerializableCommand
         {
-                ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SwitchStatePosition, "SwitchStatePosition")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwitchStatePosition, "SwitchStatePosition")
             public:
                 void undo() const override;
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
         };
     }
 }

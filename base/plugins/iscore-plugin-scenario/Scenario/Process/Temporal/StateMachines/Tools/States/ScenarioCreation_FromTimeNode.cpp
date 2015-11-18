@@ -18,17 +18,18 @@
 #include <Scenario/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.hpp>
-
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <QFinalState>
 
 using namespace Scenario::Command;
-
-ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
-        const ScenarioStateMachine& stateMachine,
+namespace Scenario
+{
+Creation_FromTimeNode::Creation_FromTimeNode(
+        const ToolPalette& stateMachine,
         const Path<ScenarioModel>& scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
-    ScenarioCreationState{stateMachine, stack, std::move(scenarioPath), parent}
+    CreationState{stateMachine, stack, std::move(scenarioPath), parent}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -193,7 +194,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        stateMachine.isShiftPressed());
+                        stateMachine.editionSettings().sequence());
         });
 
         QObject::connect(move_timenode, &QState::entered, [&] ()
@@ -208,7 +209,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
                         Path<ScenarioModel>{m_scenarioPath},
                         createdEvents.last(),
                         TimeValue::zero(),
-                        stateMachine.expandMode());
+                        stateMachine.editionSettings().expandMode());
         });
 
         QObject::connect(released, &QState::entered, [&] ()
@@ -228,7 +229,7 @@ ScenarioCreation_FromTimeNode::ScenarioCreation_FromTimeNode(
 
     setInitialState(mainState);
 }
-void ScenarioCreation_FromTimeNode::createInitialEventAndState()
+void Creation_FromTimeNode::createInitialEventAndState()
 {
     auto cmd = new CreateEvent_State{m_scenarioPath, clickedTimeNode, currentPoint.y};
     m_dispatcher.submitCommand(cmd);
@@ -237,28 +238,29 @@ void ScenarioCreation_FromTimeNode::createInitialEventAndState()
     createdEvents.append(cmd->createdEvent());
 }
 
-void ScenarioCreation_FromTimeNode::createToNothing()
+void Creation_FromTimeNode::createToNothing()
 {
     createInitialEventAndState();
     createToNothing_base(createdStates.first());
 }
 
-void ScenarioCreation_FromTimeNode::createToState()
+void Creation_FromTimeNode::createToState()
 {
     createInitialEventAndState();
     createToState_base(createdStates.first());
 }
 
-void ScenarioCreation_FromTimeNode::createToTimeNode()
+void Creation_FromTimeNode::createToTimeNode()
 {
     // TODO "if hoveredTimeNode != clickedTimeNode"
     createInitialEventAndState();
     createToTimeNode_base(createdStates.first());
 }
 
-void ScenarioCreation_FromTimeNode::createToEvent()
+void Creation_FromTimeNode::createToEvent()
 {
     createInitialEventAndState();
     createToEvent_base(createdStates.first());
 }
 
+}

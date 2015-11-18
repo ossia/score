@@ -73,10 +73,10 @@ namespace boost { namespace mpl {
 
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
 #include <Scenario/ScenarioPlugin.hpp>
-std::pair<const std::string, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
+std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
 {
     using namespace Scenario::Command;
-    std::pair<const std::string, CommandGeneratorMap> cmds{ScenarioCommandFactoryName(), CommandGeneratorMap{}};
+    std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{ScenarioCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
             boost::mpl::list80<
 

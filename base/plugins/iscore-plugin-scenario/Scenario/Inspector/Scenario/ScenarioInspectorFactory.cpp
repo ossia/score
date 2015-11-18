@@ -15,8 +15,8 @@ InspectorWidgetBase* ScenarioInspectorFactory::makeWidget(
                 parent};
 }
 
-
-QList<QString> ScenarioInspectorFactory::correspondingObjectsNames() const
+const QList<QString>&ScenarioInspectorFactory::key_impl() const
 {
-    return {"Scenario"};
+    static const QList<QString> list{ScenarioProcessMetadata::processObjectName()};
+    return list;
 }

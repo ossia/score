@@ -4,13 +4,12 @@
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
-#include <Device/Protocol/SingletonProtocolList.hpp>
 
 // TODO rename file
 class iscore_plugin_deviceexplorer final :
         public QObject,
         public iscore::PanelFactory_QtInterface,
-        public iscore::FactoryFamily_QtInterface,
+        public iscore::FactoryList_QtInterface,
         public iscore::PluginControlInterface_QtInterface,
         public iscore::CommandFactory_QtInterface
 {
@@ -18,7 +17,7 @@ class iscore_plugin_deviceexplorer final :
         Q_PLUGIN_METADATA(IID PanelFactory_QtInterface_iid)
         Q_INTERFACES(
                 iscore::PanelFactory_QtInterface
-                iscore::FactoryFamily_QtInterface
+                iscore::FactoryList_QtInterface
                 iscore::PluginControlInterface_QtInterface
                 iscore::CommandFactory_QtInterface)
 
@@ -26,13 +25,13 @@ class iscore_plugin_deviceexplorer final :
         iscore_plugin_deviceexplorer();
 
         // Panel interface
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 
         // Factory for protocols
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
         // Control
-        iscore::PluginControlInterface* make_control(iscore::Presenter*) override;
+        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
 
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

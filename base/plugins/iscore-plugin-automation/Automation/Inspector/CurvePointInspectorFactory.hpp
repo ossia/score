@@ -16,8 +16,5 @@ class CurvePointInspectorFactory final : public InspectorWidgetFactory
         iscore::Document& doc,
         QWidget* parent) override;
 
-    virtual QList<QString> correspondingObjectsNames() const override
-    {
-        return {"CurvePointModel"};
-    }
+    virtual const QList<QString>& key_impl() const override;
 };

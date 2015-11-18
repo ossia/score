@@ -1,9 +1,5 @@
 #include "ScenarioStateMachine.hpp"
 #include <iscore/statemachine/StateMachineTools.hpp>
-#include "Tools/CreationToolState.hpp"
-#include "Tools/SelectionToolState.hpp"
-#include "Tools/MoveSlotToolState.hpp"
-
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
@@ -16,176 +12,113 @@
 #include <QSignalTransition>
 #include <core/application/Application.hpp>
 
-ScenarioStateMachine::ScenarioStateMachine(
-        iscore::Document& doc,
+namespace Scenario
+{
+ToolPalette::ToolPalette(
+        LayerContext& lay,
         TemporalScenarioPresenter& presenter):
-    BaseStateMachine{*presenter.view().scene()},
+    GraphicsSceneToolPalette{*presenter.view().scene()},
     m_presenter{presenter},
     m_model{static_cast<const ScenarioModel&>(m_presenter.m_layer.processModel())},
-    m_commandStack{doc.commandStack()},
-    m_locker{doc.locker()},
-    m_expandMode{[] () -> auto&& {
-        const auto& controls = iscore::Application::instance().presenter()->pluginControls();
-        auto it = std::find_if(controls.begin(), controls.end(),
-                            [] (iscore::PluginControlInterface* pc) { return qobject_cast<ScenarioControl*>(pc); });
-        ISCORE_ASSERT(it != controls.end());
-        return safe_cast<ScenarioControl*>(*it)->expandMode();
-    }()}
+    m_context{lay},
+    m_createTool{*this},
+    m_selectTool{*this},
+    m_moveSlotTool{*this},
+    m_inputDisp{presenter.view(), *this, lay}
 {
-    this->setChildMode(ChildMode::ParallelStates);
-    auto toolState = new QState{this};
+}
+
+const Scenario::EditionSettings&ToolPalette::editionSettings() const
+{
+    return m_presenter.editionSettings();
+}
+
+void ToolPalette::on_pressed(QPointF point)
+{
+    scenePoint = point;
+    auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+    switch(editionSettings().tool())
     {
-        createState = new CreationToolState{*this};
-        createState->setParent(toolState);
-
-        selectState = new Scenario::SelectionAndMoveTool{*this};
-        selectState->setParent(toolState);
-        toolState->setInitialState(selectState);
-
-        moveSlotState = new MoveSlotToolState{*this};
-        moveSlotState->setParent(toolState);
-
-        playState = new QState;
-        playState->setParent(toolState);
-        connect(&model(), &Process::execution,
-                this, [&] (bool b) {
-            if(b)
-            {
-                setPlayState();
-
-                createState->stop();
-                selectState->stop();
-                moveSlotState->stop();
-            }
-            else
-            {
-                createState->start();
-                selectState->start();
-                moveSlotState->start();
-
-                changeTool(1);
-            }
-        });
-
-
-        transitionState = new QState{this};
-        transitionState->setParent(toolState);
-
-
-
-        auto QPointFToScenarioPoint = [&] (QPointF point) -> ScenarioPoint
-        {
-            return ConvertToScenarioPoint(
-                        point,
-                        m_presenter.zoomRatio(),
-                        m_presenter.view().boundingRect().height());
-        };
-
-        connect(m_presenter.m_view, &TemporalScenarioView::scenarioPressed,
-                [=] (const QPointF& point)
-        {
-            scenePoint = point;
-            scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-            this->postEvent(new Press_Event);
-        });
-        connect(m_presenter.m_view, &TemporalScenarioView::scenarioReleased,
-                [=] (const QPointF& point)
-        {
-            scenePoint = point;
-            scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-            this->postEvent(new Release_Event);
-        });
-        connect(m_presenter.m_view, &TemporalScenarioView::scenarioMoved,
-                [=] (const QPointF& point)
-        {
-            scenePoint = point;
-            scenarioPoint = QPointFToScenarioPoint(m_presenter.m_view->mapFromScene(point));
-            this->postEvent(new Move_Event);
-        });
-        connect(m_presenter.m_view, &TemporalScenarioView::escPressed,
-                [=] () { this->postEvent(new Cancel_Event); });
-
-
-        auto t_exit_select = new QSignalTransition(this, SIGNAL(exitState()), selectState);
-        t_exit_select->setTargetState(transitionState);
-        auto t_exit_moveSlot = new QSignalTransition(this, SIGNAL(exitState()), moveSlotState);
-        t_exit_moveSlot->setTargetState(transitionState);
-        auto t_exit_create = new QSignalTransition(this, SIGNAL(exitState()), createState);
-        t_exit_create->setTargetState(transitionState);
-        auto t_exit_play = new QSignalTransition(this, SIGNAL(exitState()), playState);
-        t_exit_play->setTargetState(transitionState);
-
-        auto t_enter_select = new QSignalTransition(this, SIGNAL(setSelectState()), transitionState);
-        t_enter_select->setTargetState(selectState);
-        auto t_enter_moveSlot = new QSignalTransition(this, SIGNAL(setSlotMoveState()), transitionState);
-        t_enter_moveSlot->setTargetState(moveSlotState);
-        auto t_enter_create= new QSignalTransition(this, SIGNAL(setCreateState()), transitionState);
-        t_enter_create->setTargetState(createState);
-        auto t_enter_play= new QSignalTransition(this, SIGNAL(setPlayState()), transitionState);
-        t_enter_play->setTargetState(playState);
-
-        createState->start();
-        selectState->start();
-        moveSlotState->start();
+        case Scenario::Tool::Create:
+            m_createTool.on_pressed(point, scenarioPoint);
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_pressed(point, scenarioPoint);
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_pressed(point);
+            break;
+        default:
+            break;
     }
 
-    auto shiftModeState = new QState{this};
-    {
-        shiftReleasedState = new QState{shiftModeState};
-        shiftModeState->setInitialState(shiftReleasedState);
-        shiftPressedState = new QState{shiftModeState};
+}
 
-        auto t_shift_pressed = new QSignalTransition(this, SIGNAL(shiftPressed()), shiftReleasedState);
-        t_shift_pressed->setTargetState(shiftPressedState);
-        auto t_shift_released = new QSignalTransition(this, SIGNAL(shiftReleased()), shiftPressedState);
-        t_shift_released->setTargetState(shiftReleasedState);
+void ToolPalette::on_moved(QPointF point)
+{
+    scenePoint = point;
+    auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+    switch(editionSettings().tool())
+    {
+        case Scenario::Tool::Create:
+            m_createTool.on_moved(point, scenarioPoint);
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_moved(point, scenarioPoint);
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_moved();
+            break;
+        default:
+            break;
+    }
+
+}
+
+void ToolPalette::on_released(QPointF point)
+{
+    scenePoint = point;
+    auto scenarioPoint = ScenePointToScenarioPoint(m_presenter.m_view->mapFromScene(point));
+    switch(editionSettings().tool())
+    {
+        case Scenario::Tool::Create:
+            m_createTool.on_released(point, scenarioPoint);
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_released(point, scenarioPoint);
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_released();
+            break;
+        default:
+            break;
+    }
+
+}
+
+void ToolPalette::on_cancel()
+{
+    switch(editionSettings().tool())
+    {
+        case Scenario::Tool::Create:
+            m_createTool.on_cancel();
+            break;
+        case Scenario::Tool::Select:
+            m_selectTool.on_cancel();
+            break;
+        case Scenario::Tool::MoveSlot:
+            m_moveSlotTool.on_cancel();
+            break;
+        default:
+            break;
     }
 }
 
-const TemporalScenarioPresenter &ScenarioStateMachine::presenter() const
+Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-    return m_presenter;
+    return ConvertToScenarioPoint(
+                point,
+                m_presenter.zoomRatio(),
+                m_presenter.view().boundingRect().height());
 }
-
-
-
-ScenarioToolKind ScenarioStateMachine::tool() const
-{
-    if(isStateActive(createState))
-        return ScenarioToolKind::Create;
-    if(isStateActive(selectState))
-        return ScenarioToolKind::Select;
-    if(isStateActive(moveSlotState))
-        return ScenarioToolKind::MoveSlot;
-    if(isStateActive(playState))
-        return ScenarioToolKind::Play;
-
-    return ScenarioToolKind::Select;
-}
-
-bool ScenarioStateMachine::isShiftPressed() const
-{
-    return isStateActive(shiftPressedState);
-}
-
-
-void ScenarioStateMachine::changeTool(int state)
-{
-    emit exitState();
-    switch(state)
-    {
-    case static_cast<int>(ScenarioToolKind::Create):
-        emit setCreateState();
-        break;
-    case static_cast<int>(ScenarioToolKind::MoveSlot):
-        emit setSlotMoveState();
-        break;
-    case static_cast<int>(ScenarioToolKind::Select):
-        emit setSelectState();
-        break;
-
-    default:
-        ISCORE_ABORT;
-        break;
-    }
 }

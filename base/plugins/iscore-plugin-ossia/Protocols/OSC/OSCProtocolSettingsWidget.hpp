@@ -12,10 +12,10 @@ class OSCProtocolSettingsWidget : public ProtocolSettingsWidget
     public:
         OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        virtual iscore::DeviceSettings getSettings() const override;
-        virtual QString getPath() const override;
+        iscore::DeviceSettings getSettings() const override;
+        QString getPath() const override;
 
-        virtual void setSettings(const iscore::DeviceSettings& settings) override;
+        void setSettings(const iscore::DeviceSettings& settings) override;
 
     protected slots:
         void openFileDialog();

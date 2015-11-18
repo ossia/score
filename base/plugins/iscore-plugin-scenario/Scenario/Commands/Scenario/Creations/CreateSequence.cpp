@@ -16,7 +16,6 @@ CreateSequence::CreateSequence(
         const Id<StateModel>& startState,
         const TimeValue& date,
         double endStateY):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_command{scenario,
               startState,
               date,
@@ -71,31 +70,31 @@ CreateSequence::CreateSequence(
         if(!message.value.val.isNumeric())
             continue;
 
-        auto it = std::find_if(std::begin(endAddresses),
-                               std::end(endAddresses),
-                               [&] (const auto& arg) {
+        auto addr_it = std::find_if(std::begin(endAddresses),
+                                    std::end(endAddresses),
+                                    [&] (const auto& arg) {
             return message.address == arg.address
                   //  && message.value.val.impl().which() == arg.value.val.impl().which()
                   // TODO this does not work because of the int -> float conversion that happens after a curve.
                     // Investigate more and comment the other uses.
                     && message.value != arg.value; });
 
-        if(it != std::end(endAddresses))
+        if(addr_it != std::end(endAddresses))
         {
-            matchingMessages.emplace_back(&message, &*it);
+            matchingMessages.emplace_back(&message, &*addr_it);
         }
     }
 
     // Then, if there are correct messages we can actually do our interpolation.
     if(!matchingMessages.empty())
     {
-        // TODO refactor this with a new constructor to Path<> that takes an object identifier and an existing path.
-        Path<ScenarioModel> scenarioPath{scenario};
-        auto vec = scenarioPath.unsafePath().vec();
-        vec.push_back({ConstraintModel::className, m_command.createdConstraint()});
-        Path<ConstraintModel> constraint{ObjectPath{std::move(vec)}, Path<ConstraintModel>::UnsafeDynamicCreation{}};
+        auto constraint = Path<ScenarioModel>{scenario}.extend(ConstraintModel::className, m_command.createdConstraint());
 
-        m_interpolations = InterpolateMacro{Path<ConstraintModel>{constraint}};
+        {
+            InterpolateMacro interpolateMacro{Path<ConstraintModel>{constraint}};
+            m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
+            m_interpolations.commands() = interpolateMacro.commands();
+        }
 
         // Generate brand new ids for the processes
         auto process_ids = getStrongIdRange<Process>(matchingMessages.size());
@@ -107,9 +106,9 @@ CreateSequence::CreateSequence(
         for(const auto& elt : matchingMessages)
         {
             std::vector<std::pair<Path<SlotModel>, Id<LayerModel>>> layer_vect;
-            for(const auto& elt : m_interpolations.slotsToUse)
+            for(const auto& slots_elt : m_interpolations.slotsToUse)
             {
-                layer_vect.push_back(std::make_pair(elt.first, layers_ids[i]));
+                layer_vect.push_back(std::make_pair(slots_elt.first, layers_ids[i]));
             }
 
 

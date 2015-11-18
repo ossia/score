@@ -2,6 +2,7 @@
 #include <iscore/tools/IdentifiedObject.hpp>
 #include <Space/area.hpp>
 #include <Device/Address/AddressSettings.hpp>
+#include <src/Area/AreaFactory.hpp>
 class SpaceModel;
 class QGraphicsItem;
 
@@ -14,7 +15,7 @@ class AreaModel : public IdentifiedObject<AreaModel>
     public:
         // The value is used as default value if the address is invalid.
         using ParameterMap = QMap<QString, QPair<GiNaC::symbol, iscore::FullAddressSettings>>;
-        virtual QString factoryName() const = 0;
+        virtual const AreaFactoryKey& factoryKey() const = 0;
         virtual QString prettyName() const = 0;
         virtual int type() const = 0;
 

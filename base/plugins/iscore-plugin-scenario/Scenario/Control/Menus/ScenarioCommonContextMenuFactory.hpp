@@ -4,5 +4,7 @@
 class ScenarioCommonActionsFactory final : public ScenarioActionsFactory
 {
     public:
+        const ScenarioActionsFactoryKey& key_impl() const override;
+
         QList<ScenarioActions*> make(ScenarioControl* ctrl) override;
 };

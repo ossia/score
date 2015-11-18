@@ -4,10 +4,14 @@
 
 #include <QTabWidget>
 
-InspectorPanel::InspectorPanel(iscore::SelectionStack& s, QWidget* parent) :
+InspectorPanel::InspectorPanel(
+        const InspectorWidgetList& list,
+        iscore::SelectionStack& s,
+        QWidget* parent) :
     QWidget {parent},
     m_layout{new QVBoxLayout{this}},
     m_tabWidget{new QTabWidget{this}},
+    m_list{list},
     m_selectionDispatcher{s}
 {
     m_tabWidget->setTabsClosable(true);
@@ -56,7 +60,7 @@ void InspectorPanel::newItemsInspected(const Selection& objects)
 
     for(const auto& object : toCreate)
     {
-        auto widget = InspectorWidgetList::makeInspectorWidget(
+        auto widget = m_list.makeInspectorWidget(
                     object->objectName(),
                     *object,
                     m_tabWidget);

@@ -12,7 +12,7 @@ namespace Command
 {
 class UpdateDeviceSettings final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateDeviceSettings, "UpdateDeviceSettings")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), UpdateDeviceSettings, "UpdateDeviceSettings")
         public:
         UpdateDeviceSettings(
                   Path<DeviceDocumentPlugin>&& device_tree,
@@ -24,8 +24,8 @@ class UpdateDeviceSettings final : public iscore::SerializableCommand
         void redo() const override;
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     private:
         Path<DeviceDocumentPlugin> m_devicesModel;

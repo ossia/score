@@ -3,9 +3,10 @@
 #include <iscore/tools/SettableIdentifier.hpp>
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QVector>
 #include <QMap>
 
+template<class>
+class StringKey;
 
 template<typename T>
 T fromJsonObject(QJsonValue&& json);
@@ -52,6 +53,9 @@ class Visitor<Reader<JSONValue>> final : public AbstractVisitor
             readFrom(obj.val());
         }
 
+        template<typename T>
+        void readFrom(const StringKey<T>&);
+
         QJsonValue val;
 };
 
@@ -81,6 +85,9 @@ class Visitor<Writer<JSONValue>> : public AbstractVisitor
         {
             elt = static_cast<T>(val.toInt());
         }
+
+        template<typename T>
+        void writeTo(StringKey<T>&);
 
         template<typename T>
         void writeTo(Id<T>& obj)

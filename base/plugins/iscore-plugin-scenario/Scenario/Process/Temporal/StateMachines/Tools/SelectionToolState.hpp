@@ -2,26 +2,26 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioToolState.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 
-class ScenarioSelectionState;
+// TODO rename file.
+namespace Scenario
+{
+class SelectionState;
 
 class MoveConstraintState;
 class MoveEventState;
 class MoveTimeNodeState;
 
-// TODO rename file.
-namespace Scenario
-{
-class SelectionAndMoveTool final : public ScenarioTool
+class SelectionAndMoveTool final : public ToolBase
 {
     public:
-        SelectionAndMoveTool(ScenarioStateMachine& sm);
+        SelectionAndMoveTool(ToolPalette& sm);
 
-        void on_pressed() override;
-        void on_moved() override;
-        void on_released() override;
+        void on_pressed(QPointF scene, Scenario::Point sp);
+        void on_moved(QPointF scene, Scenario::Point sp);
+        void on_released(QPointF scene, Scenario::Point sp);
 
     private:
-        ScenarioSelectionState* m_state{};
+        SelectionState* m_state{};
         MoveConstraintState* m_moveConstraint{};
         MoveEventState* m_moveEvent{};
         MoveTimeNodeState* m_moveTimeNode{};

@@ -8,7 +8,7 @@ namespace iscore
     {
         public:
             virtual ~DocumentDelegateFactoryInterface_QtInterface();
-            virtual QList<DocumentDelegateFactoryInterface*> documents() = 0;
+            virtual std::vector<DocumentDelegateFactoryInterface*> documents() = 0;
     };
 }
 

@@ -2,7 +2,6 @@
 #include <QObject>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-
 class ScenarioInspectorFactory final : public InspectorWidgetFactory
 {
     public:
@@ -12,10 +11,11 @@ class ScenarioInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        virtual InspectorWidgetBase* makeWidget(
+        InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        virtual QList<QString> correspondingObjectsNames() const override;
+        const QList<QString>& key_impl() const override;
+
 };

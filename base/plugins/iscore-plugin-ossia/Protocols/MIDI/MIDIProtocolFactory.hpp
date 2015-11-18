@@ -1,38 +1,26 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-#include "MIDIDevice.hpp"
-#include "MIDIProtocolSettingsWidget.hpp"
 
 class MIDIProtocolFactory : public ProtocolFactory
 {
         // Implement with OSSIA::Device
-        QString name() const override
-        { return "MIDI"; }
+        QString prettyName() const override;
 
-        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
-        {
-            return new MIDIDevice{settings};
-        }
+        const ProtocolFactoryKey& key_impl() const override;
 
-        ProtocolSettingsWidget* makeSettingsWidget() override
-        {
-            return new MIDIProtocolSettingsWidget;
-        }
+        DeviceInterface* makeDevice(
+                const iscore::DeviceSettings& settings) override;
 
-        QVariant makeProtocolSpecificSettings(const VisitorVariant& visitor) const override
-        {
-            return makeProtocolSpecificSettings_T<MIDISpecificSettings>(visitor);
-        }
+        ProtocolSettingsWidget* makeSettingsWidget() override;
 
-        void serializeProtocolSpecificSettings(const QVariant& data, const VisitorVariant& visitor) const override
-        {
-            serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
-        }
+        QVariant makeProtocolSpecificSettings(
+                const VisitorVariant& visitor) const override;
+
+        void serializeProtocolSpecificSettings(
+                const QVariant& data,
+                const VisitorVariant& visitor) const override;
 
         bool checkCompatibility(
                 const iscore::DeviceSettings& a,
-                const iscore::DeviceSettings& b) const override
-        {
-            return a.name != b.name;
-        }
+                const iscore::DeviceSettings& b) const override;
 };

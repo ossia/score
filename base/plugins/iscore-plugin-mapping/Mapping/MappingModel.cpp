@@ -1,19 +1,18 @@
 #include "MappingModel.hpp"
 #include "MappingLayerModel.hpp"
-
-#include "Curve/CurveModel.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include "Curve/Segment/Power/PowerCurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
 
-#include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
+#include <Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp>
 MappingModel::MappingModel(
         const TimeValue& duration,
         const Id<Process>& id,
         QObject* parent) :
-    CurveProcessModel {duration, id, processName(), parent}
+    CurveProcessModel {duration, id, MappingProcessMetadata::processObjectName(), parent}
 {
     pluginModelList = new iscore::ElementPluginModelList{iscore::IDocument::documentFromObject(parent), this};
 
@@ -35,7 +34,7 @@ MappingModel::MappingModel(
         const MappingModel& source,
         const Id<Process>& id,
         QObject* parent):
-    CurveProcessModel{source, id,  processName(), parent},
+    CurveProcessModel{source, id, MappingProcessMetadata::processObjectName(), parent},
     m_sourceAddress(source.sourceAddress()),
     m_targetAddress(source.targetAddress()),
     m_sourceMin{source.sourceMin()},
@@ -57,12 +56,13 @@ Process* MappingModel::clone(
     return new MappingModel {*this, newId, newParent};
 }
 
-QString MappingModel::processName() const
+const ProcessFactoryKey& MappingModel::key() const
 {
-    return "Mapping";
+    return MappingProcessMetadata::factoryKey();
 }
 
-QString MappingModel::userFriendlyDescription() const
+
+QString MappingModel::prettyName() const
 {
     return metadata.name() + " : " + sourceAddress().toString();
 }

@@ -16,7 +16,7 @@ class NetworkSettingsView : public iscore::SettingsDelegateViewInterface
         void setClientPort(int val);
         void setClientName(QString text);
 
-        virtual QWidget* getWidget() override;
+        QWidget* getWidget() override;
         void load();
         void doConnections();
 

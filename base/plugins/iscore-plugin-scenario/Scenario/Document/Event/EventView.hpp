@@ -50,14 +50,14 @@ class EventView final : public QGraphicsObject
         void changeColor(QColor);
 
     protected:
-        virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-        virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-        virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+        void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
 
-        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
-        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
-        virtual void dropEvent(QGraphicsSceneDragDropEvent *event) override;
+        void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     private:
         EventPresenter& m_presenter;

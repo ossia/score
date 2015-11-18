@@ -14,7 +14,8 @@ InspectorWidgetBase* TimeNodeInspectorFactory::makeWidget(
     return new TimeNodeInspectorWidget{timeNode, doc, parent};
 }
 
-QList<QString> TimeNodeInspectorFactory::correspondingObjectsNames() const
+const QList<QString>& TimeNodeInspectorFactory::key_impl() const
 {
-    return {"TimeNodeModel"};
+    static const QList<QString> list{"TimeNodeModel"};
+    return list;
 }

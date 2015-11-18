@@ -9,7 +9,7 @@ namespace Command
 {
 class CreateConstraint_State_Event_TimeNode final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event_TimeNode, "CreateConstraint_State_Event_TimeNode")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State_Event_TimeNode, "CreateConstraint_State_Event_TimeNode")
         public:
 
           CreateConstraint_State_Event_TimeNode(

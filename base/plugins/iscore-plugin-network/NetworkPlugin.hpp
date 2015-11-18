@@ -26,10 +26,10 @@ class iscore_plugin_network :
 
         //iscore::SettingsDelegateFactoryInterface* settings_make() override;
 
-        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
 
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
 
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 };

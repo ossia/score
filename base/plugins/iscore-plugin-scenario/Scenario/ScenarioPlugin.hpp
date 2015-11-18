@@ -15,7 +15,7 @@ class iscore_plugin_scenario final :
         public iscore::CommandFactory_QtInterface,
         public iscore::DocumentDelegateFactoryInterface_QtInterface,
         public iscore::PanelFactory_QtInterface,
-        public iscore::FactoryFamily_QtInterface,
+        public iscore::FactoryList_QtInterface,
         public iscore::FactoryInterface_QtInterface,
         public iscore::PluginRequirementslInterface_QtInterface
 {
@@ -26,7 +26,7 @@ class iscore_plugin_scenario final :
                 iscore::CommandFactory_QtInterface
                 iscore::DocumentDelegateFactoryInterface_QtInterface
                 iscore::PanelFactory_QtInterface
-                iscore::FactoryFamily_QtInterface
+                iscore::FactoryList_QtInterface
                 iscore::FactoryInterface_QtInterface
                 iscore::PluginRequirementslInterface_QtInterface)
 
@@ -34,22 +34,24 @@ class iscore_plugin_scenario final :
         iscore_plugin_scenario();
 
         // Docpanel interface
-        QList<iscore::DocumentDelegateFactoryInterface*> documents() override;
+        std::vector<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
         // Plugin control interface
-        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
 
         // NOTE : implementation is in CommandNames.cpp
-        std::pair<const std::string, CommandGeneratorMap> make_commands() override;
+        std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 
-        QList<iscore::PanelFactory*> panels() override;
+        std::vector<iscore::PanelFactory*> panels() override;
 
         // Offre la factory de Process
-        QVector<iscore::FactoryFamily> factoryFamilies() override;
+        std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
         // Crée les objets correspondant aux factories passées en argument.
         // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
-        std::vector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
+        std::vector<iscore::FactoryInterfaceBase*> factories(
+                const iscore::ApplicationContext&,
+                const iscore::FactoryBaseKey& factoryName) const override;
 
         QStringList required() const override;
         QStringList offered() const override;

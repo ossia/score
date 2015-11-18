@@ -50,7 +50,7 @@ QString InspectorWidgetBase::tabName()
 }
 
 void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
-                                             const QVector<QWidget*>& contents)
+                                             const std::list<QWidget*>& contents)
 {
     while(! layout->isEmpty())
     {
@@ -66,7 +66,7 @@ void InspectorWidgetBase::updateSectionsView(QVBoxLayout* layout,
     }
 }
 
-void InspectorWidgetBase::updateAreaLayout(QVector<QWidget*>& contents)
+void InspectorWidgetBase::updateAreaLayout(std::list<QWidget*>& contents)
 {
     while(! m_scrollAreaLayout->isEmpty())
     {

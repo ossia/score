@@ -7,7 +7,7 @@
 class Group;
 class CreateGroup : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(
+        ISCORE_COMMAND_DECL(
                 DistributedScenarioCommandFactoryName(),
                 CreateGroup,
                 "CreateGroup")
@@ -17,8 +17,8 @@ class CreateGroup : public iscore::SerializableCommand
         void undo() const override;
         void redo() const override;
 
-        virtual void serializeImpl(QDataStream & s) const override;
-        virtual void deserializeImpl(QDataStream & s) override;
+        void serializeImpl(QDataStream & s) const override;
+        void deserializeImpl(QDataStream & s) override;
 
     private:
         ObjectPath m_path;

@@ -15,3 +15,5 @@ const QGraphicsScene &BaseStateMachine::scene() const
 {
     return m_scene;
 }
+
+GraphicsSceneToolPalette::~GraphicsSceneToolPalette(){}

@@ -6,19 +6,12 @@
 class AutomationStateInspectorFactory final : public InspectorWidgetFactory
 {
     public:
-        AutomationStateInspectorFactory() :
-            InspectorWidgetFactory {}
-        {
+        AutomationStateInspectorFactory();
 
-        }
-
-        virtual InspectorWidgetBase* makeWidget(
+        InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        virtual QList<QString> correspondingObjectsNames() const override
-        {
-            return {"AutomationState"};
-        }
+        const QList<QString>& key_impl() const override;
 };

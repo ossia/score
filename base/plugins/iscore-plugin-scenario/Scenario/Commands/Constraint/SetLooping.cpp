@@ -1,9 +1,6 @@
 #include "SetLooping.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 SetLooping::SetLooping(Path<ConstraintModel>&& constraintPath, bool looping) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {std::move(constraintPath)},
     m_looping {looping}
 {

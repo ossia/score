@@ -5,12 +5,15 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-class ScenarioStateMachine;
+
+namespace Scenario
+{
+class ToolPalette;
 // TODO rename in MoveConstraint_State for hmoegeneity with ClickOnConstraint_Transition,  etc.
-class MoveConstraintState final : public ScenarioStateBase
+class MoveConstraintState final : public StateBase
 {
     public:
-        MoveConstraintState(const ScenarioStateMachine& stateMachine,
+        MoveConstraintState(const Scenario::ToolPalette& stateMachine,
                             const Path<ScenarioModel>& scenarioPath,
                             iscore::CommandStack& stack,
                             iscore::ObjectLocker& locker,
@@ -23,10 +26,10 @@ class MoveConstraintState final : public ScenarioStateBase
         TimeValue m_constraintInitialStartDate;
 };
 
-class MoveEventState final : public ScenarioStateBase
+class MoveEventState final : public StateBase
 {
     public:
-        MoveEventState(const ScenarioStateMachine& stateMachine,
+        MoveEventState(const Scenario::ToolPalette& stateMachine,
                        const Path<ScenarioModel>& scenarioPath,
                        iscore::CommandStack& stack,
                        iscore::ObjectLocker& locker,
@@ -35,10 +38,10 @@ class MoveEventState final : public ScenarioStateBase
         SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
 };
 
-class MoveTimeNodeState final : public ScenarioStateBase
+class MoveTimeNodeState final : public StateBase
 {
     public:
-        MoveTimeNodeState(const ScenarioStateMachine& stateMachine,
+        MoveTimeNodeState(const Scenario::ToolPalette& stateMachine,
                           const Path<ScenarioModel>& scenarioPath,
                           iscore::CommandStack& stack,
                           iscore::ObjectLocker& locker,
@@ -46,3 +49,5 @@ class MoveTimeNodeState final : public ScenarioStateBase
 
         SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
 };
+
+}

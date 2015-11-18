@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/ProcessFactory.hpp>
 #include <unordered_map>
 
 class ConstraintModel;
@@ -11,7 +12,8 @@ class SlotModel;
 class ScenarioModel;
 class Process;
 class TriggerInspectorWidget;
-
+class InspectorWidgetList;
+class DynamicProcessList;
 class RackWidget;
 class RackInspectorSection;
 class QFormLayout;
@@ -27,6 +29,8 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         Q_OBJECT
     public:
         explicit ConstraintInspectorWidget(
+                const InspectorWidgetList& list,
+                const DynamicProcessList& pl,
                 const ConstraintModel& object,
                 iscore::Document& doc,
                 QWidget* parent = 0);
@@ -37,7 +41,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         void updateDisplayedValues();
 
         // These methods ask for creation and the signals originate from other parts of the inspector
-        void createProcess(QString processName);
+        void createProcess(const ProcessFactoryKey& processName);
         void createRack();
         void createLayerInNewSlot(QString processName);
 
@@ -60,6 +64,9 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         void on_constraintViewModelRemoved(const QObject*);
 
         QWidget* makeStatesWidget(ScenarioModel*);
+
+        const InspectorWidgetList& m_widgetList;
+        const DynamicProcessList& m_processList;
         const ConstraintModel& m_model;
         QVector<QMetaObject::Connection> m_connections;
 
@@ -75,7 +82,7 @@ class ConstraintInspectorWidget final : public InspectorWidgetBase
         RackWidget* m_rackWidget {};
         std::unordered_map<Id<RackModel>, RackInspectorSection*, id_hash<RackModel>> m_rackesSectionWidgets;
 
-        QVector<QWidget*> m_properties;
+        std::list<QWidget*> m_properties;
 
         MetadataWidget* m_metadata {};
 

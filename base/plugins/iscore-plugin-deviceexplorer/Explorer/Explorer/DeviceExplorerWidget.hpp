@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 
 #include <QStackedLayout>
 #include <QThread>
@@ -26,7 +27,9 @@ class DeviceExplorerWidget final : public QWidget
         Q_OBJECT
 
     public:
-        explicit DeviceExplorerWidget(QWidget* parent);
+        explicit DeviceExplorerWidget(
+                const DynamicProtocolList&,
+                QWidget* parent);
 
         void setModel(DeviceExplorerModel* model);
         DeviceExplorerModel* model() const;
@@ -78,7 +81,10 @@ class DeviceExplorerWidget final : public QWidget
         void installStyleSheet();
         void populateColumnCBox();
 
-        virtual void contextMenuEvent(QContextMenuEvent* event) override;
+        void contextMenuEvent(QContextMenuEvent* event) override;
+
+
+        const DynamicProtocolList& m_protocolList;
 
         DeviceExplorerView* m_ntView{};
         DeviceExplorerFilterProxyModel* m_proxyModel{};

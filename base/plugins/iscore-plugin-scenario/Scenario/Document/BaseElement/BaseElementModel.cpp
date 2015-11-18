@@ -17,6 +17,7 @@
 
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/LayerModel.hpp>
 
@@ -26,7 +27,6 @@ using namespace Scenario;
 #include <core/document/Document.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
-#include <iscore/presenter/PresenterInterface.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 
 
@@ -56,7 +56,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
 
     AddProcessToConstraint cmd1{
         iscore::IDocument::path(m_baseScenario->baseConstraint()),
-        "Scenario"
+        ScenarioProcessMetadata::factoryKey()
     };
     cmd1.redo();
 
@@ -112,9 +112,8 @@ void BaseElementModel::on_viewModelDefocused(const LayerModel* vm)
     updateSlotFocus(vm, false);
 
     // Deselect
-    iscore::SelectionDispatcher selectionDispatcher(
-                iscore::IDocument::documentFromObject(*this)->selectionStack());
-    selectionDispatcher.setAndCommit(Selection{});
+    vm->processModel().setSelection({});
+    iscore::IDocument::documentFromObject(*this)->selectionStack().clear();
 }
 
 void BaseElementModel::on_viewModelFocused(const LayerModel* process)

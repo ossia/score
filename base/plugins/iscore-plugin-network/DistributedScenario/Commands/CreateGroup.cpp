@@ -6,7 +6,6 @@
 
 
 CreateGroup::CreateGroup(ObjectPath&& groupMgrPath, QString groupName):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{groupMgrPath},
     m_name{groupName}
 {

@@ -29,7 +29,6 @@ GroupMetadata* getGroupMetadata(QObject* obj)
 }
 
 ChangeGroup::ChangeGroup(ObjectPath &&path, Id<Group> newGroup):
-    iscore::SerializableCommand{factoryName(), commandName(), description()},
     m_path{path},
     m_newGroup{newGroup}
 {

@@ -31,6 +31,8 @@
 
 #define ISCORE_ABORT do { DEBUG_BREAK; std::terminate(); } while(0)
 
+#define ISCORE_XSTR(s) ISCORE_STR(s)
+#define ISCORE_STR(s) #s
 
 #if ISCORE_COMPILER_CXX_RELAXED_CONSTEXPR
 #define ISCORE_RELAXED_CONSTEXPR constexpr

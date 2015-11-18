@@ -13,30 +13,28 @@ namespace Scenario
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
-                static const char * factoryName()
+                const CommandParentFactoryKey& parentKey() const override
                 {
                     return ScenarioCommandFactoryName();
                 }
-                static const char * commandName()
+                static const CommandFactoryKey& static_key()
                 {
-                    static QByteArray name = QString{"ChangeElementName_%1"}.arg(T::staticMetaObject.className()).toUtf8();
-                    return name.constData();
+                    static const QByteArray name = QString{"ChangeElementName_%1"}.arg(T::staticMetaObject.className()).toUtf8();
+                    static const CommandFactoryKey kagi{name.constData()};
+                    return kagi;
                 }
-                static QString description()
+                const CommandFactoryKey& key() const override
+                {
+                    return static_key();
+                }
+                QString description() const override
                 {
                     return QObject::tr("Change %1 name").arg(T::prettyName());
                 }
 
-                ChangeElementName():
-                    SerializableCommand {factoryName(),
-                                         commandName(),
-                                         description()}
-                { }
+                ChangeElementName() = default;
 
                 ChangeElementName(Path<T>&& path, QString newName) :
-                    SerializableCommand{factoryName(),
-                                        commandName(),
-                                        description()},
                     m_path {std::move(path) },
                     m_newName {newName}
                 {
@@ -57,12 +55,12 @@ namespace Scenario
                 }
 
             protected:
-                virtual void serializeImpl(QDataStream& s) const override
+                void serializeImpl(QDataStream& s) const override
                 {
                     s << m_path << m_oldName << m_newName;
                 }
 
-                virtual void deserializeImpl(QDataStream& s) override
+                void deserializeImpl(QDataStream& s) override
                 {
                     s >> m_path >> m_oldName >> m_newName;
                 }

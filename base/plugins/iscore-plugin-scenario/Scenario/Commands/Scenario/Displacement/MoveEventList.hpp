@@ -1,52 +1,41 @@
 #pragma once
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <QMap>
-#include <iscore/tools/NamedObject.hpp>
-#include <QApplication>
 
-class MoveEventFactoryInterface;
-namespace iscore
+class MoveEventList final : public iscore::FactoryListInterface
 {
-class FactoryInterface;
-}
+    public:
+        static const iscore::FactoryBaseKey& staticFactoryKey() {
+            return MoveEventFactoryInterface::staticFactoryKey();
+        }
 
-class MoveEventList final : public NamedObject
-{
-    Q_OBJECT
-public:
-    MoveEventList(QObject* parent)
-        :NamedObject("MoveEventList", parent){};
+        iscore::FactoryBaseKey name() const final override {
+            return MoveEventFactoryInterface::staticFactoryKey();
+        }
 
-    enum Strategy{ MOVING, CREATION, EXTRA };
-
-    /**
-     * @brief getMoveEventFactory
-     * @return
-     * the factory with the highest priority for the specified strategy
-     */
-    MoveEventFactoryInterface* getMoveEventFactory(MoveEventList::Strategy strategy);
-
-    /**
+        /**
      * @brief registerMoveEventFactory
      * register a moveEvent with a unique priority (higher the better),
      * WARNING, if the same priority is already there, it will be overriden
      * @param factoryInterface
-     * WARNING: this has to be of type MoveEventFactoryInterface unless it will crash
      */
-    void registerMoveEventFactory(iscore::FactoryInterface* factoryInterface);
+        void insert(iscore::FactoryInterfaceBase* e) final override
+        {
+            if(auto pf = dynamic_cast<MoveEventFactoryInterface*>(e))
+                m_list.push_back(pf);
+        }
 
-    static MoveEventFactoryInterface* getFactory(MoveEventList::Strategy strategy)
-    {
+        const auto& list() const
+        { return m_list; }
 
-        return qApp
-                ->findChild<MoveEventList*> ("MoveEventList")
-                ->getMoveEventFactory(strategy);
-    }
+        /**
+     * @brief getMoveEventFactory
+     * @return
+     * the factory with the highest priority for the specified strategy
+     */
+        MoveEventFactoryInterface* get(MoveEventFactoryInterface::Strategy strategy) const;
 
-private:
-    QVector<MoveEventFactoryInterface*> m_moveEventFactories;
+    private:
+        QVector<MoveEventFactoryInterface*> m_list;
 };
-
-
-

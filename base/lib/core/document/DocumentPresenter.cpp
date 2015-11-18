@@ -2,7 +2,6 @@
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateModelInterface.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenterInterface.hpp>
 
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentModel.hpp>

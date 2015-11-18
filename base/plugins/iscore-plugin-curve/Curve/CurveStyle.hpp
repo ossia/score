@@ -1,7 +1,8 @@
 #pragma once
 #include <QColor>
-
-struct CurveStyle
+namespace Curve
+{
+struct Style
 {
         QColor Point{128, 215, 62};
         QColor PointSelected{233, 208, 89};
@@ -10,3 +11,4 @@ struct CurveStyle
         QColor SegmentSelected{216, 178, 24};
         QColor SegmentDisabled{127, 127, 127};
 };
+}

@@ -14,9 +14,9 @@ class TemporalConstraintView final : public ConstraintView
         QRectF boundingRect() const override
         { return {0, -15, qreal(maxWidth()), qreal(constraintHeight()) }; }
 
-        virtual void paint(QPainter* painter,
-                           const QStyleOptionGraphicsItem* option,
-                           QWidget* widget) override;
+        void paint(QPainter* painter,
+                   const QStyleOptionGraphicsItem* option,
+                   QWidget* widget) override;
 
         bool shadow() const;
         void setShadow(bool shadow);
@@ -43,8 +43,8 @@ class TemporalConstraintView final : public ConstraintView
         void constraintHoverLeave();
 
     protected:
-        virtual void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
-        virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
+        void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
+        void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
 
     private:
         QPointF m_clickedPoint {};

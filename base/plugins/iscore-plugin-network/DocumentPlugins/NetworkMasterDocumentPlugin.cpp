@@ -2,44 +2,42 @@
 
 #include <Serialization/MessageMapper.hpp>
 
-#include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-
+#include <core/document/DocumentContext.hpp>
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 
 MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
-                                         iscore::CommandStack& stack,
-                                         iscore::ObjectLocker& locker):
+                                         iscore::DocumentContext& c):
     m_session{s}
 {
     /////////////////////////////////////////////////////////////////////////////
     /// From the master to the clients
     /////////////////////////////////////////////////////////////////////////////
-    con(stack, &iscore::CommandStack::localCommand,
+    con(c.commandStack, &iscore::CommandStack::localCommand,
             this, [=] (iscore::SerializableCommand* cmd)
     {
         m_session->broadcast(
                     m_session->makeMessage("/command",
-                                           cmd->parentName(),
-                                           cmd->name(),
+                                           cmd->parentKey(),
+                                           cmd->key(),
                                            cmd->serialize()));
     });
 
     // Undo-redo
-    con(stack, &iscore::CommandStack::localUndo,
+    con(c.commandStack, &iscore::CommandStack::localUndo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/undo")); });
-    con(stack, &iscore::CommandStack::localRedo,
+    con(c.commandStack, &iscore::CommandStack::localRedo,
             this, [&] ()
     { m_session->broadcast(m_session->makeMessage("/redo")); });
 
     // Lock - unlock
-    con(locker, &iscore::ObjectLocker::lock,
+    con(c.objectLocker, &iscore::ObjectLocker::lock,
             this, [&] (QByteArray arr)
     { m_session->broadcast(m_session->makeMessage("/lock", arr)); });
-    con(locker, &iscore::ObjectLocker::unlock,
+    con(c.objectLocker, &iscore::ObjectLocker::unlock,
             this, [&] (QByteArray arr)
     { m_session->broadcast(m_session->makeMessage("/unlock", arr)); });
 
@@ -49,12 +47,14 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     /////////////////////////////////////////////////////////////////////////////
     s->mapper().addHandler("/command", [&] (NetworkMessage m)
     {
-        std::string parentName; std::string name; QByteArray data;
-        QDataStream s{m.data};
-        s >> parentName >> name >> data;
+        CommandParentFactoryKey parentName;
+        CommandFactoryKey name;
+        QByteArray data;
+        QDataStream stream{m.data};
+        stream >> parentName >> name >> data;
 
-        stack.redoAndPushQuiet(
-                    iscore::IPresenter::instantiateUndoCommand(parentName, name, data));
+        c.commandStack.redoAndPushQuiet(
+                    c.app.components.instantiateUndoCommand(parentName, name, data));
 
 
         m_session->transmit(Id<Client>(m.clientId), m);
@@ -63,31 +63,31 @@ MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,
     // Undo-redo
     s->mapper().addHandler("/undo", [&] (NetworkMessage m)
     {
-        stack.undoQuiet();
+        c.commandStack.undoQuiet();
         m_session->transmit(Id<Client>(m.clientId), m);
     });
     s->mapper().addHandler("/redo", [&] (NetworkMessage m)
     {
-        stack.redoQuiet();
+        c.commandStack.redoQuiet();
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     // Lock-unlock
     s->mapper().addHandler("/lock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
-        locker.on_lock(data);
+        stream >> data;
+        c.objectLocker.on_lock(data);
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 
     s->mapper().addHandler("/unlock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
-        locker.on_unlock(data);
+        stream >> data;
+        c.objectLocker.on_unlock(data);
         m_session->transmit(Id<Client>(m.clientId), m);
     });
 }

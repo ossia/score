@@ -11,7 +11,6 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel):
-    SerializableCommand{factoryName(), commandName(), description()},
     m_path {std::move(scenarioPath) }
 {
     auto& scenar = m_path.find();
@@ -84,10 +83,12 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
         }
     }
 
+    auto purged = sel.toList().toSet().toList();
+
     // Serialize ALL the things
-    for(const auto& obj : sel)
+    for(const auto& obj : purged)
     {
-        if(auto state = dynamic_cast<const StateModel*>(obj.data()))
+        if(auto state = dynamic_cast<const StateModel*>(obj))
         {
             QByteArray arr;
             Serializer<DataStream> s{&arr};
@@ -95,7 +96,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
             m_removedStates.push_back({state->id(), arr});
         }
 
-        if(auto event = dynamic_cast<const EventModel*>(obj.data()))
+        if(auto event = dynamic_cast<const EventModel*>(obj))
         {
             if(event->id() != Id<EventModel>{0})
             {
@@ -106,7 +107,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
             }
         }
 
-        if(auto tn = dynamic_cast<const TimeNodeModel*>(obj.data()))
+        if(auto tn = dynamic_cast<const TimeNodeModel*>(obj))
         {
             if(tn->id() != Id<TimeNodeModel>{0})
             {
@@ -117,7 +118,7 @@ RemoveSelection::RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection s
             }
         }
 
-        if(auto constraint = dynamic_cast<const ConstraintModel*>(obj.data()))
+        if(auto constraint = dynamic_cast<const ConstraintModel*>(obj))
         {
             QByteArray arr;
             Serializer<DataStream> s{&arr};

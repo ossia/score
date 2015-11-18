@@ -11,8 +11,7 @@ class MasterNetworkPolicy : public NetworkPluginPolicy
 {
     public:
         MasterNetworkPolicy(MasterSession* s,
-                            iscore::CommandStack& stack,
-                            iscore::ObjectLocker& locker);
+                            iscore::DocumentContext& c);
 
         MasterSession* session() const override
         { return m_session; }

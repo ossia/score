@@ -64,10 +64,10 @@ void OSSIAAutomationElement::recreate()
     OSSIA::Node* node{};
     OSSIADevice* dev{};
     // The updating routine
-    auto update = [&] (auto new_autom) {
+    auto update_fun = [&] (auto new_autom_param) {
         auto old_autom = m_ossia_autom;
-        m_ossia_autom = new_autom;
-        emit changed(old_autom, new_autom);
+        m_ossia_autom = new_autom_param;
+        emit changed(old_autom, new_autom_param);
     };
 
     m_ossia_curve.reset(); // It will be remade after.
@@ -77,8 +77,8 @@ void OSSIAAutomationElement::recreate()
 
     // Look for the real node in the device
     auto dev_it = std::find_if(devices.begin(), devices.end(),
-                               [&] (DeviceInterface* dev) {
-        return dev->settings().name == addr.device;
+                               [&] (DeviceInterface* a_device) {
+        return a_device->settings().name == addr.device;
     });
 
     if(dev_it == devices.end())
@@ -110,12 +110,12 @@ void OSSIAAutomationElement::recreate()
                 address,
                 new Behavior(m_ossia_curve));
 
-    update(new_autom);
+    update_fun(new_autom);
 
     return;
 
 curve_cleanup_label:
-    update(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
+    update_fun(std::shared_ptr<OSSIA::Automation>{}); // Cleanup
     return;
 }
 

@@ -4,16 +4,16 @@
 #include <Repartition/session/ClientSessionBuilder.hpp>
 #include <Serialization/MessageMapper.hpp>
 
-#include <iscore/presenter/PresenterInterface.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include "NetworkControl.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 #include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentContext.hpp>
 
 
-
-ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
-                                                         iscore::Document *doc):
+ClientNetworkPolicy::ClientNetworkPolicy(
+        ClientSession* s,
+        iscore::Document *doc):
     m_session{s},
     m_document{doc}
 {
@@ -25,8 +25,8 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
     {
         m_session->master()->sendMessage(
                     m_session->makeMessage("/command",
-                                           cmd->parentName(),
-                                           cmd->name(),
+                                           cmd->parentKey(),
+                                           cmd->key(),
                                            cmd->serialize()));
     });
 
@@ -57,12 +57,14 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
     s->mapper().addHandler("/command",
     [&] (NetworkMessage m)
     {
-        std::string parentName; std::string name; QByteArray data;
-        QDataStream s{m.data};
-        s >> parentName >> name >> data;
+        CommandParentFactoryKey parentName;
+        CommandFactoryKey name;
+        QByteArray data;
+        QDataStream stream{m.data};
+        stream >> parentName >> name >> data;
 
         m_document->commandStack().redoAndPushQuiet(
-                    iscore::IPresenter::instantiateUndoCommand(parentName, name, data));
+                    m_document->context().app.components.instantiateUndoCommand(parentName, name, data));
     });
 
     s->mapper().addHandler("/undo", [&] (NetworkMessage)
@@ -73,17 +75,17 @@ ClientNetworkPolicy::ClientNetworkPolicy(ClientSession* s,
 
     s->mapper().addHandler("/lock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
+        stream >> data;
         m_document->locker().on_lock(data);
     });
 
     s->mapper().addHandler("/unlock", [&] (NetworkMessage m)
     {
-        QDataStream s{m.data};
+        QDataStream stream{m.data};
         QByteArray data;
-        s >> data;
+        stream >> data;
         m_document->locker().on_unlock(data);
     });
 }

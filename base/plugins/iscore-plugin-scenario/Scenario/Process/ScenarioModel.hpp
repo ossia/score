@@ -4,6 +4,7 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
 #include <Process/Process.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
@@ -63,7 +64,8 @@ class ScenarioModel final : public Process, public ScenarioInterface
                 const LayerModel& source,
                 QObject* parent) override;
 
-        QString userFriendlyDescription() const override;
+        const ProcessFactoryKey& key() const override;
+        QString prettyName() const override;
 
         void setDurationAndScale(const TimeValue& newDuration) override;
         void setDurationAndGrow(const TimeValue& newDuration) override;
@@ -76,9 +78,6 @@ class ScenarioModel final : public Process, public ScenarioInterface
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
-
-        QString processName() const override
-        { return "Scenario"; }
 
         ProcessStateDataInterface* startState() const override;
         ProcessStateDataInterface* endState() const override;
@@ -190,14 +189,14 @@ class ScenarioModel final : public Process, public ScenarioInterface
             vis.writeTo(*this);
         }
 
-        virtual LayerModel* loadLayer_impl(
+        LayerModel* loadLayer_impl(
                 const VisitorVariant& vis,
                 QObject* parent) override;
 
-        virtual void serialize(const VisitorVariant&) const override;
+        void serialize(const VisitorVariant&) const override;
 
         // To prevent warnings in Clang
-        virtual bool event(QEvent* e) override
+        bool event(QEvent* e) override
         {
             return QObject::event(e);
         }
@@ -226,6 +225,7 @@ class ScenarioModel final : public Process, public ScenarioInterface
 };
 
 #include <iterator>
+// TODO this ought to go in Selection.hpp ?
 template<typename Vector>
 QList<const typename Vector::value_type*> selectedElements(const Vector& in)
 {

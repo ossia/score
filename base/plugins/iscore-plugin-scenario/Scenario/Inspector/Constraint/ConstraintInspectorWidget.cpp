@@ -27,6 +27,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <Scenario/Control/ScenarioControl.hpp>
 
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -48,10 +49,14 @@ using namespace iscore;
 using namespace iscore::IDocument;
 
 ConstraintInspectorWidget::ConstraintInspectorWidget(
+        const InspectorWidgetList& widg,
+        const DynamicProcessList& pl,
         const ConstraintModel& object,
         iscore::Document& doc,
         QWidget* parent) :
     InspectorWidgetBase{object, doc, parent},
+    m_widgetList{widg},
+    m_processList{pl},
     m_model{object}
 {
     setObjectName("Constraint");
@@ -100,7 +105,9 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Durations
-    m_durationSection = new DurationSectionWidget {this};
+    auto& ctx = iscore::IDocument::documentContext(object);
+    auto& ctrl = ctx.app.components.control<ScenarioControl>();
+    m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), this};
     m_properties.push_back(m_durationSection);
     auto loop = new QCheckBox{tr("Loop content"), this};
     loop->setChecked(m_model.looping());
@@ -135,7 +142,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     addProcLayout->addWidget(addProcButton);
     addProcLayout->addWidget(addProcText);
-    auto addProcess = new AddProcessDialog {this};
+    auto addProcess = new AddProcessDialog {m_processList, this};
 
     connect(addProcButton,  &QToolButton::pressed,
             addProcess, &AddProcessDialog::launchWindow);
@@ -260,7 +267,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 }
 
-void ConstraintInspectorWidget::createProcess(QString processName)
+void ConstraintInspectorWidget::createProcess(const ProcessFactoryKey& processName)
 {
     auto cmd = new AddProcessToConstraint{model(), processName};
     commandDispatcher()->submitCommand(cmd);
@@ -313,8 +320,8 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
     InspectorSectionWidget* newProc = new InspectorSectionWidget(process.metadata.name());
 
     // Process
-    auto processWidget = InspectorWidgetList::makeInspectorWidget(
-                             process.processName(), process, newProc);
+    auto processWidget = m_widgetList.makeInspectorWidget(
+                             process.objectName(), process, newProc); // FIXME objectName BERK
     newProc->addContent(processWidget);
 
     // Start & end state
@@ -326,14 +333,14 @@ void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 
     if(auto start = process.startState())
     {
-        auto startWidg = InspectorWidgetList::makeInspectorWidget(
+        auto startWidg = m_widgetList.makeInspectorWidget(
                              start->stateName(), *start, newProc);
         stateLayout->addRow(tr("Start state"), startWidg);
     }
 
     if(auto end = process.endState())
     {
-        auto endWidg = InspectorWidgetList::makeInspectorWidget(
+        auto endWidg = m_widgetList.makeInspectorWidget(
                            end->stateName(), *end, newProc);
         stateLayout->addRow(tr("End state"), endWidg);
     }

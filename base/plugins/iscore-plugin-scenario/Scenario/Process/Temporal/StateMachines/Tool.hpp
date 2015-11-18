@@ -1,5 +1,7 @@
 #pragma once
 #include <QMetaType>
 
-enum class ScenarioToolKind { Create, Select, MoveSlot, Play };
-Q_DECLARE_METATYPE(ScenarioToolKind)
+namespace Scenario{
+enum class Tool { Disabled, Create, Select, MoveSlot, Playing };
+}
+Q_DECLARE_METATYPE(Scenario::Tool)

@@ -1,12 +1,14 @@
 #include "AddOnlyProcessToConstraint.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
-        const QString& process) :
+        const ProcessFactoryKey& process) :
     AddOnlyProcessToConstraint{
         std::move(constraintPath),
         getStrongId(constraintPath.find().processes),
@@ -18,10 +20,7 @@ AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
 AddOnlyProcessToConstraint::AddOnlyProcessToConstraint(
         Path<ConstraintModel>&& constraintPath,
         const Id<Process>& processId,
-        const QString& process):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
+        const ProcessFactoryKey& process):
     m_path{std::move(constraintPath)},
     m_processName{process},
     m_createdProcessId{processId}
@@ -39,7 +38,7 @@ void AddOnlyProcessToConstraint::redo() const
     auto& constraint = m_path.find();
 
     // Create process model
-    auto proc = ProcessList::getFactory(m_processName)
+    auto proc = context.components.factory<DynamicProcessList>().list().get(m_processName)
             ->makeModel(
                 constraint.duration.defaultDuration(), // TODO should maybe be max ?
                 m_createdProcessId,

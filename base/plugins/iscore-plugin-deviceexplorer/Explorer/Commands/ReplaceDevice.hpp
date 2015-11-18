@@ -15,7 +15,7 @@ namespace DeviceExplorer
         // Replaces all the nodes of a device by new nodes.
         class ReplaceDevice final : public iscore::SerializableCommand
         {
-            ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReplaceDevice, "ReplaceDevice")
+            ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), ReplaceDevice, "ReplaceDevice")
             public:
                 ReplaceDevice(Path<DeviceExplorerModel>&& device_tree,
                               int deviceIndex,
@@ -25,8 +25,8 @@ namespace DeviceExplorer
                 void redo() const override;
 
             protected:
-                virtual void serializeImpl(QDataStream&) const override;
-                virtual void deserializeImpl(QDataStream&) override;
+                void serializeImpl(QDataStream&) const override;
+                void deserializeImpl(QDataStream&) override;
 
             private:
                 Path<DeviceExplorerModel> m_deviceTree;

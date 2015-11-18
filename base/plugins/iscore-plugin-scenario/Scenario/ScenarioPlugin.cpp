@@ -9,6 +9,8 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
+#include <core/application/Application.hpp>
+#include <Scenario/Document/BaseElement/ScenarioDocument.hpp>
 
 #if defined(ISCORE_LIB_INSPECTOR)
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
@@ -22,7 +24,7 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
         iscore::PluginControlInterface_QtInterface {},
         iscore::DocumentDelegateFactoryInterface_QtInterface {},
-        iscore::FactoryFamily_QtInterface {},
+        iscore::FactoryList_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
 {
     QMetaType::registerComparators<iscore::Value>();
@@ -42,69 +44,53 @@ iscore_plugin_scenario::iscore_plugin_scenario() :
 }
 
 // Interfaces implementations :
-#include <Scenario/Document/BaseElement/ScenarioDocument.hpp>
-QList<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
+std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::documents()
 {
     return {new ScenarioDocument};
 }
 
-iscore::PluginControlInterface* iscore_plugin_scenario::make_control(iscore::Presenter* pres)
+iscore::PluginControlInterface* iscore_plugin_scenario::make_control(
+        iscore::Application& app)
 {
-    return ScenarioControl::instance(pres);
+    return new ScenarioControl{app};
 }
 
-QList<iscore::PanelFactory*> iscore_plugin_scenario::panels()
+std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
 {
     return {
         new ProcessPanelFactory
     };
 }
 
-QVector<iscore::FactoryFamily> iscore_plugin_scenario::factoryFamilies()
+std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamilies()
 {
-    return {
-            {ProcessFactory::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
-             { ScenarioControl::instance()->processList()->registerProcess(fact); }
-            },
-            {MoveEventFactoryInterface::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
-             { ScenarioControl::instance()->moveEventList()->registerMoveEventFactory(fact); }
-            },
-            {ScenarioActionsFactory::factoryName(),
-             [&] (iscore::FactoryInterface* fact)
-             {
-                auto context_menu_fact = static_cast<ScenarioActionsFactory*>(fact);
-                for(auto& act : context_menu_fact->make(ScenarioControl::instance()))
-                {
-                    ScenarioControl::instance()->pluginActions().push_back(act);
-                }
-             }
-            }
-           };
+    return {new DynamicProcessList, new MoveEventList, new ScenarioContextMenuPluginList};
 }
 
-std::vector<iscore::FactoryInterface*> iscore_plugin_scenario::factories(const QString& factoryName)
+std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
+        const iscore::ApplicationContext& ctx,
+        const iscore::FactoryBaseKey& factoryName) const
 {
-    if(factoryName == ProcessFactory::factoryName())
+    if(factoryName == ProcessFactory::staticFactoryKey())
     {
-        return {new ScenarioFactory};
+        auto& control = ctx.components.control<ScenarioControl>();
+        return {new ScenarioFactory{control.editionSettings()}};
     }
 
-    if(factoryName == ScenarioActionsFactory::factoryName())
+    if(factoryName == ScenarioActionsFactory::staticFactoryKey())
     {
         // new ScenarioCommonActionsFactory is instantiated in Control
         // because other plug ins need it.
         return {};
     }
 
-    if(factoryName == MoveEventClassicFactory::factoryName())
+    if(factoryName == MoveEventClassicFactory::staticFactoryKey())
     {
         return {new MoveEventClassicFactory};
     }
 
 #if defined(ISCORE_LIB_INSPECTOR)
-    if(factoryName == InspectorWidgetFactory::factoryName())
+    if(factoryName == InspectorWidgetFactory::staticFactoryKey())
     {
         return {
                     new ConstraintInspectorFactory,

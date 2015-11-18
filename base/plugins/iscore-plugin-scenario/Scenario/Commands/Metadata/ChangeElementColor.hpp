@@ -13,30 +13,27 @@ namespace Scenario
         {
                 // No ISCORE_COMMAND here since it's a template.
             public:
-                static constexpr const char * factoryName()
+                const CommandParentFactoryKey& parentKey() const override
                 {
                     return ScenarioCommandFactoryName();
                 }
-                static const char * commandName()
+                static const CommandFactoryKey& static_key()
                 {
-                    static QByteArray name = QString{"ChangeElementColor_%1"}.arg(T::staticMetaObject.className()).toUtf8();
-                    return name.constData();
+                    static const QByteArray name = QString{"ChangeElementColor_%1"}.arg(T::staticMetaObject.className()).toUtf8();
+                    static const CommandFactoryKey kagi{name.constData()};
+                    return kagi;
                 }
-                static QString description()
+                const CommandFactoryKey& key() const override
+                {
+                    return static_key();
+                }
+                QString description() const override
                 {
                     return QObject::tr("Change %1 color").arg(T::prettyName());
                 }
 
-                ChangeElementColor():
-                    SerializableCommand {factoryName(),
-                                         commandName(),
-                                         description()}
-                { }
-
+                ChangeElementColor() = default;
                 ChangeElementColor(Path<T>&& path, QColor newLabel) :
-                    SerializableCommand {factoryName(),
-                                         commandName(),
-                                         description()},
                     m_path {std::move(path) },
                     m_newColor {newLabel}
                 {
@@ -57,12 +54,12 @@ namespace Scenario
                 }
 
             protected:
-                virtual void serializeImpl(QDataStream& s) const override
+                void serializeImpl(QDataStream& s) const override
                 {
                     s << m_path << m_oldColor << m_newColor;
                 }
 
-                virtual void deserializeImpl(QDataStream& s) override
+                void deserializeImpl(QDataStream& s) override
                 {
                     s >> m_path >> m_oldColor >> m_newColor;
                 }

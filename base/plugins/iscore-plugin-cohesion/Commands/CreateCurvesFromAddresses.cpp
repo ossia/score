@@ -8,9 +8,6 @@ using namespace iscore;
 CreateCurvesFromAddresses::CreateCurvesFromAddresses(
         Path<ConstraintModel>&& constraint,
         const QList<Address>& addresses):
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {constraint},
     m_addresses {addresses}
 {
@@ -18,7 +15,7 @@ CreateCurvesFromAddresses::CreateCurvesFromAddresses(
     {
         auto cmd = new Scenario::Command::AddProcessToConstraint{
                    Path<ConstraintModel>{m_path},
-                   "Automation"};
+                   AutomationProcessMetadata::factoryKey()};
         m_serializedCommands.push_back(cmd->serialize());
         delete cmd;
     }

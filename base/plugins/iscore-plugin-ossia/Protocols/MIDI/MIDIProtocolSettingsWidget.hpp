@@ -12,9 +12,9 @@ class MIDIProtocolSettingsWidget : public ProtocolSettingsWidget
     public:
         MIDIProtocolSettingsWidget(QWidget* parent = nullptr);
 
-        virtual iscore::DeviceSettings getSettings() const override;
+        iscore::DeviceSettings getSettings() const override;
 
-        virtual void setSettings(const iscore::DeviceSettings& settings) override;
+        void setSettings(const iscore::DeviceSettings& settings) override;
 
     protected slots:
         void updateInputDevices();

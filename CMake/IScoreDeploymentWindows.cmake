@@ -36,6 +36,8 @@ endif()
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
 file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
+
+# TODO instead register them somewhere like the plug-ins.
 install(FILES
   ${ICU_DLLS}
   "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
@@ -43,7 +45,6 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Widgets${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Network${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Xml${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5PrintSupport${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5OpenGL${DEBUG_CHAR}.dll"

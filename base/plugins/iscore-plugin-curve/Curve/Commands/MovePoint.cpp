@@ -3,10 +3,8 @@
 
 
 MovePoint::MovePoint(Path<CurveModel>&& model,
-             const Id<CurvePointModel>& pointId,
-             CurvePoint newPoint):
-    iscore::SerializableCommand{
-	 factoryName(), commandName(), description()},
+                     const Id<CurvePointModel>& pointId,
+                     Curve::Point newPoint):
     m_model{std::move(model)},
     m_pointId{pointId},
     m_newPoint{newPoint}
@@ -54,7 +52,10 @@ void MovePoint::redo() const
     curve.changed();
 }
 
-void MovePoint::update(Path<CurveModel>&& model, const Id<CurvePointModel>& pointId, const CurvePoint& newPoint)
+void MovePoint::update(
+        Path<CurveModel>&& model,
+        const Id<CurvePointModel>& pointId,
+        const Curve::Point& newPoint)
 {
     m_newPoint = newPoint;
 }

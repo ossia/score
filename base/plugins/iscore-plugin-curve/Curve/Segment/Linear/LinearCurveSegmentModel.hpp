@@ -1,8 +1,8 @@
 #pragma once
 #include "Curve/Segment/CurveSegmentModel.hpp"
-class LinearCurveSegmentData
+struct LinearCurveSegmentData
 {
-
+        static const CurveSegmentFactoryKey& key();
 };
 
 Q_DECLARE_METATYPE(LinearCurveSegmentData)
@@ -24,7 +24,7 @@ class LinearCurveSegmentModel final : public CurveSegmentModel
                 const Id<CurveSegmentModel>& id,
                 QObject* parent) const override;
 
-        QString name() const override;
+        const CurveSegmentFactoryKey& key() const override;
         void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

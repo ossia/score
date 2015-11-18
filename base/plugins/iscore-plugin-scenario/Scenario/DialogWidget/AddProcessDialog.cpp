@@ -5,8 +5,11 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QInputDialog>
 #include <QApplication>
-AddProcessDialog::AddProcessDialog(QWidget *parent) :
-    QWidget {parent}
+AddProcessDialog::AddProcessDialog(
+        const DynamicProcessList& plist,
+        QWidget *parent) :
+    QWidget {parent},
+    m_factoryList{plist}
 {
     hide();
 }
@@ -14,18 +17,46 @@ AddProcessDialog::AddProcessDialog(QWidget *parent) :
 void AddProcessDialog::launchWindow()
 {
     bool ok = false;
-    auto process_list = ProcessList::getProcessesName();
-    process_list.sort();
-    auto process_name = QInputDialog::getItem(qApp->activeWindow(),
+
+    std::vector<std::pair<QString, ProcessFactoryKey>> sortedFactoryList;
+    for(const auto& factory : m_factoryList.list().get())
+    {
+        sortedFactoryList.push_back(
+                    std::make_pair(
+                        factory.second->prettyName(),
+                        factory.first));
+    }
+
+    std::sort(sortedFactoryList.begin(),
+              sortedFactoryList.end(),
+              [] (const auto& e1, const auto& e2) {
+        return e1.first < e2.first;
+    });
+
+    QStringList nameList;
+    for(const auto& elt : sortedFactoryList)
+    {
+        nameList.append(elt.first);
+    }
+
+    auto process_name = QInputDialog::getItem(
+        qApp->activeWindow(),
         tr("Choose a process"),
         tr("Choose a process"),
-        process_list,
+        nameList,
         0,
         false,
         &ok);
 
+
     if(ok)
     {
-        emit okPressed(process_name);
+        auto it = std::find_if(sortedFactoryList.begin(),
+                               sortedFactoryList.end(),
+                               [&] (const auto& elt) {
+            return elt.first == process_name;
+        });
+        ISCORE_ASSERT(it != sortedFactoryList.end());
+        emit okPressed(it->second);
     }
 }

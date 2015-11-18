@@ -33,9 +33,9 @@ BaseMoveSlot::BaseMoveSlot(
     m_localSM.setInitialState(m_waitState);
     // Two states : one for moving the content of the slot, one for resizing with the handle.
     {
-        auto dragSlot = new DragSlotState{stack, m_sm, m_scene, &m_localSM};
+        auto dragSlot = new Scenario::DragSlotState<BaseStateMachine>{stack, m_sm, m_scene, &m_localSM};
         // Enter the state
-        make_transition<ClickOnSlotOverlay_Transition>(
+        iscore::make_transition<Scenario::ClickOnSlotOverlay_Transition>(
                     m_waitState,
                     dragSlot,
                     *dragSlot);
@@ -44,8 +44,8 @@ BaseMoveSlot::BaseMoveSlot(
     }
 
     {
-        auto resizeSlot = new ResizeSlotState{stack, m_sm, &m_localSM};
-        make_transition<ClickOnSlotHandle_Transition>(
+        auto resizeSlot = new Scenario::ResizeSlotState<BaseStateMachine>{stack, m_sm, &m_localSM};
+        iscore::make_transition<Scenario::ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,
                     *resizeSlot);
@@ -54,7 +54,7 @@ BaseMoveSlot::BaseMoveSlot(
     }
 
     // 3. Map the external events to internal transitions of this state machine.
-    auto on_press = new Press_Transition;
+    auto on_press = new iscore::Press_Transition;
     this->addTransition(on_press);
     connect(on_press, &QAbstractTransition::triggered, this, [&] ()
     {
@@ -72,15 +72,15 @@ BaseMoveSlot::BaseMoveSlot(
     });
 
     // Forward events
-    auto on_move = new Move_Transition;
+    auto on_move = new iscore::Move_Transition;
     this->addTransition(on_move);
     connect(on_move, &QAbstractTransition::triggered, [&] ()
-    { m_localSM.postEvent(new Move_Event); });
+    { m_localSM.postEvent(new iscore::Move_Event); });
 
-    auto on_release = new Release_Transition;
+    auto on_release = new iscore::Release_Transition;
     this->addTransition(on_release);
     connect(on_release, &QAbstractTransition::triggered, [&] ()
-    { m_localSM.postEvent(new Release_Event); });
+    { m_localSM.postEvent(new iscore::Release_Event); });
 
     m_localSM.start();
 }

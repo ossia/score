@@ -50,12 +50,12 @@ namespace iscore
 
             QString undoText() const
             {
-                return canUndo() ? m_undoable.top()->text() : tr("Nothing to undo");
+                return canUndo() ? m_undoable.top()->description() : tr("Nothing to undo");
             }
 
             QString redoText() const
             {
-                return canRedo() ? m_redoable.top()->text() : tr("Nothing to redo");
+                return canRedo() ? m_redoable.top()->description() : tr("Nothing to redo");
             }
 
 
@@ -181,12 +181,12 @@ namespace iscore
                     emit canRedoChanged(canRedo());
 
                 if(canUndo())
-                    emit undoTextChanged(m_undoable.top()->text());
+                    emit undoTextChanged(m_undoable.top()->description());
                 else
                     emit undoTextChanged("");
 
                 if(canRedo())
-                    emit redoTextChanged(m_redoable.top()->text());
+                    emit redoTextChanged(m_redoable.top()->description());
                 else
                     emit redoTextChanged("");
 

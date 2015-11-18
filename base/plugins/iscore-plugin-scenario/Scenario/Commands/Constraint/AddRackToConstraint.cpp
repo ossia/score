@@ -9,9 +9,6 @@ using namespace iscore;
 using namespace Scenario::Command;
 
 AddRackToConstraint::AddRackToConstraint(Path<ConstraintModel>&& constraintPath) :
-    SerializableCommand {factoryName(),
-                         commandName(),
-                         description()},
     m_path {constraintPath}
 {
     auto constraint = m_path.try_find();

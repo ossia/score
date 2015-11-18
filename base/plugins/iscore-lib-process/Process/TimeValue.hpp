@@ -235,7 +235,7 @@ class TimeValue_T
         }
 
     private:
-        boost::optional<T> m_impl {0};
+        boost::optional<T> m_impl {0}; // TODO std::isinf instead.
 };
 
 

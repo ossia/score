@@ -1,4 +1,11 @@
 #include "Command.hpp"
+#include <core/application/Application.hpp>
+
+iscore::Command::Command():
+    context{iscore::Application::instance()}
+{
+
+}
 
 iscore::Command::~Command()
 {

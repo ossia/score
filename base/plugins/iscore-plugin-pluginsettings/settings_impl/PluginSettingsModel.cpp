@@ -16,12 +16,12 @@ PluginSettingsModel::PluginSettingsModel() :
     QSettings s;
     auto blacklist = s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
     blacklist.sort();
-    // TODO use a singleton instead.
+
     ISCORE_TODO;
     return;
 
 
-    auto systemlist = qApp->findChild<PluginManager*> ("PluginManager")->pluginsOnSystem();
+    auto systemlist = qApp->findChild<PluginLoader*> ("PluginManager")->pluginsOnSystem();
     systemlist.sort();
 
     m_plugins = new QStandardItemModel(1, 1, this);

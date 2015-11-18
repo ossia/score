@@ -20,6 +20,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/SettableIdentifierGeneration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryFamily.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/ElementPluginModelListSerialization.cpp"
@@ -51,9 +52,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/presenter/PresenterInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionDispatcher.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionStack.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/DataStreamVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectVisitor.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/QtTypesJsonVisitors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/NamedObjectSerialization.cpp"
@@ -66,6 +68,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/Application.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationComponents.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationRegistrar.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationSettings.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStackSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/OpenDocumentsFile.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/CommandBackupFile.cpp"
@@ -79,6 +85,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/document/DocumentSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/plugin/PluginManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/DocumentManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/MenubarManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/Settings.cpp"
@@ -97,5 +104,6 @@ set(SRCS
 add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
 target_link_libraries(iscore_lib_base Qt5::Core Qt5::Widgets Qt5::Svg QRecentFilesMenu)
 
+set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")
 setup_iscore_library(iscore_lib_base)
 setup_iscore_tests(tests)

@@ -23,12 +23,14 @@
 
 using namespace Scenario::Command;
 
-ScenarioCreation_FromState::ScenarioCreation_FromState(
-        const ScenarioStateMachine& stateMachine,
+namespace Scenario
+{
+Creation_FromState::Creation_FromState(
+        const ToolPalette& stateMachine,
         const Path<ScenarioModel>& scenarioPath,
         iscore::CommandStack& stack,
         QState* parent):
-    ScenarioCreationState{stateMachine, stack, std::move(scenarioPath), parent}
+    CreationState{stateMachine, stack, std::move(scenarioPath), parent}
 {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -147,7 +149,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
                 return;
             }
 
-            if(m_parentSM.isShiftPressed())
+            if(m_parentSM.editionSettings().sequence())
             {
                 const auto&  st = m_parentSM.model().state(clickedState);
                 currentPoint.y = st.heightPercentage();
@@ -159,7 +161,7 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
                         createdEvents.last(),
                         currentPoint.date,
                         currentPoint.y,
-                        stateMachine.isShiftPressed());
+                        stateMachine.editionSettings().sequence());
 
         });
 
@@ -211,10 +213,10 @@ ScenarioCreation_FromState::ScenarioCreation_FromState(
 
 
 template<typename Fun>
-void ScenarioCreation_FromState::creationCheck(Fun&& fun)
+void Creation_FromState::creationCheck(Fun&& fun)
 {
     const auto& scenar = m_parentSM.model();
-    if(!m_parentSM.isShiftPressed())
+    if(!m_parentSM.editionSettings().sequence())
     {
         // Create new state at the beginning
         auto cmd = new Scenario::Command::CreateState{m_scenarioPath, scenar.state(clickedState).eventId(), currentPoint.y};
@@ -240,17 +242,17 @@ void ScenarioCreation_FromState::creationCheck(Fun&& fun)
 }
 
 // Note : clickedEvent is set at startEvent if clicking in the background.
-void ScenarioCreation_FromState::createToNothing()
+void Creation_FromState::createToNothing()
 {
     creationCheck([&] (const Id<StateModel>& id) { createToNothing_base(id); });
 }
 
-void ScenarioCreation_FromState::createToTimeNode()
+void Creation_FromState::createToTimeNode()
 {
     creationCheck([&] (const Id<StateModel>& id) { createToTimeNode_base(id); });
 }
 
-void ScenarioCreation_FromState::createToEvent()
+void Creation_FromState::createToEvent()
 {
     if(hoveredEvent == m_parentSM.model().state(clickedState).eventId())
     {
@@ -262,7 +264,7 @@ void ScenarioCreation_FromState::createToEvent()
     }
 }
 
-void ScenarioCreation_FromState::createToState()
+void Creation_FromState::createToState()
 {
     if(!m_parentSM.model().states.at(hoveredState).previousConstraint())
     {
@@ -276,5 +278,4 @@ void ScenarioCreation_FromState::createToState()
         creationCheck([&] (const Id<StateModel>& id) { createToEvent_base(id); });
     }
 }
-
-
+}

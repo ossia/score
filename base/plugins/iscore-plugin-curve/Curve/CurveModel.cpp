@@ -4,9 +4,11 @@
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-
+#include <core/application/ApplicationComponents.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/document/DocumentContext.hpp>
+#include <Curve/Segment/CurveSegmentList.hpp>
 #include <numeric>
 
 CurveModel::CurveModel(const Id<CurveModel>& id, QObject* parent):
@@ -229,10 +231,13 @@ void CurveModel::fromCurveData(const std::vector<CurveSegmentData>& curve)
 {
     this->blockSignals(true);
     clear();
+
+    auto& context = iscore::IDocument::documentContext(*this).app;
+    auto& csl = context.components.factory<DynamicCurveSegmentList>();
     CurveSegmentOrderedMap map(curve.begin(), curve.end());
     for(const auto& elt : map.get<Segments::Ordered>())
     {
-        addSortedSegment(createCurveSegment(elt, this));
+        addSortedSegment(createCurveSegment(csl, elt, this));
     }
     this->blockSignals(false);
     emit curveReset();
@@ -281,24 +286,24 @@ void CurveModel::clear()
 
 
 
-const QVector<CurvePointModel *> &CurveModel::points() const
+const std::vector<CurvePointModel *> &CurveModel::points() const
 {
     return m_points;
 }
 
 void CurveModel::addPoint(CurvePointModel *pt)
 {
-    m_points.append(pt);
+    m_points.push_back(pt);
 
     emit pointAdded(*pt);
 }
 
 void CurveModel::removePoint(CurvePointModel *pt)
 {
-    auto index = m_points.indexOf(pt);
-    if(index >= 0)
+    auto it = find(m_points, pt);
+    if(it != m_points.end())
     {
-        m_points.remove(index);
+        m_points.erase(it);
     }
 
     emit pointRemoved(pt->id());

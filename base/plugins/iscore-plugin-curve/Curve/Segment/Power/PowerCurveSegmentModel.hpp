@@ -3,7 +3,8 @@
 
 struct PowerCurveSegmentData
 {
-    double gamma;
+        static const CurveSegmentFactoryKey& key();
+        double gamma;
 };
 
 Q_DECLARE_METATYPE(PowerCurveSegmentData)
@@ -28,7 +29,7 @@ class PowerCurveSegmentModel final : public CurveSegmentModel
                 const Id<CurveSegmentModel>& id,
                 QObject* parent) const override;
 
-        QString name() const override;
+        const CurveSegmentFactoryKey& key() const override;
         void serialize(const VisitorVariant& vis) const override;
         void on_startChanged() override;
         void on_endChanged() override;

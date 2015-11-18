@@ -10,13 +10,13 @@ namespace Curve
 {
 
 template<typename T>
-using GenericCurveTransition = StateAwareTransition<StateBase, T>;
+using GenericCurveTransition = iscore::StateAwareTransition<StateBase, T>;
 
 template<typename Event>
-class MatchedCurveTransition : public GenericCurveTransition<MatchedTransition<Event>>
+class MatchedCurveTransition : public GenericCurveTransition<iscore::MatchedTransition<Event>>
 {
     public:
-        using GenericCurveTransition<MatchedTransition<Event>>::GenericCurveTransition;
+        using GenericCurveTransition<iscore::MatchedTransition<Event>>::GenericCurveTransition;
 };
 
 
@@ -27,7 +27,7 @@ class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent
         using MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>::MatchedCurveTransition;
 
     protected:
-        virtual void onTransition(QEvent * ev) override
+        void onTransition(QEvent * ev) override
         {
             auto qev = safe_cast<CurveEvent<Element_T, Modifier_T>*>(ev);
             this->state().currentPoint = qev->point;
@@ -36,59 +36,59 @@ class PositionedCurveTransition final : public MatchedCurveTransition<CurveEvent
         }
 
     private:
-        void impl(CurveEvent<Element::Nothing_tag, Modifier::Click_tag>* ev)
+        void impl(CurveEvent<Element::Nothing_tag, iscore::Modifier::Click_tag>* ev)
         {
         }
-        void impl(CurveEvent<Element::Point_tag, Modifier::Click_tag>* ev)
+        void impl(CurveEvent<Element::Point_tag, iscore::Modifier::Click_tag>* ev)
         {
             auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
             this->state().clickedPointId = {model.previous(), model.following()};
         }
-        void impl(CurveEvent<Element::Segment_tag, Modifier::Click_tag>* ev)
+        void impl(CurveEvent<Element::Segment_tag, iscore::Modifier::Click_tag>* ev)
         {
             this->state().clickedSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 
 
-        void impl(CurveEvent<Element::Nothing_tag, Modifier::Move_tag>* ev)
+        void impl(CurveEvent<Element::Nothing_tag, iscore::Modifier::Move_tag>* ev)
         {
         }
-        void impl(CurveEvent<Element::Point_tag, Modifier::Move_tag>* ev)
+        void impl(CurveEvent<Element::Point_tag, iscore::Modifier::Move_tag>* ev)
         {
             auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
             this->state().hoveredPointId = {model.previous(), model.following()};
         }
-        void impl(CurveEvent<Element::Segment_tag, Modifier::Move_tag>* ev)
+        void impl(CurveEvent<Element::Segment_tag, iscore::Modifier::Move_tag>* ev)
         {
             this->state().hoveredSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 
 
-        void impl(CurveEvent<Element::Nothing_tag, Modifier::Release_tag>* ev)
+        void impl(CurveEvent<Element::Nothing_tag, iscore::Modifier::Release_tag>* ev)
         {
         }
-        void impl(CurveEvent<Element::Point_tag, Modifier::Release_tag>* ev)
+        void impl(CurveEvent<Element::Point_tag, iscore::Modifier::Release_tag>* ev)
         {
             auto& model = safe_cast<const CurvePointView*>(ev->item)->model();
             this->state().hoveredPointId = {model.previous(), model.following()};
         }
-        void impl(CurveEvent<Element::Segment_tag, Modifier::Release_tag>* ev)
+        void impl(CurveEvent<Element::Segment_tag, iscore::Modifier::Release_tag>* ev)
         {
             this->state().hoveredSegmentId = safe_cast<const CurveSegmentView*>(ev->item)->model().id();
         }
 };
 
-using ClickOnNothing_Transition = PositionedCurveTransition<Element::Nothing_tag, Modifier::Click_tag>;
-using ClickOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, Modifier::Click_tag>;
-using ClickOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, Modifier::Click_tag>;
+using ClickOnNothing_Transition = PositionedCurveTransition<Element::Nothing_tag, iscore::Modifier::Click_tag>;
+using ClickOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, iscore::Modifier::Click_tag>;
+using ClickOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, iscore::Modifier::Click_tag>;
 
-using MoveOnNothing_Transition = PositionedCurveTransition<Element::Nothing_tag, Modifier::Move_tag>;
-using MoveOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, Modifier::Move_tag>;
-using MoveOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, Modifier::Move_tag>;
+using MoveOnNothing_Transition = PositionedCurveTransition<Element::Nothing_tag, iscore::Modifier::Move_tag>;
+using MoveOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, iscore::Modifier::Move_tag>;
+using MoveOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, iscore::Modifier::Move_tag>;
 
-using ReleaseOnNothing_Transition = PositionedCurveTransition<Element::Nothing_tag, Modifier::Release_tag>;
-using ReleaseOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, Modifier::Release_tag>;
-using ReleaseOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, Modifier::Release_tag>;
+using ReleaseOnNothing_Transition = PositionedCurveTransition<Element::Nothing_tag, iscore::Modifier::Release_tag>;
+using ReleaseOnPoint_Transition = PositionedCurveTransition<Element::Point_tag, iscore::Modifier::Release_tag>;
+using ReleaseOnSegment_Transition = PositionedCurveTransition<Element::Segment_tag, iscore::Modifier::Release_tag>;
 
 
 class ClickOnAnything_Transition final : public GenericCurveTransition<QAbstractTransition>
@@ -109,7 +109,7 @@ class ClickOnAnything_Transition final : public GenericCurveTransition<QAbstract
 
         void onTransition(QEvent* e) override
         {
-            auto qev = safe_cast<PositionedEvent<CurvePoint>*>(e);
+            auto qev = safe_cast<iscore::PositionedEvent<Curve::Point>*>(e);
 
             this->state().currentPoint = qev->point;
         }
@@ -133,7 +133,7 @@ class MoveOnAnything_Transition final : public GenericCurveTransition<QAbstractT
 
         void onTransition(QEvent* e) override
         {
-            auto qev = safe_cast<PositionedEvent<CurvePoint>*>(e);
+            auto qev = safe_cast<iscore::PositionedEvent<Curve::Point>*>(e);
 
             this->state().currentPoint = qev->point;
         }

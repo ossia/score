@@ -29,8 +29,10 @@
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <core/document/DocumentView.hpp>
+#include <core/application/Application.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateViewInterface.hpp>
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
+#include "Menus/TransportActions.hpp"
 
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
@@ -80,11 +82,8 @@ using namespace iscore;
 #include <Scenario/Control/Menus/ScenarioCommonContextMenuFactory.hpp>
 
 void test_parse_expr_full();
-ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
-    PluginControlInterface{pres, "ScenarioControl", nullptr},
-    contextMenuDispatcher{*this},
-    m_processList{this},
-    m_moveEventList{this}
+ScenarioControl::ScenarioControl(iscore::Application& app) :
+    PluginControlInterface{app, "ScenarioControl", nullptr}
 {
     connect(this, &ScenarioControl::defocused,
             this, &ScenarioControl::reinit_tools);
@@ -100,13 +99,6 @@ ScenarioControl::ScenarioControl(iscore::Presenter* pres) :
     delete fact;
 
     initColors();
-}
-
-
-ScenarioControl* ScenarioControl::instance(Presenter* pres)
-{
-    static auto ctrl = new ScenarioControl(pres);
-    return ctrl;
 }
 
 void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
@@ -151,8 +143,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     }
 }
 
-#include "Menus/TransportActions.hpp"
-QList<OrderedToolbar> ScenarioControl::makeToolbars()
+std::vector<OrderedToolbar> ScenarioControl::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
@@ -172,16 +163,17 @@ QList<OrderedToolbar> ScenarioControl::makeToolbars()
     }
 
 
-    return QList<OrderedToolbar>{OrderedToolbar(1, bar)};
+    return std::vector<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
 
-QList<QAction*> ScenarioControl::actions()
+std::vector<QAction*> ScenarioControl::actions()
 {
     // TODO add the others
-    QList<QAction*> act;
+    std::vector<QAction*> act;
     for(const auto& elt : m_pluginActions)
     {
-        act += elt->actions();
+        auto actions = elt->actions();
+        act.insert(act.end(), actions.begin(), actions.end());
     }
     return act;
 }
@@ -198,9 +190,10 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
         elt->setEnabled(false);
     }
 
-    if(auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres))
+    if(dynamic_cast<TemporalScenarioPresenter*>(pres))
     {
-        s_pres->stateMachine().changeTool((int)ScenarioToolKind::Select);
+        // TODO this may not be necessary anymore since this is duplicated in on_focused.
+        editionSettings().setTool(Scenario::Tool::Select);
     }
 
     disconnect(m_contextMenuConnection);
@@ -219,7 +212,7 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
         m_contextMenuConnection = connect(pres, &LayerPresenter::contextMenuRequested,
                 this, [=] (const QPoint& pos, const QPointF& pt2) {
             QMenu menu;
-            contextMenuDispatcher.createLayerContextMenu(menu, pos, pt2, *pres);
+            ScenarioContextMenuManager::createLayerContextMenu(menu, pos, pt2, *pres);
             menu.exec(pos);
             menu.close();
         } );
@@ -418,7 +411,7 @@ void ScenarioControl::reinit_tools()
     emit keyReleased(Qt::Key_Shift);
 }
 
-void ScenarioControl::on_prepareNewDocument()
+void ScenarioControl::prepareNewDocument()
 {
     for(const auto& action : pluginActions())
     {

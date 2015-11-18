@@ -14,19 +14,18 @@ public:
 
     SerializableMoveEvent* make() override;
 
-    virtual int priority(MoveEventList::Strategy strategy) override
+    int priority(MoveEventFactoryInterface::Strategy strategy) override
     {
         switch(strategy)
         {
-            case MoveEventList::Strategy::CREATION:
-            case MoveEventList::Strategy::MOVING:
-            case MoveEventList::Strategy::EXTRA:
+            case MoveEventFactoryInterface::Strategy::CREATION:
+            case MoveEventFactoryInterface::Strategy::MOVING:
+            case MoveEventFactoryInterface::Strategy::EXTRA:
             default:
                 return 0;// not suited for other strategies
                 break;
         }
     }
 
-    QString name() const override
-    { return "Classic"; }
+    const MoveEventFactoryKey& key_impl() const override;
 };

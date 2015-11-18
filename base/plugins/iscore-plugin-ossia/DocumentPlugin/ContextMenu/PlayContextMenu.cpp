@@ -76,7 +76,7 @@ PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
 
         parent->startRecording(
                     *proc,
-                    ConvertToScenarioPoint(
+                    Scenario::ConvertToScenarioPoint(
                         pres.view().mapFromScene(recdata.point),
                         pres.zoomRatio(),
                         pres.view().boundingRect().height()));

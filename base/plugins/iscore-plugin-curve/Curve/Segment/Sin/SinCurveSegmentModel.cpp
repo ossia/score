@@ -28,9 +28,10 @@ CurveSegmentModel*SinCurveSegmentModel::clone(
     return cs;
 }
 
-QString SinCurveSegmentModel::name() const
+const CurveSegmentFactoryKey& SinCurveSegmentModel::key() const
 {
-    return "Sin";
+    static const CurveSegmentFactoryKey name{"Sin"};
+    return name;
 }
 
 void SinCurveSegmentModel::serialize(const VisitorVariant& vis) const

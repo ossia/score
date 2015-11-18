@@ -24,12 +24,12 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
         idOffer.sessionId = m_session.id().val().get();
         idOffer.clientId = m_session.localClient().id().val().get();
         {
-            QDataStream s(&idOffer.data, QIODevice::WriteOnly);
+            QDataStream stream(&idOffer.data, QIODevice::WriteOnly);
 
             // TODO make a strong id with the client array!!!!!!
             int32_t id = iscore::random_id_generator::getRandomId();
             m_clientId = Id<Client>(id);
-            s << id;
+            stream << id;
         }
 
         m_socket->sendMessage(idOffer);
@@ -43,11 +43,11 @@ void RemoteClientBuilder::on_messageReceived(const NetworkMessage& m)
 
         // Data is the serialized command stack, and the document models.
         auto& cq = m_session.document()->commandStack();
-        QList<QPair <QPair <std::string, std::string>, QByteArray> > commandStack; // TODO use a strong SerializedCommandStack for this
+        QList<QPair <QPair <CommandParentFactoryKey, CommandFactoryKey>, QByteArray> > commandStack; // TODO use a strong SerializedCommandStack for this
         for(int i = 0; i < cq.size(); i++)
         {
             auto cmd = cq.command(i);
-            commandStack.push_back({{cmd->parentName(), cmd->name()}, cmd->serialize()});
+            commandStack.push_back({{cmd->parentKey(), cmd->key()}, cmd->serialize()});
         }
 
         // TODO also transmit the position in the command stack (else if somebody undoes and transmits it will crash).

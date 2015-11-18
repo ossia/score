@@ -12,13 +12,10 @@ class ConstraintInspectorFactory final : public InspectorWidgetFactory
 
         }
 
-        virtual InspectorWidgetBase* makeWidget(
+        InspectorWidgetBase* makeWidget(
                 const QObject& sourceElement,
                 iscore::Document& doc,
                 QWidget* parent) override;
 
-        virtual QList<QString> correspondingObjectsNames() const override
-        {
-            return {"ConstraintModel", "BaseConstraintModel"};
-        }
+        const QList<QString>& key_impl() const override;
 };

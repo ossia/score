@@ -9,5 +9,5 @@ class SerializableCommand;
 // This rollback only undoes creational commands as an optimization
 struct ScenarioRollbackStrategy
 {
-    static void rollback(const QList<iscore::SerializableCommand*>& cmds);
+    static void rollback(const std::vector<iscore::SerializableCommand*>& cmds);
 };

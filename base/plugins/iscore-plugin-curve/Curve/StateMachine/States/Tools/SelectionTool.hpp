@@ -7,18 +7,15 @@ namespace Curve
 {
 class OngoingState;
 class SelectionState;
-class SelectionAndMoveTool final : public CurveTool
+class SelectionAndMoveTool final : public Curve::CurveTool
 {
     public:
-        explicit SelectionAndMoveTool(CurveStateMachine& sm);
+        explicit SelectionAndMoveTool(Curve::ToolPalette& sm);
 
-    protected:
+        void on_pressed(QPointF scene, Curve::Point sp);
+        void on_moved(QPointF scene, Curve::Point sp);
+        void on_released(QPointF scene, Curve::Point sp);
 
-        void on_pressed();
-
-        void on_moved();
-
-        void on_released();
     private:
         Curve::SelectionState* m_state{};
         Curve::OngoingState* m_moveState{};

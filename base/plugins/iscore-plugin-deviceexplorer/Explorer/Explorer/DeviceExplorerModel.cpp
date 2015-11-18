@@ -6,14 +6,14 @@
 
 #include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
 
-#include <Device/Protocol/SingletonProtocolList.hpp>
-
 #include "DeviceExplorerMimeTypes.hpp"
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <core/application/ApplicationComponents.hpp>
 #include <Device/ItemModels/NodeDisplayMethods.hpp>
 
 #include <iscore/document/DocumentInterface.hpp>
@@ -42,16 +42,16 @@ static const QMap<DeviceExplorerModel::Column, QString> HEADERS{
 };
 
 DeviceExplorerModel::DeviceExplorerModel(
-        DeviceDocumentPlugin* plug,
+        DeviceDocumentPlugin& plug,
         QObject* parent)
     : NodeBasedItemModel{parent},
       m_lastCutNodeIsCopied{false},
       m_devicePlugin{plug},
-      m_rootNode{plug->rootNode()},
+      m_rootNode{plug.rootNode()},
       m_cmdQ{nullptr}
 {
     this->setObjectName("DeviceExplorerModel");
-    m_devicePlugin->updateProxy.deviceExplorer = this;
+    m_devicePlugin.updateProxy.deviceExplorer = this;
 
     beginResetModel();
     endResetModel();
@@ -68,7 +68,7 @@ DeviceExplorerModel::~DeviceExplorerModel()
 
 DeviceDocumentPlugin& DeviceExplorerModel::deviceModel() const
 {
-    return *m_devicePlugin;
+    return m_devicePlugin;
 }
 
 QModelIndexList DeviceExplorerModel::selectedIndexes() const
@@ -199,7 +199,8 @@ bool DeviceExplorerModel::checkDeviceInstantiatable(
 {
     // Request from the protocol factory the protocol to see
     // if it is compatible.
-    auto prot = SingletonProtocolList::instance().protocol(n.protocol);
+    auto& context = m_devicePlugin.context().app.components;
+    auto prot = context.factory<DynamicProtocolList>().list().get(n.protocol);
     if(!prot)
         return false;
 
@@ -449,7 +450,7 @@ bool DeviceExplorerModel::setData(
 
             // Note : if we want to disable remote updating, we have to do it
             // here (e.g. if this becomes a settings)
-            m_devicePlugin->updateProxy.updateRemoteValue(iscore::address(n), copy);
+            m_devicePlugin.updateProxy.updateRemoteValue(iscore::address(n), copy);
 
             return true;
         }
@@ -704,7 +705,7 @@ DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     auto uniqueNodes = uniqueSelectedNodes(indexes);
 
     // Now we request an update to the device explorer.
-    m_devicePlugin->updateProxy.refreshRemoteValues(uniqueNodes);
+    m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes);
 
     // The "MessagesList" part.
     MessageList messages;
@@ -844,7 +845,9 @@ DeviceExplorerModel::dropMimeData(const QMimeData* mimeData,
             if(!deviceOK)
             {
                 // We ask the user to fix the incompatibilities by himself.
-                DeviceEditDialog dial(QApplication::activeWindow());
+                DeviceEditDialog dial{
+                    m_devicePlugin.context().app.components.factory<DynamicProtocolList>(),
+                            QApplication::activeWindow()};
                 if(!tryDeviceInstantiation(n.get<DeviceSettings>(), dial))
                     return false;
             }

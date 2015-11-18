@@ -11,7 +11,7 @@ class ScenarioModel;
 
 class SerializableMoveEvent : public iscore::SerializableCommand
 {
-ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), SerializableMoveEvent, "move")
+//ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SerializableMoveEvent, "move")
 public:
     virtual
     void

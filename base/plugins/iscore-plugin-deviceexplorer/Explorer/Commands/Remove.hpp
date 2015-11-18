@@ -13,7 +13,7 @@ namespace Command
 {
 class Remove final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
         public:
 
           Remove(
@@ -26,8 +26,8 @@ class Remove final : public iscore::SerializableCommand
         void redo() const override;
 
     protected:
-        virtual void serializeImpl(QDataStream&) const override;
-        virtual void deserializeImpl(QDataStream&) override;
+        void serializeImpl(QDataStream&) const override;
+        void deserializeImpl(QDataStream&) override;
 
     protected:
         bool m_device{};

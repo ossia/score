@@ -5,9 +5,10 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
-QString ScenarioFactory::name() const
+ScenarioFactory::ScenarioFactory(Scenario::EditionSettings& e):
+    m_editionSettings{e}
 {
-    return "Scenario";
+
 }
 
 LayerView* ScenarioFactory::makeLayerView(
@@ -28,11 +29,26 @@ ScenarioFactory::makeLayerPresenter(
 {
     if(auto vm = dynamic_cast<const TemporalScenarioLayerModel*>(&lm))
     {
-        auto pres = new TemporalScenarioPresenter {*vm, view, parent};
+        auto pres = new TemporalScenarioPresenter {
+                iscore::IDocument::documentContext(lm.processModel()),
+                m_editionSettings,
+                *vm,
+                view,
+                parent};
         static_cast<TemporalScenarioView*>(view)->setPresenter(pres);
         return pres;
     }
     return nullptr;
+}
+
+const ProcessFactoryKey& ScenarioFactory::key_impl() const
+{
+    return ScenarioProcessMetadata::factoryKey();
+}
+
+QString ScenarioFactory::prettyName() const
+{
+    return ScenarioProcessMetadata::factoryPrettyName();
 }
 
 Process* ScenarioFactory::makeModel(

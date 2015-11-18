@@ -6,6 +6,7 @@ class AddressSettingsWidget;
 class AddressSettingsWidgetFactoryMethod
 {
     public:
+        virtual ~AddressSettingsWidgetFactoryMethod();
         virtual AddressSettingsWidget* create() const
         {
             return nullptr;
@@ -17,7 +18,7 @@ class AddressSettingsFactory
     public:
         static AddressSettingsFactory& instance()
         {
-            return m_instance;
+            return m_instance; // FIXME Blergh
         }
 
         QList<QString> getAvailableValueTypes() const;

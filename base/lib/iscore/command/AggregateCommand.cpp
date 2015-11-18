@@ -1,6 +1,8 @@
 #include "AggregateCommand.hpp"
-#include <iscore/presenter/PresenterInterface.hpp>
+#include <core/application/ApplicationComponents.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 #include <QApplication>
+#include <boost/range/adaptor/reversed.hpp>
 using namespace iscore;
 
 AggregateCommand::~AggregateCommand()
@@ -10,15 +12,15 @@ AggregateCommand::~AggregateCommand()
 
 void AggregateCommand::undo() const
 {
-    for(int i = m_cmds.size() - 1; i >= 0; --i)
+    for (auto cmd : boost::adaptors::reverse(m_cmds))
     {
-        m_cmds[i]->undo();
+        cmd->undo();
     }
 }
 
 void AggregateCommand::redo() const
 {
-    for(auto& cmd : m_cmds)
+    for(auto cmd : m_cmds)
     {
         cmd->redo();
     }
@@ -30,8 +32,8 @@ void AggregateCommand::serializeImpl(QDataStream& s) const
     QList<
             QPair<
                 QPair<
-            std::string,
-            std::string
+            CommandParentFactoryKey,
+            CommandFactoryKey
                 >,
                 QByteArray
             >
@@ -39,7 +41,7 @@ void AggregateCommand::serializeImpl(QDataStream& s) const
 
     for(auto& cmd : m_cmds)
     {
-        serializedCommands.push_back({{cmd->parentName(), cmd->name() }, cmd->serialize()});
+        serializedCommands.push_back({{cmd->parentKey(), cmd->key() }, cmd->serialize()});
     }
 
     s << serializedCommands;
@@ -50,8 +52,8 @@ void AggregateCommand::deserializeImpl(QDataStream& s)
     QList<
             QPair<
                 QPair<
-                    std::string,
-                    std::string
+                    CommandParentFactoryKey,
+                    CommandFactoryKey
                 >,
                 QByteArray
             >
@@ -60,7 +62,7 @@ void AggregateCommand::deserializeImpl(QDataStream& s)
 
     for(auto& cmd_pack : serializedCommands)
     {
-        auto cmd = IPresenter::instantiateUndoCommand(
+        auto cmd = context.components.instantiateUndoCommand(
                        cmd_pack.first.first,
                        cmd_pack.first.second,
                        cmd_pack.second);

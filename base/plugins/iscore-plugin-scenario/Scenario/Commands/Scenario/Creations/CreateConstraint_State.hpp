@@ -9,7 +9,7 @@ namespace Command
 {
 class CreateConstraint_State final : public iscore::SerializableCommand
 {
-        ISCORE_SERIALIZABLE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State, "CreateConstraint_State")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateConstraint_State, "CreateConstraint_State")
         public:
 
           CreateConstraint_State(

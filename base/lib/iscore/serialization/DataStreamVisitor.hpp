@@ -3,15 +3,13 @@
 #include <type_traits>
 #include <iscore/serialization/VisitorInterface.hpp>
 #include <iscore/tools/IdentifiedObject.hpp>
-
+#include <core/application/ApplicationContext.hpp>
 /**
  * This file contains facilities
  * to serialize an object using QDataStream.
  *
  * Generally, it is used with QByteArrays, but it works with any QIODevice.
  */
-
-
 class DataStream;
 template<> class Visitor<Reader<DataStream>>;
 template<> class Visitor<Writer<DataStream>>;
@@ -31,6 +29,8 @@ template<class>
 class TreeNode;
 template<class>
 class TreePath;
+template<class>
+class StringKey;
 
 namespace eggs{
 namespace variants {
@@ -46,20 +46,12 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
 
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
-        Visitor<Reader<DataStream>>() = default;
-        Visitor<Reader<DataStream>>(const Visitor<Reader<DataStream>>&) = delete;
-        Visitor<Reader<DataStream>>& operator=(const Visitor<Reader<DataStream>>&) = delete;
+        Visitor();
+        Visitor(const Visitor&) = delete;
+        Visitor& operator=(const Visitor&) = delete;
 
-        Visitor<Reader<DataStream>> (QByteArray* array) :
-                                     m_stream {array, QIODevice::WriteOnly}
-        {
-            m_stream.setVersion(QDataStream::Qt_5_3);
-        }
-
-        Visitor<Reader<DataStream>> (QIODevice* dev) :
-                                     m_stream {dev}
-        {
-        }
+        Visitor(QByteArray* array);
+        Visitor(QIODevice* dev);
 
         template<typename T>
         static auto marshall(const T& t)
@@ -95,6 +87,8 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
         void readFrom(const TreeNode<T>&);
         template<typename T>
         void readFrom(const TreePath<T>&);
+        template<typename T>
+        void readFrom(const StringKey<T>&);
 
         template<typename... Args>
         void readFrom(const eggs::variants::variant<Args...>&);
@@ -116,6 +110,7 @@ class Visitor<Reader<DataStream>> final : public AbstractVisitor
         }
 
         QDataStream m_stream;
+        iscore::ApplicationContext context;
 };
 
 template<>
@@ -126,21 +121,12 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
 
         VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
-        Visitor<Writer<DataStream>>() = default;
-        Visitor<Writer<DataStream>>(const Visitor<Writer<DataStream>>&) = delete;
-        Visitor<Writer<DataStream>>& operator=(const Visitor<Writer<DataStream>>&) = delete;
+        Visitor();
+        Visitor(const Visitor&) = delete;
+        Visitor& operator=(const Visitor&) = delete;
 
-        Visitor<Writer<DataStream>> (const QByteArray& array) :
-                                     m_stream {array}
-        {
-            m_stream.setVersion(QDataStream::Qt_5_3);
-        }
-
-
-        Visitor<Writer<DataStream>> (QIODevice* dev) :
-                                     m_stream {dev}
-        {
-        }
+        Visitor(const QByteArray& array);
+        Visitor(QIODevice* dev);
 
 
         template<typename T>
@@ -185,6 +171,8 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         void writeTo(TreeNode<T>&);
         template<typename T>
         void writeTo(TreePath<T>&);
+        template<typename T>
+        void writeTo(StringKey<T>&);
 
         template<typename... Args>
         void writeTo(eggs::variants::variant<Args...>&);
@@ -216,60 +204,9 @@ class Visitor<Writer<DataStream>> : public AbstractVisitor
         }
 
         QDataStream m_stream;
+        iscore::ApplicationContext context;
 };
 
-// TODO refactor this with objects like is_trivially_serializable<T> { ... } and enable_if...
-template<typename T>
-void readFrom_vector_obj_impl(
-        Visitor<Reader<DataStream>>& reader,
-        const std::vector<T>& vec)
-{
-    reader.m_stream << (int)vec.size();
-    for(const auto& elt : vec)
-        reader.readFrom(elt);
-
-    reader.insertDelimiter();
-}
-
-template<typename T>
-void writeTo_vector_obj_impl(
-        Visitor<Writer<DataStream>>& writer,
-        std::vector<T>& vec)
-{
-    int n = 0;
-    writer.m_stream >> n;
-
-    vec.clear();
-    vec.resize(n);
-    for(int i = 0; i < n; i++)
-    {
-        writer.writeTo(vec[i]);
-    }
-
-    writer.checkDelimiter();
-}
-
-inline QDataStream& operator<< (QDataStream& stream, const std::string& obj)
-{
-    //stream << QString::fromStdString(obj);
-    uint32_t size = obj.size();
-    stream << size;
-
-    stream.writeRawData(obj.data(), size);
-    return stream;
-}
-
-inline QDataStream& operator>> (QDataStream& stream, std::string& obj)
-{
-    uint32_t n = 0;
-    stream >> n;
-    obj.resize(n);
-
-    char* addr = n > 0 ? &obj[0] : nullptr;
-    stream.readRawData(addr, n);
-
-    return stream;
-}
 
 // TODO instead why not add a iscore_serializable tag to our classes ?
 template<typename T,
@@ -278,7 +215,7 @@ template<typename T,
           && ! std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<< (QDataStream& stream, const T& obj)
 {
-    Visitor<Reader<DataStream>> reader(stream.device());
+    Visitor<Reader<DataStream>> reader{stream.device()};
     reader.readFrom(obj);
     return stream;
 }
@@ -289,7 +226,7 @@ template<typename T,
           && ! std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>> (QDataStream& stream, T& obj)
 {
-    Visitor<Writer<DataStream>> writer(stream.device());
+    Visitor<Writer<DataStream>> writer{stream.device()};
     writer.writeTo(obj);
 
     return stream;
