@@ -51,7 +51,6 @@ namespace iscore
             virtual void on_loadedDocument(iscore::Document* doc);
             virtual void prepareNewDocument();
 
-        private slots:
             void on_focusChanged(Qt::ApplicationState st);
 
         signals:

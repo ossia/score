@@ -45,6 +45,7 @@ View::View(QObject* parent) :
     {
         emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))->document());
     });
+
 }
 
 void View::setPresenter(Presenter* p)
@@ -150,4 +151,15 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
             return;
         }
     }
+}
+
+#include <QEvent>
+void View::changeEvent(QEvent* ev)
+{
+    if(ev->type() == QEvent::ActivationChange)
+    {
+        emit activeWindowChanged();
+    }
+
+    QMainWindow::changeEvent(ev);
 }
