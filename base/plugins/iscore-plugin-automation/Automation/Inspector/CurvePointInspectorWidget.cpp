@@ -24,7 +24,11 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
 
     std::list<QWidget*> vec;
     auto cm = safe_cast<CurveModel*>(m_model.parent());
-    auto& automModel = *safe_cast<AutomationModel*>(cm->parent());
+    auto automModel_base = dynamic_cast<AutomationModel*>(cm->parent());
+    if(!automModel_base)
+        return;
+
+    auto& automModel = *automModel_base;
     m_xFactor = automModel.duration().msec();
     m_yFactor = automModel.max() - automModel.min();
 
