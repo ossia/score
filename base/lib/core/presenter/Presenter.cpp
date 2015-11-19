@@ -42,6 +42,8 @@ Presenter::Presenter(View* view, QObject* arg_parent) :
     setupMenus();
     connect(m_view,		&View::insertActionIntoMenubar,
             &m_menubar, &MenubarManager::insertActionIntoMenubar);
+    connect(m_view, &View::activeWindowChanged,
+            this, &Presenter::on_activeWindowChanged);
 
     m_view->setPresenter(this);
 }
@@ -134,13 +136,22 @@ void Presenter::setupMenus()
         QMessageBox::about(nullptr,
                            tr("About i-score"),
                            tr("With love and sweat from the i-score team. \nVersion:\n")
-                           + QString("%1.%2.%3-%4")
+                           + QString("%1.%2.%3-%4 '%5'")
                            .arg(ISCORE_VERSION_MAJOR)
                            .arg(ISCORE_VERSION_MINOR)
                            .arg(ISCORE_VERSION_PATCH)
                            .arg(ISCORE_VERSION_EXTRA)
+                           .arg(ISCORE_CODENAME)
                            + tr("\n\nCommit: \n")
                            + QString(ISCORE_XSTR(GIT_COMMIT))); });
+}
+
+void Presenter::on_activeWindowChanged()
+{
+    for(auto ap : m_components.controls)
+    {
+        ap->on_focusChanged(Qt::ApplicationHidden);
+    }
 }
 
 bool Presenter::exit()

@@ -12,6 +12,8 @@
 #include <QMenu>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <QAction>
+#include <QResizeEvent>
+
 MessageTreeView::MessageTreeView(
         const StateModel& model,
         QWidget* parent):
@@ -45,7 +47,8 @@ MessageTreeView::MessageTreeView(
     con(m_model.messages(), &MessageItemModel::modelReset,
         this, &QTreeView::expandAll);
 
-    header()->resizeSection((int)MessageItemModel::Column::Name, 300);
+    header()->resizeSection((int)MessageItemModel::Column::Name, (1-m_valueColumnSize - 0.1)*this->width());
+    header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize*this->width());
 }
 
 MessageItemModel& MessageTreeView::model() const
@@ -71,6 +74,13 @@ void MessageTreeView::removeNodes()
 
     CommandDispatcher<> dispatcher{iscore::IDocument::documentContext(m_model).commandStack};
     dispatcher.submitCommand(cmd);
+}
+
+void MessageTreeView::resizeEvent(QResizeEvent* ev)
+{
+    ev->ignore();
+    header()->resizeSection((int)MessageItemModel::Column::Name, (1-m_valueColumnSize - 0.1)*this->width());
+    header()->resizeSection((int)MessageItemModel::Column::Value, m_valueColumnSize*this->width());
 }
 
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)

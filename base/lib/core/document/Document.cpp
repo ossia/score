@@ -53,6 +53,9 @@ Document::Document(
             this};
 
     init();
+
+//    connect(m_model, &DocumentModel::fileNameChanged,
+//            this, &Document::fileNameChanged);
 }
 
 void Document::init()

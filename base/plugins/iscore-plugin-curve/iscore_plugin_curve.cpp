@@ -12,7 +12,7 @@ DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmen
 DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
 DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
 
-
+#include <Curve/Commands/MovePoint.hpp>
 #include "Curve/Commands/UpdateCurve.hpp"
 #include "Curve/Commands/SetSegmentParameters.hpp"
 
@@ -50,7 +50,8 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curv
     boost::mpl::for_each<
             boost::mpl::list<
                 UpdateCurve,
-                SetSegmentParameters
+                SetSegmentParameters,
+                MovePoint
             >,
             boost::type<boost::mpl::_>
             >(CommandGeneratorMapInserter{cmds.second});

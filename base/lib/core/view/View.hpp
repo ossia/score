@@ -43,8 +43,14 @@ namespace iscore
             void activeDocumentChanged(Document*);
             void closeRequested(Document*);
 
+            void activeWindowChanged();
+
+        public slots:
+            void on_fileNameChanged(DocumentView* d, const QString& newName);
 
         private:
+            void changeEvent(QEvent *) override;
+
             std::vector<QPair<PanelView*, QDockWidget*>> m_leftWidgets;
             std::vector<QPair<PanelView*, QDockWidget*>> m_rightWidgets;
 

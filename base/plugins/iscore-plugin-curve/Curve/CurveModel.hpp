@@ -69,3 +69,7 @@ class CurveModel final : public IdentifiedObject<CurveModel>
         IdContainer<CurveSegmentModel> m_segments;
         std::vector<CurvePointModel*> m_points; // Each between 0, 1
 };
+
+namespace Curve {
+std::vector<CurveSegmentData> orderedSegments(const CurveModel& curve);
+}

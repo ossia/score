@@ -45,6 +45,7 @@ View::View(QObject* parent) :
     {
         emit closeRequested(safe_cast<DocumentView*>(m_tabWidget->widget(index))->document());
     });
+
 }
 
 void View::setPresenter(Presenter* p)
@@ -55,7 +56,7 @@ void View::setPresenter(Presenter* p)
 void View::addDocumentView(DocumentView* doc)
 {
     doc->setParent(this);
-    m_tabWidget->addTab(doc, "Document");
+    m_tabWidget->addTab(doc, doc->document()->docFileName());
     m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
     m_tabWidget->setTabsClosable(true);
 }
@@ -132,4 +133,33 @@ void iscore::View::closeEvent(QCloseEvent* ev)
     {
         ev->ignore();
     }
+}
+
+void View::on_fileNameChanged(DocumentView* d, const QString& newName)
+{
+    for(int i = 0; i < m_tabWidget->count(); i++)
+    {
+        if(d == m_tabWidget->widget(i))
+        {
+            QString n = newName;
+            while(n.contains("/"))
+            {
+                n.remove(0, n.indexOf("/")+1);
+            }
+            n.truncate(n.lastIndexOf("."));
+            m_tabWidget->setTabText(i, n);
+            return;
+        }
+    }
+}
+
+#include <QEvent>
+void View::changeEvent(QEvent* ev)
+{
+    if(ev->type() == QEvent::ActivationChange)
+    {
+        emit activeWindowChanged();
+    }
+
+    QMainWindow::changeEvent(ev);
 }

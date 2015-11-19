@@ -48,7 +48,6 @@ InspectorSectionWidget::InspectorSectionWidget(QWidget* parent) :
     //   expend();
 
     setLayout(globalLayout);
-
     renameSection("Section Name");
 }
 

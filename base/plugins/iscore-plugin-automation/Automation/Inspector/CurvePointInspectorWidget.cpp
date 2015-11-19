@@ -24,9 +24,14 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
 
     std::list<QWidget*> vec;
     auto cm = safe_cast<CurveModel*>(m_model.parent());
-    auto& automModel = *safe_cast<AutomationModel*>(cm->parent());
+    auto automModel_base = dynamic_cast<AutomationModel*>(cm->parent());
+    if(!automModel_base)
+        return;
+
+    auto& automModel = *automModel_base;
     m_xFactor = automModel.duration().msec();
-    m_yFactor = automModel.max() - automModel.min();
+    m_Ymin = automModel.min();
+    m_yFactor = automModel.max() - m_Ymin;
 
     // x box
     auto widgX = new QWidget;
@@ -48,7 +53,7 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     m_YBox = new QDoubleSpinBox{};
     m_YBox->setRange(automModel.min(), automModel.max());
     m_YBox->setSingleStep(m_yFactor/100);
-    m_YBox->setValue(m_model.pos().y() * m_yFactor);
+    m_YBox->setValue(m_model.pos().y() * m_yFactor  + m_Ymin);
 
     connect(m_YBox, SIGNAL(valueChanged(double)), this, SLOT(on_pointChanged(double)));
 
@@ -59,6 +64,19 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
     hlayY->addWidget(new QLabel{"value"});
     hlayY->addWidget(m_YBox);
 
+    // y en %
+/*    auto widgP = new QWidget;
+    auto hlayP = new QHBoxLayout{widgP};
+    auto spinP = new QDoubleSpinBox{};
+    spinP->setRange(automModel.min(), automModel.max());
+    spinP->setSingleStep(m_yFactor/100);
+    spinP->setValue(m_model.pos().y());
+
+    hlayP->addWidget(new QLabel{"value %"});
+    hlayP->addWidget(spinP);
+
+    vec.push_back(widgP);
+*/
     vec.push_back(new QWidget{});
 
     updateAreaLayout(vec);
@@ -66,7 +84,7 @@ CurvePointInspectorWidget::CurvePointInspectorWidget(
 
 void CurvePointInspectorWidget::on_pointChanged(double d)
 {
-    Curve::Point pos{m_XBox->value()/m_xFactor, m_YBox->value()/m_yFactor};
+    Curve::Point pos{m_XBox->value()/m_xFactor, (m_YBox->value() - m_Ymin)/m_yFactor};
     m_dispatcher.submitCommand<MovePoint>(
                 *safe_cast<CurveModel*>(m_model.parent()),
                 m_model.id(),

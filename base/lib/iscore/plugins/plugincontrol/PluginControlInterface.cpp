@@ -15,6 +15,7 @@ PluginControlInterface::PluginControlInterface(iscore::Application& app,
 
     connect(qApp, &QApplication::applicationStateChanged,
             this, &PluginControlInterface::on_focusChanged);
+
 }
 
 PluginControlInterface::~PluginControlInterface()
