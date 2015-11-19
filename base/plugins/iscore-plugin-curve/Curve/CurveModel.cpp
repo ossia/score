@@ -311,3 +311,22 @@ void CurveModel::removePoint(CurvePointModel *pt)
     emit pointRemoved(pt->id());
     delete pt;
 }
+
+namespace Curve
+{
+std::vector<CurveSegmentData> orderedSegments(const CurveModel& curve)
+{
+    auto vec = curve.toCurveData();
+
+    decltype(vec) vec2;
+    vec2.reserve(vec.size());
+
+    CurveSegmentOrderedMap map{vec.begin(), vec.end()};
+    for(const auto& elt : map.get<Segments::Ordered>())
+    {
+        vec2.push_back(elt);
+    }
+
+    return vec2;
+}
+}
