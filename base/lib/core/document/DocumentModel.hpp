@@ -72,6 +72,7 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
 
     signals:
         void pluginModelsChanged();
+        void fileNameChanged(const QString&);
 
     public slots:
         void setNewSelection(const Selection&);

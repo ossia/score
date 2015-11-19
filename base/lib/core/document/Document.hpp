@@ -69,6 +69,9 @@ class Document final : public NamedObject
         QString docFileName() const;
         void setDocFileName(const QString &docFileName);
 
+    signals:
+        void fileNameChanged(const QString& newName);
+
     private:
         // These are to be constructed by DocumentBuilder.
         Document(

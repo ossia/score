@@ -5,6 +5,7 @@
 #include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
+#include <core/document/DocumentModel.hpp>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -35,6 +36,7 @@ DocumentManager::DocumentManager(Presenter& p):
 
     connect(m_recentFiles, &QRecentFilesMenu::recentFileTriggered,
             this, [&] (const QString& f) { loadFile(f); });
+
 }
 
 DocumentManager::~DocumentManager()
@@ -65,6 +67,11 @@ Document* DocumentManager::setupDocument(Document* doc)
         m_documents.push_back(doc);
         m_presenter.view()->addDocumentView(&doc->view());
         setCurrentDocument(doc);
+        connect(&doc->model(), &DocumentModel::fileNameChanged,
+                this, [=] (const QString& s)
+        {
+            m_presenter.view()->on_fileNameChanged(&doc->view(), s);
+        });
     }
     else
     {

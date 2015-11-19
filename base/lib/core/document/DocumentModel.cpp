@@ -46,4 +46,5 @@ QString DocumentModel::docFileName() const
 void DocumentModel::setDocFileName(const QString &docFileName)
 {
     m_docFileName = docFileName;
+    emit fileNameChanged(docFileName);
 }
