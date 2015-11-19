@@ -16,6 +16,9 @@ class MessageTreeView final : public QTreeView
 
         void removeNodes();
 
+    protected:
+        void resizeEvent(QResizeEvent* ev);
+
     private:
         //void mouseDoubleClickEvent(QMouseEvent* ev) override;
         void contextMenuEvent(QContextMenuEvent*) override;
@@ -24,4 +27,5 @@ class MessageTreeView final : public QTreeView
         const StateModel& m_model;
 
         CommandDispatcher<> m_dispatcher;
+        float m_valueColumnSize{0.15};
 };
