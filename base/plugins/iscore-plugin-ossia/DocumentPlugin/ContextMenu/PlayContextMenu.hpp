@@ -9,6 +9,7 @@ class PlayContextMenu final : public ScenarioActions
 
         void setEnabled(bool) override;
 
+        const QAction& playFromHereAction() { return *m_playFromHere;}
 
     private:
         QAction* m_recordAction{};

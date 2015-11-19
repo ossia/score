@@ -63,7 +63,8 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
         if(act->objectName() == "Play")
         {
             connect(act, &QAction::toggled,
-                    this, &OSSIAControl::on_play);
+                    this, [&] (bool b)
+            { on_play(b); });
         }
         else if(act->objectName() == "Stop")
         {
@@ -71,8 +72,15 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
                     this, &OSSIAControl::on_stop);
         }
     }
+    auto playCM = new PlayContextMenu{&ctrl};
+    ctrl.pluginActions().push_back(playCM);
 
-    ctrl.pluginActions().push_back(new PlayContextMenu{&ctrl});
+    con(playCM->playFromHereAction(), &QAction::triggered,
+            this, [=] ()
+    {
+        auto t = playCM->playFromHereAction().data().value<::TimeValue>();
+        on_play(true, t);
+    });
 
     con(iscore::Application::instance(), &iscore::Application::autoplay,
         this, [&] () { on_play(true); });
@@ -123,7 +131,7 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
     on_newDocument(doc);
 }
 
-void OSSIAControl::on_play(bool b)
+void OSSIAControl::on_play(bool b, ::TimeValue t)
 {
     if(auto doc = currentDocument())
     {
@@ -142,7 +150,7 @@ void OSSIAControl::on_play(bool b)
                 auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
                 cstr.recreate();
-                cstr.play(TimeValue::zero());
+                cstr.play(t);
 
                 // Here we stop the listening when we start playing the scenario.
                 // Get all the selected nodes
