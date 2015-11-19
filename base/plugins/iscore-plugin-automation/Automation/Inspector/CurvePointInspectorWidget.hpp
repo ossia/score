@@ -26,4 +26,6 @@ class CurvePointInspectorWidget final : public InspectorWidgetBase
         OngoingCommandDispatcher m_dispatcher;
         double m_yFactor;
         double m_xFactor;
+
+        double m_Ymin;
 };
