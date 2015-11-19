@@ -8,6 +8,7 @@
 #include <ProcessModel/OSSIAProcessModelElement.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeProcess.h>
@@ -64,7 +65,7 @@ OSSIAConstraintElement::OSSIAConstraintElement(
         }
     });
 
-    if(iscore_cst.objectName() != QString("BaseConstraintModel"))
+    if(dynamic_cast<ScenarioModel*>(iscore_cst.parent()))
     {
         ossia_cst->setCallback([&] (
                                const OSSIA::TimeValue& position,

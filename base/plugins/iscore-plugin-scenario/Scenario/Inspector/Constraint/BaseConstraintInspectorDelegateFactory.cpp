@@ -1,6 +1,9 @@
 #include "BaseConstraintInspectorDelegateFactory.hpp"
 #include "BaseConstraintInspectorDelegate.hpp"
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 BaseConstraintInspectorDelegateFactory::~BaseConstraintInspectorDelegateFactory()
 {
 
@@ -15,7 +18,7 @@ std::unique_ptr<ConstraintInspectorDelegate> BaseConstraintInspectorDelegateFact
 bool BaseConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
-    return constraint.objectName() == "BaseConstraintModel";
+    return dynamic_cast<BaseScenario*>(constraint.parent());
 
 }
 
@@ -35,6 +38,5 @@ std::unique_ptr<ConstraintInspectorDelegate> ScenarioConstraintInspectorDelegate
 bool ScenarioConstraintInspectorDelegateFactory::matches(
         const ConstraintModel& constraint) const
 {
-    return constraint.objectName() == "ConstraintModel";
-
+    return dynamic_cast<ScenarioModel*>(constraint.parent());
 }

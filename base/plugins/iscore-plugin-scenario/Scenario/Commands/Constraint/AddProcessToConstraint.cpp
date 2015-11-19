@@ -31,8 +31,8 @@ AddProcessToConstraint::AddProcessToConstraint(
 
     auto& constraint = m_path.find();
     m_createdProcessId = getStrongId(constraint.processes);
-    m_noRackes = (constraint.racks.empty() && constraint.objectName() != "BaseConstraintModel" );
-    m_notBaseConstraint = (constraint.objectName() != "BaseConstraintModel");
+    m_noRackes = (constraint.racks.empty() && dynamic_cast<ScenarioModel*>(constraint.parent()));
+    m_notBaseConstraint = dynamic_cast<ScenarioModel*>(iscore_cst.parent());
 
     if(m_noRackes)
     {
