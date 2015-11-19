@@ -1,4 +1,5 @@
-#include "NamedObject.hpp"
+#include "IdentifiedObjectAbstract.hpp"
+
 IdentifiedObjectAbstract::~IdentifiedObjectAbstract()
 {
 
