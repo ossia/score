@@ -22,6 +22,8 @@ class RackInspectorSection final : public InspectorSectionWidget
 
         auto constraintInspector() const
         { return m_parent; }
+    private slots:
+        void ask_changeName(QString newName);
 
     private:
         ConstraintInspectorWidget* m_parent{};

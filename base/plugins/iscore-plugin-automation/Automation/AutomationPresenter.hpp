@@ -26,6 +26,11 @@ class AutomationPresenter final :
             {
                 m_view->setDisplayedName(m_layer.model().prettyName());
             });
+            con(m_layer.model().metadata, &ModelMetadata::nameChanged,
+                this, [&] (QString s)
+            {
+                m_view->setDisplayedName(s);
+            });
 
             m_view->setDisplayedName(m_layer.model().prettyName());
             m_view->showName(true);

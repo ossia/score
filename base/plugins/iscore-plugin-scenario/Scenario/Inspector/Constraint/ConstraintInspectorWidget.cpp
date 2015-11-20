@@ -388,7 +388,7 @@ void ConstraintInspectorWidget::setupRack(const RackModel& rack)
 {
     // Display the widget
     RackInspectorSection* newRack = new RackInspectorSection {
-                                    QString{"Rack.%1"} .arg(*rack.id().val()),
+                                    rack.metadata.name(),
                                     rack,
                                     this};
 

@@ -4,6 +4,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <iscore/tools/NotifyingMap.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 #include <iscore/serialization/VisitorInterface.hpp>
 
 class ConstraintModel;
@@ -21,6 +22,7 @@ class RackModel final : public IdentifiedObject<RackModel>
         ISCORE_METADATA("RackModel") // TODO use this everywhere.
 
     public:
+        ModelMetadata metadata;
         RackModel(const Id<RackModel>& id, QObject* parent);
 
         // Copy
@@ -42,6 +44,9 @@ class RackModel final : public IdentifiedObject<RackModel>
 
         void addSlot(SlotModel* m, int position);
         void addSlot(SlotModel* m);  // No position : at the end
+
+        static QString description()
+        { return QObject::tr("Rack"); }
 
         void swapSlots(const Id<SlotModel>& firstslot,
                        const Id<SlotModel>& secondslot);

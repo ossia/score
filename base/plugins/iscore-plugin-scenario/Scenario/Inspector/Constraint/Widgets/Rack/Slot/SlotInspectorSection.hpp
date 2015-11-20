@@ -25,6 +25,8 @@ class SlotInspectorSection final : public InspectorSectionWidget
 
         const SlotModel& model() const;
 
+    private slots:
+        void ask_changeName(QString newName);
 
     private:
         void on_layerModelCreated(const LayerModel&);
