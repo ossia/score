@@ -4,7 +4,5 @@
 
 class ScenarioPasteContent final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      ScenarioPasteContent,
-                                      "ScenarioPasteContent")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ScenarioPasteContent, "ScenarioPasteContent")
 };
