@@ -36,7 +36,7 @@ class EventModel final : public IdentifiedObject<EventModel>
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName();
+        static QString description();
 
         ScenarioInterface* parentScenario() const;
 

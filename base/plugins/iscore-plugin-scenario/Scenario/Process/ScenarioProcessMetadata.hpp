@@ -14,7 +14,7 @@ struct ScenarioProcessMetadata
             return "Scenario";
         }
 
-        static QString factoryPrettyName()
+        static QString factorydescription()
         {
             return QObject::tr("Scenario");
         }

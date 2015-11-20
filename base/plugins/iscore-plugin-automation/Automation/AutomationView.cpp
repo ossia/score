@@ -22,6 +22,6 @@ void AutomationView::paint_impl(QPainter* painter) const
         f.setPointSize(fontSize);
         painter->setFont(f);
         painter->setPen(Qt::lightGray);
-        painter->drawText(processNameRect, Qt::AlignRight, m_displayedName);
+        painter->drawText(processNameRect, Qt::AlignCenter, m_displayedName);
     }
 }

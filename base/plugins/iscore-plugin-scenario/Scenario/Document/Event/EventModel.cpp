@@ -99,7 +99,7 @@ void EventModel::reset()
 
 
 // TODO Maybe remove the need for this by passing to the scenario instead ?
-QString EventModel::prettyName()
+QString EventModel::description()
 { return QObject::tr("Event"); }
 
 ScenarioInterface* EventModel::parentScenario() const

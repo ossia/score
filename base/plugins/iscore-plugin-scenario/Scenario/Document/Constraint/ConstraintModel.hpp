@@ -56,7 +56,7 @@ class ConstraintModel final : public IdentifiedObject<ConstraintModel>
 
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName()
+        static QString description()
         { return QObject::tr("Constraint"); }
 
         /** The class **/

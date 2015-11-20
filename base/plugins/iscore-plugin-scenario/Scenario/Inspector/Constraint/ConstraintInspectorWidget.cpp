@@ -68,7 +68,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
                  commandDispatcher(),
                  &m_model,
                  this};
-    m_metadata->setType(ConstraintModel::prettyName());
+    m_metadata->setType(ConstraintModel::description());
 
     m_metadata->setupConnections(m_model);
 
@@ -122,7 +122,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Processes
-    m_processSection = new InspectorSectionWidget("Processes", this);
+    m_processSection = new InspectorSectionWidget("Processes", false, this);
     m_processSection->setObjectName("Processes");
 
     m_properties.push_back(m_processSection);
@@ -156,7 +156,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
     m_properties.push_back(new Separator {this});
 
     // Rackes
-    m_rackSection = new InspectorSectionWidget {"Rackes", this};
+    m_rackSection = new InspectorSectionWidget {"Rackes", false, this};
     m_rackSection->setObjectName("Rackes");
     m_rackSection->expand();
 
@@ -317,7 +317,14 @@ void ConstraintInspectorWidget::activeRackChanged(QString rack, ConstraintViewMo
 
 void ConstraintInspectorWidget::displaySharedProcess(const Process& process)
 {
-    InspectorSectionWidget* newProc = new InspectorSectionWidget(process.metadata.name());
+    auto newProc = new InspectorSectionWidget(process.metadata.name(), true);
+    connect(newProc, &InspectorSectionWidget::nameChanged,
+            this, [&] (QString s)
+    {
+        ask_processNameChanged(process, s);
+    });
+    con(process.metadata, &ModelMetadata::nameChanged,
+            newProc, &InspectorSectionWidget::renameSection);
 
     // Process
     auto processWidget = m_widgetList.makeInspectorWidget(
@@ -387,6 +394,15 @@ void ConstraintInspectorWidget::setupRack(const RackModel& rack)
 
     m_rackesSectionWidgets[rack.id()] = newRack;
     m_rackSection->addContent(newRack);
+}
+
+void ConstraintInspectorWidget::ask_processNameChanged(const Process& p, QString s)
+{
+    if(s != p.metadata.name())
+    {
+        auto cmd = new ChangeElementName<Process>{path(p), s};
+        emit commandDispatcher()->submitCommand(cmd);
+    }
 }
 
 QWidget* ConstraintInspectorWidget::makeStatesWidget(ScenarioModel* scenar)

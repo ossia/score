@@ -27,7 +27,7 @@ class TimeNodeModel final : public IdentifiedObject<TimeNodeModel>
         ModelMetadata metadata;
         iscore::ElementPluginModelList pluginModelList;
 
-        static QString prettyName()
+        static QString description()
         { return QObject::tr("Time Node"); }
 
 

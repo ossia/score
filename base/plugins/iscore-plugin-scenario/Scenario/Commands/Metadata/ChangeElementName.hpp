@@ -29,7 +29,7 @@ namespace Scenario
                 }
                 QString description() const override
                 {
-                    return QObject::tr("Change %1 name").arg(T::prettyName());
+                    return QObject::tr("Change %1 name").arg(T::description());
                 }
 
                 ChangeElementName() = default;
