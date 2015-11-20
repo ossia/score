@@ -17,7 +17,7 @@ class MessageTreeView final : public QTreeView
         void removeNodes();
 
     protected:
-        void resizeEvent(QResizeEvent* ev);
+        void resizeEvent(QResizeEvent* ev) override;
 
     private:
         //void mouseDoubleClickEvent(QMouseEvent* ev) override;

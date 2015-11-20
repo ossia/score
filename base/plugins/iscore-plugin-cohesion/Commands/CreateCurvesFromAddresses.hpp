@@ -3,7 +3,7 @@
 #include <iscore/command/SerializableCommand.hpp>
 #include <iscore/tools/ModelPath.hpp>
 #include <State/Address.hpp>
-
+#include <iscore/command/CommandData.hpp>
 class ConstraintModel;
 class CreateCurvesFromAddresses final : public iscore::SerializableCommand
 {
@@ -11,7 +11,7 @@ class CreateCurvesFromAddresses final : public iscore::SerializableCommand
     public:
 
         CreateCurvesFromAddresses(
-          Path<ConstraintModel>&& constraint,
+            const ConstraintModel& constraint,
             const QList<iscore::Address> &addresses);
 
         void undo() const override;
@@ -25,5 +25,5 @@ class CreateCurvesFromAddresses final : public iscore::SerializableCommand
         Path<ConstraintModel> m_path;
         QList<iscore::Address> m_addresses;
 
-        QVector<QByteArray> m_serializedCommands;
+        std::vector<iscore::CommandData> m_serializedCommands;
 };

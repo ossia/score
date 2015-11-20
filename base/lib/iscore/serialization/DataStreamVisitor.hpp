@@ -9,6 +9,9 @@ class DataStreamInput
 {
         QDataStream& m_stream;
     public:
+        auto& stream() const
+        { return m_stream; }
+
         DataStreamInput(QDataStream& s):
             m_stream{s}
         {
@@ -27,6 +30,9 @@ class DataStreamOutput
 {
         QDataStream& m_stream;
     public:
+        auto& stream() const
+        { return m_stream; }
+
         DataStreamOutput(QDataStream& s):
             m_stream{s}
         {

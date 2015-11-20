@@ -8,7 +8,7 @@
 
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
@@ -60,7 +60,7 @@ void BaseElementModel::initializeNewDocument(const FullViewConstraintViewModel *
     using namespace Scenario::Command;
     const auto& constraint_model = viewmodel->model();
 
-    AddProcessToConstraint cmd1{
+    AddOnlyProcessToConstraint cmd1{
         iscore::IDocument::path(m_baseScenario->baseConstraint()),
         ScenarioProcessMetadata::factoryKey()
     };

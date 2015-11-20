@@ -78,11 +78,13 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_scen
     using namespace Scenario::Command;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{ScenarioCommandFactoryName(), CommandGeneratorMap{}};
     boost::mpl::for_each<
-            boost::mpl::list80<
+            boost::mpl::list82<
 
             AddRackToConstraint,
             AddSlotToRack,
-            AddProcessToConstraint,
+            AddProcessToConstraint<AddProcessDelegateWhenNoRacks>,
+            AddProcessToConstraint<AddProcessDelegateWhenRacksAndNoBaseConstraint>,
+            AddProcessToConstraint<AddProcessDelegateWhenRacksAndBaseConstraint>,
             AddOnlyProcessToConstraint,
             AddLayerInNewSlot,
             AddLayerModelToSlot,

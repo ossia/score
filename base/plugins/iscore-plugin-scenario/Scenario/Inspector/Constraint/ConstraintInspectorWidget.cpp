@@ -250,7 +250,7 @@ void ConstraintInspectorWidget::updateDisplayedValues()
 
 void ConstraintInspectorWidget::createProcess(const ProcessFactoryKey& processName)
 {
-    auto cmd = new AddProcessToConstraint{model(), processName};
+    auto cmd = make_AddProcessToConstraint(model(), processName);
     commandDispatcher()->submitCommand(cmd);
 }
 

@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include <iscore/command/CommandGeneratorMap.hpp>
+#include <iscore/command/CommandData.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 namespace iscore
@@ -98,6 +99,12 @@ class ApplicationComponents
         instantiateUndoCommand(const CommandParentFactoryKey& parent_name,
                                const CommandFactoryKey& name,
                                const QByteArray& data) const;
+
+        iscore::SerializableCommand*
+        instantiateUndoCommand(const CommandData& cmd) const
+        {
+            return instantiateUndoCommand(cmd.parentKey, cmd.commandKey, cmd.data);
+        }
 
     private:
         const iscore::ApplicationComponentsData& m_data;

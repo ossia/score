@@ -395,11 +395,10 @@ void ObjectMenuActions::addProcessInConstraint(const ProcessFactoryKey& processN
     auto selectedConstraints = selectedElements(m_parent->focusedScenarioModel()->constraints);
     if(selectedConstraints.isEmpty())
         return;
-    auto cmd = new Scenario::Command::AddProcessToConstraint //NOTE just the first, not all ?
-    {
+    auto cmd = Scenario::Command::make_AddProcessToConstraint( //NOTE just the first, not all ?
         **selectedConstraints.begin(),
-        processName
-    };
+        processName);
+
     emit dispatcher().submitCommand(cmd);
 }
 
