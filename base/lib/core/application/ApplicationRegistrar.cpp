@@ -1,5 +1,5 @@
 #include "ApplicationRegistrar.hpp"
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -19,8 +19,8 @@ ApplicationRegistrar::ApplicationRegistrar(
 
 }
 
-void ApplicationRegistrar::registerPluginControl(
-        PluginControlInterface* ctrl)
+void ApplicationRegistrar::registerApplicationContextPlugin(
+        GUIApplicationContextPlugin* ctrl)
 {
     ctrl->setParent(&m_app.presenter()); // TODO replace by some ApplicationContext...
 
@@ -30,7 +30,7 @@ void ApplicationRegistrar::registerPluginControl(
     auto& currentToolbars = m_app.presenter().toolbars();
     currentToolbars.insert(currentToolbars.end(), toolbars.begin(), toolbars.end());
 
-    m_components.controls.push_back(ctrl);
+    m_components.appPlugins.push_back(ctrl);
 }
 
 void ApplicationRegistrar::registerPanel(

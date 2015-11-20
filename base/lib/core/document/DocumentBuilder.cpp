@@ -2,7 +2,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <core/view/View.hpp>
 
 #include <QByteArray>
@@ -22,9 +22,9 @@ Document* DocumentBuilder::newDocument(
     auto doc = new Document{id, doctype, m_presenter.view(), &m_presenter};
 
     m_backupManager = new DocumentBackupManager{*doc};
-    for(auto& control: m_presenter.applicationComponents().controls())
+    for(auto& appPlug: m_presenter.applicationComponents().applicationPlugins())
     {
-        control->on_newDocument(doc);
+        appPlug->on_newDocument(doc);
     }
 
     // First save
@@ -52,9 +52,9 @@ Document* DocumentBuilder::loadDocument_impl(
         initfun(doc);
         m_backupManager =  new DocumentBackupManager{*doc};
 
-        for(auto& control: m_presenter.applicationComponents().controls())
+        for(auto& appPlug: m_presenter.applicationComponents().applicationPlugins())
         {
-            control->on_loadedDocument(doc);
+            appPlug->on_loadedDocument(doc);
         }
 
         m_backupManager->saveModelData(backupfun(doc));

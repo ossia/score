@@ -3,7 +3,7 @@
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 #include <QList>
 
-class ScenarioControl;
+class ScenarioApplicationPlugin;
 class ScenarioActions;
 
 class ScenarioActionsTag{};
@@ -17,6 +17,6 @@ class ScenarioActionsFactory :
     public:
             using factory_key_type = ScenarioActionsFactoryKey;
         virtual ~ScenarioActionsFactory() ;
-        virtual QList<ScenarioActions*> make(ScenarioControl*) = 0;
+        virtual QList<ScenarioActions*> make(ScenarioApplicationPlugin*) = 0;
 };
 

@@ -1,9 +1,9 @@
 #pragma once
-#include "Scenario/Control/Menus/ScenarioActions.hpp"
+#include "Scenario/Application/Menus/ScenarioActions.hpp"
 class PlayContextMenu final : public ScenarioActions
 {
     public:
-        PlayContextMenu(ScenarioControl* parent);
+        PlayContextMenu(ScenarioApplicationPlugin* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(QMenu* menu, const Selection&, const TemporalScenarioPresenter& pres, const QPoint&, const QPointF&) override;
 

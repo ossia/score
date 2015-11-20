@@ -9,7 +9,7 @@
 
 iscore_plugin_network::iscore_plugin_network() :
     QObject {},
-        iscore::PluginControlInterface_QtInterface {}//,
+        iscore::GUIApplicationContextPlugin_QtInterface {}//,
         //iscore::SettingsDelegateFactoryInterface_QtInterface {}
 {
 }
@@ -22,9 +22,9 @@ iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
     return new NetworkSettings;
 }
 */
-iscore::PluginControlInterface* iscore_plugin_network::make_control(iscore::Application& app)
+iscore::GUIApplicationContextPlugin* iscore_plugin_network::make_applicationPlugin(iscore::Application& app)
 {
-    return new NetworkControl{app};
+    return new NetworkApplicationPlugin{app};
 }
 
 std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()

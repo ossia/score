@@ -1,4 +1,4 @@
-#include "OSSIAControl.hpp"
+#include "OSSIAApplicationPlugin.hpp"
 /*
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
 #include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
@@ -8,7 +8,7 @@
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <API/Headers/Network/Device.h>
 #include <API/Headers/Network/Node.h>
@@ -35,8 +35,8 @@
 #include <core/document/Document.hpp>
 #include <core/application/Application.hpp>
 
-OSSIAControl::OSSIAControl(iscore::Application& app):
-    iscore::PluginControlInterface {app, "OSSIAControl", nullptr}
+OSSIAApplicationPlugin::OSSIAApplicationPlugin(iscore::Application& app):
+    iscore::GUIApplicationContextPlugin {app, "OSSIAApplicationPlugin", nullptr}
 {
 // Here we try to load the extensions first because of buggy behaviour in TTExtensionLoader and API.
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)
@@ -59,7 +59,7 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
     // to the Scenario plug-in with the OSSIA API.
 
     iscore::ApplicationContext ctx{app};
-    auto& ctrl = ctx.components.control<ScenarioControl>();
+    auto& ctrl = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     auto acts = ctrl.actions();
     for(const auto& act : acts)
     {
@@ -72,7 +72,7 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
         else if(act->objectName() == "Stop")
         {
             connect(act, &QAction::triggered,
-                    this, &OSSIAControl::on_stop);
+                    this, &OSSIAApplicationPlugin::on_stop);
         }
     }
     auto playCM = new PlayContextMenu{&ctrl};
@@ -89,7 +89,7 @@ OSSIAControl::OSSIAControl(iscore::Application& app):
         this, [&] () { on_play(true); });
 }
 
-OSSIAControl::~OSSIAControl()
+OSSIAApplicationPlugin::~OSSIAApplicationPlugin()
 {
     // TODO doesn't handle the case where
     // two scenarios are playing in two ducments (we have to
@@ -107,16 +107,16 @@ OSSIAControl::~OSSIAControl()
 }
 
 
-RecreateOnPlay::ConstraintElement &OSSIAControl::baseConstraint() const
+RecreateOnPlay::ConstraintElement &OSSIAApplicationPlugin::baseConstraint() const
 {
     return *currentDocument()->model().pluginModel<RecreateOnPlay::DocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
-void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
+void OSSIAApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
 {
 }
 
-iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
+iscore::DocumentDelegatePluginModel*OSSIAApplicationPlugin::loadDocumentPlugin(
         const QString& name,
         const VisitorVariant& var,
         iscore::Document* model)
@@ -125,17 +125,17 @@ iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
     return nullptr;
 }
 
-void OSSIAControl::on_newDocument(iscore::Document* doc)
+void OSSIAApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
     doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 
-void OSSIAControl::on_loadedDocument(iscore::Document *doc)
+void OSSIAApplicationPlugin::on_loadedDocument(iscore::Document *doc)
 {
     on_newDocument(doc);
 }
 
-void OSSIAControl::on_play(bool b, ::TimeValue t)
+void OSSIAApplicationPlugin::on_play(bool b, ::TimeValue t)
 {
     // TODO have a on_exit handler to properly stop the scenario.
     if(auto doc = currentDocument())
@@ -174,7 +174,7 @@ void OSSIAControl::on_play(bool b, ::TimeValue t)
     }
 }
 
-void OSSIAControl::on_stop()
+void OSSIAApplicationPlugin::on_stop()
 {
     if(auto doc = currentDocument())
     {
@@ -196,7 +196,7 @@ void OSSIAControl::on_stop()
     }
 }
 
-void OSSIAControl::setupOSSIACallbacks()
+void OSSIAApplicationPlugin::setupOSSIACallbacks()
 {
     // TODO in settings allow to set-up the local device's tree. Or maybe just use the device explorer ??
     // TODO OSSIALocalDevice

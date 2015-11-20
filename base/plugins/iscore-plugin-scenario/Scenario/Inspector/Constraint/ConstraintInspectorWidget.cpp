@@ -27,7 +27,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -101,7 +101,7 @@ ConstraintInspectorWidget::ConstraintInspectorWidget(
 
     // Durations
     auto& ctx = iscore::IDocument::documentContext(object);
-    auto& ctrl = ctx.app.components.control<ScenarioControl>();
+    auto& ctrl = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
     m_durationSection = new DurationSectionWidget {ctrl.editionSettings(), *m_delegate, this};
     m_properties.push_back(m_durationSection);
     auto loop = new QCheckBox{tr("Loop content"), this};

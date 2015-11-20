@@ -5,12 +5,12 @@
 #include <iscore/plugins/qt_interfaces/DocumentDelegateFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/SettingsDelegateFactoryInterface_QtInterface.hpp>
 
 #include <iscore/plugins/customfactory/FactoryInterface.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
@@ -150,11 +150,11 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
     }
 
     graph.visit([&] (QObject* plugin) {
-        auto ctrl_plugin = qobject_cast<PluginControlInterface_QtInterface*> (plugin);
+        auto ctrl_plugin = qobject_cast<GUIApplicationContextPlugin_QtInterface*> (plugin);
         if(ctrl_plugin)
         {
-            auto plug = ctrl_plugin->make_control(*m_app);
-            registrar.registerPluginControl(plug);
+            auto plug = ctrl_plugin->make_applicationPlugin(*m_app);
+            registrar.registerApplicationContextPlugin(plug);
         }
     });
 

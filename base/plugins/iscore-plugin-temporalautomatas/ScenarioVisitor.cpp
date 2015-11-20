@@ -179,7 +179,7 @@ struct TAVisitor
 };
 
 TemporalAutomatas::ApplicationPlugin::ApplicationPlugin(iscore::Application& app):
-    iscore::PluginControlInterface(app, "TemporalAutomatasApplicationPlugin", &app)
+    iscore::GUIApplicationContextPlugin(app, "TemporalAutomatasApplicationPlugin", &app)
 {
     m_convert = new QAction{tr("Convert to Temporal Automatas"), nullptr};
     connect(m_convert, &QAction::triggered, [&] () {

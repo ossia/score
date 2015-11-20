@@ -20,7 +20,7 @@
 #include <Scenario/Commands/TimeNode/AddTrigger.hpp>
 #include <Scenario/Commands/TimeNode/RemoveTrigger.hpp>
 
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Cohesion/UpdateStates.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
@@ -46,7 +46,7 @@
 
 ObjectMenuActions::ObjectMenuActions(
         iscore::ToplevelMenuElement menuElt,
-        ScenarioControl* parent) :
+        ScenarioApplicationPlugin* parent) :
     ScenarioActions(menuElt, parent)
 {
     // REMOVE

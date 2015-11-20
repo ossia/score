@@ -8,7 +8,7 @@
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
-class PluginControlInterface;
+class GUIApplicationContextPlugin;
 class FactoryListInterface;
 class PanelFactory;
 class PanelPresenter;
@@ -17,7 +17,7 @@ struct ApplicationComponentsData
 {
         ~ApplicationComponentsData();
 
-        std::vector<PluginControlInterface*> controls;
+        std::vector<GUIApplicationContextPlugin*> appPlugins;
         std::vector<DocumentDelegateFactoryInterface*> availableDocuments;
         std::unordered_map<iscore::FactoryBaseKey, FactoryListInterface*> factories;
         std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap> commands;
@@ -37,17 +37,15 @@ class ApplicationComponents
 
 
         // Getters for plugin-registered things
-        const auto& pluginControls() const
-        { return m_data.controls; }
         const auto& availableDocuments() const
         { return m_data.availableDocuments; }
-        const auto& controls() const // TODO REMOVEME
-        { return m_data.controls; }
+        const auto& applicationPlugins() const // TODO REMOVEME
+        { return m_data.appPlugins; }
 
         template<typename T>
-        T& control() const
+        T& applicationPlugin() const
         {
-            for(auto& elt : m_data.controls)
+            for(auto& elt : m_data.appPlugins)
             {
                 if(auto c = dynamic_cast<T*>(elt))
                 {

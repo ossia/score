@@ -5,7 +5,7 @@ class SlotPresenter;
 class QPoint;
 class QPointF;
 class LayerPresenter;
-class ScenarioControl;
+class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 class QMenu;
 namespace iscore

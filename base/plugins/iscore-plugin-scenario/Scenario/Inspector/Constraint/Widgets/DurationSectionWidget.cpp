@@ -20,7 +20,7 @@
 #include <core/document/Document.hpp>
 #include <core/application/Application.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <QCheckBox>
 #include <QToolButton>

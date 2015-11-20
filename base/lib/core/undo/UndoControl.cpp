@@ -1,8 +1,8 @@
 #include "UndoControl.hpp"
 #include <core/document/DocumentPresenter.hpp>
 
-iscore::UndoControl::UndoControl(iscore::Application& app, QObject* parent):
-    iscore::PluginControlInterface{app, "UndoControl", parent}
+iscore::UndoApplicationPlugin::UndoApplicationPlugin(iscore::Application& app, QObject* parent):
+    iscore::GUIApplicationContextPlugin{app, "UndoApplicationPlugin", parent}
 {
     m_undoAction->setShortcut(QKeySequence::Undo);
     m_undoAction->setEnabled(false);
@@ -25,7 +25,7 @@ iscore::UndoControl::UndoControl(iscore::Application& app, QObject* parent):
     });
 }
 
-iscore::UndoControl::~UndoControl()
+iscore::UndoApplicationPlugin::~UndoApplicationPlugin()
 {
     for(auto& connection : m_connections)
     {
@@ -33,7 +33,7 @@ iscore::UndoControl::~UndoControl()
     }
 }
 
-void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
+void iscore::UndoApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
 {
     ////// Edit //////
     menu->addSeparatorIntoToplevelMenu(ToplevelMenuElement::EditMenu,
@@ -46,7 +46,7 @@ void iscore::UndoControl::populateMenus(iscore::MenubarManager* menu)
                                        m_redoAction);
 }
 
-std::vector<iscore::OrderedToolbar> iscore::UndoControl::makeToolbars()
+std::vector<iscore::OrderedToolbar> iscore::UndoApplicationPlugin::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addAction(m_undoAction);
@@ -55,7 +55,7 @@ std::vector<iscore::OrderedToolbar> iscore::UndoControl::makeToolbars()
     return std::vector<OrderedToolbar>{OrderedToolbar(3, bar)};
 }
 
-void iscore::UndoControl::on_documentChanged(
+void iscore::UndoApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newDoc)
 {

@@ -28,7 +28,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/OSSIAApplicationplugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ProcessModel/OSSIAProcessModelElement.hpp"
@@ -83,7 +83,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore_plugin_ossia.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/OSSIA2iscore.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/OSSIAApplicationplugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenu.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DocumentPlugin/ContextMenu/PlayContextMenuFactory.cpp"

@@ -19,8 +19,8 @@
 #include <QApplication>
 using namespace iscore;
 
-NetworkControl::NetworkControl(iscore::Application& app) :
-    PluginControlInterface {app, "NetworkControl", nullptr}
+NetworkApplicationPlugin::NetworkApplicationPlugin(iscore::Application& app) :
+    GUIApplicationContextPlugin {app, "NetworkControl", nullptr}
 {
 #ifdef USE_ZEROCONF
     m_zeroconfBrowser = new ZeroconfBrowser{"_iscore._tcp", qApp->activeWindow()};
@@ -29,7 +29,7 @@ NetworkControl::NetworkControl(iscore::Application& app) :
 #endif
 }
 
-void NetworkControl::populateMenus(MenubarManager* menu)
+void NetworkApplicationPlugin::populateMenus(MenubarManager* menu)
 {
 #ifdef USE_ZEROCONF
     menu->insertActionIntoToplevelMenu(ToplevelMenuElement::FileMenu,
@@ -70,19 +70,19 @@ void NetworkControl::populateMenus(MenubarManager* menu)
                                        connectLocal);
 }
 
-void NetworkControl::setupClientConnection(QString ip, int port)
+void NetworkApplicationPlugin::setupClientConnection(QString ip, int port)
 {
     m_sessionBuilder = new ClientSessionBuilder{
                        ip,
                        port};
 
     connect(m_sessionBuilder, &ClientSessionBuilder::sessionReady,
-            this, &NetworkControl::on_sessionBuilt, Qt::QueuedConnection);
+            this, &NetworkApplicationPlugin::on_sessionBuilt, Qt::QueuedConnection);
 
     m_sessionBuilder->initiateConnection();
 }
 
-void NetworkControl::on_sessionBuilt(
+void NetworkApplicationPlugin::on_sessionBuilt(
         ClientSessionBuilder* sessionBuilder,
         ClientSession* builtSession)
 {
@@ -120,7 +120,7 @@ void NetworkControl::on_sessionBuilt(
 }
 
 
-DocumentDelegatePluginModel *NetworkControl::loadDocumentPlugin(const QString &name,
+DocumentDelegatePluginModel *NetworkApplicationPlugin::loadDocumentPlugin(const QString &name,
                                                                 const VisitorVariant &var,
                                                                 iscore::Document* parent)
 {

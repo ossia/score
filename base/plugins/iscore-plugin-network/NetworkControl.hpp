@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 class ClientSessionBuilder;
 class ClientSession;
@@ -12,12 +12,12 @@ class DocumentDelegatePluginModel;
 class ZeroconfBrowser;
 #endif
 
-class NetworkControl : public iscore::PluginControlInterface
+class NetworkApplicationPlugin : public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
 
     public:
-        NetworkControl(iscore::Application& app);
+        NetworkApplicationPlugin(iscore::Application& app);
         void populateMenus(iscore::MenubarManager*) override;
 
     public slots:

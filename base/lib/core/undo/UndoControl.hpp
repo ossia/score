@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 namespace iscore
 {
@@ -10,11 +10,11 @@ namespace iscore
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class UndoControl final : public iscore::PluginControlInterface
+class UndoApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
-        UndoControl(iscore::Application& app, QObject* parent);
-        ~UndoControl();
+        UndoApplicationPlugin(iscore::Application& app, QObject* parent);
+        ~UndoApplicationPlugin();
 
         void populateMenus(MenubarManager*) override;
         std::vector<OrderedToolbar> makeToolbars() override;

@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Process/ProcessList.hpp>
 #include "Menus/Plugin/ScenarioContextMenuPluginList.hpp"
 #include <Scenario/Document/BaseElement/ProcessFocusManager.hpp>
@@ -7,7 +7,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
-#include <Scenario/Control/ScenarioEditionSettings.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include "Menus/ContextMenuDispatcher.hpp"
 class QActionGroup;
 class ScenarioModel;
@@ -33,12 +33,12 @@ struct ScenarioRecordInitData
 };
 Q_DECLARE_METATYPE(ScenarioRecordInitData)
 
-class ScenarioControl final : public iscore::PluginControlInterface
+class ScenarioApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
         Q_OBJECT
         friend class ScenarioContextMenuManager;
     public:
-        ScenarioControl(iscore::Application& app);
+        ScenarioApplicationPlugin(iscore::Application& app);
 
         void populateMenus(iscore::MenubarManager*) override;
         std::vector<iscore::OrderedToolbar> makeToolbars() override;

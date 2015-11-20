@@ -5,7 +5,7 @@
 #include "DistributedScenario/Group.hpp"
 #include <iscore/serialization/VisitorCommon.hpp>
 
-class NetworkControl;
+class NetworkApplicationPlugin;
 class ClientSession;
 class MasterSession;
 class Session;

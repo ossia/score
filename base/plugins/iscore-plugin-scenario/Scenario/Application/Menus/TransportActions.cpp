@@ -1,11 +1,11 @@
 #include "TransportActions.hpp"
 
 #include "iscore/menu/MenuInterface.hpp"
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 TransportActions::TransportActions(
         iscore::ToplevelMenuElement menuElt,
-        ScenarioControl* parent) :
+        ScenarioApplicationPlugin* parent) :
     ScenarioActions{menuElt, parent}
 {
     m_play = new QAction{tr("▶ Play"), parent};

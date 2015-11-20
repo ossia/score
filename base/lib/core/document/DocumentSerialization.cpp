@@ -11,7 +11,7 @@
 
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -152,9 +152,9 @@ void DocumentModel::loadDocumentAsByteArray(
     for(const auto& plugin_raw : documentPluginModels)
     {
         DataStream::Deserializer plug_writer{plugin_raw.second};
-        for(iscore::PluginControlInterface* control : ctx.components.pluginControls())
+        for(iscore::GUIApplicationContextPlugin* appPlug : ctx.components.applicationPlugins())
         {
-            if(auto loaded_plug = control->loadDocumentPlugin(
+            if(auto loaded_plug = appPlug->loadDocumentPlugin(
                         plugin_raw.first,
                         plug_writer.toVariant(),
                         safe_cast<iscore::Document*>(parent())))
@@ -185,9 +185,9 @@ void DocumentModel::loadDocumentAsJson(
     for(const auto& key : json_plugins.keys())
     {
         JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
-        for(iscore::PluginControlInterface* control : ctx.components.pluginControls())
+        for(iscore::GUIApplicationContextPlugin* appPlug : ctx.components.applicationPlugins())
         {
-            if(auto loaded_plug = control->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
+            if(auto loaded_plug = appPlug->loadDocumentPlugin(key, plug_writer.toVariant(), safe_cast<iscore::Document*>(parent())))
             {
                 addPluginModel(loaded_plug);
             }

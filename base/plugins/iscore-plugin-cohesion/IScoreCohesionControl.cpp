@@ -6,23 +6,23 @@
 #include "Actions/SnapshotParameters.hpp"
 
 #include <iscore/menu/MenuInterface.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <core/application/Application.hpp>
 #include <QApplication>
 #include <QToolBar>
 
-IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
-    iscore::PluginControlInterface {app, "IScoreCohesionControl", nullptr}
+IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(iscore::Application& app) :
+    iscore::GUIApplicationContextPlugin {app, "IScoreCohesionControl", nullptr}
 {
     // Since we have declared the dependency, we can assume
-    // that ScenarioControl is instantiated already.
+    // that ScenarioApplicationPlugin is instantiated already.
 
     iscore::ApplicationContext ctx{app};
-    auto& control = ctx.components.control<ScenarioControl>();
-    connect(&control, &ScenarioControl::startRecording,
-            this, &IScoreCohesionControl::record);
-    connect(&control, &ScenarioControl::stopRecording, // TODO this seems useless
-            this, &IScoreCohesionControl::stopRecord);
+    auto& control = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+    connect(&control, &ScenarioApplicationPlugin::startRecording,
+            this, &IScoreCohesionApplicationPlugin::record);
+    connect(&control, &ScenarioApplicationPlugin::stopRecording, // TODO this seems useless
+            this, &IScoreCohesionApplicationPlugin::stopRecord);
 
 
     auto acts = control.actions();
@@ -60,7 +60,7 @@ IScoreCohesionControl::IScoreCohesionControl(iscore::Application& app) :
 
 }
 
-void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
+void IScoreCohesionApplicationPlugin::populateMenus(iscore::MenubarManager* menu)
 {
     // If there is the Curve plug-in, the Device Explorer, and the Scenario plug-in,
     // We can add an option in the menu to generate curves from the selected addresses
@@ -74,20 +74,20 @@ void IScoreCohesionControl::populateMenus(iscore::MenubarManager* menu)
 
 }
 
-std::vector<iscore::OrderedToolbar> IScoreCohesionControl::makeToolbars()
+std::vector<iscore::OrderedToolbar> IScoreCohesionApplicationPlugin::makeToolbars()
 {
     QToolBar* bar = new QToolBar;
     bar->addActions({m_curves, m_snapshot});
     return std::vector<iscore::OrderedToolbar>{iscore::OrderedToolbar(2, bar)};
 }
 
-void IScoreCohesionControl::record(ScenarioModel& scenar, Scenario::Point pt)
+void IScoreCohesionApplicationPlugin::record(ScenarioModel& scenar, Scenario::Point pt)
 {
     m_recManager = std::make_unique<RecordManager>();
     m_recManager->recordInNewBox(scenar, pt);
 }
 
-void IScoreCohesionControl::stopRecord()
+void IScoreCohesionApplicationPlugin::stopRecord()
 {
     if(m_recManager)
     {

@@ -1,19 +1,19 @@
 #pragma once
 #include <QObject>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 class iscore_plugin_ossia final :
     public QObject,
-    public iscore::PluginControlInterface_QtInterface,
+    public iscore::GUIApplicationContextPlugin_QtInterface,
     public iscore::FactoryInterface_QtInterface,
         public iscore::PluginRequirementslInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID PluginControlInterface_QtInterface_iid)
+        Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
         Q_INTERFACES(
-            iscore::PluginControlInterface_QtInterface
+            iscore::GUIApplicationContextPlugin_QtInterface
             iscore::FactoryInterface_QtInterface
                 iscore::PluginRequirementslInterface_QtInterface
         )
@@ -22,7 +22,7 @@ class iscore_plugin_ossia final :
         iscore_plugin_ossia();
         virtual ~iscore_plugin_ossia() = default;
 
-        iscore::PluginControlInterface* make_control(
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(
                 iscore::Application& app) override;
 
         // Contains the OSC, MIDI, Minuit factories

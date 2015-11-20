@@ -8,7 +8,7 @@
 #include <core/document/DocumentModel.hpp>
 
 DeviceExplorerControl::DeviceExplorerControl(iscore::Application& app) :
-    PluginControlInterface {app, "DeviceExplorerControl", nullptr}
+    GUIApplicationContextPlugin {app, "DeviceExplorerControl", nullptr}
 {
 
 }

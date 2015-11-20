@@ -26,7 +26,7 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_deviceexplorer::factory
 
 }
 
-PluginControlInterface *iscore_plugin_deviceexplorer::make_control(
+GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
         iscore::Application& app)
 {
     return new DeviceExplorerControl{app};

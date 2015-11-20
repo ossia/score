@@ -199,7 +199,7 @@ void Application::loadPluginData()
     ApplicationRegistrar registrar{m_presenter->components(), *this};
 
     m_pluginManager.reloadPlugins(registrar);
-    registrar.registerPluginControl(new UndoControl{*this, m_presenter});
+    registrar.registerApplicationContextPlugin(new UndoApplicationPlugin{*this, m_presenter});
     registrar.registerPanel(new UndoPanelFactory);
 
     std::sort(m_presenter->toolbars().begin(), m_presenter->toolbars().end());

@@ -19,7 +19,7 @@
 #include <core/document/DocumentContext.hpp>
 #include <iscore/tools/IdentifiedObjectMap.hpp>
 
-#include <Scenario/Control/ScenarioEditionSettings.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 
 namespace iscore

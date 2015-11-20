@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
-class SpaceControl : public iscore::PluginControlInterface
+class SpaceControl : public iscore::GUIApplicationContextPlugin
 {
     public:
         SpaceControl(iscore::Presenter* pres);

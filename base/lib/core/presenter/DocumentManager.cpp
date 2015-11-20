@@ -1,5 +1,5 @@
 #include "DocumentManager.hpp"
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 
 #include <core/document/DocumentBackups.hpp>
@@ -99,7 +99,7 @@ void DocumentManager::setCurrentDocument(Document* doc)
             pair.first->setModel(nullptr);
     }
 
-    for(auto& ctrl : m_presenter.applicationComponents().controls())
+    for(auto& ctrl : m_presenter.applicationComponents().applicationPlugins())
     {
         emit ctrl->documentChanged(old, m_currentDocument);
     }
@@ -259,9 +259,9 @@ Document* DocumentManager::loadFile(const QString& fileName)
 
 void DocumentManager::prepareNewDocument()
 {
-    for(PluginControlInterface* control : m_presenter.applicationComponents().pluginControls())
+    for(GUIApplicationContextPlugin* appPlugin : m_presenter.applicationComponents().applicationPlugins())
     {
-        control->prepareNewDocument();
+        appPlugin->prepareNewDocument();
     }
 }
 

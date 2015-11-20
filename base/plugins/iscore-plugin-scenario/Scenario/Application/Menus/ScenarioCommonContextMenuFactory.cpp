@@ -1,11 +1,11 @@
 #include "ScenarioCommonContextMenuFactory.hpp"
 
-#include <Scenario/Control/Menus/ObjectMenuActions.hpp>
-#include <Scenario/Control/Menus/ToolMenuActions.hpp>
-#include <Scenario/Control/Menus/TransportActions.hpp>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ToolMenuActions.hpp>
+#include <Scenario/Application/Menus/TransportActions.hpp>
 
 
-QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioControl *ctrl)
+QList<ScenarioActions *> ScenarioCommonActionsFactory::make(ScenarioApplicationPlugin *ctrl)
 {
     return QList<ScenarioActions *>{
         new ObjectMenuActions(iscore::ToplevelMenuElement::ObjectMenu, ctrl),

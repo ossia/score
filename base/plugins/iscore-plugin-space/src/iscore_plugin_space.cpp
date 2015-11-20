@@ -14,7 +14,7 @@ iscore_plugin_space::iscore_plugin_space() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_space::make_control(iscore::Presenter* pres)
+iscore::GUIApplicationContextPlugin* iscore_plugin_space::make_control(iscore::Presenter* pres)
 {
     return new SpaceControl{pres};
 }

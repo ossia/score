@@ -1,11 +1,11 @@
 #pragma once
-#include <Scenario/Control/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
 
 class QToolBar;
 class ToolMenuActions final : public ScenarioActions
 {
     public:
-        ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioControl* parent);
+        ToolMenuActions(iscore::ToplevelMenuElement menuElt, ScenarioApplicationPlugin* parent);
         void fillMenuBar(iscore::MenubarManager *menu) override;
         void fillContextMenu(
                 QMenu* menu,

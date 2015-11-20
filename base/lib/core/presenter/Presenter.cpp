@@ -1,4 +1,4 @@
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 #include <core/application/Application.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
@@ -148,7 +148,7 @@ void Presenter::setupMenus()
 
 void Presenter::on_activeWindowChanged()
 {
-    for(auto ap : m_components.controls)
+    for(auto ap : m_components.appPlugins)
     {
         ap->on_focusChanged(Qt::ApplicationHidden);
     }

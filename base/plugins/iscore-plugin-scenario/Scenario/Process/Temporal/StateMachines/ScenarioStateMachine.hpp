@@ -3,7 +3,7 @@
 #include <Process/ExpandMode.hpp>
 #include "ScenarioStateMachineBaseEvents.hpp"
 #include <iscore/statemachine/BaseStateMachine.hpp>
-#include <Scenario/Control/ScenarioEditionSettings.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <QStateMachine>
 #include <QPointF>
 

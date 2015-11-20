@@ -16,7 +16,7 @@ void ignore_template_instantiations_CSPControl()
 }
 #endif
 CSPControl::CSPControl(iscore::Presenter* pres) :
-    iscore::PluginControlInterface {pres, "CSPControl", nullptr}
+    iscore::GUIApplicationContextPlugin {pres, "CSPControl", nullptr}
 {
 }
 

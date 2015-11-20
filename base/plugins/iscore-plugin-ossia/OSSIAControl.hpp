@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Process/TimeValue.hpp>
@@ -18,11 +18,11 @@ class ConstraintElement;
 // One would be the "distributed" policy which provides the
 // same functionalities but for scenario executing on different computers.
 
-class OSSIAControl final : public iscore::PluginControlInterface
+class OSSIAApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
-        OSSIAControl(iscore::Application& app);
-        ~OSSIAControl();
+        OSSIAApplicationPlugin(iscore::Application& app);
+        ~OSSIAApplicationPlugin();
 
         void populateMenus(iscore::MenubarManager*) override;
 

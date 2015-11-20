@@ -1,6 +1,6 @@
 #pragma once
 #include <QObject>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 
 /**
@@ -9,13 +9,13 @@
  */
 class iscore_plugin_csp:
     public QObject,
-    public iscore::PluginControlInterface_QtInterface,
+    public iscore::GUIApplicationContextPlugin_QtInterface,
     public iscore::FactoryInterface_QtInterface
 {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID PluginControlInterface_QtInterface_iid)
+        Q_PLUGIN_METADATA(IID GUIApplicationContextPlugin_QtInterface_iid)
         Q_INTERFACES(
-            iscore::PluginControlInterface_QtInterface
+            iscore::GUIApplicationContextPlugin_QtInterface
             iscore::FactoryInterface_QtInterface
         )
 
@@ -23,7 +23,7 @@ class iscore_plugin_csp:
         iscore_plugin_csp();
         virtual ~iscore_plugin_csp() = default;
 
-        iscore::PluginControlInterface* make_control(iscore::Presenter* pres) override;
+        iscore::GUIApplicationContextPlugin* make_control(iscore::Presenter* pres) override;
 
         QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 };

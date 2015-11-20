@@ -1,12 +1,12 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 class RecordManager;
 class ScenarioModel;
-class IScoreCohesionControl final : public iscore::PluginControlInterface
+class IScoreCohesionApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
-        IScoreCohesionControl(iscore::Application& app);
+        IScoreCohesionApplicationPlugin(iscore::Application& app);
         void populateMenus(iscore::MenubarManager*) override;
         std::vector<iscore::OrderedToolbar> makeToolbars() override;
 

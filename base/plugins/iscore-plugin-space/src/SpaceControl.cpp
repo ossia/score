@@ -3,7 +3,7 @@
 #include <iscore/command/CommandGeneratorMap.hpp>
 SpaceControl::SpaceControl(
         iscore::Presenter* pres) :
-    PluginControlInterface {pres, "SpaceControl", nullptr}
+    GUIApplicationContextPlugin {pres, "SpaceControl", nullptr}
 {
 }
 

@@ -7,14 +7,14 @@
 #include <QToolBar>
 
 class QAction;
-class ScenarioControl;
+class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
 class ScenarioActions : public QObject
 {
         Q_OBJECT
 
     public:
-        explicit ScenarioActions(iscore::ToplevelMenuElement, ScenarioControl *);
+        explicit ScenarioActions(iscore::ToplevelMenuElement, ScenarioApplicationPlugin *);
         virtual ~ScenarioActions();
 
         virtual void fillMenuBar(iscore::MenubarManager*) = 0;
@@ -31,7 +31,7 @@ class ScenarioActions : public QObject
         virtual QList<QAction*> actions() const;
 
     protected:
-        ScenarioControl* m_parent{};
+        ScenarioApplicationPlugin* m_parent{};
         iscore::ToplevelMenuElement m_menuElt;
 };
 

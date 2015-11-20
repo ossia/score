@@ -1,9 +1,8 @@
 #pragma once
 #include <QObject>
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 
-class AutomationControl;
 class iscore_plugin_automation final :
         public QObject,
         public iscore::FactoryInterface_QtInterface,

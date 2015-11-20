@@ -7,7 +7,7 @@
 namespace iscore
 {
 class DocumentDelegateFactoryInterface;
-class PluginControlInterface;
+class GUIApplicationContextPlugin;
 class PanelFactory;
 class FactoryListInterface;
 class PanelPresenter;
@@ -20,7 +20,7 @@ class ApplicationRegistrar : public QObject
     public:
         ApplicationRegistrar(ApplicationComponentsData&, iscore::Application&);
         // Register data from plugins
-        void registerPluginControl(PluginControlInterface*);
+        void registerApplicationContextPlugin(GUIApplicationContextPlugin*);
         void registerPanel(PanelFactory*);
         void registerDocumentDelegate(DocumentDelegateFactoryInterface*);
         void registerCommands(std::unordered_map<CommandParentFactoryKey, CommandGeneratorMap>&& cmds);

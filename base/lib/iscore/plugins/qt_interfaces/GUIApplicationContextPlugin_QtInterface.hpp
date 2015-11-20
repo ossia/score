@@ -4,20 +4,20 @@
 namespace iscore
 {
     class Application;
-    class PluginControlInterface;
-    class PluginControlInterface_QtInterface
+    class GUIApplicationContextPlugin;
+    class GUIApplicationContextPlugin_QtInterface
     {
         public:
-            virtual ~PluginControlInterface_QtInterface();
+            virtual ~GUIApplicationContextPlugin_QtInterface();
 
-            virtual PluginControlInterface* make_control(iscore::Application& app) = 0;
+            virtual GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) = 0;
     };
 }
 
 
-#define PluginControlInterface_QtInterface_iid "org.ossia.i-score.plugins.PluginControlInterface_QtInterface"
+#define GUIApplicationContextPlugin_QtInterface_iid "org.ossia.i-score.plugins.GUIApplicationContextPlugin_QtInterface"
 
-Q_DECLARE_INTERFACE(iscore::PluginControlInterface_QtInterface, PluginControlInterface_QtInterface_iid)
+Q_DECLARE_INTERFACE(iscore::GUIApplicationContextPlugin_QtInterface, GUIApplicationContextPlugin_QtInterface_iid)
 
 
 // TODO moveme

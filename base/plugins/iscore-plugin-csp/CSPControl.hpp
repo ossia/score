@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/plugins/plugincontrol/PluginControlInterface.hpp>
+#include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
-class CSPControl : public iscore::PluginControlInterface
+class CSPControl : public iscore::GUIApplicationContextPlugin
 {
     public:
         CSPControl(iscore::Presenter* pres);

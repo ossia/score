@@ -6,7 +6,7 @@ const ScenarioActionsFactoryKey&PlayContextMenuFactory::key_impl() const
     return fact;
 }
 
-QList<ScenarioActions *> PlayContextMenuFactory::make(ScenarioControl *ctrl)
+QList<ScenarioActions *> PlayContextMenuFactory::make(ScenarioApplicationPlugin *ctrl)
 {
     return {new PlayContextMenu(ctrl)};
 }

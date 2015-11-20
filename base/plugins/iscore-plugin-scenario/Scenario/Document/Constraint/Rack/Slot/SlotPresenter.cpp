@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <Process/ProcessList.hpp>
 #include <Process/LayerPresenter.hpp>

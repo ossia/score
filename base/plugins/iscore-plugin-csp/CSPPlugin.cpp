@@ -8,7 +8,7 @@ iscore_plugin_csp::iscore_plugin_csp() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_csp::make_control(iscore::Presenter* pres)
+iscore::GUIApplicationContextPlugin* iscore_plugin_csp::make_control(iscore::Presenter* pres)
 {
     return new CSPControl{pres};
 }

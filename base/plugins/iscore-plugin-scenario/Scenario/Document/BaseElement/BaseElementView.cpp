@@ -8,8 +8,8 @@
 #include <Scenario/Document/TimeRuler/MainTimeRuler/TimeRulerView.hpp>
 #include <Scenario/Document/TimeRuler/LocalTimeRuler/LocalTimeRulerView.hpp>
 
-#include <Scenario/Control/ScenarioControl.hpp>
-#include <Scenario/Control/Menus/TransportActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/Menus/TransportActions.hpp>
 
 #include <QStyleFactory>
 #if defined(ISCORE_OPENGL)
@@ -92,8 +92,8 @@ BaseElementView::BaseElementView(QObject* parent) :
     transportButtons->setStyle(QStyleFactory::create("windows"));
 
     iscore::ApplicationContext ctx{iscore::Application::instance()};
-    auto& control = ctx.components.control<ScenarioControl>();
-    for(const auto& action : control.pluginActions())
+    auto& appPlug = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+    for(const auto& action : appPlug.pluginActions())
     {
         if(auto trsprt = dynamic_cast<TransportActions*>(action))
         {

@@ -9,10 +9,10 @@ iscore_plugin_cohesion::iscore_plugin_cohesion() :
 {
 }
 
-iscore::PluginControlInterface* iscore_plugin_cohesion::make_control(
+iscore::GUIApplicationContextPlugin* iscore_plugin_cohesion::make_applicationPlugin(
         iscore::Application& app)
 {
-    return new IScoreCohesionControl {app};
+    return new IScoreCohesionApplicationPlugin {app};
 }
 
 QStringList iscore_plugin_cohesion::required() const

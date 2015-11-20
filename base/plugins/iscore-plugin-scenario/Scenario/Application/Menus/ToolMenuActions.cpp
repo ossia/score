@@ -2,7 +2,7 @@
 
 #include <iscore/menu/MenuInterface.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <QKeyEvent>
 
@@ -25,7 +25,7 @@ QAction* makeToolbarAction(const QString& name,
 
 ToolMenuActions::ToolMenuActions(
         iscore::ToplevelMenuElement menuElt,
-        ScenarioControl* parent) :
+        ScenarioApplicationPlugin* parent) :
     ScenarioActions{menuElt, parent}
 {
     m_scenarioToolActionGroup = new QActionGroup{this};
@@ -113,10 +113,10 @@ ToolMenuActions::ToolMenuActions(
         m_parent->editionSettings().setExpandMode(ExpandMode::Fixed);
     });
 
-    connect(parent, &ScenarioControl::keyPressed,
+    connect(parent, &ScenarioApplicationPlugin::keyPressed,
             this,   &ToolMenuActions::keyPressed);
 
-    connect(parent, &ScenarioControl::keyReleased,
+    connect(parent, &ScenarioApplicationPlugin::keyReleased,
             this,   &ToolMenuActions::keyReleased);
 
 }

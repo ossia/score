@@ -1,5 +1,5 @@
 #include "ContextMenuDispatcher.hpp"
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
@@ -27,7 +27,7 @@
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
 
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Control/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <QApplication>
 
 #include <QMenu>
@@ -195,8 +195,8 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
 {
     auto selected = pres.layerModel().processModel().selectedChildren();
 
-    auto& control = ctx.app.components.control<ScenarioControl>();
-    for(auto elt : control.pluginActions())
+    auto& appPlug = ctx.app.components.applicationPlugin<ScenarioApplicationPlugin>();
+    for(auto elt : appPlug.pluginActions())
     {
         // TODO make a class to encapsulate all the data
         // required to set-up a context menu in a scenario.
@@ -205,6 +205,6 @@ void ScenarioContextMenuManager::createScenarioContextMenu(
     }
 
     menu.addSeparator();
-    menu.addAction(control.m_selectAll);
-    menu.addAction(control.m_deselectAll);
+    menu.addAction(appPlug.m_selectAll);
+    menu.addAction(appPlug.m_deselectAll);
 }

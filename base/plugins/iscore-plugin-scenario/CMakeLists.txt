@@ -24,7 +24,7 @@ add_subdirectory(DummyProcess)
 ### Scenario plugin ###
 file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/*.hpp"
@@ -138,17 +138,17 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/Plugin/ScenarioActionsFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ToolMenuActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioCopy.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ObjectMenuActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/TransportActions.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/TextDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ScenarioCommonContextMenuFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/Menus/ContextMenuDispatcher.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/ScenarioControl.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Control/ScenarioEditionSettings.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/Plugin/ScenarioActionsFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ToolMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCopy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectMenuActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TransportActions.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/TextDialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ScenarioCommonContextMenuFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ContextMenuDispatcher.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioApplicationPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/AddProcessDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/DialogWidget/MessageTreeView.cpp"

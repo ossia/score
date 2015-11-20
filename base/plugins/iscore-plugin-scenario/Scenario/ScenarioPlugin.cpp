@@ -1,11 +1,11 @@
 #include <Scenario/ScenarioPlugin.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Panel/ProcessPanelFactory.hpp>
 
 #include <State/Message.hpp>
-#include <Scenario/Control/Menus/ScenarioCommonContextMenuFactory.hpp>
+#include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
@@ -24,7 +24,7 @@
 
 iscore_plugin_scenario::iscore_plugin_scenario() :
     QObject {},
-        iscore::PluginControlInterface_QtInterface {},
+        iscore::GUIApplicationContextPlugin_QtInterface {},
         iscore::DocumentDelegateFactoryInterface_QtInterface {},
         iscore::FactoryList_QtInterface {},
         iscore::FactoryInterface_QtInterface {}
@@ -51,10 +51,10 @@ std::vector<iscore::DocumentDelegateFactoryInterface*> iscore_plugin_scenario::d
     return {new ScenarioDocument};
 }
 
-iscore::PluginControlInterface* iscore_plugin_scenario::make_control(
+iscore::GUIApplicationContextPlugin* iscore_plugin_scenario::make_applicationPlugin(
         iscore::Application& app)
 {
-    return new ScenarioControl{app};
+    return new ScenarioApplicationPlugin{app};
 }
 
 std::vector<iscore::PanelFactory*> iscore_plugin_scenario::panels()
@@ -78,13 +78,13 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
 {
     if(key == ProcessFactory::staticFactoryKey())
     {
-        auto& control = ctx.components.control<ScenarioControl>();
-        return {new ScenarioFactory{control.editionSettings()}};
+        auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+        return {new ScenarioFactory{appPlugin.editionSettings()}};
     }
 
     if(key == ScenarioActionsFactory::staticFactoryKey())
     {
-        // new ScenarioCommonActionsFactory is instantiated in Control
+        // new ScenarioCommonActionsFactory is instantiated in ScenarioApplicationPlugin
         // because other plug ins need it.
         return {};
     }

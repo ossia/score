@@ -8,7 +8,7 @@
 #include <core/document/Document.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <QSignalTransition>
 #include <core/application/Application.hpp>
 

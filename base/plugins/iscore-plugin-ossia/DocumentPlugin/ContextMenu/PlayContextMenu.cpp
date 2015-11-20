@@ -1,5 +1,5 @@
 #include "PlayContextMenu.hpp"
-#include "Scenario/Control/ScenarioControl.hpp"
+#include "Scenario/Application/ScenarioApplicationPlugin.hpp"
 #include "DocumentPlugin/OSSIAStateElement.hpp"
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -16,7 +16,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <iscore2OSSIA.hpp>
 
-PlayContextMenu::PlayContextMenu(ScenarioControl *parent):
+PlayContextMenu::PlayContextMenu(ScenarioApplicationPlugin *parent):
     ScenarioActions(iscore::ToplevelMenuElement::AboutMenu, parent)
 {
     m_playStates = new QAction{tr("Play (States)"), this};

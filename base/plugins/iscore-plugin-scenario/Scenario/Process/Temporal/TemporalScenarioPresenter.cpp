@@ -24,7 +24,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 
 #include "ScenarioViewInterface.hpp"
-#include <Scenario/Control/ScenarioControl.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <QGraphicsScene>
 

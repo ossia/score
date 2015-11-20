@@ -2,7 +2,7 @@
 #include <QObject>
 #include <iscore/plugins/qt_interfaces/PanelFactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginControlInterface_QtInterface.hpp>
+#include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 
 // TODO rename file
@@ -10,7 +10,7 @@ class iscore_plugin_deviceexplorer final :
         public QObject,
         public iscore::PanelFactory_QtInterface,
         public iscore::FactoryList_QtInterface,
-        public iscore::PluginControlInterface_QtInterface,
+        public iscore::GUIApplicationContextPlugin_QtInterface,
         public iscore::CommandFactory_QtInterface
 {
         Q_OBJECT
@@ -18,7 +18,7 @@ class iscore_plugin_deviceexplorer final :
         Q_INTERFACES(
                 iscore::PanelFactory_QtInterface
                 iscore::FactoryList_QtInterface
-                iscore::PluginControlInterface_QtInterface
+                iscore::GUIApplicationContextPlugin_QtInterface
                 iscore::CommandFactory_QtInterface)
 
     public:
@@ -31,7 +31,7 @@ class iscore_plugin_deviceexplorer final :
         std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
         // Control
-        iscore::PluginControlInterface* make_control(iscore::Application& app) override;
+        iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;
 };

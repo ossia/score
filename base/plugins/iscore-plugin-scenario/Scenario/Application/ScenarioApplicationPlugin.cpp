@@ -1,4 +1,4 @@
-#include "ScenarioControl.hpp"
+#include "ScenarioApplicationPlugin.hpp"
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 #include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
@@ -79,14 +79,14 @@ void ignore_template_instantiations_Scenario()
 
 using namespace iscore;
 #include <State/Expression.hpp>
-#include <Scenario/Control/Menus/ScenarioCommonContextMenuFactory.hpp>
+#include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 
 void test_parse_expr_full();
-ScenarioControl::ScenarioControl(iscore::Application& app) :
-    PluginControlInterface{app, "ScenarioControl", nullptr}
+ScenarioApplicationPlugin::ScenarioApplicationPlugin(iscore::Application& app) :
+    GUIApplicationContextPlugin{app, "ScenarioApplicationPlugin", nullptr}
 {
-    connect(this, &ScenarioControl::defocused,
-            this, &ScenarioControl::reinit_tools);
+    connect(this, &ScenarioApplicationPlugin::defocused,
+            this, &ScenarioApplicationPlugin::reinit_tools);
 
     // Note : they are constructed here, because
     // they need to be available quickly for other plug-ins,
@@ -101,7 +101,7 @@ ScenarioControl::ScenarioControl(iscore::Application& app) :
     initColors();
 }
 
-void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
+void ScenarioApplicationPlugin::populateMenus(iscore::MenubarManager *menu)
 {
     ///// Edit /////
 
@@ -143,7 +143,7 @@ void ScenarioControl::populateMenus(iscore::MenubarManager *menu)
     }
 }
 
-std::vector<OrderedToolbar> ScenarioControl::makeToolbars()
+std::vector<OrderedToolbar> ScenarioApplicationPlugin::makeToolbars()
 {
     QToolBar *bar = new QToolBar;
 
@@ -166,7 +166,7 @@ std::vector<OrderedToolbar> ScenarioControl::makeToolbars()
     return std::vector<OrderedToolbar>{OrderedToolbar(1, bar)};
 }
 
-std::vector<QAction*> ScenarioControl::actions()
+std::vector<QAction*> ScenarioApplicationPlugin::actions()
 {
     // TODO add the others
     std::vector<QAction*> act;
@@ -178,7 +178,7 @@ std::vector<QAction*> ScenarioControl::actions()
     return act;
 }
 
-void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterDefocused(LayerPresenter* pres)
 {
     // We set the currently focused view model to a "select" state
     // to prevent problems.
@@ -200,7 +200,7 @@ void ScenarioControl::on_presenterDefocused(LayerPresenter* pres)
 }
 
 
-void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
+void ScenarioApplicationPlugin::on_presenterFocused(LayerPresenter* pres)
 {
     // Generic stuff
     if(focusedPresenter())
@@ -231,10 +231,10 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     if (s_pres)
     {
         connect(s_pres, &TemporalScenarioPresenter::keyPressed,
-                this,  &ScenarioControl::keyPressed);
+                this,  &ScenarioApplicationPlugin::keyPressed);
 
         connect(s_pres, &TemporalScenarioPresenter::keyReleased,
-                this,  &ScenarioControl::keyReleased);
+                this,  &ScenarioApplicationPlugin::keyReleased);
 
 
         for(ScenarioActions* elt : m_pluginActions)
@@ -250,7 +250,7 @@ void ScenarioControl::on_presenterFocused(LayerPresenter* pres)
     }
 }
 
-void ScenarioControl::on_documentChanged(
+void ScenarioApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {
@@ -271,10 +271,10 @@ void ScenarioControl::on_documentChanged(
 
         m_focusConnection =
                 connect(focusManager, &ProcessFocusManager::sig_focusedPresenter,
-                        this, &ScenarioControl::on_presenterFocused);
+                        this, &ScenarioApplicationPlugin::on_presenterFocused);
         m_defocusConnection =
                 connect(focusManager, &ProcessFocusManager::sig_defocusedPresenter,
-                        this, &ScenarioControl::on_presenterDefocused);
+                        this, &ScenarioApplicationPlugin::on_presenterDefocused);
 
         if(focusManager->focusedPresenter())
         {
@@ -322,7 +322,7 @@ void ScenarioControl::on_documentChanged(
     }
 }
 
-void ScenarioControl::initColors()
+void ScenarioApplicationPlugin::initColors()
 {
     ScenarioStyle& instance = ScenarioStyle::instance();
 #ifdef ISCORE_IEEE_SKIN
@@ -394,24 +394,24 @@ void ScenarioControl::initColors()
     }
 }
 
-const ScenarioModel* ScenarioControl::focusedScenarioModel() const
+const ScenarioModel* ScenarioApplicationPlugin::focusedScenarioModel() const
 {
     return dynamic_cast<const ScenarioModel*>(processFocusManager()->focusedModel());
 }
 
-TemporalScenarioPresenter* ScenarioControl::focusedPresenter() const
+TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
     return dynamic_cast<TemporalScenarioPresenter*>(processFocusManager()->focusedPresenter());
 }
 
 
-void ScenarioControl::reinit_tools()
+void ScenarioApplicationPlugin::reinit_tools()
 {
     emit keyReleased(Qt::Key_Control);
     emit keyReleased(Qt::Key_Shift);
 }
 
-void ScenarioControl::prepareNewDocument()
+void ScenarioApplicationPlugin::prepareNewDocument()
 {
     for(const auto& action : pluginActions())
     {
@@ -423,7 +423,7 @@ void ScenarioControl::prepareNewDocument()
     }
 }
 
-ProcessFocusManager* ScenarioControl::processFocusManager() const
+ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {

@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Control/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
 
 class QToolBar;
 class TransportActions final : public ScenarioActions
@@ -7,7 +7,7 @@ class TransportActions final : public ScenarioActions
     public:
         TransportActions(
                 iscore::ToplevelMenuElement menuElt,
-                ScenarioControl* parent);
+                ScenarioApplicationPlugin* parent);
 
         void fillMenuBar(
                 iscore::MenubarManager *menu) override;

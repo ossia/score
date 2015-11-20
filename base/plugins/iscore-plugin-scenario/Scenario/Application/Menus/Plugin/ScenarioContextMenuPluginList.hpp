@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <Scenario/Control/Menus/ScenarioActions.hpp>
+#include <Scenario/Application/Menus/ScenarioActions.hpp>
 #include <iscore/plugins/customfactory/FactoryMap.hpp>
-#include <Scenario/Control/Menus/Plugin/ScenarioActionsFactory.hpp>
+#include <Scenario/Application/Menus/Plugin/ScenarioActionsFactory.hpp>
 
 class ScenarioContextMenuPluginList final : public iscore::FactoryListInterface
 {

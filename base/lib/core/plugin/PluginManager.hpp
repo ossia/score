@@ -11,7 +11,7 @@ namespace iscore
 class FactoryInterfaceBase;
 class Application;
 class ApplicationRegistrar;
-class PluginControlInterface;
+class GUIApplicationContextPlugin;
 class PanelFactory;
 class DocumentDelegateFactoryInterface;
 class SettingsDelegateFactoryInterface;

@@ -1,7 +1,7 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Control/ScenarioEditionSettings.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/widgets/SpinBoxes.hpp>

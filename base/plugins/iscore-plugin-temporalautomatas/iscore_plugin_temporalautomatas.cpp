@@ -6,7 +6,7 @@ iscore_plugin_temporalautomatas::iscore_plugin_temporalautomatas() :
 {
 }
 
-iscore::PluginControlInterface*iscore_plugin_temporalautomatas::make_control(iscore::Application& app)
+iscore::GUIApplicationContextPlugin*iscore_plugin_temporalautomatas::make_applicationPlugin(iscore::Application& app)
 {
     return new TemporalAutomatas::ApplicationPlugin{app};
 }
