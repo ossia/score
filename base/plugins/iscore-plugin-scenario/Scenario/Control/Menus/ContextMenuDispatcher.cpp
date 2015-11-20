@@ -44,7 +44,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     for(const LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
-                           proc.processModel().description(),
+                           proc.processModel().prettyName(),
                            processes_submenu};
         QObject::connect(procAct, &QAction::triggered, [&] () {
             PutLayerModelToFront cmd{slotm, proc.id()};
@@ -58,7 +58,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     for(const LayerModel& proc : slotm.layers)
     {
         QAction* procAct = new QAction{
-                           proc.processModel().description(),
+                           proc.processModel().prettyName(),
                            new_processes_submenu};
         QObject::connect(procAct, &QAction::triggered, [&] () {
             auto cmd = new Scenario::Command::AddLayerInNewSlot{
@@ -88,7 +88,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
                         return &layer.processModel() == &proc;
     }))
         {
-            QAction* procAct = new QAction{proc.description(), existing_processes_submenu};
+            QAction* procAct = new QAction{proc.prettyName(), existing_processes_submenu};
             QObject::connect(procAct, &QAction::triggered, [&] () {
 
                 auto cmd2 = new Scenario::Command::AddLayerModelToSlot{
