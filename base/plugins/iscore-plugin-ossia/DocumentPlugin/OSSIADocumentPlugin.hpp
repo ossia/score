@@ -8,7 +8,6 @@ class DocumentModel;
 class OSSIABaseScenarioElement;
 class OSSIADocumentPlugin final : public iscore::DocumentDelegatePluginModel
 {
-        Q_OBJECT
     public:
         OSSIADocumentPlugin(iscore::Document& doc, QObject* parent);
 

@@ -18,7 +18,10 @@ InspectorWidgetBase* InspectorWidgetList::makeInspectorWidget(
     {
         if(factory->matches(name))
         {
-            return factory->makeWidget(model, doc, parent);
+            auto widg = factory->makeWidget(model, doc, parent);
+            if(widg)
+                return widg;
+            break;
         }
     }
 

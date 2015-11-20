@@ -9,8 +9,10 @@ namespace OSSIA
     class Device;
     class TimeConstraint;
 }
-class OSSIAConstraintElement;
-class OSSIABaseScenarioElement;
+namespace RecreateOnPlay
+{
+class ConstraintElement;
+}
 // TODO this should have "OSSIA Policies" : one would be the
 // "basic" that corresponds to the default scenario.
 // One would be the "distributed" policy which provides the
@@ -32,7 +34,7 @@ class OSSIAControl final : public iscore::PluginControlInterface
         void on_newDocument(iscore::Document* doc) override;
         void on_loadedDocument(iscore::Document* doc) override;
 
-        OSSIAConstraintElement& baseConstraint() const;
+        RecreateOnPlay::ConstraintElement& baseConstraint() const;
         std::shared_ptr<OSSIA::Device> localDevice() const
         { return m_localDevice; }
 

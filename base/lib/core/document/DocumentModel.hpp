@@ -62,7 +62,7 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
             auto it = find_if(begin(m_pluginModels),
                               end(m_pluginModels),
                               [&](DocumentDelegatePluginModel * pm)
-            { return qobject_cast<T*>(pm); });
+            { return dynamic_cast<T*>(pm); });
 
             return it != end(m_pluginModels) ? safe_cast<T*>(*it) : nullptr;
         }

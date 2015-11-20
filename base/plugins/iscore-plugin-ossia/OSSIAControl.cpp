@@ -1,9 +1,12 @@
 #include "OSSIAControl.hpp"
+/*
 #include "DocumentPlugin/OSSIADocumentPlugin.hpp"
 #include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
+*/
+#include <RecreateOnPlayDocumentPlugin/DocumentPlugin.hpp>
+#include <RecreateOnPlayDocumentPlugin/BaseScenarioElement.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <core/document/Document.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Control/ScenarioControl.hpp>
 
@@ -27,8 +30,8 @@
 #endif
 #include <DocumentPlugin/ContextMenu/PlayContextMenu.hpp>
 
-#include <core/document/DocumentModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/document/Document.hpp>
 #include <core/application/Application.hpp>
 
@@ -94,18 +97,19 @@ OSSIAControl::~OSSIAControl()
 
     // TODO check the deletion order.
     // Maybe we should have a dependency graph of some kind ??
-    if(currentDocument()
-    && currentDocument()->model().pluginModel<OSSIADocumentPlugin>()
-    && currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario())
+    if(auto doc = currentDocument())
+    if(auto pm = doc->model().pluginModel<RecreateOnPlay::DocumentPlugin>())
+    if(auto scenar = pm->baseScenario())
+    if(auto cstr = scenar->baseConstraint())
     {
-        baseConstraint().stop();
+        cstr->stop();
     }
 }
 
 
-OSSIAConstraintElement &OSSIAControl::baseConstraint() const
+RecreateOnPlay::ConstraintElement &OSSIAControl::baseConstraint() const
 {
-    return *currentDocument()->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
+    return *currentDocument()->model().pluginModel<RecreateOnPlay::DocumentPlugin>()->baseScenario()->baseConstraint();
 }
 
 void OSSIAControl::populateMenus(iscore::MenubarManager* menu)
@@ -123,7 +127,7 @@ iscore::DocumentDelegatePluginModel*OSSIAControl::loadDocumentPlugin(
 
 void OSSIAControl::on_newDocument(iscore::Document* doc)
 {
-    doc->model().addPluginModel(new OSSIADocumentPlugin{*doc, &doc->model()});
+    doc->model().addPluginModel(new RecreateOnPlay::DocumentPlugin{*doc, &doc->model()});
 }
 
 void OSSIAControl::on_loadedDocument(iscore::Document *doc)
@@ -133,23 +137,23 @@ void OSSIAControl::on_loadedDocument(iscore::Document *doc)
 
 void OSSIAControl::on_play(bool b, ::TimeValue t)
 {
+    // TODO have a on_exit handler to properly stop the scenario.
     if(auto doc = currentDocument())
     {
         if(b)
         {
             if(m_playing)
             {
-                auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
+                auto& cstr = *doc->model().pluginModel<RecreateOnPlay::DocumentPlugin>()->baseScenario()->baseConstraint();
                 cstr.OSSIAConstraint()->resume();
             }
             else
             {
-                auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+                auto plugmodel = doc->model().pluginModel<RecreateOnPlay::DocumentPlugin>();
                 plugmodel->reload(doc->model());
 
                 auto& cstr = *plugmodel->baseScenario()->baseConstraint();
 
-                cstr.recreate();
                 cstr.play(t);
 
                 // Here we stop the listening when we start playing the scenario.
@@ -164,7 +168,7 @@ void OSSIAControl::on_play(bool b, ::TimeValue t)
         }
         else
         {
-            auto& cstr = *doc->model().pluginModel<OSSIADocumentPlugin>()->baseScenario()->baseConstraint();
+            auto& cstr = *doc->model().pluginModel<RecreateOnPlay::DocumentPlugin>()->baseScenario()->baseConstraint();
             cstr.OSSIAConstraint()->pause();
         }
     }
@@ -174,14 +178,14 @@ void OSSIAControl::on_stop()
 {
     if(auto doc = currentDocument())
     {
-
-        auto plugmodel = doc->model().pluginModel<OSSIADocumentPlugin>();
+        auto plugmodel = doc->model().pluginModel<RecreateOnPlay::DocumentPlugin>();
         if(plugmodel && plugmodel->baseScenario())
         {
-            auto& cstr = baseConstraint();
-            cstr.stop();
-            cstr.clear();
             m_playing = false;
+            auto& cstr = *plugmodel->baseScenario()->baseConstraint();
+
+            cstr.stop();
+
             plugmodel->clear();
         }
 

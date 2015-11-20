@@ -31,6 +31,11 @@ InspectorWidgetBase* LoopInspectorFactory::makeWidget(
     auto& constraintWidgetFactory = appContext.components.factory<ConstraintInspectorDelegateFactoryList>();
 
     auto& constraint = static_cast<const LoopProcessModel&>(sourceElement).baseConstraint();
-    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, constraintWidgetFactory.make(constraint), doc, parent};
+
+    auto delegate = constraintWidgetFactory.make(constraint);
+    if(!delegate)
+        return nullptr;
+
+    return new ConstraintInspectorWidget{widgetFact, processFact, constraint, std::move(delegate), doc, parent};
 
 }

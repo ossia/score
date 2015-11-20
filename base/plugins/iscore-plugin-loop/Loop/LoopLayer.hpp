@@ -1,6 +1,8 @@
 #pragma once
-
 #include <Process/LayerModel.hpp>
+#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <iscore/serialization/JSONVisitor.hpp>
+
 class TemporalConstraintViewModel;
 
 class LoopProcessModel;
