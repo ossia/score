@@ -111,16 +111,13 @@ endfunction()
 
 
 ### Generate files of commands ###
-function(iscore_generate_command_list_file TheTarget)
+function(iscore_generate_command_list_file TheTarget Headers)
     # Initialize our lists
     set(commandNameList)
     set(commandFileList)
 
-    # Get the sources of our target
-    get_target_property(localSrcs ${TheTarget} SOURCES)
-
     # First look for the ISCORE_COMMAND_DECL(...) ones
-    foreach(sourceFile ${localSrcs})
+    foreach(sourceFile ${Headers})
         file(STRINGS ${sourceFile} fileContent REGEX "ISCORE_COMMAND_DECL\\(")
 
         # If there are matching strings, we add the file to our include list
@@ -139,7 +136,7 @@ function(iscore_generate_command_list_file TheTarget)
     endforeach()
 
     # Then look for the ISCORE_COMMAND_DECL_T(...) ones
-    foreach(sourceFile ${localSrcs})
+    foreach(sourceFile ${Headers})
         file(STRINGS ${sourceFile} fileContent REGEX "ISCORE_COMMAND_DECL_T\\(")
 
         list(LENGTH fileContent matchingLines)

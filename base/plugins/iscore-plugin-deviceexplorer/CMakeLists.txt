@@ -8,9 +8,8 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Test Xml)
 
 # Files & main target
 ### Plugin ###
-file(GLOB_RECURSE HEADERS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Device/*.hpp")
+file(GLOB_RECURSE HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/*.hpp")
 
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.cpp"
@@ -64,9 +63,9 @@ set(SRCS
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorer.qrc")
 
 add_library(${PROJECT_NAME}
-      ${SRCS} ${HEADERS}
+      ${SRCS} ${HDRS}
       ${EXPLORER_RESOURCES_RCC})
-iscore_generate_command_list_file(${PROJECT_NAME})
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(iscore_plugin_deviceexplorer
                       Qt5::Core Qt5::Widgets

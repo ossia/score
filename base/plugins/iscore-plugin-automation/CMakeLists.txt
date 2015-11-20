@@ -51,7 +51,7 @@ qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Resources/Automat
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${QRCS})
 
-iscore_generate_command_list_file(${PROJECT_NAME})
+iscore_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets
