@@ -7,10 +7,7 @@
 class Group;
 class CreateGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                DistributedScenarioCommandFactoryName(),
-                CreateGroup,
-                "CreateGroup")
+        ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), CreateGroup, "CreateGroup")
         public:
         CreateGroup(ObjectPath&& groupMgrPath, QString groupName);
 

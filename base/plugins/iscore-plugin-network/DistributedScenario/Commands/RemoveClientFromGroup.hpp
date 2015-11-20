@@ -8,10 +8,7 @@ class Client;
 class Group;
 class RemoveClientFromGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                DistributedScenarioCommandFactoryName(),
-                RemoveClientFromGroup,
-                "RemoveClientFromGroup")
+        ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), RemoveClientFromGroup, "RemoveClientFromGroup")
 
     public:
         RemoveClientFromGroup(

@@ -10,10 +10,7 @@ class ConstraintModel;
 
 class CreateCurveFromStates final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                CreateCurveFromStates,
-                "CreateCurveFromStates")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateCurveFromStates, "CreateCurveFromStates")
     public:
         CreateCurveFromStates(
                 Path<ConstraintModel>&& constraint,

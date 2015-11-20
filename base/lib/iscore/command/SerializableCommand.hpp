@@ -26,6 +26,8 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
     } \
     private:
 
+// A helper to allow cmake to parse commands.
+#define ISCORE_COMMAND_DECL_T(name)
 namespace iscore
 {
 /**

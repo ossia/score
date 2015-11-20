@@ -3,7 +3,5 @@
 
 class CreateProcessInNewSlot final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                                      CreateProcessInNewSlot,
-                                      "CreateProcessInNewSlot")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateProcessInNewSlot, "CreateProcessInNewSlot")
 };

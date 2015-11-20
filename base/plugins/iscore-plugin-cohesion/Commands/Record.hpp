@@ -4,9 +4,7 @@
 
 class Record final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(),
-                            Record,
-                            "Record")
+        ISCORE_COMMAND_DECL(IScoreCohesionCommandFactoryName(), Record, "Record")
         public:
             void undo() const override
         {

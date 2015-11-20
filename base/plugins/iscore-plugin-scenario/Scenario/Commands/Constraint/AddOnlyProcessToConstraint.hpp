@@ -7,10 +7,7 @@ class ConstraintModel;
 class Process;
 class AddOnlyProcessToConstraint final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                AddOnlyProcessToConstraint,
-                "AddOnlyProcessToConstraint")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddOnlyProcessToConstraint, "AddOnlyProcessToConstraint")
     public:
         AddOnlyProcessToConstraint(
             Path<ConstraintModel>&& constraint,

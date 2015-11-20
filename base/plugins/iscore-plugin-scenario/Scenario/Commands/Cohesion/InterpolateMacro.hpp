@@ -12,16 +12,12 @@
 // One InterpolateMacro per constraint
 class GenericInterpolateMacro final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                            GenericInterpolateMacro,
-                            "GenericInterpolateMacro")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), GenericInterpolateMacro, "GenericInterpolateMacro")
 };
 
 class InterpolateMacro final : public iscore::AggregateCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(),
-                            InterpolateMacro,
-                            "InterpolateMacro")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InterpolateMacro, "InterpolateMacro")
 
         public:
             auto& commands() { return m_cmds; }

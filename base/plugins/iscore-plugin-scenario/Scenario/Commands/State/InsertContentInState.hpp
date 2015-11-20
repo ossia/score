@@ -6,10 +6,7 @@
 
 class InsertContentInState final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                ScenarioCommandFactoryName(),
-                InsertContentInState,
-                "InsertContentInState")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInState,"InsertContentInState")
 
     public:
        InsertContentInState(

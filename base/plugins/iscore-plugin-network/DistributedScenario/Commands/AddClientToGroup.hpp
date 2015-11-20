@@ -8,10 +8,7 @@ class Client;
 class Group;
 class AddClientToGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                DistributedScenarioCommandFactoryName(),
-                AddClientToGroup,
-                "AddClientToGroup")
+        ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), AddClientToGroup, "AddClientToGroup")
     public:
         AddClientToGroup(ObjectPath&& groupMgrPath,
                          Id<Client> client,

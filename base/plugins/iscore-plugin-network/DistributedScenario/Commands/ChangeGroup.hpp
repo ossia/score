@@ -7,10 +7,7 @@
 
 class ChangeGroup : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(
-                DistributedScenarioCommandFactoryName(),
-                ChangeGroup,
-                "Change the group of an element")
+        ISCORE_COMMAND_DECL(DistributedScenarioCommandFactoryName(), ChangeGroup, "Change the group of an element")
 
     public:
         ChangeGroup(ObjectPath&& path, Id<Group> newGroup);

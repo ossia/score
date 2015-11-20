@@ -357,3 +357,7 @@ inline iscore::SerializableCommand* make_AddProcessToConstraint(
 }
 }
 }
+
+ISCORE_COMMAND_DECL_T(AddProcessToConstraint<AddProcessDelegateWhenNoRacks>)
+ISCORE_COMMAND_DECL_T(AddProcessToConstraint<AddProcessDelegateWhenRacksAndNoBaseConstraint>)
+ISCORE_COMMAND_DECL_T(AddProcessToConstraint<AddProcessDelegateWhenRacksAndBaseConstraint>)
