@@ -72,3 +72,7 @@ namespace Scenario
         };
     }
 }
+
+ISCORE_COMMAND_DECL_T(ChangeElementLabel<ConstraintModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementLabel<EventModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementLabel<TimeNodeModel>)

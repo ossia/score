@@ -33,28 +33,17 @@ std::vector<iscore::PanelFactory*> iscore_plugin_network::panels()
 }
 
 
-
-#include "DistributedScenario/Commands/AddClientToGroup.hpp"
-#include "DistributedScenario/Commands/RemoveClientFromGroup.hpp"
-
-#include "DistributedScenario/Commands/CreateGroup.hpp"
-#include "DistributedScenario/Commands/RemoveGroup.hpp"
-
-#include "DistributedScenario/Commands/ChangeGroup.hpp"
+#include <iscore_plugin_network_commands_files.hpp>
 #include <iscore/command/CommandGeneratorMap.hpp>
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_network::make_commands()
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DistributedScenarioCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-            AddClientToGroup,
-            RemoveClientFromGroup,
-            CreateGroup,
-            ChangeGroup
-            // TODO RemoveGroup;
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+
+    using Types = iscore::commands::TypeList<
+  #include <iscore_plugin_network_commands.hpp>
+      >;
+    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
+
 
     return cmds;
 }

@@ -14,10 +14,7 @@
 #include "Automation/Inspector/AutomationStateInspectorFactory.hpp"
 #endif
 
-#include "Automation/Commands/ChangeAddress.hpp"
-#include "Automation/Commands/SetCurveMin.hpp"
-#include "Automation/Commands/SetCurveMax.hpp"
-#include "Automation/Commands/InitAutomation.hpp"
+#include <iscore_plugin_automation_commands_files.hpp>
 
 DEFINE_CURVE_PROCESS_FACTORY(
         AutomationFactory,
@@ -56,15 +53,11 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_automation::factories(
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_automation::make_commands()
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{AutomationCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-                ChangeAddress,
-                SetAutomationMin,
-                SetAutomationMax,
-                InitAutomation
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+
+    using Types = iscore::commands::TypeList<
+  #include <iscore_plugin_automation_commands.hpp>
+      >;
+    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

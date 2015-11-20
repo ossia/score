@@ -12,9 +12,7 @@ DEFINE_CURVE_SEGMENT_FACTORY(PowerCurveSegmentFactory, "Power", PowerCurveSegmen
 DEFINE_CURVE_SEGMENT_FACTORY(SinCurveSegmentFactory, "Sin", SinCurveSegmentModel)
 DEFINE_CURVE_SEGMENT_FACTORY(GammaCurveSegmentFactory, "Gamma", GammaCurveSegmentModel)
 
-#include <Curve/Commands/MovePoint.hpp>
-#include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/Commands/SetSegmentParameters.hpp"
+#include <iscore_plugin_curve_commands_files.hpp>
 
 iscore_plugin_curve::iscore_plugin_curve() :
     QObject {}
@@ -47,14 +45,11 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_curve::factoryFamilies(
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_curve::make_commands()
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{CurveCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-                UpdateCurve,
-                SetSegmentParameters,
-                MovePoint
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+
+    using Types = iscore::commands::TypeList<
+  #include <iscore_plugin_curve_commands.hpp>
+      >;
+    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

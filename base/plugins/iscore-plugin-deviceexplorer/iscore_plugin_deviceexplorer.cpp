@@ -5,18 +5,7 @@ using namespace iscore;
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 
-
-#include <Explorer/Commands/Add/AddAddress.hpp>
-#include <Explorer/Commands/Add/AddDevice.hpp>
-#include <Explorer/Commands/Add/LoadDevice.hpp>
-#include <Explorer/Commands/Remove/RemoveAddress.hpp>
-#include <Explorer/Commands/Remove.hpp>
-#include <Explorer/Commands/RemoveNodes.hpp>
-#include <Explorer/Commands/ReplaceDevice.hpp>
-#include <Explorer/Commands/UpdateAddresses.hpp>
-#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
-#include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
-
+#include <iscore_plugin_deviceexplorer_commands_files.hpp>
 
 iscore_plugin_deviceexplorer::iscore_plugin_deviceexplorer() :
     QObject {},
@@ -48,21 +37,11 @@ std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_devi
 {
     using namespace DeviceExplorer::Command;
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-            AddAddress,
-            AddDevice,
-            LoadDevice,
-            UpdateAddressSettings,
-            UpdateDeviceSettings,
-            Remove,
-            RemoveAddress,
-            RemoveNodes,
-            ReplaceDevice,
-            UpdateAddressesValues
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+
+    using Types = iscore::commands::TypeList<
+  #include <iscore_plugin_deviceexplorer_commands.hpp>
+      >;
+    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

@@ -29,6 +29,7 @@ set(SRCS
 )
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+iscore_generate_command_list_file(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
                      Qt5::Core Qt5::Widgets Qt5::Qml
                      iscore_lib_base iscore_plugin_ossia iscore_lib_dummyprocess)

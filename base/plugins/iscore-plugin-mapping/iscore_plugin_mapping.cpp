@@ -8,8 +8,7 @@
 #include <Mapping/MappingLayerModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
 
-#include <Mapping/Commands/ChangeAddresses.hpp>
-#include <Mapping/Commands/MinMaxCommands.hpp>
+#include <iscore_plugin_mapping_commands_files.hpp>
 
 DEFINE_CURVE_PROCESS_FACTORY(
         MappingFactory,
@@ -52,17 +51,11 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_mapping::factories(
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_mapping::make_commands()
 {
     std::pair<const CommandParentFactoryKey, CommandGeneratorMap> cmds{MappingCommandFactoryName(), CommandGeneratorMap{}};
-    boost::mpl::for_each<
-            boost::mpl::list<
-            ChangeSourceAddress,
-            ChangeTargetAddress,
-            SetMappingSourceMin,
-            SetMappingSourceMax,
-            SetMappingTargetMin,
-            SetMappingTargetMax
-            >,
-            boost::type<boost::mpl::_>
-            >(CommandGeneratorMapInserter{cmds.second});
+
+    using Types = iscore::commands::TypeList<
+  #include <iscore_plugin_mapping_commands.hpp>
+      >;
+    iscore::commands::ForEach<Types>(iscore::commands::FactoryInserter{cmds.second});
 
     return cmds;
 }

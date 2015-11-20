@@ -63,9 +63,10 @@ set(SRCS
 )
 qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceExplorer.qrc")
 
-add_library(iscore_plugin_deviceexplorer
+add_library(${PROJECT_NAME}
       ${SRCS} ${HEADERS}
       ${EXPLORER_RESOURCES_RCC})
+iscore_generate_command_list_file(${PROJECT_NAME})
 
 target_link_libraries(iscore_plugin_deviceexplorer
                       Qt5::Core Qt5::Widgets

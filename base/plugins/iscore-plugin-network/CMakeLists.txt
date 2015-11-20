@@ -91,6 +91,7 @@ if(${KF5DNSSD_FOUND})
 endif()
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${ZEROCONF_SRCS})
+iscore_generate_command_list_file(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}
                                     iscore_lib_base
