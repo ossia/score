@@ -16,7 +16,9 @@ QString UndoPanelFactory::panelName() const
     return "Undo";
 }
 
-iscore::PanelView *UndoPanelFactory::makeView(iscore::View *v)
+iscore::PanelView *UndoPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        iscore::View *v)
 {
     return new UndoView{v};
 }

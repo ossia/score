@@ -10,6 +10,7 @@ namespace iscore
     class Presenter;
     class DocumentModel;
     class View;
+    struct ApplicationContext;
 
     /**
      * @brief The PanelFactory class
@@ -24,7 +25,8 @@ namespace iscore
 
             virtual ~PanelFactory();
             virtual PanelView* makeView(
-                    View* parent) = 0;
+                    const iscore::ApplicationContext& ctx,
+                    iscore::View* parent) = 0;
 
             virtual PanelPresenter* makePresenter(
                     Presenter* parent_presenter,

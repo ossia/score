@@ -5,6 +5,8 @@
 #include "PanelBase/DeviceExplorerPanelPresenter.hpp"
 #include "PanelBase/DeviceExplorerPanelView.hpp"
 #include "PanelBase/DeviceExplorerPanelId.hpp"
+
+#include <core/application/Application.hpp>
 using namespace iscore;
 
 
@@ -18,12 +20,15 @@ int DeviceExplorerPanelFactory::panelId() const
     return DEVICEEXPLORER_PANEL_ID;
 }
 
-iscore::PanelView* DeviceExplorerPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView* DeviceExplorerPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        iscore::View* parent)
 {
-    return new DeviceExplorerPanelView {parent};
+    return new DeviceExplorerPanelView {ctx, parent};
 }
 
-iscore::PanelPresenter* DeviceExplorerPanelFactory::makePresenter(iscore::Presenter* parent_presenter,
+iscore::PanelPresenter* DeviceExplorerPanelFactory::makePresenter(
+        iscore::Presenter* parent_presenter,
         iscore::PanelView* view)
 {
     return new DeviceExplorerPanelPresenter {parent_presenter, view};

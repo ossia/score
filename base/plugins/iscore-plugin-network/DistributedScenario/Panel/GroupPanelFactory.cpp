@@ -18,7 +18,9 @@ QString GroupPanelFactory::panelName() const
     return "Groups";
 }
 
-iscore::PanelView* GroupPanelFactory::makeView(iscore::View* v)
+iscore::PanelView* GroupPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        iscore::View* v)
 {
     return new GroupPanelView{v};
 }

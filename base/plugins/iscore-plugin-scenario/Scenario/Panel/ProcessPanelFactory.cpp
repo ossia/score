@@ -18,7 +18,9 @@ QString ProcessPanelFactory::panelName() const
     return "ProcessPanelModel";
 }
 
-iscore::PanelView*ProcessPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView*ProcessPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        iscore::View* parent)
 {
     return new ProcessPanelView{parent};
 }

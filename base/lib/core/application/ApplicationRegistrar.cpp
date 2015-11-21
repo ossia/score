@@ -6,6 +6,7 @@
 #include <core/application/Application.hpp>
 #include <core/view/View.hpp>
 #include <core/application/ApplicationComponents.hpp>
+#include <core/application/ApplicationContext.hpp>
 #include <core/settings/Settings.hpp>
 namespace iscore
 {
@@ -36,7 +37,7 @@ void ApplicationRegistrar::registerApplicationContextPlugin(
 void ApplicationRegistrar::registerPanel(
         PanelFactory* factory)
 {
-    auto view = factory->makeView(m_app.presenter().view());
+    auto view = factory->makeView(iscore::ApplicationContext(m_app), m_app.presenter().view());
     auto pres = factory->makePresenter(&m_app.presenter(), view);
 
     m_components.panelPresenters.push_back({pres, factory});

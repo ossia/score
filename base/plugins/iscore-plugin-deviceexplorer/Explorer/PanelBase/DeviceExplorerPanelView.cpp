@@ -2,7 +2,6 @@
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <core/view/View.hpp>
-#include <core/application/Application.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <core/application/Application.hpp>
@@ -15,12 +14,12 @@ static const iscore::DefaultPanelStatus status{
 const iscore::DefaultPanelStatus &DeviceExplorerPanelView::defaultPanelStatus() const
 { return status; }
 
-DeviceExplorerPanelView::DeviceExplorerPanelView(iscore::View* parent) :
+DeviceExplorerPanelView::DeviceExplorerPanelView(
+        const iscore::ApplicationContext& ctx,
+        iscore::View* parent) :
     iscore::PanelView {parent},
     m_widget {new DeviceExplorerWidget{
-              iscore::Application::instance()
-                .presenter()
-                .applicationComponents().factory<DynamicProtocolList>(),
+              ctx.components.factory<DynamicProtocolList>(),
               parent}}
 {
 }

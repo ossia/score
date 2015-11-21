@@ -16,7 +16,9 @@ QString InspectorPanelFactory::panelName() const
     return "Inspector";
 }
 
-iscore::PanelView* InspectorPanelFactory::makeView(iscore::View* parent)
+iscore::PanelView* InspectorPanelFactory::makeView(
+        const iscore::ApplicationContext& ctx,
+        iscore::View* parent)
 {
     return new InspectorPanelView {parent};
 }
