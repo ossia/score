@@ -92,13 +92,13 @@ void Presenter::setupMenus()
     auto saveAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::Save,
-                [this]() { m_docManager.saveDocument(m_docManager.currentDocument()); });
+                [this]() { m_docManager.saveDocument(*m_docManager.currentDocument()); });
     saveAct->setShortcut(QKeySequence::Save);
 
     auto saveAsAct = m_menubar.addActionIntoToplevelMenu(
                 ToplevelMenuElement::FileMenu,
                 FileMenuElement::SaveAs,
-                [this]() { m_docManager.saveDocumentAs(m_docManager.currentDocument()); });
+                [this]() { m_docManager.saveDocumentAs(*m_docManager.currentDocument()); });
     saveAsAct->setShortcut(QKeySequence::SaveAs);
 
     QMenu* fileMenu = m_menubar.menuAt(ToplevelMenuElement::FileMenu);

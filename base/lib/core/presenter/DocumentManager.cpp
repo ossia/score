@@ -20,14 +20,19 @@ DocumentManager::DocumentManager(Presenter& p):
     m_builder{p}
 {
     connect(m_presenter.view(), &View::activeDocumentChanged,
-            this,   [&] (Document* doc) {
+            this, [&] (const Id<DocumentModel>& doc) {
         prepareNewDocument();
-        setCurrentDocument(doc);
+        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        setCurrentDocument(it != m_documents.end() ? *it : nullptr);
     });
 
 
     connect(m_presenter.view(), &View::closeRequested,
-            this,   &DocumentManager::closeDocument);
+            this, [&] (const Id<DocumentModel>& doc) {
+        auto it = find_if(m_documents, [&] (auto other) { return other->model().id() == doc; });
+        ISCORE_ASSERT(it != m_documents.end());
+        closeDocument(**it);
+    });
 
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
@@ -107,10 +112,10 @@ void DocumentManager::setCurrentDocument(Document* doc)
     emit currentDocumentChanged(doc);
 }
 
-bool DocumentManager::closeDocument(Document* doc)
+bool DocumentManager::closeDocument(Document& doc)
 {
     // Warn the user if he might loose data
-    if(!doc->commandStack().isAtSavedIndex())
+    if(!doc.commandStack().isAtSavedIndex())
     {
         QMessageBox msgBox;
         msgBox.setText(tr("The document has been modified."));
@@ -137,17 +142,17 @@ bool DocumentManager::closeDocument(Document* doc)
     }
 
     // Close operation
-    m_presenter.view()->closeDocument(&doc->view());
-    remove_one(m_documents, doc);
+    m_presenter.view()->closeDocument(&doc.view());
+    remove_one(m_documents, &doc);
     setCurrentDocument(m_documents.size() > 0 ? m_documents.back() : nullptr);
 
-    delete doc;
+    delete &doc;
     return true;
 }
 
-bool DocumentManager::saveDocument(Document * doc)
+bool DocumentManager::saveDocument(Document& doc)
 {
-    auto savename = doc->docFileName();
+    auto savename = doc.docFileName();
 
     if(savename == tr("Untitled"))
     {
@@ -158,11 +163,11 @@ bool DocumentManager::saveDocument(Document * doc)
         QSaveFile f{savename};
         f.open(QIODevice::WriteOnly);
         if(savename.indexOf(".scorebin") != -1)
-            f.write(doc->saveAsByteArray());
+            f.write(doc.saveAsByteArray());
         else
         {
             QJsonDocument json_doc;
-            json_doc.setObject(doc->saveAsJson());
+            json_doc.setObject(doc.saveAsJson());
 
             f.write(json_doc.toJson());
         }
@@ -172,7 +177,7 @@ bool DocumentManager::saveDocument(Document * doc)
     return true;
 }
 
-bool DocumentManager::saveDocumentAs(Document * doc)
+bool DocumentManager::saveDocumentAs(Document& doc)
 {
     QFileDialog d{m_presenter.view(), tr("Save Document As")};
     QString binFilter{tr("Binary (*.scorebin)")};
@@ -206,13 +211,13 @@ bool DocumentManager::saveDocumentAs(Document * doc)
 
             QSaveFile f{savename};
             f.open(QIODevice::WriteOnly);
-            doc->setDocFileName(savename);
+            doc.setDocFileName(savename);
             if(savename.indexOf(".scorebin") != -1)
-                f.write(doc->saveAsByteArray());
+                f.write(doc.saveAsByteArray());
             else
             {
                 QJsonDocument json_doc;
-                json_doc.setObject(doc->saveAsJson());
+                json_doc.setObject(doc.saveAsJson());
 
                 f.write(json_doc.toJson());
             }
@@ -269,7 +274,7 @@ bool DocumentManager::closeAllDocuments()
 {
     while(!m_documents.empty())
     {
-        bool b = closeDocument(m_documents.back());
+        bool b = closeDocument(*m_documents.back());
         if(!b)
             return false;
     }

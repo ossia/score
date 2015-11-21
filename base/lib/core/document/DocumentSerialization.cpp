@@ -114,7 +114,7 @@ Document::Document(const QVariant& data,
         throw;
     }
 
-    m_view = new DocumentView{factory, this, parentview};
+    m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
                     m_model,
                     m_view,

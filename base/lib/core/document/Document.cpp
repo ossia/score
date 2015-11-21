@@ -46,7 +46,7 @@ Document::Document(
     std::allocator<DocumentModel> allocator;
     m_model = allocator.allocate(1);
     allocator.construct(m_model, id, factory, this);
-    m_view = new DocumentView{factory, this, parentview};
+    m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
             m_model,
             m_view,

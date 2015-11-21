@@ -5,11 +5,13 @@
 #include <set>
 
 #include <core/presenter/Action.hpp>
+#include <iscore/tools/SettableIdentifier.hpp>
 namespace iscore
 {
     class PanelView;
     class Presenter;
     class Document;
+    class DocumentModel;
     class DocumentView;
     /**
      * @brief The View class
@@ -40,8 +42,8 @@ namespace iscore
              */
             void insertActionIntoMenubar(PositionedMenuAction);
 
-            void activeDocumentChanged(Document*);
-            void closeRequested(Document*);
+            void activeDocumentChanged(const Id<DocumentModel>&);
+            void closeRequested(const Id<DocumentModel>&);
 
             void activeWindowChanged();
 

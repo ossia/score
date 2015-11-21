@@ -51,12 +51,12 @@ class DocumentManager : public QObject
         void setCurrentDocument(Document* doc);
 
         // Returns true if the document was closed.
-        bool closeDocument(Document*);
+        bool closeDocument(Document&);
 
 
         // Methods to save and load
-        bool saveDocument(Document*);
-        bool saveDocumentAs(Document*);
+        bool saveDocument(Document&);
+        bool saveDocumentAs(Document&);
 
         Document* loadFile();
         Document* loadFile(const QString& filename);

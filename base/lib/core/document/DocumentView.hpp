@@ -18,7 +18,7 @@ namespace iscore
     {
         public:
             DocumentView(DocumentDelegateFactoryInterface* viewDelegate,
-                         Document* doc,
+                         const Document& doc,
                          QWidget* parent);
 
             DocumentDelegateViewInterface* viewDelegate() const
@@ -26,11 +26,11 @@ namespace iscore
 
             void addPanel(PanelView*);
 
-            Document* document() const
+            const Document& document() const
             {return m_document;}
 
         private:
-            Document* m_document{};
+            const Document& m_document;
             DocumentDelegateViewInterface* m_view {};
     };
 }

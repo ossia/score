@@ -7,7 +7,7 @@
 using namespace iscore;
 
 DocumentView::DocumentView(DocumentDelegateFactoryInterface* fact,
-                           Document* doc,
+                           const Document& doc,
                            QWidget* parent) :
     QWidget {parent},
     m_document{doc},
