@@ -31,7 +31,7 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ProcessInterfaceSerialization/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ScenarioPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/*.hpp"
 )
 
@@ -261,7 +261,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/RandomNameProvider.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ScenarioPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/iscore_plugin_scenario.cpp"
 )
 
 if(TARGET iscore_lib_inspector)

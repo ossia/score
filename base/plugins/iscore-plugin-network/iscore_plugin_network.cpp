@@ -1,4 +1,4 @@
-#include <NetworkPlugin.hpp>
+#include <iscore_plugin_network.hpp>
 #include <NetworkApplicationPlugin.hpp>
 #include <settings_impl/NetworkSettings.hpp>
 #include <core/application/Application.hpp>
@@ -17,7 +17,7 @@ iscore_plugin_network::iscore_plugin_network() :
 // Interfaces implementations :
 //////////////////////////
 /*
-iscore::SettingsDelegateFactoryInterface* NetworkPlugin::settings_make()
+iscore::SettingsDelegateFactoryInterface* iscore_plugin_network::settings_make()
 {
     return new NetworkSettings;
 }

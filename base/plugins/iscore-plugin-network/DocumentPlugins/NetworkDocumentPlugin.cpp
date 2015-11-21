@@ -77,7 +77,7 @@ class ScenarioFindEventVisitor
         }
 };
 
-NetworkDocumentPlugin::NetworkDocumentPlugin(NetworkPluginPolicy *policy,
+NetworkDocumentPlugin::NetworkDocumentPlugin(iscore_plugin_networkPolicy *policy,
                                              iscore::Document& doc):
     iscore::DocumentDelegatePluginModel{doc, "NetworkDocumentPlugin", &doc.model()},
     m_policy{policy},
@@ -142,7 +142,7 @@ void NetworkDocumentPlugin::serialize(const VisitorVariant & vis) const
     serialize_dyn(vis, *this);
 }
 
-void NetworkDocumentPlugin::setPolicy(NetworkPluginPolicy * pol)
+void NetworkDocumentPlugin::setPolicy(iscore_plugin_networkPolicy * pol)
 {
     delete m_policy;
     m_policy = pol;

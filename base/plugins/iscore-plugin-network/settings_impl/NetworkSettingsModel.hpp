@@ -8,9 +8,9 @@ namespace iscore
     class SettingsDelegatePresenterInterface;
 }
 // TODO find a better way...
-#define SETTINGS_CLIENTPORT "NetworkPlugin/ClientPort"
-#define SETTINGS_MASTERPORT "NetworkPlugin/MasterPort"
-#define SETTINGS_CLIENTNAME "NetworkPlugin/ClientName"
+#define SETTINGS_CLIENTPORT "iscore_plugin_network/ClientPort"
+#define SETTINGS_MASTERPORT "iscore_plugin_network/MasterPort"
+#define SETTINGS_CLIENTNAME "iscore_plugin_network/ClientName"
 
 class NetworkSettingsModel : public iscore::SettingsDelegateModelInterface
 {

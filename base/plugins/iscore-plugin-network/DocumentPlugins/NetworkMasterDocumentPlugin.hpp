@@ -7,7 +7,7 @@ namespace iscore
     class CommandStack;
     class ObjectLocker;
 }
-class MasterNetworkPolicy : public NetworkPluginPolicy
+class MasterNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:
         MasterNetworkPolicy(MasterSession* s,

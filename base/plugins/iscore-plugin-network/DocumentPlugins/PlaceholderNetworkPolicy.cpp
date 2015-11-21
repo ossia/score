@@ -4,7 +4,7 @@
 #include <iscore/serialization/JSONVisitor.hpp>
 
 template<>
-void Visitor<Reader<DataStream>>::readFrom(const NetworkPluginPolicy& elt)
+void Visitor<Reader<DataStream>>::readFrom(const iscore_plugin_networkPolicy& elt)
 {
     m_stream << elt.session()->id();
     readFrom(static_cast<Client&>(elt.session()->localClient()));
@@ -19,7 +19,7 @@ void Visitor<Reader<DataStream>>::readFrom(const NetworkPluginPolicy& elt)
 }
 
 template<>
-void Visitor<Reader<JSONObject>>::readFrom(const NetworkPluginPolicy& elt)
+void Visitor<Reader<JSONObject>>::readFrom(const iscore_plugin_networkPolicy& elt)
 {
     m_obj["SessionId"] = toJsonValue(elt.session()->id());
     m_obj["LocalClient"] = toJsonObject(static_cast<Client&>(elt.session()->localClient()));

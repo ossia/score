@@ -1,4 +1,4 @@
-#include <Scenario/ScenarioPlugin.hpp>
+#include <Scenario/iscore_plugin_scenario.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>

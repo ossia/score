@@ -2,7 +2,7 @@
 #include "NetworkDocumentPlugin.hpp"
 
 #include <Repartition/session/ClientSession.hpp>
-class ClientNetworkPolicy : public NetworkPluginPolicy
+class ClientNetworkPolicy : public iscore_plugin_networkPolicy
 {
     public:
         ClientNetworkPolicy(ClientSession* s, iscore::Document* doc);
