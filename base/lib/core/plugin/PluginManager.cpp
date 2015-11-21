@@ -123,7 +123,7 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
 #endif
 
     // Here, it is important not to collapse all the for-loops
-    // because for instance a control from plugin B might require the factory
+    // because for instance a ApplicationPlugin from plugin B might require the factory
     // from plugin A to be loaded prior.
     // Load all the factories.
     for(QObject* plugin : m_availablePlugins)
@@ -140,8 +140,7 @@ void PluginLoader::reloadPlugins(iscore::ApplicationRegistrar& registrar)
         }
     }
 
-    // Load all the plug-in controls (because all controls need to be initialized for the
-    // factories to work, generally).
+    // Load all the application context plugins.
     // We have to order them according to their dependencies
     PluginDependencyGraph graph;
     for(QObject* plugin : m_availablePlugins)

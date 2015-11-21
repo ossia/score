@@ -13,7 +13,7 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
-#include <core/undo/UndoControl.hpp>
+#include <core/undo/UndoApplicationPlugin.hpp>
 
 
 #include "iscore_git_info.hpp"

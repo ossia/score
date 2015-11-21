@@ -1,4 +1,4 @@
-#include "UndoControl.hpp"
+#include "UndoApplicationPlugin.hpp"
 #include <core/document/DocumentPresenter.hpp>
 
 iscore::UndoApplicationPlugin::UndoApplicationPlugin(iscore::Application& app, QObject* parent):

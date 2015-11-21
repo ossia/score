@@ -6,7 +6,7 @@
 #include <core/view/View.hpp>
 
 #include <core/undo/Panel/UndoPanelFactory.hpp>
-#include <core/undo/UndoControl.hpp>
+#include <core/undo/UndoApplicationPlugin.hpp>
 #include <QSplashScreen>
 #include <QFontDatabase>
 #include <core/document/DocumentBackups.hpp>

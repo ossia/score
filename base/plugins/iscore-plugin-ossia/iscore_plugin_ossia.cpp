@@ -1,5 +1,5 @@
 #include "iscore_plugin_ossia.hpp"
-#include "OSSIAControl.hpp"
+#include "OSSIAApplicationPlugin.hpp"
 
 #include <Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <Protocols/Minuit/MinuitProtocolFactory.hpp>

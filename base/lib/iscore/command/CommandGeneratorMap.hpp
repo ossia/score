@@ -8,8 +8,8 @@
  * This file contains utility classes to instantiate commands
  * when they are received from the network.
  *
- * Examples to use it can be seen in the curve plugin's AutomationControl (small)
- * and in ScenarioControl (big).
+ * Examples to use it can be seen in the curve plugin's AutomationApplicationPlugin (small)
+ * and in ScenarioApplicationPlugin (big).
  *
  * It involves putting the list of the command classes in a boost::mpl::list.
  * For each command, a factory will be generated and stored in a map with
@@ -53,29 +53,6 @@ class GenericCommandFactory : public CommandFactory
  * A map between command names and corresponding factories.
  */
 using CommandGeneratorMap = std::unordered_map<CommandFactoryKey, std::unique_ptr<CommandFactory>>;
-
-/**
- * @brief The CommandGeneratorMapInserter struct
- *
- * A functor that will instantiate all the command factories when passed to
- * a boost::mpl::for_each.
- */
-
-struct [[deprecated]] CommandGeneratorMapInserter
-{
-        CommandGeneratorMap& fact;
-        template< typename TheCommand > void operator()(boost::type<TheCommand>)
-        {
-            fact.insert(std::pair<const CommandFactoryKey, std::unique_ptr<CommandFactory>>{
-                                TheCommand::static_key(),
-                                std::unique_ptr<CommandFactory>(new GenericCommandFactory<TheCommand>)
-                        }
-            );
-        }
-};
-
-
-
 
 
 // Courtesy of Daniel J-H

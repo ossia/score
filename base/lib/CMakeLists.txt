@@ -97,7 +97,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp"
 
 )

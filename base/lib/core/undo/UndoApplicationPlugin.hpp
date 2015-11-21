@@ -5,7 +5,7 @@
 namespace iscore
 {
 /**
- * @brief The UndoControl class
+ * @brief The UndoApplicationPlugin class
  *
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.

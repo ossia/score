@@ -30,7 +30,7 @@
  * is used, to have a file that includes NotifyingMap_impl.hpp
  * and calls NotifyingMapInstantiations_T for NotifyinMap<Blob>.
  *
- * An example can be seen in ScenarioControl.
+ * An example can be seen in ScenarioApplicationPlugin.
  *
  */
 template<typename T>

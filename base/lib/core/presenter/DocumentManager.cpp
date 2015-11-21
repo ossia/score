@@ -44,8 +44,8 @@ DocumentManager::~DocumentManager()
     QSettings settings("OSSIA", "i-score");
     settings.setValue("RecentFiles", m_recentFiles->saveState());
 
-    // The documents have to be deleted before the plug-in controls.
-    // This is because the Local device has to be deleted last in OSSIAControl.
+    // The documents have to be deleted before the application context plug-ins.
+    // This is because the Local device has to be deleted last in OSSIAApplicationPlugin.
     for(auto document : m_documents)
     {
         delete document;

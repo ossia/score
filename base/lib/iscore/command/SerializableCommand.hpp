@@ -9,7 +9,7 @@ using CommandParentFactoryKey = StringKey<CommandParentTag>;
 
 /**
  * This macro is used to specify the common metadata of commands :
- *  - factory name (e.g. "ScenarioControl")
+ *  - factory name (e.g. "ScenarioApplicationPlugin")
  *  - command name
  *  - command description
  */
