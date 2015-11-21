@@ -3,7 +3,6 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 
-class MappingControl;
 class iscore_plugin_mapping:
         public QObject,
         public iscore::FactoryInterface_QtInterface,

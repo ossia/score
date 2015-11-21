@@ -3,7 +3,6 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 
-class InspectorControl;
 class iscore_plugin_inspector :
     public QObject,
     public iscore::PanelFactory_QtInterface,

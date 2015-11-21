@@ -5,7 +5,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentContext.hpp>
-#include "NetworkControl.hpp"
+#include "NetworkApplicationPlugin.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 
 MasterNetworkPolicy::MasterNetworkPolicy(MasterSession* s,

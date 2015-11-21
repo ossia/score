@@ -1,4 +1,4 @@
-#include "IScoreCohesionControl.hpp"
+#include "IScoreCohesionApplicationPlugin.hpp"
 
 #include "Record/RecordManager.hpp"
 
@@ -12,20 +12,20 @@
 #include <QToolBar>
 
 IScoreCohesionApplicationPlugin::IScoreCohesionApplicationPlugin(iscore::Application& app) :
-    iscore::GUIApplicationContextPlugin {app, "IScoreCohesionControl", nullptr}
+    iscore::GUIApplicationContextPlugin {app, "IScoreCohesionApplicationPlugin", nullptr}
 {
     // Since we have declared the dependency, we can assume
     // that ScenarioApplicationPlugin is instantiated already.
 
     iscore::ApplicationContext ctx{app};
-    auto& control = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
-    connect(&control, &ScenarioApplicationPlugin::startRecording,
+    auto& appPlugin = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
+    connect(&appPlugin, &ScenarioApplicationPlugin::startRecording,
             this, &IScoreCohesionApplicationPlugin::record);
-    connect(&control, &ScenarioApplicationPlugin::stopRecording, // TODO this seems useless
+    connect(&appPlugin, &ScenarioApplicationPlugin::stopRecording, // TODO this seems useless
             this, &IScoreCohesionApplicationPlugin::stopRecord);
 
 
-    auto acts = control.actions();
+    auto acts = appPlugin.actions();
     for(const auto& act : acts)
     {
         if(act->objectName() == "Stop")

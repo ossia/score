@@ -30,7 +30,7 @@ class iscore_plugin_deviceexplorer final :
         // Factory for protocols
         std::vector<iscore::FactoryListInterface*> factoryFamilies() override;
 
-        // Control
+        // application plugin
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;
 
         std::pair<const CommandParentFactoryKey, CommandGeneratorMap> make_commands() override;

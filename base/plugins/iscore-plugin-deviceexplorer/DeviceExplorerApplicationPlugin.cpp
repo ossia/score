@@ -1,4 +1,4 @@
-#include "DeviceExplorerControl.hpp"
+#include "DeviceExplorerApplicationPlugin.hpp"
 
 #include <iscore/command/CommandGeneratorMap.hpp>
 #include <iscore/command/SerializableCommand.hpp>
@@ -7,18 +7,18 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 
-DeviceExplorerControl::DeviceExplorerControl(iscore::Application& app) :
-    GUIApplicationContextPlugin {app, "DeviceExplorerControl", nullptr}
+DeviceExplorerApplicationPlugin::DeviceExplorerApplicationPlugin(iscore::Application& app) :
+    GUIApplicationContextPlugin {app, "DeviceExplorerApplicationPlugin", nullptr}
 {
 
 }
 
-void DeviceExplorerControl::on_newDocument(iscore::Document* doc)
+void DeviceExplorerApplicationPlugin::on_newDocument(iscore::Document* doc)
 {
     doc->model().addPluginModel(new DeviceDocumentPlugin{*doc, &doc->model()});
 }
 
-iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
+iscore::DocumentDelegatePluginModel* DeviceExplorerApplicationPlugin::loadDocumentPlugin(
         const QString &name,
         const VisitorVariant &var,
         iscore::Document* doc)
@@ -30,7 +30,7 @@ iscore::DocumentDelegatePluginModel* DeviceExplorerControl::loadDocumentPlugin(
     return plug;
 }
 
-void DeviceExplorerControl::on_documentChanged(
+void DeviceExplorerApplicationPlugin::on_documentChanged(
         iscore::Document* olddoc,
         iscore::Document* newdoc)
 {

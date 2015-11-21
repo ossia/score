@@ -1,10 +1,10 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
-class DeviceExplorerControl final : public iscore::GUIApplicationContextPlugin
+class DeviceExplorerApplicationPlugin final : public iscore::GUIApplicationContextPlugin
 {
     public:
-        DeviceExplorerControl(iscore::Application& app);
+        DeviceExplorerApplicationPlugin(iscore::Application& app);
 
         virtual iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
                 const QString& name,

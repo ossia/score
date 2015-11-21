@@ -36,7 +36,7 @@ class iscore_plugin_scenario final :
         // Docpanel interface
         std::vector<iscore::DocumentDelegateFactoryInterface*> documents() override;
 
-        // Plugin control interface
+        // Application plugin interface
         iscore::GUIApplicationContextPlugin* make_applicationPlugin(iscore::Application& app) override;
 
         // NOTE : implementation is in CommandNames.cpp

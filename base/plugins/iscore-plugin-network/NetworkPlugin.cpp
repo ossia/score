@@ -1,5 +1,5 @@
 #include <NetworkPlugin.hpp>
-#include <NetworkControl.hpp>
+#include <NetworkApplicationPlugin.hpp>
 #include <settings_impl/NetworkSettings.hpp>
 #include <core/application/Application.hpp>
 #include "DistributedScenario/Panel/GroupPanelFactory.hpp"

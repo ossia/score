@@ -1,7 +1,7 @@
 #include "iscore_plugin_deviceexplorer.hpp"
 #include <Explorer/DeviceExplorerPanelFactory.hpp>
 using namespace iscore;
-#include "DeviceExplorerControl.hpp"
+#include "DeviceExplorerApplicationPlugin.hpp"
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 
@@ -29,7 +29,7 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_deviceexplorer::factory
 GUIApplicationContextPlugin *iscore_plugin_deviceexplorer::make_applicationPlugin(
         iscore::Application& app)
 {
-    return new DeviceExplorerControl{app};
+    return new DeviceExplorerApplicationPlugin{app};
 }
 
 

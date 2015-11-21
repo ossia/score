@@ -1,5 +1,5 @@
 #include "iscore_plugin_cohesion.hpp"
-#include "IScoreCohesionControl.hpp"
+#include "IScoreCohesionApplicationPlugin.hpp"
 
 #include <iscore_plugin_cohesion_commands_files.hpp>
 

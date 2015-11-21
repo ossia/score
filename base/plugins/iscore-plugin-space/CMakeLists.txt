@@ -59,7 +59,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/AddArea.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/Commands/SpaceCommandFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceControl.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/src/SpaceApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/src/iscore_plugin_space.cpp"
 )
 

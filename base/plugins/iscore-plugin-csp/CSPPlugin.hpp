@@ -23,7 +23,7 @@ class iscore_plugin_csp:
         iscore_plugin_csp();
         virtual ~iscore_plugin_csp() = default;
 
-        iscore::GUIApplicationContextPlugin* make_control(iscore::Presenter* pres) override;
+        iscore::GUIApplicationContextPlugin* make_applicationplugin(iscore::Presenter* pres) override;
 
         QVector<iscore::FactoryInterface*> factories(const QString& factoryName) override;
 };

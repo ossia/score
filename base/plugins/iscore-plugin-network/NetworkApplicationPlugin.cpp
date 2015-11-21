@@ -1,4 +1,4 @@
-#include "NetworkControl.hpp"
+#include "NetworkApplicationPlugin.hpp"
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentModel.hpp>
 
@@ -20,7 +20,7 @@
 using namespace iscore;
 
 NetworkApplicationPlugin::NetworkApplicationPlugin(iscore::Application& app) :
-    GUIApplicationContextPlugin {app, "NetworkControl", nullptr}
+    GUIApplicationContextPlugin {app, "NetworkApplicationPlugin", nullptr}
 {
 #ifdef USE_ZEROCONF
     m_zeroconfBrowser = new ZeroconfBrowser{"_iscore._tcp", qApp->activeWindow()};

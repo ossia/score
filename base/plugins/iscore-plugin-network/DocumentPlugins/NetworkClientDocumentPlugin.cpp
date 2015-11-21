@@ -5,7 +5,7 @@
 #include <Serialization/MessageMapper.hpp>
 
 #include <core/document/DocumentPresenter.hpp>
-#include "NetworkControl.hpp"
+#include "NetworkApplicationPlugin.hpp"
 #include "settings_impl/NetworkSettingsModel.hpp"
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentContext.hpp>

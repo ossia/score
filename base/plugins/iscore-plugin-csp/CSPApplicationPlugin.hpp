@@ -1,11 +1,11 @@
 #pragma once
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
-class CSPControl : public iscore::GUIApplicationContextPlugin
+class CSPApplicationPlugin : public iscore::GUIApplicationContextPlugin
 {
     public:
-        CSPControl(iscore::Presenter* pres);
-        ~CSPControl() = default;
+        CSPApplicationPlugin(iscore::Presenter* pres);
+        ~CSPApplicationPlugin() = default;
 
 
         iscore::DocumentDelegatePluginModel* loadDocumentPlugin(
