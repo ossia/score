@@ -41,6 +41,8 @@ class Document final : public NamedObject
 
         DocumentContext& context()
         { return m_context; }
+        const DocumentContext& context() const
+        { return m_context; }
 
         DocumentModel& model() const
         { return *m_model; }

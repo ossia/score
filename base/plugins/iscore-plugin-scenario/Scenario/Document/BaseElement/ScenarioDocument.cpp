@@ -10,9 +10,10 @@
 #include <iscore/serialization/VisitorCommon.hpp>
 iscore::DocumentDelegateViewInterface*
 ScenarioDocument::makeView(
+        const iscore::ApplicationContext& ctx,
         iscore::DocumentView* parent)
 {
-    return new BaseElementView {parent};
+    return new BaseElementView {ctx, parent};
 }
 
 iscore::DocumentDelegatePresenterInterface*

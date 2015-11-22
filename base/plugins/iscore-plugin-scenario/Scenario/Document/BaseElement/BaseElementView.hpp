@@ -11,13 +11,18 @@ class DoubleSlider;
 class TimeRulerView;
 class LocalTimeRulerView;
 class TimeRuler2;
-
+namespace iscore
+{
+struct ApplicationContext;
+}
 class BaseElementView final : public iscore::DocumentDelegateViewInterface
 {
         Q_OBJECT
 
     public:
-        BaseElementView(QObject* parent);
+        BaseElementView(
+                const iscore::ApplicationContext& ctx,
+                QObject* parent);
         virtual ~BaseElementView() = default;
 
         QWidget* getWidget() override;

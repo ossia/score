@@ -10,8 +10,6 @@
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <QGraphicsScene>
 namespace Scenario
 {

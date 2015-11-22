@@ -10,6 +10,7 @@ namespace iscore
     class DocumentPresenter;
     class DocumentModel;
     class DocumentView;
+    struct ApplicationContext;
 
     /**
      * @brief The DocumentDelegateFactoryInterface class
@@ -21,6 +22,7 @@ namespace iscore
         public:
             virtual ~DocumentDelegateFactoryInterface();
             virtual DocumentDelegateViewInterface* makeView(
+                    const iscore::ApplicationContext& ctx,
                     DocumentView* parent) = 0;
             virtual DocumentDelegatePresenterInterface* makePresenter(
                     DocumentPresenter* parent_presenter,

@@ -25,7 +25,9 @@
 #include <QAction>
 #include <QMimeData>
 #include <QClipboard>
-BaseElementView::BaseElementView(QObject* parent) :
+BaseElementView::BaseElementView(
+        const iscore::ApplicationContext& ctx,
+        QObject* parent) :
     iscore::DocumentDelegateViewInterface {parent},
     m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
@@ -91,7 +93,6 @@ BaseElementView::BaseElementView(QObject* parent) :
     // See : http://stackoverflow.com/questions/21363350/remove-gradient-from-qtoolbar-in-os-x
     transportButtons->setStyle(QStyleFactory::create("windows"));
 
-    iscore::ApplicationContext ctx{iscore::Application::instance()};
     auto& appPlug = ctx.components.applicationPlugin<ScenarioApplicationPlugin>();
     for(const auto& action : appPlug.pluginActions())
     {

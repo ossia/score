@@ -6,6 +6,7 @@ class ScenarioDocument final : public iscore::DocumentDelegateFactoryInterface
 {
     public:
         iscore::DocumentDelegateViewInterface* makeView(
+                const iscore::ApplicationContext& ctx,
                 iscore::DocumentView* parent) override;
 
         iscore::DocumentDelegatePresenterInterface* makePresenter(
