@@ -42,6 +42,8 @@ class BaseElementModel final : public iscore::DocumentDelegateModelInterface
 
         ProcessFocusManager& focusManager()
         { return m_focusManager; }
+        const ProcessFocusManager& focusManager() const
+        { return m_focusManager; }
 
         void setDisplayedConstraint(const ConstraintModel& constraint);
 

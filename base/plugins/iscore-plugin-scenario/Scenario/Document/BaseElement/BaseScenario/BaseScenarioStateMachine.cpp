@@ -8,7 +8,7 @@
 #include <core/document/Document.hpp>
 
 BaseScenarioStateMachine::BaseScenarioStateMachine(BaseElementPresenter* pres):
-    BaseStateMachine{*pres->view()->scene()},
+    BaseStateMachine{*pres->view().scene()},
     m_presenter{pres}
 {
     connect(m_presenter, &BaseElementPresenter::displayedConstraintPressed,
@@ -33,7 +33,7 @@ BaseScenarioStateMachine::BaseScenarioStateMachine(BaseElementPresenter* pres):
     });
     // TODO cancel
 
-    auto moveSlotState = new BaseMoveSlot(*m_presenter->view()->scene(),
+    auto moveSlotState = new BaseMoveSlot(*m_presenter->view().scene(),
                                            iscore::IDocument::commandStack(m_presenter->model()),
                                            *this);
     setInitialState(moveSlotState);

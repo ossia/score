@@ -9,15 +9,17 @@
 
 #include <iscore/serialization/VisitorCommon.hpp>
 iscore::DocumentDelegateViewInterface*
-ScenarioDocument::makeView(iscore::DocumentView* parent)
+ScenarioDocument::makeView(
+        iscore::DocumentView* parent)
 {
     return new BaseElementView {parent};
 }
 
 iscore::DocumentDelegatePresenterInterface*
-ScenarioDocument::makePresenter(iscore::DocumentPresenter* parent_presenter,
-                                iscore::DocumentDelegateModelInterface* model,
-                                iscore::DocumentDelegateViewInterface* view)
+ScenarioDocument::makePresenter(
+        iscore::DocumentPresenter* parent_presenter,
+        const iscore::DocumentDelegateModelInterface& model,
+        iscore::DocumentDelegateViewInterface& view)
 {
     return new BaseElementPresenter {parent_presenter, model, view};
 }
@@ -28,7 +30,9 @@ ScenarioDocument::makeModel(iscore::DocumentModel* parent)
     return new BaseElementModel {parent};
 }
 
-iscore::DocumentDelegateModelInterface* ScenarioDocument::loadModel(const VisitorVariant& vis, iscore::DocumentModel* parent)
+iscore::DocumentDelegateModelInterface* ScenarioDocument::loadModel(
+        const VisitorVariant& vis,
+        iscore::DocumentModel* parent)
 {
 
     return deserialize_dyn(vis, [&] (auto&& deserializer)

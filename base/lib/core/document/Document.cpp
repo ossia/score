@@ -48,8 +48,8 @@ Document::Document(
     allocator.construct(m_model, id, factory, this);
     m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
-            m_model,
-            m_view,
+            *m_model,
+            *m_view,
             this};
 
     init();

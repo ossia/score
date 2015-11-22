@@ -35,16 +35,16 @@ class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInter
     friend class DisplayedElementsPresenter;
     public:
         BaseElementPresenter(iscore::DocumentPresenter* parent_presenter,
-                             iscore::DocumentDelegateModelInterface* model,
-                             iscore::DocumentDelegateViewInterface* view);
+                             const iscore::DocumentDelegateModelInterface& model,
+                             iscore::DocumentDelegateViewInterface& view);
         virtual ~BaseElementPresenter() = default;
 
         const ConstraintModel& displayedConstraint() const;
         const DisplayedElementsPresenter& presenters() const
         { return *m_scenarioPresenter; }
 
-        BaseElementModel& model() const;
-        BaseElementView* view() const;
+        const BaseElementModel& model() const;
+        BaseElementView& view() const;
 
         // The height in pixels of the displayed constraint with its rack.
         //double height() const;
@@ -54,6 +54,8 @@ class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInter
         void displayedConstraintPressed(const QPointF&);
         void displayedConstraintMoved(const QPointF&);
         void displayedConstraintReleased(const QPointF&);
+
+        void requestDisplayedConstraintChange(const ConstraintModel&);
 
     public slots:
         void setDisplayedObject(const ObjectPath&);

@@ -85,7 +85,7 @@ OSSIAApplicationPlugin::OSSIAApplicationPlugin(iscore::Application& app):
         on_play(true, t);
     });
 
-    con(iscore::Application::instance(), &iscore::Application::autoplay,
+    con(app, &iscore::Application::autoplay,
         this, [&] () { on_play(true); });
 }
 

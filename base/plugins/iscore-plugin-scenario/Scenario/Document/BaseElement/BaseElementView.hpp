@@ -30,8 +30,8 @@ class BaseElementView final : public iscore::DocumentDelegateViewInterface
         QGraphicsScene* scene() const
         { return m_scene;}
 
-        ScenarioBaseGraphicsView* view() const
-        { return m_view;}
+        ScenarioBaseGraphicsView& view() const
+        { return *m_view;}
 
         QGraphicsView* rulerView() const
         { return m_timeRulersView;}

@@ -25,7 +25,7 @@ QByteArray Document::saveDocumentModelAsByteArray()
     QByteArray arr;
     Serializer<DataStream> s{&arr};
     s.readFrom(model().id());
-    m_model->modelDelegate()->serialize(s.toVariant());
+    m_model->modelDelegate().serialize(s.toVariant());
     return arr;
 }
 
@@ -33,7 +33,7 @@ QJsonObject Document::saveDocumentModelAsJson()
 {
     Serializer<JSONObject> s;
     s.m_obj["DocumentId"] = toJsonValue(model().id());
-    m_model->modelDelegate()->serialize(s.toVariant());
+    m_model->modelDelegate().serialize(s.toVariant());
     return s.m_obj;
 }
 
@@ -116,8 +116,8 @@ Document::Document(const QVariant& data,
 
     m_view = new DocumentView{factory, *this, parentview};
     m_presenter = new DocumentPresenter{factory,
-                    m_model,
-                    m_view,
+                    *m_model,
+                    *m_view,
                     this};
     init();
 }

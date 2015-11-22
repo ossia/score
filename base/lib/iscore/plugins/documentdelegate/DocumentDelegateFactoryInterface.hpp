@@ -24,8 +24,8 @@ namespace iscore
                     DocumentView* parent) = 0;
             virtual DocumentDelegatePresenterInterface* makePresenter(
                     DocumentPresenter* parent_presenter,
-                    DocumentDelegateModelInterface* model,
-                    DocumentDelegateViewInterface* view) = 0;
+                    const DocumentDelegateModelInterface& model,
+                    DocumentDelegateViewInterface& view) = 0;
 
             virtual DocumentDelegateModelInterface* makeModel(
                     DocumentModel* parent) = 0;

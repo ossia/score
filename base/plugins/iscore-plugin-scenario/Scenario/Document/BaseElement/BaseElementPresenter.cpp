@@ -27,9 +27,9 @@
 
 using namespace iscore;
 
-BaseElementModel& BaseElementPresenter::model() const
+const BaseElementModel& BaseElementPresenter::model() const
 {
-    return static_cast<BaseElementModel&>(*m_model);
+    return static_cast<const BaseElementModel&>(m_model);
 }
 
 ZoomRatio BaseElementPresenter::zoomRatio() const
@@ -37,41 +37,45 @@ ZoomRatio BaseElementPresenter::zoomRatio() const
     return m_zoomRatio;
 }
 
-BaseElementView* BaseElementPresenter::view() const
+BaseElementView& BaseElementPresenter::view() const
 {
-    return static_cast<BaseElementView*>(m_view);
+    return static_cast<BaseElementView&>(m_view);
 }
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
-                                           DocumentDelegateModelInterface* delegate_model,
-                                           DocumentDelegateViewInterface* delegate_view) :
+                                           const DocumentDelegateModelInterface& delegate_model,
+                                           DocumentDelegateViewInterface& delegate_view) :
     DocumentDelegatePresenterInterface {parent_presenter,
                                         "BaseElementPresenter",
                                         delegate_model,
                                         delegate_view},
     m_scenarioPresenter{new DisplayedElementsPresenter{this}},
     m_selectionDispatcher{IDocument::documentFromObject(model())->selectionStack()},
-    m_mainTimeRuler{new TimeRulerPresenter{view()->timeRuler(), this}}
+    m_mainTimeRuler{new TimeRulerPresenter{view().timeRuler(), this}}
 {
     // Setup the connections
     con((m_selectionDispatcher.stack()), &SelectionStack::currentSelectionChanged,
-            this,                             &BaseElementPresenter::on_newSelection);
-    connect(view(), &BaseElementView::horizontalZoomChanged,
-            this,   &BaseElementPresenter::on_zoomSliderChanged);
-    connect(view()->view(), &ScenarioBaseGraphicsView::sizeChanged,
-            this,           &BaseElementPresenter::on_viewSizeChanged);
-    connect(view()->view(), &ScenarioBaseGraphicsView::zoom,
-            this,  &BaseElementPresenter::on_zoomOnWheelEvent);
-    connect(view(), &BaseElementView::horizontalPositionChanged,
-            this,   &BaseElementPresenter::on_horizontalPositionChanged);
+        this,                            &BaseElementPresenter::on_newSelection);
+    con(view(), &BaseElementView::horizontalZoomChanged,
+        this,   &BaseElementPresenter::on_zoomSliderChanged);
+    con(view().view(), &ScenarioBaseGraphicsView::sizeChanged,
+        this,          &BaseElementPresenter::on_viewSizeChanged);
+    con(view().view(), &ScenarioBaseGraphicsView::zoom,
+        this,          &BaseElementPresenter::on_zoomOnWheelEvent);
+    con(view(), &BaseElementView::horizontalPositionChanged,
+        this,   &BaseElementPresenter::on_horizontalPositionChanged);
+
+    connect(this, &BaseElementPresenter::requestDisplayedConstraintChange,
+            &model(), &BaseElementModel::setDisplayedConstraint);
+    connect(m_scenarioPresenter, &DisplayedElementsPresenter::requestFocusedPresenterChange,
+            &model().focusManager(), &ProcessFocusManager::setFocusedPresenter);
+
     con(model(), &BaseElementModel::focusMe,
-            this,    [&] () { view()->view()->setFocus(); });
+        this,    [&] () { view().view().setFocus(); });
 
     connect(m_mainTimeRuler->view(), &TimeRulerView::drag,
             this, [&] (QPointF click, QPointF current) {
-
         on_zoomOnWheelEvent((current - click).toPoint(), current);
-
     });
     // Setup of the state machine.
     m_stateMachine = new BaseScenarioStateMachine{this};
@@ -80,7 +84,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
     con(model(), &BaseElementModel::displayedConstraintChanged,
         this, &BaseElementPresenter::on_displayedConstraintChanged);
 
-    model().setDisplayedConstraint(model().baseConstraint());
+    emit requestDisplayedConstraintChange(model().baseConstraint());
 }
 
 const ConstraintModel& BaseElementPresenter::displayedConstraint() const
@@ -90,7 +94,7 @@ const ConstraintModel& BaseElementPresenter::displayedConstraint() const
 
 void BaseElementPresenter::on_askUpdate()
 {
-    view()->update();
+    view().update();
 }
 
 void BaseElementPresenter::selectAll()
@@ -111,7 +115,7 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 {
     if(path.vec().back().objectName().contains("ConstraintModel")) // Constraint & BaseConstraint
     {
-        model().setDisplayedConstraint(path.find<ConstraintModel>());
+        emit requestDisplayedConstraintChange(path.find<ConstraintModel>());
     }
 }
 
@@ -128,9 +132,9 @@ void BaseElementPresenter::on_displayedConstraintChanged()
     double newSliderPos = ZoomPolicy::zoomRatioToSliderPos(
                               newZoom,
                               displayedConstraint().duration.defaultDuration().msec(),
-                              view()->view()->width()
+                              view().view().width()
                               );
-    view()->zoomSlider()->setValue(newSliderPos);
+    view().zoomSlider()->setValue(newSliderPos);
     setMillisPerPixel(newZoom);
 
     on_askUpdate();
@@ -153,7 +157,7 @@ void BaseElementPresenter::on_zoomSliderChanged(double sliderPos)
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
                                sliderPos,
                                displayedConstraint().duration.defaultDuration().msec(),
-                               view()->view()->width()
+                               view().view().width()
                                );
 
     updateZoom(newMillisPerPix, QPointF(0,0));
@@ -164,20 +168,20 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
     // convert the mouse displacement into a fake slider move
 
     double zoomSpeed = 1.5; // experiment value
-    double newSliderPos = (view()->zoomSlider()->value() +
-                        zoomSpeed * float(zoom.y())/float(view()->zoomSlider()->width()));
+    double newSliderPos = (view().zoomSlider()->value() +
+                           zoomSpeed * float(zoom.y())/float(view().zoomSlider()->width()));
 
     if (newSliderPos > 1.)
         newSliderPos = 0.99;
     else if(newSliderPos < 0.)
         newSliderPos = 0.01;
 
-    view()->zoomSlider()->setValue(newSliderPos);
+    view().zoomSlider()->setValue(newSliderPos);
 
     auto newMillisPerPix = ZoomPolicy::sliderPosToZoomRatio(
                                newSliderPos,
                                displayedConstraint().duration.defaultDuration().msec(),
-                               view()->view()->width()
+                               view().view().width()
                                );
 
     updateZoom(newMillisPerPix, center);
@@ -187,9 +191,9 @@ void BaseElementPresenter::on_zoomOnWheelEvent(QPoint zoom, QPointF center)
 void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 {
     auto zoom = ZoomPolicy::sliderPosToZoomRatio(
-                                                view()->zoomSlider()->value(),
-                                                displayedConstraint().duration.defaultDuration().msec(),
-                                                view()->view()->width());
+                    view().zoomSlider()->value(),
+                    displayedConstraint().duration.defaultDuration().msec(),
+                    view().view().width());
 
     m_mainTimeRuler->view()->setWidth(s.width());
     updateZoom(zoom, {0,0});
@@ -197,29 +201,29 @@ void BaseElementPresenter::on_viewSizeChanged(const QSize &s)
 
 void BaseElementPresenter::on_horizontalPositionChanged(int dx)
 {
-    QRect viewport_rect = view()->view()->viewport()->rect() ;
-    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+    QRect viewport_rect = view().view().viewport()->rect() ;
+    QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
 
     m_mainTimeRuler->setStartPoint(TimeValue::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
 }
 
 void BaseElementPresenter::updateRect(const QRectF& rect)
 {
-    view()->view()->setSceneRect(rect);
+    view().view().setSceneRect(rect);
 }
 
 void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 {
-    auto w = view()->view()->viewport()->width();
-    auto h = view()->view()->viewport()->height();
+    auto w = view().view().viewport()->width();
+    auto h = view().view().viewport()->height();
 
-    QRect viewport_rect = view()->view()->viewport()->rect() ;
-    QRectF visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+    QRect viewport_rect = view().view().viewport()->rect() ;
+    QRectF visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
 
     qreal center = focus.x();
     if (focus.isNull())
     {
-     //   center = visible_scene_rect.center().x();
+        //   center = visible_scene_rect.center().x();
     }
     else if (focus.x() - visible_scene_rect.left() < 40)
     {
@@ -245,9 +249,9 @@ void BaseElementPresenter::updateZoom(ZoomRatio newZoom, QPointF focus)
 
     auto newView = QRectF{x, y,(qreal)w, (qreal)h};
 
-    view()->view()->ensureVisible(newView,0,0);
+    view().view().ensureVisible(newView,0,0);
 
-    QRectF new_visible_scene_rect = view()->view()->mapToScene(viewport_rect).boundingRect();
+    QRectF new_visible_scene_rect = view().view().mapToScene(viewport_rect).boundingRect();
 
     // TODO should call displayedElementsPresenter instead??
     displayedConstraint().fullView()->setZoom(m_zoomRatio);

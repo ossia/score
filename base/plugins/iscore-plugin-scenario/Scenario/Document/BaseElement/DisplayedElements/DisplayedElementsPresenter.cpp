@@ -35,23 +35,23 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(const ConstraintM
 
     m_constraintPresenter = new FullViewConstraintPresenter {
             *m.fullView(),
-            m_parent->view()->baseItem(),
+            m_parent->view().baseItem(),
             m_parent};
 
     // Create states / events
     // TODO this needs to be virtual instead and call ScenarioInterface...
     if(auto bs = dynamic_cast<BaseScenario*>(m.parent()))
     {
-        m_startStatePresenter = new StatePresenter(bs->startState(), m_parent->view()->baseItem(), this);
-        m_endStatePresenter = new StatePresenter(bs->endState(), m_parent->view()->baseItem(), this);
+        m_startStatePresenter = new StatePresenter(bs->startState(), m_parent->view().baseItem(), this);
+        m_endStatePresenter = new StatePresenter(bs->endState(), m_parent->view().baseItem(), this);
 
         con(m_constraintPresenter->model().duration, &ConstraintDurations::defaultDurationChanged,
             this, &DisplayedElementsPresenter::on_displayedConstraintDurationChanged);
     }
     else if(auto sm = dynamic_cast<ScenarioModel*>(m.parent()))
     {
-        m_startStatePresenter = new StatePresenter(sm->states.at(m.startState()), m_parent->view()->baseItem(), this);
-        m_endStatePresenter = new StatePresenter(sm->states.at(m.endState()), m_parent->view()->baseItem(), this);
+        m_startStatePresenter = new StatePresenter(sm->states.at(m.startState()), m_parent->view().baseItem(), this);
+        m_endStatePresenter = new StatePresenter(sm->states.at(m.endState()), m_parent->view().baseItem(), this);
     }
 
     // Manage the selection
@@ -90,8 +90,12 @@ void DisplayedElementsPresenter::showConstraint()
     if(m_constraintPresenter->rack() && !m_constraintPresenter->rack()->getSlots().empty())
     {
         const auto& slot = *m_constraintPresenter->rack()->getSlots().begin();
-        m_parent->model().focusManager().setFocusedPresenter(
-                    slot.processes().front().processes.front().first);
+        if(slot.processes().size() > 0)
+        {
+            const auto& slot_process = slot.processes().front().processes;
+            if(slot_process.size() > 0)
+                emit requestFocusedPresenterChange(slot_process.front().first);
+        }
     }
 }
 

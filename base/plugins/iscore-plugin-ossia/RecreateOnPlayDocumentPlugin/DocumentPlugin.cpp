@@ -26,7 +26,7 @@ DocumentPlugin::DocumentPlugin(iscore::Document& doc, QObject* parent):
 
 void DocumentPlugin::reload(iscore::DocumentModel &doc)
 {
-    auto& baseElement = static_cast<BaseElementModel&>(*doc.modelDelegate()).baseScenario();
+    auto& baseElement = static_cast<BaseElementModel&>(doc.modelDelegate()).baseScenario();
     m_base = new BaseScenarioElement{baseElement, this};
 }
 

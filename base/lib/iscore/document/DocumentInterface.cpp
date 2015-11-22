@@ -47,15 +47,9 @@ iscore::DocumentDelegatePresenterInterface& iscore::IDocument::presenterDelegate
     return *d.presenter().presenterDelegate();
 }
 
-
-iscore::DocumentDelegateModelInterface* iscore::IDocument::try_modelDelegate_generic(const Document& d)
-{
-    return d.model().modelDelegate();
-}
-
 iscore::DocumentDelegateModelInterface& iscore::IDocument::modelDelegate_generic(const Document& d)
 {
-    return *try_modelDelegate_generic(d);
+    return d.model().modelDelegate();
 }
 
 

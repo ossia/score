@@ -76,15 +76,10 @@ T& get(const Document& d)
 }
 
 // And then if we are not
-DocumentDelegateModelInterface* try_modelDelegate_generic(const Document& d);
 
 template<typename T> T* try_modelDelegate(const Document& d)
 {
-    if(auto md = try_modelDelegate_generic(d))
-    {
-        return dynamic_cast<T*>(md);
-    }
-    return nullptr;
+    return dynamic_cast<T*>(&modelDelegate_generic(d));
 }
 
 template<typename T,

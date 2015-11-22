@@ -316,9 +316,9 @@ void ScenarioApplicationPlugin::on_documentChanged(
         }
 
         // Finally we focus the View widget.
-        auto bev = dynamic_cast<BaseElementView*>(newdoc->view().viewDelegate());
+        auto bev = dynamic_cast<BaseElementView*>(&newdoc->view().viewDelegate());
         if(bev)
-            bev->view()->setFocus();
+            bev->view().setFocus();
     }
 }
 
@@ -427,7 +427,7 @@ ProcessFocusManager* ScenarioApplicationPlugin::processFocusManager() const
 {
     if(auto doc = currentDocument())
     {
-        auto bem = dynamic_cast<BaseElementModel*>(doc->model().modelDelegate());
+        auto bem = dynamic_cast<BaseElementModel*>(&doc->model().modelDelegate());
         if(bem)
         {
             return &bem->focusManager();

@@ -12,9 +12,9 @@ class ProcessFocusManager final : public QObject
         Q_OBJECT
 
     public:
-        const Process* focusedModel();
-        const LayerModel* focusedViewModel();
-        LayerPresenter* focusedPresenter();
+        const Process* focusedModel() const;
+        const LayerModel* focusedViewModel() const;
+        LayerPresenter* focusedPresenter() const;
 
     public slots:
         void setFocusedPresenter(LayerPresenter*);

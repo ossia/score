@@ -12,14 +12,14 @@ namespace iscore
         public:
             DocumentDelegatePresenterInterface(DocumentPresenter* parent_presenter,
                                                const QString& object_name,
-                                               DocumentDelegateModelInterface* model,
-                                               DocumentDelegateViewInterface* view);
+                                               const DocumentDelegateModelInterface& model,
+                                               DocumentDelegateViewInterface& view);
 
             virtual ~DocumentDelegatePresenterInterface();
 
         protected:
-            DocumentDelegateModelInterface* m_model;
-            DocumentDelegateViewInterface* m_view;
-            DocumentPresenter* m_parentPresenter;
+            const DocumentDelegateModelInterface& m_model;
+            DocumentDelegateViewInterface& m_view;
+            DocumentPresenter* m_parentPresenter{};
     };
 }

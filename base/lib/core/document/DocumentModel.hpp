@@ -29,9 +29,9 @@ class DocumentModel final : public IdentifiedObject<DocumentModel>
                 DocumentDelegateFactoryInterface* fact,
                 QObject* parent);
 
-        DocumentDelegateModelInterface* modelDelegate() const
+        DocumentDelegateModelInterface& modelDelegate() const
         {
-            return m_model;
+            return *m_model;
         }
 
 

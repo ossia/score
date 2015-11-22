@@ -10,8 +10,8 @@ class ScenarioDocument final : public iscore::DocumentDelegateFactoryInterface
 
         iscore::DocumentDelegatePresenterInterface* makePresenter(
                 iscore::DocumentPresenter* parent_presenter,
-                iscore::DocumentDelegateModelInterface* model,
-                iscore::DocumentDelegateViewInterface* view) override;
+                const iscore::DocumentDelegateModelInterface& model,
+                iscore::DocumentDelegateViewInterface& view) override;
 
         iscore::DocumentDelegateModelInterface* makeModel(
                 iscore::DocumentModel* parent) override;

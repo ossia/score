@@ -92,7 +92,7 @@ NetworkDocumentPlugin::NetworkDocumentPlugin(iscore_plugin_networkPolicy *policy
     groupManager()->addGroup(baseGroup);
 
     // Create it for each constraint / event.
-    BaseElementModel* bem = safe_cast<BaseElementModel*>(doc.model().modelDelegate());
+    BaseElementModel* bem = safe_cast<BaseElementModel*>(&doc.model().modelDelegate());
     {
         ScenarioFindConstraintVisitor v;
         v.visit(bem->baseConstraint());// TODO this doesn't match baseconstraint

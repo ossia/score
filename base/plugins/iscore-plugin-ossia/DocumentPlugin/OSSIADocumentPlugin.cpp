@@ -25,7 +25,7 @@ OSSIADocumentPlugin::OSSIADocumentPlugin(iscore::Document& doc, QObject* parent)
 
 void OSSIADocumentPlugin::reload(iscore::DocumentModel &doc)
 {
-    auto& baseElement = static_cast<BaseElementModel&>(*doc.modelDelegate()).baseScenario();
+    auto& baseElement = static_cast<BaseElementModel&>(doc.modelDelegate()).baseScenario();
     m_base = new OSSIABaseScenarioElement{baseElement, this};
 }
 

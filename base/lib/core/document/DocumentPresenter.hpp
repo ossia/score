@@ -20,8 +20,8 @@ namespace iscore
             Q_OBJECT
         public:
             DocumentPresenter(DocumentDelegateFactoryInterface*,
-                              DocumentModel*,
-                              DocumentView*,
+                              const DocumentModel&,
+                              DocumentView&,
                               QObject* parent);
 
 
@@ -29,8 +29,8 @@ namespace iscore
             { return m_presenter; }
 
 
-            DocumentView* m_view {};
-            DocumentModel* m_model {};
+            DocumentView& m_view;
+            const DocumentModel& m_model;
             DocumentDelegatePresenterInterface* m_presenter {};
     };
 }

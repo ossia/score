@@ -21,8 +21,8 @@ namespace iscore
                          const Document& doc,
                          QWidget* parent);
 
-            DocumentDelegateViewInterface* viewDelegate() const
-            { return m_view; }
+            DocumentDelegateViewInterface& viewDelegate() const
+            { return *m_view; }
 
             void addPanel(PanelView*);
 

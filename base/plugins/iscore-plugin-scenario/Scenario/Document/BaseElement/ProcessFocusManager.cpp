@@ -1,19 +1,19 @@
 #include "ProcessFocusManager.hpp"
 
 
-const Process* ProcessFocusManager::focusedModel()
+const Process* ProcessFocusManager::focusedModel() const
 {
     return m_currentModel;
 }
 
 
-const LayerModel* ProcessFocusManager::focusedViewModel()
+const LayerModel* ProcessFocusManager::focusedViewModel() const
 {
     return m_currentViewModel;
 }
 
 
-LayerPresenter* ProcessFocusManager::focusedPresenter()
+LayerPresenter* ProcessFocusManager::focusedPresenter() const
 {
     return m_currentPresenter;
 }
