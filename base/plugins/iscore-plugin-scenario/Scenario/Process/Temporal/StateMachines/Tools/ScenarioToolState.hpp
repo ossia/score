@@ -7,7 +7,6 @@
 #include <iscore/statemachine/ToolState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioPoint.hpp>
 
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
 #include <Scenario/Document/Event/EventModel.hpp>

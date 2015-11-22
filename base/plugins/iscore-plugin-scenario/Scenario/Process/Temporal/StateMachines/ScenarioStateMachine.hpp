@@ -57,7 +57,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         LayerContext& m_context;
 
         CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;
-        SelectionAndMoveTool m_selectTool;
+        SelectionAndMoveTool<ScenarioModel, Scenario::ToolPalette> m_selectTool;
         MoveSlotTool m_moveSlotTool;
 
         ToolPaletteInputDispatcher<

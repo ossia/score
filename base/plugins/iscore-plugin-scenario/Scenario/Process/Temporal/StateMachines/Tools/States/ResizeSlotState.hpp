@@ -4,7 +4,6 @@
 
 #include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
 
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>

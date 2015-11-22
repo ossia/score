@@ -3,7 +3,6 @@
 
 
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>

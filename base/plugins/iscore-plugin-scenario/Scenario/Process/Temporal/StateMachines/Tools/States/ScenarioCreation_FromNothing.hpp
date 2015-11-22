@@ -1,7 +1,6 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
@@ -154,7 +153,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
                     }
 
                     this->m_dispatcher.template submitCommand<MoveNewEvent>(
-                                Path<ScenarioModel>{this->m_scenarioPath},
+                                Path<Scenario_T>{this->m_scenarioPath},
                                 this->createdConstraints.last(),
                                 this->createdEvents.last(),
                                 this->currentPoint.date,
@@ -171,7 +170,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
                     }
 
                     this->m_dispatcher.template submitCommand<MoveNewState>(
-                                Path<ScenarioModel>{this->m_scenarioPath},
+                                Path<Scenario_T>{this->m_scenarioPath},
                                 this->createdStates.last(),
                                 this->currentPoint.y);
                 });
@@ -185,7 +184,7 @@ class Creation_FromNothing final : public CreationState<Scenario_T, ToolPalette_
                     }
 
                     this->m_dispatcher.template submitCommand<MoveNewState>(
-                                Path<ScenarioModel>{this->m_scenarioPath},
+                                Path<Scenario_T>{this->m_scenarioPath},
                                 this->createdStates.last(),
                                 this->currentPoint.y);
                 });

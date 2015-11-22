@@ -5,7 +5,6 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
 
 #include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
@@ -67,7 +66,7 @@ class CreationState : public CreationStateBase
         CreationState(
                 const ToolPalette_T& sm,
                 iscore::CommandStack& stack,
-                const Path<ScenarioModel>& scenarioPath,
+                const Path<Scenario_T>& scenarioPath,
                 QState* parent):
             CreationStateBase{scenarioPath, parent},
             m_parentSM{sm},
@@ -83,7 +82,7 @@ class CreationState : public CreationStateBase
             if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredState) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint{
-                        Path<ScenarioModel>{m_scenarioPath},
+                        Path<Scenario_T>{m_scenarioPath},
                         originalState,
                         hoveredState};
 
@@ -99,7 +98,7 @@ class CreationState : public CreationStateBase
             if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredEvent) )
             {
                 auto cmd = new Scenario::Command::CreateConstraint_State{
-                        Path<ScenarioModel>{m_scenarioPath},
+                        Path<Scenario_T>{m_scenarioPath},
                         originalState,
                         hoveredEvent,
                         currentPoint.y};

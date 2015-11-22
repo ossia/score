@@ -20,7 +20,6 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <iscore/statemachine/StateMachineTools.hpp>
 #include <iscore/document/DocumentInterface.hpp>
