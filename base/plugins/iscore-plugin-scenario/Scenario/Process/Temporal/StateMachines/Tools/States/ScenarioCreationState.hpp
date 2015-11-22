@@ -5,6 +5,23 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseTransitions.hpp>
 
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Tools/elementFindingHelper.hpp>
+
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
+
+#include <iscore/document/DocumentInterface.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/State/UpdateState.hpp>
+
+
 template<int Value>
 class StrongQState : public QState
 {
@@ -43,11 +60,12 @@ class CreationStateBase : public StateBase
 };
 
 // Here to prevent pollution of the CreationState header with the command dispatcher
+template<typename Scenario_T, typename ToolPalette_T>
 class CreationState : public CreationStateBase
 {
     public:
         CreationState(
-                const Scenario::ToolPalette& sm,
+                const ToolPalette_T& sm,
                 iscore::CommandStack& stack,
                 const Path<ScenarioModel>& scenarioPath,
                 QState* parent):
@@ -59,15 +77,115 @@ class CreationState : public CreationStateBase
         }
 
     protected:
-        void createToState_base(const Id<StateModel>&);
+        void createToState_base(const Id<StateModel>& originalState)
+        {
+            // make sure the hovered corresponding timenode dont have a date prior to original state date
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredState) )
+            {
+                auto cmd = new Scenario::Command::CreateConstraint{
+                        Path<ScenarioModel>{m_scenarioPath},
+                        originalState,
+                        hoveredState};
 
-        void createToEvent_base(const Id<StateModel> &);
+                m_dispatcher.submitCommand(cmd);
 
-        void createToTimeNode_base(const Id<StateModel> &);
+                createdConstraints.append(cmd->createdConstraint());
+            }//else do nothing
+        }
 
-        void createToNothing_base(const Id<StateModel> &);
+        void createToEvent_base(const Id<StateModel> & originalState)
+        {
+            // make sure the hovered corresponding timenode dont have a date prior to original state date
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredEvent) )
+            {
+                auto cmd = new Scenario::Command::CreateConstraint_State{
+                        Path<ScenarioModel>{m_scenarioPath},
+                        originalState,
+                        hoveredEvent,
+                        currentPoint.y};
 
-        void makeSnapshot();
+                m_dispatcher.submitCommand(cmd);
+
+                createdConstraints.append(cmd->createdConstraint());
+                createdStates.append(cmd->createdState());
+            }//else do nothing
+        }
+
+        void createToTimeNode_base(const Id<StateModel> & originalState)
+        {
+            // make sure the hovered corresponding timenode dont have a date prior to original state date
+            if(getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), hoveredTimeNode) )
+            {
+                auto cmd = new Scenario::Command::CreateConstraint_State_Event{
+                        m_scenarioPath,
+                        originalState,
+                        hoveredTimeNode,
+                        currentPoint.y};
+
+                m_dispatcher.submitCommand(cmd);
+
+                createdStates.append(cmd->createdState());
+                createdEvents.append(cmd->createdEvent());
+                createdConstraints.append(cmd->createdConstraint());
+            }
+        }
+
+        void createToNothing_base(const Id<StateModel> & originalState)
+        {
+            auto create = [&] (auto cmd) {
+                m_dispatcher.submitCommand(cmd);
+
+                createdStates.append(cmd->createdState());
+                createdEvents.append(cmd->createdEvent());
+                createdTimeNodes.append(cmd->createdTimeNode());
+                createdConstraints.append(cmd->createdConstraint());
+            };
+
+            if(!m_parentSM.editionSettings().sequence())
+            {
+                create(new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+                           m_scenarioPath,
+                           originalState, // Put there in createInitialState
+                           currentPoint.date,
+                           currentPoint.y});
+            }
+            else
+            {
+                create(new Scenario::Command::CreateSequence{
+                           m_scenarioPath,
+                           originalState, // Put there in createInitialState
+                           currentPoint.date,
+                           currentPoint.y});
+            }
+        }
+
+        void makeSnapshot()
+        {
+            if(createdStates.empty())
+                return;
+
+            if(!createdConstraints.empty())
+            {
+                const auto& cst = m_parentSM.model().constraints.at(createdConstraints.last());
+                if(!cst.processes.empty())
+                {
+                    // In case of the presence of a sequence, we
+                    // only use the sequence's namespace, hence we don't need to make a snapshot at the end..
+                    return;
+                }
+            }
+
+            auto doc = iscore::IDocument::documentFromObject(m_parentSM.model());
+            auto device_explorer = doc->model().template pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
+
+            iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
+            if(messages.empty())
+                return;
+
+            m_dispatcher.submitCommand(new AddMessagesToState{
+                                           m_parentSM.model().states.at(createdStates.last()).messages(),
+                                           messages});
+        }
 
 
         template<typename DestinationState, typename Function>
@@ -83,7 +201,7 @@ class CreationState : public CreationStateBase
 
         void rollback() { m_dispatcher.rollback<ScenarioRollbackStrategy>(); clearCreatedIds(); }
 
-        const Scenario::ToolPalette& m_parentSM;
+        const ToolPalette_T& m_parentSM;
         MultiOngoingCommandDispatcher m_dispatcher;
 
         Scenario::Point m_clickedPoint;

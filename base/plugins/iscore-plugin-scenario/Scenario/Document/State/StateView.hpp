@@ -14,7 +14,8 @@ class StateView final : public QGraphicsObject
         int type() const override
         { return QGraphicsItem::UserType + 4; }
 
-        const StatePresenter& presenter() const;
+        const StatePresenter& presenter() const
+        { return m_presenter; }
 
         QRectF boundingRect() const override
         { return {-m_radiusFull, -m_radiusFull, 2*m_radiusFull, 2*m_radiusFull }; }

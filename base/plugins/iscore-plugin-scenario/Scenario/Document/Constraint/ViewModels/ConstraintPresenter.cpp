@@ -198,10 +198,7 @@ const ConstraintModel& ConstraintPresenter::model() const
     return m_viewModel.model();
 }
 
-const ConstraintViewModel&ConstraintPresenter::abstractConstraintViewModel() const
-{
-    return m_viewModel;
-}
+
 
 ConstraintView*ConstraintPresenter::view() const
 {

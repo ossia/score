@@ -30,10 +30,7 @@ EventView::EventView(EventPresenter& presenter,
     m_color = presenter.model().metadata.color();
 }
 
-const EventPresenter& EventView::presenter() const
-{
-    return m_presenter;
-}
+
 
 void EventView::setCondition(const QString &cond)
 {

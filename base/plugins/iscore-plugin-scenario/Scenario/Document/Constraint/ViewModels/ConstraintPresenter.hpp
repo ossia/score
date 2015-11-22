@@ -39,7 +39,8 @@ class ConstraintPresenter : public NamedObject
         RackPresenter* rack() const;
 
         const ConstraintModel& model() const;
-        const ConstraintViewModel& abstractConstraintViewModel() const;
+        const ConstraintViewModel& abstractConstraintViewModel() const
+        { return m_viewModel; }
 
         ConstraintView* view() const;
 

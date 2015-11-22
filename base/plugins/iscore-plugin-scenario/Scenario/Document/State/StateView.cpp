@@ -18,13 +18,6 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent) :
     this->setAcceptHoverEvents(true);
 }
 
-const StatePresenter &StateView::presenter() const
-{
-    return m_presenter;
-}
-
-
-
 void StateView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen statePen = ScenarioStyle::instance().StateOutline;

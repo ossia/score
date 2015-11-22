@@ -10,8 +10,9 @@ class SelectionState;
 class MoveConstraintState;
 class MoveEventState;
 class MoveTimeNodeState;
+class ToolPalette;
 
-class SelectionAndMoveTool final : public ToolBase
+class SelectionAndMoveTool final : public ToolBase<Scenario::ToolPalette>
 {
     public:
         SelectionAndMoveTool(ToolPalette& sm);

@@ -17,7 +17,8 @@ class EventView final : public QGraphicsObject
         int type() const override
         { return QGraphicsItem::UserType + 1; }
 
-        const EventPresenter& presenter() const;
+        const EventPresenter& presenter() const
+        { return m_presenter; }
 
         QRectF boundingRect() const override
         { return {-5, -10., 10, qreal(m_extent.bottom() - m_extent.top() + 20)};  }
