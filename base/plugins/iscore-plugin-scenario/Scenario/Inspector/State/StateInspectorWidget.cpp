@@ -1,14 +1,17 @@
 #include "StateInspectorWidget.hpp"
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Inspector/InspectorSectionWidget.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
+
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <core/document/Document.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/DialogWidget/MessageTreeView.hpp>
 #include <iscore/widgets/MarginLess.hpp>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <iscore/document/DocumentInterface.hpp>
+
 #include <QPushButton>
 #include <QFormLayout>
 #include <QLabel>
@@ -82,11 +85,17 @@ void StateInspectorWidget::updateDisplayedValues()
         lay->addWidget(btn);
     }
 
-    auto newEvBtn = new QPushButton{"Split"};
-    lay->addWidget(newEvBtn);
+    auto scenarModel = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
+    auto& parentEvent = scenarModel->events.at(m_model.eventId());
 
-    connect(newEvBtn, &QPushButton::pressed,
-            this,   &StateInspectorWidget::splitEvent);
+    if(parentEvent.states().size() > 1)
+    {
+        auto newEvBtn = new QPushButton{"Split"};
+        lay->addWidget(newEvBtn);
+
+        connect(newEvBtn, &QPushButton::pressed,
+                this,   &StateInspectorWidget::splitEvent);
+    }
 
     m_properties.push_back(widget);
 
@@ -100,11 +109,16 @@ void StateInspectorWidget::splitEvent()
     auto scenar = dynamic_cast<const ScenarioModel*>(m_model.parentScenario());
     if (scenar)
     {
-        auto cmd = new Scenario::Command::SplitEvent{
-                    *scenar,
-                    m_model.eventId(),
-                    {m_model.id()}};
+        auto& parentEvent = scenar->events.at(m_model.eventId());
+        if(parentEvent.states().size() > 1)
+        {
+            auto cmd = new Scenario::Command::SplitEvent{
+                        *scenar,
+                        m_model.eventId(),
+                        {m_model.id()}};
 
-        commandDispatcher()->submitCommand(cmd);
+            commandDispatcher()->submitCommand(cmd);
+            updateDisplayedValues(); // TODO : boarf boarf
+        }
     }
 }
