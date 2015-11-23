@@ -1,18 +1,11 @@
 #include "ObjectMenuActions.hpp"
 
 #include <core/document/DocumentModel.hpp>
-
-#include <iscore/menu/MenuInterface.hpp>
-
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 #include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
 #include <Scenario/Commands/Constraint/ReplaceConstraintContent.hpp>
@@ -25,7 +18,6 @@
 #include <Scenario/Commands/Cohesion/UpdateStates.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>

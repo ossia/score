@@ -4,10 +4,6 @@
 #include "Algorithms/StandardDisplacementPolicy.hpp"
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
 #include <boost/range/algorithm.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 

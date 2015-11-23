@@ -1,16 +1,9 @@
 #include "ScenarioSelectionState.hpp"
 
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-
-#include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <QGraphicsScene>
 namespace Scenario
 {
 SelectionState::SelectionState(

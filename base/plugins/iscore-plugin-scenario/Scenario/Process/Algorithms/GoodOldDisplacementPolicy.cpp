@@ -1,16 +1,5 @@
 #include "GoodOldDisplacementPolicy.hpp"
 
-#include <Process/TimeValue.hpp>
-
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
-#include <Scenario/Tools/dataStructures.hpp>
-
-
-
 void
 GoodOldDisplacementPolicy::computeDisplacement(
         ScenarioModel& scenario,

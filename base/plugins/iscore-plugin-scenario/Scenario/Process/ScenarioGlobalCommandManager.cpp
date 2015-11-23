@@ -10,7 +10,6 @@
 
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 
-#include <iscore/tools/utilsCPP11.hpp>
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
 void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel &scenario)

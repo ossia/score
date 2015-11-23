@@ -1,5 +1,4 @@
 #include "TemporalScenarioPanelProxy.hpp"
-#include "TemporalScenarioLayerModel.hpp"
 
 TemporalScenarioPanelProxy::TemporalScenarioPanelProxy(
         const TemporalScenarioLayerModel& lm,

@@ -3,27 +3,17 @@
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-
-#include <QGraphicsScene>
-
-#include <State/StateMimeTypes.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <QMimeData>
-#include <iscore/widgets/GraphicsItem.hpp>
-#include <QJsonDocument>
-#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <core/document/Document.hpp>
-#include <Scenario/Commands/State/UpdateState.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
-#include <Scenario/Document/BaseElement/BaseElementModel.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+
+#include <State/MessageListSerialization.hpp>
+#include <iscore/widgets/GraphicsItem.hpp>
+#include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
         iscore::DocumentContext& context,

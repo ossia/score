@@ -1,10 +1,6 @@
 #include "VerticalMovePolicy.hpp"
 
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-
 
 void updateEventExtent(const Id<EventModel> &id, ScenarioModel &s)
 {

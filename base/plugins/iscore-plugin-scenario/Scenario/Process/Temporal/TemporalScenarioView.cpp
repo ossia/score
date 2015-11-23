@@ -4,7 +4,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
-#include <QMenu>
 
 #include <QMimeData>
 

@@ -4,7 +4,6 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/DragSlotState.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
 namespace Scenario
 {

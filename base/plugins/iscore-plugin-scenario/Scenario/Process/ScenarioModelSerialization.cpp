@@ -1,10 +1,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
-#include "ScenarioModel.hpp"
-#include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
 #include "ScenarioFactory.hpp"
 
 template<>

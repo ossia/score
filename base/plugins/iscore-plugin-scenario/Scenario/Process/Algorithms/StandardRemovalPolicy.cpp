@@ -1,9 +1,7 @@
 #include "StandardRemovalPolicy.hpp"
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include "StandardCreationPolicy.hpp"
 
 static void removeEventFromTimeNode(
         ScenarioModel& scenario,
