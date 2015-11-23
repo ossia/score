@@ -6,6 +6,7 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <iscore/tools/ModelPath.hpp>
+#include <iscore/statemachine/BaseStateMachine.hpp>
 
 #include <QSize>
 #include <QRectF>
@@ -21,7 +22,6 @@ class ConstraintModel;
 class TimeRulerPresenter;
 class LocalTimeRulerPresenter;
 
-class BaseScenarioToolPalette;
 
 /**
  * @brief The BaseElementPresenter class
@@ -51,9 +51,9 @@ class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInter
         ZoomRatio zoomRatio() const;
 
     signals:
-        void displayedConstraintPressed(const QPointF&);
-        void displayedConstraintMoved(const QPointF&);
-        void displayedConstraintReleased(const QPointF&);
+        void pressed(const QPointF&);
+        void moved(const QPointF&);
+        void released(const QPointF&);
 
         void requestDisplayedConstraintChange(const ConstraintModel&);
 
@@ -89,7 +89,7 @@ class BaseElementPresenter final : public iscore::DocumentDelegatePresenterInter
         iscore::SelectionDispatcher m_selectionDispatcher;
 
         // State machine
-        BaseScenarioToolPalette* m_stateMachine{};
+        std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
 
         // Various widgets
         TimeRulerPresenter* m_mainTimeRuler{};

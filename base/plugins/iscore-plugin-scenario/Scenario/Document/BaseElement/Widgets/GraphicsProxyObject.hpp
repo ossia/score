@@ -3,10 +3,10 @@
 #include <QDebug>
 #include <QBrush>
 #include <QPainter>
-class GraphicsProxyObject final : public QGraphicsItem
+class BaseGraphicsObject final : public QGraphicsObject
 {
     public:
-        using QGraphicsItem::QGraphicsItem;
+        using QGraphicsObject::QGraphicsObject;
         QRectF boundingRect() const override
         {
             return {};
@@ -14,5 +14,10 @@ class GraphicsProxyObject final : public QGraphicsItem
 
         void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
         {
+        }
+
+        void setSelectionArea(const QRectF&)
+        {
+
         }
 };

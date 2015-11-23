@@ -47,14 +47,14 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 
 template<typename PresenterContainer, typename IdToIgnore>
 QList<Id<typename PresenterContainer::model_type>>
-    getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnore>& ids, QPointF scenePoint)
+    getCollidingModels(const PresenterContainer& array, const QVector<IdToIgnore>& ids, QPointF scenePt)
 {
     using namespace std;
     QList<Id<typename PresenterContainer::model_type>> colliding;
 
     for(const auto& elt : array)
     {
-        if(!ids.contains(elt.id()) && isUnderMouse(elt.view(), scenePoint))
+        if(!ids.contains(elt.id()) && isUnderMouse(elt.view(), scenePt))
         {
             colliding.push_back(elt.model().id());
         }

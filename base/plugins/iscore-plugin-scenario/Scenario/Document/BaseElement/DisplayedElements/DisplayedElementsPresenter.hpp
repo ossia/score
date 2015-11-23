@@ -2,9 +2,10 @@
 #include <iscore/tools/NamedObject.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Process/TimeValue.hpp>
+#include <iscore/tools/std/StdlibWrapper.hpp>
 
+#include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
 class ConstraintModel;
-class FullViewConstraintPresenter;
 class StateModel;
 class StatePresenter;
 class EventModel;
@@ -27,10 +28,29 @@ class DisplayedElementsPresenter final : public QObject
 
         void on_zoomRatioChanged(ZoomRatio r);
 
-        const EventModel& event(const Id<EventModel>& id) const;
-        const TimeNodeModel& timeNode(const Id<TimeNodeModel>& id) const;
-        const ConstraintModel& constraint(const Id<ConstraintModel>& id) const;
-        const StateModel& state(const Id<StateModel>& id) const;
+        IndirectContainer<std::vector, FullViewConstraintPresenter> constraints() const
+        {
+            return {m_constraintPresenter};
+        }
+        IndirectContainer<std::vector, StatePresenter> states() const
+        {
+            return {m_startStatePresenter, m_endStatePresenter};
+        }
+        IndirectContainer<std::vector, EventPresenter> events() const
+        {
+            return {m_startEventPresenter, m_endEventPresenter};
+        }
+        IndirectContainer<std::vector, TimeNodePresenter> timeNodes() const
+        {
+            return {m_startNodePresenter, m_endNodePresenter};
+        }
+
+        const EventPresenter& event(const Id<EventModel>& id) const;
+        const TimeNodePresenter& timeNode(const Id<TimeNodeModel>& id) const;
+        const FullViewConstraintPresenter& constraint(const Id<ConstraintModel>& id) const;
+        const StatePresenter& state(const Id<StateModel>& id) const;
+
+        const TimeNodeModel& startTimeNode() const;
 
         FullViewConstraintPresenter* constraintPresenter() const
         { return m_constraintPresenter; }
@@ -45,13 +65,17 @@ class DisplayedElementsPresenter final : public QObject
 
     public slots:
         void on_displayedConstraintDurationChanged(TimeValue);
+        void on_displayedConstraintHeightChanged(double);
     private:
+        void updateLength(double);
         BaseElementPresenter* m_parent{};
 
         FullViewConstraintPresenter* m_constraintPresenter{};
         StatePresenter* m_startStatePresenter{};
         StatePresenter* m_endStatePresenter{};
-        //EventPresenter* m_startEventPresenter{};
-        //EventPresenter* m_endEventPresenter{};
+        EventPresenter* m_startEventPresenter{};
+        EventPresenter* m_endEventPresenter{};
+        TimeNodePresenter* m_startNodePresenter{};
+        TimeNodePresenter* m_endNodePresenter{};
 
 };

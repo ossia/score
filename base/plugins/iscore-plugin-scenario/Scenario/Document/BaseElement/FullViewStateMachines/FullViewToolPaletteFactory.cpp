@@ -14,7 +14,7 @@ std::unique_ptr<GraphicsSceneToolPalette> FullViewToolPaletteFactory::make(
     return std::make_unique<FullViewToolPalette>(
                 iscore::IDocument::documentContext(pres.model()),
                 pres.model().displayedElements,
-                pres.presenters(),
+                pres,
                 *pres.view().baseItem());
 }
 

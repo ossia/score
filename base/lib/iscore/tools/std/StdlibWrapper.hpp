@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 
+#include <boost/iterator/indirect_iterator.hpp>
+
 // TODO refactor this with objects like is_trivially_serializable<T> { ... } and enable_if...
 template<typename T>
 void readFrom_vector_obj_impl(
@@ -90,4 +92,25 @@ void remove_one(Vector&& v, const Value& val)
     }
 }
 
+template<template<class, class> class Container,
+         typename T,
+         typename U = std::allocator<T*>>
+class IndirectContainer : Container<T*, U>
+{
+    public:
+        using ctnr_t = Container<T*, U>;
+        using ctnr_t::ctnr_t;
 
+        auto begin()
+        { return boost::make_indirect_iterator(ctnr_t::begin()); }
+        auto end()
+        { return boost::make_indirect_iterator(ctnr_t::end()); }
+        auto begin() const
+        { return boost::make_indirect_iterator(ctnr_t::begin()); }
+        auto end() const
+        { return boost::make_indirect_iterator(ctnr_t::end()); }
+        auto cbegin() const
+        { return boost::make_indirect_iterator(ctnr_t::cbegin()); }
+        auto cend() const
+        { return boost::make_indirect_iterator(ctnr_t::cend()); }
+};

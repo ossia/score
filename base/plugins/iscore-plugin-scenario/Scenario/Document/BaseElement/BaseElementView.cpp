@@ -30,7 +30,7 @@ BaseElementView::BaseElementView(
     m_widget {new QWidget},
     m_scene {new QGraphicsScene{m_widget}},
     m_view {new ScenarioBaseGraphicsView{m_scene}},
-    m_baseObject {new GraphicsProxyObject},
+    m_baseObject {new BaseGraphicsObject},
     m_timeRuler {new TimeRulerView}
 {
 #if defined(ISCORE_WEBSOCKETS)

@@ -20,9 +20,12 @@
 #include <core/document/Document.hpp>
 #include <QApplication>
 
+#include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.hpp>
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
 #include "BaseScenario/BaseScenarioStateMachine.hpp"
 
+#include <core/application/ApplicationContext.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include "ZoomPolicy.hpp"
 
 using namespace iscore;
@@ -121,9 +124,10 @@ void BaseElementPresenter::on_displayedConstraintChanged()
 {
     auto& cst = displayedConstraint();
     // Setup of the state machine.
-    delete m_stateMachine;
+    auto& ctx = iscore::IDocument::documentContext(model());
 
-    m_stateMachine = new BaseScenarioToolPalette{*this};
+    auto fact = ctx.app.components.factory<ScenarioToolPaletteFactoryList>();
+    m_stateMachine = fact.make(*this, cst);
     m_scenarioPresenter->on_displayedConstraintChanged(cst);
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
             this, &BaseElementPresenter::setDisplayedObject);

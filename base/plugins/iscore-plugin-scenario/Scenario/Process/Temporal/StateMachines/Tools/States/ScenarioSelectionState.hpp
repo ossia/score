@@ -66,13 +66,13 @@ class SelectionState final : public CommonSelectionState
 
         void on_delete() override
         {
-            ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
+            ScenarioGlobalCommandManager mgr{m_parentSM.context().commandStack};
             mgr.removeSelection(m_parentSM.model());
         }
 
         void on_deleteContent() override
         {
-            ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
+            ScenarioGlobalCommandManager mgr{m_parentSM.context().commandStack};
             mgr.clearContentFromSelection(m_parentSM.model());
         }
 

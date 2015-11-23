@@ -4,7 +4,10 @@
 #include <QFinalState>
 #include "StateMachineUtils.hpp"
 
-CommonSelectionState::CommonSelectionState(iscore::SelectionStack &stack, QGraphicsObject *process_view, QState *parent):
+CommonSelectionState::CommonSelectionState(
+        iscore::SelectionStack &stack,
+        QGraphicsObject *process_view,
+        QState *parent):
     QState{parent},
     dispatcher{stack}
 {

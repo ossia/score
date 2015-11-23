@@ -27,7 +27,7 @@ class BaseElementView final : public iscore::DocumentDelegateViewInterface
 
         QWidget* getWidget() override;
 
-        QGraphicsItem* baseItem() const
+        BaseGraphicsObject* baseItem() const
         { return m_baseObject;}
 
         void update();
@@ -59,7 +59,7 @@ class BaseElementView final : public iscore::DocumentDelegateViewInterface
         QWidget* m_widget {};
         QGraphicsScene* m_scene {};
         ScenarioBaseGraphicsView* m_view {};
-        GraphicsProxyObject* m_baseObject {};
+        BaseGraphicsObject* m_baseObject {};
 
         QGraphicsView* m_timeRulersView {};
         TimeRulerView* m_timeRuler {};

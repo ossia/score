@@ -4,7 +4,6 @@
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
 
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -20,22 +19,22 @@ BaseScenarioToolPalette::BaseScenarioToolPalette(
     m_slotTool{iscore::IDocument::commandStack(m_presenter.model()),
                *this}
 {
-    con(m_presenter, &BaseElementPresenter::displayedConstraintPressed,
-            [=] (QPointF point)
+    con(m_presenter, &BaseElementPresenter::pressed,
+        this, [=] (QPointF point)
     {
         scenePoint = point;
         m_slotTool.on_pressed(point);
     });
 
-    con(m_presenter, &BaseElementPresenter::displayedConstraintMoved,
-            [=] (QPointF point)
+    con(m_presenter, &BaseElementPresenter::moved,
+        this, [=] (QPointF point)
     {
         scenePoint = point;
         m_slotTool.on_moved();
     });
 
-    con(m_presenter, &BaseElementPresenter::displayedConstraintReleased,
-            [=] (QPointF point)
+    con(m_presenter, &BaseElementPresenter::released,
+        this, [=] (QPointF point)
     {
         scenePoint = point;
         m_slotTool.on_released();
