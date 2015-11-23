@@ -10,6 +10,7 @@ using namespace Scenario::Command;
 
 MoveBaseEvent::MoveBaseEvent(
         Path<BaseScenario>&& baseScenarioPath,
+        const Id<EventModel>&,
         const TimeValue& date,
         ExpandMode mode) :
     m_path {std::move(baseScenarioPath)},

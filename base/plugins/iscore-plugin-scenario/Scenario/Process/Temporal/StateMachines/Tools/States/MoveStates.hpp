@@ -40,7 +40,7 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                 released->addTransition(finalState);
 
                 auto t_pressed =
-                        make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                        iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                             pressed, moving , *this);
                 QObject::connect(t_pressed, &QAbstractTransition::triggered, [&] ()
                 {
@@ -49,11 +49,11 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                     m_constraintInitialClickDate = this->currentPoint.date;
                 });
 
-                make_transition<ReleaseOnAnything_Transition>(
+                iscore::make_transition<ReleaseOnAnything_Transition>(
                             pressed, finalState);
-                make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                             moving , moving , *this);
-                make_transition<ReleaseOnAnything_Transition>(
+                iscore::make_transition<ReleaseOnAnything_Transition>(
                             moving , released);
 
                 QObject::connect(moving, &QState::entered, [&] ()
@@ -72,7 +72,7 @@ class MoveConstraintState final : public StateBase<Scenario_T>
             }
 
             QState* rollbackState = new QState{this};
-            make_transition<Cancel_Transition>(mainState, rollbackState);
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
             {
@@ -118,13 +118,13 @@ class MoveEventState final : public StateBase<Scenario_T>
                 mainState->setInitialState(pressed);
                 released->addTransition(finalState);
 
-                make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                             pressed, moving, *this);
-                make_transition<ReleaseOnAnything_Transition>(
+                iscore::make_transition<ReleaseOnAnything_Transition>(
                             pressed, finalState);
-                make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                             moving, moving, *this);
-                make_transition<ReleaseOnAnything_Transition>(
+                iscore::make_transition<ReleaseOnAnything_Transition>(
                             moving, released);
 
                 // What happens in each state.
@@ -151,7 +151,7 @@ class MoveEventState final : public StateBase<Scenario_T>
             }
 
             QState* rollbackState = new QState{this};
-            make_transition<Cancel_Transition>(mainState, rollbackState);
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
             {
@@ -193,13 +193,13 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
                 // General setup
                 released->addTransition(finalState);
 
-                make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                             pressed, moving, *this);
-                make_transition<ReleaseOnAnything_Transition>(
+                iscore::make_transition<ReleaseOnAnything_Transition>(
                             pressed, finalState);
-                make_transition<MoveOnAnything_Transition<Scenario_T>>(
+                iscore::make_transition<MoveOnAnything_Transition<Scenario_T>>(
                             moving, moving, *this);
-                make_transition<ReleaseOnAnything_Transition>(
+                iscore::make_transition<ReleaseOnAnything_Transition>(
                             moving, released);
 
                 // What happens in each state.
@@ -228,7 +228,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
             }
 
             QState* rollbackState = new QState{this};
-            make_transition<Cancel_Transition>(mainState, rollbackState);
+            iscore::make_transition<iscore::Cancel_Transition>(mainState, rollbackState);
             rollbackState->addTransition(finalState);
             QObject::connect(rollbackState, &QState::entered, [&] ()
             {

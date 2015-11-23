@@ -30,6 +30,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
         public:
           MoveBaseEvent(
           Path<BaseScenario>&& scenarioPath,
+              const Id<EventModel>&,
             const TimeValue& date,
                   ExpandMode mode);
 
@@ -38,6 +39,7 @@ class MoveBaseEvent final : public iscore::SerializableCommand
 
         void update(
                 const Path<BaseScenario>&,
+                const Id<EventModel>&,
                 const TimeValue& date,
                 ExpandMode)
         {

@@ -3,13 +3,17 @@
 #include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
 #include <Scenario/Document/BaseElement/BaseElementView.hpp>
 
-#include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
+
+Scenario::Point BaseScenarioToolPalette::ScenePointToScenarioPoint(QPointF point)
+{
+    return {TimeValue::fromMsecs(point.x() * m_presenter.zoomRatio()) , 0};
+}
 
 // We need two tool palettes : one for the case where we're viewing a basescenario,
 // and one for the case where we're in a sub-scenario.
@@ -18,9 +22,31 @@ BaseScenarioToolPalette::BaseScenarioToolPalette(
     GraphicsSceneToolPalette{pres.view().scene()},
     m_presenter{pres},
     m_slotTool{iscore::IDocument::commandStack(m_presenter.model()),
-               *this}
+               *this},
+    m_state{*this}
 {
-    //Scenario::SelectionAndMoveTool<BaseScenario, BaseScenarioToolPalette, BaseGraphicsObject, void, MoveBaseEvent>  m_state(*this);
+
+    con(m_presenter, &BaseElementPresenter::pressed,
+        this, [=] (QPointF point)
+    {
+        scenePoint = point;
+        m_state.on_pressed(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
+    });
+
+    con(m_presenter, &BaseElementPresenter::moved,
+        this, [=] (QPointF point)
+    {
+        scenePoint = point;
+        m_state.on_moved(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
+    });
+
+    con(m_presenter, &BaseElementPresenter::released,
+        this, [=] (QPointF point)
+    {
+        scenePoint = point;
+        m_state.on_released(point, ScenePointToScenarioPoint(m_presenter.view().baseItem()->mapFromScene(point)));
+    });
+
 /*
     con(m_presenter, &BaseElementPresenter::pressed,
         this, [=] (QPointF point)
@@ -70,16 +96,3 @@ const Scenario::EditionSettings&BaseScenarioToolPalette::editionSettings() const
 {
     return context().app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
