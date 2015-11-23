@@ -9,6 +9,7 @@
 #include <iscore/document/DocumentInterface.hpp>
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
 
 // We need two tool palettes : one for the case where we're viewing a basescenario,
 // and one for the case where we're in a sub-scenario.
@@ -19,6 +20,8 @@ BaseScenarioToolPalette::BaseScenarioToolPalette(
     m_slotTool{iscore::IDocument::commandStack(m_presenter.model()),
                *this}
 {
+    //Scenario::SelectionAndMoveTool<BaseScenario, BaseScenarioToolPalette, BaseGraphicsObject, void, MoveBaseEvent>  m_state(*this);
+/*
     con(m_presenter, &BaseElementPresenter::pressed,
         this, [=] (QPointF point)
     {
@@ -40,10 +43,10 @@ BaseScenarioToolPalette::BaseScenarioToolPalette(
         m_slotTool.on_released();
     });
     // TODO cancel
-
+*/
 }
 
-QGraphicsItem& BaseScenarioToolPalette::view() const
+BaseGraphicsObject& BaseScenarioToolPalette::view() const
 {
     return *m_presenter.view().baseItem();
 }
@@ -53,9 +56,9 @@ const DisplayedElementsPresenter&BaseScenarioToolPalette::presenter() const
     return m_presenter.presenters();
 }
 
-const DisplayedElementsModel& BaseScenarioToolPalette::model() const
+const BaseScenario& BaseScenarioToolPalette::model() const
 {
-    return m_presenter.model().displayedElements;
+    return m_presenter.model().baseScenario();
 }
 
 const iscore::DocumentContext& BaseScenarioToolPalette::context() const

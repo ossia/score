@@ -12,14 +12,14 @@
 
 using namespace Scenario::Command;
 using namespace iscore::IDocument; // for ::path
-void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel &scenario)
+void Scenario::clearContentFromSelection(const ScenarioModel &scenario, iscore::CommandStack& stack)
 {
     // 1. Select items
     auto constraintsToRemove = selectedElements(scenario.constraints);
     auto statesToRemove = selectedElements(scenario.states);
 
     MacroCommandDispatcher cleaner(new ClearSelection,
-                                   m_commandStack);
+                                   stack);
 
     // 2. Create a Clear command for each.
     for(auto& constraint : constraintsToRemove)
@@ -35,7 +35,7 @@ void ScenarioGlobalCommandManager::clearContentFromSelection(const ScenarioModel
     cleaner.commit();
 }
 
-void ScenarioGlobalCommandManager::removeSelection(const ScenarioModel &scenario)
+void Scenario::removeSelection(const ScenarioModel &scenario, iscore::CommandStack& stack)
 {
     Selection sel = scenario.selectedChildren();
 
@@ -49,7 +49,17 @@ void ScenarioGlobalCommandManager::removeSelection(const ScenarioModel &scenario
 
     if(!sel.empty())
     {
-        CommandDispatcher<> dispatcher(m_commandStack);
+        CommandDispatcher<> dispatcher(stack);
         dispatcher.submitCommand(new RemoveSelection(path(scenario), sel));
     }
+}
+
+void Scenario::removeSelection(const BaseScenario&, iscore::CommandStack&)
+{
+    // Shall do nothing
+}
+
+void Scenario::clearContentFromSelection(const BaseScenario&, iscore::CommandStack&)
+{
+    ISCORE_TODO;
 }

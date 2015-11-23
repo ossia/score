@@ -66,14 +66,12 @@ class SelectionState final : public CommonSelectionState
 
         void on_delete() override
         {
-            ScenarioGlobalCommandManager mgr{m_parentSM.context().commandStack};
-            mgr.removeSelection(m_parentSM.model());
+            Scenario::removeSelection(m_parentSM.model(), m_parentSM.context().commandStack);
         }
 
         void on_deleteContent() override
         {
-            ScenarioGlobalCommandManager mgr{m_parentSM.context().commandStack};
-            mgr.clearContentFromSelection(m_parentSM.model());
+            Scenario::clearContentFromSelection(m_parentSM.model(), m_parentSM.context().commandStack);
         }
 
         void setSelectionArea(const QRectF& area)

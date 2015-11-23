@@ -3,7 +3,7 @@
 
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
-
+#include <iscore/selection/Selection.hpp>
 #include <iscore/plugins/documentdelegate/plugin/ElementPluginModelList.hpp>
 
 class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseScenarioContainer
@@ -23,5 +23,11 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>, public BaseSce
             BaseScenarioContainer{this}
         {
             vis.writeTo(*this);
+        }
+
+        Selection selectedChildren() const
+        {
+            ISCORE_TODO;
+            return {};
         }
 };

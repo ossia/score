@@ -50,8 +50,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         if (auto sm = m_parent->focusedScenarioModel())
         {
-            ScenarioGlobalCommandManager mgr{m_parent->currentDocument()->commandStack()};
-            mgr.removeSelection(*sm);
+            Scenario::removeSelection(*sm, m_parent->currentDocument()->commandStack());
         }
     });
 
@@ -63,8 +62,7 @@ ObjectMenuActions::ObjectMenuActions(
     {
         if (auto sm = m_parent->focusedScenarioModel())
         {
-            ScenarioGlobalCommandManager mgr{m_parent->currentDocument()->commandStack()};
-            mgr.clearContentFromSelection(*sm);
+            Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->commandStack());
         }
     });
 
@@ -319,8 +317,7 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 
     if (auto sm = m_parent->focusedScenarioModel())
     {
-        ScenarioGlobalCommandManager mgr{m_parent->currentDocument()->commandStack()};
-        mgr.clearContentFromSelection(*sm);
+        Scenario::clearContentFromSelection(*sm, m_parent->currentDocument()->commandStack());
     }
 
     return obj;

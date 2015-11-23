@@ -10,6 +10,7 @@ class ConstraintModel;
 // TODO MoveMe to statemachine folder
 // TODO rename me
 class BaseScenario;
+class BaseGraphicsObject;
 class QGraphicsItem;
 
 class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
@@ -17,9 +18,9 @@ class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
     public:
         BaseScenarioToolPalette(const BaseElementPresenter& pres);
 
-        QGraphicsItem& view() const;
+        BaseGraphicsObject& view() const;
         const DisplayedElementsPresenter& presenter() const;
-        const DisplayedElementsModel& model() const;
+        const BaseScenario& model() const;
         const iscore::DocumentContext& context() const;
         const Scenario::EditionSettings& editionSettings() const;
 

@@ -2,25 +2,25 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioToolState.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 
-#include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
-#include <Scenario/Process/Temporal/StateMachines/Tools/States/MoveStates.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioSelectionState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp>
 
-#include <Scenario/Process/Temporal/StateMachines/Transitions/ConstraintTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/EventTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/StateTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/TimeNodeTransitions.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/SlotTransitions.hpp>
 // TODO rename file.
 namespace Scenario
 {
 class ToolPalette;
 
-template<typename Scenario_T, typename ToolPalette_T, typename View_T>
+template<
+        typename Scenario_T,
+        typename ToolPalette_T,
+        typename View_T,
+        typename MoveConstraintWrapper_T,
+        typename MoveEventWrapper_T,
+        typename MoveTimeNodeWrapper_T
+        >
 class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 {
     public:
@@ -35,65 +35,9 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
             this->localSM().setInitialState(m_state);
 
-            /// Constraint
-            /// //TODO remove useless arguments to ctor
-            m_moveConstraint =
-                    new MoveConstraintState<MoveConstraint, Scenario_T, ToolPalette_T>{
-                        this->m_parentSM,
-                        this->m_parentSM.model(),
-                        this->m_parentSM.context().commandStack,
-                        this->m_parentSM.context().objectLocker,
-                        nullptr};
-
-            make_transition<ClickOnConstraint_Transition<Scenario_T>>(m_state,
-                                                          m_moveConstraint,
-                                                          *m_moveConstraint);
-            m_moveConstraint->addTransition(m_moveConstraint,
-                                            SIGNAL(finished()),
-                                            m_state);
-            this->localSM().addState(m_moveConstraint);
-
-
-            /// Event
-            m_moveEvent =
-                    new MoveEventState<MoveEventMeta, Scenario_T, ToolPalette_T>{
-                        this->m_parentSM,
-                        this->m_parentSM.model(),
-                        this->m_parentSM.context().commandStack,
-                        this->m_parentSM.context().objectLocker,
-                        nullptr};
-
-            make_transition<ClickOnState_Transition<Scenario_T>>(m_state,
-                                                     m_moveEvent,
-                                                     *m_moveEvent);
-
-            make_transition<ClickOnEvent_Transition<Scenario_T>>(m_state,
-                                                     m_moveEvent,
-                                                     *m_moveEvent);
-            m_moveEvent->addTransition(m_moveEvent,
-                                       SIGNAL(finished()),
-                                       m_state);
-            this->localSM().addState(m_moveEvent);
-
-
-            /// TimeNode
-            m_moveTimeNode =
-                    new MoveTimeNodeState<MoveEventMeta, Scenario_T, ToolPalette_T>{
-                        this->m_parentSM,
-                        this->m_parentSM.model(),
-                        this->m_parentSM.context().commandStack,
-                        this->m_parentSM.context().objectLocker,
-                        nullptr};
-
-            make_transition<ClickOnTimeNode_Transition<Scenario_T>>(m_state,
-                                                        m_moveTimeNode,
-                                                        *m_moveTimeNode);
-            m_moveTimeNode->addTransition(m_moveTimeNode,
-                                          SIGNAL(finished()),
-                                          m_state);
-            this->localSM().addState(m_moveTimeNode);
-
-
+            MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, m_state, this->localSM());
+            MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, m_state, this->localSM());
+            MoveTimeNodeWrapper_T::template make<Scenario_T, ToolPalette_T>(this->m_parentSM, m_state, this->localSM());
 
             /// Slot resize
             auto resizeSlot = new ResizeSlotState<ToolPalette_T>{
@@ -247,9 +191,6 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
     private:
         SelectionState<ToolPalette_T, View_T>* m_state{};
-        MoveConstraintState<MoveConstraint, Scenario_T, ToolPalette_T>* m_moveConstraint{};
-        MoveEventState<MoveEventMeta, Scenario_T, ToolPalette_T>* m_moveEvent{};
-        MoveTimeNodeState<MoveEventMeta, Scenario_T, ToolPalette_T>* m_moveTimeNode{};
 
         bool m_nothingPressed{true};
 };

@@ -27,7 +27,6 @@ FullViewToolPalette::FullViewToolPalette(
     m_editionSettings{m_context.app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings()},
     m_state{*this}
 {
-
      con(m_presenter, &BaseElementPresenter::pressed,
          this, [=] (QPointF point)
      {

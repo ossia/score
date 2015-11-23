@@ -1,9 +1,8 @@
 #pragma once
-#include <Scenario/Document/BaseElement/BaseScenario/StateMachine/BaseMoveSlot.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/BaseElement/Widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
-
+#include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <iscore/statemachine/BaseStateMachine.hpp>
 
 class BaseElementPresenter;
@@ -36,6 +35,13 @@ class FullViewToolPalette final : public GraphicsSceneToolPalette
         BaseGraphicsObject& m_view;
         const Scenario::EditionSettings& m_editionSettings;
 
-        Scenario::SelectionAndMoveTool<ScenarioModel, FullViewToolPalette, BaseGraphicsObject>  m_state;
+        Scenario::SelectionAndMoveTool<
+            ScenarioModel,
+            FullViewToolPalette,
+            BaseGraphicsObject,
+            Scenario::MoveConstraintInScenario_StateWrapper,
+            Scenario::MoveEventInScenario_StateWrapper,
+            Scenario::MoveTimeNodeInScenario_StateWrapper
+        >  m_state;
 };
 

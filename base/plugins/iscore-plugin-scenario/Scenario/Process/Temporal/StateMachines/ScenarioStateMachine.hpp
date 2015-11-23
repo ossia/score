@@ -7,6 +7,8 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.hpp>
 
+#include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioMoveStatesWrapper.hpp>
+
 #include <Process/ExpandMode.hpp>
 #include <Process/Tools/ToolPalette.hpp>
 
@@ -65,7 +67,13 @@ class ToolPalette final : public GraphicsSceneToolPalette
         LayerContext& m_context;
 
         CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;
-        SelectionAndMoveTool<ScenarioModel, Scenario::ToolPalette, TemporalScenarioView> m_selectTool;
+        SelectionAndMoveTool<
+            ScenarioModel,
+            Scenario::ToolPalette,
+            TemporalScenarioView,
+            Scenario::MoveConstraintInScenario_StateWrapper,
+            Scenario::MoveEventInScenario_StateWrapper,
+            Scenario::MoveTimeNodeInScenario_StateWrapper> m_selectTool;
         MoveSlotTool m_moveSlotTool;
 
         ToolPaletteInputDispatcher<
