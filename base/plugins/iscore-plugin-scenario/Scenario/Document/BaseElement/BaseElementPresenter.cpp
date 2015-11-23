@@ -39,7 +39,7 @@ ZoomRatio BaseElementPresenter::zoomRatio() const
 
 BaseElementView& BaseElementPresenter::view() const
 {
-    return static_cast<BaseElementView&>(m_view);
+    return safe_cast<BaseElementView&>(m_view);
 }
 
 BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
@@ -77,8 +77,6 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
             this, [&] (QPointF click, QPointF current) {
         on_zoomOnWheelEvent((current - click).toPoint(), current);
     });
-    // Setup of the state machine.
-    m_stateMachine = new BaseScenarioToolPalette{*this};
 
     // Show our constraint
     con(model(), &BaseElementModel::displayedConstraintChanged,
@@ -121,7 +119,12 @@ void BaseElementPresenter::setDisplayedObject(const ObjectPath &path)
 
 void BaseElementPresenter::on_displayedConstraintChanged()
 {
-    m_scenarioPresenter->on_displayedConstraintChanged(displayedConstraint());
+    auto& cst = displayedConstraint();
+    // Setup of the state machine.
+    delete m_stateMachine;
+
+    m_stateMachine = new BaseScenarioToolPalette{*this};
+    m_scenarioPresenter->on_displayedConstraintChanged(cst);
     connect(m_scenarioPresenter->constraintPresenter(), &FullViewConstraintPresenter::objectSelected,
             this, &BaseElementPresenter::setDisplayedObject);
 

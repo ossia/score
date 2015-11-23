@@ -54,21 +54,12 @@ void FullViewConstraintViewModel::setCenter(const QPointF& value)
     m_center = value;
 }
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentContext.hpp>
 bool FullViewConstraintViewModel::isActive()
 {
-    auto scenar = dynamic_cast<ScenarioModel*>(this->model().parentScenario());
-    const ConstraintModel* cstr = & this->model();
-    while (scenar)
-    {
-        cstr = dynamic_cast<ConstraintModel*>(scenar->parent());
-        if(!cstr)
-            return false;
-        scenar = dynamic_cast<ScenarioModel*>(cstr->parentScenario());
-    }
-    auto baseScenar = dynamic_cast<BaseScenario*>(cstr->parentScenario());
-    if(!baseScenar)
-        return false;
-    auto baseElt = dynamic_cast<BaseElementModel*>(baseScenar->parent());
+    auto& ctx = iscore::IDocument::documentContext(model());
+    auto& baseElt = iscore::IDocument::get<BaseElementModel>(ctx.document);
 
-    return (this->model().id() == baseElt->displayedElements.displayedConstraint().id());
+    return (this->model().id() == baseElt.displayedElements.displayedConstraint().id());
 }

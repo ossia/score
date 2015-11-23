@@ -11,30 +11,31 @@
 #include <core/application/ApplicationContext.hpp>
 #include <core/document/Document.hpp>
 
+// We need two tool palettes : one for the case where we're viewing a basescenario,
+// and one for the case where we're in a sub-scenario.
 BaseScenarioToolPalette::BaseScenarioToolPalette(
-        BaseElementPresenter& pres):
+        const BaseElementPresenter& pres):
     GraphicsSceneToolPalette{pres.view().scene()},
     m_presenter{pres},
     m_slotTool{iscore::IDocument::commandStack(m_presenter.model()),
                *this}
 {
-    //Scenario::SelectionAndMoveTool<BaseScenario, BaseScenarioToolPalette, QGraphicsItem> teupeu(*this);
     con(m_presenter, &BaseElementPresenter::displayedConstraintPressed,
-            [=] (const QPointF& point)
+            [=] (QPointF point)
     {
         scenePoint = point;
         m_slotTool.on_pressed(point);
     });
 
     con(m_presenter, &BaseElementPresenter::displayedConstraintMoved,
-            [=] (const QPointF& point)
+            [=] (QPointF point)
     {
         scenePoint = point;
         m_slotTool.on_moved();
     });
 
     con(m_presenter, &BaseElementPresenter::displayedConstraintReleased,
-            [=] (const QPointF& point)
+            [=] (QPointF point)
     {
         scenePoint = point;
         m_slotTool.on_released();
@@ -67,3 +68,16 @@ const Scenario::EditionSettings&BaseScenarioToolPalette::editionSettings() const
 {
     return context().app.components.applicationPlugin<ScenarioApplicationPlugin>().editionSettings(); // OPTIMIZEME
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

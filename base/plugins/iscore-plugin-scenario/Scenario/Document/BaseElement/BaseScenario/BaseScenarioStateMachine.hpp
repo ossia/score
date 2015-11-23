@@ -5,6 +5,7 @@
 class DisplayedElementsPresenter;
 class DisplayedElementsModel;
 class BaseElementPresenter;
+class ConstraintModel;
 
 // TODO MoveMe to statemachine folder
 // TODO rename me
@@ -14,15 +15,16 @@ class QGraphicsItem;
 class BaseScenarioToolPalette final : public GraphicsSceneToolPalette
 {
     public:
-        BaseScenarioToolPalette(BaseElementPresenter& pres);
+        BaseScenarioToolPalette(const BaseElementPresenter& pres);
 
         QGraphicsItem& view() const;
         const DisplayedElementsPresenter& presenter() const;
         const DisplayedElementsModel& model() const;
         const iscore::DocumentContext& context() const;
         const Scenario::EditionSettings& editionSettings() const;
+
     private:
-        BaseElementPresenter& m_presenter;
+        const BaseElementPresenter& m_presenter;
         BaseMoveSlot m_slotTool;
 };
 

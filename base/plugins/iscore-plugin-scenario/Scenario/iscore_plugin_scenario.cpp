@@ -4,6 +4,10 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Panel/ProcessPanelFactory.hpp>
 
+#include <Scenario/Document/BaseElement/FullViewStateMachines/BaseScenarioToolPaletteFactory.hpp>
+#include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewToolPaletteFactory.hpp>
+#include <Scenario/Document/BaseElement/FullViewStateMachines/FullViewStateMachineFactory.hpp>
+
 #include <State/Message.hpp>
 #include <Scenario/Application/Menus/ScenarioCommonContextMenuFactory.hpp>
 
@@ -69,7 +73,8 @@ std::vector<iscore::FactoryListInterface*> iscore_plugin_scenario::factoryFamili
     return {new DynamicProcessList,
             new MoveEventList,
             new ScenarioContextMenuPluginList,
-            new ConstraintInspectorDelegateFactoryList};
+            new ConstraintInspectorDelegateFactoryList,
+            new ScenarioToolPaletteFactoryList};
 }
 
 std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
@@ -98,11 +103,11 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
     if(key == InspectorWidgetFactory::staticFactoryKey())
     {
         return {
-                    new ConstraintInspectorFactory,
-                    new StateInspectorFactory,
-                    new EventInspectorFactory,
-                    new ScenarioInspectorFactory,
-                    new TimeNodeInspectorFactory
+            new ConstraintInspectorFactory,
+            new StateInspectorFactory,
+            new EventInspectorFactory,
+            new ScenarioInspectorFactory,
+            new TimeNodeInspectorFactory
         };
     }
 
@@ -113,6 +118,14 @@ std::vector<iscore::FactoryInterfaceBase*> iscore_plugin_scenario::factories(
             new BaseConstraintInspectorDelegateFactory };
     }
 #endif
+
+    if(key == ScenarioToolPaletteFactory::staticFactoryKey())
+    {
+        return {
+            new BaseScenarioToolPaletteFactory,
+            new FullViewToolPaletteFactory
+        };
+    }
 
     return {};
 }

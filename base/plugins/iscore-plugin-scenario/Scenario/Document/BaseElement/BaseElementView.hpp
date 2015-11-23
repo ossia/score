@@ -32,8 +32,8 @@ class BaseElementView final : public iscore::DocumentDelegateViewInterface
 
         void update();
 
-        QGraphicsScene* scene() const
-        { return m_scene;}
+        QGraphicsScene& scene() const
+        { return *m_scene;}
 
         ScenarioBaseGraphicsView& view() const
         { return *m_view;}

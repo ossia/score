@@ -39,7 +39,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
             /// //TODO remove useless arguments to ctor
             m_moveConstraint =
                     new MoveConstraintState<MoveConstraint, Scenario_T, ToolPalette_T>{
-                this->m_parentSM,
+                        this->m_parentSM,
                         this->m_parentSM.model(),
                         this->m_parentSM.context().commandStack,
                         this->m_parentSM.context().objectLocker,
