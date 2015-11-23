@@ -1,17 +1,18 @@
 #pragma once
-#include "Tool.hpp"
-#include <Process/ExpandMode.hpp>
-#include "ScenarioStateMachineBaseEvents.hpp"
-#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <Scenario/Process/Temporal/StateMachines/Tool.hpp>
+#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseEvents.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <QStateMachine>
-#include <QPointF>
 
 #include <Scenario/Process/Temporal/StateMachines/Tools/CreationToolState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/SelectionToolState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/MoveSlotToolState.hpp>
 
+#include <Process/ExpandMode.hpp>
 #include <Process/Tools/ToolPalette.hpp>
+
+#include <iscore/statemachine/BaseStateMachine.hpp>
+#include <QStateMachine>
+#include <QPointF>
 
 class TemporalScenarioPresenter;
 class TemporalScenarioView;

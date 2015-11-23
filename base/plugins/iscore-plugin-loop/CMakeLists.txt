@@ -11,7 +11,6 @@ file(GLOB_RECURSE HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopProcessModel.cpp"
@@ -20,7 +19,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopViewUpdater.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopProcessMetadata.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/EditScript.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/LoopCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopInspectorFactory.cpp"
