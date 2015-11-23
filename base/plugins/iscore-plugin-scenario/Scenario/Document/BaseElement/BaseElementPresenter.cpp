@@ -78,7 +78,7 @@ BaseElementPresenter::BaseElementPresenter(DocumentPresenter* parent_presenter,
         on_zoomOnWheelEvent((current - click).toPoint(), current);
     });
     // Setup of the state machine.
-    m_stateMachine = new BaseScenarioStateMachine{this};
+    m_stateMachine = new BaseScenarioToolPalette{*this};
 
     // Show our constraint
     con(model(), &BaseElementModel::displayedConstraintChanged,

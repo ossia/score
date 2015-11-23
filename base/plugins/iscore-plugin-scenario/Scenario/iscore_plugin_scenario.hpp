@@ -8,7 +8,6 @@
 #include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 class ScenarioApplicationPlugin;
-// TODO rename file
 class iscore_plugin_scenario final :
         public QObject,
         public iscore::GUIApplicationContextPlugin_QtInterface,

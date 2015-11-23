@@ -1,7 +1,6 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
 
-// RENAMEME
 class AutomationColors
 {
     public:

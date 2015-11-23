@@ -5,7 +5,6 @@
 #include <iscore/plugins/qt_interfaces/GUIApplicationContextPlugin_QtInterface.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 
-// TODO rename file
 class iscore_plugin_deviceexplorer final :
         public QObject,
         public iscore::PanelFactory_QtInterface,

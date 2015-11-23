@@ -5,8 +5,12 @@
 
 class ConstraintModel;
 class FullViewConstraintPresenter;
+class StateModel;
 class StatePresenter;
+class EventModel;
 class EventPresenter;
+class TimeNodeModel;
+class TimeNodePresenter;
 class LayerPresenter;
 class BaseElementPresenter;
 
@@ -23,8 +27,18 @@ class DisplayedElementsPresenter final : public QObject
 
         void on_zoomRatioChanged(ZoomRatio r);
 
+        const EventModel& event(const Id<EventModel>& id) const;
+        const TimeNodeModel& timeNode(const Id<TimeNodeModel>& id) const;
+        const ConstraintModel& constraint(const Id<ConstraintModel>& id) const;
+        const StateModel& state(const Id<StateModel>& id) const;
+
         FullViewConstraintPresenter* constraintPresenter() const
         { return m_constraintPresenter; }
+
+        bool event(QEvent* e) override
+        {
+            return QObject::event(e);
+        }
 
     signals:
         void requestFocusedPresenterChange(LayerPresenter*);

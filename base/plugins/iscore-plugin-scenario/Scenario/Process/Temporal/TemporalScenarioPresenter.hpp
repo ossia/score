@@ -60,6 +60,14 @@ class TemporalScenarioPresenter final : public LayerPresenter
 
         void on_zoomRatioChanged(ZoomRatio val) override;
 
+        const auto& event(const Id<EventModel>& id) const
+        { return m_events.at(id); }
+        const auto& timeNode(const Id<TimeNodeModel>& id) const
+        { return m_timeNodes.at(id); }
+        const auto& constraint(const Id<ConstraintModel>& id) const
+        { return m_constraints.at(id); }
+        const auto& state(const Id<StateModel>& id) const
+        { return m_states.at(id); }
         const auto& events() const
         { return m_events; }
         const auto& timeNodes() const
@@ -89,6 +97,10 @@ class TemporalScenarioPresenter final : public LayerPresenter
                 const QPointF& pos,
                 const QMimeData *mime);
 
+        bool event(QEvent* e) override
+        {
+            return QObject::event(e);
+        }
     signals:
         void linesExtremityScaled(int, int);
 

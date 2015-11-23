@@ -171,8 +171,8 @@ class CreationState : public CreationStateBase<Scenario_T>
                 }
             }
 
-            auto doc = iscore::IDocument::documentFromObject(m_parentSM.model());
-            auto device_explorer = doc->model().template pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
+            auto& doc = this->m_parentSM.context().document;
+            auto device_explorer = doc.model().template pluginModel<DeviceDocumentPlugin>()->updateProxy.deviceExplorer;
 
             iscore::MessageList messages = getSelectionSnapshot(*device_explorer);
             if(messages.empty())

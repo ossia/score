@@ -1,8 +1,4 @@
 #pragma once
-#include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-
 #include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachineBaseStates.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Transitions/AnythingTransitions.hpp>
 
@@ -14,7 +10,10 @@ namespace Scenario
 
 // TODO a nice refactor is doable here between the three classes.
 // TODO rename in MoveConstraint_State for hmoegeneity with ClickOnConstraint_Transition,  etc.
-template<typename Scenario_T, typename ToolPalette_T>
+template<
+        typename MoveConstraintCommand_T, // MoveConstraint
+        typename Scenario_T,
+        typename ToolPalette_T>
 class MoveConstraintState final : public StateBase<Scenario_T>
 {
     public:
@@ -46,7 +45,7 @@ class MoveConstraintState final : public StateBase<Scenario_T>
                 QObject::connect(t_pressed, &QAbstractTransition::triggered, [&] ()
                 {
                     auto& scenar = this->m_scenarioPath.find();
-                    m_constraintInitialStartDate= scenar.constraints.at(this->clickedConstraint).startDate();
+                    m_constraintInitialStartDate= scenar.constraint(this->clickedConstraint).startDate();
                     m_constraintInitialClickDate = this->currentPoint.date;
                 });
 
@@ -83,14 +82,17 @@ class MoveConstraintState final : public StateBase<Scenario_T>
             this->setInitialState(mainState);
         }
 
-    SingleOngoingCommandDispatcher<Scenario::Command::MoveConstraint> m_dispatcher;
+    SingleOngoingCommandDispatcher<MoveConstraintCommand_T> m_dispatcher;
 
     private:
         TimeValue m_constraintInitialClickDate;
         TimeValue m_constraintInitialStartDate;
 };
 
-template<typename Scenario_T, typename ToolPalette_T>
+template<
+        typename MoveEventCommand_T, // MoveEventMeta
+        typename Scenario_T,
+        typename ToolPalette_T>
 class MoveEventState final : public StateBase<Scenario_T>
 {
     public:
@@ -159,10 +161,13 @@ class MoveEventState final : public StateBase<Scenario_T>
             this->setInitialState(mainState);
         }
 
-        SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
+        SingleOngoingCommandDispatcher<MoveEventCommand_T> m_dispatcher;
 };
 
-template<typename Scenario_T, typename ToolPalette_T>
+template<
+        typename MoveTimeNodeCommand_T, // MoveEventMeta
+        typename Scenario_T,
+        typename ToolPalette_T>
 class MoveTimeNodeState final : public StateBase<Scenario_T>
 {
     public:
@@ -202,7 +207,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
                 {
                     // Get the 1st event on the timenode.
                     auto& scenar = this->m_scenarioPath.find();
-                    auto& tn = scenar.timeNodes.at(this->clickedTimeNode);
+                    auto& tn = scenar.timeNode(this->clickedTimeNode);
                     const auto& ev_id = tn.events().first();
                     auto date = this->currentPoint.date;
 
@@ -233,7 +238,7 @@ class MoveTimeNodeState final : public StateBase<Scenario_T>
             this->setInitialState(mainState);
         }
 
-        SingleOngoingCommandDispatcher<MoveEventMeta> m_dispatcher;
+        SingleOngoingCommandDispatcher<MoveTimeNodeCommand_T> m_dispatcher;
 };
 
 }

@@ -37,8 +37,12 @@ class ToolPalette final : public GraphicsSceneToolPalette
         { return m_presenter; }
         const Scenario::EditionSettings& editionSettings() const;
 
+        const LayerContext& context() const
+        { return m_context; }
+
         const ScenarioModel& model() const
         { return m_model; }
+        TemporalScenarioView& view() const;
 
         iscore::CommandStack& commandStack() const
         { return m_context.commandStack; }
@@ -61,7 +65,7 @@ class ToolPalette final : public GraphicsSceneToolPalette
         LayerContext& m_context;
 
         CreationTool<ScenarioModel, Scenario::ToolPalette> m_createTool;
-        SelectionAndMoveTool<ScenarioModel, Scenario::ToolPalette> m_selectTool;
+        SelectionAndMoveTool<ScenarioModel, Scenario::ToolPalette, TemporalScenarioView> m_selectTool;
         MoveSlotTool m_moveSlotTool;
 
         ToolPaletteInputDispatcher<

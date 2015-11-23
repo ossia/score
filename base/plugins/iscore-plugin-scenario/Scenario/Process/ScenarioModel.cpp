@@ -380,7 +380,7 @@ const StateModel* furthestSelectedState(const ScenarioModel& scenar)
     return nullptr;
 }
 
-const StateModel*furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenar)
+const StateModel* furthestSelectedStateWithoutFollowingConstraint(const ScenarioModel& scenar)
 {
     const StateModel* furthest_state{};
     {

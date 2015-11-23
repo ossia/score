@@ -1,41 +1,118 @@
 #pragma once
 #include <iscore/statemachine/CommonSelectionState.hpp>
+
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+
 #include <QPointF>
 class TemporalScenarioView;
 
 namespace Scenario
 {
 class ToolPalette;
+template<typename ToolPalette_T, typename View_T>
 class SelectionState final : public CommonSelectionState
 {
     private:
         QPointF m_initialPoint;
         QPointF m_movePoint;
-        const Scenario::ToolPalette& m_parentSM;
-        TemporalScenarioView& m_scenarioView;
+        const ToolPalette_T& m_parentSM;
+        View_T& m_scenarioView;
 
     public:
         SelectionState(
                 iscore::SelectionStack& stack,
-                const Scenario::ToolPalette& parentSM,
-                TemporalScenarioView& scenarioview,
-                QState* parent);
+                const ToolPalette_T& parentSM,
+                View_T& scenarioview,
+                QState* parent):
+            CommonSelectionState{stack, &scenarioview, parent},
+            m_parentSM{parentSM},
+            m_scenarioView{scenarioview}
+        {
+        }
 
-        const QPointF& initialPoint() const;
-        const QPointF& movePoint() const;
+        const QPointF& initialPoint() const
+        { return m_initialPoint; }
+        const QPointF& movePoint() const
+        { return m_movePoint; }
 
-        void on_pressAreaSelection() override;
+        void on_pressAreaSelection() override
+        {
+            m_initialPoint = m_parentSM.scenePoint;
+        }
 
-        void on_moveAreaSelection() override;
+        void on_moveAreaSelection() override
+        {
+            m_movePoint = m_parentSM.scenePoint;
+            auto area = QRectF{m_scenarioView.mapFromScene(m_initialPoint),
+                    m_scenarioView.mapFromScene(m_movePoint)}.normalized();
+            m_scenarioView.setSelectionArea(area);
+            setSelectionArea(area);
+        }
 
-        void on_releaseAreaSelection() override;
+        void on_releaseAreaSelection() override
+        {
+            if(m_parentSM.scenePoint == m_initialPoint)
+                on_deselect();
 
-        void on_deselect() override;
+            m_scenarioView.setSelectionArea(QRectF{});
+        }
 
-        void on_delete() override;
+        void on_deselect() override
+        {
+            dispatcher.setAndCommit(Selection{});
+            m_scenarioView.setSelectionArea(QRectF{});
+        }
 
-        void on_deleteContent() override;
+        void on_delete() override
+        {
+            ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
+            mgr.removeSelection(m_parentSM.model());
+        }
 
-        void setSelectionArea(const QRectF& area);
+        void on_deleteContent() override
+        {
+            ScenarioGlobalCommandManager mgr{m_parentSM.commandStack()};
+            mgr.clearContentFromSelection(m_parentSM.model());
+        }
+
+        void setSelectionArea(const QRectF& area)
+        {
+            using namespace std;
+            Selection sel;
+
+            for(const auto& elt : m_parentSM.presenter().constraints())
+            {
+                if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+                {
+                    sel.append(&elt.model());
+                }
+            }
+            for(const auto& elt : m_parentSM.presenter().timeNodes())
+            {
+                if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+                {
+                    sel.append(&elt.model());
+                }
+            }
+            for(const auto& elt : m_parentSM.presenter().events())
+            {
+                if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+                {
+                    sel.append(&elt.model());
+                }
+            }
+            for(const auto& elt : m_parentSM.presenter().states())
+            {
+                if(area.intersects(elt.view()->boundingRect().translated(elt.view()->pos())))
+                {
+                    sel.append(&elt.model());
+                }
+            }
+
+            dispatcher.setAndCommit(filterSelections(sel,
+                                                     m_parentSM.model().selectedChildren(),
+                                                     multiSelection()));
+        }
 };
 }

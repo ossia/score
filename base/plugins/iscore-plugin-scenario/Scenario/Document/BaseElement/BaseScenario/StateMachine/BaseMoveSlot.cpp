@@ -21,7 +21,7 @@
 
 BaseMoveSlot::BaseMoveSlot(
         iscore::CommandStack& stack,
-        BaseScenarioStateMachine& sm):
+        BaseScenarioToolPalette& sm):
     m_sm{sm}
 {
     //Setup the sub-state machine.
@@ -29,7 +29,7 @@ BaseMoveSlot::BaseMoveSlot(
     m_localSM.setInitialState(m_waitState);
 
     {
-        auto resizeSlot = new Scenario::ResizeSlotState<BaseScenarioStateMachine>{stack, m_sm, &m_localSM};
+        auto resizeSlot = new Scenario::ResizeSlotState<BaseScenarioToolPalette>{stack, m_sm, &m_localSM};
         iscore::make_transition<Scenario::ClickOnSlotHandle_Transition>(
                     m_waitState,
                     resizeSlot,

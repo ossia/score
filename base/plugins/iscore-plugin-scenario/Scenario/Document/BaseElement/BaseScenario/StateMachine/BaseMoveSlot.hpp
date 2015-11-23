@@ -5,14 +5,14 @@
 #include <QStateMachine>
 
 class QGraphicsScene;
-class BaseScenarioStateMachine;
+class BaseScenarioToolPalette;
 class SlotModel;
 class BaseMoveSlot
 {
     public:
         BaseMoveSlot(
                 iscore::CommandStack& stack,
-                BaseScenarioStateMachine& sm);
+                BaseScenarioToolPalette& sm);
 
         void on_pressed(QPointF scene);
         void on_moved();
@@ -22,7 +22,7 @@ class BaseMoveSlot
 
 
     private:
-        const BaseScenarioStateMachine& m_sm;
+        const BaseScenarioToolPalette& m_sm;
         QStateMachine m_localSM;
         QState* m_waitState{};
 };

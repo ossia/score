@@ -104,6 +104,44 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
     m_constraintPresenter->on_zoomRatioChanged(r);
 }
 
+const EventModel& DisplayedElementsPresenter::event(const Id<EventModel>& id) const
+{
+    const auto& de = m_parent->model().displayedElements;
+    if(id == de.startEvent().id())
+        return de.startEvent();
+    else if(id == de.endEvent().id())
+        return de.endEvent();
+    ISCORE_ABORT;
+}
+
+const TimeNodeModel& DisplayedElementsPresenter::timeNode(const Id<TimeNodeModel>& id) const
+{
+    const auto& de = m_parent->model().displayedElements;
+    if(id == de.startNode().id())
+        return de.startNode();
+    else if(id == de.endNode().id())
+        return de.endNode();
+    ISCORE_ABORT;
+}
+
+const ConstraintModel& DisplayedElementsPresenter::constraint(const Id<ConstraintModel>& id) const
+{
+    const auto& de = m_parent->model().displayedElements;
+    if(id == de.displayedConstraint().id())
+        return de.displayedConstraint();
+    ISCORE_ABORT;
+}
+
+const StateModel& DisplayedElementsPresenter::state(const Id<StateModel>& id) const
+{
+    const auto& de = m_parent->model().displayedElements;
+    if(id == de.startState().id())
+        return de.startState();
+    else if(id == de.endState().id())
+        return de.endState();
+    ISCORE_ABORT;
+}
+
 void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(TimeValue t)
 {
     m_endStatePresenter->view()->setPos({t.toPixels(m_constraintPresenter->model().fullView()->zoom()), 0});

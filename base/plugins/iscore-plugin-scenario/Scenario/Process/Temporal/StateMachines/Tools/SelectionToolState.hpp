@@ -2,6 +2,10 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/ScenarioToolState.hpp>
 #include <iscore/selection/SelectionDispatcher.hpp>
 
+#include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
+#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/MoveStates.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ScenarioSelectionState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp>
@@ -14,21 +18,19 @@
 // TODO rename file.
 namespace Scenario
 {
-class SelectionState;
-
 class ToolPalette;
 
-template<typename Scenario_T, typename ToolPalette_T>
+template<typename Scenario_T, typename ToolPalette_T, typename View_T>
 class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 {
     public:
         SelectionAndMoveTool(ToolPalette_T& sm):
             ToolBase<ToolPalette_T>{sm}
         {
-            m_state = new SelectionState{
-                      iscore::IDocument::documentFromObject(this->m_parentSM.model())->selectionStack(),
+            m_state = new SelectionState<ToolPalette_T, View_T>{
+                      this->m_parentSM.context().selectionStack,
                       this->m_parentSM,
-                      this->m_parentSM.presenter().view(),
+                      this->m_parentSM.view(),
                       &this->localSM()};
 
             this->localSM().setInitialState(m_state);
@@ -36,11 +38,11 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
             /// Constraint
             /// //TODO remove useless arguments to ctor
             m_moveConstraint =
-                    new MoveConstraintState<Scenario_T, ToolPalette_T>{
+                    new MoveConstraintState<MoveConstraint, Scenario_T, ToolPalette_T>{
                 this->m_parentSM,
                         this->m_parentSM.model(),
-                        this->m_parentSM.commandStack(),
-                        this->m_parentSM.locker(),
+                        this->m_parentSM.context().commandStack,
+                        this->m_parentSM.context().objectLocker,
                         nullptr};
 
             make_transition<ClickOnConstraint_Transition<Scenario_T>>(m_state,
@@ -54,11 +56,11 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
             /// Event
             m_moveEvent =
-                    new MoveEventState<Scenario_T, ToolPalette_T>{
-                this->m_parentSM,
+                    new MoveEventState<MoveEventMeta, Scenario_T, ToolPalette_T>{
+                        this->m_parentSM,
                         this->m_parentSM.model(),
-                        this->m_parentSM.commandStack(),
-                        this->m_parentSM.locker(),
+                        this->m_parentSM.context().commandStack,
+                        this->m_parentSM.context().objectLocker,
                         nullptr};
 
             make_transition<ClickOnState_Transition<Scenario_T>>(m_state,
@@ -76,11 +78,11 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
             /// TimeNode
             m_moveTimeNode =
-                    new MoveTimeNodeState<Scenario_T, ToolPalette_T>{
-                this->m_parentSM,
+                    new MoveTimeNodeState<MoveEventMeta, Scenario_T, ToolPalette_T>{
+                        this->m_parentSM,
                         this->m_parentSM.model(),
-                        this->m_parentSM.commandStack(),
-                        this->m_parentSM.locker(),
+                        this->m_parentSM.context().commandStack,
+                        this->m_parentSM.context().objectLocker,
                         nullptr};
 
             make_transition<ClickOnTimeNode_Transition<Scenario_T>>(m_state,
@@ -94,10 +96,10 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
 
 
             /// Slot resize
-            auto resizeSlot = new ResizeSlotState<ToolPalette>{
-                              this->m_parentSM.commandStack(),
-                              this->m_parentSM,
-                              &this->localSM()};
+            auto resizeSlot = new ResizeSlotState<ToolPalette_T>{
+                    this->m_parentSM.context().commandStack,
+                    this->m_parentSM,
+                    &this->localSM()};
 
             make_transition<ClickOnSlotHandle_Transition>(
                         m_state,
@@ -193,7 +195,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
             this->mapTopItem(this->itemUnderMouse(scene),
                        [&] (const Id<StateModel>& id) // State
             {
-                const auto& elt = this->m_parentSM.presenter().states().at(id);
+                const auto& elt = this->m_parentSM.presenter().state(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                                   this->m_parentSM.model().selectedChildren(),
@@ -203,7 +205,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
             },
             [&] (const Id<EventModel>& id) // Event
             {
-                const auto& elt = this->m_parentSM.presenter().events().at(id);
+                const auto& elt = this->m_parentSM.presenter().event(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                                   this->m_parentSM.model().selectedChildren(),
@@ -213,7 +215,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
             },
             [&] (const Id<TimeNodeModel>& id) // TimeNode
             {
-                const auto& elt = this->m_parentSM.presenter().timeNodes().at(id);
+                const auto& elt = this->m_parentSM.presenter().timeNode(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                                   this->m_parentSM.model().selectedChildren(),
@@ -223,7 +225,7 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
             },
             [&] (const Id<ConstraintModel>& id) // Constraint
             {
-                const auto& elt = this->m_parentSM.presenter().constraints().at(id);
+                const auto& elt = this->m_parentSM.presenter().constraint(id);
 
                 m_state->dispatcher.setAndCommit(filterSelections(&elt.model(),
                                                                   this->m_parentSM.model().selectedChildren(),
@@ -244,10 +246,10 @@ class SelectionAndMoveTool final : public ToolBase<ToolPalette_T>
         }
 
     private:
-        SelectionState* m_state{};
-        MoveConstraintState<Scenario_T, ToolPalette_T>* m_moveConstraint{};
-        MoveEventState<Scenario_T, ToolPalette_T>* m_moveEvent{};
-        MoveTimeNodeState<Scenario_T, ToolPalette_T>* m_moveTimeNode{};
+        SelectionState<ToolPalette_T, View_T>* m_state{};
+        MoveConstraintState<MoveConstraint, Scenario_T, ToolPalette_T>* m_moveConstraint{};
+        MoveEventState<MoveEventMeta, Scenario_T, ToolPalette_T>* m_moveEvent{};
+        MoveTimeNodeState<MoveEventMeta, Scenario_T, ToolPalette_T>* m_moveTimeNode{};
 
         bool m_nothingPressed{true};
 };

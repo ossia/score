@@ -28,6 +28,11 @@ const Scenario::EditionSettings&ToolPalette::editionSettings() const
     return m_presenter.editionSettings();
 }
 
+TemporalScenarioView& ToolPalette::view() const
+{
+    return m_presenter.view();
+}
+
 void ToolPalette::on_pressed(QPointF point)
 {
     scenePoint = point;
