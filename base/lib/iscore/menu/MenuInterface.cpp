@@ -114,6 +114,7 @@ const std::map<FileMenuElement, QString> MenuInterface::m_fileMap
     {FileMenuElement::Separator_Export, QObject::tr("Separator_Export") },
     {FileMenuElement::Export, QObject::tr("Export") },
     {FileMenuElement::Separator_Quit, QObject::tr("Separator_Quit") },
+    {FileMenuElement::Close, QObject::tr("Close") },
     {FileMenuElement::Quit, QObject::tr("Quit") }
 };
 

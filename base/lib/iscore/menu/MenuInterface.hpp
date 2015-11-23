@@ -29,6 +29,7 @@ namespace iscore
         Separator_Export,
         Export,
         Separator_Quit,
+        Close,
         Quit
     };
 
