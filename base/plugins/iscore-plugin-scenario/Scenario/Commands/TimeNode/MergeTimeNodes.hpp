@@ -15,7 +15,7 @@ namespace Scenario
     {
         class MergeTimeNodes final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "MergeTimeNodes")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeTimeNodes, "Merge timenodes")
             public:
                 MergeTimeNodes(Path<ScenarioModel>&& path, Id<TimeNodeModel> aimedTimeNode, Id<TimeNodeModel> movingTimeNode);
                 void undo() const override;

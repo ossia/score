@@ -1,19 +1,12 @@
 #include "RackPresenter.hpp"
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 #include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
-#include <iscore/command/SerializableCommand.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
-#include <core/application/ApplicationComponents.hpp>
-#include <QGraphicsScene>
 
 static const constexpr int slotSpacing = 0;
 

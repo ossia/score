@@ -16,7 +16,7 @@ namespace Scenario
          */
         class RemoveLayerModelFromSlot final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveLayerModelFromSlot, "RemoveLayerModelFromSlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveLayerModelFromSlot, "Remove a layer from a slot")
             public:
 
                 RemoveLayerModelFromSlot(

@@ -5,16 +5,10 @@
 #include "Curve/StateMachine/OngoingState.hpp"
 
 #include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
-#include "Curve/StateMachine/States/Tools/MoveTool.hpp"
-#include <Curve/StateMachine/CurveStateMachine.hpp>
-#include "Curve/Commands/UpdateCurve.hpp"
-#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <core/document/Document.hpp>
-#include <core/document/DocumentContext.hpp>
 #include <core/application/ApplicationComponents.hpp>
 
-#include <QGraphicsScene>
 #include <QActionGroup>
 #include <QKeyEvent>
 #include <QMenu>

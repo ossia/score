@@ -14,7 +14,6 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <QCryptographicHash>
 using namespace iscore;

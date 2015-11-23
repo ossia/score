@@ -1,13 +1,6 @@
 #include "MovePointCommandObject.hpp"
 #include "Curve/CurvePresenter.hpp"
 #include "Curve/CurveModel.hpp"
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Point/CurvePointView.hpp"
-#include <iscore/document/DocumentInterface.hpp>
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
-#include <iscore/tools/SettableIdentifierGeneration.hpp>
-
 
 MovePointCommandObject::MovePointCommandObject(
         CurvePresenter* presenter,

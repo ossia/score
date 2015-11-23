@@ -46,10 +46,10 @@ class Creation_FromTimeNode final : public CreationState<Scenario_T, ToolPalette
             {
                 auto pressed = new QState{mainState};
                 auto released = new QState{mainState};
-                auto move_nothing = new StrongQState<ScenarioElement::Nothing + Modifier::Move_tag::value>{mainState};
-                auto move_state = new StrongQState<ScenarioElement::State + Modifier::Move_tag::value>{mainState};
-                auto move_event = new StrongQState<ScenarioElement::Event + Modifier::Move_tag::value>{mainState};
-                auto move_timenode = new StrongQState<ScenarioElement::TimeNode + Modifier::Move_tag::value>{mainState};
+                auto move_nothing = new StrongQState<MoveOnNothing>{mainState};
+                auto move_state = new StrongQState<MoveOnState>{mainState};
+                auto move_event = new StrongQState<MoveOnEvent>{mainState};
+                auto move_timenode = new StrongQState<MoveOnTimeNode>{mainState};
 
                 // General setup
                 mainState->setInitialState(pressed);

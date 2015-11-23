@@ -10,8 +10,7 @@ BaseScenarioStateMachine::BaseScenarioStateMachine(
         BaseElementPresenter* pres):
     GraphicsSceneToolPalette{*pres->view().scene()},
     m_presenter{pres},
-    m_slotTool{*m_presenter->view().scene(),
-               iscore::IDocument::commandStack(m_presenter->model()),
+    m_slotTool{iscore::IDocument::commandStack(m_presenter->model()),
                *this}
 {
     connect(m_presenter, &BaseElementPresenter::displayedConstraintPressed,

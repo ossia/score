@@ -1,11 +1,7 @@
 #include "AddressStringSettingsWidget.hpp"
-#include <State/ValueConversion.hpp>
 #include <QComboBox>
-#include <QDebug>
 #include <QGridLayout>
-#include <QLabel>
 #include <QLineEdit>
-#include <QSpinBox>
 #include <QFormLayout>
 
 AddressStringSettingsWidget::AddressStringSettingsWidget(QWidget* parent)

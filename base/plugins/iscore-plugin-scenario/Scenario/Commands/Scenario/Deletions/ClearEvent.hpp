@@ -8,9 +8,10 @@ namespace Scenario
 {
     namespace Command
     {
+    // RENAMEME
         class ClearState final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "ClearState")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "Clear a state")
             public:
                 ClearState(Path<StateModel>&& path);
                 void undo() const override;

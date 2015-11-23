@@ -1,5 +1,4 @@
 #include "OSSIADevice.hpp"
-#include <QDebug>
 #include <boost/range/algorithm.hpp>
 #include <Network/Node.h>
 

@@ -2,31 +2,17 @@
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 #include <Scenario/Document/BaseElement/BaseElementPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <QJsonDocument>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
-#include <iscore/command/CommandGeneratorMap.hpp>
-
-#include "Menus/ObjectMenuActions.hpp"
 #include "Menus/ToolMenuActions.hpp"
 
-#include <core/document/DocumentModel.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QToolBar>
-#include <QFile>
 #include <QFileDialog>
 #include <QApplication>
 
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/application/Application.hpp>

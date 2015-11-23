@@ -6,7 +6,7 @@
 class Process;
 class SetProcessDuration final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "SetProcessDuration")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetProcessDuration, "Change a process duration")
 
     public:
 

@@ -4,16 +4,12 @@
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
 
-#include <iscore/plugins/panel/PanelFactory.hpp>
 #include <iscore/plugins/panel/PanelPresenter.hpp>
 #include <iscore/plugins/panel/PanelModel.hpp>
 
 #include <iscore/plugins/documentdelegate/DocumentDelegateFactoryInterface.hpp>
 
 #include <core/application/OpenDocumentsFile.hpp>
-#include <QLayout>
-#include <QStandardPaths>
-#include <QSettings>
 
 using namespace iscore;
 

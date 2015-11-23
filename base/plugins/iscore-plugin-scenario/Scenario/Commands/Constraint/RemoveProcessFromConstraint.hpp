@@ -13,7 +13,7 @@ namespace Scenario
     {
         class RemoveProcessFromConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveProcessFromConstraint, "RemoveProcessFromConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveProcessFromConstraint, "Remove a process")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 RemoveProcessFromConstraint(

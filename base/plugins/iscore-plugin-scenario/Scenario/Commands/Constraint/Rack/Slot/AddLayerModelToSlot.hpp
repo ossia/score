@@ -19,7 +19,7 @@ namespace Scenario
          */
         class AddLayerModelToSlot final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "AddLayerModelToSlot")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddLayerModelToSlot, "Add a layer to a slot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 // Use this constructor when the process already exists

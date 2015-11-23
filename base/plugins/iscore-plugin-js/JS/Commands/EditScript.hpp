@@ -5,7 +5,7 @@
 class JSProcessModel;
 class EditScript final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(JSCommandFactoryName(), EditScript, "EditScript")
+        ISCORE_COMMAND_DECL(JSCommandFactoryName(), EditScript, "Edit a JS script")
     public:
         EditScript(
                 Path<JSProcessModel>&& model,

@@ -3,22 +3,9 @@
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Process/Temporal/StateMachines/Tools/States/DragSlotState.hpp>
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotOverlay.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotView.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotHandle.hpp>
-
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <Scenario/Process/Temporal/StateMachines/Transitions/SlotTransitions.hpp>
-#include <Scenario/Process/Temporal/StateMachines/ScenarioStateMachine.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
-
-#include <QFinalState>
-#include <QGraphicsScene>
 namespace Scenario
 {
 MoveSlotTool::MoveSlotTool(const ToolPalette& sm):

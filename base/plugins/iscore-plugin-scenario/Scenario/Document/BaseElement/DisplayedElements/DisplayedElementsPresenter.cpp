@@ -10,14 +10,11 @@
 #include <Scenario/Document/Constraint/ViewModels/FullView/FullViewConstraintView.hpp>
 
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotPresenter.hpp>
 
-#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
 DisplayedElementsPresenter::DisplayedElementsPresenter(BaseElementPresenter *parent):
     QObject{parent},
     m_parent{parent}

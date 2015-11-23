@@ -10,7 +10,7 @@ class CurvePointModel;
 
 class MovePoint final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), MovePoint, "MovePoint")
+        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), MovePoint, "Move a point")
         public:
             MovePoint(Path<CurveModel>&& model,
                       const Id<CurvePointModel>& pointId,

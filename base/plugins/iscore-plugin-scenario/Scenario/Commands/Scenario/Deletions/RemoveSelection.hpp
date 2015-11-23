@@ -19,7 +19,7 @@ namespace Scenario
         */
         class RemoveSelection final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "RemoveSelection")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveSelection, "Remove selected elements")
             public:
                 RemoveSelection(Path<ScenarioModel>&& scenarioPath, Selection sel);
 

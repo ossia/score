@@ -1,9 +1,5 @@
 #include "ProcessModelSerialization.hpp"
-#include <Process/ProcessFactory.hpp>
-
-#include <Process/ProcessList.hpp>
 #include <Process/Process.hpp>
-#include <iscore/tools/std/StdlibWrapper.hpp>
 
 
 template<>

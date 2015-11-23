@@ -5,7 +5,7 @@
 
 class MoveEventOnCreationMeta final : public SerializableMoveEvent
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventOnCreationMeta, "MoveEventOnCreationMeta")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventOnCreationMeta, "Move an event on creation")
 public:
     MoveEventOnCreationMeta(
             Path<ScenarioModel>&& scenarioPath,

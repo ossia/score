@@ -8,7 +8,7 @@ namespace Command
 {
 class CreateEvent_State final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateEvent_State, "CreateEvent_State")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateEvent_State, "Create an event and a state")
         public:
 
           CreateEvent_State(

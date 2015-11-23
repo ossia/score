@@ -18,7 +18,7 @@ namespace Scenario
 
         class MoveNewEvent final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewEvent, "MoveNewEvent")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
                 public:
                 MoveNewEvent(
                   Path<ScenarioModel>&& scenarioPath,

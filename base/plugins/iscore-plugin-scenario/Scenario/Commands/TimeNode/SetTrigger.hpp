@@ -15,7 +15,7 @@ namespace Scenario
     {
         class SetTrigger final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "SetTrigger")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
             public:
                 SetTrigger(Path<TimeNodeModel>&& timeNodePath, iscore::Trigger trigger);
                 ~SetTrigger();

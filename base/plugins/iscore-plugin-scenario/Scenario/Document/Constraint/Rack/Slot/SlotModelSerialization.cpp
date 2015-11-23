@@ -1,9 +1,5 @@
 #include "SlotModel.hpp"
-#include <Process/LayerModel.hpp>
 #include <Scenario/Document/Constraint/LayerModelLoader.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONValueVisitor.hpp>
 
 template<> void Visitor<Reader<DataStream>>::readFrom(const SlotModel& slot)
 {

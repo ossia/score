@@ -7,24 +7,19 @@
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 #include "Automation/Commands/ChangeAddress.hpp"
 #include "Automation/Commands/InitAutomation.hpp"
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
 #include "Automation/AutomationModel.hpp"
-#include "Curve/CurveModel.hpp"
 
 #include "Curve/Commands/UpdateCurve.hpp"
-#include "Curve/Segment/Linear/LinearCurveSegmentModel.hpp"
 #include "Curve/Segment/PointArray/PointArrayCurveSegmentModel.hpp"
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <QApplication>
 

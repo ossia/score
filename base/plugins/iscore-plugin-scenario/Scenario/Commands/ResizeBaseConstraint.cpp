@@ -5,15 +5,6 @@
 #include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 
-#include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
-
-#include <Scenario/Document/Constraint/ViewModels/ConstraintViewModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <Process/LayerModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 using namespace iscore;
 using namespace Scenario::Command;
 

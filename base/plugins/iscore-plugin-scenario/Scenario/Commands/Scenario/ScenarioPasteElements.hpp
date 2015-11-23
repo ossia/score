@@ -12,7 +12,7 @@ class StateModel;
 
 class ScenarioPasteElements final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ScenarioPasteElements, "ScenarioPasteElements")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ScenarioPasteElements, "Paste elements in scenario")
     public:
         ScenarioPasteElements(
                 Path<TemporalScenarioLayerModel>&& path,

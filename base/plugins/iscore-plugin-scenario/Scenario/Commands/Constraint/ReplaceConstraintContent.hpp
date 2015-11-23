@@ -16,7 +16,7 @@ namespace Scenario
     // TODO Rename file
         class InsertContentInConstraint final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "InsertContentInConstraint")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), InsertContentInConstraint, "Insert content in a constraint")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 InsertContentInConstraint(

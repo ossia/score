@@ -49,7 +49,7 @@ class MoveEvent final : public SerializableMoveEvent
         }
         QString description() const override
         {
-            return QObject::tr("Move Event With %1").arg(DisplacementPolicy::name());
+            return QObject::tr("Move an event with %1").arg(DisplacementPolicy::name());
         }
 
         MoveEvent()

@@ -9,7 +9,7 @@ class DeviceDocumentPlugin;
 // Note : could also be used for loading from the library
 class LoadDevice final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), LoadDevice, "LoadDevice")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
         public:
           LoadDevice(
             Path<DeviceDocumentPlugin>&& device_tree,

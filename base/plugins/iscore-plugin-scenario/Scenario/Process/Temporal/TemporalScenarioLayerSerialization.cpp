@@ -1,5 +1,4 @@
 #include "TemporalScenarioLayerModel.hpp"
-#include <Scenario/Process/AbstractScenarioLayerModel.hpp>
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
 
@@ -62,8 +61,6 @@ void Visitor<Writer<JSONObject>>::writeTo(TemporalScenarioLayerModel& lm)
     }
 }
 
-
-#include <iscore/serialization/VisitorCommon.hpp>
 void TemporalScenarioLayerModel::serialize(const VisitorVariant& vis) const
 {
     serialize_dyn(vis, *this);

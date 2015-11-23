@@ -20,12 +20,9 @@
 #include <QGraphicsScene>
 
 BaseMoveSlot::BaseMoveSlot(
-        const QGraphicsScene& scene,
         iscore::CommandStack& stack,
         BaseScenarioStateMachine& sm):
-   // QState{&sm},
-    m_sm{sm},
-    m_scene{scene}
+    m_sm{sm}
 {
     //Setup the sub-state machine.
     m_waitState = new QState{&m_localSM};

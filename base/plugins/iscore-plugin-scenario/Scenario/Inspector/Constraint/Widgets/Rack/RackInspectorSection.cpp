@@ -6,15 +6,9 @@
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
-
-#include <QtWidgets/QVBoxLayout>
 #include <QFrame>
 #include <QPushButton>
 

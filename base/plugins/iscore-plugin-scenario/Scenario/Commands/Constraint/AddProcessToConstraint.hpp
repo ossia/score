@@ -72,7 +72,7 @@ class AddProcessToConstraint final : public AddProcessToConstraintBase
         const CommandFactoryKey& key() const override
         { return static_key(); }
         QString description() const override
-        { return QObject::tr("AddProcessToConstraint"); }
+        { return QObject::tr("Add a process to a constraint"); }
         static const CommandFactoryKey& static_key()
         { return AddProcessDelegate::static_key(); }
 

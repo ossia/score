@@ -21,8 +21,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <core/application/Application.hpp>
 #include <QSvgGenerator>
-#include <QApplication>
-#include <QAction>
 #include <QMimeData>
 #include <QClipboard>
 BaseElementView::BaseElementView(

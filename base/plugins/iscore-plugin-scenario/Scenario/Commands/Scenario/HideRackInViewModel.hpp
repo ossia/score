@@ -19,7 +19,7 @@ namespace Scenario
          */
         class HideRackInViewModel final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRackInViewModel, "HideRackInViewModel")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRackInViewModel, "Hide a rack")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 HideRackInViewModel(Path<ConstraintViewModel>&& path);

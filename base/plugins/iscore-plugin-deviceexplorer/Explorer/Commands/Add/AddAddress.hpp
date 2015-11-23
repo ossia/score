@@ -14,7 +14,7 @@ namespace DeviceExplorer
     {
         class AddAddress final : public iscore::SerializableCommand
         {
-            ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "AddAddress")
+            ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
             public:
                 AddAddress(Path<DeviceDocumentPlugin>&& device_tree,
                            const iscore::NodePath &nodePath,

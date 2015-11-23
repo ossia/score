@@ -17,7 +17,7 @@ namespace Scenario
          */
         class AddSlotToRack final : public iscore::SerializableCommand
         {
-                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "AddSlotToRack")
+                ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddSlotToRack, "Create a slot")
 #include <tests/helpers/FriendDeclaration.hpp>
             public:
                 AddSlotToRack(Path<RackModel>&& rackPath);

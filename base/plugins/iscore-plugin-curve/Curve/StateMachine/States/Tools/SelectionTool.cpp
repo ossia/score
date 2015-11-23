@@ -1,27 +1,17 @@
 #include "SelectionTool.hpp"
 #include <iscore/statemachine/CommonSelectionState.hpp>
-#include "Curve/StateMachine/CurveStateMachine.hpp"
+#include <Curve/StateMachine/CurveStateMachine.hpp>
 
-#include "Curve/CurveModel.hpp"
-#include "Curve/CurvePresenter.hpp"
-#include "Curve/CurveView.hpp"
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveView.hpp>
 
-#include "Curve/Point/CurvePointModel.hpp"
-#include "Curve/Point/CurvePointView.hpp"
+#include <Curve/StateMachine/OngoingState.hpp>
+#include <Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp>
 
-#include "Curve/Segment/CurveSegmentModel.hpp"
-#include "Curve/Segment/CurveSegmentView.hpp"
-
-#include "Curve/StateMachine/OngoingState.hpp"
-#include "Curve/StateMachine/CommandObjects/MovePointCommandObject.hpp"
-
-#include <iscore/statemachine/StateMachineUtils.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 #include <iscore/selection/SelectionStack.hpp>
 
 #include <core/document/Document.hpp>
-
-#include <QGraphicsScene>
 
 namespace Curve
 {

@@ -1,5 +1,4 @@
 #include "DeviceDocumentPlugin.hpp"
-#include <iscore/serialization/VisitorCommon.hpp>
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 

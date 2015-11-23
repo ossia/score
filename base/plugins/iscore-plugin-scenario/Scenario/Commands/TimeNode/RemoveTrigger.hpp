@@ -16,7 +16,7 @@ namespace Scenario
     {
     class RemoveTrigger final : public iscore::SerializableCommand
     {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveTrigger, "RemoveTrigger")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), RemoveTrigger, "Remove a trigger")
     public:
         RemoveTrigger(Path<TimeNodeModel>&& timeNodePath);
         ~RemoveTrigger();

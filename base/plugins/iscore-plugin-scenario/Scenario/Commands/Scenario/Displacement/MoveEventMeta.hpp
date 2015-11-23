@@ -5,7 +5,7 @@
 
 class MoveEventMeta final : public SerializableMoveEvent
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "MoveEventMeta")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveEventMeta, "Move an event")
 
 public:
 

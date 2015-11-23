@@ -11,7 +11,6 @@ class BaseMoveSlot
 {
     public:
         BaseMoveSlot(
-                const QGraphicsScene& scene,
                 iscore::CommandStack& stack,
                 BaseScenarioStateMachine& sm);
 
@@ -26,7 +25,5 @@ class BaseMoveSlot
         const BaseScenarioStateMachine& m_sm;
         QStateMachine m_localSM;
         QState* m_waitState{};
-
-        const QGraphicsScene& m_scene;
 };
 

@@ -1,11 +1,8 @@
 #include "TriggerInspectorWidget.hpp"
-#include <iscore/document/DocumentInterface.hpp>
 
 #include <Scenario/Document/TimeNode/Trigger/TriggerModel.hpp>
 
-#include <QLabel>
 #include <QLineEdit>
-#include <QLayout>
 #include <QPushButton>
 
 #include <Scenario/Commands/TimeNode/SetTrigger.hpp>

@@ -1,28 +1,16 @@
 #include <iscore/plugins/application/GUIApplicationContextPlugin.hpp>
 
 #include <core/application/Application.hpp>
-#include <core/application/OpenDocumentsFile.hpp>
 #include <core/view/View.hpp>
 
-#include <iscore/plugins/panel/PanelFactory.hpp>
-#include <iscore/plugins/panel/PanelPresenter.hpp>
-#include <iscore/plugins/panel/PanelModel.hpp>
 #include <iscore/plugins/panel/PanelView.hpp>
-#include <iscore/tools/exceptions/MissingCommand.hpp>
 #include <iscore/tools/SettableIdentifierGeneration.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
-#include <core/undo/UndoApplicationPlugin.hpp>
-
-
 #include "iscore_git_info.hpp"
 
-#include <QFileDialog>
-#include <QSaveFile>
 #include <QMessageBox>
-#include <QToolBar>
-#include <QJsonDocument>
 
 namespace iscore
 {

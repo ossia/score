@@ -9,7 +9,7 @@ namespace Command
 {
 class CreateTimeNode_Event_State final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateTimeNode_Event_State,"CreateTimeNode_Event_State")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateTimeNode_Event_State,"Create a timenode, an event and a state")
         public:
 
           CreateTimeNode_Event_State(

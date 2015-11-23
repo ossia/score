@@ -5,19 +5,12 @@
 #include <QApplication>
 #include <Scenario/Document/BaseElement/BaseElementModel.hpp>
 
-#include <Process/ProcessList.hpp>
-#include <Process/Process.hpp>
-#include <Process/LayerModel.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
-#include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
-#include <Process/ProcessFactory.hpp>
 
 #include <Scenario/Document/BaseElement/Widgets/ScenarioBaseGraphicsView.hpp>
 
 #include "ProcessPanelId.hpp"
-#include <Scenario/Document/BaseElement/ProcessFocusManager.hpp>
-#include <Scenario/Document/BaseElement/Widgets/DoubleSlider.hpp>
 
 ProcessPanelPresenter::ProcessPanelPresenter(
         const DynamicProcessList& plist,

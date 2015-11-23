@@ -1,31 +1,15 @@
 #include "AutomationElement.hpp"
 
 #include <API/Headers/Editor/Automation.h>
-#include <API/Headers/Editor/State.h>
 #include <API/Headers/Editor/Message.h>
-#include <API/Headers/Editor/Value.h>
 #include <Automation/AutomationModel.hpp>
 #include "iscore2OSSIA.hpp"
 
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include "Protocols/OSSIADevice.hpp"
 #include "ConstraintElement.hpp"
-
-#include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
-#include <Curve/Segment/Power/PowerCurveSegmentModel.hpp>
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include "iscore2OSSIA.hpp"
-#include "Protocols/OSSIADevice.hpp"
-#include <API/Headers/Editor/Curve.h>
-#include <API/Headers/Editor/CurveSegment/CurveSegmentLinear.h>
-#include <API/Headers/Editor/CurveSegment/CurveSegmentPower.h>
 
 
 

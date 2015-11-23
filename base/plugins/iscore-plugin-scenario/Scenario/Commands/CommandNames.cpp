@@ -1,6 +1,5 @@
-#include <iscore_plugin_scenario_commands_files.hpp>
-#include <iscore/command/CommandGeneratorMap.hpp>
 #include <Scenario/iscore_plugin_scenario.hpp>
+#include <iscore_plugin_scenario_commands_files.hpp>
 
 std::pair<const CommandParentFactoryKey, CommandGeneratorMap> iscore_plugin_scenario::make_commands()
 {

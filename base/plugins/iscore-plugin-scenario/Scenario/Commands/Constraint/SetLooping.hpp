@@ -6,7 +6,7 @@
 class ConstraintModel;
 class SetLooping final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "SetLooping")
+        ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SetLooping, "Change looping status")
 
     public:
 

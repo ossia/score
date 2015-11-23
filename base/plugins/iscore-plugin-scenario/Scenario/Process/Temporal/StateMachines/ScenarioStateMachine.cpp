@@ -1,15 +1,10 @@
 #include "ScenarioStateMachine.hpp"
-#include <iscore/statemachine/StateMachineTools.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioLayerModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
-#include <core/document/Document.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <QSignalTransition>
 #include <core/application/Application.hpp>
 
 namespace Scenario

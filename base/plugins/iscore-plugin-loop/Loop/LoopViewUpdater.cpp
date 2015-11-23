@@ -5,17 +5,11 @@
 #include <Loop/LoopProcessModel.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintView.hpp>
-#include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ViewModels/Temporal/TemporalConstraintViewModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
 #include <Scenario/Document/TimeNode/TimeNodeView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
 
 LoopViewUpdater::LoopViewUpdater(LoopPresenter& presenter):
     m_presenter{presenter}

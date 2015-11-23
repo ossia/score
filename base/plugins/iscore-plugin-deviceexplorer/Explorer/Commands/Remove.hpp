@@ -11,9 +11,10 @@ namespace DeviceExplorer
 {
 namespace Command
 {
+// TODO split this command.
 class Remove final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove")
+        ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
         public:
 
           Remove(

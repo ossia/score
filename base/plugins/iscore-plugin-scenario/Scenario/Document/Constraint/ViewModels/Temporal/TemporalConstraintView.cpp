@@ -4,18 +4,13 @@
 #include "TemporalConstraintPresenter.hpp"
 #include "TemporalConstraintHeader.hpp"
 #include <Scenario/Document/Constraint/Rack/RackPresenter.hpp>
-#include <Scenario/Document/Constraint/Rack/RackView.hpp>
-#include <Scenario/Document/State/StateView.hpp>
 #include <Process/Style/ProcessFonts.hpp>
-#include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <thread>
-#include <chrono>
 TemporalConstraintView::TemporalConstraintView(TemporalConstraintPresenter &presenter,
                                                QGraphicsObject* parent) :
     ConstraintView {presenter, parent},

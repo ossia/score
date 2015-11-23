@@ -1,5 +1,4 @@
 #include "DeviceNode.hpp"
-#include <boost/range/algorithm/find_if.hpp>
 
 namespace iscore
 {

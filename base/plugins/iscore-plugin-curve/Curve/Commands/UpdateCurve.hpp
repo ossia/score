@@ -8,7 +8,7 @@ class CurveSegmentModel;
 
 class UpdateCurve final : public iscore::SerializableCommand
 {
-        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), UpdateCurve, "UpdateCurve")
+        ISCORE_COMMAND_DECL(CurveCommandFactoryName(), UpdateCurve, "Update Curve")
     public:
         UpdateCurve(
           Path<CurveModel>&& model,

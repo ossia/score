@@ -21,17 +21,13 @@
 #include <Explorer/Widgets/DeviceExplorerMenuButton.hpp>
 
 #include <QLabel>
-#include <QLineEdit>
-#include <QLayout>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QFormLayout>
-#include <QCompleter>
 
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <iscore/widgets/MarginLess.hpp>
-#include <iscore/document/DocumentInterface.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 

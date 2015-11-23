@@ -42,11 +42,8 @@ const LoopProcessModel& LoopLayer::model() const
     return static_cast<const LoopProcessModel&>(processModel());
 }
 
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
 
 #include <Scenario/Document/Constraint/ViewModels/ConstraintViewModelSerialization.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
 void LoopLayer::serialize(
         const VisitorVariant& vis) const
 {

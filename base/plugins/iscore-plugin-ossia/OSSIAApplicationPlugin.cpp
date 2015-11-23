@@ -1,27 +1,20 @@
 #include "OSSIAApplicationPlugin.hpp"
-/*
-#include "DocumentPlugin/OSSIADocumentPlugin.hpp"
-#include "DocumentPlugin/OSSIABaseScenarioElement.hpp"
-*/
+
 #include <RecreateOnPlayDocumentPlugin/DocumentPlugin.hpp>
 #include <RecreateOnPlayDocumentPlugin/BaseScenarioElement.hpp>
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <API/Headers/Network/Device.h>
-#include <API/Headers/Network/Node.h>
 #include <API/Headers/Network/Protocol/Local.h>
 
 #include <API/Headers/Editor/TimeEvent.h>
 #include <API/Headers/Editor/TimeConstraint.h>
 #include <API/Headers/Editor/TimeProcess.h>
-#include <API/Headers/Editor/Expression.h>
 #include <API/Headers/Editor/ExpressionNot.h>
 #include <API/Headers/Editor/ExpressionAtom.h>
 #include <API/Headers/Editor/ExpressionComposition.h>
-#include <API/Headers/Editor/Value.h>
 
 #include <Network/Protocol/OSC.h>
 #if defined(__APPLE__) && defined(ISCORE_DEPLOYMENT_BUILD)

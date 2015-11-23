@@ -14,7 +14,7 @@
  */
 class RemoveAddress final : public iscore::SerializableCommand
 {
-    ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "RemoveAddress")
+    ISCORE_COMMAND_DECL(DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
     public:
         RemoveAddress(
                    Path<DeviceDocumentPlugin>&& device_tree,

@@ -6,21 +6,14 @@
 #include <Scenario/Inspector/Constraint/Widgets/Rack/RackInspectorSection.hpp>
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Rack/Slot/SlotModel.hpp>
 
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
 
-#include <Process/LayerModel.hpp>
-#include <Process/Process.hpp>
 
 #include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/RemoveLayerModelFromSlot.hpp>
 
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-
-#include <iscore/document/DocumentInterface.hpp>
-#include <core/document/Document.hpp>
 
 #include <QPushButton>
 #include <QLabel>

@@ -16,7 +16,7 @@ namespace Scenario
     {
     class AddTrigger final : public iscore::SerializableCommand
     {
-            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddTrigger, "AddTrigger")
+            ISCORE_COMMAND_DECL(ScenarioCommandFactoryName(), AddTrigger, "Add a trigger")
         public:
             AddTrigger(Path<TimeNodeModel>&& timeNodePath);
             ~AddTrigger();
